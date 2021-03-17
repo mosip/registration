@@ -2,6 +2,7 @@ package io.mosip.registration.processor.stages.utils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,25 +26,24 @@ import io.mosip.kernel.core.cbeffutil.jaxbclasses.QualityType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.RegistryIDType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 @Component
-public class XSDValidation {
+public class BiometricsXSDValidator {
 
     @Value("${mosip.kernel.xsdstorage-uri}")
     private String configServerFileStorageURL;
     
     @Value("${mosip.kernel.xsdfile}")
-    private String schemaName;
+    private String schemaFileName;
     
-    public boolean validateXSD(BiometricRecord biometricRecord ) throws IOException, Exception {
-    	try (InputStream xsd = new URL(configServerFileStorageURL + schemaName).openStream()) {
+    public boolean validateXSD(BiometricRecord biometricRecord ) throws Exception  {
+    	try (InputStream xsd = new URL(configServerFileStorageURL + schemaFileName).openStream()) {
             CbeffContainerImpl cbeffContainer = new CbeffContainerImpl();
             List<BIR> birList = new ArrayList<>();
             biometricRecord.getSegments().forEach(s -> birList.add(convertToBIR(s)));
             BIRType bir = cbeffContainer.createBIRType(birList);
-            return CbeffValidator.createXMLBytes(bir, IOUtils.toByteArray(xsd))!=null;//validates XSD 
+            CbeffValidator.createXMLBytes(bir, IOUtils.toByteArray(xsd));//validates XSD 
+            return true; 
         }
-    }
-    
-    
+    } 
 
 	public  BIR convertToBIR(io.mosip.kernel.biometrics.entities.BIR bir) {
         List<SingleType> bioTypes = new ArrayList<>();

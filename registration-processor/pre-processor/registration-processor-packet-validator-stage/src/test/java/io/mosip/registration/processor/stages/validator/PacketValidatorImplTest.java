@@ -33,10 +33,12 @@ import org.springframework.test.context.TestPropertySource;
 
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.core.cbeffutil.exception.CbeffException;
 import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.constant.PacketFiles;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.PacketValidatorException;
@@ -59,7 +61,7 @@ import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.stages.utils.ApplicantDocumentValidation;
 import io.mosip.registration.processor.stages.utils.MandatoryValidation;
 import io.mosip.registration.processor.stages.utils.MasterDataValidation;
-import io.mosip.registration.processor.stages.utils.XSDValidation;
+import io.mosip.registration.processor.stages.utils.BiometricsXSDValidator;
 import io.mosip.registration.processor.stages.validator.impl.PacketValidatorImpl;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
@@ -87,7 +89,7 @@ public class PacketValidatorImplTest {
 	private MasterDataValidation masterDataValidation;
 	
 	@Mock
-	private XSDValidation xsdValidation;
+	private BiometricsXSDValidator biometricsXSDValidator;
 	
 	@Mock
 	private Environment env;
@@ -249,6 +251,8 @@ public class PacketValidatorImplTest {
         BiometricRecord biometricRecord = new BiometricRecord();
         BIR bir = new BIR.BIRBuilder().build();
         biometricRecord.setSegments(Lists.newArrayList(bir,bir));
+        when(packetManagerService.getField(any(), any(), any(), any())).thenReturn("biometricsField");
+        when(biometricsXSDValidator.validateXSD(any())).thenReturn(true);
         when(packetManagerService.getBiometricsByMappingJsonKey(anyString(),any(), any(), any())).thenReturn(biometricRecord);
         when(applicantDocumentValidation.validateDocument(any(), any())).thenReturn(true);
 	}
@@ -306,10 +310,10 @@ public class PacketValidatorImplTest {
 		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
 	
-	@Test
-	public void testXsdValidationFailure() throws Exception {
-		when(xsdValidation.validateXSD(any())).thenReturn(false);
-		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
+	@Test(expected=RegistrationProcessorCheckedException.class)
+	public void TestBiometricsXSDValidatonFailure() throws Exception {
+		when(biometricsXSDValidator.validateXSD(any())).thenThrow(new Exception("XSD validation failed ."));
+		PacketValidator.validate("123456789", "NEW", packetValidationDto);
 	}
 	
 	@Test

@@ -40,22 +40,23 @@ import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.entities.RegistryIDType;
 import io.mosip.kernel.biometrics.entities.VersionType;
 import io.mosip.kernel.core.cbeffutil.common.CbeffValidator;
+import io.mosip.kernel.core.cbeffutil.exception.CbeffException;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
-@PrepareForTest({ Utilities.class, JsonUtil.class, IOUtils.class,CbeffValidator.class })
-public class XSDValidationTest {
+@PrepareForTest({ Utilities.class, JsonUtil.class, IOUtils.class,CbeffValidator.class ,URL.class,BiometricsXSDValidator.class})
+public class BiometricsXSDValidatorTest {
 	
 	@InjectMocks
-	private XSDValidation xsdValidation = new XSDValidation();
+	private BiometricsXSDValidator biometricsXSDValidator = new BiometricsXSDValidator();
 	BiometricRecord biometricRecord = new BiometricRecord();
 	@Before
 	public void setUp() throws Exception {
 		
-        ReflectionTestUtils.setField(xsdValidation, "configServerFileStorageURL", "http://localhost:51000/config/registration-processor/mz/master/");
-        ReflectionTestUtils.setField(xsdValidation, "schemaName", "mosip-cbeff.xsd");
+        ReflectionTestUtils.setField(biometricsXSDValidator, "configServerFileStorageURL", "http://localhost:51000/config/registration-processor/mz/master/");
+        ReflectionTestUtils.setField(biometricsXSDValidator, "schemaFileName", "mosip-cbeff.xsd");
         ClassLoader classLoader = getClass().getClassLoader();
 		File xsdFile = new File(classLoader.getResource("mosip-cbeff.xsd").getFile());
 		InputStream xsd = new FileInputStream(xsdFile);
@@ -104,12 +105,12 @@ public class XSDValidationTest {
 	
 	@Test
 	public void TestvalidateXSD() throws IOException, Exception {
-		assertTrue(xsdValidation.validateXSD(biometricRecord));
+		assertTrue(biometricsXSDValidator.validateXSD(biometricRecord));
 	}
 	
-	@Test
+	@Test(expected=CbeffException.class)
 	public void TestvalidateXSDFailure() throws IOException, Exception {
-		 PowerMockito.when(CbeffValidator.createXMLBytes(Mockito.any(), Mockito.any())).thenReturn(null);			
-		assertFalse(xsdValidation.validateXSD(biometricRecord));
+		 PowerMockito.when(CbeffValidator.createXMLBytes(Mockito.any(), Mockito.any())).thenThrow(new CbeffException("XSD validation failed ."));			
+		assertFalse(biometricsXSDValidator.validateXSD(biometricRecord));
 	}
 }
