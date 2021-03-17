@@ -69,7 +69,7 @@ jobs:
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
           cd "./$SERVICE_LOCATION"
-          docker build . --file Dockerfile --tag $SERVICE_NAME --build-arg stage_group_jar_name=$SERVICE_NAME --build-arg stage_group_name=$SERVICE_NAME
+          docker build . --file Dockerfile --tag $SERVICE_NAME
       env:
         SERVICE_NAME: stage-group-1
         SERVICE_LOCATION: registration-processor/stage-groups/stage-group-1
