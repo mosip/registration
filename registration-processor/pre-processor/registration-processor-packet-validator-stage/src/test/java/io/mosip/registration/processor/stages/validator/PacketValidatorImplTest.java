@@ -252,7 +252,7 @@ public class PacketValidatorImplTest {
         BIR bir = new BIR.BIRBuilder().build();
         biometricRecord.setSegments(Lists.newArrayList(bir,bir));
         when(packetManagerService.getField(any(), any(), any(), any())).thenReturn("biometricsField");
-        when(biometricsXSDValidator.validateXSD(any())).thenReturn(true);
+        when(biometricsXSDValidator.validateXSD(any(),any())).thenReturn(true);
         when(packetManagerService.getBiometricsByMappingJsonKey(anyString(),any(), any(), any())).thenReturn(biometricRecord);
         when(applicantDocumentValidation.validateDocument(any(), any())).thenReturn(true);
 	}
@@ -311,9 +311,15 @@ public class PacketValidatorImplTest {
 	}
 	
 	@Test(expected=RegistrationProcessorCheckedException.class)
-	public void testBiometricsXSDValidatonFailure() throws Exception {
-		when(biometricsXSDValidator.validateXSD(any())).thenThrow(new Exception("XSD validation failed ."));
+	public void testBiometricsXSDValidatonException() throws Exception {
+		when(biometricsXSDValidator.validateXSD(any(),any())).thenThrow(new Exception("IO Exception occurred"));
 		PacketValidator.validate("123456789", "NEW", packetValidationDto);
+	}
+	
+	@Test
+	public void testBiometricsXSDValidatonFailure() throws Exception {
+		when(biometricsXSDValidator.validateXSD(any(),any())).thenReturn(false);
+		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
 	
 	@Test

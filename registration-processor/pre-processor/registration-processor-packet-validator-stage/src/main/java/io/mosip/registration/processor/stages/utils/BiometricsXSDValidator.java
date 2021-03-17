@@ -19,12 +19,15 @@ import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
 import io.mosip.kernel.core.cbeffutil.entity.BIR;
 import io.mosip.kernel.core.cbeffutil.entity.BIRInfo;
 import io.mosip.kernel.core.cbeffutil.entity.BIRVersion;
+import io.mosip.kernel.core.cbeffutil.exception.CbeffException;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.ProcessedLevelType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.PurposeType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.QualityType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.RegistryIDType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
+import io.mosip.registration.processor.core.packet.dto.packetvalidator.PacketValidationDto;
+import io.mosip.registration.processor.core.status.util.StatusUtil;
 @Component
 public class BiometricsXSDValidator {
 
@@ -34,13 +37,19 @@ public class BiometricsXSDValidator {
     @Value("${mosip.kernel.xsdfile}")
     private String schemaFileName;
     
-    public boolean validateXSD(BiometricRecord biometricRecord ) throws Exception  {
+    public boolean validateXSD(BiometricRecord biometricRecord, PacketValidationDto packetValidationDto ) throws Exception  {
     	try (InputStream xsd = new URL(configServerFileStorageURL + schemaFileName).openStream()) {
             CbeffContainerImpl cbeffContainer = new CbeffContainerImpl();
             List<BIR> birList = new ArrayList<>();
             biometricRecord.getSegments().forEach(s -> birList.add(convertToBIR(s)));
             BIRType bir = cbeffContainer.createBIRType(birList);
+            try{
             CbeffValidator.createXMLBytes(bir, IOUtils.toByteArray(xsd));//validates XSD 
+            }catch(CbeffException e) {
+            	packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.XSD_VALIDATION_EXCEPTION.getMessage()+e.getMessage());
+                packetValidationDto.setPacketValidatonStatusCode(StatusUtil.XSD_VALIDATION_EXCEPTION.getCode());
+                return false;
+            }
             return true; 
         }
     } 

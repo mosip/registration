@@ -160,8 +160,6 @@ public class PacketValidatorImpl implements PacketValidator {
             if ( !biometricsXSDValidation(id, process, packetValidationDto)) {
                 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                         id, "ERROR =======> " + StatusUtil.XSD_VALIDATION_EXCEPTION.getMessage());
-                packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.XSD_VALIDATION_EXCEPTION.getMessage());
-                packetValidationDto.setPacketValidatonStatusCode(StatusUtil.XSD_VALIDATION_EXCEPTION.getCode());
                 return false;
             }
         } catch (PacketManagerException e) {
@@ -184,7 +182,9 @@ public class PacketValidatorImpl implements PacketValidator {
     			try {
     	            BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(
     	                    id, field, process, ProviderStageName.PACKET_VALIDATOR);
-    	            biometricsXSDValidator.validateXSD(biometricRecord); 
+    	            if(!biometricsXSDValidator.validateXSD(biometricRecord,packetValidationDto)) {
+    	            	return false;
+    	            }
     	             } catch (Exception e) {     	 
     	            throw new RegistrationProcessorCheckedException(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode(),
     	                    PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), e);
