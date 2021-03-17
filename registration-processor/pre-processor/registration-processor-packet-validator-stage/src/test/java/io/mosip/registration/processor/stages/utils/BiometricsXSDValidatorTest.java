@@ -115,4 +115,13 @@ public class BiometricsXSDValidatorTest {
 		 PowerMockito.when(CbeffValidator.createXMLBytes(Mockito.any(), Mockito.any())).thenThrow(new CbeffException("XSD validation failed ."));			
 		assertFalse(biometricsXSDValidator.validateXSD(biometricRecord,packetValidationDto));
 	}
+	
+	@Test(expected=IOException.class)
+	public void testvalidateXSDEception() throws IOException, Exception {
+		URL u = PowerMockito.mock(URL.class);
+        String url = "http://localhost:51000/config/registration-processor/mz/master/mosip-cbeff.xsd";
+        PowerMockito.whenNew(URL.class).withArguments(url).thenReturn(u);
+        PowerMockito.when(u.openStream()).thenThrow(IOException.class);
+        biometricsXSDValidator.validateXSD(biometricRecord,packetValidationDto);
+	}
 }
