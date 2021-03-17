@@ -1033,8 +1033,16 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 						String modality = isFace(currentModality) || isExceptionPhoto(currentModality)
 								? RegistrationConstants.FACE_FULLFACE : currentModality;
-						return deviceSpecificationFactory.isDeviceAvailable(modality) ? deviceSpecificationFactory
-								.getDeviceInfoByModality(modality) : null;
+						
+					    MdmBioDevice bioDevice =deviceSpecificationFactory.getDeviceInfoByModality(modality);
+					    
+					    if (deviceSpecificationFactory.isDeviceAvailable(bioDevice)) {
+                            return bioDevice;
+                        } else {
+                            throw new RegBaseCheckedException(
+                                    RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorCode(),
+                                    RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorMessage());
+                        }
 
 					}
 				};

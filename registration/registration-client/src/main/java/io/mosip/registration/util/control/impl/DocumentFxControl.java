@@ -58,7 +58,7 @@ public class DocumentFxControl extends FxControl {
 
 	private MasterSyncService masterSyncService;
 
-	private String TICK_MARK_ID = "tickMark";
+	private String PREVIEW_ICON = "previewIcon";
 
 	private String CLEAR_ID = "clear";
 
@@ -82,17 +82,24 @@ public class DocumentFxControl extends FxControl {
 		// REF-FIELD
 		hBox.getChildren().add(createDocRef(uiSchemaDTO.getId()));
 
+		// CLEAR IMAGE
+		GridPane tickMarkGridPane = getImageGridPane(PREVIEW_ICON, RegistrationConstants.DOC_PREVIEW_ICON);
+		tickMarkGridPane.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
+			
+			scanDocument((ComboBox<DocumentCategoryDto>)getField(uiSchemaDTO.getId()), uiSchemaDTO.getSubType(), true);
+
+		});
 		// TICK-MARK
-		hBox.getChildren().add(getImageGridPane(TICK_MARK_ID, RegistrationConstants.DONE_IMAGE_PATH));
+		hBox.getChildren().add(tickMarkGridPane);
 
 		// CLEAR IMAGE
 		GridPane clearGridPane = getImageGridPane(CLEAR_ID, RegistrationConstants.CLOSE_IMAGE_PATH);
 		clearGridPane.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
 			getRegistrationDTo().getDocuments().remove(this.uiSchemaDTO.getId());
-			getField(uiSchemaDTO.getId() + TICK_MARK_ID).setVisible(false);
+			getField(uiSchemaDTO.getId() + PREVIEW_ICON).setVisible(false);
 			getField(uiSchemaDTO.getId() + CLEAR_ID).setVisible(false);
-			getField(uiSchemaDTO.getId() + TICK_MARK_ID).setManaged(false);
-			getField(uiSchemaDTO.getId() + CLEAR_ID).setManaged(false);
+			getField(uiSchemaDTO.getId() + PREVIEW_ICON).setManaged(true);
+			getField(uiSchemaDTO.getId() + CLEAR_ID).setManaged(true);
 		});
 		hBox.getChildren().add(clearGridPane);
 
@@ -157,10 +164,13 @@ public class DocumentFxControl extends FxControl {
 		return scanButtonGridPane;
 	}
 
-	private void scanDocument(ComboBox<DocumentCategoryDto> comboBox, String subType) {
+	private void scanDocument(ComboBox<DocumentCategoryDto> comboBox, String subType, boolean isPreviewOnly) {
 
 		if (isValid()) {
-			documentScanController.scanDocument(this, uiSchemaDTO.getId(), comboBox.getValue().getCode());
+
+			documentScanController.setFxControl(control);
+			documentScanController.scanDocument(this, uiSchemaDTO.getId(), comboBox.getValue().getCode(),
+					isPreviewOnly);
 
 		} else {
 			documentScanController.generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.PLEASE_SELECT
@@ -246,7 +256,7 @@ public class DocumentFxControl extends FxControl {
 
 			if (data == null) {
 
-				getField(uiSchemaDTO.getId() + TICK_MARK_ID).setVisible(false);
+				getField(uiSchemaDTO.getId() + PREVIEW_ICON).setVisible(false);
 				getField(uiSchemaDTO.getId() + CLEAR_ID).setVisible(false);
 			} else {
 				List<BufferedImage> bufferedImages = (List<BufferedImage>) data;
@@ -306,8 +316,12 @@ public class DocumentFxControl extends FxControl {
 						documentScanController.getRegistrationDTOFromSession().addDocument(uiSchemaDTO.getId(),
 								documentDto);
 
-						getField(uiSchemaDTO.getId() + TICK_MARK_ID).setVisible(true);
+						getField(uiSchemaDTO.getId() + PREVIEW_ICON).setVisible(true);
 						getField(uiSchemaDTO.getId() + CLEAR_ID).setVisible(true);
+						
+
+						getField(uiSchemaDTO.getId() + PREVIEW_ICON).setManaged(true);
+						getField(uiSchemaDTO.getId() + CLEAR_ID).setManaged(true);
 					}
 				}
 			}
@@ -317,7 +331,7 @@ public class DocumentFxControl extends FxControl {
 					RegistrationConstants.APPLICATION_ID,
 					"Unable to parse the buffered images to byte array " + regBaseCheckedException.getMessage()
 							+ ExceptionUtils.getStackTrace(regBaseCheckedException));
-			getField(uiSchemaDTO.getId() + TICK_MARK_ID).setVisible(false);
+			getField(uiSchemaDTO.getId() + PREVIEW_ICON).setVisible(false);
 			getField(uiSchemaDTO.getId() + CLEAR_ID).setVisible(false);
 			documentScanController.generateAlert(RegistrationConstants.ERROR,
 					RegistrationUIConstants.UNABLE_LOAD_REG_PAGE);
@@ -379,9 +393,8 @@ public class DocumentFxControl extends FxControl {
 				clickedBtn.getId();
 				// TODO Check the scan option
 
-				documentScanController.setFxControl(control);
-//				documentScanController.scanWindow();
-				scanDocument((ComboBox<DocumentCategoryDto>) getField(uiSchemaDTO.getId()), uiSchemaDTO.getSubType());
+				scanDocument((ComboBox<DocumentCategoryDto>) getField(uiSchemaDTO.getId()), uiSchemaDTO.getSubType(),
+						false);
 
 			}
 
@@ -477,7 +490,7 @@ public class DocumentFxControl extends FxControl {
 
 			textField.setText(documentDto.getRefNumber());
 
-			getField(uiSchemaDTO.getId() + TICK_MARK_ID).setVisible(true);
+			getField(uiSchemaDTO.getId() + PREVIEW_ICON).setVisible(true);
 			getField(uiSchemaDTO.getId() + CLEAR_ID).setVisible(true);
 		}
 	}

@@ -115,11 +115,6 @@ public class MosipDeviceSpecification_092_ProviderImpl implements MosipDeviceSpe
 
 		try {
 
-			if (!isDeviceAvailable(bioDevice)) {
-				throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorCode(),
-						RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorMessage());
-			}
-
 			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Started Strema for modality : " + modality);
 			String url = mosipDeviceSpecificationHelper.buildUrl(bioDevice.getPort(),
 					MosipBioDeviceConstants.STREAM_ENDPOINT);

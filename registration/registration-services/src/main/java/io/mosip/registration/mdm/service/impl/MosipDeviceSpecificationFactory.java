@@ -205,8 +205,9 @@ public class MosipDeviceSpecificationFactory {
 					for (MdmBioDevice bioDevice : mdmBioDevices) {
 						if (bioDevice != null) {
 							// Add to Device Info Map
-							addToDeviceInfoMap(getDeviceType(bioDevice.getDeviceType()).toLowerCase(),
-									getDeviceSubType(bioDevice.getDeviceSubType()), bioDevice);
+							addToDeviceInfoMap(getKey(getDeviceType(bioDevice.getDeviceType())
+									, getDeviceSubType(bioDevice.getDeviceSubType()))
+									, bioDevice);
 						}
 					}
 				}
@@ -249,11 +250,14 @@ public class MosipDeviceSpecificationFactory {
 		}
 	}
 
-	private void addToDeviceInfoMap(String type, String subType, MdmBioDevice bioDevice) {
-		String key = String.format("%s_%s", type.toLowerCase(), subType.toLowerCase());
+	private void addToDeviceInfoMap(String key, MdmBioDevice bioDevice) {
 		deviceInfoMap.put(key, bioDevice);
 		LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 				"Added for device into cache : " + bioDevice.getDeviceCode());
+	}
+	
+	private String getKey(String type, String subType) {
+		return String.format("%s_%s", type.toLowerCase(), subType.toLowerCase());
 	}
 
 	private String getDeviceType(String type) {
@@ -334,8 +338,7 @@ public class MosipDeviceSpecificationFactory {
 
 	public MdmBioDevice getDeviceInfoByModality(String modality) throws RegBaseCheckedException {
 
-		String key = String.format("%s_%s", getDeviceType(modality).toLowerCase(),
-				getDeviceSubType(modality).toLowerCase());
+		String key = getKey(getDeviceType(modality), getDeviceSubType(modality));
 
 		if (deviceInfoMap.containsKey(key))
 			return deviceInfoMap.get(key);
@@ -351,21 +354,30 @@ public class MosipDeviceSpecificationFactory {
 
 	public boolean isDeviceAvailable(String modality) throws RegBaseCheckedException {
 
-		String key = String.format("%s_%s", getDeviceType(modality).toLowerCase(),
-				getDeviceSubType(modality).toLowerCase());
-		MdmBioDevice bioDevice = deviceInfoMap.get(key);
-
-		if(bioDevice != null) {
-			Optional<MosipDeviceSpecificationProvider> result = deviceSpecificationProviders.stream().filter(provider ->
-					provider.getSpecVersion().equalsIgnoreCase(bioDevice.getSpecVersion()) && provider.isDeviceAvailable(bioDevice)).findFirst();
-			return result.isPresent();
-		}
-
-		throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_PROVIDER_NOT_FOUND.getErrorCode(),
-				RegistrationExceptionConstants.MDS_PROVIDER_NOT_FOUND.getErrorMessage());
+		return isDeviceAvailable(getDeviceInfoByModality(modality));
 
 	}
 
+	public boolean isDeviceAvailable(MdmBioDevice bioDevice) throws RegBaseCheckedException {
+
+		if (bioDevice == null) {
+			throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorCode(),
+					RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorMessage());
+		}
+
+		Optional<MosipDeviceSpecificationProvider> result = deviceSpecificationProviders.stream()
+				.filter(provider -> provider.getSpecVersion().equalsIgnoreCase(bioDevice.getSpecVersion())
+						&& provider.isDeviceAvailable(bioDevice))
+				.findFirst();
+		if(!result.isPresent()) {
+			deviceInfoMap.remove(getKey(getDeviceType(bioDevice.getDeviceType()), getDeviceSubType(bioDevice.getDeviceSubType())));
+			init();
+			return false;
+		}
+		
+		return true;
+
+	}
 	private String getLatestVersion(String version1, String version2) {
 
 		if (version1.equalsIgnoreCase(version2)) {
