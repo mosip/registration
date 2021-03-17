@@ -11,6 +11,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
+import org.springframework.util.CollectionUtils;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
@@ -26,6 +27,7 @@ import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCo
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.RegistrationType;
+import io.mosip.registration.processor.core.exception.WorkflowActionException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
@@ -44,7 +46,6 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
-import org.springframework.util.CollectionUtils;
 
 /**
  * The Reprocessor Stage to deploy the scheduler and implement re-processing
@@ -68,7 +69,7 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 	/** The environment. */
 	@Autowired
 	Environment environment;
-	
+
 	@Autowired
 	WorkflowActionService workflowActionService;
 
@@ -224,7 +225,7 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 				"ReprocessorStage::process()::entry");
 		try {
 			 processResumablePackets();
-			
+
 			reprocessorDtoList = registrationStatusService.getUnProcessedPackets(fetchSize, elapseTime, reprocessCount,
 					statusList);
 
@@ -297,7 +298,15 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 					description.getCode() + " -- " + registrationId,
 					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e.toString());
 
-		} catch (Exception ex) {
+		} catch (WorkflowActionException e) {
+			isTransactionSuccessful = false;
+			object.setInternalError(Boolean.TRUE);
+			description.setMessage(e.getMessage());
+			description.setCode(e.getErrorCode());
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+					description.getCode() + " -- " + registrationId,
+					e.getMessage(), e.toString());
+		}catch (Exception ex) {
 			isTransactionSuccessful = false;
 			description.setMessage(PlatformErrorMessages.REPROCESSOR_STAGE_FAILED.getMessage());
 			description.setCode(PlatformErrorMessages.REPROCESSOR_STAGE_FAILED.getCode());
@@ -327,8 +336,8 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 
 		return object;
 	}
-	
-	public void processResumablePackets(){
+
+	public void processResumablePackets() throws WorkflowActionException {
 		List<InternalRegistrationStatusDto> resumableDtoList = registrationStatusService.getResumablePackets(fetchSize);
 		Map<String,List<String>> defaultResumeActionPacketIdsMap=new HashMap<>();
 		for(InternalRegistrationStatusDto dto:resumableDtoList) {
@@ -342,10 +351,10 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 				}
 		}
 		for(Entry<String,List<String>> entry:defaultResumeActionPacketIdsMap.entrySet()) {
-			
-				workflowActionService.processWorkflowAction(entry.getValue(), entry.getKey(), this.mosipEventBus);
-			
+
+			workflowActionService.processWorkflowAction(entry.getValue(), entry.getKey());
+
 		}
-		
+
 	}
 }

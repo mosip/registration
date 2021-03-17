@@ -3,9 +3,9 @@ package io.mosip.registration.processor.reprocessor.stage;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
@@ -19,7 +19,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
@@ -33,6 +32,7 @@ import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.core.exception.WorkflowActionException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
@@ -127,7 +127,8 @@ public class ReprocessorStageTest {
 	}
 
 	@Test
-	public void testProcessValid() throws TablenotAccessibleException, PacketManagerException, ApisResourceAccessException {
+	public void testProcessValid() throws TablenotAccessibleException, PacketManagerException,
+			ApisResourceAccessException, WorkflowActionException {
 
 		List<InternalRegistrationStatusDto> dtolist = new ArrayList<>();
 		List<InternalRegistrationStatusDto> resumableDtoList  = new ArrayList<>();
@@ -154,13 +155,14 @@ public class ReprocessorStageTest {
 		Mockito.when(registrationStatusService.getUnProcessedPackets(anyInt(), anyLong(), anyInt(), anyList()))
 				.thenReturn(dtolist);
 		
-		Mockito.doNothing().when(workflowActionService).processWorkflowAction(anyList(), Mockito.anyString(), Mockito.any(MosipEventBus.class));
+		Mockito.doNothing().when(workflowActionService).processWorkflowAction(anyList(), Mockito.anyString());
 		dto = reprocessorStage.process(dto);
 		assertTrue(dto.getIsValid());
 	}
 
 	@Test
-	public void testProcessFailure() throws TablenotAccessibleException, PacketManagerException, ApisResourceAccessException {
+	public void testProcessFailure() throws TablenotAccessibleException, PacketManagerException,
+			ApisResourceAccessException, WorkflowActionException {
 
 		List<InternalRegistrationStatusDto> dtolist = new ArrayList<>();
 		List<InternalRegistrationStatusDto> resumableDtoList  = new ArrayList<>();
@@ -187,7 +189,7 @@ public class ReprocessorStageTest {
 		Mockito.when(registrationStatusService.getUnProcessedPackets(anyInt(), anyLong(), anyInt(), anyList()))
 				.thenReturn(dtolist);
 		
-		Mockito.doNothing().when(workflowActionService).processWorkflowAction(anyList(), Mockito.anyString(), Mockito.any(MosipEventBus.class));
+		Mockito.doNothing().when(workflowActionService).processWorkflowAction(anyList(), Mockito.anyString());
 		dto = reprocessorStage.process(dto);
 		assertFalse(dto.getIsValid());
 	}

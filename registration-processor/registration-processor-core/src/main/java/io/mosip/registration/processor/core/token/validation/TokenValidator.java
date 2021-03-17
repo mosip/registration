@@ -11,9 +11,6 @@ import java.net.URLConnection;
 
 import javax.net.ssl.HttpsURLConnection;
 
-import io.mosip.registration.processor.core.tracing.ContextualData;
-import io.mosip.registration.processor.core.tracing.TracingConstant;
-import io.vertx.ext.web.RoutingContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -27,6 +24,8 @@ import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.token.validation.dto.TokenResponseDTO;
 import io.mosip.registration.processor.core.token.validation.exception.AccessDeniedException;
 import io.mosip.registration.processor.core.token.validation.exception.InvalidTokenException;
+import io.mosip.registration.processor.core.tracing.ContextualData;
+import io.mosip.registration.processor.core.tracing.TracingConstant;
 import io.mosip.registration.processor.core.util.JsonUtil;
 
 @Service
@@ -159,6 +158,12 @@ public class TokenValidator {
 			}
 		} else if (url.contains("requesthandler")) {
 			for (String assignedRole : APIAuthorityList.REQUESTHANDLER.getList()) {
+				if (role.contains(assignedRole))
+					return true;
+			}
+		}
+		else if (url.contains("workflowaction")) {
+			for (String assignedRole : APIAuthorityList.WORKFLOWACTION.getList()) {
 				if (role.contains(assignedRole))
 					return true;
 			}

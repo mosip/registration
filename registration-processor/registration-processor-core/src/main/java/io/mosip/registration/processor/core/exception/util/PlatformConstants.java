@@ -112,6 +112,11 @@ public final class PlatformConstants {
 	public static final String RPR_MA_MIDDLEWARE = RPR_REGISTRATION_PROCESSOR_PREFIX + "MANUAL-ADJUDICATION-";
 
 	public static final String RPR_WORKFLOW_EVENT_UPDATE = RPR_REGISTRATION_PROCESSOR_PREFIX + "WE-";
+
+	public static final String RPR_WORKFLOW_ACTION_API = RPR_REGISTRATION_PROCESSOR_PREFIX + "WAA-";
+
+	public static final String RPR_WORKFLOW_ACTION_SERVICE = RPR_REGISTRATION_PROCESSOR_PREFIX + "WAS-";
+
 	/**
 	 * Instantiates a new RPR platform error codes.
 	 */
