@@ -518,7 +518,7 @@ public class GenericController extends BaseController {
 			int rowIndex = 0;
 			GridPane gridPane = getScreenGroupGridPane(screenGridPane.getId()+"_col_1", screenGridPane);
 
-			if(screenDTO.isPreRegFetchRequired()) {
+			if(screenDTO.isPreRegFetchRequired() && getRegistrationDTOFromSession().getRegistrationCategory().equalsIgnoreCase(RegistrationConstants.PACKET_TYPE_NEW)) {
 				gridPane.add(getPreRegistrationFetchComponent(), 0, rowIndex++);
 			}
 

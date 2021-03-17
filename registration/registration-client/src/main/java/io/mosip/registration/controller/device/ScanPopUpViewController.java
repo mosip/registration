@@ -241,6 +241,9 @@ public class ScanPopUpViewController extends BaseController {
 			popupStage.initOwner(fXComponents.getStage());
 			popupStage.show();
 
+			if (isDocumentScan && documentScanController.isPreviewOnly()) {
+				setUpPreview();
+			}
 			LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID, "scan screen launched");
 
 			scanningMsg.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -271,6 +274,20 @@ public class ScanPopUpViewController extends BaseController {
 			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_SCAN_POPUP);
 		}
 
+	}
+
+	private void setUpPreview() {
+		saveBtn.setDisable(true);
+		cropButton.setDisable(true);
+		cancelBtn.setDisable(true);
+		captureBtn.setDisable(true);
+
+		streamBtn.setDisable(true);
+		previewBtn.setDisable(false);
+
+		previewOption.setVisible(true);
+
+		preview();
 	}
 
 	/**
@@ -669,7 +686,9 @@ public class ScanPopUpViewController extends BaseController {
 	public void preview() {
 
 		isStreamPaused = true;
-		showPreview(true);
+		if (!documentScanController.isPreviewOnly()) {
+			showPreview(true);
+		}
 
 		scanImage.setImage(SwingFXUtils.toFXImage(
 				documentScanController.getScannedImage(documentScanController.getScannedPages().size() - 1), null));

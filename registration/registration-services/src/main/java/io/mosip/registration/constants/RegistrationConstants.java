@@ -87,6 +87,8 @@ public class RegistrationConstants {
 	// "biometricExceptionFlow";
 	public static final String GUARDIAN_BIOMETRIC = "biometric";
 
+	public static final String DOC_PREVIEW_ICON = "/images/hover.png";
+
 	// css for quality indicator
 	public static final String RETRY_ATTEMPT = "#retryAttempt_";
 	public static final String RETRY_ATTEMPT_ID = "retryAttempt_";

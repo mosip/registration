@@ -179,6 +179,8 @@ public class DocumentScanController extends BaseController {
 
 	private Webcam webcam;
 	private FxControl fxControl;
+	
+	boolean isPreviewOnly;
 
 	public Webcam getWebcam() {
 		return webcam;
@@ -514,9 +516,10 @@ public class DocumentScanController extends BaseController {
 		return scannedPages.get(docPageNumber);
 	}
 
-	public void scanDocument(DocumentFxControl documentFxControl, String fieldId, String docCode) {
+	public void scanDocument(DocumentFxControl documentFxControl, String fieldId, String docCode, boolean isPreviewOnly) {
 
 		this.documentFxControl = documentFxControl;
+		this.isPreviewOnly = isPreviewOnly;
 		Webcam webcam = webcamSarxosServiceImpl.getWebCam(selectedScanDeviceName);
 		if ((selectedScanDeviceName == null || selectedScanDeviceName.isEmpty()) || webcam == null) {
 			documentScanFacade.setStubScannerFactory();
@@ -551,7 +554,10 @@ public class DocumentScanController extends BaseController {
 
 			if (webcam != null) {
 				documentScanFacade.setStubScannerFactory();
-				startStream(webcam);
+				
+				if(!isPreviewOnly) {	
+				    startStream(webcam);
+				}
 			}
 
 		}
@@ -572,5 +578,10 @@ public class DocumentScanController extends BaseController {
 	public void setFxControl(FxControl fxControl) {
 		this.fxControl = fxControl;
 	}
+	
+	public boolean isPreviewOnly() {
+		return isPreviewOnly;
+	}
+
 
 }
