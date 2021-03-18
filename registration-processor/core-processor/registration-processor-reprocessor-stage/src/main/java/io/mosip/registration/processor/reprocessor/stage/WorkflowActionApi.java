@@ -89,7 +89,7 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 
 	@Override
 	public void start() {
-		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), null, null));
+		router.setRoute(this.postUrl(getVertx(), null, null));
 		this.routes(router);
 		this.createServer(router.getRouter(), Integer.parseInt(port));
 	}
