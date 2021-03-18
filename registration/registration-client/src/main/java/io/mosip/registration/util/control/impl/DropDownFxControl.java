@@ -216,8 +216,7 @@ public class DropDownFxControl extends FxControl {
 					Optional<GenericDto> result = getPossibleValues(langCode).stream()
 							.filter(b -> b.getCode().equals(selectedCode)).findFirst();
 					if (result.isPresent()) {
-						SimpleDto simpleDto = new SimpleDto(langCode, result.get().getName());
-
+						
 						toolTipText.add(result.get().getName());
 					}
 				}

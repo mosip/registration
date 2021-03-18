@@ -183,4 +183,12 @@ public interface MasterSyncDao {
 
 	public List<LocationHierarchy> getAllLocationHierarchy(String langCode);
 
+	/**
+	 * @param docCode Document code
+	 * @param langCode LangCode
+	 * @return DocuementType
+	 */
+	DocumentType getDocumentType(String docCode, String langCode);
+	
+	
 }

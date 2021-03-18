@@ -6,6 +6,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -23,8 +24,11 @@ import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.mastersync.DocumentCategoryDto;
 import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.dto.packetmanager.DocumentDto;
+import io.mosip.registration.entity.DocumentCategory;
+import io.mosip.registration.entity.DocumentType;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.sync.MasterSyncService;
+import io.mosip.registration.util.common.ComboBoxAutoComplete;
 import io.mosip.registration.util.control.FxControl;
 import io.mosip.registration.validator.RequiredFieldValidator;
 import javafx.event.ActionEvent;
@@ -85,8 +89,8 @@ public class DocumentFxControl extends FxControl {
 		// CLEAR IMAGE
 		GridPane tickMarkGridPane = getImageGridPane(PREVIEW_ICON, RegistrationConstants.DOC_PREVIEW_ICON);
 		tickMarkGridPane.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
-			
-			scanDocument((ComboBox<DocumentCategoryDto>)getField(uiSchemaDTO.getId()), uiSchemaDTO.getSubType(), true);
+
+			scanDocument((ComboBox<DocumentCategoryDto>) getField(uiSchemaDTO.getId()), uiSchemaDTO.getSubType(), true);
 
 		});
 		// TICK-MARK
@@ -188,18 +192,25 @@ public class DocumentFxControl extends FxControl {
 
 		double prefWidth = simpleTypeVBox.getPrefWidth();
 
-		ResourceBundle rb = ApplicationContext.getInstance().getBundle(
-				getRegistrationDTo().getSelectedLanguagesByApplicant().get(0), RegistrationConstants.LABELS);
+		List<String> labels = new ArrayList<>();
+		getRegistrationDTo().getSelectedLanguagesByApplicant().forEach(lCode -> {
+
+			ResourceBundle rb = ApplicationContext.getInstance().getBundle(lCode, RegistrationConstants.LABELS);
+			labels.add(rb.getString(RegistrationConstants.REF_NUMBER));
+		});
+
+		String titleText = String.join(RegistrationConstants.SLASH, labels);
+		ResourceBundle rb = ApplicationContext.getInstance()
+				.getBundle(getRegistrationDTo().getSelectedLanguagesByApplicant().get(0), RegistrationConstants.LABELS);
 
 		/** Title label */
-		Label fieldTitle = getLabel(id + RegistrationConstants.DOC_TEXT_FIELD + RegistrationConstants.LABEL,
-				rb.getString(RegistrationConstants.REF_NUMBER), RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, false, prefWidth);
+		Label fieldTitle = getLabel(id + RegistrationConstants.DOC_TEXT_FIELD + RegistrationConstants.LABEL, titleText,
+				RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, false, prefWidth);
 
 		simpleTypeVBox.getChildren().add(fieldTitle);
 
 		/** Text Field */
-		TextField textField = getTextField(id + RegistrationConstants.DOC_TEXT_FIELD,
-				rb.getString(RegistrationConstants.REF_NUMBER),
+		TextField textField = getTextField(id + RegistrationConstants.DOC_TEXT_FIELD, titleText,
 				RegistrationConstants.DEMOGRAPHIC_TEXTFIELD, prefWidth, false);
 
 		textField.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -233,7 +244,7 @@ public class DocumentFxControl extends FxControl {
 		getRegistrationDTo().getSelectedLanguagesByApplicant().forEach(lCode -> {
 			labels.add(this.uiSchemaDTO.getLabel().get(lCode));
 		});
-		String titleText = String.join(RegistrationConstants.SLASH, labels)  + getMandatorySuffix(uiSchemaDTO);
+		String titleText = String.join(RegistrationConstants.SLASH, labels) + getMandatorySuffix(uiSchemaDTO);
 
 		/** Title label */
 		Label fieldTitle = getLabel(fieldName + RegistrationConstants.LABEL, titleText,
@@ -245,9 +256,54 @@ public class DocumentFxControl extends FxControl {
 				RegistrationConstants.DEMOGRAPHIC_TEXTFIELD, prefWidth, false);
 		simpleTypeVBox.getChildren().add(comboBox);
 
+		comboBox.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
+
+			if (comboBox.getSelectionModel().getSelectedItem() != null) {
+				List<String> toolTipTextList = new ArrayList<>();
+				String selectedCode = comboBox.getSelectionModel().getSelectedItem().getCode();
+				for (String langCode : getRegistrationDTo().getSelectedLanguagesByApplicant()) {
+
+					DocumentType documentType = masterSyncService.getDocumentType(selectedCode, langCode);
+
+					if (documentType != null) {
+
+						toolTipTextList.add(documentType.getName());
+					}
+				}
+
+				Label messageLabel = (Label) getField(uiSchemaDTO.getId() + RegistrationConstants.MESSAGE);
+				messageLabel.setText(String.join(RegistrationConstants.SLASH, toolTipTextList));
+
+			}
+		});
+
+		comboBox.setOnMouseExited(event -> {
+			if (comboBox.getTooltip() != null) {
+				comboBox.getTooltip().hide();
+			}
+
+			Label messageLabel = (Label) getField(uiSchemaDTO.getId() + RegistrationConstants.MESSAGE);
+			messageLabel.setVisible(false);
+			messageLabel.setManaged(false);
+		});
+
+		comboBox.setOnMouseEntered((event -> {
+			Label messageLabel = (Label) getField(uiSchemaDTO.getId() + RegistrationConstants.MESSAGE);
+			if (messageLabel.getText()!=null && !messageLabel.getText().isEmpty()) {
+				messageLabel.setVisible(true);
+				messageLabel.setManaged(true);
+			}
+		}));
+
+		Label messageLabel = getLabel(uiSchemaDTO.getId() + RegistrationConstants.MESSAGE, null,
+				RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, false, simpleTypeVBox.getPrefWidth());
+		messageLabel.setWrapText(true);
+		messageLabel.setPrefWidth(prefWidth);
+		messageLabel.setManaged(false);
+		simpleTypeVBox.getChildren().add(messageLabel);
+
 		return simpleTypeVBox;
 	}
-
 
 	@Override
 	public void setData(Object data) {
@@ -299,7 +355,7 @@ public class DocumentFxControl extends FxControl {
 									.getValueFromApplicationContext(RegistrationConstants.DOC_TYPE);
 
 							documentDto.setFormat(docType);
-							documentDto.setCategory(uiSchemaDTO.getSubType()); 
+							documentDto.setCategory(uiSchemaDTO.getSubType());
 							documentDto.setOwner(RegistrationConstants.APPLICANT);
 							documentDto.setValue(uiSchemaDTO.getSubType().concat(RegistrationConstants.UNDER_SCORE)
 									.concat(comboBox.getValue().getCode()));
@@ -318,10 +374,13 @@ public class DocumentFxControl extends FxControl {
 
 						getField(uiSchemaDTO.getId() + PREVIEW_ICON).setVisible(true);
 						getField(uiSchemaDTO.getId() + CLEAR_ID).setVisible(true);
-						
 
 						getField(uiSchemaDTO.getId() + PREVIEW_ICON).setManaged(true);
 						getField(uiSchemaDTO.getId() + CLEAR_ID).setManaged(true);
+						
+						Label label = (Label) getField(uiSchemaDTO.getId()+RegistrationConstants.LABEL);
+						label.getStyleClass().clear();
+						label.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
 					}
 				}
 			}
@@ -345,7 +404,6 @@ public class DocumentFxControl extends FxControl {
 
 		return documentScanController.getRegistrationDTOFromSession().getDocuments().get(uiSchemaDTO.getId());
 	}
-
 
 	@Override
 	public boolean isValid() {
@@ -371,6 +429,7 @@ public class DocumentFxControl extends FxControl {
 
 	@Override
 	public List<GenericDto> getPossibleValues(String langCode) {
+
 		return null;
 	}
 
@@ -460,6 +519,7 @@ public class DocumentFxControl extends FxControl {
 
 			List<DocumentCategoryDto> vals = (List<DocumentCategoryDto>) data;
 			comboBox.getItems().addAll(vals);
+			new ComboBoxAutoComplete<DocumentCategoryDto>(comboBox);
 		}
 
 	}
@@ -474,8 +534,14 @@ public class DocumentFxControl extends FxControl {
 		}
 
 		boolean isRequired = requiredFieldValidator.isRequiredField(this.uiSchemaDTO, getRegistrationDTo());
-		if(isRequired && getRegistrationDTo().getDocuments().get(this.uiSchemaDTO.getId()) == null)
+		if (isRequired && getRegistrationDTo().getDocuments().get(this.uiSchemaDTO.getId()) == null) {
+			
+			Label label = (Label) getField(uiSchemaDTO.getId() + RegistrationConstants.LABEL);
+			label.getStyleClass().clear();
+			label.getStyleClass().add(RegistrationConstants.DemoGraphicFieldMessageLabel);
+			label.setVisible(true);
 			return false;
+		}
 
 		return true;
 	}

@@ -11,6 +11,8 @@ import io.mosip.registration.dto.mastersync.GenderDto;
 import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.dto.mastersync.LocationDto;
 import io.mosip.registration.dto.mastersync.ReasonListDto;
+import io.mosip.registration.entity.DocumentCategory;
+import io.mosip.registration.entity.DocumentType;
 import io.mosip.registration.entity.Location;
 import io.mosip.registration.exception.RegBaseCheckedException;
 
@@ -91,6 +93,17 @@ public interface MasterSyncService {
 	 * @throws RegBaseCheckedException
 	 */
 	List<DocumentCategoryDto> getDocumentCategories(String docCode, String langCode);
+	
+	/**
+	 * Get the document Type from db that to be displayed in the UI
+	 * dropdown.
+	 *
+	 * @param docCode  the doc code
+	 * @param langCode the lang code
+	 * @return all the document categories
+	 * @throws RegBaseCheckedException
+	 */
+	DocumentType getDocumentType(String docCode, String langCode);
 
 	/**
 	 * Gets the gender details.
