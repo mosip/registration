@@ -28,4 +28,9 @@ public class Validator {
 	 * Arguments if required
 	 */
 	private List<String> arguments;
+	
+	/**
+	 * Langcode to opt validator 
+	 */
+	private String langCode;
 }
