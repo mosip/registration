@@ -395,14 +395,12 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 
 	@Override
 	public List<GenericDto> getFieldValues(String fieldName, String langCode) throws RegBaseCheckedException {
-		switch (fieldName) {
-		case "gender":
-			return getGenderDtls(langCode);
-		case "residenceStatus":
-			return getIndividualType(langCode);
-		default:
-			return getDynamicField(fieldName, langCode);
-		}
+		/*
+		 * switch (fieldName) { case "gender": return getGenderDtls(langCode); case
+		 * "residenceStatus": return getIndividualType(langCode); default:
+		 */
+		return getDynamicField(fieldName, langCode);
+		
 	}
 
 	/**

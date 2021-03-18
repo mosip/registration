@@ -644,7 +644,7 @@ public class Validations extends BaseController {
 		if (uiSchemaDTO != null && uiSchemaDTO.getValidators() != null) {
 			Optional<Validator> validator = uiSchemaDTO.getValidators().stream()
 					.filter(v -> v.getType().equalsIgnoreCase(regexType)
-							&& (v.getLangCode() != null ? locale.getLanguage().equalsIgnoreCase(v.getLangCode()) : true))
+							&& (v.getLangCode() != null ? v.getLangCode().startsWith(locale.getLanguage()) : true))
 					.findFirst();
 			if (validator.isPresent())
 				return validator.get().getValidator();
