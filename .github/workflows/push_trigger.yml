@@ -65,6 +65,33 @@ jobs:
         name: release
         path: ./release.zip
 
+    - name: Build init-stage-group image
+      run: |
+          # The Mosip Stage Executor is not packaged as part of release.zip
+          cd "./$SERVICE_LOCATION"
+          docker build . --file Dockerfile --tag $SERVICE_NAME
+      env:
+        SERVICE_NAME: init-stage-group
+        SERVICE_LOCATION: registration-processor/stage-groups/init-stage-group
+    - name: Log into registry
+      run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        
+    - name: Push image
+      run: |
+          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          VERSION=$BRANCH_NAME
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+      env:
+        NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
+        SERVICE_NAME: init-stage-group
+        SERVICE_LOCATION: registration-processor/stage-groups/init-stage-group
+
     - name: Build pre-processor-stage-group image
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
@@ -91,6 +118,60 @@ jobs:
         NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
         SERVICE_NAME: pre-processor-stage-group
         SERVICE_LOCATION: registration-processor/stage-groups/pre-processor-stage-group
+
+    - name: Build core-processor-stage-group image
+      run: |
+          # The Mosip Stage Executor is not packaged as part of release.zip
+          cd "./$SERVICE_LOCATION"
+          docker build . --file Dockerfile --tag $SERVICE_NAME
+      env:
+        SERVICE_NAME: core-processor-stage-group
+        SERVICE_LOCATION: registration-processor/stage-groups/core-processor-stage-group
+    - name: Log into registry
+      run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        
+    - name: Push image
+      run: |
+          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          VERSION=$BRANCH_NAME
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+      env:
+        NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
+        SERVICE_NAME: core-processor-stage-group
+        SERVICE_LOCATION: registration-processor/stage-groups/core-processor-stage-group
+
+    - name: Build post-processor-stage-group image
+      run: |
+          # The Mosip Stage Executor is not packaged as part of release.zip
+          cd "./$SERVICE_LOCATION"
+          docker build . --file Dockerfile --tag $SERVICE_NAME
+      env:
+        SERVICE_NAME: post-processor-stage-group
+        SERVICE_LOCATION: registration-processor/stage-groups/post-processor-stage-group
+    - name: Log into registry
+      run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        
+    - name: Push image
+      run: |
+          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          VERSION=$BRANCH_NAME
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+      env:
+        NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
+        SERVICE_NAME: post-processor-stage-group
+        SERVICE_LOCATION: registration-processor/stage-groups/post-processor-stage-group
 
     - name: Build camel bridge image
       run: |
