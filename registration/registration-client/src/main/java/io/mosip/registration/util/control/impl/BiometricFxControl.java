@@ -169,9 +169,9 @@ public class BiometricFxControl extends FxControl {
 		ColumnConstraints columnConstraint1 = new ColumnConstraints();
 		columnConstraint1.setPercentWidth(15);
 		ColumnConstraints columnConstraint2 = new ColumnConstraints();
-		columnConstraint2.setPercentWidth(55);
+		columnConstraint2.setPercentWidth(80);
 		ColumnConstraints columnConstraint3 = new ColumnConstraints();
-		columnConstraint3.setPercentWidth(30);
+		columnConstraint3.setPercentWidth(5);
 		gridPane.getColumnConstraints().addAll(columnConstraint1, columnConstraint2,columnConstraint3);
 		return gridPane;
 	}
@@ -197,7 +197,7 @@ public class BiometricFxControl extends FxControl {
 					if(currentModality == null)
 						currentModality = modality;
 
-					displayExceptionPhoto(modalityView, false);
+					displayExceptionPhoto(modalityView, biometricsController.hasApplicantBiometricException());
 				}
 			}
 		//}
@@ -341,12 +341,12 @@ public class BiometricFxControl extends FxControl {
 	}
 
 	private void displayExceptionPhoto(HBox hbox, boolean isShow) {
-		if(hbox.getId().equals(uiSchemaDTO.getId() + currentModality)) {
+		if(hbox.getId().equals(uiSchemaDTO.getId() + Modality.EXCEPTION_PHOTO)) {
 			hbox.setVisible(isShow);
-			hbox.setManaged(true);
+			hbox.setManaged(isShow);
 			hbox.getChildren().forEach( child -> {
 				child.setVisible(isShow);
-				child.setManaged(true);
+				child.setManaged(isShow);
 			});
 		}
 	}
@@ -359,7 +359,7 @@ public class BiometricFxControl extends FxControl {
 	}
 
 	private void addTickMark(Modality modality) {
-		Pane pane = getModalityHBox();
+		Pane pane = getModalityHBox(modality);
 		if (pane.getChildren().size() > 1) {
 
 			pane.getChildren().remove(1);
@@ -367,20 +367,20 @@ public class BiometricFxControl extends FxControl {
 		pane.getChildren().add(addCompletionImg(getCompletionImgPath(isAnyExceptions(modality))));
 	}
 
-	private Pane getModalityHBox() {
-		return ((Pane) getField(uiSchemaDTO.getId() + currentModality.name()));
+	private Pane getModalityHBox(Modality modality) {
+		return ((Pane) getField(uiSchemaDTO.getId() + modality.name()));
 	}
 
 	private void removeTickMark(Modality modality) {
 
-		Pane pane = getModalityHBox();
+		Pane pane = getModalityHBox(modality);
 
 		if (pane.getChildren().size() > 1) {
 			pane.getChildren().remove(1);
 		}
 	}
 
-	public void refreshExceptionMarks() {
+	public void refreshExceptionMarks(Modality currentModality) {
 		if (biometricsController.isExceptionPhoto(currentModality)) {
 			if (biometricsController.isBiometricExceptionProofCollected()) {
 				addTickMark(currentModality);

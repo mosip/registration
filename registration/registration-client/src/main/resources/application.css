@@ -2469,7 +2469,7 @@ Working on new Css by taleev
 }
 
 .tab {
-	-fx-pref-width: 250;
+	-fx-pref-width: 250.0;
     -fx-background-insets: 0 1 0 1,0,0;
 }
 .tab-pane .tab {
@@ -2480,14 +2480,17 @@ Working on new Css by taleev
     -fx-background-color: white;
 }
 
-.tab .tab-label { 
-    -fx-alignment: CENTER;
+.tab .tab-label {
     -fx-text-fill: #3b3b3b;
     -fx-font-size: 13px;
 }
 
-.tab:selected .tab-label { 
+.tab-pane > .tab-header-area > .headers-region > .tab > .tab-container > .tab-label {
     -fx-alignment: CENTER;
+    -fx-pref-width: 220.0;
+}
+
+.tab:selected .tab-label {
     -fx-text-fill: #0B6A82;
     -fx-font-weight: bold;
 }
