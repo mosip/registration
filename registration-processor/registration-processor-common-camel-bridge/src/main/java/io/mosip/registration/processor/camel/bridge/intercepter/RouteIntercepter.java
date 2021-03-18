@@ -55,7 +55,7 @@ public class RouteIntercepter {
 	}
 
 	public List<RouteDefinition> intercept(CamelContext camelContext, List<RouteDefinition> routeDefinitions) {
-		routeDefinations.forEach(x -> {
+		routeDefinitions.forEach(x -> {
 			try {
 				x.adviceWith(camelContext, new AdviceWithRouteBuilder() {
 
@@ -106,6 +106,6 @@ public class RouteIntercepter {
 						"RouteIntercepter::intercept()::exception " + e.getMessage());
 			}
 		});
-		return routeDefinations;
+		return routeDefinitions;
 	}
 }
