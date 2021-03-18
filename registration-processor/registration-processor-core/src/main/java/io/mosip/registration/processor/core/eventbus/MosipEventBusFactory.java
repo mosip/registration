@@ -18,15 +18,15 @@ import io.vertx.core.Vertx;
 @Component
 public class MosipEventBusFactory {
 
-    private static final String MOSIP_REGPROC_EVENTBUS_KAFKA_POLL_FREQUENCY = "mosip.regproc.eventbus.kafka.poll.frequency";
+    private static final String EVENTBUS_KAFKA_POLL_FREQUENCY = "eventbus.kafka.poll.frequency";
 
-	private static final String MOSIP_REGPROC_EVENTBUS_KAFKA_MAX_POLL_RECORDS = "mosip.regproc.eventbus.kafka.max.poll.records";
+	private static final String EVENTBUS_KAFKA_MAX_POLL_RECORDS = "eventbus.kafka.max.poll.records";
 
-	private static final String MOSIP_REGPROC_EVENTBUS_KAFKA_GROUP_ID = "mosip.regproc.eventbus.kafka.group.id";
+	private static final String EVENTBUS_KAFKA_GROUP_ID = "eventbus.kafka.group.id";
 
-	private static final String MOSIP_REGPROC_EVENTBUS_KAFKA_COMMIT_TYPE = "mosip.regproc.eventbus.kafka.commit.type";
+	private static final String EVENTBUS_KAFKA_COMMIT_TYPE = "eventbus.kafka.commit.type";
 
-	private static final String MOSIP_REGPROC_EVENTBUS_KAFKA_BOOTSTRAP_SERVERS = "mosip.regproc.eventbus.kafka.bootstrap.servers";
+	private static final String EVENTBUS_KAFKA_BOOTSTRAP_SERVERS = "eventbus.kafka.bootstrap.servers";
 
 	@Autowired
     private Tracing tracing;
@@ -71,22 +71,22 @@ public class MosipEventBusFactory {
     }
     
     public String getKafkaBootstrapServers(String propertyPrefix) {
-		return environment.getProperty(propertyPrefix + MOSIP_REGPROC_EVENTBUS_KAFKA_BOOTSTRAP_SERVERS);
+		return environment.getProperty(propertyPrefix + EVENTBUS_KAFKA_BOOTSTRAP_SERVERS);
 	}
     
     public String getKafkaCommitType(String propertyPrefix) {
-		return environment.getProperty(propertyPrefix + MOSIP_REGPROC_EVENTBUS_KAFKA_COMMIT_TYPE);
+		return environment.getProperty(propertyPrefix + EVENTBUS_KAFKA_COMMIT_TYPE);
 	}
     
     public String getKafkaGroupId(String propertyPrefix) {
-		return environment.getProperty(propertyPrefix + MOSIP_REGPROC_EVENTBUS_KAFKA_GROUP_ID);
+		return environment.getProperty(propertyPrefix + EVENTBUS_KAFKA_GROUP_ID);
 	}
     
     public String getMaxPollRecords(String propertyPrefix) {
-		return environment.getProperty(propertyPrefix + MOSIP_REGPROC_EVENTBUS_KAFKA_MAX_POLL_RECORDS);
+		return environment.getProperty(propertyPrefix + EVENTBUS_KAFKA_MAX_POLL_RECORDS);
 	}
     
 	public int getPollFrequency(String propertyPrefix) {
-		return environment.getProperty(propertyPrefix + MOSIP_REGPROC_EVENTBUS_KAFKA_POLL_FREQUENCY, Integer.class, 0);
+		return environment.getProperty(propertyPrefix + EVENTBUS_KAFKA_POLL_FREQUENCY, Integer.class, 0);
 	}
 }
