@@ -169,8 +169,6 @@ public class DOBAgeFxControl extends FxControl {
 		TextField yyyy = (TextField) getField(
 				uiSchemaDTO.getId() + RegistrationConstants.YYYY + RegistrationConstants.TEXT_FIELD);
 
-		//TODO - check for valid value, max and min validation
-		//TODO - for lostUIN flow
 		return dd != null && !dd.getText().isEmpty() && mm != null && !mm.getText().isEmpty() && yyyy != null
 				&& !yyyy.getText().isEmpty();
 	}

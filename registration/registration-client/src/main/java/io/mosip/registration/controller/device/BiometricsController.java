@@ -24,6 +24,7 @@ import java.util.ResourceBundle;
 
 import javax.imageio.ImageIO;
 
+import io.mosip.registration.util.common.Modality;
 import org.apache.commons.io.IOUtils;
 import org.mvel2.MVEL;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1489,13 +1490,34 @@ public class BiometricsController extends BaseController /* implements Initializ
 				io.mosip.registration.context.ApplicationContext.getStringValueFromApplicationMap(
 						RegistrationConstants.SERVER_ACTIVE_PROFILE),
 				Integer.valueOf(getCaptureTimeOut()), count,
-				getThresholdScoreInInt(getThresholdKeyByBioType(modality)));
+				getThresholdScoreInInt(getThresholdKeyByBioType(Modality.valueOf(modality))));
 
 		LOGGER.debug(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"exceptionBioAttributes passed to mock/real MDM >>> " + exceptionBioAttributes);
 
 		return bioService.captureModality(mdmRequestDto);
 
+	}
+
+	public String getThresholdKeyByBioType(io.mosip.registration.util.common.Modality modality) {
+		if(modality == null)
+			return RegistrationConstants.EMPTY;
+
+		switch (modality) {
+			case FINGERPRINT_SLAB_LEFT:
+				return RegistrationConstants.LEFTSLAP_FINGERPRINT_THRESHOLD;
+			case FINGERPRINT_SLAB_RIGHT:
+				return RegistrationConstants.RIGHTSLAP_FINGERPRINT_THRESHOLD;
+			case FINGERPRINT_SLAB_THUMBS:
+				return RegistrationConstants.THUMBS_FINGERPRINT_THRESHOLD;
+			case IRIS_DOUBLE:
+				return RegistrationConstants.IRIS_THRESHOLD;
+			case FACE:
+				return RegistrationConstants.FACE_THRESHOLD;
+			case EXCEPTION_PHOTO:
+				return RegistrationConstants.EMPTY;
+		}
+		return RegistrationConstants.EMPTY;
 	}
 
 	private boolean isApplicant(String subType) {
@@ -1552,7 +1574,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 			}
 
 			return getRegistrationDTOFromSession().addAllBiometrics(subType, biometricsMap,
-					getThresholdScoreInDouble(getThresholdKeyByBioType(currentModality)),
+					getThresholdScoreInDouble(getThresholdKeyByBioType(Modality.valueOf(currentModality))),
 					getMaxRetryByModality(currentModality));
 		}
 	}
@@ -1565,7 +1587,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 		int retry = biometricDTOList.get(0).getNumOfRetries();
 
 		setCapturedValues(getAverageQualityScore(biometricDTOList), retry,
-				getThresholdScoreInInt(getThresholdKeyByBioType(modality)));
+				getThresholdScoreInInt(getThresholdKeyByBioType(Modality.valueOf(modality))));
 
 		// Get the stream image from Bio ServiceImpl and load it in the image pane
 		biometricImage.setImage(getBioStreamImage(subType, modality, retry));
@@ -1822,7 +1844,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 					double qualityScoreVal = getBioScores(currentSubType, currentModality, attempt);
 					if (qualityScoreVal != 0) {
 						updateByAttempt(qualityScoreVal, getBioStreamImage(currentSubType, currentModality, attempt),
-								getThresholdScoreInInt(getThresholdKeyByBioType(currentModality)), biometricImage,
+								getThresholdScoreInInt(getThresholdKeyByBioType(Modality.valueOf(currentModality))), biometricImage,
 								qualityText, bioProgress, qualityScore);
 					}
 
