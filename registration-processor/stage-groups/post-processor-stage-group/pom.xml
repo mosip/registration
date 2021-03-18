@@ -8,7 +8,7 @@
 		<version>1.2.0-SNAPSHOT</version>
 	</parent>
 	
-	<artifactId>core-processor-stage-group</artifactId>
+	<artifactId>post-processor-stage-group</artifactId>
     <version>1.2.0-SNAPSHOT</version>
 
 	<properties>
@@ -27,42 +27,12 @@
 		<!-- Stages -->
 		<dependency>
 			<groupId>io.mosip.registrationprocessor</groupId>
-			<artifactId>registration-processor-abis-handler-stage</artifactId>
+			<artifactId>registration-processor-message-sender-stage</artifactId>
 			<version>1.2.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.registrationprocessor</groupId>
-			<artifactId>registration-processor-abis-middleware-stage</artifactId>
-			<version>1.2.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.registrationprocessor</groupId>
-			<artifactId>registration-processor-bio-dedupe-stage</artifactId>
-			<version>1.2.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.registrationprocessor</groupId>
-			<artifactId>registration-processor-biometric-authentication-stage</artifactId>
-			<version>1.2.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.registrationprocessor</groupId>
-			<artifactId>registration-processor-demo-dedupe-stage</artifactId>
-			<version>1.2.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.registrationprocessor</groupId>
-			<artifactId>registration-processor-manual-verification-stage</artifactId>
-			<version>1.2.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.registrationprocessor</groupId>
-			<artifactId>registration-processor-reprocessor-stage</artifactId>
-			<version>1.2.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.registrationprocessor</groupId>
-			<artifactId>registration-processor-uin-generator-stage</artifactId>
+			<artifactId>registration-processor-printing-stage</artifactId>
 			<version>1.2.0-SNAPSHOT</version>
 		</dependency>
 		

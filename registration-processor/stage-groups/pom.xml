@@ -16,8 +16,10 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<modules>
-		<module>stage-group-1</module>
+		<module>init-stage-group</module>
+		<module>pre-processor-stage-group</module>
 		<module>core-processor-stage-group</module>
+		<module>post-processor-stage-group</module>
     </modules>
     <dependencies>
 		<dependency>
