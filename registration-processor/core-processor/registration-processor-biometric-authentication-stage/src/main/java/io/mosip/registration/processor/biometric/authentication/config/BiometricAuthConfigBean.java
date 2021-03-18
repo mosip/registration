@@ -17,10 +17,10 @@ import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
 
 @Configuration
 public class BiometricAuthConfigBean {
-	@Bean
-	public BiometricAuthenticationStage getBiometricAuthenticationStage() {
-		return new BiometricAuthenticationStage();
-	}
+//	@Bean
+//	public BiometricAuthenticationStage getBiometricAuthenticationStage() {
+//		return new BiometricAuthenticationStage();
+//	}
 
 	@Bean
 	public AuthUtil getAuthUtil() {

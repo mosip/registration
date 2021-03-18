@@ -8,10 +8,10 @@ import io.mosip.registration.processor.stages.uingenerator.stage.UinGeneratorSta
 @Configuration
 public class UINBeanConfig {
 	
-	@Bean 
-	public UinGeneratorStage getUinGeneratorStage() {
-		return new UinGeneratorStage();
-	}
+//	@Bean 
+//	public UinGeneratorStage getUinGeneratorStage() {
+//		return new UinGeneratorStage();
+//	}
 
 	@Bean
 	public IdSchemaUtil idSchemaUtil() {

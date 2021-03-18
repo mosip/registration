@@ -10,8 +10,12 @@ import java.util.Map.Entry;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.util.CollectionUtils;
+import org.springframework.stereotype.Service;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
@@ -58,9 +62,15 @@ import io.vertx.core.json.JsonObject;
  * @since 0.10.0
  *
  */
+@RefreshScope
+@Service
+@Configuration
+@ComponentScan(basePackages = { "io.mosip.registration.processor.core.config", "io.mosip.registration.processor.reprocessor.config",
+		"io.mosip.registration.processor.status.config", "io.mosip.registration.processor.core.kernel.beans" })
 public class ReprocessorStage extends MosipVerticleAPIManager {
 
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(ReprocessorStage.class);
+	private static final String MOSIP_REGPROC_REPROCESSOR = "mosip.regproc.reprocessor.";
 
 	/** The cluster manager url. */
 	@Value("${vertx.cluster.configuration}")
@@ -106,9 +116,7 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 	@Autowired
 	MosipRouter router;
 
-	/** The port. */
-	@Value("${server.port}")
-	private String port;
+	
 
 	/**
 	 * Deploy verticle.
@@ -203,7 +211,12 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 	@Override
 	public void start() {
 		router.setRoute(this.postUrl(getVertx(), null, null));
-		this.createServer(router.getRouter(), Integer.parseInt(port));
+		this.createServer(router.getRouter(), getPort());
+	}
+
+	@Override
+	protected String getPropertyPrefix() {
+		return MOSIP_REGPROC_REPROCESSOR;
 	}
 
 	/*
