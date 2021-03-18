@@ -139,7 +139,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 
 		try {
 			Vertx vert = eventBus.get();
-			mosipEventBus = mosipEventBusFactory.getEventBus(vert, getEventBusType());
+			mosipEventBus = mosipEventBusFactory.getEventBus(vert, getEventBusType(), getPropertyPrefix());
 		} catch (InterruptedException | ExecutionException | UnsupportedEventBusTypeException e) {
 			Thread.currentThread().interrupt();
 			throw new DeploymentFailureException(PlatformErrorMessages.RPR_CMB_DEPLOYMENT_FAILURE.getMessage(), e);
@@ -212,11 +212,11 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	}
 
 	public Integer getEventBusPort() {
-		return Integer.parseInt(environment.getProperty(getPropertyPrefix() + "eventbus.port"));
+		return environment.getProperty(getPropertyPrefix() + "eventbus.port", Integer.class);
 	}
 	
 	public Integer getPort() {
-		return Integer.parseInt(environment.getProperty(getPropertyPrefix() + "server.port"));
+		return environment.getProperty(getPropertyPrefix() + "server.port", Integer.class);
 	}
 	
 	protected String getServletPath() {
