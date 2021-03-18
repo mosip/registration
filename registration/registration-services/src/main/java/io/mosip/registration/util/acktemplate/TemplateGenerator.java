@@ -117,8 +117,6 @@ public class TemplateGenerator extends BaseService {
 	@Autowired
 	private SoftwareUpdateHandler softwareUpdateHandler;
 
-	private String consentText;
-
 	private String guidelines;
 
 	public String getGuidelines() {
@@ -127,14 +125,6 @@ public class TemplateGenerator extends BaseService {
 
 	public void setGuidelines(String guidelines) {
 		this.guidelines = guidelines;
-	}
-
-	public String getConsentText() {
-		return consentText;
-	}
-
-	public void setConsentText(String consentText) {
-		this.consentText = consentText;
 	}
 
 	public ResponseDTO generateTemplate(String templateText, RegistrationDTO registration, TemplateManagerBuilder
@@ -147,13 +137,14 @@ public class TemplateGenerator extends BaseService {
 
 			Map<String, Object> templateValues = new WeakHashMap<>();
 			boolean isPrevTemplate = templateType.equals(RegistrationConstants.ACKNOWLEDGEMENT_TEMPLATE) ? false : true;
-			ResourceBundle applicationLanguageProperties = ApplicationContext.getInstance()
-					.getBundle(ApplicationContext.applicationLanguage(), RegistrationConstants.LABELS);
+			String firstSelectedLanguage = getRegistrationDTOFromSession().getSelectedLanguagesByApplicant().get(0);
+			ResourceBundle firstLanguageProperties = ApplicationContext.getInstance()
+					.getBundle(firstSelectedLanguage, RegistrationConstants.LABELS);
 			InputStream is = new ByteArrayInputStream(templateText.getBytes(StandardCharsets.UTF_8));
 			List<UiSchemaDTO> schemaFields = getSchemaFields(registration.getIdSchemaVersion());
 
 			//Basic values
-			setBasicDetails(templateValues, registration, isPrevTemplate, applicationLanguageProperties, response);
+			setBasicDetails(templateValues, registration, isPrevTemplate, firstLanguageProperties, response);
 
 			Map<String, Map<String, Object>> demographicsData = new HashMap<>();
 			Map<String, Map<String, Object>> documentsData = new HashMap<>();
@@ -167,8 +158,7 @@ public class TemplateGenerator extends BaseService {
 						break;
 
 					case "biometricsType":
-						Map<String, Object> bio_data = getBiometericData(registration, field, isPrevTemplate, templateValues,
-								applicationLanguageProperties);
+						Map<String, Object> bio_data = getBiometericData(registration, field, isPrevTemplate, templateValues);
 						if(bio_data != null) { biometricsData.put(field.getId(), bio_data); }
 						break;
 
@@ -204,7 +194,7 @@ public class TemplateGenerator extends BaseService {
 	}
 
 	private Map<String, Object> getBiometericData(RegistrationDTO registration, UiSchemaDTO field, boolean isPrevTemplate,
-												  Map<String, Object> templateValues, ResourceBundle applicationLanguageProperties)
+												  Map<String, Object> templateValues)
 			throws RegBaseCheckedException {
 		List<BiometricsDto> capturedList = new ArrayList<>();
 		for (String attribute : field.getBioAttributes()) {
@@ -232,8 +222,7 @@ public class TemplateGenerator extends BaseService {
 		bio_data.put("IrisCount", capturedIris.size());
 		bio_data.put("FaceCount", capturedFace.size());
 		bio_data.put("subType", field.getSubType());
-		bio_data.put("primaryLabel", field.getLabel().get("primary"));
-		bio_data.put("secondaryLabel", field.getLabel().get("secondary"));
+		bio_data.put("label", getFieldLabel(field));
 
 		Optional<BiometricsDto> result = capturedIris.stream()
 				.filter(b -> b.getBioAttribute().equalsIgnoreCase("leftEye")).findFirst();
@@ -326,8 +315,7 @@ public class TemplateGenerator extends BaseService {
 		Map<String, Object> data = null;
 		if(registration.getDocuments().get(field.getId()) != null) {
 			data = new HashMap<>();
-			data.put("primaryLabel", field.getLabel().get("primary"));
-			data.put("secondaryLabel", field.getLabel().get("secondary"));
+			data.put("label", getFieldLabel(field));
 			data.put("category", registration.getDocuments().get(field.getId()).getCategory());
 			data.put("value", registration.getDocuments().get(field.getId()).getValue());
 			data.put("format", registration.getDocuments().get(field.getId()).getFormat());
@@ -341,6 +329,15 @@ public class TemplateGenerator extends BaseService {
 		return data;
 	}
 
+	private Object getFieldLabel(UiSchemaDTO field) {
+		String label = RegistrationConstants.EMPTY;
+		List<String> selectedLanguages = getRegistrationDTOFromSession().getSelectedLanguagesByApplicant();
+		for (String selectedLanguage : selectedLanguages) {
+			label = !label.isBlank() ? label.concat(RegistrationConstants.SLASH).concat(field.getLabel().get(selectedLanguage)) : field.getLabel().get(selectedLanguage);
+		}
+		return label;
+	}
+
 	private Map<String, Object> getDemographicData(RegistrationDTO registration, UiSchemaDTO field) {
 		Map<String, Object> data = null;
 		if("UIN".equalsIgnoreCase(field.getId()) || "IDSchemaVersion".equalsIgnoreCase(field.getId()))
@@ -349,84 +346,51 @@ public class TemplateGenerator extends BaseService {
 		String value = getValue(registration.getDemographics().get(field.getId()));
 		if (value != null && !value.isEmpty()) {
 			data = new HashMap<>();
-			data.put("primaryLabel", field.getLabel().get("primary"));
-			data.put("secondaryLabel", field.getLabel().get("secondary"));
-			data.put("primaryValue", getValueForTemplate(value));
-			data.put("secondaryValue", getSecondaryLanguageValue(registration.getDemographics().get(field.getId())));
+			data.put("label", getFieldLabel(field));
+			data.put("value", getFieldValue(field));
+			//data.put("secondaryValue", getSecondaryLanguageValue(registration.getDemographics().get(field.getId())));
 		}
 		return data;
 	}
 
 	private void setBasicDetails(Map<String, Object> templateValues, RegistrationDTO registration, boolean isPrevTemplate,
-								 ResourceBundle applicationLanguageProperties, ResponseDTO responseDTO) {
+								 ResourceBundle firstLanguageProperties, ResponseDTO responseDTO) {
 		try {
 			templateValues.put("isPreview", isPrevTemplate);
 			templateValues.put("IDSchemaVersion", registration.getIdSchemaVersion());
-			templateValues.put("secLangPresent", multipleLanguagesAvailable());
-			templateValues.put(RegistrationConstants.TEMPLATE_RID_USER_LANG_LABEL, applicationLanguageProperties.getString("registrationid"));
-			templateValues.put(RegistrationConstants.TEMPLATE_RID_LOCAL_LANG_LABEL,	getSecondaryLanguageLabel("registrationid"));
+			templateValues.put(RegistrationConstants.TEMPLATE_RID_LABEL, getLabel("registrationid"));
 			templateValues.put(RegistrationConstants.TEMPLATE_RID, registration.getRegistrationId());
-			templateValues.put(RegistrationConstants.TEMPLATE_UIN_USER_LANG_LABEL, applicationLanguageProperties.getString("uin"));
-			templateValues.put(RegistrationConstants.TEMPLATE_UIN_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("uin"));
+			templateValues.put(RegistrationConstants.TEMPLATE_UIN_LABEL, getLabel("uin"));
 			templateValues.put(RegistrationConstants.TEMPLATE_UIN, registration.getDemographics().get("UIN"));
-			templateValues.put(RegistrationConstants.TEMPLATE_PRE_REG_ID_USER_LANG_LABEL, applicationLanguageProperties.getString("preRegistrationId"));
-			templateValues.put(RegistrationConstants.TEMPLATE_PRE_REG_ID_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("preRegistrationId"));
+			templateValues.put(RegistrationConstants.TEMPLATE_PRE_REG_ID_LABEL, getLabel("preRegistrationId"));
 			templateValues.put(RegistrationConstants.TEMPLATE_PRE_REG_ID, registration.getPreRegistrationId());
-			templateValues.put(RegistrationConstants.TEMPLATE_MODIFY, applicationLanguageProperties.getString("modify"));
+			templateValues.put(RegistrationConstants.TEMPLATE_MODIFY, firstLanguageProperties.getString("modify"));
 			templateValues.put(RegistrationConstants.TEMPLATE_MODIFY_IMAGE_SOURCE, getEncodedImage(RegistrationConstants.TEMPLATE_MODIFY_IMAGE_PATH,
 					RegistrationConstants.TEMPLATE_PNG_IMAGE_ENCODING));
-			generateQRCode(registration, templateValues, applicationLanguageProperties);
+			generateQRCode(registration, templateValues, firstLanguageProperties);
 			setUpImportantGuidelines(templateValues, guidelines);
-			templateValues.put(RegistrationConstants.TEMPLATE_CONSENT_HEADING, applicationLanguageProperties.getString("consentHeading"));
-			templateValues.put(RegistrationConstants.TEMPLATE_CONSENT_DATA, consentText);
-			templateValues.put(RegistrationConstants.TEMPLATE_CONSENT_YES, applicationLanguageProperties.getString("yes"));
-			templateValues.put(RegistrationConstants.TEMPLATE_CONSENT_NO, applicationLanguageProperties.getString("no"));
-			if (registration.getRegistrationMetaDataDTO().getConsentOfApplicant() != null) {
-				String consent = registration.getRegistrationMetaDataDTO().getConsentOfApplicant();
-				if (consent.equalsIgnoreCase(RegistrationConstants.YES)) {
-					templateValues.put(RegistrationConstants.TEMPLATE_CONSENT_SELECTED_YES, RegistrationConstants.TEMPLATE_CONSENT_CHECKED);
-				} else if (consent.equalsIgnoreCase(RegistrationConstants.NO)) {
-					templateValues.put(RegistrationConstants.TEMPLATE_CONSENT_SELECTED_NO, RegistrationConstants.TEMPLATE_CONSENT_CHECKED);
-				}
-			}
 			LocalDateTime currentTime = OffsetDateTime.now().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
 			templateValues.put(RegistrationConstants.TEMPLATE_DATE, currentTime.format(DateTimeFormatter.ofPattern(RegistrationConstants.TEMPLATE_DATE_FORMAT)));
-			templateValues.put(RegistrationConstants.TEMPLATE_DATE_USER_LANG_LABEL,	applicationLanguageProperties.getString("date"));
-			templateValues.put(RegistrationConstants.TEMPLATE_DATE_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("date"));
+			templateValues.put(RegistrationConstants.TEMPLATE_DATE_LABEL, getLabel("date"));
 
-			templateValues.put(RegistrationConstants.TEMPLATE_RO_NAME_USER_LANG_LABEL, applicationLanguageProperties.getString("ro_name"));
-			templateValues.put(RegistrationConstants.TEMPLATE_RO_NAME_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("ro_name"));
+			templateValues.put(RegistrationConstants.TEMPLATE_RO_NAME_LABEL, getLabel("ro_name"));
 			templateValues.put(RegistrationConstants.TEMPLATE_RO_NAME, getValue(registration.getOsiDataDTO().getOperatorID()));
-			templateValues.put(RegistrationConstants.TEMPLATE_RO_NAME_LOCAL_LANG, RegistrationConstants.EMPTY);
-			templateValues.put(RegistrationConstants.TEMPLATE_REG_CENTER_USER_LANG_LABEL, applicationLanguageProperties.getString("registrationcenter"));
-			templateValues.put(RegistrationConstants.TEMPLATE_REG_CENTER_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("registrationcenter"));
+			templateValues.put(RegistrationConstants.TEMPLATE_REG_CENTER_LABEL, getLabel("registrationcenter"));
 			templateValues.put(RegistrationConstants.TEMPLATE_REG_CENTER, SessionContext.userContext().getRegistrationCenterDetailDTO().getRegistrationCenterName());
-			templateValues.put(RegistrationConstants.TEMPLATE_REG_CENTER_LOCAL_LANG, RegistrationConstants.EMPTY);
-			templateValues.put(RegistrationConstants.TEMPLATE_IMPORTANT_GUIDELINES, applicationLanguageProperties.getString("importantguidelines"));
+			templateValues.put(RegistrationConstants.TEMPLATE_IMPORTANT_GUIDELINES, firstLanguageProperties.getString("importantguidelines"));
 
-			templateValues.put(RegistrationConstants.TEMPLATE_DEMO_INFO, applicationLanguageProperties.getString("demographicInformation"));
-			templateValues.put("DemographicInfoSecondary", getSecondaryLanguageLabel("demographicInformation"));
-			templateValues.put(RegistrationConstants.TEMPLATE_DOCUMENTS_USER_LANG_LABEL, applicationLanguageProperties.getString("documents"));
-			templateValues.put(RegistrationConstants.TEMPLATE_DOCUMENTS_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("documents"));
-			templateValues.put(RegistrationConstants.TEMPLATE_BIOMETRICS_USER_LANG_LABEL, applicationLanguageProperties.getString("biometricsHeading"));
-			templateValues.put(RegistrationConstants.TEMPLATE_BIOMETRICS_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("biometricsHeading"));
-			templateValues.put(RegistrationConstants.TEMPLATE_EXCEPTION_PHOTO_USER_LANG_LABEL, applicationLanguageProperties.getString("exceptionphoto"));
-			templateValues.put(RegistrationConstants.TEMPLATE_EXCEPTION_PHOTO_LOCAL_LANG_LABEL,	getSecondaryLanguageLabel("exceptionphoto"));
-			templateValues.put(RegistrationConstants.TEMPLATE_PHOTO_USER_LANG, applicationLanguageProperties.getString("individualphoto"));
-			templateValues.put(RegistrationConstants.TEMPLATE_PHOTO_LOCAL_LANG, getSecondaryLanguageLabel("individualphoto"));
+			templateValues.put(RegistrationConstants.TEMPLATE_DEMO_INFO, getLabel("demographicInformation"));
+			templateValues.put(RegistrationConstants.TEMPLATE_DOCUMENTS_LABEL, getLabel("documents"));
+			templateValues.put(RegistrationConstants.TEMPLATE_BIOMETRICS_LABEL, getLabel("biometricsHeading"));
+			templateValues.put(RegistrationConstants.TEMPLATE_EXCEPTION_PHOTO_LABEL, getLabel("exceptionphoto"));
+			templateValues.put(RegistrationConstants.TEMPLATE_PHOTO, getLabel("individualphoto"));
 
-			templateValues.put(RegistrationConstants.TEMPLATE_LEFT_EYE_USER_LANG_LABEL, applicationLanguageProperties.getString("lefteye"));
-			templateValues.put(RegistrationConstants.TEMPLATE_LEFT_EYE_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("lefteye"));
-			templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_EYE_USER_LANG_LABEL, applicationLanguageProperties.getString("righteye"));
-			templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_EYE_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("righteye"));
-			templateValues.put(RegistrationConstants.TEMPLATE_LEFT_PALM_USER_LANG_LABEL, applicationLanguageProperties.getString("lefthandpalm"));
-			templateValues.put(RegistrationConstants.TEMPLATE_LEFT_PALM_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("lefthandpalm"));
-			templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_PALM_USER_LANG_LABEL, applicationLanguageProperties.getString("righthandpalm"));
-			templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_PALM_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("righthandpalm"));
-			templateValues.put(RegistrationConstants.TEMPLATE_THUMBS_USER_LANG_LABEL, applicationLanguageProperties.getString("thumbs"));
-			templateValues.put(RegistrationConstants.TEMPLATE_THUMBS_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("thumbs"));
-			templateValues.put("FacePrimLabel",	applicationLanguageProperties.getString("FACE"));
-			templateValues.put("FaceSecLabel", getSecondaryLanguageLabel("FACE"));
+			templateValues.put(RegistrationConstants.TEMPLATE_LEFT_EYE_LABEL, getLabel("lefteye"));
+			templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_EYE_LABEL, getLabel("righteye"));
+			templateValues.put(RegistrationConstants.TEMPLATE_LEFT_PALM_LABEL, getLabel("lefthandpalm"));
+			templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_PALM_LABEL, getLabel("righthandpalm"));
+			templateValues.put(RegistrationConstants.TEMPLATE_THUMBS_LABEL, getLabel("thumbs"));
+			templateValues.put("FaceLabel", getLabel("FACE"));
 
 			templateValues.put("LOGO1", getImage("/images/LOGO1.png"));
 			templateValues.put("LOGO2", getImage("/images/LOGO2.png"));
@@ -473,18 +437,14 @@ public class TemplateGenerator extends BaseService {
 		}
 	}
 
-	private String getSecondaryLanguageLabel(String key) {
-		if (!multipleLanguagesAvailable()) {
-			return RegistrationConstants.EMPTY;
-		} else {
-			String label = RegistrationConstants.EMPTY;
-			List<String> selectedLanguages = getRegistrationDTOFromSession().getSelectedLanguagesByApplicant();
-			for (String selectedLanguage : selectedLanguages) {
-				ResourceBundle resourceBundle = ApplicationContext.getInstance().getBundle(selectedLanguage, RegistrationConstants.LABELS);
-				label = !label.isBlank() ? (resourceBundle.containsKey(key) ? label.concat(RegistrationConstants.SLASH).concat(resourceBundle.getString(key)) : RegistrationConstants.EMPTY) : resourceBundle.getString(key);
-			}
-			return label;
+	private String getLabel(String key) {
+		String label = RegistrationConstants.EMPTY;
+		List<String> selectedLanguages = getRegistrationDTOFromSession().getSelectedLanguagesByApplicant();
+		for (String selectedLanguage : selectedLanguages) {
+			ResourceBundle resourceBundle = ApplicationContext.getInstance().getBundle(selectedLanguage, RegistrationConstants.LABELS);
+			label = !label.isBlank() ? (resourceBundle.containsKey(key) ? label.concat(RegistrationConstants.SLASH).concat(resourceBundle.getString(key)) : RegistrationConstants.EMPTY) : resourceBundle.getString(key);
 		}
+		return label;
 	}
 
 	private String getEncodedImage(String imagePath, String encoding) throws RegBaseCheckedException {
@@ -514,28 +474,6 @@ public class TemplateGenerator extends BaseService {
 		}
 	}
 
-
-	@SuppressWarnings("unchecked")
-	private String getValueForTemplate(Object fieldValue) {
-		String lang = ApplicationContext.applicationLanguage();
-		String value = RegistrationConstants.EMPTY;
-
-		if (fieldValue instanceof List<?>) {
-			Optional<SimpleDto> demoValueInRequiredLang = ((List<SimpleDto>) fieldValue).stream()
-					.filter(valueDTO -> valueDTO.getLanguage().equals(lang)).findFirst();
-
-			if (demoValueInRequiredLang.isPresent() && demoValueInRequiredLang.get().getValue() != null) {
-				value = demoValueInRequiredLang.get().getValue();
-			}
-		}
-
-		else if (fieldValue instanceof String || fieldValue instanceof Integer || fieldValue instanceof BigInteger
-				|| fieldValue instanceof Double) {
-			value = String.valueOf(fieldValue);
-		}
-		return value == null ? RegistrationConstants.EMPTY : value;
-	}
-
 	@SuppressWarnings("unchecked")
 	private String getValue(Object fieldValue, String lang) {
 		String value = RegistrationConstants.EMPTY;
@@ -547,18 +485,23 @@ public class TemplateGenerator extends BaseService {
 			if (demoValueInRequiredLang.isPresent() && demoValueInRequiredLang.get().getValue() != null) {
 				value = demoValueInRequiredLang.get().getValue();
 			}
+		} else if (fieldValue instanceof String || fieldValue instanceof Integer || fieldValue instanceof BigInteger
+				|| fieldValue instanceof Double) {
+			value = String.valueOf(fieldValue);
 		}
-		return value;
+		return value == null ? RegistrationConstants.EMPTY : value;
 	}
 
-	private String getSecondaryLanguageValue(Object fieldValue) {
+	private String getFieldValue(UiSchemaDTO field) {
+		Object fieldValue = getRegistrationDTOFromSession().getDemographics().get(((UiSchemaDTO) field).getId());
 		String value = RegistrationConstants.EMPTY;
-		if (multipleLanguagesAvailable()) {
-			List<String> selectedLanguages = getRegistrationDTOFromSession().getSelectedLanguagesByApplicant();
-			for (String selectedLanguage : selectedLanguages) {
-				value = value.isBlank() ? value.concat(getValue(fieldValue, selectedLanguage)) : value.concat(RegistrationConstants.SLASH).concat(getValue(fieldValue, selectedLanguage));
-			}		
-		}		
+		List<String> selectedLanguages = getRegistrationDTOFromSession().getSelectedLanguagesByApplicant();
+		for (String selectedLanguage : selectedLanguages) {
+			value = value.isBlank() ? value.concat(getValue(fieldValue, selectedLanguage)) : value.concat(RegistrationConstants.SLASH).concat(getValue(fieldValue, selectedLanguage));
+			if (!field.getType().equalsIgnoreCase(RegistrationConstants.SIMPLE_TYPE)) {
+				return value;
+			}
+		}	
 		return value;
 	}
 
@@ -587,16 +530,6 @@ public class TemplateGenerator extends BaseService {
 			throw e;
 		}
 		return schemaFields;
-	}
-
-	private boolean multipleLanguagesAvailable() {
-		List<String> selectedLanguages = getRegistrationDTOFromSession().getSelectedLanguagesByApplicant();
-
-		if (selectedLanguages != null && !selectedLanguages.isEmpty() && selectedLanguages.size() > 1) {
-			return true;
-		}
-
-		return false;
 	}
 
 	private String getImage(String imagePath) {
