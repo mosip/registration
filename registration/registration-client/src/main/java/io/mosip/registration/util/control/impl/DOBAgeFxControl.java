@@ -177,7 +177,7 @@ public class DOBAgeFxControl extends FxControl {
 
 	@Override
 	public boolean isEmpty() {
-		return false;
+		return true;
 	}
 
 	@Override

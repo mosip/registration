@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.util.common.Modality;
 import javafx.scene.layout.*;
 import org.apache.commons.collections4.ListUtils;
@@ -65,7 +66,15 @@ public class BiometricFxControl extends FxControl {
 
 	@Override
 	public void setData(Object data) {
+		if (data != null) {
+			getRegistrationDTo().addAllBiometrics(uiSchemaDTO.getSubType(),
+					(Map<String, BiometricsDto>) data,
+					biometricsController.getThresholdScoreInDouble(biometricsController.getThresholdKeyByBioType(currentModality)),
+					biometricsController.getMaxRetryByModality(currentModality));
+		}
 
+		addRemoveCaptureStatusMark(currentModality);
+		// TODO - remove EOP document if there are no biometric exception
 	}
 
 	@Override
@@ -75,7 +84,10 @@ public class BiometricFxControl extends FxControl {
 
 	@Override
 	public Object getData() {
-		return null;
+		List<String> requiredAttributes = getRequiredBioAttributes(uiSchemaDTO.getSubType());
+		List<String> configBioAttributes = ListUtils.intersection(requiredAttributes,
+				Modality.getAllBioAttributes(currentModality));
+		return getRegistrationDTo().getBiometric(uiSchemaDTO.getSubType(), configBioAttributes);
 	}
 
 	@Override
@@ -141,7 +153,6 @@ public class BiometricFxControl extends FxControl {
 				try {
 					captureDetails = BaseController.loadWithNewInstance(getClass().getResource("/fxml/BiometricsCapture.fxml"),
 							this.biometricsController);
-					scanForModality(this, currentModality);
 					GridPane.setHalignment(captureDetails, HPos.CENTER);
 					GridPane.setValignment(captureDetails, VPos.TOP);
 					gridPane.add(captureDetails,1,1);
@@ -215,7 +226,13 @@ public class BiometricFxControl extends FxControl {
 	private Button addModalityButton(Modality modality) {
 		Button button = new Button();
 		button.setPrefSize(80, 80);
+
 		Image image = new Image(this.getClass().getResourceAsStream(getImageIconPath(modality.name())));
+		List<BiometricsDto> capturedData = getRegistrationDTo().getBiometric(uiSchemaDTO.getSubType(), modality.getAttributes());
+		if(!capturedData.isEmpty()) {
+			image = biometricsController.getBioStreamImage(uiSchemaDTO.getSubType(), modality,
+					capturedData.get(0).getNumOfRetries());
+		}
 		button.setGraphic(getImageView(image, 80));
 		button.getStyleClass().add(RegistrationConstants.MODALITY_BUTTONS);
 		Tooltip tooltip = new Tooltip(ApplicationContext.getInstance().getBundle(ApplicationContext.applicationLanguage(),
@@ -265,7 +282,7 @@ public class BiometricFxControl extends FxControl {
 					.collect(Collectors.toList());
 
 			for (UiSchemaDTO schemaField : fields) {
-				if (/*requiredFieldValidator.isRequiredField(schemaField, getRegistrationDTo()) &&*/ schemaField.getBioAttributes() != null)
+				if (requiredFieldValidator.isRequiredField(schemaField, getRegistrationDTo()) && schemaField.getBioAttributes() != null)
 					requiredAttributes.addAll(schemaField.getBioAttributes());
 			}
 
@@ -358,47 +375,43 @@ public class BiometricFxControl extends FxControl {
 		}
 	}
 
-	private void addTickMark(Modality modality) {
+	private void addRemoveCaptureStatusMark(Modality modality) {
 		Pane pane = getModalityHBox(modality);
 		if (pane.getChildren().size() > 1) {
-
 			pane.getChildren().remove(1);
 		}
-		pane.getChildren().add(addCompletionImg(getCompletionImgPath(isAnyExceptions(modality))));
+
+		boolean isExceptionsMarked = isAnyExceptions(modality);
+		boolean isCaptured = !getRegistrationDTo().getBiometric(uiSchemaDTO.getSubType(), modality.getAttributes()).isEmpty();
+		if(modality.equals(Modality.EXCEPTION_PHOTO) && biometricsController.isBiometricExceptionProofCollected()) {
+			pane.getChildren().add(addCompletionImg(getCompletionImgPath(false)));
+			return;
+		}
+
+		if(isExceptionsMarked) {
+			pane.getChildren().add(addCompletionImg(getCompletionImgPath(true)));
+			return;
+		}
+
+		if(isCaptured) {
+			pane.getChildren().add(addCompletionImg(getCompletionImgPath(false)));
+			return;
+		}
 	}
 
 	private Pane getModalityHBox(Modality modality) {
 		return ((Pane) getField(uiSchemaDTO.getId() + modality.name()));
 	}
 
-	private void removeTickMark(Modality modality) {
-
-		Pane pane = getModalityHBox(modality);
-
-		if (pane.getChildren().size() > 1) {
-			pane.getChildren().remove(1);
-		}
-	}
 
 	public void refreshExceptionMarks(Modality currentModality) {
-		if (biometricsController.isExceptionPhoto(currentModality)) {
-			if (biometricsController.isBiometricExceptionProofCollected()) {
-				addTickMark(currentModality);
-			} else {
-				removeTickMark(currentModality);
-			}
-		} else if (isAnyExceptions(currentModality) || !biometricsController
-				.getBiometrics(uiSchemaDTO.getSubType(), modalityAttributeMap.get(currentModality).get(0)).isEmpty()) {
-			addTickMark(currentModality);
-		} else {
-			removeTickMark(currentModality);
-		}
-
 		Node exceptionModality = getField(uiSchemaDTO.getId() + Modality.EXCEPTION_PHOTO);
 
 		if (exceptionModality != null) {
 			exceptionModality.setVisible(isBiometricExceptionAvailable());
 		}
+
+		addRemoveCaptureStatusMark(currentModality);
 	}
 
 	private boolean isBiometricExceptionAvailable() {
