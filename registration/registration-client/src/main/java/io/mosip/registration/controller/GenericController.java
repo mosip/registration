@@ -550,7 +550,7 @@ public class GenericController extends BaseController {
 			int rowIndex = 0;
 			GridPane gridPane = getScreenGroupGridPane(screenGridPane.getId()+"_col_1", screenGridPane);
 
-			if(screenDTO.isPreRegFetchRequired() && getRegistrationDTOFromSession().getRegistrationCategory().equalsIgnoreCase(RegistrationConstants.PACKET_TYPE_NEW)) {
+			if(screenDTO.isPreRegFetchRequired()) {
 				gridPane.add(getPreRegistrationFetchComponent(), 0, rowIndex++);
 			}
 
@@ -563,6 +563,9 @@ public class GenericController extends BaseController {
 				for(UiSchemaDTO fieldDTO : groupEntry.getValue()) {
 					try {
 						FxControl fxControl = buildFxElement(fieldDTO);
+						if(fxControl.getNode() instanceof GridPane) {
+							((GridPane)fxControl.getNode()).prefWidthProperty().bind(groupFlowPane.widthProperty());
+						}
 						groupFlowPane.getChildren().add(fxControl.getNode());
 					} catch (Exception exception){
 						LOGGER.error("Failed to build control " + fieldDTO.getId(), exception);
