@@ -80,7 +80,7 @@ public class WorkflowEventUpdateVerticle extends MosipVerticleAPIManager {
 	@Override
 	public void start() {
 		router.setRoute(
-				this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.WORKFLOW_EVENT_UPDATE_ADDRESS, null));
+				this.postUrl(getVertx(), MessageBusAddress.WORKFLOW_EVENT_UPDATE_ADDRESS, null));
 		this.createServer(router.getRouter(), Integer.parseInt(port));
 	}
 

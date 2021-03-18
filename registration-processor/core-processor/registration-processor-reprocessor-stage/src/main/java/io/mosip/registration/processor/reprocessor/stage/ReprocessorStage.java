@@ -202,7 +202,7 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 
 	@Override
 	public void start() {
-		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), null, null));
+		router.setRoute(this.postUrl(getVertx(), null, null));
 		this.createServer(router.getRouter(), Integer.parseInt(port));
 	}
 
