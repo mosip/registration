@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.2-alpha" last-position="0,264" last-zoom="0.65"
+<dbmodel pgmodeler-ver="0.9.3" use-changelog="false" last-position="310,0" last-zoom="0.65" max-obj-count="40"
 	 default-schema="public" default-owner="postgres">
 <role name="sysadmin"
       superuser="true"
@@ -46,14 +46,14 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<comment><![CDATA[The data related to Registration process flows and transaction will be maintained in this database. This database also maintains data that is needed to perform deduplication.]]></comment>
 </database>
 
-<schema name="public" rect-visible="true" fill-color="#e1e1e1" sql-disabled="true">
+<schema name="public" layer="0" rect-visible="true" fill-color="#e1e1e1" sql-disabled="true">
 </schema>
 
-<schema name="regprc" rect-visible="true" fill-color="#83af1f">
+<schema name="regprc" layer="0" rect-visible="true" fill-color="#83af1f">
 	<role name="sysadmin"/>
 </schema>
 
-<table name="registration">
+<table name="registration" layer="0" collapse-mode="2" max-obj-count="28" z-value="0">
 	<schema name="regprc"/>
 	<role name="sysadmin"/>
 	<comment><![CDATA[Registration: Registration Processor table is to store registration requests that are being processed, Also maintains packet id details and status of the registration requests.]]></comment>
@@ -146,12 +146,20 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<type name="character varying" length="36"/>
 		<comment><![CDATA[Registration Process Stage Name: Registration process stage/transaction name of the registration transaction]]></comment>
 	</column>
+	<column name="resume_timestamp">
+		<type name="timestamp" length="0"/>
+		<comment><![CDATA[Resume Timestamp]]></comment>
+	</column>
+	<column name="default_resume_action">
+		<type name="character varying" length="36"/>
+		<comment><![CDATA[Default Resume Action]]></comment>
+	</column>
 	<constraint name="pk_reg_id" type="pk-constr" table="regprc.registration">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
 </table>
 
-<table name="registration_list">
+<table name="registration_list" layer="0" collapse-mode="2" max-obj-count="20" z-value="0">
 	<schema name="regprc"/>
 	<role name="sysadmin"/>
 	<comment><![CDATA[Registration Lists: List of Registration packets details received (to be received) from registration client applications. These details are used to validate the actuall packets received for processing.]]></comment>
@@ -229,7 +237,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</constraint>
 </table>
 
-<table name="registration_transaction">
+<table name="registration_transaction" layer="0" collapse-mode="2" max-obj-count="20" z-value="0">
 	<schema name="regprc"/>
 	<role name="sysadmin"/>
 	<comment><![CDATA[Registration Transaction: Registration Processor Transaction table is to store ALL  Registration Processor packet processing/process transaction details for ID issuance]]></comment>
@@ -307,7 +315,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</constraint>
 </table>
 
-<table name="transaction_type">
+<table name="transaction_type" layer="0" collapse-mode="2" max-obj-count="12" z-value="0">
 	<schema name="regprc"/>
 	<role name="sysadmin"/>
 	<comment><![CDATA[Transaction Type: Registration Process Transaction Type list table, Store all the transaction which are used in registration processor]]></comment>
@@ -357,7 +365,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</constraint>
 </table>
 
-<table name="individual_demographic_dedup">
+<table name="individual_demographic_dedup" layer="0" collapse-mode="2" max-obj-count="18" z-value="0">
 	<schema name="regprc"/>
 	<role name="sysadmin"/>
 	<comment><![CDATA[Individual Demographic Dedupe: Table stores applicant demographic details for deduplication, Only required information for dedupe is stored. ]]></comment>
@@ -438,7 +446,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		</idxelement>
 </index>
 
-<table name="reg_manual_verification">
+<table name="reg_manual_verification" layer="0" collapse-mode="2" max-obj-count="22" z-value="0">
 	<schema name="regprc"/>
 	<role name="sysadmin"/>
 	<comment><![CDATA[Manual Verification: Stores all the registration request which goes through manual verification process, registration can be assinged to single/multiple manual verifier as part of the verification process]]></comment>
@@ -524,7 +532,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</constraint>
 </table>
 
-<table name="rid_seq">
+<table name="rid_seq" layer="0" collapse-mode="2" max-obj-count="8" z-value="0">
 	<schema name="regprc"/>
 	<role name="sysadmin"/>
 	<comment><![CDATA[Registration ID Sequence: regprc tables to keep the current Registration ID sequence, Machine ID and Registration Center ID]]></comment>
@@ -562,7 +570,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</constraint>
 </table>
 
-<table name="reg_demo_dedupe_list">
+<table name="reg_demo_dedupe_list" layer="0" collapse-mode="2" max-obj-count="10" z-value="0">
 	<schema name="regprc"/>
 	<role name="sysadmin"/>
 	<comment><![CDATA[Registration Demographic Deduplication List: List of matched UIN / RIDs, as part of demographic data.]]></comment>
@@ -608,7 +616,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</constraint>
 </table>
 
-<table name="reg_bio_ref">
+<table name="reg_bio_ref" layer="0" collapse-mode="2" max-obj-count="10" z-value="0">
 	<schema name="regprc"/>
 	<role name="sysadmin"/>
 	<comment><![CDATA[Registration Biometric Reference: Mapping table to store the bio reference id for an registration id]]></comment>
@@ -654,7 +662,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</constraint>
 </table>
 
-<table name="abis_application">
+<table name="abis_application" layer="0" collapse-mode="2" max-obj-count="14" z-value="0">
 	<schema name="regprc"/>
 	<role name="sysadmin"/>
 	<comment><![CDATA[ABIS Application: List of ABIS (Automatic Biometric Identification System) applications with whom MOSIP application interfaces with.]]></comment>
@@ -712,7 +720,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</constraint>
 </table>
 
-<table name="abis_request">
+<table name="abis_request" layer="0" collapse-mode="2" max-obj-count="20" z-value="0">
 	<schema name="regprc"/>
 	<role name="sysadmin"/>
 	<comment><![CDATA[ABIS Request: Stores all the requests that were sent to ABIS systems]]></comment>
@@ -796,7 +804,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</constraint>
 </table>
 
-<table name="abis_response">
+<table name="abis_response" layer="0" collapse-mode="2" max-obj-count="15" z-value="0">
 	<schema name="regprc"/>
 	<role name="sysadmin"/>
 	<comment><![CDATA[ABIS Response: Stores all the responses that were received from ABIS systems for the request sent.]]></comment>
@@ -861,7 +869,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</constraint>
 </table>
 
-<table name="abis_response_det">
+<table name="abis_response_det" layer="0" collapse-mode="2" max-obj-count="9" z-value="0">
 	<schema name="regprc"/>
 	<role name="sysadmin"/>
 	<comment><![CDATA[ABIS Response Detail: Stores details of all the ABIS responses received from ABIS system. Response details will mainly have scores, which is applicable only for identify request type.]]></comment>
@@ -903,7 +911,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</constraint>
 </table>
 
-<table name="reg_lost_uin_det">
+<table name="reg_lost_uin_det" layer="0" collapse-mode="2" max-obj-count="9" z-value="0">
 	<schema name="regprc"/>
 	<role name="sysadmin"/>
 	<comment><![CDATA[Registration Lost UIN: Table to store lost uin related details. Mostly to store the latest RID of the lost UIN of an individual who lost his / her UIN.]]></comment>
@@ -1005,61 +1013,61 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<columns names="id" ref-type="dst-columns"/>
 </constraint>
 
-<relationship name="rel_registration_transaction_registration" type="relfk"
+<relationship name="rel_registration_transaction_registration" type="relfk" layer="0"
 	 custom-color="#5aa578"
 	 src-table="regprc.registration_transaction"
 	 dst-table="regprc.registration" reference-fk="fk_regtrn_reg"
 	 src-required="false" dst-required="false"/>
 
-<relationship name="rel_registration_transaction_transaction_type" type="relfk"
+<relationship name="rel_registration_transaction_transaction_type" type="relfk" layer="0"
 	 custom-color="#4b3e56"
 	 src-table="regprc.registration_transaction"
 	 dst-table="regprc.transaction_type" reference-fk="fk_regtrn_trntyp"
 	 src-required="false" dst-required="false"/>
 
-<relationship name="rel_individual_demographic_dedup_registration" type="relfk"
+<relationship name="rel_individual_demographic_dedup_registration" type="relfk" layer="0"
 	 custom-color="#9ac721"
 	 src-table="regprc.individual_demographic_dedup"
 	 dst-table="regprc.registration" reference-fk="fk_idemogd_reg"
 	 src-required="false" dst-required="false"/>
 
-<relationship name="rel_reg_manual_verification_registration" type="relfk"
+<relationship name="rel_reg_manual_verification_registration" type="relfk" layer="0"
 	 custom-color="#249b49"
 	 src-table="regprc.reg_manual_verification"
 	 dst-table="regprc.registration" reference-fk="fk_rmnlver_reg"
 	 src-required="false" dst-required="false"/>
 
-<relationship name="rel_reg_manual_verification_transaction_type" type="relfk"
+<relationship name="rel_reg_manual_verification_transaction_type" type="relfk" layer="0"
 	 custom-color="#942665"
 	 src-table="regprc.reg_manual_verification"
 	 dst-table="regprc.transaction_type" reference-fk="fk_rmnlver_trntyp"
 	 src-required="false" dst-required="false"/>
 
-<relationship name="rel_reg_demo_dedupe_list_registration_transaction" type="relfk"
+<relationship name="rel_reg_demo_dedupe_list_registration_transaction" type="relfk" layer="0"
 	 custom-color="#abb258"
 	 src-table="regprc.reg_demo_dedupe_list"
 	 dst-table="regprc.registration_transaction" reference-fk="fk_regded_regtrn"
 	 src-required="false" dst-required="false"/>
 
-<relationship name="rel_reg_bio_ref_registration" type="relfk"
+<relationship name="rel_reg_bio_ref_registration" type="relfk" layer="0"
 	 custom-color="#94e1e5"
 	 src-table="regprc.reg_bio_ref"
 	 dst-table="regprc.registration" reference-fk="fk_regref_reg"
 	 src-required="false" dst-required="false"/>
 
-<relationship name="rel_abis_response_abis_request" type="relfk"
+<relationship name="rel_abis_response_abis_request" type="relfk" layer="0"
 	 custom-color="#a239f5"
 	 src-table="regprc.abis_response"
 	 dst-table="regprc.abis_request" reference-fk="fk_abisresp_abisreq"
 	 src-required="false" dst-required="false"/>
 
-<relationship name="rel_abis_response_det_abis_response" type="relfk"
+<relationship name="rel_abis_response_det_abis_response" type="relfk" layer="0"
 	 custom-color="#4e132e"
 	 src-table="regprc.abis_response_det"
 	 dst-table="regprc.abis_response" reference-fk="fk_abisresp_resp_id"
 	 src-required="false" dst-required="false"/>
 
-<relationship name="rel_reg_lost_uin_det_registration" type="relfk"
+<relationship name="rel_reg_lost_uin_det_registration" type="relfk" layer="0"
 	 custom-color="#081cb1"
 	 src-table="regprc.reg_lost_uin_det"
 	 dst-table="regprc.registration" reference-fk="fk_rlostd_reg"

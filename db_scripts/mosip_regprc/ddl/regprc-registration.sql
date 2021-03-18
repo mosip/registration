@@ -8,7 +8,7 @@
 -- 
 -- Modified Date        Modified By         Comments / Remarks
 -- ------------------------------------------------------------------------------------------
--- 
+-- Mar-2021		Ram Bhatt	    Added resume_timestamp and default_resume_action columns
 -- ------------------------------------------------------------------------------------------
 
 -- object: regprc.registration | type: TABLE --
@@ -36,6 +36,8 @@ CREATE TABLE regprc.registration(
 	upd_dtimes timestamp,
 	is_deleted boolean,
 	del_dtimes timestamp,
+	resume_timestamp timestamp,
+	default_resume_action character varying(36),
 	CONSTRAINT pk_reg_id PRIMARY KEY (id)
 
 );
