@@ -12,10 +12,10 @@ import io.mosip.registration.processor.stages.demodedupe.DemoDedupeStage;
 @Configuration
 public class DemoDedupeConfig {
 
-	@Bean
-	public DemoDedupeStage getDemoDedupeStage() {
-		return new DemoDedupeStage();
-	}
+//	@Bean
+//	public DemoDedupeStage getDemoDedupeStage() {
+//		return new DemoDedupeStage();
+//	}
 
 	@Bean
 	public DemoDedupe getDemoDedupe() {

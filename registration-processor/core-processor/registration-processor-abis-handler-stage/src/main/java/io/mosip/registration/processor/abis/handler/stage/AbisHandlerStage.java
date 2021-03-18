@@ -15,6 +15,9 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.MediaType;
@@ -89,8 +92,19 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
  * 
  * @author M1048358 Alok
  */
+@RefreshScope
 @Service
+@Configuration
+@ComponentScan(basePackages = { "io.mosip.registration.processor.abis.handler.config",
+        "io.mosip.registration.processor.status.config",
+        "io.mosip.registration.processor.rest.client.config",
+        "io.mosip.registration.processor.packet.storage.config",
+        "io.mosip.registration.processor.core.config",
+		"io.mosip.registration.processor.core.kernel.beans",
+		"io.mosip.kernel.packetmanager.config"})
 public class AbisHandlerStage extends MosipVerticleAPIManager {
+	
+	private static final String MOSIP_REGPROC_ABIS_HANDLER="mosip.regproc.abis.handler.";
 
 	/** The cluster manager url. */
 	@Value("${vertx.cluster.configuration}")
@@ -103,10 +117,6 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	/** The target FPIR. */
 	@Value("${registration.processor.abis.targetFPIR}")
 	private String targetFPIR;
-
-	/** server port number. */
-	@Value("${server.port}")
-	private String port;
 
 	/** worker pool size. */
 	@Value("${worker.pool.size}")
@@ -171,7 +181,12 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	public void start() {
 		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.ABIS_HANDLER_BUS_IN,
 				MessageBusAddress.ABIS_HANDLER_BUS_OUT));
-		this.createServer(router.getRouter(), Integer.parseInt(port));
+		this.createServer(router.getRouter(), getPort());
+	}
+	
+	@Override
+	protected String getPropertyPrefix() {
+		return MOSIP_REGPROC_ABIS_HANDLER;
 	}
 
 	/*

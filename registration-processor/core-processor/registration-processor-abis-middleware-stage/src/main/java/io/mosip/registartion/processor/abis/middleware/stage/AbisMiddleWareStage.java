@@ -16,6 +16,10 @@ import org.assertj.core.util.Arrays;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Service;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -77,8 +81,20 @@ import io.mosip.registration.processor.status.utilities.RegistrationUtility;
  * @since v1.0
  *
  */
+@RefreshScope
+@Service
+@Configuration
+@ComponentScan(basePackages = { "io.mosip.registration.processor.abis.handler.config",
+        "io.mosip.registration.processor.status.config",
+        "io.mosip.registration.processor.rest.client.config",
+        "io.mosip.registration.processor.packet.storage.config",
+        "io.mosip.registration.processor.core.config",
+        "io.mosip.registration.processor.core.kernel.beans",
+		"io.mosip.registration.processor.stages.config",
+		"io.mosip.registartion.processor.abis.middleware.validators"})
 public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(AbisMiddleWareStage.class);
+	private static final String MOSIP_REGPROC_ABIS_MIDDLEWARE = "mosip.regproc.abis.middleware.";
 
 	/** The mosip queue manager. */
 	@Autowired
@@ -114,10 +130,6 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 
 	@Value("${vertx.cluster.configuration}")
 	private String clusterManagerUrl;
-
-	/** server port number. */
-	@Value("${server.port}")
-	private String port;
 	
 	/** worker pool size. */
 	@Value("${worker.pool.size}")
@@ -186,8 +198,14 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 	public void start() {
 		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.ABIS_MIDDLEWARE_BUS_IN,
 				MessageBusAddress.ABIS_MIDDLEWARE_BUS_OUT));
-		this.createServer(router.getRouter(), Integer.parseInt(port));
+		this.createServer(router.getRouter(), getPort());
 	}
+	
+	@Override
+	protected String getPropertyPrefix() {
+		return MOSIP_REGPROC_ABIS_MIDDLEWARE;
+	}
+
 
 	@Override
 	public MessageDTO process(MessageDTO object) {

@@ -30,10 +30,10 @@ import io.mosip.registration.processor.rest.client.service.impl.RegistrationProc
 @Configuration
 public class ReprocessorConfigBeans {
 
-	@Bean
-	public ReprocessorStage getReprocessorStage() {
-		return new ReprocessorStage();
-	}
+//	@Bean
+//	public ReprocessorStage getReprocessorStage() {
+//		return new ReprocessorStage();
+//	}
 	@Bean
 	public RegistrationProcessorRestClientService<Object> getRegistrationProcessorRestClientService() {
 		return new RegistrationProcessorRestClientServiceImpl();

@@ -17,10 +17,10 @@ public class BioDedupeBeanConfig {
 		return new BioDedupeServiceImpl();
 	}
 
-	@Bean
-	public BioDedupeStage getBioDedupeStage() {
-		return new BioDedupeStage();
-	}
+//	@Bean
+//	public BioDedupeStage getBioDedupeStage() {
+//		return new BioDedupeStage();
+//	}
 
 	@Bean
 	public BioDedupeProcessor getBioDedupeProcessor() {

@@ -17,6 +17,7 @@
 	</properties>
 	<modules>
 		<module>stage-group-1</module>
+		<module>core-processor-stage-group</module>
     </modules>
     <dependencies>
 		<dependency>
