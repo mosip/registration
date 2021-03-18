@@ -23,7 +23,7 @@
             <AnchorPane prefHeight="25.0" prefWidth="196.0">
                <children>
                   <Label layoutX="59.0" layoutY="-3.0" text="Demographic Details" />
-                  <ImageView fitHeight="24.0" fitWidth="18.0" layoutX="16.0" layoutY="-5.0" pickOnBounds="true" preserveRatio="true">
+                  <ImageView fx:id="DemoDetailsImg" fitHeight="24.0" fitWidth="18.0" layoutX="16.0" layoutY="-5.0" pickOnBounds="true" preserveRatio="true">
                   	<image>
                   		<Image url="@../images/activeDemographicDetails.png" />
                   	</image>
@@ -33,7 +33,7 @@
             <AnchorPane layoutX="709.0" prefHeight="25.0" prefWidth="196.0">
                <children>
                   <Label layoutX="46.0" layoutY="-3.0" text="Authentication" />
-                  <ImageView fitHeight="24.0" fitWidth="18.0" layoutY="-5.0" pickOnBounds="true" preserveRatio="true">
+                  <ImageView fx:id="AuthenticationImg" fitHeight="24.0" fitWidth="18.0" layoutY="-5.0" pickOnBounds="true" preserveRatio="true">
                      <image>
                      	<Image url="@../images/deactiveAuthentication.png" />
                      </image>
@@ -43,7 +43,7 @@
             <AnchorPane layoutX="476.0" prefHeight="25.0" prefWidth="196.0">
                <children>
                   <Label layoutX="62.0" layoutY="-3.0" text="Biometric Details" />
-                  <ImageView fitHeight="24.0" fitWidth="18.0" layoutX="20.0" layoutY="-5.0" pickOnBounds="true" preserveRatio="true">
+                  <ImageView fx:id="BiometricDetail" fitHeight="24.0" fitWidth="18.0" layoutX="20.0" layoutY="-5.0" pickOnBounds="true" preserveRatio="true">
                      <image>
                     		 <Image url="@../images/deactiveBiometriDetails.png" />
                      </image>
@@ -53,7 +53,7 @@
             <AnchorPane layoutX="251.0" prefHeight="25.0" prefWidth="196.0">
                <children>
                   <Label layoutX="42.0" layoutY="-3.0" text="Upload Documents" />
-                  <ImageView fitHeight="24.0" fitWidth="18.0" layoutX="1.0" layoutY="-5.0" pickOnBounds="true" preserveRatio="true">
+                  <ImageView fx:id="UploadDocImg" fitHeight="24.0" fitWidth="18.0" layoutX="1.0" layoutY="-5.0" pickOnBounds="true" preserveRatio="true">
                   <image>
                   		<Image url="@../images/deactiveUploadDocument.png" />
                   	</image>
