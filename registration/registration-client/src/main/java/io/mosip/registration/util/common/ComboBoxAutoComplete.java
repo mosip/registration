@@ -7,6 +7,7 @@ import java.util.stream.Stream;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
+import io.mosip.registration.dto.mastersync.DocumentCategoryDto;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -91,7 +92,10 @@ public class ComboBoxAutoComplete<T> {
 		} else if (filter.get() != null) {
 			Stream<T> itens = cmb.getItems().stream();
 			String txtUsr = filter.get().toLowerCase();
-			itens.filter(el -> el.toString().toLowerCase().contains(txtUsr)).forEach(filteredList::add);
+			itens.filter(el -> {
+				
+				String comparableStr =el instanceof DocumentCategoryDto ? ((DocumentCategoryDto) el).getName() : el.toString();
+				return comparableStr.toLowerCase().contains(txtUsr);}).forEach(filteredList::add);
 			cmb.getTooltip().setText(txtUsr);
 			Window stage = cmb.getScene().getWindow();
 			double posX = stage.getX() + cmb.localToScene(cmb.getBoundsInLocal()).getMinX();

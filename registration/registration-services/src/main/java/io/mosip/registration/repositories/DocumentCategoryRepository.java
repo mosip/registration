@@ -18,5 +18,7 @@ public interface DocumentCategoryRepository extends BaseRepository<DocumentCateg
 	List<DocumentCategory> findAllByIsActiveTrue();
 
 	DocumentCategory findByIsActiveTrueAndCodeAndLangCode(String docCategeoryCode, String langCode);
+	
+	DocumentCategory findByIsActiveTrueAndCodeAndNameAndLangCode(String docCategeoryCode,String docName, String langCode);
 
 }

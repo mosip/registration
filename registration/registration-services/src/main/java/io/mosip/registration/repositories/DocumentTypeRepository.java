@@ -19,4 +19,6 @@ public interface DocumentTypeRepository extends BaseRepository<DocumentType, Str
 	List<DocumentType> findByIsActiveTrueAndName(String docTypeName);
 	
 	List<DocumentType> findAllByIsActiveTrue();
+
+	DocumentType findByIsActiveTrueAndLangCodeAndCode(String langCode, String docCode);
 }

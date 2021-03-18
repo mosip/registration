@@ -54,4 +54,5 @@ public class DocumentCategoryDAOImpl implements DocumentCategoryDAO {
 		return documentCategoryRepository.findByIsActiveTrueAndCodeAndLangCode(docCategeoryCode, langCode);
 
 	}
+	
 }

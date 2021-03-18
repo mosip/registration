@@ -332,6 +332,7 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 		return documentsDTO;
 	}
 
+	
 	/**
 	 * Gets the individual type.
 	 * 
@@ -714,5 +715,10 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 
 	public Location getLocation(String code, String langCode) {
 		return masterSyncDao.getLocation(code, langCode);
+	}
+
+	@Override
+	public DocumentType getDocumentType(String docCode, String langCode) {
+		return  masterSyncDao.getDocumentType(docCode, langCode);
 	}
 }

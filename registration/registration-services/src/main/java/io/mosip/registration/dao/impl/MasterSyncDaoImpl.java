@@ -193,6 +193,17 @@ public class MasterSyncDaoImpl implements MasterSyncDao {
 	public List<DocumentType> getDocumentTypes(List<String> docCode, String langCode) {
 		return documentTypeRepository.findByIsActiveTrueAndLangCodeAndCodeIn(langCode, docCode);
 	}
+	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see io.mosip.registration.dao.MasterSyncDao#getDocumentCategories(java.lang.
+	 * String)
+	 */
+	@Override
+	public DocumentType getDocumentType(String docCode, String langCode) {
+		return documentTypeRepository.findByIsActiveTrueAndLangCodeAndCode(langCode, docCode);
+	}
 
 	/*
 	 * (non-Javadoc)
