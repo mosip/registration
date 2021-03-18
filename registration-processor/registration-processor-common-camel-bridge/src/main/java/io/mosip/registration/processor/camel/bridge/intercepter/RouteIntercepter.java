@@ -11,7 +11,6 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Predicate;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
 import org.apache.camel.model.RouteDefinition;
-import org.apache.camel.model.RoutesDefinition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -24,17 +23,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.camel.bridge.model.Setting;
-import io.mosip.registration.processor.camel.bridge.processor.TokenGenerationProcessor;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.WorkflowEventDTO;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.vertx.core.json.JsonObject;
 
-@Component
 public class RouteIntercepter {
 
-	private static final Logger LOGGER = RegProcessorLogger.getLogger(TokenGenerationProcessor.class);
+	private static final Logger LOGGER = RegProcessorLogger.getLogger(RouteIntercepter.class);
 
 	@Value("${mosip.regproc.camelbridge.pause-settings}")
 	private String settingsString;
@@ -56,9 +54,8 @@ public class RouteIntercepter {
 
 	}
 
-	public List<RouteDefinition> intercept(CamelContext camelContext, RoutesDefinition routes) {
-		List<RouteDefinition> routesDefination = routes.getRoutes();
-		routesDefination.forEach(x -> {
+	public List<RouteDefinition> intercept(CamelContext camelContext, List<RouteDefinition> routeDefinations) {
+		routeDefinations.forEach(x -> {
 			try {
 				x.adviceWith(camelContext, new AdviceWithRouteBuilder() {
 
@@ -78,13 +75,12 @@ public class RouteIntercepter {
 									for (Setting setting : settings) {
 										if (Pattern.matches(setting.getFromAddress(), fromAddress) && tags
 												.getString(hotlistedTagKey).equals(setting.getHotlistedReason())) {
-											// workflow dto workfloweventdto
 											WorkflowEventDTO workflowEventDTO = new WorkflowEventDTO();
 											workflowEventDTO.setResumeTimestamp(DateUtils.toISOString(DateUtils
 													.getUTCCurrentDateTime().plusSeconds(setting.getPauseFor())));
 											workflowEventDTO.setRid(json.getString("rid"));
 											workflowEventDTO.setDefaultResumeAction(setting.getDefaultResumeAction());
-											workflowEventDTO.setStatusCode("PAUSED");
+											workflowEventDTO.setStatusCode(RegistrationStatusCode.PAUSED.toString());
 											try {
 												exchange.getMessage()
 														.setBody(objectMapper.writeValueAsString(workflowEventDTO));
@@ -110,6 +106,6 @@ public class RouteIntercepter {
 						"RouteIntercepter::intercept()::exception " + e.getMessage());
 			}
 		});
-		return routesDefination;
+		return routeDefinations;
 	}
 }

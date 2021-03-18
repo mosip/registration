@@ -144,7 +144,7 @@ public class MosipBridgeFactory extends MosipVerticleAPIManager {
 			responseEntity = restTemplate.exchange(camelRoutesUrl, HttpMethod.GET, null,
 	                Resource.class);
 			routes = camelContext.loadRoutesDefinition(responseEntity.getBody().getInputStream());
-			camelContext.addRouteDefinitions(routeIntercepter.intercept(camelContext, routes));
+			camelContext.addRouteDefinitions(routeIntercepter.intercept(camelContext, routes.getRoutes()));
 			//camelContext.addRouteDefinitions(routes.getRoutes());
 		}
 		if(eventBusType.equals("vertx")) {
