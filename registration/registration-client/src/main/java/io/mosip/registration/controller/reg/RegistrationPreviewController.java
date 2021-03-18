@@ -33,7 +33,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.web.WebView;
 
@@ -69,8 +68,6 @@ public class RegistrationPreviewController extends BaseController implements Ini
 	public Button getNextButton() {
 		return nextButton;
 	}
-
-	private String consentText;
 
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
@@ -170,7 +167,6 @@ public class RegistrationPreviewController extends BaseController implements Ini
 					ApplicationContext.applicationLanguage());
 
 			if (ackTemplateText != null && !ackTemplateText.isEmpty()) {
-				templateGenerator.setConsentText(consentText);
 				ResponseDTO templateResponse = templateGenerator.generateTemplate(ackTemplateText,
 						getRegistrationDTOFromSession(), templateManagerBuilder,
 						RegistrationConstants.TEMPLATE_PREVIEW);
@@ -203,7 +199,6 @@ public class RegistrationPreviewController extends BaseController implements Ini
 					ApplicationContext.applicationLanguage());
 
 			if (ackTemplateText != null && !ackTemplateText.isEmpty()) {
-				templateGenerator.setConsentText(consentText);
 				ResponseDTO templateResponse = templateGenerator.generateTemplate(ackTemplateText,
 						getRegistrationDTOFromSession(), templateManagerBuilder,
 						RegistrationConstants.TEMPLATE_PREVIEW);
