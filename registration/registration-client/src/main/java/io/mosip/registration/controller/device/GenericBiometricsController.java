@@ -256,11 +256,11 @@ public class GenericBiometricsController extends BaseController /* implements In
 
 	private int sizeOfLeftGridPaneImageList = -1;
 
-	private HashMap<String, HashMap<Modality, VBox>> exceptionMap;
+	/*private HashMap<String, HashMap<Modality, VBox>> exceptionMap;
 
 	private HashMap<String, GridPane> leftHandImageBoxMap;
 
-	private HashMap<String, List<String>> currentMap;
+	private HashMap<String, List<String>> currentMap;*/
 
 	private static final String AND_OPERATOR = " && ";
 	private static final String OR_OPERATOR = " || ";
@@ -361,7 +361,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 		biometricBox.setVisible(true);
 		biometricType.setText(applicationLabelBundle.getString(modality.name()));
 
-		disableLastCheckBoxSection();
+	//	disableLastCheckBoxSection();
 		this.currentModality = modality;
 //		enableCurrentCheckBoxSection();
 
@@ -585,7 +585,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 		return imageIconPath;
 	}
 
-	private void disableLastCheckBoxSection() {
+	/*private void disableLastCheckBoxSection() {
 		checkBoxPane.setVisible(false);
 		if (currentPosition != -1) {
 			if (this.currentModality != null
@@ -598,7 +598,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 			}
 		}
 
-	}
+	}*/
 
 	/**
 	 * This method will allow to scan and upload documents
@@ -646,7 +646,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 
 		fxControl.refreshExceptionMarks(currentModality);
 		displayExceptionBiometric(currentModality);
-		refreshContinueButton();
+		//refreshContinueButton();
 	}
 
 	/**
@@ -790,20 +790,16 @@ public class GenericBiometricsController extends BaseController /* implements In
 			throws RegBaseCheckedException {
 		List<String> selectedExceptions = new LinkedList<String>();
 
-		// Get List of check boxes using the grid pane
-		List<Node> paneList = getCheckBoxes(subType, modality);
-		if (paneList != null && !paneList.isEmpty()) {
-
-			Pane pane = (Pane) paneList.get(1);
-
+		// get vbox holding label and exception marking Image
+		if(checkBoxPane.getChildren().size() > 0) {
+			Pane pane = (Pane) checkBoxPane.getChildren().get(0);
+			pane = (Pane) pane.getChildren().get(1);
 			for (Node exceptionImage : pane.getChildren()) {
 				if (exceptionImage instanceof ImageView && exceptionImage.getId() != null
 						&& !exceptionImage.getId().isEmpty()) {
 					ImageView image = (ImageView) exceptionImage;
 					if (image.getOpacity() == 1) {
-
 						selectedExceptions.add(image.getId());
-
 					}
 				}
 			}
@@ -811,7 +807,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 		return selectedExceptions;
 	}
 
-	private List<Node> getCheckBoxes(String subType, Modality modality) {
+	/*private List<Node> getCheckBoxes(String subType, Modality modality) {
 
 		List<Node> exceptionCheckBoxes = new ArrayList<>();
 		if (exceptionMap.get(subType) != null && exceptionMap.get(subType).get(modality) != null) {
@@ -819,7 +815,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 		}
 		return exceptionCheckBoxes;
 
-	}
+	}*/
 
 	public void rCaptureTaskService() {
 		LOGGER.debug("Capture request called at : {}", System.currentTimeMillis());
@@ -981,7 +977,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 					LOGGER.info("using captured response fill the fields like quality score and progress bar,,etc,.. UI");
 					loadBiometricsUIElements(registrationDTOBiometricsList, currentSubType, currentModality);
 
-					refreshContinueButton();
+					//refreshContinueButton();
 
 				} catch (RuntimeException | RegBaseCheckedException e) {
 					LOGGER.error("Exception while getting the scanned biometrics for user registration",e);
@@ -1026,7 +1022,8 @@ public class GenericBiometricsController extends BaseController /* implements In
 
 		List<String> exceptionBioAttributes = new LinkedList<>();
 
-		//TODO - check what is this for ?
+		//if its exception photo, then we need to send all the exceptions that is marked to MDS
+		//its the information provided to MDS
 		if (isExceptionPhoto(modality)) {
 			if (getRegistrationDTOFromSession() != null) {
 				for (Entry<String, BiometricsException> bs : getRegistrationDTOFromSession().getBiometricExceptions()
@@ -1037,7 +1034,8 @@ public class GenericBiometricsController extends BaseController /* implements In
 				}
 			}
 
-		} else {
+		}
+		else {
 			exceptionBioAttributes = getSelectedExceptionsByBioType(currentSubType, currentModality);
 		}
 		// Check count
@@ -1121,7 +1119,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 	}
 
 
-	private String getThresholdKeyByBioType(io.mosip.registration.util.common.Modality modality) {
+	public String getThresholdKeyByBioType(io.mosip.registration.util.common.Modality modality) {
 		if(modality == null)
 			return RegistrationConstants.EMPTY;
 
@@ -1507,6 +1505,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 		return STREAM_IMAGES.get(String.format("%s_%s_%s", subType, modality.name(), attempt));
 	}
 
+	/*
 	public void refreshContinueButton() {
 		LOGGER.debug( "refreshContinueButton invoked");
 
@@ -1517,7 +1516,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 
 		String currentSubType = getListOfBiometricSubTypes().get(currentPosition);
 
-		List<String> bioAttributes = currentMap.get(currentSubType);
+		List<String> bioAttributes = //currentMap.get(currentSubType);
 
 		List<String> leftHandBioAttributes = getContainsAllElements(RegistrationConstants.leftHandUiAttributes,
 				bioAttributes);
@@ -1563,7 +1562,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 		}
 		continueBtn.setDisable(result ? false : true);
-	}
+	}*/
 
 	public boolean hasApplicantBiometricException() {
 		LOGGER.debug("Checking whether applicant has biometric exceptions");
@@ -1736,7 +1735,8 @@ public class GenericBiometricsController extends BaseController /* implements In
 	}
 
 	private List<String> getListOfBiometricSubTypes() {
-		return new ArrayList<String>(currentMap.keySet());
+		//return new ArrayList<String>(currentMap.keySet());
+		return new ArrayList<String>();
 	}
 
 	private boolean identifyInLocalGallery(List<BiometricsDto> biometrics, String modality) {
@@ -2433,13 +2433,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 		boolean result = MVEL.evalToBoolean(expression, capturedDetails);
 
 		if (result && considerExceptionAsCaptured) {
-
-			if (hasApplicantBiometricException()) {
-
-				result = getRegistrationDTOFromSession().getDocuments().containsKey("proofOfException");
-
-			}
-
+			result = hasApplicantBiometricException() ? isBiometricExceptionProofCollected() : result;
 		}
 		LOGGER.debug("capturedDetails >> {} Expression >> {} result >> {}", capturedDetails, expression, result);
 

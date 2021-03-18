@@ -1502,7 +1502,7 @@ public class BaseController {
 		return false;
 	}
 
-	public String getThresholdKeyByBioType(String bioType) {
+	/*public String getThresholdKeyByBioType(String bioType) {
 		return bioType.equals(RegistrationConstants.FINGERPRINT_SLAB_LEFT)
 				? RegistrationConstants.LEFTSLAP_FINGERPRINT_THRESHOLD
 				: bioType.equals(RegistrationConstants.FINGERPRINT_SLAB_RIGHT)
@@ -1514,7 +1514,7 @@ public class BaseController {
 				: bioType.toLowerCase().contains(RegistrationConstants.FACE.toLowerCase())
 				? RegistrationConstants.FACE_THRESHOLD
 				: RegistrationConstants.EMPTY;
-	}
+	}*/
 
 	public interface ToRun<T> {
 		public T toRun();
