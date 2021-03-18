@@ -208,15 +208,15 @@ public class Validations extends BaseController {
 
 			UiSchemaDTO uiSchemaDTO = getValidationMap().get(id);
 
-			// During lostUIN and during updateUIN & field is not part of the selection then
-			// donot do any validation
-			if (isLostUIN) {
-				if (node.isVisible() && (node.getText() != null && !node.getText().isEmpty())) {
-					isInputValid = checkForValidValue(parentPane, node, id, node.getText(), messageBundle, showAlert,
-							isPreviousValid, blackListedWords, uiSchemaDTO, langCode);
-				}
-				return isInputValid;
-			}
+//			// During lostUIN and during updateUIN & field is not part of the selection then
+//			// donot do any validation
+//			if (isLostUIN) {
+//				if (node.isVisible() && (node.getText() != null && !node.getText().isEmpty())) {
+//					isInputValid = checkForValidValue(parentPane, node, id, node.getText(), messageBundle, showAlert,
+//							isPreviousValid, blackListedWords, uiSchemaDTO, langCode);
+//				}
+//				return isInputValid;
+//			}
 
 			if (uiSchemaDTO != null) {
 				if (requiredFieldValidator.isRequiredField(uiSchemaDTO, getRegistrationDTOFromSession())

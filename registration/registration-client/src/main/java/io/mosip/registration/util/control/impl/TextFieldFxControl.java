@@ -6,6 +6,7 @@ package io.mosip.registration.util.control.impl;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.springframework.context.ApplicationContext;
@@ -285,7 +286,18 @@ public class TextFieldFxControl extends FxControl {
 
 	@Override
 	public boolean isEmpty() {
-		return false;
+		
+		List<String> langCodes = new LinkedList<String>();
+		if(!this.uiSchemaDTO.getType().equalsIgnoreCase(RegistrationConstants.SIMPLE_TYPE)) {
+			langCodes.add(getRegistrationDTo().getSelectedLanguagesByApplicant().get(0));
+		} else {
+			langCodes.addAll(getRegistrationDTo().getSelectedLanguagesByApplicant());
+		}
+		
+		return langCodes.stream().allMatch(langCode -> {
+			TextField textField = (TextField) getField(uiSchemaDTO.getId() + langCode);
+			return textField.getText().isEmpty();
+		});
 	}
 
 	private void transliterate(TextField textField, String langCode) {

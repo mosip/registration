@@ -169,15 +169,20 @@ public class DOBAgeFxControl extends FxControl {
 		TextField yyyy = (TextField) getField(
 				uiSchemaDTO.getId() + RegistrationConstants.YYYY + RegistrationConstants.TEXT_FIELD);
 
-		//TODO - check for valid value, max and min validation
-		//TODO - for lostUIN flow
 		return dd != null && !dd.getText().isEmpty() && mm != null && !mm.getText().isEmpty() && yyyy != null
 				&& !yyyy.getText().isEmpty();
 	}
 
 	@Override
 	public boolean isEmpty() {
-		return true;
+		TextField dd = (TextField) getField(
+				uiSchemaDTO.getId() + RegistrationConstants.DD + RegistrationConstants.TEXT_FIELD);
+		TextField mm = (TextField) getField(
+				uiSchemaDTO.getId() + RegistrationConstants.MM + RegistrationConstants.TEXT_FIELD);
+		TextField yyyy = (TextField) getField(
+				uiSchemaDTO.getId() + RegistrationConstants.YYYY + RegistrationConstants.TEXT_FIELD);
+		return dd != null && dd.getText().isEmpty() && mm != null && mm.getText().isEmpty() && yyyy != null
+				&& yyyy.getText().isEmpty();
 	}
 
 	@Override
