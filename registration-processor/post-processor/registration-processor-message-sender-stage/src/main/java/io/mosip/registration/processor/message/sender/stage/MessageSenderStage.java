@@ -12,6 +12,8 @@ import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,7 +40,6 @@ import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode
 import io.mosip.registration.processor.core.constant.IdType;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
@@ -84,8 +85,22 @@ import io.mosip.registration.processor.status.service.TransactionService;
  * @since 1.0.0
  */
 @RefreshScope
+
 @Service
+@Configuration
+@ComponentScan(basePackages = { "io.mosip.registration.processor.core.config",
+		"io.mosip.registration.processor.message.sender.config",
+		"io.mosip.registration.processor.stages.config", 
+		"io.mosip.registrationprocessor.stages.config", 
+		"io.mosip.registration.processor.status.config",
+		"io.mosip.registration.processor.rest.client.config", 
+		"io.mosip.registration.processor.packet.storage.config",
+		"io.mosip.registration.processor.packet.manager.config", 
+		"io.mosip.kernel.idobjectvalidator.config",
+		"io.mosip.registration.processor.core.kernel.beans" })
 public class MessageSenderStage extends MosipVerticleAPIManager {
+	
+	private static final String MOSIP_REGPROC_MESSAGE_SENDER = "mosip.regproc.message.sender.";
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(MessageSenderStage.class);
@@ -157,6 +172,12 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 	
 	@Autowired
 	private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationservice;
+	
+	@Override
+	protected String getPropertyPrefix() {
+		return MOSIP_REGPROC_MESSAGE_SENDER;
+	}
+	
 	/**
 	 * Deploy verticle.
 	 */
@@ -173,7 +194,7 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 	@Override
 	public void start() {
 		router.setRoute(this.postUrl(vertx, MessageBusAddress.MESSAGE_SENDER_BUS, null));
-		this.createServer(router.getRouter(), Integer.parseInt(port));
+		this.createServer(router.getRouter(), getPort());
 	}
 
 	/*

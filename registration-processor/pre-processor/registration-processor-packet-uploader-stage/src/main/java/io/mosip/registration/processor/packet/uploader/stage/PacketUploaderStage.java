@@ -11,6 +11,8 @@ import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.packet.uploader.service.PacketUploaderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
 /**
@@ -19,7 +21,19 @@ import org.springframework.stereotype.Component;
  * @author Rishabh Keshari
  */
 @Component
+@Configuration
+@ComponentScan(basePackages = { "io.mosip.registration.processor.core.config",
+		"io.mosip.registration.processor.stages.config", 
+		"io.mosip.registrationprocessor.stages.config", 
+		"io.mosip.registration.processor.status.config",
+		"io.mosip.registration.processor.rest.client.config", 
+		"io.mosip.registration.processor.packet.storage.config",
+		"io.mosip.registration.processor.packet.manager.config", 
+		"io.mosip.kernel.idobjectvalidator.config",
+		"io.mosip.registration.processor.core.kernel.beans" })
 public class PacketUploaderStage extends MosipVerticleAPIManager {
+	
+	private static final String MOSIP_REGPROC_PACKET_UPLOADER = "mosip.regproc.packet.uploader.";
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(PacketUploaderStage.class);
@@ -52,6 +66,11 @@ public class PacketUploaderStage extends MosipVerticleAPIManager {
 	/** Mosip router for APIs */
 	@Autowired
 	MosipRouter router;
+	
+	@Override
+	protected String getPropertyPrefix() {
+		return MOSIP_REGPROC_PACKET_UPLOADER;
+	}
 
 	/**
 	 * Deploy verticle.
@@ -66,7 +85,7 @@ public class PacketUploaderStage extends MosipVerticleAPIManager {
 	public void start(){
 		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.PACKET_UPLOADER_IN,
 				MessageBusAddress.PACKET_UPLOADER_OUT));
-		this.createServer(router.getRouter(), Integer.parseInt(port));
+		this.createServer(router.getRouter(), getPort());
 	}
 
 	/*

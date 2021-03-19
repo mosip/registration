@@ -2,21 +2,20 @@ package io.mosip.registration.processor.packet.uploader.config;
 
 import java.io.InputStream;
 
-import io.mosip.commons.khazana.impl.S3Adapter;
-import io.mosip.commons.khazana.impl.SwiftAdapter;
-import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
+import io.mosip.commons.khazana.impl.S3Adapter;
+import io.mosip.commons.khazana.impl.SwiftAdapter;
+import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
 import io.mosip.kernel.virusscanner.clamav.impl.VirusScannerImpl;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.packet.uploader.archiver.util.PacketArchiver;
 import io.mosip.registration.processor.packet.uploader.service.PacketUploaderService;
 import io.mosip.registration.processor.packet.uploader.service.impl.PacketUploaderServiceImpl;
-import io.mosip.registration.processor.packet.uploader.stage.PacketUploaderStage;
-import org.springframework.context.annotation.Primary;
 
 
 /**
@@ -43,15 +42,6 @@ public class PacketUploaderConfig {
 			throw new UnsupportedOperationException("No adapter implementation found for configuration: registration.processor.objectstore.adapter.name");
 	}
 
-	/**
-	 * PacketUploaderStage Bean
-	 * @return
-	 */
-	@Bean
-	public PacketUploaderStage getPacketUploaderStage() {
-		return new PacketUploaderStage();
-	}
-	
 	/**
 	 * PacketArchiver Bean
 	 * @return

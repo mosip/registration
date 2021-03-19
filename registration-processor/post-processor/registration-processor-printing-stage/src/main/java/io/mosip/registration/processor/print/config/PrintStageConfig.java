@@ -12,11 +12,4 @@ import io.mosip.registration.processor.print.stage.PrintStage;
 @Configuration
 public class PrintStageConfig {
 
-	@Bean 
-	public PrintStage getPrintStage() {
-		return new PrintStage();
-	}
-	
-
-
 }
