@@ -1,3 +1,4 @@
+package io.mosip.registration.processor.camel.bridge.test;
 /*package io.mosip.registration.processor.camel.bridge;
 
 import static org.mockito.Mockito.mock;
