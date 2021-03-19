@@ -21,21 +21,21 @@ import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.camel.bridge.model.Setting;
 import io.mosip.registration.processor.core.abstractverticle.WorkflowEventDTO;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.vertx.core.json.JsonObject;
 
 @Component
 public class RoutePredicate implements Predicate {
-	
+
 	private static final Logger LOGGER = RegProcessorLogger.getLogger(RouteIntercepter.class);
-	
+
 	@Value("${mosip.regproc.camelbridge.pause-settings}")
 	private String settingsString;
 
 	@Value("${mosip.regproc.camelbridge.intercept-hotlisted-key}")
 	private String hotlistedTagKey;
-
 
 	@Autowired
 	private ObjectMapper objectMapper;
@@ -63,6 +63,8 @@ public class RoutePredicate implements Predicate {
 					workflowEventDTO.setRid(json.getString("rid"));
 					workflowEventDTO.setDefaultResumeAction(setting.getDefaultResumeAction());
 					workflowEventDTO.setStatusCode(RegistrationStatusCode.PAUSED.toString());
+					workflowEventDTO.setEventTimestamp(DateUtils.toISOString(DateUtils.getUTCCurrentDateTime()));
+					workflowEventDTO.setStatusComment(PlatformSuccessMessages.PACKET_PAUSED_HOTLISTED.getMessage());
 					try {
 						exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
 					} catch (JsonProcessingException e) {
@@ -70,7 +72,7 @@ public class RoutePredicate implements Predicate {
 								"RouteIntercepter::intercept()::exception " + e.getMessage());
 					}
 					break;
-				}else {
+				} else {
 					return false;
 				}
 			}

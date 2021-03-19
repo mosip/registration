@@ -117,7 +117,9 @@ public enum PlatformSuccessMessages {
 	RPR_SYNC_REGISTRATION_SERVICE_SUCCESS(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "000", "SYNC successfull"),
 
 	RPR_REQUEST_HANDLER_LOST_PACKET_SUCCESS(PlatformConstants.RPR_PACKET_REQUEST_HANDLER_MODULE + "000",
-			"Lost packet id value fetched successfully");
+			"Lost packet id value fetched successfully"),
+	
+	PACKET_PAUSED_HOTLISTED("","packet paused  because of hotlisting");
 
 	/** The success message. */
 	private final String successMessage;
