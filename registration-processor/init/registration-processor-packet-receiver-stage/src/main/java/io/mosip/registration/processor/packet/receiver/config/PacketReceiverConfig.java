@@ -29,7 +29,6 @@ import io.mosip.registration.processor.packet.receiver.builder.PacketReceiverRes
 import io.mosip.registration.processor.packet.receiver.exception.handler.PacketReceiverExceptionHandler;
 import io.mosip.registration.processor.packet.receiver.service.PacketReceiverService;
 import io.mosip.registration.processor.packet.receiver.service.impl.PacketReceiverServiceImpl;
-import io.mosip.registration.processor.packet.receiver.stage.PacketReceiverStage;
 
 /**
  * The Class PacketReceiverConfig.
@@ -57,10 +56,10 @@ public class PacketReceiverConfig {
 	 *
 	 * @return the packet receiver stage
 	 */
-	@Bean
-	public PacketReceiverStage getPacketReceiverStage() {
-		return new PacketReceiverStage();
-	}
+//	@Bean
+	// public PacketReceiverStage getPacketReceiverStage() {
+	// return new PacketReceiverStage();
+	// }
 
 	/**
 	 * GlobalExceptionHandler bean.
