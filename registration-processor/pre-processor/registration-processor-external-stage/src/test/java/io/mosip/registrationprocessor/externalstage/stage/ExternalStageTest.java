@@ -54,6 +54,11 @@ public class ExternalStageTest {
 		public void createServer(Router router, int port) {
 
 		}
+
+		@Override
+		public Integer getPort() {
+			return 8080;
+		};
 	};
 	@Test
 	public void testDeployVerticle() {
@@ -84,7 +89,6 @@ public class ExternalStageTest {
 	public void setUp() throws Exception {
 		ReflectionTestUtils.setField(externalStage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(externalStage, "clusterManagerUrl", "/dummyPath");
-		ReflectionTestUtils.setField(externalStage, "port","8989");
 		dto.setInternalError(false);
 		dto.setIsValid(true);
 		dto.setRid("2758415120462");
