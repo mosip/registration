@@ -117,11 +117,15 @@ public class PacketUploaderStageTest {
 		public void createServer(Router router, int port) {
 
 		}
+
+		@Override
+		public Integer getPort() {
+			return 8080;
+		};
 	};
 	@Test
 	public void testStart()
 	{
-		ReflectionTestUtils.setField(packetValidatorStage, "port", "2333");
 		Mockito.doNothing().when(router).setRoute(any());
 		packetValidatorStage.start();
 	}
