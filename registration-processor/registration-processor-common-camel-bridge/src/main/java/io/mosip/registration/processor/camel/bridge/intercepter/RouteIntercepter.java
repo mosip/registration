@@ -22,7 +22,7 @@ public class RouteIntercepter {
 	private String endpointPrefix;
 
 	@Autowired
-	private Predicate predicate;
+	private RoutePredicate routePredicate;
 
 	private String workflowStatusUpdateAddress = MessageBusAddress.WORKFLOW_EVENT_UPDATE_ADDRESS.toString();
 
@@ -34,7 +34,7 @@ public class RouteIntercepter {
 					@Override
 					public void configure() throws Exception {
 
-						interceptFrom("*").when(predicate).to(endpointPrefix + workflowStatusUpdateAddress).stop();
+						interceptFrom("*").when(routePredicate).to(endpointPrefix + workflowStatusUpdateAddress).stop();
 					}
 				});
 
