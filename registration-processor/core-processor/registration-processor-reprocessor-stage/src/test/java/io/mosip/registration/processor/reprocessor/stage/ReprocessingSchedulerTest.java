@@ -85,7 +85,7 @@ public class ReprocessingSchedulerTest {
 		@Override
 		public MosipEventBus getEventBus(Object verticleName, String clusterManagerUrl) {
 			try {
-				return new MosipEventBusFactory().getEventBus(vertx, "vertx");
+				return new MosipEventBusFactory().getEventBus(vertx, "vertx", "mosip.regproc.reprocessor.");
 			} catch (UnsupportedEventBusTypeException e) {
 				throw new RuntimeException(e);
 			}

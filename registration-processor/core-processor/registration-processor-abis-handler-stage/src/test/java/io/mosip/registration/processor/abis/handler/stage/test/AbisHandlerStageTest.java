@@ -153,6 +153,11 @@ public class AbisHandlerStageTest {
 		public void consumeAndSend(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
 				MessageBusAddress toAddress) {
 		}
+		
+		@Override
+		public Integer getPort() {
+			return 8080;
+		};
 	};
 
 	@Before

@@ -162,6 +162,11 @@ public class BiometricAuthenticationStageTest {
 		public void consumeAndSend(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
 				MessageBusAddress toAddress) {
 		}
+		
+		@Override
+		public Integer getPort() {
+			return 8080;
+		}
 	};
 
 	/** The audit log request builder. */
