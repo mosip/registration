@@ -62,6 +62,7 @@
   <properties>
     <vertx.verticle>io.mosip.registration.processor.camel.bridge.MosipCamelBridge</vertx.verticle>
     <fabric8-vertx-maven-plugin.version>1.0.5</fabric8-vertx-maven-plugin.version>
+    <registration.processor.registration.status.service.impl.version>1.2.0-SNAPSHOT</registration.processor.registration.status.service.impl.version>
   </properties>
 </project>
 
