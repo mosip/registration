@@ -1,5 +1,11 @@
 package io.mosip.registration.processor.packet.uploader.stage;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
+
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -9,11 +15,6 @@ import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIMan
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.packet.uploader.service.PacketUploaderService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Component;
 
 /**
  * The Class PacketUploaderStage.
@@ -42,10 +43,6 @@ public class PacketUploaderStage extends MosipVerticleAPIManager {
 	@Value("${vertx.cluster.configuration}")
 	private String clusterManagerUrl;
 
-	/** server port number. */
-	@Value("${server.port}")
-	private String port;
-
 	/** worker pool size. */
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
@@ -54,10 +51,6 @@ public class PacketUploaderStage extends MosipVerticleAPIManager {
 	 * The mosip event bus.
 	 */
 	private MosipEventBus mosipEventBus;
-
-	/** The context path. */
-	@Value("${server.servlet.path}")
-	private String contextPath;
 
 	/** The packet uploader service. */
 	@Autowired

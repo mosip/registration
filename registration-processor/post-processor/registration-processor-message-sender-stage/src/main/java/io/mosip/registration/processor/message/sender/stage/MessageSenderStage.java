@@ -162,10 +162,6 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 	@Autowired
 	MosipRouter router;
 
-	/** The port. */
-	@Value("${server.port}")
-	private String port;
-
 	/** worker pool size. */
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
