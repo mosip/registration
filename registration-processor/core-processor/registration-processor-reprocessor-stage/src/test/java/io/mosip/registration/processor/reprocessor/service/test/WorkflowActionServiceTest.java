@@ -19,6 +19,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.context.WebApplicationContext;
 
+import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.exception.WorkflowActionException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
@@ -69,6 +70,7 @@ public class WorkflowActionServiceTest {
 		registrationStatusDto.setRegistrationId("10003100030001520190422074511");
 		registrationStatusDto.setRegistrationType("NEW");
 		registrationStatusDto.setRegistrationStageName("SecurezoneNotificationStage");
+		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.name());
 		ReflectionTestUtils.setField(workflowActionService, "hotListedTag", "test");
 		ReflectionTestUtils.setField(workflowActionService, "resumeFromBeginningStage", "SecurezoneNotificationStage");
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(),
