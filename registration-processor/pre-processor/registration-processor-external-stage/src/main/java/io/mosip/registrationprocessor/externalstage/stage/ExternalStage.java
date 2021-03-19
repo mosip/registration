@@ -49,6 +49,7 @@ import io.mosip.registrationprocessor.externalstage.entity.MessageRequestDTO;
 @Service
 @Configuration
 @ComponentScan(basePackages = { "io.mosip.registration.processor.core.config",
+		"io.mosip.registrationprocessor.externalstage.config",
 		"io.mosip.registration.processor.stages.config", 
 		"io.mosip.registrationprocessor.stages.config", 
 		"io.mosip.registration.processor.status.config",
