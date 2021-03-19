@@ -165,12 +165,11 @@ public class PrintStageTest {
 	public void setup() throws Exception {
 		when(env.getProperty("mosip.registration.processor.datetime.pattern"))
 				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		when(env.getProperty("mosip.regproc.printing.server.port")).thenReturn("8099");
 
 		ReflectionTestUtils.setField(stage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(stage, "clusterManagerUrl", "/dummyPath");
-		System.setProperty("server.port", "8099");
 
-		ReflectionTestUtils.setField(stage, "port", "8080");
 		ReflectionTestUtils.setField(stage, "encrypt", false);
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(String.class))).thenReturn(registrationStatusDto);
 

@@ -1,13 +1,13 @@
 package io.mosip.registration.processor.core.eventbus;
 
-import brave.Tracing;
-import io.mosip.registration.processor.core.tracing.EventTracingHandler;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import brave.Tracing;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.exception.UnsupportedEventBusTypeException;
+import io.mosip.registration.processor.core.tracing.EventTracingHandler;
 import io.vertx.core.Vertx;
 
 /**
@@ -18,42 +18,43 @@ import io.vertx.core.Vertx;
 @Component
 public class MosipEventBusFactory {
 
-    //The below properties of the kafka should never be directly configured from the config server, 
-    //since this factory is defined in a library. The configurations should always be piped through
-    //bootstrap.properties file of each app that uses this library
-    @Value("${mosip.regproc.eventbus.kafka.bootstrap.servers:}")
-    private String kafkaBootstrapServers;
-    
-    @Value("${mosip.regproc.eventbus.kafka.group.id:}")
-    private String kafkaGroupId;
-    
-    @Value("${mosip.regproc.eventbus.kafka.commit.type:}")
-    private String kafkaCommitType;
+    private static final String EVENTBUS_KAFKA_POLL_FREQUENCY = "eventbus.kafka.poll.frequency";
 
-    @Value("${mosip.regproc.eventbus.kafka.max.poll.records:}")
-    String maxPollRecords;
-    
-    @Value("${mosip.regproc.eventbus.kafka.poll.frequency:0}")
-    int pollFrequency;
+	private static final String EVENTBUS_KAFKA_MAX_POLL_RECORDS = "eventbus.kafka.max.poll.records";
 
-    @Autowired
+	private static final String EVENTBUS_KAFKA_GROUP_ID = "eventbus.kafka.group.id";
+
+	private static final String EVENTBUS_KAFKA_COMMIT_TYPE = "eventbus.kafka.commit.type";
+
+	private static final String EVENTBUS_KAFKA_BOOTSTRAP_SERVERS = "eventbus.kafka.bootstrap.servers";
+
+	@Autowired
     private Tracing tracing;
+    
+    @Autowired
+    private Environment environment;
 
     /**
      * Instantiate and return event bus of a particular type
      * @param vertx The vertx instance to which this event bus object should be attached
      * @param eventBusType String representation of event bus types, currently supports vertx and amqp
+     * @param string 
      * @return Any one implementation of MosipEventBus interface
      * @throws UnsupportedEventBusTypeException - Will be thrown when the eventBusType is not recognized
      */
-    public MosipEventBus getEventBus(Vertx vertx, String eventBusType) throws UnsupportedEventBusTypeException {
+    public MosipEventBus getEventBus(Vertx vertx, String eventBusType, String propertyPrefix) throws UnsupportedEventBusTypeException {
         EventTracingHandler eventTracingHandler = new EventTracingHandler(tracing, eventBusType);
         switch (eventBusType) {
             case "vertx":
                 return new VertxMosipEventBus(vertx, eventTracingHandler);
             case "kafka":
-                return new KafkaMosipEventBus(vertx, kafkaBootstrapServers, kafkaGroupId, 
-                    kafkaCommitType, maxPollRecords, pollFrequency, eventTracingHandler);
+                return new KafkaMosipEventBus(vertx, 
+                		getKafkaBootstrapServers(propertyPrefix), 
+                		getKafkaGroupId(propertyPrefix), 
+                		getKafkaCommitType(propertyPrefix), 
+                		getMaxPollRecords(propertyPrefix), 
+                		getPollFrequency(propertyPrefix), 
+                		eventTracingHandler);
             /*case "amqp":
                 return new AmqpMosipEventBus(vertx);*/
             default:
@@ -68,4 +69,24 @@ public class MosipEventBusFactory {
     public void setTracing(Tracing tracing) {
         this.tracing = tracing;
     }
+    
+    public String getKafkaBootstrapServers(String propertyPrefix) {
+		return environment.getProperty(propertyPrefix + EVENTBUS_KAFKA_BOOTSTRAP_SERVERS);
+	}
+    
+    public String getKafkaCommitType(String propertyPrefix) {
+		return environment.getProperty(propertyPrefix + EVENTBUS_KAFKA_COMMIT_TYPE);
+	}
+    
+    public String getKafkaGroupId(String propertyPrefix) {
+		return environment.getProperty(propertyPrefix + EVENTBUS_KAFKA_GROUP_ID);
+	}
+    
+    public String getMaxPollRecords(String propertyPrefix) {
+		return environment.getProperty(propertyPrefix + EVENTBUS_KAFKA_MAX_POLL_RECORDS);
+	}
+    
+	public int getPollFrequency(String propertyPrefix) {
+		return environment.getProperty(propertyPrefix + EVENTBUS_KAFKA_POLL_FREQUENCY, Integer.class, 0);
+	}
 }

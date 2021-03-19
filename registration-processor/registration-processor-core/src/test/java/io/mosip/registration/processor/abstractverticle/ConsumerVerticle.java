@@ -30,7 +30,7 @@ public class ConsumerVerticle extends MosipVerticleManager {
 
 		mosipEventBusFactory = new MosipEventBusFactory();
 		mosipEventBusFactory.setTracing(Tracing.newBuilder().build());
-		this.mosipEventBus = mosipEventBusFactory.getEventBus(vertx, "vertx");
+		this.mosipEventBus = mosipEventBusFactory.getEventBus(vertx, "vertx", getPropertyPrefix());
 		this.messageDTO = new MessageDTO();
 		this.messageDTO.setRid("1001");
 		this.messageDTO.setRetryCount(0);
