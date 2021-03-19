@@ -127,10 +127,6 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 	@Value("${mosip.facequalitythreshold}")
 	private Integer faceThreshold;
 
-	/** server port number. */
-	@Value("${server.port}")
-	private String port;
-
 	/** worker pool size. */
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;

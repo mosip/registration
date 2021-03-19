@@ -71,12 +71,6 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
     private String clusterManagerUrl;
 
     /**
-     * server port number.
-     */
-    @Value("${server.port}")
-    private String port;
-
-    /**
      * worker pool size.
      */
     @Value("${worker.pool.size}")
@@ -86,12 +80,6 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
      * The mosip event bus.
      */
     private MosipEventBus mosipEventBus;
-
-    /**
-     * The context path.
-     */
-    @Value("${server.servlet.path}")
-    private String contextPath;
 
     /** After this time intervel, message should be considered as expired (In seconds). */
     @Value("${mosip.regproc.securezone.notification.message.expiry-time-limit}")
@@ -144,7 +132,7 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
      * @param router
      */
     private void routes(MosipRouter router) {
-        router.post(contextPath + "/notification");
+        router.post(getServletPath() + "/notification");
         router.handler(this::processURL, this::failure);
     }
 
