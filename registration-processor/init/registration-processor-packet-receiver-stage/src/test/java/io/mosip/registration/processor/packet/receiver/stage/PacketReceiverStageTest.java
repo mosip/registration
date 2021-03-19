@@ -101,14 +101,16 @@ public class PacketReceiverStageTest {
 		public void deleteFile(File f ) {
 			
 		}
+		
+		public Integer getPort() {
+			return 8080;
+		}
 	};
 
 	@Before
 	public void setup() throws IOException, io.mosip.kernel.core.exception.IOException {
 		ReflectionTestUtils.setField(packetReceiverStage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(packetReceiverStage, "clusterManagerUrl", "/dummyPath");
-		ReflectionTestUtils.setField(packetReceiverStage, "port", "8080");
-		ReflectionTestUtils.setField(packetReceiverStage, "contextPath", "/registrationprocessor/v1/packetreceiver");
 		Mockito.when(env.getProperty("mosip.registration.processor.datetime.pattern"))
 		.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		Mockito.doNothing().when(router).setRoute(any());
