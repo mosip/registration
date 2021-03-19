@@ -24,7 +24,7 @@ public class RouteIntercepter {
 	@Autowired
 	private RoutePredicate routePredicate;
 
-	private String workflowStatusUpdateAddress = MessageBusAddress.WORKFLOW_EVENT_UPDATE_ADDRESS.toString();
+	private String workflowStatusUpdateAddress = MessageBusAddress.WORKFLOW_EVENT_UPDATE_ADDRESS.getAddress();
 
 	public List<RouteDefinition> intercept(CamelContext camelContext, List<RouteDefinition> routeDefinitions) {
 		routeDefinitions.forEach(x -> {
