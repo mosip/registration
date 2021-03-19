@@ -40,6 +40,15 @@ import org.springframework.stereotype.Component;
 @Component
 @Configuration
 @ComponentScan(basePackages = {
+		"io.mosip.registration.processor.core.config",
+		"io.mosip.registration.processor.stages.config", 
+		"io.mosip.registrationprocessor.stages.config", 
+		"io.mosip.registration.processor.status.config",
+		"io.mosip.registration.processor.rest.client.config", 
+		"io.mosip.registration.processor.packet.storage.config",
+		"io.mosip.registration.processor.packet.manager.config", 
+		"io.mosip.kernel.idobjectvalidator.config",
+		"io.mosip.registration.processor.core.kernel.beans",
         "io.mosip.registration.processor.core.config",
         "io.mosip.registration.processor.securezone.notification.config",
         "io.mosip.registration.processor.packet.manager.config",
@@ -47,6 +56,8 @@ import org.springframework.stereotype.Component;
         "io.mosip.registration.processor.core.kernel.beans"
 })
 public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
+	
+	private static final String MOSIP_REGPROC_SECURE_ZONE = "mosip.regproc.securezone.notification.";
 
     /**
      * The reg proc logger.
@@ -60,12 +71,6 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
     private String clusterManagerUrl;
 
     /**
-     * server port number.
-     */
-    @Value("${server.port}")
-    private String port;
-
-    /**
      * worker pool size.
      */
     @Value("${worker.pool.size}")
@@ -75,12 +80,6 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
      * The mosip event bus.
      */
     private MosipEventBus mosipEventBus;
-
-    /**
-     * The context path.
-     */
-    @Value("${server.servlet.path}")
-    private String contextPath;
 
     /** The Constant USER. */
     private static final String USER = "MOSIP_SYSTEM";
@@ -110,12 +109,17 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
         this.consumeAndSend(mosipEventBus, MessageBusAddress.SECUREZONE_NOTIFICATION_IN,
                 MessageBusAddress.SECUREZONE_NOTIFICATION_OUT);
     }
+    
+    @Override
+    protected String getPropertyPrefix() {
+    	return MOSIP_REGPROC_SECURE_ZONE;
+    }
 
     @Override
     public void start() {
         router.setRoute(this.postUrl(vertx, MessageBusAddress.SECUREZONE_NOTIFICATION_IN, MessageBusAddress.SECUREZONE_NOTIFICATION_OUT));
         this.routes(router);
-        this.createServer(router.getRouter(), Integer.parseInt(port));
+        this.createServer(router.getRouter(), getPort());
     }
 
     /**
@@ -124,7 +128,7 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
      * @param router
      */
     private void routes(MosipRouter router) {
-        router.post(contextPath + "/notification");
+        router.post(getServletPath() + "/notification");
         router.handler(this::processURL, this::failure);
     }
 

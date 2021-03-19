@@ -6,6 +6,8 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -45,7 +47,21 @@ import io.mosip.registrationprocessor.externalstage.entity.MessageRequestDTO;
  *
  */
 @Service
+@Configuration
+@ComponentScan(basePackages = { "io.mosip.registration.processor.core.config",
+		"io.mosip.registrationprocessor.externalstage.config",
+		"io.mosip.registration.processor.stages.config", 
+		"io.mosip.registrationprocessor.stages.config", 
+		"io.mosip.registration.processor.status.config",
+		"io.mosip.registration.processor.rest.client.config", 
+		"io.mosip.registration.processor.packet.storage.config",
+		"io.mosip.registration.processor.packet.manager.config", 
+		"io.mosip.kernel.idobjectvalidator.config",
+		"io.mosip.registration.processor.core.kernel.beans" })
 public class ExternalStage extends MosipVerticleAPIManager {
+	
+	private static final String MOSIP_REGPROC_EXTERNAL = "mosip.regproc.external.";
+	
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(ExternalStage.class);
 	/** request id */
@@ -57,10 +73,6 @@ public class ExternalStage extends MosipVerticleAPIManager {
 	/** vertx Cluster Manager Url. */
 	@Value("${vertx.cluster.configuration}")
 	private String clusterManagerUrl;
-
-	/** server port number. */
-	@Value("${server.port}")
-	private String port;
 
 	/** worker pool size. */
 	@Value("${worker.pool.size}")
@@ -110,7 +122,12 @@ public class ExternalStage extends MosipVerticleAPIManager {
 
 		router.setRoute(
 				this.postUrl(vertx, MessageBusAddress.EXTERNAL_STAGE_BUS_IN, MessageBusAddress.EXTERNAL_STAGE_BUS_OUT));
-		this.createServer(router.getRouter(), Integer.parseInt(port));
+		this.createServer(router.getRouter(), getPort());
+	}
+	
+	@Override
+	protected String getPropertyPrefix() {
+		return MOSIP_REGPROC_EXTERNAL;
 	}
 
 	/*

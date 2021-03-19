@@ -1,7 +1,7 @@
 package io.mosip.registration.processor.stages.packet.validator;
 
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,7 +28,7 @@ public class PacketValidatorStageTest {
 	private String stageName = "PacketValidatorStage";
 	@Mock
 	private PacketValidateProcessor packetvalidateprocessor;
-	
+
 	@Mock
 	private MosipRouter router;
 	@Mock
@@ -64,26 +64,31 @@ public class PacketValidatorStageTest {
 				}
 			};
 		}
-		
+
+		@Override
+		public Integer getPort() {
+			return 8080;
+		};
+
 		@Override
 		public void consumeAndSend(MosipEventBus eventbus, MessageBusAddress addressbus1,
 				MessageBusAddress addressbus2) {
 		}
-		
+
 		@Override
 		public Router postUrl(Vertx vertx, MessageBusAddress consumeAddress, MessageBusAddress sendAddress) {
 			return null;
-			
+
 		}
+
 		@Override
 		public void createServer(Router router, int port) {
-			
+
 		}
 	};
+
 	@Test
-	public void testStart()
-	{
-		ReflectionTestUtils.setField(packetValidatorStage, "port", "2321");
+	public void testStart() {
 		Mockito.doNothing().when(router).setRoute(any());
 		packetValidatorStage.start();
 	}
@@ -93,7 +98,7 @@ public class PacketValidatorStageTest {
 	 */
 	@Test
 	public void testDeployVerticle() {
-		
+
 		ReflectionTestUtils.setField(packetValidatorStage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(packetValidatorStage, "clusterManagerUrl", "/dummyPath");
 		packetValidatorStage.deployVerticle();
