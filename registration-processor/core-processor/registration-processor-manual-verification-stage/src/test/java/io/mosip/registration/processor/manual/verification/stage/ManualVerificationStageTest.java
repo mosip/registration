@@ -111,12 +111,16 @@ public class ManualVerificationStageTest{
 		public void setResponseWithDigitalSignature(RoutingContext ctx, Object object, String contentType) {
 
 		}
+		
+		@Override
+		public Integer getPort() {
+			return 8080;
+		}
 	};
 	@Before
 	public void setUp() throws java.io.IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 		ReflectionTestUtils.setField(manualverificationstage, "mosipConnectionFactory", mosipConnectionFactory);
 		ReflectionTestUtils.setField(manualverificationstage, "mosipQueueManager", mosipQueueManager);
-		ReflectionTestUtils.setField(manualverificationstage, "port", "8080");
 		ReflectionTestUtils.setField(manualverificationstage, "contextPath", "/registrationprocessor/v1/manualverification");
 		ReflectionTestUtils.setField(manualverificationstage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(manualverificationstage, "clusterManagerUrl", "/dummyPath");

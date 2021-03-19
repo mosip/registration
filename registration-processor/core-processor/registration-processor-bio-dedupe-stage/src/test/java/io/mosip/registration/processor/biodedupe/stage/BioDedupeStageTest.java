@@ -4,7 +4,7 @@
 package io.mosip.registration.processor.biodedupe.stage;
 
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,7 +12,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.core.env.Environment;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import brave.Tracing;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -24,9 +27,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.impl.RouterImpl;
-
-import org.springframework.core.env.Environment;
-import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author M1022006
@@ -84,6 +84,11 @@ public class BioDedupeStageTest {
 		public void consumeAndSend(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
 				MessageBusAddress toAddress) {
 		}
+		
+		@Override
+		public Integer getPort() {
+			return 8080;
+		}
 	};
 
 	/**
@@ -93,6 +98,7 @@ public class BioDedupeStageTest {
 	public void testDeployVerticle() {
 		ReflectionTestUtils.setField(bioDedupeStage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(bioDedupeStage, "clusterManagerUrl", "/dummyPath");
+		ReflectionTestUtils.setField(bioDedupeStage, "tracing", Mockito.mock(Tracing.class));
 		bioDedupeStage.deployVerticle();
 	}
 
@@ -109,7 +115,6 @@ public class BioDedupeStageTest {
 	public void testStart() {
 		ReflectionTestUtils.setField(bioDedupeStage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(bioDedupeStage, "clusterManagerUrl", "/dummyPath");
-		ReflectionTestUtils.setField(bioDedupeStage, "port", "1080");
 		
 		Mockito.when(environment.getProperty("mosip.kernel.virus-scanner.port")).thenReturn("8000");
 		Mockito.when(environment.getProperty("server.servlet.path")).thenReturn("/test");
