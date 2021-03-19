@@ -2,6 +2,8 @@ package io.mosip.registration.processor.status.dto;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 public class RegistrationTransactionDto {
 	
 	/** The transaction id. */
@@ -23,6 +25,7 @@ public class RegistrationTransactionDto {
 	private String statusComment;
 
 	/** The reference id. */
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
 	private LocalDateTime createdDateTimes;
 
 	public RegistrationTransactionDto(String id, String registrationId, String transactionTypeCode,
