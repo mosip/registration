@@ -37,8 +37,12 @@ import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.apache.activemq.command.ActiveMQTextMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import javax.jms.Message;
 import javax.jms.TextMessage;
@@ -51,9 +55,21 @@ import java.util.LinkedHashMap;
  * @author Pranav Kumar
  * @since 0.0.1
  */
-@Component
+@RefreshScope
+@Service
+@Configuration
+@ComponentScan(basePackages = { "io.mosip.registration.processor.core.config",
+		"io.mosip.registration.processor.manual.verification.config",
+		"io.mosip.registration.processor.packet.receiver.config",
+		"io.mosip.registration.processor.packet.manager.config",
+		"io.mosip.kernel.packetmanager.config",
+		"io.mosip.registration.processor.status.config", "io.mosip.registration.processor.rest.client.config",
+		"io.mosip.registration.processor.core.kernel.beans",
+		"io.mosip.registration.processor.packet.storage.config",
+		"io.mosip.registration.processor.manual.verification.validators"})
 public class ManualVerificationStage extends MosipVerticleAPIManager {
 
+	private static final String MOSIP_REGPROC_MANUAL_VERIFICATION = "mosip.regproc.manual.verification.";
 
 	@Autowired
 	private ManualVerificationService manualAdjudicationService;
@@ -133,18 +149,9 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 	@Value("${registration.processor.queue.url}")
 	private String url;
 
-	/**
-	 * server port number
-	 */
-	@Value("${server.port}")
-	private String port;
-
 	/** worker pool size. */
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
-
-	@Value("${server.servlet.path}")
-	private String contextPath;
 
 	private static final String APPLICATION_JSON = "application/json";
 
@@ -175,9 +182,13 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 	@Override
 	public void start() {
 		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.MANUAL_VERIFICATION_BUS_IN, MessageBusAddress.MANUAL_VERIFICATION_BUS_OUT));
-		this.createServer(router.getRouter(), Integer.parseInt(port));
+		this.createServer(router.getRouter(), getPort());
 	}
 	
+	@Override
+	protected String getPropertyPrefix() {
+		return MOSIP_REGPROC_MANUAL_VERIFICATION;
+	}
 
 	public void sendMessage(MessageDTO messageDTO) {
 		this.send(this.mosipEventBus, MessageBusAddress.MANUAL_VERIFICATION_BUS_OUT, messageDTO);

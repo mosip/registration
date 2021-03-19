@@ -52,6 +52,9 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -61,11 +64,18 @@ import java.security.cert.CertificateException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@RefreshScope
 @Service
+@Configuration
+@ComponentScan(basePackages = { "io.mosip.registration.processor.biometric.authentication.config",
+		"io.mosip.registration.processor.status.config", "io.mosip.registration.processor.rest.client.config",
+		"io.mosip.registration.processor.packet.storage.config", "io.mosip.registration.processor.core.config",
+		"io.mosip.registration.processor.core.kernel.beans",
+		"io.mosip.kernel.packetmanager.config"})
 public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(BiometricAuthenticationStage.class);
 	private static final String FILE_NOT_PRESENT_ERROR = "KER-PUT-007";
-
+	private static final String MOSIP_REGPROC_BIOMETRIC_AUTHENTICATION = "mosip.regproc.biometric.authentication.";
 	@Autowired
 	AuditLogRequestBuilder auditLogRequestBuilder;
 
@@ -93,10 +103,6 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 	@Value("${mosip.kernel.applicant.type.age.limit}")
 	private String ageLimit;
 
-	/** server port number. */
-	@Value("${server.port}")
-	private String port;
-
 	/** worker pool size. */
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
@@ -121,8 +127,14 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 	public void start() {
 		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.BIOMETRIC_AUTHENTICATION_BUS_IN,
 				MessageBusAddress.BIOMETRIC_AUTHENTICATION_BUS_OUT));
-		this.createServer(router.getRouter(), Integer.parseInt(port));
+		this.createServer(router.getRouter(), getPort());
 	}
+	
+	@Override
+	protected String getPropertyPrefix() {
+		return MOSIP_REGPROC_BIOMETRIC_AUTHENTICATION;
+	}
+
 
 	@Override
 	public MessageDTO process(MessageDTO object) {

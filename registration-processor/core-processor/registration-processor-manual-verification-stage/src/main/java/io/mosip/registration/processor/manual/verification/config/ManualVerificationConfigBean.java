@@ -17,10 +17,10 @@ public class ManualVerificationConfigBean {
 		return new ManualVerificationServiceImpl();
 	}
 
-	@Bean
-	public ManualVerificationStage getManualVerificationStage() {
-		return new ManualVerificationStage();
-	}
+//	@Bean
+//	public ManualVerificationStage getManualVerificationStage() {
+//		return new ManualVerificationStage();
+//	}
 
 	@Bean
 	ManualVerificationRequestValidator getManualVerificationRequestValidator() {
