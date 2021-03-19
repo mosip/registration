@@ -21,45 +21,40 @@ import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.vertx.core.json.JsonObject;
 
-
 public class RoutePredicate implements Predicate {
 
 	private static final Logger LOGGER = RegProcessorLogger.getLogger(RouteIntercepter.class);
 
-
 	private String hotlistedTagKey;
 
-	
 	private ObjectMapper objectMapper;
 
 	Setting[] settings = null;
-	
-	public RoutePredicate(final String settingsString,final String hotlistedTagKey) {
-		this.hotlistedTagKey=hotlistedTagKey;
-		objectMapper= new ObjectMapper();
+
+	public RoutePredicate(final String settingsString, final String hotlistedTagKey) {
+
+		this.hotlistedTagKey = hotlistedTagKey;
+		objectMapper = new ObjectMapper();
 		try {
 			settings = objectMapper.readValue(settingsString, Setting[].class);
-		} catch (JsonParseException e) {
-			LOGGER.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-					"RoutePredicate::exception " + e.getMessage());
-		} catch (JsonMappingException e) {
-			LOGGER.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-					"RoutePredicate::exception " + e.getMessage());
 		} catch (IOException e) {
 			LOGGER.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 					"RoutePredicate::exception " + e.getMessage());
 		}
-		
 	}
-
-	
 
 	@Override
 	public boolean matches(Exchange exchange) {
-		
+
 		String message = (String) exchange.getMessage().getBody();
 		JsonObject json = new JsonObject(message);
 		JsonObject tags = json.getJsonObject("tags");
+		LOGGER.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				"exchange.getFromEndpoint().toString() " + exchange.getFromEndpoint().toString());
+		LOGGER.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				" tags.getString(hotlistedTagKey) " + tags.getString(hotlistedTagKey));
+		LOGGER.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				" tags.containsKey(hotlistedTagKey) " + tags.containsKey(hotlistedTagKey));
 		if (tags.containsKey(hotlistedTagKey)) {
 			String fromAddress = exchange.getFromEndpoint().toString();
 			for (Setting setting : settings) {
