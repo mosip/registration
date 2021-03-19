@@ -9,12 +9,13 @@
 		<version>1.2.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>registration-processor-common-camel-bridge</artifactId>
-	 <version>1.2.0-SNAPSHOT</version>
+	<version>1.2.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<properties>
 		<vertx.verticle>io.mosip.registration.processor.camel.bridge.MosipCamelBridge</vertx.verticle>
 		<fabric8-vertx-maven-plugin.version>1.0.5</fabric8-vertx-maven-plugin.version>
+	    <registration.processor.registration.status.service.impl.version>1.2.0-SNAPSHOT</registration.processor.registration.status.service.impl.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -102,8 +103,13 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.camel</groupId>
-  			<artifactId>camel-jsonpath</artifactId>
+			<artifactId>camel-jsonpath</artifactId>
 			<version>${camel.vertx.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.registrationprocessor</groupId>
+			<artifactId>registration-processor-registration-status-service-impl</artifactId>
+			<version>${registration.processor.registration.status.service.impl.version}</version>
 		</dependency>
 	</dependencies>
 	<dependencyManagement>
@@ -138,7 +144,7 @@
 								</transformer>
 								<transformer
 									implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-								</transformers>
+							</transformers>
 							<filters>
 								<filter>
 									<artifact>*:*</artifact>
