@@ -15,6 +15,7 @@ import java.util.*;
 import io.mosip.registration.controller.FXUtils;
 import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.exception.PreConditionCheckException;
+import javafx.scene.layout.HBox;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
@@ -246,9 +247,8 @@ public class LoginController extends BaseController implements Initializable {
 				appLanguage.getSelectionModel().select(languages.get(0));
 			}
 
-			if(languages.size() == 1) {
-				appLanguage.setVisible(false);
-			}
+			appLanguage.setVisible(languages.size() == 1 ? false : true);
+			appLanguage.setManaged(true);
 
 			appLanguage.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
 				if (newValue != null &&

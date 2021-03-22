@@ -40,8 +40,7 @@
                <children>
                <Label layoutX="54.0" layoutY="20.0" styleClass="higlightedLoginLable" text="%registrationlogin" AnchorPane.leftAnchor="54.0" AnchorPane.topAnchor="20.0" />
       			 <TextField fx:id="userId" layoutX="53.0" layoutY="158.0" onAction="#validateUserId" promptText="%withusername" styleClass="loginTextStyle" AnchorPane.leftAnchor="53.0" />
-                  <Label layoutX="53.0" layoutY="82.0" styleClass="demoGraphicFieldLabel" text="%selectLanguage" />
-                  <ComboBox fx:id="appLanguage" layoutX="53.0" layoutY="101.0" styleClass="loginCombobox" AnchorPane.leftAnchor="53.0" />
+				   <ComboBox fx:id="appLanguage" layoutX="53.0" layoutY="101.0" styleClass="loginCombobox" AnchorPane.leftAnchor="53.0" promptText="%chooselanguage" />
                   <Button layoutX="53.0" layoutY="211.0" mnemonicParsing="false" onAction="#validateUserId" styleClass="loginSubmitStyle" text="%submit" />
                   <ProgressIndicator fx:id="progressIndicator" layoutX="130.0" layoutY="50.0" progress="0.0" visible="false" />
                   <Hyperlink fx:id="forgotUsrnme" layoutX="167.0" layoutY="293.0" mnemonicParsing="false" onAction="#forgotUsrname" styleClass="hyperLinkStyle" text="%forgotUsername" />
