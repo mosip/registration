@@ -22,6 +22,7 @@ import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.BaseController;
+import io.mosip.registration.controller.GenericController;
 import io.mosip.registration.controller.device.BiometricsController;
 import io.mosip.registration.controller.device.ScanPopUpViewController;
 import io.mosip.registration.controller.device.Streamer;
@@ -90,6 +91,9 @@ public class SchedulerUtil extends BaseController {
 	
 	@Autowired
 	private LanguageSelectionController languageSelectionController;
+	
+	@Autowired
+	private GenericController genericController;
 
 	@Autowired
 	private Streamer streamer;
@@ -290,6 +294,9 @@ public class SchedulerUtil extends BaseController {
 		}
 		if (languageSelectionController.getPopupStage() != null && languageSelectionController.getPopupStage().isShowing()) {
 			languageSelectionController.getPopupStage().close();
+		}
+		if (genericController.getKeyboardStage() != null && genericController.getKeyboardStage().isShowing()) {
+			genericController.getKeyboardStage().close();
 		}
 		if (packetUploadController.getStage() != null && packetUploadController.getStage().isShowing()) {
 			packetUploadController.getStage().close();

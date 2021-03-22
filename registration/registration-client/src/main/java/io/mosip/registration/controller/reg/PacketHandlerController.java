@@ -683,7 +683,8 @@ public class PacketHandlerController extends BaseController implements Initializ
 				generateAlert(RegistrationConstants.ERROR,
 						RegistrationUIConstants.UPDATE_UIN_NO_BIOMETRIC_CONFIG_ALERT);
 			} else {
-				Parent root = BaseController.load(getClass().getResource(RegistrationConstants.UIN_UPDATE));
+				Parent root = BaseController.load(getClass().getResource(RegistrationConstants.UIN_UPDATE), 
+						applicationContext.getBundle(registrationController.getSelectedLangList().get(0), RegistrationConstants.LABELS));
 
 				LOGGER.info("REGISTRATION - update UIN - REGISTRATION_OFFICER_PACKET_CONTROLLER", APPLICATION_NAME,
 						APPLICATION_ID, "updating UIN");

@@ -58,6 +58,7 @@ public class UiSchemaDTO {
 
 	private String contactType;
 	private String group;
+	private HashMap<String, String> groupLabel;
 
 	private String changeAction;
 

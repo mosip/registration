@@ -1,20 +1,22 @@
 package io.mosip.registration.controller;
 
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicBoolean;
+import static io.mosip.registration.constants.RegistrationConstants.EMPTY;
+import static io.mosip.registration.constants.RegistrationConstants.HASH;
+import static io.mosip.registration.constants.RegistrationConstants.PACKET_TYPE_LOST;
+import static io.mosip.registration.constants.RegistrationConstants.PACKET_TYPE_NEW;
+import static io.mosip.registration.constants.RegistrationConstants.PACKET_TYPE_UPDATE;
+import static io.mosip.registration.constants.RegistrationConstants.REG_AUTH_PAGE;
 
-import io.mosip.registration.constants.*;
-import io.mosip.registration.controller.auth.AuthenticationController;
-import io.mosip.registration.util.control.impl.*;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.event.ActionEvent;
-import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import javafx.scene.web.WebView;
-import lombok.SneakyThrows;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.TreeMap;
+
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -22,7 +24,15 @@ import org.springframework.stereotype.Controller;
 import io.mosip.kernel.core.idvalidator.spi.PridValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
+import io.mosip.registration.constants.AuditEvent;
+import io.mosip.registration.constants.AuditReferenceIdTypes;
+import io.mosip.registration.constants.Components;
+import io.mosip.registration.constants.ProcessNames;
+import io.mosip.registration.constants.RegistrationConstants;
+import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.ApplicationContext;
+import io.mosip.registration.context.SessionContext;
+import io.mosip.registration.controller.auth.AuthenticationController;
 import io.mosip.registration.controller.reg.RegistrationController;
 import io.mosip.registration.controller.reg.RegistrationPreviewController;
 import io.mosip.registration.dao.MasterSyncDao;
@@ -38,13 +48,40 @@ import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.service.sync.PreRegistrationDataSyncService;
 import io.mosip.registration.util.control.FxControl;
+import io.mosip.registration.util.control.impl.BiometricFxControl;
+import io.mosip.registration.util.control.impl.ButtonFxControl;
+import io.mosip.registration.util.control.impl.CheckBoxFxControl;
+import io.mosip.registration.util.control.impl.DOBAgeFxControl;
+import io.mosip.registration.util.control.impl.DOBFxControl;
+import io.mosip.registration.util.control.impl.DocumentFxControl;
+import io.mosip.registration.util.control.impl.DropDownFxControl;
+import io.mosip.registration.util.control.impl.HtmlFxControl;
+import io.mosip.registration.util.control.impl.TextFieldFxControl;
 import io.mosip.registration.validator.RequiredFieldValidator;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
-
-import static io.mosip.registration.constants.RegistrationConstants.*;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.RowConstraints;
+import javafx.scene.web.WebView;
+import javafx.stage.Stage;
+import lombok.SneakyThrows;
 
 /**
  * {@code GenericController} is to capture the demographic/demo/Biometric
@@ -116,6 +153,8 @@ public class GenericController extends BaseController {
 
 	private static TreeMap<Integer, UiScreenDTO> orderedScreens = new TreeMap<>();
 	private static Map<String, FxControl> fxControlMap = new HashMap<String, FxControl>();
+	
+	private Stage keyboardStage;
 
 	public static Map<String, TreeMap<Integer, String>> hierarchyLevels = new HashMap<String, TreeMap<Integer, String>>();
 	public static Map<String, TreeMap<Integer, String>> currentHierarchyMap = new HashMap<String, TreeMap<Integer, String>>();
@@ -211,6 +250,9 @@ public class GenericController extends BaseController {
 	}
 
 	private void loadPreRegSync(ResponseDTO responseDTO) throws RegBaseCheckedException{
+		auditFactory.audit(AuditEvent.REG_DEMO_PRE_REG_DATA_FETCH, Components.REG_DEMO_DETAILS, SessionContext.userId(),
+				AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+		
 		SuccessResponseDTO successResponseDTO = responseDTO.getSuccessResponseDTO();
 		List<ErrorResponseDTO> errorResponseDTOList = responseDTO.getErrorResponseDTOs();
 
@@ -485,6 +527,10 @@ public class GenericController extends BaseController {
 				}
 			}
 		}
+		if (isValid) {
+			auditFactory.audit(AuditEvent.REG_NAVIGATION, Components.REGISTRATION_CONTROLLER,
+					SessionContext.userContext().getUserId(), AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+		}
 		return isValid;
 	}
 
@@ -727,8 +773,15 @@ public class GenericController extends BaseController {
 		orderedScreens.values().forEach(screen -> { refreshScreenVisibility(screen.getName()); });
 	}
 
-
 	private FxControl getFxControl(String fieldId) {
 		return GenericController.getFxControlMap().get(fieldId);
+	}
+	
+	public Stage getKeyboardStage() {		
+		return keyboardStage;
+	}
+	
+	public void setKeyboardStage(Stage keyboardStage) {
+		this.keyboardStage = keyboardStage;
 	}
 }

@@ -1,7 +1,6 @@
 package io.mosip.registration.controller.reg;
 
 import static io.mosip.registration.constants.LoggerConstants.LOG_REG_SCAN_CONTROLLER;
-import static io.mosip.registration.constants.LoggerConstants.LOG_REG_UIN_UPDATE;
 import static io.mosip.registration.constants.LoggerConstants.LOG_SELECT_LANGUAGE;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
@@ -25,7 +24,6 @@ import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.controller.BaseController;
-import io.mosip.registration.controller.GenericController;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
@@ -74,9 +72,6 @@ public class LanguageSelectionController extends BaseController implements Initi
 
 	@Autowired
 	private RegistrationController registrationController;
-	
-	@Autowired
-	private GenericController genericController;
 
 	public List<String> getSelectedLanguages() {
 		return selectedLanguages;
@@ -199,39 +194,13 @@ public class LanguageSelectionController extends BaseController implements Initi
 			packetHandlerController.createPacket();
 			break;
 		case RegistrationConstants.UIN_UPDATE_FLOW:
-			handleUpdateUIN();
+			packetHandlerController.updateUIN();
 			break;
 		case RegistrationConstants.LOST_UIN_FLOW:
 			packetHandlerController.lostUIN();
 			break;
 		}
 	}
-
-	private void handleUpdateUIN() {
-		try {
-			Parent createRoot = BaseController.load(
-					getClass().getResource(RegistrationConstants.CREATE_PACKET_PAGE),
-					applicationContext.getBundle(selectedLanguages.get(0), RegistrationConstants.LABELS));
-
-			getRegistrationDTOFromSession().setSelectedLanguagesByApplicant(registrationController.getSelectedLangList());
-			getScene(createRoot).setRoot(createRoot);
-			genericController.populateScreens();
-			return;
-		} catch (Exception exception) {
-			LOGGER.error("Failed to load UIN update page",exception);
-		}
-		clearRegistrationData();
-		generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_REG_PAGE);
-	}
-
-//	public void cancelSelection() {
-//		for (Node node : checkBoxesPane.getChildren()) {
-//			if (node instanceof CheckBox) {
-//				CheckBox checkBox = (CheckBox) node;
-//				checkBox.setSelected(false);
-//			}
-//		}
-//	}
 
 	public void exitWindow() {
 		LOGGER.info(LOG_REG_SCAN_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,

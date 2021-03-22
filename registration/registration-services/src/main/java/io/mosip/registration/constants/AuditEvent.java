@@ -281,7 +281,15 @@ public enum AuditEvent {
 
 	REG_DOC_SCAN("REG-EVT-089", USER_EVENT.getCode(), "REG_DOC_SCAN", "Doc: Click of Scan"),
 	REG_DOC_VIEW("REG-EVT-090", USER_EVENT.getCode(), "REG_DOC_VIEW", "Doc: View"),
-	REG_DOC_DELETE("REG-EVT-091", USER_EVENT.getCode(), "REG_DOC_DELETE", "Doc: Delete");
+	REG_DOC_DELETE("REG-EVT-091", USER_EVENT.getCode(), "REG_DOC_DELETE", "Doc: Delete"),
+	
+	//FXControls
+	REG_HTML_FX_CONTROL("REG-EVT-092", USER_EVENT.getCode(), "REG_HTML_FX_CONTROL",
+			"Entered into Applicant Consent Page"),
+	REG_CHECKBOX_FX_CONTROL("REG-EVT-093", USER_EVENT.getCode(), "REG_CHECKBOX_FX_CONTROL",
+			"Checkbox has been selected"),
+	REG_NAVIGATION("REG-EVT-094", USER_EVENT.getCode(), "REG_NAVIGATION",
+			"Navigating to next screen");
 
 	/**
 	 * The constructor
