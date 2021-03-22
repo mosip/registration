@@ -27,6 +27,7 @@ import io.mosip.registration.processor.reprocessor.service.WorkflowActionService
 import io.mosip.registration.processor.reprocessor.stage.ReprocessorStage;
 import io.mosip.registration.processor.reprocessor.util.WebSubUtil;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
+import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
@@ -71,6 +72,7 @@ public class WorkflowActionServiceTest {
 		registrationStatusDto.setRegistrationType("NEW");
 		registrationStatusDto.setRegistrationStageName("SecurezoneNotificationStage");
 		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.name());
+		registrationStatusDto.setStatusCode(RegistrationStatusCode.PAUSED.name());
 		ReflectionTestUtils.setField(workflowActionService, "hotListedTag", "test");
 		ReflectionTestUtils.setField(workflowActionService, "resumeFromBeginningStage", "SecurezoneNotificationStage");
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(),
@@ -263,6 +265,26 @@ public class WorkflowActionServiceTest {
 		List<String> workflowIds = new ArrayList<String>();
 		workflowIds.add("10003100030001520190422074511");
 		workflowActionService.processWorkflowAction(workflowIds, "test");
+
+	}
+
+	@Test
+	public void testStopProcessingWithNotPausedRecord() throws WorkflowActionException {
+		registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(registrationStatusDto);
+		List<String> workflowIds = new ArrayList<String>();
+		workflowIds.add("10003100030001520190422074511");
+		workflowActionService.processWorkflowAction(workflowIds, "STOP_PROCESSING");
+
+	}
+
+	@Test
+	public void testResumeProcessingWithReprocessFailed() throws WorkflowActionException {
+		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS_FAILED.name());
+		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(registrationStatusDto);
+		List<String> workflowIds = new ArrayList<String>();
+		workflowIds.add("10003100030001520190422074511");
+		workflowActionService.processWorkflowAction(workflowIds, "RESUME_PROCESSING");
 
 	}
 }

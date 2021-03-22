@@ -1203,6 +1203,9 @@ public enum PlatformErrorMessages {
 	RPR_WAS_REPROCESS_FAILED(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "004",
 			"When REPROCESS_FAILED then Resume should not occur"),
 
+	RPR_WAS_NOT_PAUSED(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "005",
+			"Workflow id is not PAUSED"),
+
 	/** The external stage failed. */
 	EXTERNAL_STAGE_FAILED("", "External Stage Failed"),
 
