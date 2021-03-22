@@ -13,6 +13,7 @@ import java.util.Map;
 
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.packet.storage.dto.ConfigEnum;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -436,19 +437,24 @@ public class MessageNotificationServiceImpl
 		List<String> mapperJsonKeys = new ArrayList<>(mapperIdentity.keySet());
 		for (String key : mapperJsonKeys) {
 			JSONObject jsonValue = JsonUtil.getJSONObject(mapperIdentity, key);
-			Object object = JsonUtil.getJSONValue(demographicIdentity, (String) jsonValue.get(VALUE));
-			if (object instanceof ArrayList) {
-				JSONArray node = JsonUtil.getJSONArray(demographicIdentity, (String) jsonValue.get(VALUE));
-				JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
-				for (int count = 0; count < jsonValues.length; count++) {
-					String lang = jsonValues[count].getLanguage();
-					attribute.put(key + "_" + lang, jsonValues[count].getValue());
+			if (jsonValue.get(VALUE) != null && !jsonValue.get(VALUE).toString().isBlank()) {
+				String[] valueArray = jsonValue.get(VALUE).toString().split(",");
+				for (String val : valueArray) {
+					Object object = JsonUtil.getJSONValue(demographicIdentity, val);
+					if (object instanceof ArrayList) {
+						JSONArray node = JsonUtil.getJSONArray(demographicIdentity, val);
+						JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
+						for (int count = 0; count < jsonValues.length; count++) {
+							String lang = jsonValues[count].getLanguage();
+							attribute.put(val + "_" + lang, jsonValues[count].getValue());
+						}
+					} else if (object instanceof LinkedHashMap) {
+						JSONObject json = JsonUtil.getJSONObject(demographicIdentity, val);
+						attribute.put(val, json.get(VALUE));
+					} else {
+						attribute.put(val, object);
+					}
 				}
-			} else if (object instanceof LinkedHashMap) {
-				JSONObject json = JsonUtil.getJSONObject(demographicIdentity, (String) jsonValue.get(VALUE));
-				attribute.put(key, json.get(VALUE));
-			} else {
-				attribute.put(key, object);
 			}
 		}
 
@@ -468,7 +474,7 @@ public class MessageNotificationServiceImpl
 	private void setEmailAndPhone(JSONObject demographicIdentity, StringBuilder phoneNumber, StringBuilder emailId)
 			throws IOException {
 
-		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson();
+		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 		String email = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.EMAIL),MappingJsonConstants.VALUE);
 		String phone = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.PHONE),MappingJsonConstants.VALUE);
 
@@ -488,17 +494,14 @@ public class MessageNotificationServiceImpl
 			String regType, StringBuilder phoneNumber, StringBuilder emailId)
 			throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException, JSONException {
 
-		String mapperJsonString = Utilities.getJson(utility.getConfigServerFileStorageURL(),
-				utility.getGetRegProcessorIdentityJson());
-		JSONObject mapperJson = JsonUtil.objectMapperReadValue(mapperJsonString, JSONObject.class);
-		JSONObject mapperIdentity = JsonUtil.getJSONObject(mapperJson, utility.getGetRegProcessorDemographicIdentity());
+		JSONObject mapperIdentity = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 
 		List<String> mapperJsonValues = new ArrayList<>();
 		JsonUtil.getJSONValue(JsonUtil.getJSONObject(mapperIdentity, MappingJsonConstants.INDIVIDUAL_BIOMETRICS), VALUE);
 		mapperIdentity.keySet().forEach(key -> mapperJsonValues.add(JsonUtil.getJSONValue(JsonUtil.getJSONObject(mapperIdentity, key), VALUE)));
 
-		String source = utility.getDefaultSource();
-		Map<String, String> fieldMap = packetManagerService.getFields(id, mapperJsonValues, source, process);
+		String source = utility.getDefaultSource(process, ConfigEnum.READER);
+		Map<String, String> fieldMap = packetManagerService.getFields(id, mapperJsonValues, process);
 
 		for (Map.Entry e : fieldMap.entrySet()) {
 			if (e.getValue() != null) {
@@ -523,7 +526,7 @@ public class MessageNotificationServiceImpl
 			}
 
 		}
-		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson();
+		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 		String email = JsonUtil.getJSONValue(
 				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.EMAIL),
 				MappingJsonConstants.VALUE);

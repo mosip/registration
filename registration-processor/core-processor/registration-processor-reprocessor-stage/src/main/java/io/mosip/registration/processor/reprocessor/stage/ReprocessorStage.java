@@ -121,12 +121,12 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 
 	public void schedulerResult(AsyncResult<String> res) {
 		if (res.succeeded()) {
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", "ReprocessorStage::schedular()::deployed");
 			cronScheduling(vertx);
 		} else {
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					"", "ReprocessorStage::schedular()::deploymemnt failure");
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", "ReprocessorStage::schedular()::deploymemnt failure " + res.cause());
 		}
 	}
 
@@ -165,13 +165,13 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 						.put(ReprocessorConstants.DESCRIPTION, timer),
 				ar -> {
 					if (ar.succeeded()) {
-						regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+						regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
 								LoggerFileConstant.REGISTRATIONID.toString(), "",
 								"ReprocessorStage::schedular()::started");
 					} else {
-						regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+						regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 								LoggerFileConstant.REGISTRATIONID.toString(), "",
-								"ReprocessorStage::schedular()::failed");
+								"ReprocessorStage::schedular()::failed " + ar.cause());
 						vertx.close();
 					}
 				});

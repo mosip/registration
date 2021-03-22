@@ -27,7 +27,20 @@ import java.util.stream.IntStream;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
+import io.mosip.kernel.core.util.*;
+import io.mosip.kernel.cryptomanager.dto.CryptomanagerRequestDto;
+import io.mosip.kernel.cryptomanager.dto.CryptomanagerResponseDto;
+import io.mosip.kernel.cryptomanager.service.CryptomanagerService;
 import io.mosip.kernel.keygenerator.bouncycastle.util.KeyGeneratorUtils;
+import io.mosip.kernel.keymanagerservice.dto.KeyPairGenerateResponseDto;
+import io.mosip.kernel.keymanagerservice.dto.UploadCertificateRequestDto;
+import io.mosip.kernel.keymanagerservice.dto.UploadCertificateResponseDto;
+import io.mosip.kernel.keymanagerservice.entity.KeyPolicy;
+import io.mosip.kernel.keymanagerservice.exception.InvalidApplicationIdException;
+import io.mosip.kernel.keymanagerservice.exception.KeymanagerServiceException;
+import io.mosip.kernel.keymanagerservice.repository.KeyPolicyRepository;
+import io.mosip.kernel.keymanagerservice.service.KeymanagerService;
+import io.mosip.kernel.keymanagerservice.util.KeymanagerUtil;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -40,10 +53,6 @@ import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.kernel.core.crypto.spi.CryptoCoreSpec;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.kernel.core.util.HMACUtils;
-import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
@@ -73,12 +82,20 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 
 	@Autowired
 	private UserOnboardDAO userOnBoardDao;
-/*
-	@Autowired
-	private KeyGenerator keyGenerator;*/
 
 	@Autowired
 	private CryptoCoreSpec<byte[], byte[], SecretKey, PublicKey, PrivateKey, String> cryptoCore;
+
+	@Autowired
+	private KeymanagerUtil keymanagerUtil;
+
+	@Autowired
+	private CryptomanagerService cryptomanagerService;
+
+	@Autowired
+	private KeymanagerService keymanagerService;
+
+
 
 	/**
 	 * logger for logging
@@ -88,147 +105,18 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 	private static final String BIOMETRIC_KEY_PATTERN = "%s_%s_%s";
 	private Map<String, BiometricsDto> operatorBiometrics;
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see io.mosip.registration.service.UserOnBoardService#validate(io.mosip.
-	 * registration.dto.biometric.BiometricDTO)
-	 */
-	// @Override
-	/*
-	 * public ResponseDTO validate(BiometricDTO biometricDTO) throws
-	 * RegBaseCheckedException {
-	 * 
-	 * ResponseDTO responseDTO = new ResponseDTO(); if (dtoNullCheck(biometricDTO))
-	 * { Map<String, Object> idaRequestMap = new LinkedHashMap<>();
-	 * 
-	 * idaRequestMap.put(RegistrationConstants.ID, RegistrationConstants.IDENTITY);
-	 * idaRequestMap.put(RegistrationConstants.VERSION,
-	 * RegistrationConstants.PACKET_SYNC_VERSION);
-	 * idaRequestMap.put(RegistrationConstants.REQUEST_TIME,
-	 * DateUtils.getUTCCurrentDateTimeString());
-	 * idaRequestMap.put(RegistrationConstants.TRANSACTION_ID,
-	 * RegistrationConstants.TRANSACTION_ID_VALUE); Map<String, Boolean> tempMap =
-	 * new HashMap<>(); tempMap.put(RegistrationConstants.BIO, true);
-	 * idaRequestMap.put(RegistrationConstants.REQUEST_AUTH, tempMap);
-	 * idaRequestMap.put(RegistrationConstants.CONSENT_OBTAINED, true);
-	 * idaRequestMap.put(RegistrationConstants.INDIVIDUAL_ID,
-	 * SessionContext.userContext().getUserId());
-	 * idaRequestMap.put(RegistrationConstants.INDIVIDUAL_ID_TYPE,
-	 * RegistrationConstants.USER_ID_CODE);
-	 * idaRequestMap.put(RegistrationConstants.KEY_INDEX, "");
-	 * 
-	 * List<Map<String, Object>> listOfBiometric = new ArrayList<>(); Map<String,
-	 * Object> requestMap = new LinkedHashMap<>();
-	 * 
-	 * if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
-	 * 
-	 * String[] previousHashArray = {
-	 * HMACUtils.digestAsPlainText(HMACUtils.generateHash("".getBytes())) };
-	 * 
-	 * biometricDTO.getOperatorBiometricDTO().getFingerprintDetailsDTO().forEach(bio
-	 * -> {
-	 * 
-	 * bio.getSegmentedFingerprints().forEach(finger -> { LinkedHashMap<String,
-	 * Object> dataBlockFinger = new LinkedHashMap<>(); Map<String, Object> data =
-	 * new HashMap<>(); data.put(RegistrationConstants.ON_BOARD_TIME_STAMP,
-	 * DateUtils.getUTCCurrentDateTimeString());
-	 * data.put(RegistrationConstants.ON_BOARD_BIO_TYPE,
-	 * RegistrationConstants.ON_BOARD_FINGER_ID);
-	 * data.put(RegistrationConstants.ON_BOARD_BIO_SUB_TYPE,
-	 * RegistrationConstants.userOnBoardBioFlag.get(finger.getFingerType()));
-	 * SplittedEncryptedData responseMap = getSessionKey(data,
-	 * finger.getFingerPrintISOImage());
-	 * data.put(RegistrationConstants.ON_BOARD_BIO_VALUE,
-	 * responseMap.getEncryptedData()); String dataBlockJsonString =
-	 * RegistrationConstants.EMPTY; try { dataBlockJsonString = new
-	 * ObjectMapper().writeValueAsString(data);
-	 * dataBlockFinger.put(RegistrationConstants.ON_BOARD_BIO_DATA,
-	 * CryptoUtil.encodeBase64(dataBlockJsonString.getBytes())); } catch
-	 * (IOException exIoException) { LOGGER.error(LOG_REG_USER_ONBOARD,
-	 * APPLICATION_NAME, APPLICATION_ID,
-	 * ExceptionUtils.getStackTrace(exIoException)); }
-	 * 
-	 * String presentHash = HMACUtils
-	 * .digestAsPlainText(HMACUtils.generateHash(dataBlockJsonString.getBytes()));
-	 * 
-	 * String concatenatedHash = previousHashArray[0] + presentHash; String
-	 * finalHash = HMACUtils
-	 * .digestAsPlainText(HMACUtils.generateHash(concatenatedHash.getBytes()));
-	 * dataBlockFinger.put(RegistrationConstants.AUTH_HASH, finalHash);
-	 * dataBlockFinger.put(RegistrationConstants.SESSION_KEY,
-	 * responseMap.getEncryptedSessionKey());
-	 * dataBlockFinger.put(RegistrationConstants.SIGNATURE, "");
-	 * listOfBiometric.add(dataBlockFinger); previousHashArray[0] = finalHash;
-	 * 
-	 * }); });
-	 * 
-	 * biometricDTO.getOperatorBiometricDTO().getIrisDetailsDTO().forEach(iris -> {
-	 * LinkedHashMap<String, Object> dataBlockIris = new LinkedHashMap<>();
-	 * Map<String, Object> data = new HashMap<>();
-	 * data.put(RegistrationConstants.ON_BOARD_TIME_STAMP,
-	 * DateUtils.getUTCCurrentDateTimeString());
-	 * data.put(RegistrationConstants.ON_BOARD_BIO_TYPE,
-	 * RegistrationConstants.ON_BOARD_IRIS_ID);
-	 * data.put(RegistrationConstants.ON_BOARD_BIO_SUB_TYPE,
-	 * RegistrationConstants.userOnBoardBioFlag.get(iris.getIrisImageName()));
-	 * SplittedEncryptedData responseMap = getSessionKey(data, iris.getIrisIso());
-	 * data.put(RegistrationConstants.ON_BOARD_BIO_VALUE,
-	 * responseMap.getEncryptedData()); String dataBlockJsonString =
-	 * RegistrationConstants.EMPTY; try { dataBlockJsonString = new
-	 * ObjectMapper().writeValueAsString(data);
-	 * dataBlockIris.put(RegistrationConstants.ON_BOARD_BIO_DATA,
-	 * CryptoUtil.encodeBase64(dataBlockJsonString.getBytes())); } catch
-	 * (IOException exIoException) { LOGGER.error(LOG_REG_USER_ONBOARD,
-	 * APPLICATION_NAME, APPLICATION_ID,
-	 * ExceptionUtils.getStackTrace(exIoException)); } String presentHash =
-	 * HMACUtils
-	 * .digestAsPlainText(HMACUtils.generateHash(dataBlockJsonString.getBytes()));
-	 * String concatenatedHash = previousHashArray[0] + presentHash; String
-	 * finalHash =
-	 * HMACUtils.digestAsPlainText(HMACUtils.generateHash(concatenatedHash.getBytes(
-	 * ))); dataBlockIris.put(RegistrationConstants.AUTH_HASH, finalHash);
-	 * dataBlockIris.put(RegistrationConstants.SESSION_KEY,
-	 * responseMap.getEncryptedSessionKey());
-	 * dataBlockIris.put(RegistrationConstants.SIGNATURE, "");
-	 * listOfBiometric.add(dataBlockIris); previousHashArray[0] = finalHash; });
-	 * addFaceData(listOfBiometric,
-	 * biometricDTO.getOperatorBiometricDTO().getFace().getFaceISO(),
-	 * previousHashArray, responseDTO);
-	 * requestMap.put(RegistrationConstants.ON_BOARD_BIOMETRICS, listOfBiometric);
-	 * requestMap.put(RegistrationConstants.ON_BOARD_TIME_STAMP,
-	 * DateUtils.getUTCCurrentDateTimeString()); Map<String, String> requestParamMap
-	 * = new LinkedHashMap<>(); requestParamMap.put(RegistrationConstants.REF_ID,
-	 * RegistrationConstants.IDA_REFERENCE_ID);
-	 * requestParamMap.put(RegistrationConstants.TIME_STAMP,
-	 * DateUtils.getUTCCurrentDateTimeString()); responseDTO =
-	 * isIdaAuthRequired(idaRequestMap, requestMap, biometricDTO, requestParamMap);
-	 * } else { LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
-	 * RegistrationConstants.NO_INTERNET); setErrorResponse(responseDTO,
-	 * RegistrationConstants.NO_INTERNET, null); }
-	 * 
-	 * } else { throw new
-	 * RegBaseCheckedException(RegistrationExceptionConstants.REG_BIOMETRIC_DTO_NULL
-	 * .getErrorCode(),
-	 * RegistrationExceptionConstants.REG_BIOMETRIC_DTO_NULL.getErrorMessage()); }
-	 * 
-	 * return responseDTO; }
-	 */
 
 	@Override
 	public ResponseDTO validateWithIDAuthAndSave(List<BiometricsDto> biometrics) throws RegBaseCheckedException {
-		boolean idAuthEnabled = RegistrationConstants.ENABLE
-				.equalsIgnoreCase((String) ApplicationContext.map().get(RegistrationConstants.USER_ON_BOARD_IDA_AUTH));
-
 		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
-				"validateWithIDAuthAndSave invoked idAuthEnabled >> " + idAuthEnabled);
+				"validateWithIDAuthAndSave invoked ");
 
 		if (Objects.isNull(biometrics))
 			throw new RegBaseCheckedException(RegistrationExceptionConstants.REG_BIOMETRIC_DTO_NULL.getErrorCode(),
 					RegistrationExceptionConstants.REG_BIOMETRIC_DTO_NULL.getErrorMessage());
 
 		ResponseDTO responseDTO = new ResponseDTO();
-		if (!idAuthEnabled || (idAuthEnabled && validateWithIDA(biometrics, responseDTO))) {
+		if (validateWithIDA(biometrics, responseDTO)) {
 			responseDTO = save(biometrics);
 			LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
 					RegistrationConstants.USER_ON_BOARDING_SUCCESS_MSG);
@@ -237,8 +125,7 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 	}
 
 	@SuppressWarnings("unchecked")
-	public boolean validateWithIDA(List<BiometricsDto> biometrics, ResponseDTO responseDTO)
-			throws RegBaseCheckedException {
+	public boolean validateWithIDA(List<BiometricsDto> biometrics, ResponseDTO responseDTO) {
 
 		if (!RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
 			LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, RegistrationConstants.NO_INTERNET);
@@ -251,8 +138,11 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 		idaRequestMap.put(RegistrationConstants.VERSION, RegistrationConstants.PACKET_SYNC_VERSION);
 		idaRequestMap.put(RegistrationConstants.REQUEST_TIME,
 				DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
-		idaRequestMap.put(RegistrationConstants.ENV, "Staging");
-		idaRequestMap.put(RegistrationConstants.DOMAIN_URI, "dev.mosip.net");
+		idaRequestMap.put(RegistrationConstants.ENV,
+				io.mosip.registration.context.ApplicationContext.getStringValueFromApplicationMap(
+						RegistrationConstants.SERVER_ACTIVE_PROFILE));
+		idaRequestMap.put(RegistrationConstants.DOMAIN_URI,
+				RegistrationAppHealthCheckUtil.prepareURLByHostName(RegistrationAppHealthCheckUtil.mosipHostNamePlaceHolder));
 		idaRequestMap.put(RegistrationConstants.TRANSACTION_ID, RegistrationConstants.TRANSACTION_ID_VALUE);
 		idaRequestMap.put(RegistrationConstants.CONSENT_OBTAINED, true);
 		idaRequestMap.put(RegistrationConstants.INDIVIDUAL_ID, SessionContext.userContext().getUserId());
@@ -266,39 +156,43 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 		List<Map<String, Object>> listOfBiometric = new ArrayList<>();
 		Map<String, Object> requestMap = new LinkedHashMap<>();
 
-		if (Objects.nonNull(biometrics) && !biometrics.isEmpty()) {
-			String previousHash = HMACUtils.digestAsPlainText(HMACUtils.generateHash("".getBytes()));
-
-			for (BiometricsDto dto : biometrics) {
-				SingleType bioType = Biometric.getSingleTypeByAttribute(dto.getBioAttribute());
-				String bioSubType = getSubTypes(bioType, dto.getBioAttribute());
-				LinkedHashMap<String, Object> dataBlock = buildDataBlock(bioType.name(), bioSubType,
-						dto.getAttributeISO(), previousHash, dto);
-				previousHash = (String) dataBlock.get(RegistrationConstants.AUTH_HASH);
-				listOfBiometric.add(dataBlock);
-			}
-		}
-
-		if (listOfBiometric.isEmpty())
-			throw new RegBaseCheckedException(RegistrationExceptionConstants.REG_BIOMETRIC_DTO_NULL.getErrorCode(),
-					RegistrationExceptionConstants.REG_BIOMETRIC_DTO_NULL.getErrorMessage());
-
-		requestMap.put(RegistrationConstants.ON_BOARD_BIOMETRICS, listOfBiometric);
-		requestMap.put(RegistrationConstants.ON_BOARD_TIME_STAMP,
-				DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 		Map<String, String> requestParamMap = new LinkedHashMap<>();
 		requestParamMap.put(RegistrationConstants.REF_ID, RegistrationConstants.IDA_REFERENCE_ID);
 		requestParamMap.put(RegistrationConstants.TIME_STAMP,
 				DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 
 		try {
-			Map<String, Object> response = (LinkedHashMap<String, Object>) serviceDelegateUtil.get(
-					RegistrationConstants.PUBLIC_KEY_IDA_REST, requestParamMap, false,
-					RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
+			String certificateData = getCertificate(requestParamMap);
 
-			if (null != response && response.size() > 0 && null != response.get(RegistrationConstants.RESPONSE)) {
-				response = getIdaAuthResponse(idaRequestMap, requestMap, requestParamMap, response, responseDTO);
-				boolean onboardAuthFlag = userOnBoardStatusFlag(response);
+			if (Objects.nonNull(biometrics) && !biometrics.isEmpty()) {
+				String previousHash = HMACUtils2.digestAsPlainText("".getBytes());
+
+				for (BiometricsDto dto : biometrics) {
+					SingleType bioType = Biometric.getSingleTypeByAttribute(dto.getBioAttribute());
+					String bioSubType = getSubTypes(bioType, dto.getBioAttribute());
+					LinkedHashMap<String, Object> dataBlock = buildDataBlock(bioType.name(), bioSubType,
+							dto.getAttributeISO(), previousHash, dto);
+					previousHash = (String) dataBlock.get(RegistrationConstants.AUTH_HASH);
+					listOfBiometric.add(dataBlock);
+				}
+			}
+
+			if (listOfBiometric.isEmpty())
+				throw new RegBaseCheckedException(RegistrationExceptionConstants.REG_BIOMETRIC_DTO_NULL.getErrorCode(),
+						RegistrationExceptionConstants.REG_BIOMETRIC_DTO_NULL.getErrorMessage());
+
+			requestMap.put(RegistrationConstants.ON_BOARD_BIOMETRICS, listOfBiometric);
+			requestMap.put(RegistrationConstants.ON_BOARD_TIME_STAMP,
+					DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+				/*Map<String, String> requestParamMap = new LinkedHashMap<>();
+				requestParamMap.put(RegistrationConstants.REF_ID, RegistrationConstants.IDA_REFERENCE_ID);
+				requestParamMap.put(RegistrationConstants.TIME_STAMP,
+						DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));*/
+
+			if(certificateData != null) {
+				Map<String, Object> response = getIdaAuthResponse(idaRequestMap, requestMap, requestParamMap,
+						certificateData, responseDTO);
+				boolean onboardAuthFlag = userOnBoardStatusFlag(response, responseDTO);
 				LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
 						"User Onboarded authentication flag... :" + onboardAuthFlag);
 
@@ -319,12 +213,42 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 			}
 		} catch (Exception e) {
 			LOGGER.error(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(e));
+			setErrorResponse(responseDTO, e.getMessage(), null);
 		}
 		return false;
 	}
 
+	private String getCertificate(Map<String, String> requestParamMap) throws Exception {
+		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
+				"getCertificate invoked ....");
+		try {
+			KeyPairGenerateResponseDto certificateDto = keymanagerService.getCertificate("IDA",
+					Optional.of(RegistrationConstants.IDA_REFERENCE_ID));
+
+			if(certificateDto != null && certificateDto.getCertificate() != null)
+				return certificateDto.getCertificate();
+		} catch (InvalidApplicationIdException | KeymanagerServiceException ex) {
+			LOGGER.error(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
+					"No entry found for applicationId : IDA");
+		}
+
+		Map<String, Object> response = (LinkedHashMap<String, Object>) serviceDelegateUtil.get(
+				RegistrationConstants.PUBLIC_KEY_IDA_REST, requestParamMap, true,
+				RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
+		LinkedHashMap<String, Object> responseMap = (LinkedHashMap<String, Object>) response
+				.get(RegistrationConstants.RESPONSE);
+		String certificateData = responseMap.get(RegistrationConstants.CERTIFICATE).toString();
+
+		UploadCertificateRequestDto uploadCertificateRequestDto = new UploadCertificateRequestDto();
+		uploadCertificateRequestDto.setApplicationId("IDA");
+		uploadCertificateRequestDto.setReferenceId(RegistrationConstants.IDA_REFERENCE_ID);
+		uploadCertificateRequestDto.setCertificateData(certificateData);
+		keymanagerService.uploadOtherDomainCertificate(uploadCertificateRequestDto);
+		return certificateData;
+	}
+
 	private LinkedHashMap<String, Object> buildDataBlock(String bioType, String bioSubType, byte[] attributeISO,
-			String previousHash, BiometricsDto biometricsDto) {
+			String previousHash, BiometricsDto biometricsDto) throws NoSuchAlgorithmException {
 		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
 				"Building data block for User Onboard Authentication with IDA");
 
@@ -338,8 +262,10 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 		data.put(RegistrationConstants.ON_BOARD_BIO_VALUE, responseMap.getEncryptedData());
 		data.put(RegistrationConstants.TRANSACTION_Id, RegistrationConstants.TRANSACTION_ID_VALUE);
 		data.put(RegistrationConstants.PURPOSE, RegistrationConstants.PURPOSE_AUTH);
-		data.put(RegistrationConstants.ENV, "Staging");
-		data.put(RegistrationConstants.DOMAIN_URI, "dev.mosip.net");
+		data.put(RegistrationConstants.ENV, io.mosip.registration.context.ApplicationContext.getStringValueFromApplicationMap(
+				RegistrationConstants.SERVER_ACTIVE_PROFILE));
+		data.put(RegistrationConstants.DOMAIN_URI,
+				RegistrationAppHealthCheckUtil.prepareURLByHostName(RegistrationAppHealthCheckUtil.mosipHostNamePlaceHolder));
 		String dataBlockJsonString = RegistrationConstants.EMPTY;
 		try {
 			dataBlockJsonString = new ObjectMapper().writeValueAsString(data);
@@ -350,9 +276,9 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 					ExceptionUtils.getStackTrace(exIoException));
 		}
 
-		String presentHash = HMACUtils.digestAsPlainText(HMACUtils.generateHash(dataBlockJsonString.getBytes()));
+		String presentHash = HMACUtils2.digestAsPlainText(dataBlockJsonString.getBytes());
 		String concatenatedHash = previousHash + presentHash;
-		String finalHash = HMACUtils.digestAsPlainText(HMACUtils.generateHash(concatenatedHash.getBytes()));
+		String finalHash = HMACUtils2.digestAsPlainText(concatenatedHash.getBytes());
 
 		dataBlock.put(RegistrationConstants.AUTH_HASH, finalHash);
 		dataBlock.put(RegistrationConstants.SESSION_KEY, responseMap.getEncryptedSessionKey());
@@ -396,7 +322,7 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 	 * @param responseDTO       the response DTO
 	 */
 	private void addFaceData(List<Map<String, Object>> listOfBiometric, byte[] faceISO, String[] previousHashArray,
-			ResponseDTO responseDTO) {
+			ResponseDTO responseDTO) throws NoSuchAlgorithmException {
 		if (null != faceISO) {
 			LinkedHashMap<String, Object> faceData = new LinkedHashMap<>();
 			Map<String, Object> data = new HashMap<>();
@@ -419,10 +345,10 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 				setErrorResponse(responseDTO, RegistrationConstants.USER_ON_BOARDING_EXCEPTION, null);
 			}
 
-			String presentHash = HMACUtils.digestAsPlainText(HMACUtils.generateHash(dataBlockJsonString.getBytes()));
+			String presentHash = HMACUtils2.digestAsPlainText(dataBlockJsonString.getBytes());
 
 			String concatenatedHash = previousHashArray[0] + presentHash;
-			String finalHash = HMACUtils.digestAsPlainText(HMACUtils.generateHash(concatenatedHash.getBytes()));
+			String finalHash = HMACUtils2.digestAsPlainText(concatenatedHash.getBytes());
 			faceData.put(RegistrationConstants.AUTH_HASH, finalHash);
 			faceData.put(RegistrationConstants.SIGNATURE, "");
 			listOfBiometric.add(faceData);
@@ -432,7 +358,7 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 	/**
 	 * Save.
 	 *
-	 * @param biometricDTO the biometric DTO
+	 * @param biometrics the biometric DTO
 	 * @return the string
 	 */
 	private ResponseDTO save(List<BiometricsDto> biometrics) {
@@ -511,7 +437,7 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 	 * @return the boolean
 	 */
 	@SuppressWarnings("unchecked")
-	private Boolean userOnBoardStatusFlag(Map<String, Object> onBoardResponseMap) {
+	private Boolean userOnBoardStatusFlag(Map<String, Object> onBoardResponseMap, ResponseDTO responseDTO) {
 
 		Boolean userOnbaordFlag = false;
 
@@ -527,7 +453,9 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 			LinkedHashMap<String, Object> responseMap = (LinkedHashMap<String, Object>) onBoardResponseMap
 					.get(RegistrationConstants.RESPONSE);
 			userOnbaordFlag = (Boolean) responseMap.get(RegistrationConstants.ON_BOARD_AUTH_STATUS);
-			LOGGER.debug(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, listOfFailureResponse.toString());
+			LOGGER.error(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, listOfFailureResponse.toString());
+			setErrorResponse(responseDTO, listOfFailureResponse.size()>0 ? (String) listOfFailureResponse.get(0).get("errorMessage") :
+					RegistrationConstants.USER_ON_BOARDING_THRESHOLD_NOT_MET_MSG, null);
 		}
 
 		return userOnbaordFlag;
@@ -555,16 +483,12 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 		}
 	}
 
+
 	@SuppressWarnings("unchecked")
 	private Map<String, Object> getIdaAuthResponse(Map<String, Object> idaRequestMap, Map<String, Object> requestMap,
-			Map<String, String> requestParamMap, Map<String, Object> publicKeyResponse, ResponseDTO responseDTO) {
+			Map<String, String> requestParamMap, String certificateData, ResponseDTO responseDTO) {
 		try {
-			LinkedHashMap<String, Object> responseMap = (LinkedHashMap<String, Object>) publicKeyResponse
-					.get(RegistrationConstants.RESPONSE);
-
-			// Getting Public Key
-			PublicKey publicKey = PublicKeyGenerationUtil
-					.generatePublicKey(responseMap.get(RegistrationConstants.PUBLIC_KEY).toString().getBytes());
+			PublicKey publicKey = keymanagerUtil.convertToCertificate(certificateData).getPublicKey();
 
 			LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, "Getting Symmetric Key.....");
 			// Symmetric key alias session key
@@ -582,11 +506,7 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 			// requestHMAC
 			idaRequestMap.put(RegistrationConstants.ON_BOARD_REQUEST_HMAC,
 					CryptoUtil.encodeBase64(cryptoCore.symmetricEncrypt(symmentricKey,
-							HMACUtils
-									.digestAsPlainText(HMACUtils
-											.generateHash(new ObjectMapper().writeValueAsString(requestMap).getBytes()))
-									.getBytes(),
-							null)));
+							HMACUtils2.digestAsPlainText(new ObjectMapper().writeValueAsString(requestMap).getBytes()).getBytes(),null)));
 
 			LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, "preparing request Session Key.....");
 			// requestSession Key
@@ -600,35 +520,8 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 					RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
 
 			return onBoardResponse;
-			/*
-			 * boolean onboardAuthFlag = userOnBoardStatusFlag(onBoardResponse);
-			 * 
-			 * LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
-			 * "User Onboarded authentication flag... :" + onboardAuthFlag);
-			 * 
-			 * if (onboardAuthFlag) { responseDTO = save(biometricDTO);
-			 * LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
-			 * RegistrationConstants.USER_ON_BOARDING_SUCCESS_MSG); } else {
-			 * LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
-			 * RegistrationConstants.USER_ON_BOARDING_THRESHOLD_NOT_MET_MSG);
-			 * setErrorResponse(responseDTO,
-			 * RegistrationConstants.USER_ON_BOARDING_THRESHOLD_NOT_MET_MSG,
-			 * onBoardResponse); }
-			 * 
-			 * } else { LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
-			 * RegistrationConstants.ON_BOARD_PUBLIC_KEY_ERROR);
-			 * setErrorResponse(responseDTO,
-			 * RegistrationConstants.ON_BOARD_PUBLIC_KEY_ERROR, null); }
-			 */
 
-			/*
-			 * } else { responseDTO = save(biometricDTO); LOGGER.info(LOG_REG_USER_ONBOARD,
-			 * APPLICATION_NAME, APPLICATION_ID,
-			 * RegistrationConstants.USER_ON_BOARDING_SUCCESS_MSG); }
-			 */
-
-		} catch (RegBaseCheckedException | InvalidKeySpecException | NoSuchAlgorithmException | IOException
-				| RuntimeException regBasedCheckedException) {
+		} catch (RegBaseCheckedException | IOException | RuntimeException | NoSuchAlgorithmException regBasedCheckedException) {
 			LOGGER.error(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(regBasedCheckedException));
 			setErrorResponse(responseDTO, RegistrationConstants.USER_ON_BOARDING_EXCEPTION, null);
@@ -637,15 +530,30 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 
 	}
 
-	/**
-	 * Gets the session key.
-	 *
-	 * @param requestMap the request map
-	 * @param data       the data
-	 * @return the session key
-	 */
-	@SuppressWarnings("unchecked")
 	private synchronized SplittedEncryptedData getSessionKey(Map<String, Object> requestMap, byte[] data) {
+		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
+				"Getting sessionKey for User Onboard Authentication with IDA");
+
+		String timestamp = (String) requestMap.get(RegistrationConstants.ON_BOARD_TIME_STAMP);
+		byte[] xorBytes = getXOR(timestamp, RegistrationConstants.TRANSACTION_ID_VALUE);
+		byte[] saltLastBytes = getLastBytes(xorBytes, 12);
+		byte[] aadLastBytes = getLastBytes(xorBytes, 16);
+
+		CryptomanagerRequestDto cryptomanagerRequestDto = new CryptomanagerRequestDto();
+		cryptomanagerRequestDto.setAad(CryptoUtil.encodeBase64(aadLastBytes));
+		cryptomanagerRequestDto.setApplicationId(RegistrationConstants.AP_IDA);
+		cryptomanagerRequestDto.setData(CryptoUtil.encodeBase64(data));
+		cryptomanagerRequestDto.setReferenceId(RegistrationConstants.IDA_REFERENCE_ID);
+		cryptomanagerRequestDto.setSalt(CryptoUtil.encodeBase64(saltLastBytes));
+		cryptomanagerRequestDto.setTimeStamp(DateUtils.getUTCCurrentDateTime());
+		CryptomanagerResponseDto cryptomanagerResponseDto = cryptomanagerService.encrypt(cryptomanagerRequestDto);
+
+		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
+				"Returning the sessionKey for User Onboard Authentication with IDA");
+		return splitEncryptedData(cryptomanagerResponseDto.getData());
+	}
+
+	/*private synchronized SplittedEncryptedData getSessionKey(Map<String, Object> requestMap, byte[] data) {
 		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
 				"Getting sessionKey for User Onboard Authentication with IDA");
 
@@ -693,7 +601,7 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 
 		return splittedData;
 
-	}
+	}*/
 
 	/**
 	 * Method to insert specified number of 0s in the beginning of the given string
@@ -756,7 +664,7 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 	/**
 	 * Gets the last bytes.
 	 *
-	 * @param timestamp    the timestamp
+	 * @param xorBytes
 	 * @param lastBytesNum the last bytes num
 	 * @return the last bytes
 	 */

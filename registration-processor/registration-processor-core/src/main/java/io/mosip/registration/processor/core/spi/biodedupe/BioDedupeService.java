@@ -41,7 +41,7 @@ public interface BioDedupeService {
 	 *            the abisRefId
 	 * @return the file
 	 */
-	public byte[] getFileByAbisRefId(String abisRefId, String source, String process);
+	public byte[] getFileByAbisRefId(String abisRefId, String process);
 	
 	/**
 	 * Gets the file.
@@ -50,6 +50,6 @@ public interface BioDedupeService {
 	 *            the registrationId
 	 * @return the file
 	 */
-	public byte[] getFileByRegId(String registrationId, String source, String process);
+	public byte[] getFileByRegId(String registrationId, String process);
 
 }

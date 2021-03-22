@@ -219,7 +219,7 @@ public class MasterSyncDaoImplTest {
 	/** Object for Sync screen auth Repository. */
 	@Mock
 	private SyncJobDefRepository syncJobDefRepository;
-	
+
 	
 	@Mock
 	private RegisteredDeviceTypeRepository registeredDeviceTypeRepository;

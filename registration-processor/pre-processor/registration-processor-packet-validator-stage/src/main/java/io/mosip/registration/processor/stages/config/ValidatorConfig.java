@@ -8,6 +8,7 @@ import java.util.Collections;
 
 import javax.annotation.PostConstruct;
 
+import io.mosip.registration.processor.stages.utils.ApplicantDocumentValidation;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -19,7 +20,6 @@ import org.springframework.web.client.RestTemplate;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketValidatorException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.applicantcategory.ApplicantTypeDocument;
@@ -32,7 +32,6 @@ import io.mosip.registration.processor.stages.helper.RestHelperImpl;
 import io.mosip.registration.processor.stages.packet.validator.PacketValidateProcessor;
 import io.mosip.registration.processor.stages.packet.validator.PacketValidatorStage;
 import io.mosip.registration.processor.stages.utils.AuditUtility;
-import io.mosip.registration.processor.stages.utils.DocumentUtility;
 import io.mosip.registration.processor.stages.utils.MandatoryValidation;
 import io.mosip.registration.processor.stages.utils.MasterDataValidation;
 import io.mosip.registration.processor.stages.utils.NotificationUtility;
@@ -69,8 +68,8 @@ public class ValidatorConfig {
 	}
 
 	@Bean
-	public DocumentUtility getDocumentUtility() {
-		return new DocumentUtility();
+	public ApplicantDocumentValidation applicantDocumentValidation() {
+		return new ApplicantDocumentValidation();
 	}
 
 	@Bean
@@ -162,7 +161,7 @@ public class ValidatorConfig {
 					"loading reference validator", "");
 			return new PacketValidator() {
 				@Override
-				public boolean validate(String registrationId, String source, String process, PacketValidationDto packetValidationDto) throws PacketValidatorException, ApisResourceAccessException, RegistrationProcessorCheckedException, IOException, JsonProcessingException {
+				public boolean validate(String registrationId, String process, PacketValidationDto packetValidationDto) throws ApisResourceAccessException, RegistrationProcessorCheckedException, IOException, JsonProcessingException {
 					return true;
 				}
 			};

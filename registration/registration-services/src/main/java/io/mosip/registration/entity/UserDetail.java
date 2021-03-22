@@ -4,13 +4,7 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Set;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -71,19 +65,21 @@ public class UserDetail extends RegistrationCommonFields implements Serializable
 	@Column(name = "del_dtimes")
 	private Timestamp delDtimes;
 
-	@OneToMany(fetch = FetchType.EAGER, mappedBy = "userDetail")
+	@OneToMany(fetch = FetchType.EAGER, mappedBy = "userDetail", cascade = CascadeType.ALL)
 	private Set<UserRole> userRole;
 
-	@OneToMany(fetch = FetchType.EAGER, mappedBy = "userDetail")
+	@OneToMany(fetch = FetchType.EAGER, mappedBy = "userDetail", cascade = CascadeType.ALL)
 	private Set<UserMachineMapping> userMachineMapping;
 
-	@OneToMany(fetch = FetchType.EAGER, mappedBy = "userDetail")
+	@OneToMany(fetch = FetchType.EAGER, mappedBy = "userDetail", cascade = CascadeType.ALL)
 	private Set<UserBiometric> userBiometric;
 
-	@OneToOne(fetch = FetchType.EAGER, mappedBy = "userDetail")
+	@OneToOne(fetch = FetchType.EAGER, mappedBy = "userDetail", cascade = CascadeType.ALL)
 	private UserPassword userPassword;
 
-	@OneToOne(fetch = FetchType.EAGER, mappedBy = "userDetail")
+	@OneToOne(fetch = FetchType.EAGER, mappedBy = "userDetail", cascade = CascadeType.ALL)
 	private RegCenterUser regCenterUser;
 
+	@OneToOne(fetch = FetchType.EAGER, mappedBy = "userDetail", cascade = CascadeType.ALL)
+	private UserToken userToken;
 }

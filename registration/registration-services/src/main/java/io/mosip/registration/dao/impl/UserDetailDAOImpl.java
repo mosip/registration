@@ -6,9 +6,15 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+import io.mosip.kernel.core.util.HMACUtils2;
+import io.mosip.registration.dto.UserDetailDto;
+import io.mosip.registration.entity.*;
+import io.mosip.registration.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,16 +29,8 @@ import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.dao.UserDetailDAO;
 import io.mosip.registration.dto.UserDetailResponseDto;
-import io.mosip.registration.entity.UserBiometric;
-import io.mosip.registration.entity.UserDetail;
-import io.mosip.registration.entity.UserPassword;
-import io.mosip.registration.entity.UserRole;
 import io.mosip.registration.entity.id.UserRoleId;
 import io.mosip.registration.exception.RegBaseUncheckedException;
-import io.mosip.registration.repositories.UserBiometricRepository;
-import io.mosip.registration.repositories.UserDetailRepository;
-import io.mosip.registration.repositories.UserPwdRepository;
-import io.mosip.registration.repositories.UserRoleRepository;
 
 /**
  * The implementation class of {@link UserDetailDAO}.
@@ -64,6 +62,9 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 	/** The userBiometric repository. */
 	@Autowired
 	private UserBiometricRepository userBiometricRepository;
+
+	@Autowired
+	private UserTokenRepository userTokenRepository;
 
 	/*
 	 * (non-Javadoc)
@@ -140,7 +141,7 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 	 * @see io.mosip.registration.dao.UserDetailDAO#save(io.mosip.registration.dto.
 	 * UserDetailResponseDto)
 	 */
-	public void save(UserDetailResponseDto userDetailsResponse) throws RegBaseUncheckedException {
+	public void save(List<UserDetailDto> userDetails) throws RegBaseUncheckedException {
 
 		LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID, "Entering user detail save method...");
 
@@ -150,28 +151,40 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 
 			// deleting Role if Exist
 			LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID, "Deleting User role if exist....");
-			userDetailsResponse.getUserDetails().forEach(userRole -> {
-				userRole.getRoles().forEach(userRoleId -> {
+			userDetails.forEach(userDetail -> {
+				userDetail.getRoles().forEach(userRoleId -> {
 					UserRoleId roleId = new UserRoleId();
 					roleId.setRoleCode(userRoleId);
-					roleId.setUsrId(userRole.getUserName());
-					userRoleRepository.deleteByUserRoleIdUsrId(userRole.getUserName());
+					roleId.setUsrId(userDetail.getUserName());
+
+					deleteUserRole(userDetail.getUserName());
+
 				});
 
 			});
 
-			
 			// Saving User Details user name and password
-			userDetailsResponse.getUserDetails().forEach(userDtals -> {
+			userDetails.forEach(userDtals -> {
+
+				List<UserDetail> users = userDetailRepository
+						.findByIdIgnoreCaseAndIsActiveTrue(userDtals.getUserName());
+
+				UserDetail userDetail = null;
+				if (users != null && !users.isEmpty()) {
+					userDetail = users.get(0);
+				}
 
 				UserDetail userDtls = new UserDetail();
 				UserPassword usrPwd = new UserPassword();
 				// password details
 				usrPwd.setUsrId(userDtals.getUserName());
-				usrPwd.setPwd(CryptoUtil.encodeBase64(userDtals.getUserPassword()));
 				usrPwd.setStatusCode("00");
 				usrPwd.setIsActive(userDtls.getIsActive() != null ? userDtls.getIsActive().booleanValue() : true);
 				usrPwd.setLangCode(ApplicationContext.applicationLanguage());
+
+				if (userDetail != null) {
+					usrPwd.setPwd(userDetail.getUserPassword().getPwd());
+				}
 				if (SessionContext.isSessionContextAvailable()) {
 					usrPwd.setCrBy(SessionContext.userContext().getUserId());
 				} else {
@@ -186,6 +199,10 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 				userDtls.setMobile(userDtals.getMobile());
 				userDtls.setName(userDtals.getName());
 				userDtls.setLangCode(ApplicationContext.applicationLanguage());
+
+				if (userDetail != null) {
+					userDtls.setSalt(userDetail.getSalt());
+				}
 				if (SessionContext.isSessionContextAvailable()) {
 					userDtls.setCrBy(SessionContext.userContext().getUserId());
 				} else {
@@ -201,7 +218,7 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 			userPwdRepository.saveAll(userPassword);
 
 			// Saving User Roles
-			userDetailsResponse.getUserDetails().forEach(role -> {
+			userDetails.forEach(role -> {
 
 				UserRole roles = new UserRole();
 				roles.setIsActive(role.getIsActive() != null ? role.getIsActive().booleanValue() : true);
@@ -217,11 +234,17 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 					roleId.setRoleCode(rol);
 					roleId.setUsrId(role.getUserName());
 					roles.setUserRoleId(roleId);
-					userRoleRepository.save(roles);
+
+					try {
+
+						userRoleRepository.save(roles);
+
+					} catch (Exception exception) {
+						exception.printStackTrace();
+					}
 				});
 
 			});
-			
 			LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID, "Leaving user detail save method...");
 
 		} catch (RuntimeException exRuntimeException) {
@@ -237,13 +260,93 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 				APPLICATION_ID, "Fetching user specific subtype level biometric detail");
 
 		return userBiometricRepository
-				.findByUserBiometricIdUsrIdAndIsActiveTrueAndUserBiometricIdBioTypeCodeAndUserBiometricIdBioAttributeCodeIgnoreCase(userId, bioType, subType);
+				.findByUserBiometricIdUsrIdAndIsActiveTrueAndUserBiometricIdBioTypeCodeAndUserBiometricIdBioAttributeCodeIgnoreCase(
+						userId, bioType, subType);
 	}
 
 	@Override
 	public List<UserBiometric> findAllActiveUsers(String bioType) {
-		LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID, "Fetching all local users for bioType >>> " + bioType);
+		LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID,
+				"Fetching all local users for bioType >>> " + bioType);
 		return userBiometricRepository.findByUserBiometricIdBioTypeCodeAndIsActiveTrue(bioType);
+	}
+
+	@Override
+	public void updateAuthTokens(String userId, String authToken, String refreshToken, long tokenExpiry,
+			long refreshTokenExpiry) {
+		List<UserDetail> userDetail = userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue(userId);
+		UserToken userToken = null;
+		if (userDetail != null && !userDetail.isEmpty()) {
+			if (userDetail.get(0).getUserToken() == null) {
+				userToken = new UserToken();
+				userToken.setUsrId(userId);
+				userToken.setCrDtime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
+				userToken.setCrBy("System");
+				userToken.setIsActive(true);
+			} else
+				userToken = userDetail.get(0).getUserToken();
+
+			userToken.setToken(authToken);
+			userToken.setRefreshToken(refreshToken);
+			userToken.setTokenExpiry(tokenExpiry);
+			userToken.setRtokenExpiry(refreshTokenExpiry);
+			userToken.setUpdDtimes(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
+
+			userTokenRepository.save(userToken);
+
+			userDetail.get(0).setUserToken(userToken);
+			userDetailRepository.save(userDetail.get(0));
+
+		}
+	}
+
+	@Override
+	public void updateUserPwd(String userId, String password) throws Exception {
+		List<UserDetail> userDetail = userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue(userId);
+		if (userDetail != null && !userDetail.isEmpty()) {
+			if (userDetail.get(0).getSalt() == null)
+				userDetail.get(0)
+						.setSalt(CryptoUtil.encodeBase64(DateUtils.formatToISOString(LocalDateTime.now()).getBytes()));
+
+			userDetail.get(0).getUserPassword().setPwd(HMACUtils2.digestAsPlainTextWithSalt(password.getBytes(),
+					CryptoUtil.decodeBase64(userDetail.get(0).getSalt())));
+			userDetail.get(0).getUserPassword().setUpdDtimes(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
+
+			userPwdRepository.save(userDetail.get(0).getUserPassword());
+			userDetailRepository.save(userDetail.get(0));
+		}
+	}
+
+	@Override
+	public List<UserDetail> getAllUsers() {
+		LOGGER.info("REGISTRATION - USER_DETAIL - REGISTRATION_USER_DETAIL_DAO_IMPL", APPLICATION_NAME, APPLICATION_ID,
+				"Fetching All User details");
+		return userDetailRepository.findAll();
+	}
+
+	@Override
+	public void deleteUser(UserDetail userDetail) {
+		LOGGER.info("REGISTRATION - USER_DETAIL - REGISTRATION_USER_DETAIL_DAO_IMPL", APPLICATION_NAME, APPLICATION_ID,
+				"Deleting user  : " + userDetail.getId());
+		userDetailRepository.delete(userDetail);
+	}
+
+	@Override
+	public void deleteUserRole(String userName) {
+		LOGGER.info("REGISTRATION - USER_DETAIL - REGISTRATION_USER_DETAIL_DAO_IMPL", APPLICATION_NAME, APPLICATION_ID,
+				"Deleting Roles for user : " + userName);
+
+		userRoleRepository.deleteByUserRoleIdUsrId(userName);
+
+	}
+
+	@Override
+	public void update(UserDetail userDetail) {
+
+		LOGGER.info("REGISTRATION - USER_DETAIL - REGISTRATION_USER_DETAIL_DAO_IMPL", APPLICATION_NAME, APPLICATION_ID,
+				"Updating User : " + userDetail.getId());
+
+		userDetailRepository.update(userDetail);
 	}
 
 }

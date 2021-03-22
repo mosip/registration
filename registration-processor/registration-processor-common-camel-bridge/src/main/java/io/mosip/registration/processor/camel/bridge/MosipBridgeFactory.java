@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.camel.CamelContext;
+import org.apache.camel.component.kafka.KafkaComponent;
+import org.apache.camel.component.kafka.KafkaConfiguration;
 import org.apache.camel.component.vertx.VertxComponent;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.camel.impl.JndiRegistry;
@@ -29,6 +31,8 @@ import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
 import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
 import io.mosip.registration.processor.core.abstractverticle.MosipVerticleManager;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.exception.UnsupportedEventBusTypeException;
+import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.vertx.camel.CamelBridge;
 import io.vertx.camel.CamelBridgeOptions;
@@ -45,6 +49,9 @@ public class MosipBridgeFactory extends MosipVerticleAPIManager {
 	
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(MosipBridgeFactory.class);
+
+	@Value("${mosip.regproc.eventbus.type:vertx}")
+	private String eventBusType;
 
 	@Autowired
 	ApplicationContext applicationContext;
@@ -63,6 +70,13 @@ public class MosipBridgeFactory extends MosipVerticleAPIManager {
 	/** Mosip router for APIs */
 	@Autowired
 	MosipRouter router;
+
+	@Value("${mosip.regproc.eventbus.kafka.bootstrap.servers}")
+	private String kafkaBootstrapServers;
+
+	@Value("${mosip.regproc.eventbus.kafka.group.id}")
+	private String kafkaGroupId;
+	
 	/**
 	 * Gets the event bus.
 	 *
@@ -118,8 +132,6 @@ public class MosipBridgeFactory extends MosipVerticleAPIManager {
         }
 		CamelContext camelContext = new DefaultCamelContext(registry);
 		camelContext.setStreamCaching(true);
-		VertxComponent vertxComponent = new VertxComponent();
-		vertxComponent.setVertx(vertx);
 		List<String> camelRoutesFilesArr = Arrays.asList(camelRoutesFileName.split(","));
         RestTemplate restTemplate = new RestTemplate();
         String camelRoutesBaseUrl = environment.getProperty("camel.routes.url");
@@ -132,7 +144,21 @@ public class MosipBridgeFactory extends MosipVerticleAPIManager {
 			routes = camelContext.loadRoutesDefinition(responseEntity.getBody().getInputStream());
 			camelContext.addRouteDefinitions(routes.getRoutes());
 		}
-		camelContext.addComponent("vertx", vertxComponent);
+		if(eventBusType.equals("vertx")) {
+			VertxComponent vertxComponent = new VertxComponent();
+			vertxComponent.setVertx(vertx);
+			camelContext.addComponent("eventbus", vertxComponent);
+		} else if(eventBusType.equals("kafka")) {
+			KafkaComponent kafkaComponent = new KafkaComponent();
+			KafkaConfiguration kafkaConfiguration = new KafkaConfiguration();
+			kafkaConfiguration.setGroupId(kafkaGroupId);
+			kafkaConfiguration.setBrokers(kafkaBootstrapServers);
+			kafkaComponent.setConfiguration(kafkaConfiguration);
+			camelContext.addComponent("eventbus", kafkaComponent);
+		} else
+			throw new UnsupportedEventBusTypeException(
+				PlatformErrorMessages.RPR_CMB_CONFIGURATION_SERVER_FAILURE_EXCEPTION);
+
 		camelContext.start();
 		CamelBridge.create(vertx, new CamelBridgeOptions(camelContext)).start();
 	}

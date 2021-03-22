@@ -238,7 +238,7 @@ public class SchedulerUtil extends BaseController {
 				}
 			});
 			ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-			scene.getStylesheets().add(classLoader.getResource(RegistrationConstants.CSS_FILE_PATH).toExternalForm());
+			scene.getStylesheets().add(classLoader.getResource(getCssName()).toExternalForm());
 			stage.initModality(Modality.WINDOW_MODAL);
 			stage.initOwner(fXComponents.getStage());
 			stage.resizableProperty().set(false);

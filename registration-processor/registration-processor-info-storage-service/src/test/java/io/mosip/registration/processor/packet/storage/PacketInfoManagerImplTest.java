@@ -12,6 +12,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -549,7 +550,7 @@ public class PacketInfoManagerImplTest {
 		Mockito.when(utility.getConfigServerFileStorageURL()).thenReturn(CONFIG_SERVER_URL);
 		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
 		Mockito.when(utility.getGetRegProcessorIdentityJson()).thenReturn("RegistrationProcessorIdentity.json");
-		Mockito.when(utility.getRegistrationProcessorMappingJson()).thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(identityMappingjsonString, JSONObject.class), MappingJsonConstants.IDENTITY));
+		Mockito.when(utility.getRegistrationProcessorMappingJson(anyString())).thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(identityMappingjsonString, JSONObject.class), MappingJsonConstants.IDENTITY));
 
 		Map<String, String> fieldMap = new HashMap<>();
 		fieldMap.put("fullName", "[ {\r\n  \"language\" : \"eng\",\r\n  \"value\" : \"Test after fix\"\r\n}, {\r\n  \"language\" : \"ara\",\r\n  \"value\" : \"Test after fix\"\r\n} ]");
@@ -1000,7 +1001,7 @@ public class PacketInfoManagerImplTest {
 	}
 
 	@Test
-	public void testsaveIndividualDemographicDedupe() {
+	public void testsaveIndividualDemographicDedupe() throws NoSuchAlgorithmException {
 
 		IndividualDemographicDedupe demographicData = new IndividualDemographicDedupe();
 		demographicData.setDateOfBirth("2019-03-02T06:29:41.011Z");
@@ -1017,7 +1018,7 @@ public class PacketInfoManagerImplTest {
 	}
 
 	@Test(expected = UnableToInsertData.class)
-	public void testsaveIndividualDemographicDedupeException() {
+	public void testsaveIndividualDemographicDedupeException() throws NoSuchAlgorithmException {
 
 		IndividualDemographicDedupe demographicData = new IndividualDemographicDedupe();
 		demographicData.setDateOfBirth("2019-03-02T06:29:41.011Z");

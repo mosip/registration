@@ -97,7 +97,7 @@ public class ClientJarDecryption extends Application {
 	private String DB_NOT_FOUND = "DB Not Found";
 
 	private Label downloadLabel;
-	private String MOSIP_SCREEN_LOADED = "Mosip client Screen loaded";
+	private String MOSIP_SCREEN_LOADED = "Creating filter chain";
 
 	private String EXCEPTION_ENCOUNTERED = "Exception encountered during context initialization";
 

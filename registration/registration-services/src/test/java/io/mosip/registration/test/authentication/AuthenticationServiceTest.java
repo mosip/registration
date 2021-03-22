@@ -6,9 +6,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.mosip.kernel.core.util.HMACUtils2;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -24,7 +26,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.HMACUtils;
 import io.mosip.registration.dto.AuthTokenDTO;
 import io.mosip.registration.dto.AuthenticationValidatorDTO;
 import io.mosip.registration.dto.UserDTO;
@@ -37,7 +38,7 @@ import io.mosip.registration.validator.OTPValidatorImpl;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
-@PrepareForTest({ HMACUtils.class, CryptoUtil.class})
+@PrepareForTest({ HMACUtils2.class, CryptoUtil.class})
 public class AuthenticationServiceTest {
 
 	
@@ -58,7 +59,7 @@ public class AuthenticationServiceTest {
 	
 	@Before
 	public void initialize() {
-		PowerMockito.mockStatic(HMACUtils.class);
+		PowerMockito.mockStatic(HMACUtils2.class);
 		PowerMockito.mockStatic(CryptoUtil.class);
 	}
 	
@@ -94,7 +95,7 @@ public class AuthenticationServiceTest {
 	}*/
 	
 	@Test
-	public void validatePasswordTest() {
+	public void validatePasswordTest() throws NoSuchAlgorithmException {
 		UserDTO userDTO = new UserDTO();
 		userDTO.setSalt("salt");
 		UserPasswordDTO userPassword = new UserPasswordDTO();
@@ -107,14 +108,14 @@ public class AuthenticationServiceTest {
 		
 		Mockito.when(loginService.getUserDetail("mosip")).thenReturn(userDTO);		
 		Mockito.when(CryptoUtil.decodeBase64("salt")).thenReturn("salt".getBytes());		
-		Mockito.when(HMACUtils.digestAsPlainTextWithSalt("mosip".getBytes(), "salt".getBytes())).thenReturn("mosip");
+		Mockito.when(HMACUtils2.digestAsPlainTextWithSalt("mosip".getBytes(), "salt".getBytes())).thenReturn("mosip");
 		
 		assertEquals("Username and Password Match", authenticationServiceImpl.validatePassword(authenticationValidatorDTO));
 		
 	}
 	
 	@Test
-	public void validatePasswordNotMatchTest() {
+	public void validatePasswordNotMatchTest() throws NoSuchAlgorithmException {
 		UserDTO userDTO = new UserDTO();
 		userDTO.setSalt("salt");
 		UserPasswordDTO userPassword = new UserPasswordDTO();
@@ -127,7 +128,7 @@ public class AuthenticationServiceTest {
 		
 		Mockito.when(loginService.getUserDetail("mosip")).thenReturn(userDTO);		
 		Mockito.when(CryptoUtil.decodeBase64("salt")).thenReturn("salt".getBytes());		
-		Mockito.when(HMACUtils.digestAsPlainTextWithSalt("mosip1".getBytes(), "salt".getBytes())).thenReturn("mosip1");
+		Mockito.when(HMACUtils2.digestAsPlainTextWithSalt("mosip1".getBytes(), "salt".getBytes())).thenReturn("mosip1");
 		
 		assertEquals("Username and Password Not Match", authenticationServiceImpl.validatePassword(authenticationValidatorDTO));
 		

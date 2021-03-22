@@ -40,5 +40,9 @@ public class TemplateDaoImpl implements TemplateDao{
 	
 	public List<TemplateFileFormat> getAllTemplateFileFormats(){
 		return fileFormatRepository.findByIsActiveTrue();
-	}	
+	}
+
+	public List<Template> getAllTemplates(String templateTypeCode, String langCode){
+		return templateRepository.findAllByIsActiveTrueAndTemplateTypeCodeLikeAndLangCodeOrderByIdAsc(templateTypeCode, langCode);
+	}
 }

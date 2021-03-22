@@ -9,4 +9,5 @@ public class DocumentMetaInfoDTO {
 	private String documentCategory;
 	private String documentOwner;
 	private String documentName;
+	private String refNumber;
 }

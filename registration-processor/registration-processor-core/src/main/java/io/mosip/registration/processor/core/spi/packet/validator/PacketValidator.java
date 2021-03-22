@@ -11,5 +11,5 @@ import java.io.IOException;
 
 public interface PacketValidator {
 
-	boolean validate(String registrationId, String source, String process, PacketValidationDto packetValidationDto) throws PacketValidatorException, ApisResourceAccessException, RegistrationProcessorCheckedException, IOException, JsonProcessingException, PacketManagerException;
+	boolean validate(String registrationId, String process, PacketValidationDto packetValidationDto) throws ApisResourceAccessException, RegistrationProcessorCheckedException, IOException, JsonProcessingException, PacketManagerException;
 }

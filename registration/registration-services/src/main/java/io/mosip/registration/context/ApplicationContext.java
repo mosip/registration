@@ -10,6 +10,7 @@ import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dto.AuthTokenDTO;
+import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 
 /**
  * This class will load all the property files as bundles All application level
@@ -98,7 +99,7 @@ public class ApplicationContext {
 	 * Then the primary language will be English and the Secondary language will be
 	 * Arabic by default and the property files will be loaded based on that
 	 * </p>
-	 *
+	 * 
 	 * @return
 	 * 
 	 * 
@@ -434,6 +435,7 @@ public class ApplicationContext {
 
 	}
 
+	@Deprecated(since = "1.1.4")
 	public static void setUpgradeServerURL(String url) {
 		applicationMap.put("client.upgrade.server.url", url);
 	}
@@ -443,12 +445,18 @@ public class ApplicationContext {
 	}
 
 	public static String getUpgradeServerURL() {
-		return applicationMap.get("client.upgrade.server.url") == null ? ""
+		return applicationMap.get("client.upgrade.server.url") == null ? RegistrationAppHealthCheckUtil.getHostName()
 				: String.valueOf(applicationMap.get("client.upgrade.server.url"));
 	}
 
+	@Deprecated(since = "1.1.4")
 	public static String getTPMUsageFlag() {
 		return applicationMap.get("client.tpm.required") == null ? "Y"
 				: String.valueOf(applicationMap.get("client.tpm.required"));
+	}
+
+	public static String getDateFormat() {
+		return applicationMap.get("mosip.default.date.format") == null ? "yyyy/MM/dd"
+				: String.valueOf(applicationMap.get("mosip.default.date.format"));
 	}
 }

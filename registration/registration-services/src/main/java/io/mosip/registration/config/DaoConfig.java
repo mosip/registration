@@ -51,7 +51,8 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
  * @author Omsai Eswar M
  *
  */
-@ComponentScan(basePackages = {"io.mosip.kernel.core", "io.mosip.kernel.clientcrypto.service.impl"})
+@ComponentScan(basePackages = {"io.mosip.kernel.core", "io.mosip.kernel.clientcrypto.service.impl",
+		"io.mosip.kernel.partnercertservice.service", "io.mosip.kernel.partnercertservice.helper"})
 public class DaoConfig extends HibernateDaoConfig {
 
 	private static final Logger LOGGER = AppConfig.getLogger(DaoConfig.class);
@@ -80,6 +81,8 @@ public class DaoConfig extends HibernateDaoConfig {
 	private static PropertySourcesPlaceholderConfigurer ppc = null;
 
 	static {
+
+		//TODO - Remove this in next release
 		ClientCryptoFacade.setIsTPMRequired(RegistrationConstants.ENABLE.equalsIgnoreCase(ApplicationContext.getTPMUsageFlag()));
 
 		try (InputStream keyStream = DaoConfig.class.getClassLoader().getResourceAsStream("spring.properties")) {

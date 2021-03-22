@@ -5,12 +5,12 @@
 	<parent>
 		<groupId>io.mosip</groupId>
 		<artifactId>registration</artifactId>
-		<version>1.1.2</version>
+		<version>1.1.4</version>
 	</parent>
 
 	<groupId>io.mosip.registrationprocessor</groupId>
 	<artifactId>registration-processor</artifactId>
-	<version>1.1.2</version>
+	<version>1.1.4</version>
 	<packaging>pom</packaging>
 
 	<name>registration-processor</name>
@@ -95,7 +95,7 @@
 		<s3mock.version>0.2.4</s3mock.version>
 
 		<!-- Vert.x -->
-		<vertx.version>3.5.4</vertx.version>
+		<vertx.version>3.9.1</vertx.version>
 		<camel.vertx.version>2.23.0</camel.vertx.version>
 		<hazelcast.kubernetes.version>1.0.0</hazelcast.kubernetes.version>
 		<!-- json-simple -->
@@ -108,32 +108,31 @@
 		<jsch.version>0.1.55</jsch.version>
 
 		<!-- local -->
-		<registration.status.service.version>1.1.2</registration.status.service.version>
-		<registration.processor.core.version>1.1.2</registration.processor.core.version>
-		<packet.manager.version>1.1.2</packet.manager.version>
-		<registration.processor.rest.client.version>1.1.2</registration.processor.rest.client.version>
-		<packet.info.storage.service.version>1.1.2</packet.info.storage.service.version>
-		<packet.bio.dedupe.service.impl.version>1.1.2</packet.bio.dedupe.service.impl.version>
-		<registration.processor.message.sender.version>1.1.2</registration.processor.message.sender.version>
-		<registration.processor.print.service.impl.version>1.1.2</registration.processor.print.service.impl.version>
+		<registration.status.service.version>1.1.4</registration.status.service.version>
+		<registration.processor.core.version>1.1.4</registration.processor.core.version>
+		<packet.manager.version>1.1.4</packet.manager.version>
+		<registration.processor.rest.client.version>1.1.4</registration.processor.rest.client.version>
+		<packet.info.storage.service.version>1.1.4</packet.info.storage.service.version>
+		<packet.bio.dedupe.service.impl.version>1.1.4</packet.bio.dedupe.service.impl.version>
+		<registration.processor.message.sender.version>1.1.4</registration.processor.message.sender.version>
 
 		<!-- Kernel -->
-		<kernel.core.version>1.1.2</kernel.core.version>
-		<kernel.dataaccess.hibernate.version>1.1.2</kernel.dataaccess.hibernate.version>
-		<kernel.templatemanager.velocity.version>1.1.2</kernel.templatemanager.velocity.version>
-		<kernel.idvalidator.uin.version>1.1.2</kernel.idvalidator.uin.version>
-		<kernel.idvalidator.rid.version>1.1.2</kernel.idvalidator.rid.version>
-		<kernel.clamav.version>1.1.2</kernel.clamav.version>
+		<kernel.core.version>1.1.4</kernel.core.version>
+		<kernel.dataaccess.hibernate.version>1.1.4</kernel.dataaccess.hibernate.version>
+		<kernel.templatemanager.velocity.version>1.1.4</kernel.templatemanager.velocity.version>
+		<kernel.idvalidator.uin.version>1.1.4</kernel.idvalidator.uin.version>
+		<kernel.idvalidator.rid.version>1.1.4</kernel.idvalidator.rid.version>
+		<kernel.clamav.version>1.1.3</kernel.clamav.version>
 		<kernel.cbeffutil.version>1.1.0</kernel.cbeffutil.version>
         <kernel.bioapi.provider.version>1.0.8</kernel.bioapi.provider.version>
-        <kernel.auth.adapter.version>1.1.2</kernel.auth.adapter.version>
+        <kernel.auth.adapter.version>1.1.4</kernel.auth.adapter.version>
         <kernel.pdfgenerator.itext.version>1.0.6</kernel.pdfgenerator.itext.version>
 		<kernel.qrcodegenerator.zxing.version>1.0.6</kernel.qrcodegenerator.zxing.version>
-		<kernel.logger.logback.version>1.1.2</kernel.logger.logback.version>
+		<kernel.logger.logback.version>1.1.4</kernel.logger.logback.version>
 		<kernel.idvalidator.vid.version>1.0.6</kernel.idvalidator.vid.version>
-		<object.store.khazana.version>1.1.2</object.store.khazana.version>
-		<kernel.biometrics.api.version>1.1.2</kernel.biometrics.api.version>
-		<kernel-keymanager-service.version>1.1.2</kernel-keymanager-service.version>
+		<object.store.khazana.version>1.1.4</object.store.khazana.version>
+		<kernel.biometrics.api.version>1.1.4</kernel.biometrics.api.version>
+		<kernel-keymanager-service.version>1.1.4</kernel-keymanager-service.version>
 			<sonar.coverage.exclusions>**/dto/**,
 			**/exception/*Exception.java,
 			**/config/*Config.java,
@@ -317,7 +316,6 @@
 		<module>registration-processor-packet-manager</module>
 		<module>registration-processor-common-camel-bridge</module>
 		<module>registration-processor-bio-dedupe-service-impl</module>
-		<module>registration-processor-print-service-impl</module>
 		<module>registration-processor-info-storage-service</module>
 		<module>registration-processor-registration-status-service-impl</module>
         <!-- <module>registration-processor-quality-checker</module> -->

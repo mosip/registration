@@ -9,7 +9,8 @@
 
 <GridPane fx:id="headerParent" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="50.0" prefWidth="1000.0" styleClass="headerParentBorder" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.mosip.registration.controller.reg.HeaderController">
   <columnConstraints>
-    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="10.0" prefWidth="100.0" />
+      <ColumnConstraints hgrow="SOMETIMES" maxWidth="102.0" minWidth="10.0" percentWidth="6.0" prefWidth="30.0" />
+    <ColumnConstraints hgrow="SOMETIMES" maxWidth="171.0" minWidth="10.0" percentWidth="5.0" prefWidth="157.0" />
       <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
       <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="10.0" prefWidth="100.0" />
   </columnConstraints>
@@ -25,7 +26,7 @@
             <Insets left="22.0" />
          </GridPane.margin>
       </ImageView>
-      <GridPane styleClass="headerDetails" GridPane.columnIndex="1">
+      <GridPane styleClass="headerDetails" GridPane.columnIndex="2">
         <columnConstraints>
           <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="2.0" prefWidth="100.0" />
@@ -167,7 +168,7 @@
             </GridPane>
          </children>
       </GridPane>
-      <GridPane GridPane.columnIndex="2">
+      <GridPane GridPane.columnIndex="3">
         <columnConstraints>
             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
           <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -189,18 +190,6 @@
                      <items>
                      	<MenuItem fx:id="userGuide" mnemonicParsing="false" onAction="#userGuide" text="%userGuide" />
                         <SeparatorMenuItem />
-                        <MenuItem mnemonicParsing="false" onAction="#uploadPacketToServer" text="%uploadpacket" />
-                        <SeparatorMenuItem />
-                        <MenuItem mnemonicParsing="false" onAction="#syncData" text="%syncdata" />
-                        <SeparatorMenuItem />
-                        <MenuItem mnemonicParsing="false" onAction="#downloadPreRegData" text="%downloadpre-registrationdata" />
-                        <SeparatorMenuItem />
-                        <MenuItem fx:id="remap" mnemonicParsing="false" onAction="#intiateRemapProcess" text="%remap" />
-                        <SeparatorMenuItem />
-                        <MenuItem mnemonicParsing="false" onAction="#hasUpdate" text="%checkUpdates" />
-                        <SeparatorMenuItem />
-                        <MenuItem mnemonicParsing="false" onAction="#redirectHome" text="%home" />
-                        <SeparatorMenuItem />
                         <MenuItem fx:id="logout" mnemonicParsing="false" onAction="#logout" text="%logout" />
                      </items>
                   </Menu>
@@ -211,5 +200,10 @@
             <Insets />
          </GridPane.margin>
       </GridPane>
+      <ImageView fitHeight="23.0" fitWidth="28.0" onMousePressed="#redirectHome" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="1">
+      <image>
+            <Image url="@../images/Home.png" />
+         </image>
+      </ImageView>
    </children>
 </GridPane>

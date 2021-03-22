@@ -48,7 +48,7 @@ public class RegistrationAppHealthCheckUtil {
 	private static OperatingSystem operatingSystem;
 	private static String defaultHost;
 
-	private static String mosipHostNamePlaceHolder = "${mosip.hostname}";
+	public static String mosipHostNamePlaceHolder = "${mosip.hostname}";
 
 	static {
 		systemInfo = new SystemInfo();
@@ -144,21 +144,20 @@ public class RegistrationAppHealthCheckUtil {
 		return isNWAvailable;
 	}
 
-	private static String prepareURLByHostName(String url) {
-		String mosipHostNameVal = System.getenv("mosip.hostname");
-
-		LOGGER.info(LoggerConstants.LOG_SERVICE_DELEGATE_UTIL_PREPARE_POST, APPLICATION_NAME, APPLICATION_ID,
-				"Mosip Host name in environment variables : " + mosipHostNameVal);
-		if (mosipHostNameVal == null || mosipHostNameVal.isEmpty()) {
-			mosipHostNameVal = defaultHost;
-			LOGGER.info(LoggerConstants.LOG_SERVICE_DELEGATE_UTIL_PREPARE_POST, APPLICATION_NAME, APPLICATION_ID,
-					"Mosip Host name in Default spring propertries variables : " + mosipHostNameVal);
-
+	public static String getHostName() {
+		String hostname = System.getenv("mosip.hostname");
+		if(hostname == null || hostname.isEmpty()) {
+			hostname = defaultHost;
 		}
+		LOGGER.debug(LoggerConstants.LOG_SERVICE_DELEGATE_UTIL_PREPARE_POST, APPLICATION_NAME, APPLICATION_ID,
+				"MOSIP Host name : " + hostname);
+		return hostname;
+	}
 
+	public static String prepareURLByHostName(String url) {
+		String mosipHostNameVal = getHostName();
 		return (url != null && mosipHostNameVal != null) ? url.replace(mosipHostNamePlaceHolder, mosipHostNameVal)
 				: url;
-
 	}
 
 	/**

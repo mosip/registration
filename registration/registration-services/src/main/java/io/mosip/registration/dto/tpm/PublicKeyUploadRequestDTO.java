@@ -22,4 +22,7 @@ public class PublicKeyUploadRequestDTO {
 	/** The encoded TPM public key. */
 	private String publicKey;
 
+	/** The encoded TPM signing public key. */
+	private String signPublicKey;
+
 }

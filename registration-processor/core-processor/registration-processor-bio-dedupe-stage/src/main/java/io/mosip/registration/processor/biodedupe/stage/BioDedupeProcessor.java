@@ -6,11 +6,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.kernel.core.util.StringUtils;
-import io.mosip.kernel.core.util.exception.JsonProcessingException;
-import io.mosip.registration.processor.core.constant.RegistrationType;
-import io.mosip.registration.processor.core.exception.PacketManagerException;
-import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -22,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.StringUtils;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.biodedupe.constants.BioDedupeConstants;
 import io.mosip.registration.processor.biodedupe.stage.exception.CbeffNotFoundException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
@@ -37,8 +34,10 @@ import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode
 import io.mosip.registration.processor.core.constant.AbisConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
@@ -57,6 +56,7 @@ import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoServic
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.exception.IdentityNotFoundException;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -166,16 +166,15 @@ public class BioDedupeProcessor {
 		boolean isTransactionSuccessful = false;
 
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
-		String source = utilities.getDefaultSource();
 		try {
 			registrationStatusDto = registrationStatusService.getRegistrationStatus(registrationId);
 			String registrationType = registrationStatusDto.getRegistrationType();
 			if (registrationType.equalsIgnoreCase(SyncTypeDto.NEW.toString())) {
 				String packetStatus = abisHandlerUtil.getPacketStatus(registrationStatusDto);
 				if (packetStatus.equalsIgnoreCase(AbisConstant.PRE_ABIS_IDENTIFICATION)) {
-					newPacketPreAbisIdentification(registrationStatusDto, source, object);
+					newPacketPreAbisIdentification(registrationStatusDto, object);
 				} else if (packetStatus.equalsIgnoreCase(AbisConstant.POST_ABIS_IDENTIFICATION)) {
-					postAbisIdentification(registrationStatusDto, source, object, registrationType);
+					postAbisIdentification(registrationStatusDto, object, registrationType);
 
 				}
 
@@ -183,21 +182,21 @@ public class BioDedupeProcessor {
 					|| registrationType.equalsIgnoreCase(SyncTypeDto.RES_UPDATE.toString())) {
 				String packetStatus = abisHandlerUtil.getPacketStatus(registrationStatusDto);
 				if (packetStatus.equalsIgnoreCase(AbisConstant.PRE_ABIS_IDENTIFICATION)) {
-					updatePacketPreAbisIdentification(registrationStatusDto, source, object);
+					updatePacketPreAbisIdentification(registrationStatusDto, object);
 				} else if (packetStatus.equalsIgnoreCase(AbisConstant.POST_ABIS_IDENTIFICATION)) {
-					postAbisIdentification(registrationStatusDto, source, object, registrationType);
+					postAbisIdentification(registrationStatusDto, object, registrationType);
 				}
 
 			} else if (registrationType.equalsIgnoreCase(SyncTypeDto.LOST.toString())
-					&& isValidCbeff(registrationId, source, registrationType)) {
+					&& isValidCbeff(registrationId, registrationType)) {
 				String packetStatus = abisHandlerUtil.getPacketStatus(registrationStatusDto);
 
 				if (packetStatus.equalsIgnoreCase(AbisConstant.PRE_ABIS_IDENTIFICATION)) {
 					lostPacketPreAbisIdentification(registrationStatusDto, object);
 				} else if (packetStatus.equalsIgnoreCase(AbisConstant.POST_ABIS_IDENTIFICATION)) {
 					List<String> matchedRegIds = abisHandlerUtil
-							.getUniqueRegIds(registrationStatusDto.getRegistrationId(), source, registrationType);
-					lostPacketPostAbisIdentification(registrationStatusDto, source, object, matchedRegIds);
+							.getUniqueRegIds(registrationStatusDto.getRegistrationId(), registrationType);
+					lostPacketPostAbisIdentification(registrationStatusDto, object, matchedRegIds);
 				}
 
 			}
@@ -306,12 +305,11 @@ public class BioDedupeProcessor {
 	 *                                               has occurred.
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
-	 * @throws RegistrationProcessorCheckedException
-	 * @throws                                       io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
+	 * @throws RegistrationProcessorCheckedException RegistrationProcessorCheckedException
 	 */
-	private void newPacketPreAbisIdentification(InternalRegistrationStatusDto registrationStatusDto, String source, MessageDTO object)
+	private void newPacketPreAbisIdentification(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object)
 			throws ApisResourceAccessException, IOException, JsonProcessingException, PacketManagerException {
-		if (isValidCbeff(registrationStatusDto.getRegistrationId(), source, registrationStatusDto.getRegistrationType())) {
+		if (isValidCbeff(registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType())) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 			registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_INPROGRESS.getMessage());
 			registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_INPROGRESS.getCode());
@@ -340,19 +338,14 @@ public class BioDedupeProcessor {
 	 *                                               has occurred.
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws ApisResourceAccessException
-	 * @throws PacketDecryptionFailureException
-	 * @throws                                       io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
+	 * @throws PacketManagerException PacketManagerException
 	 * @throws RegistrationProcessorCheckedException
 	 */
-	private void updatePacketPreAbisIdentification(InternalRegistrationStatusDto registrationStatusDto, String source,
+	private void updatePacketPreAbisIdentification(InternalRegistrationStatusDto registrationStatusDto,
 			MessageDTO object) throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 
-		JSONObject regProcessorIdentityJson = utilities.getRegistrationProcessorMappingJson();
-		String individualBiometricsLabel = JsonUtil.getJSONValue(
-				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
-				MappingJsonConstants.VALUE);
-
-		String bioField = packetManagerService.getField(registrationStatusDto.getRegistrationId(), individualBiometricsLabel, source, registrationStatusDto.getRegistrationType());
+		String bioField = packetManagerService.getFieldByKey(registrationStatusDto.getRegistrationId(),
+				MappingJsonConstants.INDIVIDUAL_BIOMETRICS, registrationStatusDto.getRegistrationType());
 
 
 		if (StringUtils.isNotEmpty(bioField)) {
@@ -389,15 +382,14 @@ public class BioDedupeProcessor {
 	 *                                               has occurred.
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
-	 * @throws RegistrationProcessorCheckedException
-	 * @throws                                       io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
+	 * @throws RegistrationProcessorCheckedException RegistrationProcessorCheckedException
 	 */
-	private void postAbisIdentification(InternalRegistrationStatusDto registrationStatusDto, String source, MessageDTO object,
+	private void postAbisIdentification(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object,
 			String registrationType) throws ApisResourceAccessException, IOException,
 			io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
 		String moduleId = "";
 		String moduleName = ModuleName.BIO_DEDUPE.toString();
-		List<String> matchedRegIds = abisHandlerUtil.getUniqueRegIds(registrationStatusDto.getRegistrationId(), source,
+		List<String> matchedRegIds = abisHandlerUtil.getUniqueRegIds(registrationStatusDto.getRegistrationId(),
 				registrationType);
 		// TODO : temporary fix. Need to analyze more.
 		if (matchedRegIds != null && !matchedRegIds.isEmpty()
@@ -438,23 +430,22 @@ public class BioDedupeProcessor {
 	 *                                               has occurred.
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
-	 * @throws RegistrationProcessorCheckedException
-	 * @throws                                       io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
+	 * @throws RegistrationProcessorCheckedException RegistrationProcessorCheckedException
 	 */
-	private Boolean isValidCbeff(String registrationId, String source, String registrationType) throws ApisResourceAccessException,
+	private Boolean isValidCbeff(String registrationId, String registrationType) throws ApisResourceAccessException,
 			IOException, JsonProcessingException, PacketManagerException {
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "BioDedupeProcessor::isValidCbeff()::get BIODEDUPE service call started");
 		byte[] bytefile = null;
-		boolean isInfant = infantCheck(registrationId, source, registrationType);
+		boolean isInfant = infantCheck(registrationId, registrationType);
 		if (isInfant) {
 			if (infantDedupe.equalsIgnoreCase(GLOBAL_CONFIG_TRUE_VALUE)) {
-				bytefile = biodedupeServiceImpl.getFileByRegId(registrationId, source, registrationType);
+				bytefile = biodedupeServiceImpl.getFileByRegId(registrationId, registrationType);
 			} else
 				return false;
 		} else {
-			 bytefile = biodedupeServiceImpl.getFileByRegId(registrationId, source, registrationType);
+			 bytefile = biodedupeServiceImpl.getFileByRegId(registrationId, registrationType);
 
 		}
 		if (bytefile != null) {
@@ -471,10 +462,10 @@ public class BioDedupeProcessor {
 
 	}
 
-	private boolean infantCheck(String registrationId, String source, String registrationType) throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException {
+	private boolean infantCheck(String registrationId, String registrationType) throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException {
 		boolean isInfant = false;
 		if (RegistrationType.NEW.name().equalsIgnoreCase(registrationType)) {
-			int age = utilities.getApplicantAge(registrationId, source, registrationType);
+			int age = utilities.getApplicantAge(registrationId, registrationType);
 			int ageThreshold = Integer.parseInt(ageLimit);
 			isInfant = age < ageThreshold;
 		} else {
@@ -497,7 +488,7 @@ public class BioDedupeProcessor {
 
 	}
 
-	private void lostPacketPostAbisIdentification(InternalRegistrationStatusDto registrationStatusDto, String source,
+	private void lostPacketPostAbisIdentification(InternalRegistrationStatusDto registrationStatusDto,
 			MessageDTO object, List<String> matchedRegIds) throws IOException, ApisResourceAccessException, JsonProcessingException, PacketManagerException {
 		String moduleId = "";
 		String moduleName = ModuleName.BIO_DEDUPE.toString();
@@ -534,7 +525,7 @@ public class BioDedupeProcessor {
 			for (String matchedRegId : matchedRegIds) {
 				JSONObject matchedDemographicIdentity = idRepoService.getIdJsonFromIDRepo(matchedRegId,
 						utilities.getGetRegProcessorDemographicIdentity());
-				matchCount = addMactchedRefId(registrationStatusDto.getRegistrationId(), source,
+				matchCount = addMactchedRefId(registrationStatusDto.getRegistrationId(),
 						registrationStatusDto.getRegistrationType(), matchedDemographicIdentity, matchCount, demoMatchedIds, matchedRegId);
 				if (matchCount > 1)
 					break;
@@ -571,12 +562,12 @@ public class BioDedupeProcessor {
 		}
 	}
 
-	private int addMactchedRefId(String id, String source, String process, JSONObject matchedDemographicIdentity, int matchCount, List<String> demoMatchedIds,
+	private int addMactchedRefId(String id, String process, JSONObject matchedDemographicIdentity, int matchCount, List<String> demoMatchedIds,
 			String matchedRegId) throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 		if (matchedDemographicIdentity != null) {
 			Map<String, String> matchedAttribute = getIdJson(matchedDemographicIdentity);
 			if (!matchedAttribute.isEmpty()) {
-				if (compareDemoDedupe(id, source, process, matchedAttribute)) {
+				if (compareDemoDedupe(id, process, matchedAttribute)) {
 					matchCount++;
 					demoMatchedIds.add(matchedRegId);
 				}
@@ -586,11 +577,12 @@ public class BioDedupeProcessor {
 		return matchCount;
 	}
 
-	private boolean compareDemoDedupe(String id, String source, String process, Map<String, String> matchedAttribute) throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
+	private boolean compareDemoDedupe(String id, String process, Map<String, String> matchedAttribute) throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
 		boolean isMatch = false;
 
 		for (String key : matchedAttribute.keySet()) {
-			String value = packetManagerService.getField(id, key, source, process);
+			String value = packetManagerService.getField(id, key,
+					utilities.getSourceFromIdField(MappingJsonConstants.IDENTITY, process, key), process);
 			if (value != null && value.equalsIgnoreCase(matchedAttribute.get(key))) {
 				isMatch = true;
 			} else {
@@ -606,7 +598,11 @@ public class BioDedupeProcessor {
 		Map<String, String> attribute = new LinkedHashMap<>();
 
 
-		JSONObject mapperIdentity = utilities.getRegistrationProcessorMappingJson();
+		JSONObject mapperIdentity = new JSONObject();
+		mapperIdentity.putAll(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY));
+		mapperIdentity.putAll(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT));
+
+
 		List<String> mapperJsonKeys = new ArrayList<>(mapperIdentity.keySet());
 
 		for (String key : mapperJsonKeys) {

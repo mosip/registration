@@ -1,6 +1,5 @@
 package io.mosip.registration.config;
 
-
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,9 +67,9 @@ public class AppConfig {
 
 	/*
 	 * @Value("${mosip.registration.face.provider}") private String faceSdk;
-	 *
+	 * 
 	 * @Value("${mosip.registration.iris.provider}") private String irisSdk;
-	 *
+	 * 
 	 * @Value("${mosip.registration.finger.provider}") private String fingerSdk;
 	 */
 	static {

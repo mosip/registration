@@ -159,8 +159,6 @@ public class DemodedupeProcessor {
 				.getRegistrationStatus(registrationId);
 
 		try {
-			String source = utility.getDefaultSource();
-
 			// Persist Demographic packet Data if packet Registration type is NEW
 			if (registrationStatusDto.getRegistrationType().equals(RegistrationType.NEW.name())) {
 
@@ -170,8 +168,7 @@ public class DemodedupeProcessor {
 
 					packetInfoManager.saveDemographicInfoJson(registrationId,
 							registrationStatusDto.getRegistrationType(), moduleId, moduleName);
-					int age = utility.getApplicantAge(registrationId,
-							utility.getDefaultSource(), registrationStatusDto.getRegistrationType());
+					int age = utility.getApplicantAge(registrationId, registrationStatusDto.getRegistrationType());
 					int ageThreshold = Integer.parseInt(ageLimit);
 					if (age < ageThreshold) {
 						if (infantDedupe.equalsIgnoreCase(GLOBAL_CONFIG_TRUE_VALUE)) {
@@ -218,10 +215,9 @@ public class DemodedupeProcessor {
 
 
 				IndividualDemographicDedupe demographicData = packetInfoManager
-						.getIdentityKeysAndFetchValuesFromJSON(registrationId, source, registrationStatusDto.getRegistrationType());
-				JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson();
-				String uinFieldCheck = utility.getUIn(registrationId,
-						utility.getDefaultSource(), registrationStatusDto.getRegistrationType());
+						.getIdentityKeysAndFetchValuesFromJSON(registrationId, registrationStatusDto.getRegistrationType());
+				JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
+				String uinFieldCheck = utility.getUIn(registrationId, registrationStatusDto.getRegistrationType());
 				JSONObject jsonObject = utility.retrieveIdrepoJson(uinFieldCheck);
 				if (jsonObject == null) {
 					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
@@ -586,8 +582,7 @@ public class DemodedupeProcessor {
 	private void saveManualAdjudicationData(InternalRegistrationStatusDto registrationStatusDto)
 			throws ApisResourceAccessException, IOException,
 			io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
-		String source = utility.getDefaultSource();
-		List<String> matchedRegIds = abisHandlerUtil.getUniqueRegIds(registrationStatusDto.getRegistrationId(), source,
+		List<String> matchedRegIds = abisHandlerUtil.getUniqueRegIds(registrationStatusDto.getRegistrationId(),
 				SyncTypeDto.NEW.toString());
 		if (!matchedRegIds.isEmpty()) {
 			String moduleId = PlatformErrorMessages.RPR_DEMO_SENDING_FOR_MANUAL.getCode();

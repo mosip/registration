@@ -1,7 +1,5 @@
 package io.mosip.registration.processor.stages.app;
 
-import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
-import io.mosip.registration.processor.core.constant.RegistrationType;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import io.mosip.registration.processor.stages.osivalidator.OSIValidatorStage;

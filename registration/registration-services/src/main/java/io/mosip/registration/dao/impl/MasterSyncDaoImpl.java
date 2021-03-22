@@ -312,7 +312,7 @@ public class MasterSyncDaoImpl implements MasterSyncDao {
 	 * All the master data such as Location, gender,Registration center, Document types,category etc., 
 	 * will be saved in the DB(These details will be getting from the MasterSync service)
 	 *
-	 * @param masterSyncDto
+	 * @param syncDataResponseDto
 	 *            All the master details will be available in the {@link MasterDataResponseDto}
 	 * @return the string
 	 * 			- Returns the Success or Error response

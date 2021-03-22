@@ -42,20 +42,23 @@ public class UiSchemaDTO {
 	private String format;
 	private List<Validator> validators;
 	private String fieldCategory;
- 	
+	private String alignmentGroup;
+	private RequiredOnExpr visible;
 	@JsonProperty("required")
-	private boolean isRequired;	
-	
+	private boolean isRequired;
+
 	@JsonProperty("bioAttributes")
 	private List<String> bioAttributes;
-	
+
 	@JsonProperty("requiredOn")
 	private List<RequiredOnExpr> requiredOn;
-	
+
 	@JsonProperty("subType")
 	private String subType;
-	
+
 	private String contactType;
 	private String group;
+
+	private String changeAction;
 
 }
