@@ -5,29 +5,18 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.ResourceBundle;
-import java.util.Timer;
-import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.exception.RemapException;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,8 +30,6 @@ import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
-import io.mosip.registration.config.DaoConfig;
-import io.mosip.registration.constants.ApplicationLanguages;
 import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
@@ -1489,32 +1476,6 @@ public class BaseController {
 		}
 	}
 
-	public boolean isPrimaryOrSecondaryLanguageEmpty() {
-
-		if (null == ApplicationContext.map().get(RegistrationConstants.PRIMARY_LANGUAGE)
-				|| ApplicationContext.map().get(RegistrationConstants.PRIMARY_LANGUAGE).equals("")) {
-			return true;
-		}
-		if (null == ApplicationContext.map().get(RegistrationConstants.SECONDARY_LANGUAGE)
-				|| ApplicationContext.map().get(RegistrationConstants.SECONDARY_LANGUAGE).equals("")) {
-			return true;
-		}
-		return false;
-	}
-
-	/*public String getThresholdKeyByBioType(String bioType) {
-		return bioType.equals(RegistrationConstants.FINGERPRINT_SLAB_LEFT)
-				? RegistrationConstants.LEFTSLAP_FINGERPRINT_THRESHOLD
-				: bioType.equals(RegistrationConstants.FINGERPRINT_SLAB_RIGHT)
-				? RegistrationConstants.RIGHTSLAP_FINGERPRINT_THRESHOLD
-				: bioType.equals(RegistrationConstants.FINGERPRINT_SLAB_THUMBS)
-				? RegistrationConstants.THUMBS_FINGERPRINT_THRESHOLD
-				: bioType.toLowerCase().contains(RegistrationConstants.IRIS.toLowerCase())
-				? RegistrationConstants.IRIS_THRESHOLD
-				: bioType.toLowerCase().contains(RegistrationConstants.FACE.toLowerCase())
-				? RegistrationConstants.FACE_THRESHOLD
-				: RegistrationConstants.EMPTY;
-	}*/
 
 	public interface ToRun<T> {
 		public T toRun();
@@ -1901,11 +1862,6 @@ public class BaseController {
 	}
 
 	public boolean proceedOnAction(String job) {
-		if (isPrimaryOrSecondaryLanguageEmpty()) {
-			generateAlert(RegistrationConstants.ERROR,
-					RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);
-			return false;
-		}
 
 		if (!RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
 			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_INTERNET_CONNECTION);
@@ -1948,12 +1904,6 @@ public class BaseController {
 	}
 
 	public boolean proceedOnRegistrationAction() {
-		if (isPrimaryOrSecondaryLanguageEmpty()) {
-			generateAlert(RegistrationConstants.ERROR,
-					RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);
-			return false;
-		}
-
 		try {
 			baseService.proceedWithRegistration();
 		} catch (PreConditionCheckException ex) {
@@ -1969,27 +1919,34 @@ public class BaseController {
 		return true;
 	}
 
-	protected List<String> getConfiguredLanguages() {
-		List<String> languages = new ArrayList<>();
-		List<String> langCodes = Stream.concat(baseService.getMandatoryLanguages().stream(), baseService.getOptionalLanguages().stream())
-				.collect(Collectors.toList());
-		for (String langCode : langCodes) {
-			if (!langCode.isBlank()) {
-				languages.add(ApplicationLanguages.getLanguageByLangCode(langCode));
-			}
+	protected List<GenericDto> getConfiguredLanguages() {
+		ResourceBundle resourceBundle = ResourceBundle.getBundle(RegistrationConstants.LABELS, Locale.getDefault());
+		List<GenericDto> languages = new ArrayList<>();
+		for(String langCode : getConfiguredLangCodes()) {
+			languages.add(new GenericDto(langCode,
+					resourceBundle.containsKey(langCode) ? resourceBundle.getString(langCode) : langCode,
+					langCode));
+		}
+		return languages;
+	}
+
+	protected List<GenericDto> getConfiguredLanguages(List<String> langCodes) {
+		ResourceBundle resourceBundle = ResourceBundle.getBundle(RegistrationConstants.LABELS, Locale.getDefault());
+		List<GenericDto> languages = new ArrayList<>();
+		for(String langCode : langCodes) {
+			languages.add(new GenericDto(langCode,
+					resourceBundle.containsKey(langCode) ? resourceBundle.getString(langCode) : langCode,
+					langCode));
 		}
 		return languages;
 	}
 
 	protected List<String> getConfiguredLangCodes() {
-		List<String> languages = new ArrayList<>();
-		List<String> langCodes = Stream.concat(baseService.getMandatoryLanguages().stream(), baseService.getOptionalLanguages().stream())
-				.collect(Collectors.toList());
-		for (String langCode : langCodes) {
-			if (!langCode.isBlank()) {
-				languages.add(langCode);
-			}
+		try {
+			return ListUtils.union(baseService.getMandatoryLanguages(), baseService.getOptionalLanguages());
+		} catch (PreConditionCheckException e) {
+			generateAlert(RegistrationConstants.ERROR, "Both Mandatory and Optional languages not configured");
 		}
-		return languages;
+		return Collections.EMPTY_LIST;
 	}
 }

@@ -378,17 +378,10 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	@Override
 	public List<GenericDto> getFieldValues(String fieldName, String langCode, boolean isHierarchical) {
 		try {
-			switch (fieldName) {
-			case "gender":
-					return getGenderDtls(langCode);
-			case "residenceStatus":
-				return getIndividualType(langCode);
-			default:
-				if(isHierarchical) {
-					return findLocationByParentHierarchyCode(fieldName, langCode);
-				}
-				return getDynamicField(fieldName, langCode);
+			if(isHierarchical) {
+				return findLocationByParentHierarchyCode(fieldName, langCode);
 			}
+			return getDynamicField(fieldName, langCode);
 		} catch (RegBaseCheckedException exception) {
 			LOGGER.error("Failed to fetch values for field : " + fieldName, exception);
 		}

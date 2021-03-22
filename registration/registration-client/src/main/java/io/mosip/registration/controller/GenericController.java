@@ -664,7 +664,6 @@ public class GenericController extends BaseController {
 					tab.setContent(getPreviewContent(tabPane));
 				} catch (Exception exception) {
 					LOGGER.error("Failed to load preview page!!, clearing registration data.");
-					clearRegistrationData();
 					generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_PREVIEW_PAGE);
 				}
 				break;
@@ -675,7 +674,6 @@ public class GenericController extends BaseController {
 					authenticationController.initData(ProcessNames.PACKET.getType());
 				} catch (Exception exception) {
 					LOGGER.error("Failed to load auth page!!, clearing registration data.");
-					clearRegistrationData();
 					generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_APPROVAL_PAGE);
 				}
 				break;
