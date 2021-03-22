@@ -23,7 +23,6 @@ import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
-import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.FXUtils;
 import io.mosip.registration.controller.GenericController;
@@ -212,8 +211,6 @@ public class UpdateUINController extends BaseController implements Initializable
 							getClass().getResource(RegistrationConstants.CREATE_PACKET_PAGE),
 							applicationContext.getBundle(getRegistrationDTOFromSession().getSelectedLanguagesByApplicant().get(0), RegistrationConstants.LABELS));
 
-					registrationController.getRegTypeText().setText(applicationContext
-							.getBundle(ApplicationContext.applicationLanguage(), RegistrationConstants.LABELS).getString("uinUpdateNavLbl"));
 					getScene(createRoot).setRoot(createRoot);
 					genericController.populateScreens();
 				} else {
