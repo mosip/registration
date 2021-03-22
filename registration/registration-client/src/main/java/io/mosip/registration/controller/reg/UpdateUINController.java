@@ -174,7 +174,7 @@ public class UpdateUINController extends BaseController implements Initializable
 				}
 			}
 		}
-		return groupLabel;
+		return groupLabel.isBlank() ? groupName : groupLabel;
 	}
 
 	/**
