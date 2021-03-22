@@ -1,9 +1,25 @@
 package io.mosip.registration.util.control.impl;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+import org.apache.commons.io.IOUtils;
+import org.w3c.dom.Document;
+
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.templatemanager.spi.TemplateManager;
 import io.mosip.kernel.core.templatemanager.spi.TemplateManagerBuilder;
+import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
+import io.mosip.registration.constants.AuditEvent;
+import io.mosip.registration.constants.AuditReferenceIdTypes;
+import io.mosip.registration.constants.Components;
+import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.Initialization;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.mastersync.GenericDto;
@@ -13,14 +29,6 @@ import io.mosip.registration.util.control.FxControl;
 import javafx.scene.Node;
 import javafx.scene.layout.HBox;
 import javafx.scene.web.WebView;
-import org.apache.commons.io.IOUtils;
-import org.w3c.dom.Document;
-
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
-import java.util.WeakHashMap;
 
 /**
  * Builds HTML content based on the provided templateName in the first language
@@ -36,6 +44,7 @@ public class HtmlFxControl extends FxControl {
 
     public HtmlFxControl() {
         org.springframework.context.ApplicationContext applicationContext = Initialization.getApplicationContext();
+        auditFactory = applicationContext.getBean(AuditManagerService.class);
         templateManagerBuilder = applicationContext.getBean(TemplateManagerBuilder.class);
         templateService = applicationContext.getBean(TemplateService.class);
     }
@@ -58,6 +67,10 @@ public class HtmlFxControl extends FxControl {
             hBox.getChildren().add(webView);
             //TODO - We can have toolbar to display print / downloadPDF options
             this.node = hBox;
+            
+            auditFactory.audit(AuditEvent.REG_HTML_FX_CONTROL, Components.REG_DEMO_DETAILS, SessionContext.userId(),
+					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+            
             return this.control;
 
         } catch (RegBaseCheckedException | IOException e) {

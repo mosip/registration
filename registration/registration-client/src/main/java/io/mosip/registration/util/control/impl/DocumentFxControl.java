@@ -6,35 +6,33 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.ResourceBundle;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.AuditEvent;
+import io.mosip.registration.constants.AuditReferenceIdTypes;
+import io.mosip.registration.constants.Components;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.ApplicationContext;
+import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.FXUtils;
 import io.mosip.registration.controller.Initialization;
-import io.mosip.registration.controller.reg.DemographicDetailController;
 import io.mosip.registration.controller.reg.DocumentScanController;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.mastersync.DocumentCategoryDto;
 import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.dto.packetmanager.DocumentDto;
-import io.mosip.registration.entity.DocumentCategory;
 import io.mosip.registration.entity.DocumentType;
-import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.util.common.ComboBoxAutoComplete;
 import io.mosip.registration.util.control.FxControl;
 import io.mosip.registration.validator.RequiredFieldValidator;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.NodeOrientation;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -68,6 +66,7 @@ public class DocumentFxControl extends FxControl {
 
 	public DocumentFxControl() {
 		org.springframework.context.ApplicationContext applicationContext = Initialization.getApplicationContext();
+		auditFactory = applicationContext.getBean(AuditManagerService.class);
 		documentScanController = applicationContext.getBean(DocumentScanController.class);
 		masterSyncService = applicationContext.getBean(MasterSyncService.class);
 	}
@@ -98,7 +97,18 @@ public class DocumentFxControl extends FxControl {
 
 		// CLEAR IMAGE
 		GridPane clearGridPane = getImageGridPane(CLEAR_ID, RegistrationConstants.CLOSE_IMAGE_PATH);
-		clearGridPane.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
+		clearGridPane.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {			
+			AuditEvent auditEvent = null;
+			try {
+				auditEvent = AuditEvent.valueOf(String.format("REG_DOC_%S_DELETE", uiSchemaDTO.getSubType()));
+			} catch (Exception exception) {
+				LOGGER.error("Unable to find audit event for button : " + uiSchemaDTO.getSubType());
+
+				auditEvent = AuditEvent.REG_DOC_DELETE;
+			}
+			auditFactory.audit(auditEvent, Components.REG_DOCUMENTS, SessionContext.userId(),
+					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+			
 			getRegistrationDTo().getDocuments().remove(this.uiSchemaDTO.getId());
 			getField(uiSchemaDTO.getId() + PREVIEW_ICON).setVisible(false);
 			getField(uiSchemaDTO.getId() + CLEAR_ID).setVisible(false);
@@ -435,24 +445,20 @@ public class DocumentFxControl extends FxControl {
 
 	@Override
 	public void setListener(Node node) {
-
 		Button scanButton = (Button) node;
 		scanButton.setOnAction(new EventHandler<ActionEvent>() {
-
 			@Override
 			public void handle(ActionEvent event) {
 
 				AuditEvent auditEvent = null;
 				try {
 					auditEvent = AuditEvent
-							.valueOf(String.format("REG_DOC_%S_SCAN", ((Button) event.getSource()).getId()));
+							.valueOf(String.format("REG_DOC_%S_SCAN", uiSchemaDTO.getSubType()));
 				} catch (Exception exception) {
-
 					auditEvent = AuditEvent.REG_DOC_SCAN;
-
 				}
-//				auditFactory.audit(auditEvent, Components.REG_DOCUMENTS, SessionContext.userId(),
-//						AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+				auditFactory.audit(auditEvent, Components.REG_DOCUMENTS, SessionContext.userId(),
+						AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
 				Button clickedBtn = (Button) event.getSource();
 				clickedBtn.getId();
@@ -460,9 +466,7 @@ public class DocumentFxControl extends FxControl {
 
 				scanDocument((ComboBox<DocumentCategoryDto>) getField(uiSchemaDTO.getId()), uiSchemaDTO.getSubType(),
 						false);
-
 			}
-
 		});
 		scanButton.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
@@ -473,7 +477,6 @@ public class DocumentFxControl extends FxControl {
 						this.getClass().getResourceAsStream(RegistrationConstants.SCAN), 12, 12, true, true)));
 			}
 		});
-
 	}
 
 	private <T> ComboBox<DocumentCategoryDto> getComboBox(String id, String titleText, String styleClass,

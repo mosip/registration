@@ -8,8 +8,13 @@ import io.mosip.registration.util.common.DemographicChangeActionHandler;
 import org.springframework.context.ApplicationContext;
 
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
+import io.mosip.registration.constants.AuditEvent;
+import io.mosip.registration.constants.AuditReferenceIdTypes;
+import io.mosip.registration.constants.Components;
 import io.mosip.registration.constants.RegistrationConstants;
+import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.Initialization;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.util.control.FxControl;
@@ -29,6 +34,7 @@ public class CheckBoxFxControl extends FxControl {
 
 	public CheckBoxFxControl() {
 		ApplicationContext applicationContext = Initialization.getApplicationContext();
+		auditFactory = applicationContext.getBean(AuditManagerService.class);
 		demographicChangeActionHandler = applicationContext.getBean(DemographicChangeActionHandler.class);
 	}
 
@@ -81,6 +87,9 @@ public class CheckBoxFxControl extends FxControl {
 
 	@Override
 	public void setData(Object data) {
+		auditFactory.audit(AuditEvent.REG_CHECKBOX_FX_CONTROL, Components.REG_DEMO_DETAILS, SessionContext.userId(),
+				AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+		
 		CheckBox checkBox = (CheckBox) getField(uiSchemaDTO.getId());
 		getRegistrationDTo().addDemographicField(uiSchemaDTO.getId(), checkBox == null ? "N"
 								: checkBox.isSelected() ? "Y" : "N");
