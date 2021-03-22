@@ -355,7 +355,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 
 	}
 
-	private void displayExceptionBiometric(Modality modality) {
+	/*private void displayExceptionBiometric(Modality modality) {
 
 		retryBox.setVisible(true);
 		biometricBox.setVisible(true);
@@ -380,7 +380,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 		thresholdLabel.setText(RegistrationUIConstants.THRESHOLD.concat(RegistrationConstants.SPACE)
 				.concat("0").concat(RegistrationConstants.PERCENTAGE));
 
-		if (hasApplicantBiometricException() && isBiometricExceptionProofCollected()) {
+		*//*if (hasApplicantBiometricException() && isBiometricExceptionProofCollected()) {
 
 			DocumentDto documentDto = getFirstExceptionProofDocument();
 			Image image = convertBytesToImage(documentDto.getDocument());
@@ -390,10 +390,10 @@ public class GenericBiometricsController extends BaseController /* implements In
 		} else {
 			biometricImage.setImage(new Image(this.getClass().getResourceAsStream(getImageIconPath(modality))));
 			addImageInUIPane(currentSubType, currentModality, null, false);
-		}
-	}
+		}*//*
+	}*/
 
-	private DocumentDto getFirstExceptionProofDocument() {
+	/*private DocumentDto getFirstExceptionProofDocument() {
 		if(getRegistrationDTOFromSession() != null) {
 			Optional<DocumentDto> result = getRegistrationDTOFromSession().getDocuments().values()
 					.stream()
@@ -402,7 +402,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 			return result.isPresent() ? result.get() : null;
 		}
 		return null;
-	}
+	}*/
 
 	public boolean isBiometricExceptionProofCollected() {
 		boolean flag = false;
@@ -643,10 +643,6 @@ public class GenericBiometricsController extends BaseController /* implements In
 			getRegistrationDTOFromSession().addDocument(result.get().getId(), documentDto);
 			LOGGER.info("Saving Proof of exception document into field : {}", result.get().getId());
 		}
-
-		fxControl.refreshExceptionMarks(currentModality);
-		displayExceptionBiometric(currentModality);
-		//refreshContinueButton();
 	}
 
 	/**
@@ -897,8 +893,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 
 					List<BiometricsDto> registrationDTOBiometricsList = new LinkedList<>();
 					double qualityScore = 0;
-					List<String> exceptionBioAttributes = getSelectedExceptionsByBioType(currentSubType,
-							currentModality);
+					List<String> exceptionBioAttributes = getSelectedExceptionsByBioType(currentSubType, currentModality);
 					// save to registration DTO
 					for (BiometricsDto biometricDTO : mdsCapturedBiometricsList) {
 						LOGGER.info("BiometricDTO captured from mock/real MDM >>> {} ", biometricDTO.getBioAttribute());
@@ -919,7 +914,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 						generateAlert(RegistrationConstants.ALERT_INFORMATION,
 								RegistrationUIConstants.BIOMETRIC_CAPTURE_SUCCESS);
 
-						genericController.refreshFields();
+						fxControl.refreshModalityButton(currentModality);
 						scanPopUpViewController.getPopupStage().close();
 						return;
 					}
@@ -937,8 +932,10 @@ public class GenericBiometricsController extends BaseController /* implements In
 						return;
 					}
 
-					// if all the above check success show alert capture success
-					generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.BIOMETRIC_CAPTURE_SUCCESS);
+					LOGGER.info("Adding bio scores into local map");
+
+					addBioScores(currentSubType, currentModality, String.valueOf(registrationDTOBiometricsList.get(0).getNumOfRetries()),
+							qualityScore / registrationDTOBiometricsList.size());
 
 					try {
 						LOGGER.debug("Adding streaming image into local map");
@@ -962,22 +959,15 @@ public class GenericBiometricsController extends BaseController /* implements In
 								}
 							}
 						}
-
-						fxControl.refreshExceptionMarks(currentModality);
 					} catch (IOException exception) {
 						LOGGER.error("EXception while extract & saving stream images", exception);
 					}
 
-					LOGGER.info("Adding bio scores into local map");
-
-					addBioScores(currentSubType, currentModality,
-							String.valueOf(registrationDTOBiometricsList.get(0).getNumOfRetries()),
-							qualityScore / registrationDTOBiometricsList.size());
-
 					LOGGER.info("using captured response fill the fields like quality score and progress bar,,etc,.. UI");
-					loadBiometricsUIElements(registrationDTOBiometricsList, currentSubType, currentModality);
+					displayBiometric(currentModality);
 
-					//refreshContinueButton();
+					// if all the above check success show alert capture success
+					generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.BIOMETRIC_CAPTURE_SUCCESS);
 
 				} catch (RuntimeException | RegBaseCheckedException e) {
 					LOGGER.error("Exception while getting the scanned biometrics for user registration",e);
@@ -993,7 +983,6 @@ public class GenericBiometricsController extends BaseController /* implements In
 
 		});
 		LOGGER.info("Scan process ended for capturing biometrics");
-
 	}
 
 	private boolean isValidBiometric(List<BiometricsDto> mdsCapturedBiometricsList) {
@@ -1115,7 +1104,9 @@ public class GenericBiometricsController extends BaseController /* implements In
 		// Get the stream image from Bio ServiceImpl and load it in the image pane
 		biometricImage.setImage(getBioStreamImage(subType, modality, retry));
 
-		addImageInUIPane(subType, modality, getBioStreamImage(subType, modality, retry), true);
+		//displayExceptionBiometric(currentModality);
+
+		fxControl.refreshModalityButton(modality);
 	}
 
 
@@ -1202,12 +1193,9 @@ public class GenericBiometricsController extends BaseController /* implements In
 		createQualityBox(retryCount, biometricThreshold);
 
 		clearBioLabels();
-		if (!isFace(currentModality) && !isExceptionPhoto(currentModality)) {
-			//TODO - check during testing
-			//setScanButtonVisibility(fxControl.isAllExceptions(currentModality), scanBtn);
-		} else {
-			setScanButtonVisibility(false, scanBtn);
-		}
+		setScanButtonVisibility((!isFace(currentModality) && !isExceptionPhoto(currentModality)) ?
+				fxControl.isAnyExceptions(currentModality) : false, scanBtn);
+
 		LOGGER.info("Updated biometrics and cleared previous data");
 	}
 
@@ -1459,7 +1447,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 	/**
 	 * Clear Biometric data
 	 */
-	public void clearCapturedBioData() {
+	/*public void clearCapturedBioData() {
 
 		LOGGER.info("Clearing the captured biometric data");
 
@@ -1482,7 +1470,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 
 		LOGGER.info("Cleared the captured biometric data");
 
-	}
+	}*/
 
 	public void addBioStreamImage(String subType, Modality modality, int attempt, byte[] streamImage) throws IOException {
 		STREAM_IMAGES.put(String.format("%s_%s_%s", subType, modality.name(), attempt),
@@ -1775,7 +1763,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 				.build();
 	}
 
-	private void addImageInUIPane(String subType, Modality modality, Image uiImage, boolean isCaptured) {
+//	private void addImageInUIPane(String subType, Modality modality, Image uiImage, boolean isCaptured) {
 //		for (GridPane gridPane : leftHandImageBoxMap.values()) {
 //			if (gridPane.getId().equals(subType)) {
 //
@@ -1813,7 +1801,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 //				}
 //			}
 //		}
-	}
+//	}
 
 	private Pane getExceptionImagePane(Modality modality, List<String> configBioAttributes,
 			List<String> nonConfigBioAttributes, String subType) {
@@ -1862,7 +1850,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 			}
 		}
 
-		if (hasApplicantBiometricException()) {
+		/*if (hasApplicantBiometricException()) {
 
 			setBiometricExceptionVBox(true);
 
@@ -1870,7 +1858,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 
 			addImageInUIPane(RegistrationConstants.APPLICANT, Modality.EXCEPTION_PHOTO, null, false);
 			setBiometricExceptionVBox(false);
-		}
+		}*/
 
 		boolean isAllMarked = true;
 		for (ImageView exceptionImageView : bioExceptionImagesForSameModality) {
@@ -1890,16 +1878,15 @@ public class GenericBiometricsController extends BaseController /* implements In
 		genericController.refreshFields();
 		displayBiometric(currentModality);
 		setScanButtonVisibility(isAllMarked, scanBtn);
-		fxControl.refreshExceptionMarks(currentModality);
 	}
 
-	private void setBiometricExceptionVBox(boolean visible) {
+	/*private void setBiometricExceptionVBox(boolean visible) {
 		if (exceptionVBox != null) {
 			// exceptionVBox.setVisible(disable);
 			exceptionVBox.setVisible(visible);
 		}
 		fxControl.displayExceptionPhoto(visible);
-	}
+	}*/
 
 	private void addExceptionsUiPane(Pane pane, List<String> configBioAttributes, List<String> nonConfigBioAttributes,
 			Modality modality, String subType) {
@@ -2045,7 +2032,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 		} catch (Exception exception) {
 			LOGGER.error("Error while parsing FACE iso to jpg : ", exception);
 		}
-		return null;
+		return new byte[0];
 	}
 
 	public byte[] extractIrisImageData(byte[] decodedBioValue) {
@@ -2117,7 +2104,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 			LOGGER.error("Error while parsing IRIS iso to jpg :" , exception);
 
 		}
-		return null;
+		return new byte[0];
 	}
 
 	private Pane getExceptionImagePane(Modality modality) {
