@@ -305,7 +305,7 @@
                               <Label styleClass="uinUpdateBtnStyle" text="%newregistration" wrapText="true" GridPane.columnIndex="1" />
                            </children>
                         </GridPane>
-                        <GridPane fx:id="uinUpdateGridPane" onMouseClicked="#updateUIN" styleClass="operationalPaneDetailsPreReg" GridPane.rowIndex="1">
+                        <GridPane fx:id="uinUpdateGridPane" onMouseClicked="#selectLanguage" styleClass="operationalPaneDetailsPreReg" GridPane.rowIndex="1">
                            <children>
                               <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
                                  <children>
