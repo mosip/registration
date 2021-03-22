@@ -115,6 +115,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	@Value("${registration.processor.id.repo.vidType}")
 	private String vidType;
 
+	@Value("${mosip.commons.packet.manager.schema.validator.convertIdSchemaToDouble:true}")
+	private boolean convertIdschemaToDouble;
+
 	/** The cluster manager url. */
 	@Value("${vertx.cluster.configuration}")
 	private String clusterManagerUrl;
@@ -226,7 +229,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 				String uinField = fieldMap.get(utility.getMappingJsonValue(MappingJsonConstants.UIN, MappingJsonConstants.IDENTITY));
 
 				JSONObject demographicIdentity = new JSONObject();
-				demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, Double.valueOf(schemaVersion));
+				demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, convertIdschemaToDouble ? Double.valueOf(schemaVersion) : schemaVersion);
 
 				loadDemographicIdentity(fieldMap, demographicIdentity);
 
@@ -1093,8 +1096,8 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 			JSONObject identityObject = new JSONObject();
 			identityObject.put(UINConstants.UIN, uin);
-			double schemaVersion = Double.valueOf(packetManagerService.getFieldByMappingJsonKey(lostPacketRegId, MappingJsonConstants.IDSCHEMA_VERSION, process, ProviderStageName.UIN_GENERATOR));
-			identityObject.put(idschemaversion, schemaVersion);
+			String schemaVersion = packetManagerService.getFieldByMappingJsonKey(lostPacketRegId, MappingJsonConstants.IDSCHEMA_VERSION, process, ProviderStageName.UIN_GENERATOR);
+			identityObject.put(idschemaversion, convertIdschemaToDouble ? Double.valueOf(schemaVersion) : schemaVersion);
 
 			requestDto.setRegistrationId(lostPacketRegId);
 			requestDto.setIdentity(identityObject);
