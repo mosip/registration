@@ -1196,12 +1196,15 @@ public enum PlatformErrorMessages {
 			"Removing hotlisted tag failed"),
 
 	RPR_WAS_WORKFLOW_ID_NOT_FOUND(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "002",
-			"Workflow id not found in registration table - %s"),
+			"Workflow id not found in registration table"),
 
 	RPR_WAS_UNKNOWN_EXCEPTION(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "003", "Unknown Exception"),
 
 	RPR_WAS_REPROCESS_FAILED(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "004",
 			"When REPROCESS_FAILED then Resume should not occur"),
+
+	RPR_WAS_NOT_PAUSED(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "005",
+			"Workflow id is not PAUSED"),
 
 	/** The external stage failed. */
 	EXTERNAL_STAGE_FAILED("", "External Stage Failed"),
