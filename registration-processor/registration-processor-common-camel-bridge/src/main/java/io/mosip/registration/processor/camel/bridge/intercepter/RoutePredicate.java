@@ -62,7 +62,7 @@ public class RoutePredicate implements Predicate {
 						&& tags.getString(hotlistedTagKey).equals(setting.getHotlistedReason())) {
 					WorkflowEventDTO workflowEventDTO = new WorkflowEventDTO();
 					workflowEventDTO.setResumeTimestamp(DateUtils
-							.toISOString(DateUtils.getUTCCurrentDateTime().plusSeconds(setting.getPauseFor())));
+							.formatToISOString(DateUtils.getUTCCurrentDateTime().plusSeconds(setting.getPauseFor())));
 					workflowEventDTO.setRid(json.getString("rid"));
 					workflowEventDTO.setDefaultResumeAction(setting.getDefaultResumeAction());
 					workflowEventDTO.setStatusCode(RegistrationStatusCode.PAUSED.toString());
