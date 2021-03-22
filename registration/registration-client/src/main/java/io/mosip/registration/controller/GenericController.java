@@ -80,6 +80,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.web.WebView;
+import javafx.stage.Stage;
 import lombok.SneakyThrows;
 
 /**
@@ -152,6 +153,8 @@ public class GenericController extends BaseController {
 
 	private static TreeMap<Integer, UiScreenDTO> orderedScreens = new TreeMap<>();
 	private static Map<String, FxControl> fxControlMap = new HashMap<String, FxControl>();
+	
+	private Stage keyboardStage;
 
 	public static Map<String, TreeMap<Integer, String>> hierarchyLevels = new HashMap<String, TreeMap<Integer, String>>();
 	public static Map<String, TreeMap<Integer, String>> currentHierarchyMap = new HashMap<String, TreeMap<Integer, String>>();
@@ -770,8 +773,15 @@ public class GenericController extends BaseController {
 		orderedScreens.values().forEach(screen -> { refreshScreenVisibility(screen.getName()); });
 	}
 
-
 	private FxControl getFxControl(String fieldId) {
 		return GenericController.getFxControlMap().get(fieldId);
+	}
+	
+	public Stage getKeyboardStage() {		
+		return keyboardStage;
+	}
+	
+	public void setKeyboardStage(Stage keyboardStage) {
+		this.keyboardStage = keyboardStage;
 	}
 }

@@ -16,11 +16,13 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.transliteration.spi.Transliteration;
 import io.mosip.kernel.transliteration.icu4j.impl.TransliterationImpl;
+import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.controller.FXComponents;
 import io.mosip.registration.controller.FXUtils;
+import io.mosip.registration.controller.GenericController;
 import io.mosip.registration.controller.Initialization;
 import io.mosip.registration.controller.VirtualKeyboard;
 import io.mosip.registration.controller.reg.Validations;
@@ -77,13 +79,16 @@ public class TextFieldFxControl extends FxControl {
 	private Stage keyBoardStage;
 	
 	private FXComponents fxComponents;
-
+	
+	private GenericController genericController;
+	
 	public TextFieldFxControl() {
 		ApplicationContext applicationContext = Initialization.getApplicationContext();
 		validation = applicationContext.getBean(Validations.class);
 		fxComponents = applicationContext.getBean(FXComponents.class);
 		demographicChangeActionHandler = applicationContext.getBean(DemographicChangeActionHandler.class);
 		transliteration = (Transliteration<String>) applicationContext.getBean(TransliterationImpl.class);
+		genericController = applicationContext.getBean(GenericController.class);
 	}
 
 	@Override
@@ -133,21 +138,18 @@ public class TextFieldFxControl extends FxControl {
 			if (uiSchemaDTO.isTransliterate()) {
 				transliterate(textField, textField.getId().substring(textField.getId().length() - RegistrationConstants.LANGCODE_LENGTH, textField.getId().length()));
 			}
-			if (isValid()) {
-				
+			if (isValid()) {				
 				setData(null);
 
 				// handling other handlers
 				demographicChangeActionHandler.actionHandle((Pane) getNode(), node.getId(),
 						uiSchemaDTO.getChangeAction());
-
 			} else {
 				getRegistrationDTo().getDemographics().remove(this.uiSchemaDTO.getId());
 			}
 			// Group level visibility listeners
 			refreshFields();
 		});
-
 	}
 
 	private VBox create(UiSchemaDTO uiSchemaDTO) {
@@ -432,6 +434,7 @@ public class TextFieldFxControl extends FxControl {
 			gridPane.getStyleClass().add(RegistrationConstants.KEYBOARD_PANE);
 			keyBoardStage.setScene(scene);
 			makeDraggable(keyBoardStage, gridPane);
+			genericController.setKeyboardStage(keyBoardStage);
 			keyBoardStage.show();
 		} catch (Exception exception) {
 			LOGGER.error(loggerClassName, APPLICATION_NAME,
