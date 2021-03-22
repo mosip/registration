@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -274,23 +275,27 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 
 		/** Operator/officer/supervisor Biometrics */
 		if (!operatorBiometrics.isEmpty()) {
+
+			List<BIR> birList = new ArrayList<>();
+
 			for (BiometricsDto biometricsDto : operatorBiometrics) {
-				List<BIR> list = new ArrayList<>();
 				BIR bir = getBIR(biometricsDto);
 
-				list.add(bir);
+				LOGGER.debug(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, "Adding bir");
 
-				BiometricRecord biometricRecord = new BiometricRecord();
+				birList.add(bir);
 
-				// TODO set version type,bir info
-				biometricRecord.setSegments(list);
-
-				LOGGER.debug(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID,
-						"Adding operator biometrics to packet manager :  " + fileName);
-
-				packetWriter.setBiometric(registrationId, fileName, biometricRecord, source.toUpperCase(),
-						registrationCategory.toUpperCase());
 			}
+
+			BiometricRecord biometricRecord = new BiometricRecord();
+
+			biometricRecord.setSegments(birList);
+
+			LOGGER.debug(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID,
+					"Adding operator biometrics to packet manager :  " + fileName);
+
+			packetWriter.setBiometric(registrationId, fileName, biometricRecord, source.toUpperCase(),
+					registrationCategory.toUpperCase());
 		}
 
 	}
@@ -486,6 +491,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			documentMetaInfoDTO.setDocumentName(document.getValue());
 			documentMetaInfoDTO.setDocumentOwner(document.getOwner());
 			documentMetaInfoDTO.setDocumentType(document.getType());
+			documentMetaInfoDTO.setRefNumber(document.getRefNumber());
 
 			documentMetaInfoDTOs.add(documentMetaInfoDTO);
 
@@ -598,9 +604,10 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 		for (Audit audit : audits) {
 
 			Map<String, String> auditMap = new LinkedHashMap<>();
-
+			// Fix to resolve date format issue in reg-proc
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 			auditMap.put("uuid", audit.getUuid());
-			auditMap.put("createdAt", String.valueOf(audit.getCreatedAt()));
+			auditMap.put("createdAt", String.valueOf(audit.getCreatedAt().format(formatter)));
 			auditMap.put("eventId", audit.getEventId());
 			auditMap.put("eventName", audit.getEventName());
 			auditMap.put("eventType", audit.getEventType());
@@ -616,7 +623,8 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			auditMap.put("moduleName", audit.getModuleName());
 			auditMap.put("moduleId", audit.getModuleId());
 			auditMap.put("description", audit.getDescription());
-			auditMap.put("actionTimeStamp", String.valueOf(audit.getActionTimeStamp()));
+
+			auditMap.put("actionTimeStamp", String.valueOf(audit.getActionTimeStamp().format(formatter)));
 
 			auditList.add(auditMap);
 		}
@@ -718,6 +726,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 		document.setFormat(documentDto.getFormat());
 		document.setType(documentDto.getType());
 		document.setValue(documentDto.getValue());
+		document.setRefNumber(documentDto.getRefNumber());
 		return document;
 	}
 

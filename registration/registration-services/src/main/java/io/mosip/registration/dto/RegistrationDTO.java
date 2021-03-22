@@ -6,6 +6,7 @@ import java.time.Period;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -39,7 +40,6 @@ import lombok.Data;
 public class RegistrationDTO {
 
 	protected ApplicationContext applicationContext = ApplicationContext.getInstance();
-	private static final String DATE_FORMAT = "yyyy/MM/dd";
 
 	private double idSchemaVersion;
 	private String registrationId;
@@ -63,7 +63,7 @@ public class RegistrationDTO {
 	private List<String> defaultUpdatableFieldGroups;
 	private BiometricDTO biometricDTO = new BiometricDTO();
 	private Map<String, Object> demographics = new HashMap<>();
-	private Map<String, Object> defaultDemographics = new HashMap<>();
+	private Map<String, Object> defaultDemographics = new LinkedHashMap<>();
 	private Map<String, DocumentDto> documents = new HashMap<>();
 	private Map<String, BiometricsDto> biometrics = new HashMap<>();
 	private Map<String, BiometricsException> biometricExceptions = new HashMap<>();
@@ -121,7 +121,12 @@ public class RegistrationDTO {
 	public void setDateField(String fieldId, String day, String month, String year) {
 		if (isValidValue(day) && isValidValue(month) && isValidValue(year)) {
 			LocalDate date = LocalDate.of(Integer.valueOf(year), Integer.valueOf(month), Integer.valueOf(day));
-			this.demographics.put(fieldId, date.format(DateTimeFormatter.ofPattern(DATE_FORMAT)));
+			if (fieldId != null) {
+				this.demographics.put(fieldId, date.format(DateTimeFormatter.ofPattern(
+						ApplicationContext.getDateFormat()
+				)));
+			}
+			
 			this.age = Period.between(date, LocalDate.now(ZoneId.of("UTC"))).getYears();
 
 			int minAge = Integer
@@ -131,18 +136,12 @@ public class RegistrationDTO {
 			this.isChild = this.age < minAge;
 		}
 	}
-	
-	public void setDateField(String fieldId, String dateString) {
-		if (isValidValue(dateString)) {
-			LocalDate date = LocalDate.parse(dateString, DateTimeFormatter.ofPattern(DATE_FORMAT));
-			setDateField(fieldId, String.valueOf(date.getDayOfMonth()), String.valueOf(date.getMonthValue()),
-					String.valueOf(date.getYear()));
-		}
-	}
 
 	public void setDateField(String fieldId, String dateString) {
 		if (isValidValue(dateString)) {
-			LocalDate date = LocalDate.parse(dateString, DateTimeFormatter.ofPattern(DATE_FORMAT));
+			LocalDate date = LocalDate.parse(dateString, DateTimeFormatter.ofPattern(
+					ApplicationContext.getDateFormat()
+			));
 			setDateField(fieldId, String.valueOf(date.getDayOfMonth()), String.valueOf(date.getMonthValue()),
 					String.valueOf(date.getYear()));
 		}
@@ -151,7 +150,9 @@ public class RegistrationDTO {
 	public String[] getDateField(String fieldId) {
 		if (this.demographics.containsKey(fieldId)) {
 			String value = (String) this.demographics.get(fieldId);
-			LocalDate date = LocalDate.parse(value, DateTimeFormatter.ofPattern(DATE_FORMAT));
+			LocalDate date = LocalDate.parse(value, DateTimeFormatter.ofPattern(
+					ApplicationContext.getDateFormat()
+			));
 			return new String[] { String.valueOf(date.getDayOfMonth()), String.valueOf(date.getMonthValue()),
 					String.valueOf(date.getYear()) };
 		}
@@ -281,6 +282,10 @@ public class RegistrationDTO {
 			savedBiometrics = new LinkedList<>();
 
 			boolean isForceCaptured = false;
+			
+			if (!biometricsDTOMap.isEmpty()) {
+				thresholdScore = thresholdScore * biometricsDTOMap.size();
+			}
 
 			/** Find force capture or not */
 			if (getQualityScore(biometricsDTOMap.values().stream().collect(Collectors.toList())) < thresholdScore) {
@@ -288,8 +293,10 @@ public class RegistrationDTO {
 				if (maxRetryAttempt == 1) {
 					isForceCaptured = true;
 				} else {
+					Collection<BiometricsDto> values = biometricsDTOMap.values();
+					List<BiometricsDto> biometricsList = new ArrayList<>(values);
 					BiometricsDto biometricsDto = getBiometric(subType, Biometric
-							.getBiometricByMDMConstant(biometricsDTOMap.get(0).getBioAttribute()).getAttributeName());
+							.getBiometricByAttribute(biometricsList.get(0).getBioAttribute()).getAttributeName());
 
 					if (biometricsDto != null && biometricsDto.getNumOfRetries() + 1 >= maxRetryAttempt) {
 						isForceCaptured = true;

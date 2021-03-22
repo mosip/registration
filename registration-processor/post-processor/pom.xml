@@ -6,9 +6,9 @@
   <parent>
     <groupId>io.mosip.registrationprocessor</groupId>
     <artifactId>registration-processor</artifactId>
-    <version>1.1.2</version>
+    <version>1.1.4</version>
   </parent>
-    <version>1.1.2</version>
+    <version>1.1.4</version>
   <artifactId>post-processor</artifactId>
   <name>post-processor</name>
   <properties>
@@ -17,7 +17,6 @@
   	<modules>
     	<module>registration-processor-message-sender-stage</module>
     	<module>registration-processor-printing-stage</module>
-		<module>registration-processor-print-service</module>   
 		<module>registration-processor-registration-transaction-service</module>
   </modules>
 </project>

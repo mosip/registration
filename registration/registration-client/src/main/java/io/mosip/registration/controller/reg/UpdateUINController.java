@@ -183,18 +183,6 @@ public class UpdateUINController extends BaseController implements Initializable
 					}
 				}
 
-				List<String> defaultFields = new ArrayList<String>();
-				List<String> defaultFieldGroups = new ArrayList<String>();
-
-				if (!selectedFieldGroups.contains(RegistrationConstants.UI_SCHEMA_GROUP_FULL_NAME)) {
-
-					defaultFieldGroups.add(RegistrationConstants.UI_SCHEMA_GROUP_FULL_NAME);
-					for (UiSchemaDTO uiSchemaDTO : fetchByGroup(RegistrationConstants.UI_SCHEMA_GROUP_FULL_NAME)) {
-
-						defaultFields.add(uiSchemaDTO.getId());
-
-					}
-				}
 
 				LOGGER.debug(LOG_REG_UIN_UPDATE, APPLICATION_NAME, APPLICATION_ID,
 						"selectedFieldGroups size : " + selectedFieldGroups.size());
@@ -203,11 +191,6 @@ public class UpdateUINController extends BaseController implements Initializable
 
 				if (uinValidatorImpl.validateId(uinId.getText()) && !selectedFields.isEmpty()) {
 					registrationController.init(uinId.getText(), checkBoxKeeper, selectedFields, selectedFieldGroups);
-
-					// Used to update printing name as default
-					getRegistrationDTOFromSession().setDefaultUpdatableFieldGroups(defaultFieldGroups);
-					getRegistrationDTOFromSession().setDefaultUpdatableFields(defaultFields);
-
 					Parent createRoot = BaseController.load(
 							getClass().getResource(RegistrationConstants.CREATE_PACKET_PAGE),
 							applicationContext.getApplicationLanguageBundle());

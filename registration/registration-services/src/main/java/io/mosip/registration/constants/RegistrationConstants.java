@@ -108,7 +108,7 @@ public class RegistrationConstants {
 	public static final String ONBOARD = "onboard";
 
 	// CSS file
-	public static final String CSS_FILE_PATH = "application.css";
+	// public static final String CSS_FILE_PATH = "application.css";
 
 	public static final String MOSIP_URL = "http://mosip.io";
 
@@ -263,6 +263,7 @@ public class RegistrationConstants {
 	public static final String BUTTONS_LABEL = "buttonsLabel";
 	public static final String DEMOGRAPHIC_FIELD_LABEL = "demoGraphicFieldLabel";
 	public static final String SCAN_VBOX = "scanVBox";
+	public static final String DOC_TEXT_FIELD = "documentTextField";
 	public static final String DOCUMENT_CONTENT_BUTTON = "documentContentButton";
 
 	public static final String UIN_UPDATE_ISUINUPDATE = "isUINUpdate";
@@ -277,7 +278,9 @@ public class RegistrationConstants {
 	public static final String STRING = "string";
 	public static final String AGE_DATE = "ageDate";
 	public static final String DROPDOWN = "dropdown";
+	public static final String CHECKBOX = "checkbox";
 	public static final String TEXTBOX = "textbox";
+	public static final String BUTTON = "button";
 	public static final String RESIDENCE_STATUS = "residenceStatus";
 	public static final String PRIMARY = "primary";
 	public static final String SECONDARY = "secondary";
@@ -329,7 +332,6 @@ public class RegistrationConstants {
 	public static final String UIN_UPDATE_FOREIGNER = "foreigner";
 	public static final String UIN_UPDATE_GENDER = "gender";
 	public static final String UIN_UPDATE_PARENT_DETAILS = "parentOrGuardianDetails";
-	public static final String UIN_UPDATE_CNIE_NUMBER = "cnieNumber";
 	public static final String UIN_UPDATE_DEMOGRAPHICDETAIL = "demographicDetail";
 	public static final String UIN_UPDATE_DOCUMENTSCAN = "documentScan";
 	public static final String UIN_UPDATE_FINGERPRINTCAPTURE = "fingerPrintCapture";
@@ -361,7 +363,9 @@ public class RegistrationConstants {
 	public static final String ONBOARD_IMG_PATH = "/images/tick.png";
 
 	public static final String TICK_CIRICLE_IMG_PATH = "/images/tick-circle.png";
+	public static final String EXCLAMATION_IMG_PATH = "/images/exclamation.png";
 	public static final String ONBOARD_LAST_BIOMETRIC_UPDTAE_FORMAT = "EEEE dd MMM hh:mm a";
+	public static final String UTC_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
 	// RegistrationApproval
 	public static final String PLACEHOLDER_LABEL = "PLACEHOLDER_LABEL";
@@ -380,6 +384,7 @@ public class RegistrationConstants {
 	public static final String EOD_PROCESS_ID = "id";
 	public static final String EOD_PROCESS_STATUSCOMMENT = "statusComment";
 	public static final String EOD_PROCESS_ACKNOWLEDGEMENTFORMPATH = "acknowledgementFormPath";
+	public static final String OPERATOR_ID = "operatorId";
 	public static final String EOD_PROCESS_REGISTRATIONAPPROVALCONTROLLER = "RegistrationApprovalController";
 	public static final String EXPORT_FILE_NAME = "PendingApprovalList";
 	public static final String EXPORT_FILE_TYPE = ".csv";
@@ -646,7 +651,7 @@ public class RegistrationConstants {
 	public static final String TEMPLATE_PHOTO_USER_LANG = "PhotoPrim";
 	public static final String TEMPLATE_PHOTO_LOCAL_LANG = "PhotoSec";
 	public static final String TEMPLATE_APPLICANT_IMAGE_SOURCE = "ApplicantImageSource";
-	public static final String TEMPLATE_DATE_FORMAT = "dd/MM/yyyy";
+	public static final String TEMPLATE_DATE_FORMAT = "dd/MM/yyyy hh:mm a";
 	public static final String TEMPLATE_JPG_IMAGE_ENCODING = "data:image/jpg;base64,";
 	public static final String TEMPLATE_PNG_IMAGE_ENCODING = "data:image/png;base64,";
 	public static final String TEMPLATE_CROSS_MARK = "&#10008;";
@@ -692,6 +697,10 @@ public class RegistrationConstants {
 	public static final String SPLIT_DELIMITOR = "\\.";
 	public static final String TEMPLATE_GUIDELINES = "Guidelines";
 	public static final String TEMPLATE_IS_UIN_UPDATE = "IsUINUpdate";
+	public static final String TEMPLATE_APPLICANT_NAME_PRIMARY_LABEL = "NamePrimLabel";
+	public static final String TEMPLATE_APPLICANT_NAME_SECONDARY_LABEL = "NameSecLabel";
+	public static final String TEMPLATE_APPLICANT_NAME_PRIMARY_VALUE = "NamePrimValue";
+	public static final String TEMPLATE_APPLICANT_NAME_SECONDARY_VALUE = "NameSecValue";
 
 	public static final String MODIFY_DEMO_INFO = "modifyDemographicInfo";
 	public static final String MODIFY_DOCUMENTS = "modifyDocuments";
@@ -732,6 +741,9 @@ public class RegistrationConstants {
 	public static final String PHOTO_CAPTUREPANES_SELECTED = "photoCapturePanesSelected";
 	public static final String DEFAULT_EXCEPTION_IMAGE_PATH = "/images/ExceptionPhoto.png";
 	public static final String IMAGE_PATH = "/images/Photo.png";
+
+	public static final String WEBCAM_WIDTH = "mosip.camera.resolution.width";
+	public static final String WEBCAM_HEIGHT = "mosip.camera.resolution.height";
 
 	// Acknowledgement Form
 	public static final String ACKNOWLEDGEMENT_FORM_TITLE = "Registration Acknowledgement";
@@ -858,16 +870,8 @@ public class RegistrationConstants {
 
 	// Template Name
 	public static final String ACKNOWLEDGEMENT_TEMPLATE = "Ack Template";
-	public static final String ACKNOWLEDGEMENT_TEMPLATE_PART_1 = "reg-ack-template-part1";
-	public static final String ACKNOWLEDGEMENT_TEMPLATE_PART_2 = "reg-ack-template-part2";
-	public static final String ACKNOWLEDGEMENT_TEMPLATE_PART_3 = "reg-ack-template-part3";
-	public static final String ACKNOWLEDGEMENT_TEMPLATE_PART_4 = "reg-ack-template-part4";
-	public static final String EMAIL_TEMPLATE = "reg-email-notification";
-	public static final String UPDATE_UIN_EMAIL_TEMPLATE = "updateUIN-email-notification";
-	public static final String LOST_UIN_EMAIL_TEMPLATE = "lostUIN-email-notification";
-	public static final String SMS_TEMPLATE = "reg-sms-notification";
-	public static final String UPDATE_UIN_SMS_TEMPLATE = "updateUIN-sms-notification";
-	public static final String LOST_UIN_SMS_TEMPLATE = "lostUIN-sms-notification";
+	public static final String ACKNOWLEDGEMENT_TEMPLATE_CODE = "reg-ack-template-part";
+	public static final String PREVIEW_TEMPLATE_CODE = "reg-preview-template-part";
 
 	// Notification Service
 	public static final String EMAIL_SUBJECT = "MOSIP REGISTRATION NOTIFICATION";
@@ -1024,7 +1028,7 @@ public class RegistrationConstants {
 
 	// Iris & Fingerprint Capture for Individual Registration
 	public static final String IRIS_THRESHOLD = "mosip.registration.iris_threshold";
-	public static final String FACE_THRESHOLD = "mosip.facequalitythreshold";
+	public static final String FACE_THRESHOLD = "mosip.registration.face_threshold";
 	public static final String IMAGE_FORMAT_KEY = "imageFormat";
 	public static final String IMAGE_BYTE_ARRAY_KEY = "imageBytes";
 	public static final String IMAGE_BYTE_ISO = "byteIso";
@@ -1059,6 +1063,8 @@ public class RegistrationConstants {
 	public static final String THUMBS_FINGERPRINT_THRESHOLD = "mosip.registration.thumbs_fingerprint_threshold";
 	public static final String FINGERPRINT_RETRIES_COUNT = "mosip.registration.num_of_fingerprint_retries";
 	public static final String IRIS_RETRY_COUNT = "mosip.registration.num_of_iris_retries";
+	public static final String FACE_RETRY_COUNT = "mosip.registration.num_of_face_retries";
+
 	public static final String[] LEFTHAND_SEGMNTD_FILE_PATHS = new String[] { "/fingerprints/lefthand/leftIndex/",
 			"/fingerprints/lefthand/leftLittle/", "/fingerprints/lefthand/leftMiddle/",
 			"/fingerprints/lefthand/leftRing/" };
@@ -1328,7 +1334,10 @@ public class RegistrationConstants {
 	public static final String ENGLISH_LANG_CODE = "eng";
 	public static final String USER_ID_CODE = "USERID";
 	public static final String OTP_CHANNELS = "mosip.registration.otp_channels";
-	public static final String AUTH_TOKEN_NOT_RECEIVED_ERROR = "No Auth Token Received";
+	public static final String AUTH_TOKEN_NOT_RECEIVED_ERROR = "Auth failed, Invalid/expired auth token";
+
+	// flag for quality check with SDK
+	public static final String QUALITY_CHECK_WITH_SDK = "mosip.registration.quality_check_with_sdk";
 
 	// Packet Sync
 	public static final String PACKET_SYNC = "packet_sync";
@@ -1603,7 +1612,6 @@ public class RegistrationConstants {
 
 	public static final String RESPONSE_SIGNATURE = "response-signature";
 	public static final String ON_BOARD_FACE = "FACE";
-	public static final String USER_ON_BOARD_IDA_AUTH = "mosip.registration.onboarduser_ida_auth";
 	public static final String AUTH_SERVICE_URL = "authmanager/authenticate";
 	public static final String REG_HEALTH_CHECK_URL_PROPERTY = "mosip.reg.healthcheck.url";
 
@@ -1800,7 +1808,22 @@ public class RegistrationConstants {
 	public static final String LEFTTHUMB_IMG_PATH = "/images/exceptionmarks/leftThumb.png";
 	public static final String RIGHTEYE_IMG_PATH = "/images/exceptionmarks/lightBlueCrossMark.png";
 	public static final String LEFTEYE_IMG_PATH = "/images/exceptionmarks/lightBlueCrossMark.png";
-	
-	//UI Schema field group name
+
+	// UI Schema field group name
 	public static final String UI_SCHEMA_GROUP_FULL_NAME = "FullName";
+	public static final String UI_SCHEMA_GROUP_EMAIL = "Email";
+	public static final String UI_SCHEMA_GROUP_PHONE = "Phone";
+	public static final String MVEL_TYPE = "MVEL";
+	public static final String MACHINE_VERIFICATION_SUCCESS = "Machine Verification Success";
+	public static final String UTC_APPENDER = " (UTC)";
+
+	// Mandatory Astrik
+	public static final String ASTRIK = " * ";
+
+	public static final String MACHINE_INACTIVE_FLAG = "mosip.registration.machine.inactive";
+	public static String MACHINE_REMAP_CODE = "KER-SNC-149";
+	public static String MACHINE_INACTIVE_CODE = "KER-SNC-155";
+
+	public static String OPERATOR_ONBOARDING_BIO_ATTRIBUTES = "mosip.registration.operator.onboarding.bioattributes";
+	public static String RIGHT_TO_LEFT_ORIENTATION_LANGUAGES = "mosip.language.righttoleft.orientation";
 }

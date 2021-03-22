@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import io.mosip.registration.util.restclient.AuthTokenUtilService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -44,6 +46,9 @@ public class OTPManager extends BaseService {
 	 * Instance of LOGGER
 	 */
 	private static final Logger LOGGER = AppConfig.getLogger(OTPManager.class);
+
+	@Autowired
+	private AuthTokenUtilService authTokenUtilService;
 
 	/**
 	 * This method is used to get the OTP for the User from Kernel's AuthN Web-Service. 
@@ -202,11 +207,7 @@ public class OTPManager extends BaseService {
 			/* Check Network Connectivity */
 			if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
 
-				if (ApplicationContext.map().get(RegistrationConstants.USER_DTO) == null) {
-					ApplicationContext.map().put(RegistrationConstants.USER_DTO, new LoginUserDTO());
-				}
-
-				LoginUserDTO loginUserDTO = (LoginUserDTO) ApplicationContext.map().get(RegistrationConstants.USER_DTO);
+				LoginUserDTO loginUserDTO = new LoginUserDTO();
 				loginUserDTO.setUserId(userId);
 				loginUserDTO.setOtp(otp);
 				
@@ -214,7 +215,7 @@ public class OTPManager extends BaseService {
 						RegistrationConstants.APPLICATION_ID, "Validate OTP ended");				
 
 				// Obtain otpValidatorResponseDto from service delegate util
-				authTokenDTO = serviceDelegateUtil.getAuthToken(LoginMode.OTP, haveToSaveAuthToken);
+				authTokenDTO = authTokenUtilService.getAuthTokenAndRefreshToken(LoginMode.OTP, loginUserDTO);
 			} 
 		} catch (RegBaseCheckedException | HttpClientErrorException | HttpServerErrorException | ResourceAccessException
 				| RegBaseUncheckedException exception) {

@@ -60,12 +60,12 @@ public class AuditUtilityTest {
 		//Mockito.when(packetReaderService.getFile(anyString(), anyString(), anyString())).thenReturn(auditStream);
 		
 		
-		auditUtility.saveAuditDetails("2018701130000410092018110735","id", "NEW");
+		auditUtility.saveAuditDetails("2018701130000410092018110735", "NEW");
 	}
 	
 	@Test
 	public void saveAuditDetailFailureTest() throws Exception {	
-		auditUtility.saveAuditDetails(null,null, null);
+		auditUtility.saveAuditDetails(null, null);
 	}
 	
 

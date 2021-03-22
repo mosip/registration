@@ -404,7 +404,7 @@ public class AuthenticationController extends BaseController implements Initiali
 				return new Task<Boolean>() {
 					/*
 					 * (non-Javadoc)
-					 *
+					 * 
 					 * @see javafx.concurrent.Task#call()
 					 */
 					@Override
@@ -446,15 +446,14 @@ public class AuthenticationController extends BaseController implements Initiali
 						// TODO Enable continue button
 						operatorAuthContinue.setDisable(false);
 					}
+					if (fingerPrintScanButton != null) {
+						fingerPrintScanButton.setDisable(true);
+//						
+					}
 					generateAlert(RegistrationConstants.ALERT_INFORMATION,
 							RegistrationUIConstants.BIOMETRIC_CAPTURE_SUCCESS);
 
-					if (fingerPrintScanButton != null) {
-						fingerPrintScanButton.setDisable(true);
-//
-					} else {
-						loadNextScreen();
-					}
+					loadNextScreen();					
 				} else {
 					if (operatorAuthContinue != null) {
 						operatorAuthContinue.setDisable(true);
@@ -516,7 +515,7 @@ public class AuthenticationController extends BaseController implements Initiali
 				return new Task<Boolean>() {
 					/*
 					 * (non-Javadoc)
-					 *
+					 * 
 					 * @see javafx.concurrent.Task#call()
 					 */
 					@Override
@@ -557,11 +556,10 @@ public class AuthenticationController extends BaseController implements Initiali
 					}
 					if (irisScanButton != null) {
 						irisScanButton.setDisable(true);
-					} else {
-						loadNextScreen();
 					}
 					generateAlert(RegistrationConstants.ALERT_INFORMATION,
 							RegistrationUIConstants.BIOMETRIC_CAPTURE_SUCCESS);
+					loadNextScreen();
 				} else {
 
 					if (operatorAuthContinue != null) {
@@ -645,7 +643,7 @@ public class AuthenticationController extends BaseController implements Initiali
 				return new Task<Boolean>() {
 					/*
 					 * (non-Javadoc)
-					 *
+					 * 
 					 * @see javafx.concurrent.Task#call()
 					 */
 					@Override
@@ -688,11 +686,10 @@ public class AuthenticationController extends BaseController implements Initiali
 					}
 					if (faceScanButton != null) {
 						faceScanButton.setDisable(true);
-					} else {
-						loadNextScreen();
 					}
 					generateAlert(RegistrationConstants.ALERT_INFORMATION,
 							RegistrationUIConstants.BIOMETRIC_CAPTURE_SUCCESS);
+					loadNextScreen();
 
 				} else {
 					if (operatorAuthContinue != null) {
@@ -716,6 +713,15 @@ public class AuthenticationController extends BaseController implements Initiali
 
 		Set<String> roleSet = new HashSet<>(SessionContext.userContext().getRoles());
 
+		if (isSupervisor) {
+
+			LOGGER.info("REGISTRATION - OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
+					"Setting role as only supervisor");
+
+			roleSet.clear();
+
+			roleSet.add(RegistrationConstants.SUPERVISOR);
+		}
 		userAuthenticationTypeList = loginService.getModesOfLogin(authType, roleSet);
 		userAuthenticationTypeListValidation = loginService.getModesOfLogin(authType, roleSet);
 		userAuthenticationTypeListSupervisorValidation = loginService.getModesOfLogin(authType, roleSet);
@@ -844,12 +850,11 @@ public class AuthenticationController extends BaseController implements Initiali
 	/**
 	 * to enable the respective authentication mode
 	 * 
-	 * @param loginMode
-	 *            - name of authentication mode
+	 * @param loginMode - name of authentication mode
 	 */
 	public void loadAuthenticationScreen(String loginMode) {
 		LOGGER.info("REGISTRATION - OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
-				"Loading the respective authentication screen in UI");
+				"Loading the respective authentication screen in UI >> " + loginMode);
 		errorPane.setVisible(false);
 		pwdBasedLogin.setVisible(false);
 		otpBasedLogin.setVisible(false);
@@ -1043,8 +1048,8 @@ public class AuthenticationController extends BaseController implements Initiali
 	/**
 	 * to check the role of supervisor in case of biometric exception
 	 * 
-	 * @param userId
-	 *            - username entered by the supervisor in the authentication screen
+	 * @param userId - username entered by the supervisor in the authentication
+	 *               screen
 	 * @return boolean variable "true", if the person is authenticated as supervisor
 	 *         or "false", if not
 	 */
@@ -1065,8 +1070,7 @@ public class AuthenticationController extends BaseController implements Initiali
 	/**
 	 * to capture and validate the fingerprint for authentication
 	 * 
-	 * @param userId
-	 *            - username entered in the textfield
+	 * @param userId - username entered in the textfield
 	 * @return true/false after validating fingerprint
 	 * @throws IOException
 	 * @throws RegBaseCheckedException
@@ -1100,8 +1104,7 @@ public class AuthenticationController extends BaseController implements Initiali
 	/**
 	 * to capture and validate the iris for authentication
 	 * 
-	 * @param userId
-	 *            - username entered in the textfield
+	 * @param userId - username entered in the textfield
 	 * @return true/false after validating iris
 	 * @throws IOException
 	 */
@@ -1125,8 +1128,7 @@ public class AuthenticationController extends BaseController implements Initiali
 	/**
 	 * to capture and validate the iris for authentication
 	 * 
-	 * @param userId
-	 *            - username entered in the textfield
+	 * @param userId - username entered in the textfield
 	 * @return true/false after validating face
 	 * @throws IOException
 	 * @throws RegBaseCheckedException
@@ -1163,8 +1165,7 @@ public class AuthenticationController extends BaseController implements Initiali
 	/**
 	 * event class to exit from authentication window. pop up window.
 	 * 
-	 * @param event
-	 *            - the action event
+	 * @param event - the action event
 	 */
 	public void exitWindow(ActionEvent event) {
 		Stage primaryStage = (Stage) ((Node) event.getSource()).getParent().getScene().getWindow();
@@ -1175,10 +1176,8 @@ public class AuthenticationController extends BaseController implements Initiali
 	/**
 	 * Setting the init method to the Basecontroller
 	 * 
-	 * @param parentControllerObj
-	 *            - Parent Controller name
-	 * @param authType
-	 *            - Authentication Type
+	 * @param parentControllerObj - Parent Controller name
+	 * @param authType            - Authentication Type
 	 * @throws RegBaseCheckedException
 	 */
 	public void init(BaseController parentControllerObj, String authType) throws RegBaseCheckedException {
@@ -1316,12 +1315,9 @@ public class AuthenticationController extends BaseController implements Initiali
 	/**
 	 * This method will remove the auth method from list
 	 * 
-	 * @param authList
-	 *            authentication list
-	 * @param disableFlag
-	 *            configuration flag
-	 * @param authCode
-	 *            auth mode
+	 * @param authList    authentication list
+	 * @param disableFlag configuration flag
+	 * @param authCode    auth mode
 	 */
 	private void removeAuthModes(List<String> authList, String flag, String authCode) {
 

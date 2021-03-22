@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.packet.storage.mapper;
 
+import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -11,7 +12,7 @@ import java.util.List;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.HMACUtils;
+import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
@@ -140,7 +141,7 @@ public class PacketInfoMapper {
 	 * @return the list
 	 */
 	public static List<IndividualDemographicDedupeEntity> converDemographicDedupeDtoToEntity(
-			IndividualDemographicDedupe demoDto, String regId) {
+			IndividualDemographicDedupe demoDto, String regId) throws NoSuchAlgorithmException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
 				"PacketInfoMapper::converDemographicDedupeDtoToEntity()::entry");
 		IndividualDemographicDedupeEntity entity;
@@ -198,10 +199,10 @@ public class PacketInfoMapper {
 		return demogrphicDedupeEntities;
 	}
 
-	public static String getHMACHashCode(String value) {
+	public static String getHMACHashCode(String value) throws NoSuchAlgorithmException {
 		if (value == null)
 			return null;
-		return CryptoUtil.encodeBase64(HMACUtils.generateHash(value.getBytes()));
+		return CryptoUtil.encodeBase64(HMACUtils2.generateHash(value.getBytes()));
 
 	}
 

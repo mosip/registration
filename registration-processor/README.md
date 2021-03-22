@@ -84,13 +84,6 @@ Registration Processor services' dependencies are mentioned below.  For all Kern
     * kernel-auth-service
     * kernel-config-service
 
-* registration-processor-print-service
-   * kernel-signature-service
-   * id-repository-identity-service
-   * id-repository-vid-service
-    * kernel-auth-service
-    * kernel-config-service
-
 * registration-processor-demo-dedupe-stage
     * id-repository-identity-service
     * kernel-auth-service

@@ -70,7 +70,8 @@ public class FXUtils {
 	/**
 	 * Listener to change the style when field is selected for.
 	 *
-	 * @param field the {@link CheckBox}
+	 * @param parentOrGuardian the {@link CheckBox}
+	 * @param biometrics
 	 */
 	public void listenOnSelectedCheckBoxParentOrGuardian(CheckBox parentOrGuardian, CheckBox biometrics) {
 
@@ -196,7 +197,7 @@ public class FXUtils {
 	 *                   toggled
 	 * @param visibility the visibility property value
 	 */
-	private void toggleUIField(Pane parentPane, String uiFieldId, boolean visibility) {
+    public void toggleUIField(Pane parentPane, String uiFieldId, boolean visibility) {
 		try {
 			((Label) parentPane.lookup(RegistrationConstants.HASH.concat(uiFieldId))).setVisible(visibility);
 		} catch (RuntimeException runtimeException) {
@@ -215,7 +216,6 @@ public class FXUtils {
 	 *                            present
 	 * @param field               the {@link TextField} to be validated
 	 * @param validation          the instance of {@link Validations}
-	 * @param localField          the local or secondary language {@link TextField}
 	 * @param haveToTransliterate the flag to know whether the field value has to be
 	 *                            transliterated
 	 */
@@ -225,27 +225,31 @@ public class FXUtils {
 		field.textProperty().addListener((obsValue, oldValue, newValue) -> {
 			showLabel(parentPane, field);
 			if (isInputTextValid(parentPane, field, field.getId().concat(RegistrationConstants.ON_TYPE), validation)) {
-				field.getStyleClass().removeIf((s) -> {
-					return s.equals("demoGraphicTextField");
-				});
-				field.getStyleClass().add("demoGraphicTextFieldOnType");
-				if (field.isFocused()) {
-					Label fieldLabel = (Label) parentPane.lookup("#" + field.getId() + "Label");
-					fieldLabel.getStyleClass().add("demoGraphicFieldLabelOnType");
-					fieldLabel.getStyleClass().remove("demoGraphicFieldLabel");
-
-					if (field.getId().equals("ageField")) {
-						((RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA))
-								.setAgeCalculatedByDOB(false);
-					}
-				}
-				hideErrorMessageLabel(parentPane, field);
+				setTextValidLabel(parentPane, field);
 			} else {
 				if (!field.getText().equals(RegistrationConstants.EMPTY))
 					field.setText(oldValue);
 			}
 		});
 
+	}
+
+	public void setTextValidLabel(Pane parentPane, TextField field) {
+		field.getStyleClass().removeIf((s) -> {
+			return s.equals("demoGraphicTextField");
+		});
+		field.getStyleClass().add("demoGraphicTextFieldOnType");
+		if (field.isFocused()) {
+			Label fieldLabel = (Label) parentPane.lookup("#" + field.getId() + "Label");
+			fieldLabel.getStyleClass().add("demoGraphicFieldLabelOnType");
+			fieldLabel.getStyleClass().remove("demoGraphicFieldLabel");
+
+			if (field.getId().equals("ageField")) {
+				((RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA))
+						.setAgeCalculatedByDOB(false);
+			}
+		}
+		hideErrorMessageLabel(parentPane, field);
 	}
 
 	/**
@@ -258,7 +262,6 @@ public class FXUtils {
 	 *                            present
 	 * @param field               the {@link TextField} to be validated
 	 * @param validation          the instance of {@link Validations}
-	 * @param localField          the local or secondary language {@link TextField}
 	 * @param haveToTransliterate the flag to know whether the field value has to be
 	 *                            transliterated
 	 */
@@ -301,11 +304,7 @@ public class FXUtils {
 						}
 					}
 				} else {
-					field.getStyleClass().removeIf((s) -> {
-						return s.equals("demoGraphicTextFieldOnType");
-					});
-					field.getStyleClass().add("demoGraphicTextFieldFocused");
-					toggleUIField(parentPane, field.getId() + RegistrationConstants.MESSAGE, true);
+					showErrorLabel(field, parentPane);
 				}
 
 				Label fieldLabel = (Label) parentPane.lookup("#" + field.getId() + "Label");
@@ -316,6 +315,14 @@ public class FXUtils {
 			}
 		});
 
+	}
+
+	public void showErrorLabel(TextField field, Pane parentPane) {
+		field.getStyleClass().removeIf((s) -> {
+			return s.equals("demoGraphicTextFieldOnType");
+		});
+		field.getStyleClass().add("demoGraphicTextFieldFocused");
+		toggleUIField(parentPane, field.getId() + RegistrationConstants.MESSAGE, true);
 	}
 
 	public void focusedAction(Pane parentPane, TextField field) {
@@ -441,7 +448,7 @@ public class FXUtils {
 		}
 	}
 
-	private void focusAction(Pane parentPane, TextField field) {
+	public void focusAction(Pane parentPane, TextField field) {
 		if (field != null) {
 			field.focusedProperty().addListener((obsValue, oldValue, newValue) -> {
 				if (newValue) {
@@ -495,9 +502,10 @@ public class FXUtils {
 	 * @param field      the {@link TextField} whose {@link Label} has to be removed
 	 *                   or hidden
 	 */
-	private void hideErrorMessageLabel(Pane parentPane, TextField field) {
-		if (field.getId().matches("ageField|dd|mm|yyyy|ddLocalLanguage|mmLocalLanguage|yyyyLocalLanguage")) {
-			toggleUIField(parentPane, RegistrationConstants.DOB_MESSAGE, false);
+	public void hideErrorMessageLabel(Pane parentPane, TextField field) {
+		String[] parts = field.getId().split("__");
+		if (parts.length > 1 && parts[1].matches(RegistrationConstants.DTAE_MONTH_YEAR_REGEX)) {
+			toggleUIField(parentPane, parts[0]+"__"+RegistrationConstants.DOB_MESSAGE, false);
 		} else {
 			toggleUIField(parentPane, field.getId() + RegistrationConstants.MESSAGE, false);
 		}
@@ -692,44 +700,10 @@ public class FXUtils {
 		};
 	}
 
-	public void populateLocalButton(FlowPane parentPane, Button applicationField, Button localField) {
-		applicationField.addEventHandler(ActionEvent.ACTION, event -> {
-			if (applicationField.getStyleClass().contains("residence")) {
-				applicationField.getStyleClass().clear();
-
-				applicationField.getStyleClass().addAll("selectedResidence", "button");
-				applicationField.getParent().getChildrenUnmodifiable().forEach(node -> {
-					if (node instanceof Button && !node.getId().equals(applicationField.getId())) {
-						node.getStyleClass().clear();
-						node.getStyleClass().addAll("residence", "button");
-					}
-				});
-
-				if (!isAppLangAndLocalLangSame()) {
-					localField.getStyleClass().clear();
-					localField.getStyleClass().addAll("selectedResidence", "button");
-
-					localField.getParent().getChildrenUnmodifiable().forEach(node -> {
-						if (node instanceof Button && !node.getId().equals(localField.getId())) {
-							node.getStyleClass().clear();
-							node.getStyleClass().addAll("residence", "button");
-						}
-					});
-				}
-			}
-			toggleUIField(parentPane, applicationField.getParent().getId() + RegistrationConstants.MESSAGE, false);
-
-			if (!isAppLangAndLocalLangSame()) {
-				toggleUIField(parentPane, localField.getParent().getId() + RegistrationConstants.MESSAGE, false);
-			}
-		});
-	}
-
 	private boolean isAppLangAndLocalLangSame() {
 
 		return ApplicationContext.getInstance().getApplicationLanguage()
 				.equals(ApplicationContext.getInstance().getLocalLanguage());
 	}
 
-	
 }

@@ -19,6 +19,7 @@ import io.mosip.registration.processor.packet.storage.exception.IdRepoAppExcepti
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.stages.utils.ApplicantDocumentValidation;
 import io.mosip.registration.processor.stages.utils.MandatoryValidation;
 import io.mosip.registration.processor.stages.utils.MasterDataValidation;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -43,6 +44,7 @@ public class PacketValidatorImpl implements PacketValidator {
     private static final String VALUE = "value";
     private static final String VALIDATEMASTERDATA = "registration.processor.validateMasterData";
     private static final String VALIDATEMANDATORY = "registration-processor.validatemandotary";
+    private static final String VALIDATEAPPLICANTDOCUMENT = "registration.processor.validateApplicantDocument";
 
     @Autowired
     private PacketManagerService packetManagerService;
@@ -62,6 +64,9 @@ public class PacketValidatorImpl implements PacketValidator {
     @Autowired
     private MasterDataValidation masterDataValidation;
 
+    @Autowired
+    private ApplicantDocumentValidation applicantDocumentValidation;
+
     @Value("${packet.default.source}")
     private String source;
 
@@ -69,10 +74,10 @@ public class PacketValidatorImpl implements PacketValidator {
     private String sourcepackets;
 
     @Override
-    public boolean validate(String id, String source, String process, PacketValidationDto packetValidationDto) throws ApisResourceAccessException, RegistrationProcessorCheckedException, IOException, JsonProcessingException, PacketManagerException {
+    public boolean validate(String id, String process, PacketValidationDto packetValidationDto) throws ApisResourceAccessException, RegistrationProcessorCheckedException, IOException, JsonProcessingException, PacketManagerException {
         String uin = null;
         try {
-            ValidatePacketResponse response = packetManagerService.validate(id, source, process);
+            ValidatePacketResponse response = packetManagerService.validate(id, process);
             if (!response.isValid()) {
                 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                         id, "ERROR =======>" + StatusUtil.PACKET_MANAGER_VALIDATION_FAILURE.getMessage());
@@ -82,7 +87,7 @@ public class PacketValidatorImpl implements PacketValidator {
             }
 
             if (RegistrationType.NEW.name().equalsIgnoreCase(process)
-                    && !individualBiometricsValidation(id, source, process)) {
+                    && !individualBiometricsValidation(id, process)) {
                 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                         id, "ERROR =======>" + StatusUtil.BIOMETRICS_VALIDATION_FAILURE.getMessage());
                 packetValidationDto.setPacketValidatonStatusCode(StatusUtil.BIOMETRICS_VALIDATION_FAILURE.getCode());
@@ -92,7 +97,7 @@ public class PacketValidatorImpl implements PacketValidator {
 
             if (process.equalsIgnoreCase(RegistrationType.UPDATE.toString())
                     || process.equalsIgnoreCase(RegistrationType.RES_UPDATE.toString())) {
-                uin = utility.getUIn(id, source, process);
+                uin = utility.getUIn(id, process);
                 if (uin == null) {
                     regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                             id, "ERROR =======>" + PlatformErrorMessages.RPR_PVM_INVALID_UIN.getMessage());
@@ -119,6 +124,13 @@ public class PacketValidatorImpl implements PacketValidator {
                         id, "ERROR =======>" + StatusUtil.MASTER_DATA_VALIDATION_FAILED.getMessage());
                 packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.MASTER_DATA_VALIDATION_FAILED.getMessage());
                 packetValidationDto.setPacketValidatonStatusCode(StatusUtil.MASTER_DATA_VALIDATION_FAILED.getCode());
+                return false;
+            }
+
+            // document validation
+            if (!applicantDocumentValidation(id, process, packetValidationDto)) {
+                regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                        id, "ERROR =======>" + StatusUtil.APPLICANT_DOCUMENT_VALIDATION_FAILED.getMessage());
                 return false;
             }
 
@@ -154,19 +166,14 @@ public class PacketValidatorImpl implements PacketValidator {
         return packetValidationDto.isValid();
     }
 
-    private boolean individualBiometricsValidation(String id, String source, String process) throws RegistrationProcessorCheckedException {
+    private boolean individualBiometricsValidation(String id, String process) throws RegistrationProcessorCheckedException {
         try {
-            String individualBiometricsKey = utility.getMappingJsonValue(MappingJsonConstants.INDIVIDUAL_BIOMETRICS);
-            if (individualBiometricsKey != null) {
-                BiometricRecord biometricRecord = packetManagerService.getBiometrics(id, individualBiometricsKey, null, source, process);
-                return (biometricRecord != null && biometricRecord.getSegments() != null) && biometricRecord.getSegments().size() > 0;
-            }
+            BiometricRecord biometricRecord = packetManagerService.getBiometrics(id, MappingJsonConstants.INDIVIDUAL_BIOMETRICS, null, process);
+            return (biometricRecord != null && biometricRecord.getSegments() != null) && biometricRecord.getSegments().size() > 0;
         } catch (Exception e) {
             throw new RegistrationProcessorCheckedException(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode(),
                     PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), e);
         }
-
-        return true;
     }
 
     private boolean masterDataValidation(String id, String source, String process, PacketValidationDto packetValidationDto)
@@ -193,7 +200,7 @@ public class PacketValidatorImpl implements PacketValidator {
         if (env.getProperty(VALIDATEMANDATORY).trim().equalsIgnoreCase(VALIDATIONFALSE))
             return true;
         else {
-            boolean result = mandatoryValidation.mandatoryFieldValidation(rid, source, process, packetValidationDto);
+            boolean result = mandatoryValidation.mandatoryFieldValidation(rid, process, packetValidationDto);
 
             if (!result) {
                 packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.MANDATORY_VALIDATION_FAILED.getMessage());
@@ -201,6 +208,19 @@ public class PacketValidatorImpl implements PacketValidator {
             }
             return result;
         }
+    }
+
+    private boolean applicantDocumentValidation(String registrationId, String process, PacketValidationDto packetValidationDto)
+            throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException {
+        if (env.getProperty(VALIDATEAPPLICANTDOCUMENT).trim().equalsIgnoreCase(VALIDATIONFALSE))
+            return true;
+
+        boolean result = applicantDocumentValidation.validateDocument(registrationId, process);
+        if (!result) {
+            packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.APPLICANT_DOCUMENT_VALIDATION_FAILED.getMessage());
+            packetValidationDto.setPacketValidatonStatusCode(StatusUtil.APPLICANT_DOCUMENT_VALIDATION_FAILED.getCode());
+        }
+        return result;
     }
 
 

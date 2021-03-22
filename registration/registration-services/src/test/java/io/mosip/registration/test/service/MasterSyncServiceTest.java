@@ -862,7 +862,7 @@ public class MasterSyncServiceTest {
 
 	}
 
-	@Test
+	/*@Test
 	public void findIndividualType() throws RegBaseCheckedException {
 
 		List<IndividualType> masterIndividualType = new ArrayList<>();
@@ -879,7 +879,7 @@ public class MasterSyncServiceTest {
 				.thenReturn(masterIndividualType);
 
 		assertEquals("NFR", masterSyncServiceImpl.getIndividualType("NFR", "eng").get(0).getCode());
-	}
+	}*/
 	
 	@SuppressWarnings("unused")
 	@Test
@@ -1408,12 +1408,12 @@ public class MasterSyncServiceTest {
 	
 	@Test(expected=RegBaseCheckedException.class)
 	public void getIndividualType() throws RegBaseCheckedException {
-		masterSyncServiceImpl.getIndividualType(null,"eng");
+		masterSyncServiceImpl.getIndividualType("eng");
 	}
 	
 	@Test(expected=RegBaseCheckedException.class)
 	public void getIndividualTypeCode() throws RegBaseCheckedException {
-		masterSyncServiceImpl.getIndividualType("NFR",null);
+		masterSyncServiceImpl.getIndividualType(null);
 	}
 	
 	

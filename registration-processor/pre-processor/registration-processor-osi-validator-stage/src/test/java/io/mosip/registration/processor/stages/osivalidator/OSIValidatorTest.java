@@ -12,6 +12,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -212,7 +213,7 @@ public class OSIValidatorTest {
 		InputStream inputStream = new FileInputStream(file);
 		String mappingJson = IOUtils.toString(inputStream);
 		JSONObject mappingJSONObject = JsonUtil.objectMapperReadValue(mappingJson, JSONObject.class);
-		Mockito.when(utility.getRegistrationProcessorMappingJson())
+		Mockito.when(utility.getRegistrationProcessorMappingJson(anyString()))
 				.thenReturn(JsonUtil.getJSONObject(mappingJSONObject, MappingJsonConstants.IDENTITY));
 		PowerMockito.mockStatic(Utilities.class);
 		PowerMockito.when(Utilities.class, "getJson", anyString(), anyString()).thenReturn(mappingJson);
@@ -371,9 +372,9 @@ public class OSIValidatorTest {
 
 		BiometricRecord biometricRecord = new BiometricRecord();
 		biometricRecord.setSegments(Lists.newArrayList(birType3,birType4));
-		when(packetManagerService.getBiometrics(anyString(),anyString(),any(),anyString(),anyString())).thenReturn(biometricRecord);
+		when(packetManagerService.getBiometrics(anyString(),any(),any(),anyString())).thenReturn(biometricRecord);
 
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),anyString())).thenReturn("field");
+		when(packetManagerService.getFieldByKey(anyString(), anyString(), anyString())).thenReturn("field");
 	}
 
 	/**
@@ -386,7 +387,7 @@ public class OSIValidatorTest {
 		
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
-		boolean isValid = osiValidator.isValidOSI("reg1234", "reg-client", registrationStatusDto, metaInfo);
+		boolean isValid = osiValidator.isValidOSI("reg1234", registrationStatusDto, metaInfo);
 		assertTrue(isValid);
 	}
 
@@ -400,7 +401,7 @@ public class OSIValidatorTest {
 		
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
-		boolean isValid = osiValidator.isValidOSI("reg1234", "reg-client", registrationStatusDto, metaInfo);
+		boolean isValid = osiValidator.isValidOSI("reg1234",  registrationStatusDto, metaInfo);
 		assertFalse(isValid);
 	}
 
@@ -416,7 +417,7 @@ public class OSIValidatorTest {
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(userResponseDto)
 				.thenReturn(userResponseDto);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
-		boolean isValid = osiValidator.isValidOSI("reg1234", "reg-client", registrationStatusDto, metaInfo);
+		boolean isValid = osiValidator.isValidOSI("reg1234",  registrationStatusDto, metaInfo);
 		assertFalse(isValid);
 	}
 
@@ -432,7 +433,7 @@ public class OSIValidatorTest {
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(userResponseDto)
 				.thenReturn(userResponseDto);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
-		boolean isValid = osiValidator.isValidOSI("reg1234", "reg-client", registrationStatusDto, metaInfo);
+		boolean isValid = osiValidator.isValidOSI("reg1234",  registrationStatusDto, metaInfo);
 		assertFalse(isValid);
 	}
 
@@ -452,7 +453,7 @@ public class OSIValidatorTest {
 		
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
-		boolean isValid = osiValidator.isValidOSI("reg1234", "reg-client", registrationStatusDto, metaInfo);
+		boolean isValid = osiValidator.isValidOSI("reg1234",  registrationStatusDto, metaInfo);
 		assertFalse(isValid);
 	}
 
@@ -464,7 +465,7 @@ public class OSIValidatorTest {
 		
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
-		osiValidator.isValidOSI("reg1234", "reg-client", registrationStatusDto, metaInfo);
+		osiValidator.isValidOSI("reg1234",  registrationStatusDto, metaInfo);
 
 	}
 
@@ -479,7 +480,7 @@ public class OSIValidatorTest {
 		
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
-		osiValidator.isValidOSI("reg1234", "reg-client", registrationStatusDto, metaInfo);
+		osiValidator.isValidOSI("reg1234",  registrationStatusDto, metaInfo);
 
 	}
 
@@ -494,7 +495,7 @@ public class OSIValidatorTest {
 		
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
-		osiValidator.isValidOSI("reg1234", "reg-client", registrationStatusDto, metaInfo);
+		osiValidator.isValidOSI("reg1234",  registrationStatusDto, metaInfo);
 
 	}
 
@@ -508,7 +509,7 @@ public class OSIValidatorTest {
 		regOsiDto.setOfficerId(null);
 		regOsiDto.setSupervisorId(null);
 		Mockito.when(osiUtils.getOSIDetailsFromMetaInfo(anyMap())).thenReturn(regOsiDto);
-		boolean isValid = osiValidator.isValidOSI("reg1234", "reg-client", registrationStatusDto, metaInfo);
+		boolean isValid = osiValidator.isValidOSI("reg1234",  registrationStatusDto, metaInfo);
 		assertFalse(isValid);
 	}
 
@@ -520,7 +521,7 @@ public class OSIValidatorTest {
 	@Test
 	@Ignore
 	public void testIntroducerDetailsNull() throws Exception {
-		boolean isValid = osiValidator.isValidOSI("reg1234", "reg-client", registrationStatusDto, metaInfo);
+		boolean isValid = osiValidator.isValidOSI("reg1234",  registrationStatusDto, metaInfo);
 		assertFalse(isValid);
 	}
 
@@ -542,9 +543,9 @@ public class OSIValidatorTest {
 	public void testIntroducerRIDFailedOnHold() throws ApisResourceAccessException, IOException, Exception {
 		registrationStatusDto.setStatusCode("FAILED");
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
-		when(packetManagerService.getField("reg1234","parentOrGuardianUIN","reg-client","New")).thenReturn(null);
-		when(packetManagerService.getField("reg1234","parentOrGuardianRID","reg-client","New")).thenReturn("field");
-		boolean isValid = osiValidator.isValidOSI("reg1234","reg-client", registrationStatusDto, metaInfo);
+		when(packetManagerService.getFieldByKey("reg1234","parentOrGuardianUIN","New")).thenReturn(null);
+		when(packetManagerService.getFieldByKey("reg1234","parentOrGuardianRID","New")).thenReturn("field");
+		boolean isValid = osiValidator.isValidOSI("reg1234", registrationStatusDto, metaInfo);
 		assertFalse(isValid);
 	}
 
@@ -553,25 +554,25 @@ public class OSIValidatorTest {
 			InvalidKeySpecException, NoSuchAlgorithmException, BiometricException, BioTypeException, IOException,
 			ParserConfigurationException, SAXException, PacketDecryptionFailureException,
 			io.mosip.kernel.core.exception.IOException, ParentOnHoldException, AuthSystemException,
-			PacketManagerException, JSONException, JsonProcessingException {
+			PacketManagerException, JSONException, JsonProcessingException, CertificateException {
 
 		InternalRegistrationStatusDto introducerRegistrationStatusDto = new InternalRegistrationStatusDto();
 
 		introducerRegistrationStatusDto.setStatusCode((RegistrationStatusCode.PROCESSING.toString()));
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
 				.thenReturn(introducerRegistrationStatusDto);
-		when(packetManagerService.getField("reg1234","parentOrGuardianUIN","reg-client","New")).thenReturn(null);
-		when(packetManagerService.getField("reg1234","parentOrGuardianRID","reg-client","New")).thenReturn("field");
+		when(packetManagerService.getFieldByKey("reg1234","parentOrGuardianUIN","New")).thenReturn(null);
+		when(packetManagerService.getFieldByKey("reg1234","parentOrGuardianRID","New")).thenReturn("field");
 
-		osiValidator.isValidOSI("reg1234", "reg-client", registrationStatusDto, metaInfo);
+		osiValidator.isValidOSI("reg1234",  registrationStatusDto, metaInfo);
 	}
 
 	@Test
 	public void testIntroducerUINAndRIDNull() throws Exception {
-		when(packetManagerService.getField("reg1234","parentOrGuardianUIN","reg-client","New")).thenReturn(null);
-		when(packetManagerService.getField("reg1234","parentOrGuardianRID","reg-client","New")).thenReturn(null);
+		when(packetManagerService.getFieldByKey("reg1234","parentOrGuardianUIN","New")).thenReturn(null);
+		when(packetManagerService.getFieldByKey("reg1234","parentOrGuardianRID","New")).thenReturn(null);
 
-		boolean isValid = osiValidator.isValidOSI("reg1234", "reg-client", registrationStatusDto, metaInfo);
+		boolean isValid = osiValidator.isValidOSI("reg1234",  registrationStatusDto, metaInfo);
 		assertFalse(isValid);
 	}
 
@@ -581,18 +582,18 @@ public class OSIValidatorTest {
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
 		registrationStatusDto.setRegistrationType("NEW");
-		when(packetManagerService.getField("reg1234","parentOrGuardianUIN","reg-client","New")).thenReturn(null);
-		when(packetManagerService.getField("reg1234","parentOrGuardianRID","reg-client","New")).thenReturn("field");
+		when(packetManagerService.getFieldByKey("reg1234","parentOrGuardianUIN","New")).thenReturn(null);
+		when(packetManagerService.getFieldByKey("reg1234","parentOrGuardianRID","New")).thenReturn("field");
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(null);
-		osiValidator.isValidOSI("reg1234", "reg-client", registrationStatusDto, metaInfo);
+		osiValidator.isValidOSI("reg1234",  registrationStatusDto, metaInfo);
 	}
 
 	@Test
 	public void testIntroducerBioFileNull() throws Exception {
 		regOsiDto.setSupervisorBiometricFileName(null);
 		Mockito.when(osiUtils.getOSIDetailsFromMetaInfo(anyMap())).thenReturn(regOsiDto);
-		when(packetManagerService.getBiometrics(anyString(),anyString(),any(),anyString(),anyString())).thenReturn(null);
-		boolean isValid = osiValidator.isValidOSI("reg1234", "reg-client", registrationStatusDto, metaInfo);
+		when(packetManagerService.getBiometrics(anyString(),anyString(),any(),anyString())).thenReturn(null);
+		boolean isValid = osiValidator.isValidOSI("reg1234",  registrationStatusDto, metaInfo);
 		assertFalse(isValid);
 	}
 
@@ -607,7 +608,7 @@ public class OSIValidatorTest {
 		registrationStatusDto.setStatusCode("PROCESSED");
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
 		Mockito.when(idRepoService.getUinByRid(any(), any())).thenReturn("123456789");
-		boolean isValid = osiValidator.isValidOSI("reg1234", "reg-client", registrationStatusDto, metaInfo);
+		boolean isValid = osiValidator.isValidOSI("reg1234",  registrationStatusDto, metaInfo);
 
 		assertTrue(isValid);
 	}
@@ -624,7 +625,7 @@ public class OSIValidatorTest {
 		io.mosip.registration.processor.core.auth.dto.ResponseDTO responseDTO = new io.mosip.registration.processor.core.auth.dto.ResponseDTO();
 		responseDTO.setAuthStatus(true);
 		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
-		boolean isValid = osiValidator.isValidOSI("reg1234", "reg-client", registrationStatusDto, metaInfo);
+		boolean isValid = osiValidator.isValidOSI("reg1234",  registrationStatusDto, metaInfo);
 		assertFalse(isValid);
 	}
 
@@ -643,7 +644,7 @@ public class OSIValidatorTest {
 		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO)
 				.thenReturn(authResponseDTO1);
 		Mockito.when(idRepoService.getUinByRid(any(), any())).thenReturn("123456789");
-		boolean isValid = osiValidator.isValidOSI("reg1234", "reg-client", registrationStatusDto, metaInfo);
+		boolean isValid = osiValidator.isValidOSI("reg1234",  registrationStatusDto, metaInfo);
 
 		assertFalse(isValid);
 	}
@@ -654,11 +655,11 @@ public class OSIValidatorTest {
 		introducerRegistrationStatusDto.setStatusCode((RegistrationStatusCode.PROCESSED.toString()));
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
 				.thenReturn(introducerRegistrationStatusDto);
-		when(packetManagerService.getField("reg1234","parentOrGuardianUIN","reg-client","New")).thenReturn(null);
-		when(packetManagerService.getField("reg1234","parentOrGuardianRID","reg-client","New")).thenReturn("field");
+		when(packetManagerService.getFieldByKey("reg1234","parentOrGuardianUIN","New")).thenReturn(null);
+		when(packetManagerService.getFieldByKey("reg1234","parentOrGuardianRID","New")).thenReturn("field");
 		Mockito.when(idRepoService.getUinByRid(any(), any())).thenReturn(null);
 
-		boolean isValid = osiValidator.isValidOSI("reg1234", "reg-client", registrationStatusDto, metaInfo);
+		boolean isValid = osiValidator.isValidOSI("reg1234",  registrationStatusDto, metaInfo);
 
 		assertFalse(isValid);
 	}
@@ -678,7 +679,7 @@ public class OSIValidatorTest {
 		
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
-        osiValidator.isValidOSI("reg1234", "reg-client", registrationStatusDto, metaInfo);
+        osiValidator.isValidOSI("reg1234",  registrationStatusDto, metaInfo);
 		
 	}
 }

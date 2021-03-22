@@ -567,6 +567,21 @@ public class PacketInfoDao {
 	}
 
 	/**
+	 * Gets the processed or processing reg ids.
+	 *
+	 * @param matchedRegIds
+	 *            the matched reg ids
+	 * @param statusCode1
+	 *            the status code
+	 * @param statusCode2
+	 *            the status code
+	 * @return the processed or processing reg ids
+	 */
+	public List<String> getWithoutStatusCodes(List<String> matchedRegIds, String statusCode1, String statusCode2) {
+		return registrationRepositary.getWithoutStatusCodes(matchedRegIds, "REJECTED", "PROCESSED");
+	}
+
+	/**
 	 * Gets the abis response det records list.
 	 *
 	 * @param abisResponseDto

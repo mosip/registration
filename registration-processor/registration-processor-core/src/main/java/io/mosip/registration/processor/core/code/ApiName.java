@@ -76,6 +76,8 @@ public enum ApiName {
 
 	IDAUTHPUBLICKEY,
 
+	IDAUTHCERTIFICATE,
+
 	/** The ReverseDataSync *. */
 	REVERSEDATASYNC,
 
@@ -154,9 +156,6 @@ public enum ApiName {
 	/** The idschemaversion. */
 	IDSCHEMAVERSION,
 
-	/** The cnienumber. */
-	CNIENUMBER,
-
 	/** The decryption api from DMZ *. */
 
 	SYNCSERVICE,
@@ -224,6 +223,9 @@ public enum ApiName {
 	PACKETMANAGER_SEARCH_BIOMETRICS,
 	PACKETMANAGER_SEARCH_AUDITS,
 	DATASHARECREATEURL,
-	DATASHAREGETEURL;
+	PMS,
+	DATASHAREGETEURL,
+	CREDENTIALREQUEST, GETVIDSBYUIN;
 
 }
+

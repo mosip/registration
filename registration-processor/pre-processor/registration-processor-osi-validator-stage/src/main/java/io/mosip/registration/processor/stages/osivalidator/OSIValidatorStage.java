@@ -40,6 +40,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
 /**
@@ -139,14 +140,13 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 		registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
 
 		try {
-			String source = utility.getDefaultSource();
-			Map<String, String> metaInfo = packetManagerService.getMetaInfo(registrationId, source, registrationStatusDto.getRegistrationType());
+			Map<String, String> metaInfo = packetManagerService.getMetaInfo(registrationId, registrationStatusDto.getRegistrationType());
 			if(validateUMC)
 				isValidUMC = umcValidator.isValidUMC(registrationId, registrationStatusDto, metaInfo);
 			else
 				isValidUMC = true;
 			if (isValidUMC) {
-				isValidOSI = osiValidator.isValidOSI(registrationId, source, registrationStatusDto, metaInfo);
+				isValidOSI = osiValidator.isValidOSI(registrationId, registrationStatusDto, metaInfo);
 				if (isValidOSI) {
 					registrationStatusDto
 							.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
@@ -167,6 +167,8 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 					description.setCode(PlatformSuccessMessages.RPR_PKR_OSI_VALIDATE.getCode());
 					description.setMessage(PlatformSuccessMessages.RPR_PKR_OSI_VALIDATE.getMessage() + registrationId
 							+ "::" + "OSI(" + isValidOSI + ") is not valid");
+					registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
+							.getStatusCode(RegistrationExceptionTypeCode.PACKET_OSI_VALIDATION_FAILED));
 				}
 			} else {
 				object.setIsValid(Boolean.FALSE);
@@ -255,7 +257,7 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 					description.getMessage() + e.getMessage() + ExceptionUtils.getStackTrace(e));
 			object.setInternalError(Boolean.TRUE);
 			object.setIsValid(Boolean.FALSE);
-		} catch (IOException e) {
+		} catch (IOException | NoSuchAlgorithmException e) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
 			registrationStatusDto.setStatusComment(
 					trimExceptionMessage.trimExceptionMessage(StatusUtil.IO_EXCEPTION.getMessage() + e.getMessage()));

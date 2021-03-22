@@ -8,6 +8,7 @@ import java.net.UnknownHostException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -84,17 +85,18 @@ public class AuditManagerSerivceImpl extends BaseService implements AuditManager
 					ExceptionUtils.getStackTrace(unknownHostException));
 		}
 
-		if (auditEventEnum.getId().contains(RegistrationConstants.REGISTRATION_EVENTS) && 
-				getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getRegistrationId() != null) {
+		if (auditEventEnum.getId().contains(RegistrationConstants.REGISTRATION_EVENTS)
+				&& getRegistrationDTOFromSession() != null
+				&& getRegistrationDTOFromSession().getRegistrationId() != null) {
 			refId = getRegistrationDTOFromSession().getRegistrationId();
 			refIdType = AuditReferenceIdTypes.REGISTRATION_ID.getReferenceTypeId();
 		} else if (SessionContext.userId() != null && !SessionContext.userId().equals("NA")) {
 			refId = SessionContext.userId();
 			refIdType = AuditReferenceIdTypes.USER_ID.getReferenceTypeId();
 		}
-		
+
 		AuditRequestBuilder auditRequestBuilder = new AuditRequestBuilder();
-		auditRequestBuilder.setActionTimeStamp(LocalDateTime.now(ZoneOffset.UTC))
+		auditRequestBuilder.setActionTimeStamp(DateUtils.getUTCCurrentDateTime())
 				.setApplicationId(String.valueOf(ApplicationContext.map().get(RegistrationConstants.APP_ID)))
 				.setApplicationName(String.valueOf(ApplicationContext.map().get(RegistrationConstants.APP_NAME)))
 				.setCreatedBy(SessionContext.userName()).setDescription(auditEventEnum.getDescription())
@@ -102,7 +104,9 @@ public class AuditManagerSerivceImpl extends BaseService implements AuditManager
 				.setEventType(auditEventEnum.getType()).setHostIp(hostIP).setHostName(hostName).setId(refId)
 				.setIdType(refIdType).setModuleId(appModuleEnum.getId()).setModuleName(appModuleEnum.getName())
 				.setSessionUserId(SessionContext.userId()).setSessionUserName(SessionContext.userName());
+
 		auditHandler.addAudit(auditRequestBuilder.build());
+
 	}
 
 	/*

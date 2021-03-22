@@ -6,22 +6,26 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.mosip.kernel.core.util.HMACUtils2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.FileUtils;
-import io.mosip.kernel.core.util.HMACUtils;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonMappingException;
 import io.mosip.kernel.core.util.exception.JsonParseException;
@@ -324,11 +328,10 @@ public class BaseService {
 				RegistrationConstants.ACKNOWLEDGEMENT_FILE_EXTENSION, RegistrationConstants.ZIP_FILE_EXTENSION)))) {
 			byte[] byteArray = new byte[(int) fis.available()];
 			fis.read(byteArray);
-			byte[] packetHash = HMACUtils.generateHash(byteArray);
-			statusDTO.setPacketHash(HMACUtils.digestAsPlainText(packetHash));
+			statusDTO.setPacketHash(HMACUtils2.digestAsPlainText(byteArray));
 			statusDTO.setPacketSize(BigInteger.valueOf(byteArray.length));
 
-		} catch (IOException ioException) {
+		} catch (IOException | NoSuchAlgorithmException ioException) {
 			LOGGER.error("REGISTRATION_BASE_SERVICE", APPLICATION_NAME, APPLICATION_ID,
 					ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
 		}
@@ -356,6 +359,18 @@ public class BaseService {
 		DateFormat dateFormat = new SimpleDateFormat(RegistrationConstants.EOD_PROCESS_DATE_FORMAT);
 		Date date = new Date(timestamp.getTime());
 		return dateFormat.format(date);
+	}
+	
+	protected String regDateTimeConversion(String time) {
+		try {
+			String formattedTime = Timestamp.valueOf(time).toLocalDateTime().format(DateTimeFormatter.ofPattern(RegistrationConstants.UTC_PATTERN));
+			LocalDateTime dateTime = DateUtils.parseUTCToLocalDateTime(formattedTime);
+			return dateTime.format(DateTimeFormatter.ofPattern(RegistrationConstants.TEMPLATE_DATE_FORMAT));
+		} catch (RuntimeException exception) {
+			LOGGER.error("REGISTRATION - ALERT - BASE_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+					ExceptionUtils.getStackTrace(exception));
+			return time + RegistrationConstants.UTC_APPENDER;
+		}
 	}
 
 	protected boolean isNull(String val) {

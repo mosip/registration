@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -14,6 +15,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.kernel.core.util.HMACUtils2;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
@@ -32,7 +34,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 
-import io.mosip.kernel.core.util.HMACUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
@@ -53,7 +54,7 @@ import io.mosip.registration.util.restclient.ServiceDelegateUtil;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
-@PrepareForTest({ HMACUtils.class, ApplicationContext.class, SessionContext.class })
+@PrepareForTest({ HMACUtils2.class, ApplicationContext.class, SessionContext.class })
 public class RegPacketStatusServiceTest {
 	private Map<String, Object> applicationMap = new HashMap<>();
 
@@ -78,7 +79,7 @@ public class RegPacketStatusServiceTest {
 
 	@Before
 	public void initiate() throws Exception {
-		PowerMockito.mockStatic(HMACUtils.class);
+		PowerMockito.mockStatic(HMACUtils2.class);
 
 		applicationMap.put(RegistrationConstants.REG_DELETION_CONFIGURED_DAYS, "5");
 		applicationMap.put("PRIMARY_LANGUAGE", "ENG");
@@ -263,7 +264,7 @@ public class RegPacketStatusServiceTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void syncPacketTest() throws HttpClientErrorException, ResourceAccessException, SocketTimeoutException,
-			RegBaseCheckedException, JsonProcessingException, URISyntaxException {
+			RegBaseCheckedException, JsonProcessingException, URISyntaxException, NoSuchAlgorithmException {
 		PowerMockito.mockStatic(io.mosip.registration.context.ApplicationContext.class);
 		when(io.mosip.registration.context.ApplicationContext.map()).thenReturn(applicationMap);
 
@@ -287,7 +288,7 @@ public class RegPacketStatusServiceTest {
 		ApplicationContext.map().get(RegistrationConstants.PRIMARY_LANGUAGE);
 		Mockito.when(aesEncryptionService.encrypt(javaObjectToJsonString(registrationPacketSyncDTO).getBytes()))
 				.thenReturn("aes".getBytes());
-		Mockito.when(HMACUtils.generateHash(Mockito.anyString().getBytes())).thenReturn("asa".getBytes());
+		Mockito.when(HMACUtils2.generateHash(Mockito.anyString().getBytes())).thenReturn("asa".getBytes());
 
 		Mockito.when(globalParamService.getGlobalParams()).thenReturn(new HashMap());
 

@@ -24,16 +24,13 @@ public class RegistrationUIConstants {
 	public static final String MINUTES = bundle.getString("MINUTES");
 
 	public static String getMessageLanguageSpecific(String key) {
-		String message = "ERROR";
 		try {
-			message = bundle.getString(key);
+			return bundle.getString(key);
 		} catch (Exception runtimeException) {
 			LOGGER.error("REGISTRATION_UI_CONSTANTS", APPLICATION_NAME, APPLICATION_ID,
-					String.format(
-							"Exception while initializing Fingerprint Capture page for user registration  %s",
-							runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException)));
+					ExceptionUtils.getStackTrace(runtimeException));
 		}
-		return message;
+		return key != null ? String.format(ERROR + " : %s", key) : ERROR;
 	}
 
 	// ALERT
@@ -87,6 +84,7 @@ public class RegistrationUIConstants {
 	public static final String REMAP_CLICK_OK = bundle.getString("REMAP_CLICK_OK");
 	public static final String REMAP_PROCESS_SUCCESS = bundle.getString("REMAP_PROCESS_SUCCESS");
 	public static final String REMAP_NOT_APPLICABLE = bundle.getString("REMAP_NOT_APPLICABLE");
+	public static final String USERMAP_NOT_APPLICABLE = bundle.getString("USERMAP_NOT_APPLICABLE");
 	public static final String REMAP_PROCESS_STILL_PENDING = bundle.getString("REMAP_PROCESS_STILL_PENDING");
 
 	// DEVICE
@@ -165,6 +163,7 @@ public class RegistrationUIConstants {
 	public static final String SCAN_DOC_TITLE = bundle.getString("SCAN_DOC_TITLE");
 	public static final String SCAN_DOC_CATEGORY_MULTIPLE = bundle.getString("SCAN_DOC_CATEGORY_MULTIPLE");
 	public static final String SCAN_DOC_SUCCESS = bundle.getString("SCAN_DOC_SUCCESS");
+	public static final String CROP_DOC_SUCCESS = bundle.getString("CROP_DOC_SUCCESS");
 	public static final String SCAN_DOC_SIZE = bundle.getString("SCAN_DOC_SIZE");
 	public static final String SCAN_DOC_INFO = bundle.getString("SCAN_DOC_INFO");
 	public static final String SELECTED_SCANNER = bundle.getString("SELECTED_SCANNER");
@@ -177,6 +176,7 @@ public class RegistrationUIConstants {
 	public static final String PRE_REG_ID_NOT_VALID = bundle.getString("PRE_REG_ID_NOT_VALID");
 	public static final String REG_ID_JSON_VALIDATION_FAILED = bundle.getString("REG_ID_JSON_VALIDATION_FAILED");
 	public static final String SCAN = bundle.getString("SCAN");
+	public static final String REF_NUMBER = bundle.getString("REF_NUMBER");
 	public static final String PLEASE_SELECT = bundle.getString("PLEASE_SELECT");
 	public static final String DOCUMENT = bundle.getString("DOCUMENT");
 	public static final String DATE_VALIDATION_MSG = bundle.getString("DATE_VALIDATION_MSG");
@@ -318,6 +318,7 @@ public class RegistrationUIConstants {
 	public static final String EOD_SLNO_LABEL = bundle.getString("EOD_SLNO_LABEL");
 	public static final String EOD_REGISTRATIONID_LABEL = bundle.getString("EOD_REGISTRATIONID_LABEL");
 	public static final String EOD_REGISTRATIONDATE_LABEL = bundle.getString("EOD_REGISTRATIONDATE_LABEL");
+	public static final String EOD_OPERATORID_LABEL = bundle.getString("EOD_OPERATORID_LABEL");
 	public static final String EOD_STATUS_LABEL = bundle.getString("EOD_STATUS_LABEL");
 	public static final String PACKETUPLOAD_PACKETID_LABEL = bundle.getString("PACKETUPLOAD_PACKETID_LABEL");
 	public static final String AUTH_FAILURE = bundle.getString("AUTH_FAILURE");
@@ -413,11 +414,20 @@ public class RegistrationUIConstants {
 
 	public static final String BIOMETRIC_CAPTURE_SUCCESS = bundle.getString("BIOMETRIC_CAPTURE_SUCCESS");
 	public static final String BIOMETRIC_CAPTURE_FAILURE = bundle.getString("BIOMETRIC_CAPTURE_FAILURE");
-	
+
 	public static final String LOCAL_DEDUP_CHECK_FAILED = bundle.getString("LOCAL_DEDUP_CHECK_FAILED");
 
 	public static final String STREAMING_ERROR = bundle.getString("STREAMING_ERROR");
-	
+
 	public static final String EXCEPTION_PHOTO_REQUIRED = bundle.getString("EXCEPTION_PHOTO_REQUIRED");
+
+	public static final String USER_RELOGIN_REQUIRED = bundle.getString("USER_RELOGIN_REQUIRED");
+
+	public static final String DOC_CAPTURE_SUCCESS = bundle.getString("DOC_CAPTURE_SUCCESS");
+
+	public static final String DOC_DELETE_SUCCESS = bundle.getString("DOC_DELETE_SUCCESS");
 	
+	public static final String USER_IN_ACTIVE = bundle.getString("USER_IN_ACTIVE");
+
+	public static final String ONBOARD_USER_TITLE = bundle.getString("officerbiometrics");
 }

@@ -49,6 +49,9 @@ public class Encryptor {
 	@Value("${registration.processor.application.id}")
 	private String applicationId;
 
+	@Value("${crypto.PrependThumbprint.enable:true}")
+	private boolean isPrependThumbprintEnabled;
+
 	@Autowired
 	private RegistrationProcessorRestClientService<Object> restClientService;
 
@@ -67,7 +70,7 @@ public class Encryptor {
 	private static final String ENCRYPTION_SUCCESS = "Encryption success";
 
 	@SuppressWarnings("unchecked")
-	public byte[] encrypt(Object syncMetaInfo, String referenceId, String timeStamp)
+	public byte[] encrypt(String syncMetaInfo, String referenceId, String timeStamp)
 			throws EncryptionFailureException, ApisResourceAccessException {
 		byte[] encryptedData = null;
 		boolean isTransactionSuccessful = false;
@@ -77,9 +80,10 @@ public class Encryptor {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 			
-			String syncInfo = CryptoUtil.encodeBase64(syncMetaInfo.toString().getBytes());
+			String syncInfo = CryptoUtil.encodeBase64String(syncMetaInfo.getBytes());
 	        
 			CryptomanagerRequestDto cryptomanagerRequestDto = new CryptomanagerRequestDto();
+			cryptomanagerRequestDto.setPrependThumbprint(isPrependThumbprintEnabled);
 			RequestWrapper<CryptomanagerRequestDto> request = new RequestWrapper<>();
 			ResponseWrapper<CryptomanagerResponseDto> response;
 			cryptomanagerRequestDto.setApplicationId(applicationId);
@@ -112,7 +116,8 @@ public class Encryptor {
 			if (response.getResponse() != null) {
 				LinkedHashMap responseMap = mapper.readValue(mapper.writeValueAsString(response.getResponse()),
 						LinkedHashMap.class);
-				encryptedData = responseMap.get(KEY).toString().getBytes();
+				byte[] tempEncryptedData = CryptoUtil.decodeBase64(responseMap.get(KEY).toString());
+				encryptedData = mergeEncryptedData(tempEncryptedData, nonce, aad);
 			} else {
 				description.setMessage(PlatformErrorMessages.RPR_PGS_ENCRYPTOR_INVLAID_DATA_EXCEPTION.getMessage());
 				description.setCode(PlatformErrorMessages.RPR_PGS_ENCRYPTOR_INVLAID_DATA_EXCEPTION.getCode());
@@ -186,6 +191,15 @@ public class Encryptor {
 		regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				ENCRYPTION_SUCCESS);
 		return encryptedData;
+	}
+
+
+	private static byte[] mergeEncryptedData(byte[] encryptedData, byte[] nonce, byte[] aad) {
+		byte[] finalEncData = new byte[encryptedData.length + CryptomanagerConstant.GCM_AAD_LENGTH + CryptomanagerConstant.GCM_NONCE_LENGTH];
+		System.arraycopy(nonce, 0, finalEncData, 0, nonce.length);
+		System.arraycopy(aad, 0, finalEncData, nonce.length, aad.length);
+		System.arraycopy(encryptedData, 0, finalEncData, nonce.length + aad.length,	encryptedData.length);
+		return finalEncData;
 	}
 
 }

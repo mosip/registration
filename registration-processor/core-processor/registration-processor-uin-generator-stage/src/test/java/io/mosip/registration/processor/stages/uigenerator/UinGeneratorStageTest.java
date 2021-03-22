@@ -63,8 +63,9 @@ import org.springframework.web.client.HttpServerErrorException;
 import com.google.gson.Gson;
 
 import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.kernel.core.util.HMACUtils;
+import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.dataaccess.hibernate.constant.HibernateErrorCode;
+import io.mosip.registration.processor.core.abstractverticle.EventDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -81,6 +82,7 @@ import io.mosip.registration.processor.core.idrepo.dto.Documents;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.packet.dto.ApplicantDocument;
 import io.mosip.registration.processor.core.packet.dto.Identity;
+import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
@@ -100,10 +102,12 @@ import io.mosip.registration.processor.stages.uingenerator.stage.UinGeneratorSta
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ IOUtils.class, HMACUtils.class, Utilities.class, Gson.class })
+@PrepareForTest({ IOUtils.class, HMACUtils2.class, Utilities.class, Gson.class })
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*", "javax.net.ssl.*" })
 public class UinGeneratorStageTest {
 
@@ -113,7 +117,29 @@ public class UinGeneratorStageTest {
 		public MosipEventBus getEventBus(Object verticleName, String url, int instanceNumber) {
 			vertx = Vertx.vertx();
 
-			return new MosipEventBus(vertx) {
+			return new MosipEventBus() {
+
+				@Override
+				public Vertx getEventbus() {
+					return vertx;
+				}
+
+				@Override
+				public void consume(MessageBusAddress fromAddress,
+						EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> eventHandler) {
+
+				}
+
+				@Override
+				public void consumeAndSend(MessageBusAddress fromAddress, MessageBusAddress toAddress,
+						EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> eventHandler) {
+
+				}
+
+				@Override
+				public void send(MessageBusAddress toAddress, MessageDTO message) {
+
+				}
 			};
 		}
 
@@ -209,7 +235,7 @@ public class UinGeneratorStageTest {
 		LinkedHashMap hm = new ObjectMapper().readValue(idJsonStream1, LinkedHashMap.class);
 		JSONObject jsonObject = new JSONObject(hm);
 		identityMappingjsonString = jsonObject.toJSONString();
-		when(utility.getRegistrationProcessorMappingJson()).thenReturn(JsonUtil.getJSONObject(new ObjectMapper().readValue(identityMappingjsonString, JSONObject.class), MappingJsonConstants.IDENTITY));
+		when(utility.getRegistrationProcessorMappingJson(anyString())).thenReturn(JsonUtil.getJSONObject(new ObjectMapper().readValue(identityMappingjsonString, JSONObject.class), MappingJsonConstants.IDENTITY));
 
 
 		when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("EXCEPTION");
@@ -293,13 +319,13 @@ public class UinGeneratorStageTest {
 		defaultFields.add("dob");
 		defaultFields.add("gender");
 
-		when(utility.getDefaultSource()).thenReturn("reg_client");
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),any())).thenReturn("0.1");
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
-		when(packetManagerService.getDocument(anyString(),anyString(),anyString(),any())).thenReturn(document);
-		when(packetManagerService.getBiometrics(anyString(),anyString(),anyList(),anyString(),any())).thenReturn(biometricRecord);
+		when(packetManagerService.getDocument(anyString(),anyString(),any())).thenReturn(document);
+		when(packetManagerService.getBiometrics(anyString(),anyString(),anyList(),any())).thenReturn(biometricRecord);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
-		when(utility.getMappingJsonValue(anyString())).thenReturn("UIN");
+		when(utility.getMappingJsonValue(anyString(), any())).thenReturn("UIN");
 
 	}
 
@@ -506,8 +532,8 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource()).thenReturn("reg_client");
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),any())).thenReturn("0.1");
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -543,8 +569,8 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource()).thenReturn("reg_client");
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),any())).thenReturn("0.1");
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -605,8 +631,8 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource()).thenReturn("reg_client");
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),any())).thenReturn("0.1");
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -669,8 +695,8 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource()).thenReturn("reg_client");
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),any())).thenReturn("0.1");
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -759,8 +785,8 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource()).thenReturn("reg_client");
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),any())).thenReturn("0.1");
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -790,8 +816,8 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource()).thenReturn("reg_client");
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),any())).thenReturn("0.1");
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -851,8 +877,8 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource()).thenReturn("reg_client");
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),any())).thenReturn("0.1");
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -913,8 +939,8 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource()).thenReturn("reg_client");
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),any())).thenReturn("0.1");
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -994,8 +1020,8 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource()).thenReturn("reg_client");
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),any())).thenReturn("0.1");
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -1042,8 +1068,8 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource()).thenReturn("reg_client");
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),any())).thenReturn("0.1");
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -1083,8 +1109,8 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource()).thenReturn("reg_client");
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),any())).thenReturn("0.1");
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -1134,8 +1160,8 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource()).thenReturn("reg_client");
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),any())).thenReturn("0.1");
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -1204,8 +1230,8 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource()).thenReturn("reg_client");
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),any())).thenReturn("0.1");
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -1233,8 +1259,8 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource()).thenReturn("reg_client");
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),any())).thenReturn("0.1");
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -1554,8 +1580,8 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource()).thenReturn("reg_client");
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),any())).thenReturn("0.1");
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -1607,8 +1633,8 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource()).thenReturn("reg_client");
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),any())).thenReturn("0.1");
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -1659,8 +1685,8 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource()).thenReturn("reg_client");
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),any())).thenReturn("0.1");
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -1860,8 +1886,8 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource()).thenReturn("reg_client");
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),any())).thenReturn("0.1");
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -1915,8 +1941,8 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource()).thenReturn("reg_client");
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),any())).thenReturn("0.1");
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -1951,8 +1977,8 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource()).thenReturn("reg_client");
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),any())).thenReturn("0.1");
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -2002,8 +2028,8 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource()).thenReturn("reg_client");
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),any())).thenReturn("0.1");
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 

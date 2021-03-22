@@ -69,11 +69,11 @@ public class AuditUtility {
 	 *
 	 */
 	@Async
-	public void saveAuditDetails(String registrationId,String source, String process) {
+	public void saveAuditDetails(String registrationId, String process) {
 		try {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", "AuditUtility::saveAuditDetails()::entry");
-			List<FieldResponseDto> audits = packetManagerService.getAudits(registrationId, source, process);
+			List<FieldResponseDto> audits = packetManagerService.getAudits(registrationId, process);
 			if (CollectionUtils.isNotEmpty(audits)) {
 				audits.parallelStream().forEach(audit -> {
 					AsyncRequestDTO request = buildRequest(audit);

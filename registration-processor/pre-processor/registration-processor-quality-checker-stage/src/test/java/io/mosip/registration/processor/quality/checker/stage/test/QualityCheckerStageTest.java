@@ -13,6 +13,7 @@ import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.abstractverticle.EventDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -20,6 +21,7 @@ import io.mosip.registration.processor.core.exception.ApisResourceAccessExceptio
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.quality.checker.stage.QualityCheckerStage;
@@ -27,6 +29,8 @@ import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequest
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
@@ -89,7 +93,29 @@ public class QualityCheckerStageTest {
 		public MosipEventBus getEventBus(Object verticleName, String url, int instanceNumber) {
 			vertx = Vertx.vertx();
 
-			return new MosipEventBus(vertx) {
+			return new MosipEventBus() {
+
+				@Override
+				public Vertx getEventbus() {
+					return vertx;
+				}
+
+				@Override
+				public void consume(MessageBusAddress fromAddress,
+						EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> eventHandler) {
+
+				}
+
+				@Override
+				public void consumeAndSend(MessageBusAddress fromAddress, MessageBusAddress toAddress,
+						EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> eventHandler) {
+
+				}
+
+				@Override
+				public void send(MessageBusAddress toAddress, MessageDTO message) {
+
+				}
 			};
 		}
 
@@ -184,14 +210,14 @@ public class QualityCheckerStageTest {
 
 		BiometricRecord biometricRecord = new BiometricRecord();
 		biometricRecord.setSegments(birTypeList);
-		when(packetManagerService.getBiometrics(any(),any(),any(),any(),any())).thenReturn(biometricRecord);
-		when(packetManagerService.getField(any(), any(), any(), any())).thenReturn("individualBiometrics");
+		when(packetManagerService.getBiometrics(any(),any(),any(),any())).thenReturn(biometricRecord);
+		when(packetManagerService.getFieldByKey(any(), any(), any())).thenReturn("individualBiometrics");
 
 		File file = new File(classLoader.getResource("RegistrationProcessorIdentity.json").getFile());
 		InputStream inputStream = new FileInputStream(file);
 		String mappingJson = IOUtils.toString(inputStream);
 		JSONObject mappingJSONObject = JsonUtil.objectMapperReadValue(mappingJson, JSONObject.class);
-		Mockito.when(utility.getRegistrationProcessorMappingJson()).thenReturn(JsonUtil.getJSONObject(mappingJSONObject, "identity"));
+		Mockito.when(utility.getRegistrationProcessorMappingJson(anyString())).thenReturn(JsonUtil.getJSONObject(mappingJSONObject, "identity"));
 	}
 
 	@Test
@@ -258,7 +284,7 @@ public class QualityCheckerStageTest {
 
 		BiometricRecord biometricRecord = new BiometricRecord();
 		biometricRecord.setSegments(birTypeList);
-		when(packetManagerService.getBiometrics(any(),any(),any(),any(),any())).thenReturn(null).thenReturn(biometricRecord);
+		when(packetManagerService.getBiometrics(any(),any(),any(),any())).thenReturn(null).thenReturn(biometricRecord);
 
 
 
@@ -279,7 +305,7 @@ public class QualityCheckerStageTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testException() throws Exception {
-		when(packetManagerService.getBiometrics(any(),any(),any(),any(),any())).thenThrow(new PacketManagerException("code","message"));
+		when(packetManagerService.getBiometrics(any(),any(),any(),any())).thenThrow(new PacketManagerException("code","message"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO messageDTO = qualityCheckerStage.process(dto);
@@ -288,7 +314,7 @@ public class QualityCheckerStageTest {
 	
 	@Test
 	public void testCbeffNotFound() throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
-		when(packetManagerService.getBiometrics(any(),any(),any(),any(),any())).thenThrow(new IOException("message"));
+		when(packetManagerService.getBiometrics(any(),any(),any(),any())).thenThrow(new IOException("message"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO messageDTO = qualityCheckerStage.process(dto);
@@ -298,7 +324,7 @@ public class QualityCheckerStageTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testApiNotAccessibleTest() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
-		when(packetManagerService.getBiometrics(any(),any(),any(),any(),any())).thenThrow(new ApisResourceAccessException("message"));
+		when(packetManagerService.getBiometrics(any(),any(),any(),any())).thenThrow(new ApisResourceAccessException("message"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO messageDTO = qualityCheckerStage.process(dto);
@@ -372,7 +398,7 @@ public class QualityCheckerStageTest {
 	@Test
 	public void testFileMissing() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
-		when(packetManagerService.getBiometrics(anyString(),anyString(),any(),anyString(),anyString())).thenReturn(null);
+		when(packetManagerService.getBiometrics(anyString(),anyString(),any(),anyString())).thenReturn(null);
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
@@ -384,7 +410,7 @@ public class QualityCheckerStageTest {
 	@Test
 	public void testBioetricFileNotPresentInIdObject() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
 
-		when(packetManagerService.getField(any(), any(), any(), any())).thenReturn(null);
+		when(packetManagerService.getFieldByKey(any(), any(), any())).thenReturn(null);
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
@@ -396,7 +422,7 @@ public class QualityCheckerStageTest {
 	@Test
 	public void testNoBiometricInPacket() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
 
-		when(packetManagerService.getBiometrics(any(),any(),any(),any(),any())).thenReturn(null);
+		when(packetManagerService.getBiometrics(any(),any(),any(),any())).thenReturn(null);
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
@@ -427,7 +453,7 @@ public class QualityCheckerStageTest {
 		birTypeList.add(birType1);
 		BiometricRecord biometricRecord = new BiometricRecord();
 		biometricRecord.setSegments(birTypeList);
-		when(packetManagerService.getBiometrics(any(),any(),any(),any(),any())).thenReturn(biometricRecord);
+		when(packetManagerService.getBiometrics(any(),any(),any(),any())).thenReturn(biometricRecord);
 
 
 
@@ -440,7 +466,7 @@ public class QualityCheckerStageTest {
 
 	@Test
 	public void testJsonProcessingException() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
-		when(packetManagerService.getBiometrics(any(),any(),any(),any(),any())).thenThrow(new JsonProcessingException("Json exception"));
+		when(packetManagerService.getBiometrics(any(),any(),any(),any())).thenThrow(new JsonProcessingException("Json exception"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO result = qualityCheckerStage.process(dto);

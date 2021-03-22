@@ -164,7 +164,12 @@ public class RegistrationStatusServiceImpl
 				latestTransactionId, registrationStatusDto.getLatestTransactionTypeCode(),
 				"updated registration status record", registrationStatusDto.getLatestTransactionStatusCode(),
 				registrationStatusDto.getStatusComment(), registrationStatusDto.getSubStatusCode());
-		transactionDto.setReferenceId(registrationStatusDto.getRegistrationId());
+		if (registrationStatusDto.getRefId() == null) {
+			transactionDto.setReferenceId(registrationStatusDto.getRegistrationId());
+		} else {
+			transactionDto.setReferenceId(registrationStatusDto.getRefId());
+		}
+
 		transactionDto.setReferenceIdType("updated registration record");
 		transcationStatusService.addRegistrationTransaction(transactionDto);
 
