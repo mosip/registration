@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -132,33 +133,67 @@ public class BaseService {
 	@Autowired
 	private CenterMachineRepository centerMachineRepository;
 	
-	@Value("#{'${mosip.mandatory-languages}'.split('[,]')}")
+	@Value("#{'${mosip.mandatory-languages:}'.split('[,]')}")
 	private List<String> mandatoryLanguages;
 
-	@Value("#{'${mosip.optional-languages}'.split('[,]')}")
+	@Value("#{'${mosip.optional-languages:}'.split('[,]')}")
 	private List<String> optionalLanguages;
 	
-	@Value("${mosip.min-languages.count}")
-	private String minLanguagesCount;
+	@Value("${mosip.min-languages.count:0}")
+	private int minLanguagesCount;
 
-	@Value("${mosip.max-languages.count}")
-	private String maxLanguagesCount;
+	@Value("${mosip.max-languages.count:0}")
+	private int maxLanguagesCount;
 
 	public List<String> getMandatoryLanguages() {
-		return mandatoryLanguages.stream().filter(item-> !item.isEmpty()).collect(Collectors.toList());
+		return mandatoryLanguages.stream()
+				.filter(item-> !item.isBlank())
+				.map(String::strip)
+				.map(String::toLowerCase)
+				.distinct()
+				.collect(Collectors.toList());
 	}
 
-	public List<String> getOptionalLanguages() {
-		return optionalLanguages.stream().filter(item-> !item.isEmpty()).collect(Collectors.toList());
+	public List<String> getOptionalLanguages() throws PreConditionCheckException {
+		List<String> mandatoryLang = getMandatoryLanguages();
+		List<String> optionalLang = optionalLanguages.stream()
+				.filter(item-> !item.isBlank())
+				.map(String::strip)
+				.map(String::toLowerCase)
+				.distinct()
+				.collect(Collectors.toList());
+
+		if(mandatoryLang.isEmpty() && optionalLang.isEmpty()) {
+			LOGGER.error("BOTH MANDATORY AND OPTIONAL LANGUAGES ARE EMPTY");
+			throw new PreConditionCheckException(PreConditionChecks.INVALID_LANG_CONFIG.name(),
+					"BOTH MANDATORY AND OPTIONAL LANGUAGES ARE EMPTY");
+		}
+
+		return ListUtils.subtract(optionalLang, mandatoryLang);
 	}
 
-	public String getMinLanguagesCount() {
-		return minLanguagesCount;
+	public int getMinLanguagesCount() {
+		List<String> mandatoryLang = getMandatoryLanguages();
+
+		return  ( minLanguagesCount <=0 ) ?
+						//min-count is 0 / less than 0, then set to mandatory list size
+							( mandatoryLang.size() > 0 ?  mandatoryLang.size()  : 1 )
+						//if min-count is greater than 0,
+							// check if its greater than mandatory list size then set it back to mandatory list size
+							: (minLanguagesCount < mandatoryLang.size() ? mandatoryLang.size() : minLanguagesCount);
 	}
 
-	public String getMaxLanguagesCount() {
-		return maxLanguagesCount;
+	public int getMaxLanguagesCount() throws PreConditionCheckException {
+		List<String> mandatoryLang = getMandatoryLanguages();
+		List<String> optionalLang = getOptionalLanguages();
+		int minCount = getMinLanguagesCount();
+		int idealMaxCount = mandatoryLang.size() + optionalLang.size();
+
+		//max-count is (0 / less than 0) OR ( greater than mandatory + optional size), set to mandatory + optional size
+		return maxLanguagesCount <= 0 || maxLanguagesCount > idealMaxCount ? idealMaxCount :
+				maxLanguagesCount < minCount ? minCount : maxLanguagesCount;
 	}
+
 
 	/**
 	 * create success response.

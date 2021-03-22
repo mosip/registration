@@ -11,7 +11,10 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
+import io.mosip.registration.dto.mastersync.GenericDto;
+import io.mosip.registration.exception.PreConditionCheckException;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -19,7 +22,6 @@ import org.springframework.stereotype.Controller;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
-import io.mosip.registration.constants.ApplicationLanguages;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.ApplicationContext;
@@ -63,8 +65,6 @@ public class LanguageSelectionController extends BaseController implements Initi
 
 	private String action;
 
-	private List<String> mandatoryLangCodes = new ArrayList<>();
-
 	private List<String> selectedLanguages = new ArrayList<>();
 
 	@Autowired
@@ -86,61 +86,57 @@ public class LanguageSelectionController extends BaseController implements Initi
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
-		List<String> langCodes = getConfiguredLangCodes();
-
 		ResourceBundle resourceBundle = applicationContext.getBundle(ApplicationContext.applicationLanguage(),
 				RegistrationConstants.LABELS);
-		
-		String minLangCount = baseService.getMinLanguagesCount();
-		String maxLangCount = baseService.getMaxLanguagesCount();
+		try {
+			List<GenericDto> langCodes = getConfiguredLanguages();
+			List<String> mandatoryLangCodes = baseService.getMandatoryLanguages();
+			int minLangCount = baseService.getMinLanguagesCount();
+			int maxLangCount = baseService.getMaxLanguagesCount();
 
-		String selectLangText = MessageFormat.format(resourceBundle.getString("selectLanguageText"), minLangCount);
-		if (baseService.getMandatoryLanguages() != null && !baseService.getMandatoryLanguages().isEmpty()) {
-			mandatoryLangCodes = baseService.getMandatoryLanguages();
-			String mandatoryLanguages = RegistrationConstants.EMPTY;
-			for (String langCode : mandatoryLangCodes) {
-				mandatoryLanguages = mandatoryLanguages.isBlank() ? ApplicationLanguages.getLanguageByLangCode(langCode)
-						: mandatoryLanguages.concat(RegistrationConstants.COMMA)
-								.concat(ApplicationLanguages.getLanguageByLangCode(langCode));
+			List<GenericDto> mandatoryLanguages = getConfiguredLanguages(baseService.getMandatoryLanguages());
+			String mandatoryLanguagesText = mandatoryLanguages.stream()
+					.map(GenericDto::getName)
+					.collect(Collectors.joining(RegistrationConstants.COMMA));
+
+			String selectLangText = MessageFormat.format(resourceBundle.getString("selectLanguageText"),
+					minLangCount, mandatoryLanguagesText);
+
+			selectLanguageText.setText(selectLangText.concat(RegistrationConstants.NEW_LINE));
+
+			for (GenericDto language : langCodes) {
+				CheckBox checkBox = new CheckBox();
+				checkBox.setId(language.getCode());
+				checkBox.setText(
+						applicationContext.getBundle(language.getCode(), RegistrationConstants.LABELS).getString("language"));
+				checkBox.getStyleClass().add("languageCheckBox");
+				checkBox.selectedProperty().addListener((options, oldValue, newValue) -> {
+					if (newValue) {
+						selectedLanguages.add(checkBox.getId());
+						if (!mandatoryLangCodes.isEmpty() && mandatoryLangCodes.contains(language.getCode())) {
+							errorMessage.setVisible(false);
+						}
+					} else {
+						selectedLanguages.remove(checkBox.getId());
+						if (!mandatoryLangCodes.isEmpty()
+								&& !CollectionUtils.containsAny(selectedLanguages, mandatoryLangCodes)) {
+							errorMessage.setVisible(true);
+						}
+					}
+
+					//check if selected languages are as per the min and max lang count
+					//selected languages should contain all the mandatory languages
+					if (selectedLanguages.size() >= minLangCount && selectedLanguages.size() <= maxLangCount
+							&& (mandatoryLangCodes.isEmpty() || (!mandatoryLangCodes.isEmpty() && selectedLanguages.containsAll(mandatoryLangCodes)))) {
+						submit.setDisable(false);
+					} else {
+						submit.setDisable(true);
+					}
+				});
+				checkBoxesPane.getChildren().add(checkBox);
 			}
-			String mandatoryLanguagesText = MessageFormat.format(resourceBundle.getString("mandatoryLanguage"),
-					mandatoryLanguages);
-			selectLangText = selectLangText.concat(RegistrationConstants.NEW_LINE).concat(mandatoryLanguagesText);
-		}
-		selectLanguageText.setText(selectLangText);
-
-		if (!mandatoryLangCodes.isEmpty()) {
-			errorMessage.setVisible(true);
-			errorMessage.setText(resourceBundle.getString("selectLangError"));
-		}
-		for (String langCode : langCodes) {
-			CheckBox checkBox = new CheckBox();
-			checkBox.setId(langCode);
-			checkBox.setText(
-					applicationContext.getBundle(langCode, RegistrationConstants.LABELS).getString("language"));
-			checkBox.getStyleClass().add("languageCheckBox");
-			checkBox.selectedProperty().addListener((options, oldValue, newValue) -> {
-				if (newValue) {
-					selectedLanguages.add(checkBox.getId());
-					if (!mandatoryLangCodes.isEmpty() && mandatoryLangCodes.contains(langCode)) {
-						errorMessage.setVisible(false);
-					}
-				} else {
-					selectedLanguages.remove(checkBox.getId());
-					if (!mandatoryLangCodes.isEmpty()
-							&& !CollectionUtils.containsAny(selectedLanguages, mandatoryLangCodes)) {
-						errorMessage.setVisible(true);
-					}
-				}
-				if (selectedLanguages.size() >= Integer.valueOf(minLangCount)
-						&& selectedLanguages.size() <= Integer.valueOf(maxLangCount)
-						&& (mandatoryLangCodes.isEmpty() || (!mandatoryLangCodes.isEmpty() && CollectionUtils.containsAny(selectedLanguages, mandatoryLangCodes)))) {
-					submit.setDisable(false);
-				} else {
-					submit.setDisable(true);
-				}
-			});
-			checkBoxesPane.getChildren().add(checkBox);
+		} catch (PreConditionCheckException e) {
+			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_SCAN_POPUP);
 		}
 	}
 
@@ -214,6 +210,11 @@ public class LanguageSelectionController extends BaseController implements Initi
 
 	protected CheckBox getCheckBox(String id) {
 		return (CheckBox) checkBoxesPane.lookup(RegistrationConstants.HASH + id);
+	}
+
+	public void submitLanguagesAndProceed(List<String> langCodes) {
+		registrationController.setSelectedLangList(langCodes);
+		goToNextPage();
 	}
 
 }

@@ -17,6 +17,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ResourceBundle;
 
+import io.mosip.registration.exception.PreConditionCheckException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -885,11 +886,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 	}
 
 	public void viewDashBoard() {
-		if (isPrimaryOrSecondaryLanguageEmpty()) {
-			generateAlert(RegistrationConstants.ERROR,
-					RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);
-			return;
-		}
+
 		LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID, "Loading dashboard screen sarted.");
 
 		try {
@@ -1040,8 +1037,22 @@ public class PacketHandlerController extends BaseController implements Initializ
 			} else if (((GridPane) event.getSource()).equals(lostUINPane)) {
 				action = RegistrationConstants.LOST_UIN_FLOW;
 			}
-			getStage().getScene().getRoot().setDisable(true);
-			languageSelectionController.init(action);
+
+			try {
+				if(isLanguageSelectionRequired()) {
+					getStage().getScene().getRoot().setDisable(true);
+					languageSelectionController.init(action);
+				}
+				else {
+					languageSelectionController.submitLanguagesAndProceed(baseService.getMandatoryLanguages());
+				}
+			} catch (PreConditionCheckException e) {
+				generateAlert(RegistrationConstants.ERROR, e.getErrorCode());
+			}
 		}
+	}
+
+	private boolean isLanguageSelectionRequired() throws PreConditionCheckException {
+		return ( baseService.getMinLanguagesCount() >= 1 && baseService.getMaxLanguagesCount() > 1 );
 	}
 }

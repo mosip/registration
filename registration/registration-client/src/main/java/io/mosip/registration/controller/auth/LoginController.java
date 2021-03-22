@@ -10,11 +10,11 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ResourceBundle;
-import java.util.Set;
+import java.util.*;
 
+import io.mosip.registration.controller.FXUtils;
+import io.mosip.registration.dto.mastersync.GenericDto;
+import io.mosip.registration.exception.PreConditionCheckException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
@@ -22,7 +22,6 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.config.AppConfig;
-import io.mosip.registration.constants.ApplicationLanguages;
 import io.mosip.registration.constants.AuditEvent;
 import io.mosip.registration.constants.AuditReferenceIdTypes;
 import io.mosip.registration.constants.Components;
@@ -204,7 +203,7 @@ public class LoginController extends BaseController implements Initializable {
 	private Label versionValueLabel;
 
 	@FXML
-	private ComboBox<String> appLanguage;
+	private ComboBox<GenericDto> appLanguage;
 
 	@Autowired
 	private MosipDeviceSpecificationFactory deviceSpecificationFactory;
@@ -235,19 +234,32 @@ public class LoginController extends BaseController implements Initializable {
 		}).start();
 
 		try {
-			appLanguage.getItems().addAll(getConfiguredLanguages());
-			appLanguage.getSelectionModel()
-					.select(ApplicationLanguages.getLanguageByLangCode(ApplicationContext.applicationLanguage()));
+			List<GenericDto> languages = getConfiguredLanguages();
+			appLanguage.getItems().addAll(languages);
+			appLanguage.setConverter(FXUtils.getInstance().getStringConverterForComboBox());
+			Optional<GenericDto> selectedLang = languages.stream().filter( l ->
+					ApplicationContext.getInstance().getApplicationLanguage() != null &&
+							ApplicationContext.getInstance().getApplicationLanguage().equals(l.getCode())).findFirst();
+
+			if(!selectedLang.isPresent()) {
+				LOGGER.info("No Language is set in applicationContext, Default selection : {}", languages.get(0));
+				appLanguage.getSelectionModel().select(languages.get(0));
+			}
+
+			if(languages.size() == 1) {
+				appLanguage.setVisible(false);
+			}
 
 			appLanguage.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
-				if (!oldValue.equalsIgnoreCase(newValue)) {
+				if (newValue != null &&
+						!ApplicationContext.getInstance().getApplicationLanguage().equals(newValue.getCode())) {
 					userName = userId.getText();
-					ApplicationContext.getInstance()
-							.setApplicationLanguage(ApplicationLanguages.getLangCodeByLanguage(newValue));
+					ApplicationContext.getInstance().setApplicationLanguage(newValue.getCode());
 					RegistrationUIConstants.setBundle();
 					loadInitialScreen(getStage());
 				}
 			});
+
 			isInitialSetUp = RegistrationConstants.ENABLE
 					.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.INITIAL_SETUP));
 
@@ -289,18 +301,14 @@ public class LoginController extends BaseController implements Initializable {
 
 		/* Save Global Param Values in Application Context's application map */
 		getGlobalParams();
-
-		/*
-		 * if the primary or secondary language is not set , the application should show
-		 * err msg
-		 */
-		//TODO - remove these setters and initialize them from applicationMap
-		applicationContext.setMandatoryLanguages(baseService.getMandatoryLanguages());
-		applicationContext.setOptionalLanguages(baseService.getOptionalLanguages());
-		
-		ApplicationContext.loadResources();
 		
 		try {
+			//TODO - remove these setters and initialize them from applicationMap
+			applicationContext.setMandatoryLanguages(baseService.getMandatoryLanguages());
+			applicationContext.setOptionalLanguages(baseService.getOptionalLanguages());
+
+			ApplicationContext.loadResources();
+
 			LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID, "Retrieve Login mode");
 
 			showUserNameScreen(primaryStage);
@@ -326,17 +334,8 @@ public class LoginController extends BaseController implements Initializable {
 
 			}
 
-		} catch (IOException ioException) {
-
-			LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
-					ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
-
-			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN);
-		} catch (RuntimeException runtimeException) {
-
-			LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
-					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
-
+		} catch (IOException | RuntimeException | PreConditionCheckException exception) {
+			LOGGER.error("Failed to load screen", exception);
 			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN);
 		}
 	}

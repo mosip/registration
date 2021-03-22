@@ -110,7 +110,9 @@ public class ApplicationContext {
                         .collect(Collectors.toList());
 
 				if (null != langList && !langList.isEmpty()) {
+					//choosing first language in the concatenated list as default application language
 					setApplicationLanguage(langList.stream().filter(langCode -> !langCode.isBlank()).findFirst().get());
+
 					for (String langCode : langList) {
 						if (!langCode.isBlank()) {
 							String labelLangCodeKey = String.format("%s_%s", langCode, RegistrationConstants.LABELS);
