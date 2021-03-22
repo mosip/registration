@@ -428,8 +428,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 	private void displayBiometric(Modality modality) {
 		LOGGER.info("Displaying biometrics to capture for {}", modality);
 
-		applicationLabelBundle = applicationLabelBundle = applicationContext
-				.getBundle(applicationContext.getApplicationLanguage(), RegistrationConstants.LABELS);
+		applicationLabelBundle = applicationContext.getBundle(applicationContext.getApplicationLanguage(), RegistrationConstants.LABELS);
 
 		retryBox.setVisible(true);
 		biometricBox.setVisible(true);
@@ -1412,7 +1411,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 		}
 	}
 
-	public void clearRetryAttemptsBox() {
+	/*public void clearRetryAttemptsBox() {
 
 		int attempt = 1;
 		boolean retryBoxFound = bioRetryBox.lookup(RegistrationConstants.RETRY_ATTEMPT + attempt) != null;
@@ -1425,7 +1424,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 			retryBoxFound = bioRetryBox.lookup(RegistrationConstants.RETRY_ATTEMPT + attempt) != null;
 
 		}
-	}
+	}*/
 
 	/**
 	 * Clear captured data
@@ -1693,7 +1692,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 		return qualityScore;
 	}
 
-	public void clearBioCaptureInfo() {
+	/*public void clearBioCaptureInfo() {
 
 		BIO_SCORES.clear();
 		STREAM_IMAGES.clear();
@@ -1725,7 +1724,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 	private List<String> getListOfBiometricSubTypes() {
 		//return new ArrayList<String>(currentMap.keySet());
 		return new ArrayList<String>();
-	}
+	}*/
 
 	private boolean identifyInLocalGallery(List<BiometricsDto> biometrics, String modality) {
 		BiometricType biometricType = BiometricType.fromValue(modality);
