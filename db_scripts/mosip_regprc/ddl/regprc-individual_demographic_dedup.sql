@@ -10,6 +10,7 @@
 -- ------------------------------------------------------------------------------------------
 -- 11-Nov-2019           Sadanandegowda DM   Added columns for lost UIN requirements 
 -- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
+-- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes for 1.1.5
 -- ------------------------------------------------------------------------------------------
 
 -- object: regprc.individual_demographic_dedup | type: TABLE --
@@ -28,7 +29,7 @@ CREATE TABLE regprc.individual_demographic_dedup(
 	cr_dtimes timestamp NOT NULL,
 	upd_by character varying(256),
 	upd_dtimes timestamp,
-	is_deleted boolean NOT NULL DEFAULT FALSE,
+	is_deleted boolean DEFAULT FALSE,
 	del_dtimes timestamp,
 	CONSTRAINT pk_idemogd_id PRIMARY KEY (reg_id,lang_code)
 
