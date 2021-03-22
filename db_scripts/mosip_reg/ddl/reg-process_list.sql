@@ -9,6 +9,7 @@
 -- Modified Date        Modified By         Comments / Remarks
 -- ------------------------------------------------------------------------------------------
 -- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
+-- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes for 1.1.5
 -- ------------------------------------------------------------------------------------------
 
 -- object: reg.process_list | type: TABLE --
@@ -23,7 +24,7 @@ CREATE TABLE reg.process_list(
 	cr_dtimes timestamp NOT NULL,
 	upd_by character varying(256),
 	upd_dtimes timestamp,
-	is_deleted boolean NOT NULL DEFAULT FALSE,
+	is_deleted boolean DEFAULT FALSE,
 	del_dtimes timestamp,
 	CONSTRAINT pk_prclst_id PRIMARY KEY (id,lang_code)
 

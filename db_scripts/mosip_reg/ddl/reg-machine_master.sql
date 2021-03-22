@@ -10,6 +10,7 @@
 -- ------------------------------------------------------------------------------------------
 -- 07-Apr-2020          Sadanandegowda      Column constraints and data type change
 -- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
+-- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes for 1.1.5
 -- ------------------------------------------------------------------------------------------
 
 -- NOTE: the code below contains the SQL for the selected object
@@ -42,7 +43,7 @@ CREATE TABLE reg.machine_master(
 	cr_dtimes timestamp NOT NULL,
 	upd_by character varying(256),
 	upd_dtimes timestamp,
-	is_deleted boolean NOT NULL DEFAULT FALSE,
+	is_deleted boolean DEFAULT FALSE,
 	del_dtimes timestamp,
 	CONSTRAINT pk_machm_id PRIMARY KEY (id,lang_code)
 
