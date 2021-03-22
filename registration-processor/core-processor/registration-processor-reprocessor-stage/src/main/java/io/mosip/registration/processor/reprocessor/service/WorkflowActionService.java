@@ -15,6 +15,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
+import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
@@ -154,6 +155,9 @@ public class WorkflowActionService {
                try {
 
 				InternalRegistrationStatusDto registrationStatusDto = getRegistrationStatus(rid);
+				if (registrationStatusDto == null) {
+					description.setMessage(PlatformErrorMessages.RPR_WAS_WORKFLOW_ID_NOT_FOUND.getMessage());
+				} else {
 				if (registrationStatusDto.getStatusCode().equalsIgnoreCase(RegistrationStatusCode.PAUSED.name())) {
 					registrationStatusDto = updateRegistrationStatus(registrationStatusDto,
 							RegistrationStatusCode.REJECTED,
@@ -166,17 +170,21 @@ public class WorkflowActionService {
 
 				} else {
 					description.setMessage(PlatformErrorMessages.RPR_WAS_NOT_PAUSED.getMessage());
+					}
 				}
-
 
 			} catch (TablenotAccessibleException e) {
 				logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
 			}
-			catch (WorkflowActionException | WebSubClientException e) {
+			catch (WorkflowActionException e) {
 
 					logAndThrowError(e, ((BaseCheckedException) e).getErrorCode(), ((BaseCheckedException) e).getMessage(),
 						rid, description);
 
+			} catch (WebSubClientException e) {
+				logAndThrowError(e, ((BaseUncheckedException) e).getErrorCode(),
+						((BaseUncheckedException) e).getMessage(),
+						rid, description);
 			} catch (Exception e) {
 					logAndThrowError(e, PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getCode(),
 							PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getMessage(), rid, description);
@@ -232,13 +240,19 @@ public class WorkflowActionService {
 
 				removeHotlistedTag(rid);
 				InternalRegistrationStatusDto registrationStatusDto = getRegistrationStatus(rid);
+				if (registrationStatusDto == null) {
+					description.setMessage(PlatformErrorMessages.RPR_WAS_WORKFLOW_ID_NOT_FOUND.getMessage());
+				} else {
 				if (registrationStatusDto.getStatusCode().equalsIgnoreCase(RegistrationStatusCode.PAUSED.name())) {
-					registrationStatusDto = updateRegistrationStatus(registrationStatusDto,
-							RegistrationStatusCode.PROCESSING,
-							workflowActionCode);
-					if (RegistrationStatusCode.REPROCESS_FAILED.name().equals(registrationStatusDto.getStatusCode())) {
+
+						if (RegistrationTransactionStatusCode.REPROCESS_FAILED.name()
+								.equals(registrationStatusDto.getLatestTransactionStatusCode())) {
+							registrationStatusDto = updateRegistrationStatus(registrationStatusDto,
+									RegistrationStatusCode.REPROCESS_FAILED, workflowActionCode);
 						description.setMessage(PlatformErrorMessages.RPR_WAS_REPROCESS_FAILED.getMessage());
 					} else {
+							registrationStatusDto = updateRegistrationStatus(registrationStatusDto,
+									RegistrationStatusCode.PROCESSING, workflowActionCode);
 						sendPacketEventforResumeBeginning(registrationStatusDto);
 						description.setMessage(
 								String.format(PlatformSuccessMessages.RPR_WORKFLOW_ACTION_SERVICE_SUCCESS.getMessage(),
@@ -248,8 +262,8 @@ public class WorkflowActionService {
 
 				} else {
 					description.setMessage(PlatformErrorMessages.RPR_WAS_NOT_PAUSED.getMessage());
+					}
 				}
-
 
 			} catch (TablenotAccessibleException e) {
 				logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
@@ -264,10 +278,10 @@ public class WorkflowActionService {
 							PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), rid, description);
 
 			} catch (Exception e) {
-					logAndThrowError(e, PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getCode(),
-							PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getMessage(), rid, description);
+				logAndThrowError(e, PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getCode(),
+						PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getMessage(), rid, description);
 
-				} finally {
+			} finally {
 				regProcLogger.debug("WorkflowActionService status for registration id {} {}", rid,
 							description.getMessage());
 					updateAudit(description, rid, isTransactionSuccessful);
@@ -297,12 +311,20 @@ public class WorkflowActionService {
 			for (String rid : workflowIds) {
 				try {
 				InternalRegistrationStatusDto registrationStatusDto = getRegistrationStatus(rid);
+				if (registrationStatusDto == null) {
+					description.setMessage(
+							PlatformErrorMessages.RPR_WAS_WORKFLOW_ID_NOT_FOUND.getMessage());
+				} else {
 				if (registrationStatusDto.getStatusCode().equalsIgnoreCase(RegistrationStatusCode.PAUSED.name())) {
-					registrationStatusDto = updateRegistrationStatus(registrationStatusDto,
-							RegistrationStatusCode.PROCESSING, workflowActionCode);
-					if (RegistrationStatusCode.REPROCESS_FAILED.name().equals(registrationStatusDto.getStatusCode())) {
+
+					if (RegistrationTransactionStatusCode.REPROCESS_FAILED.name()
+							.equals(registrationStatusDto.getLatestTransactionStatusCode())) {
+						registrationStatusDto = updateRegistrationStatus(registrationStatusDto,
+								RegistrationStatusCode.REPROCESS_FAILED, workflowActionCode);
 						description.setMessage(PlatformErrorMessages.RPR_WAS_REPROCESS_FAILED.getMessage());
 					} else {
+						registrationStatusDto = updateRegistrationStatus(registrationStatusDto,
+								RegistrationStatusCode.PROCESSING, workflowActionCode);
 						sendPacketEventforResumeBeginning(registrationStatusDto);
 						description.setMessage(
 								String.format(PlatformSuccessMessages.RPR_WORKFLOW_ACTION_SERVICE_SUCCESS.getMessage(),
@@ -312,8 +334,8 @@ public class WorkflowActionService {
 
 				} else {
 					description.setMessage(PlatformErrorMessages.RPR_WAS_NOT_PAUSED.getMessage());
+					}
 				}
-				
 			} catch (TablenotAccessibleException e) {
 				logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
 			} catch (WorkflowActionException e) {
@@ -359,21 +381,29 @@ public class WorkflowActionService {
 				removeHotlistedTag(rid);
 
 				InternalRegistrationStatusDto registrationStatusDto = getRegistrationStatus(rid);
+				if (registrationStatusDto == null) {
+					description.setMessage(PlatformErrorMessages.RPR_WAS_WORKFLOW_ID_NOT_FOUND.getMessage());
+				} else {
 				if (registrationStatusDto.getStatusCode().equalsIgnoreCase(RegistrationStatusCode.PAUSED.name())) {
-					registrationStatusDto = updateRegistrationStatus(registrationStatusDto,
-							RegistrationStatusCode.PROCESSING, workflowActionCode);
-					if (RegistrationStatusCode.REPROCESS_FAILED.name().equals(registrationStatusDto.getStatusCode())) {
-						description.setMessage(PlatformErrorMessages.RPR_WAS_REPROCESS_FAILED.getMessage());
+
+						if (RegistrationTransactionStatusCode.REPROCESS_FAILED.name()
+								.equals(registrationStatusDto.getLatestTransactionStatusCode())) {
+							registrationStatusDto = updateRegistrationStatus(registrationStatusDto,
+									RegistrationStatusCode.REPROCESS_FAILED, workflowActionCode);
+							description.setMessage(PlatformErrorMessages.RPR_WAS_REPROCESS_FAILED.getMessage());
 					} else {
-						sendPacketEventForResumeProcessing(registrationStatusDto);
-						description.setMessage(
+							registrationStatusDto = updateRegistrationStatus(registrationStatusDto,
+									RegistrationStatusCode.PROCESSING, workflowActionCode);
+							sendPacketEventForResumeProcessing(registrationStatusDto);
+							description.setMessage(
 								String.format(PlatformSuccessMessages.RPR_WORKFLOW_ACTION_SERVICE_SUCCESS.getMessage(),
 										workflowActionCode.name()));
-						isTransactionSuccessful = true;
+							isTransactionSuccessful = true;
 					}
 
 				} else {
 					description.setMessage(PlatformErrorMessages.RPR_WAS_NOT_PAUSED.getMessage());
+					}
 				}
 			} catch (ApisResourceAccessException | PacketManagerException
 					| JsonProcessingException | WorkflowActionException e) {
@@ -421,23 +451,30 @@ public class WorkflowActionService {
 				try {
 
 				InternalRegistrationStatusDto registrationStatusDto = getRegistrationStatus(rid);
+				if (registrationStatusDto == null) {
+					description.setMessage(PlatformErrorMessages.RPR_WAS_WORKFLOW_ID_NOT_FOUND.getMessage());
+				} else {
 				if (registrationStatusDto.getStatusCode().equalsIgnoreCase(RegistrationStatusCode.PAUSED.name())) {
-					registrationStatusDto = updateRegistrationStatus(registrationStatusDto,
-							RegistrationStatusCode.PROCESSING, workflowActionCode);
-					if (RegistrationStatusCode.REPROCESS_FAILED.name().equals(registrationStatusDto.getStatusCode())) {
-					description.setMessage(PlatformErrorMessages.RPR_WAS_REPROCESS_FAILED.getMessage());
+
+						if (RegistrationTransactionStatusCode.REPROCESS_FAILED.name()
+								.equals(registrationStatusDto.getLatestTransactionStatusCode())) {
+							registrationStatusDto = updateRegistrationStatus(registrationStatusDto,
+									RegistrationStatusCode.REPROCESS_FAILED, workflowActionCode);
+							description.setMessage(PlatformErrorMessages.RPR_WAS_REPROCESS_FAILED.getMessage());
 					} else {
-						sendPacketEventForResumeProcessing(registrationStatusDto);
-						description.setMessage(
-						String.format(PlatformSuccessMessages.RPR_WORKFLOW_ACTION_SERVICE_SUCCESS.getMessage(),
+							registrationStatusDto = updateRegistrationStatus(registrationStatusDto,
+									RegistrationStatusCode.PROCESSING, workflowActionCode);
+							sendPacketEventForResumeProcessing(registrationStatusDto);
+							description.setMessage(String.format(
+									PlatformSuccessMessages.RPR_WORKFLOW_ACTION_SERVICE_SUCCESS.getMessage(),
 								workflowActionCode.name()));
-					isTransactionSuccessful = true;
+							isTransactionSuccessful = true;
 					}
 
 				} else {
 					description.setMessage(PlatformErrorMessages.RPR_WAS_NOT_PAUSED.getMessage());
+					}
 				}
-
 			} catch (TablenotAccessibleException e) {
 				logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
 			} catch (WorkflowActionException e) {
@@ -614,24 +651,12 @@ public class WorkflowActionService {
 
 	private InternalRegistrationStatusDto getRegistrationStatus(String rid) throws WorkflowActionException {
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(rid);
-		if(registrationStatusDto==null) {
-			throw new WorkflowActionException(
-					PlatformErrorMessages.RPR_WAS_WORKFLOW_ID_NOT_FOUND.getCode(),
-					String.format(PlatformErrorMessages.RPR_WAS_WORKFLOW_ID_NOT_FOUND.getMessage(), rid));
-		}
-
 		return registrationStatusDto;
 	}
 
 	private InternalRegistrationStatusDto updateRegistrationStatus(InternalRegistrationStatusDto registrationStatusDto,
 			RegistrationStatusCode statusCode, WorkflowActionCode workflowActionCode) {
-		if (RegistrationStatusCode.PROCESSING.equals(statusCode) && registrationStatusDto
-				.getLatestTransactionStatusCode().equals(RegistrationTransactionStatusCode.REPROCESS_FAILED.name())) {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.REPROCESS_FAILED.name());
-		} else {
-			registrationStatusDto.setStatusCode(statusCode.name());
-		}
-
+		registrationStatusDto.setStatusCode(statusCode.name());
 		registrationStatusDto.setStatusComment(String.format(
 				PlatformSuccessMessages.RPR_WORKFLOW_ACTION_SERVICE_SUCCESS.getMessage(), workflowActionCode.name()));
 

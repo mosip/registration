@@ -95,8 +95,8 @@ public class WorkflowActionServiceTest {
 
 	}
 
-	@Test(expected = WorkflowActionException.class)
-	public void testResumeProcessingWorkflowActionException() throws WorkflowActionException {
+	@Test
+	public void testResumeProcessingWorkflowIdNull() throws WorkflowActionException {
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
 				.thenReturn(null);
 
@@ -149,8 +149,8 @@ public class WorkflowActionServiceTest {
 
 	}
 
-	@Test(expected = WorkflowActionException.class)
-	public void testResumeProcessingAndRemoveHotlistedTagWorkflowActionException() throws WorkflowActionException {
+	@Test
+	public void testResumeProcessingAndRemoveHotlistedTagWorkflowIdNull() throws WorkflowActionException {
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(null);
 		List<String> workflowIds = new ArrayList<String>();
 		workflowIds.add("10003100030001520190422074511");
@@ -167,8 +167,8 @@ public class WorkflowActionServiceTest {
 
 	}
 
-	@Test(expected = WorkflowActionException.class)
-	public void testResumeFromBeginningWorkflowActionException() throws WorkflowActionException {
+	@Test
+	public void testResumeFromBeginningWorkflowIdNull() throws WorkflowActionException {
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(null);
 		List<String> workflowIds = new ArrayList<String>();
 		workflowIds.add("10003100030001520190422074511");
@@ -208,8 +208,8 @@ public class WorkflowActionServiceTest {
 
 	}
 
-	@Test(expected = WorkflowActionException.class)
-	public void testResumeFromBeginningAndRemoveHotlistedTagWorkflowActionException() throws WorkflowActionException {
+	@Test
+	public void testResumeFromBeginningAndRemoveHotlistedTagWorkflowIdNull() throws WorkflowActionException {
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(null);
 		List<String> workflowIds = new ArrayList<String>();
 		workflowIds.add("10003100030001520190422074511");
@@ -238,8 +238,8 @@ public class WorkflowActionServiceTest {
 
 	}
 
-	@Test(expected = WorkflowActionException.class)
-	public void testStopProcessingWorkflowActionException() throws WorkflowActionException {
+	@Test
+	public void testStopProcessingWorkflowIdNull() throws WorkflowActionException {
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(null);
 		List<String> workflowIds = new ArrayList<String>();
 		workflowIds.add("10003100030001520190422074511");

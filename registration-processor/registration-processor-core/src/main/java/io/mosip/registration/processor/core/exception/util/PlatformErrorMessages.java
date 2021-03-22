@@ -1196,7 +1196,7 @@ public enum PlatformErrorMessages {
 			"Removing hotlisted tag failed"),
 
 	RPR_WAS_WORKFLOW_ID_NOT_FOUND(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "002",
-			"Workflow id not found in registration table - %s"),
+			"Workflow id not found in registration table"),
 
 	RPR_WAS_UNKNOWN_EXCEPTION(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "003", "Unknown Exception"),
 
