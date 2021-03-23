@@ -28,6 +28,7 @@ import io.mosip.registration.validator.RequiredFieldValidator;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
+import javafx.geometry.Insets;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -179,6 +180,7 @@ public class BiometricFxControl extends FxControl {
 	private GridPane createGridPane() {
 		GridPane gridPane = new GridPane();
 		
+		gridPane.setPadding(new Insets(50, 0, 0, 0));
 		RowConstraints topRowConstraints = new RowConstraints();
 		topRowConstraints.setPercentHeight(5);
 		RowConstraints midRowConstraints = new RowConstraints();
@@ -342,7 +344,7 @@ public class BiometricFxControl extends FxControl {
 		List<HBox> modalityButtons = getModalityButtons();
 		if(modalityButtons.isEmpty()) {
 			this.node.setVisible(false);
-			this.node.setManaged(true);
+			this.node.setManaged(false);
 		}
 		else {
 			Node listingNode = this.node.lookup(RegistrationConstants.HASH+uiSchemaDTO.getId()+"_listing");

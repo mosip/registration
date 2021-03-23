@@ -10,12 +10,12 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.ResourceBundle;
+import java.util.Set;
 
-import io.mosip.registration.controller.FXUtils;
-import io.mosip.registration.dto.mastersync.GenericDto;
-import io.mosip.registration.exception.PreConditionCheckException;
-import javafx.scene.layout.HBox;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
@@ -34,6 +34,7 @@ import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.BaseController;
+import io.mosip.registration.controller.FXUtils;
 import io.mosip.registration.controller.Initialization;
 import io.mosip.registration.controller.device.Streamer;
 import io.mosip.registration.controller.reg.HeaderController;
@@ -43,6 +44,8 @@ import io.mosip.registration.dto.ErrorResponseDTO;
 import io.mosip.registration.dto.LoginUserDTO;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.UserDTO;
+import io.mosip.registration.dto.mastersync.GenericDto;
+import io.mosip.registration.exception.PreConditionCheckException;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.mdm.service.impl.MosipDeviceSpecificationFactory;
@@ -245,10 +248,12 @@ public class LoginController extends BaseController implements Initializable {
 			if(!selectedLang.isPresent()) {
 				LOGGER.info("No Language is set in applicationContext, Default selection : {}", languages.get(0));
 				appLanguage.getSelectionModel().select(languages.get(0));
+			} else {
+				appLanguage.getSelectionModel().select(selectedLang.get());
 			}
 
 			appLanguage.setVisible(languages.size() == 1 ? false : true);
-			appLanguage.setManaged(true);
+			appLanguage.setManaged(languages.size() == 1 ? false : true);
 
 			appLanguage.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
 				if (newValue != null &&
