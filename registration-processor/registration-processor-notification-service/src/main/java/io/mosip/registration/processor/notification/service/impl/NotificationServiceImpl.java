@@ -202,7 +202,7 @@ public class NotificationServiceImpl implements NotificationService {
 					ccEMailList = notificationEmails.split("\\|");
 				}
 
-				 isTransactionSuccessful = sendNotification(id, resultCode,
+				 isTransactionSuccessful = sendNotification(id, workflowType,
 						attributes, ccEMailList, allNotificationTypes, workflowType, messageSenderDto, description);
 
 			}
