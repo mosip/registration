@@ -1,3 +1,4 @@
+
 package io.mosip.registration.processor.camel.bridge.config;
 
 import org.apache.camel.Predicate;
@@ -19,11 +20,13 @@ import io.mosip.registration.processor.camel.bridge.processor.TokenGenerationPro
 @EnableAspectJAutoProxy
 public class CamelBridgeConfig {
 	
-	@Value("${mosip.regproc.camelbridge.pause-settings}")
-	private String settingsString;
-
-	@Value("${mosip.regproc.camelbridge.intercept-hotlisted-key}")
-	private String hotlistedTagKey;
+	/*
+	 * @Value("${mosip.regproc.camelbridge.pause-settings}") private String
+	 * settingsString;
+	 * 
+	 * @Value("${mosip.regproc.camelbridge.intercept-hotlisted-key}") private String
+	 * hotlistedTagKey;
+	 */
 	
 	@Bean
 	public MosipBridgeFactory getMosipBridgeFactory() {
@@ -43,7 +46,7 @@ public class CamelBridgeConfig {
 	
 	@Bean
 	public RoutePredicate routePredicate() {
-		return new RoutePredicate(settingsString,hotlistedTagKey);
+		return new RoutePredicate();
 	}
 	
 	@Bean

@@ -3,8 +3,12 @@ package io.mosip.registration.processor.camel.bridge.intercepter;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.camel.Exchange;
 import org.apache.camel.Predicate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -25,22 +29,40 @@ public class RoutePredicate implements Predicate {
 
 	private static final Logger LOGGER = RegProcessorLogger.getLogger(RouteIntercepter.class);
 
-	private String hotlistedTagKey;
 
+	@Autowired
 	private ObjectMapper objectMapper;
 
 	Setting[] settings = null;
+	
+	@Value("${mosip.regproc.camelbridge.pause-settings}")
+	private String settingsString;
 
-	public RoutePredicate(final String settingsString, final String hotlistedTagKey) {
+	@Value("${mosip.regproc.camelbridge.intercept-hotlisted-key}")
+	private String hotlistedTagKey;
 
-		this.hotlistedTagKey = hotlistedTagKey;
-		objectMapper = new ObjectMapper();
+	/*
+	 * public RoutePredicate(final String settingsString, final String
+	 * hotlistedTagKey) {
+	 * 
+	 * this.hotlistedTagKey = hotlistedTagKey; objectMapper = new ObjectMapper();
+	 * try { settings = objectMapper.readValue(settingsString, Setting[].class); }
+	 * catch (IOException e) { LOGGER.error(LoggerFileConstant.SESSIONID.toString(),
+	 * LoggerFileConstant.USERID.toString(), "", "RoutePredicate::exception " +
+	 * e.getMessage()); } }
+	 */
+	
+	@PostConstruct
+	private void init() {
+		//this.hotlistedTagKey = hotlistedTagKey;
+		//objectMapper = new ObjectMapper();
 		try {
 			settings = objectMapper.readValue(settingsString, Setting[].class);
 		} catch (IOException e) {
 			LOGGER.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 					"RoutePredicate::exception " + e.getMessage());
 		}
+
 	}
 
 	@Override

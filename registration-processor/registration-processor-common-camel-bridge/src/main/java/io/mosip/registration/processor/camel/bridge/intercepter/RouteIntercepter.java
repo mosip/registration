@@ -3,7 +3,6 @@ package io.mosip.registration.processor.camel.bridge.intercepter;
 import java.util.List;
 
 import org.apache.camel.CamelContext;
-import org.apache.camel.Predicate;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
 import org.apache.camel.model.RouteDefinition;
 import org.springframework.beans.factory.annotation.Autowired;
