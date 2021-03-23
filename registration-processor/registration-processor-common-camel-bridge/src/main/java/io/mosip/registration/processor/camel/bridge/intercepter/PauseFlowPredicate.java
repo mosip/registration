@@ -82,12 +82,9 @@ public class PauseFlowPredicate implements Predicate {
 					LOGGER.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 							"RoutePredicate::matches()::exception " + e.getMessage());
 				}
-				break;
-			} else {
-				return false;
-			}
-		}
-		return true;
+				return true;
+			} 		}
+		return false;
 	}
 
 }
