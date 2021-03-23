@@ -1,7 +1,9 @@
 
 package io.mosip.registration.processor.camel.bridge;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -27,12 +29,12 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.registration.processor.camel.bridge.intercepter.RouteIntercepter;
-import io.mosip.registration.processor.camel.bridge.intercepter.RoutePredicate;
+import io.mosip.registration.processor.camel.bridge.intercepter.PauseFlowPredicate;
 import io.mosip.registration.processor.camel.bridge.model.Setting;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 
 @RunWith(PowerMockRunner.class)
@@ -40,22 +42,22 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 @PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*", "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*" })
 
 @AutoConfigureMockMvc
-public class RoutePredicateTest {
+public class PauseFlowPredicateTest {
 
-	private RoutePredicate routePredicate;
+	private PauseFlowPredicate pauseFlowPredicate;
 
 	private ObjectMapper objectMapper;
 
 	private Exchange exchange;
 
-	private static final Logger LOGGER = RegProcessorLogger.getLogger(RoutePredicateTest.class);
+	private static final Logger LOGGER = RegProcessorLogger.getLogger(PauseFlowPredicateTest.class);
 
 	@Before
 	public void setup() {
 		objectMapper = new ObjectMapper();
-		routePredicate = new RoutePredicate();
+		pauseFlowPredicate = new PauseFlowPredicate();
 
-		ReflectionTestUtils.setField(routePredicate, "hotlistedTagKey", "HOTLISTED");
+		ReflectionTestUtils.setField(pauseFlowPredicate, "hotlistedTagKey", "HOTLISTED");
 		Setting[] settings = null;
 		try {
 			settings = objectMapper.readValue(
@@ -65,8 +67,8 @@ public class RoutePredicateTest {
 			LOGGER.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 					"RoutePredicate::exception " + e.getMessage());
 		}
-		ReflectionTestUtils.setField(routePredicate, "settings", settings);
-		ReflectionTestUtils.setField(routePredicate, "objectMapper", objectMapper);
+		ReflectionTestUtils.setField(pauseFlowPredicate, "settings", settings);
+		ReflectionTestUtils.setField(pauseFlowPredicate, "objectMapper", objectMapper);
 		
 		Endpoint endpoint = new DefaultEndpoint() {
 
@@ -107,7 +109,9 @@ public class RoutePredicateTest {
 		tags.put("HOTLISTED", "operator");
 		messageDTO.setTags(tags);
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
-		assertTrue(routePredicate.matches(exchange));
+		assertTrue(pauseFlowPredicate.matches(exchange));
+		JsonObject json = new JsonObject((String) exchange.getMessage().getBody());
+		assertEquals("ResumeFromBeginning", json.getString("defaultResumeAction"));
 
 	}
 
@@ -119,7 +123,7 @@ public class RoutePredicateTest {
 		Map<String, String> tags = new HashMap<>();
 		messageDTO.setTags(tags);
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
-		assertFalse(routePredicate.matches(exchange));
+		assertFalse(pauseFlowPredicate.matches(exchange));
 
 	}
 
@@ -158,7 +162,7 @@ public class RoutePredicateTest {
 		tags.put("HOTLISTED", "operator");
 		messageDTO.setTags(tags);
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
-		assertFalse(routePredicate.matches(exchange));
+		assertFalse(pauseFlowPredicate.matches(exchange));
 
 	}
 
@@ -171,7 +175,7 @@ public class RoutePredicateTest {
 		tags.put("HOTLISTED", "hostlistedwrongtest");
 		messageDTO.setTags(tags);
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
-		assertFalse(routePredicate.matches(exchange));
+		assertFalse(pauseFlowPredicate.matches(exchange));
 
 	}
 

@@ -13,7 +13,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import io.mosip.registration.processor.camel.bridge.MosipBridgeFactory;
 import io.mosip.registration.processor.camel.bridge.intercepter.RouteIntercepter;
-import io.mosip.registration.processor.camel.bridge.intercepter.RoutePredicate;
+import io.mosip.registration.processor.camel.bridge.intercepter.PauseFlowPredicate;
 import io.mosip.registration.processor.camel.bridge.processor.TokenGenerationProcessor;
 
 @Configuration
@@ -37,8 +37,8 @@ public class CamelBridgeConfig {
 	}
 	
 	@Bean
-	public RoutePredicate routePredicate() {
-		return new RoutePredicate();
+	public PauseFlowPredicate pauseFlowPredicate() {
+		return new PauseFlowPredicate();
 	}
 	
 	@Bean

@@ -10,9 +10,7 @@ import org.apache.camel.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -25,9 +23,9 @@ import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.vertx.core.json.JsonObject;
 
-public class RoutePredicate implements Predicate {
+public class PauseFlowPredicate implements Predicate {
 
-	private static final Logger LOGGER = RegProcessorLogger.getLogger(RoutePredicate.class);
+	private static final Logger LOGGER = RegProcessorLogger.getLogger(PauseFlowPredicate.class);
 
 
 	@Autowired
