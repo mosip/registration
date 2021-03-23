@@ -74,7 +74,7 @@ public class PauseFlowPredicate implements Predicate {
 				workflowEventDTO.setRid(json.getString("rid"));
 				workflowEventDTO.setDefaultResumeAction(setting.getDefaultResumeAction());
 				workflowEventDTO.setStatusCode(RegistrationStatusCode.PAUSED.toString());
-				workflowEventDTO.setEventTimestamp(DateUtils.toISOString(DateUtils.getUTCCurrentDateTime()));
+				workflowEventDTO.setEventTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 				workflowEventDTO.setStatusComment(PlatformSuccessMessages.PACKET_PAUSED_HOTLISTED.getMessage());
 				try {
 					exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
@@ -88,6 +88,11 @@ public class PauseFlowPredicate implements Predicate {
 			}
 		}
 		return true;
+	}
+	
+	public static void main(String[] args) {
+		System.out.println(DateUtils
+						.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 	}
 
 }
