@@ -3,6 +3,8 @@ package io.mosip.registration.controller.reg;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -601,6 +603,36 @@ public class Validations extends BaseController {
 	public boolean validateSingleString(String value, String id) {
 		String regex = getRegex(id, RegistrationUIConstants.REGEX_TYPE, null);
 		return regex != null ? value.matches(regex) : true;
+	}
+	
+	/**
+	 * Validate for the single string.
+	 *
+	 * @param value the value to be validated
+	 * @param id    the id of the UI field whose value is provided as input
+	 * @return <code>true</code>, if successful, else <code>false</code>
+	 * @throws ParseException 
+	 */
+	public boolean validateExpiryDate(String value, String id, int minDays, int maxDays) throws ParseException {
+		
+		SimpleDateFormat dateFormat = new SimpleDateFormat(ApplicationContext.getDateFormat());
+		dateFormat.setLenient(false);
+		
+		 Date date = dateFormat.parse(value);
+		 
+		 Calendar inputDate = Calendar.getInstance();
+		 inputDate.setTime(date);
+		 
+		 Calendar currentDateAfterMaxDays = Calendar.getInstance();
+		 currentDateAfterMaxDays.setTime(currentDateAfterMaxDays.getTime());
+		 currentDateAfterMaxDays.add(Calendar.DATE, maxDays);
+		 
+		 Calendar currentDateAfterMinDays = Calendar.getInstance();
+		 currentDateAfterMinDays.setTime(currentDateAfterMinDays.getTime());
+		 currentDateAfterMinDays.add(Calendar.DATE, minDays);
+		 
+		 return !(inputDate.before(currentDateAfterMinDays) || inputDate.after(currentDateAfterMaxDays));
+		 
 	}
 
 	/**

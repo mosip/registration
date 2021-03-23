@@ -413,6 +413,9 @@ public class DemographicDetailController extends BaseController {
 			case RegistrationConstants.DROPDOWN:
 				content = addContentWithComboBoxObject(schemaDTO.getId(), schemaDTO, languageType);
 				break;
+			case RegistrationConstants.DATE:
+				content = addContentForDate(schemaDTO, languageType);
+				break;
 			case RegistrationConstants.AGE_DATE:
 				content = addContentForDobAndAge(schemaDTO, languageType);
 				break;
@@ -467,6 +470,77 @@ public class DemographicDetailController extends BaseController {
 						RegistrationConstants.SECONDARY : RegistrationConstants.PRIMARY));
 		listOfTextField.put(schema.getId() + "__" + type + languageType, textField);
 		return vBoxParent;
+	}
+	
+	private VBox addDateContentTextField(UiSchemaDTO schema, String type, String languageType, String mandatorySuffix) {
+		VBox vBoxParent = new VBox();
+		TextField textField = new TextField();
+		textField.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
+		textField.setId(schema.getId() + "__" + type + languageType);
+		Label label = new Label();
+		label.setVisible(false);
+		label.setId(schema.getId() + "__" + type + languageType + RegistrationConstants.LABEL);
+		label.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
+		vBoxParent.getChildren().addAll(label, textField);
+
+		boolean localLanguage = languageType.equals(RegistrationConstants.LOCAL_LANGUAGE);
+		label.setText(localLanguage ? localLabelBundle.getString(type)
+				: applicationLabelBundle.getString(type) + mandatorySuffix);
+		textField.setPromptText(label.getText());
+
+		textField.textProperty().addListener((ob, ov, nv) -> {
+			fxUtils.showLabel(parentFlowPane, textField);
+			if(!dateValidation.isNewValueValid(nv, type)) {
+				textField.setText(ov);
+			}
+			boolean isValid = dateValidation.validateExpiryOfDate(parentFlowPane, schema.getId(), schema.getMinimum(), schema.getMaximum());
+			if(isValid) {
+				refreshDemographicGroups();
+			}
+		});
+
+		putIntoLabelMap(schema.getId() + "__" + type + languageType,
+				schema.getLabel().get(RegistrationConstants.LOCAL_LANGUAGE.equals(languageType) ?
+						RegistrationConstants.SECONDARY : RegistrationConstants.PRIMARY));
+		listOfTextField.put(schema.getId() + "__" + type + languageType, textField);
+		return vBoxParent;
+	}
+	
+	public VBox addContentForDate(UiSchemaDTO schema, String languageType) {
+		String mandatorySuffix = getMandatorySuffix(schema);
+		//boolean localLanguage = languageType.equals(RegistrationConstants.LOCAL_LANGUAGE);
+		VBox vBoxDD = addDateContentTextField(schema, RegistrationConstants.DD, languageType, mandatorySuffix);
+		VBox vBoxMM = addDateContentTextField(schema, RegistrationConstants.MM, languageType, mandatorySuffix);
+		VBox vBoxYYYY = addDateContentTextField(schema, RegistrationConstants.YYYY, languageType, mandatorySuffix);
+
+		Label dobMessage = new Label();
+		dobMessage.setId(schema.getId() + "__" + RegistrationConstants.DOB_MESSAGE + languageType);
+		dobMessage.getStyleClass().add(RegistrationConstants.DemoGraphicFieldMessageLabel);
+		dobMessage.setText("");
+
+		HBox dateHbox = new HBox();
+		dateHbox.setSpacing(10);
+		dateHbox.setPrefWidth(250);
+		String dateFormat = ApplicationContext.getDateFormat();
+		String[] parts = dateFormat.split("/|-");
+		if(parts.length > 0) {
+			for(String part : parts) {
+				switch (part.toLowerCase()) {
+					case "dd" : dateHbox.getChildren().add(vBoxDD);	break;
+					case "mm": dateHbox.getChildren().add(vBoxMM);	break;
+					case "yyyy": dateHbox.getChildren().add(vBoxYYYY); break;
+				}
+			}
+		}
+		else {
+			dateHbox.getChildren().addAll(vBoxDD, vBoxMM, vBoxYYYY);
+		}
+
+		VBox finalVbox = new VBox();
+		finalVbox.setId(schema.getId());
+		finalVbox.getChildren().addAll(dateHbox, dobMessage);
+		
+		return finalVbox;
 	}
 
 	public VBox addContentForDobAndAge(UiSchemaDTO schema, String languageType) {
@@ -921,6 +995,12 @@ public class DemographicDetailController extends BaseController {
 			case RegistrationConstants.STRING:
 				switch (schemaField.getControlType()) {
 					case RegistrationConstants.AGE_DATE:
+						registrationDTO.setDateField(schemaField.getId(),
+								listOfTextField.get(schemaField.getId() + "__" + RegistrationConstants.DD).getText(),
+								listOfTextField.get(schemaField.getId() + "__" + RegistrationConstants.MM).getText(),
+								listOfTextField.get(schemaField.getId() + "__" + RegistrationConstants.YYYY).getText());
+						break;
+					case RegistrationConstants.DATE:
 						registrationDTO.setDateField(schemaField.getId(),
 								listOfTextField.get(schemaField.getId() + "__" + RegistrationConstants.DD).getText(),
 								listOfTextField.get(schemaField.getId() + "__" + RegistrationConstants.MM).getText(),

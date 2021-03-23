@@ -89,6 +89,28 @@ public class DateValidation extends BaseController {
 		resetFieldStyleClass(parentPane, fieldId, !isValid);
 		return isValid;
 	}
+	
+	public boolean validateExpiryOfDate(Pane parentPane, String fieldId, int minDate, int maxDate) {
+		resetFieldStyleClass(parentPane, fieldId, false);
+		
+		TextField dd = (TextField) getFxElement(parentPane, fieldId+ "__" + RegistrationConstants.DD);
+		TextField mm = (TextField) getFxElement(parentPane, fieldId+ "__" + RegistrationConstants.MM);
+		TextField yyyy = (TextField) getFxElement(parentPane, fieldId+ "__" + RegistrationConstants.YYYY);
+
+		boolean isValid = false;
+		if(dd.getText().matches(RegistrationConstants.NUMBER_REGEX) &&
+				mm.getText().matches(RegistrationConstants.NUMBER_REGEX) &&
+				yyyy.getText().matches(RegistrationConstants.NUMBER_REGEX) &&
+				yyyy.getText().matches(RegistrationConstants.FOUR_NUMBER_REGEX)) {
+			isValid = isValidDateContent(parentPane, dd.getText(), mm.getText(), yyyy.getText(), fieldId, minDate, maxDate);
+			if(isValid) {
+				setLocalDateFields(parentPane, dd, mm, yyyy);
+			}
+		}
+
+		resetFieldStyleClass(parentPane, fieldId, !isValid);
+		return isValid;
+	}
 
 	public boolean validateAge(Pane parentPane, TextField ageField) {
 		String fieldId = ageField.getId().split("__")[0];
@@ -135,6 +157,7 @@ public class DateValidation extends BaseController {
 		TextField mm = (TextField)getFxElement(parentPane, fieldId + "__" + RegistrationConstants.MM);
 		TextField yyyy = (TextField)getFxElement(parentPane, fieldId + "__" + RegistrationConstants.YYYY);
 		TextField ageField = (TextField)getFxElement(parentPane, fieldId + "__" + RegistrationConstants.AGE_FIELD);
+		TextField expiryDateField = (TextField)getFxElement(parentPane, fieldId + "_" + RegistrationConstants.DATE);
 
 		Label dobMessage = (Label) getFxElement(parentPane, fieldId+ "__" + RegistrationConstants.DOB_MESSAGE);
 
@@ -142,15 +165,29 @@ public class DateValidation extends BaseController {
 		setTextFieldStyle(parentPane, mm, isError);
 		setTextFieldStyle(parentPane, yyyy, isError);
 		setTextFieldStyle(parentPane, ageField, isError);
-
-		if(isError) {
-			dobMessage.setText(RegistrationUIConstants.INVALID_DATE.concat(" / ")
-					.concat(RegistrationUIConstants.INVALID_AGE + getValueFromApplicationContext(RegistrationConstants.MAX_AGE)));
-			dobMessage.setVisible(true);
-			generateAlert(parentPane, RegistrationConstants.DOB, dobMessage.getText());
-		} else {
-			dobMessage.setText(RegistrationConstants.EMPTY);
-			dobMessage.setVisible(false);
+		setTextFieldStyle(parentPane, ageField, isError);
+		setTextFieldStyle(parentPane, expiryDateField, isError);
+		if(!fieldId.equalsIgnoreCase(RegistrationConstants.DATE)) {
+			if(isError) {
+				dobMessage.setText(RegistrationUIConstants.INVALID_DATE.concat(" / ")
+						.concat(RegistrationUIConstants.INVALID_AGE + getValueFromApplicationContext(RegistrationConstants.MAX_AGE)));
+				dobMessage.setVisible(true);
+				generateAlert(parentPane, RegistrationConstants.DOB, dobMessage.getText());
+			} else {
+				dobMessage.setText(RegistrationConstants.EMPTY);
+				dobMessage.setVisible(false);
+			}
+		}else {
+			if(isError) {
+				dobMessage.setText(RegistrationUIConstants.INVALID_DATE.concat(" / ")
+						.concat(RegistrationUIConstants.INVALID_DATE_LIMIT));
+				dobMessage.setVisible(true);
+				generateAlert(parentPane, RegistrationConstants.DATE, dobMessage.getText());
+			} else {
+				dobMessage.setText(RegistrationConstants.EMPTY);
+				dobMessage.setVisible(false);
+			}
+			
 		}
 	}
 
@@ -199,6 +236,19 @@ public class DateValidation extends BaseController {
 				LocalDate date = LocalDate.of(Integer.valueOf(yyyy), Integer.valueOf(mm), Integer.valueOf(dd));
 				String dob = date.format(DateTimeFormatter.ofPattern(ApplicationContext.getDateFormat()));
 				return validation.validateSingleString(dob, fieldId);
+			} catch (Exception ex) {
+				LOGGER.error(LoggerConstants.DATE_VALIDATION, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID, ExceptionUtils.getStackTrace(ex));
+			}
+		}
+		return false;
+	}
+	
+	private boolean isValidDateContent(Pane parentPane, String dd, String mm, String yyyy, String fieldId, int minDate, int maxDate) {
+		if(isValidValue(dd) && isValidValue(mm) && isValidValue(yyyy)) {
+			try {
+				LocalDate date = LocalDate.of(Integer.valueOf(yyyy), Integer.valueOf(mm), Integer.valueOf(dd));
+				String dateContent = date.format(DateTimeFormatter.ofPattern(ApplicationContext.getDateFormat()));
+				return validation.validateExpiryDate(dateContent, fieldId, minDate, maxDate);
 			} catch (Exception ex) {
 				LOGGER.error(LoggerConstants.DATE_VALIDATION, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID, ExceptionUtils.getStackTrace(ex));
 			}

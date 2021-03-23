@@ -274,6 +274,8 @@ public class PreRegZipHandlingServiceImpl implements PreRegZipHandlingService {
 						if(fieldValue != null) {
 							if(field.getControlType().equalsIgnoreCase("ageDate"))
 								getRegistrationDtoContent().setDateField(field.getId(), (String)fieldValue);
+							else if(field.getControlType().equalsIgnoreCase(RegistrationConstants.DATE))
+								getRegistrationDtoContent().setDateField(field.getId(), (String)fieldValue);
 							else
 								getRegistrationDtoContent().getDemographics().put(field.getId(), fieldValue);
 						}
