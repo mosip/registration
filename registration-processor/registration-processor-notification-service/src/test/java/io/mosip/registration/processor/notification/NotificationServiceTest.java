@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.notification.service.test;
+package io.mosip.registration.processor.notification;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;

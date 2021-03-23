@@ -1,11 +1,7 @@
-package io.mosip.registration.processor.notification.service.test;
-
-import javax.persistence.EntityManagerFactory;
+package io.mosip.registration.processor.notification;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
 
 /**
  * Audit manager application
@@ -14,7 +10,7 @@ import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
  * @since 1.0.0
  *
  */
-@SpringBootApplication(scanBasePackages =  { "io.mosip.registration.processor.notification.service.*"},exclude = {HibernateDaoConfig.class} )
+@SpringBootApplication(scanBasePackages =  { "io.mosip.registration.processor.notification.service.*"} )
 public class NotificationServiceTestApplication {
 
 	/**
