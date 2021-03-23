@@ -20,14 +20,6 @@ import io.mosip.registration.processor.camel.bridge.processor.TokenGenerationPro
 @EnableAspectJAutoProxy
 public class CamelBridgeConfig {
 	
-	/*
-	 * @Value("${mosip.regproc.camelbridge.pause-settings}") private String
-	 * settingsString;
-	 * 
-	 * @Value("${mosip.regproc.camelbridge.intercept-hotlisted-key}") private String
-	 * hotlistedTagKey;
-	 */
-	
 	@Bean
 	public MosipBridgeFactory getMosipBridgeFactory() {
 		return new MosipBridgeFactory();

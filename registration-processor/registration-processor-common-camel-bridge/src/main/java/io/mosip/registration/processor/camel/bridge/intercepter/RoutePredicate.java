@@ -41,21 +41,10 @@ public class RoutePredicate implements Predicate {
 	@Value("${mosip.regproc.camelbridge.intercept-hotlisted-key}")
 	private String hotlistedTagKey;
 
-	/*
-	 * public RoutePredicate(final String settingsString, final String
-	 * hotlistedTagKey) {
-	 * 
-	 * this.hotlistedTagKey = hotlistedTagKey; objectMapper = new ObjectMapper();
-	 * try { settings = objectMapper.readValue(settingsString, Setting[].class); }
-	 * catch (IOException e) { LOGGER.error(LoggerFileConstant.SESSIONID.toString(),
-	 * LoggerFileConstant.USERID.toString(), "", "RoutePredicate::exception " +
-	 * e.getMessage()); } }
-	 */
+
 	
 	@PostConstruct
 	private void init() {
-		//this.hotlistedTagKey = hotlistedTagKey;
-		//objectMapper = new ObjectMapper();
 		try {
 			settings = objectMapper.readValue(settingsString, Setting[].class);
 		} catch (IOException e) {
