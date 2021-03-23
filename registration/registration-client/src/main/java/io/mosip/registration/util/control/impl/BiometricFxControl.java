@@ -129,6 +129,7 @@ public class BiometricFxControl extends FxControl {
 		label.getStyleClass().add(RegistrationConstants.QUALITY_BOX_LABEL);
 
 		GridPane gridPane = createGridPane();
+		gridPane.setHgap(10);
 		gridPane.setId(fieldName);
 		gridPane.add(label,1,0);
 		GridPane.setHalignment(label, HPos.CENTER);
@@ -153,6 +154,10 @@ public class BiometricFxControl extends FxControl {
 				try {
 					captureDetails = BaseController.loadWithNewInstance(getClass().getResource("/fxml/BiometricsCapture.fxml"),
 							this.biometricsController);
+
+					captureDetails.visibleProperty().bind(gridPane.visibleProperty());
+					captureDetails.managedProperty().bind(gridPane.managedProperty());
+
 					GridPane.setHalignment(captureDetails, HPos.CENTER);
 					GridPane.setValignment(captureDetails, VPos.TOP);
 					gridPane.add(captureDetails,1,1);
@@ -161,6 +166,9 @@ public class BiometricFxControl extends FxControl {
 				}
 				break;
 		}
+
+		modalityListingNode.visibleProperty().bind(gridPane.visibleProperty());
+		modalityListingNode.managedProperty().bind(gridPane.managedProperty());
 		return gridPane;
 	}
 

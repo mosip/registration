@@ -13,6 +13,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import io.mosip.registration.util.healthcheck.RegistrationSystemPropertiesChecker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -75,15 +76,10 @@ public class AuditManagerSerivceImpl extends BaseService implements AuditManager
 	public void audit(AuditEvent auditEventEnum, Components appModuleEnum, String refId, String refIdType) {
 
 		// Getting Host IP Address and Name
-		String hostIP = String.valueOf(ApplicationContext.map().get(RegistrationConstants.DEFAULT_HOST_IP));
-		String hostName = String.valueOf(ApplicationContext.map().get(RegistrationConstants.DEFAULT_HOST_NAME));
-		try {
-			hostIP = InetAddress.getLocalHost().getHostAddress();
-			hostName = InetAddress.getLocalHost().getHostName();
-		} catch (UnknownHostException unknownHostException) {
-			LOGGER.info("REGISTRATION-AUDIT_FACTORY-AUDIT", APPLICATION_NAME, APPLICATION_ID,
-					ExceptionUtils.getStackTrace(unknownHostException));
-		}
+		String hostIP = "localhost";
+		String hostName = RegistrationSystemPropertiesChecker.getMachineId();
+		hostIP = hostIP != null ? hostIP : String.valueOf(ApplicationContext.map().get(RegistrationConstants.DEFAULT_HOST_IP));
+		hostName = hostName != null ? hostName : String.valueOf(ApplicationContext.map().get(RegistrationConstants.DEFAULT_HOST_NAME));
 
 		if (auditEventEnum.getId().contains(RegistrationConstants.REGISTRATION_EVENTS)
 				&& getRegistrationDTOFromSession() != null

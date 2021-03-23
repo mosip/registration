@@ -17,6 +17,7 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
+import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.exception.RegBaseCheckedException;
 
 /**
@@ -45,7 +46,7 @@ public class RegistrationSystemPropertiesChecker {
 	 * @throws RegBaseCheckedException 
 	 */
 	public static String getMachineId() {
-		String machineName = "";
+		String machineName = String.valueOf(ApplicationContext.map().get(RegistrationConstants.DEFAULT_HOST_NAME));
 		try {
 			machineName = InetAddress.getLocalHost().getHostName();
 		} catch (UnknownHostException e) {
