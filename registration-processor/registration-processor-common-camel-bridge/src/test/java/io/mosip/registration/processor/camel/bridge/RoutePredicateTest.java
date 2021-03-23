@@ -51,7 +51,7 @@ public class RoutePredicateTest {
 	private static final Logger LOGGER = RegProcessorLogger.getLogger(RoutePredicateTest.class);
 
 	@Before
-	public void init() {
+	public void setup() {
 		objectMapper = new ObjectMapper();
 		routePredicate = new RoutePredicate();
 
@@ -59,7 +59,7 @@ public class RoutePredicateTest {
 		Setting[] settings = null;
 		try {
 			settings = objectMapper.readValue(
-					"[{\"hotlistedReason\": \"operator\",\"pauseFor\": 432000,\"defaultResumeAction\": \"<ResumeProcessing/ResumeFromBeginning/StopProcessing>\",\"fromAddress\": \"bio-debup-bus-out\"},{\"hotlistedReason\": \"center\",\"pauseFor\": 432000,\"defaultResumeAction\": \"<ResumeProcessing/ResumeFromBeginning/StopProcessing>\",\"fromAddress\": \"bio-debup-bus-out\"}]",
+					"[{\"hotlistedReason\": \"operator\",\"pauseFor\": 432000,\"defaultResumeAction\": \"ResumeFromBeginning\",\"fromAddress\": \"bio-debup-bus-out\"},{\"hotlistedReason\": \"center\",\"pauseFor\": 432000,\"defaultResumeAction\": \"StopProcessing\",\"fromAddress\": \"bio-debup-bus-out\"}]",
 					Setting[].class);
 		} catch (IOException e) {
 			LOGGER.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",

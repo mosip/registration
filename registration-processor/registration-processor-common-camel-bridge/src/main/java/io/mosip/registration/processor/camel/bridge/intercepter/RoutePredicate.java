@@ -27,7 +27,7 @@ import io.vertx.core.json.JsonObject;
 
 public class RoutePredicate implements Predicate {
 
-	private static final Logger LOGGER = RegProcessorLogger.getLogger(RouteIntercepter.class);
+	private static final Logger LOGGER = RegProcessorLogger.getLogger(RoutePredicate.class);
 
 
 	@Autowired
