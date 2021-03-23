@@ -1,3 +1,4 @@
+
 package io.mosip.registration.processor.camel.bridge.config;
 
 import org.apache.camel.Predicate;
@@ -12,18 +13,12 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import io.mosip.registration.processor.camel.bridge.MosipBridgeFactory;
 import io.mosip.registration.processor.camel.bridge.intercepter.RouteIntercepter;
-import io.mosip.registration.processor.camel.bridge.intercepter.RoutePredicate;
+import io.mosip.registration.processor.camel.bridge.intercepter.PauseFlowPredicate;
 import io.mosip.registration.processor.camel.bridge.processor.TokenGenerationProcessor;
 
 @Configuration
 @EnableAspectJAutoProxy
 public class CamelBridgeConfig {
-	
-	@Value("${mosip.regproc.camelbridge.pause-settings}")
-	private String settingsString;
-
-	@Value("${mosip.regproc.camelbridge.intercept-hotlisted-key}")
-	private String hotlistedTagKey;
 	
 	@Bean
 	public MosipBridgeFactory getMosipBridgeFactory() {
@@ -42,8 +37,8 @@ public class CamelBridgeConfig {
 	}
 	
 	@Bean
-	public RoutePredicate routePredicate() {
-		return new RoutePredicate(settingsString,hotlistedTagKey);
+	public PauseFlowPredicate pauseFlowPredicate() {
+		return new PauseFlowPredicate();
 	}
 	
 	@Bean

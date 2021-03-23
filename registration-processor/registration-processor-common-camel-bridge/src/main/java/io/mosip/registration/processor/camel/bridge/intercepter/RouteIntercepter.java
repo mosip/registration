@@ -3,7 +3,6 @@ package io.mosip.registration.processor.camel.bridge.intercepter;
 import java.util.List;
 
 import org.apache.camel.CamelContext;
-import org.apache.camel.Predicate;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
 import org.apache.camel.model.RouteDefinition;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +21,7 @@ public class RouteIntercepter {
 	private String endpointPrefix;
 
 	@Autowired
-	private RoutePredicate routePredicate;
+	private PauseFlowPredicate pauseFlowPredicate;
 
 	private String workflowStatusUpdateAddress = MessageBusAddress.WORKFLOW_EVENT_UPDATE_ADDRESS.getAddress();
 
@@ -34,7 +33,7 @@ public class RouteIntercepter {
 					@Override
 					public void configure() throws Exception {
 
-						interceptFrom("*").when(routePredicate).to(endpointPrefix + workflowStatusUpdateAddress).stop();
+						interceptFrom("*").when(pauseFlowPredicate).to(endpointPrefix + workflowStatusUpdateAddress).stop();
 					}
 				});
 
