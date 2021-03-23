@@ -3,10 +3,10 @@ package io.mosip.registration.processor.camel.bridge;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,6 +29,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.camel.bridge.intercepter.PauseFlowPredicate;
 import io.mosip.registration.processor.camel.bridge.model.Setting;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -109,10 +110,12 @@ public class PauseFlowPredicateTest {
 		tags.put("HOTLISTED", "operator");
 		messageDTO.setTags(tags);
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
+		LocalDateTime dateTimeBefore = DateUtils.getUTCCurrentDateTime().plusSeconds(432000);
 		assertTrue(pauseFlowPredicate.matches(exchange));
+		LocalDateTime dateTimeAfter = DateUtils.getUTCCurrentDateTime().plusSeconds(432000);
 		JsonObject json = new JsonObject((String) exchange.getMessage().getBody());
 		assertEquals("ResumeFromBeginning", json.getString("defaultResumeAction"));
-
+		assertTrue(dateTimeBefore.isBefore(DateUtils.parseToLocalDateTime(json.getString("resumeTimestamp"))) && dateTimeAfter.isAfter(DateUtils.parseToLocalDateTime(json.getString("resumeTimestamp"))));
 	}
 
 	@SuppressWarnings("unchecked")

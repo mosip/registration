@@ -27,20 +27,17 @@ public class PauseFlowPredicate implements Predicate {
 
 	private static final Logger LOGGER = RegProcessorLogger.getLogger(PauseFlowPredicate.class);
 
-
 	@Autowired
 	private ObjectMapper objectMapper;
 
 	Setting[] settings = null;
-	
+
 	@Value("${mosip.regproc.camelbridge.pause-settings}")
 	private String settingsString;
 
 	@Value("${mosip.regproc.camelbridge.intercept-hotlisted-key}")
 	private String hotlistedTagKey;
 
-
-	
 	@PostConstruct
 	private void init() {
 		try {
@@ -64,34 +61,33 @@ public class PauseFlowPredicate implements Predicate {
 				" tags.getString(hotlistedTagKey) " + tags.getString(hotlistedTagKey));
 		LOGGER.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				" tags.containsKey(hotlistedTagKey) " + tags.containsKey(hotlistedTagKey));
-		if (tags.containsKey(hotlistedTagKey)) {
-			String fromAddress = exchange.getFromEndpoint().toString();
-			for (Setting setting : settings) {
-				if (Pattern.matches(setting.getFromAddress(), fromAddress)
-						&& tags.getString(hotlistedTagKey).equals(setting.getHotlistedReason())) {
-					WorkflowEventDTO workflowEventDTO = new WorkflowEventDTO();
-					workflowEventDTO.setResumeTimestamp(DateUtils
-							.formatToISOString(DateUtils.getUTCCurrentDateTime().plusSeconds(setting.getPauseFor())));
-					workflowEventDTO.setRid(json.getString("rid"));
-					workflowEventDTO.setDefaultResumeAction(setting.getDefaultResumeAction());
-					workflowEventDTO.setStatusCode(RegistrationStatusCode.PAUSED.toString());
-					workflowEventDTO.setEventTimestamp(DateUtils.toISOString(DateUtils.getUTCCurrentDateTime()));
-					workflowEventDTO.setStatusComment(PlatformSuccessMessages.PACKET_PAUSED_HOTLISTED.getMessage());
-					try {
-						exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
-					} catch (JsonProcessingException e) {
-						LOGGER.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-								"RoutePredicate::matches()::exception " + e.getMessage());
-					}
-					break;
-				} else {
-					return false;
-				}
-			}
-			return true;
-		} else {
+		if (!tags.containsKey(hotlistedTagKey)) {
 			return false;
 		}
+		String fromAddress = exchange.getFromEndpoint().toString();
+		for (Setting setting : settings) {
+			if (Pattern.matches(setting.getFromAddress(), fromAddress)
+					&& tags.getString(hotlistedTagKey).equals(setting.getHotlistedReason())) {
+				WorkflowEventDTO workflowEventDTO = new WorkflowEventDTO();
+				workflowEventDTO.setResumeTimestamp(DateUtils
+						.formatToISOString(DateUtils.getUTCCurrentDateTime().plusSeconds(setting.getPauseFor())));
+				workflowEventDTO.setRid(json.getString("rid"));
+				workflowEventDTO.setDefaultResumeAction(setting.getDefaultResumeAction());
+				workflowEventDTO.setStatusCode(RegistrationStatusCode.PAUSED.toString());
+				workflowEventDTO.setEventTimestamp(DateUtils.toISOString(DateUtils.getUTCCurrentDateTime()));
+				workflowEventDTO.setStatusComment(PlatformSuccessMessages.PACKET_PAUSED_HOTLISTED.getMessage());
+				try {
+					exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
+				} catch (JsonProcessingException e) {
+					LOGGER.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+							"RoutePredicate::matches()::exception " + e.getMessage());
+				}
+				break;
+			} else {
+				return false;
+			}
+		}
+		return true;
 	}
 
 }
