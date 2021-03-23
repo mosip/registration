@@ -43,7 +43,9 @@ public class StatusNotificationTypeMapUtil {
 		statusMap.put(NotificationStageStatus.DEMOGRAPHIC_VERIFICATION_FAILED, NotificationTemplateType.DUPLICATE_UIN);
 		statusMap.put(NotificationStageStatus.BIOMETRIC_AUTHENTICATION_FAILED,
 				NotificationTemplateType.TECHNICAL_ISSUE);
-
+		//TODO this is put as a temp fix need to recheck the mapping
+		statusMap.put(NotificationStageStatus.PACKET_REJECTED,
+				NotificationTemplateType.DUPLICATE_UIN);
 		return unmodifiableMap;
 	}
 
