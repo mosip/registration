@@ -32,23 +32,78 @@
 				<version>${mockito.version}</version>
 				<scope>test</scope>
 			</dependency>
+			<dependency>
+				<groupId>com.h2database</groupId>
+				<artifactId>h2</artifactId>
+				<version>${h2.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 	<dependencies>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>${spring-framework.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-tx</artifactId>
+			<version>${spring-framework.version}</version>
+		</dependency>
 
+		<dependency>
+			<groupId>io.mosip.registrationprocessor</groupId>
+			<artifactId>registration-processor-core</artifactId>
+			<version>${registration.processor.core.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>
+						spring-boot-starter-security
+					</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 	
 		<dependency>
 			<groupId>io.mosip.registrationprocessor</groupId>
 			<artifactId>registration-processor-message-sender-impl</artifactId>
 			<version>${registration.processor.message.sender.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>
+						spring-boot-starter-security
+					</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework.security</groupId>
+					<artifactId>spring-security-test</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
-	
-
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-junit4</artifactId>
+			<version>${powermock.module.junit4.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-api-mockito2</artifactId>
+			<version>${powermock.api.mockito.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.registrationprocessor</groupId>
+			<artifactId>registration-processor-packet-manager</artifactId>
+			<version>${packet.manager.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-core</artifactId>
@@ -63,12 +118,6 @@
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-websubclient-api</artifactId>
 			<version>${kernel.websubclient.api.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.springframework.data</groupId>
-					<artifactId>spring-data-jpa</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 	</dependencies>
 	<build>
