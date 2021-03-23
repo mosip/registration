@@ -16,11 +16,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
+import io.mosip.commons.packet.constants.PacketManagerConstants;
 import io.mosip.kernel.core.idvalidator.spi.PridValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
@@ -317,7 +319,7 @@ public class GenericController extends BaseController {
 	}
 
 	private Map<String, List<UiSchemaDTO>> getFieldsBasedOnAlignmentGroup(List<String> screenFields,
-																		  SchemaDto schemaDto) {
+																		  SchemaDto schemaDto) throws RegBaseCheckedException {
 		Map<String, List<UiSchemaDTO>> groupedScreenFields = new LinkedHashMap<>();
 
 		if(screenFields == null || screenFields.isEmpty())
@@ -326,6 +328,21 @@ public class GenericController extends BaseController {
 		if(getRegistrationDTOFromSession().getRegistrationCategory().equals(RegistrationConstants.PACKET_TYPE_UPDATE)) {
 			List<String> defaultUpdateFields = new ArrayList<>(); //TODO
 			defaultUpdateFields.addAll(getRegistrationDTOFromSession().getUpdatableFields());
+			if (!getRegistrationDTOFromSession().isBiometricMarkedForUpdate()) {
+				List<UiSchemaDTO> schemaDTOs = getValidationMap().values().stream()
+						.filter(schemaDTO -> schemaDTO.getType()
+								.equalsIgnoreCase(PacketManagerConstants.BIOMETRICS_DATATYPE))
+						.collect(Collectors.toList());
+
+				for (UiSchemaDTO uiSchemaDTO : schemaDTOs) {
+					List<String> configBioAttributes = requiredFieldValidator
+							.isRequiredBiometricField(uiSchemaDTO.getSubType(), getRegistrationDTOFromSession());
+
+					if (configBioAttributes != null && !configBioAttributes.isEmpty()) {
+						defaultUpdateFields.add(uiSchemaDTO.getId());
+					}
+				}
+			}
 			screenFields = ListUtils.intersection(screenFields, defaultUpdateFields);
 		}
 
@@ -348,9 +365,9 @@ public class GenericController extends BaseController {
 		GridPane gridPane = new GridPane();
 		gridPane.setId(screenName);
 		RowConstraints topRowConstraints = new RowConstraints();
-		topRowConstraints.setPercentHeight(5);
+		topRowConstraints.setPercentHeight(2);
 		RowConstraints midRowConstraints = new RowConstraints();
-		midRowConstraints.setPercentHeight(90);
+		midRowConstraints.setPercentHeight(93);
 		RowConstraints bottomRowConstraints = new RowConstraints();
 		bottomRowConstraints.setPercentHeight(5);
 		gridPane.getRowConstraints().addAll(topRowConstraints,midRowConstraints, bottomRowConstraints);
