@@ -137,22 +137,15 @@ public abstract class FxControl  {
 	 * Refresh the field
 	 */
 	public void refresh() {
-		if (isFieldVisible(uiSchemaDTO)) {
-			visible(this.node, true);
-			this.node.setManaged(true);
-		} else {
-			visible(this.node, false);
-			this.node.setManaged(false);
-		}
+		visible(this.node, isFieldVisible(uiSchemaDTO));
 	}
 
 	/**
 	 * Hide the field
 	 */
 	public void visible(Node node, boolean isVisible) {
-
 		node.setVisible(isVisible);
-
+		node.setManaged(isVisible);
 	}
 
 	/**
