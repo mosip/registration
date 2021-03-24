@@ -663,7 +663,8 @@ public class WorkflowActionService {
 		LocalDateTime updateTimeStamp = DateUtils.getUTCCurrentDateTime();
 		registrationStatusDto.setUpdateDateTime(updateTimeStamp);
 		registrationStatusDto.setUpdatedBy(USER);
-
+		registrationStatusDto.setDefaultResumeAction(null);
+		registrationStatusDto.setResumeTimeStamp(null);
 		registrationStatusService.updateRegistrationStatusForWorkflow(registrationStatusDto, MODULE_ID, MODULE_NAME);
 		return registrationStatusDto;
 	}
