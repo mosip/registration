@@ -134,6 +134,7 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 	public void failure(RoutingContext routingContext) {
 		try {
 			deleteFile(getFileFromCtx(routingContext));
+			deleteFile(getTemporaryFileFromCtx(routingContext));
 		} catch (IOException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
@@ -151,10 +152,12 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 	 */
 	public void processPacket(RoutingContext ctx) {
 		File file=null;
+		File temporaryFile=null;
 		try {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", "PacketReceiverStage::processPacket()::entry");
 			file=getFileFromCtx(ctx);
+			temporaryFile=getTemporaryFileFromCtx(ctx);
 			MessageDTO messageDTO = packetReceiverService.processPacket(file);
 			messageDTO.setMessageBusAddress(MessageBusAddress.PACKET_RECEIVER_OUT);
 			if (messageDTO.getIsValid()) {
@@ -166,6 +169,7 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 			throw new UnexpectedException(e.getMessage());
 		} finally {
 			deleteFile(file);
+			deleteFile(temporaryFile);
 		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				"", "PacketReceiverStage::processPacket()::exit");
@@ -257,6 +261,14 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 				FileUtils.getFile(FileUtils.getFile(fileUpload.uploadedFileName()).getParent() + "/" + fileUpload.fileName()));
 		File file = FileUtils.getFile(FileUtils.getFile(fileUpload.uploadedFileName()).getParent() + "/" + fileUpload.fileName());
 		return file;
+
+	}
+	
+	private File getTemporaryFileFromCtx(RoutingContext ctx) throws IOException {
+
+		FileUpload fileUpload = ctx.fileUploads().iterator().next();
+		File temporaryFile= FileUtils.getFile(fileUpload.uploadedFileName());
+		return temporaryFile;
 
 	}
 }
