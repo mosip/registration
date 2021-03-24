@@ -12,9 +12,9 @@ This document covers the design of 'Registration client' application initial set
    4. db - Embed the initial db inside this folder, which will have all the required tables and few kernel insert scripts.  
    5. jre - Specific Java runtime environment (1.8.0_181) should be embedded.  
       - required rxtx jar and the respective dll should be loaded here.  
-      - required certificate should be loaded here.  
-   6 run.jar - This should have the classes to intiate the download process from JFrog repo, decrypt the application binaries and launch the application. 
-   7.run.bat - This will initialize the run.jar with embedded jre.
+      - required certificate should be loaded here
+   6. run.jar - This should have the classes to intiate the download process from JFrog repo, decrypt the application binaries and launch the application.
+   7. run.bat - This will initialize the run.jar with embedded jre.
 
 **Build Process:**  
    During build process of 'registraion-lib' project the pom.xml file should be updated with inclusion 'io.mosip.registration.cipher.ClientJarEncryption' file to prepare the Initial Setup Zip file.  
