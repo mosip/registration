@@ -37,7 +37,11 @@ public class MosipStageExecutorApplication {
 			
 			List<String> stageBeansBasePackages = StageClassesUtil.getStageBeansBasePackages(stagesConfig, propertySources);
 			
+			regProcLogger.info("Base packages for stage beans from configuration: {}", stageBeansBasePackages);
+			
 			List<Class<MosipVerticleAPIManager>> stageClasses = StageClassesUtil.getStageBeanClasses(stageBeansBasePackages);
+			
+			regProcLogger.info("Stage classes identified: {}", stageClasses);
 
 			Class<?>[] entrypointConfigClasses = Stream.concat(Stream.of(StagesConfig.class), stageClasses.stream())
 					.toArray(size -> new Class<?>[size]);
