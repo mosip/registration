@@ -17,9 +17,9 @@ import io.mosip.registration.processor.packet.storage.utils.Utilities;
  * All the configuration validations will be done in this class
  */
 @Component
-public class AppConfigurationsValidator {
+public class AbisMiddlewareAppConfigurationsValidator {
 
-    private static final Logger logger = LoggerFactory.getLogger(AppConfigurationsValidator.class);
+    private static final Logger logger = LoggerFactory.getLogger(AbisMiddlewareAppConfigurationsValidator.class);
 
     /**
      * This configuration will be used by reprocessor stage to reprocess the events
