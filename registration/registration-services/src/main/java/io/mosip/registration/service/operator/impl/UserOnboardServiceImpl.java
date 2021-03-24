@@ -273,8 +273,7 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 		dataBlock.put(RegistrationConstants.AUTH_HASH, finalHash);
 		dataBlock.put(RegistrationConstants.SESSION_KEY, responseMap.getEncryptedSessionKey());
 
-		//TODO - We cannot pull private key( appId:IDA, refId:SIGN ) to sign the data here .. need to check with Loga
-		//dataBlock.put("signature", "");
+		//Signing encrypted auth biometrics is not required
 
 		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
 				"Returning the dataBlock for User Onboard Authentication with IDA");
