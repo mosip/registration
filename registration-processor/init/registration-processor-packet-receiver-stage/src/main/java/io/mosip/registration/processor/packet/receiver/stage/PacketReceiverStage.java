@@ -255,7 +255,6 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	private File getFileFromCtx(RoutingContext ctx) throws IOException {
-
 		FileUpload fileUpload = ctx.fileUploads().iterator().next();
 		FileUtils.copyFile(FileUtils.getFile(fileUpload.uploadedFileName()),
 				FileUtils.getFile(FileUtils.getFile(fileUpload.uploadedFileName()).getParent() + "/" + fileUpload.fileName()));
@@ -265,10 +264,8 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 	}
 	
 	private File getTemporaryFileFromCtx(RoutingContext ctx) throws IOException {
-
 		FileUpload fileUpload = ctx.fileUploads().iterator().next();
 		File temporaryFile= FileUtils.getFile(fileUpload.uploadedFileName());
 		return temporaryFile;
-
 	}
 }
