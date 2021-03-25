@@ -64,10 +64,10 @@ public class CertificateSyncServiceImpl extends BaseService implements Certifica
     @Autowired
     private PartnerCertificateManagerService partnerCertificateManagerService;
 
-    private ObjectMapper mapper = new ObjectMapper();
+    private static ObjectMapper mapper = new ObjectMapper();
 
-    @Before
-    public void setup() {
+
+    static  {
         mapper.registerModule(new JavaTimeModule());
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
