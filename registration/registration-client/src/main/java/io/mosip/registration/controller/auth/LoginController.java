@@ -352,7 +352,7 @@ public class LoginController extends BaseController implements Initializable {
 		loginRoot = BaseController.load(getClass().getResource(RegistrationConstants.INITIAL_PAGE));
 
 		scene = getScene(loginRoot);
-		loadUIElementsFromSchema();
+		//loadUIElementsFromSchema();
 		pageFlow.loadPageFlow();
 
 		if (userName != null) {
@@ -432,7 +432,7 @@ public class LoginController extends BaseController implements Initializable {
 	public void validateUserId(ActionEvent event) {
 
 		
-		loadUIElementsFromSchema();
+		//loadUIElementsFromSchema();
 		auditFactory.audit(AuditEvent.LOGIN_AUTHENTICATE_USER_ID, Components.LOGIN,
 				userId.getText().isEmpty() ? "NA" : userId.getText(),
 				AuditReferenceIdTypes.USER_ID.getReferenceTypeId());

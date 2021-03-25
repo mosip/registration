@@ -1497,7 +1497,7 @@ public class BaseController {
 		BaseController.isAckOpened = isAckOpened;
 	}
 
-	public void loadUIElementsFromSchema() {
+	/*public void loadUIElementsFromSchema() {
 
 		try {
 			List<UiSchemaDTO> schemaFields = identitySchemaService.getLatestEffectiveUISchema();
@@ -1513,18 +1513,18 @@ public class BaseController {
 			validations.setValidations(validationsMap); // Set Validations Map
 
 			// THIS IS NOT REQUIRED
-			/*
+			*//*
 			 * ApplicationContext.map().put(RegistrationConstants.indBiometrics,
 			 * getBioAttributesBySubType(RegistrationConstants.indBiometrics));
 			 * ApplicationContext.map().put("parentOrGuardianBiometrics",
 			 * getBioAttributesBySubType("parentOrGuardianBiometrics"));
-			 */
+			 *//*
 
 		} catch (RegBaseCheckedException e) {
 			LOGGER.error(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(e));
 		}
-	}
+	}*/
 
 	public SchemaDto getLatestSchema() {
 		try {

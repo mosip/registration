@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import io.mosip.registration.entity.LocationHierarchy;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -177,38 +178,19 @@ public class GenericController extends BaseController {
 
 
 	private void fillHierarchicalLevelsByLanguage() {
-		//TODO
-		/*List<LocationHierarchy> hierarchies = masterSyncDao.getAllLocationHierarchy("eng");
-		hierarchies.forEach( hierarchy -> {
-			locationHierarchy.put(hierarchy.getHierarchyLevelName(), hierarchy.getHierarchyLevel()+"");
-			locationHierarchy.put(hierarchy.getHierarchyLevel()+"", hierarchy.getHierarchyLevelName());
-		});*/
-		TreeMap<Integer, String> eng_hierarchical = new TreeMap<>();
-		eng_hierarchical.put(0, "Country");
-		eng_hierarchical.put(1, "Region");
-		eng_hierarchical.put(2, "Province");
-		eng_hierarchical.put(3, "City");
-		eng_hierarchical.put(4, "Zone");
-		eng_hierarchical.put(5, "Postal Code");
-		hierarchyLevels.put("eng", eng_hierarchical);
-
-		TreeMap<Integer, String> ara_hierarchical = new TreeMap<>();
-		ara_hierarchical.put(0, "بلد");
-		ara_hierarchical.put(1, "منطقة");
-		ara_hierarchical.put(2, "المحافظة");
-		ara_hierarchical.put(3, "مدينة");
-		ara_hierarchical.put(4, "منطقة");
-		ara_hierarchical.put(5, "الرمز البريدي");
-		hierarchyLevels.put("ara", ara_hierarchical);
-
-		TreeMap<Integer, String> fra_hierarchical = new TreeMap<>();
-		fra_hierarchical.put(0, "Pays");
-		fra_hierarchical.put(1, "Région");
-		fra_hierarchical.put(2, "Province");
-		fra_hierarchical.put(3, "Ville");
-		fra_hierarchical.put(4, "Zone");
-		fra_hierarchical.put(5, "code postal");
-		hierarchyLevels.put("fra", fra_hierarchical);
+		List<String> languages = new ArrayList<>();
+		languages.addAll(getRegistrationDTOFromSession().getSelectedLanguagesByApplicant());
+		if(!languages.contains("eng")) {
+			languages.add("eng"); // as subtype in UI spec is in english, we need loc_hierarchy_list data to be in english
+		}
+		for(String langCode : languages) {
+			TreeMap<Integer, String> hierarchicalData = new TreeMap<>();
+			List<LocationHierarchy> hierarchies = masterSyncDao.getAllLocationHierarchy(langCode);
+			hierarchies.forEach( hierarchy -> {
+				hierarchicalData.put(hierarchy.getHierarchyLevel(), hierarchy.getHierarchyLevelName());
+			});
+			hierarchyLevels.put(langCode, hierarchicalData);
+		}
 	}
 
 	private HBox getPreRegistrationFetchComponent() {

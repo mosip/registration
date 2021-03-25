@@ -11,7 +11,7 @@ import java.io.Serializable;
 public class LocationHierarchyId implements Serializable {
 
     @Column(name = "hierarchy_level", nullable = false, length = 36)
-    private short hierarchyLevel;
+    private int hierarchyLevel;
 
     @Column(name = "hierarchy_level_name", nullable = false, length = 64)
     private String hierarchyLevelName;
