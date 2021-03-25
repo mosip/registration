@@ -37,7 +37,7 @@ CREATE TABLE regprc.registration(
 	is_deleted boolean,
 	del_dtimes timestamp,
 	resume_timestamp timestamp,
-	default_resume_action character varying(36),
+	default_resume_action character varying(50),
 	CONSTRAINT pk_reg_id PRIMARY KEY (id)
 
 );

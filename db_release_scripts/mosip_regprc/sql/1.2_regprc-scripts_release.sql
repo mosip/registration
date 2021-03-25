@@ -11,6 +11,6 @@
 \c mosip_regprc sysadmin
 
 ALTER TABLE reg_prc.registration ADD COLUMN resume_timestamp timestamp;
-ALTER TABLE reg_prc.registration ADD COLUMN default_resume_action character varying(36);
+ALTER TABLE reg_prc.registration ADD COLUMN default_resume_action character varying(50);
 
 ----------------------------------------------------------------------------------------------------
