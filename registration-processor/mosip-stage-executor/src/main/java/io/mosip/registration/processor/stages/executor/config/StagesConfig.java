@@ -39,7 +39,7 @@ import io.vertx.core.json.JsonObject;
 public class StagesConfig {
 	
 	private static final String PROP_STAGE_GROUP_NAME = "stage-group-name";
-	private static final String DEFAULT_STAGE_GROUP_NAME = "default";
+	public static final String DEFAULT_STAGE_GROUP_NAME = "default";
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(StagesConfig.class);
 
 	
