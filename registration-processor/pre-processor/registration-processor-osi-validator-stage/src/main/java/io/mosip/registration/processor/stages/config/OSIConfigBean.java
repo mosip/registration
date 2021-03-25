@@ -18,10 +18,10 @@ import io.mosip.registration.processor.stages.osivalidator.utils.OSIUtils;
 @Configuration
 public class OSIConfigBean {
 
-	@Bean
-	public OSIUtils getOSIUtils() {
-		return new OSIUtils();
-	}
+//	@Bean
+//	public OSIUtils getOSIUtils() {
+//		return new OSIUtils();
+//	}
 
 	@Bean
 	public KeyGenerator getKeyGenerator() {
