@@ -18,7 +18,7 @@
     <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
   </rowConstraints>
    <children>
-      <ImageView fitHeight="25.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true" GridPane.halignment="LEFT">
+      <ImageView fx:id="mosipLogo" fitHeight="25.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true" GridPane.halignment="LEFT">
          <image>
             <Image url="@../images/logo-final-small.png" />
          </image>
@@ -49,7 +49,7 @@
                <children>
                   <Label fx:id="registrationOfficerName" graphicTextGap="10.0" text="%roname" GridPane.halignment="LEFT">
                      <graphic>
-                        <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
+                        <ImageView fx:id="userImageView" fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
                            <image>
                               <Image url="@../images/User.png" />
                            </image>
@@ -71,7 +71,7 @@
                <children>
                   <Label fx:id="registrationOfficeLocation" graphicTextGap="10.0" text="%rooffice" GridPane.halignment="LEFT">
                      <graphic>
-                        <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
+                        <ImageView fx:id="regCenterLocationImgView" fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
                            <image>
                               <Image url="@../images/RegCentreLocation.png" />
                            </image>
@@ -90,7 +90,7 @@
                <children>
                   <Label fx:id="registrationOfficeId" graphicTextGap="10.0" text="%roid" GridPane.halignment="LEFT">
                      <graphic>
-                        <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
+                        <ImageView fx:id="registrationOfficeIdImageView" fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
                            <image>
                               <Image url="@../images/system.png" />
                            </image>
@@ -181,7 +181,7 @@
                <menus>
                   <Menu fx:id="homeSelectionMenu" mnemonicParsing="false" onAction="#closeOperations">
                      <graphic>
-                        <ImageView fitHeight="20.0" fitWidth="20.0" layoutX="20.0" layoutY="30.0" pickOnBounds="true" preserveRatio="true">
+                        <ImageView fx:id="homeSelectionMenuImageView" fitHeight="20.0" fitWidth="20.0" layoutX="20.0" layoutY="30.0" pickOnBounds="true" preserveRatio="true">
                            <image>
                               <Image url="@../images/hamburger.png" />
                            </image>
@@ -202,7 +202,7 @@
             <Insets />
          </GridPane.margin>
       </GridPane>
-      <ImageView fitHeight="23.0" fitWidth="28.0" onMousePressed="#redirectHome" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="1">
+      <ImageView fx:id="homeImgView" fitHeight="23.0" fitWidth="28.0" onMousePressed="#redirectHome" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="1">
       <image>
             <Image url="@../images/Home.png" />
          </image>

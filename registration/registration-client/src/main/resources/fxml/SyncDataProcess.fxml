@@ -49,7 +49,7 @@
 						<Font size="22.0" />
 					</font>
 				</Label>
-            <ImageView fitHeight="15.0" fitWidth="15.0" layoutX="40.0" layoutY="13.0" onMouseClicked="#goToHomePage" pickOnBounds="true" preserveRatio="true">
+            <ImageView fx:id="homeImageView" fitHeight="15.0" fitWidth="15.0" layoutX="40.0" layoutY="13.0" onMouseClicked="#goToHomePage" pickOnBounds="true" preserveRatio="true">
                <cursor>
                   <Cursor fx:constant="HAND" />
                </cursor>

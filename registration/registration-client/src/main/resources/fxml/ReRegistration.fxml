@@ -44,7 +44,7 @@
                      <children>
                         <ToggleButton fx:id="notInformedBtn" mnemonicParsing="false" onAction="#notInformedToUser" styleClass="reRegCantInformToggle" text="%cantinformed">
                            <graphic>
-                              <ImageView fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
+                              <ImageView fx:id="informedImageView" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
                                  <image>
                                     <Image url="@../images/informed.png" />
                                  </image>
@@ -63,7 +63,7 @@
                      <children>
                         <ToggleButton fx:id="informedBtn" mnemonicParsing="false" onAction="#informedToUser" styleClass="reRegInformToggle" text="%informed" toggleGroup="$informedStatus">
                            <graphic>
-                              <ImageView fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
+                              <ImageView fx:id="cantInformImageView" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
                                  <image>
                                     <Image url="@../images/cantInform.png" />
                                  </image>
@@ -169,7 +169,7 @@
                         <Label text="%aplicatoinactioned" GridPane.halignment="CENTER" />
                         <Button fx:id="authenticateBtn" mnemonicParsing="false" onAction="#authenticateReregister" styleClass="approveButton" text="%authenticate" GridPane.halignment="RIGHT">
                            <graphic>
-                              <ImageView fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
+                              <ImageView fx:id="authenticateImageView" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
                                  <image>
                                     <Image url="@../images/Authenticate.png" />
                                  </image>

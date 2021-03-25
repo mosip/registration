@@ -455,7 +455,7 @@
                            <children>
                               <Label graphicTextGap="10.0" styleClass="onboardAlertMsg" text="%onboardAlertMsg" wrapText="true">
                                  <graphic>
-                                    <ImageView fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                                    <ImageView fx:id="tickMarkImageView" fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
                                        <image>
                                           <Image url="@../images/tick.png" />
                                        </image>

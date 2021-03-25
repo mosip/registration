@@ -53,7 +53,7 @@
                      <children>
                      <Button fx:id="operatorAuthContinue" minWidth="${backButton.width/2}" mnemonicParsing="false" onAction="#goToNextPage" styleClass="contiuneButton" text="%continue" GridPane.halignment="RIGHT" GridPane.valignment="TOP">
                       <graphic>
-                              <ImageView fitHeight="20.0" fitWidth="27.0" pickOnBounds="true" preserveRatio="true">
+                              <ImageView fx:id="continueImageView" fitHeight="20.0" fitWidth="27.0" pickOnBounds="true" preserveRatio="true">
                                  <image>
                                     <Image url="@../images/arrowRight.png" />
                                  </image>
@@ -476,7 +476,7 @@
 													<children>
 														<GridPane fx:id="fingerPrintPane" styleClass="fingerPrintPanes" GridPane.columnIndex="1">
 															<children>
-																<ImageView fitHeight="${fingerPrintPane.height-10}" fitWidth="${fingerPrintPane.width-10}" pickOnBounds="true" preserveRatio="false" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+																<ImageView fx:id="rightHandImageView" fitHeight="${fingerPrintPane.height-10}" fitWidth="${fingerPrintPane.width-10}" pickOnBounds="true" preserveRatio="false" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
 																	<image>
 																		<Image url="@../images/rightHand.png" />
 																	</image>

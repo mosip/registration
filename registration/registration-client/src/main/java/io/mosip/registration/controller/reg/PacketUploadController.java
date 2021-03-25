@@ -636,6 +636,8 @@ public class PacketUploadController extends BaseController implements Initializa
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
+		
+		setImage(exportCSVIcon, RegistrationConstants.EXPORT_ICON_IMG);
 		selectedPackets.clear();
 		loadInitialPage();
 		fileNameColumn.setResizable(false);

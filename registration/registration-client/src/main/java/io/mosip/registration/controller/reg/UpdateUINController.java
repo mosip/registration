@@ -66,6 +66,8 @@ public class UpdateUINController extends BaseController implements Initializable
 	private Button backBtn;
 	@FXML
 	private ImageView backImageView;
+	@FXML
+	private ImageView continueImageView;
 
 	@Autowired
 	private UinValidator<String> uinValidatorImpl;
@@ -96,6 +98,12 @@ public class UpdateUINController extends BaseController implements Initializable
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 
+//		backImageView	images/arrowLeft.png
+//		continueImageView	images/arrowRight.png
+
+		setImage(backImageView, RegistrationConstants.ARROW_LEFT_IMG);
+		setImage(continueImageView, RegistrationConstants.ARROW_RIGHT_IMG);
+		
 		fxUtils = FXUtils.getInstance();
 		checkBoxKeeper = new HashMap<>();
 		Map<String, UiSchemaDTO> schemaMap = getValidationMap();
@@ -114,14 +122,12 @@ public class UpdateUINController extends BaseController implements Initializable
 		});
 
 		try {
-			Image backInWhite = new Image(getClass().getResourceAsStream(RegistrationConstants.BACK_FOCUSED));
-			Image backImage = new Image(getClass().getResourceAsStream(RegistrationConstants.BACK));
-
+			
 			backBtn.hoverProperty().addListener((ov, oldValue, newValue) -> {
 				if (newValue) {
-					backImageView.setImage(backInWhite);
+					setImage(backImageView, RegistrationConstants.BACK_FOCUSED_IMG);
 				} else {
-					backImageView.setImage(backImage);
+					setImage(backImageView, RegistrationConstants.ARROW_LEFT_IMG);
 				}
 			});
 		} catch (RuntimeException runtimeException) {

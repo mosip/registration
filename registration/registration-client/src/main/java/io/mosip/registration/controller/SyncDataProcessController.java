@@ -29,6 +29,7 @@ import javafx.scene.layout.AnchorPane;
 
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.ImageView;
 import javafx.scene.control.TableColumn;
 
 /**
@@ -70,6 +71,9 @@ public class SyncDataProcessController extends BaseController implements Initial
 
 	@Autowired
 	private JobConfigurationService jobConfigurationService;
+	
+	@FXML
+	private ImageView homeImageView;
 
 	/*
 	 * (non-Javadoc)
@@ -87,6 +91,8 @@ public class SyncDataProcessController extends BaseController implements Initial
 		syncDataStatusId.setCellValueFactory(new PropertyValueFactory<SyncDataProccessVO, String>("jobStatus"));
 		syncDataLastUpdTimesId
 				.setCellValueFactory(new PropertyValueFactory<SyncDataProccessVO, String>("lastUpdatedTimes"));
+
+		setImage(homeImageView	, RegistrationConstants.HOME_IMG);
 
 	}
 

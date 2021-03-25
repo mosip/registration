@@ -57,6 +57,8 @@ public class SendNotificationController extends BaseController implements Initia
 	@FXML
 	private ImageView mobileIcon;
 	@FXML
+	private ImageView closeImageView;
+	@FXML
 	private Button send;
 
 	@Autowired
@@ -102,6 +104,16 @@ public class SendNotificationController extends BaseController implements Initia
 			mobile.setVisible(false);
 			mobileIcon.setVisible(false);
 		}
+		
+//		emailIcon	/images/Email.png
+//		mobileIcon	images/EnterMobile.png
+//		closeImageView	./images/Close.png
+		
+		setImage(emailIcon	, RegistrationConstants.EMAIL_IMG);
+		setImage(mobileIcon	, RegistrationConstants.MOBILE_IMG);
+		setImage(closeImageView	, RegistrationConstants.CLOSE_IMG);
+
+
 	}
 
 	/**

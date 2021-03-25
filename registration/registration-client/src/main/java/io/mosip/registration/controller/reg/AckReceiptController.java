@@ -60,7 +60,12 @@ public class AckReceiptController extends BaseController implements Initializabl
 	// private Button sendNotification;
 
 	@FXML
-	private ImageView sendNotificationImageView;
+	private ImageView newRegistrationBtnImgVw;
+	@FXML
+	private ImageView printImgVw;	
+	@FXML
+	private ImageView SendEmailImageView;
+;
 
 	@Autowired
 	private SendNotificationController sendNotificationController;
@@ -73,7 +78,10 @@ public class AckReceiptController extends BaseController implements Initializabl
 	public void initialize(URL location, ResourceBundle resources) {
 		LOGGER.info("REGISTRATION - UI - ACK_RECEIPT_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 				"Page loading has been started");
-
+		setImage(newRegistrationBtnImgVw, RegistrationConstants.NEW_REGISTRATION_IMG);
+		setImage(printImgVw, RegistrationConstants.PRINTER_IMG);
+		setImage(SendEmailImageView, RegistrationConstants.SEND_EMAIL_IMG);
+		
 		// setImagesOnHover();
 		String notificationType = getValueFromApplicationContext(RegistrationConstants.MODE_OF_COMMUNICATION);
 		/*

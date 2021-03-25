@@ -49,6 +49,9 @@ public class RegistrationPreviewController extends BaseController implements Ini
 
 	@FXML
 	private ImageView backImageView;
+	
+	@FXML
+	private ImageView continueImageView;
 
 	@Autowired
 	private TemplateManagerBuilder templateManagerBuilder;
@@ -71,7 +74,13 @@ public class RegistrationPreviewController extends BaseController implements Ini
 
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
-		/*Image backInWhite = new Image(getClass().getResourceAsStream(RegistrationConstants.BACK_FOCUSED));
+		
+		setImage(backImageView	, RegistrationConstants.ARROW_LEFT_IMG);
+		setImage(continueImageView	, RegistrationConstants.ARROW_RIGHT_IMG);
+		
+
+		/*Image backInWhite = new Image(ge
+		 * tClass().getResourceAsStream(RegistrationConstants.BACK_FOCUSED));
 		Image backImage = new Image(getClass().getResourceAsStream(RegistrationConstants.BACK));
 
 		backBtn.hoverProperty().addListener((ov, oldValue, newValue) -> {

@@ -48,6 +48,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
@@ -124,6 +125,13 @@ public class ReRegistrationController extends BaseController implements Initiali
 	@FXML
 	private TextField filterField;
 
+	@FXML
+	private ImageView informedImageView;
+	@FXML
+	private ImageView cantInformImageView;	
+	@FXML
+	private ImageView authenticateImageView;
+
 	private Map<String, String> reRegisterStatusMap;
 
 	@Autowired
@@ -145,6 +153,11 @@ public class ReRegistrationController extends BaseController implements Initiali
 	public void initialize(URL location, ResourceBundle resources) {
 		LOGGER.info("REGISTRATION - PAGE_LOADING - RE_REGISTRATION_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 				"Page loading has been started");
+
+		setImage(informedImageView	, RegistrationConstants.INFORMED_IMG);
+		setImage(cantInformImageView	, RegistrationConstants.CANT_INFORM_IMG);
+		setImage(authenticateImageView	, RegistrationConstants.AUTHENTICATE_IMG);
+		
 		reloadTableView();
 		tableCellColorChangeListener();
 		disableColumnsReorder(table);

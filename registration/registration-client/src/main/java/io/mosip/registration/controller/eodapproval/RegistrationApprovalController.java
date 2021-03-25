@@ -145,6 +145,12 @@ public class RegistrationApprovalController extends BaseController implements In
 	private ImageView approvalImageView;
 	@FXML
 	private ImageView rejectionImageView;
+	
+	@FXML
+	private ImageView authenticateImageView;
+	
+	@FXML
+	private ImageView exportImageView;
 
 	/** Button for authentication. */
 
@@ -208,14 +214,19 @@ public class RegistrationApprovalController extends BaseController implements In
 	 */
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
-		Image rejectInWhite = new Image(getClass().getResourceAsStream(RegistrationConstants.WRONG_IMAGE_PATH));
-		Image rejectImage = new Image(getClass().getResourceAsStream(RegistrationConstants.REJECT_IMAGE_PATH));
+
+		setImage(exportImageView	, RegistrationConstants.EXPORT_ICON_IMG);
+		setImage(authenticateImageView	, RegistrationConstants.AUTHENTICATE_IMG);
+		setImage(rejectionImageView	, RegistrationConstants.REJECT_IMG);
+		setImage(approvalImageView	, RegistrationConstants.APPROVE_IMG);
 		
 		rejectionBtn.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
-				rejectionImageView.setImage(rejectInWhite);
+
+				setImage(rejectionImageView	, RegistrationConstants.WRONG_IMG);
 			} else {
-				rejectionImageView.setImage(rejectImage);
+
+				setImage(rejectionImageView	, RegistrationConstants.REJECT_IMG);
 			}
 		});
 		

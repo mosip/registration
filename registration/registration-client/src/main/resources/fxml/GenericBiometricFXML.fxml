@@ -293,7 +293,7 @@
          <children>
             <Hyperlink fx:id="closeButton" onAction="#exitWindow" styleClass="exit" GridPane.columnIndex="2" GridPane.rowIndex="1">
                <graphic>
-                  <ImageView fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
+                  <ImageView fx:id="closeButtonImageView" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
                      <image>
                         <Image url="@../images/DocumentClose.png" />
                      </image>

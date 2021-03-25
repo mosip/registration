@@ -238,13 +238,18 @@ public class BiometricFxControl extends FxControl {
 		Button button = new Button();
 		button.setPrefSize(80, 80);
 
-		Image image = new Image(this.getClass().getResourceAsStream(getImageIconPath(modality.name())));
 		List<BiometricsDto> capturedData = getRegistrationDTo().getBiometric(uiSchemaDTO.getSubType(), modality.getAttributes());
-		if(!capturedData.isEmpty()) {
-			image = biometricsController.getBioStreamImage(uiSchemaDTO.getSubType(), modality,
-					capturedData.get(0).getNumOfRetries());
+		
+		
+		try {
+			Image image = !capturedData.isEmpty() ? biometricsController.getBioStreamImage(uiSchemaDTO.getSubType(), modality,
+						capturedData.get(0).getNumOfRetries()) : biometricsController.getImage(getImageIconPath(modality.name()));
+			button.setGraphic(getImageView(image, 80));
+		} catch (RegBaseCheckedException exception) {
+			LOGGER.error("Exception while Getting Image", exception);
 		}
-		button.setGraphic(getImageView(image, 80));
+		
+		
 		button.getStyleClass().add(RegistrationConstants.MODALITY_BUTTONS);
 		Tooltip tooltip = new Tooltip(ApplicationContext.getInstance().getBundle(ApplicationContext.applicationLanguage(),
 				RegistrationConstants.LABELS).getString(modality.name()));
@@ -313,24 +318,24 @@ public class BiometricFxControl extends FxControl {
 	}
 
 	public String getImageIconPath(String modality) {
-		String imageIconPath = RegistrationConstants.DEFAULT_EXCEPTION_IMAGE_PATH;
+		String imageIconPath = RegistrationConstants.DEFAULT_EXCEPTION_IMG;
 
 		if (modality != null) {
 			switch (modality) {
 				case RegistrationConstants.FACE:
-					imageIconPath = RegistrationConstants.FACE_IMG_PATH;
+					imageIconPath = RegistrationConstants.FACE_IMG;
 					break;
 				case RegistrationConstants.IRIS_DOUBLE:
-					imageIconPath = RegistrationConstants.DOUBLE_IRIS_IMG_PATH;
+					imageIconPath = RegistrationConstants.DOUBLE_IRIS_IMG;
 					break;
 				case RegistrationConstants.FINGERPRINT_SLAB_RIGHT:
-					imageIconPath = RegistrationConstants.RIGHTPALM_IMG_PATH;
+					imageIconPath = RegistrationConstants.RIGHTPALM_IMG;
 					break;
 				case RegistrationConstants.FINGERPRINT_SLAB_LEFT:
-					imageIconPath = RegistrationConstants.LEFTPALM_IMG_PATH;
+					imageIconPath = RegistrationConstants.LEFTPALM_IMG;
 					break;
 				case RegistrationConstants.FINGERPRINT_SLAB_THUMBS:
-					imageIconPath = RegistrationConstants.THUMB_IMG_PATH;
+					imageIconPath = RegistrationConstants.THUMB_IMG;
 					break;
 			}
 		}
@@ -420,8 +425,8 @@ public class BiometricFxControl extends FxControl {
 
 
 	private String getCompletionImgPath(boolean isAnyException) {
-		return isAnyException ? RegistrationConstants.EXCLAMATION_IMG_PATH
-				: RegistrationConstants.TICK_CIRICLE_IMG_PATH;
+		return isAnyException ? RegistrationConstants.EXCLAMATION_IMG
+				: RegistrationConstants.TICK_CIRICLE_IMG;
 	}
 
 	public boolean isAnyExceptions(Modality modality) {
@@ -432,10 +437,16 @@ public class BiometricFxControl extends FxControl {
 	}
 
 	private ImageView addCompletionImg(String imgPath) {
-		ImageView tickImageView = new ImageView(new Image(this.getClass().getResourceAsStream(imgPath)));
-		tickImageView.setId(uiSchemaDTO.getId() + currentModality.name() + "PANE");
-		tickImageView.setFitWidth(35);
-		tickImageView.setFitHeight(35);
+		ImageView tickImageView = null;
+		try {
+			tickImageView = new ImageView(biometricsController.getImage(imgPath));
+			tickImageView.setId(uiSchemaDTO.getId() + currentModality.name() + "PANE");
+			tickImageView.setFitWidth(35);
+			tickImageView.setFitHeight(35);
+		} catch (RegBaseCheckedException regBaseCheckedException) {
+			LOGGER.error("Exception while getting image");
+		}
+		
 		return tickImageView;
 	}
 

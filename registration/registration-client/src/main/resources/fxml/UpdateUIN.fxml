@@ -163,7 +163,7 @@
                            <children>
                               <Button fx:id="continueBtn" minWidth="${backButton.width/2}" mnemonicParsing="false" onAction="#submitUINUpdate" styleClass="contiuneButton" text="%continue" GridPane.halignment="RIGHT" GridPane.valignment="TOP">
                                  <graphic>
-                                    <ImageView fitHeight="20.0" fitWidth="27.0" pickOnBounds="true" preserveRatio="true">
+                                    <ImageView fx:id="continueImageView" fitHeight="20.0" fitWidth="27.0" pickOnBounds="true" preserveRatio="true">
                                        <image>
                                           <Image url="@../images/arrowRight.png" />
                                        </image>

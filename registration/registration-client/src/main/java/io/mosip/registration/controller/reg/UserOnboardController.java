@@ -93,6 +93,15 @@ public class UserOnboardController extends BaseController implements Initializab
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		setImagesOnHover();
+
+		setImage(getOnboardedImageView, RegistrationConstants.GET_ONBOARD_IMG);
+		setImage(onboardImageView, RegistrationConstants.ONBOARD_YOURSELF_IMG);
+		setImage(registerImageView, RegistrationConstants.REGISTER_INDVIDUAL_IMG);
+		setImage(syncDataImageView, RegistrationConstants.SYNC_IMG);	
+		setImage(mapDevicesImageView, RegistrationConstants.SYNC_IMG);
+		setImage(uploadDataImageView, RegistrationConstants.UPDATE_OPERATOR_BIOMETRICS_IMG);		
+		setImage(updateBiometricsImageView, RegistrationConstants.ACTIVE_BIOMETRIC_DETAILS_IMG);
+
 		operatorName.setText(RegistrationUIConstants.USER_ONBOARD_HI + " " + SessionContext.userContext().getName()
 				+ ", " + RegistrationUIConstants.USER_ONBOARD_NOTONBOARDED);
 	}
@@ -226,65 +235,59 @@ public class UserOnboardController extends BaseController implements Initializab
 	private void setImagesOnHover() {
 		getOnboardedPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
-				getOnboardedImageView.setImage(
-						new Image(getClass().getResourceAsStream(RegistrationConstants.GET_ONBOARDED_FOCUSED)));
+				setImage(getOnboardedImageView, RegistrationConstants.GET_ONBOARDED_FOCUSED_IMG);
 			} else {
-				getOnboardedImageView.setImage(
-						new Image(getClass().getResourceAsStream(RegistrationConstants.GET_ONBOARDED_IMG_PATH)));
+				setImage(getOnboardedImageView, RegistrationConstants.GET_ONBOARD_IMG);
 			}
 		});
 		onboardGridPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
-				onboardImageView
-						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.ONBOARDING_FOCUSED)));
+				setImage(onboardImageView, RegistrationConstants.ONBOARDING_FOCUSED_IMG);
+				
 			} else {
-				onboardImageView
-						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.ONBOARDING_IMG_PATH)));
+				setImage(onboardImageView, RegistrationConstants.ONBOARD_YOURSELF_IMG);
 			}
 		});
 		registerGridPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
-				registerImageView
-						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.REGISTERING_FOCUSED)));
+				setImage(registerImageView, RegistrationConstants.REGISTERING_FOCUSED_IMG);
 			} else {
-				registerImageView.setImage(
-						new Image(getClass().getResourceAsStream(RegistrationConstants.REGISTERING_IMG_PATH)));
+				setImage(registerImageView, RegistrationConstants.REGISTER_INDVIDUAL_IMG);
 			}
 		});
 		syncDataGridPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
-				syncDataImageView
-						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.SYNC_DATA_FOCUSED)));
+
+				setImage(syncDataImageView, RegistrationConstants.SYNC_DATA_FOCUSED_IMG);
 			} else {
-				syncDataImageView
-						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.SYNC_DATA_IMAGE)));
+
+				setImage(syncDataImageView, RegistrationConstants.SYNC_IMG);
 			}
 		});
 		mapDevicesGridPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
-				mapDevicesImageView
-						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.SYNC_DATA_FOCUSED)));
+				setImage(mapDevicesImageView, RegistrationConstants.SYNC_DATA_FOCUSED_IMG);
 			} else {
-				mapDevicesImageView
-						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.SYNC_DATA_IMAGE)));
+				setImage(mapDevicesImageView, RegistrationConstants.SYNC_IMG);
 			}
 		});
 		uploadDataGridPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
-				uploadDataImageView.setImage(
-						new Image(getClass().getResourceAsStream(RegistrationConstants.UPDATE_OP_BIOMETRICS_FOCUSED)));
+
+				setImage(uploadDataImageView, RegistrationConstants.UPDATE_OP_BIOMETRICS_FOCUSED_IMG);
+				
 			} else {
-				uploadDataImageView.setImage(
-						new Image(getClass().getResourceAsStream(RegistrationConstants.UPDATE_OP_BIOMETRICS_IMAGE)));
+
+				setImage(uploadDataImageView, RegistrationConstants.UPDATE_OPERATOR_BIOMETRICS_IMG);
 			}
 		});
 		updateBiometricsGridPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
-				updateBiometricsImageView.setImage(
-						new Image(getClass().getResourceAsStream(RegistrationConstants.UPDATE_BIOMETRICS_FOCUSED)));
+
+				setImage(updateBiometricsImageView, RegistrationConstants.UPDATE_BIOMETRICS_FOCUSED_IMG);
 			} else {
-				updateBiometricsImageView.setImage(
-						new Image(getClass().getResourceAsStream(RegistrationConstants.UPDATE_BIOMETRICS_IMG_PATH)));
+
+				setImage(updateBiometricsImageView, RegistrationConstants.ACTIVE_BIOMETRIC_DETAILS_IMG);
 			}
 		});
 	}

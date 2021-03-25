@@ -4,6 +4,7 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Timestamp;
@@ -22,6 +23,8 @@ import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import com.itextpdf.text.pdf.PdfStructTreeController.returnType;
 
 import io.mosip.commons.packet.constants.PacketManagerConstants;
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -195,6 +198,12 @@ public class BaseController {
 
 	@Autowired
 	private AuthTokenUtilService authTokenUtilService;
+	
+	@Value("${mosip.registration.images.path:images}")
+	private String imagesPath;
+	
+	@Value("${mosip.registration.theme:}")
+	private String imagesTheme;
 
 	protected ApplicationContext applicationContext = ApplicationContext.getInstance();
 
@@ -1948,5 +1957,55 @@ public class BaseController {
 			generateAlert(RegistrationConstants.ERROR, "Both Mandatory and Optional languages not configured");
 		}
 		return Collections.EMPTY_LIST;
+	}
+	
+	
+	public void setImage(ImageView imageView, String imageName) {
+
+		if (imageView != null) {
+			Image image;
+			try {
+				image = getImage(imageName);
+				if (image != null) {
+
+					imageView.setImage(image);
+				}
+			} catch (RegBaseCheckedException e) {
+				LOGGER.error("Exception while Getting Image");
+			}
+
+		}
+	}
+
+	public Image getImage(String imageName) throws RegBaseCheckedException {
+
+		if (imageName == null || imageName.isEmpty()) {
+			throw new RegBaseCheckedException();
+		}
+
+		Image image = null;
+		try {
+			
+			
+			image = new Image(getImageFilePath(imageName));
+		} catch (Exception exception) {
+
+			LOGGER.error("Exception while Getting Image", exception);
+			throw new RegBaseCheckedException();
+		}
+
+		return image;
+	}
+
+	private String getImagesConfiguredFilePath() {
+		return imagesPath;
+	}
+
+	private String getConfiguredImagesTheme() {
+		return imagesTheme;
+	}
+	
+	public String getImageFilePath(String imageName) {
+		return getImagesConfiguredFilePath().concat(File.separator).concat(getConfiguredImagesTheme()!=null ? getConfiguredImagesTheme().concat(File.separator) : "").concat(imageName);
 	}
 }

@@ -168,7 +168,13 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 	@FXML
 	private ImageView backImageView;
-
+	
+	@FXML
+	private ImageView scanImageView;
+	
+	@FXML
+	private ImageView rightArrowImgView;
+	
 	public Label getGuardianBiometricsLabel() {
 		return guardianBiometricsLabel;
 	}
@@ -339,18 +345,21 @@ public class BiometricsController extends BaseController /* implements Initializ
 	public void initialize() {
 		LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Loading of Guardian Biometric screen started");
+
+		setImage(scanImageView, RegistrationConstants.SCAN_IMG);
+		setImage(backImageView, RegistrationConstants.ARROW_LEFT_IMG);
+		setImage(rightArrowImgView, RegistrationConstants.ARROW_RIGHT_IMG);
+		
 		currentMap = new LinkedHashMap<>();
 		fxUtils = FXUtils.getInstance();
 		leftHandImageBoxMap = new HashMap<>();
 		exceptionMap = new HashMap<>();
 
-		Image backInWhite = new Image(getClass().getResourceAsStream(RegistrationConstants.BACK_FOCUSED));
-		Image backImage = new Image(getClass().getResourceAsStream(RegistrationConstants.BACK));
 		backButton.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
-				backImageView.setImage(backInWhite);
+				setImage(backImageView, RegistrationConstants.BACK_FOCUSED_IMG);
 			} else {
-				backImageView.setImage(backImage);
+				setImage(backImageView, RegistrationConstants.ARROW_LEFT_IMG);
 			}
 		});
 
@@ -515,26 +524,38 @@ public class BiometricsController extends BaseController /* implements Initializ
 			vBox.setVisible(false);
 		}
 
-		ImageView imageView = new ImageView(
-				image != null ? image : new Image(this.getClass().getResourceAsStream(getImageIconPath(modality))));
-		imageView.setFitHeight(80);
-		imageView.setFitWidth(85);
+		ImageView imageView;
+		try {
+			imageView = new ImageView(
+					image != null ? image : getImage(getImageIconPath(modality)));
+			imageView.setFitHeight(80);
+			imageView.setFitWidth(85);
 
-		Tooltip tooltip = new Tooltip(applicationLabelBundle.getString(modality));
-		tooltip.getStyleClass().add(RegistrationConstants.TOOLTIP_STYLE);
-		// Tooltip.install(hBox, tooltip);
-		hBox.setOnMouseEntered(event -> tooltip.show(hBox, event.getScreenX(), event.getScreenY() + 15));
-		hBox.setOnMouseExited(event -> tooltip.hide());
-		hBox.getChildren().add(imageView);
+			Tooltip tooltip = new Tooltip(applicationLabelBundle.getString(modality));
+			tooltip.getStyleClass().add(RegistrationConstants.TOOLTIP_STYLE);
+			// Tooltip.install(hBox, tooltip);
+			hBox.setOnMouseEntered(event -> tooltip.show(hBox, event.getScreenX(), event.getScreenY() + 15));
+			hBox.setOnMouseExited(event -> tooltip.hide());
+			hBox.getChildren().add(imageView);
+		} catch (RegBaseCheckedException regBaseCheckedException) {
+			LOGGER.error("Error while getting image");
+		}
+		
 
 		if (image != null) {
 			if (hBox.getChildren().size() == 1) {
-				ImageView tickImageView = new ImageView(
-						new Image(this.getClass().getResourceAsStream(RegistrationConstants.TICK_CIRICLE_IMG_PATH)));
+				ImageView tickImageView;
+				try {
+					tickImageView = new ImageView(
+							getImage(RegistrationConstants.TICK_CIRICLE_IMG));
+					tickImageView.setFitWidth(40);
+					tickImageView.setFitHeight(40);
+					hBox.getChildren().add(tickImageView);
+				} catch (RegBaseCheckedException exception) {
+					LOGGER.error("Error while getting image");
+				}
 
-				tickImageView.setFitWidth(40);
-				tickImageView.setFitHeight(40);
-				hBox.getChildren().add(tickImageView);
+				
 			}
 		}
 
@@ -595,7 +616,11 @@ public class BiometricsController extends BaseController /* implements Initializ
 			addImageInUIPane(currentSubType, currentModality, convertBytesToImage(documentDto.getDocument()), true);
 
 		} else {
-			biometricImage.setImage(new Image(this.getClass().getResourceAsStream(getImageIconPath(modality))));
+			try {
+				biometricImage.setImage(getImage(getImageIconPath(modality)));
+			} catch (RegBaseCheckedException exception) {
+				LOGGER.error("Exception while getting image",exception);
+			}
 
 			addImageInUIPane(currentModality, currentModality, null, false);
 		}
@@ -890,37 +915,27 @@ public class BiometricsController extends BaseController /* implements Initializ
 	}
 
 	private String getImageIconPath(String modality) {
-		// modality = modality.toLowerCase();
-
-		String imageIconPath = null;
-
-		if (isExceptionPhoto(modality)) {
-			return RegistrationConstants.DEFAULT_EXCEPTION_IMAGE_PATH;
-		}
+		String imageIconPath = RegistrationConstants.DEFAULT_EXCEPTION_IMG;
 
 		if (modality != null) {
 			switch (modality) {
-
-			case RegistrationConstants.FACE:
-				imageIconPath = RegistrationConstants.FACE_IMG_PATH;
-				break;
-			case RegistrationConstants.IRIS_DOUBLE:
-				imageIconPath = RegistrationConstants.DOUBLE_IRIS_IMG_PATH;
-				break;
-
-			case RegistrationConstants.FINGERPRINT_SLAB_RIGHT:
-				imageIconPath = RegistrationConstants.RIGHTPALM_IMG_PATH;
-				break;
-			case RegistrationConstants.FINGERPRINT_SLAB_LEFT:
-				imageIconPath = RegistrationConstants.LEFTPALM_IMG_PATH;
-				break;
-			case RegistrationConstants.FINGERPRINT_SLAB_THUMBS:
-				imageIconPath = RegistrationConstants.THUMB_IMG_PATH;
-				break;
-
+				case RegistrationConstants.FACE:
+					imageIconPath = RegistrationConstants.FACE_IMG;
+					break;
+				case RegistrationConstants.IRIS_DOUBLE:
+					imageIconPath = RegistrationConstants.DOUBLE_IRIS_IMG;
+					break;
+				case RegistrationConstants.FINGERPRINT_SLAB_RIGHT:
+					imageIconPath = RegistrationConstants.RIGHTPALM_IMG;
+					break;
+				case RegistrationConstants.FINGERPRINT_SLAB_LEFT:
+					imageIconPath = RegistrationConstants.LEFTPALM_IMG;
+					break;
+				case RegistrationConstants.FINGERPRINT_SLAB_THUMBS:
+					imageIconPath = RegistrationConstants.THUMB_IMG;
+					break;
 			}
 		}
-
 		return imageIconPath;
 	}
 
@@ -1689,7 +1704,11 @@ public class BiometricsController extends BaseController /* implements Initializ
 		this.bioType = constructBioType(bioType);
 
 		bioValue = bioType;
-		biometricImage.setImage(new Image(this.getClass().getResourceAsStream(bioImage)));
+		try {
+			biometricImage.setImage(getImage(bioImage));
+		} catch (RegBaseCheckedException exception) {
+			LOGGER.error("Exception while getting image",exception);
+		}
 
 		String threshold = null;
 		if (biometricThreshold != null) {
@@ -2342,61 +2361,60 @@ public class BiometricsController extends BaseController /* implements Initializ
 			image = getBioStreamImage(subtype, modality, biometricsDtos.get(0).getNumOfRetries());
 		}
 
-		ImageView imageView = new ImageView(
-				image != null ? image : new Image(this.getClass().getResourceAsStream(getImageIconPath(modality))));
-		imageView.setFitHeight(80);
-		imageView.setFitWidth(85);
+		try {
+			ImageView imageView = new ImageView(
+					image != null ? image :getImage(getImageIconPath(modality)));
+					imageView.setFitHeight(80);
+					imageView.setFitWidth(85);
+					Tooltip tooltip = new Tooltip(applicationLabelBundle.getString(modality));
+					tooltip.getStyleClass().add(RegistrationConstants.TOOLTIP_STYLE);
+					// Tooltip.install(hBox, tooltip);
+					hBox.setOnMouseEntered(event -> tooltip.show(hBox, event.getScreenX(), event.getScreenY() + 15));
+					hBox.setOnMouseExited(event -> tooltip.hide());
+					hBox.getChildren().add(imageView);
 
-		Tooltip tooltip = new Tooltip(applicationLabelBundle.getString(modality));
-		tooltip.getStyleClass().add(RegistrationConstants.TOOLTIP_STYLE);
-		// Tooltip.install(hBox, tooltip);
-		hBox.setOnMouseEntered(event -> tooltip.show(hBox, event.getScreenX(), event.getScreenY() + 15));
-		hBox.setOnMouseExited(event -> tooltip.hide());
-		hBox.getChildren().add(imageView);
+					boolean isAllExceptions = true;
+					for (String configBioAttribute : configBioAttributes) {
 
-		boolean isAllExceptions = true;
-		for (String configBioAttribute : configBioAttributes) {
+						isAllExceptions = isBiometricExceptionAvailable(currentSubType, configBioAttribute) ? isAllExceptions
+								: false;
 
-			isAllExceptions = isBiometricExceptionAvailable(currentSubType, configBioAttribute) ? isAllExceptions
-					: false;
+						if (!isAllExceptions) {
+							break;
+						}
+					}
+					if (image != null || isAllExceptions) {
+						if (hBox.getChildren().size() == 1) {
+						
+							String imageName = isAllExceptions ? RegistrationConstants.EXCLAMATION_IMG : RegistrationConstants.TICK_CIRICLE_IMG;
+							
+							ImageView tickImageView = new ImageView(getImage(imageName));
+							tickImageView.setFitWidth(40);
+							tickImageView.setFitHeight(40);
+							hBox.getChildren().add(tickImageView);
+						}
+					}
 
-			if (!isAllExceptions) {
-				break;
-			}
+					vBox.getChildren().add(hBox);
+
+					// vBox.getChildren().add(imageView);
+
+					vBox.setOnMouseClicked((event) -> {
+						displayBiometric(vBox.getId());
+					});
+
+					vBox.setFillWidth(true);
+					vBox.setMinWidth(100);
+
+					// vBox.setMinHeight(100);
+					vBox.getStyleClass().add(RegistrationConstants.BIOMETRICS_DISPLAY);
+					// vBox.setBorder(new Border(
+					// new BorderStroke(Color.PINK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
+					// BorderWidths.FULL)));
+		} catch (RegBaseCheckedException exception) {
+			LOGGER.error("Error while getting image");
 		}
-		if (image != null || isAllExceptions) {
-			if (hBox.getChildren().size() == 1) {
-				ImageView tickImageView;
-				if (isAllExceptions) {
-					tickImageView = new ImageView(
-							new Image(this.getClass().getResourceAsStream(RegistrationConstants.EXCLAMATION_IMG_PATH)));
-				} else {
-					tickImageView = new ImageView(new Image(
-							this.getClass().getResourceAsStream(RegistrationConstants.TICK_CIRICLE_IMG_PATH)));
-				}
-				tickImageView.setFitWidth(40);
-				tickImageView.setFitHeight(40);
-				hBox.getChildren().add(tickImageView);
-			}
-		}
-
-		vBox.getChildren().add(hBox);
-
-		// vBox.getChildren().add(imageView);
-
-		vBox.setOnMouseClicked((event) -> {
-			displayBiometric(vBox.getId());
-		});
-
-		vBox.setFillWidth(true);
-		vBox.setMinWidth(100);
-
-		// vBox.setMinHeight(100);
-		vBox.getStyleClass().add(RegistrationConstants.BIOMETRICS_DISPLAY);
-		// vBox.setBorder(new Border(
-		// new BorderStroke(Color.PINK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
-		// BorderWidths.FULL)));
-
+		
 		return vBox;
 	}
 
@@ -2410,23 +2428,27 @@ public class BiometricsController extends BaseController /* implements Initializ
 						VBox vBox = (VBox) node;
 						HBox hBox = (HBox) vBox.getChildren().get(0);
 						// hBox.getChildren().clear();
-						((ImageView) (hBox.getChildren().get(0))).setImage(uiImage != null ? uiImage
-								: new Image(this.getClass().getResourceAsStream(getImageIconPath(modality))));
+						try {
+							((ImageView) (hBox.getChildren().get(0))).setImage(uiImage != null ? uiImage
+									: getImage(getImageIconPath(modality)));
+						} catch (RegBaseCheckedException e) {
+							LOGGER.error("Error While getting image");
+						}
 
 						if (isCaptured) {
 							if (hBox.getChildren().size() == 1) {
-								ImageView imageView;
-								if (uiImage == null) {
-									imageView = new ImageView(new Image(this.getClass()
-											.getResourceAsStream(RegistrationConstants.EXCLAMATION_IMG_PATH)));
-								} else {
-									imageView = new ImageView(new Image(this.getClass()
-											.getResourceAsStream(RegistrationConstants.TICK_CIRICLE_IMG_PATH)));
+								String imageName =uiImage == null?RegistrationConstants.EXCLAMATION_IMG :RegistrationConstants.TICK_CIRICLE_IMG;
+
+								try {
+									ImageView imageView = new ImageView(getImage(imageName));
+									imageView.setFitWidth(40);
+									imageView.setFitHeight(40);
+									hBox.getChildren().add(imageView);
+								} catch (RegBaseCheckedException e) {
+									LOGGER.error("Error While getting image");
 								}
 
-								imageView.setFitWidth(40);
-								imageView.setFitHeight(40);
-								hBox.getChildren().add(imageView);
+								
 							}
 						} else {
 
@@ -2839,25 +2861,25 @@ public class BiometricsController extends BaseController /* implements Initializ
 	}
 
 	private Pane getLeftSlabExceptionPane(String modality) {
-		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Preparing Left Slab Exception Image ");
+		LOGGER.debug("Preparing Left Slab Exception Image ");
 
 		Pane pane = new Pane();
 		pane.setId(modality);
 		pane.setPrefHeight(200);
 		pane.setPrefWidth(200);
 
-		ImageView topImageView = getImageView(null, RegistrationConstants.LEFTPALM_IMG_PATH, 144, 163, 6, 6, true, true,
+		ImageView topImageView = getImageView(null, RegistrationConstants.LEFTPALM_IMG, 144, 163, 6, 6, true, true,
 				false);
 
 		// Left Middle
 
-		ImageView leftMiddleImageView = getImageView("leftMiddle", RegistrationConstants.LEFTMIDDLE_IMG_PATH, 92, 27,
+		ImageView leftMiddleImageView = getImageView("leftMiddle", RegistrationConstants.LEFTMIDDLE_IMG, 92, 27,
 				70, 41, true, true, true);
-		ImageView leftIndexImageView = getImageView("leftIndex", RegistrationConstants.LEFTINDEX_IMG_PATH, 75, 28, 97,
+		ImageView leftIndexImageView = getImageView("leftIndex", RegistrationConstants.LEFTINDEX_IMG, 75, 28, 97,
 				55, true, true, true);
-		ImageView leftRingImageView = getImageView("leftRing", RegistrationConstants.LEFTRING_IMG_PATH, 75, 28, 45, 55,
+		ImageView leftRingImageView = getImageView("leftRing", RegistrationConstants.LEFTRING_IMG, 75, 28, 45, 55,
 				true, true, true);
-		ImageView leftLittleImageView = getImageView("leftLittle", RegistrationConstants.LEFTLITTLE_IMG_PATH, 49, 26,
+		ImageView leftLittleImageView = getImageView("leftLittle", RegistrationConstants.LEFTLITTLE_IMG, 49, 26,
 				19, 82, true, true, true);
 
 		pane.getChildren().add(topImageView);
@@ -2866,33 +2888,31 @@ public class BiometricsController extends BaseController /* implements Initializ
 		pane.getChildren().add(leftRingImageView);
 		pane.getChildren().add(leftLittleImageView);
 
-		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-				"Completed Preparing Left Slap Exception Image ");
+		LOGGER.debug("Completed Preparing Left Slap Exception Image");
 
 		return pane;
 	}
 
 	private Pane getRightSlabExceptionPane(String modality) {
-
-		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Preparing Right Slab Exception Image ");
+		LOGGER.debug("Preparing Right Slab Exception Image ");
 		Pane pane = new Pane();
 		pane.setId(modality);
 		pane.setPrefHeight(200);
 		pane.setPrefWidth(200);
 
-		ImageView topImageView = getImageView(null, RegistrationConstants.RIGHTPALM_IMG_PATH, 144, 163, 3, 4, true,
+		ImageView topImageView = getImageView(null, RegistrationConstants.RIGHTPALM_IMG, 144, 163, 3, 4, true,
 				true, false);
 
 		// Left Middle
 
-		ImageView middleImageView = getImageView("rightMiddle", RegistrationConstants.LEFTMIDDLE_IMG_PATH, 92, 30, 72,
+		ImageView middleImageView = getImageView("rightMiddle", RegistrationConstants.LEFTMIDDLE_IMG, 92, 30, 72,
 				37, true, true, true);
-		ImageView ringImageView = getImageView("rightRing", RegistrationConstants.LEFTRING_IMG_PATH, 82, 27, 99, 54,
+		ImageView ringImageView = getImageView("rightRing", RegistrationConstants.LEFTRING_IMG, 82, 27, 99, 54,
 				true, true, true);
-		ImageView indexImageView = getImageView("rightIndex", RegistrationConstants.LEFTINDEX_IMG_PATH, 75, 30, 46, 54,
+		ImageView indexImageView = getImageView("rightIndex", RegistrationConstants.LEFTINDEX_IMG, 75, 30, 46, 54,
 				true, true, true);
 
-		ImageView littleImageView = getImageView("rightLittle", RegistrationConstants.LEFTLITTLE_IMG_PATH, 57, 28, 125,
+		ImageView littleImageView = getImageView("rightLittle", RegistrationConstants.LEFTLITTLE_IMG, 57, 28, 125,
 				75, true, true, true);
 
 		pane.getChildren().add(topImageView);
@@ -2900,94 +2920,97 @@ public class BiometricsController extends BaseController /* implements Initializ
 		pane.getChildren().add(ringImageView);
 		pane.getChildren().add(indexImageView);
 		pane.getChildren().add(littleImageView);
-		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-				"Completed Preparing Right Slab Exception Image ");
+		LOGGER.debug("Completed Preparing Right Slab Exception Image ");
 
 		return pane;
 	}
 
 	private Pane getTwoThumbsSlabExceptionPane(String modality) {
-
-		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Preparing Two Thumbs Exception Image ");
+		LOGGER.info("Preparing Two Thumbs Exception Image ");
 		Pane pane = new Pane();
 		pane.setId(modality);
 		pane.setPrefHeight(200);
 		pane.setPrefWidth(200);
 
-		ImageView topImageView = getImageView(null, RegistrationConstants.THUMB_IMG_PATH, 144, 171, 14, 7, true, true,
+		ImageView topImageView = getImageView(null, RegistrationConstants.THUMB_IMG, 144, 171, 18, 22, true, true,
 				false);
 
-		ImageView left = getImageView("leftThumb", RegistrationConstants.LEFTTHUMB_IMG_PATH, 92, 28, 55, 37, true, true,
+		ImageView left = getImageView("leftThumb", RegistrationConstants.LEFTTHUMB_IMG, 92, 30, 55, 37, true, true,
 				true);
-		ImageView right = getImageView("rightThumb", RegistrationConstants.LEFTTHUMB_IMG_PATH, 99, 28, 115, 38, true,
+		ImageView right = getImageView("rightThumb", RegistrationConstants.LEFTTHUMB_IMG, 99, 30, 123, 38, true,
 				true, true);
 
 		pane.getChildren().add(topImageView);
 		pane.getChildren().add(left);
 		pane.getChildren().add(right);
-		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-				"Completed Preparing Two Thumbs Exception Image ");
+		LOGGER.info("Completed Preparing Two Thumbs Exception Image ");
 		return pane;
 	}
 
 	private Pane getTwoIrisSlabExceptionPane(String modality) {
-
-		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Preparing Two Iris Exception Image ");
+		LOGGER.debug("Preparing Two Iris Exception Image ");
 		Pane pane = new Pane();
 		pane.setId(modality);
 		pane.setPrefHeight(200);
 		pane.setPrefWidth(200);
-		ImageView topImageView = getImageView(null, RegistrationConstants.DOUBLE_IRIS_IMG_PATH, 144, 189.0, 7, 4, true,
+		ImageView topImageView = getImageView(null, RegistrationConstants.DOUBLE_IRIS_IMG, 144, 189.0, 7, 4, true,
 				true, false);
 
-		ImageView rightImageView = getImageView("rightEye", RegistrationConstants.RIGHTEYE_IMG_PATH, 43, 48, 118, 54,
+		ImageView rightImageView = getImageView("rightEye", RegistrationConstants.RIGHTEYE_IMG, 43, 48, 118, 54,
 				true, true, true);
-		ImageView leftImageView = getImageView("leftEye", RegistrationConstants.LEFTEYE_IMG_PATH, 43, 48, 35, 54, true,
+		ImageView leftImageView = getImageView("leftEye", RegistrationConstants.LEFTEYE_IMG, 43, 48, 35, 54, true,
 				true, true);
 
 		pane.getChildren().add(topImageView);
 		pane.getChildren().add(rightImageView);
 		pane.getChildren().add(leftImageView);
 
-		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Completed Preparing Two Iris Exception Image ");
+		LOGGER.debug("Completed Preparing Two Iris Exception Image ");
 		return pane;
 	}
 
-	private ImageView getImageView(String id, String url, double fitHeight, double fitWidth, double layoutX,
+	private ImageView getImageView(String id, String imageName, double fitHeight, double fitWidth, double layoutX,
 			double layoutY, boolean pickOnBounds, boolean preserveRatio, boolean hasActionEvent) {
 
 		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 				"Started Preparing exception image view for : " + id);
 
-		ImageView imageView = new ImageView(new Image(this.getClass().getResourceAsStream(url)));
+		ImageView imageView = null;
+		try {
+			imageView = new ImageView(getImage(imageName));
+			if (id != null) {
+				imageView.setId(id);
+			}
+			imageView.setFitHeight(fitHeight);
+			imageView.setFitWidth(fitWidth);
+			imageView.setLayoutX(layoutX);
+			imageView.setLayoutY(layoutY);
+			imageView.setPickOnBounds(pickOnBounds);
+			imageView.setPreserveRatio(preserveRatio);
 
-		if (id != null) {
-			imageView.setId(id);
+			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Is Action required : " + hasActionEvent);
+
+			if (hasActionEvent) {
+				imageView.setOnMouseClicked((event) -> {
+
+					LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+							"Action event triggered on click of exception image");
+					addException(event);
+				});
+
+			}
+
+			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+					"Completed Preparing exception image view for : " + id);
+		} catch (RegBaseCheckedException exception) {
+			LOGGER.error("Exception while getting image",exception);
 		}
-		imageView.setFitHeight(fitHeight);
-		imageView.setFitWidth(fitWidth);
-		imageView.setLayoutX(layoutX);
-		imageView.setLayoutY(layoutY);
-		imageView.setPickOnBounds(pickOnBounds);
-		imageView.setPreserveRatio(preserveRatio);
 
-		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Is Action required : " + hasActionEvent);
-
-		if (hasActionEvent) {
-			imageView.setOnMouseClicked((event) -> {
-
-				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-						"Action event triggered on click of exception image");
-				addException(event);
-			});
-
-		}
-
-		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-				"Completed Preparing exception image view for : " + id);
+		
 		return imageView;
 
 	}
+
 
 	public void addException(MouseEvent event) {
 

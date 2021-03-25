@@ -130,9 +130,37 @@ public class AuthenticationController extends BaseController implements Initiali
 	@FXML
 	private ImageView irisImageView;
 	@FXML
+	private ImageView continueImageView;
+	@FXML
+	private ImageView rightHandImageView;
+	@FXML
 	private Button backBtn;
 	@FXML
 	private ImageView backImageView;
+	
+	@FXML
+	private ImageView documentCloseImgPwdBasedLogin;
+	@FXML
+	private ImageView documentCloseImgOtp;
+	@FXML
+	private ImageView documentCloseImgFp;
+	@FXML
+	private ImageView rightHandImgFpUserId;
+	@FXML
+	private ImageView fpScanImageView;
+	@FXML
+	private ImageView documentCloseImgVwAuthpageTitle;
+	@FXML
+	private ImageView irisScanImageView;
+	@FXML
+	private ImageView exitWindowImgView;
+	@FXML
+	private ImageView faceStreamImageView;
+	@FXML
+	private ImageView faceScanImageView;
+	@FXML
+	private ImageView exitWindowImgVwAuthPageTitle;
+	
 	@FXML
 	private GridPane progressIndicatorPane;
 	@FXML
@@ -1219,8 +1247,25 @@ public class AuthenticationController extends BaseController implements Initiali
 	public void initialize(URL location, ResourceBundle resources) {
 		setImageOnHover();
 
-		irisImageView.setImage(
-				new Image(getClass().getResource(RegistrationConstants.RIGHT_IRIS_IMG_PATH).toExternalForm()));
+
+		setImage(backImageView	, RegistrationConstants.ARROW_LEFT_IMG);
+		setImage(continueImageView	, RegistrationConstants.ARROW_RIGHT_IMG);
+		setImage(rightHandImageView	, RegistrationConstants.RIGHT_HAND_IMG);
+		setImage(irisImageView	, RegistrationConstants.EYE_IMG);
+		setImage(faceImage	, RegistrationConstants.PHOTO_IMG);
+		setImage(documentCloseImgPwdBasedLogin	, RegistrationConstants.CLOSE_IMG);
+		setImage(documentCloseImgOtp	, RegistrationConstants.CLOSE_IMG);
+		setImage(documentCloseImgFp	, RegistrationConstants.CLOSE_IMG);
+		setImage(rightHandImgFpUserId	, RegistrationConstants.RIGHT_HAND_IMG);
+		setImage(fpScanImageView	, RegistrationConstants.SCAN_IMG);
+		setImage(documentCloseImgVwAuthpageTitle	, RegistrationConstants.CLOSE_IMG);
+		setImage(irisScanImageView	, RegistrationConstants.SCAN_IMG);
+		setImage(exitWindowImgView	, RegistrationConstants.CLOSE_IMG);
+		setImage(faceStreamImageView	, RegistrationConstants.SCAN_IMG);
+		setImage(faceScanImageView	, RegistrationConstants.SCAN_IMG);
+		setImage(exitWindowImgVwAuthPageTitle	, RegistrationConstants.CLOSE_IMG);
+		
+		
 		int otpExpirySeconds = Integer
 				.parseInt((getValueFromApplicationContext(RegistrationConstants.OTP_EXPIRY_TIME)).trim());
 		int minutes = otpExpirySeconds / 60;
@@ -1239,9 +1284,9 @@ public class AuthenticationController extends BaseController implements Initiali
 
 		backBtn.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
-				backImageView.setImage(backInWhite);
+				setImage(backImageView	, RegistrationConstants.BACK_FOCUSED_IMG);
 			} else {
-				backImageView.setImage(backImage);
+				setImage(backImageView	, RegistrationConstants.ARROW_LEFT_IMG);
 			}
 		});
 	}

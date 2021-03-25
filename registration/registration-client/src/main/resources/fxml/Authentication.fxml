@@ -34,7 +34,7 @@
 									<children>
 										<Hyperlink onAction="#exitWindow" GridPane.columnIndex="1">
 											<graphic>
-												<ImageView fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
+												<ImageView fx:id="documentCloseImgPwdBasedLogin" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
 													<image>
 														<Image url="@../images/DocumentClose.png" />
 													</image>
@@ -155,7 +155,7 @@
 									<children>
 										<Hyperlink onAction="#exitWindow" GridPane.columnIndex="1">
 											<graphic>
-												<ImageView fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
+												<ImageView fx:id="documentCloseImgOtp" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
 													<image>
 														<Image url="@../images/DocumentClose.png" />
 													</image>
@@ -264,7 +264,7 @@
 									<children>
 										<Hyperlink onAction="#exitWindow" GridPane.columnIndex="1">
 											<graphic>
-												<ImageView fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
+												<ImageView fx:id="documentCloseImgFp" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
 													<image>
 														<Image url="@../images/DocumentClose.png" />
 													</image>
@@ -323,7 +323,7 @@
 																	<children>
 																		<GridPane GridPane.columnIndex="1">
 																			<children>
-																				<ImageView fitHeight="128.0" fitWidth="111.0" pickOnBounds="true" preserveRatio="true" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+																				<ImageView fx:id="rightHandImgFpUserId" fitHeight="128.0" fitWidth="111.0" pickOnBounds="true" preserveRatio="true" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
 																					<image>
 																						<Image url="@../images/rightHand.png" />
 																					</image>
@@ -431,7 +431,7 @@
 									<children>
 										<Hyperlink onAction="#exitWindow" GridPane.columnIndex="1">
 											<graphic>
-												<ImageView fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
+												<ImageView fx:id="documentCloseImgVwAuthpageTitle" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
 													<image>
 														<Image url="@../images/DocumentClose.png" />
 													</image>
@@ -570,7 +570,7 @@
 									<children>
 										<Hyperlink onAction="#exitWindow" GridPane.columnIndex="1">
 											<graphic>
-												<ImageView fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
+												<ImageView fx:id="exitWindowImgView" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
 													<image>
 														<Image url="@../images/DocumentClose.png" />
 													</image>
@@ -730,7 +730,7 @@
 									<children>
 										<Hyperlink onAction="#exitWindow" GridPane.columnIndex="1">
 											<graphic>
-												<ImageView fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
+												<ImageView fx:id="exitWindowImgVwAuthPageTitle" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
 													<image>
 														<Image url="@../images/DocumentClose.png" />
 													</image>

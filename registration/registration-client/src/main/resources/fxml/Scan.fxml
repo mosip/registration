@@ -33,7 +33,7 @@
                   <Label fx:id="popupTitle" prefHeight="27.0" prefWidth="431.0" styleClass="scanPopupHeaderTitle" GridPane.hgrow="ALWAYS" />
                   <Hyperlink fx:id="closeButton" onAction="#exitWindow" styleClass="exit" GridPane.columnIndex="1">
                      <graphic>
-                        <ImageView fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
+                        <ImageView fx:id="closeImageView" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
                            <image>
                               <Image url="@../images/DocumentClose.png" />
                            </image>
@@ -116,7 +116,7 @@
                            <children>
                               <Button fx:id="streamBtn" graphicTextGap="10.0" mnemonicParsing="false" onAction="#stream" styleClass="scanButton" text="%stream">
                                  <graphic>
-                                    <ImageView fitHeight="14.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                                    <ImageView fx:id="streamImageView" fitHeight="14.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
                                        <image>
                                           <Image url="@../images/stream.png" />
                                        </image>
@@ -125,7 +125,7 @@
                               </Button>
                               <Button fx:id="captureBtn" graphicTextGap="10.0" mnemonicParsing="false" onAction="#scan" styleClass="scanButton" text="%capture" GridPane.rowIndex="1">
                                  <graphic>
-                                    <ImageView fitHeight="24.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
+                                    <ImageView fx:id="captureImageView" fitHeight="24.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
                                        <image>
                                           <Image url="@../images/scan.png" />
                                        </image>
@@ -134,7 +134,7 @@
                               </Button>
                               <Button fx:id="saveBtn" graphicTextGap="10.0" mnemonicParsing="false" onAction="#save" styleClass="scanButton" text="%save" GridPane.rowIndex="2">
                                  <graphic>
-                                    <ImageView fitHeight="19.0" fitWidth="77.0" pickOnBounds="true" preserveRatio="true">
+                                    <ImageView fx:id="saveImageView" fitHeight="19.0" fitWidth="77.0" pickOnBounds="true" preserveRatio="true">
                                        <image>
                                           <Image url="@../images/DownloadPreRegData.png" />
                                        </image>
@@ -152,7 +152,7 @@
                               </Button>
                               <Button fx:id="cancelBtn" graphicTextGap="10.0" mnemonicParsing="false" onAction="#cancel" styleClass="scanButton" text="%cancel" GridPane.rowIndex="4">
                                  <graphic>
-                                    <ImageView fitHeight="22.0" fitWidth="28.0" pickOnBounds="true" preserveRatio="true">
+                                    <ImageView fx:id="cancelImageView" fitHeight="22.0" fitWidth="28.0" pickOnBounds="true" preserveRatio="true">
                                        <image>
                                           <Image url="@../images/reject.png" />
                                        </image>
@@ -161,7 +161,7 @@
                               </Button>
                               <Button fx:id="previewBtn" graphicTextGap="10.0" mnemonicParsing="false" onAction="#preview" styleClass="scanButton" text="%view" GridPane.rowIndex="5">
                                  <graphic>
-                                    <ImageView fitHeight="26.0" fitWidth="22.0" pickOnBounds="true" preserveRatio="true">
+                                    <ImageView fx:id="previewImageView" fitHeight="26.0" fitWidth="22.0" pickOnBounds="true" preserveRatio="true">
                                        <image>
                                           <Image url="@../images/hover.png" />
                                        </image>

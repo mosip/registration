@@ -278,6 +278,9 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 	@FXML
 	private ImageView checkUpdatesImageView;
+	
+	@FXML
+	private ImageView tickMarkImageView;
 
 	@Value("${object.store.base.location}")
 	private String baseLocation;
@@ -308,6 +311,23 @@ public class PacketHandlerController extends BaseController implements Initializ
 		try {
 			setImagesOnHover();
 
+			setImage(newRegImage, RegistrationConstants.NEW_REG_IMG);
+			setImage(syncDataImageView, RegistrationConstants.SYNC_IMG);	
+			setImage(downloadPreRegDataImageView, RegistrationConstants.DWLD_PRE_REG_DATA_IMG);
+			setImage(uploadPacketImageView, RegistrationConstants.UPDATE_OPERATOR_BIOMETRICS_IMG);		
+			setImage(remapImageView, RegistrationConstants.SYNC_IMG);
+			setImage(checkUpdatesImageView, RegistrationConstants.DWLD_PRE_REG_DATA_IMG);		
+			setImage(newRegImage, RegistrationConstants.NEW_REG_IMG);
+			setImage(uinUpdateImage, RegistrationConstants.UIN_UPDATE_IMG);
+			setImage(lostUINImage, RegistrationConstants.LOST_UIN_IMG);		
+			setImage(eodApprovalImageView, RegistrationConstants.PENDING_APPROVAL_IMG);
+			setImage(reRegistrationImageView, RegistrationConstants.RE_REGISTRATION_IMG);		
+			setImage(viewReportsImageView, RegistrationConstants.VIEW_REPORTS_IMG);
+			setImage(tickMarkImageView, RegistrationConstants.TICK_IMG);
+			setImage(updateOperatorBiometricsImageView, RegistrationConstants.UPDATE_OPERATOR_BIOMETRICS_IMG);
+			
+			
+			
 			if (!SessionContext.userContext().getRoles().contains(RegistrationConstants.SUPERVISOR)
 					&& !SessionContext.userContext().getRoles().contains(RegistrationConstants.ADMIN_ROLE)
 					&& !SessionContext.userContext().getRoles().contains(RegistrationConstants.ROLE_DEFAULT)) {
@@ -361,109 +381,103 @@ public class PacketHandlerController extends BaseController implements Initializ
 	}
 
 	private void setImagesOnHover() {
+
 		newRegGridPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
+				setImage(newRegImage, RegistrationConstants.NEW_REGISTRATION_IMG);
 				newRegImage.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.NEW_REG_FOCUSED)));
 			} else {
-				newRegImage.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.NEW_REG_IMAGE)));
+				setImage(newRegImage, RegistrationConstants.NEW_REG_IMG);
 			}
 		});
 		uinUpdateGridPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
-				uinUpdateImage
-						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.UPDATE_UIN_FOCUSED)));
+				
+				setImage(uinUpdateImage, RegistrationConstants.UPDATE_UIN_FOCUSED_IMG);
 			} else {
-				uinUpdateImage
-						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.UPDATE_UIN_IMAGE)));
+				setImage(uinUpdateImage, RegistrationConstants.UIN_UPDATE_IMG);
 			}
 		});
 		lostUINPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
+
+				setImage(lostUINImage, RegistrationConstants.LOST_UIN_FOCUSED_IMG);
 				lostUINImage
 						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.LOST_UIN_FOCUSED)));
 			} else {
-				lostUINImage.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.LOST_UIN_IMAGE)));
+
+				setImage(lostUINImage, RegistrationConstants.LOST_UIN_IMG);
 			}
 		});
 		syncDataPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
-				syncDataImageView
-						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.SYNC_DATA_FOCUSED)));
+				
+				setImage(syncDataImageView, RegistrationConstants.SYNC_DATA_FOCUSED_IMG);
 			} else {
-				syncDataImageView
-						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.SYNC_DATA_IMAGE)));
+				
+				setImage(syncDataImageView, RegistrationConstants.SYNC_IMG);
 			}
 		});
 		downloadPreRegDataPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
-				downloadPreRegDataImageView.setImage(
-						new Image(getClass().getResourceAsStream(RegistrationConstants.DOWNLOAD_PREREG_FOCUSED)));
+
+				setImage(downloadPreRegDataImageView, RegistrationConstants.DOWNLOAD_PREREG_FOCUSED_IMG);
 			} else {
-				downloadPreRegDataImageView.setImage(
-						new Image(getClass().getResourceAsStream(RegistrationConstants.DOWNLOAD_PREREG_IMAGE)));
+
+				setImage(downloadPreRegDataImageView, RegistrationConstants.DWLD_PRE_REG_DATA_IMG);
 			}
 		});
 		updateOperatorBiometricsPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
-				updateOperatorBiometricsImageView.setImage(
-						new Image(getClass().getResourceAsStream(RegistrationConstants.UPDATE_OP_BIOMETRICS_FOCUSED)));
+				setImage(updateOperatorBiometricsImageView, RegistrationConstants.UPDATE_OP_BIOMETRICS_FOCUSED_IMG);
 			} else {
-				updateOperatorBiometricsImageView.setImage(
-						new Image(getClass().getResourceAsStream(RegistrationConstants.UPDATE_OP_BIOMETRICS_IMAGE)));
+				setImage(updateOperatorBiometricsImageView, RegistrationConstants.UPDATE_OPERATOR_BIOMETRICS_IMG);
 			}
 		});
 		eodApprovalPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
-				eodApprovalImageView.setImage(
-						new Image(getClass().getResourceAsStream(RegistrationConstants.PENDING_APPROVAL_FOCUSED)));
+				setImage(eodApprovalImageView, RegistrationConstants.PENDING_APPROVAL_FOCUSED_IMG);
 			} else {
-				eodApprovalImageView.setImage(
-						new Image(getClass().getResourceAsStream(RegistrationConstants.PENDING_APPROVAL_IMAGE)));
+				setImage(eodApprovalImageView, RegistrationConstants.PENDING_APPROVAL_IMG);
 			}
 		});
 		reRegistrationPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
-				reRegistrationImageView.setImage(
-						new Image(getClass().getResourceAsStream(RegistrationConstants.RE_REGISTRATION_FOCUSED)));
+				setImage(reRegistrationImageView, RegistrationConstants.RE_REGISTRATION_FOCUSED_IMG);	
 			} else {
-				reRegistrationImageView.setImage(
-						new Image(getClass().getResourceAsStream(RegistrationConstants.RE_REGISTRATION_IMAGE)));
+				setImage(reRegistrationImageView, RegistrationConstants.RE_REGISTRATION_IMG);	
 			}
 		});
 		dashBoardPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
-				viewReportsImageView.setImage(
-						new Image(getClass().getResourceAsStream(RegistrationConstants.VIEW_REPORTS_FOCUSED)));
+				setImage(viewReportsImageView, RegistrationConstants.VIEW_REPORTS_FOCUSED_IMG);
 			} else {
-				viewReportsImageView
-						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.VIEW_REPORTS_IMAGE)));
+				setImage(viewReportsImageView, RegistrationConstants.VIEW_REPORTS_IMG);
 			}
 		});
 		uploadPacketPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
-				uploadPacketImageView.setImage(
-						new Image(getClass().getResourceAsStream(RegistrationConstants.UPDATE_OP_BIOMETRICS_FOCUSED)));
+
+				setImage(uploadPacketImageView, RegistrationConstants.UPDATE_OP_BIOMETRICS_FOCUSED_IMG);
 			} else {
-				uploadPacketImageView.setImage(
-						new Image(getClass().getResourceAsStream(RegistrationConstants.UPDATE_OP_BIOMETRICS_IMAGE)));
+
+				setImage(uploadPacketImageView, RegistrationConstants.UPDATE_OPERATOR_BIOMETRICS_IMG);
 			}
 		});
 		centerRemapPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
-				remapImageView
-						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.SYNC_DATA_FOCUSED)));
+
+				setImage(remapImageView, RegistrationConstants.SYNC_DATA_FOCUSED_IMG);
 			} else {
-				remapImageView
-						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.SYNC_DATA_IMAGE)));
+
+				setImage(remapImageView, RegistrationConstants.SYNC_IMG);
 			}
 		});
 		checkUpdatesPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
-				checkUpdatesImageView.setImage(
-						new Image(getClass().getResourceAsStream(RegistrationConstants.DOWNLOAD_PREREG_FOCUSED)));
+				setImage(checkUpdatesImageView, RegistrationConstants.DOWNLOAD_PREREG_FOCUSED_IMG);
 			} else {
-				checkUpdatesImageView.setImage(
-						new Image(getClass().getResourceAsStream(RegistrationConstants.DOWNLOAD_PREREG_IMAGE)));
+				setImage(checkUpdatesImageView, RegistrationConstants.DWLD_PRE_REG_DATA_IMG);
 			}
 		});
 	}

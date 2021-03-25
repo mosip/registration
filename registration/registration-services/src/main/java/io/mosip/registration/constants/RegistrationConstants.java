@@ -1571,7 +1571,7 @@ public class RegistrationConstants {
 
 	public static final List<String> TWO_IRIS = Arrays.asList(LEFT_EYE, RIGHT_EYE);
 
-	//public static final String SESSION_KEY_URL = "session_key";
+	// public static final String SESSION_KEY_URL = "session_key";
 	public static final String AUTH_HASH = "hash";
 	public static final String SESSION_KEY = "sessionKey";
 	public static final String SIGNATURE = "signature";
@@ -1795,18 +1795,104 @@ public class RegistrationConstants {
 	public static final String previewHeader = "previewHeader";
 	public static final String authentication = "authentication";
 	public static final String SLASH = "/";
-	
+
 	public static final String NEW_REGISTRATION_FLOW = "New Registration";
 	public static final String UIN_UPDATE_FLOW = "UIN Update";
 	public static final String LOST_UIN_FLOW = "Lost UIN";
 	public static final String SCAN_BUTTON = "scan";
 	public static final String REF_NUMBER = "REF_NUMBER";
 	public static final String INVALID_AGE = "INVALID_AGE";
-	public static final String INVALID_DATE="INVALID_DATE";
-	
+	public static final String INVALID_DATE = "INVALID_DATE";
+
 	public static final String ICONS_HBOX = "iconsHBox";
 	public static final String KEYBOARD_PANE = "keyboardPane";
 	public static final String QUALITY_BOX_LABEL = "qualityBoxLabel";
 	public static final String MODALITY_BUTTONS = "modalityButtons";
 	public static final int LANGCODE_LENGTH = 3;
+
+	// Images Constants
+	public static final String IMAGES_PATH = "mosip.registration.images.path";
+	public static final String IMAGES_THEME = "mosip.registration.theme";
+	public static final String NEW_REGISTRATION_IMG = "NewRegistration.png";
+	public static final String PRINTER_IMG = "Printer.png";
+	public static final String PHOTO_IMG = "Photo.png";
+	public static final String CLOSE_IMG = "DocumentClose.png";
+	public static final String RIGHT_HAND_IMG = "rightHand.png";
+	public static final String SCAN_IMG = "scan.png";
+	public static final String EYE_IMG = "Eye.png";
+	public static final String ARROW_LEFT_IMG = " arrowLeft.png";
+	public static final String ARROW_RIGHT_IMG = "arrowRight.png";
+	public static final String MOSIP_LOGO_SMALL_IMG = "logo-final-small.png";
+	public static final String USER_IMG = "User.png";
+	public static final String REG_CENTER_LOCATION_IMG = "RegCentreLocation.png";
+	public static final String SYSTEM_IMG = "system.png";;
+	public static final String ONLINE_IMG = "SystemOnline.png";
+	public static final String HAMBURGER_IMG = "hamburger.png";
+	public static final String HOME_IMG = "Home.png";
+	public static final String EXPORT_ICON_IMG = "export-icon.jpg";
+	public static final String ACTIVE_DEMO_DETAILS_IMG = "activeDemographicDetails.png";
+	public static final String DEACTIVE_AUTH_IMG = "deactiveAuthentication.png";
+	public static final String DEACTIVE_BIOMETRIC_IMG = "deactiveBiometriDetails.png";
+	public static final String DEACTIVEUPLOAD_DOCUMENT_IMG = "deactiveUploadDocument.png";
+	public static final String MOSIP_LOGON_FINAL_IMG = "logo-final.png";
+	public static final String FINGERPRINT_SCAN_IMG = "FingerprintScan.png";
+	public static final String EYE_SCAN_IMG = "Eyescan.png";
+	public static final String FACE_SCAN_IMG = "FaceScan.png";
+	public static final String SYNC_IMG = "sync.png";
+	public static final String DWLD_PRE_REG_DATA_IMG = "DownloadPreRegData.png";
+	public static final String UPDATE_OPERATOR_BIOMETRICS_IMG = "UpdateOperatorBiometrics.png";
+	public static final String NEW_REG_IMG = "NewReg.png";
+	public static final String UIN_UPDATE_IMG = "UINUpdate.png";
+	public static final String LOST_UIN_IMG = "LostUIN.png";
+	public static final String PENDING_APPROVAL_IMG = "PendingApproval.png";
+	public static final String RE_REGISTRATION_IMG = "Re-Registration.png";
+	public static final String VIEW_REPORTS_IMG = "ViewReports.png";
+	public static final String TICK_IMG = "tick.png";
+	public static final String AUTHENTICATE_IMG = "Authenticate.png";
+	public static final String REJECT_IMG = "Reject.png";
+	public static final String APPROVE_IMG = "Approve.png";
+	public static final String INFORMED_IMG = "informed.png";
+	public static final String CANT_INFORM_IMG = "cantInform.png";
+	public static final String STREAM_IMG = "stream.png";
+	public static final String CROP_IMG = "crop.png";
+//    public static final String REJECT_IMG ="reject.png";
+	public static final String HOVER_IMG = "hover.png";
+	public static final String EMAIL_IMG = "Email.png";
+	public static final String MOBILE_IMG = "EnterMobile.png";
+	public static final String GET_ONBOARD_IMG = "GetOnboarded.png";
+	public static final String ONBOARD_YOURSELF_IMG = "OnboardYourself.png";
+	public static final String REGISTER_INDVIDUAL_IMG = "RegisterIndividual.png";
+	public static final String ACTIVE_BIOMETRIC_DETAILS_IMG = "activeBiometricDetail.png";
+	public static final String SEND_EMAIL_IMG = "SendEmail.png";
+
+	public static final String UPDATE_UIN_FOCUSED_IMG = "updateUINFocused.png";
+	public static final String SYNC_DATA_FOCUSED_IMG  = "syncFocused.png";
+	public static final String DOWNLOAD_PREREG_FOCUSED_IMG  = "DownloadPreRegDataFocused.png";
+	public static final String UPDATE_OP_BIOMETRICS_FOCUSED_IMG  = "UpdateOperatorBiometricsFocused.png";
+	public static final String PENDING_APPROVAL_FOCUSED_IMG  = "PendingApprovalFocused.png";
+	public static final String RE_REGISTRATION_FOCUSED_IMG  = "ReRegistrationFocused.png";
+	public static final String VIEW_REPORTS_FOCUSED_IMG  = "ViewReportsFocused.png";
+	public static final String GET_ONBOARDED_FOCUSED_IMG  = "GetOnboardedFocus.png";
+	public static final String ONBOARDING_FOCUSED_IMG  = "OnboardYourselfFocus.png";
+	public static final String REGISTERING_FOCUSED_IMG  = "RegisterIndividualFocus.png";
+	public static final String UPDATE_BIOMETRICS_FOCUSED_IMG  = "UpdateBiometricsFocus.png";
+	public static final String LOST_UIN_FOCUSED_IMG = "lostUINFocused.png";
+	public static final String BACK_FOCUSED_IMG = "backInWhite.png";
+	public static final String WRONG_IMG = "wrong.png";
+	public static final String DOUBLE_IRIS_IMG = "Eyes.png";
+	public static final String FACE_IMG = "Photo.png";
+	public static final String LEFTPALM_IMG= "leftHand.png";
+	public static final String RIGHTPALM_IMG = "rightHand.png";
+	public static final String THUMB_IMG = "thumbs.png";
+	public static final String TICK_CIRICLE_IMG = "tick-circle.png";
+	public static final String EXCLAMATION_IMG = "exclamation.png";
+	// Exception Images Path
+	public static final String LEFTMIDDLE_IMG = "exceptionmarks/leftMiddle.png";
+	public static final String LEFTINDEX_IMG = "exceptionmarks/leftIndex.png";
+	public static final String LEFTRING_IMG = "exceptionmarks/leftRing.png";
+	public static final String LEFTLITTLE_IMG = "exceptionmarks/leftLittle.png";
+	public static final String LEFTTHUMB_IMG = "exceptionmarks/leftThumb.png";
+	public static final String RIGHTEYE_IMG = "exceptionmarks/lightBlueCrossMark.png";
+	public static final String LEFTEYE_IMG = "exceptionmarks/lightBlueCrossMark.png";
+	public static final String DEFAULT_EXCEPTION_IMG = "ExceptionPhoto.png";
 }

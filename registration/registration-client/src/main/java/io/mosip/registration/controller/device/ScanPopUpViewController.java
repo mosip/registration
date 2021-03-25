@@ -11,6 +11,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ResourceBundle;
 
 import javax.imageio.ImageIO;
 
@@ -34,6 +36,7 @@ import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.geometry.Bounds;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Group;
@@ -55,7 +58,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 @Controller
-public class ScanPopUpViewController extends BaseController {
+public class ScanPopUpViewController extends BaseController implements Initializable {
 	private static final Logger LOGGER = AppConfig.getLogger(ScanPopUpViewController.class);
 
 	@Autowired
@@ -128,6 +131,20 @@ public class ScanPopUpViewController extends BaseController {
 
 	@FXML
 	private ImageView scanImage;
+	@FXML
+	private ImageView closeImageView;
+	@FXML
+	private ImageView streamImageView;
+	@FXML
+	private ImageView captureImageView;
+	@FXML
+	private ImageView saveImageView;
+	@FXML
+	private ImageView backImageView1;
+	@FXML
+	private ImageView cancelImageView;	
+	@FXML
+	private ImageView previewImageView;
 
 	@FXML
 	private Group imageGroup;
@@ -174,6 +191,19 @@ public class ScanPopUpViewController extends BaseController {
 		this.popupStage = popupStage;
 	}
 
+	@Override
+	public void initialize(URL location, ResourceBundle resources) {
+		
+		setImage(closeImageView	, RegistrationConstants.CLOSE_IMG);
+		setImage(streamImageView	, RegistrationConstants.STREAM_IMG);
+		setImage(captureImageView	, RegistrationConstants.SCAN_IMG);
+		setImage(saveImageView	, RegistrationConstants.DWLD_PRE_REG_DATA_IMG);
+		setImage(backImageView1	, RegistrationConstants.CROP_IMG);
+		setImage(cancelImageView	, RegistrationConstants.REJECT_IMG);
+		setImage(previewImageView	, RegistrationConstants.HOVER_IMG);
+
+
+	}
 	/**
 	 * This method will open popup to scan
 	 * 

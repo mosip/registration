@@ -22,7 +22,7 @@
             <Image url="@../images/EnterMobile.png" />
          </image>
       </ImageView>
-      <ImageView fitHeight="28.0" fitWidth="28.0" layoutX="490.0" layoutY="14.0" onMouseClicked="#closeWindow" pickOnBounds="true" preserveRatio="true">
+      <ImageView fx:id="closeImageView" fitHeight="28.0" fitWidth="28.0" layoutX="490.0" layoutY="14.0" onMouseClicked="#closeWindow" pickOnBounds="true" preserveRatio="true">
          <image>
             <Image url="@../images/Close.png" />
          </image>

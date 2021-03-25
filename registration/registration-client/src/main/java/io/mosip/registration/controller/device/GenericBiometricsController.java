@@ -171,7 +171,12 @@ public class GenericBiometricsController extends BaseController /* implements In
 
 	@FXML
 	private ImageView backImageView;
-
+	
+	@FXML
+	private ImageView scanImageView;	
+	@FXML
+	private ImageView closeButtonImageView;
+	
 	public Label getGuardianBiometricsLabel() {
 		return guardianBiometricsLabel;
 	}
@@ -352,6 +357,10 @@ public class GenericBiometricsController extends BaseController /* implements In
 
 		applicationLabelBundle = applicationContext.getBundle(applicationContext.getApplicationLanguage(),
 				RegistrationConstants.LABELS);
+		
+
+		setImage(scanImageView	, RegistrationConstants.SCAN_IMG);
+		setImage(closeButtonImageView	, RegistrationConstants.CLOSE_IMG);
 
 	}
 
@@ -563,22 +572,22 @@ public class GenericBiometricsController extends BaseController /* implements In
 		String imageIconPath = null;
 		switch (modality) {
 			case FACE:
-				imageIconPath = RegistrationConstants.FACE_IMG_PATH;
+				imageIconPath = RegistrationConstants.FACE_IMG;
 				break;
 			case IRIS_DOUBLE:
-				imageIconPath = RegistrationConstants.DOUBLE_IRIS_IMG_PATH;
+				imageIconPath = RegistrationConstants.DOUBLE_IRIS_IMG;
 				break;
 			case FINGERPRINT_SLAB_RIGHT:
-				imageIconPath = RegistrationConstants.RIGHTPALM_IMG_PATH;
+				imageIconPath = RegistrationConstants.RIGHTPALM_IMG;
 				break;
 			case FINGERPRINT_SLAB_LEFT:
-				imageIconPath = RegistrationConstants.LEFTPALM_IMG_PATH;
+				imageIconPath = RegistrationConstants.LEFTPALM_IMG;
 				break;
 			case FINGERPRINT_SLAB_THUMBS:
-				imageIconPath = RegistrationConstants.THUMB_IMG_PATH;
+				imageIconPath = RegistrationConstants.THUMB_IMG;
 				break;
 			case EXCEPTION_PHOTO:
-				imageIconPath = RegistrationConstants.DEFAULT_EXCEPTION_IMAGE_PATH;
+				imageIconPath = RegistrationConstants.DEFAULT_EXCEPTION_IMG;
 				break;
 		}
 		return imageIconPath;
@@ -1179,7 +1188,11 @@ public class GenericBiometricsController extends BaseController /* implements In
 		//this.bioType = constructBioType(bioType);
 
 		bioValue = bioType.name();
-		biometricImage.setImage(new Image(this.getClass().getResourceAsStream(bioImage)));
+		try {
+			biometricImage.setImage(getImage(bioImage));
+		} catch (RegBaseCheckedException e) {
+			LOGGER.error("Error while getting image");
+		}
 
 		String threshold = null;
 		if (biometricThreshold != null) {
@@ -2142,18 +2155,18 @@ public class GenericBiometricsController extends BaseController /* implements In
 		pane.setPrefHeight(200);
 		pane.setPrefWidth(200);
 
-		ImageView topImageView = getImageView(null, RegistrationConstants.LEFTPALM_IMG_PATH, 144, 163, 6, 6, true, true,
+		ImageView topImageView = getImageView(null, RegistrationConstants.LEFTPALM_IMG, 144, 163, 6, 6, true, true,
 				false);
 
 		// Left Middle
 
-		ImageView leftMiddleImageView = getImageView("leftMiddle", RegistrationConstants.LEFTMIDDLE_IMG_PATH, 92, 27,
+		ImageView leftMiddleImageView = getImageView("leftMiddle", RegistrationConstants.LEFTMIDDLE_IMG, 92, 27,
 				70, 41, true, true, true);
-		ImageView leftIndexImageView = getImageView("leftIndex", RegistrationConstants.LEFTINDEX_IMG_PATH, 75, 28, 97,
+		ImageView leftIndexImageView = getImageView("leftIndex", RegistrationConstants.LEFTINDEX_IMG, 75, 28, 97,
 				55, true, true, true);
-		ImageView leftRingImageView = getImageView("leftRing", RegistrationConstants.LEFTRING_IMG_PATH, 75, 28, 45, 55,
+		ImageView leftRingImageView = getImageView("leftRing", RegistrationConstants.LEFTRING_IMG, 75, 28, 45, 55,
 				true, true, true);
-		ImageView leftLittleImageView = getImageView("leftLittle", RegistrationConstants.LEFTLITTLE_IMG_PATH, 49, 26,
+		ImageView leftLittleImageView = getImageView("leftLittle", RegistrationConstants.LEFTLITTLE_IMG, 49, 26,
 				19, 82, true, true, true);
 
 		pane.getChildren().add(topImageView);
@@ -2174,19 +2187,19 @@ public class GenericBiometricsController extends BaseController /* implements In
 		pane.setPrefHeight(200);
 		pane.setPrefWidth(200);
 
-		ImageView topImageView = getImageView(null, RegistrationConstants.RIGHTPALM_IMG_PATH, 144, 163, 3, 4, true,
+		ImageView topImageView = getImageView(null, RegistrationConstants.RIGHTPALM_IMG, 144, 163, 3, 4, true,
 				true, false);
 
 		// Left Middle
 
-		ImageView middleImageView = getImageView("rightMiddle", RegistrationConstants.LEFTMIDDLE_IMG_PATH, 92, 30, 72,
+		ImageView middleImageView = getImageView("rightMiddle", RegistrationConstants.LEFTMIDDLE_IMG, 92, 30, 72,
 				37, true, true, true);
-		ImageView ringImageView = getImageView("rightRing", RegistrationConstants.LEFTRING_IMG_PATH, 82, 27, 99, 54,
+		ImageView ringImageView = getImageView("rightRing", RegistrationConstants.LEFTRING_IMG, 82, 27, 99, 54,
 				true, true, true);
-		ImageView indexImageView = getImageView("rightIndex", RegistrationConstants.LEFTINDEX_IMG_PATH, 75, 30, 46, 54,
+		ImageView indexImageView = getImageView("rightIndex", RegistrationConstants.LEFTINDEX_IMG, 75, 30, 46, 54,
 				true, true, true);
 
-		ImageView littleImageView = getImageView("rightLittle", RegistrationConstants.LEFTLITTLE_IMG_PATH, 57, 28, 125,
+		ImageView littleImageView = getImageView("rightLittle", RegistrationConstants.LEFTLITTLE_IMG, 57, 28, 125,
 				75, true, true, true);
 
 		pane.getChildren().add(topImageView);
@@ -2206,12 +2219,12 @@ public class GenericBiometricsController extends BaseController /* implements In
 		pane.setPrefHeight(200);
 		pane.setPrefWidth(200);
 
-		ImageView topImageView = getImageView(null, RegistrationConstants.THUMB_IMG_PATH, 144, 171, 18, 22, true, true,
+		ImageView topImageView = getImageView(null, RegistrationConstants.THUMB_IMG, 144, 171, 18, 22, true, true,
 				false);
 
-		ImageView left = getImageView("leftThumb", RegistrationConstants.LEFTTHUMB_IMG_PATH, 92, 30, 55, 37, true, true,
+		ImageView left = getImageView("leftThumb", RegistrationConstants.LEFTTHUMB_IMG, 92, 30, 55, 37, true, true,
 				true);
-		ImageView right = getImageView("rightThumb", RegistrationConstants.LEFTTHUMB_IMG_PATH, 99, 30, 123, 38, true,
+		ImageView right = getImageView("rightThumb", RegistrationConstants.LEFTTHUMB_IMG, 99, 30, 123, 38, true,
 				true, true);
 
 		pane.getChildren().add(topImageView);
@@ -2227,12 +2240,12 @@ public class GenericBiometricsController extends BaseController /* implements In
 		pane.setId(modality.name());
 		pane.setPrefHeight(200);
 		pane.setPrefWidth(200);
-		ImageView topImageView = getImageView(null, RegistrationConstants.DOUBLE_IRIS_IMG_PATH, 144, 189.0, 7, 4, true,
+		ImageView topImageView = getImageView(null, RegistrationConstants.DOUBLE_IRIS_IMG, 144, 189.0, 7, 4, true,
 				true, false);
 
-		ImageView rightImageView = getImageView("rightEye", RegistrationConstants.RIGHTEYE_IMG_PATH, 43, 48, 118, 54,
+		ImageView rightImageView = getImageView("rightEye", RegistrationConstants.RIGHTEYE_IMG, 43, 48, 118, 54,
 				true, true, true);
-		ImageView leftImageView = getImageView("leftEye", RegistrationConstants.LEFTEYE_IMG_PATH, 43, 48, 35, 54, true,
+		ImageView leftImageView = getImageView("leftEye", RegistrationConstants.LEFTEYE_IMG, 43, 48, 35, 54, true,
 				true, true);
 
 		pane.getChildren().add(topImageView);
@@ -2243,38 +2256,44 @@ public class GenericBiometricsController extends BaseController /* implements In
 		return pane;
 	}
 
-	private ImageView getImageView(String id, String url, double fitHeight, double fitWidth, double layoutX,
+	private ImageView getImageView(String id, String imageName, double fitHeight, double fitWidth, double layoutX,
 			double layoutY, boolean pickOnBounds, boolean preserveRatio, boolean hasActionEvent) {
 
 		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 				"Started Preparing exception image view for : " + id);
 
-		ImageView imageView = new ImageView(new Image(this.getClass().getResourceAsStream(url)));
+		ImageView imageView = null;
+		try {
+			imageView = new ImageView(getImage(imageName));
+			if (id != null) {
+				imageView.setId(id);
+			}
+			imageView.setFitHeight(fitHeight);
+			imageView.setFitWidth(fitWidth);
+			imageView.setLayoutX(layoutX);
+			imageView.setLayoutY(layoutY);
+			imageView.setPickOnBounds(pickOnBounds);
+			imageView.setPreserveRatio(preserveRatio);
 
-		if (id != null) {
-			imageView.setId(id);
+			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Is Action required : " + hasActionEvent);
+
+			if (hasActionEvent) {
+				imageView.setOnMouseClicked((event) -> {
+
+					LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+							"Action event triggered on click of exception image");
+					addException(event);
+				});
+
+			}
+
+			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+					"Completed Preparing exception image view for : " + id);
+		} catch (RegBaseCheckedException exception) {
+			LOGGER.error("Exception while getting image",exception);
 		}
-		imageView.setFitHeight(fitHeight);
-		imageView.setFitWidth(fitWidth);
-		imageView.setLayoutX(layoutX);
-		imageView.setLayoutY(layoutY);
-		imageView.setPickOnBounds(pickOnBounds);
-		imageView.setPreserveRatio(preserveRatio);
 
-		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Is Action required : " + hasActionEvent);
-
-		if (hasActionEvent) {
-			imageView.setOnMouseClicked((event) -> {
-
-				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-						"Action event triggered on click of exception image");
-				addException(event);
-			});
-
-		}
-
-		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-				"Completed Preparing exception image view for : " + id);
+		
 		return imageView;
 
 	}

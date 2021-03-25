@@ -221,6 +221,12 @@ public class LoginController extends BaseController implements Initializable {
 	public void initialize(URL arg0, ResourceBundle arg1) {
 
 		versionValueLabel.setText(softwareUpdateHandler.getCurrentVersion());
+		
+		setImage(mosipLogoImageView	, RegistrationConstants.MOSIP_LOGON_FINAL_IMG);
+		setImage(fingerprintImageView	, RegistrationConstants.FINGERPRINT_SCAN_IMG);
+		setImage(faceImage	, RegistrationConstants.FACE_SCAN_IMG);
+		setImage(irisImageView	, RegistrationConstants.EYE_SCAN_IMG);
+		
 
 		new Thread(() -> {
 
@@ -690,7 +696,16 @@ public class LoginController extends BaseController implements Initializable {
 
 	@FXML
 	private ImageView faceImage;
-
+	
+	@FXML
+	private ImageView mosipLogoImageView;
+	
+	@FXML
+	private ImageView fingerprintImageView;
+	
+	@FXML
+	private ImageView irisImageView;
+	
 	@Autowired
 	Streamer streamer;
 

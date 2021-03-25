@@ -20,7 +20,7 @@
 			<children>
 				<AnchorPane prefHeight="27.0" prefWidth="71.0">
 			<children>
-				<ImageView fitHeight="34.0" fitWidth="30.0" layoutX="20.0" layoutY="2.0">
+				<ImageView fx:id="mosipLogoImageView" fitHeight="34.0" fitWidth="30.0" layoutX="20.0" layoutY="2.0">
 					<image>
 						<Image url="@../images/logo-final.png" />
 					</image>
@@ -75,7 +75,7 @@
               	 <Label layoutX="57.0" layoutY="21.0" styleClass="higlightedLoginLable" text="%registrationlogin" AnchorPane.leftAnchor="57.0" AnchorPane.topAnchor="21.0" />
                	  <Label layoutX="57.0" layoutY="75.0" text="%withfingerprint" />
                   <Button fx:id="submit" layoutX="57.0" layoutY="170.0" mnemonicParsing="false" onAction="#captureFingerPrint" styleClass="loginSubmitStyle" text="%submit" />
-                  <ImageView fitHeight="59.0" fitWidth="53.0" layoutX="180.0" layoutY="102.0" pickOnBounds="true" preserveRatio="true">
+                  <ImageView fx:id="fingerprintImageView" fitHeight="59.0" fitWidth="53.0" layoutX="180.0" layoutY="102.0" pickOnBounds="true" preserveRatio="true">
       					<image>
       						<Image url="@../images/FingerprintScan.png" />
       					</image>
@@ -89,7 +89,7 @@
                <Label layoutX="57.0" layoutY="31.0" styleClass="higlightedLoginLable" text="%registrationlogin" AnchorPane.leftAnchor="57.0" AnchorPane.topAnchor="31.0" />
                  <Label layoutX="57.0" layoutY="76.0" text="%withiris" />
                  <Button layoutX="57.0" layoutY="174.0" mnemonicParsing="false" onAction="#captureIris" styleClass="loginSubmitStyle" text="%submit" />
-                  <ImageView fitHeight="59.0" fitWidth="53.0" layoutX="180.00" layoutY="102.0" pickOnBounds="true" preserveRatio="true">
+                  <ImageView fx:id="irisImageView" fitHeight="59.0" fitWidth="53.0" layoutX="180.00" layoutY="102.0" pickOnBounds="true" preserveRatio="true">
       					<image>
       						<Image url="@../images/Eyescan.png" />
       					</image>

@@ -103,6 +103,21 @@ public class HeaderController extends BaseController {
 
 	@FXML
 	private ImageView availableIcon;
+	@FXML
+	private ImageView mosipLogo;
+	@FXML
+	private ImageView userImageView;
+	@FXML
+	private ImageView regCenterLocationImgView;
+	@FXML
+	private ImageView registrationOfficeIdImageView;
+	@FXML
+	private ImageView availableIcon1;
+	@FXML
+	private ImageView homeSelectionMenuImageView;
+	@FXML
+	private ImageView homeImgView;
+	
 
 	@FXML
 	private GridPane online;
@@ -159,6 +174,7 @@ public class HeaderController extends BaseController {
 
 	@Autowired
 	private BaseService baseService;
+	
 
 	/**
 	 * Mapping Registration Officer details
@@ -167,6 +183,16 @@ public class HeaderController extends BaseController {
 
 		LOGGER.info(LoggerConstants.LOG_REG_HEADER, APPLICATION_NAME, APPLICATION_ID,
 				"Displaying Registration Officer details");
+
+		
+		setImage(mosipLogo	, RegistrationConstants.MOSIP_LOGO_SMALL_IMG);
+		setImage(userImageView	, RegistrationConstants.USER_IMG);
+		setImage(regCenterLocationImgView	, RegistrationConstants.REG_CENTER_LOCATION_IMG);
+		setImage(registrationOfficeIdImageView	, RegistrationConstants.SYSTEM_IMG);
+		setImage(availableIcon1	, RegistrationConstants.ONLINE_IMG);
+		setImage(availableIcon	, RegistrationConstants.ONLINE_IMG);
+		setImage(homeSelectionMenuImageView	, RegistrationConstants.HAMBURGER_IMG);
+		setImage(homeImgView	, RegistrationConstants.HOME_IMG);
 
 		registrationOfficerName.setText(SessionContext.userContext().getName());
 		registrationOfficeId
