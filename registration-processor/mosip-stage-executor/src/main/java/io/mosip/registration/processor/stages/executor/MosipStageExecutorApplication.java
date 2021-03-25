@@ -3,6 +3,7 @@ package io.mosip.registration.processor.stages.executor;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -37,11 +38,11 @@ public class MosipStageExecutorApplication {
 			
 			List<String> stageBeansBasePackages = StageClassesUtil.getStageBeansBasePackages(stagesConfig, propertySources);
 			
-			regProcLogger.info("Base packages for stage beans from configuration: {}", stageBeansBasePackages);
+			regProcLogger.info(">>>> Base packages for stage beans from configuration: {}", stageBeansBasePackages);
 			
 			List<Class<MosipVerticleAPIManager>> stageClasses = StageClassesUtil.getStageBeanClasses(stageBeansBasePackages);
 			
-			regProcLogger.info("Stage classes identified: {}", stageClasses);
+			regProcLogger.info(">>>> Stage classes identified: \n{}", stageClasses.stream().map(Class::getCanonicalName).collect(Collectors.joining()));
 
 			Class<?>[] entrypointConfigClasses = Stream.concat(Stream.of(StagesConfig.class), stageClasses.stream())
 					.toArray(size -> new Class<?>[size]);

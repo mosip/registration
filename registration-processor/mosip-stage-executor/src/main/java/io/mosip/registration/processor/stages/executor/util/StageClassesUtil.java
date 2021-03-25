@@ -1,5 +1,7 @@
 package io.mosip.registration.processor.stages.executor.util;
 
+import static io.mosip.registration.processor.stages.executor.config.StagesConfig.DEFAULT_STAGE_GROUP_NAME;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -31,6 +33,8 @@ public class StageClassesUtil {
 	
 	/** The Constant PROP_STAGE_GROUPS_STAGE_BEANS_BASE_PACKAGES_PREFIX. */
 	private static final String PROP_STAGE_GROUPS_STAGE_BEANS_BASE_PACKAGES_PREFIX = "mosip.regproc.stage-groups.stage-beans-base-packages.";
+
+	private static final String PROP_DEFAULT_STAGE_GROUP_STAGE_BEANS_BASE_PACKAGE = PROP_STAGE_GROUPS_STAGE_BEANS_BASE_PACKAGES_PREFIX + DEFAULT_STAGE_GROUP_NAME;
 
 	/** The Constant DEFAULT_STAGES_BASE_PACKAGES. */
 	private static final String DEFAULT_STAGES_BASE_PACKAGES = "io.mosip.registration.processor,io.mosip.registrationprocessor";
@@ -82,7 +86,10 @@ public class StageClassesUtil {
 	public static List<String> getStageBeansBasePackages(StagesConfig stagesConfig, MutablePropertySources propertySources) {
 		String stageBeansBasePkgsPropertyName= PROP_STAGE_GROUPS_STAGE_BEANS_BASE_PACKAGES_PREFIX + stagesConfig.getStageGroupName();
 		PropertySourcesPropertyResolver propertySourcesPropertyResolver = new PropertySourcesPropertyResolver(propertySources);
-		String stageBeanBasePkgsStr = propertySourcesPropertyResolver.getProperty(stageBeansBasePkgsPropertyName, DEFAULT_STAGES_BASE_PACKAGES);
+		String defaultStageBeanBasePkgStr = propertySourcesPropertyResolver.getProperty(PROP_DEFAULT_STAGE_GROUP_STAGE_BEANS_BASE_PACKAGE, 
+				DEFAULT_STAGES_BASE_PACKAGES);
+		String stageBeanBasePkgsStr = propertySourcesPropertyResolver.getProperty(
+				stageBeansBasePkgsPropertyName, defaultStageBeanBasePkgStr);
 		
 		List<String> stageBeansBasePackages = Arrays.stream(stageBeanBasePkgsStr.split(","))
 													.map(String::trim)
@@ -126,5 +133,5 @@ public class StageClassesUtil {
 			throw e;
 		}
 	}
-
+	
 }
