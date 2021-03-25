@@ -250,7 +250,7 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 				}
 				if (rCaptureResponseBiometricsDTO.getData() != null
 						&& !rCaptureResponseBiometricsDTO.getData().isEmpty()) {
-					mosipDeviceSpecificationHelper.validateJWTResponse(rCaptureResponseBiometricsDTO.getData());
+					mosipDeviceSpecificationHelper.validateJWTResponse(rCaptureResponseBiometricsDTO.getData(), "DEVICE");
 					String payLoad = mosipDeviceSpecificationHelper.getPayLoad(rCaptureResponseBiometricsDTO.getData());
 
 					RCaptureResponseDataDTO dataDTO = mapper.readValue(
@@ -394,7 +394,7 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 	}
 
 	private DigitalId getDigitalId(String digitalId) throws IOException, RegBaseCheckedException, DeviceException {
-		mosipDeviceSpecificationHelper.validateJWTResponse(digitalId);
+		mosipDeviceSpecificationHelper.validateJWTResponse(digitalId, "FTM");
 		return mosipDeviceSpecificationHelper.getMapper().readValue(
 				new String(Base64.getUrlDecoder().decode(mosipDeviceSpecificationHelper.getPayLoad(digitalId))),
 				DigitalId.class);

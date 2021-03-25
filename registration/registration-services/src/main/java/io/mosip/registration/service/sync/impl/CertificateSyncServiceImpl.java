@@ -1,5 +1,10 @@
 package io.mosip.registration.service.sync.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
@@ -20,6 +25,7 @@ import io.mosip.registration.service.BaseService;
 import io.mosip.registration.service.sync.CertificateSyncService;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 import io.mosip.registration.util.restclient.ServiceDelegateUtil;
+import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +33,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static io.mosip.registration.constants.LoggerConstants.LOG_REG_MASTER_SYNC;
@@ -57,6 +64,14 @@ public class CertificateSyncServiceImpl extends BaseService implements Certifica
     @Autowired
     private PartnerCertificateManagerService partnerCertificateManagerService;
 
+    private ObjectMapper mapper = new ObjectMapper();
+
+    @Before
+    public void setup() {
+        mapper.registerModule(new JavaTimeModule());
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
+
     @Override
     public ResponseDTO getCACertificates(String triggerPoint) {
         ResponseDTO responseDTO = new ResponseDTO();
@@ -82,20 +97,30 @@ public class CertificateSyncServiceImpl extends BaseService implements Certifica
             LinkedHashMap<String, Object> responseMap = (LinkedHashMap<String, Object>) certResponse
                     .get(RegistrationConstants.RESPONSE);
 
-            List<CaCertificateDto> certs = (List<CaCertificateDto>) responseMap.get(CERT_LIST);
-            if(null == certs) { return responseDTO; }
+           if(null == responseMap.get(CERT_LIST)) { return responseDTO; }
 
-            String lastSyncTime = responseMap.get(LAST_SYNC_TIME).toString();
+            List<CaCertificateDto> certs = mapper.convertValue(responseMap.get(CERT_LIST), new TypeReference<List<CaCertificateDto>>() {});
+
+           //Data Fix : As createdDateTime is null sometimes
+            certs.forEach(c -> {
+                if(c.getCreatedtimes() == null)
+                    c.setCreatedtimes(LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC));
+            });
             certs.sort((CaCertificateDto d1, CaCertificateDto d2) -> d1.getCreatedtimes().compareTo(d2.getCreatedtimes()));
+
             for(CaCertificateDto cert : certs) {
-                CACertificateRequestDto caCertificateRequestDto = new CACertificateRequestDto();
-                caCertificateRequestDto.setCertificateData(cert.getCertData());
-                caCertificateRequestDto.setPartnerDomain(cert.getPartnerDomain());
-                CACertificateResponseDto caCertificateResponseDto = partnerCertificateManagerService.uploadCACertificate(caCertificateRequestDto);
-                LOGGER.debug("", RegistrationConstants.APPLICATION_NAME,
-                        RegistrationConstants.APPLICATION_ID,  caCertificateResponseDto.getStatus());
+                if("FTM".equalsIgnoreCase(cert.getPartnerDomain().toUpperCase()) ||
+                        "DEVICE".equalsIgnoreCase(cert.getPartnerDomain().toUpperCase()) ) {
+                    CACertificateRequestDto caCertificateRequestDto = new CACertificateRequestDto();
+                    caCertificateRequestDto.setCertificateData(cert.getCertData());
+                    caCertificateRequestDto.setPartnerDomain(cert.getPartnerDomain());
+                    CACertificateResponseDto caCertificateResponseDto = partnerCertificateManagerService.uploadCACertificate(caCertificateRequestDto);
+                    LOGGER.debug("", RegistrationConstants.APPLICATION_NAME,
+                            RegistrationConstants.APPLICATION_ID,  caCertificateResponseDto.getStatus());
+                }
             }
-            return saveLastSuccessfulSyncTime(responseDTO, triggerPoint, lastSyncTime);
+            return saveLastSuccessfulSyncTime(responseDTO, triggerPoint,
+                    responseMap.get(LAST_SYNC_TIME) == null ? null : responseMap.get(LAST_SYNC_TIME).toString());
 
         } catch (Throwable t) {
             LOGGER.error("", RegistrationConstants.APPLICATION_NAME,
