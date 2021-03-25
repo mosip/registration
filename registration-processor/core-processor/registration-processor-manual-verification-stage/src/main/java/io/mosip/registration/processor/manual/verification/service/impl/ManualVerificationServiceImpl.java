@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import io.mosip.registration.processor.core.constant.PolicyConstant;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.io.IOUtils;
@@ -642,6 +643,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 					PlatformErrorMessages.RPR_MVS_NO_MATCHEDRID_FOUND_FOR_GIVEN_RID.getMessage());
 
 		ManualAdjudicationRequestDTO mar = prepareManualAdjudicationRequest(mves);
+		regProcLogger.info("Request : " + JsonUtils.javaObjectToJsonString(mar));
 		if (messageFormat.equalsIgnoreCase(TEXT_MESSAGE))
 			mosipQueueManager.send(queue, JsonUtils.javaObjectToJsonString(mar), mvRequestAddress, mvRequestMessageTTL);
 		else
@@ -755,7 +757,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 			return policies;
 
 		ResponseWrapper<?> policyResponse = (ResponseWrapper<?>) registrationProcessorRestClientService.getApi(
-				ApiName.PMS, Lists.newArrayList(subscriberId, ManualVerificationConstants.POLICY_ID, policyId), "", "", ResponseWrapper.class);
+				ApiName.PMS, Lists.newArrayList(policyId, PolicyConstant.PARTNER_ID, subscriberId), "", "", ResponseWrapper.class);
 		if (policyResponse == null || (policyResponse.getErrors() != null && policyResponse.getErrors().size() >0)) {
 			throw new DataShareException(policyResponse == null ? "Policy Response response is null" : policyResponse.getErrors().get(0).getMessage());
 
@@ -857,8 +859,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 				r.setReferenceURL(null);
 				referenceIds.add(r);
 			} catch (Exception exp) {
-
-				exp.printStackTrace();
+				regProcLogger.error(ExceptionUtils.getStackTrace(exp));
 			}
 
 		});
@@ -928,7 +929,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 		} catch (Exception e) {
 			object.setInternalError(true);
-			e.printStackTrace();
+			regProcLogger.error(ExceptionUtils.getStackTrace(e));
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					e.getMessage(), e.getMessage());
 		}
