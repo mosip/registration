@@ -19,6 +19,8 @@ import io.mosip.kernel.keymanagerservice.exception.KeymanagerServiceException;
 import io.mosip.kernel.keymanagerservice.exception.NoUniqueAliasException;
 import io.mosip.kernel.signature.dto.TimestampRequestDto;
 import io.mosip.kernel.signature.service.SignatureService;
+import io.mosip.registration.service.sync.PublicKeySync;
+import io.mosip.registration.service.sync.impl.PublicKeySyncImpl;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
@@ -78,6 +80,9 @@ public class ResponseSignatureAdvice {
 	
 	@Autowired
 	private KeymanagerService keymanagerService;
+
+	@Autowired
+	private PublicKeySyncImpl publicKeySync;
 
 	/**
 	 * <p>
@@ -182,27 +187,7 @@ public class ResponseSignatureAdvice {
 				return;
 			}
 
-			try {
-				KeyPairGenerateResponseDto keyPairGenerateResponseDto = keymanagerService.getCertificate(RegistrationConstants.KERNEL_APP_ID,
-						Optional.of(signRefId));
-			} catch (BaseUncheckedException exception) {
-				//TODO - Need to get exact exception on expire and revocation
-				//Key Generation Process is not completed, ApplicationId not found in key_policy
-				if(!IGNORE_ERROR_CODES.contains(exception.getErrorCode()))
-				{
-					LOGGER.error(LoggerConstants.RESPONSE_SIGNATURE_VALIDATION, APPLICATION_ID, APPLICATION_NAME,
-							ExceptionUtils.getStackTrace(exception));
-					return;
-				}
-
-				UploadCertificateRequestDto uploadCertRequestDto = new UploadCertificateRequestDto();
-				uploadCertRequestDto.setApplicationId(uriComponents.getQueryParams().getFirst(RegistrationConstants.GET_CERT_APP_ID));
-				uploadCertRequestDto.setCertificateData(resp.get(RegistrationConstants.CERTIFICATE).toString());
-				uploadCertRequestDto.setReferenceId(signRefId);
-				keymanagerService.uploadOtherDomainCertificate(uploadCertRequestDto);
-				LOGGER.info(LoggerConstants.RESPONSE_SIGNATURE_VALIDATION, APPLICATION_ID, APPLICATION_NAME,
-						"Uploaded certificate with request..." + uploadCertRequestDto);
-			}
+			publicKeySync.saveSignPublicKey(resp.get(RegistrationConstants.CERTIFICATE).toString());
 		}
 	}
 
