@@ -26,7 +26,7 @@ public class MosipEventBusFactory {
 
 	private static final String EVENTBUS_KAFKA_COMMIT_TYPE = "eventbus.kafka.commit.type";
 
-	private static final String EVENTBUS_KAFKA_BOOTSTRAP_SERVERS = "eventbus.kafka.bootstrap.servers";
+	private static final String MOSIP_REGPROC_EVENTBUS_KAFKA_BOOTSTRAP_SERVERS = "mosip.regproc.eventbus.kafka.bootstrap.servers";
 
 	@Autowired
     private Tracing tracing;
@@ -49,7 +49,7 @@ public class MosipEventBusFactory {
                 return new VertxMosipEventBus(vertx, eventTracingHandler);
             case "kafka":
                 return new KafkaMosipEventBus(vertx, 
-                		getKafkaBootstrapServers(propertyPrefix), 
+                		getKafkaBootstrapServers(), 
                 		getKafkaGroupId(propertyPrefix), 
                 		getKafkaCommitType(propertyPrefix), 
                 		getMaxPollRecords(propertyPrefix), 
@@ -70,8 +70,8 @@ public class MosipEventBusFactory {
         this.tracing = tracing;
     }
     
-    public String getKafkaBootstrapServers(String propertyPrefix) {
-		return environment.getProperty(propertyPrefix + EVENTBUS_KAFKA_BOOTSTRAP_SERVERS);
+    public String getKafkaBootstrapServers() {
+		return environment.getProperty(MOSIP_REGPROC_EVENTBUS_KAFKA_BOOTSTRAP_SERVERS);
 	}
     
     public String getKafkaCommitType(String propertyPrefix) {
