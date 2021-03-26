@@ -48,6 +48,16 @@ public class MosipDeviceSpecificationHelper {
 	@Value("${mosip.registration.mdm.validate.trust:true}")
 	private boolean validateTrust;
 
+	@Value("${mosip.registration.mdm.trust.domain.rcapture:DEVICE}")
+	private String rCaptureTrustDomain;
+
+	@Value("${mosip.registration.mdm.trust.domain.digitalId:FTM}")
+	private String digitalIdTrustDomain;
+
+	@Value("${mosip.registration.mdm.trust.domain.deviceinfo:DEVICE}")
+	private String deviceInfoTrustDomain;
+
+
 	private final String CONTENT_LENGTH = "Content-Length:";
 
 	public String getPayLoad(String data) throws RegBaseCheckedException {
@@ -66,7 +76,7 @@ public class MosipDeviceSpecificationHelper {
 
 	public MdmDeviceInfo getDeviceInfoDecoded(String deviceInfo) {
 		try {
-			validateJWTResponse(deviceInfo, "DEVICE");
+			validateJWTResponse(deviceInfo, deviceInfoTrustDomain);
 			String result = new String(Base64.getUrlDecoder().decode(getPayLoad(deviceInfo)));
 			return mapper.readValue(result, MdmDeviceInfo.class);
 		} catch (Exception exception) {

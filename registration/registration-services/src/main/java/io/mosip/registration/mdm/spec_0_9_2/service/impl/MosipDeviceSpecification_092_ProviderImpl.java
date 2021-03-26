@@ -24,6 +24,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.assertj.core.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -73,6 +74,15 @@ public class MosipDeviceSpecification_092_ProviderImpl implements MosipDeviceSpe
 	// TODO - remove, and use helper. as this leads to circular dependency
 	@Autowired
 	private MosipDeviceSpecificationFactory deviceSpecificationFactory;
+
+	@Value("${mosip.registration.mdm.trust.domain.rcapture:DEVICE}")
+	private String rCaptureTrustDomain;
+
+	@Value("${mosip.registration.mdm.trust.domain.digitalId:FTM}")
+	private String digitalIdTrustDomain;
+
+	@Value("${mosip.registration.mdm.trust.domain.deviceinfo:DEVICE}")
+	private String deviceInfoTrustDomain;
 
 	@Override
 	public String getSpecVersion() {
@@ -216,7 +226,7 @@ public class MosipDeviceSpecification_092_ProviderImpl implements MosipDeviceSpe
 				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 						"Getting data payload of biometric" + System.currentTimeMillis());
 
-				mosipDeviceSpecificationHelper.validateJWTResponse(rCaptureResponseBiometricsDTO.getData(), "DEVICE");
+				mosipDeviceSpecificationHelper.validateJWTResponse(rCaptureResponseBiometricsDTO.getData(), rCaptureTrustDomain);
 				String payLoad = mosipDeviceSpecificationHelper.getPayLoad(rCaptureResponseBiometricsDTO.getData());
 
 				RCaptureResponseDataDTO dataDTO = mapper.readValue(new String(Base64.getUrlDecoder().decode(payLoad)),
@@ -322,7 +332,7 @@ public class MosipDeviceSpecification_092_ProviderImpl implements MosipDeviceSpe
 	}
 
 	private DigitalId getDigitalId(String digitalId) throws IOException, RegBaseCheckedException, DeviceException {
-		mosipDeviceSpecificationHelper.validateJWTResponse(digitalId, "FTM");
+		mosipDeviceSpecificationHelper.validateJWTResponse(digitalId, digitalIdTrustDomain);
 		return mosipDeviceSpecificationHelper.getMapper().readValue(
 				new String(Base64.getUrlDecoder().decode(mosipDeviceSpecificationHelper.getPayLoad(digitalId))),
 				DigitalId.class);
