@@ -1,30 +1,24 @@
 package io.mosip.registration.service.sync.impl;
 
-import static io.mosip.registration.constants.LoggerConstants.REGISTRATION_PUBLIC_KEY_SYNC;
-import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
-import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
-
 import java.util.*;
 
+import io.mosip.kernel.cryptomanager.util.CryptomanagerUtils;
+import io.mosip.kernel.keymanagerservice.util.KeymanagerUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.keymanagerservice.dto.KeyPairGenerateResponseDto;
 import io.mosip.kernel.keymanagerservice.dto.UploadCertificateRequestDto;
 import io.mosip.kernel.keymanagerservice.service.KeymanagerService;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
-import io.mosip.registration.dto.ErrorResponseDTO;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.service.BaseService;
 import io.mosip.registration.service.sync.PolicySyncService;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
-import io.mosip.registration.util.healthcheck.RegistrationSystemPropertiesChecker;
 
 /**
  * 
@@ -41,130 +35,101 @@ import io.mosip.registration.util.healthcheck.RegistrationSystemPropertiesChecke
 @Service
 public class PolicySyncServiceImpl extends BaseService implements PolicySyncService {
 
+	private static final Logger LOGGER = AppConfig.getLogger(PolicySyncServiceImpl.class);
+
 	@Autowired
 	private KeymanagerService keymanagerService;
 
-	private static final Logger LOGGER = AppConfig.getLogger(PolicySyncServiceImpl.class);
+	@Autowired
+	private KeymanagerUtil keymanagerUtil;
+
+	@Autowired
+	private CryptomanagerUtils cryptomanagerUtils;
+
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see io.mosip.registration.service.PolicySyncService#fetchPolicy(centerId)
 	 */
 	@Override
-	synchronized public ResponseDTO fetchPolicy() throws RegBaseCheckedException {
-		LOGGER.debug("REGISTRATION_KEY_POLICY_SYNC", APPLICATION_NAME, APPLICATION_ID,
-				"sync the certificate is started");
+	public ResponseDTO fetchPolicy() throws RegBaseCheckedException {
+		LOGGER.debug("fetchPolicy invoked");
+
+		ResponseDTO responseDTO = new ResponseDTO();
+		if (!RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
+			return setErrorResponse(responseDTO, RegistrationConstants.NO_INTERNET, null);
+		}
 
 		//Precondition check, proceed only if met, otherwise throws exception
 		proceedWithMasterAndKeySync(null);
 
-		ResponseDTO responseDTO = new ResponseDTO();
 		String stationId = getStationId();
 		String centerId = stationId != null ? getCenterId(stationId) : null;
 		validate(centerId, stationId);
-		String centerMachineId = centerId + "_" + stationId;
+		String centerMachineId = centerId.concat(RegistrationConstants.UNDER_SCORE).concat(stationId);
 
 		try {
-			KeyPairGenerateResponseDto certificateDto = keymanagerService
-					.getCertificate(RegistrationConstants.REG_APP_ID, Optional.of(centerMachineId));
-			if (certificateDto == null || certificateDto.getCertificate() == null) {
-				LOGGER.info("REGISTRATION_KEY_POLICY_SYNC", APPLICATION_NAME, APPLICATION_ID,
-						"Syncing the key as the certificate is null");
+			String certificateData = getCertificateFromServer(centerMachineId); //fetch policy key from server
+			KeyPairGenerateResponseDto certificateDto = getKeyFromLocalDB(centerMachineId); //get policy key from DB
 
-				responseDTO = getCertificateFromServer(responseDTO, centerMachineId);
-			} else {
-				responseDTO = setSuccessResponse(responseDTO, RegistrationConstants.POLICY_SYNC_SUCCESS_MESSAGE, null);
+			//compare downloaded and saved one, if different then save it
+			if(certificateDto != null && Arrays.equals(cryptomanagerUtils.getCertificateThumbprint(keymanagerUtil.convertToCertificate(certificateData)),
+					cryptomanagerUtils.getCertificateThumbprint(keymanagerUtil.convertToCertificate(certificateDto.getCertificate())))) {
+				LOGGER.debug("Downloaded key and existing policy key are same");
+				return setSuccessResponse(responseDTO, RegistrationConstants.POLICY_SYNC_SUCCESS_MESSAGE, null);
 			}
-		} catch (Exception exception) {
-			LOGGER.info("REGISTRATION_KEY_POLICY_SYNC", APPLICATION_NAME, APPLICATION_ID,
-					"Syncing the key as the certificate is not found and gave exception: " + exception.getMessage()
-							+ ExceptionUtils.getStackTrace(exception));
 
-			responseDTO = getCertificateFromServer(responseDTO, centerMachineId);
+			UploadCertificateRequestDto uploadCertRequestDto = new UploadCertificateRequestDto();
+			uploadCertRequestDto.setApplicationId(RegistrationConstants.REG_APP_ID);
+			uploadCertRequestDto.setCertificateData(certificateData);
+			uploadCertRequestDto.setReferenceId(centerMachineId);
+			keymanagerService.uploadOtherDomainCertificate(uploadCertRequestDto);
+			LOGGER.debug("Policy Sync saved in local DB successfully");
+			return setSuccessResponse(responseDTO, RegistrationConstants.POLICY_SYNC_SUCCESS_MESSAGE, null);
+
+		} catch (Throwable t) {
+			LOGGER.error("", t);
 		}
-		return responseDTO;
+		return setErrorResponse(responseDTO, RegistrationExceptionConstants.REG_POLICY_SYNC_FAILED.getErrorMessage(), null);
 	}
 
-	private ResponseDTO getCertificateFromServer(ResponseDTO responseDTO, String centerMachineId)
-			throws RegBaseCheckedException {
-		if (!RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
-			LOGGER.error("REGISTRATION_KEY_POLICY_SYNC", APPLICATION_NAME, APPLICATION_ID,
-					"User is not online to sync the certificate");
-			responseDTO = setErrorResponse(responseDTO,
-					RegistrationConstants.POLICY_SYNC_CLIENT_NOT_ONLINE_ERROR_MESSAGE, null);
-		} else {
-			responseDTO = getCertificate(responseDTO, centerMachineId,
-					DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
-		}
-		return responseDTO;
-	}
+
 
 	/**
 	 * This method invokes the external service 'policysync' to download the public
 	 * key with respect to local center and machine id combination. And store the
 	 * key into the local database for further usage during registration process.
 	 *
-	 * @param responseDTO     the response DTO
-	 * @param centerMachineId the center machine id
 	 * @return
 	 * @throws RegBaseCheckedException
 	 */
-	@SuppressWarnings("unchecked")
-	private synchronized ResponseDTO getCertificate(ResponseDTO responseDTO, String centerMachineId, String validDate)
-			throws RegBaseCheckedException {
-		LOGGER.debug("REGISTRATION_KEY_POLICY_SYNC", APPLICATION_NAME, APPLICATION_ID, "getCertificate invoked");
-		if (validate(responseDTO, centerMachineId)) {
-			List<ErrorResponseDTO> erResponseDTOs = new ArrayList<>();
-			Map<String, String> requestParams = new HashMap<>();
-			requestParams.put(RegistrationConstants.GET_CERT_APP_ID, RegistrationConstants.REG_APP_ID);
-			requestParams.put(RegistrationConstants.REF_ID, centerMachineId);
-			try {
-				LOGGER.info("REGISTRATION_KEY_POLICY_SYNC", APPLICATION_NAME, APPLICATION_ID,
-						"Calling getCertificate rest call with request params " + requestParams);
-				
-				LinkedHashMap<String, Object> publicKeySyncResponse = (LinkedHashMap<String, Object>) serviceDelegateUtil
-						.get(RegistrationConstants.GET_CERTIFICATE, requestParams, false,
-								RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
-				if (null != publicKeySyncResponse.get(RegistrationConstants.RESPONSE)) {
-					LinkedHashMap<String, Object> responseMap = (LinkedHashMap<String, Object>) publicKeySyncResponse
-							.get(RegistrationConstants.RESPONSE);
-					UploadCertificateRequestDto uploadCertRequestDto = new UploadCertificateRequestDto();
-					uploadCertRequestDto.setApplicationId(RegistrationConstants.REG_APP_ID);
-					uploadCertRequestDto
-							.setCertificateData(responseMap.get(RegistrationConstants.CERTIFICATE).toString());
-					uploadCertRequestDto.setReferenceId(centerMachineId);
-					keymanagerService.uploadOtherDomainCertificate(uploadCertRequestDto);
-					responseDTO = setSuccessResponse(responseDTO, RegistrationConstants.POLICY_SYNC_SUCCESS_MESSAGE,
-							null);
-					LOGGER.info("REGISTRATION_KEY_POLICY_SYNC", APPLICATION_NAME, APPLICATION_ID,
-							"getCertificate sync is completed");
+	private String getCertificateFromServer(String centerMachineId) throws Exception {
+		LOGGER.debug("Policy Sync from server invoked");
 
-				} else {
-					ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO();
-					errorResponseDTO.setCode(RegistrationConstants.ERRORS);
+		Map<String, String> requestParams = new HashMap<>();
+		requestParams.put(RegistrationConstants.GET_CERT_APP_ID, RegistrationConstants.REG_APP_ID);
+		requestParams.put(RegistrationConstants.REF_ID, centerMachineId);
 
-					errorResponseDTO.setMessage(publicKeySyncResponse.size() > 0
-							? ((List<LinkedHashMap<String, String>>) publicKeySyncResponse
-									.get(RegistrationConstants.ERRORS)).get(0).get(RegistrationConstants.ERROR_MSG)
-							: "getCertificate Sync rest call Failure");
-					erResponseDTOs.add(errorResponseDTO);
-					responseDTO.setErrorResponseDTOs(erResponseDTOs);
-					LOGGER.info(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
-							((publicKeySyncResponse.size() > 0)
-									? ((List<LinkedHashMap<String, String>>) publicKeySyncResponse
-											.get(RegistrationConstants.ERRORS)).get(0)
-													.get(RegistrationConstants.ERROR_MSG)
-									: "getCertificate Sync Restful service error"));
-				}
+		LOGGER.info("Calling getCertificate rest call with request params {}", requestParams);
+		LinkedHashMap<String, Object> publicKeySyncResponse = (LinkedHashMap<String, Object>) serviceDelegateUtil
+				.get(RegistrationConstants.GET_CERTIFICATE, requestParams, false,
+						RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
 
-			} catch (Exception exception) {
-				LOGGER.error("REGISTRATION_KEY_POLICY_SYNC", APPLICATION_NAME, APPLICATION_ID,
-						exception.getMessage() + ExceptionUtils.getStackTrace(exception));
-				responseDTO = setErrorResponse(responseDTO, RegistrationConstants.POLICY_SYNC_ERROR_MESSAGE, null);
-			}
+
+		if(null != publicKeySyncResponse.get(RegistrationConstants.RESPONSE)) {
+			LinkedHashMap<String, Object> responseMap = (LinkedHashMap<String, Object>) publicKeySyncResponse
+					.get(RegistrationConstants.RESPONSE);
+			return responseMap.get(RegistrationConstants.CERTIFICATE).toString();
 		}
-		return responseDTO;
+
+		if(publicKeySyncResponse.get(RegistrationConstants.ERRORS) != null &&
+				((List<LinkedHashMap<String, String>>) publicKeySyncResponse.get(RegistrationConstants.ERRORS)).size() > 0 ) {
+			LOGGER.error("Get Policy key from server failed with error {}", publicKeySyncResponse.get(RegistrationConstants.ERRORS));
+		}
+
+		throw new RegBaseCheckedException(RegistrationExceptionConstants.REG_POLICY_SYNC_FAILED.getErrorCode(),
+				RegistrationExceptionConstants.REG_POLICY_SYNC_FAILED.getErrorMessage());
 	}
 
 	/**
@@ -174,45 +139,37 @@ public class PolicySyncServiceImpl extends BaseService implements PolicySyncServ
 	 */
 	@Override
 	public ResponseDTO checkKeyValidation() {
-		LOGGER.info("REGISTRATION_KEY_POLICY_SYNC", APPLICATION_NAME, APPLICATION_ID, "Key validation started");
-
+		LOGGER.info("Key validation started");
 		ResponseDTO responseDTO = new ResponseDTO();
 		try {
 			String stationId = getStationId();
 			String centerId = stationId != null ? getCenterId(stationId) : null;
 			validate(centerId, stationId);
-			String refId = getCenterId(stationId) + "_" + stationId;
+			String centerMachineId = centerId.concat(RegistrationConstants.UNDER_SCORE).concat(stationId);
 
-			KeyPairGenerateResponseDto certificateDto = keymanagerService
-					.getCertificate(RegistrationConstants.REG_APP_ID, Optional.of(refId));
-			if (certificateDto == null || (certificateDto != null && certificateDto.getCertificate() == null)) {
-				setErrorResponse(responseDTO, RegistrationConstants.INVALID_KEY, null);
-			} else {
-				setSuccessResponse(responseDTO, RegistrationConstants.VALID_KEY, null);
-			}
+			KeyPairGenerateResponseDto certificateDto = getKeyFromLocalDB(centerMachineId);
+
+			if(certificateDto != null)
+				return setSuccessResponse(responseDTO, RegistrationConstants.VALID_KEY, null);
+
 		} catch (Exception exception) {
-			LOGGER.error("REGISTRATION_KEY_POLICY_SYNC", APPLICATION_NAME, APPLICATION_ID,
-					exception.getMessage() + ExceptionUtils.getStackTrace(exception));
-			setErrorResponse(responseDTO, RegistrationConstants.INVALID_KEY, null);
+			LOGGER.error("POLICY_KEY validation failed", exception);
 		}
-		LOGGER.info("REGISTRATION_KEY_POLICY_SYNC", APPLICATION_NAME, APPLICATION_ID, "Key validation ended");
-
-		return responseDTO;
+		return setErrorResponse(responseDTO, RegistrationConstants.INVALID_KEY, null);
 	}
 
-	private boolean validate(ResponseDTO responseDTO, String centerMachineId)
-			throws RegBaseCheckedException {
-		if (responseDTO == null)
-			throw new RegBaseCheckedException(
-					RegistrationExceptionConstants.REG_POLICY_SYNC_SERVICE_IMPL.getErrorCode(),
-					RegistrationExceptionConstants.REG_POLICY_SYNC_SERVICE_IMPL.getErrorMessage());
+	private KeyPairGenerateResponseDto getKeyFromLocalDB(String refId) {
+		try {
+			KeyPairGenerateResponseDto certificateDto = keymanagerService
+					.getCertificate(RegistrationConstants.REG_APP_ID, Optional.of(refId));
 
-		if (centerMachineId == null)
-			throw new RegBaseCheckedException(
-					RegistrationExceptionConstants.REG_POLICY_SYNC_SERVICE_IMPL_CENTERMACHINEID.getErrorCode(),
-					RegistrationExceptionConstants.REG_POLICY_SYNC_SERVICE_IMPL_CENTERMACHINEID.getErrorMessage());
+			if(certificateDto != null && certificateDto.getCertificate() != null)
+				return certificateDto;
 
-		return true;
+		} catch (Exception ex) {
+			LOGGER.error("Error Fetching policy key from DB", ex);
+		}
+		return null;
 	}
 
 	private boolean validate(String centerId, String machineId)

@@ -184,6 +184,7 @@ public enum RegistrationExceptionConstants {
 	
 	REG_POLICY_SYNC_SERVICE_IMPL("REG-PSS-001","responseDTO cannot be null or empty"),
 	REG_POLICY_SYNC_SERVICE_IMPL_CENTERMACHINEID("REG-PSS-002","centerMachineId is mandatory"),
+	REG_POLICY_SYNC_FAILED("REG-PSS-003","Policy key sync failed"),
 	
 	REG_GLOBALPARAM_SYNC_SERVICE_IMPL("REG-GPSS-001","responseDTO cannot be null or empty"),
 	REG_GLOBALPARAM_SYNC_SERVICE_IMPL_TRIGGER_POINT("REG-GPSS-002","triggerPoint is mandatory"),

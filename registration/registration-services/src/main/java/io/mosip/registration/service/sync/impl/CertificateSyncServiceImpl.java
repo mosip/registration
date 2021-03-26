@@ -27,14 +27,12 @@ import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 import io.mosip.registration.util.restclient.ServiceDelegateUtil;
 import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import static io.mosip.registration.constants.LoggerConstants.LOG_REG_MASTER_SYNC;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
@@ -64,6 +62,15 @@ public class CertificateSyncServiceImpl extends BaseService implements Certifica
     @Autowired
     private PartnerCertificateManagerService partnerCertificateManagerService;
 
+    @Value("${mosip.registration.mdm.trust.domain.rcapture:DEVICE}")
+    private String rCaptureTrustDomain;
+
+    @Value("${mosip.registration.mdm.trust.domain.digitalId:FTM}")
+    private String digitalIdTrustDomain;
+
+    @Value("${mosip.registration.mdm.trust.domain.deviceinfo:DEVICE}")
+    private String deviceInfoTrustDomain;
+
     private static ObjectMapper mapper = new ObjectMapper();
 
 
@@ -85,8 +92,7 @@ public class CertificateSyncServiceImpl extends BaseService implements Certifica
         if(!RegistrationAppHealthCheckUtil.isNetworkAvailable())
             return setErrorResponse(responseDTO, RegistrationConstants.NO_INTERNET, null);
 
-        LOGGER.info("", RegistrationConstants.APPLICATION_NAME,
-                RegistrationConstants.APPLICATION_ID, "Network available cacerts sync started");
+        LOGGER.info("Network available cacerts sync started");
         try {
             LinkedHashMap<String, Object> certResponse = (LinkedHashMap<String, Object>) serviceDelegateUtil
                     .get(GET_CA_CERTIFICATE, requestParamMap, false, triggerPoint);
@@ -108,23 +114,25 @@ public class CertificateSyncServiceImpl extends BaseService implements Certifica
             });
             certs.sort((CaCertificateDto d1, CaCertificateDto d2) -> d1.getCreatedtimes().compareTo(d2.getCreatedtimes()));
 
+            List<String> trustedDomains = new ArrayList<>();
+            trustedDomains.add(rCaptureTrustDomain);
+            trustedDomains.add(deviceInfoTrustDomain);
+            trustedDomains.add(digitalIdTrustDomain);
+
             for(CaCertificateDto cert : certs) {
-                if("FTM".equalsIgnoreCase(cert.getPartnerDomain().toUpperCase()) ||
-                        "DEVICE".equalsIgnoreCase(cert.getPartnerDomain().toUpperCase()) ) {
+                if(trustedDomains.contains(cert.getPartnerDomain().toUpperCase())) {
                     CACertificateRequestDto caCertificateRequestDto = new CACertificateRequestDto();
                     caCertificateRequestDto.setCertificateData(cert.getCertData());
                     caCertificateRequestDto.setPartnerDomain(cert.getPartnerDomain());
                     CACertificateResponseDto caCertificateResponseDto = partnerCertificateManagerService.uploadCACertificate(caCertificateRequestDto);
-                    LOGGER.debug("", RegistrationConstants.APPLICATION_NAME,
-                            RegistrationConstants.APPLICATION_ID,  caCertificateResponseDto.getStatus());
+                    LOGGER.debug(caCertificateResponseDto.getStatus());
                 }
             }
             return saveLastSuccessfulSyncTime(responseDTO, triggerPoint,
                     responseMap.get(LAST_SYNC_TIME) == null ? null : responseMap.get(LAST_SYNC_TIME).toString());
 
         } catch (Throwable t) {
-            LOGGER.error("", RegistrationConstants.APPLICATION_NAME,
-                    RegistrationConstants.APPLICATION_ID, ExceptionUtils.getStackTrace(t));
+            LOGGER.error("", t);
         }
         return responseDTO;
     }
@@ -136,8 +144,7 @@ public class CertificateSyncServiceImpl extends BaseService implements Certifica
                 RegistrationConstants.JOB_EXECUTION_SUCCESS, RegistrationConstants.JOB_EXECUTION_SUCCESS,
                 triggerPoint, RegistrationConstants.OPT_TO_REG_CCS_J00017);
         syncManager.updateClientSettingLastSyncTime(syncTransaction, getTimestamp(lastSyncTime));
-        LOGGER.info("", APPLICATION_NAME, APPLICATION_ID,
-                "Saved CA certificate lastSyncTime completed successfully.");
+        LOGGER.info("Saved CA certificate lastSyncTime completed successfully.");
         return responseDTO;
     }
 }

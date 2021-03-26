@@ -5,11 +5,11 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.net.SocketTimeoutException;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
+import io.mosip.kernel.cryptomanager.util.CryptomanagerUtils;
+import io.mosip.kernel.keymanagerservice.dto.UploadCertificateRequestDto;
+import io.mosip.kernel.keymanagerservice.util.KeymanagerUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -45,176 +45,111 @@ import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 @Service
 public class PublicKeySyncImpl extends BaseService implements PublicKeySync {
 
+	private static final Logger LOGGER = AppConfig.getLogger(PolicySyncServiceImpl.class);
+
 	@Autowired
 	private KeymanagerService keymanagerService;
+
+	@Autowired
+	private KeymanagerUtil keymanagerUtil;
+
+	@Autowired
+	private CryptomanagerUtils cryptomanagerUtils;
 
 	@Value("${mosip.sign.refid:SIGN}")
 	private String signRefId;
 
-	/** The Constant LOGGER. */
-	private static final Logger LOGGER = AppConfig.getLogger(PublicKeySyncImpl.class);
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see io.mosip.registration.service.PublicKeySync#getPublicKey()
+	/**
+	 *
+	 * @param triggerPoint the trigger point
+	 * 		User or System.
+	 * @return
+	 * @throws RegBaseCheckedException
 	 */
 	@Override
-	public synchronized ResponseDTO getPublicKey(String triggerPoint) throws RegBaseCheckedException {
-		LOGGER.info(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
-				"Entering into get public key method.....");
+	public ResponseDTO getPublicKey(String triggerPoint) throws RegBaseCheckedException {
+		LOGGER.info("Entering into get public key method.....");
+
+		ResponseDTO responseDTO = new ResponseDTO();
+		if (!RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
+			return setErrorResponse(responseDTO, RegistrationConstants.NO_INTERNET, null);
+		}
 
 		//Precondition check, proceed only if met, otherwise throws exception
 		proceedWithMasterAndKeySync(null);
 
-		ResponseDTO responseDTO = new ResponseDTO();
+		try {
+			String certificateData = getCertificateFromServer(); //fetch sign public key from server
+			saveSignPublicKey(certificateData);
+			return setSuccessResponse(responseDTO, RegistrationConstants.POLICY_SYNC_SUCCESS_MESSAGE, null);
+
+		} catch(Throwable t) {
+			LOGGER.error("", t);
+		}
+		return setErrorResponse(responseDTO, String.format(RegistrationExceptionConstants.REG_SYNC_FAILURE.getErrorMessage(),
+				"Sign Key"), null);
+	}
+
+	public void saveSignPublicKey(String syncedCertificate) {
+		KeyPairGenerateResponseDto certificateDto = getKeyFromLocalDB(); //get sign public key from DB
+
+		//compare downloaded and saved one, if different then save it
+		if(certificateDto != null &&
+				Arrays.equals(cryptomanagerUtils.getCertificateThumbprint(keymanagerUtil.convertToCertificate(syncedCertificate)),
+				cryptomanagerUtils.getCertificateThumbprint(keymanagerUtil.convertToCertificate(certificateDto.getCertificate())))) {
+			LOGGER.debug("Downloaded key and existing Sign public key are same");
+			return;
+		}
+
+		UploadCertificateRequestDto uploadCertRequestDto = new UploadCertificateRequestDto();
+		uploadCertRequestDto.setApplicationId(RegistrationConstants.KERNEL_APP_ID);
+		uploadCertRequestDto.setCertificateData(syncedCertificate);
+		uploadCertRequestDto.setReferenceId(signRefId);
+		keymanagerService.uploadOtherDomainCertificate(uploadCertRequestDto);
+
+		LOGGER.debug("Sign Public Key Synced & saved in local DB successfully");
+	}
+
+
+	private String getCertificateFromServer() throws Exception {
+		LOGGER.debug("Sign public Sync from server invoked");
+
+		Map<String, String> requestParams = new HashMap<>();
+		requestParams.put(RegistrationConstants.GET_CERT_APP_ID, RegistrationConstants.KERNEL_APP_ID);
+		requestParams.put(RegistrationConstants.REF_ID, signRefId);
+
+		LOGGER.info("Calling getCertificate rest call with request params {}", requestParams);
+		LinkedHashMap<String, Object> publicKeySyncResponse = (LinkedHashMap<String, Object>) serviceDelegateUtil
+				.get(RegistrationConstants.GET_CERTIFICATE, requestParams, false, "triggerPoint");
+
+
+		if(null != publicKeySyncResponse.get(RegistrationConstants.RESPONSE)) {
+			LinkedHashMap<String, Object> responseMap = (LinkedHashMap<String, Object>) publicKeySyncResponse
+					.get(RegistrationConstants.RESPONSE);
+			return responseMap.get(RegistrationConstants.CERTIFICATE).toString();
+		}
+
+		if(publicKeySyncResponse.get(RegistrationConstants.ERRORS) != null &&
+				((List<LinkedHashMap<String, String>>) publicKeySyncResponse.get(RegistrationConstants.ERRORS)).size() > 0 ) {
+			LOGGER.error("Get Sign public key from server failed with error {}",
+					publicKeySyncResponse.get(RegistrationConstants.ERRORS));
+		}
+
+		throw new RegBaseCheckedException(RegistrationExceptionConstants.REG_POLICY_SYNC_FAILED.getErrorCode(),
+				RegistrationExceptionConstants.REG_POLICY_SYNC_FAILED.getErrorMessage());
+	}
+
+	private KeyPairGenerateResponseDto getKeyFromLocalDB() {
 		try {
 			KeyPairGenerateResponseDto certificateDto = keymanagerService
 					.getCertificate(RegistrationConstants.KERNEL_APP_ID, Optional.of(signRefId));
-			if (certificateDto == null || (certificateDto != null && certificateDto.getCertificate() == null)) {
-				LOGGER.info("REGISTRATION_KEY_POLICY_SYNC", APPLICATION_NAME, APPLICATION_ID,
-						"Syncing the key as the certificate is null");
-				
-				responseDTO = getCertificateFromServer(responseDTO, triggerPoint);
-			} else {
-				responseDTO = setSuccessResponse(responseDTO, RegistrationConstants.POLICY_SYNC_SUCCESS_MESSAGE, null);
-			}
-		} catch (Exception exception) {
-			LOGGER.info("REGISTRATION_KEY_POLICY_SYNC", APPLICATION_NAME, APPLICATION_ID,
-					"Syncing the key as the certificate is not found and gave exception: " + exception.getMessage());
-			
-			responseDTO = getCertificateFromServer(responseDTO, triggerPoint);
-		}		
-		return responseDTO;
-	}
 
-	private ResponseDTO getCertificateFromServer(ResponseDTO responseDTO, String triggerPoint) throws RegBaseCheckedException {
-		if (triggerPointNullCheck(triggerPoint)) {
-			try {
-				LOGGER.info(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
-						"Fetching signed certificate.....");
+			if(certificateDto != null && certificateDto.getCertificate() != null)
+				return certificateDto;
 
-				responseDTO = getResponse(triggerPoint);
-			} catch (RegBaseCheckedException regBaseCheckedException) {
-				LOGGER.error(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
-						ExceptionUtils.getStackTrace(regBaseCheckedException));
-
-				responseDTO = setErrorResponse(new ResponseDTO(),
-						isAuthTokenEmptyException(regBaseCheckedException) ? regBaseCheckedException.getErrorCode()
-								: regBaseCheckedException.getMessage(),
-						null);
-			} catch (RuntimeException runtimeException) {
-				LOGGER.error(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
-						ExceptionUtils.getStackTrace(runtimeException));
-				responseDTO = setErrorResponse(new ResponseDTO(), runtimeException.getMessage(), null);
-			}
-
-			LOGGER.info(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
-					"Leaving getCertificateFromServer method.....");
-		} else {
-			LOGGER.info(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
-					RegistrationConstants.TRIGGER_POINT_MSG);
-			throw new RegBaseCheckedException(RegistrationExceptionConstants.REG_TRIGGER_POINT_MISSING.getErrorCode(),
-					RegistrationExceptionConstants.REG_TRIGGER_POINT_MISSING.getErrorMessage());
+		} catch (Exception ex) {
+			LOGGER.error("Error Fetching policy key from DB", ex);
 		}
-		return responseDTO;
+		return null;
 	}
-
-	private ResponseDTO getResponse(String triggerPoint) throws RegBaseCheckedException {
-		ResponseDTO responseDTO = uploadCertificate(triggerPoint);
-		if (null != responseDTO && null != responseDTO.getSuccessResponseDTO()) {
-			responseDTO = setSuccessResponse(responseDTO, RegistrationConstants.POLICY_SYNC_SUCCESS_MESSAGE,
-					null);
-			LOGGER.info(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
-					responseDTO.getSuccessResponseDTO().getMessage());
-		} else {
-			if (!isAuthTokenEmptyError(responseDTO)) {
-				responseDTO = setErrorResponse(new ResponseDTO(),
-						RegistrationConstants.POLICY_SYNC_ERROR_MESSAGE, null);
-			}
-			LOGGER.info(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
-					"Public Key Sync Failure");
-		}
-		return responseDTO;
-	}
-
-	@SuppressWarnings("unchecked")
-	private ResponseDTO uploadCertificate(String triggerPoint) throws RegBaseCheckedException {
-		LOGGER.info(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
-				"Entering into uploadCertificate method.....");
-
-		ResponseDTO responseDTO = new ResponseDTO();
-		Map<String, String> requestParamMap = new LinkedHashMap<>();
-		requestParamMap.put(RegistrationConstants.GET_CERT_APP_ID, RegistrationConstants.KERNEL_APP_ID);
-		requestParamMap.put(RegistrationConstants.REF_ID, signRefId);
-		try {
-			LOGGER.info(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
-					"Calling getCertificate rest call with request params " + requestParamMap);
-			if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
-				LinkedHashMap<String, Object> publicKeyResponse = (LinkedHashMap<String, Object>) serviceDelegateUtil
-						.get(RegistrationConstants.GET_CERTIFICATE, requestParamMap, false, triggerPoint);
-				if (null != publicKeyResponse && publicKeyResponse.size() > 0
-						&& null != publicKeyResponse.get(RegistrationConstants.RESPONSE)) {
-//					LinkedHashMap<String, Object> responseMap = (LinkedHashMap<String, Object>) publicKeyResponse
-//							.get(RegistrationConstants.RESPONSE);
-//					UploadCertificateRequestDto uploadCertRequestDto = new UploadCertificateRequestDto();
-//					uploadCertRequestDto.setApplicationId(RegistrationConstants.KERNEL_APP_ID);
-//					uploadCertRequestDto.setCertificateData(responseMap.get(RegistrationConstants.CERTIFICATE).toString());
-//					uploadCertRequestDto.setReferenceId(RegistrationConstants.KERNEL_REF_ID);
-//					keymanagerService.uploadOtherDomainCertificate(uploadCertRequestDto);
-					responseDTO = setSuccessResponse(responseDTO, RegistrationConstants.POLICY_SYNC_SUCCESS_MESSAGE,
-							null);
-					
-					LOGGER.info(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
-							"getCertificate sync successful...");
-				} else {
-					responseDTO = setErrorResponse(responseDTO,
-							(null != publicKeyResponse && publicKeyResponse.size() > 0)
-									? ((List<LinkedHashMap<String, String>>) publicKeyResponse
-											.get(RegistrationConstants.ERRORS)).get(0)
-													.get(RegistrationConstants.ERROR_MSG)
-									: "GetCertificate Sync Restful service error",
-							null);
-					LOGGER.info(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
-							((null != publicKeyResponse && publicKeyResponse.size() > 0)
-									? ((List<LinkedHashMap<String, String>>) publicKeyResponse
-											.get(RegistrationConstants.ERRORS)).get(0)
-													.get(RegistrationConstants.ERROR_MSG)
-									: "GetCertificate Sync Restful service error"));
-
-				}
-			} else {
-				LOGGER.error(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
-						"Unable to sync certificate as there is no internet connection");
-				responseDTO = setErrorResponse(responseDTO, RegistrationConstants.ERROR, null);
-			}
-
-		} catch (HttpClientErrorException | SocketTimeoutException reException) {
-			LOGGER.error(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
-					ExceptionUtils.getStackTrace(reException));
-			
-			throw new RegBaseCheckedException("Exception in GetCertificate Rest Call", reException.getMessage());
-		}
-		LOGGER.info(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
-				"Leaving uploadCertificate method.....");
-
-		return responseDTO;
-	}
-
-	/**
-	 * trigger point null check.
-	 *
-	 * @param triggerPoint the language code
-	 * @return true, if successful
-	 */
-	private boolean triggerPointNullCheck(String triggerPoint) {
-		if (StringUtils.isEmpty(triggerPoint)) {
-			LOGGER.info(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
-					"triggerPoint is missing it is a mandatory field.");
-			return false;
-		} else {
-			return true;
-		}
-	}
-
 }
