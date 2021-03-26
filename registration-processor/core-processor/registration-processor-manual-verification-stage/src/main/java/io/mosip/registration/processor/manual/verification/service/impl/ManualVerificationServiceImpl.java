@@ -13,9 +13,11 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import io.mosip.registration.processor.core.constant.PolicyConstant;
@@ -31,6 +33,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -402,8 +405,16 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	public ManualAdjudicationResponseDTO updatePacketStatus(ManualAdjudicationResponseDTO manualVerificationDTO, String stageName,MosipQueue queue) {
 		TrimExceptionMessage trimExceptionMessage = new TrimExceptionMessage();
 		String requestId = manualVerificationDTO.getRequestId();
-		String regId=basePacketRepository.getRegistrationIdbyRequestId(
+		List<String> regIds=basePacketRepository.getRegistrationIdbyRequestId(
 				manualVerificationDTO.getRequestId());
+
+		if (CollectionUtils.isEmpty(regIds) || new HashSet<String>(regIds).size() != 1) {
+			regProcLogger.error("Multiple rids found against request id : " + manualVerificationDTO.getRequestId() +
+					"regids : " + regIds.toString());
+			throw new InvalidRidException(PlatformErrorMessages.RPR_INVALID_RID_FOUND.getCode(), PlatformErrorMessages.RPR_INVALID_RID_FOUND.getCode());
+		}
+
+		String regId = regIds.iterator().next();
 
 		String statusCode=null;
 
@@ -412,13 +423,12 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		messageDTO.setIsValid(false);
 		messageDTO.setRid(regId);
 		validateRegAndMactedRefIdEmpty(regId);
-		if(manualVerificationDTO.getCandidateList().getCandidates()==null || manualVerificationDTO.getCandidateList().getCandidates().isEmpty())
-		{
+		if(manualVerificationDTO.getCandidateList() == null ||
+		CollectionUtils.isEmpty(manualVerificationDTO.getCandidateList().getCandidates()))
 			statusCode=ManualVerificationStatus.APPROVED.name();
-		}
-		else {
+		else
 			statusCode=ManualVerificationStatus.REJECTED.name();
-		}
+
 		LogDescription description = new LogDescription();
 		boolean isTransactionSuccessful = false;
 		
@@ -643,6 +653,8 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 					PlatformErrorMessages.RPR_MVS_NO_MATCHEDRID_FOUND_FOR_GIVEN_RID.getMessage());
 
 		ManualAdjudicationRequestDTO mar = prepareManualAdjudicationRequest(mves);
+		String requestId = UUID.randomUUID().toString();
+		mar.setRequestId(requestId);
 		regProcLogger.info("Request : " + JsonUtils.javaObjectToJsonString(mar));
 		if (messageFormat.equalsIgnoreCase(TEXT_MESSAGE))
 			mosipQueueManager.send(queue, JsonUtils.javaObjectToJsonString(mar), mvRequestAddress, mvRequestMessageTTL);
@@ -651,7 +663,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				refId, "ManualVerificationServiceImpl::pushRequestToQueue()::entry");
 
-		updateManualVerificationEntityRID(mves);
+		updateManualVerificationEntityRID(mves, requestId);
 	}
 
 	private String getDataShareUrl(String id, String process) throws Exception {
@@ -943,13 +955,14 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	 * Update manual verification entity once request is pushed to queue for a given
 	 * RID
 	 */
-	private void updateManualVerificationEntityRID(List<ManualVerificationEntity> mves) {
+	private void updateManualVerificationEntityRID(List<ManualVerificationEntity> mves, String requestId) {
 		mves.stream().forEach(mve -> {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					mve.getId().getRegId(), "ManualVerificationServiceImpl::updateManualVerificationEntityRID()::entry");
 			mve.setStatusCode(ManualVerificationStatus.INQUEUE.name());
 			mve.setStatusComment("Sent to manual adjudication queue");
 			mve.setUpdDtimes(Timestamp.valueOf(LocalDateTime.now(ZoneId.of("UTC"))));
+			mve.setRequestId(requestId);
 			basePacketRepository.update(mve);
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					mve.getId().getRegId(), "ManualVerificationServiceImpl::updateManualVerificationEntityRID()::exit");
