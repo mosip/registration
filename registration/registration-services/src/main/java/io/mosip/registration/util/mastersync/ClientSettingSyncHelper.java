@@ -17,6 +17,7 @@ import io.mosip.registration.dao.IdentitySchemaDao;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.response.SchemaDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
+import io.mosip.registration.repositories.*;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 import io.mosip.registration.util.restclient.ServiceDelegateUtil;
 import org.json.JSONArray;
@@ -36,49 +37,6 @@ import io.mosip.registration.dto.response.SyncDataBaseDto;
 import io.mosip.registration.dto.response.SyncDataResponseDto;
 import io.mosip.registration.entity.DynamicField;
 import io.mosip.registration.exception.RegBaseUncheckedException;
-import io.mosip.registration.repositories.AppAuthenticationRepository;
-import io.mosip.registration.repositories.AppDetailRepository;
-import io.mosip.registration.repositories.AppRolePriorityRepository;
-import io.mosip.registration.repositories.ApplicantValidDocumentRepository;
-import io.mosip.registration.repositories.BiometricAttributeRepository;
-import io.mosip.registration.repositories.BiometricTypeRepository;
-import io.mosip.registration.repositories.BlacklistedWordsRepository;
-import io.mosip.registration.repositories.CenterMachineRepository;
-import io.mosip.registration.repositories.DeviceMasterRepository;
-import io.mosip.registration.repositories.DeviceProviderRepository;
-import io.mosip.registration.repositories.DeviceSpecificationRepository;
-import io.mosip.registration.repositories.DeviceTypeRepository;
-import io.mosip.registration.repositories.DocumentCategoryRepository;
-import io.mosip.registration.repositories.DocumentTypeRepository;
-import io.mosip.registration.repositories.DynamicFieldRepository;
-import io.mosip.registration.repositories.FoundationalTrustProviderRepository;
-import io.mosip.registration.repositories.GenderRepository;
-import io.mosip.registration.repositories.IdTypeRepository;
-import io.mosip.registration.repositories.IndividualTypeRepository;
-import io.mosip.registration.repositories.LanguageRepository;
-import io.mosip.registration.repositories.LocationRepository;
-import io.mosip.registration.repositories.MachineMasterRepository;
-import io.mosip.registration.repositories.MachineSpecificationRepository;
-import io.mosip.registration.repositories.MachineTypeRepository;
-import io.mosip.registration.repositories.MosipDeviceServiceRepository;
-import io.mosip.registration.repositories.ProcessListRepository;
-import io.mosip.registration.repositories.ReasonCategoryRepository;
-import io.mosip.registration.repositories.ReasonListRepository;
-import io.mosip.registration.repositories.RegisteredDeviceTypeRepository;
-import io.mosip.registration.repositories.RegisteredSubDeviceTypeRepository;
-import io.mosip.registration.repositories.RegistrationCenterDeviceRepository;
-import io.mosip.registration.repositories.RegistrationCenterMachineDeviceRepository;
-import io.mosip.registration.repositories.RegistrationCenterRepository;
-import io.mosip.registration.repositories.RegistrationCenterTypeRepository;
-import io.mosip.registration.repositories.RegistrationCenterUserRepository;
-import io.mosip.registration.repositories.ScreenAuthorizationRepository;
-import io.mosip.registration.repositories.ScreenDetailRepository;
-import io.mosip.registration.repositories.SyncJobDefRepository;
-import io.mosip.registration.repositories.TemplateFileFormatRepository;
-import io.mosip.registration.repositories.TemplateRepository;
-import io.mosip.registration.repositories.TemplateTypeRepository;
-import io.mosip.registration.repositories.TitleRepository;
-import io.mosip.registration.repositories.ValidDocumentRepository;
 import org.springframework.web.client.HttpClientErrorException;
 
 @Component
@@ -264,6 +222,9 @@ public class ClientSettingSyncHelper {
 
 	@Autowired
 	private IdentitySchemaDao identitySchemaDao;
+
+	@Autowired
+	private LocationHierarchyRepository locationHierarchyRepository;
 		
 	private static final Map<String, String> ENTITY_CLASS_NAMES = new HashMap<String, String>();
 	
@@ -506,6 +467,7 @@ public class ClientSettingSyncHelper {
 			biometricAttributeRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "BiometricAttribute")));
 			idTypeRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "IdType")));
 			locationRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "Location")));
+			locationHierarchyRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "LocationHierarchy")));
 			titleRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "Title")));
 		} catch (Exception e) {
 			LOGGER.error("Data sync failed", e);

@@ -226,7 +226,6 @@ public class LoginController extends BaseController implements Initializable {
 		setImage(fingerprintImageView	, RegistrationConstants.FINGERPRINT_SCAN_IMG);
 		setImage(faceImage	, RegistrationConstants.FACE_SCAN_IMG);
 		setImage(irisImageView	, RegistrationConstants.EYE_SCAN_IMG);
-		
 
 		new Thread(() -> {
 
@@ -358,7 +357,7 @@ public class LoginController extends BaseController implements Initializable {
 		loginRoot = BaseController.load(getClass().getResource(RegistrationConstants.INITIAL_PAGE));
 
 		scene = getScene(loginRoot);
-		loadUIElementsFromSchema();
+		//loadUIElementsFromSchema();
 		pageFlow.loadPageFlow();
 
 		if (userName != null) {
@@ -438,7 +437,7 @@ public class LoginController extends BaseController implements Initializable {
 	public void validateUserId(ActionEvent event) {
 
 		
-		loadUIElementsFromSchema();
+		//loadUIElementsFromSchema();
 		auditFactory.audit(AuditEvent.LOGIN_AUTHENTICATE_USER_ID, Components.LOGIN,
 				userId.getText().isEmpty() ? "NA" : userId.getText(),
 				AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
@@ -705,7 +704,7 @@ public class LoginController extends BaseController implements Initializable {
 	
 	@FXML
 	private ImageView irisImageView;
-	
+
 	@Autowired
 	Streamer streamer;
 

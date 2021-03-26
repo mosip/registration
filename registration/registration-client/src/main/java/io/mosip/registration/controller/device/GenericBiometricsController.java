@@ -1189,7 +1189,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 
 		bioValue = bioType.name();
 		try {
-			biometricImage.setImage(getImage(bioImage));
+			biometricImage.setImage(getImage(bioImage,true));
 		} catch (RegBaseCheckedException e) {
 			LOGGER.error("Error while getting image");
 		}
@@ -2264,7 +2264,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 
 		ImageView imageView = null;
 		try {
-			imageView = new ImageView(getImage(imageName));
+			imageView = new ImageView(getImage(imageName,true));
 			if (id != null) {
 				imageView.setId(id);
 			}

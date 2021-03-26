@@ -24,8 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.itextpdf.text.pdf.PdfStructTreeController.returnType;
-
 import io.mosip.commons.packet.constants.PacketManagerConstants;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -180,6 +178,9 @@ public class BaseController {
 
 	@Value("${mosip.registration.css_file_path:}")
 	private String cssName;
+	
+	@Value("${mosip.registration.images.theme:}")
+	private String imagesTheme;
 
 	@Autowired
 	private RestartController restartController;
@@ -198,12 +199,6 @@ public class BaseController {
 
 	@Autowired
 	private AuthTokenUtilService authTokenUtilService;
-	
-	@Value("${mosip.registration.images.path:images}")
-	private String imagesPath;
-	
-	@Value("${mosip.registration.theme:}")
-	private String imagesTheme;
 
 	protected ApplicationContext applicationContext = ApplicationContext.getInstance();
 
@@ -1506,7 +1501,7 @@ public class BaseController {
 		BaseController.isAckOpened = isAckOpened;
 	}
 
-	public void loadUIElementsFromSchema() {
+	/*public void loadUIElementsFromSchema() {
 
 		try {
 			List<UiSchemaDTO> schemaFields = identitySchemaService.getLatestEffectiveUISchema();
@@ -1522,18 +1517,18 @@ public class BaseController {
 			validations.setValidations(validationsMap); // Set Validations Map
 
 			// THIS IS NOT REQUIRED
-			/*
+			*//*
 			 * ApplicationContext.map().put(RegistrationConstants.indBiometrics,
 			 * getBioAttributesBySubType(RegistrationConstants.indBiometrics));
 			 * ApplicationContext.map().put("parentOrGuardianBiometrics",
 			 * getBioAttributesBySubType("parentOrGuardianBiometrics"));
-			 */
+			 *//*
 
 		} catch (RegBaseCheckedException e) {
 			LOGGER.error(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(e));
 		}
-	}
+	}*/
 
 	public SchemaDto getLatestSchema() {
 		try {
@@ -1959,13 +1954,12 @@ public class BaseController {
 		return Collections.EMPTY_LIST;
 	}
 	
-	
 	public void setImage(ImageView imageView, String imageName) {
 
 		if (imageView != null) {
 			Image image;
 			try {
-				image = getImage(imageName);
+				image = getImage(imageName, false);
 				if (image != null) {
 
 					imageView.setImage(image);
@@ -1977,35 +1971,47 @@ public class BaseController {
 		}
 	}
 
-	public Image getImage(String imageName) throws RegBaseCheckedException {
+	public Image getImage(String imageName, boolean canDefault) throws RegBaseCheckedException {
 
 		if (imageName == null || imageName.isEmpty()) {
 			throw new RegBaseCheckedException();
 		}
 
-		Image image = null;
-		try {
+		
+		try {					
+
+			return getImage(getImageFilePath(getConfiguredFolder(),imageName));
+		} catch (RegBaseCheckedException exception) {
+
+			if(canDefault) {
+			return getImage(getImageFilePath(RegistrationConstants.IMAGES,imageName));
+			} else {
+				throw exception;
+			}
+		}
+
+		
+	}
+
+	private Image getImage(String uri) throws RegBaseCheckedException {
+		
+        try {
 			
 			
-			image = new Image(getImageFilePath(imageName));
+			return  new Image(uri);
 		} catch (Exception exception) {
 
 			LOGGER.error("Exception while Getting Image", exception);
 			throw new RegBaseCheckedException();
 		}
-
-		return image;
 	}
 
-	private String getImagesConfiguredFilePath() {
-		return imagesPath;
-	}
-
-	private String getConfiguredImagesTheme() {
-		return imagesTheme;
+	private String getConfiguredFolder() {
+		return RegistrationConstants.IMAGES.concat(imagesTheme !=null && !imagesTheme.isEmpty() ? "_"+imagesTheme : "");
 	}
 	
-	public String getImageFilePath(String imageName) {
-		return getImagesConfiguredFilePath().concat(File.separator).concat(getConfiguredImagesTheme()!=null ? getConfiguredImagesTheme().concat(File.separator) : "").concat(imageName);
+	public String getImageFilePath(String configFolder,String imageName) {
+		return configFolder.concat(File.separator).concat(imageName);
 	}
+	
 }

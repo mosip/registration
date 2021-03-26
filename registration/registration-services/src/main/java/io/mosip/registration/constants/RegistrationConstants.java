@@ -1895,4 +1895,6 @@ public class RegistrationConstants {
 	public static final String RIGHTEYE_IMG = "exceptionmarks/lightBlueCrossMark.png";
 	public static final String LEFTEYE_IMG = "exceptionmarks/lightBlueCrossMark.png";
 	public static final String DEFAULT_EXCEPTION_IMG = "ExceptionPhoto.png";
+	public static final String IMAGES = "images";
+	
 }

@@ -4,6 +4,7 @@ import static io.mosip.registration.constants.LoggerConstants.BIO_SERVICE;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -144,6 +145,12 @@ public class BaseService {
 
 	@Value("${mosip.max-languages.count:0}")
 	private int maxLanguagesCount;
+	
+	@Value("${mosip.registration.images.path:images}")
+	private String imagesPath;
+	
+	@Value("${mosip.registration.theme:}")
+	private String imagesTheme;
 
 	public List<String> getMandatoryLanguages() {
 		return mandatoryLanguages.stream()
@@ -801,6 +808,18 @@ public class BaseService {
 	 */
 	public boolean isInitialSync() {
 		return RegistrationConstants.ENABLE.equalsIgnoreCase(getGlobalConfigValueOf(RegistrationConstants.INITIAL_SETUP));
+	}
+	
+	public String getImageFilePath(String imageName) {
+		return getImagesConfiguredFilePath().concat(File.separator).concat(getConfiguredImagesTheme()!=null ? getConfiguredImagesTheme().concat(File.separator) : "").concat(imageName);
+	}
+	
+	private String getImagesConfiguredFilePath() {
+		return imagesPath;
+	}
+
+	private String getConfiguredImagesTheme() {
+		return imagesTheme;
 	}
 
 }

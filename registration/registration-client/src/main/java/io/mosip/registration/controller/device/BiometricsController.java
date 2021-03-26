@@ -527,7 +527,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 		ImageView imageView;
 		try {
 			imageView = new ImageView(
-					image != null ? image : getImage(getImageIconPath(modality)));
+					image != null ? image : getImage(getImageIconPath(modality),true));
 			imageView.setFitHeight(80);
 			imageView.setFitWidth(85);
 
@@ -547,7 +547,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 				ImageView tickImageView;
 				try {
 					tickImageView = new ImageView(
-							getImage(RegistrationConstants.TICK_CIRICLE_IMG));
+							getImage(RegistrationConstants.TICK_CIRICLE_IMG,true));
 					tickImageView.setFitWidth(40);
 					tickImageView.setFitHeight(40);
 					hBox.getChildren().add(tickImageView);
@@ -617,7 +617,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		} else {
 			try {
-				biometricImage.setImage(getImage(getImageIconPath(modality)));
+				biometricImage.setImage(getImage(getImageIconPath(modality),true));
 			} catch (RegBaseCheckedException exception) {
 				LOGGER.error("Exception while getting image",exception);
 			}
@@ -1705,7 +1705,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		bioValue = bioType;
 		try {
-			biometricImage.setImage(getImage(bioImage));
+			biometricImage.setImage(getImage(bioImage,true));
 		} catch (RegBaseCheckedException exception) {
 			LOGGER.error("Exception while getting image",exception);
 		}
@@ -2363,7 +2363,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		try {
 			ImageView imageView = new ImageView(
-					image != null ? image :getImage(getImageIconPath(modality)));
+					image != null ? image :getImage(getImageIconPath(modality),true));
 					imageView.setFitHeight(80);
 					imageView.setFitWidth(85);
 					Tooltip tooltip = new Tooltip(applicationLabelBundle.getString(modality));
@@ -2388,7 +2388,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 						
 							String imageName = isAllExceptions ? RegistrationConstants.EXCLAMATION_IMG : RegistrationConstants.TICK_CIRICLE_IMG;
 							
-							ImageView tickImageView = new ImageView(getImage(imageName));
+							ImageView tickImageView = new ImageView(getImage(imageName,true));
 							tickImageView.setFitWidth(40);
 							tickImageView.setFitHeight(40);
 							hBox.getChildren().add(tickImageView);
@@ -2430,7 +2430,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 						// hBox.getChildren().clear();
 						try {
 							((ImageView) (hBox.getChildren().get(0))).setImage(uiImage != null ? uiImage
-									: getImage(getImageIconPath(modality)));
+									: getImage(getImageIconPath(modality),true));
 						} catch (RegBaseCheckedException e) {
 							LOGGER.error("Error While getting image");
 						}
@@ -2440,7 +2440,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 								String imageName =uiImage == null?RegistrationConstants.EXCLAMATION_IMG :RegistrationConstants.TICK_CIRICLE_IMG;
 
 								try {
-									ImageView imageView = new ImageView(getImage(imageName));
+									ImageView imageView = new ImageView(getImage(imageName,true));
 									imageView.setFitWidth(40);
 									imageView.setFitHeight(40);
 									hBox.getChildren().add(imageView);
@@ -2977,7 +2977,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		ImageView imageView = null;
 		try {
-			imageView = new ImageView(getImage(imageName));
+			imageView = new ImageView(getImage(imageName,true));
 			if (id != null) {
 				imageView.setId(id);
 			}
