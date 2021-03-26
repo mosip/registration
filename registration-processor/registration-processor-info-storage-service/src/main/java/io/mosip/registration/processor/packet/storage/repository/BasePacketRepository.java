@@ -443,5 +443,5 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	public String getLostUinMatchedRegId(@Param("regId") String regId);
 
 	@Query(value ="SELECT m.reg_id FROM reg_manual_verification m WHERE m.request_id =:requestId",nativeQuery=true)
-	public String getRegistrationIdbyRequestId(String requestId);
+	public List<String> getRegistrationIdbyRequestId(@Param("requestId") String requestId);
 }

@@ -212,10 +212,8 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 						PlatformErrorMessages.RPR_INVALID_MESSSAGE.getCode(), PlatformErrorMessages.RPR_INVALID_MESSSAGE.getMessage());
 				throw new InvalidMessageException(PlatformErrorMessages.RPR_INVALID_MESSSAGE.getCode(), PlatformErrorMessages.RPR_INVALID_MESSSAGE.getMessage());
 			}
-			LinkedHashMap respMap = JsonUtil.readValueWithUnknownProperties(response, LinkedHashMap.class);
-			if (respMap != null && respMap.get(IdSchemaUtil.RESPONSE) != null) {
-				ManualAdjudicationResponseDTO resp = JsonUtil.readValueWithUnknownProperties(
-						JsonUtils.javaObjectToJsonString(respMap), ManualAdjudicationResponseDTO.class);
+			ManualAdjudicationResponseDTO resp = JsonUtil.readValueWithUnknownProperties(response, ManualAdjudicationResponseDTO.class);
+			if (resp != null) {
 				ManualAdjudicationResponseDTO decisionDto = manualAdjudicationService
 						.updatePacketStatus(resp, this.getClass().getSimpleName(),queue);
 				
