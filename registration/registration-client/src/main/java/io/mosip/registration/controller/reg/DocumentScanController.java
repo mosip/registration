@@ -538,7 +538,7 @@ public class DocumentScanController extends BaseController {
 				labelGridPane.add(refNumLabel, 1, 0);
 
 				docScanVbox.getChildren().addAll(new HBox(labelGridPane), hBox);
-				hBox.setId(documentCategory.getSubType());
+				hBox.setId(documentCategory.getSubType()+"hBox");
 				documentLabel.setId(documentCategory.getSubType() + RegistrationConstants.LABEL);
 				comboBox.getItems().addAll(documentCategoryDtos);
 
