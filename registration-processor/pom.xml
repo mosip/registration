@@ -10,7 +10,7 @@
 
 	<groupId>io.mosip.registrationprocessor</groupId>
 	<artifactId>registration-processor</artifactId>
-	<version>1.1.4</version>
+	<version>1.1.4.3-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>registration-processor</name>
@@ -130,7 +130,7 @@
 		<kernel.qrcodegenerator.zxing.version>1.0.6</kernel.qrcodegenerator.zxing.version>
 		<kernel.logger.logback.version>1.1.4</kernel.logger.logback.version>
 		<kernel.idvalidator.vid.version>1.0.6</kernel.idvalidator.vid.version>
-		<object.store.khazana.version>1.1.4</object.store.khazana.version>
+		<object.store.khazana.version>1.1.4.3-SNAPSHOT</object.store.khazana.version>
 		<kernel.biometrics.api.version>1.1.4</kernel.biometrics.api.version>
 		<kernel-keymanager-service.version>1.1.4</kernel-keymanager-service.version>
 			<sonar.coverage.exclusions>**/dto/**,
@@ -311,19 +311,19 @@
 	</dependencyManagement>
 
 	<modules>
-		<module>registration-processor-core</module>
+		<!--<module>registration-processor-core</module>
 		<module>registration-processor-rest-client</module>
 		<module>registration-processor-packet-manager</module>
 		<module>registration-processor-common-camel-bridge</module>
 		<module>registration-processor-bio-dedupe-service-impl</module>
 		<module>registration-processor-info-storage-service</module>
-		<module>registration-processor-registration-status-service-impl</module>
+		<module>registration-processor-registration-status-service-impl</module>-->
         <!-- <module>registration-processor-quality-checker</module> -->
-		<module>registration-processor-message-sender-impl</module>
-		<module>init</module>
-		<module>pre-processor</module>
-		<module>core-processor</module>
-		<module>post-processor</module>
+		<!--<module>registration-processor-message-sender-impl</module> 
+		<module>init</module>-->
+		  <module>pre-processor</module>
+		<!--<module>core-processor</module>
+		<module>post-processor</module>-->
 	</modules>
 
 <!--	<profiles>
