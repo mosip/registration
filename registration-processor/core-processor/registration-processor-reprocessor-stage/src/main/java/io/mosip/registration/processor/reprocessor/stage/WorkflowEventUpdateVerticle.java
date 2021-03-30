@@ -74,7 +74,7 @@ public class WorkflowEventUpdateVerticle extends MosipVerticleAPIManager {
 	 */
 	public void deployVerticle() {
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
-		this.consume(mosipEventBus, MessageBusAddress.WORKFLOW_EVENT_UPDATE_ADDRESS);
+		this.consume(mosipEventBus, MessageBusAddress.WORKFLOW_EVENT_UPDATE_ADDRESS, 0);
 	}
 
 	@Override
@@ -89,7 +89,8 @@ public class WorkflowEventUpdateVerticle extends MosipVerticleAPIManager {
 		return Integer.parseInt(eventBusPort);
 	}
 	@Override
-	public void consume(MosipEventBus mosipEventBus, MessageBusAddress fromAddress) {
+	public void consume(MosipEventBus mosipEventBus, MessageBusAddress fromAddress, 
+			long messageExpiryTimeLimit) {
 		mosipEventBus.consume(fromAddress, (msg, handler) -> {
 
 			Map<String, String> mdc = MDC.getCopyOfContextMap();
