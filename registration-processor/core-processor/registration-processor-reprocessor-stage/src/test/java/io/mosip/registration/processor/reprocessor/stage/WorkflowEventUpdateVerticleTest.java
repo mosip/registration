@@ -78,7 +78,7 @@ public class WorkflowEventUpdateVerticleTest {
 
 		@Override
 		public void consumeAndSend(MosipEventBus eventbus, MessageBusAddress addressbus1,
-				MessageBusAddress addressbus2) {
+				MessageBusAddress addressbus2, long messageExpiryTimeLimit) {
 		}
 
 		@Override
