@@ -52,7 +52,8 @@ public class MessageDTO implements Serializable {
 	/** The tags of the packets */
 	private Map<String, String> tags;
 
-	
+	/** The timestamp when last stage hop was completed */
+	private String lastHopTimestamp;
 
 	/**
 	 * Gets the rid.
@@ -166,6 +167,24 @@ public class MessageDTO implements Serializable {
 	 */
 	public void setTags(Map<String, String> tags) {
 		this.tags = tags;
+	}
+
+	/**
+	 * Gets the last hop timestamp
+	 *
+	 * @return last hop timestamp in ISO format
+	 */
+	public String getLastHopTimestamp() {
+		return lastHopTimestamp;
+	}
+
+	/**
+	 * Sets the last hop timestamp.
+	 *
+	 * @param lastHopTimestamp the timestamp in ISO format
+	 */
+	public void setLastHopTimestamp(String lastHopTimestamp) {
+		this.lastHopTimestamp = lastHopTimestamp;
 	}
 
 	@Override

@@ -147,7 +147,7 @@ public class UinGeneratorStageTest {
 
 		@Override
 		public void consumeAndSend(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
-				MessageBusAddress toAddress) {
+				MessageBusAddress toAddress, long messageExpiryTimeLimit) {
 		}
 	};
 
@@ -230,6 +230,7 @@ public class UinGeneratorStageTest {
 	@Before
 	public void setup() throws Exception {
 		ReflectionTestUtils.setField(uinGeneratorStage, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(uinGeneratorStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(uinGeneratorStage, "clusterManagerUrl", "/dummyPath");
 
 		ClassLoader classLoader1 = getClass().getClassLoader();
@@ -2215,9 +2216,9 @@ public class UinGeneratorStageTest {
 		 assertFalse(result.getIsValid());
 
 	}
-	
-	
-	
+
+
+
 	@Test
 	public void deactivateTestWithNullResponseDTOBeforeDeactivate() throws ApisResourceAccessException,
 			PacketManagerException,
@@ -2267,7 +2268,7 @@ public class UinGeneratorStageTest {
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		// assertTrue(result.getIsValid());
 	}
-	
+
 	@Test
 	public void deactivateTesApiResourceClientException() throws ApisResourceAccessException,
 			PacketManagerException,
@@ -2311,13 +2312,13 @@ public class UinGeneratorStageTest {
 		ApisResourceAccessException ex=new ApisResourceAccessException("", new HttpClientErrorException(HttpStatus.BAD_REQUEST));
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenThrow(ex);
-		
+
 
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		// assertTrue(result.getIsValid());
 	}
-	
+
 	@Test
 	public void deactivateTesApiResourceServerException() throws ApisResourceAccessException,
 			PacketManagerException,
@@ -2361,13 +2362,13 @@ public class UinGeneratorStageTest {
 		ApisResourceAccessException ex=new ApisResourceAccessException("", new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenThrow(ex);
-		
+
 
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		// assertTrue(result.getIsValid());
 	}
-	
+
 	@Test
 	public void deactivateTesApiResourceException() throws ApisResourceAccessException,
 			PacketManagerException,
@@ -2411,13 +2412,13 @@ public class UinGeneratorStageTest {
 		ApisResourceAccessException ex=new ApisResourceAccessException("");
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenThrow(ex);
-		
+
 
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		// assertTrue(result.getIsValid());
 	}
-	
+
 	@Test
 	public void deactivateTestAlreadyDeactivated() throws ApisResourceAccessException,
 			PacketManagerException,

@@ -37,6 +37,10 @@ public class BioDedupeStage extends MosipVerticleAPIManager {
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
 
+	/** After this time intervel, message should be considered as expired (In seconds). */
+	@Value("${mosip.regproc.bio.dedupe.message.expiry-time-limit}")
+	private Long messageExpiryTimeLimit;
+
 	/** Mosip router for APIs */
 	@Autowired
 	MosipRouter router;
@@ -48,7 +52,8 @@ public class BioDedupeStage extends MosipVerticleAPIManager {
 	 */
 	public void deployVerticle() {
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
-		this.consumeAndSend(mosipEventBus, MessageBusAddress.BIO_DEDUPE_BUS_IN, MessageBusAddress.BIO_DEDUPE_BUS_OUT);
+		this.consumeAndSend(mosipEventBus, MessageBusAddress.BIO_DEDUPE_BUS_IN, 
+			MessageBusAddress.BIO_DEDUPE_BUS_OUT, messageExpiryTimeLimit);
 	}
 
 	@Override

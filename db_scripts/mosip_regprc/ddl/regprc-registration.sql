@@ -9,6 +9,7 @@
 -- Modified Date        Modified By         Comments / Remarks
 -- ------------------------------------------------------------------------------------------
 -- Mar-2021		Ram Bhatt	    Added resume_timestamp and default_resume_action columns
+-- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
 -- ------------------------------------------------------------------------------------------
 
 -- object: regprc.registration | type: TABLE --
@@ -34,7 +35,7 @@ CREATE TABLE regprc.registration(
 	cr_dtimes timestamp NOT NULL,
 	upd_by character varying(256),
 	upd_dtimes timestamp,
-	is_deleted boolean,
+	is_deleted boolean NOT NULL DEFAULT FALSE,
 	del_dtimes timestamp,
 	resume_timestamp timestamp,
 	default_resume_action character varying(50),
