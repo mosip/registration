@@ -137,7 +137,8 @@ public class PrintingStageTest {
 		}
 
 		@Override
-		public void consume(MosipEventBus mosipEventBus, MessageBusAddress fromAddress) {
+		public void consume(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
+			long messageExpiryTimeLimit) {
 		}
 
 
@@ -167,6 +168,7 @@ public class PrintingStageTest {
 				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
 		ReflectionTestUtils.setField(stage, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(stage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(stage, "clusterManagerUrl", "/dummyPath");
 		System.setProperty("server.port", "8099");
 

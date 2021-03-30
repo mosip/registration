@@ -4,6 +4,7 @@ import io.mosip.registration.processor.core.abstractverticle.EventDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
+import io.mosip.registration.processor.core.exception.MessageExpiredException;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.tracing.EventTracingHandler;
 import io.mosip.registration.processor.core.tracing.MDCHelper;
@@ -68,8 +69,10 @@ public class VertxMosipEventBus implements MosipEventBus {
 			EventDTO eventDTO = new EventDTO();
 			eventDTO.setBody(new JsonObject((String)msg.body()));
 			eventHandler.handle(eventDTO, res -> {
-				if (!res.succeeded()) {
-					logger.error("Event handling failed ",res.cause());
+				if (!res.succeeded() && res.cause() instanceof MessageExpiredException) {
+					logger.warn("Event handling failed {}", res.cause().getMessage());
+				} else if (!res.succeeded()) {
+					logger.error("Event handling failed {}",res.cause());
 				}
 				MDCHelper.clearMDC();
 			});
@@ -89,8 +92,10 @@ public class VertxMosipEventBus implements MosipEventBus {
 			EventDTO eventDTO = new EventDTO();
 			eventDTO.setBody(new JsonObject((String) msg.body()));
 			eventHandler.handle(eventDTO, res -> {
-				if (!res.succeeded()) {
-					logger.error("Event handling failed ",res.cause());
+				if (!res.succeeded() && res.cause() instanceof MessageExpiredException) {
+					logger.warn("Event handling failed {}", res.cause().getMessage());
+				} else if (!res.succeeded()) {
+					logger.error("Event handling failed {}", res.cause());
 				} else {
 					MessageDTO messageDTO = res.result();
 					MessageBusAddress messageBusToAddress = new MessageBusAddress(toAddress, messageDTO.getReg_type());

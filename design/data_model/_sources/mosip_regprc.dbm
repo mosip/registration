@@ -118,7 +118,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<type name="timestamp" length="0"/>
 		<comment><![CDATA[Updated DateTimestamp : Date and Timestamp when any of the fields in the record is updated with new values.]]></comment>
 	</column>
-	<column name="is_deleted">
+	<column name="is_deleted" not-null="true" default-value="FALSE">
 		<type name="boolean" length="0"/>
 		<comment><![CDATA[IS_Deleted : Flag to mark whether the record is Soft deleted.]]></comment>
 	</column>
@@ -204,7 +204,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<type name="timestamp" length="0"/>
 		<comment><![CDATA[Updated DateTimestamp : Date and Timestamp when any of the fields in the record is updated with new values.]]></comment>
 	</column>
-	<column name="is_deleted">
+	<column name="is_deleted" not-null="true" default-value="FALSE">
 		<type name="boolean" length="0"/>
 		<comment><![CDATA[IS_Deleted : Flag to mark whether the record is Soft deleted.]]></comment>
 	</column>
@@ -241,7 +241,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="regprc"/>
 	<role name="sysadmin"/>
 	<comment><![CDATA[Registration Transaction: Registration Processor Transaction table is to store ALL  Registration Processor packet processing/process transaction details for ID issuance]]></comment>
-	<position x="980" y="540"/>
+	<position x="1040" y="700"/>
 	<column name="id" not-null="true">
 		<type name="character varying" length="36"/>
 		<comment><![CDATA[ID: Transaction id of the transactions that were recorded in registration module/application]]></comment>
@@ -302,7 +302,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<type name="timestamp" length="0"/>
 		<comment><![CDATA[Updated DateTimestamp : Date and Timestamp when any of the fields in the record is updated with new values.]]></comment>
 	</column>
-	<column name="is_deleted">
+	<column name="is_deleted" not-null="true" default-value="FALSE">
 		<type name="boolean" length="0"/>
 		<comment><![CDATA[IS_Deleted : Flag to mark whether the record is Soft deleted.]]></comment>
 	</column>
@@ -352,7 +352,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<type name="timestamp" length="0"/>
 		<comment><![CDATA[Updated DateTimestamp : Date and Timestamp when any of the fields in the record is updated with new values.]]></comment>
 	</column>
-	<column name="is_deleted">
+	<column name="is_deleted" not-null="true" default-value="FALSE">
 		<type name="boolean" length="0"/>
 		<comment><![CDATA[IS_Deleted : Flag to mark whether the record is Soft deleted.]]></comment>
 	</column>
@@ -422,7 +422,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<type name="timestamp" length="0"/>
 		<comment><![CDATA[Updated DateTimestamp : Date and Timestamp when any of the fields in the record is updated with new values.]]></comment>
 	</column>
-	<column name="is_deleted">
+	<column name="is_deleted" not-null="true" default-value="FALSE">
 		<type name="boolean" length="0"/>
 		<comment><![CDATA[IS_Deleted : Flag to mark whether the record is Soft deleted.]]></comment>
 	</column>
@@ -450,7 +450,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="regprc"/>
 	<role name="sysadmin"/>
 	<comment><![CDATA[Manual Verification: Stores all the registration request which goes through manual verification process, registration can be assinged to single/multiple manual verifier as part of the verification process]]></comment>
-	<position x="0" y="500"/>
+	<position x="80" y="640"/>
 	<column name="reg_id" not-null="true">
 		<type name="character varying" length="39"/>
 		<comment><![CDATA[Registration ID: ID of the registration request]]></comment>
@@ -519,7 +519,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<type name="timestamp" length="0"/>
 		<comment><![CDATA[Updated DateTimestamp : Date and Timestamp when any of the fields in the record is updated with new values.]]></comment>
 	</column>
-	<column name="is_deleted">
+	<column name="is_deleted" not-null="true" default-value="FALSE">
 		<type name="boolean" length="0"/>
 		<comment><![CDATA[IS_Deleted : Flag to mark whether the record is Soft deleted.]]></comment>
 	</column>
@@ -536,7 +536,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="regprc"/>
 	<role name="sysadmin"/>
 	<comment><![CDATA[Registration ID Sequence: regprc tables to keep the current Registration ID sequence, Machine ID and Registration Center ID]]></comment>
-	<position x="1380" y="100"/>
+	<position x="1400" y="160"/>
 	<column name="regcntr_id" not-null="true">
 		<type name="character varying" length="10"/>
 		<comment><![CDATA[Registration Center ID: Registration center id which is refered to use the sequence while generation registration ID]]></comment>
@@ -574,7 +574,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="regprc"/>
 	<role name="sysadmin"/>
 	<comment><![CDATA[Registration Demographic Deduplication List: List of matched UIN / RIDs, as part of demographic data.]]></comment>
-	<position x="500" y="600"/>
+	<position x="540" y="860"/>
 	<column name="regtrn_id" not-null="true">
 		<type name="character varying" length="36"/>
 		<comment><![CDATA[Registration Transaction ID: ID of the demo dedupe transaction, Refers to regprc.registration_transaction.id]]></comment>
@@ -603,7 +603,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<type name="timestamp" length="0"/>
 		<comment><![CDATA[Updated DateTimestamp : Date and Timestamp when any of the fields in the record is updated with new values.]]></comment>
 	</column>
-	<column name="is_deleted">
+	<column name="is_deleted" not-null="true" default-value="FALSE">
 		<type name="boolean" length="0"/>
 		<comment><![CDATA[IS_Deleted : Flag to mark whether the record is Soft deleted.]]></comment>
 	</column>
@@ -620,7 +620,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="regprc"/>
 	<role name="sysadmin"/>
 	<comment><![CDATA[Registration Biometric Reference: Mapping table to store the bio reference id for an registration id]]></comment>
-	<position x="1420" y="320"/>
+	<position x="1480" y="600"/>
 	<column name="reg_id" not-null="true">
 		<type name="character varying" length="39"/>
 		<comment><![CDATA[Registration ID: ID of the registration request]]></comment>
@@ -649,7 +649,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<type name="timestamp" length="0"/>
 		<comment><![CDATA[Updated DateTimestamp : Date and Timestamp when any of the fields in the record is updated with new values.]]></comment>
 	</column>
-	<column name="is_deleted">
+	<column name="is_deleted" not-null="true" default-value="FALSE">
 		<type name="boolean" length="0"/>
 		<comment><![CDATA[IS_Deleted : Flag to mark whether the record is Soft deleted.]]></comment>
 	</column>
@@ -666,7 +666,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="regprc"/>
 	<role name="sysadmin"/>
 	<comment><![CDATA[ABIS Application: List of ABIS (Automatic Biometric Identification System) applications with whom MOSIP application interfaces with.]]></comment>
-	<position x="140" y="880"/>
+	<position x="80" y="1120"/>
 	<column name="code" not-null="true">
 		<type name="character varying" length="36"/>
 		<comment><![CDATA[Code: Unique code to identify an ABIS application ]]></comment>
@@ -707,7 +707,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<type name="timestamp" length="0"/>
 		<comment><![CDATA[Updated DateTimestamp : Date and Timestamp when any of the fields in the record is updated with new values.]]></comment>
 	</column>
-	<column name="is_deleted">
+	<column name="is_deleted" not-null="true" default-value="FALSE">
 		<type name="boolean" length="0"/>
 		<comment><![CDATA[IS_Deleted : Flag to mark whether the record is Soft deleted.]]></comment>
 	</column>
@@ -724,7 +724,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="regprc"/>
 	<role name="sysadmin"/>
 	<comment><![CDATA[ABIS Request: Stores all the requests that were sent to ABIS systems]]></comment>
-	<position x="640" y="880"/>
+	<position x="560" y="1120"/>
 	<column name="id" not-null="true">
 		<type name="character varying" length="36"/>
 		<comment><![CDATA[Request ID: System generated id, used to track all the ABIS request sent to ABIS applications.]]></comment>
@@ -785,7 +785,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<type name="timestamp" length="0"/>
 		<comment><![CDATA[Updated DateTimestamp : Date and Timestamp when any of the fields in the record is updated with new values.]]></comment>
 	</column>
-	<column name="is_deleted">
+	<column name="is_deleted" not-null="true" default-value="FALSE">
 		<type name="boolean" length="0"/>
 		<comment><![CDATA[IS_Deleted : Flag to mark whether the record is Soft deleted.]]></comment>
 	</column>
@@ -808,7 +808,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="regprc"/>
 	<role name="sysadmin"/>
 	<comment><![CDATA[ABIS Response: Stores all the responses that were received from ABIS systems for the request sent.]]></comment>
-	<position x="1140" y="900"/>
+	<position x="1040" y="1140"/>
 	<column name="id" not-null="true">
 		<type name="character varying" length="36"/>
 		<comment><![CDATA[Response Id: Id of the response received from ABIS application. This is a system generated unique number, can be UUID. This will be used in reference tables]]></comment>
@@ -853,7 +853,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<type name="timestamp" length="0"/>
 		<comment><![CDATA[Updated DateTimestamp : Date and Timestamp when any of the fields in the record is updated with new values.]]></comment>
 	</column>
-	<column name="is_deleted">
+	<column name="is_deleted" not-null="true" default-value="FALSE">
 		<type name="boolean" length="0"/>
 		<comment><![CDATA[IS_Deleted : Flag to mark whether the record is Soft deleted.]]></comment>
 	</column>
@@ -873,7 +873,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="regprc"/>
 	<role name="sysadmin"/>
 	<comment><![CDATA[ABIS Response Detail: Stores details of all the ABIS responses received from ABIS system. Response details will mainly have scores, which is applicable only for identify request type.]]></comment>
-	<position x="1580" y="940"/>
+	<position x="1480" y="1140"/>
 	<column name="abis_resp_id" not-null="true">
 		<type name="character varying" length="36"/>
 		<comment><![CDATA[ABIS Response ID: Response id of the ABIS transaction for which ABIS response details are received. This response id refers to regprc.abis_response.id]]></comment>
@@ -898,7 +898,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<type name="timestamp" length="0"/>
 		<comment><![CDATA[Updated DateTimestamp : Date and Timestamp when any of the fields in the record is updated with new values.]]></comment>
 	</column>
-	<column name="is_deleted">
+	<column name="is_deleted" not-null="true" default-value="FALSE">
 		<type name="boolean" length="0"/>
 		<comment><![CDATA[IS_Deleted : Flag to mark whether the record is Soft deleted.]]></comment>
 	</column>
@@ -915,7 +915,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="regprc"/>
 	<role name="sysadmin"/>
 	<comment><![CDATA[Registration Lost UIN: Table to store lost uin related details. Mostly to store the latest RID of the lost UIN of an individual who lost his / her UIN.]]></comment>
-	<position x="1460" y="580"/>
+	<position x="1480" y="880"/>
 	<column name="reg_id" not-null="true">
 		<type name="character varying" length="39"/>
 		<comment><![CDATA[Registration ID: Registration id of the lost uin request by an individual as received by the registration client application.]]></comment>
@@ -940,7 +940,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<type name="timestamp" length="0"/>
 		<comment><![CDATA[Updated DateTimestamp : Date and Timestamp when any of the fields in the record is updated with new values.]]></comment>
 	</column>
-	<column name="is_deleted">
+	<column name="is_deleted" not-null="true" default-value="FALSE">
 		<type name="boolean" length="0"/>
 		<comment><![CDATA[IS_Deleted : Flag to mark whether the record is Soft deleted.]]></comment>
 	</column>

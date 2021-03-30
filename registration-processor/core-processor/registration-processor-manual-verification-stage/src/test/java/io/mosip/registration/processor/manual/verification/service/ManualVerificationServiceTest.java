@@ -17,9 +17,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 
 import org.assertj.core.util.Arrays;
+import org.assertj.core.util.Lists;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -207,13 +209,13 @@ public class ManualVerificationServiceTest {
 		manualVerificationDecisionDto.setRegId("RegID");
 		manualVerificationDecisionDto.setStatusCode("APPROVED");
 		manualAdjudicationResponseDTO.setReturnValue(1);
-		manualAdjudicationResponseDTO.setResponsetime(LocalDateTime.now());
+		manualAdjudicationResponseDTO.setResponsetime(DateUtils.getCurrentDateTimeString());
 		manualAdjudicationResponseDTO.setId("mosip.manual.adjudication.adjudicate");
 		manualAdjudicationResponseDTO.setRequestId("4d4f27d3-ec73-41c4-a384-bf87fce4969e");
 		CandidateList candidateList=new CandidateList();
 		candidateList.setCount(0);
 		manualAdjudicationResponseDTO.setCandidateList(candidateList);
-		Mockito.when(basePacketRepository.getRegistrationIdbyRequestId(anyString())).thenReturn(registrationStatusDto.getRegistrationId());
+		Mockito.when(basePacketRepository.getRegistrationIdbyRequestId(anyString())).thenReturn(Lists.newArrayList(registrationStatusDto.getRegistrationId()));
 		
 	}
 

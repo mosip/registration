@@ -71,7 +71,7 @@ public class OSIValidatorStageTest {
 
 		@Override
 		public void consumeAndSend(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
-				MessageBusAddress toAddress) {
+				MessageBusAddress toAddress, long messageExpiryTimeLimit) {
 		}
 	};
 
@@ -125,6 +125,7 @@ public class OSIValidatorStageTest {
 
 		ReflectionTestUtils.setField(osiValidatorStage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(osiValidatorStage, "clusterManagerUrl", "/dummyPath");
+		ReflectionTestUtils.setField(osiValidatorStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(osiValidatorStage, "validateUMC", true);
 
 		@SuppressWarnings("unchecked")
