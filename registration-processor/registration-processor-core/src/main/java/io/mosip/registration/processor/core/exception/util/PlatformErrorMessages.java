@@ -1,4 +1,3 @@
-
 package io.mosip.registration.processor.core.exception.util;
 
 // TODO: Auto-generated Javadoc
@@ -707,6 +706,10 @@ public enum PlatformErrorMessages {
 	RPR_INVALID_MESSSAGE(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "023",
 			"Invalid message received from queue"),
 
+	/** The rpr table not accessible. */
+	RPR_INVALID_RID_FOUND(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "024",
+			"Multiple rids found for a reference id"),
+
 	/** The rpr tem not found. */
 	// Registration processor Message sender Exception error code
 	RPR_TEM_NOT_FOUND(PlatformConstants.RPR_MESSAGE_SENDER_TEMPLATE + "001", "Template was Not Found"),
@@ -799,9 +802,9 @@ public enum PlatformErrorMessages {
 	/** The rpr pum packet not found exception. */
 	RPR_PUM_PACKET_UPLOAD_FAILURE(PlatformConstants.RPR_PACKET_UPLOADER_MODULE + "011",
 			"Failure in uploading the packet to Packet Store"),
-	
+    
 	RPR_PUM_PACKET_RETRY_CNT_FAILURE(PlatformConstants.RPR_PACKET_UPLOADER_MODULE + "012",
-			"packet upload failed due to Retry count has exceeded the max limit specified"),
+            "packet upload failed due to Retry count has exceeded the max limit specified"),
 
 	/** The rpr bdd abis internal error. */
 	RPR_BDD_ABIS_INTERNAL_ERROR(PlatformConstants.RPR_BIO_DEDUPE_SERVICE_MODULE + "001",
@@ -931,6 +934,10 @@ public enum PlatformErrorMessages {
 	/** The packet tags copying failed. */
 	RPR_SYS_PACKET_TAGS_COPYING_FAILED(PlatformConstants.RPR_SYSTEM_EXCEPTION + "019",
 			"Packet tags copying to message event failed"),
+
+	/** The message expired. */
+	RPR_SYS_MESSAGE_EXPIRED(PlatformConstants.RPR_SYSTEM_EXCEPTION + "020",
+			"Message expired as per the last hop timestamp"),
 
 	// Cbeff Util Exceptions
 	/** The rpr utl biometric tag match. */

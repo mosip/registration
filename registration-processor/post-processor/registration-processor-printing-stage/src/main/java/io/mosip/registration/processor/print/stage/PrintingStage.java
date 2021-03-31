@@ -104,6 +104,10 @@ public class PrintingStage extends MosipVerticleAPIManager {
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
 
+	/** After this time intervel, message should be considered as expired (In seconds). */
+	@Value("${mosip.regproc.printing.message.expiry-time-limit}")
+	private Long messageExpiryTimeLimit;
+
 
 	@Value("${mosip.registration.processor.encrypt:false}")
 	private boolean encrypt;
@@ -138,7 +142,7 @@ public class PrintingStage extends MosipVerticleAPIManager {
 	public void deployVerticle() {
 
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
-		this.consume(mosipEventBus, MessageBusAddress.PRINTING_BUS);
+		this.consume(mosipEventBus, MessageBusAddress.PRINTING_BUS, messageExpiryTimeLimit);
 
 
 	}

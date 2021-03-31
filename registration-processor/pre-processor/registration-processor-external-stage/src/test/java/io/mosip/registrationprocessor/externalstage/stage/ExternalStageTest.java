@@ -44,7 +44,7 @@ public class ExternalStageTest {
 
 		@Override
 		public void consumeAndSend(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
-				MessageBusAddress toAddress) {
+				MessageBusAddress toAddress, long messageExpiryTimeLimit) {
 		}
 		@Override
 		public Router postUrl(Vertx vertx, MessageBusAddress consumeAddress, MessageBusAddress sendAddress) {
@@ -84,6 +84,7 @@ public class ExternalStageTest {
 	public void setUp() throws Exception {
 		ReflectionTestUtils.setField(externalStage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(externalStage, "clusterManagerUrl", "/dummyPath");
+		ReflectionTestUtils.setField(externalStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(externalStage, "port","8989");
 		dto.setInternalError(false);
 		dto.setIsValid(true);

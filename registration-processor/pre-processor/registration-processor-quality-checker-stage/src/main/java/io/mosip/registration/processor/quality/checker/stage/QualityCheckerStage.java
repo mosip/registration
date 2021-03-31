@@ -121,6 +121,10 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
 
+	/** After this time intervel, message should be considered as expired (In seconds). */
+	@Value("${mosip.regproc.quality.checker.message.expiry-time-limit}")
+	private Long messageExpiryTimeLimit;
+
 	/** The core audit request builder. */
 	@Autowired
 	private AuditLogRequestBuilder auditLogRequestBuilder;
@@ -176,7 +180,7 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 	public void deployVerticle() {
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.QUALITY_CHECKER_BUS_IN,
-				MessageBusAddress.QUALITY_CHECKER_BUS_OUT);
+				MessageBusAddress.QUALITY_CHECKER_BUS_OUT, messageExpiryTimeLimit);
 	}
 
 	@Override

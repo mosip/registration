@@ -46,5 +46,6 @@ mosip.regproc.packet.classifier.tagging.agegroup.ranges={'CHILD':'0-17','ADULT':
 mosip.regproc.packet.classifier.tagging.supervisorapprovalstatus.tag-name=SUPERVISOR_APPROVAL_STATUS
 # Tag name that will used while tagging exception biometrics
 mosip.regproc.packet.classifier.tagging.exceptionbiometrics.tag-name=EXCEPTION_BIOMETRICS
-
+# This mapping will contain the short words for each missing biometrics, the values will used for concatenating in the tags
+mosip.regproc.packet.classifier.tagging.exceptionbiometrics.bio-value-mapping={'leftLittle':'LL','leftRing':'LR','leftMiddle':'LM','leftIndex':'LI','leftThumb':'LT','rightLittle':'RL','rightRing':'RR','rightMiddle':'RM','rightIndex':'RI','rightThumb':'RT','leftEye':'LE','rightEye':'RE'}
 ```

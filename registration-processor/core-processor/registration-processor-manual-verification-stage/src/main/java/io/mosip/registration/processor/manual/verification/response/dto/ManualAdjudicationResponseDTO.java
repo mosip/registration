@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import io.mosip.kernel.core.util.DateUtils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,7 +20,7 @@ public class ManualAdjudicationResponseDTO {
 	
 
 //	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-	private LocalDateTime responsetime ;//= LocalDateTime.now(ZoneId.of("UTC"));
+	private String responsetime ;//= LocalDateTime.now(ZoneId.of("UTC"));
 	
 	private Integer returnValue;
 	
@@ -42,7 +43,7 @@ public class ManualAdjudicationResponseDTO {
 	//	this.analytics = analytics;
 		this.candidateList = candidateList;
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"); 
-		LocalDateTime  dateTime= LocalDateTime.parse(responsetime, formatter);
+		String  dateTime= DateUtils.getCurrentDateTimeString();
 		this.responsetime = dateTime;
 		
 	}
@@ -63,11 +64,11 @@ public class ManualAdjudicationResponseDTO {
 		this.requestId = requestId;
 	}
 
-	public LocalDateTime getResponsetime() {
+	public String getResponsetime() {
 		return responsetime;
 	}
 
-	public void setResponsetime(LocalDateTime responsetime) {
+	public void setResponsetime(String responsetime) {
 		this.responsetime = responsetime;
 	}
 
