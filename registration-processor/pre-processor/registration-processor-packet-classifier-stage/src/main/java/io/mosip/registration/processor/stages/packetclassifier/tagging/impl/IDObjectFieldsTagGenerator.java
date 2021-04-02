@@ -1,8 +1,10 @@
 package io.mosip.registration.processor.stages.packetclassifier.tagging.impl;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
+import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
@@ -42,11 +44,18 @@ public class IDObjectFieldsTagGenerator implements TagGenerator {
     @Value("${mosip.primary-language}")
     private String tagLanguage;
 
+    /** The tag value that will be used by default when the packet does not have value for the tag field */
+    @Value("${mosip.regproc.packet.classifier.tagging.not-available-tag-value}")
+    private String notAvailableTagValue;
+
     /** The constant for value label in JSON parsing */
     private static final String VALUE_LABEL = "value";
 
     /** The constant for language label in JSON parsing */
     private static final String LANGUAGE_LABEL = "language";
+
+    /** The reg proc logger. */
+	private static Logger regProcLogger = RegProcessorLogger.getLogger(IDObjectFieldsTagGenerator.class);
 
     /** Frequently used util methods are available in this bean */
     @Autowired
@@ -102,11 +111,13 @@ public class IDObjectFieldsTagGenerator implements TagGenerator {
     }
 
     private String getValueBasedOnType(String fieldName, FieldDTO fieldDTO) throws JSONException, BaseCheckedException {
-        if(fieldDTO == null || (fieldDTO.getValue() == null && fieldDTO.getType() != "string"))
-            throw new BaseCheckedException(
+        if(fieldDTO == null || (fieldDTO.getValue() == null && fieldDTO.getType() != "string")) {
+            regProcLogger.warn("{} --> {} Field name: {} setting value as {}", 
                 PlatformErrorMessages.RPR_PCM_FIELD_DTO_OR_NON_STRING_FIELD_IS_NULL.getCode(), 
-                PlatformErrorMessages.RPR_PCM_FIELD_DTO_OR_NON_STRING_FIELD_IS_NULL.getMessage() +
-                    " Field name: " + fieldName);
+                PlatformErrorMessages.RPR_PCM_FIELD_DTO_OR_NON_STRING_FIELD_IS_NULL.getMessage(),
+                fieldName, notAvailableTagValue);
+            return notAvailableTagValue;
+        }
         String type = fieldDTO.getType();
         String value = fieldDTO.getValue();
         switch (type) {
