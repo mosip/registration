@@ -445,8 +445,12 @@ public enum PlatformErrorMessages {
 			"Age Group Range Map configuration does not contain age group for given age"),
 
 	/** The rpr pcm Captured Registered Devices entry not avaiable in metainfo map. */
-	RPR_PCM_CAPTURED_REGISTERED_DEVICES_ENTRY_NOT_AVAILABLE(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "016",
+	RPR_PCM_CAPTURED_REGISTERED_DEVICES_ENTRY_NOT_AVAILABLE(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "017",
 			"Captured registered devices entry not avaiable in metainfo map"),
+
+	/** The rpr pcm exception biometrics entry not avaiable in metainfo map. */
+	RPR_PCM_EXCEPTION_BIOMETRICS_APPLICANT_ENTRY_NOT_AVAILABLE(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "018",
+			"ExceptionBiometrics applicant entry not available in metainfo map"),
 
 	/** The unsupported encoding. */
 	// UIN check - JSON file encoding failed.
