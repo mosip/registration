@@ -10,6 +10,7 @@
 -- ------------------------------------------------------------------------------------------
 -- Sep-2020             Sadanandegowda DM   Update private_key data type and added certificate_data attribute
 -- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
+-- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes for 1.1.5
 -- ------------------------------------------------------------------------------------------
 
 -- object: reg.key_store | type: TABLE --
@@ -23,7 +24,7 @@ CREATE TABLE reg.key_store(
 	cr_dtimes timestamp NOT NULL,
 	upd_by character varying(256),
 	upd_dtimes timestamp,
-	is_deleted boolean NOT NULL DEFAULT FALSE,
+	is_deleted boolean DEFAULT FALSE,
 	del_dtimes timestamp,
 	CONSTRAINT pk_keystr_id PRIMARY KEY (id)
 
