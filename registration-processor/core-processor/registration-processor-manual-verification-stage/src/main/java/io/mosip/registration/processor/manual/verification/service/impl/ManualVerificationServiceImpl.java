@@ -445,9 +445,11 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 				.getRegistrationStatus(regId);
 		messageDTO.setReg_type(RegistrationType.valueOf(registrationStatusDto.getRegistrationType()));
 		try {
-			if(manualVerificationDTO.getReturnValue()==2) {
+			//Below lines are resending the same message to mv queue even after receiving the response, 
+			//but want to check with developer before deleting these lines
+			/*if(manualVerificationDTO.getReturnValue()==2) {
 				pushRequestToQueue(regId, queue);
-				}
+				}*/
 			if (entities.isEmpty()) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 						regId, "ManualVerificationServiceImpl::updatePacketStatus()"
