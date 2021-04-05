@@ -1,5 +1,4 @@
 package io.mosip.registration.processor.packet.uploader.service.impl;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.kernel.core.exception.ExceptionUtils;
