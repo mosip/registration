@@ -10,7 +10,7 @@
 
 	<groupId>io.mosip.registrationprocessor</groupId>
 	<artifactId>registration-processor</artifactId>
-	<version>1.1.4.3-SNAPSHOT</version>
+	<version>1.1.4.3</version>
 	<packaging>pom</packaging>
 
 	<name>registration-processor</name>
@@ -130,7 +130,7 @@
 		<kernel.qrcodegenerator.zxing.version>1.0.6</kernel.qrcodegenerator.zxing.version>
 		<kernel.logger.logback.version>1.1.4</kernel.logger.logback.version>
 		<kernel.idvalidator.vid.version>1.0.6</kernel.idvalidator.vid.version>
-		<object.store.khazana.version>1.1.4.3-SNAPSHOT</object.store.khazana.version>
+		<object.store.khazana.version>1.1.4.3</object.store.khazana.version>
 		<kernel.biometrics.api.version>1.1.4</kernel.biometrics.api.version>
 		<kernel-keymanager-service.version>1.1.4</kernel-keymanager-service.version>
 			<sonar.coverage.exclusions>**/dto/**,
