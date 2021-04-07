@@ -618,13 +618,7 @@ public class WorkflowActionService {
 		List<String> deleteTags = new ArrayList<String>();
 		deleteTags.add(hotListedTag);
 		regProcLogger.debug("removeHotlistedTag called for workflowId and hotListedTag {} {}", rid, hotListedTag);
-		String status = packetManagerService.deleteTags(rid, deleteTags);
-		if (status != null)
-			return;
-			throw new WorkflowActionException(PlatformErrorMessages.RPR_WAS_REMOVE_HOTLISTED_TAG_FAILED.getCode(),
-					PlatformErrorMessages.RPR_WAS_REMOVE_HOTLISTED_TAG_FAILED.getMessage());
-
-
+		packetManagerService.deleteTags(rid, deleteTags);
 
 	}
 
