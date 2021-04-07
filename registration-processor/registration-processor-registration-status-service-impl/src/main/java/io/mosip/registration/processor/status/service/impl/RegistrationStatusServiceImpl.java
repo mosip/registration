@@ -368,6 +368,7 @@ public class RegistrationStatusServiceImpl
 		registrationStatusDto.setUpdateDateTime(entity.getUpdateDateTime());
 		registrationStatusDto.setResumeTimeStamp(entity.getResumeTimeStamp());
 		registrationStatusDto.setDefaultResumeAction(entity.getDefaultResumeAction());
+		registrationStatusDto.setResumeRemoveTags(entity.getResumeRemoveTags());
 		return registrationStatusDto;
 	}
 
@@ -599,6 +600,7 @@ public class RegistrationStatusServiceImpl
 		registrationStatusEntity.setLatestTransactionTimes(dto.getLatestTransactionTimes());
 		registrationStatusEntity.setResumeTimeStamp(dto.getResumeTimeStamp());
 		registrationStatusEntity.setDefaultResumeAction(dto.getDefaultResumeAction());
+		registrationStatusEntity.setResumeRemoveTags(dto.getResumeRemoveTags());
 		return registrationStatusEntity;
 	}
 
