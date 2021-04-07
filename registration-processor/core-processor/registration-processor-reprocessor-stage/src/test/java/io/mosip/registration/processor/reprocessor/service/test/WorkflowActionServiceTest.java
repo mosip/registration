@@ -80,7 +80,7 @@ public class WorkflowActionServiceTest {
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(),
 				Mockito.any());
 
-		Mockito.when(packetManagerService.deleteTags(any(), any())).thenReturn(true);
+		Mockito.when(packetManagerService.deleteTags(any(), any())).thenReturn("Deleted Successfully");
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(null);
 
@@ -129,7 +129,7 @@ public class WorkflowActionServiceTest {
 
 	@Test(expected = WorkflowActionException.class)
 	public void testResumeProcessingAndRemoveHotlistedTagWithException() throws Exception {
-		Mockito.when(packetManagerService.deleteTags(any(), any())).thenReturn(false);
+		Mockito.when(packetManagerService.deleteTags(any(), any())).thenReturn(null);
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(registrationStatusDto);
 		List<String> workflowIds = new ArrayList<String>();
 		workflowIds.add("10003100030001520190422074511");
@@ -200,7 +200,7 @@ public class WorkflowActionServiceTest {
 
 	@Test(expected = WorkflowActionException.class)
 	public void testResumeFromBeginningAndRemoveHotlistedTagWithException() throws Exception {
-		Mockito.when(packetManagerService.deleteTags(any(), any())).thenReturn(false);
+		Mockito.when(packetManagerService.deleteTags(any(), any())).thenReturn(null);
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(registrationStatusDto);
 		List<String> workflowIds = new ArrayList<String>();
 		workflowIds.add("10003100030001520190422074511");

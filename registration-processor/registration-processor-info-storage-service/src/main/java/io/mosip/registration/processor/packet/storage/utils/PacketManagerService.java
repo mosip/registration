@@ -255,7 +255,7 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
     }
 
 	@SuppressWarnings("unchecked")
-	public boolean deleteTags(String id, List<String> tags)
+	public String deleteTags(String id, List<String> tags)
 			throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, JsonParseException,
 			JsonMappingException, com.fasterxml.jackson.core.JsonProcessingException, IOException {
 		DeleteTagRequestDTO deleteTagREquestDto = new DeleteTagRequestDTO(id, tags);
@@ -276,6 +276,6 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
 		}
 		DeleteTagResponseDTO deleteTagResponseDTO = objectMapper
 				.readValue(objectMapper.writeValueAsString(response.getResponse()), DeleteTagResponseDTO.class);
-		return deleteTagResponseDTO.isDeleted();
+		return deleteTagResponseDTO.getStatus();
 	}
 }
