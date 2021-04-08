@@ -6,5 +6,5 @@ import lombok.Data;
 
 @Data
 public class DeleteTagResponseDTO {
-	private boolean isDeleted;
+	private String status;
 }
