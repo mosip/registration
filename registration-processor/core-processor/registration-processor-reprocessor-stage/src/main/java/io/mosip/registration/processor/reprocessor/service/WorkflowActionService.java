@@ -1,8 +1,8 @@
 package io.mosip.registration.processor.reprocessor.service;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -11,13 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.kernel.websub.api.exception.WebSubClientException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
@@ -50,6 +48,7 @@ import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 
+
 /**
  * The Class WorkflowActionService.
  */
@@ -72,10 +71,6 @@ public class WorkflowActionService {
 	@Autowired
 	WebSubUtil webSubUtil;
 
-	/** The hot listed tag. */
-	@Value("${mosip.regproc.workflow.action.hotlisted-tag}")
-	private String hotListedTag;
-
 	/** The Constant USER. */
 	private static final String USER = "MOSIP_SYSTEM";
 
@@ -92,18 +87,20 @@ public class WorkflowActionService {
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(WorkflowActionService.class);
 
+	/** The reprocessor stage. */
 	@Autowired
 	ReprocessorStage reprocessorStage;
+
 
 	/**
 	 * Process workflow action.
 	 *
-	 * @param workflowIds    the workflow ids
-	 * @param workflowAction the workflow action
-	 * @param mosipEventBus  the mosip event bus
+	 * @param internalRegistrationStatusDtos the internal registration status dtos
+	 * @param workflowAction                 the workflow action
 	 * @throws WorkflowActionException the workflow action exception
 	 */
-	public void processWorkflowAction(List<String> workflowIds, String workflowAction) throws WorkflowActionException {
+	public void processWorkflowAction(List<InternalRegistrationStatusDto> internalRegistrationStatusDtos,
+			String workflowAction) throws WorkflowActionException {
 		WorkflowActionCode workflowActionCode = null;
 		try {
 			workflowActionCode = WorkflowActionCode.valueOf(workflowAction);
@@ -113,20 +110,13 @@ public class WorkflowActionService {
 		}
 		switch (workflowActionCode) {
 		case RESUME_PROCESSING:
-			processResumeProcessing(workflowIds, workflowActionCode);
-			break;
-		case RESUME_PROCESSING_AND_REMOVE_HOTLISTED_TAG:
-			processResumeProcessingAndRemoveHotlistedTag(workflowIds, workflowActionCode);
+			processResumeProcessing(internalRegistrationStatusDtos, workflowActionCode);
 			break;
 		case RESUME_FROM_BEGINNING:
-			processResumeFromBeginning(workflowIds, workflowActionCode);
-			break;
-		case RESUME_FROM_BEGINNING_AND_REMOVE_HOTLISTED_TAG:
-			processResumeFromBeginningAndRemoveHotlistedTag(workflowIds,
-					workflowActionCode);
+			processResumeFromBeginning(internalRegistrationStatusDtos, workflowActionCode);
 			break;
 		case STOP_PROCESSING:
-				processStopProcessing(workflowIds, workflowActionCode);
+			processStopProcessing(internalRegistrationStatusDtos, workflowActionCode);
 			break;
 		default:
 				throw new WorkflowActionException(PlatformErrorMessages.RPR_WAS_UNKNOWN_WORKFLOW_ACTION.getCode(),
@@ -139,63 +129,49 @@ public class WorkflowActionService {
 	/**
 	 * Process stop processing.
 	 *
-	 * @param workflowIds        the workflow ids
-	 * @param workflowActionCode the workflow action code
-	 * @throws WorkflowActionException
+	 * @param internalRegistrationStatusDtos the internal registration status dtos
+	 * @param workflowActionCode             the workflow action code
+	 * @throws WorkflowActionException the workflow action exception
 	 */
-	private void processStopProcessing(List<String> workflowIds,
+	private void processStopProcessing(List<InternalRegistrationStatusDto> internalRegistrationStatusDtos,
 			WorkflowActionCode workflowActionCode) throws WorkflowActionException {
-		regProcLogger.debug("processStopProcessing called for workflowIds {}", workflowIds);
+		regProcLogger.debug("processStopProcessing called for workflowIds {}",
+				internalRegistrationStatusDtos.toString());
 		LogDescription description = new LogDescription();
 		boolean isTransactionSuccessful = true;
 
-		if (CollectionUtils.isEmpty(workflowIds))
+		if (CollectionUtils.isEmpty(internalRegistrationStatusDtos))
 			return;
-			for (String rid : workflowIds) {
+		for (InternalRegistrationStatusDto internalRegistrationStatusDto : internalRegistrationStatusDtos) {
+			String rid = internalRegistrationStatusDto.getRegistrationId();
                try {
-
-				InternalRegistrationStatusDto registrationStatusDto = getRegistrationStatus(rid);
-				if (registrationStatusDto == null) {
-					description.setMessage(PlatformErrorMessages.RPR_WAS_WORKFLOW_ID_NOT_FOUND.getMessage());
-				} else {
-				if (registrationStatusDto.getStatusCode().equalsIgnoreCase(RegistrationStatusCode.PAUSED.name())) {
-					registrationStatusDto = updateRegistrationStatus(registrationStatusDto,
+				internalRegistrationStatusDto = updateRegistrationStatus(internalRegistrationStatusDto,
 							RegistrationStatusCode.REJECTED,
 							workflowActionCode);
-					sendWebSubEvent(registrationStatusDto);
+				sendWebSubEvent(internalRegistrationStatusDto);
 					description.setMessage(
 							String.format(PlatformSuccessMessages.RPR_WORKFLOW_ACTION_SERVICE_SUCCESS.getMessage(),
 									workflowActionCode.name()));
 					isTransactionSuccessful = true;
 
-				} else {
-					description.setMessage(PlatformErrorMessages.RPR_WAS_NOT_PAUSED.getMessage());
-					}
-				}
-
 			} catch (TablenotAccessibleException e) {
 				logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
-			}
-			catch (WorkflowActionException e) {
-
-					logAndThrowError(e, ((BaseCheckedException) e).getErrorCode(), ((BaseCheckedException) e).getMessage(),
-						rid, description);
-
 			} catch (WebSubClientException e) {
 				logAndThrowError(e, ((BaseUncheckedException) e).getErrorCode(),
 						((BaseUncheckedException) e).getMessage(),
 						rid, description);
 			} catch (Exception e) {
-					logAndThrowError(e, PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getCode(),
-							PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getMessage(), rid, description);
+				logAndThrowError(e, PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getCode(),
+						PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getMessage(), rid, description);
 
-				} finally {
+			} finally {
 				regProcLogger.debug("WorkflowActionService status for registration id {} {}", rid,
 						description.getMessage());
 					updateAudit(description, rid, isTransactionSuccessful);
 				}
 
-			regProcLogger.debug("processStopProcessing call ended for workflowIds {}", workflowIds);
+			regProcLogger.debug("processStopProcessing call ended for workflowIds {}",
+					internalRegistrationStatusDtos.toString());
 		}
 
 	}
@@ -218,130 +194,51 @@ public class WorkflowActionService {
 
 	}
 
-	/**
-	 * Process resume from beginning and remove hotlisted tag.
-	 *
-	 * @param workflowIds        the workflow ids
-	 * @param mosipEventBus      the mosip event bus
-	 * @param workflowActionCode the workflow action code
-	 * @throws WorkflowActionException the workflow action exception
-	 */
-	private void processResumeFromBeginningAndRemoveHotlistedTag(List<String> workflowIds,
-			WorkflowActionCode workflowActionCode)
-			throws
-			WorkflowActionException {
-		regProcLogger.debug("processResumeFromBeginningAndRemoveHotlistedTag called for workflowIds {}", workflowIds);
-		boolean isTransactionSuccessful = false;
-		LogDescription description = new LogDescription();
-		if (CollectionUtils.isEmpty(workflowIds))
-			return;
-			for (String rid : workflowIds) {
-				try {
-
-				removeHotlistedTag(rid);
-				InternalRegistrationStatusDto registrationStatusDto = getRegistrationStatus(rid);
-				if (registrationStatusDto == null) {
-					description.setMessage(PlatformErrorMessages.RPR_WAS_WORKFLOW_ID_NOT_FOUND.getMessage());
-				} else {
-				if (registrationStatusDto.getStatusCode().equalsIgnoreCase(RegistrationStatusCode.PAUSED.name())) {
-
-						if (RegistrationTransactionStatusCode.REPROCESS_FAILED.name()
-								.equals(registrationStatusDto.getLatestTransactionStatusCode())) {
-							registrationStatusDto = updateRegistrationStatus(registrationStatusDto,
-									RegistrationStatusCode.REPROCESS_FAILED, workflowActionCode);
-						description.setMessage(PlatformErrorMessages.RPR_WAS_REPROCESS_FAILED.getMessage());
-					} else {
-							registrationStatusDto = updateRegistrationStatus(registrationStatusDto,
-									RegistrationStatusCode.PROCESSING, workflowActionCode);
-						sendPacketEventforResumeBeginning(registrationStatusDto);
-						description.setMessage(
-								String.format(PlatformSuccessMessages.RPR_WORKFLOW_ACTION_SERVICE_SUCCESS.getMessage(),
-										workflowActionCode.name()));
-						isTransactionSuccessful = true;
-					}
-
-				} else {
-					description.setMessage(PlatformErrorMessages.RPR_WAS_NOT_PAUSED.getMessage());
-					}
-				}
-
-			} catch (TablenotAccessibleException e) {
-				logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
-			}
-			catch (ApisResourceAccessException | PacketManagerException
-					| JsonProcessingException | WorkflowActionException e) {
-				logAndThrowError(e, ((BaseCheckedException) e).getErrorCode(), ((BaseCheckedException) e).getMessage(),
-						rid, description);
-
-			} catch (IOException e) {
-					logAndThrowError(e, PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode(),
-							PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), rid, description);
-
-			} catch (Exception e) {
-				logAndThrowError(e, PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getCode(),
-						PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getMessage(), rid, description);
-
-			} finally {
-				regProcLogger.debug("WorkflowActionService status for registration id {} {}", rid,
-							description.getMessage());
-					updateAudit(description, rid, isTransactionSuccessful);
-				}
-			}
-			regProcLogger.debug("processResumeFromBeginningAndRemoveHotlistedTag call ended for workflowIds {}",
-					workflowIds);
 
 
-	}
 
 	/**
 	 * Process resume from beginning.
 	 *
-	 * @param workflowIds        the workflow ids
-	 * @param mosipEventBus      the mosip event bus
-	 * @param workflowActionCode the workflow action code
-	 * @throws WorkflowActionException
+	 * @param internalRegistrationStatusDtos the internal registration status dtos
+	 * @param workflowActionCode             the workflow action code
+	 * @throws WorkflowActionException the workflow action exception
 	 */
-	private void processResumeFromBeginning(List<String> workflowIds,
+	private void processResumeFromBeginning(List<InternalRegistrationStatusDto> internalRegistrationStatusDtos,
 			WorkflowActionCode workflowActionCode) throws WorkflowActionException {
-		regProcLogger.debug("processResumeFromBeginning called for workflowIds {}", workflowIds);
+		regProcLogger.debug("processResumeFromBeginning called for workflowIds {}",
+				internalRegistrationStatusDtos.toString());
 		LogDescription description = new LogDescription();
 		boolean isTransactionSuccessful = true;
-		if (CollectionUtils.isEmpty(workflowIds))
+		if (CollectionUtils.isEmpty(internalRegistrationStatusDtos))
 			return;
-			for (String rid : workflowIds) {
+		for (InternalRegistrationStatusDto internalRegistrationStatusDto : internalRegistrationStatusDtos) {
+			String rid = internalRegistrationStatusDto.getRegistrationId();
 				try {
-				InternalRegistrationStatusDto registrationStatusDto = getRegistrationStatus(rid);
-				if (registrationStatusDto == null) {
-					description.setMessage(
-							PlatformErrorMessages.RPR_WAS_WORKFLOW_ID_NOT_FOUND.getMessage());
-				} else {
-				if (registrationStatusDto.getStatusCode().equalsIgnoreCase(RegistrationStatusCode.PAUSED.name())) {
+				removeHotlistedTag(internalRegistrationStatusDto);
 
 					if (RegistrationTransactionStatusCode.REPROCESS_FAILED.name()
-							.equals(registrationStatusDto.getLatestTransactionStatusCode())) {
-						registrationStatusDto = updateRegistrationStatus(registrationStatusDto,
+						.equals(internalRegistrationStatusDto.getLatestTransactionStatusCode())) {
+					internalRegistrationStatusDto = updateRegistrationStatus(internalRegistrationStatusDto,
 								RegistrationStatusCode.REPROCESS_FAILED, workflowActionCode);
 						description.setMessage(PlatformErrorMessages.RPR_WAS_REPROCESS_FAILED.getMessage());
 					} else {
-						registrationStatusDto = updateRegistrationStatus(registrationStatusDto,
+					internalRegistrationStatusDto = updateRegistrationStatus(internalRegistrationStatusDto,
 								RegistrationStatusCode.PROCESSING, workflowActionCode);
-						sendPacketEventforResumeBeginning(registrationStatusDto);
+					sendPacketEventforResumeBeginning(internalRegistrationStatusDto);
 						description.setMessage(
 								String.format(PlatformSuccessMessages.RPR_WORKFLOW_ACTION_SERVICE_SUCCESS.getMessage(),
 										workflowActionCode.name()));
 						isTransactionSuccessful = true;
 					}
 
-				} else {
-					description.setMessage(PlatformErrorMessages.RPR_WAS_NOT_PAUSED.getMessage());
-					}
-				}
-			} catch (TablenotAccessibleException e) {
+				} 
+			catch (TablenotAccessibleException e) {
 				logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
-			} catch (WorkflowActionException e) {
-				logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
-
-				} catch (Exception e) {
+			} catch (ApisResourceAccessException | PacketManagerException | JsonProcessingException e) {
+				logAndThrowError(e, ((BaseCheckedException) e).getErrorCode(), ((BaseCheckedException) e).getMessage(),
+						rid, description);
+			} catch (Exception e) {
 					logAndThrowError(e, PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getCode(),
 							PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getMessage(), rid, description);
 
@@ -352,139 +249,63 @@ public class WorkflowActionService {
 				}
 
 			}
-			regProcLogger.debug("processResumeFromBeginning call ended for workflowIds {}", workflowIds);
+		regProcLogger.debug("processResumeFromBeginning call ended for workflowIds {}",
+				internalRegistrationStatusDtos.toString());
 
 
 	}
 
-	/**
-	 * Process resume processing and remove hotlisted tag.
-	 *
-	 * @param workflowIds        the workflow ids
-	 * @param mosipEventBus      the mosip event bus
-	 * @param workflowActionCode the workflow action code
-	 * @throws WorkflowActionException     the workflow action exception
-	 */
-	private void processResumeProcessingAndRemoveHotlistedTag(List<String> workflowIds,
-			WorkflowActionCode workflowActionCode)
-			throws
-			WorkflowActionException {
 
-		regProcLogger.debug("processResumeProcessingAndRemoveHotlistedTag called for workflowIds {}", workflowIds);
-		boolean isTransactionSuccessful = false;
-		LogDescription description = new LogDescription();
-		if (CollectionUtils.isEmpty(workflowIds))
-			return;
-		for(String rid:workflowIds) {
-			try {
 
-				removeHotlistedTag(rid);
-
-				InternalRegistrationStatusDto registrationStatusDto = getRegistrationStatus(rid);
-				if (registrationStatusDto == null) {
-					description.setMessage(PlatformErrorMessages.RPR_WAS_WORKFLOW_ID_NOT_FOUND.getMessage());
-				} else {
-				if (registrationStatusDto.getStatusCode().equalsIgnoreCase(RegistrationStatusCode.PAUSED.name())) {
-
-						if (RegistrationTransactionStatusCode.REPROCESS_FAILED.name()
-								.equals(registrationStatusDto.getLatestTransactionStatusCode())) {
-							registrationStatusDto = updateRegistrationStatus(registrationStatusDto,
-									RegistrationStatusCode.REPROCESS_FAILED, workflowActionCode);
-							description.setMessage(PlatformErrorMessages.RPR_WAS_REPROCESS_FAILED.getMessage());
-					} else {
-							registrationStatusDto = updateRegistrationStatus(registrationStatusDto,
-									RegistrationStatusCode.PROCESSING, workflowActionCode);
-							sendPacketEventForResumeProcessing(registrationStatusDto);
-							description.setMessage(
-								String.format(PlatformSuccessMessages.RPR_WORKFLOW_ACTION_SERVICE_SUCCESS.getMessage(),
-										workflowActionCode.name()));
-							isTransactionSuccessful = true;
-					}
-
-				} else {
-					description.setMessage(PlatformErrorMessages.RPR_WAS_NOT_PAUSED.getMessage());
-					}
-				}
-			} catch (ApisResourceAccessException | PacketManagerException
-					| JsonProcessingException | WorkflowActionException e) {
-				logAndThrowError(e, ((BaseCheckedException) e).getErrorCode(), ((BaseCheckedException) e).getMessage(),
-						rid, description);
-			} catch (TablenotAccessibleException e) {
-				logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
-			}
-
-			catch (IOException e) {
-				logAndThrowError(e, PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode(),
-							PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), rid, description);
-			} catch (Exception e) {
-					logAndThrowError(e, PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getCode(),
-							PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getMessage(), rid, description);
-
-			}finally {
-				regProcLogger.debug("WorkflowActionService status for registration id {} {}", rid,
-							description.getMessage());
-					updateAudit(description, rid, isTransactionSuccessful);
-			}
-			regProcLogger.debug("processResumeProcessingAndRemoveHotlistedTag call ended for workflowIds {}",
-					workflowIds);
-		}
-
-	}
 
 	/**
 	 * Process resume processing.
 	 *
-	 * @param workflowIds        the workflow ids
-	 * @param mosipEventBus      the mosip event bus
-	 * @param workflowActionCode the workflow action code
-	 * @throws WorkflowActionException
+	 * @param internalRegistrationStatusDtos the internal registration status dtos
+	 * @param workflowActionCode             the workflow action code
+	 * @throws WorkflowActionException the workflow action exception
 	 */
-	private void processResumeProcessing(List<String> workflowIds,
+	private void processResumeProcessing(List<InternalRegistrationStatusDto> internalRegistrationStatusDtos,
 			WorkflowActionCode workflowActionCode) throws WorkflowActionException {
-		regProcLogger.debug("processResumeProcessing called for workflowIds {}", workflowIds);
+		regProcLogger.debug("processResumeProcessing called for workflowIds {}",
+				internalRegistrationStatusDtos.toString());
 		boolean isTransactionSuccessful = false;
 
 		LogDescription description = new LogDescription();
-		if (CollectionUtils.isEmpty(workflowIds))
+		if (CollectionUtils.isEmpty(internalRegistrationStatusDtos))
 			return;
-			for (String rid : workflowIds) {
+		for (InternalRegistrationStatusDto internalRegistrationStatusDto : internalRegistrationStatusDtos) {
+			String rid = internalRegistrationStatusDto.getRegistrationId();
 				try {
+				removeHotlistedTag(internalRegistrationStatusDto);
 
-				InternalRegistrationStatusDto registrationStatusDto = getRegistrationStatus(rid);
-				if (registrationStatusDto == null) {
-					description.setMessage(PlatformErrorMessages.RPR_WAS_WORKFLOW_ID_NOT_FOUND.getMessage());
-				} else {
-				if (registrationStatusDto.getStatusCode().equalsIgnoreCase(RegistrationStatusCode.PAUSED.name())) {
-
-						if (RegistrationTransactionStatusCode.REPROCESS_FAILED.name()
-								.equals(registrationStatusDto.getLatestTransactionStatusCode())) {
-							registrationStatusDto = updateRegistrationStatus(registrationStatusDto,
+				if (RegistrationTransactionStatusCode.REPROCESS_FAILED.name()
+								.equals(internalRegistrationStatusDto.getLatestTransactionStatusCode())) {
+							internalRegistrationStatusDto = updateRegistrationStatus(internalRegistrationStatusDto,
 									RegistrationStatusCode.REPROCESS_FAILED, workflowActionCode);
 							description.setMessage(PlatformErrorMessages.RPR_WAS_REPROCESS_FAILED.getMessage());
 					} else {
-							registrationStatusDto = updateRegistrationStatus(registrationStatusDto,
+						internalRegistrationStatusDto = updateRegistrationStatus(internalRegistrationStatusDto,
 									RegistrationStatusCode.PROCESSING, workflowActionCode);
-							sendPacketEventForResumeProcessing(registrationStatusDto);
+							sendPacketEventForResumeProcessing(internalRegistrationStatusDto);
 							description.setMessage(String.format(
 									PlatformSuccessMessages.RPR_WORKFLOW_ACTION_SERVICE_SUCCESS.getMessage(),
 								workflowActionCode.name()));
 							isTransactionSuccessful = true;
 					}
 
-				} else {
-					description.setMessage(PlatformErrorMessages.RPR_WAS_NOT_PAUSED.getMessage());
-					}
 				}
-			} catch (TablenotAccessibleException e) {
+			catch (TablenotAccessibleException e) {
 				logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
-			} catch (WorkflowActionException e) {
-				logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
-
+			} catch (ApisResourceAccessException | PacketManagerException | JsonProcessingException
+			e) {
+				logAndThrowError(e, ((BaseCheckedException) e).getErrorCode(), ((BaseCheckedException) e).getMessage(),
+						rid, description);
 			} catch (Exception e) {
 					logAndThrowError(e, PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getCode(),
 							PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getMessage(), rid, description);
 
-				} finally {
+			} finally {
 				regProcLogger.debug("WorkflowActionService status for registration id {} {}", rid,
 							description.getMessage());
 					updateAudit(description, rid, isTransactionSuccessful);
@@ -492,7 +313,7 @@ public class WorkflowActionService {
 
 			}
 			regProcLogger.debug("processResumeProcessing call ended for workflowIds {}",
-					workflowIds);
+				internalRegistrationStatusDtos.toString());
 
 
 	}
@@ -500,7 +321,6 @@ public class WorkflowActionService {
 	/**
 	 * send packet event for resume processing.
 	 *
-	 * @param mosipEventBus         the mosip event bus
 	 * @param registrationStatusDto the registration status dto
 	 */
 	private void sendPacketEventForResumeProcessing(
@@ -554,6 +374,14 @@ public class WorkflowActionService {
 
 	}
 
+	/**
+	 * Gets the message dto.
+	 *
+	 * @param registrationStatusDto the registration status dto
+	 * @param isValid               the is valid
+	 * @param isInternalError       the is internal error
+	 * @return the message dto
+	 */
 	private MessageDTO getMessageDto(InternalRegistrationStatusDto registrationStatusDto, boolean isValid,
 			boolean isInternalError) {
 		MessageDTO object = new MessageDTO();
@@ -568,7 +396,6 @@ public class WorkflowActionService {
 	/**
 	 * send packet eventfor resume beginning.
 	 *
-	 * @param mosipEventBus         the mosip event bus
 	 * @param registrationStatusDto the registration status dto
 	 */
 	private void sendPacketEventforResumeBeginning(
@@ -586,7 +413,6 @@ public class WorkflowActionService {
 	 *
 	 * @param object        the object
 	 * @param address       the address
-	 * @param mosipEventBus the mosip event bus
 	 */
 	private void sendMessage(MessageDTO object, MessageBusAddress address) {
 		regProcLogger.debug("sendMessage called for workflowId and address {} {}", object.getRid(),
@@ -596,37 +422,36 @@ public class WorkflowActionService {
 
 
 
+
 	/**
 	 * Removes the hotlisted tag.
 	 *
-	 * @param rid the rid
-	 * @return true, if successful
-	 * @throws JsonParseException          the json parse exception
-	 * @throws JsonMappingException        the json mapping exception
+	 * @param internalRegistrationStatusDto the internal registration status dto
 	 * @throws ApisResourceAccessException the apis resource access exception
 	 * @throws JsonProcessingException     the json processing exception
-	 * @throws JsonProcessingException     the json processing exception
 	 * @throws PacketManagerException      the packet manager exception
-	 * @throws IOException                 Signals that an I/O exception has
-	 *                                     occurred.
-	 * @throws WorkflowActionException
 	 */
-	private void removeHotlistedTag(String rid)
-			throws JsonParseException, JsonMappingException, ApisResourceAccessException, JsonProcessingException,
-			PacketManagerException, com.fasterxml.jackson.core.JsonProcessingException, IOException,
-			WorkflowActionException {
+	private void removeHotlistedTag(InternalRegistrationStatusDto internalRegistrationStatusDto)
+			throws ApisResourceAccessException, JsonProcessingException, PacketManagerException
+			{
+		String resumeRemoveTags = internalRegistrationStatusDto.getResumeRemoveTags();
+		if (StringUtils.isEmpty(resumeRemoveTags))
+			return;
+		String[] resumeRemoveTagsArray = resumeRemoveTags.split(",");
 		List<String> deleteTags = new ArrayList<String>();
-		deleteTags.add(hotListedTag);
-		regProcLogger.debug("removeHotlistedTag called for workflowId and hotListedTag {} {}", rid, hotListedTag);
-		packetManagerService.deleteTags(rid, deleteTags);
+		deleteTags.addAll(Arrays.asList(resumeRemoveTagsArray));
+		regProcLogger.debug("removeHotlistedTag called for workflowId and hotListedTags {} {}",
+				internalRegistrationStatusDto.getRegistrationId(), deleteTags.toString());
+		packetManagerService.deleteTags(internalRegistrationStatusDto.getRegistrationId(), deleteTags);
 
 	}
 
 	/**
 	 * Update audit.
 	 *
-	 * @param description    the description
-	 * @param registrationId the registration id
+	 * @param description             the description
+	 * @param registrationId          the registration id
+	 * @param isTransactionSuccessful the is transaction successful
 	 */
 	private void updateAudit(LogDescription description, String registrationId, boolean isTransactionSuccessful) {
 
@@ -643,11 +468,15 @@ public class WorkflowActionService {
 	}
 
 
-	private InternalRegistrationStatusDto getRegistrationStatus(String rid) throws WorkflowActionException {
-		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(rid);
-		return registrationStatusDto;
-	}
 
+	/**
+	 * Update registration status.
+	 *
+	 * @param registrationStatusDto the registration status dto
+	 * @param statusCode            the status code
+	 * @param workflowActionCode    the workflow action code
+	 * @return the internal registration status dto
+	 */
 	private InternalRegistrationStatusDto updateRegistrationStatus(InternalRegistrationStatusDto registrationStatusDto,
 			RegistrationStatusCode statusCode, WorkflowActionCode workflowActionCode) {
 		registrationStatusDto.setStatusCode(statusCode.name());
@@ -662,13 +491,15 @@ public class WorkflowActionService {
 		registrationStatusService.updateRegistrationStatusForWorkflow(registrationStatusDto, MODULE_ID, MODULE_NAME);
 		return registrationStatusDto;
 	}
+
 	/**
 	 * Log and throw error.
 	 *
-	 * @param e                  the e
-	 * @param errorCode          the error code
-	 * @param errorMessage       the error message
-	 * @param workflowActionCode the workflow action code
+	 * @param e              the e
+	 * @param errorCode      the error code
+	 * @param errorMessage   the error message
+	 * @param registrationId the registration id
+	 * @param description    the description
 	 * @throws WorkflowActionException the workflow action exception
 	 */
 	private void logAndThrowError(Exception e, String errorCode, String errorMessage, String registrationId,
