@@ -138,7 +138,7 @@ public class WorkflowActionService {
 		regProcLogger.debug("processStopProcessing called for workflowIds {}",
 				internalRegistrationStatusDtos.toString());
 		LogDescription description = new LogDescription();
-		boolean isTransactionSuccessful = true;
+		boolean isTransactionSuccessful = false;
 
 		if (CollectionUtils.isEmpty(internalRegistrationStatusDtos))
 			return;
@@ -209,7 +209,7 @@ public class WorkflowActionService {
 		regProcLogger.debug("processResumeFromBeginning called for workflowIds {}",
 				internalRegistrationStatusDtos.toString());
 		LogDescription description = new LogDescription();
-		boolean isTransactionSuccessful = true;
+		boolean isTransactionSuccessful = false;
 		if (CollectionUtils.isEmpty(internalRegistrationStatusDtos))
 			return;
 		for (InternalRegistrationStatusDto internalRegistrationStatusDto : internalRegistrationStatusDtos) {
