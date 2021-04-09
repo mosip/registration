@@ -31,6 +31,7 @@ public class MosipStageExecutorApplication {
 	 */
 	public static void main(String[] args) {
 		regProcLogger.info("Starting mosip-stage-executor>>>>>>>>>>>>>>");
+		//This context is closed after deploying the stages
 		try (AnnotationConfigApplicationContext stageInfoApplicationContext = new AnnotationConfigApplicationContext(
 				new Class<?>[] { StagesConfig.class });) {
 			StagesConfig stagesConfig = stageInfoApplicationContext.getBean(StagesConfig.class);
@@ -47,13 +48,16 @@ public class MosipStageExecutorApplication {
 			Class<?>[] entrypointConfigClasses = Stream.concat(Stream.of(StagesConfig.class), stageClasses.stream())
 					.toArray(size -> new Class<?>[size]);
 
-			try (AnnotationConfigApplicationContext mainApplicationContext = new PropertySourcesCustomizingApplicationContext(
-					entrypointConfigClasses) {
-						@Override
-						public MutablePropertySources getPropertySources() {
-							return propertySources;
+			try {
+				//This context should not be closed and to be kept for consumption by the verticles
+				AnnotationConfigApplicationContext mainApplicationContext = new PropertySourcesCustomizingApplicationContext(
+						entrypointConfigClasses) {
+							@Override
+							public MutablePropertySources getPropertySources() {
+								return propertySources;
+							};
 						};
-					};) {
+				
 				if (!stageClasses.isEmpty()) {
 					ExecutorService executorService = Executors.newFixedThreadPool(stageClasses.size());
 					stageClasses.forEach(stageClass -> executorService.execute(() -> {
@@ -68,6 +72,7 @@ public class MosipStageExecutorApplication {
 					}));
 					executorService.shutdown();
 				}
+			} finally {
 			}
 		}
 
