@@ -41,13 +41,10 @@ import io.vertx.ext.web.RoutingContext;
 @RefreshScope
 @Service
 @Configuration
-@ComponentScan(basePackages = { "io.mosip.registration.processor.core.config",
-		"io.mosip.registration.processor.stages.config", "io.mosip.registration.processor.status.config",
-		"io.mosip.registration.processor.rest.client.config", "io.mosip.registration.processor.packet.storage.config",
-		"io.mosip.registration.processor.packet.manager.config",
-		"io.mosip.registration.processor.packet.receiver.config", "io.mosip.registration.processor.core.config",
-		"io.mosip.registration.processor.core.kernel.beans",
-		"io.mosip.registration.processor.stages.packetclassifier.tagging.impl" })
+@ComponentScan(basePackages = { "io.mosip.registration.processor.status.config",
+		  "io.mosip.registration.processor.packet.receiver.config",
+		  "io.mosip.registration.processor.core.config",
+		  "io.mosip.registration.processor.rest.client.config" })
 public class PacketReceiverStage extends MosipVerticleAPIManager {
 
 	/** The reg proc logger. */
