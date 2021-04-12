@@ -80,7 +80,7 @@ public class PacketClassifierStage extends MosipVerticleAPIManager {
 
 	@Override
 	public MessageDTO process(MessageDTO object) {
-		return packetClassificationProcessor.process(object, this.getClass().getSimpleName());
+		return packetClassificationProcessor.process(object, getStageName());
 	}
 	
 	@Override

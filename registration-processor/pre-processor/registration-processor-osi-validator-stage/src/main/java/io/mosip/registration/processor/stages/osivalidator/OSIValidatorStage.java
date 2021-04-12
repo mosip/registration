@@ -150,7 +150,7 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 				.getRegistrationStatus(registrationId);
 
 		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.OSI_VALIDATE.toString());
-		registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
+		registrationStatusDto.setRegistrationStageName(getStageName());
 
 		try {
 			Map<String, String> metaInfo = packetManagerService.getMetaInfo(registrationId,

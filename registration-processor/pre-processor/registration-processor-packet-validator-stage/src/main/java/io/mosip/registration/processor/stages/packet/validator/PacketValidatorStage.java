@@ -82,7 +82,7 @@ public class PacketValidatorStage extends MosipVerticleAPIManager {
 
 	@Override
 	public MessageDTO process(MessageDTO object) {
-		return packetvalidateprocessor.process(object, this.getClass().getSimpleName());
+		return packetvalidateprocessor.process(object, getStageName());
 	}
 	
 	@Override

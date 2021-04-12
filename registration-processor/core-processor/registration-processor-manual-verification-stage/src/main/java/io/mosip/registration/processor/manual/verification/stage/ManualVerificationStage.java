@@ -223,7 +223,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 				ManualAdjudicationResponseDTO resp = JsonUtil.readValueWithUnknownProperties(
 						JsonUtils.javaObjectToJsonString(respMap), ManualAdjudicationResponseDTO.class);
 				ManualAdjudicationResponseDTO decisionDto = manualAdjudicationService
-						.updatePacketStatus(resp, this.getClass().getSimpleName(),queue);
+						.updatePacketStatus(resp, getStageName(),queue);
 				
 				if (decisionDto != null) {
 					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
