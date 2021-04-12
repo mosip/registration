@@ -414,6 +414,7 @@ public class RegistrationStatusServiceImpl
 		registrationStatusEntity.setLatestTransactionTimes(LocalDateTime.now(ZoneId.of("UTC")));
 		registrationStatusEntity.setResumeTimeStamp(dto.getResumeTimeStamp());
 		registrationStatusEntity.setDefaultResumeAction(dto.getDefaultResumeAction());
+		registrationStatusEntity.setResumeRemoveTags(dto.getResumeRemoveTags());
 		return registrationStatusEntity;
 	}
 
