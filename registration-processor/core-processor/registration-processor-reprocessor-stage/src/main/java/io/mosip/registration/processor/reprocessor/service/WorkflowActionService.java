@@ -1,6 +1,5 @@
 package io.mosip.registration.processor.reprocessor.service;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Component;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.kernel.websub.api.exception.WebSubClientException;
@@ -26,6 +24,7 @@ import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
+import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.code.WorkflowActionCode;
 import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
@@ -35,6 +34,7 @@ import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.util.MessageBusUtil;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventDTO;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
@@ -483,12 +483,14 @@ public class WorkflowActionService {
 		registrationStatusDto.setStatusComment(String.format(
 				PlatformSuccessMessages.RPR_WORKFLOW_ACTION_SERVICE_SUCCESS.getMessage(), workflowActionCode.name()));
 
-		LocalDateTime updateTimeStamp = DateUtils.getUTCCurrentDateTime();
-		registrationStatusDto.setUpdateDateTime(updateTimeStamp);
+		registrationStatusDto
+				.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.WORKFLOW_ACTION_SERVICE.toString());
+		registrationStatusDto.setSubStatusCode(StatusUtil.WORKFLOW_ACTION_SERVICE_SUCCESS.getCode());
+
 		registrationStatusDto.setUpdatedBy(USER);
 		registrationStatusDto.setDefaultResumeAction(null);
 		registrationStatusDto.setResumeTimeStamp(null);
-		registrationStatusService.updateRegistrationStatusForWorkflow(registrationStatusDto, MODULE_ID, MODULE_NAME);
+		registrationStatusService.updateRegistrationStatus(registrationStatusDto, MODULE_ID, MODULE_NAME);
 		return registrationStatusDto;
 	}
 
