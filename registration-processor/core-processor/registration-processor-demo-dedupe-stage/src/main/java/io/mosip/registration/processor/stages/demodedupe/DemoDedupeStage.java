@@ -82,7 +82,7 @@ public class DemoDedupeStage extends MosipVerticleAPIManager {
 	 */
 	@Override
 	public MessageDTO process(MessageDTO object) {
-		return demodedupeProcessor.process(object, this.getClass().getSimpleName());
+		return demodedupeProcessor.process(object, getStageName());
 
 	}
 

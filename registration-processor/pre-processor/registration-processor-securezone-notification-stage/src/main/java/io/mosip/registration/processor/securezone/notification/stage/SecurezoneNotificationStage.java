@@ -165,7 +165,7 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
             if (registrationStatusDto != null && messageDTO.getRid().equalsIgnoreCase(registrationStatusDto.getRegistrationId())) {
                 registrationStatusDto
                         .setLatestTransactionTypeCode(RegistrationTransactionTypeCode.SECUREZONE_NOTIFICATION.toString());
-                registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
+                registrationStatusDto.setRegistrationStageName(getStageName());
 
 
                 registrationStatusDto

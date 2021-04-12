@@ -157,9 +157,6 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.manual.verification.message.expiry-time-limit}")
 	private Long messageExpiryTimeLimit;
 
-	@Value("${server.servlet.path}")
-	private String contextPath;
-
 	private static final String APPLICATION_JSON = "application/json";
 
 	/**
@@ -231,7 +228,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 				ManualAdjudicationResponseDTO resp = JsonUtil.readValueWithUnknownProperties(
 						JsonUtils.javaObjectToJsonString(respMap), ManualAdjudicationResponseDTO.class);
 				ManualAdjudicationResponseDTO decisionDto = manualAdjudicationService
-						.updatePacketStatus(resp, this.getClass().getSimpleName(),queue);
+						.updatePacketStatus(resp, getStageName(),queue);
 				
 				if (decisionDto != null) {
 					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
