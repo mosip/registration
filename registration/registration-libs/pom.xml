@@ -7,13 +7,13 @@
 	<parent>
 		<groupId>io.mosip.registration</groupId>
 		<artifactId>registration-parent</artifactId>
-		<version>1.1.5-SNAPSHOT</version>
+		<version>1.1.5-rc1</version>
 	</parent>
 
 	<artifactId>registration-libs</artifactId>
 	<name>registration-libs</name>
 	<description>Maven project of MOSIP Registration library</description>
-	<version>1.1.5-SNAPSHOT</version>
+	<version>1.1.5-rc1</version>
 	<properties>
 		<main.basedir>${project.parent.basedir}</main.basedir>
 	</properties>
