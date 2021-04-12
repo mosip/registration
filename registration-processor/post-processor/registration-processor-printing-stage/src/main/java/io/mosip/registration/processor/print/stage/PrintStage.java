@@ -182,7 +182,7 @@ public class PrintStage extends MosipVerticleAPIManager {
 			registrationStatusDto = registrationStatusService.getRegistrationStatus(regId);
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PRINT_SERVICE.toString());
-			registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
+			registrationStatusDto.setRegistrationStageName(getStageName());
 			JSONObject jsonObject = utilities.retrieveUIN(regId);
 			uin = JsonUtil.getJSONValue(jsonObject, IdType.UIN.toString());
 			if (uin == null) {

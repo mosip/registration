@@ -6,6 +6,7 @@ import io.vertx.core.Handler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
+import org.springframework.util.ClassUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
@@ -176,5 +177,15 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 	// an abstract method, but later this need to be marked as abstract
 	public void deployVerticle() {
 
+	}
+	
+
+	/**
+	 * Gets the stage name.
+	 *
+	 * @return the stage name
+	 */
+	protected String getStageName() {
+		return ClassUtils.getUserClass(this.getClass()).getSimpleName();
 	}
 }
