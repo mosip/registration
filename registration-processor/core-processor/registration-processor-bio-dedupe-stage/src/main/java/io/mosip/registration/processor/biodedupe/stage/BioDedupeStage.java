@@ -86,7 +86,7 @@ public class BioDedupeStage extends MosipVerticleAPIManager {
 	 */
 	@Override
 	public MessageDTO process(MessageDTO object) {
-			return bioDedupeProcessor.process(object, this.getClass().getSimpleName());
+			return bioDedupeProcessor.process(object, getStageName());
 		}
 
 	public void sendMessage(MessageDTO messageDTO) {

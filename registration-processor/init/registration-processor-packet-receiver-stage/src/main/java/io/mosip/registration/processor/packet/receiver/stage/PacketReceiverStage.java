@@ -16,6 +16,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ClassUtils;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -197,7 +198,7 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 			List<String> listObj = new ArrayList<>();
 			listObj.add(env.getProperty(MODULE_ID));
 			File file=getFileFromCtx(ctx).entrySet().iterator().next().getValue();
-			MessageDTO messageDTO = packetReceiverService.validatePacket(file, this.getClass().getSimpleName());
+			MessageDTO messageDTO = packetReceiverService.validatePacket(file, getStageName());
 			listObj.add(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 			listObj.add(env.getProperty(APPLICATION_VERSION));
 			if (messageDTO.getIsValid()) {

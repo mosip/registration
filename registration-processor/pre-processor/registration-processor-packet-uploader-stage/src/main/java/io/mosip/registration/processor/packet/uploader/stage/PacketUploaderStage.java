@@ -102,7 +102,7 @@ public class PacketUploaderStage extends MosipVerticleAPIManager {
 		messageDTO.setInternalError(Boolean.FALSE);
 		messageDTO.setIsValid(Boolean.FALSE);
 		messageDTO = packetUploaderService.validateAndUploadPacket(messageDTO.getRid(),
-				this.getClass().getSimpleName());
+				getStageName());
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				"PacketUploaderStage::processURL()::exit", messageDTO.toString());

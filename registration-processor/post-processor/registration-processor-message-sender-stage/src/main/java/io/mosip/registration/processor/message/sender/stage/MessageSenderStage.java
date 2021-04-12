@@ -221,7 +221,7 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 				+ registrationStatusDto.getLatestTransactionStatusCode();
 
 		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.NOTIFICATION.toString());
-		registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
+		registrationStatusDto.setRegistrationStageName(getStageName());
 
 		try {
 			
