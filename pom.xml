@@ -157,7 +157,6 @@
         </build>
 
 	<modules>
-		<module>registration</module>
 		<module>registration-processor</module>
 	</modules>
 </project>
