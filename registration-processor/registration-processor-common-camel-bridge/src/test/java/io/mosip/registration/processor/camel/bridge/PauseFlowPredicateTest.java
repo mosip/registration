@@ -58,11 +58,10 @@ public class PauseFlowPredicateTest {
 		objectMapper = new ObjectMapper();
 		pauseFlowPredicate = new PauseFlowPredicate();
 
-		ReflectionTestUtils.setField(pauseFlowPredicate, "hotlistedTagKey", "HOTLISTED");
 		Setting[] settings = null;
 		try {
 			settings = objectMapper.readValue(
-					"[{\"hotlistedReason\": \"operator\",\"pauseFor\": 432000,\"defaultResumeAction\": \"ResumeFromBeginning\",\"fromAddress\": \"bio-debup-bus-out\"},{\"hotlistedReason\": \"center\",\"pauseFor\": 432000,\"defaultResumeAction\": \"StopProcessing\",\"fromAddress\": \"bio-debup-bus-out\"}]",
+					"[{\"matchExpression\": \"$.tags[?(@['META_INFO-META_DATA-machineId'] == '10074')]\",\"pauseFor\": 432000,\"defaultResumeAction\": \"ResumeFromBeginning\",\"fromAddress\": \"bio-debup-bus-out\",\"resumeRemoveTags\": \"HOTLISTED,BIOMETRICS_EXCEPTION\"},{\"matchExpression\": \"$.tags[?(@['META_INFO-META_DATA-machineId'] == '10074')]\",\"pauseFor\": 432000,\"defaultResumeAction\": \"StopProcessing\",\"fromAddress\": \"bio-debup-bus-out\",\"resumeRemoveTags\": \"HOTLISTED,BIOMETRICS_EXCEPTION\"}]",
 					Setting[].class);
 		} catch (IOException e) {
 			LOGGER.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
@@ -107,7 +106,7 @@ public class PauseFlowPredicateTest {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10002100741000120201231071308");
 		Map<String, String> tags = new HashMap<>();
-		tags.put("HOTLISTED", "operator");
+		tags.put("META_INFO-META_DATA-machineId", "10074");
 		messageDTO.setTags(tags);
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
 		LocalDateTime dateTimeBefore = DateUtils.getUTCCurrentDateTime().plusSeconds(432000);
@@ -162,7 +161,7 @@ public class PauseFlowPredicateTest {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10002100741000120201231071308");
 		Map<String, String> tags = new HashMap<>();
-		tags.put("HOTLISTED", "operator");
+		tags.put("META_INFO-META_DATA-machineId", "10074");
 		messageDTO.setTags(tags);
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
 		assertFalse(pauseFlowPredicate.matches(exchange));
