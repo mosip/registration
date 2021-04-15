@@ -160,15 +160,14 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 				if (internalRegistrationStatusDto == null) {
 					description.setMessage(PlatformErrorMessages.RPR_WAA_WORKFLOW_ID_NOT_FOUND.getMessage());
 					updateAudit(description, workflowId, isTransactionSuccessful, user);
-					logError(workflowIds, workflowAction, PlatformErrorMessages.RPR_WAA_WORKFLOW_ID_NOT_FOUND.getCode(),
-							PlatformErrorMessages.RPR_WAA_WORKFLOW_ID_NOT_FOUND.getMessage() + " " + workflowId, null,
-							ctx);
+					throw new WorkflowActionException(PlatformErrorMessages.RPR_WAA_WORKFLOW_ID_NOT_FOUND.getCode(),
+							PlatformErrorMessages.RPR_WAA_WORKFLOW_ID_NOT_FOUND.getMessage());
 				} else {
 					if (!internalRegistrationStatusDto.getStatusCode().equalsIgnoreCase(RegistrationStatusCode.PAUSED.name())) {
 						description.setMessage(PlatformErrorMessages.RPR_WAA_NOT_PAUSED.getMessage());
 						updateAudit(description, workflowId, isTransactionSuccessful, user);
-						logError(workflowIds, workflowAction, PlatformErrorMessages.RPR_WAA_NOT_PAUSED.getCode(),
-								PlatformErrorMessages.RPR_WAA_NOT_PAUSED.getMessage() + " " + workflowId, null, ctx);
+						throw new WorkflowActionException(PlatformErrorMessages.RPR_WAA_NOT_PAUSED.getCode(),
+								PlatformErrorMessages.RPR_WAA_NOT_PAUSED.getMessage());
 					}
 			   }
 				isTransactionSuccessful = true;
@@ -176,16 +175,16 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 				updateAudit(description, workflowId, isTransactionSuccessful, user);
 				internalRegistrationStatusDtos.add(internalRegistrationStatusDto);
 			}
-			workflowActionService.processWorkflowAction(internalRegistrationStatusDtos,
-					workflowActionDTO.getRequest().getWorkflowAction());
+				workflowActionService.processWorkflowAction(internalRegistrationStatusDtos,
+						workflowActionDTO.getRequest().getWorkflowAction());
 
 				regProcLogger.info("Process the workflowAction successfully  for workflow ids and workflowaction {} {}",
-						workflowIds,
-						workflowAction);
-			buildResponse(ctx, "Process the workflowIds '" + workflowIds + "' successfully", null);
+						workflowIds, workflowAction);
+				buildResponse(ctx, "Process the workflowIds '" + workflowIds + "' successfully", null);
 
-			regProcLogger.debug("WorkflowActionApi:processURL ended for registration ids {}",
-					workflowActionDTO.getRequest().getWorkflowIds());
+				regProcLogger.debug("WorkflowActionApi:processURL ended for registration ids {}",
+						workflowActionDTO.getRequest().getWorkflowIds());
+
 		} catch (IOException e) {
 			logError(workflowIds, workflowAction,
 					PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode(),
@@ -257,9 +256,9 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 		String eventName = isTransactionSuccessful ? EventName.UPDATE.toString() : EventName.EXCEPTION.toString();
 		String eventType = isTransactionSuccessful ? EventType.BUSINESS.toString() : EventType.SYSTEM.toString();
 
-		auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage() + "user " + "" + user, eventId,
+		auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId,
 				eventName, eventType,
-				moduleId, MODULE_NAME, registrationId);
+				moduleId, MODULE_NAME, registrationId, user);
 	}
 
 }
