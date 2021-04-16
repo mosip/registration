@@ -468,6 +468,8 @@ public enum PlatformErrorMessages {
 	
 	OSI_VALIDATION_AUTH_SYSTEM_EXCEPTION(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "008", "Request could not be processed. Please try again"),
 
+	LINK_FOR_USERID_VID_FAILED_OSI_EXCEPTION(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "009", "Unable to get the Vid for UserId"),
+	
 	/** The packet demo dedupe failed. */
 	// Stages - Demo-Dedupe error code and message
 	PACKET_DEMO_DEDUPE_FAILED("", "Demo Dedupe Failed"),
