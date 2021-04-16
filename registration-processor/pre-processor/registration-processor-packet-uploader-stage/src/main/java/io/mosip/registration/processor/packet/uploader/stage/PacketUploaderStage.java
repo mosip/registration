@@ -68,7 +68,7 @@ public class PacketUploaderStage extends MosipVerticleAPIManager {
 
 	@Override
 	public void start(){
-		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.PACKET_UPLOADER_IN,
+		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.PACKET_UPLOADER_IN,
 				MessageBusAddress.PACKET_UPLOADER_OUT));
 		this.createServer(router.getRouter(), Integer.parseInt(port));
 	}

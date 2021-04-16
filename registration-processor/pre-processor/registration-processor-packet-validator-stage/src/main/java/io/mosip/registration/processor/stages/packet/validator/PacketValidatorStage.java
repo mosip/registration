@@ -63,7 +63,7 @@ public class PacketValidatorStage extends MosipVerticleAPIManager {
 
 	@Override
 	public void start(){
-		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.PACKET_VALIDATOR_BUS_IN,
+		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.PACKET_VALIDATOR_BUS_IN,
 				MessageBusAddress.PACKET_VALIDATOR_BUS_OUT));
 		this.createServer(router.getRouter(), Integer.parseInt(port));
 	}

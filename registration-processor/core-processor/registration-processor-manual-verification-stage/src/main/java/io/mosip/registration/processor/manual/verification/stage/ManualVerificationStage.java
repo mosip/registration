@@ -179,7 +179,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 
 	@Override
 	public void start() {
-		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.MANUAL_VERIFICATION_BUS_IN, MessageBusAddress.MANUAL_VERIFICATION_BUS_OUT));
+		router.setRoute(this.postUrl(this.getVertx(), MessageBusAddress.MANUAL_VERIFICATION_BUS_IN, MessageBusAddress.MANUAL_VERIFICATION_BUS_OUT));
 		this.createServer(router.getRouter(), Integer.parseInt(port));
 	}
 	
