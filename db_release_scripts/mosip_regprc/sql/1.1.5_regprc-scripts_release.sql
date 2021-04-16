@@ -8,6 +8,7 @@
 -- Modified Date        Modified By         Comments / Remarks
 -- -------------------------------------------------------------------------------------------------
 -- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes for 1.1.5
+-- Apr-2021		Ram Bhatt	    Packet Classification dml Changes
 ----------------------------------------------------------------------------------------------------
 
 \c mosip_regprc sysadmin
@@ -39,5 +40,11 @@
 --ALTER TABLE regprc.individual_demographic_dedup ALTER COLUMN is_deleted SET DEFAULT FALSE;
 --ALTER TABLE regprc.registration ALTER COLUMN is_deleted SET DEFAULT FALSE;
 --ALTER TABLE regprc.transaction_type ALTER COLUMN is_deleted SET DEFAULT FALSE;
+
+TRUNCATE TABLE regprc.transaction_type cascade ;
+
+\COPY regprc.transaction_type (code,descr,lang_code,is_active,cr_by,cr_dtimes) FROM '../dml/regprc-transaction_type.csv' delimiter ',' HEADER csv;
+
+
 
 ----------------------------------------------------------------------------------------------------
