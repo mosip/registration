@@ -177,7 +177,7 @@ public enum PlatformErrorMessages {
 	/** The rpr rgs rid not found. */
 	RPR_RGS_RID_NOT_FOUND(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "031", "RID Not Found"),
 	
-	RPR_RGS_INVALID_ADDITIONAL_INFORMATION(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "032", "additional information is invalid"),
+	RPR_RGS_INVALID_ADDITIONAL_INFORMATION(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "032", "additionalInfoReqId is invalid"),
 
 	/** The rpr pis registration table not accessible. */
 	// Packet Info Storage Exception error code and message
