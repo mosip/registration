@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -31,6 +32,7 @@ import io.swagger.annotations.ApiResponses;
 @RefreshScope
 @RestController
 @Api(tags = "Internal Auth Delegate Services")
+@RequestMapping("/v1/registrationstatus")
 public class InternalAuthDelegateServicesController {
 
 	/** The internal auth delegate service. */

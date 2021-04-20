@@ -40,6 +40,7 @@ import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDt
 import io.mosip.registration.processor.status.dto.RegistrationSyncRequestDTO;
 import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
 import io.mosip.registration.processor.status.dto.SyncResponseDto;
+import io.mosip.registration.processor.status.dto.SyncResponseFailDto;
 import io.mosip.registration.processor.status.dto.SyncResponseFailureDto;
 import io.mosip.registration.processor.status.dto.SyncResponseSuccessDto;
 import io.mosip.registration.processor.status.dto.SyncTypeDto;
@@ -346,6 +347,64 @@ public class SyncRegistrationServiceTest {
 		assertEquals("Verifing if list is returned. Expected value should be 1002",
 				syncRegistrationDto.getRegistrationId(),
 				((SyncResponseFailureDto) syncResponse.get(0)).getRegistrationId());
+	}
+	
+	@Test
+	public void testGetSyncRegistrationStatusV2Success() throws EncryptionFailureException, ApisResourceAccessException {
+		byte[] encryptedInfo = "encryptedInfo".getBytes();
+		SyncRegistrationDto syncRegistrationDto16 = new SyncRegistrationDto();
+
+		syncRegistrationDto16.setRegistrationId("27847657360002520181208183052");
+		syncRegistrationDto16.setLangCode("eng");
+
+		syncRegistrationDto16.setIsActive(true);
+		syncRegistrationDto16.setIsDeleted(false);
+		syncRegistrationDto16.setPacketId("1234");
+		syncRegistrationDto16.setAdditionalInfoReqId("1234.NEW.1");
+		syncRegistrationDto16.setSyncType("NEW_REGISTRATION");
+		syncRegistrationDto16.setPacketHashValue("ab123");
+		syncRegistrationDto16.setSupervisorStatus("APPROVED");
+		List<SyncRegistrationDto> request=new ArrayList<>();
+		request.add(syncRegistrationDto16);
+		Mockito.when(encryptor.encrypt(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyString())).thenReturn(encryptedInfo);
+		Mockito.when(syncRegistrationDao.save(any())).thenReturn(syncRegistrationEntity);
+		List<SyncResponseDto> syncResponse = syncRegistrationService.sync2(request, "", "");
+
+		assertEquals("Verifing List returned", ((SyncResponseFailureDto) syncResponse.get(0)).getRegistrationId(),
+				syncRegistrationDto.getRegistrationId());
+
+		Mockito.when(syncRegistrationDao.findById(any())).thenReturn(syncRegistrationEntity);
+		Mockito.when(syncRegistrationDao.update(any())).thenReturn(syncRegistrationEntity);
+		List<SyncResponseDto> syncResponseDto = syncRegistrationService.sync(entities, "", "");
+		assertEquals("Verifing if list is returned. Expected value should be 1002",
+				syncRegistrationDto.getRegistrationId(),
+				((SyncResponseFailureDto) syncResponse.get(0)).getRegistrationId());
+	}
+	
+	@Test
+	public void testGetSyncRegistrationStatusV2Failure() throws EncryptionFailureException, ApisResourceAccessException {
+		byte[] encryptedInfo = "encryptedInfo".getBytes();
+		SyncRegistrationDto syncRegistrationDto16 = new SyncRegistrationDto();
+
+		syncRegistrationDto16.setRegistrationId("27847657360002520181208183052");
+		syncRegistrationDto16.setLangCode("eng");
+
+		syncRegistrationDto16.setIsActive(true);
+		syncRegistrationDto16.setIsDeleted(false);
+		syncRegistrationDto16.setPacketId("1234");
+		syncRegistrationDto16.setAdditionalInfoReqId("");
+		syncRegistrationDto16.setSyncType("NEW_REGISTRATION");
+		syncRegistrationDto16.setPacketHashValue("ab123");
+		syncRegistrationDto16.setSupervisorStatus("APPROVED");
+		List<SyncRegistrationDto> request=new ArrayList<>();
+		request.add(syncRegistrationDto16);
+		Mockito.when(encryptor.encrypt(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyString())).thenReturn(encryptedInfo);
+		Mockito.when(syncRegistrationDao.save(any())).thenReturn(syncRegistrationEntity);
+		List<SyncResponseDto> syncResponse = syncRegistrationService.sync2(request, "", "");
+
+		assertEquals("Missing Request Value - additionalInfoReqId", ((SyncResponseFailDto) syncResponse.get(0)).getMessage());
+
+		
 	}
 
 	/**
