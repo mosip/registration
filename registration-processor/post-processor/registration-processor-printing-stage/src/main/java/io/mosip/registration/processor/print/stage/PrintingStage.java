@@ -82,7 +82,7 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 		"io.mosip.registration.processor.packet.manager.config", 
 		"io.mosip.kernel.idobjectvalidator.config",
 		"io.mosip.registration.processor.core.kernel.beans" })
-public class PrintStage extends MosipVerticleAPIManager {
+public class PrintingStage extends MosipVerticleAPIManager {
 	
 	private static final String MOSIP_REGPROC_PRINT_STAGE = "mosip.regproc.printing.";
 
