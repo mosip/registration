@@ -10,6 +10,7 @@ on:
       - 1.*
       - develop
       - MOSIP-12124
+      - MOSIP-12124-2
   
 jobs:
   build:
