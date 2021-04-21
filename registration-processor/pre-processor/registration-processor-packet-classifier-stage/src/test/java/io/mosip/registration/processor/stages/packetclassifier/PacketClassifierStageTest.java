@@ -63,6 +63,11 @@ public class PacketClassifierStageTest {
 				}
 			};
 		}
+
+		@Override
+		public Integer getPort() {
+			return 8080;
+		};
 		
 		@Override
 		public void consumeAndSend(MosipEventBus eventbus, MessageBusAddress addressbus1,
@@ -83,7 +88,6 @@ public class PacketClassifierStageTest {
 	@Test
 	public void testStart()
 	{
-		ReflectionTestUtils.setField(packetClassifierStage, "port", "2321");
 		Mockito.doNothing().when(router).setRoute(any());
 		packetClassifierStage.start();
 	}

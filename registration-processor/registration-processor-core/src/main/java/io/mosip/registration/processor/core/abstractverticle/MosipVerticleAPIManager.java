@@ -6,6 +6,7 @@ import io.vertx.core.Handler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
+import org.springframework.util.ClassUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
@@ -33,9 +34,6 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 	DigitalSignatureUtility digitalSignatureUtility;
 
 	@Autowired
-	Environment environment;
-
-	@Autowired
 	ObjectMapper objectMapper;
 
 	@Autowired
@@ -58,17 +56,18 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 				.failureHandler(routingContextHandler);
 
 		router.route().handler(BodyHandler.create());
+		String servletPath = getServletPath();
 		if (consumeAddress == null && sendAddress == null)
-			configureHealthCheckEndpoint(vertx, router, environment.getProperty(HealthConstant.SERVLET_PATH), null,
+			configureHealthCheckEndpoint(vertx, router, servletPath, null,
 					null);
 		else if (consumeAddress == null)
-			configureHealthCheckEndpoint(vertx, router, environment.getProperty(HealthConstant.SERVLET_PATH), null,
+			configureHealthCheckEndpoint(vertx, router, servletPath, null,
 					sendAddress.getAddress());
 		else if (sendAddress == null)
-			configureHealthCheckEndpoint(vertx, router, environment.getProperty(HealthConstant.SERVLET_PATH),
+			configureHealthCheckEndpoint(vertx, router, servletPath,
 					consumeAddress.getAddress(), null);
 		else
-			configureHealthCheckEndpoint(vertx, router, environment.getProperty(HealthConstant.SERVLET_PATH),
+			configureHealthCheckEndpoint(vertx, router, servletPath,
 					consumeAddress.getAddress(), sendAddress.getAddress());
 		return router;
 	}
@@ -178,5 +177,15 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 	// an abstract method, but later this need to be marked as abstract
 	public void deployVerticle() {
 
+	}
+	
+
+	/**
+	 * Gets the stage name.
+	 *
+	 * @return the stage name
+	 */
+	protected String getStageName() {
+		return ClassUtils.getUserClass(this.getClass()).getSimpleName();
 	}
 }

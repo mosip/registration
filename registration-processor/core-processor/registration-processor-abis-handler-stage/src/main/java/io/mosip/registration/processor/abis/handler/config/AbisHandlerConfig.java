@@ -10,8 +10,8 @@ import org.springframework.context.annotation.PropertySource;
 @Configuration
 public class AbisHandlerConfig {
 
-    @Bean
-    public AbisHandlerStage getStage(){
-        return new AbisHandlerStage();
-    }
+//    @Bean
+//    public AbisHandlerStage getStage(){
+//        return new AbisHandlerStage();
+//    }
 }

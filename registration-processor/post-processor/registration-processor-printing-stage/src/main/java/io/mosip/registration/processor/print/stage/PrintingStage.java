@@ -13,6 +13,8 @@ import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -69,7 +71,20 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
  */
 @RefreshScope
 @Service
+@Configuration
+@ComponentScan(basePackages = { "io.mosip.registration.processor.core.config",
+		"io.mosip.registration.processor.stages.config", 
+		"io.mosip.registration.processor.print.config", 
+		"io.mosip.registrationprocessor.stages.config", 
+		"io.mosip.registration.processor.status.config",
+		"io.mosip.registration.processor.rest.client.config", 
+		"io.mosip.registration.processor.packet.storage.config",
+		"io.mosip.registration.processor.packet.manager.config", 
+		"io.mosip.kernel.idobjectvalidator.config",
+		"io.mosip.registration.processor.core.kernel.beans" })
 public class PrintingStage extends MosipVerticleAPIManager {
+	
+	private static final String MOSIP_REGPROC_PRINT_STAGE = "mosip.regproc.printing.";
 
 	/** The Constant FILE_SEPARATOR. */
 	public static final String FILE_SEPARATOR = File.separator;
@@ -86,12 +101,6 @@ public class PrintingStage extends MosipVerticleAPIManager {
 	/** The core audit request builder. */
 	@Autowired
 	private AuditLogRequestBuilder auditLogRequestBuilder;
-
-
-
-	/** The port. */
-	@Value("${server.port}")
-	private String port;
 
 	/** The mosip event bus. */
 	private MosipEventBus mosipEventBus;
@@ -136,6 +145,11 @@ public class PrintingStage extends MosipVerticleAPIManager {
 	@Autowired
 	private Utilities utilities;
 
+	@Override
+	protected String getPropertyPrefix() {
+		return MOSIP_REGPROC_PRINT_STAGE;
+	}
+
 	/**
 	 * Deploy verticle.
 	 */
@@ -175,7 +189,7 @@ public class PrintingStage extends MosipVerticleAPIManager {
 			registrationStatusDto = registrationStatusService.getRegistrationStatus(regId);
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PRINT_SERVICE.toString());
-			registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
+			registrationStatusDto.setRegistrationStageName(getStageName());
 			JSONObject jsonObject = utilities.retrieveUIN(regId);
 			uin = JsonUtil.getJSONValue(jsonObject, IdType.UIN.toString());
 			if (uin == null) {
@@ -340,7 +354,7 @@ public class PrintingStage extends MosipVerticleAPIManager {
 	@Override
 	public void start() {
 		router.setRoute(this.postUrl(vertx, MessageBusAddress.PRINTING_BUS, null));
-		this.createServer(router.getRouter(), Integer.parseInt(port));
+		this.createServer(router.getRouter(), getPort());
 	}
 
 	public String generatePin() {

@@ -11,8 +11,12 @@ import java.util.Map.Entry;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ClassUtils;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -38,28 +42,27 @@ import io.vertx.ext.web.RoutingContext;
  * The Class PacketReceiverStage.
  */
 
-// @RefreshScope
+@RefreshScope
 @Service
+@Configuration
+@ComponentScan(basePackages = { "io.mosip.registration.processor.status.config",
+		  "io.mosip.registration.processor.packet.receiver.config",
+		  "io.mosip.registration.processor.core.config",
+		  "io.mosip.registration.processor.rest.client.config" })
 public class PacketReceiverStage extends MosipVerticleAPIManager {
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(PacketReceiverStage.class);
 
+	private static final String MOSIP_REGPROC_PACKET_RECEIVER = "mosip.regproc.packet.receiver.";
+
 	/** vertx Cluster Manager Url. */
 	@Value("${vertx.cluster.configuration}")
 	private String clusterManagerUrl;
 
-	/** server port number. */
-	@Value("${server.port}")
-	private String port;
-
 	/** worker pool size. */
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
-
-	/** server context Path. */
-	@Value("${server.servlet.path}")
-	private String contextPath;
 
 	/** The Constant DATETIME_PATTERN. */
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
@@ -114,7 +117,7 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 	public void start() {
 		router.setRoute(this.postUrl(vertx, null, MessageBusAddress.PACKET_RECEIVER_OUT));
 		this.routes(router);
-		this.createServer(router.getRouter(), Integer.parseInt(port));
+		this.createServer(router.getRouter(), getPort());
 	}
 
 	/**
@@ -125,7 +128,7 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 	 */
 	private void routes(MosipRouter router) {
 
-		router.post(contextPath + "/registrationpackets");
+		router.post(getServletPath() + "/registrationpackets");
 		router.handler(this::processURL, this::processPacket, this::failure);
 	};
 
@@ -195,7 +198,7 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 			List<String> listObj = new ArrayList<>();
 			listObj.add(env.getProperty(MODULE_ID));
 			File file=getFileFromCtx(ctx).entrySet().iterator().next().getValue();
-			MessageDTO messageDTO = packetReceiverService.validatePacket(file, this.getClass().getSimpleName());
+			MessageDTO messageDTO = packetReceiverService.validatePacket(file, getStageName());
 			listObj.add(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 			listObj.add(env.getProperty(APPLICATION_VERSION));
 			if (messageDTO.getIsValid()) {
@@ -250,6 +253,11 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 	@Override
 	public MessageDTO process(MessageDTO object) {
 		return null;
+	}
+
+	@Override
+	protected String getPropertyPrefix() {
+		return MOSIP_REGPROC_PACKET_RECEIVER;
 	}
 
 	/**
