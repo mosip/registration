@@ -49,8 +49,8 @@ public enum RegistrationTransactionTypeCode {
 	SECUREZONE_NOTIFICATION,
 
 	/** The workflow event update. */
-	WORKFLOW_EVENT_UPDATE,
+	WORKFLOW_PAUSE,
 
-	WORKFLOW_ACTION_SERVICE;
+	WORKFLOW_RESUME;
 
 }

@@ -79,6 +79,8 @@ public class WorkflowActionApiTest {
 
 	@Mock
 	AuditLogRequestBuilder auditLogRequestBuilder;
+	
+	List<InternalRegistrationStatusDto> internalRegistrationStatusDtos;
 
 	@InjectMocks
 	WorkflowActionApi workflowActionApi = new WorkflowActionApi() {
@@ -414,9 +416,13 @@ public class WorkflowActionApiTest {
 		registrationStatusDto.setRegistrationStageName("SecurezoneNotificationStage");
 		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.name());
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.PAUSED.name());
-		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(registrationStatusDto);
+		
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(null);
+		internalRegistrationStatusDtos = new ArrayList<InternalRegistrationStatusDto>();
+		internalRegistrationStatusDtos.add(registrationStatusDto);
+		Mockito.when(registrationStatusService.getByIdsAndTimestamp(Mockito.any()))
+				.thenReturn(internalRegistrationStatusDtos);
 	}
 
 	@Test
@@ -471,7 +477,9 @@ public class WorkflowActionApiTest {
 
 	@Test
 	public void testWorkflowIdNotPresent() {
-		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(null);
+		internalRegistrationStatusDtos = new ArrayList<InternalRegistrationStatusDto>();
+		Mockito.when(registrationStatusService.getByIdsAndTimestamp(Mockito.any()))
+				.thenReturn(internalRegistrationStatusDtos);
 		workflowActionApi.processURL(ctx);
 		assertTrue(responseObject);
 	}

@@ -437,8 +437,14 @@ public class WorkflowActionService {
 		String resumeRemoveTags = internalRegistrationStatusDto.getResumeRemoveTags();
 		if (StringUtils.isEmpty(resumeRemoveTags))
 			return;
-		String[] resumeRemoveTagsArray = resumeRemoveTags.split(",");
 		List<String> deleteTags = new ArrayList<String>();
+		String[] resumeRemoveTagsArray = resumeRemoveTags.split(",");
+		if (resumeRemoveTagsArray.length > 0) {
+			for (int i = 0; i < resumeRemoveTagsArray.length; i++) {
+				deleteTags.add(resumeRemoveTagsArray[0].trim());
+			}
+		}
+
 		deleteTags.addAll(Arrays.asList(resumeRemoveTagsArray));
 		regProcLogger.debug("removeHotlistedTag called for workflowId and hotListedTags {} {}",
 				internalRegistrationStatusDto.getRegistrationId(), deleteTags.toString());
@@ -484,7 +490,7 @@ public class WorkflowActionService {
 				PlatformSuccessMessages.RPR_WORKFLOW_ACTION_SERVICE_SUCCESS.getMessage(), workflowActionCode.name()));
 
 		registrationStatusDto
-				.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.WORKFLOW_ACTION_SERVICE.toString());
+				.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.WORKFLOW_RESUME.toString());
 		registrationStatusDto.setSubStatusCode(StatusUtil.WORKFLOW_ACTION_SERVICE_SUCCESS.getCode());
 
 		registrationStatusDto.setUpdatedBy(USER);

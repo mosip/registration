@@ -128,7 +128,7 @@ public class WorkflowEventUpdateVerticle extends MosipVerticleAPIManager {
 		registrationStatusDto.setUpdatedBy(USER);
 			registrationStatusDto.setResumeRemoveTags(workflowEventDto.getResumeRemoveTags());
 			registrationStatusDto
-					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.WORKFLOW_EVENT_UPDATE.toString());
+					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.WORKFLOW_PAUSE.toString());
 			registrationStatusDto.setSubStatusCode(StatusUtil.WORKFLOW_EVENT_UPDATE_SUCCESS.getCode());
 
 			String moduleId = PlatformSuccessMessages.RPR_WORKFLOW_EVENT_UPDATE_SUCCESS.getCode();

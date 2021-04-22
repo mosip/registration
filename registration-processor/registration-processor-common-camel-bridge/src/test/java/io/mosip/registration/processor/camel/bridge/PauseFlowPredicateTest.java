@@ -61,7 +61,7 @@ public class PauseFlowPredicateTest {
 		Setting[] settings = null;
 		try {
 			settings = objectMapper.readValue(
-					"[{\"matchExpression\": \"$.tags[?(@['META_INFO-META_DATA-machineId'] == '10074')]\",\"pauseFor\": 432000,\"defaultResumeAction\": \"ResumeFromBeginning\",\"fromAddress\": \"bio-debup-bus-out\",\"resumeRemoveTags\": \"HOTLISTED,BIOMETRICS_EXCEPTION\"},{\"matchExpression\": \"$.tags[?(@['META_INFO-META_DATA-machineId'] == '10074')]\",\"pauseFor\": 432000,\"defaultResumeAction\": \"StopProcessing\",\"fromAddress\": \"bio-debup-bus-out\",\"resumeRemoveTags\": \"HOTLISTED,BIOMETRICS_EXCEPTION\"}]",
+					"[{\"matchExpression\": \"$.tags[?(@['HOTLISTED'] == 'operator')]\",\"pauseFor\": 432000,\"defaultResumeAction\": \"STOP_PROCESSING\",\"fromAddress\": \"bio-debup-bus-out\",\"resumeRemoveTags\": \"HOTLISTED\"},{\"matchExpression\": \"$.tags[?(@['AGE_GROUP']== 'CHILD' && @['ID_OBJECT-residenceStatus'] == 'nonResident')]\",\"pauseFor\": 432000,\"defaultResumeAction\": \"StopProcessing\",\"fromAddress\": \"bio-debup-bus-out\",\"resumeRemoveTags\": \"\"}]",
 					Setting[].class);
 		} catch (IOException e) {
 			LOGGER.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
@@ -106,14 +106,14 @@ public class PauseFlowPredicateTest {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10002100741000120201231071308");
 		Map<String, String> tags = new HashMap<>();
-		tags.put("META_INFO-META_DATA-machineId", "10074");
+		tags.put("HOTLISTED", "operator");
 		messageDTO.setTags(tags);
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
 		LocalDateTime dateTimeBefore = DateUtils.getUTCCurrentDateTime().plusSeconds(432000);
 		assertTrue(pauseFlowPredicate.matches(exchange));
 		LocalDateTime dateTimeAfter = DateUtils.getUTCCurrentDateTime().plusSeconds(432000);
 		JsonObject json = new JsonObject((String) exchange.getMessage().getBody());
-		assertEquals("ResumeFromBeginning", json.getString("defaultResumeAction"));
+		assertEquals("STOP_PROCESSING", json.getString("defaultResumeAction"));
 		assertTrue(dateTimeBefore.isBefore(DateUtils.parseToLocalDateTime(json.getString("resumeTimestamp"))) && dateTimeAfter.isAfter(DateUtils.parseToLocalDateTime(json.getString("resumeTimestamp"))));
 	}
 
@@ -161,7 +161,7 @@ public class PauseFlowPredicateTest {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10002100741000120201231071308");
 		Map<String, String> tags = new HashMap<>();
-		tags.put("META_INFO-META_DATA-machineId", "10074");
+		tags.put("HOTLISTED", "operator");
 		messageDTO.setTags(tags);
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
 		assertFalse(pauseFlowPredicate.matches(exchange));

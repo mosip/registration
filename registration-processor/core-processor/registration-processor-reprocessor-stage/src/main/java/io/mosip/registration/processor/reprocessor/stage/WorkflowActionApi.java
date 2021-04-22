@@ -149,32 +149,31 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 			regProcLogger.debug("WorkflowActionApi:processURL called for registration ids {}",
 					workflowIds);
 			validator.validate(workflowActionDTO);
-			List<InternalRegistrationStatusDto> internalRegistrationStatusDtos = new ArrayList<InternalRegistrationStatusDto>();
-			for (String workflowId : workflowIds) {
-				InternalRegistrationStatusDto internalRegistrationStatusDto = registrationStatusService
-						.getRegistrationStatus(workflowId);
-				String user="";
-				if (Objects.nonNull(ctx.user())
-						&& Objects.nonNull(ctx.user().principal()))
-				 user = ctx.user().principal().getString("username");
-				if (internalRegistrationStatusDto == null) {
-					description.setMessage(PlatformErrorMessages.RPR_WAA_WORKFLOW_ID_NOT_FOUND.getMessage());
-					updateAudit(description, workflowId, isTransactionSuccessful, user);
-					throw new WorkflowActionException(PlatformErrorMessages.RPR_WAA_WORKFLOW_ID_NOT_FOUND.getCode(),
-							PlatformErrorMessages.RPR_WAA_WORKFLOW_ID_NOT_FOUND.getMessage());
-				} else {
-					if (!internalRegistrationStatusDto.getStatusCode().equalsIgnoreCase(RegistrationStatusCode.PAUSED.name())) {
-						description.setMessage(PlatformErrorMessages.RPR_WAA_NOT_PAUSED.getMessage());
-						updateAudit(description, workflowId, isTransactionSuccessful, user);
-						throw new WorkflowActionException(PlatformErrorMessages.RPR_WAA_NOT_PAUSED.getCode(),
-								PlatformErrorMessages.RPR_WAA_NOT_PAUSED.getMessage());
-					}
-			   }
-				isTransactionSuccessful = true;
-				description.setMessage(PlatformErrorMessages.RPR_WAA_VALIDATION_SUCCESS.getMessage());
-				updateAudit(description, workflowId, isTransactionSuccessful, user);
-				internalRegistrationStatusDtos.add(internalRegistrationStatusDto);
+			String user = getUser(ctx);
+			List<InternalRegistrationStatusDto> internalRegistrationStatusDtos = registrationStatusService
+					.getByIdsAndTimestamp(workflowIds);
+			if (internalRegistrationStatusDtos.size() == workflowIds.size()) {
+				for (InternalRegistrationStatusDto internalRegistrationStatusDto : internalRegistrationStatusDtos) {
+					
+						if (!internalRegistrationStatusDto.getStatusCode()
+								.equalsIgnoreCase(RegistrationStatusCode.PAUSED.name())) {
+							description.setMessage(PlatformErrorMessages.RPR_WAA_NOT_PAUSED.getMessage());
+						updateAudit(description, internalRegistrationStatusDto.getRegistrationId(),
+								isTransactionSuccessful, user);
+							throw new WorkflowActionException(PlatformErrorMessages.RPR_WAA_NOT_PAUSED.getCode(),
+									PlatformErrorMessages.RPR_WAA_NOT_PAUSED.getMessage());
+						}
+
+					isTransactionSuccessful = true;
+					description.setMessage(PlatformErrorMessages.RPR_WAA_VALIDATION_SUCCESS.getMessage());
+					updateAudit(description, internalRegistrationStatusDto.getRegistrationId(), isTransactionSuccessful,
+							user);
+				}
+			} else {
+				checkWorkflowIdPresent(workflowIds, isTransactionSuccessful, description, user,
+						internalRegistrationStatusDtos);
 			}
+
 				workflowActionService.processWorkflowAction(internalRegistrationStatusDtos,
 						workflowActionDTO.getRequest().getWorkflowAction());
 
@@ -198,6 +197,34 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 					PlatformErrorMessages.RPR_WAA_UNKNOWN_EXCEPTION.getCode(),
 					PlatformErrorMessages.RPR_WAA_UNKNOWN_EXCEPTION.getMessage(), e, ctx);
 		}
+	}
+
+	private void checkWorkflowIdPresent(List<String> workflowIds, boolean isTransactionSuccessful,
+			LogDescription description, String user, List<InternalRegistrationStatusDto> internalRegistrationStatusDtos)
+			throws WorkflowActionException {
+		for (String workflowId : workflowIds) {
+			boolean isPresent=false;
+			for (InternalRegistrationStatusDto internalRegistrationStatusDto : internalRegistrationStatusDtos) {
+				if (internalRegistrationStatusDto.getRegistrationId().equalsIgnoreCase(workflowId)) {
+					isPresent = true;
+					break;
+				}
+			}
+			if (!isPresent) {
+				description.setMessage(PlatformErrorMessages.RPR_WAA_WORKFLOW_ID_NOT_FOUND.getMessage());
+				updateAudit(description, workflowId, isTransactionSuccessful, user);
+				throw new WorkflowActionException(PlatformErrorMessages.RPR_WAA_WORKFLOW_ID_NOT_FOUND.getCode(),
+						PlatformErrorMessages.RPR_WAA_WORKFLOW_ID_NOT_FOUND.getMessage());
+			}
+
+		}
+	}
+
+	private String getUser(RoutingContext ctx) {
+		String user = "";
+		if (Objects.nonNull(ctx.user()) && Objects.nonNull(ctx.user().principal()))
+			user = ctx.user().principal().getString("username");
+		return user;
 	}
 
 	private void logError(List<String> workflowIds, String workflowAction,

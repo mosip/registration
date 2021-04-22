@@ -54,7 +54,7 @@ public class PauseFlowPredicate implements Predicate {
 		String message = (String) exchange.getMessage().getBody();
 		JsonObject json = new JsonObject(message);
 
-		LOGGER.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+		LOGGER.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"exchange.getFromEndpoint().toString() " + exchange.getFromEndpoint().toString());
 
 		String fromAddress = exchange.getFromEndpoint().toString();
