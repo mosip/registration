@@ -1206,7 +1206,7 @@ public enum PlatformErrorMessages {
 			"Removing hotlisted tag failed"),
 
 	RPR_WAA_WORKFLOW_ID_NOT_FOUND(PlatformConstants.RPR_WORKFLOW_ACTION_API + "003",
-			"Workflow id not found in registration table"),
+			"Workflow id  %s  not found in registration table"),
 
 	RPR_WAS_UNKNOWN_EXCEPTION(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "003", "Unknown Exception"),
 
@@ -1214,7 +1214,7 @@ public enum PlatformErrorMessages {
 			"When REPROCESS_FAILED then Resume should not occur"),
 
 	RPR_WAA_NOT_PAUSED(PlatformConstants.RPR_WORKFLOW_ACTION_API + "004",
-			"Workflow id is not PAUSED"),
+			"Workflow id  %s is not PAUSED"),
 
 	RPR_WAA_VALIDATION_SUCCESS(PlatformConstants.RPR_WORKFLOW_ACTION_API + "005", "Workflow id validated successfully"),
 

@@ -161,7 +161,8 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 						updateAudit(description, internalRegistrationStatusDto.getRegistrationId(),
 								isTransactionSuccessful, user);
 							throw new WorkflowActionException(PlatformErrorMessages.RPR_WAA_NOT_PAUSED.getCode(),
-									PlatformErrorMessages.RPR_WAA_NOT_PAUSED.getMessage());
+								String.format(PlatformErrorMessages.RPR_WAA_NOT_PAUSED.getMessage(),
+										internalRegistrationStatusDto.getRegistrationId()));
 						}
 
 					isTransactionSuccessful = true;
@@ -214,7 +215,7 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 				description.setMessage(PlatformErrorMessages.RPR_WAA_WORKFLOW_ID_NOT_FOUND.getMessage());
 				updateAudit(description, workflowId, isTransactionSuccessful, user);
 				throw new WorkflowActionException(PlatformErrorMessages.RPR_WAA_WORKFLOW_ID_NOT_FOUND.getCode(),
-						PlatformErrorMessages.RPR_WAA_WORKFLOW_ID_NOT_FOUND.getMessage());
+						String.format(PlatformErrorMessages.RPR_WAA_WORKFLOW_ID_NOT_FOUND.getMessage(), workflowId));
 			}
 
 		}

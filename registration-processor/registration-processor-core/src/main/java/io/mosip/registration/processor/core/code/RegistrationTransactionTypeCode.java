@@ -48,9 +48,11 @@ public enum RegistrationTransactionTypeCode {
 	/** The securezone notification stage. */
 	SECUREZONE_NOTIFICATION,
 
-	/** The workflow event update. */
+
+	/** The workflow pause. */
 	WORKFLOW_PAUSE,
 
+	/** The workflow resume. */
 	WORKFLOW_RESUME;
 
 }
