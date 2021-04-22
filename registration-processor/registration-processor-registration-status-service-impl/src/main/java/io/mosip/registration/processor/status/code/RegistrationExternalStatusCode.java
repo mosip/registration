@@ -23,6 +23,8 @@ public enum RegistrationExternalStatusCode {
 	/** The upload pending. */
 	UPLOAD_PENDING,
 
-	UIN_GENERATED	
+	UIN_GENERATED,	
+	
+	AWAITING_INFORMATION
 
 }

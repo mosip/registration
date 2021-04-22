@@ -89,7 +89,7 @@ public class RegistrationSyncController {
 	 * @throws RegStatusAppException
 	 */
 	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_PROCESSOR', 'REGISTRATION_OFFICER','REGISTRATION_SUPERVISOR', 'RESIDENT' )")
-	@PostMapping(path = "/sync", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping(path = "/v1/registrationstatus/sync", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiOperation(value = "Get the synchronizing registration entity", response = RegistrationStatusCode.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Synchronizing Registration Entity successfully fetched") })
@@ -107,6 +107,50 @@ public class RegistrationSyncController {
 			if (registrationSyncRequestDTO != null && validator.validate(registrationSyncRequestDTO,
 					env.getProperty(REG_SYNC_SERVICE_ID), syncResponseList)) {
 				syncResponseList = syncRegistrationService.sync(registrationSyncRequestDTO.getRequest(), referenceId, timeStamp);
+			}
+			if (isEnabled) {
+				RegSyncResponseDTO responseDto = buildRegistrationSyncResponse(syncResponseList);
+				ObjectMapper objectMapper = new ObjectMapper();
+				HttpHeaders headers = new HttpHeaders();
+				headers.add(RESPONSE_SIGNATURE,
+						digitalSignatureUtility.getDigitalSignature(objectMapper.writeValueAsString(responseDto)));
+				return ResponseEntity.ok().headers(headers).body(responseDto);
+			}
+
+			return ResponseEntity.ok().body(buildRegistrationSyncResponse(syncResponseList));
+
+		} catch (JsonProcessingException e) {
+			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_DATA_VALIDATION_FAILED, e);
+		}
+	}
+	
+	/**
+	 * Sync registration ids.
+	 *
+	 * @param syncRegistrationList
+	 *            the sync registration list
+	 * @return the response entity
+	 * @throws RegStatusAppException
+	 */
+	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_PROCESSOR', 'REGISTRATION_OFFICER','REGISTRATION_SUPERVISOR', 'RESIDENT' )")
+	@PostMapping(path = "/v2/registrationstatus/sync", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@ApiOperation(value = "Get the synchronizing registration entity", response = RegistrationStatusCode.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Synchronizing Registration Entity successfully fetched") })
+	public ResponseEntity<Object> syncRegistrationController2(
+			@RequestHeader(name = "Center-Machine-RefId", required = true) String referenceId,
+			@RequestHeader(name = "timestamp", required = true) String timeStamp,
+			@RequestBody(required = true) Object encryptedSyncMetaInfo) throws RegStatusAppException {
+
+
+		try {
+			List<SyncResponseDto> syncResponseList = new ArrayList<>();
+			RegistrationSyncRequestDTO registrationSyncRequestDTO = syncRegistrationService
+					.decryptAndGetSyncRequest(encryptedSyncMetaInfo, referenceId, timeStamp, syncResponseList);
+
+			if (registrationSyncRequestDTO != null && validator.validate(registrationSyncRequestDTO,
+					env.getProperty(REG_SYNC_SERVICE_ID), syncResponseList)) {
+				syncResponseList = syncRegistrationService.sync2(registrationSyncRequestDTO.getRequest(), referenceId, timeStamp);
 			}
 			if (isEnabled) {
 				RegSyncResponseDTO responseDto = buildRegistrationSyncResponse(syncResponseList);

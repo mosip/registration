@@ -21,6 +21,12 @@ public class RegistrationStatusEntity extends BaseRegistrationEntity {
 	/** The reference registration id. */
 	@Column(name = "ref_reg_id")
 	private String referenceRegistrationId;
+	
+	@Column(name = "source")
+	private String source;
+	
+	@Column(name = "iteration")
+	private Integer iteration=1;
 
 	/** The status code. */
 	@Column(name = "status_code", nullable = false)
@@ -118,7 +124,6 @@ public class RegistrationStatusEntity extends BaseRegistrationEntity {
 		super();
 
 	}
-
 	/**
 	 * Gets the registration type.
 	 *
@@ -156,7 +161,18 @@ public class RegistrationStatusEntity extends BaseRegistrationEntity {
 	public void setReferenceRegistrationId(String referenceRegistrationId) {
 		this.referenceRegistrationId = referenceRegistrationId;
 	}
-
+	public String getSource() {
+		return source;
+	}
+	public void setSource(String source) {
+		this.source = source;
+	}
+	public Integer getIteration() {
+		return iteration;
+	}
+	public void setIteration(Integer iteration) {
+		this.iteration = iteration;
+	}
 	/**
 	 * Gets the status code.
 	 *

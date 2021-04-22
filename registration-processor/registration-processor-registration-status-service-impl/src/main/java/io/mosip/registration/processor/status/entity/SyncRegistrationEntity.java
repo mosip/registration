@@ -26,10 +26,19 @@ public class SyncRegistrationEntity extends BaseRegistrationEntity {
 	/** The registration id. */
 	@Column(name = "reg_id", nullable = false)
 	private String registrationId;
-
+	
+	@Column(name = "additional_info_req_id", nullable = false)
+	private String additionalInfoReqId ;
+	
+	@Column(name = "packet_id", nullable = false)
+	private String packetId;
+	
 	/** The registration type. */
 	@Column(name = "reg_type")
 	private String registrationType;
+	
+	@Column(name = "source")
+	private String source;
 
 	/** The lang code. */
 	@Column(name = "packet_checksum", nullable = false)
@@ -113,6 +122,22 @@ public class SyncRegistrationEntity extends BaseRegistrationEntity {
 		this.registrationId = registrationId;
 	}
 
+	public String getAdditionalInfoReqId() {
+		return additionalInfoReqId;
+	}
+
+	public void setAdditionalInfoReqId(String additionalInfoReqId) {
+		this.additionalInfoReqId = additionalInfoReqId;
+	}
+
+	public String getPacketId() {
+		return packetId;
+	}
+
+	public void setPacketId(String packetId) {
+		this.packetId = packetId;
+	}
+
 	/**
 	 * Gets the registration type.
 	 *
@@ -130,6 +155,14 @@ public class SyncRegistrationEntity extends BaseRegistrationEntity {
 	 */
 	public void setRegistrationType(String registrationType) {
 		this.registrationType = registrationType;
+	}
+
+	public String getSource() {
+		return source;
+	}
+
+	public void setSource(String source) {
+		this.source = source;
 	}
 
 	/**
