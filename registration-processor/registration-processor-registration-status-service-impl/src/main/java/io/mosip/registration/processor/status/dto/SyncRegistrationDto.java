@@ -26,6 +26,10 @@ public class SyncRegistrationDto implements Serializable {
 	/** The registration id. */
 	private String registrationId;
 	
+	private String packetId ;
+	
+	private String additionalInfoReqId ;
+	
 	/** The name of the applicant. */
 	private String name;
 	
@@ -116,6 +120,22 @@ public class SyncRegistrationDto implements Serializable {
 	 */
 	public void setRegistrationId(String registrationId) {
 		this.registrationId = registrationId;
+	}
+
+	public String getPacketId() {
+		return packetId;
+	}
+
+	public void setPacketId(String packetId) {
+		this.packetId = packetId;
+	}
+
+	public String getAdditionalInfoReqId() {
+		return additionalInfoReqId;
+	}
+
+	public void setAdditionalInfoReqId(String additionalInfoReqId) {
+		this.additionalInfoReqId = additionalInfoReqId;
 	}
 
 	/**

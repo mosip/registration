@@ -21,6 +21,8 @@ public enum RegistrationExternalStatusCode {
 	REPROCESS_FAILED,
 
 	/** The upload pending. */
-	UPLOAD_PENDING
+	UPLOAD_PENDING,
+	
+	AWAITING_INFORMATION
 
 }
