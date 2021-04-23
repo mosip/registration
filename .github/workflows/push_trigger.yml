@@ -136,7 +136,6 @@ jobs:
 
     - name: Build with Maven
       run: |
-        cd registration-processor
         mvn -B package -s $GITHUB_WORKSPACE/settings.xml -DskipTests --file pom.xml
 
     - name: Publish the maven package
