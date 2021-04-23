@@ -13,15 +13,9 @@ import io.mosip.kernel.core.crypto.spi.CryptoCoreSpec;
 import io.mosip.kernel.crypto.jce.core.CryptoCore;
 import io.mosip.kernel.keygenerator.bouncycastle.KeyGenerator;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
-import io.mosip.registration.processor.stages.osivalidator.utils.OSIUtils;
 
 @Configuration
 public class OSIConfigBean {
-
-//	@Bean
-//	public OSIUtils getOSIUtils() {
-//		return new OSIUtils();
-//	}
 
 	@Bean
 	public KeyGenerator getKeyGenerator() {
