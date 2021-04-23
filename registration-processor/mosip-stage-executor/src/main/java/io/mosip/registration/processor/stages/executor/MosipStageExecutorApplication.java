@@ -30,7 +30,7 @@ public class MosipStageExecutorApplication {
 	 * @param args the arguments
 	 */
 	public static void main(String[] args) {
-		regProcLogger.info("Starting mosip-stage-executor>>>>>>>>>>>>>>");
+		regProcLogger.info("Starting mosip-stage-executor...");
 		//This context is closed after deploying the stages
 		try (AnnotationConfigApplicationContext stageInfoApplicationContext = new AnnotationConfigApplicationContext(
 				new Class<?>[] { StagesConfig.class });) {
@@ -39,11 +39,11 @@ public class MosipStageExecutorApplication {
 			
 			List<String> stageBeansBasePackages = StageClassesUtil.getStageBeansBasePackages(stagesConfig, propertySources);
 			
-			regProcLogger.info(">>>> Base packages for stage beans from configuration: {}", stageBeansBasePackages);
+			regProcLogger.info("Base packages for stage beans from configuration: {}", stageBeansBasePackages);
 			
 			List<Class<MosipVerticleAPIManager>> stageClasses = StageClassesUtil.getStageBeanClasses(stageBeansBasePackages);
 			
-			regProcLogger.info(">>>> Stage classes identified: {}", stageClasses.stream().map(Class::getCanonicalName).collect(Collectors.joining(", ")));
+			regProcLogger.info("Stage classes identified: {}", stageClasses.stream().map(Class::getCanonicalName).collect(Collectors.joining(", ")));
 
 			Class<?>[] entrypointConfigClasses = Stream.concat(Stream.of(StagesConfig.class), stageClasses.stream())
 					.toArray(size -> new Class<?>[size]);
