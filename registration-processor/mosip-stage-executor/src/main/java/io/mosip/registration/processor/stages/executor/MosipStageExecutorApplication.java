@@ -70,8 +70,9 @@ public class MosipStageExecutorApplication {
 					}
 				}));
 				executorService.shutdown();
+			} else {
+				regProcLogger.error("No stage class is found. Please make sure correct correct stage class base packages are specified in properties and stages are added to classpath/dependencies.");
 			}
 		}
-
 	}
 }
