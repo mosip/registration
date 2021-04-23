@@ -25,7 +25,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
-import io.mosip.registration.processor.core.auth.dto.VidDto;
+import io.mosip.registration.processor.core.auth.dto.IndividualIdDto;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.constant.JsonConstant;
@@ -621,8 +621,8 @@ public class OSIValidator {
 			throws ApisResourceAccessException, IOException, BioTypeException, AuthSystemException, CertificateException, NoSuchAlgorithmException {
 
 		if(INDIVIDUAL_TYPE_USERID.equalsIgnoreCase(individualType)) {
-			userId = getVidByUserId(userId);
-			individualType = "VID";
+			userId = getIndividualIdByUserId(userId);
+			individualType = null;
 		 }
 		
 		AuthResponseDTO authResponseDTO = authUtil.authByIdAuthentication(userId, individualType, list);
@@ -660,34 +660,32 @@ public class OSIValidator {
 	}
 	
 	/**
-	 *  get the vid by userid
+	 *  get the individualId by userid
 	 * @param userid
-	 * @return vid 
+	 * @return individualId 
 	 * @throws ApisResourceAccessException
 	 * @throws IOException
 	 */
-	private String getVidByUserId(String userid) throws ApisResourceAccessException, IOException {
+	private String getIndividualIdByUserId(String userid) throws ApisResourceAccessException, IOException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-				"OSIValidator::getVidByUserId():: entry");
+				"OSIValidator::getIndividualIdByUserId():: entry");
 		List<String> pathSegments = new ArrayList<>();
 		pathSegments.add(APPID);
 		pathSegments.add(userid);
-		String vid = null;
+		String individualId = null;
 		ResponseWrapper<?> response = null;
+		response =  (ResponseWrapper<?>) restClientService.getApi(ApiName.GETINDIVIDUALIDFROMUSERID, pathSegments, "", "", ResponseWrapper.class);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-				"OSIValidator::getUinByVid():: GETVIDFROMUSERID GET service call Started");
-		response =  (ResponseWrapper<?>) restClientService.getApi(ApiName.GETVIDFROMUSERID, pathSegments, "", "", ResponseWrapper.class);
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-				"OSIValidator::getUinByVid():: GETVIDFROMUSERID GET service call ended successfully");
+				"OSIValidator::getIndividualIdByUserId():: GETINDIVIDUALIDFROMUSERID GET service call ended successfully");
 		if (response.getErrors() != null) {
-			throw new ApisResourceAccessException(PlatformErrorMessages.LINK_FOR_USERID_VID_FAILED_OSI_EXCEPTION.toString());
+			throw new ApisResourceAccessException(PlatformErrorMessages.LINK_FOR_USERID_INDIVIDUALID_FAILED_OSI_EXCEPTION.toString());
 		}else {
-			VidDto readValue = mapper.readValue(mapper.writeValueAsString(response.getResponse()),VidDto.class);
-			vid = readValue.getVid();
+			IndividualIdDto readValue = mapper.readValue(mapper.writeValueAsString(response.getResponse()),IndividualIdDto.class);
+			individualId = readValue.getIndividualId();
 		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-				"OSIValidator::getVidByUserId():: exit");
-		return vid;
+				"OSIValidator::getIndividualIdByUserId():: exit");
+		return individualId;
 	}
 
 	/**
