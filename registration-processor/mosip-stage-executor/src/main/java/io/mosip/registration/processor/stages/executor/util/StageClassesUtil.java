@@ -127,7 +127,7 @@ public class StageClassesUtil {
 		try {
 			Object bean = mainApplicationContext.getBean(stageBeanClass);
 			MosipVerticleAPIManager stageBean = (MosipVerticleAPIManager) bean;
-			regProcLogger.info("Successfully loaded Bean : " + stageBeanClass.getCanonicalName());
+			regProcLogger.info("Successfully loaded Bean : {}", stageBeanClass.getCanonicalName());
 			return stageBean;
 		} catch (BeansException e) {
 			throw e;
