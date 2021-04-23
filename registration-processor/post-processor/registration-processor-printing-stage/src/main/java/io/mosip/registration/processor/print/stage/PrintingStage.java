@@ -84,7 +84,7 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 		"io.mosip.registration.processor.core.kernel.beans" })
 public class PrintingStage extends MosipVerticleAPIManager {
 	
-	private static final String MOSIP_REGPROC_PRINT_STAGE = "mosip.regproc.printing.";
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.printing.";
 
 	/** The Constant FILE_SEPARATOR. */
 	public static final String FILE_SEPARATOR = File.separator;
@@ -147,7 +147,7 @@ public class PrintingStage extends MosipVerticleAPIManager {
 
 	@Override
 	protected String getPropertyPrefix() {
-		return MOSIP_REGPROC_PRINT_STAGE;
+		return STAGE_PROPERTY_PREFIX;
 	}
 
 	/**

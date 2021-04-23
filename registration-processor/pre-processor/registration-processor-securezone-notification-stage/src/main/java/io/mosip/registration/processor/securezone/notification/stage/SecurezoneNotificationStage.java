@@ -57,7 +57,7 @@ import org.springframework.stereotype.Component;
 })
 public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
 	
-	private static final String MOSIP_REGPROC_SECURE_ZONE = "mosip.regproc.securezone.notification.";
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.securezone.notification.";
 
     /**
      * The reg proc logger.
@@ -116,7 +116,7 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
     
     @Override
     protected String getPropertyPrefix() {
-    	return MOSIP_REGPROC_SECURE_ZONE;
+    	return STAGE_PROPERTY_PREFIX;
     }
 
     @Override

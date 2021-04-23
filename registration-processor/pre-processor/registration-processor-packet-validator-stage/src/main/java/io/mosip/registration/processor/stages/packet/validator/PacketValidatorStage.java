@@ -36,7 +36,7 @@ import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIMan
 		"io.mosip.registration.processor.core.kernel.beans" })
 public class PacketValidatorStage extends MosipVerticleAPIManager {
 
-	private static final String MOSIP_REGPROC_PACKET_VALIDATOR = "mosip.regproc.packet.validator.";
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.packet.validator.";
 
 	/** Paacket validate Processor */
 	@Autowired
@@ -91,7 +91,7 @@ public class PacketValidatorStage extends MosipVerticleAPIManager {
 
 	@Override
 	protected String getPropertyPrefix() {
-		return MOSIP_REGPROC_PACKET_VALIDATOR;
+		return STAGE_PROPERTY_PREFIX;
 	}
 
 }
