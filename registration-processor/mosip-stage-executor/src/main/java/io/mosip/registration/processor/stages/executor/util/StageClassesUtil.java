@@ -32,7 +32,7 @@ public class StageClassesUtil {
 	private static final Logger regProcLogger = LoggerFactory.getLogger(StageClassesUtil.class);
 	
 	/** The Constant PROP_STAGE_GROUPS_STAGE_BEANS_BASE_PACKAGES_PREFIX. */
-	private static final String PROP_STAGE_GROUPS_STAGE_BEANS_BASE_PACKAGES_PREFIX = "mosip.regproc.stage-groups.stage-beans-base-packages.";
+	private static final String PROP_STAGE_GROUPS_STAGE_BEANS_BASE_PACKAGES_PREFIX = "mosip.regproc.mosip-stage-executor.stage-beans-base-packages.";
 
 	private static final String PROP_DEFAULT_STAGE_GROUP_STAGE_BEANS_BASE_PACKAGE = PROP_STAGE_GROUPS_STAGE_BEANS_BASE_PACKAGES_PREFIX + DEFAULT_STAGE_GROUP_NAME;
 
