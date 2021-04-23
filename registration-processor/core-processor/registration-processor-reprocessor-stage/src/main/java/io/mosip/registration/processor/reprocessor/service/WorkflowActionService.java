@@ -1,7 +1,6 @@
 package io.mosip.registration.processor.reprocessor.service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -444,8 +443,6 @@ public class WorkflowActionService {
 				deleteTags.add(resumeRemoveTagsArray[0].trim());
 			}
 		}
-
-		deleteTags.addAll(Arrays.asList(resumeRemoveTagsArray));
 		regProcLogger.debug("removeHotlistedTag called for workflowId and hotListedTags {} {}",
 				internalRegistrationStatusDto.getRegistrationId(), deleteTags.toString());
 		packetManagerService.deleteTags(internalRegistrationStatusDto.getRegistrationId(), deleteTags);

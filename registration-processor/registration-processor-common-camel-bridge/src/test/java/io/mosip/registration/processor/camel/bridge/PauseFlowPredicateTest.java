@@ -61,7 +61,7 @@ public class PauseFlowPredicateTest {
 		Setting[] settings = null;
 		try {
 			settings = objectMapper.readValue(
-					"[{\"matchExpression\": \"$.tags[?(@['HOTLISTED'] == 'operator')]\",\"pauseFor\": 432000,\"defaultResumeAction\": \"STOP_PROCESSING\",\"fromAddress\": \"bio-debup-bus-out\",\"resumeRemoveTags\": \"HOTLISTED\"},{\"matchExpression\": \"$.tags[?(@['AGE_GROUP']== 'CHILD' && @['ID_OBJECT-residenceStatus'] == 'nonResident')]\",\"pauseFor\": 432000,\"defaultResumeAction\": \"StopProcessing\",\"fromAddress\": \"bio-debup-bus-out\",\"resumeRemoveTags\": \"\"}]",
+					"[{\"matchExpression\": \"$.tags[?(@['HOTLISTED'] == 'operator')]\",\"pauseFor\": 432000,\"defaultResumeAction\": \"STOP_PROCESSING\",\"fromAddress\": \"bio-debup-bus-out\",\"resumeRemoveTags\": \"HOTLISTED\"},{\"matchExpression\": \"$.tags[?(@['AGE_GROUP']== 'CHILD' && @['ID_OBJECT-residenceStatus'] == 'nonResident')]\",\"pauseFor\": 432000,\"defaultResumeAction\": \"STOP_PROCESSING\",\"fromAddress\": \"bio-debup-bus-out\",\"resumeRemoveTags\": \"\"}]",
 					Setting[].class);
 		} catch (IOException e) {
 			LOGGER.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
