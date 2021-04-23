@@ -61,7 +61,7 @@ public class StagesConfig {
 	private Environment environment;
 	
 	@SuppressWarnings("unchecked")
-	public Map<String, Object> getConfigurationProeperties() {
+	private Map<String, Object> getConfigurationProperties() {
 		try {
 			Vertx vertx = Vertx.vertx();
 			List<ConfigStoreOptions> configStores = new ArrayList<>();
@@ -141,7 +141,7 @@ public class StagesConfig {
 	}
 	
 	public MutablePropertySources getCloudPropertySources() {
-		Map<String, Object> cloudConfigMap = getConfigurationProeperties();
+		Map<String, Object> cloudConfigMap = getConfigurationProperties();
 		org.springframework.core.env.PropertySource<?> propertySource = new MapPropertySource("cloudConfig", cloudConfigMap);
 		MutablePropertySources propertySources = new MutablePropertySources();
 		propertySources.addLast(propertySource);
