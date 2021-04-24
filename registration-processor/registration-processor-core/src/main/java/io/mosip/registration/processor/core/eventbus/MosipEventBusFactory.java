@@ -1,13 +1,13 @@
 package io.mosip.registration.processor.core.eventbus;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import brave.Tracing;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.exception.UnsupportedEventBusTypeException;
 import io.mosip.registration.processor.core.tracing.EventTracingHandler;
+import io.mosip.registration.processor.core.util.PropertiesUtil;
 import io.vertx.core.Vertx;
 
 /**
@@ -32,7 +32,7 @@ public class MosipEventBusFactory {
     private Tracing tracing;
     
     @Autowired
-    private Environment environment;
+    private PropertiesUtil propertiesUtil;
 
     /**
      * Instantiate and return event bus of a particular type
@@ -71,22 +71,22 @@ public class MosipEventBusFactory {
     }
     
     public String getKafkaBootstrapServers() {
-		return environment.getProperty(MOSIP_REGPROC_EVENTBUS_KAFKA_BOOTSTRAP_SERVERS);
+		return propertiesUtil.getProperty(MOSIP_REGPROC_EVENTBUS_KAFKA_BOOTSTRAP_SERVERS);
 	}
     
     public String getKafkaCommitType(String propertyPrefix) {
-		return environment.getProperty(propertyPrefix + EVENTBUS_KAFKA_COMMIT_TYPE);
+		return propertiesUtil.getProperty(propertyPrefix + EVENTBUS_KAFKA_COMMIT_TYPE);
 	}
     
     public String getKafkaGroupId(String propertyPrefix) {
-		return environment.getProperty(propertyPrefix + EVENTBUS_KAFKA_GROUP_ID);
+		return propertiesUtil.getProperty(propertyPrefix + EVENTBUS_KAFKA_GROUP_ID);
 	}
     
     public String getMaxPollRecords(String propertyPrefix) {
-		return environment.getProperty(propertyPrefix + EVENTBUS_KAFKA_MAX_POLL_RECORDS);
+		return propertiesUtil.getProperty(propertyPrefix + EVENTBUS_KAFKA_MAX_POLL_RECORDS);
 	}
     
 	public int getPollFrequency(String propertyPrefix) {
-		return environment.getProperty(propertyPrefix + EVENTBUS_KAFKA_POLL_FREQUENCY, Integer.class, 0);
+		return propertiesUtil.getProperty(propertyPrefix + EVENTBUS_KAFKA_POLL_FREQUENCY, Integer.class, 0);
 	}
 }
