@@ -6,6 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import io.mosip.kernel.core.exception.BaseUncheckedException;
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.registration.processor.core.abstractverticle.MosipVerticleManager;
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 
 /**
  * The Class PropertiesUtil - used to get properties from environment and throw
@@ -14,6 +17,8 @@ import io.mosip.kernel.core.exception.BaseUncheckedException;
  * @author Loganathan Sekar
  */
 public class PropertiesUtil {
+	
+	private Logger logger = RegProcessorLogger.getLogger(PropertiesUtil.class);
 
 	/** The environment. */
 	@Autowired
@@ -98,6 +103,7 @@ public class PropertiesUtil {
 	 */
 	private <T> T handlPropValue(String propKey, T propValue) {
 		if(Objects.isNull(propValue)) {
+			logger.error("{} - property is missing.", propKey);
 			throw new BaseUncheckedException(String.format("%s - property is missing.", propKey));
 		} else {
 			return propValue;
