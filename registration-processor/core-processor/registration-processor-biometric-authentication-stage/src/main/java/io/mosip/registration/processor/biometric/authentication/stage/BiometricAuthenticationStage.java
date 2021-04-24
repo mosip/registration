@@ -74,8 +74,7 @@ import java.util.stream.Collectors;
 		"io.mosip.kernel.packetmanager.config"})
 public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(BiometricAuthenticationStage.class);
-	private static final String FILE_NOT_PRESENT_ERROR = "KER-PUT-007";
-	private static final String MOSIP_REGPROC_BIOMETRIC_AUTHENTICATION = "mosip.regproc.biometric.authentication.";
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.biometric.authentication.";
 	@Autowired
 	AuditLogRequestBuilder auditLogRequestBuilder;
 
@@ -136,7 +135,7 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 	
 	@Override
 	protected String getPropertyPrefix() {
-		return MOSIP_REGPROC_BIOMETRIC_AUTHENTICATION;
+		return STAGE_PROPERTY_PREFIX;
 	}
 
 

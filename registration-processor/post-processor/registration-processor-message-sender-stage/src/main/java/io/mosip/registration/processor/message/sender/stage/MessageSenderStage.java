@@ -100,7 +100,7 @@ import io.mosip.registration.processor.status.service.TransactionService;
 		"io.mosip.registration.processor.core.kernel.beans" })
 public class MessageSenderStage extends MosipVerticleAPIManager {
 	
-	private static final String MOSIP_REGPROC_MESSAGE_SENDER = "mosip.regproc.message.sender.";
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.message.sender.";
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(MessageSenderStage.class);
@@ -175,7 +175,7 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 	
 	@Override
 	protected String getPropertyPrefix() {
-		return MOSIP_REGPROC_MESSAGE_SENDER;
+		return STAGE_PROPERTY_PREFIX;
 	}
 	
 	/**

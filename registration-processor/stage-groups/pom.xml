@@ -16,13 +16,13 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<modules>
-		<module>group-1</module>
-		<module>group-2</module>
-		<module>group-3</module>
-		<module>group-4</module>
-		<module>group-5</module>
-		<module>group-6</module>
-		<module>group-7</module>
+		<module>registration-processor-stage-group-1</module>
+		<module>registration-processor-stage-group-2</module>
+		<module>registration-processor-stage-group-3</module>
+		<module>registration-processor-stage-group-4</module>
+		<module>registration-processor-stage-group-5</module>
+		<module>registration-processor-stage-group-6</module>
+		<module>registration-processor-stage-group-7</module>
     </modules>
     <dependencies>
 		<dependency>

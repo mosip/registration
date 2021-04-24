@@ -52,16 +52,6 @@ public class PacketReceiverConfig {
 	}
 
 	/**
-	 * PacketReceiverStage bean.
-	 *
-	 * @return the packet receiver stage
-	 */
-//	@Bean
-	// public PacketReceiverStage getPacketReceiverStage() {
-	// return new PacketReceiverStage();
-	// }
-
-	/**
 	 * GlobalExceptionHandler bean.
 	 *
 	 * @return the global exception handler

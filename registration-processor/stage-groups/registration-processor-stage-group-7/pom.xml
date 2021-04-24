@@ -8,7 +8,7 @@
 		<version>1.2.0-SNAPSHOT</version>
 	</parent>
 	
-	<artifactId>group-4</artifactId>
+	<artifactId>registration-processor-stage-group-7</artifactId>
     <version>1.2.0-SNAPSHOT</version>
 
 	<properties>
@@ -27,15 +27,14 @@
 		<!-- Stages -->
 		<dependency>
 			<groupId>io.mosip.registrationprocessor</groupId>
-			<artifactId>registration-processor-bio-dedupe-stage</artifactId>
+			<artifactId>registration-processor-uin-generator-stage</artifactId>
 			<version>1.2.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.registrationprocessor</groupId>
-			<artifactId>registration-processor-demo-dedupe-stage</artifactId>
+			<artifactId>registration-processor-printing-stage</artifactId>
 			<version>1.2.0-SNAPSHOT</version>
 		</dependency>
-				
 		<!--  -->
 		
 	</dependencies>

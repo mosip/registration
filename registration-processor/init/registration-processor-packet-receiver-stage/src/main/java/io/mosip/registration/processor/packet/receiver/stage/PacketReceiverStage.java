@@ -54,7 +54,7 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(PacketReceiverStage.class);
 
-	private static final String MOSIP_REGPROC_PACKET_RECEIVER = "mosip.regproc.packet.receiver.";
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.packet.receiver.";
 
 	/** vertx Cluster Manager Url. */
 	@Value("${vertx.cluster.configuration}")
@@ -257,7 +257,7 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 
 	@Override
 	protected String getPropertyPrefix() {
-		return MOSIP_REGPROC_PACKET_RECEIVER;
+		return STAGE_PROPERTY_PREFIX;
 	}
 
 	/**

@@ -104,7 +104,7 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 		"io.mosip.kernel.packetmanager.config"})
 public class AbisHandlerStage extends MosipVerticleAPIManager {
 	
-	private static final String MOSIP_REGPROC_ABIS_HANDLER="mosip.regproc.abis.handler.";
+	private static final String STAGE_PROPERTY_PREFIX="mosip.regproc.abis.handler.";
 
 	/** The cluster manager url. */
 	@Value("${vertx.cluster.configuration}")
@@ -190,7 +190,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	
 	@Override
 	protected String getPropertyPrefix() {
-		return MOSIP_REGPROC_ABIS_HANDLER;
+		return STAGE_PROPERTY_PREFIX;
 	}
 
 	/*

@@ -34,7 +34,7 @@ import io.mosip.registration.processor.core.abstractverticle.MosipVerticleManage
 		"io.mosip.kernel.packetmanager.config"})
 public class BioDedupeStage extends MosipVerticleAPIManager {
 
-	private static final String MOSIP_REGPROC_BIO_DEDUPE = "mosip.regproc.bio.dedupe.";
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.bio.dedupe.";
 	
 	/** The cluster manager url. */
 	@Value("${vertx.cluster.configuration}")
@@ -74,7 +74,7 @@ public class BioDedupeStage extends MosipVerticleAPIManager {
 	
 	@Override
 	protected String getPropertyPrefix() {
-		return MOSIP_REGPROC_BIO_DEDUPE;
+		return STAGE_PROPERTY_PREFIX;
 	}
 
 	/*

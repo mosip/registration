@@ -16,11 +16,6 @@ import io.mosip.registration.processor.stages.packetclassifier.PacketClassificat
 @RefreshScope
 public class PacketClassifierConfig {
 
-//	@Bean
-//	public PacketClassifierStage getPacketClassifierStage() {
-//		return new PacketClassifierStage();
-//	}
-
 	@Bean
 	public PacketClassificationProcessor getPacketClassificationProcessor() {
 		return new PacketClassificationProcessor();

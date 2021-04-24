@@ -35,7 +35,7 @@ import io.mosip.registration.processor.packet.uploader.service.PacketUploaderSer
 		"io.mosip.registration.processor.core.kernel.beans" })
 public class PacketUploaderStage extends MosipVerticleAPIManager {
 	
-	private static final String MOSIP_REGPROC_PACKET_UPLOADER = "mosip.regproc.packet.uploader.";
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.packet.uploader.";
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(PacketUploaderStage.class);
@@ -67,7 +67,7 @@ public class PacketUploaderStage extends MosipVerticleAPIManager {
 	
 	@Override
 	protected String getPropertyPrefix() {
-		return MOSIP_REGPROC_PACKET_UPLOADER;
+		return STAGE_PROPERTY_PREFIX;
 	}
 
 	/**

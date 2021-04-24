@@ -62,7 +62,7 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 		"io.mosip.registration.processor.stages.osivalidator" })
 public class OSIValidatorStage extends MosipVerticleAPIManager {
 	
-	private static final String MOSIP_REGPROC_PACKET_VALIDATOR = "mosip.regproc.osi.validator.";
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.osi.validator.";
 
 	/** The Constant USER. */
 	private static final String USER = "MOSIP_SYSTEM";
@@ -121,7 +121,7 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 	
 	@Override
 	protected String getPropertyPrefix() {
-		return MOSIP_REGPROC_PACKET_VALIDATOR;
+		return STAGE_PROPERTY_PREFIX;
 	}
 
 	@Override

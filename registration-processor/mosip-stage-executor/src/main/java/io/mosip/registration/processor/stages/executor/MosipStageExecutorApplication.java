@@ -30,7 +30,7 @@ public class MosipStageExecutorApplication {
 	 * @param args the arguments
 	 */
 	public static void main(String[] args) {
-		regProcLogger.info("Starting mosip-stage-executor>>>>>>>>>>>>>>");
+		regProcLogger.info("Starting mosip-stage-executor...");
 		//This context is closed after deploying the stages
 		try (AnnotationConfigApplicationContext stageInfoApplicationContext = new AnnotationConfigApplicationContext(
 				new Class<?>[] { StagesConfig.class });) {
@@ -39,42 +39,40 @@ public class MosipStageExecutorApplication {
 			
 			List<String> stageBeansBasePackages = StageClassesUtil.getStageBeansBasePackages(stagesConfig, propertySources);
 			
-			regProcLogger.info(">>>> Base packages for stage beans from configuration: {}", stageBeansBasePackages);
+			regProcLogger.info("Base packages for stage beans from configuration: {}", stageBeansBasePackages);
 			
 			List<Class<MosipVerticleAPIManager>> stageClasses = StageClassesUtil.getStageBeanClasses(stageBeansBasePackages);
 			
-			regProcLogger.info(">>>> Stage classes identified: {}", stageClasses.stream().map(Class::getCanonicalName).collect(Collectors.joining(", ")));
+			regProcLogger.info("Stage classes identified: {}", stageClasses.stream().map(Class::getCanonicalName).collect(Collectors.joining(", ")));
 
 			Class<?>[] entrypointConfigClasses = Stream.concat(Stream.of(StagesConfig.class), stageClasses.stream())
 					.toArray(size -> new Class<?>[size]);
 
-			try {
-				//This context should not be closed and to be kept for consumption by the verticles
-				AnnotationConfigApplicationContext mainApplicationContext = new PropertySourcesCustomizingApplicationContext(
-						entrypointConfigClasses) {
-							@Override
-							public MutablePropertySources getPropertySources() {
-								return propertySources;
-							};
+			//This context should not be closed and to be kept for consumption by the verticles
+			AnnotationConfigApplicationContext mainApplicationContext = new PropertySourcesCustomizingApplicationContext(
+					entrypointConfigClasses) {
+						@Override
+						public MutablePropertySources getPropertySources() {
+							return propertySources;
 						};
-				
-				if (!stageClasses.isEmpty()) {
-					ExecutorService executorService = Executors.newFixedThreadPool(stageClasses.size());
-					stageClasses.forEach(stageClass -> executorService.execute(() -> {
-						try {
-							regProcLogger.info("Executing Stage: {}", stageClass.getCanonicalName());
-							MosipVerticleAPIManager stageBean = StageClassesUtil.getStageBean(mainApplicationContext, stageClass);
-							stageBean.deployVerticle();
-						} catch (Exception e) {
-							regProcLogger.error("Exception occured while loading verticles. Please make sure correct verticle name was passed from deployment script. \n {}",
-									ExceptionUtils.getStackTrace(e));
-						}
-					}));
-					executorService.shutdown();
-				}
-			} finally {
+					};
+			
+			if (!stageClasses.isEmpty()) {
+				ExecutorService executorService = Executors.newFixedThreadPool(stageClasses.size());
+				stageClasses.forEach(stageClass -> executorService.execute(() -> {
+					try {
+						regProcLogger.info("Executing Stage: {}", stageClass.getCanonicalName());
+						MosipVerticleAPIManager stageBean = StageClassesUtil.getStageBean(mainApplicationContext, stageClass);
+						stageBean.deployVerticle();
+					} catch (Exception e) {
+						regProcLogger.error("Exception occured while loading verticles. Please make sure correct verticle name was passed from deployment script. \n {}",
+								ExceptionUtils.getStackTrace(e));
+					}
+				}));
+				executorService.shutdown();
+			} else {
+				regProcLogger.error("No stage class is found. Please make sure correct correct stage class base packages are specified in properties and stages are added to classpath/dependencies.");
 			}
 		}
-
 	}
 }
