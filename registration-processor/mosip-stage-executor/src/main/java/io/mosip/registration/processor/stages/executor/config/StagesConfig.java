@@ -61,7 +61,7 @@ public class StagesConfig {
 	private Environment environment;
 	
 	@SuppressWarnings("unchecked")
-	public Map<String, Object> getConfigurationProeperties() {
+	private Map<String, Object> getConfigurationProperties() {
 		try {
 			Vertx vertx = Vertx.vertx();
 			List<ConfigStoreOptions> configStores = new ArrayList<>();
@@ -81,7 +81,7 @@ public class StagesConfig {
 			ConfigRetrieverOptions configRetrieverOptions = new ConfigRetrieverOptions();
 			configStores.forEach(configRetrieverOptions::addStore);
 			ConfigRetriever retriever = ConfigRetriever.create(vertx, configRetrieverOptions.setScanPeriod(0));
-			regProcLogger.info(this.getClass().getName(), "", "", "Getting values from config Server");
+			regProcLogger.info("Getting values from config Server");
 			CompletableFuture<JsonObject> configLoader = new CompletableFuture<JsonObject>();
 			retriever.getConfig(json -> {
 				if (json.succeeded()) {
@@ -95,7 +95,7 @@ public class StagesConfig {
 					retriever.close();
 					vertx.close();
 				} else {
-					regProcLogger.info(this.getClass().getName(), "", json.cause().getLocalizedMessage(),
+					regProcLogger.info("{} \n {}", json.cause().getLocalizedMessage(),
 							json.cause().getMessage());
 					json.otherwiseEmpty();
 					retriever.close();
@@ -104,7 +104,7 @@ public class StagesConfig {
 			});
 			return (Map<String,Object>)configLoader.get().mapTo(Map.class);
 		} catch (Exception e1) {
-			regProcLogger.error(this.getClass().getName(), "", "", ExceptionUtils.getStackTrace(e1));
+			regProcLogger.error(ExceptionUtils.getStackTrace(e1));
 			throw new RuntimeException("Could not load config", e1);
 		}
 	}
@@ -141,7 +141,7 @@ public class StagesConfig {
 	}
 	
 	public MutablePropertySources getCloudPropertySources() {
-		Map<String, Object> cloudConfigMap = getConfigurationProeperties();
+		Map<String, Object> cloudConfigMap = getConfigurationProperties();
 		org.springframework.core.env.PropertySource<?> propertySource = new MapPropertySource("cloudConfig", cloudConfigMap);
 		MutablePropertySources propertySources = new MutablePropertySources();
 		propertySources.addLast(propertySource);

@@ -76,7 +76,7 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 		"io.mosip.registration.processor.core.kernel.beans" })
 public class QualityCheckerStage extends MosipVerticleAPIManager {
 	
-	private static final String MOSIP_REGPROC_QUALITY_CHECKER = "mosip.regproc.quality.checker.";
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.quality.checker.";
 
 	/** The Constant FINGER. */
 	private static final String FINGER = "FINGER";
@@ -188,7 +188,7 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 	
 	@Override
 	protected String getPropertyPrefix() {
-		return MOSIP_REGPROC_QUALITY_CHECKER;
+		return STAGE_PROPERTY_PREFIX;
 	}
 
 	@Override

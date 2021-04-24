@@ -69,7 +69,7 @@ import java.util.LinkedHashMap;
 		"io.mosip.registration.processor.manual.verification.validators"})
 public class ManualVerificationStage extends MosipVerticleAPIManager {
 
-	private static final String MOSIP_REGPROC_MANUAL_VERIFICATION = "mosip.regproc.manual.verification.";
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.manual.verification.";
 
 	@Autowired
 	private ManualVerificationService manualAdjudicationService;
@@ -192,7 +192,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 
 	@Override
 	protected String getPropertyPrefix() {
-		return MOSIP_REGPROC_MANUAL_VERIFICATION;
+		return STAGE_PROPERTY_PREFIX;
 	}
 
 	public void sendMessage(MessageDTO messageDTO) {

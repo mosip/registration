@@ -10,37 +10,36 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.packet.dto.packetmanager.InfoRequestDto;
-import io.mosip.registration.processor.core.packet.dto.packetmanager.InfoResponseDto;
-
-import org.slf4j.MDC;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.UrlXmlConfig;
 
+import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.constant.HealthConstant;
 import io.mosip.registration.processor.core.eventbus.MosipEventBusFactory;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.DeploymentFailureException;
 import io.mosip.registration.processor.core.exception.MessageExpiredException;
-import io.mosip.registration.processor.core.exception.UnsupportedEventBusTypeException;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.core.exception.UnsupportedEventBusTypeException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.http.RequestWrapper;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.packet.dto.packetmanager.InfoRequestDto;
+import io.mosip.registration.processor.core.packet.dto.packetmanager.InfoResponseDto;
 import io.mosip.registration.processor.core.spi.eventbus.EventBusManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
+import io.mosip.registration.processor.core.util.PropertiesUtil;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Verticle;
@@ -82,7 +81,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	private String eventBusType;
 
 	@Autowired
-	protected Environment environment;
+	protected PropertiesUtil propertiesUtil;
 
 	@Value("${mosip.regproc.message.tag.loading.disable:false}")
 	private Boolean disableTagLoading;
@@ -228,15 +227,23 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	}
 
 	public Integer getEventBusPort() {
-		return environment.getProperty(getPropertyPrefix() + "eventbus.port", Integer.class);
+		return getIntegerProperty("eventbus.port");
 	}
 
 	public Integer getPort() {
-		return environment.getProperty(getPropertyPrefix() + "server.port", Integer.class);
+		return getIntegerProperty("server.port");
+	}
+
+	protected Integer getIntegerProperty(String propSuffix) {
+		return propertiesUtil.getIntegerProperty(getPropertyPrefix(), propSuffix);
+	}
+
+	protected String getProperty(String propSuffix) {
+		return propertiesUtil.getProperty(getPropertyPrefix(), propSuffix);
 	}
 
 	protected String getServletPath() {
-		return environment.getProperty(getPropertyPrefix() + HealthConstant.SERVLET_PATH);
+		return getProperty(HealthConstant.SERVLET_PATH);
 	}
 
 	public String getEventBusType() {

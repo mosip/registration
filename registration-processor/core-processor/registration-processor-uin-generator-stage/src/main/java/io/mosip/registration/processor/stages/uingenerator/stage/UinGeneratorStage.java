@@ -115,7 +115,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(UinGeneratorStage.class);
 	private static final String RECORD_ALREADY_EXISTS_ERROR = "IDR-IDC-012";
-	private static final String MOSIP_REGPROC_UIN_GENERATOR = "mosip.regproc.uin.generator.";
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.uin.generator.";
 
 	@Autowired
 	private Environment env;
@@ -1079,7 +1079,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	
 	@Override
 	protected String getPropertyPrefix() {
-		return MOSIP_REGPROC_UIN_GENERATOR;
+		return STAGE_PROPERTY_PREFIX;
 	}
 
 	@SuppressWarnings("unchecked")

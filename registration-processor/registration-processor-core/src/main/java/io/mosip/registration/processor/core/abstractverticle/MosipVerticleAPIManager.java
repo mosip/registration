@@ -1,8 +1,5 @@
 package io.mosip.registration.processor.core.abstractverticle;
 
-import brave.Tracing;
-import io.mosip.registration.processor.core.tracing.VertxWebTracingLocal;
-import io.vertx.core.Handler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -12,8 +9,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import brave.Tracing;
 import io.mosip.registration.processor.core.constant.HealthConstant;
+import io.mosip.registration.processor.core.tracing.VertxWebTracingLocal;
 import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
@@ -38,6 +38,9 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 
 	@Autowired
 	private Tracing tracing;
+	
+	@Autowired
+	private Environment environment;
 
 	/**
 	 * This method creates a body handler for the routes

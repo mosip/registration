@@ -94,7 +94,7 @@ import io.mosip.registration.processor.status.utilities.RegistrationUtility;
 		"io.mosip.registartion.processor.abis.middleware.validators"})
 public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(AbisMiddleWareStage.class);
-	private static final String MOSIP_REGPROC_ABIS_MIDDLEWARE = "mosip.regproc.abis.middleware.";
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.abis.middleware.";
 
 	/** The mosip queue manager. */
 	@Autowired
@@ -207,7 +207,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 	
 	@Override
 	protected String getPropertyPrefix() {
-		return MOSIP_REGPROC_ABIS_MIDDLEWARE;
+		return STAGE_PROPERTY_PREFIX;
 	}
 
 

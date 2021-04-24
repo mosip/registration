@@ -32,13 +32,9 @@ public class StageClassesUtil {
 	private static final Logger regProcLogger = LoggerFactory.getLogger(StageClassesUtil.class);
 	
 	/** The Constant PROP_STAGE_GROUPS_STAGE_BEANS_BASE_PACKAGES_PREFIX. */
-	private static final String PROP_STAGE_GROUPS_STAGE_BEANS_BASE_PACKAGES_PREFIX = "mosip.regproc.stage-groups.stage-beans-base-packages.";
+	private static final String PROP_STAGE_GROUPS_STAGE_BEANS_BASE_PACKAGES_PREFIX = "mosip.regproc.mosip-stage-executor.stage-beans-base-packages.";
 
 	private static final String PROP_DEFAULT_STAGE_GROUP_STAGE_BEANS_BASE_PACKAGE = PROP_STAGE_GROUPS_STAGE_BEANS_BASE_PACKAGES_PREFIX + DEFAULT_STAGE_GROUP_NAME;
-
-	/** The Constant DEFAULT_STAGES_BASE_PACKAGES. */
-	private static final String DEFAULT_STAGES_BASE_PACKAGES = "io.mosip.registration.processor,io.mosip.registrationprocessor";
-
 
 	/**
 	 * Gets the stage bean classes.
@@ -86,8 +82,7 @@ public class StageClassesUtil {
 	public static List<String> getStageBeansBasePackages(StagesConfig stagesConfig, MutablePropertySources propertySources) {
 		String stageBeansBasePkgsPropertyName= PROP_STAGE_GROUPS_STAGE_BEANS_BASE_PACKAGES_PREFIX + stagesConfig.getStageGroupName();
 		PropertySourcesPropertyResolver propertySourcesPropertyResolver = new PropertySourcesPropertyResolver(propertySources);
-		String defaultStageBeanBasePkgStr = propertySourcesPropertyResolver.getProperty(PROP_DEFAULT_STAGE_GROUP_STAGE_BEANS_BASE_PACKAGE, 
-				DEFAULT_STAGES_BASE_PACKAGES);
+		String defaultStageBeanBasePkgStr = propertySourcesPropertyResolver.getProperty(PROP_DEFAULT_STAGE_GROUP_STAGE_BEANS_BASE_PACKAGE);
 		String stageBeanBasePkgsStr = propertySourcesPropertyResolver.getProperty(
 				stageBeansBasePkgsPropertyName, defaultStageBeanBasePkgStr);
 		
@@ -127,7 +122,7 @@ public class StageClassesUtil {
 		try {
 			Object bean = mainApplicationContext.getBean(stageBeanClass);
 			MosipVerticleAPIManager stageBean = (MosipVerticleAPIManager) bean;
-			regProcLogger.info("Successfully loaded Bean : " + stageBeanClass.getCanonicalName());
+			regProcLogger.info("Successfully loaded Bean : {}", stageBeanClass.getCanonicalName());
 			return stageBean;
 		} catch (BeansException e) {
 			throw e;

@@ -33,7 +33,7 @@ import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIMan
 		"io.mosip.registration.processor.stages.packetclassifier.tagging.impl" })
 public class PacketClassifierStage extends MosipVerticleAPIManager {
 
-	private static final String MOSIP_REGPROC_PACKET_CLASSIFIER = "mosip.regproc.packet.classifier.";
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.packet.classifier.";
 
 	/** Packet Classification Processor which holds the business logic of packet classification */
 	@Autowired
@@ -92,7 +92,7 @@ public class PacketClassifierStage extends MosipVerticleAPIManager {
 	
 	@Override
 	protected String getPropertyPrefix() {
-		return MOSIP_REGPROC_PACKET_CLASSIFIER;
+		return STAGE_PROPERTY_PREFIX;
 	}
 
 }
