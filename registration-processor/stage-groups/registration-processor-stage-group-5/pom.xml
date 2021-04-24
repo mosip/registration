@@ -8,7 +8,7 @@
 		<version>1.2.0-SNAPSHOT</version>
 	</parent>
 	
-	<artifactId>group-1</artifactId>
+	<artifactId>registration-processor-stage-group-5</artifactId>
     <version>1.2.0-SNAPSHOT</version>
 
 	<properties>
@@ -27,10 +27,15 @@
 		<!-- Stages -->
 		<dependency>
 			<groupId>io.mosip.registrationprocessor</groupId>
-			<artifactId>registration-processor-packet-receiver-stage</artifactId>
+			<artifactId>registration-processor-osi-validator-stage</artifactId>
 			<version>1.2.0-SNAPSHOT</version>
 		</dependency>
-		
+		<dependency>
+			<groupId>io.mosip.registrationprocessor</groupId>
+			<artifactId>registration-processor-packet-validator-stage</artifactId>
+			<version>1.2.0-SNAPSHOT</version>
+		</dependency>
+				
 		<!--  -->
 		
 	</dependencies>
