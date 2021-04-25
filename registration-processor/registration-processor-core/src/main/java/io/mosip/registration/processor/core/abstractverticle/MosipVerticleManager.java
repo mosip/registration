@@ -310,8 +310,6 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 		}
 	}
 
-	protected String getPropertyPrefix() {
-		return EMPTY_STRING;
-	}
+	protected abstract String getPropertyPrefix();
 
 }

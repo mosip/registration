@@ -48,6 +48,8 @@ public class MosipBridgeFactory extends MosipVerticleAPIManager {
 	
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(MosipBridgeFactory.class);
+	
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.camel.bridge.";
 
 	@Value("${mosip.regproc.eventbus.type:vertx}")
 	private String eventBusType;
@@ -172,5 +174,10 @@ public class MosipBridgeFactory extends MosipVerticleAPIManager {
 	public MessageDTO process(MessageDTO object) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+	
+	@Override
+	protected String getPropertyPrefix() {
+		return STAGE_PROPERTY_PREFIX;
 	}
 }
