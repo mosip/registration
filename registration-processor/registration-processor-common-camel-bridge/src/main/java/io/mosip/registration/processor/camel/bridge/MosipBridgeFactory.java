@@ -61,10 +61,6 @@ public class MosipBridgeFactory extends MosipVerticleAPIManager {
 	@Value("${vertx.cluster.configuration}")
 	private String clusterManagerUrl;
 	
-	/** server port number. */
-	@Value("${server.port}")
-	private String port;
-
 	/** The mosip event bus. */
 	MosipEventBus mosipEventBus = null;
 	
@@ -117,7 +113,7 @@ public class MosipBridgeFactory extends MosipVerticleAPIManager {
 		
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				"router set  ", "router.setRoute()");
-		this.createServer(router.getRouter(), Integer.parseInt(port));
+		this.createServer(router.getRouter(), getPort());
 		    String[] beanNames=applicationContext.getBeanDefinitionNames();
 		    if (beanNames != null) {
 		      Map<String,String> enviroment= new HashMap<>();
