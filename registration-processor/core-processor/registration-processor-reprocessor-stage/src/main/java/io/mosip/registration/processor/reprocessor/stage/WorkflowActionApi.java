@@ -289,4 +289,8 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 				moduleId, MODULE_NAME, registrationId, user);
 	}
 
+	@Override
+	protected String getPropertyPrefix() {
+		return "";
+	}
 }
