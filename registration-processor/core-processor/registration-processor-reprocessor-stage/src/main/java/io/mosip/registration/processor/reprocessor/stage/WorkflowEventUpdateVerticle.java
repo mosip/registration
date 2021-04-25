@@ -185,5 +185,10 @@ public class WorkflowEventUpdateVerticle extends MosipVerticleAPIManager {
 				platformErrorMessages.getMessage(), e.getMessage(), ExceptionUtils.getStackTrace(e));
 
 	}
+	
+	@Override
+	protected String getPropertyPrefix() {
+		return "";
+	}
 
 }

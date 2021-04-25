@@ -225,5 +225,10 @@ public class ExternalStage extends MosipVerticleAPIManager {
 
 		return object;
 	}
+	
+	@Override
+	protected String getPropertyPrefix() {
+		return "";
+	}
 
 }

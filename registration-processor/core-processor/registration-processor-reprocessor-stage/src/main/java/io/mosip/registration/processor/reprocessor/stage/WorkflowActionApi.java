@@ -191,4 +191,9 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 		this.setResponse(routingContext, workflowActionResponseDTO);
 
 	}
+	
+	@Override
+	protected String getPropertyPrefix() {
+		return "";
+	}
 }
