@@ -44,10 +44,6 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 	
 	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.reprocessor.";
 
-	/** The audit log request builder. */
-	@Autowired
-	AuditLogRequestBuilder auditLogRequestBuilder;
-
 	@Value("${vertx.cluster.configuration}")
 	private String clusterManagerUrl;
 
