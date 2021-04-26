@@ -1,5 +1,7 @@
 package io.mosip.registration.processor.status.config;
 
+import io.mosip.registration.processor.status.service.SubWorkflowMappingService;
+import io.mosip.registration.processor.status.service.impl.SubWorkflowMappingServiceImpl;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -119,5 +121,10 @@ public class RegistrationStatusBeanConfig {
 	@Bean
 	public Encryptor encryptor() {
 		return new Encryptor();
+	}
+
+	@Bean
+	public SubWorkflowMappingService subWorkflowMappingService() {
+		return new SubWorkflowMappingServiceImpl();
 	}
 }

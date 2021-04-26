@@ -122,7 +122,7 @@ public class WorkflowEventUpdateVerticleTest {
 		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(null);
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegStatusForMainProcess(anyString())).thenReturn(registrationStatusDto);
 		workflowEventUpdateVerticle.process(workflowEventDto);
 	}
 
@@ -140,7 +140,7 @@ public class WorkflowEventUpdateVerticleTest {
 		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(null);
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
+		Mockito.when(registrationStatusService.getRegStatusForMainProcess(anyString()))
 				.thenThrow(TablenotAccessibleException.class);
 
 		workflowEventUpdateVerticle.process(workflowEventDto);
@@ -160,7 +160,7 @@ public class WorkflowEventUpdateVerticleTest {
 		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(null);
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegStatusForMainProcess(anyString())).thenReturn(registrationStatusDto);
 		workflowEventUpdateVerticle.process(workflowEventDto);
 	}
 
@@ -178,7 +178,7 @@ public class WorkflowEventUpdateVerticleTest {
 		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(null);
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(null);
+		Mockito.when(registrationStatusService.getRegStatusForMainProcess(anyString())).thenReturn(null);
 		workflowEventUpdateVerticle.process(workflowEventDto);
 	}
 }

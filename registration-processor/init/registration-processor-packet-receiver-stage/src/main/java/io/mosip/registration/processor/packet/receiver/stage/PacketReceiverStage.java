@@ -261,9 +261,10 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 	 */
 	private Map<FileUpload,File> getFileFromCtx(RoutingContext ctx) throws IOException {
 		FileUpload fileUpload = ctx.fileUploads().iterator().next();
-		FileUtils.copyFile(FileUtils.getFile(fileUpload.uploadedFileName()),
-				FileUtils.getFile(FileUtils.getFile(fileUpload.uploadedFileName()).getParent() + "/" + fileUpload.fileName()));
-		File file = FileUtils.getFile(FileUtils.getFile(fileUpload.uploadedFileName()).getParent() + "/" + fileUpload.fileName());
+		/*FileUtils.copyFile(FileUtils.getFile(fileUpload.uploadedFileName()),
+				FileUtils.getFile(FileUtils.getFile(fileUpload.uploadedFileName()).getParent() + "/" + fileUpload.fileName()));*/
+		File file = new File("D:\\home\\mosip\\packet-manager\\10001100770000320200921092256-NEW.zip");
+				//FileUtils.getFile(FileUtils.getFile(fileUpload.uploadedFileName()).getParent() + "/" + fileUpload.fileName());
 		Map<FileUpload,File> uploadedFileMap=new HashMap<>();
 		uploadedFileMap.put(fileUpload,file);
 		return uploadedFileMap;

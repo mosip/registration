@@ -94,7 +94,7 @@ public class ExternalStageTest {
 		dto.setMessageBusAddress(MessageBusAddress.EXTERNAL_STAGE_BUS_IN);
 		registrationStatusDto.setRegistrationId("2758415120462");
 		registrationStatusDto.setRetryCount(0);
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.doNothing().when(router).setRoute(any());
 	}
 	@Test

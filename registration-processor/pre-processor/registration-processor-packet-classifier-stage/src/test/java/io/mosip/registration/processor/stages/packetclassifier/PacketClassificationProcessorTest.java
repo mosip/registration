@@ -111,7 +111,7 @@ public class PacketClassificationProcessorTest {
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("123456789");
 
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(),any(),any())).thenReturn(registrationStatusDto);
 		Mockito.when(utility.getRegistrationProcessorMappingJson(anyString())).thenReturn(null);
 
 		RegistrationAdditionalInfoDTO registrationAdditionalInfoDTO = new RegistrationAdditionalInfoDTO();

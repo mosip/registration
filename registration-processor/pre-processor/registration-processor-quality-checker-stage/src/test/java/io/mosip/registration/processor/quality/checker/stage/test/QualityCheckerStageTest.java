@@ -139,7 +139,7 @@ public class QualityCheckerStageTest {
 		ReflectionTestUtils.setField(qualityCheckerStage, "fingerApi", fingerApi);
 		ReflectionTestUtils.setField(qualityCheckerStage, "faceApi", fingerApi);
 		ReflectionTestUtils.setField(qualityCheckerStage, "irisApi", fingerApi);
-		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
 		String idJsonString = "{\n" + "  \"identity\" : {\n" + "    \"fullName\" : [ {\n"
 				+ "      \"language\" : \"eng\",\n" + "      \"value\" : \"Ragavendran V\"\n" + "    }, {\n"
@@ -388,7 +388,7 @@ public class QualityCheckerStageTest {
 
 	@Test
 	public void testQualityCheckfailureException() {
-		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any())).thenReturn(registrationStatusDto);
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
@@ -399,7 +399,7 @@ public class QualityCheckerStageTest {
 
 	@Test
 	public void testFileMissing() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
-		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any())).thenReturn(registrationStatusDto);
 		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(),any(), any(),any())).thenReturn(null);
 
 		MessageDTO dto = new MessageDTO();

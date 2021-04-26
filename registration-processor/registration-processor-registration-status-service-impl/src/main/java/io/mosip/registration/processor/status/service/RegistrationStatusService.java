@@ -33,7 +33,11 @@ public interface RegistrationStatusService<T, U, D> {
 	 *            the enrolment id
 	 * @return the registration status
 	 */
-	public U getRegistrationStatus(T enrolmentId);
+	public U getRegistrationStatus(String regid, String processs, Integer iteration);
+
+	public List<InternalRegistrationStatusDto> getAllRegistrationStatuses(String registrationId);
+
+	public InternalRegistrationStatusDto getRegStatusForMainProcess(String registrationId);
 
 	/**
 	 * Adds the registration status.

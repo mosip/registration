@@ -142,7 +142,7 @@ public class OSIValidatorStageTest {
 
 		dto.setRid("reg1234");
 		registrationStatusDto.setRegistrationId("reg1234");
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any())).thenReturn(registrationStatusDto);
 
 	}
 
@@ -221,7 +221,7 @@ public class OSIValidatorStageTest {
 		regStatusDto.setSubStatusCode(StatusUtil.UIN_RID_NOT_FOUND.getCode());
 		
 		
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(regStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any())).thenReturn(regStatusDto);
 		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenReturn(Boolean.TRUE);
 		Mockito.when(oSIValidator.isValidOSI(anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenThrow(new ParentOnHoldException(StatusUtil.UIN_RID_NOT_FOUND.getCode(),StatusUtil.UIN_RID_NOT_FOUND.getMessage()));
 
@@ -324,7 +324,7 @@ public class OSIValidatorStageTest {
 		regStatusDto.setSubStatusCode(StatusUtil.AUTH_SYSTEM_EXCEPTION.getCode());
 		
 		
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(regStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any())).thenReturn(regStatusDto);
 		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenReturn(Boolean.TRUE);
 		Mockito.when(oSIValidator.isValidOSI(anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenThrow(new AuthSystemException(StatusUtil.AUTH_SYSTEM_EXCEPTION.getMessage()));
 

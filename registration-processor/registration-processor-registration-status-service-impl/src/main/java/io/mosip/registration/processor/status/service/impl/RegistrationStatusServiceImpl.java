@@ -5,8 +5,11 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 
@@ -56,6 +59,9 @@ public class RegistrationStatusServiceImpl
 	@Autowired
 	private RegistrationExternalStatusUtility regexternalstatusUtil;
 
+	@Value("${registration.processor.main-process}")
+	private String mainProcess;
+
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(RegistrationStatusServiceImpl.class);
 
@@ -67,17 +73,66 @@ public class RegistrationStatusServiceImpl
 	 * getRegistrationStatus(java.lang.Object)
 	 */
 	@Override
-	public InternalRegistrationStatusDto getRegistrationStatus(String registrationId) {
+	public InternalRegistrationStatusDto getRegistrationStatus(String registrationId, String process, Integer iteration) {
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationId, "RegistrationStatusServiceImpl::getRegistrationStatus()::entry");
 		try {
-			RegistrationStatusEntity entity = registrationStatusDao.findById(registrationId);
+			RegistrationStatusEntity entity = registrationStatusDao.find(registrationId, process, iteration);
 
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 					registrationId, "RegistrationStatusServiceImpl::getRegistrationStatus()::exit");
 
 			return entity != null ? convertEntityToDto(entity) : null;
+		} catch (DataAccessLayerException e) {
+
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId, e.getMessage() + ExceptionUtils.getStackTrace(e));
+			throw new TablenotAccessibleException(
+					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
+		}
+	}
+
+	@Override
+	public List<InternalRegistrationStatusDto> getAllRegistrationStatuses(String registrationId) {
+
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+				registrationId, "RegistrationStatusServiceImpl::getAllRegistrationStatuses()::entry");
+		List<InternalRegistrationStatusDto> dtos = new ArrayList<>();
+		try {
+			List<RegistrationStatusEntity> entities = registrationStatusDao.findAll(registrationId);
+
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+					registrationId, "RegistrationStatusServiceImpl::getAllRegistrationStatuses()::exit");
+
+			if(entities != null)
+				entities.forEach(e -> dtos.add(convertEntityToDto(e)));;
+			return dtos;
+		} catch (DataAccessLayerException e) {
+
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId, e.getMessage() + ExceptionUtils.getStackTrace(e));
+			throw new TablenotAccessibleException(
+					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
+		}
+	}
+
+	@Override
+	public InternalRegistrationStatusDto getRegStatusForMainProcess(String registrationId) {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+				registrationId, "RegistrationStatusServiceImpl::getRegStatusForMainProcess()::entry");
+		List<InternalRegistrationStatusDto> dtos = new ArrayList<>();
+		try {
+			List<RegistrationStatusEntity> entities = registrationStatusDao.findAll(registrationId);
+
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+					registrationId, "RegistrationStatusServiceImpl::getRegStatusForMainProcess()::exit");
+
+			if(entities != null)
+				entities.forEach(e -> dtos.add(convertEntityToDto(e)));
+			return CollectionUtils.isNotEmpty(dtos) ?
+					dtos.stream().filter(s -> mainProcess.contains(s.getRegistrationType())).collect(Collectors.toList()).iterator().next()
+					: null;
 		} catch (DataAccessLayerException e) {
 
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -159,7 +214,8 @@ public class RegistrationStatusServiceImpl
 		boolean isTransactionSuccessful = false;
 		LogDescription description = new LogDescription();
 		String transactionId = generateId();
-		String latestTransactionId = getLatestTransactionId(registrationStatusDto.getRegistrationId());
+		String latestTransactionId = getLatestTransactionId(registrationStatusDto.getRegistrationId(),
+				registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration());
 		TransactionDto transactionDto = new TransactionDto(transactionId, registrationStatusDto.getRegistrationId(),
 				latestTransactionId, registrationStatusDto.getLatestTransactionTypeCode(),
 				"updated registration status record", registrationStatusDto.getLatestTransactionStatusCode(),
@@ -175,7 +231,8 @@ public class RegistrationStatusServiceImpl
 
 		registrationStatusDto.setLatestRegistrationTransactionId(transactionId);
 		try {
-			InternalRegistrationStatusDto dto = getRegistrationStatus(registrationStatusDto.getRegistrationId());
+			InternalRegistrationStatusDto dto = getRegistrationStatus(registrationStatusDto.getRegistrationId(),
+					registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration());
 			if (dto != null) {
 				dto.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 				RegistrationStatusEntity entity = convertDtoToEntity(registrationStatusDto);
@@ -368,6 +425,8 @@ public class RegistrationStatusServiceImpl
 		registrationStatusDto.setUpdateDateTime(entity.getUpdateDateTime());
 		registrationStatusDto.setResumeTimeStamp(entity.getResumeTimeStamp());
 		registrationStatusDto.setDefaultResumeAction(entity.getDefaultResumeAction());
+		registrationStatusDto.setSource(entity.getSource());
+		registrationStatusDto.setIteration(entity.getIteration());
 		return registrationStatusDto;
 	}
 
@@ -423,8 +482,8 @@ public class RegistrationStatusServiceImpl
 	 *            the registration id
 	 * @return the latest transaction id
 	 */
-	private String getLatestTransactionId(String registrationId) {
-		RegistrationStatusEntity entity = registrationStatusDao.findById(registrationId);
+	private String getLatestTransactionId(String registrationId, String process, int iteration) {
+		RegistrationStatusEntity entity = registrationStatusDao.find(registrationId, process, iteration);
 		return entity != null ? entity.getLatestRegistrationTransactionId() : null;
 
 	}
@@ -612,7 +671,8 @@ public class RegistrationStatusServiceImpl
 		LogDescription description = new LogDescription();
 
 		try {
-			InternalRegistrationStatusDto dto = getRegistrationStatus(registrationStatusDto.getRegistrationId());
+			InternalRegistrationStatusDto dto = getRegistrationStatus(registrationStatusDto.getRegistrationId(),
+					registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration());
 			if (dto != null) {
 				RegistrationStatusEntity entity = convertDtoToEntityForWorkFlow(registrationStatusDto);
 				registrationStatusDao.save(entity);

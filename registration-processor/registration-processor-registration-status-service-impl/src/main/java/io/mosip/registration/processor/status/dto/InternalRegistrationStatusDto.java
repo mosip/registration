@@ -84,6 +84,10 @@ public class InternalRegistrationStatusDto implements Serializable {
 	/** The default resume action. */
 	private String defaultResumeAction;
 
+	private String source;
+
+	private int iteration;
+
 	/**
 	 * Gets the ref id.
 	 *
@@ -558,6 +562,22 @@ public class InternalRegistrationStatusDto implements Serializable {
 	 */
 	public void setDefaultResumeAction(String defaultResumeAction) {
 		this.defaultResumeAction = defaultResumeAction;
+	}
+
+	public String getSource() {
+		return source;
+	}
+
+	public void setSource(String source) {
+		this.source = source;
+	}
+
+	public int getIteration() {
+		return iteration;
+	}
+
+	public void setIteration(int iteration) {
+		this.iteration = iteration;
 	}
 
 	/*

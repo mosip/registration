@@ -186,7 +186,7 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 	@Override
 	public void start() {
 		router.setRoute(
-				this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.OSI_BUS_IN, MessageBusAddress.OSI_BUS_OUT));
+				this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.QUALITY_CHECKER_BUS_IN, MessageBusAddress.QUALITY_CHECKER_BUS_OUT));
 		this.createServer(router.getRouter(), Integer.parseInt(port));
 	}
 
@@ -206,7 +206,7 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
 				"QualityCheckerStage::process()::entry");
 
-		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(regId);
+		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(regId, object.getReg_type().name(), object.getIteration());
 
 		try {
 			String individualBiometricsObject = packetManagerService.getFieldByMappingJsonKey(

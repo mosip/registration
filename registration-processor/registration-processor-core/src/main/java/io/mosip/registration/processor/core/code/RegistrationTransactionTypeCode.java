@@ -42,6 +42,7 @@ public enum RegistrationTransactionTypeCode {
 	/** The biometric Authentication*/
 	BIOMETRIC_AUTHENTICATION,
 	/** The securezone notification stage */
-	SECUREZONE_NOTIFICATION
+	SECUREZONE_NOTIFICATION,
+	CORRECTION
 
 }

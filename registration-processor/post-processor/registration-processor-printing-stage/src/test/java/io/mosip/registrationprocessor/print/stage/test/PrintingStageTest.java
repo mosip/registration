@@ -174,7 +174,7 @@ public class PrintingStageTest {
 
 		ReflectionTestUtils.setField(stage, "port", "8080");
 		ReflectionTestUtils.setField(stage, "encrypt", false);
-		Mockito.when(registrationStatusService.getRegistrationStatus(any(String.class))).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(String.class), any(), any())).thenReturn(registrationStatusDto);
 
 
 

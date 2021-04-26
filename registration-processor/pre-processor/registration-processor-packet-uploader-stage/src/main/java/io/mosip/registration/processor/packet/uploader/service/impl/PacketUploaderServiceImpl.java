@@ -163,7 +163,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
      */
 
     @Override
-    public MessageDTO validateAndUploadPacket(String registrationId, String stageName) {
+    public MessageDTO validateAndUploadPacket(String registrationId, String process, int iteration, String stageName) {
 
         LogDescription description = new LogDescription();
         InternalRegistrationStatusDto dto = new InternalRegistrationStatusDto();
@@ -179,7 +179,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
 
             SyncRegistrationEntity regEntity = syncRegistrationService.findByRegistrationId(registrationId);
             messageDTO.setReg_type(RegistrationType.valueOf(regEntity.getRegistrationType()));
-            dto = registrationStatusService.getRegistrationStatus(registrationId);
+            dto = registrationStatusService.getRegistrationStatus(registrationId, process, iteration);
 
             dto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.UPLOAD_PACKET.toString());
             dto.setRegistrationStageName(stageName);

@@ -204,12 +204,13 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 		String registrationId = object.getRid();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "AbisMiddlewareStage::process()::entry");
-		InternalRegistrationStatusDto internalRegDto = registrationStatusService.getRegistrationStatus(registrationId);
+		InternalRegistrationStatusDto internalRegDto = registrationStatusService.getRegistrationStatus(
+				registrationId, object.getReg_type().name(), object.getIteration());
 		try {
 			List<String> abisRefList = packetInfoManager.getReferenceIdByRid(registrationId);
 			validateNullCheck(abisRefList, "ABIS_REFERENCE_ID_NOT_FOUND");
 
-			String refRegtrnId = getLatestTransactionId(registrationId);
+			String refRegtrnId = internalRegDto.getLatestRegistrationTransactionId();
 			validateNullCheck(refRegtrnId, "LATEST_TRANSACTION_ID_NOT_FOUND");
 			String abisRefId = abisRefList.get(0);
 			List<AbisRequestDto> abisInsertIdentifyList = packetInfoManager.getInsertOrIdentifyRequest(abisRefId,
@@ -368,7 +369,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 			List<String> bioRefId = packetInfoManager.getReferenceIdByBatchId(batchId);
 			validateNullCheck(bioRefId, "ABIS_REFERENCE_ID_NOT_FOUND");
 			List<String> registrationIds = packetInfoDao.getAbisRefRegIdsByMatchedRefIds(bioRefId);
-			internalRegStatusDto = registrationStatusService.getRegistrationStatus(registrationIds.get(0));
+			internalRegStatusDto = registrationStatusService.getRegStatusForMainProcess(registrationIds.get(0));
 			registrationId = internalRegStatusDto.getRegistrationId();
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 					"AbisMiddlewareStage::consumerListener()::response from abis for requestId ::" + requestId);
@@ -700,8 +701,8 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 
 	}
 
-	private String getLatestTransactionId(String registrationId) {
-		RegistrationStatusEntity entity = registrationStatusDao.findById(registrationId);
+	private String getLatestTransactionId(String registrationId, String process, int iteration) {
+		RegistrationStatusEntity entity = registrationStatusDao.find(registrationId, process, iteration);
 		return entity != null ? entity.getLatestRegistrationTransactionId() : null;
 
 	}

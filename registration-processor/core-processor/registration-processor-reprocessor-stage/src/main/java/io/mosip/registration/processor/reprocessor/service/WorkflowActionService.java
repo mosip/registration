@@ -100,7 +100,6 @@ public class WorkflowActionService {
 	 *
 	 * @param workflowIds    the workflow ids
 	 * @param workflowAction the workflow action
-	 * @param mosipEventBus  the mosip event bus
 	 * @throws WorkflowActionException the workflow action exception
 	 */
 	public void processWorkflowAction(List<String> workflowIds, String workflowAction) throws WorkflowActionException {
@@ -222,7 +221,6 @@ public class WorkflowActionService {
 	 * Process resume from beginning and remove hotlisted tag.
 	 *
 	 * @param workflowIds        the workflow ids
-	 * @param mosipEventBus      the mosip event bus
 	 * @param workflowActionCode the workflow action code
 	 * @throws WorkflowActionException the workflow action exception
 	 */
@@ -297,7 +295,6 @@ public class WorkflowActionService {
 	 * Process resume from beginning.
 	 *
 	 * @param workflowIds        the workflow ids
-	 * @param mosipEventBus      the mosip event bus
 	 * @param workflowActionCode the workflow action code
 	 * @throws WorkflowActionException
 	 */
@@ -361,7 +358,6 @@ public class WorkflowActionService {
 	 * Process resume processing and remove hotlisted tag.
 	 *
 	 * @param workflowIds        the workflow ids
-	 * @param mosipEventBus      the mosip event bus
 	 * @param workflowActionCode the workflow action code
 	 * @throws WorkflowActionException     the workflow action exception
 	 */
@@ -435,7 +431,6 @@ public class WorkflowActionService {
 	 * Process resume processing.
 	 *
 	 * @param workflowIds        the workflow ids
-	 * @param mosipEventBus      the mosip event bus
 	 * @param workflowActionCode the workflow action code
 	 * @throws WorkflowActionException
 	 */
@@ -500,7 +495,6 @@ public class WorkflowActionService {
 	/**
 	 * send packet event for resume processing.
 	 *
-	 * @param mosipEventBus         the mosip event bus
 	 * @param registrationStatusDto the registration status dto
 	 */
 	private void sendPacketEventForResumeProcessing(
@@ -568,7 +562,6 @@ public class WorkflowActionService {
 	/**
 	 * send packet eventfor resume beginning.
 	 *
-	 * @param mosipEventBus         the mosip event bus
 	 * @param registrationStatusDto the registration status dto
 	 */
 	private void sendPacketEventforResumeBeginning(
@@ -586,7 +579,6 @@ public class WorkflowActionService {
 	 *
 	 * @param object        the object
 	 * @param address       the address
-	 * @param mosipEventBus the mosip event bus
 	 */
 	private void sendMessage(MessageDTO object, MessageBusAddress address) {
 		regProcLogger.debug("sendMessage called for workflowId and address {} {}", object.getRid(),
@@ -644,7 +636,7 @@ public class WorkflowActionService {
 
 
 	private InternalRegistrationStatusDto getRegistrationStatus(String rid) throws WorkflowActionException {
-		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(rid);
+		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegStatusForMainProcess(rid);
 		return registrationStatusDto;
 	}
 
@@ -668,7 +660,6 @@ public class WorkflowActionService {
 	 * @param e                  the e
 	 * @param errorCode          the error code
 	 * @param errorMessage       the error message
-	 * @param workflowActionCode the workflow action code
 	 * @throws WorkflowActionException the workflow action exception
 	 */
 	private void logAndThrowError(Exception e, String errorCode, String errorMessage, String registrationId,
