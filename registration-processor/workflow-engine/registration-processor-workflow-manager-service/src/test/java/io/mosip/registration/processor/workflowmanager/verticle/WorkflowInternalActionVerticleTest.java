@@ -133,7 +133,7 @@ public class WorkflowInternalActionVerticleTest {
 		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(null);
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any())).thenReturn(registrationStatusDto);
 		workflowInternalActionVerticle.process(workflowInternalActionDTO);
 		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
 				.forClass(InternalRegistrationStatusDto.class);
@@ -158,7 +158,7 @@ public class WorkflowInternalActionVerticleTest {
 		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(null);
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any()))
 				.thenThrow(TablenotAccessibleException.class);
 
 		workflowInternalActionVerticle.process(workflowInternalActionDTO);
@@ -178,7 +178,7 @@ public class WorkflowInternalActionVerticleTest {
 		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(null);
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any())).thenReturn(registrationStatusDto);
 		workflowInternalActionVerticle.process(workflowInternalActionDTO);
 	}
 
@@ -196,7 +196,7 @@ public class WorkflowInternalActionVerticleTest {
 		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(null);
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(null);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any())).thenReturn(null);
 		workflowInternalActionVerticle.process(workflowInternalActionDTO);
 	}
 
@@ -211,7 +211,7 @@ public class WorkflowInternalActionVerticleTest {
 		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(null);
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any())).thenReturn(registrationStatusDto);
 		workflowInternalActionVerticle.process(workflowInternalActionDTO);
 		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
 				.forClass(InternalRegistrationStatusDto.class);
@@ -237,7 +237,7 @@ public class WorkflowInternalActionVerticleTest {
 		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(null);
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any())).thenReturn(registrationStatusDto);
 		workflowInternalActionVerticle.process(workflowInternalActionDTO);
 		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
 				.forClass(InternalRegistrationStatusDto.class);
@@ -262,7 +262,7 @@ public class WorkflowInternalActionVerticleTest {
 		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(null);
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any())).thenReturn(registrationStatusDto);
 		workflowInternalActionVerticle.process(workflowInternalActionDTO);
 		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
 				.forClass(InternalRegistrationStatusDto.class);
@@ -287,7 +287,7 @@ public class WorkflowInternalActionVerticleTest {
 		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(null);
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any())).thenReturn(registrationStatusDto);
 		workflowInternalActionVerticle.process(workflowInternalActionDTO);
 		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
 				.forClass(InternalRegistrationStatusDto.class);

@@ -138,7 +138,12 @@ public enum PlatformSuccessMessages {
 			"Packet processing completed with reject status"),
 	PACKET_COMPLETE_AS_FAILED(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "003",
 			"Packet processing completed with failed status"),
-	PACKET_MARK_AS_REPROCESS(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "004", "Packet marked for reprocessing");
+	PACKET_MARK_AS_REPROCESS(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "004", "Packet marked for reprocessing"),
+
+	RPR_CORRECTION_INPROGRESS(PlatformConstants.RPR_CORRECTION_MODULE + "001",
+			"Packet marked for correction."),
+	RPR_CORRECTION_SUCCESS(PlatformConstants.RPR_CORRECTION_MODULE + "002",
+			"Packet correction successful.");
 
 	/** The success message. */
 	private final String successMessage;

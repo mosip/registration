@@ -254,8 +254,8 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		if (!entities.isEmpty()) {
 
 			manualVerificationDTO.setRegId(entities.get(0).getId().getRegId());
-			String regProcess = registrationStatusService.getRegistrationStatus(entities.get(0).getId().getRegId()).getRegistrationType();
-			String refProcess = registrationStatusService.getRegistrationStatus(entities.get(0).getId().getMatchedRefId()).getRegistrationType();
+			String regProcess = registrationStatusService.getRegStatusForMainProcess(entities.get(0).getId().getRegId()).getRegistrationType();
+			String refProcess = registrationStatusService.getRegStatusForMainProcess(entities.get(0).getId().getMatchedRefId()).getRegistrationType();
 			manualVerificationDTO.setUrl(getDataShareUrl(entities.get(0).getId().getRegId(), regProcess));
 			List<MatchDetail> gallery=new ArrayList<>();
 			List<ManualVerificationEntity> mentities=entities.stream().filter(entity -> entity.getId()
@@ -288,8 +288,8 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 						PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getMessage());
 			} else {
 
-				String regProcess = registrationStatusService.getRegistrationStatus(entities.get(0).getId().getRegId()).getRegistrationType();
-				String refProcess = registrationStatusService.getRegistrationStatus(entities.get(0).getId().getMatchedRefId()).getRegistrationType();
+				String regProcess = registrationStatusService.getRegStatusForMainProcess(entities.get(0).getId().getRegId()).getRegistrationType();
+				String refProcess = registrationStatusService.getRegStatusForMainProcess(entities.get(0).getId().getMatchedRefId()).getRegistrationType();
 
 				manualVerificationDTO.setMvUsrId(dto.getUserId());
 				manualVerificationDTO.setStatusCode(ManualVerificationStatus.ASSIGNED.name());
@@ -355,7 +355,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 			throw new InvalidFileNameException(PlatformErrorMessages.RPR_MVS_REG_ID_SHOULD_NOT_EMPTY_OR_NULL.getCode(),
 					PlatformErrorMessages.RPR_MVS_REG_ID_SHOULD_NOT_EMPTY_OR_NULL.getMessage());
 		}
-		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(regId);
+		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegStatusForMainProcess(regId);
 		if (registrationStatusDto == null) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					regId, "ManualVerificationServiceImpl::getApplicantFile()"
@@ -451,7 +451,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		
 
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
-				.getRegistrationStatus(regId);
+				.getRegStatusForMainProcess(regId);
 		messageDTO.setReg_type(RegistrationType.valueOf(registrationStatusDto.getRegistrationType()));
 		try {
 			//Below lines are resending the same message to mv queue even after receiving the response, 
@@ -866,7 +866,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		req.setRequesttime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		req.setReferenceId(mve.get(0).getId().getRegId());
 		InternalRegistrationStatusDto registrationStatusDto = null;
-		registrationStatusDto = registrationStatusService.getRegistrationStatus(mve.get(0).getId().getRegId());
+		registrationStatusDto = registrationStatusService.getRegStatusForMainProcess(mve.get(0).getId().getRegId());
 		try {
 			req.setReferenceURL(
 					getDataShareUrl(mve.get(0).getId().getRegId(), registrationStatusDto.getRegistrationType()));
@@ -881,7 +881,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		mve.forEach(e -> {
 			ReferenceIds r = new ReferenceIds();
 			InternalRegistrationStatusDto registrationStatusDto1 = null;
-			registrationStatusDto1 = registrationStatusService.getRegistrationStatus(e.getId().getMatchedRefId());
+			registrationStatusDto1 = registrationStatusService.getRegStatusForMainProcess(e.getId().getMatchedRefId());
 
 			try {
 				r.setReferenceId(e.getId().getMatchedRefId());

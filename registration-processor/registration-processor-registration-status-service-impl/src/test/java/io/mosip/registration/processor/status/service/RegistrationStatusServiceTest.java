@@ -91,7 +91,7 @@ public class RegistrationStatusServiceTest {
 		entities = new ArrayList<>();
 		entities.add(registrationStatusEntity);
 
-		Mockito.when(registrationStatusDao.findById(any())).thenReturn(registrationStatusEntity);
+		Mockito.when(registrationStatusDao.find(any(),any(),any())).thenReturn(registrationStatusEntity);
 
 		TransactionEntity transactionEntity = new TransactionEntity();
 		transactionEntity.setStatusCode("PROCESSING");
@@ -107,7 +107,7 @@ public class RegistrationStatusServiceTest {
 	@Test
 	public void testGetRegistrationStatusSuccess() {
 
-		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus("1001");
+		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus("1001", "NEW", 1);
 		assertEquals("PACKET_UPLOADED_TO_LANDING_ZONE", dto.getStatusCode());
 
 	}
@@ -116,15 +116,15 @@ public class RegistrationStatusServiceTest {
 	public void getRegistrationStatusFailureTest() throws TablenotAccessibleException {
 		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
 				"errorMessage", new Exception());
-		Mockito.when(registrationStatusDao.findById(any())).thenThrow(exp);
-		registrationStatusService.getRegistrationStatus("1001");
+			Mockito.when(registrationStatusDao.find(any(),any(),any())).thenThrow(exp);
+			registrationStatusService.getRegistrationStatus("1001", "NEW", 1);
 	}
 
 	@Test
 	public void testAddRegistrationStatusSuccess() {
 
 		registrationStatusService.addRegistrationStatus(registrationStatusDto, "", "");
-		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus("1001");
+		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus("1001", "NEW", 1);
 		assertEquals("PACKET_UPLOADED_TO_LANDING_ZONE", dto.getStatusCode());
 	}
 
@@ -140,7 +140,7 @@ public class RegistrationStatusServiceTest {
 	public void testUpdateRegistrationStatusSuccess() {
 		registrationStatusService.updateRegistrationStatus(registrationStatusDto, "", "");
 
-		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus("1001");
+		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus("1001", "NEW", 1);
 		assertEquals("PACKET_UPLOADED_TO_LANDING_ZONE", dto.getStatusCode());
 	}
 
@@ -303,5 +303,22 @@ public class RegistrationStatusServiceTest {
 		Mockito.when(registrationStatusDao.getResumablePackets(anyInt())).thenThrow(exp);
 		registrationStatusService.getResumablePackets(1);
 
+	}
+
+	@Test
+	public void testUpdateRegistrationStatusForWorkFlowSuccess() {
+		registrationStatusService.updateRegistrationStatusForWorkflow(registrationStatusDto, "", "");
+
+		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus("1001", "NEW", 1);
+		assertEquals("PACKET_UPLOADED_TO_LANDING_ZONE", dto.getStatusCode());
+	}
+
+	@Test(expected = TablenotAccessibleException.class)
+	public void updateRegistrationStatusForWorkFlowFailureTest() {
+		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
+				"errorMessage", new Exception());
+
+		Mockito.when(registrationStatusDao.save(any())).thenThrow(exp);
+		registrationStatusService.updateRegistrationStatusForWorkflow(registrationStatusDto, "", "");
 	}
 }

@@ -102,7 +102,48 @@ public class RegistrationStatusDao {
 	 *            the enrolment id
 	 * @return the registration status entity
 	 */
-	public RegistrationStatusEntity findById(String enrolmentId) {
+	public RegistrationStatusEntity find(String rid, String process, Integer iteration) {
+		Map<String, Object> params = new HashMap<>();
+		String className = RegistrationStatusEntity.class.getSimpleName();
+
+		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
+		String queryStr = null;
+		if (process != null && iteration != null)
+			queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
+					+ ".id=:registrationId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ".registrationType=:registrationType"
+					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ".iteration=:iteration"
+					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE
+				+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
+		else if (process != null)
+			queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
+					+ ".id=:registrationId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ".registrationType=:registrationType"
+					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE
+					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
+		else if (iteration != null)
+			queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
+					+ ".id=:registrationId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ".iteration=:iteration"
+					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE
+					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
+		else
+			queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
+					+ ".id=:registrationId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE
+					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
+
+		params.put("registrationId", rid);
+		if (process != null)
+			params.put("registrationType", process);
+		if (iteration != null)
+			params.put("iteration", iteration);
+		params.put(ISACTIVE, Boolean.TRUE);
+		params.put(ISDELETED, Boolean.FALSE);
+
+		List<RegistrationStatusEntity> registrationStatusEntityList = registrationStatusRepositary
+				.createQuerySelect(queryStr, params);
+
+		return !registrationStatusEntityList.isEmpty() ? registrationStatusEntityList.get(0) : null;
+	}
+
+	public List<RegistrationStatusEntity> findAll(String rid) {
 		Map<String, Object> params = new HashMap<>();
 		String className = RegistrationStatusEntity.class.getSimpleName();
 
@@ -112,14 +153,14 @@ public class RegistrationStatusDao {
 				+ ".id=:registrationId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE
 				+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
 
-		params.put("registrationId", enrolmentId);
+		params.put("registrationId", rid);
 		params.put(ISACTIVE, Boolean.TRUE);
 		params.put(ISDELETED, Boolean.FALSE);
 
 		List<RegistrationStatusEntity> registrationStatusEntityList = registrationStatusRepositary
 				.createQuerySelect(queryStr, params);
 
-		return !registrationStatusEntityList.isEmpty() ? registrationStatusEntityList.get(0) : null;
+		return registrationStatusEntityList;
 	}
 
 	/**

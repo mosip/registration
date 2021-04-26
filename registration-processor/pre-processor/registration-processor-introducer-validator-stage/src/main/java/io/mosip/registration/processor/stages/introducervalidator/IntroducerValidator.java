@@ -151,8 +151,9 @@ public class IntroducerValidator {
 	 */
 	private boolean isValidIntroducerRid(String introducerRid, String registrationId,
 			InternalRegistrationStatusDto registrationStatusDto) throws BaseCheckedException {
+		//TODO : Temp fix done to overcome compilation errors, below NEW to be checked once
 		InternalRegistrationStatusDto introducerRegistrationStatusDto = registrationStatusService
-				.getRegistrationStatus(introducerRid);
+				.getRegistrationStatus(introducerRid, "NEW", 1);
 		if (introducerRegistrationStatusDto != null) {
 			if (introducerRegistrationStatusDto.getStatusCode().equals(RegistrationStatusCode.PROCESSING.toString())) {
 

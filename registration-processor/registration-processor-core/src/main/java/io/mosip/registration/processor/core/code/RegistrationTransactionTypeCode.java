@@ -59,6 +59,8 @@ public enum RegistrationTransactionTypeCode {
 	INTERNAL_WORKFLOW_ACTION,
 
 	/** The workflow resume. */
-	WORKFLOW_RESUME;
+	WORKFLOW_RESUME,
+	
+	CORRECTION;
 
 }

@@ -318,7 +318,7 @@ public class AbisHandlerStageTest {
 
 	@Test
 	public void testDemoToAbisHandlerTOMiddlewareSuccess() {
-		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(registrationStatusDto.getLatestTransactionTypeCode()).thenReturn("DEMOGRAPHIC_VERIFICATION");
 		Mockito.when(registrationStatusDto.getLatestRegistrationTransactionId())
 				.thenReturn("dd7b7d20-910a-4b84-be21-c9f211318563");
@@ -344,7 +344,7 @@ public class AbisHandlerStageTest {
 
 	@Test
 	public void testBioToAbisHandlerToMiddlewareSuccess() {
-		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(registrationStatusDto.getLatestTransactionTypeCode()).thenReturn("DEMOGRAPHIC_VERIFICATION");
 		Mockito.when(registrationStatusDto.getLatestRegistrationTransactionId())
 				.thenReturn("dd7b7d20-910a-4b84-be21-c9f211318563");
@@ -373,7 +373,7 @@ public class AbisHandlerStageTest {
 
 	@Test
 	public void testMiddlewareToAbisHandlerToDemoSuccess() {
-		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(registrationStatusDto.getLatestTransactionTypeCode()).thenReturn("DEMOGRAPHIC_VERIFICATION");
 		Mockito.when(registrationStatusDto.getLatestRegistrationTransactionId())
 				.thenReturn("dd7b7d20-910a-4b84-be21-c9f211318563");
@@ -388,7 +388,7 @@ public class AbisHandlerStageTest {
 
 	@Test
 	public void testMiddlewareToAbisHandlerToBioSuccess() {
-		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(registrationStatusDto.getLatestTransactionTypeCode()).thenReturn("BIOGRAPHIC_VERIFICATION");
 		Mockito.when(registrationStatusDto.getLatestRegistrationTransactionId())
 				.thenReturn("dd7b7d20-910a-4b84-be21-c9f211318563");
@@ -403,7 +403,7 @@ public class AbisHandlerStageTest {
 
 	@Test
 	public void testDemoDedupeDataNotFound() {
-		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(registrationStatusDto.getLatestTransactionTypeCode()).thenReturn("DEMOGRAPHIC_VERIFICATION");
 		Mockito.when(registrationStatusDto.getLatestRegistrationTransactionId())
 				.thenReturn("dd7b7d20-910a-4b84-be21-c9f211318563");
@@ -427,7 +427,7 @@ public class AbisHandlerStageTest {
 
 	@Test
 	public void testReprocessInsert() {
-		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(registrationStatusDto.getLatestTransactionTypeCode()).thenReturn("BIOGRAPHIC_VERIFICATION");
 		Mockito.when(registrationStatusDto.getLatestRegistrationTransactionId())
 				.thenReturn("dd7b7d20-910a-4b84-be21-c9f211318563");
@@ -464,7 +464,7 @@ public class AbisHandlerStageTest {
 
 	@Test
 	public void testAbisDetailsNotFound() throws RegistrationProcessorCheckedException {
-		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(registrationStatusDto.getLatestTransactionTypeCode()).thenReturn("BIOGRAPHIC_VERIFICATION");
 		Mockito.when(registrationStatusDto.getLatestRegistrationTransactionId())
 				.thenReturn("dd7b7d20-910a-4b84-be21-c9f211318563");
@@ -482,7 +482,7 @@ public class AbisHandlerStageTest {
 
 	@Test
 	public void testCreateRequestException() throws JsonProcessingException {
-		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(registrationStatusDto.getLatestTransactionTypeCode()).thenReturn("BIOGRAPHIC_VERIFICATION");
 		Mockito.when(registrationStatusDto.getLatestRegistrationTransactionId())
 				.thenReturn("dd7b7d20-910a-4b84-be21-c9f211318563");
@@ -519,7 +519,7 @@ public class AbisHandlerStageTest {
 
 	@Test
 	public void testIdentifyRequestException() throws JsonProcessingException {
-		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(registrationStatusDto.getLatestTransactionTypeCode()).thenReturn("BIOGRAPHIC_VERIFICATION");
 		Mockito.when(registrationStatusDto.getLatestRegistrationTransactionId())
 				.thenReturn("dd7b7d20-910a-4b84-be21-c9f211318563");
@@ -651,7 +651,7 @@ public class AbisHandlerStageTest {
 	}
 
 	private void defaultMockToProcess() {
-		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(registrationStatusDto.getLatestTransactionTypeCode()).thenReturn("DEMOGRAPHIC_VERIFICATION");
 		Mockito.when(registrationStatusDto.getLatestRegistrationTransactionId())
 				.thenReturn("dd7b7d20-910a-4b84-be21-c9f211318563");

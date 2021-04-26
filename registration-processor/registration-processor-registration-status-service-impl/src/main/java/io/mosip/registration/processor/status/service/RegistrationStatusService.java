@@ -35,7 +35,11 @@ public interface RegistrationStatusService<T, U, D> {
 	 *            the enrolment id
 	 * @return the registration status
 	 */
-	public U getRegistrationStatus(T enrolmentId);
+	public U getRegistrationStatus(String regid, String processs, Integer iteration);
+
+	public List<InternalRegistrationStatusDto> getAllRegistrationStatuses(String registrationId);
+
+	public InternalRegistrationStatusDto getRegStatusForMainProcess(String registrationId);
 
 	/**
 	 * Adds the registration status.
@@ -129,6 +133,8 @@ public interface RegistrationStatusService<T, U, D> {
 	public List<InternalRegistrationStatusDto> getActionablePausedPackets(Integer fetchSize);
 
 	public Page<InternalRegistrationStatusDto> searchRegistrationDetails(SearchInfo searchInfo);
+
+	public void updateRegistrationStatusForWorkflow(U registrationStatusDto, String moduleId, String moduleName);
 
 	public List<InternalRegistrationStatusDto> getResumablePackets(Integer fetchSize);
 }
