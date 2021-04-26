@@ -11,9 +11,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
@@ -256,8 +254,7 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
 
 	@SuppressWarnings("unchecked")
 	public void deleteTags(String id, List<String> tags)
-			throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, JsonParseException,
-			JsonMappingException, com.fasterxml.jackson.core.JsonProcessingException, IOException {
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 		DeleteTagRequestDTO deleteTagREquestDto = new DeleteTagRequestDTO(id, tags);
 		RequestWrapper<DeleteTagRequestDTO> request = new RequestWrapper<>();
 		request.setId(ID);

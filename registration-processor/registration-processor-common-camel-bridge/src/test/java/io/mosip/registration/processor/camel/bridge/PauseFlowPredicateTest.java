@@ -58,11 +58,10 @@ public class PauseFlowPredicateTest {
 		objectMapper = new ObjectMapper();
 		pauseFlowPredicate = new PauseFlowPredicate();
 
-		ReflectionTestUtils.setField(pauseFlowPredicate, "hotlistedTagKey", "HOTLISTED");
 		Setting[] settings = null;
 		try {
 			settings = objectMapper.readValue(
-					"[{\"hotlistedReason\": \"operator\",\"pauseFor\": 432000,\"defaultResumeAction\": \"ResumeFromBeginning\",\"fromAddress\": \"bio-debup-bus-out\"},{\"hotlistedReason\": \"center\",\"pauseFor\": 432000,\"defaultResumeAction\": \"StopProcessing\",\"fromAddress\": \"bio-debup-bus-out\"}]",
+					"[{\"matchExpression\": \"$.tags[?(@['HOTLISTED'] == 'operator')]\",\"pauseFor\": 432000,\"defaultResumeAction\": \"STOP_PROCESSING\",\"fromAddress\": \"bio-debup-bus-out\",\"resumeRemoveTags\": \"HOTLISTED\"},{\"matchExpression\": \"$.tags[?(@['AGE_GROUP']== 'CHILD' && @['ID_OBJECT-residenceStatus'] == 'nonResident')]\",\"pauseFor\": 432000,\"defaultResumeAction\": \"STOP_PROCESSING\",\"fromAddress\": \"bio-debup-bus-out\",\"resumeRemoveTags\": \"\"}]",
 					Setting[].class);
 		} catch (IOException e) {
 			LOGGER.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
@@ -114,7 +113,7 @@ public class PauseFlowPredicateTest {
 		assertTrue(pauseFlowPredicate.matches(exchange));
 		LocalDateTime dateTimeAfter = DateUtils.getUTCCurrentDateTime().plusSeconds(432000);
 		JsonObject json = new JsonObject((String) exchange.getMessage().getBody());
-		assertEquals("ResumeFromBeginning", json.getString("defaultResumeAction"));
+		assertEquals("STOP_PROCESSING", json.getString("defaultResumeAction"));
 		assertTrue(dateTimeBefore.isBefore(DateUtils.parseToLocalDateTime(json.getString("resumeTimestamp"))) && dateTimeAfter.isAfter(DateUtils.parseToLocalDateTime(json.getString("resumeTimestamp"))));
 	}
 

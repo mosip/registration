@@ -23,12 +23,18 @@ import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
+import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.exception.WorkflowActionException;
 import io.mosip.registration.processor.core.exception.WorkflowActionRequestValidationException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.reprocessor.service.WorkflowActionService;
 import io.mosip.registration.processor.reprocessor.validator.WorkflowActionRequestValidator;
+import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
+import io.mosip.registration.processor.status.code.RegistrationStatusCode;
+import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
+import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
+import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -65,6 +71,16 @@ public class WorkflowActionApiTest {
 	private WorkflowActionService workflowActionService;
 
 	private RoutingContext ctx;
+
+	private InternalRegistrationStatusDto registrationStatusDto;
+
+	@Mock
+	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
+
+	@Mock
+	AuditLogRequestBuilder auditLogRequestBuilder;
+	
+	List<InternalRegistrationStatusDto> internalRegistrationStatusDtos;
 
 	@InjectMocks
 	WorkflowActionApi workflowActionApi = new WorkflowActionApi() {
@@ -144,6 +160,7 @@ public class WorkflowActionApiTest {
 
 			@Override
 			public void setUser(User user) {
+
 			}
 
 			@Override
@@ -393,7 +410,19 @@ public class WorkflowActionApiTest {
 		ReflectionTestUtils.setField(workflowActionApi, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(workflowActionApi, "dateTimePattern", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		ctx = setContext();
-
+		registrationStatusDto = new InternalRegistrationStatusDto();
+		registrationStatusDto.setRegistrationId("10003100030001520190422074511");
+		registrationStatusDto.setRegistrationType("NEW");
+		registrationStatusDto.setRegistrationStageName("SecurezoneNotificationStage");
+		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.name());
+		registrationStatusDto.setStatusCode(RegistrationStatusCode.PAUSED.name());
+		
+		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(null);
+		internalRegistrationStatusDtos = new ArrayList<InternalRegistrationStatusDto>();
+		internalRegistrationStatusDtos.add(registrationStatusDto);
+		Mockito.when(registrationStatusService.getByIdsAndTimestamp(Mockito.any()))
+				.thenReturn(internalRegistrationStatusDtos);
 	}
 
 	@Test
@@ -442,6 +471,22 @@ public class WorkflowActionApiTest {
 	public void testException() throws WorkflowActionRequestValidationException {
 		Mockito.doThrow(new NullPointerException("", "")).when(validator).validate(any());
 
+		workflowActionApi.processURL(ctx);
+		assertTrue(responseObject);
+	}
+
+	@Test
+	public void testWorkflowIdNotPresent() {
+		internalRegistrationStatusDtos = new ArrayList<InternalRegistrationStatusDto>();
+		Mockito.when(registrationStatusService.getByIdsAndTimestamp(Mockito.any()))
+				.thenReturn(internalRegistrationStatusDtos);
+		workflowActionApi.processURL(ctx);
+		assertTrue(responseObject);
+	}
+
+	@Test
+	public void testWorkflowIdNotPaused() {
+		registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
 		workflowActionApi.processURL(ctx);
 		assertTrue(responseObject);
 	}

@@ -468,7 +468,7 @@ public enum PlatformErrorMessages {
 	
 	OSI_VALIDATION_AUTH_SYSTEM_EXCEPTION(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "008", "Request could not be processed. Please try again"),
 
-	LINK_FOR_USERID_INDIVIDUALID_FAILED_OSI_EXCEPTION(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "009", "Unable to get the IndividualId for UserId"),
+	LINK_FOR_USERID_INDIVIDUALID_FAILED_OSI_EXCEPTION(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "009", "Unable to get the IndividualId for UserId"),	
 	
 	/** The packet demo dedupe failed. */
 	// Stages - Demo-Dedupe error code and message
@@ -1207,16 +1207,18 @@ public enum PlatformErrorMessages {
 	RPR_WAS_REMOVE_HOTLISTED_TAG_FAILED(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "001",
 			"Removing hotlisted tag failed"),
 
-	RPR_WAS_WORKFLOW_ID_NOT_FOUND(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "002",
-			"Workflow id not found in registration table"),
+	RPR_WAA_WORKFLOW_ID_NOT_FOUND(PlatformConstants.RPR_WORKFLOW_ACTION_API + "003",
+			"Workflow id  %s  not found in registration table"),
 
 	RPR_WAS_UNKNOWN_EXCEPTION(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "003", "Unknown Exception"),
 
 	RPR_WAS_REPROCESS_FAILED(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "004",
 			"When REPROCESS_FAILED then Resume should not occur"),
 
-	RPR_WAS_NOT_PAUSED(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "005",
-			"Workflow id is not PAUSED"),
+	RPR_WAA_NOT_PAUSED(PlatformConstants.RPR_WORKFLOW_ACTION_API + "004",
+			"Workflow id  %s is not PAUSED"),
+
+	RPR_WAA_VALIDATION_SUCCESS(PlatformConstants.RPR_WORKFLOW_ACTION_API + "005", "Workflow id validated successfully"),
 
 	/** The external stage failed. */
 	EXTERNAL_STAGE_FAILED("", "External Stage Failed"),

@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.JsonPath;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
@@ -22,6 +23,7 @@ import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessag
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.vertx.core.json.JsonObject;
+import net.minidev.json.JSONArray;
 
 public class PauseFlowPredicate implements Predicate {
 
@@ -34,9 +36,6 @@ public class PauseFlowPredicate implements Predicate {
 
 	@Value("${mosip.regproc.camelbridge.pause-settings}")
 	private String settingsString;
-
-	@Value("${mosip.regproc.camelbridge.intercept-hotlisted-key}")
-	private String hotlistedTagKey;
 
 	@PostConstruct
 	private void init() {
@@ -54,20 +53,15 @@ public class PauseFlowPredicate implements Predicate {
 
 		String message = (String) exchange.getMessage().getBody();
 		JsonObject json = new JsonObject(message);
-		JsonObject tags = json.getJsonObject("tags");
-		LOGGER.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+
+		LOGGER.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"exchange.getFromEndpoint().toString() " + exchange.getFromEndpoint().toString());
-		LOGGER.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-				" tags.getString(hotlistedTagKey) " + tags.getString(hotlistedTagKey));
-		LOGGER.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-				" tags.containsKey(hotlistedTagKey) " + tags.containsKey(hotlistedTagKey));
-		if (!tags.containsKey(hotlistedTagKey)) {
-			return false;
-		}
+
 		String fromAddress = exchange.getFromEndpoint().toString();
 		for (Setting setting : settings) {
+			JSONArray jsonArray = JsonPath.read(message, setting.getMatchExpression());
 			if (Pattern.matches(setting.getFromAddress(), fromAddress)
-					&& tags.getString(hotlistedTagKey).equals(setting.getHotlistedReason())) {
+					&& !jsonArray.isEmpty()) {
 				WorkflowEventDTO workflowEventDTO = new WorkflowEventDTO();
 				workflowEventDTO.setResumeTimestamp(DateUtils
 						.formatToISOString(DateUtils.getUTCCurrentDateTime().plusSeconds(setting.getPauseFor())));
@@ -76,6 +70,7 @@ public class PauseFlowPredicate implements Predicate {
 				workflowEventDTO.setStatusCode(RegistrationStatusCode.PAUSED.toString());
 				workflowEventDTO.setEventTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 				workflowEventDTO.setStatusComment(PlatformSuccessMessages.PACKET_PAUSED_HOTLISTED.getMessage());
+				workflowEventDTO.setResumeRemoveTags(setting.getResumeRemoveTags());
 				try {
 					exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
 				} catch (JsonProcessingException e) {
