@@ -24,6 +24,6 @@ public class AbisHandlerApplication {
         ctx.refresh();
         AbisHandlerStage handlerStage = ctx.getBean(AbisHandlerStage.class);
         handlerStage.deployVerticle();
-      
+
     }
 }

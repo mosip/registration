@@ -23,6 +23,9 @@ import org.json.JSONTokener;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -96,12 +99,23 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
  * @author Ranjitha Siddegowda
  * @author Rishabh Keshari
  */
+@RefreshScope
 @Service
+@Configuration
+@ComponentScan(basePackages = { "io.mosip.registration.processor.core.config",
+		"io.mosip.registration.processor.stages.uingenerator.config",
+		"io.mosip.registration.processor.status.config", "io.mosip.registration.processor.rest.client.config",
+		"io.mosip.registration.processor.packet.storage.config",
+		"io.mosip.registration.processor.stages.config",
+		"io.mosip.kernel.packetmanager.config",
+		"io.mosip.registration.processor.packet.manager.config",
+		"io.mosip.registration.processor.core.kernel.beans"})
 public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(UinGeneratorStage.class);
 	private static final String RECORD_ALREADY_EXISTS_ERROR = "IDR-IDC-012";
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.uin.generator.";
 
 	@Autowired
 	private Environment env;
@@ -129,10 +143,6 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	/** The id repo update. */
 	@Value("${registration.processor.id.repo.update}")
 	private String idRepoUpdate;
-
-	/** server port number. */
-	@Value("${server.port}")
-	private String port;
 
 	/** worker pool size. */
 	@Value("${worker.pool.size}")
@@ -210,7 +220,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		try {
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.UIN_GENERATOR.toString());
-			registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
+			registrationStatusDto.setRegistrationStageName(getStageName());
 
 			if ((RegistrationType.LOST.toString()).equalsIgnoreCase(object.getReg_type().name())) {
 				String lostPacketRegId = object.getRid();
@@ -1063,8 +1073,13 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	public void start() {
 		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.UIN_GENERATION_BUS_IN,
 				MessageBusAddress.UIN_GENERATION_BUS_OUT));
-		this.createServer(router.getRouter(), Integer.parseInt(port));
+		this.createServer(router.getRouter(), getPort());
 
+	}
+	
+	@Override
+	protected String getPropertyPrefix() {
+		return STAGE_PROPERTY_PREFIX;
 	}
 
 	@SuppressWarnings("unchecked")

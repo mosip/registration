@@ -76,6 +76,11 @@ public class DemoDedupeStageTest {
 		public void consumeAndSend(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
 				MessageBusAddress toAddress, long messageExpiryTimeLimit) {
 		}
+		
+		@Override
+		public Integer getPort() {
+			return 8080;
+		}
 	};
 
 	/**
@@ -103,7 +108,6 @@ public class DemoDedupeStageTest {
 		ReflectionTestUtils.setField(demoDedupeStage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(demoDedupeStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(demoDedupeStage, "clusterManagerUrl", "/dummyPath");
-		ReflectionTestUtils.setField(demoDedupeStage, "port", "1080");
 		
 		Mockito.when(environment.getProperty("mosip.kernel.virus-scanner.port")).thenReturn("8000");
 		Mockito.when(environment.getProperty("server.servlet.path")).thenReturn("/test");
