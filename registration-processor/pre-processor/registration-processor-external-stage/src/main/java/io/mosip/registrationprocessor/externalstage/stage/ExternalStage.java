@@ -48,6 +48,9 @@ import io.mosip.registrationprocessor.externalstage.entity.MessageRequestDTO;
 public class ExternalStage extends MosipVerticleAPIManager {
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(ExternalStage.class);
+	
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.external.";
+	
 	/** request id */
 	private static final String ID = "io.mosip.registrationprocessor";
 	/** request version */
@@ -228,7 +231,7 @@ public class ExternalStage extends MosipVerticleAPIManager {
 	
 	@Override
 	protected String getPropertyPrefix() {
-		return "";
+		return STAGE_PROPERTY_PREFIX;
 	}
 
 }
