@@ -41,7 +41,12 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 
 public class WorkflowActionApi extends MosipVerticleAPIManager {
+	
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.reprocessor.";
 
+	/** The audit log request builder. */
+	@Autowired
+	AuditLogRequestBuilder auditLogRequestBuilder;
 
 	@Value("${vertx.cluster.configuration}")
 	private String clusterManagerUrl;
@@ -291,6 +296,6 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 
 	@Override
 	protected String getPropertyPrefix() {
-		return "";
+		return STAGE_PROPERTY_PREFIX;
 	}
 }
