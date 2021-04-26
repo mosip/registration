@@ -86,11 +86,15 @@ public class StageClassesUtil {
 		String stageBeanBasePkgsStr = propertySourcesPropertyResolver.getProperty(
 				stageBeansBasePkgsPropertyName, defaultStageBeanBasePkgStr);
 		
-		List<String> stageBeansBasePackages = Arrays.stream(stageBeanBasePkgsStr.split(","))
-													.map(String::trim)
-													.filter(str -> !str .isEmpty())
-													.collect(Collectors.toList());
-		return stageBeansBasePackages;
+		if(stageBeanBasePkgsStr == null) {
+			return List.of();
+		} else {
+			List<String> stageBeansBasePackages = Arrays.stream(stageBeanBasePkgsStr.split(","))
+														.map(String::trim)
+														.filter(str -> !str .isEmpty())
+														.collect(Collectors.toList());
+			return stageBeansBasePackages;
+		}
 	}
 
 	/**
