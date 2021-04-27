@@ -71,6 +71,8 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	private static final String ID = "mosip.commmons.packetmanager";
     private static final String VERSION = "v1";
 
+	private static final boolean DEFAULT_MESSAGE_TAG_LOADING_DISABLE_VALUE = false;
+
     @Autowired
     private RegistrationProcessorRestClientService<Object> restApi;
 
@@ -82,9 +84,6 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 
 	@Autowired
 	protected PropertiesUtil propertiesUtil;
-
-	@Value("${mosip.regproc.message.tag.loading.disable:false}")
-	private Boolean disableTagLoading;
 
 	@Autowired
 	private MosipEventBusFactory mosipEventBusFactory;
@@ -227,27 +226,35 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	}
 
 	public Integer getEventBusPort() {
-		return getIntegerProperty("eventbus.port");
+		return getIntegerPropertyForSuffix("eventbus.port");
 	}
 
 	public Integer getPort() {
-		return getIntegerProperty("server.port");
+		return getIntegerPropertyForSuffix("server.port");
 	}
-
-	protected Integer getIntegerProperty(String propSuffix) {
+	
+	protected Integer getIntegerPropertyForSuffix(String propSuffix) {
 		return propertiesUtil.getIntegerProperty(getPropertyPrefix(), propSuffix);
 	}
+	
+	protected Boolean getBooleanPropertyForSuffix(String propSuffix, Boolean defaultValue) {
+		return propertiesUtil.getProperty(getPropertyPrefix() + propSuffix, Boolean.class, defaultValue);
+	}
 
-	protected String getProperty(String propSuffix) {
+	protected String getPropertyForSuffix(String propSuffix) {
 		return propertiesUtil.getProperty(getPropertyPrefix(), propSuffix);
 	}
 
 	protected String getServletPath() {
-		return getProperty(HealthConstant.SERVLET_PATH);
+		return getPropertyForSuffix(HealthConstant.SERVLET_PATH);
 	}
 
 	public String getEventBusType() {
 		return this.eventBusType;
+	}
+
+	public Boolean getDisableTagLoading() {
+		return getBooleanPropertyForSuffix("message.tag.loading.disable", DEFAULT_MESSAGE_TAG_LOADING_DISABLE_VALUE);
 	}
 
 	//TODO Temporarely added for passing the existing unit test case, later to be removed and unit test case to be changed based on SpringRunner
@@ -256,7 +263,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	}
 
 	private void addTagsToMessageDTO(MessageDTO messageDTO) {
-		if(disableTagLoading) {
+		if(getDisableTagLoading()) {
 			messageDTO.setTags(new HashMap<>());
 			return;
 		}
