@@ -195,7 +195,7 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 	public void start() {
 		router.setRoute(
 				this.postUrl(getVertx(), MessageBusAddress.OSI_BUS_IN, MessageBusAddress.OSI_BUS_OUT));
-		this.createServer(router.getRouter(), Integer.parseInt(port));
+		this.createServer(router.getRouter(), getPort());
 	}
 
 	/*
