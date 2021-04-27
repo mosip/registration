@@ -59,6 +59,8 @@ import io.vertx.core.json.JsonObject;
  *
  */
 public class ReprocessorStage extends MosipVerticleAPIManager {
+	
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.reprocessor.";
 
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(ReprocessorStage.class);
 
@@ -339,22 +341,28 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 
 	public void processResumablePackets() throws WorkflowActionException {
 		List<InternalRegistrationStatusDto> resumableDtoList = registrationStatusService.getResumablePackets(fetchSize);
-		Map<String,List<String>> defaultResumeActionPacketIdsMap=new HashMap<>();
+		Map<String, List<InternalRegistrationStatusDto>> defaultResumeActionPacketIdsMap = new HashMap<>();
 		for(InternalRegistrationStatusDto dto:resumableDtoList) {
 				if(defaultResumeActionPacketIdsMap.containsKey(dto.getDefaultResumeAction())) {
-					List<String> ids=defaultResumeActionPacketIdsMap.get(dto.getDefaultResumeAction());
-					ids.add(dto.getRegistrationId());
-					defaultResumeActionPacketIdsMap.put(dto.getDefaultResumeAction(), ids);
+				List<InternalRegistrationStatusDto> internalRegistrationStatusDtos = defaultResumeActionPacketIdsMap
+						.get(dto.getDefaultResumeAction());
+				internalRegistrationStatusDtos.add(dto);
+				defaultResumeActionPacketIdsMap.put(dto.getDefaultResumeAction(), internalRegistrationStatusDtos);
 				}
 				else  {
-					defaultResumeActionPacketIdsMap.put(dto.getDefaultResumeAction(), Arrays.asList(dto.getRegistrationId()));
+				defaultResumeActionPacketIdsMap.put(dto.getDefaultResumeAction(), Arrays.asList(dto));
 				}
 		}
-		for(Entry<String,List<String>> entry:defaultResumeActionPacketIdsMap.entrySet()) {
+		for (Entry<String, List<InternalRegistrationStatusDto>> entry : defaultResumeActionPacketIdsMap.entrySet()) {
 
 			workflowActionService.processWorkflowAction(entry.getValue(), entry.getKey());
 
 		}
 
+	}
+	
+	@Override
+	protected String getPropertyPrefix() {
+		return STAGE_PROPERTY_PREFIX;
 	}
 }

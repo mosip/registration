@@ -22,7 +22,7 @@ public class AbisMiddleWareApplication {
 				"io.mosip.registartion.processor.abis.middleware.validators");
 		configApplicationContext.refresh();
 		AbisMiddleWareStage demodedupeStage = configApplicationContext.getBean(AbisMiddleWareStage.class);
-	
+
 			demodedupeStage.deployVerticle();
 
 

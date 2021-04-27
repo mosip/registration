@@ -214,7 +214,13 @@ public enum StatusUtil {
     MESSAGE_SENDER_EMAIL_FAILED(StatusConstants.MESSAGE_SENDER__FAILED_CODE + "005","Notification was not sent as the required mode of channel was not available"),
     MESSAGE_SENDER_SMS_FAILED(StatusConstants.MESSAGE_SENDER__FAILED_CODE + "006","Notification was not sent as the required mode of channel was not available"),
     MESSAGE_SENDER_NOTIFICATION_FAILED(StatusConstants.MESSAGE_SENDER__FAILED_CODE + "006","Notification was not sent as the required mode of channel was not available"),
-    VID_CREATION_FAILED(StatusConstants.UIN_GENERATOR_MODULE_FAILED + "009", "VID creation failed -");
+	VID_CREATION_FAILED(StatusConstants.UIN_GENERATOR_MODULE_FAILED + "009", "VID creation failed -"),
+
+	WORKFLOW_EVENT_UPDATE_SUCCESS(StatusConstants.WORKFLOW_EVENT_UPDATE + "001",
+			"Packet workflow updated successfully"),
+	
+	WORKFLOW_ACTION_SERVICE_SUCCESS(StatusConstants.WORKFLOW_ACTION_SERVICE + "001",
+			"Packet workflow resume  successfully");
 
 	private final String statusComment;
 	private final String statusCode;
