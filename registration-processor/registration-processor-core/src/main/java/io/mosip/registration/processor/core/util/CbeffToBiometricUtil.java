@@ -12,26 +12,24 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import io.mosip.kernel.core.cbeffutil.entity.BIR;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import io.mosip.kernel.bioapi.impl.BioApiImpl;
+import io.mosip.kernel.biometrics.constant.BiometricType;
+import io.mosip.kernel.biometrics.entities.BIR;
+import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.cbeffutil.impl.CbeffImpl;
 import io.mosip.kernel.core.bioapi.exception.BiometricException;
 import io.mosip.kernel.core.bioapi.model.KeyValuePair;
 import io.mosip.kernel.core.bioapi.spi.IBioApi;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRType;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
-import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.token.validation.TokenValidator;
 import io.mosip.registration.processor.core.util.exception.BiometricTagMatchException;
 
 /**
@@ -87,7 +85,7 @@ public class CbeffToBiometricUtil {
 
 		byte[] photoBytes = null;
 		if (cbeffFileString != null) {
-			List<BIRType> bIRTypeList = getBIRTypeList(cbeffFileString);
+			List<BIR> bIRTypeList = getBIRTypeList(cbeffFileString);
 			photoBytes = getPhotoByTypeAndSubType(bIRTypeList, type, subType);
 		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
@@ -99,26 +97,23 @@ public class CbeffToBiometricUtil {
 	/**
 	 * Gets the photo by type and sub type.
 	 *
-	 * @param bIRTypeList
-	 *            the b IR type list
-	 * @param type
-	 *            the type
-	 * @param subType
-	 *            the sub type
+	 * @param bIRTypeList the b IR type list
+	 * @param type        the typed
+	 * @param subType     the sub type
 	 * @return the photo by type and sub type
 	 */
-	private byte[] getPhotoByTypeAndSubType(List<BIRType> bIRTypeList, String type, List<String> subType) {
+	private byte[] getPhotoByTypeAndSubType(List<BIR> bIRList, String type, List<String> subType) {
 		byte[] photoBytes = null;
-		for (BIRType birType : bIRTypeList) {
-			if (birType.getBDBInfo() != null) {
-				List<SingleType> singleTypeList = birType.getBDBInfo().getType();
-				List<String> subTypeList = birType.getBDBInfo().getSubtype();
+		for (BIR bir : bIRList) {
+			if (bir.getBdbInfo() != null) {
+				List<BiometricType> singleTypeList = bir.getBdbInfo().getType();
+				List<String> subTypeList = bir.getBdbInfo().getSubtype();
 
-				boolean isType = isSingleType(type, singleTypeList);
+				boolean isType = isBiometricType(type, singleTypeList);
 				boolean isSubType = isSubType(subType, subTypeList);
 
 				if (isType && isSubType) {
-					photoBytes = birType.getBDB();
+					photoBytes = bir.getBdb();
 					break;
 				}
 			}
@@ -148,10 +143,10 @@ public class CbeffToBiometricUtil {
 	 *            the single type list
 	 * @return true, if is single type
 	 */
-	private boolean isSingleType(String type, List<SingleType> singleTypeList) {
+	private boolean isBiometricType(String type, List<BiometricType> biometricTypeList) {
 		boolean isType = false;
-		for (SingleType singletype : singleTypeList) {
-			if (singletype.value().equalsIgnoreCase(type)) {
+		for (BiometricType biometricType : biometricTypeList) {
+			if (biometricType.value().equalsIgnoreCase(type)) {
 				isType = true;
 			}
 		}
@@ -178,15 +173,15 @@ public class CbeffToBiometricUtil {
 			throw new BiometricTagMatchException(PlatformErrorMessages.RPR_UTL_CBEFF_VERSION_MISMATCH.getCode());
 		} 
 		else {
-			List<BIRType> file1BirTypeList = getBIRTypeList(cbeffFile1);
-			List<BIRType> file2BirTypeList = getBIRTypeList(cbeffFile2);
+			List<BIR> file1BirList = getBIRTypeList(cbeffFile1);
+			List<BIR> file2BirList = getBIRTypeList(cbeffFile2);
 
-			if (isBiometricTypeSame(file1BirTypeList, file2BirTypeList)) {
+			if (isBiometricTypeSame(file1BirList, file2BirList)) {
 				throw new BiometricTagMatchException(PlatformErrorMessages.RPR_UTL_BIOMETRIC_TAG_MATCH.getCode());
 			}
 
-			file1BirTypeList.addAll(file2BirTypeList);
-			mergedCbeffByte = cbeffutil.createXML(convertBIRTYPEtoBIR(file1BirTypeList));
+			file1BirList.addAll(file2BirList);
+			mergedCbeffByte = cbeffutil.createXML(file2BirList);
 		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"CbeffToBiometricUtil::mergeCbeff()::exit");
@@ -240,13 +235,13 @@ public class CbeffToBiometricUtil {
 	 *            the file 2 bir type list
 	 * @return true, if is same type
 	 */
-	private boolean isBiometricTypeSame(List<BIRType> file1BirTypeList, List<BIRType> file2BirTypeList) {
+	private boolean isBiometricTypeSame(List<BIR> file1BirList, List<BIR> file2BirList) {
 		boolean isTypeSame = false;
-		for (BIRType bir1 : file1BirTypeList) {
-			List<SingleType> singleTypeList1 = bir1.getBDBInfo().getType();
-			for (BIRType bir2 : file2BirTypeList) {
-				List<SingleType> singleTypeList2 = bir2.getBDBInfo().getType();
-				if (singleTypeList1.equals(singleTypeList2)) {
+		for (BIR bir1 : file1BirList) {
+			List<BiometricType> biometricTypeList1 = bir1.getBdbInfo().getType();
+			for (BIR bir2 : file2BirList) {
+				List<BiometricType> biometricTypeList2 = bir2.getBdbInfo().getType();
+				if (biometricTypeList1.equals(biometricTypeList2)) {
 					isTypeSame = true;
 					break;
 				}
@@ -269,22 +264,22 @@ public class CbeffToBiometricUtil {
 	 *             the exception
 	 */
 	public InputStream extractCbeffWithTypes(String cbeffFile, List<String> types) throws Exception {
-		List<BIRType> extractedType = new ArrayList<>();
+		List<BIR> extractedBIR = new ArrayList<>();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"CbeffToBiometricUtil::extractCbeffWithTypes()::entry");
 
 		byte[] newCbeffByte = null;
-		List<BIRType> file2BirTypeList = getBIRTypeList(cbeffFile);
-		for (BIRType birType : file2BirTypeList) {
-			List<SingleType> singleTypeList = birType.getBDBInfo().getType();
+		List<BIR> file2BirTypeList = getBIRTypeList(cbeffFile);
+		for (BIR bir : file2BirTypeList) {
+			List<BiometricType> biometricTypeList = bir.getBdbInfo().getType();
 			for (String type : types) {
-				if (singleTypeList.get(0).value().equalsIgnoreCase(type)) {
-					extractedType.add(birType);
+				if (biometricTypeList.get(0).value().equalsIgnoreCase(type)) {
+					extractedBIR.add(bir);
 				}
 			}
 		}
-		if (!extractedType.isEmpty()) {
-			newCbeffByte = cbeffutil.createXML(convertBIRTYPEtoBIR(extractedType));
+		if (!extractedBIR.isEmpty()) {
+			newCbeffByte = cbeffutil.createXML(extractedBIR);
 		} else {
 			return null;
 		}
@@ -294,17 +289,6 @@ public class CbeffToBiometricUtil {
 		return new ByteArrayInputStream(newCbeffByte);
 	}
 
-	/**
-	 * Convert BIRTYP eto BIR.
-	 *
-	 * @param listOfBIR
-	 *            the list of BIR
-	 * @return the list
-	 */
-	public List<BIR> convertBIRTYPEtoBIR(List<BIRType> listOfBIR) {
-		
-		return cbeffutil.convertBIRTypeToBIR(listOfBIR);
-	}
 
 	/**
 	 * Gets the BIR type list.
@@ -315,7 +299,7 @@ public class CbeffToBiometricUtil {
 	 * @throws Exception
 	 *             the exception
 	 */
-	public List<BIRType> getBIRTypeList(String cbeffFileString) throws Exception {
+	public List<BIR> getBIRTypeList(String cbeffFileString) throws Exception {
 		return cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(cbeffFileString));
 	}
 	/**
@@ -325,19 +309,19 @@ public class CbeffToBiometricUtil {
 	 * @throws Exception
 	 *             the exception
 	 */
-	public List<BIRType> getBIRDataFromXML(byte[] xmlBytes) throws Exception {
+	public List<BIR> getBIRDataFromXML(byte[] xmlBytes) throws Exception {
 		return cbeffutil.getBIRDataFromXML(xmlBytes);
 	}
 
 	/**
 	 * Gets the BIR template
+	 * 
 	 * @param sample the sample
-	 * @param flags the flags
+	 * @param flags  the flags
 	 * @return the biometric record
-	 * @throws BiometricException 
+	 * @throws BiometricException
 	 */
 	public BIR extractTemplate(BIR sample, KeyValuePair[] flags) throws BiometricException {
 		return bioAPi.extractTemplate(sample, flags).getResponse();
 	}
-
 }
