@@ -183,7 +183,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 	@Override
 	public void start() {
-		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.ABIS_HANDLER_BUS_IN,
+		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.ABIS_HANDLER_BUS_IN,
 				MessageBusAddress.ABIS_HANDLER_BUS_OUT));
 		this.createServer(router.getRouter(), getPort());
 	}
