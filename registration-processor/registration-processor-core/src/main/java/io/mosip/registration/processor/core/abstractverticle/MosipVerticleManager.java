@@ -253,7 +253,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 		return this.eventBusType;
 	}
 
-	public Boolean getDisableTagLoading() {
+	public Boolean isTagLoadingDisabled() {
 		return getBooleanPropertyForSuffix("message.tag.loading.disable", DEFAULT_MESSAGE_TAG_LOADING_DISABLE_VALUE);
 	}
 
@@ -263,7 +263,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	}
 
 	private void addTagsToMessageDTO(MessageDTO messageDTO) {
-		if(getDisableTagLoading()) {
+		if(isTagLoadingDisabled()) {
 			messageDTO.setTags(new HashMap<>());
 			return;
 		}
