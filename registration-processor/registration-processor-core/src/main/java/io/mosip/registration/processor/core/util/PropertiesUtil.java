@@ -7,7 +7,6 @@ import org.springframework.core.env.Environment;
 
 import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.registration.processor.core.abstractverticle.MosipVerticleManager;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 
 /**
@@ -18,6 +17,7 @@ import io.mosip.registration.processor.core.logger.RegProcessorLogger;
  */
 public class PropertiesUtil {
 	
+	/** The logger. */
 	private Logger logger = RegProcessorLogger.getLogger(PropertiesUtil.class);
 
 	/** The environment. */
@@ -55,7 +55,7 @@ public class PropertiesUtil {
 	public Integer getIntegerProperty(String propPrefix, String propSuffix) {
 		return getIntegerProperty(propPrefix + propSuffix);
 	}
-
+	
 	/**
 	 * Gets the integer property.
 	 *
@@ -65,7 +65,7 @@ public class PropertiesUtil {
 	public Integer getIntegerProperty(String propKey) {
 		return getProperty(propKey, Integer.class);
 	}
-
+	
 	/**
 	 * Gets the property.
 	 *
@@ -109,5 +109,6 @@ public class PropertiesUtil {
 			return propValue;
 		}
 	}
+
 
 }
