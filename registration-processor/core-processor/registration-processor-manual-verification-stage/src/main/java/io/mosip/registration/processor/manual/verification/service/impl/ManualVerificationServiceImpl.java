@@ -452,7 +452,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
 				.getRegStatusForMainProcess(regId);
-		messageDTO.setReg_type(RegistrationType.valueOf(registrationStatusDto.getRegistrationType()));
+		messageDTO.setReg_type(registrationStatusDto.getRegistrationType());
 		try {
 			//Below lines are resending the same message to mv queue even after receiving the response, 
 			//but want to check with developer before deleting these lines

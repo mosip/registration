@@ -149,13 +149,13 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
             messageDTO.setMessageBusAddress(MessageBusAddress.SECUREZONE_NOTIFICATION_IN);
             messageDTO.setInternalError(Boolean.FALSE);
             messageDTO.setRid(obj.getString("rid"));
-            messageDTO.setReg_type(RegistrationType.valueOf(obj.getString("reg_type")));
+            messageDTO.setReg_type(obj.getString("reg_type"));
             messageDTO.setIsValid(obj.getBoolean("isValid"));
             messageDTO.setSource(obj.getString("source"));
             messageDTO.setIteration(obj.getInteger("iteration"));
 
             registrationStatusDto = registrationStatusService.getRegistrationStatus(
-                    messageDTO.getRid(), messageDTO.getReg_type().name(), messageDTO.getIteration());
+                    messageDTO.getRid(), messageDTO.getReg_type(), messageDTO.getIteration());
 
             if (registrationStatusDto != null && messageDTO.getRid().equalsIgnoreCase(registrationStatusDto.getRegistrationId())) {
                 registrationStatusDto

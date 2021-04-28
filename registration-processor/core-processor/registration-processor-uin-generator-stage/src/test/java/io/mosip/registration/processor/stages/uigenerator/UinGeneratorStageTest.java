@@ -359,7 +359,7 @@ public class UinGeneratorStageTest {
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
 		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(response);
-		messageDTO.setReg_type(RegistrationType.NEW);
+		messageDTO.setReg_type(RegistrationType.NEW.name());
 
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
@@ -400,7 +400,7 @@ public class UinGeneratorStageTest {
 	public void testUinGenerationResponseNull() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
-		messageDTO.setReg_type(RegistrationType.NEW);
+		messageDTO.setReg_type(RegistrationType.NEW.name());
 		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
 		String response = "{\"timestamp\":1553771083721,\"status\":404,\"errors\":[{\"errorCode\":\"KER-UIG-004\",\"errorMessage\":\"Given UIN is not in ISSUED status\"}]}";
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
@@ -481,7 +481,7 @@ public class UinGeneratorStageTest {
 	public void testUinGenerationSuccessWithoutUINAndUinUnused() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
-		messageDTO.setReg_type(RegistrationType.NEW);
+		messageDTO.setReg_type(RegistrationType.NEW.name());
 		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
 		String response = "{\"timestamp\":1553771083721,\"status\":404,\"errors\":[{\"errorCode\":\"KER-UIG-004\",\"errorMessage\":\"Given UIN is not in ISSUED status\"}]}";
 
@@ -530,7 +530,7 @@ public class UinGeneratorStageTest {
 
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
-		messageDTO.setReg_type(RegistrationType.valueOf("ACTIVATED"));
+		messageDTO.setReg_type(RegistrationType.valueOf("ACTIVATED").name());
 
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
@@ -599,7 +599,7 @@ public class UinGeneratorStageTest {
 
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
-		messageDTO.setReg_type(RegistrationType.valueOf("ACTIVATED"));
+		messageDTO.setReg_type(RegistrationType.valueOf("ACTIVATED").name());
 
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
@@ -661,7 +661,7 @@ public class UinGeneratorStageTest {
 
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
-		messageDTO.setReg_type(RegistrationType.valueOf("ACTIVATED"));
+		messageDTO.setReg_type(RegistrationType.valueOf("ACTIVATED").name());
 
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
@@ -725,7 +725,7 @@ public class UinGeneratorStageTest {
 
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
-		messageDTO.setReg_type(RegistrationType.valueOf("ACTIVATED"));
+		messageDTO.setReg_type(RegistrationType.valueOf("ACTIVATED").name());
 
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
@@ -772,7 +772,7 @@ public class UinGeneratorStageTest {
 
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
-		messageDTO.setReg_type(RegistrationType.valueOf("ACTIVATED"));
+		messageDTO.setReg_type(RegistrationType.valueOf("ACTIVATED").name());
 
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
@@ -847,7 +847,7 @@ public class UinGeneratorStageTest {
 
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
-		messageDTO.setReg_type(RegistrationType.valueOf("ACTIVATED"));
+		messageDTO.setReg_type(RegistrationType.valueOf("ACTIVATED").name());
 
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
@@ -908,7 +908,7 @@ public class UinGeneratorStageTest {
 
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
-		messageDTO.setReg_type(RegistrationType.valueOf("ACTIVATED"));
+		messageDTO.setReg_type(RegistrationType.valueOf("ACTIVATED").name());
 
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
@@ -1052,7 +1052,7 @@ public class UinGeneratorStageTest {
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
-		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
+		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED").name());
 		IdResponseDTO responsedto = new IdResponseDTO();
 		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
 		InputStream idJsonStream1 = new ByteArrayInputStream(idJson.getBytes(StandardCharsets.UTF_8));
@@ -1101,7 +1101,7 @@ public class UinGeneratorStageTest {
 
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
-		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
+		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED").name());
 
 		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":4215839851}}";
 		ResponseDTO responseDTO = new ResponseDTO();
@@ -1142,7 +1142,7 @@ public class UinGeneratorStageTest {
 
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
-		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
+		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED").name());
 		IdResponseDTO responsedto = new IdResponseDTO();
 		ResponseDTO responseDTO1 = new ResponseDTO();
 		responseDTO1.setStatus("DEACTIVATED");
@@ -1192,7 +1192,7 @@ public class UinGeneratorStageTest {
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
-		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
+		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED").name());
 		IdResponseDTO responsedto = new IdResponseDTO();
 		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
 		InputStream idJsonStream1 = new ByteArrayInputStream(idJson.getBytes(StandardCharsets.UTF_8));
@@ -1223,7 +1223,7 @@ public class UinGeneratorStageTest {
 	public void deactivateTestForExistingUinTestSuccess() throws ApisResourceAccessException, PacketManagerException, IOException, JsonProcessingException, JSONException {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
-		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
+		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED").name());
 
 		ErrorDTO errorDto = new ErrorDTO();
 		errorDto.setErrorCode("KER-IDR-001");
@@ -1295,7 +1295,7 @@ public class UinGeneratorStageTest {
 
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
-		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
+		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED").name());
 
 		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":4215839851}}";
 		InputStream idJsonStream1 = new ByteArrayInputStream(idJson.getBytes(StandardCharsets.UTF_8));
@@ -1339,7 +1339,7 @@ public class UinGeneratorStageTest {
 
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
-		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
+		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED").name());
 
 		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":4215839851}}";
 		InputStream idJsonStream1 = new ByteArrayInputStream(idJson.getBytes(StandardCharsets.UTF_8));
@@ -1362,7 +1362,7 @@ public class UinGeneratorStageTest {
 		when(apisResourceAccessException.getCause()).thenReturn(httpServerErrorException);
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
-		messageDTO.setReg_type(RegistrationType.valueOf("ACTIVATED"));
+		messageDTO.setReg_type(RegistrationType.valueOf("ACTIVATED").name());
 
 		String idJsonData = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
 		InputStream idJsonStream = new ByteArrayInputStream(idJsonData.getBytes(StandardCharsets.UTF_8));
@@ -1386,7 +1386,7 @@ public class UinGeneratorStageTest {
 		when(apisResourceAccessException.getCause()).thenReturn(httpClientErrorException);
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
-		messageDTO.setReg_type(RegistrationType.valueOf("ACTIVATED"));
+		messageDTO.setReg_type(RegistrationType.valueOf("ACTIVATED").name());
 		String idJsonData = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
 		InputStream idJsonStream = new ByteArrayInputStream(idJsonData.getBytes(StandardCharsets.UTF_8));
 		////Mockito.when(packetReaderService.getFile("27847657360002520181210094052",
@@ -1416,7 +1416,7 @@ public class UinGeneratorStageTest {
 		
 		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any())).thenThrow(apisResourceAccessException);
 
-		messageDTO.setReg_type(RegistrationType.NEW);
+		messageDTO.setReg_type(RegistrationType.NEW.name());
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		//assertFalse(result.getInternalError());
@@ -1438,7 +1438,7 @@ public class UinGeneratorStageTest {
 		
 		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any())).thenThrow(apisResourceAccessException);
 
-		messageDTO.setReg_type(RegistrationType.NEW);
+		messageDTO.setReg_type(RegistrationType.NEW.name());
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		//assertFalse(result.getInternalError());
@@ -1456,7 +1456,7 @@ public class UinGeneratorStageTest {
 
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
-		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
+		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED").name());
 
 		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":4215839851}}";
 		InputStream idJsonStream1 = new ByteArrayInputStream(idJson.getBytes(StandardCharsets.UTF_8));
@@ -1476,7 +1476,7 @@ public class UinGeneratorStageTest {
 
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
-		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
+		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED").name());
 
 		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":4215839851}}";
 		InputStream idJsonStream1 = new ByteArrayInputStream(idJson.getBytes(StandardCharsets.UTF_8));
@@ -1495,7 +1495,7 @@ public class UinGeneratorStageTest {
 
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
-		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
+		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED").name());
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getInternalError());
 	}
@@ -1511,7 +1511,7 @@ public class UinGeneratorStageTest {
 	public void testApiResourceException() throws ApisResourceAccessException {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
-		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
+		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED").name());
 		IdResponseDTO responsedto = new IdResponseDTO();
 		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
 		InputStream idJsonStream1 = new ByteArrayInputStream(idJson.getBytes(StandardCharsets.UTF_8));
@@ -1583,7 +1583,7 @@ public class UinGeneratorStageTest {
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
-		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
+		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED").name());
 
 		IdResponseDTO responsedto = new IdResponseDTO();
 		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":4215839851}}";
@@ -1636,7 +1636,7 @@ public class UinGeneratorStageTest {
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
-		messageDTO.setReg_type(RegistrationType.LOST);
+		messageDTO.setReg_type(RegistrationType.LOST.name());
 		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
 		String response = "{\"timestamp\":1553771083721,\"status\":404,\"errors\":[{\"errorCode\":\"KER-UIG-004\",\"errorMessage\":\"Given UIN is not in ISSUED status\"}]}";
 
@@ -1689,7 +1689,7 @@ public class UinGeneratorStageTest {
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
-		messageDTO.setReg_type(RegistrationType.valueOf("UPDATE"));
+		messageDTO.setReg_type(RegistrationType.valueOf("UPDATE").name());
 		IdResponseDTO responsedto = new IdResponseDTO();
 
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
@@ -1720,7 +1720,7 @@ public class UinGeneratorStageTest {
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
 		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(response);
-		messageDTO.setReg_type(RegistrationType.NEW);
+		messageDTO.setReg_type(RegistrationType.NEW.name());
 
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
@@ -1762,7 +1762,7 @@ public class UinGeneratorStageTest {
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
 		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(response);
-		messageDTO.setReg_type(RegistrationType.NEW);
+		messageDTO.setReg_type(RegistrationType.NEW.name());
 
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
@@ -1799,7 +1799,7 @@ public class UinGeneratorStageTest {
 	public void testLinkSuccessForLostUinisNull() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
-		messageDTO.setReg_type(RegistrationType.LOST);
+		messageDTO.setReg_type(RegistrationType.LOST.name());
 		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
 		String response = "{\"timestamp\":1553771083721,\"status\":404,\"errors\":[{\"errorCode\":\"KER-UIG-004\",\"errorMessage\":\"Given UIN is not in ISSUED status\"}]}";
 		when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn(null);
@@ -1834,7 +1834,7 @@ public class UinGeneratorStageTest {
 	public void testLinkSuccessForLostUinIdResponseIsNUll() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
-		messageDTO.setReg_type(RegistrationType.LOST);
+		messageDTO.setReg_type(RegistrationType.LOST.name());
 		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
 		String response = "{\"timestamp\":1553771083721,\"status\":404,\"errors\":[{\"errorCode\":\"KER-UIG-004\",\"errorMessage\":\"Given UIN is not in ISSUED status\"}]}";
 
@@ -1869,7 +1869,7 @@ public class UinGeneratorStageTest {
 
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
-		messageDTO.setReg_type(RegistrationType.UPDATE);
+		messageDTO.setReg_type(RegistrationType.UPDATE.name());
 
 		Map<String, String> fieldMap = new HashMap<>();
 		fieldMap.put("UIN", "123456");
@@ -1947,7 +1947,7 @@ public class UinGeneratorStageTest {
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
-		messageDTO.setReg_type(RegistrationType.UPDATE);
+		messageDTO.setReg_type(RegistrationType.UPDATE.name());
 
 		IdResponseDTO responsedto = new IdResponseDTO();
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
@@ -1984,7 +1984,7 @@ public class UinGeneratorStageTest {
 
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
-		messageDTO.setReg_type(RegistrationType.UPDATE);
+		messageDTO.setReg_type(RegistrationType.UPDATE.name());
 
 		IdResponseDTO responsedto = new IdResponseDTO();
 		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":4215839851}}";
@@ -2034,7 +2034,7 @@ public class UinGeneratorStageTest {
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
-		messageDTO.setReg_type(RegistrationType.NEW);
+		messageDTO.setReg_type(RegistrationType.NEW.name());
 		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
 		String response = "{\"timestamp\":1553771083721,\"status\":404,\"errors\":[{\"errorCode\":\"KER-UIG-004\",\"errorMessage\":\"Given UIN is not in ISSUED status\"}]}";
 
@@ -2093,7 +2093,7 @@ public class UinGeneratorStageTest {
 		String response = "{\"uin\":\"6517036426\",\"status\":\"ASSIGNED\"}";
 		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(response);
-		messageDTO.setReg_type(RegistrationType.NEW);
+		messageDTO.setReg_type(RegistrationType.NEW.name());
 
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
@@ -2190,7 +2190,7 @@ public class UinGeneratorStageTest {
 
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
-		messageDTO.setReg_type(RegistrationType.valueOf("ACTIVATED"));
+		messageDTO.setReg_type(RegistrationType.valueOf("ACTIVATED").name());
 
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		idResponseDTO.setResponse(null);
@@ -2247,7 +2247,7 @@ public class UinGeneratorStageTest {
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
-		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
+		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED").name());
 		IdResponseDTO responsedto = new IdResponseDTO();
 		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
 		InputStream idJsonStream1 = new ByteArrayInputStream(idJson.getBytes(StandardCharsets.UTF_8));
@@ -2297,7 +2297,7 @@ public class UinGeneratorStageTest {
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
-		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
+		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED").name());
 		IdResponseDTO responsedto = new IdResponseDTO();
 		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
 		InputStream idJsonStream1 = new ByteArrayInputStream(idJson.getBytes(StandardCharsets.UTF_8));
@@ -2347,7 +2347,7 @@ public class UinGeneratorStageTest {
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
-		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
+		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED").name());
 		IdResponseDTO responsedto = new IdResponseDTO();
 		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
 		InputStream idJsonStream1 = new ByteArrayInputStream(idJson.getBytes(StandardCharsets.UTF_8));
@@ -2397,7 +2397,7 @@ public class UinGeneratorStageTest {
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
-		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
+		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED").name());
 		IdResponseDTO responsedto = new IdResponseDTO();
 		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
 		InputStream idJsonStream1 = new ByteArrayInputStream(idJson.getBytes(StandardCharsets.UTF_8));
@@ -2447,7 +2447,7 @@ public class UinGeneratorStageTest {
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
-		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
+		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED").name());
 		IdResponseDTO responsedto = new IdResponseDTO();
 		ResponseDTO dto=new ResponseDTO();
 		dto.setStatus("DEACTIVATED");

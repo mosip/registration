@@ -223,7 +223,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "AbisMiddlewareStage::process()::entry");
 		InternalRegistrationStatusDto internalRegDto = registrationStatusService.getRegistrationStatus(
-					registrationId, object.getReg_type().name(), object.getIteration());
+					registrationId, object.getReg_type(), object.getIteration());
 		try {
 			List<String> abisRefList = packetInfoManager.getReferenceIdByRid(registrationId);
 			validateNullCheck(abisRefList, "ABIS_REFERENCE_ID_NOT_FOUND");
@@ -739,7 +739,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 		if (bioRefId != null) {
 			MessageDTO messageDto = new MessageDTO();
 			messageDto.setRid(regId);
-			messageDto.setReg_type(RegistrationType.valueOf(regType));
+			messageDto.setReg_type(regType);
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 					"AbisMiddlewareStage::consumerListener()::sending to Abis handler");
 			this.send(eventBus, MessageBusAddress.ABIS_MIDDLEWARE_BUS_OUT, messageDto);

@@ -35,13 +35,13 @@ public class MessageBusAddress implements Serializable {
 	 * @param messageBusAddress the message bus address
 	 * @param regType           the reg type
 	 */
-	public MessageBusAddress(MessageBusAddress messageBusAddress, RegistrationType regType) {
+	public MessageBusAddress(MessageBusAddress messageBusAddress, String regType) {
 
 		List<String> addressList = (List<String>)Arrays.asList(messageBusAddress.getAddress().split("-"));
 
 		ArrayList<String> modifiableArrayList = new ArrayList<String>(addressList);
 
-		modifiableArrayList.add(addressList.size() - 2, regType.toString());
+		modifiableArrayList.add(addressList.size() - 2, regType);
 		String modifiedAddress = null;
 
 		if(messageBusAddress.getAddress().contains(BUS_OUT)) {

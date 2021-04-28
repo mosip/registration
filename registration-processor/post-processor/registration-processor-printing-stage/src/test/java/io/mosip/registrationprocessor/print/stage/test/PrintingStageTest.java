@@ -246,7 +246,7 @@ public class PrintingStageTest {
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890987654321");
 
-		dto.setReg_type(RegistrationType.NEW);
+		dto.setReg_type(RegistrationType.NEW.name());
 
 		ResponseWrapper<CredentialResponseDto> responseWrapper = new ResponseWrapper<>();
 		CredentialResponseDto credentialResponseDto = new CredentialResponseDto();
@@ -268,7 +268,7 @@ public class PrintingStageTest {
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890987654321");
 
-		dto.setReg_type(RegistrationType.NEW);
+		dto.setReg_type(RegistrationType.NEW.name());
 
 		ResponseWrapper<CredentialResponseDto> responseWrapper = new ResponseWrapper<>();
 		ErrorDTO error = new ErrorDTO();
@@ -292,7 +292,7 @@ public class PrintingStageTest {
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890987654321");
 
-		dto.setReg_type(RegistrationType.NEW);
+		dto.setReg_type(RegistrationType.NEW.name());
 
 		ResponseWrapper<CredentialResponseDto> responseWrapper = new ResponseWrapper<>();
 		CredentialResponseDto credentialResponseDto = new CredentialResponseDto();
@@ -311,7 +311,7 @@ public class PrintingStageTest {
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890987654321");
 
-		dto.setReg_type(RegistrationType.NEW);
+		dto.setReg_type(RegistrationType.NEW.name());
 
 		ResponseWrapper<CredentialResponseDto> responseWrapper = new ResponseWrapper<>();
 		CredentialResponseDto credentialResponseDto = new CredentialResponseDto();
@@ -331,7 +331,7 @@ public class PrintingStageTest {
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890987654321");
 
-		dto.setReg_type(RegistrationType.NEW);
+		dto.setReg_type(RegistrationType.NEW.name());
 
 		ResponseWrapper<CredentialResponseDto> responseWrapper = new ResponseWrapper<>();
 		CredentialResponseDto credentialResponseDto = new CredentialResponseDto();
@@ -350,7 +350,7 @@ public class PrintingStageTest {
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890987654321");
 
-		dto.setReg_type(RegistrationType.NEW);
+		dto.setReg_type(RegistrationType.NEW.name());
 
 		ResponseWrapper<CredentialResponseDto> responseWrapper = new ResponseWrapper<>();
 		CredentialResponseDto credentialResponseDto = new CredentialResponseDto();
@@ -374,7 +374,7 @@ public class PrintingStageTest {
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890987654321");
 
-		dto.setReg_type(RegistrationType.NEW);
+		dto.setReg_type(RegistrationType.NEW.name());
 
 		ResponseWrapper<CredentialResponseDto> responseWrapper = new ResponseWrapper<>();
 		CredentialResponseDto credentialResponseDto = new CredentialResponseDto();

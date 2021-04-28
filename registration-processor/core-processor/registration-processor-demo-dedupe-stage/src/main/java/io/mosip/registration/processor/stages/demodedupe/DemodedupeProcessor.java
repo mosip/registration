@@ -157,7 +157,7 @@ public class DemodedupeProcessor {
 		String moduleName = ModuleName.DEMO_DEDUPE.toString();
 		String moduleId = PlatformSuccessMessages.RPR_PKR_DEMO_DE_DUP.getCode();
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
-				.getRegistrationStatus(registrationId, object.getReg_type().name(), object.getIteration());
+				.getRegistrationStatus(registrationId, object.getReg_type(), object.getIteration());
 
 		try {
 			// Persist Demographic packet Data if packet Registration type is NEW

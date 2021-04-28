@@ -173,7 +173,7 @@ public class BioDedupeProcessor {
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 		try {
 			registrationStatusDto = registrationStatusService.getRegistrationStatus(
-					registrationId, object.getReg_type().name(), object.getIteration());
+					registrationId, object.getReg_type(), object.getIteration());
 			String registrationType = registrationStatusDto.getRegistrationType();
 			if (registrationType.equalsIgnoreCase(SyncTypeDto.NEW.toString())
 			|| (subProcess != null && subProcess.contains(registrationType))) {
@@ -425,7 +425,7 @@ public class BioDedupeProcessor {
 			object.setInternalError(Boolean.FALSE);
 			object.setRid(registrationStatusDto.getRegistrationId());
 			object.setIsValid(Boolean.FALSE);
-			object.setReg_type(RegistrationType.valueOf(registrationType));
+			object.setReg_type(registrationType);
 			object.setMessageBusAddress(MessageBusAddress.MANUAL_VERIFICATION_BUS_IN);
 
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),

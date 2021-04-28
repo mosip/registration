@@ -75,7 +75,7 @@ public class IntroducerValidationProcessor {
 		registrationId = object.getRid();
 
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
-				.getRegistrationStatus(registrationId, object.getReg_type().name(), object.getIteration());
+				.getRegistrationStatus(registrationId, object.getReg_type(), object.getIteration());
 
 		registrationStatusDto
 				.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTRODUCER_VALIDATION.toString());

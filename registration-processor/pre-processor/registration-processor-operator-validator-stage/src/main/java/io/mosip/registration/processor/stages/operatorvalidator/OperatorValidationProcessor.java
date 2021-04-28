@@ -86,7 +86,7 @@ public class OperatorValidationProcessor {
 		registrationId = object.getRid();
 
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
-				.getRegistrationStatus(registrationId, object.getReg_type().name(), object.getIteration());
+				.getRegistrationStatus(registrationId, object.getReg_type(), object.getIteration());
 
 		registrationStatusDto
 				.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.OPERATOR_VALIDATION.toString());

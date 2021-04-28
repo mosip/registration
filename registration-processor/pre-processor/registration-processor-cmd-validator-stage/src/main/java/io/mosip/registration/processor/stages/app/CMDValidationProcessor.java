@@ -111,7 +111,7 @@ public class CMDValidationProcessor {
 		registrationId = object.getRid();
 
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
-				.getRegistrationStatus(registrationId, object.getReg_type().name(), object.getIteration());
+				.getRegistrationStatus(registrationId, object.getReg_type(), object.getIteration());
 
 		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.CMD_VALIDATION.toString());
 		registrationStatusDto.setRegistrationStageName(stageName);
