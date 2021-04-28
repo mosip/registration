@@ -42,7 +42,7 @@ import io.vertx.ext.web.RoutingContext;
  * The Class PacketReceiverStage.
  */
 
-@RefreshScope
+//@RefreshScope
 @Service
 @Configuration
 @ComponentScan(basePackages = { "io.mosip.registration.processor.status.config",
