@@ -8,11 +8,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.registration.processor.packet.manager.utils.ZipUtils;
-import io.mosip.registration.processor.status.service.SubWorkflowMappingService;
 import org.apache.commons.io.IOUtils;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.StringUtils;
@@ -91,9 +88,6 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	/** The file manager. */
 	@Autowired
 	private FileManager<DirectoryPathDto, InputStream> fileManager;
-
-	@Autowired
-	private SubWorkflowMappingService subWorkflowMappingService;
 
 	/** The sync registration service. */
 	@Autowired
@@ -277,12 +271,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 		dto.setCreatedBy(USER);
 		dto.setIsDeleted(false);
 		dto.setSource(regEntity.getSource());
-		if (mainProcess.contains(regEntity.getRegistrationType()))
-			dto.setIteration(1);
-		else {
-			char c = packetId.charAt(packetId.length() - 1);
-			dto.setIteration(Integer.parseInt(String.valueOf(c)));
-		}
+        dto.setIteration(getIterationFromPacketName(packetId, regEntity));
 
 		/** Module-Id can be Both Success/Error code */
 		String moduleId = PlatformSuccessMessages.PACKET_RECEIVER_VALIDATION_SUCCESS.getCode();
@@ -325,7 +314,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 			String registrationId, InternalRegistrationStatusDto dto, LogDescription description) throws IOException {
 		try {
 			InputStream inputStream = new ByteArrayInputStream(input);
-			boolean isInputFileClean = true;//virusScannerService.scanFile(inputStream);
+			boolean isInputFileClean = virusScannerService.scanFile(inputStream);
 
 			if (!isInputFileClean) {
 				description.setMessage(PlatformErrorMessages.PRP_PKR_PACKET_VIRUS_SCAN_FAILED.getMessage());
@@ -487,7 +476,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 		String registrationId = regEntity.getRegistrationId();
 
 		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus(registrationId,
-				regEntity.getRegistrationType(), getIteration(regEntity));
+				regEntity.getRegistrationType(), getIterationFromPacketName(packetId, regEntity));
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "PacketReceiverServiceImpl::processPacket()::entry");
 		messageDTO.setRid(registrationId);
@@ -556,11 +545,13 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 		return messageDTO;
 	}
 
-	private Integer getIteration(SyncRegistrationEntity regEntity) {
-		return  (mainProcess.contains(regEntity.getRegistrationType())) ? 1
-				:
-			subWorkflowMappingService.getWorkflowMappingByReqId(
-					regEntity.getAdditionalInfoReqId()).iterator().next().getIteration();
-	}
+	private int getIterationFromPacketName(String packetId, SyncRegistrationEntity regEntity) {
+        if (mainProcess.contains(regEntity.getRegistrationType()))
+            return 1;
+        else {
+            char c = packetId.charAt(packetId.length() - 1);
+            return Integer.parseInt(String.valueOf(c));
+        }
+    }
 
 }
