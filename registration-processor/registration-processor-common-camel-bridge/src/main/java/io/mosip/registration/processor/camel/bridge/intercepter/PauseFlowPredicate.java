@@ -79,18 +79,18 @@ public class PauseFlowPredicate implements Predicate {
 					return true;
 				} 
 			}catch (JsonProcessingException e) {
-					LOGGER.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-							"RoutePredicate::matches()::exception " + e.getMessage());
+				LOGGER.error("Error in  RoutePredicate::matches {}",
+						 e.getMessage());
 				throw new BaseUncheckedException(e.getMessage());
 				}
 				catch (InvalidPathException e) {
-					LOGGER.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-							"RoutePredicate::matches()::exception " + e.getMessage());
+				LOGGER.error("Error in  RoutePredicate::matches {}",
+							 e.getMessage());
 				throw new BaseUncheckedException(e.getMessage());
 				}
 			catch (Exception e) {
-				LOGGER.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-						"RoutePredicate::matches()::exception " + e.getMessage());
+				LOGGER.error("Error in  RoutePredicate::matches {}",
+						 e.getMessage());
 				throw new BaseUncheckedException(e.getMessage());
 			}
 				
