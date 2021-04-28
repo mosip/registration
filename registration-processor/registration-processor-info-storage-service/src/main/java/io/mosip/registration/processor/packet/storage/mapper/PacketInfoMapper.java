@@ -12,6 +12,7 @@ import java.util.List;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -268,10 +269,10 @@ public class PacketInfoMapper {
 		entity.setCrBy(regBioRefDto.getCrBy());
 		entity.setIsActive(regBioRefDto.getIsActive());
 		entity.setUpdBy(regBioRefDto.getUpdBy());
-		entity.setCrDtimes(LocalDateTime.now(ZoneId.of("UTC")));
-		entity.setUpdDtimes(LocalDateTime.now(ZoneId.of("UTC")));
+		entity.setUpdDtimes(DateUtils.getUTCCurrentDateTime());
 		RegBioRefPKEntity refPKEntity = new RegBioRefPKEntity();
 		refPKEntity.setRegId(regBioRefDto.getRegId());
+		refPKEntity.setCrDtimes(DateUtils.getUTCCurrentDateTime());
 		entity.setId(refPKEntity);
 
 		return entity;

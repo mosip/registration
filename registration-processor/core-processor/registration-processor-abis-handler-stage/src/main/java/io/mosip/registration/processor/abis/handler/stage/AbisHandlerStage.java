@@ -314,14 +314,8 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 	private void createRequest(String regId, List<AbisQueueDetails> abisQueueDetails, String transactionId,
 			String process, LogDescription description, String transactionTypeCode) throws Exception {
-		List<RegBioRefDto> bioRefDtos = packetInfoManager.getBioRefIdByRegId(regId);
-		String bioRefId;
-		if (bioRefDtos.isEmpty()) {
-			bioRefId = getUUID();
-			insertInBioRef(regId, bioRefId);
-		} else {
-			bioRefId = bioRefDtos.get(0).getBioRefId();
-		}
+		String bioRefId = getUUID();
+		insertInBioRef(regId, bioRefId);
 		createInsertRequest(abisQueueDetails, transactionId, bioRefId, regId, process, description);
 		createIdentifyRequest(abisQueueDetails, transactionId, bioRefId, transactionTypeCode, description);
 
