@@ -234,6 +234,7 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 			if (!CollectionUtils.isEmpty(reprocessorDtoList)) {
 				reprocessorDtoList.forEach(dto -> {
 					this.registrationId = dto.getRegistrationId();
+					object = new MessageDTO();
 					if (reprocessCount.equals(dto.getReProcessRetryCount())) {
 						dto.setLatestTransactionStatusCode(
 								RegistrationTransactionStatusCode.REPROCESS_FAILED.toString());
