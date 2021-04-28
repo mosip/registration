@@ -12,8 +12,10 @@ import org.springframework.beans.factory.annotation.Value;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.InvalidPathException;
 import com.jayway.jsonpath.JsonPath;
 
+import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.camel.bridge.model.Setting;
@@ -59,6 +61,7 @@ public class PauseFlowPredicate implements Predicate {
 
 		String fromAddress = exchange.getFromEndpoint().toString();
 		for (Setting setting : settings) {
+			try {
 			JSONArray jsonArray = JsonPath.read(message, setting.getMatchExpression());
 			if (Pattern.matches(setting.getFromAddress(), fromAddress)
 					&& !jsonArray.isEmpty()) {
@@ -71,14 +74,27 @@ public class PauseFlowPredicate implements Predicate {
 				workflowEventDTO.setEventTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 				workflowEventDTO.setStatusComment(PlatformSuccessMessages.PACKET_PAUSED_HOTLISTED.getMessage());
 				workflowEventDTO.setResumeRemoveTags(setting.getResumeRemoveTags());
-				try {
+		
 					exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
-				} catch (JsonProcessingException e) {
-					LOGGER.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-							"RoutePredicate::matches()::exception " + e.getMessage());
+					return true;
+				} 
+			}catch (JsonProcessingException e) {
+				LOGGER.error("Error in  RoutePredicate::matches {}",
+						 e.getMessage());
+				throw new BaseUncheckedException(e.getMessage());
 				}
-				return true;
-			} 		}
+				catch (InvalidPathException e) {
+				LOGGER.error("Error in  RoutePredicate::matches {}",
+							 e.getMessage());
+				throw new BaseUncheckedException(e.getMessage());
+				}
+			catch (Exception e) {
+				LOGGER.error("Error in  RoutePredicate::matches {}",
+						 e.getMessage());
+				throw new BaseUncheckedException(e.getMessage());
+			}
+				
+		}
 		return false;
 	}
 
