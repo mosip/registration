@@ -206,7 +206,7 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
 				"QualityCheckerStage::process()::entry");
 
-		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(regId, object.getReg_type().name(), object.getIteration());
+		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(regId, object.getReg_type(), object.getIteration());
 
 		try {
 			String individualBiometricsObject = packetManagerService.getFieldByMappingJsonKey(

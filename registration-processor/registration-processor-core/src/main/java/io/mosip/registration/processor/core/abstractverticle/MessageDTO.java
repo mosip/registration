@@ -16,7 +16,7 @@ public class MessageDTO implements Serializable {
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 	/** The registration type. */
-	private RegistrationType reg_type;
+	private String reg_type;
 	/** The rid. */
 	private String rid;
 
@@ -51,11 +51,11 @@ public class MessageDTO implements Serializable {
 
 
 
-	public RegistrationType getReg_type() {
+	public String getReg_type() {
 		return reg_type;
 	}
 
-	public void setReg_type(RegistrationType reg_type) {
+	public void setReg_type(String reg_type) {
 		this.reg_type = reg_type;
 	}
 

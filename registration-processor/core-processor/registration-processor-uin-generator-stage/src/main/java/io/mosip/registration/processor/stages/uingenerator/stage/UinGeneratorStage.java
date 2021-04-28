@@ -207,13 +207,13 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		UinGenResponseDto uinResponseDto = null;
 
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(
-				registrationId, object.getReg_type().name(), object.getIteration());
+				registrationId, object.getReg_type(), object.getIteration());
 		try {
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.UIN_GENERATOR.toString());
 			registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
 
-			if ((RegistrationType.LOST.toString()).equalsIgnoreCase(object.getReg_type().name())) {
+			if ((RegistrationType.LOST.toString()).equalsIgnoreCase(object.getReg_type())) {
 				String lostPacketRegId = object.getRid();
 				String matchedRegId = regLostUinDetEntity.getLostUinMatchedRegId(lostPacketRegId);
 				if (matchedRegId != null) {

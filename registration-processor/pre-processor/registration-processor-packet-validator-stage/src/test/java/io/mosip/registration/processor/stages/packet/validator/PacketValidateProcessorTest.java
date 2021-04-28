@@ -141,7 +141,7 @@ public class PacketValidateProcessorTest {
 		messageDTO.setRid("123456789");
 		messageDTO.setInternalError(false);
 		messageDTO.setIsValid(true);
-		messageDTO.setReg_type(RegistrationType.NEW);
+		messageDTO.setReg_type(RegistrationType.NEW.name());
 		stageName="PacketValidatorStage";
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("123456789");

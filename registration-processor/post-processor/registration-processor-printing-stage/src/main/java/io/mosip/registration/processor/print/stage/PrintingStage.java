@@ -173,7 +173,7 @@ public class PrintingStage extends MosipVerticleAPIManager {
 		CredentialResponseDto credentialResponseDto;
 		try {
 			registrationStatusDto = registrationStatusService.getRegistrationStatus(
-					regId, object.getReg_type().name(), object.getIteration());
+					regId, object.getReg_type(), object.getIteration());
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PRINT_SERVICE.toString());
 			registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());

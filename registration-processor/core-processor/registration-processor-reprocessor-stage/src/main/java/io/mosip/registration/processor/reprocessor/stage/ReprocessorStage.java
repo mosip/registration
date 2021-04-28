@@ -242,14 +242,14 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 						dto.setSubStatusCode(StatusUtil.RE_PROCESS_FAILED.getCode());
 						object.setRid(registrationId);
 						object.setIsValid(false);
-						object.setReg_type(RegistrationType.valueOf(dto.getRegistrationType()));
+						object.setReg_type(dto.getRegistrationType());
 						description.setMessage(PlatformSuccessMessages.RPR_RE_PROCESS_FAILED.getMessage());
 						description.setCode(PlatformSuccessMessages.RPR_RE_PROCESS_FAILED.getCode());
 
 					} else {
 						object.setRid(registrationId);
 						object.setIsValid(true);
-						object.setReg_type(RegistrationType.valueOf(dto.getRegistrationType()));
+						object.setReg_type(dto.getRegistrationType());
 						isTransactionSuccessful = true;
 						String stageName = MessageBusUtil.getMessageBusAdress(dto.getRegistrationStageName());
 						if (RegistrationTransactionStatusCode.SUCCESS.name()

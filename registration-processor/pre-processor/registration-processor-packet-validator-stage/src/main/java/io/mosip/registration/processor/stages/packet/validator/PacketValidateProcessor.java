@@ -187,7 +187,7 @@ public class PacketValidateProcessor {
 			packetValidationDto.setTransactionSuccessful(false);
 
 			registrationStatusDto = registrationStatusService.getRegistrationStatus(
-					registrationId, object.getReg_type().name(), object.getIteration());
+					registrationId, object.getReg_type(), object.getIteration());
 
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.VALIDATE_PACKET.toString());

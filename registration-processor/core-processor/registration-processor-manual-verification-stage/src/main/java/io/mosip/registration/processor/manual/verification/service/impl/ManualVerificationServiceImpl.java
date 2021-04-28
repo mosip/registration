@@ -443,7 +443,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
 				.getRegStatusForMainProcess(regId);
-		messageDTO.setReg_type(RegistrationType.valueOf(registrationStatusDto.getRegistrationType()));
+		messageDTO.setReg_type(registrationStatusDto.getRegistrationType());
 		try {
 			if(manualVerificationDTO.getReturnValue()==2) {
 				pushRequestToQueue(regId, queue);

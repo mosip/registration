@@ -145,7 +145,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 			try (InputStream encryptedInputStream = FileUtils.newInputStream(file.getAbsolutePath())) {
 				byte[] encryptedByteArray = IOUtils.toByteArray(encryptedInputStream);
 				validatePacketWithSync(regEntity, registrationId, description);
-				messageDTO.setReg_type(RegistrationType.valueOf(regEntity.getRegistrationType()));
+				messageDTO.setReg_type(regEntity.getRegistrationType());
 				validateHashCode(new ByteArrayInputStream(encryptedByteArray), regEntity, registrationId, description);
 				validatePacketFormat(fileOriginalName, registrationId, description);
 				validatePacketSize(file.length(), regEntity, registrationId, description);
@@ -481,7 +481,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 				registrationId, "PacketReceiverServiceImpl::processPacket()::entry");
 		messageDTO.setRid(registrationId);
 
-		messageDTO.setReg_type(RegistrationType.valueOf(regEntity.getRegistrationType()));
+		messageDTO.setReg_type(regEntity.getRegistrationType());
 		messageDTO.setIteration(dto.getIteration());
 		messageDTO.setSource(regEntity.getSource());
 		try (InputStream encryptedInputStream = FileUtils.newInputStream(file.getAbsolutePath())) {

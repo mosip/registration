@@ -37,7 +37,7 @@ public class ConsumerVerticle extends MosipVerticleManager {
 		this.messageDTO.setMessageBusAddress(MessageBusAddress.PACKET_VALIDATOR_BUS_IN);
 		this.messageDTO.setIsValid(true);
 		this.messageDTO.setInternalError(false);
-		this.messageDTO.setReg_type(RegistrationType.NEW);
+		this.messageDTO.setReg_type(RegistrationType.NEW.name());
 
 		//this.consume(mosipEventBus, MessageBusAddress.PACKET_VALIDATOR_BUS_IN);
 		//this.consumeAndSend(mosipEventBus, MessageBusAddress.PACKET_VALIDATOR_BUS_OUT, MessageBusAddress.RETRY_BUS);

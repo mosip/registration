@@ -141,7 +141,7 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 				registrationId, "OSIValidatorStage::process()::entry");
 		boolean isValidOSI = false;
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
-				.getRegistrationStatus(registrationId, object.getReg_type().name(), object.getIteration());
+				.getRegistrationStatus(registrationId, object.getReg_type(), object.getIteration());
 
 		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.OSI_VALIDATE.toString());
 		registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());

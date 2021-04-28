@@ -553,7 +553,7 @@ public class WorkflowActionService {
 		MessageDTO object = new MessageDTO();
 		object.setRid(registrationStatusDto.getRegistrationId());
 		object.setIsValid(isValid);
-		object.setReg_type(RegistrationType.valueOf(registrationStatusDto.getRegistrationType()));
+		object.setReg_type(registrationStatusDto.getRegistrationType());
 		object.setInternalError(isInternalError);
 		return object;
 

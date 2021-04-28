@@ -89,7 +89,7 @@ public class ExternalStageTest {
 		dto.setInternalError(false);
 		dto.setIsValid(true);
 		dto.setRid("2758415120462");
-		dto.setReg_type(RegistrationType.valueOf("NEW"));
+		dto.setReg_type(RegistrationType.valueOf("NEW").name());
 		dto.setRetryCount(5);
 		dto.setMessageBusAddress(MessageBusAddress.EXTERNAL_STAGE_BUS_IN);
 		registrationStatusDto.setRegistrationId("2758415120462");

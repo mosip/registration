@@ -226,7 +226,7 @@ public class BiometricAuthenticationStageTest {
 		listAppender = new ListAppender<>();
 
 		dto.setRid("2018701130000410092018110735");
-		dto.setReg_type(RegistrationType.valueOf("UPDATE"));
+		dto.setReg_type("UPDATE");
 
 		MockitoAnnotations.initMocks(this);
 
