@@ -234,7 +234,7 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 			if (!CollectionUtils.isEmpty(reprocessorDtoList)) {
 				reprocessorDtoList.forEach(dto -> {
 					this.registrationId = dto.getRegistrationId();
-					object = new MessageDTO();
+					MessageDTO messageDTO = new MessageDTO();
 					if (reprocessCount.equals(dto.getReProcessRetryCount())) {
 						dto.setLatestTransactionStatusCode(
 								RegistrationTransactionStatusCode.REPROCESS_FAILED.toString());
@@ -243,16 +243,16 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 						dto.setStatusComment(StatusUtil.RE_PROCESS_FAILED.getMessage());
 						dto.setStatusCode(RegistrationStatusCode.REPROCESS_FAILED.toString());
 						dto.setSubStatusCode(StatusUtil.RE_PROCESS_FAILED.getCode());
-						object.setRid(registrationId);
-						object.setIsValid(false);
-						object.setReg_type(RegistrationType.valueOf(dto.getRegistrationType()));
+						messageDTO.setRid(registrationId);
+						messageDTO.setIsValid(false);
+						messageDTO.setReg_type(RegistrationType.valueOf(dto.getRegistrationType()));
 						description.setMessage(PlatformSuccessMessages.RPR_RE_PROCESS_FAILED.getMessage());
 						description.setCode(PlatformSuccessMessages.RPR_RE_PROCESS_FAILED.getCode());
 
 					} else {
-						object.setRid(registrationId);
-						object.setIsValid(true);
-						object.setReg_type(RegistrationType.valueOf(dto.getRegistrationType()));
+						messageDTO.setRid(registrationId);
+						messageDTO.setIsValid(true);
+						messageDTO.setReg_type(RegistrationType.valueOf(dto.getRegistrationType()));
 						isTransactionSuccessful = true;
 						String stageName = MessageBusUtil.getMessageBusAdress(dto.getRegistrationStageName());
 						if (RegistrationTransactionStatusCode.SUCCESS.name()
@@ -262,7 +262,7 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 							stageName = stageName.concat(ReprocessorConstants.BUS_IN);
 						}
 						MessageBusAddress address = new MessageBusAddress(stageName);
-						sendMessage(object, address);
+						sendMessage(messageDTO, address);
 						dto.setUpdatedBy(ReprocessorConstants.USER);
 						Integer reprocessRetryCount = dto.getReProcessRetryCount() != null
 								? dto.getReProcessRetryCount() + 1
