@@ -8,7 +8,6 @@ import java.util.Collections;
 
 import javax.annotation.PostConstruct;
 
-import io.mosip.registration.processor.stages.utils.ApplicantDocumentValidation;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -30,13 +29,13 @@ import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 import io.mosip.registration.processor.stages.helper.RestHelper;
 import io.mosip.registration.processor.stages.helper.RestHelperImpl;
 import io.mosip.registration.processor.stages.packet.validator.PacketValidateProcessor;
-import io.mosip.registration.processor.stages.packet.validator.PacketValidatorStage;
+import io.mosip.registration.processor.stages.utils.ApplicantDocumentValidation;
 import io.mosip.registration.processor.stages.utils.AuditUtility;
+import io.mosip.registration.processor.stages.utils.BiometricsXSDValidator;
 import io.mosip.registration.processor.stages.utils.MandatoryValidation;
 import io.mosip.registration.processor.stages.utils.MasterDataValidation;
 import io.mosip.registration.processor.stages.utils.NotificationUtility;
 import io.mosip.registration.processor.stages.utils.RestTemplateInterceptor;
-import io.mosip.registration.processor.stages.utils.BiometricsXSDValidator;
 import io.mosip.registration.processor.stages.validator.impl.CompositePacketValidator;
 import io.mosip.registration.processor.stages.validator.impl.PacketValidatorImpl;
 
@@ -52,11 +51,6 @@ public class ValidatorConfig {
 
 	@Autowired
 	private Environment env;
-
-	@Bean
-	public PacketValidatorStage getPacketValidatorStage() {
-		return new PacketValidatorStage();
-	}
 
 	@Bean
 	public MandatoryValidation mandatoryValidation() {

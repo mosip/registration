@@ -1,4 +1,3 @@
-
 package io.mosip.registration.processor.core.exception.util;
 
 // TODO: Auto-generated Javadoc
@@ -469,6 +468,8 @@ public enum PlatformErrorMessages {
 	
 	OSI_VALIDATION_AUTH_SYSTEM_EXCEPTION(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "008", "Request could not be processed. Please try again"),
 
+	LINK_FOR_USERID_INDIVIDUALID_FAILED_OSI_EXCEPTION(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "009", "Unable to get the IndividualId for UserId"),	
+	
 	/** The packet demo dedupe failed. */
 	// Stages - Demo-Dedupe error code and message
 	PACKET_DEMO_DEDUPE_FAILED("", "Demo Dedupe Failed"),
@@ -803,6 +804,9 @@ public enum PlatformErrorMessages {
 	/** The rpr pum packet not found exception. */
 	RPR_PUM_PACKET_UPLOAD_FAILURE(PlatformConstants.RPR_PACKET_UPLOADER_MODULE + "011",
 			"Failure in uploading the packet to Packet Store"),
+    
+	RPR_PUM_PACKET_RETRY_CNT_FAILURE(PlatformConstants.RPR_PACKET_UPLOADER_MODULE + "012",
+            "packet upload failed due to Retry count has exceeded the max limit specified"),
 
 	/** The rpr bdd abis internal error. */
 	RPR_BDD_ABIS_INTERNAL_ERROR(PlatformConstants.RPR_BIO_DEDUPE_SERVICE_MODULE + "001",
@@ -1203,16 +1207,18 @@ public enum PlatformErrorMessages {
 	RPR_WAS_REMOVE_HOTLISTED_TAG_FAILED(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "001",
 			"Removing hotlisted tag failed"),
 
-	RPR_WAS_WORKFLOW_ID_NOT_FOUND(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "002",
-			"Workflow id not found in registration table"),
+	RPR_WAA_WORKFLOW_ID_NOT_FOUND(PlatformConstants.RPR_WORKFLOW_ACTION_API + "003",
+			"Workflow id  %s  not found in registration table"),
 
 	RPR_WAS_UNKNOWN_EXCEPTION(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "003", "Unknown Exception"),
 
 	RPR_WAS_REPROCESS_FAILED(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "004",
 			"When REPROCESS_FAILED then Resume should not occur"),
 
-	RPR_WAS_NOT_PAUSED(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "005",
-			"Workflow id is not PAUSED"),
+	RPR_WAA_NOT_PAUSED(PlatformConstants.RPR_WORKFLOW_ACTION_API + "004",
+			"Workflow id  %s is not PAUSED"),
+
+	RPR_WAA_VALIDATION_SUCCESS(PlatformConstants.RPR_WORKFLOW_ACTION_API + "005", "Workflow id validated successfully"),
 
 	/** The external stage failed. */
 	EXTERNAL_STAGE_FAILED("", "External Stage Failed"),

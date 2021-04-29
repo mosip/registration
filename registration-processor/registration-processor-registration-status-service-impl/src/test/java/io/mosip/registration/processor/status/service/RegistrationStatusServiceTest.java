@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.assertj.core.util.Arrays;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -285,22 +284,5 @@ public class RegistrationStatusServiceTest {
 		ids.add("1001");
 		registrationStatusService.getByIdsAndTimestamp(ids);
 
-	}
-
-	@Test
-	public void testUpdateRegistrationStatusForWorkFlowSuccess() {
-		registrationStatusService.updateRegistrationStatusForWorkflow(registrationStatusDto, "", "");
-
-		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus("1001");
-		assertEquals("PACKET_UPLOADED_TO_LANDING_ZONE", dto.getStatusCode());
-	}
-
-	@Test(expected = TablenotAccessibleException.class)
-	public void updateRegistrationStatusForWorkFlowFailureTest() {
-		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
-				"errorMessage", new Exception());
-
-		Mockito.when(registrationStatusDao.save(any())).thenThrow(exp);
-		registrationStatusService.updateRegistrationStatusForWorkflow(registrationStatusDto, "", "");
 	}
 }

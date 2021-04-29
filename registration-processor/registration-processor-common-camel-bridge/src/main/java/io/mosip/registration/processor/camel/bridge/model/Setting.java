@@ -11,8 +11,9 @@ import lombok.Setter;
 @AllArgsConstructor
 public class Setting {
 
-	private String hotlistedReason;
+	private String matchExpression;
 	private long pauseFor;
 	private String defaultResumeAction;
 	private String fromAddress;
+	private String resumeRemoveTags;
 }

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>io.mosip.registrationprocessor</groupId>
+		<artifactId>stage-groups</artifactId>
+		<version>1.2.0-SNAPSHOT</version>
+	</parent>
+	
+	<artifactId>registration-processor-stage-group-5</artifactId>
+    <version>1.2.0-SNAPSHOT</version>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<dependencies>
+	
+		<!-- Stage Executor -->
+		<dependency>
+			<groupId>io.mosip.registrationprocessor</groupId>
+			<artifactId>mosip-stage-executor</artifactId>
+			<version>1.2.0-SNAPSHOT</version>
+		</dependency>
+		
+		<!-- Stages -->
+		<dependency>
+			<groupId>io.mosip.registrationprocessor</groupId>
+			<artifactId>registration-processor-osi-validator-stage</artifactId>
+			<version>1.2.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.registrationprocessor</groupId>
+			<artifactId>registration-processor-packet-validator-stage</artifactId>
+			<version>1.2.0-SNAPSHOT</version>
+		</dependency>
+				
+		<!--  -->
+		
+	</dependencies>
+	
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>${spring.boot.version}</version>
+				<configuration>
+					<executable>true</executable>
+					<mainClass>io.mosip.registration.processor.stages.executor.MosipStageExecutorApplication</mainClass>
+					<layout>JAR</layout>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>build-info</goal>
+							<goal>repackage</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>

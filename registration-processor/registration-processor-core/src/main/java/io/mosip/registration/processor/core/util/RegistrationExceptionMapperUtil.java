@@ -46,6 +46,8 @@ public class RegistrationExceptionMapperUtil {
         statusMap.put(RegistrationExceptionTypeCode.VIRUS_SCANNER_SERVICE_FAILED, RegistrationTransactionStatusCode.FAILED);
         statusMap.put(RegistrationExceptionTypeCode.PACKET_DECRYPTION_FAILURE_EXCEPTION,
                 RegistrationTransactionStatusCode.ERROR);
+        statusMap.put(RegistrationExceptionTypeCode.PACKET_HASH_VALIDATION_FAILED,
+                RegistrationTransactionStatusCode.ERROR);
         statusMap.put(RegistrationExceptionTypeCode.PACKET_MANAGER_EXCEPTION, RegistrationTransactionStatusCode.REPROCESS);
         statusMap.put(RegistrationExceptionTypeCode.EXCEPTION, RegistrationTransactionStatusCode.ERROR);
         statusMap.put(RegistrationExceptionTypeCode.DUPLICATE_UPLOAD_REQUEST_EXCEPTION,
@@ -135,6 +137,8 @@ public class RegistrationExceptionMapperUtil {
         statusMap.put(RegistrationExceptionTypeCode.OSI_FAILED_REJECTED_PARENT,
                 RegistrationTransactionStatusCode.FAILED);
         statusMap.put(RegistrationExceptionTypeCode.SUPERVISORID_AND_OFFICERID_NOT_PRESENT_IN_PACKET,
+                RegistrationTransactionStatusCode.FAILED);
+        statusMap.put(RegistrationExceptionTypeCode.PACKET_UPLOAD_FAILED_ON_MAX_RETRY_CNT,
                 RegistrationTransactionStatusCode.FAILED);
         statusMap.put(RegistrationExceptionTypeCode.PACKET_CREATION_DATE_NOT_PRESENT_IN_PACKET,
                 RegistrationTransactionStatusCode.FAILED);

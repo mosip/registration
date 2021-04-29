@@ -203,10 +203,16 @@ public enum RegistrationExceptionTypeCode {
 
 	/** Exception in packet manager. */
 	PACKET_MANAGER_EXCEPTION,
+	
+	/**Retry count has exceeded the maximum limit specified */
+	PACKET_UPLOAD_FAILED_ON_MAX_RETRY_CNT,
 
 	/** The osi failed on hold parent packet. */
 	OSI_FAILED_ON_HOLD_PARENT_PACKET,
 
+	/** Packet hash failed in uploader stage */
+	PACKET_HASH_VALIDATION_FAILED,
+	
 	/** The parent uin and rid not in packet. */
 	PARENT_UIN_AND_RID_NOT_IN_PACKET,
 
