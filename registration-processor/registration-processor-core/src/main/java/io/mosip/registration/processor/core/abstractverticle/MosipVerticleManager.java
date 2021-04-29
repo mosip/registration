@@ -169,10 +169,23 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 						" lastHopTimestamp " + messageDTO.getLastHopTimestamp()));
 					return;
 				}
-				MessageDTO result = process(messageDTO);
-				addTagsToMessageDTO(result);
-				result.setLastHopTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
-				future.complete(result);
+				try {
+					MessageDTO result = process(messageDTO);
+					addTagsToMessageDTO(result);
+					result.setLastHopTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+					future.complete(result);
+				} catch (Exception e) {
+					logger.error("{} -- {} {} {}", 
+						PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getCode(),
+						PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getMessage(),
+						e.getMessage(), ExceptionUtils.getStackTrace(e));
+					messageDTO.setIsValid(false);
+					messageDTO.setInternalError(true);
+					addTagsToMessageDTO(messageDTO);
+					messageDTO.setLastHopTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+					future.complete(messageDTO);
+				}
+				
 			}, false, handler);
 			MDC.clear();
 		});
@@ -218,8 +231,18 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 						" lastHopTimestamp " + messageDTO.getLastHopTimestamp()));
 					return;
 				}
-				MessageDTO result = process(messageDTO);
-				future.complete(result);
+				try {
+					MessageDTO result = process(messageDTO);
+					future.complete(result);
+				} catch (Exception e) {
+					logger.error("{} -- {} {} {}", 
+						PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getCode(),
+						PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getMessage(),
+						e.getMessage(), ExceptionUtils.getStackTrace(e));
+					messageDTO.setIsValid(false);
+					messageDTO.setInternalError(true);
+					future.complete(messageDTO);
+				}
 			}, false, handler);
 			MDC.clear();
 		});
@@ -275,6 +298,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 				" -- " + PlatformErrorMessages.RPR_SYS_PACKET_TAGS_COPYING_FAILED.getMessage() + 
 				e.getMessage() + ExceptionUtils.getStackTrace(e));
 			messageDTO.setInternalError(true);
+			messageDTO.setTags(new HashMap<>());
 		}
 	}
 
