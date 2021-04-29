@@ -225,7 +225,7 @@ public class AuthUtil {
 				dataInfoDTO.setEnv(domainUrl);
 				dataInfoDTO.setDomainUri(domainUrl);
 				dataInfoDTO.setTransactionId(DUMMY_TRANSACTION_ID);
-				BIR birApiResponse = CbeffToBiometricUtil.extractTemplate(BIRConverter.convertToBIR(bir), null);
+				BIR birApiResponse = CbeffToBiometricUtil.extractTemplate(bir, null);
 
 				dataInfoDTO.setBioType(birApiResponse.getBdbInfo().getType().get(0).toString());
 				List<String> bioSubType = birApiResponse.getBdbInfo().getSubtype();
