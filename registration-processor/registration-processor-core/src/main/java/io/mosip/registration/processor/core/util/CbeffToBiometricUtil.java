@@ -17,14 +17,10 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import io.mosip.kernel.bioapi.impl.BioApiImpl;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.cbeffutil.impl.CbeffImpl;
-import io.mosip.kernel.core.bioapi.exception.BiometricException;
-import io.mosip.kernel.core.bioapi.model.KeyValuePair;
-import io.mosip.kernel.core.bioapi.spi.IBioApi;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
@@ -45,8 +41,7 @@ public class CbeffToBiometricUtil {
 
 	/** The cbeffutil. */
 	private CbeffUtil cbeffutil=new CbeffImpl();
-	/**the bioApi */
-	private IBioApi bioAPi =  new  BioApiImpl();
+
 
 	/**
 	 * Instantiates a new cbeff to biometric util.
@@ -313,15 +308,5 @@ public class CbeffToBiometricUtil {
 		return cbeffutil.getBIRDataFromXML(xmlBytes);
 	}
 
-	/**
-	 * Gets the BIR template
-	 * 
-	 * @param sample the sample
-	 * @param flags  the flags
-	 * @return the biometric record
-	 * @throws BiometricException
-	 */
-	public BIR extractTemplate(BIR sample, KeyValuePair[] flags) throws BiometricException {
-		return bioAPi.extractTemplate(sample, flags).getResponse();
-	}
+
 }

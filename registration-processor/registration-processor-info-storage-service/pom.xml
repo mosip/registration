@@ -139,5 +139,10 @@
 			<artifactId>registration-processor-packet-manager</artifactId>
 			<version>${packet.manager.version}</version>
 		</dependency>
+		<dependency>
+		  <groupId>io.mosip.kernel</groupId>
+		  <artifactId>kernel-biosdk-provider</artifactId>
+		  <version>${kernel-biosdk-provider.version}</version>
+		</dependency>
 	</dependencies>
 </project>
