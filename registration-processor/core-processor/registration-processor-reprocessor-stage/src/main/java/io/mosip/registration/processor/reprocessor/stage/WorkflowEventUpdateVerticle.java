@@ -37,6 +37,8 @@ import io.vertx.core.json.JsonObject;
 @Component
 public class WorkflowEventUpdateVerticle extends MosipVerticleAPIManager {
 
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.reprocessor.";
+
 	/** The Constant USER. */
 	private static final String USER = "MOSIP_SYSTEM";
 	/** The reg proc logger. */
@@ -192,7 +194,7 @@ public class WorkflowEventUpdateVerticle extends MosipVerticleAPIManager {
 	
 	@Override
 	protected String getPropertyPrefix() {
-		return "";
+		return STAGE_PROPERTY_PREFIX;
 	}
 
 }
