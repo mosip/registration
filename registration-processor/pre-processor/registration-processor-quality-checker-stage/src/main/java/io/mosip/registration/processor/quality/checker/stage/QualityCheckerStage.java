@@ -70,7 +70,7 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 		"io.mosip.registration.processor.packet.storage.config",
 		"io.mosip.registration.processor.packet.manager.config", 
 		"io.mosip.kernel.idobjectvalidator.config",
-		"io.mosip.registration.processor.core.kernel.beans" })
+		"io.mosip.registration.processor.core.kernel.beans", "io.mosip.kernel.biosdk.provider.impl" })
 public class QualityCheckerStage extends MosipVerticleAPIManager {
 	
 	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.quality.checker.";
