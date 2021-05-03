@@ -12,12 +12,12 @@
 ----------------------------------------------------------------------------------------------------
 \c mosip_regprc sysadmin
 
-ALTER TABLE reg_prc.registration ADD COLUMN resume_timestamp timestamp;
-ALTER TABLE reg_prc.registration ADD COLUMN default_resume_action character varying(50);
+ALTER TABLE regprc.registration ADD COLUMN resume_timestamp timestamp;
+ALTER TABLE regprc.registration ADD COLUMN default_resume_action character varying(50);
 
 ---------------------------------------------------------------------------------------------------
 
-ALTER TABLE reg_prc.registration ADD COLUMN resume_remove_tags character varying(256);
+ALTER TABLE regprc.registration ADD COLUMN resume_remove_tags character varying(256);
 
 ----------------------------------------------------------------------------------------------------
 
