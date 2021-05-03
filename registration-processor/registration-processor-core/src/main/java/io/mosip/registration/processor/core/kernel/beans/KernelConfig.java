@@ -4,7 +4,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
@@ -30,7 +32,13 @@ public class KernelConfig {
 	@Bean
 	@Primary
 	public ObjectMapper getObjectMapper() {
-		return new ObjectMapper().registerModule(new JavaTimeModule());
+		ObjectMapper objectMapper = new ObjectMapper();
+		JavaTimeModule javaTimeModule = new JavaTimeModule();
+		objectMapper.registerModule(javaTimeModule);
+		objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+		objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+		return objectMapper;
 	}
 
 
