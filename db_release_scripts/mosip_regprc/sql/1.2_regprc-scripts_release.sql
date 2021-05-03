@@ -23,6 +23,6 @@ ALTER TABLE regprc.registration ADD COLUMN resume_remove_tags character varying(
 
 TRUNCATE TABLE regprc.transaction_type cascade ;
 
-\COPY regprc.transaction_type (code,descr,lang_code,is_active,cr_by,cr_dtimes) FROM './dml/regprc-transaction_type.csv' delimiter ',' HEADER  csv;
+\COPY regprc.transaction_type (code,descr,lang_code,is_active,cr_by,cr_dtimes) FROM '../dml/regprc-transaction_type.csv' delimiter ',' HEADER  csv;
 
 ------------------------------------------------------------------------------------------------------
