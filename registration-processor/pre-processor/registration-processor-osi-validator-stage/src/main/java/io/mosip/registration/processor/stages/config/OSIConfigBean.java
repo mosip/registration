@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
+import io.mosip.kernel.biosdk.provider.factory.BioAPIFactory;
 import io.mosip.kernel.core.crypto.spi.CryptoCoreSpec;
 import io.mosip.kernel.crypto.jce.core.CryptoCore;
 import io.mosip.kernel.keygenerator.bouncycastle.KeyGenerator;
@@ -33,4 +34,8 @@ public class OSIConfigBean {
 		return new AuthUtil();
 	}
 
+	@Bean
+	public BioAPIFactory getBioAPIFactory() {
+		return new BioAPIFactory();
+	}
 }
