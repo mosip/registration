@@ -321,7 +321,7 @@ public class SyncRegistrationServiceTest {
 		syncRegistrationEntity.setUpdatedBy("MOSIP");
 		syncRegistrationEntities.add(syncRegistrationEntity);
 		Mockito.when(ridValidator.validateId(any())).thenReturn(true);
-
+		Mockito.when(syncRegistrationDao.getByAdditionalInfoReqId(any())).thenReturn(null);
 	}
 
 	/**
@@ -336,14 +336,14 @@ public class SyncRegistrationServiceTest {
 		byte[] encryptedInfo = "encryptedInfo".getBytes();
 		Mockito.when(encryptor.encrypt(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyString())).thenReturn(encryptedInfo);
 		Mockito.when(syncRegistrationDao.save(any())).thenReturn(syncRegistrationEntity);
-		List<SyncResponseDto> syncResponse = syncRegistrationService.sync(entities, "", "");
+		List<SyncResponseDto> syncResponse = syncRegistrationService.sync(entities, "", "2018-12-10T06:12:52.994Z");
 
 		assertEquals("Verifing List returned", ((SyncResponseFailureDto) syncResponse.get(0)).getRegistrationId(),
 				syncRegistrationDto.getRegistrationId());
 
 		Mockito.when(syncRegistrationDao.findById(any())).thenReturn(syncRegistrationEntity);
 		Mockito.when(syncRegistrationDao.update(any())).thenReturn(syncRegistrationEntity);
-		List<SyncResponseDto> syncResponseDto = syncRegistrationService.sync(entities, "", "");
+		List<SyncResponseDto> syncResponseDto = syncRegistrationService.sync(entities, "", "2018-12-10T06:12:52.994Z");
 		assertEquals("Verifing if list is returned. Expected value should be 1002",
 				syncRegistrationDto.getRegistrationId(),
 				((SyncResponseFailureDto) syncResponse.get(0)).getRegistrationId());
@@ -375,7 +375,7 @@ public class SyncRegistrationServiceTest {
 
 		Mockito.when(syncRegistrationDao.findById(any())).thenReturn(syncRegistrationEntity);
 		Mockito.when(syncRegistrationDao.update(any())).thenReturn(syncRegistrationEntity);
-		List<SyncResponseDto> syncResponseDto = syncRegistrationService.sync(entities, "", "");
+		List<SyncResponseDto> syncResponseDto = syncRegistrationService.sync(entities, "", "2018-12-10T06:12:52.994Z");
 		assertEquals("Verifing if list is returned. Expected value should be 1002",
 				syncRegistrationDto.getRegistrationId(),
 				((SyncResponseFailureDto) syncResponse.get(0)).getRegistrationId());
@@ -424,7 +424,7 @@ public class SyncRegistrationServiceTest {
 		byte[] encryptedInfo = "encryptedInfo".getBytes();
 		Mockito.when(encryptor.encrypt(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyString())).thenReturn(encryptedInfo);
 		Mockito.when(syncRegistrationDao.save(any())).thenThrow(exp);
-		syncRegistrationService.sync(entities, "", "");
+		syncRegistrationService.sync(entities, "", "2018-12-10T06:12:52.994Z");
 
 	}
 
@@ -448,7 +448,7 @@ public class SyncRegistrationServiceTest {
 		InvalidIDException exp = new InvalidIDException(RidExceptionProperty.INVALID_RID_LENGTH.getErrorCode(),
 				RidExceptionProperty.INVALID_RID_LENGTH.getErrorMessage());
 		Mockito.when(ridValidator.validateId(any())).thenThrow(exp);
-		syncRegistrationService.sync(entities, "", "");
+		syncRegistrationService.sync(entities, "", "2018-12-10T06:12:52.994Z");
 	}
 
 	/**
@@ -465,7 +465,7 @@ public class SyncRegistrationServiceTest {
 		Mockito.when(ridValidator.validateId("123456789012345678")).thenThrow(exp);
 		byte[] encryptedInfo = "encryptedInfo".getBytes();
 		Mockito.when(encryptor.encrypt(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyString())).thenReturn(encryptedInfo);
-		syncRegistrationService.sync(entities, "", "");
+		syncRegistrationService.sync(entities, "", "2018-12-10T06:12:52.994Z");
 	}
 
 	/**
@@ -483,7 +483,7 @@ public class SyncRegistrationServiceTest {
 
 		byte[] encryptedInfo = "encryptedInfo".getBytes();
 		Mockito.when(encryptor.encrypt(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyString())).thenReturn(encryptedInfo);
-		syncRegistrationService.sync(entities, "", "");
+		syncRegistrationService.sync(entities, "", "2018-12-10T06:12:52.994Z");
 	}
 
 	/**
@@ -501,7 +501,7 @@ public class SyncRegistrationServiceTest {
 		byte[] encryptedInfo = "encryptedInfo".getBytes();
 		Mockito.when(encryptor.encrypt(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyString())).thenReturn(encryptedInfo);
 		Mockito.when(ridValidator.validateId("123456789012345678")).thenThrow(exp);
-		syncRegistrationService.sync(entities, "", "");
+		syncRegistrationService.sync(entities, "", "2018-12-10T06:12:52.994Z");
 	}
 
 	/**
@@ -519,7 +519,7 @@ public class SyncRegistrationServiceTest {
 
 		byte[] encryptedInfo = "encryptedInfo".getBytes();
 		Mockito.when(encryptor.encrypt(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyString())).thenReturn(encryptedInfo);
-		syncRegistrationService.sync(entities, "", "");
+		syncRegistrationService.sync(entities, "", "2018-12-10T06:12:52.994Z");
 	}
 
 	/**
@@ -537,7 +537,7 @@ public class SyncRegistrationServiceTest {
 		byte[] encryptedInfo = "encryptedInfo".getBytes();
 		Mockito.when(encryptor.encrypt(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyString())).thenReturn(encryptedInfo);
 		Mockito.when(ridValidator.validateId("1234567890123456789012345ABCD")).thenThrow(exp);
-		syncRegistrationService.sync(entities, "", "");
+		syncRegistrationService.sync(entities, "", "2018-12-10T06:12:52.994Z");
 	}
 
 	@Test

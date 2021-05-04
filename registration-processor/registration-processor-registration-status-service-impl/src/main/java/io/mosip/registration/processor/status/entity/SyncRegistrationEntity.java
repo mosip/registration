@@ -73,12 +73,20 @@ public class SyncRegistrationEntity extends BaseRegistrationEntity {
 	private String langCode;
 
 	/** The created by. */
+	@Column(name = "center-machine-refId", nullable = false)
+	private String centerMachineRefId;
+	
+	/** The created by. */
 	@Column(name = "cr_by", nullable = false)
 	private String createdBy;
 
 	/** The create date time. */
 	@Column(name = "cr_dtimes",updatable=false )
 	private LocalDateTime createDateTime;
+	
+	/** The packet create date time. */
+	@Column(name = "packet_creation_timestamp",updatable=false )
+	private LocalDateTime packetCreationDateTime;
 
 	/** The updated by. */
 	@Column(name = "upd_by")
@@ -136,6 +144,22 @@ public class SyncRegistrationEntity extends BaseRegistrationEntity {
 
 	public void setPacketId(String packetId) {
 		this.packetId = packetId;
+	}
+
+	public String getCenterMachineRefId() {
+		return centerMachineRefId;
+	}
+
+	public void setCenterMachineRefId(String centerMachineRefId) {
+		this.centerMachineRefId = centerMachineRefId;
+	}
+
+	public LocalDateTime getPacketCreationDateTime() {
+		return packetCreationDateTime;
+	}
+
+	public void setPacketCreationDateTime(LocalDateTime packetCreationDateTime) {
+		this.packetCreationDateTime = packetCreationDateTime;
 	}
 
 	/**

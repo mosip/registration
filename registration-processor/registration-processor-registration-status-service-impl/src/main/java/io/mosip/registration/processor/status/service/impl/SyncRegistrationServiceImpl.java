@@ -5,6 +5,7 @@ package io.mosip.registration.processor.status.service.impl;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -418,6 +419,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 				return true;
 			}
 			
+			
 			SyncResponseFailureDto syncResponseFailureDto = new SyncResponseFailureDto();
 			syncResponseFailureDto.setRegistrationId(registrationDto.getRegistrationId());
 			syncResponseFailureDto.setStatus(ResponseStatusCode.FAILURE.toString());
@@ -481,7 +483,19 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			eventId = EventId.RPR_402.toString();
 		} else {
 			// first time sync registration
-
+			if(registrationDto.getAdditionalInfoReqId()!=null && !registrationDto.getAdditionalInfoReqId().isBlank()
+					&&syncRegistrationDao.getByAdditionalInfoReqId(registrationDto.getAdditionalInfoReqId())!=null) {
+				SyncResponseFailureDto syncResponseFailureDto = new SyncResponseFailureDto();
+				syncResponseFailureDto.setRegistrationId(registrationDto.getRegistrationId());
+				syncResponseFailureDto.setStatus(ResponseStatusCode.FAILURE.toString());
+				syncResponseFailureDto.setMessage(PlatformErrorMessages.RPR_RGS_INVALID_ADDITIONAL_INFORMATION.getMessage());
+				syncResponseFailureDto.setErrorCode(PlatformErrorMessages.RPR_RGS_INVALID_ADDITIONAL_INFORMATION.getCode());
+				syncResponseList.add(syncResponseFailureDto);
+				syncResponseList.add(syncResponseDto);
+				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+						registrationDto.getRegistrationId(), "SyncRegistrationServiceImpl::validateRegId()::exit");
+				return syncResponseList;
+			}
 			syncRegistration = convertDtoToEntity(registrationDto, referenceId, timeStamp);
 			syncRegistration.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 			syncRegistration.setId(RegistrationUtility.generateId());
@@ -540,8 +554,10 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		syncRegistrationEntity.setSupervisorComment(dto.getSupervisorComment());
 		syncRegistrationEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 		syncRegistrationEntity.setAdditionalInfoReqId(dto.getAdditionalInfoReqId());
-		syncRegistrationEntity.setPacketId(dto.getPacketId());
-
+		syncRegistrationEntity.setPacketId(dto.getPacketId());		
+		DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"); 
+		syncRegistrationEntity.setPacketCreationDateTime(LocalDateTime.parse(timeStamp, format));
+		syncRegistrationEntity.setCenterMachineRefId(referenceId);
 		try {
 			RegistrationAdditionalInfoDTO regAdditionalInfo = new RegistrationAdditionalInfoDTO();
 			regAdditionalInfo.setName(dto.getName());
