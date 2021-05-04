@@ -86,4 +86,6 @@ public interface SyncRegistrationService<T, U> {
 
 	public List<SyncResponseDto> sync2(List<SyncRegistrationDto> request, String referenceId, String timeStamp);
 
+	public SyncRegistrationDto getSyncRegistrationByIdAndByRegtypeAndByIteration(String rid, String regType, int iteration);
+
 }

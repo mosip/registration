@@ -643,5 +643,26 @@ public class RegistrationStatusServiceImpl
 				registrationStatusDto.getRegistrationId(),
 				"RegistrationStatusServiceImpl::updateRegistrationStatusForWorkFlow()::exit");
 
+	}
+
+	@Override
+	public InternalRegistrationStatusDto getRegistrationStatusByIdAndByRegtypeAndByIteration(String registrationId,
+			String regType, int iteration) {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+				registrationId, "RegistrationStatusServiceImpl::getRegistrationStatus()::entry");
+		try {
+			RegistrationStatusEntity entity = registrationStatusDao.findByIdAndByRegtypeAndByIteration(registrationId,regType,iteration);
+
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+					registrationId, "RegistrationStatusServiceImpl::getRegistrationStatus()::exit");
+
+			return entity != null ? convertEntityToDto(entity) : null;
+		} catch (DataAccessLayerException e) {
+
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId, e.getMessage() + ExceptionUtils.getStackTrace(e));
+			throw new TablenotAccessibleException(
+					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
+		}
 	}	
 }

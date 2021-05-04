@@ -152,4 +152,25 @@ public class SyncRegistrationDao {
 
 		return !CollectionUtils.isEmpty(syncRegistrationEntityList) ? syncRegistrationEntityList.get(0) : null;
 	}
+
+	public SyncRegistrationEntity getByIdAndRegTypeAndIteration(String rid, String regType, Integer iteration) {
+		Map<String, Object> params = new HashMap<>();
+		String className = SyncRegistrationEntity.class.getSimpleName();
+
+		String alias = SyncRegistrationEntity.class.getName().toLowerCase().substring(0, 1);
+		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + EMPTY_STRING+alias
+				+ ".registrationId = :id" + AND + EMPTY_STRING+alias+ ".registrationType = :registrationType" 
+				+ AND + EMPTY_STRING+alias+ ".iteration = :iteration" 
+				+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
+		params.put("id", rid);
+		params.put("registrationType", regType);
+		params.put("iteration", iteration);
+		params.put(ISDELETED, Boolean.FALSE);
+
+		List<SyncRegistrationEntity> syncRegistrationEntityList = syncRegistrationRepository
+				.createQuerySelect(queryStr, params);
+
+		return !syncRegistrationEntityList.isEmpty() ? syncRegistrationEntityList.get(0) : null;
+	}
+
 }
