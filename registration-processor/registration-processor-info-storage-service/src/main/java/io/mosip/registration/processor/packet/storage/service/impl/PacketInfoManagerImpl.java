@@ -287,7 +287,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 * @param regId the regId
 	 * @param description
 	 */
-	private void saveIndividualDemographicDedupe(String regId, String process, LogDescription description,
+	private void saveIndividualDemographicDedupe(String regId, String process,Integer iteration, LogDescription description,
 			String moduleId, String moduleName) throws Exception {
 
 		boolean isTransactionSuccessful = false;
@@ -296,7 +296,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 
 		try {
 			List<IndividualDemographicDedupeEntity> applicantDemographicEntities = PacketInfoMapper
-					.converDemographicDedupeDtoToEntity(demographicData, regId);
+					.converDemographicDedupeDtoToEntity(demographicData, regId,iteration,process);
 			for (IndividualDemographicDedupeEntity applicantDemographicEntity : applicantDemographicEntities) {
 				demographicDedupeRepository.save(applicantDemographicEntity);
 
@@ -334,7 +334,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 */
 	@Override
 	public void saveIndividualDemographicDedupeUpdatePacket(IndividualDemographicDedupe demographicData,
-			String registrationId, String moduleId, String moduleName) {
+			String registrationId, String moduleId, String moduleName,Integer iteration,String process) {
 		boolean isTransactionSuccessful = false;
 		LogDescription description = new LogDescription();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
@@ -342,7 +342,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 
 		try {
 			List<IndividualDemographicDedupeEntity> applicantDemographicEntities = PacketInfoMapper
-					.converDemographicDedupeDtoToEntity(demographicData, registrationId);
+					.converDemographicDedupeDtoToEntity(demographicData, registrationId, iteration, process);
 			for (IndividualDemographicDedupeEntity applicantDemographicEntity : applicantDemographicEntities) {
 				demographicDedupeRepository.save(applicantDemographicEntity);
 
@@ -380,7 +380,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 * saveDemographicInfoJson(java.io.InputStream, java.util.List)
 	 */
 	@Override
-	public void saveDemographicInfoJson(String registrationId, String process, String moduleId,
+	public void saveDemographicInfoJson(String registrationId, String process,Integer iteration, String moduleId,
 			String moduleName) throws Exception {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"PacketInfoManagerImpl::saveDemographicInfoJson()::entry");
@@ -391,7 +391,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 
 		try {
 
-			saveIndividualDemographicDedupe(registrationId, process, description, moduleId, moduleName);
+			saveIndividualDemographicDedupe(registrationId, process,iteration, description, moduleId, moduleName);
 
 			isTransactionSuccessful = true;
 			description.setMessage("Demographic Json saved");

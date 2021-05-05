@@ -58,6 +58,8 @@ public class MessageDTO implements Serializable {
 	private String infoRequestId;
 	
 	private String source;
+	
+	private Integer iteration;
 
 	/**
 	 * Gets the rid.
@@ -205,6 +207,14 @@ public class MessageDTO implements Serializable {
 
 	public void setSource(String source) {
 		this.source = source;
+	}
+
+	public Integer getIteration() {
+		return iteration;
+	}
+
+	public void setIteration(Integer iteration) {
+		this.iteration = iteration;
 	}
 
 	@Override
