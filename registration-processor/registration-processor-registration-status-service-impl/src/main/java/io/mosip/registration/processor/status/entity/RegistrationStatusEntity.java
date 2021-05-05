@@ -6,7 +6,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
-// TODO: Auto-generated Javadoc
+
 /**
  * The Class RegistrationStatusEntity.
  */
@@ -108,6 +108,10 @@ public class RegistrationStatusEntity extends BaseRegistrationEntity {
 	/** The default resume action. */
 	@Column(name = "default_resume_action")
 	private String defaultResumeAction;
+
+	/** The default resume action. */
+	@Column(name = "resume_remove_tags")
+	private String resumeRemoveTags;
 
 	/**
 	 * Instantiates a new registration status entity.
@@ -541,6 +545,24 @@ public class RegistrationStatusEntity extends BaseRegistrationEntity {
 	 */
 	public void setDefaultResumeAction(String defaultResumeAction) {
 		this.defaultResumeAction = defaultResumeAction;
+	}
+
+	/**
+	 * Gets the resume remove tags.
+	 *
+	 * @return the resume remove tags
+	 */
+	public String getResumeRemoveTags() {
+		return resumeRemoveTags;
+	}
+
+	/**
+	 * Sets the resume remove tags.
+	 *
+	 * @param resumeRemoveTags the new resume remove tags
+	 */
+	public void setResumeRemoveTags(String resumeRemoveTags) {
+		this.resumeRemoveTags = resumeRemoveTags;
 	}
 
 }

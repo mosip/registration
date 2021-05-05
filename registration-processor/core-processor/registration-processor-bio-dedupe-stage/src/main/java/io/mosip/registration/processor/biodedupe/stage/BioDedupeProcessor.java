@@ -85,6 +85,10 @@ public class BioDedupeProcessor {
 	@Autowired
 	private IdRepoService idRepoService;
 
+	@Value("${registration.processor.sub-process}")
+	private String subProcess;
+
+
 	@Autowired
 	private PriorityBasedPacketManagerService priorityBasedPacketManagerService;
 
@@ -168,9 +172,11 @@ public class BioDedupeProcessor {
 
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 		try {
-			registrationStatusDto = registrationStatusService.getRegistrationStatus(registrationId);
+			registrationStatusDto = registrationStatusService.getRegistrationStatus(
+					registrationId, object.getReg_type(), object.getIteration());
 			String registrationType = registrationStatusDto.getRegistrationType();
-			if (registrationType.equalsIgnoreCase(SyncTypeDto.NEW.toString())) {
+			if (registrationType.equalsIgnoreCase(SyncTypeDto.NEW.toString())
+			|| (subProcess != null && subProcess.contains(registrationType))) {
 				String packetStatus = abisHandlerUtil.getPacketStatus(registrationStatusDto);
 				if (packetStatus.equalsIgnoreCase(AbisConstant.PRE_ABIS_IDENTIFICATION)) {
 					newPacketPreAbisIdentification(registrationStatusDto, object);
@@ -196,7 +202,8 @@ public class BioDedupeProcessor {
 					lostPacketPreAbisIdentification(registrationStatusDto, object);
 				} else if (packetStatus.equalsIgnoreCase(AbisConstant.POST_ABIS_IDENTIFICATION)) {
 					List<String> matchedRegIds = abisHandlerUtil
-							.getUniqueRegIds(registrationStatusDto.getRegistrationId(), registrationType, ProviderStageName.BIO_DEDUPE);
+							.getUniqueRegIds(registrationStatusDto.getRegistrationId(),
+									registrationType, object.getIteration(), ProviderStageName.BIO_DEDUPE);
 					lostPacketPostAbisIdentification(registrationStatusDto, object, matchedRegIds);
 				}
 
@@ -391,7 +398,7 @@ public class BioDedupeProcessor {
 		String moduleId = "";
 		String moduleName = ModuleName.BIO_DEDUPE.toString();
 		List<String> matchedRegIds = abisHandlerUtil.getUniqueRegIds(registrationStatusDto.getRegistrationId(),
-				registrationType, ProviderStageName.BIO_DEDUPE);
+				registrationType, registrationStatusDto.getIteration(), ProviderStageName.BIO_DEDUPE);
 		// TODO : temporary fix. Need to analyze more.
 		if (matchedRegIds != null && !matchedRegIds.isEmpty()
 				&& matchedRegIds.contains(registrationStatusDto.getRegistrationId())) {
@@ -418,7 +425,7 @@ public class BioDedupeProcessor {
 			object.setInternalError(Boolean.FALSE);
 			object.setRid(registrationStatusDto.getRegistrationId());
 			object.setIsValid(Boolean.FALSE);
-			object.setReg_type(RegistrationType.valueOf(registrationType));
+			object.setReg_type(registrationType);
 			object.setMessageBusAddress(MessageBusAddress.MANUAL_VERIFICATION_BUS_IN);
 
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),

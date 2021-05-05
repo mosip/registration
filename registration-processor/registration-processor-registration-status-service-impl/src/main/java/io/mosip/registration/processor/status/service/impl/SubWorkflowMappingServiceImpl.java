@@ -29,6 +29,7 @@ public class SubWorkflowMappingServiceImpl implements SubWorkflowMappingService 
         subWorkflowMappingEntity.setTimestamp(dto.getTimestamp());
         subWorkflowRepository.save(subWorkflowMappingEntity);
     }
+
     @Override
     public List<SubWorkflowDto> getSubWorkflowMapping(String regId) {
         List<SubWorkflowMappingEntity> subWorkflowMappingEntity = subWorkflowRepository.getSubWorkflowMapping(regId);
@@ -36,6 +37,7 @@ public class SubWorkflowMappingServiceImpl implements SubWorkflowMappingService 
         if (CollectionUtils.isNotEmpty(subWorkflowMappingEntity))
             subWorkflowMappingEntity.forEach(m -> subWorkflowDtos.add(new SubWorkflowDto(m.getId().getRegId(),
                     m.getId().getAdditionalInfoReqId(), m.getProcess(), m.getIteration(), m.getTimestamp())));
+
         return subWorkflowDtos;
     }*/
 

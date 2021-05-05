@@ -386,6 +386,11 @@ public class KafkaMosipEventBus implements MosipEventBus {
 			new ArrayList<>(kafkaConsumerRecords.records().records(topicPartition));
 		partitionRecordList.sort((r1, r2) -> Long.compare(r1.offset(),r2.offset()));
 
+		for(ConsumerRecord<String,String> consumerRecord : partitionRecordList) {
+			logger.info("Message picked from kafka. Message key: {} Partition: {} Offset: {}",
+				consumerRecord.key(), consumerRecord.partition(), consumerRecord.offset());
+		}
+
 		Map<org.apache.kafka.common.TopicPartition, 
 		List<ConsumerRecord<String, String>>> topicPartitionConsumerRecordsMap = 
 			new HashMap<org.apache.kafka.common.TopicPartition, 

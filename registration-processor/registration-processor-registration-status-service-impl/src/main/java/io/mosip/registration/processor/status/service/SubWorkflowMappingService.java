@@ -7,7 +7,7 @@ import java.util.List;
 public interface SubWorkflowMappingService {
 
     /*public void saveSubWorkflowMapping(SubWorkflowDto subWorkflowDto);
-    
+
     public List<SubWorkflowDto> getSubWorkflowMapping(String regId);*/
 
     public List<SubWorkflowDto> getWorkflowMappingByReqId(String infoRequestId);

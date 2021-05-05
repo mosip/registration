@@ -2,6 +2,7 @@ package io.mosip.registration.processor.core.abstractverticle;
 
 import java.io.Serializable;
 
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class WorkFlowEventDTO.
@@ -37,6 +38,8 @@ public class WorkflowEventDTO extends MessageDTO implements Serializable {
 	/** The event timestamp. */
 	private String eventTimestamp;
 
+	/** The resume remove tags. */
+	private String resumeRemoveTags;
 
 
 	/*
@@ -148,6 +151,24 @@ public class WorkflowEventDTO extends MessageDTO implements Serializable {
 	 */
 	public void setEventTimestamp(String eventTimestamp) {
 		this.eventTimestamp = eventTimestamp;
+	}
+
+	/**
+	 * Gets the resume remove tags.
+	 *
+	 * @return the resume remove tags
+	 */
+	public String getResumeRemoveTags() {
+		return resumeRemoveTags;
+	}
+
+	/**
+	 * Sets the resume remove tags.
+	 *
+	 * @param resumeRemoveTags the new resume remove tags
+	 */
+	public void setResumeRemoveTags(String resumeRemoveTags) {
+		this.resumeRemoveTags = resumeRemoveTags;
 	}
 
 }

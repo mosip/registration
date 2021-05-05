@@ -1,5 +1,28 @@
 package io.mosip.registration.processor.securezone.notification.stage;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.ReflectionTestUtils;
+
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -11,12 +34,9 @@ import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequest
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
-import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
-import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.SubWorkflowMappingService;
-import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -36,54 +56,31 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.web.impl.RoutingContextImpl;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.util.ReflectionTestUtils;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 
 @RunWith(SpringRunner.class)
 public class SecurezoneNotificationStageTest {
 
-    private static final int maxRetryCount = 5;
+	private static final int maxRetryCount = 5;
 
-    private static final InputStream stream = Mockito.mock(InputStream.class);
+	private static final InputStream stream = Mockito.mock(InputStream.class);
 
-    /** The registration status service. */
-    @Mock
-    RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
+	/** The registration status service. */
+	@Mock
+	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 
     @Mock
     private RegistrationExceptionMapperUtil registrationStatusMapperUtil;
     
     @Mock
-    private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationService;
-    
-    @Mock
     private SubWorkflowMappingService subWorkflowMappingService;
- 
 
     @Mock
-    private AuditLogRequestBuilder auditLogRequestBuilder;
+	private Environment environment;
+	@Mock
+	private AuditLogRequestBuilder auditLogRequestBuilder;
 
-    private RoutingContext ctx;
-    private Boolean responseObject;
+	private RoutingContext ctx;
+	private Boolean responseObject;
 
     @Mock
     private MosipRouter router;
@@ -260,12 +257,13 @@ public class SecurezoneNotificationStageTest {
 
             @Override
             public JsonObject getBodyAsJson() {
-                JsonObject obj= new JsonObject();
+                JsonObject obj = new JsonObject();
                 obj.put("rid", "2018701130000410092018110735");
                 obj.put("isValid", true);
                 obj.put("internalError", false);
                 obj.put("reg_type", "NEW");
-                obj.put("infoRequestId", "1234.NEW.1");
+                obj.put("iteration", 1);
+                obj.put("source", "REGISTRATION_CLIENT");
                 return obj;
             }
 
@@ -398,7 +396,7 @@ public class SecurezoneNotificationStageTest {
         ReflectionTestUtils.setField(notificationStage, "workerPoolSize", 10);
         ReflectionTestUtils.setField(notificationStage, "clusterManagerUrl", "/dummyPath");
         ReflectionTestUtils.setField(notificationStage, "messageExpiryTimeLimit", Long.valueOf(0));
-        ReflectionTestUtils.setField(notificationStage, "port", "7999");
+        Mockito.when(environment.getProperty("mosip.regproc.securezone.notification.server.port", int.class)).thenReturn(7999);
         Mockito.when(router.post(Mockito.any())).thenReturn(null);
         Mockito.doNothing().when(router).setRoute(Mockito.any());
         Mockito.doNothing().when(router).nonSecureHandler(Mockito.any(),Mockito.any());
@@ -406,11 +404,8 @@ public class SecurezoneNotificationStageTest {
         messageDTO.setInternalError(Boolean.FALSE);
         messageDTO.setIsValid(Boolean.TRUE);
         messageDTO.setRid("2018701130000410092018110735");
-        Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
-        Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
-        Mockito.when( registrationStatusService.getRegistrationStatusByIdAndByRegtypeAndByIteration(anyString(),anyString(),any(Integer.class))).thenReturn(null);
-        Mockito.when(syncRegistrationService.getSyncRegistrationByIdAndByRegtypeAndByIteration(anyString(),anyString(),any(Integer.class))).thenReturn(null);
-        Mockito.when(subWorkflowMappingService.getWorkflowMappingByReqId(anyString())).thenReturn(swfDtos);
+        Mockito.when(subWorkflowMappingService.getWorkflowMappingByRIdAndProcessAndIteration(anyString(),any(), any())).thenReturn(swfDtos);
+        Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any())).thenReturn(registrationStatusDto);
         Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(),any(),any());
         Mockito.doReturn(responseWrapper).when(auditLogRequestBuilder).createAuditRequestBuilder(anyString(), anyString(), anyString(),
                 anyString(), anyString(), anyString(), anyString());
@@ -425,7 +420,7 @@ public class SecurezoneNotificationStageTest {
 
     @Test
     public void ridNotFoundTest() {
-        Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(null);
+        Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any())).thenReturn(null);
 
         notificationStage.processURL(ctx);
         assertTrue(responseObject);
@@ -451,7 +446,7 @@ public class SecurezoneNotificationStageTest {
 
     @Test
     public void dbExceptionTest() {
-        Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenThrow(new TablenotAccessibleException("exception"));
+        Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any())).thenThrow(new TablenotAccessibleException("exception"));
 
         notificationStage.processURL(ctx);
         assertNull(responseObject);

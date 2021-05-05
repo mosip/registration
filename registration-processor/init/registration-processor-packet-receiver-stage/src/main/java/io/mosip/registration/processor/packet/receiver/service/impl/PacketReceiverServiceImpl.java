@@ -8,11 +8,11 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import io.mosip.registration.processor.packet.manager.utils.ZipUtils;
+import io.mosip.kernel.core.util.DateUtils;
 import org.apache.commons.io.IOUtils;
 import org.h2.store.fs.FileUtils;
+import org.h2.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -110,6 +110,9 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	@Value("${registration.processor.max.file.size}")
 	private String fileSize;
 
+	@Value("${registration.processor.main-process}")
+	private String mainProcess;
+
 	/** The virus scanner service. */
 	@Autowired
 	private VirusScanner<Boolean, InputStream> virusScannerService;
@@ -130,23 +133,23 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 		messageDTO.setInternalError(false);
 		messageDTO.setIsValid(false);
 		SyncRegistrationEntity regEntity;
-		String registrationId = "";
 		boolean isTransactionSuccessful = false;
 		if (file.getName() != null && file.exists()) {
 			String fileOriginalName = file.getName();
-			registrationId = fileOriginalName.split("\\.")[0];
+			String packetId = fileOriginalName.split("\\.")[0];
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, "PacketReceiverServiceImpl::validatePacket()::entry");
+					packetId, "PacketReceiverServiceImpl::validatePacket()::entry");
+			regEntity = syncRegistrationService.findByPacketId(packetId);
+			String registrationId = regEntity.getRegistrationId();
 			messageDTO.setRid(registrationId);
-			regEntity = syncRegistrationService.findByRegistrationId(registrationId);
 			try (InputStream encryptedInputStream = FileUtils.newInputStream(file.getAbsolutePath())) {
 				byte[] encryptedByteArray = IOUtils.toByteArray(encryptedInputStream);
 				validatePacketWithSync(regEntity, registrationId, description);
-				messageDTO.setReg_type(RegistrationType.valueOf(regEntity.getRegistrationType()));
+				messageDTO.setReg_type(regEntity.getRegistrationType());
 				validateHashCode(new ByteArrayInputStream(encryptedByteArray), regEntity, registrationId, description);
 				validatePacketFormat(fileOriginalName, registrationId, description);
 				validatePacketSize(file.length(), regEntity, registrationId, description);
-				if (isDuplicatePacket(registrationId) && !isExternalStatusResend(registrationId)) {
+				if (isDuplicatePacket(registrationId, regEntity) && !isExternalStatusResend(registrationId)) {
 					description.setMessage(PlatformErrorMessages.RPR_PKR_DUPLICATE_PACKET_RECIEVED.getMessage());
 					description.setCode(PlatformErrorMessages.RPR_PKR_DUPLICATE_PACKET_RECIEVED.getCode());
 					throw new DuplicateUploadRequestException(
@@ -157,7 +160,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
 						PlatformSuccessMessages.PACKET_RECEIVER_VALIDATION_SUCCESS.getMessage());
-				storageFlag = storePacket(stageName, regEntity, dto, description);
+				storageFlag = storePacket(packetId, stageName, regEntity, dto, description);
 				isTransactionSuccessful = true;
 			} catch (IOException | NoSuchAlgorithmException e) {
 
@@ -240,10 +243,10 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
-	private boolean storePacket(String stageName, SyncRegistrationEntity regEntity, InternalRegistrationStatusDto dto,
+	private boolean storePacket(String packetId, String stageName, SyncRegistrationEntity regEntity, InternalRegistrationStatusDto dto,
 			LogDescription description) throws IOException {
 		Boolean storageFlag = false;
-		dto = registrationStatusService.getRegistrationStatus(dto.getRegistrationId());
+		dto = registrationStatusService.getRegistrationStatus(regEntity.getRegistrationId(), regEntity.getRegistrationType(), null);
 		if (dto == null) {
 			dto = new InternalRegistrationStatusDto();
 			dto.setRetryCount(0);
@@ -254,6 +257,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 		}
 		dto.setRegistrationId(regEntity.getRegistrationId());
 		dto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PACKET_RECEIVER.toString());
+		dto.setLatestTransactionTimes(DateUtils.getUTCCurrentDateTime());
 		dto.setRegistrationStageName(stageName);
 		dto.setRegistrationType(regEntity.getRegistrationType());
 		dto.setReferenceRegistrationId(null);
@@ -266,6 +270,9 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 		dto.setIsActive(true);
 		dto.setCreatedBy(USER);
 		dto.setIsDeleted(false);
+		dto.setSource(regEntity.getSource());
+        dto.setIteration(getIterationFromPacketName(packetId, regEntity));
+
 		/** Module-Id can be Both Success/Error code */
 		String moduleId = PlatformSuccessMessages.PACKET_RECEIVER_VALIDATION_SUCCESS.getCode();
 		String moduleName = ModuleName.PACKET_RECEIVER.toString();
@@ -366,8 +373,10 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	 *            the registration id
 	 * @return the boolean
 	 */
-	private Boolean isDuplicatePacket(String registrationId) {
-		return registrationStatusService.getRegistrationStatus(registrationId) != null;
+	private Boolean isDuplicatePacket(String registrationId, SyncRegistrationEntity syncRegistrationEntity) {
+		return StringUtils.isNullOrEmpty(syncRegistrationEntity.getAdditionalInfoReqId())
+				&& mainProcess.contains(syncRegistrationEntity.getRegistrationType())
+				&& registrationStatusService.getRegistrationStatus(registrationId, syncRegistrationEntity.getRegistrationType(), null) != null;
 	}
 
 	/**
@@ -460,16 +469,21 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 		messageDTO.setIsValid(false);
 		boolean scanningFlag;
 		boolean isTransactionSuccessful = false;
-		String registrationId = "";
-		SyncRegistrationEntity regEntity;
 		String fileOriginalName = file.getName();
-		registrationId = fileOriginalName.split("\\.")[0];
-		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus(registrationId);
+		String packetId = fileOriginalName.split("\\.")[0];
+
+		SyncRegistrationEntity regEntity = syncRegistrationService.findByPacketId(packetId);
+		String registrationId = regEntity.getRegistrationId();
+
+		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus(registrationId,
+				regEntity.getRegistrationType(), getIterationFromPacketName(packetId, regEntity));
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "PacketReceiverServiceImpl::processPacket()::entry");
 		messageDTO.setRid(registrationId);
-		regEntity = syncRegistrationService.findByRegistrationId(registrationId);
-		messageDTO.setReg_type(RegistrationType.valueOf(regEntity.getRegistrationType()));
+
+		messageDTO.setReg_type(regEntity.getRegistrationType());
+		messageDTO.setIteration(dto.getIteration());
+		messageDTO.setSource(regEntity.getSource());
 		try (InputStream encryptedInputStream = FileUtils.newInputStream(file.getAbsolutePath())) {
 			final byte[] encryptedByteArray = IOUtils.toByteArray(encryptedInputStream);
 			scanningFlag = scanFile(encryptedByteArray, registrationExceptionMapperUtil,
@@ -530,5 +544,14 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 
 		return messageDTO;
 	}
+
+	private int getIterationFromPacketName(String packetId, SyncRegistrationEntity regEntity) {
+        if (mainProcess.contains(regEntity.getRegistrationType()))
+            return 1;
+        else {
+            char c = packetId.charAt(packetId.length() - 1);
+            return Integer.parseInt(String.valueOf(c));
+        }
+    }
 
 }

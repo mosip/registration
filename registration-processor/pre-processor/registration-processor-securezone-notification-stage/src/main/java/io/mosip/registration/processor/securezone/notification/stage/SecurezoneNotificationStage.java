@@ -42,9 +42,26 @@ import io.mosip.registration.processor.status.service.SubWorkflowMappingService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 @Component
+@Configuration
+@ComponentScan(basePackages = {
+		"io.mosip.registration.processor.core.config",
+        "io.mosip.registration.processor.securezone.notification.config",
+        "io.mosip.registration.processor.packet.manager.config",
+        "io.mosip.registration.processor.status.config", 
+        "io.mosip.registration.processor.rest.client.config",
+        "io.mosip.registration.processor.core.kernel.beans"
+})
 public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
+	
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.securezone.notification.";
 
     /**
      * The reg proc logger.
@@ -58,12 +75,6 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
     private String clusterManagerUrl;
 
     /**
-     * server port number.
-     */
-    @Value("${server.port}")
-    private String port;
-
-    /**
      * worker pool size.
      */
     @Value("${worker.pool.size}")
@@ -73,12 +84,6 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
      * The mosip event bus.
      */
     private MosipEventBus mosipEventBus;
-
-    /**
-     * The context path.
-     */
-    @Value("${server.servlet.path}")
-    private String contextPath;
 
     /** After this time intervel, message should be considered as expired (In seconds). */
     @Value("${mosip.regproc.securezone.notification.message.expiry-time-limit}")
@@ -117,12 +122,17 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
         this.consumeAndSend(mosipEventBus, MessageBusAddress.SECUREZONE_NOTIFICATION_IN,
                 MessageBusAddress.SECUREZONE_NOTIFICATION_OUT, messageExpiryTimeLimit);
     }
+    
+    @Override
+    protected String getPropertyPrefix() {
+    	return STAGE_PROPERTY_PREFIX;
+    }
 
     @Override
     public void start() {
         router.setRoute(this.postUrl(vertx, MessageBusAddress.SECUREZONE_NOTIFICATION_IN, MessageBusAddress.SECUREZONE_NOTIFICATION_OUT));
         this.routes(router);
-        this.createServer(router.getRouter(), Integer.parseInt(port));
+        this.createServer(router.getRouter(), getPort());
     }
 
     /**
@@ -131,7 +141,7 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
      * @param router
      */
     private void routes(MosipRouter router) {
-        router.post(contextPath + "/notification");
+        router.post(getServletPath() + "/notification");
         router.handler(this::processURL, this::failure);
     }
 
@@ -156,22 +166,32 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
             messageDTO.setMessageBusAddress(MessageBusAddress.SECUREZONE_NOTIFICATION_IN);
             messageDTO.setInternalError(Boolean.FALSE);
             messageDTO.setRid(obj.getString("rid"));
-            messageDTO.setReg_type(RegistrationType.valueOf(obj.getString("reg_type")));
+            messageDTO.setReg_type(obj.getString("reg_type"));
             messageDTO.setIsValid(obj.getBoolean("isValid"));
-            messageDTO.setInfoRequestId(obj.getString("infoRequestId"));
+            messageDTO.setSource(obj.getString("source"));
+            messageDTO.setIteration(obj.getInteger("iteration"));
            
-            List<SubWorkflowDto> swfDtos=subWorkflowMappingService.getWorkflowMappingByReqId(messageDTO.getInfoRequestId());
+            List<SubWorkflowDto> swfDtos=subWorkflowMappingService.
+            		getWorkflowMappingByRIdAndProcessAndIteration(messageDTO.getRid(), 
+            				messageDTO.getReg_type(), messageDTO.getIteration());
            
             if(swfDtos!=null &&swfDtos.size()==1) {
-            	
-            if(registrationStatusService.getRegistrationStatusByIdAndByRegtypeAndByIteration(messageDTO.getRid(),messageDTO.getReg_type().toString(),swfDtos.get(0).getIteration())==null
-                && syncRegistrationService.getSyncRegistrationByIdAndByRegtypeAndByIteration(messageDTO.getRid(),messageDTO.getReg_type().toString(),swfDtos.get(0).getIteration())==null) {
-                
-            	registrationStatusDto = registrationStatusService.getRegistrationStatus(messageDTO.getRid());
+            	  
+            registrationStatusDto = registrationStatusService.getRegistrationStatus(
+                    messageDTO.getRid(), messageDTO.getReg_type(), messageDTO.getIteration());
+            
+            if(swfDtos.get(0).getAdditionalInfoReqId().equals(registrationStatusDto.getAdditionalInfoReqId())) {
+            	isTransactionSuccessful = false;
+            	messageDTO.setIsValid(Boolean.FALSE);
+            	regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+                 LoggerFileConstant.REGISTRATIONID.toString(), messageDTO.getRid(),
+                 "Packet already received");
+            }
+
             if (registrationStatusDto != null && messageDTO.getRid().equalsIgnoreCase(registrationStatusDto.getRegistrationId())) {
                 registrationStatusDto
                         .setLatestTransactionTypeCode(RegistrationTransactionTypeCode.SECUREZONE_NOTIFICATION.toString());
-                registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
+                registrationStatusDto.setRegistrationStageName(getStageName());
 
 
                 registrationStatusDto
@@ -196,13 +216,6 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
                     LoggerFileConstant.REGISTRATIONID.toString(), messageDTO.getRid(),
                     "Transaction failed. RID not found in registration table.");
         		}
-            }	else {
-            	isTransactionSuccessful = false;
-            	messageDTO.setIsValid(Boolean.FALSE);
-            	regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-                 LoggerFileConstant.REGISTRATIONID.toString(), messageDTO.getRid(),
-                 "Packet already received");
-            }
             }	else {
             	isTransactionSuccessful = false;
             	messageDTO.setIsValid(Boolean.FALSE);

@@ -15,25 +15,8 @@ public class MessageDTO implements Serializable {
 
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
-
-	/**
-	 * Instantiates a new message DTO.
-	 */
-	public MessageDTO() {
-		super();
-	}
-
 	/** The registration type. */
-	private RegistrationType reg_type;
-
-	public RegistrationType getReg_type() {
-		return reg_type;
-	}
-
-	public void setReg_type(RegistrationType reg_type) {
-		this.reg_type = reg_type;
-	}
-
+	private String reg_type;
 	/** The rid. */
 	private String rid;
 
@@ -54,12 +37,27 @@ public class MessageDTO implements Serializable {
 
 	/** The timestamp when last stage hop was completed */
 	private String lastHopTimestamp;
-	
-	private String infoRequestId;
-	
+
 	private String source;
-	
-	private Integer iteration;
+
+	private int iteration;
+
+	/**
+	 * Instantiates a new message DTO.
+	 */
+	public MessageDTO() {
+		super();
+	}
+
+
+
+	public String getReg_type() {
+		return reg_type;
+	}
+
+	public void setReg_type(String reg_type) {
+		this.reg_type = reg_type;
+	}
 
 	/**
 	 * Gets the rid.
@@ -193,14 +191,6 @@ public class MessageDTO implements Serializable {
 		this.lastHopTimestamp = lastHopTimestamp;
 	}
 
-	public String getInfoRequestId() {
-		return infoRequestId;
-	}
-
-	public void setInfoRequestId(String infoRequestId) {
-		this.infoRequestId = infoRequestId;
-	}
-
 	public String getSource() {
 		return source;
 	}
@@ -209,11 +199,11 @@ public class MessageDTO implements Serializable {
 		this.source = source;
 	}
 
-	public Integer getIteration() {
+	public int getIteration() {
 		return iteration;
 	}
 
-	public void setIteration(Integer iteration) {
+	public void setIteration(int iteration) {
 		this.iteration = iteration;
 	}
 

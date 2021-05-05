@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.xml.sax.SAXException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.bioapi.exception.BiometricException;
@@ -24,6 +25,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
+import io.mosip.registration.processor.core.auth.dto.IndividualIdDto;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.constant.JsonConstant;
@@ -39,6 +41,7 @@ import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.ParentOnHoldException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
+import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.packet.dto.RegOsiDto;
@@ -135,7 +138,11 @@ public class OSIValidator {
 	public static final String INDIVIDUAL_TYPE_UIN = "UIN";
 
 	private static final String INDIVIDUAL_TYPE_USERID = "USERID";
+	
+	private static final String APPID = "regproc";
 
+	@Autowired
+	ObjectMapper mapper;
 	/**
 	 * Checks if is valid OSI.
 	 *
@@ -613,6 +620,11 @@ public class OSIValidator {
 			String individualType, InternalRegistrationStatusDto registrationStatusDto)
 			throws ApisResourceAccessException, IOException, BioTypeException, AuthSystemException, CertificateException, NoSuchAlgorithmException {
 
+		if(INDIVIDUAL_TYPE_USERID.equalsIgnoreCase(individualType)) {
+			userId = getIndividualIdByUserId(userId);
+			individualType = null;
+		 }
+		
 		AuthResponseDTO authResponseDTO = authUtil.authByIdAuthentication(userId, individualType, list);
 		if (authResponseDTO.getErrors() == null || authResponseDTO.getErrors().isEmpty()) {
 			if (authResponseDTO.getResponse().isAuthStatus()) {
@@ -646,6 +658,35 @@ public class OSIValidator {
 		}
 		
 	}
+	
+	/**
+	 *  get the individualId by userid
+	 * @param userid
+	 * @return individualId 
+	 * @throws ApisResourceAccessException
+	 * @throws IOException
+	 */
+	private String getIndividualIdByUserId(String userid) throws ApisResourceAccessException, IOException {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				"OSIValidator::getIndividualIdByUserId():: entry");
+		List<String> pathSegments = new ArrayList<>();
+		pathSegments.add(APPID);
+		pathSegments.add(userid);
+		String individualId = null;
+		ResponseWrapper<?> response = null;
+		response =  (ResponseWrapper<?>) restClientService.getApi(ApiName.GETINDIVIDUALIDFROMUSERID, pathSegments, "", "", ResponseWrapper.class);
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				"OSIValidator::getIndividualIdByUserId():: GETINDIVIDUALIDFROMUSERID GET service call ended successfully");
+		if (response.getErrors() != null) {
+			throw new ApisResourceAccessException(PlatformErrorMessages.LINK_FOR_USERID_INDIVIDUALID_FAILED_OSI_EXCEPTION.toString());
+		}else {
+			IndividualIdDto readValue = mapper.readValue(mapper.writeValueAsString(response.getResponse()),IndividualIdDto.class);
+			individualId = readValue.getIndividualId();
+		}
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				"OSIValidator::getIndividualIdByUserId():: exit");
+		return individualId;
+	}
 
 	/**
 	 * Validate introducer rid.
@@ -659,7 +700,7 @@ public class OSIValidator {
 	private boolean validateIntroducerRid(String introducerRid, String registrationId,
 			InternalRegistrationStatusDto registrationStatusDto) throws ParentOnHoldException {
 		InternalRegistrationStatusDto introducerRegistrationStatusDto = registrationStatusService
-				.getRegistrationStatus(introducerRid);
+				.getRegStatusForMainProcess(introducerRid);
 		if (introducerRegistrationStatusDto != null) {
 			if (introducerRegistrationStatusDto.getStatusCode().equals(RegistrationStatusCode.PROCESSING.toString())) {
 

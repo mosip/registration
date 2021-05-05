@@ -48,4 +48,4 @@ public class SubWorkflowPKEntity implements Serializable {
 	public int hashCode() {
 		return Objects.hash(regId, additionalInfoReqId);
 	}
-} 
+}

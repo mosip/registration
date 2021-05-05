@@ -134,17 +134,17 @@ public class SyncRegistrationDao {
 		return updatedEntity != null ? true : false;
 	}
 
-	public SyncRegistrationEntity  getByAdditionalInfoReqId(String additionalInfoReqId) {
+	public SyncRegistrationEntity findByPacketId(String packetId) {
 		Map<String, Object> params = new HashMap<>();
 		String className = SyncRegistrationEntity.class.getSimpleName();
 
 		String alias = SyncRegistrationEntity.class.getName().toLowerCase().substring(0, 1);
 
 		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
-				+ ".additionalInfoReqId=:additionalInfoReqId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON
+				+ ".packetId=:packetId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON
 				+ ISDELETED;
 
-		params.put("additionalInfoReqId", additionalInfoReqId);
+		params.put("packetId", packetId);
 		params.put(ISDELETED, Boolean.FALSE);
 
 		List<SyncRegistrationEntity> syncRegistrationEntityList = syncRegistrationRepository.createQuerySelect(queryStr,
@@ -152,7 +152,7 @@ public class SyncRegistrationDao {
 
 		return !CollectionUtils.isEmpty(syncRegistrationEntityList) ? syncRegistrationEntityList.get(0) : null;
 	}
-
+	
 	public SyncRegistrationEntity getByIdAndRegTypeAndIteration(String rid, String regType, Integer iteration) {
 		Map<String, Object> params = new HashMap<>();
 		String className = SyncRegistrationEntity.class.getSimpleName();
@@ -172,5 +172,4 @@ public class SyncRegistrationDao {
 
 		return !syncRegistrationEntityList.isEmpty() ? syncRegistrationEntityList.get(0) : null;
 	}
-
 }

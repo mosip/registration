@@ -18,9 +18,6 @@ public class RegBioRefEntity extends BasePacketEntity<RegBioRefPKEntity> impleme
 	@Column(name = "cr_by", nullable = false)
 	private String crBy = "SYSTEM";
 
-	@Column(name = "cr_dtimes", updatable = false)
-	private LocalDateTime crDtimes;
-
 	@Column(name = "del_dtimes")
 	private LocalDateTime delDtimes;
 
@@ -53,14 +50,6 @@ public class RegBioRefEntity extends BasePacketEntity<RegBioRefPKEntity> impleme
 
 	public void setCrBy(String crBy) {
 		this.crBy = crBy;
-	}
-
-	public LocalDateTime getCrDtimes() {
-		return this.crDtimes;
-	}
-
-	public void setCrDtimes(LocalDateTime crDtimes) {
-		this.crDtimes = crDtimes;
 	}
 
 	public LocalDateTime getDelDtimes() {

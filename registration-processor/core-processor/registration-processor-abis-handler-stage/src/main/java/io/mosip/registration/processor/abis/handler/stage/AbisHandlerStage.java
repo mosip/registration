@@ -15,6 +15,9 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.MediaType;
@@ -89,8 +92,19 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
  * 
  * @author M1048358 Alok
  */
+@RefreshScope
 @Service
+@Configuration
+@ComponentScan(basePackages = { "io.mosip.registration.processor.abis.handler.config",
+        "io.mosip.registration.processor.status.config",
+        "io.mosip.registration.processor.rest.client.config",
+        "io.mosip.registration.processor.packet.storage.config",
+        "io.mosip.registration.processor.core.config",
+		"io.mosip.registration.processor.core.kernel.beans",
+		"io.mosip.kernel.packetmanager.config"})
 public class AbisHandlerStage extends MosipVerticleAPIManager {
+	
+	private static final String STAGE_PROPERTY_PREFIX="mosip.regproc.abis.handler.";
 
 	/** The cluster manager url. */
 	@Value("${vertx.cluster.configuration}")
@@ -103,10 +117,6 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	/** The target FPIR. */
 	@Value("${registration.processor.abis.targetFPIR}")
 	private String targetFPIR;
-
-	/** server port number. */
-	@Value("${server.port}")
-	private String port;
 
 	/** worker pool size. */
 	@Value("${worker.pool.size}")
@@ -173,9 +183,14 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 	@Override
 	public void start() {
-		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.ABIS_HANDLER_BUS_IN,
+		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.ABIS_HANDLER_BUS_IN,
 				MessageBusAddress.ABIS_HANDLER_BUS_OUT));
-		this.createServer(router.getRouter(), Integer.parseInt(port));
+		this.createServer(router.getRouter(), getPort());
+	}
+	
+	@Override
+	protected String getPropertyPrefix() {
+		return STAGE_PROPERTY_PREFIX;
 	}
 
 	/*
@@ -197,7 +212,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				regId, "AbisHandlerStage::process()::entry");
 		try {
-			registrationStatusDto = registrationStatusService.getRegistrationStatus(regId);
+			registrationStatusDto = registrationStatusService.getRegistrationStatus(regId, object.getReg_type(), object.getIteration());
 			transactionTypeCode = registrationStatusDto.getLatestTransactionTypeCode();
 			String transactionId = registrationStatusDto.getLatestRegistrationTransactionId();
 
@@ -270,14 +285,8 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 	private void createRequest(String regId, List<AbisQueueDetails> abisQueueDetails, String transactionId, String process,
 			LogDescription description, String transactionTypeCode) throws Exception {
-		List<RegBioRefDto> bioRefDtos = packetInfoManager.getBioRefIdByRegId(regId);
-		String bioRefId;
-		if (bioRefDtos.isEmpty()) {
-			bioRefId = getUUID();
-			insertInBioRef(regId, bioRefId);
-		} else {
-			bioRefId = bioRefDtos.get(0).getBioRefId();
-		}
+		String bioRefId = getUUID();
+		insertInBioRef(regId, bioRefId);
 		createInsertRequest(abisQueueDetails, transactionId, bioRefId, regId, process, description);
 		createIdentifyRequest(abisQueueDetails, transactionId, bioRefId, transactionTypeCode, description);
 
