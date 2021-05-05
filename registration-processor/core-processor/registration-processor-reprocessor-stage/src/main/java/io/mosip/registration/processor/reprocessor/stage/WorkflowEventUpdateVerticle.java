@@ -120,7 +120,7 @@ public class WorkflowEventUpdateVerticle extends MosipVerticleAPIManager {
 		try {
 
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
-					.getRegistrationStatus(registrationId, workflowEventDto.getReg_type().name(), workflowEventDto.getIteration());
+					.getRegistrationStatus(registrationId, workflowEventDto.getReg_type(), workflowEventDto.getIteration());
 
 		registrationStatusDto.setStatusCode(workflowEventDto.getStatusCode());
 		registrationStatusDto.setStatusComment(workflowEventDto.getStatusComment());

@@ -1295,10 +1295,7 @@ public enum PlatformErrorMessages {
 
 	/** The queue json validation failed. */
 	QUEUE_JSON_VALIDATION_FAILED(PlatformConstants.RPR_MA_MIDDLEWARE + "004",
-			"Unable to find Connection Properties"),
-
-	RPR_CORRECTION_FAILED(PlatformConstants.RPR_CORRECTION_MODULE + "003",
-			"Packet correction failed."),;
+			"Unable to find Connection Properties");
 
 	/** The error message. */
 	private final String errorMessage; 
