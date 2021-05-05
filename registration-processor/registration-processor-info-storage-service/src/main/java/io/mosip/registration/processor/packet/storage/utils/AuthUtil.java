@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -235,7 +236,7 @@ public class AuthUtil {
 				dataInfoDTO.setDomainUri(domainUrl);
 				dataInfoDTO.setTransactionId(DUMMY_TRANSACTION_ID);
 				List<BIR> birList = List.of(bir);
-				List<BIR> birApiResponseList = extractTemplates(birList, null);
+				List<BIR> birApiResponseList = extractTemplates(birList, new HashMap<String,String>());
 				BIR birApiResponse = birApiResponseList.get(0);
 				dataInfoDTO.setBioType(birApiResponse.getBdbInfo().getType().get(0).toString());
 				List<String> bioSubType = birApiResponse.getBdbInfo().getSubtype();
