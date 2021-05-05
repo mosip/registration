@@ -106,12 +106,12 @@ public class PacketClassificationProcessorTest {
 		messageDTO.setRid("123456789");
 		messageDTO.setInternalError(false);
 		messageDTO.setIsValid(true);
-		messageDTO.setReg_type(RegistrationType.NEW);
+		messageDTO.setReg_type(RegistrationType.NEW.name());
 		stageName = "PacketClassifierStage";
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("123456789");
 
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(),any(),any())).thenReturn(registrationStatusDto);
 		Mockito.when(utility.getRegistrationProcessorMappingJson(anyString())).thenReturn(null);
 
 		RegistrationAdditionalInfoDTO registrationAdditionalInfoDTO = new RegistrationAdditionalInfoDTO();

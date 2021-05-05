@@ -9,7 +9,6 @@ import org.springframework.core.env.Environment;
 import io.mosip.kernel.cbeffutil.impl.CbeffImpl;
 import io.mosip.kernel.core.bioapi.spi.IBioApi;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
-import io.mosip.registration.processor.quality.checker.stage.QualityCheckerStage;
 
 @PropertySource("classpath:bootstrap.properties")
 @Configuration
@@ -22,11 +21,6 @@ public class QualityCheckerConfig {
 	private static final String FINGERPRINT_PROVIDER = "mosip.fingerprint.provider";
 	private static final String FACE_PROVIDER = "mosip.face.provider";
 	private static final String IRIS_PROVIDER = "mosip.iris.provider";
-
-	@Bean
-	public QualityCheckerStage getStage() {
-		return new QualityCheckerStage();
-	}
 
 	@Bean("finger")
 	public IBioApi getFingerProvider() throws InstantiationException, IllegalAccessException, ClassNotFoundException {

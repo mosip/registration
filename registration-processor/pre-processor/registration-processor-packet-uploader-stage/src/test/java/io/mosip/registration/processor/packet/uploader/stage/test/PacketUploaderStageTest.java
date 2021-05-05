@@ -117,11 +117,15 @@ public class PacketUploaderStageTest {
 		public void createServer(Router router, int port) {
 
 		}
+
+		@Override
+		public Integer getPort() {
+			return 8080;
+		};
 	};
 	@Test
 	public void testStart()
 	{
-		ReflectionTestUtils.setField(packetValidatorStage, "port", "2333");
 		Mockito.doNothing().when(router).setRoute(any());
 		packetValidatorStage.start();
 	}
@@ -142,7 +146,7 @@ public class PacketUploaderStageTest {
 	public void testProcess() {
 		MessageDTO result = new MessageDTO();
 		result.setIsValid(true);
-		Mockito.when(packetUploaderService.validateAndUploadPacket(any(), any())).thenReturn(result);
+		Mockito.when(packetUploaderService.validateAndUploadPacket(any(), any(), any(), any())).thenReturn(result);
 		dto = packetValidatorStage.process(dto);
 		assertTrue(dto.getIsValid());
 

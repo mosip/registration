@@ -520,6 +520,11 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		return syncRegistrationDao.findById(registrationId);
 	}
 
+	@Override
+	public SyncRegistrationEntity findByPacketId(String packetId) {
+		return syncRegistrationDao.findByPacketId(packetId);
+	}
+
 	/**
 	 * Convert dto to entity.
 	 *

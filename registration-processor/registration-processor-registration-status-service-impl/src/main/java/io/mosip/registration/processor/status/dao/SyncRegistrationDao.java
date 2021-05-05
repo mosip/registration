@@ -133,4 +133,23 @@ public class SyncRegistrationDao {
 
 		return updatedEntity != null ? true : false;
 	}
+
+	public SyncRegistrationEntity findByPacketId(String packetId) {
+		Map<String, Object> params = new HashMap<>();
+		String className = SyncRegistrationEntity.class.getSimpleName();
+
+		String alias = SyncRegistrationEntity.class.getName().toLowerCase().substring(0, 1);
+
+		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
+				+ ".packetId=:packetId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON
+				+ ISDELETED;
+
+		params.put("packetId", packetId);
+		params.put(ISDELETED, Boolean.FALSE);
+
+		List<SyncRegistrationEntity> syncRegistrationEntityList = syncRegistrationRepository.createQuerySelect(queryStr,
+				params);
+
+		return !CollectionUtils.isEmpty(syncRegistrationEntityList) ? syncRegistrationEntityList.get(0) : null;
+	}
 }

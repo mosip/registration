@@ -121,6 +121,11 @@ public class QualityCheckerStageTest {
 		}
 
 		@Override
+		public Integer getPort() {
+			return 8080;
+		};
+
+		@Override
 		public void consumeAndSend(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
 				MessageBusAddress toAddress, long messageExpiryTimeLimit) {
 		}
@@ -139,7 +144,7 @@ public class QualityCheckerStageTest {
 		ReflectionTestUtils.setField(qualityCheckerStage, "fingerApi", fingerApi);
 		ReflectionTestUtils.setField(qualityCheckerStage, "faceApi", fingerApi);
 		ReflectionTestUtils.setField(qualityCheckerStage, "irisApi", fingerApi);
-		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
 		String idJsonString = "{\n" + "  \"identity\" : {\n" + "    \"fullName\" : [ {\n"
 				+ "      \"language\" : \"eng\",\n" + "      \"value\" : \"Ragavendran V\"\n" + "    }, {\n"
@@ -326,7 +331,7 @@ public class QualityCheckerStageTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testApiNotAccessibleTest() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
-		when(packetManagerService.getBiometrics(any(),any(),any(),any())).thenThrow(new ApisResourceAccessException("message"));
+		when(packetManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenThrow(new ApisResourceAccessException("message"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO messageDTO = qualityCheckerStage.process(dto);
@@ -388,7 +393,7 @@ public class QualityCheckerStageTest {
 
 	@Test
 	public void testQualityCheckfailureException() {
-		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any())).thenReturn(registrationStatusDto);
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
@@ -399,7 +404,7 @@ public class QualityCheckerStageTest {
 
 	@Test
 	public void testFileMissing() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
-		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any())).thenReturn(registrationStatusDto);
 		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(),any(), any(),any())).thenReturn(null);
 
 		MessageDTO dto = new MessageDTO();
@@ -424,7 +429,7 @@ public class QualityCheckerStageTest {
 	@Test
 	public void testNoBiometricInPacket() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
 
-		when(packetManagerService.getBiometrics(any(),any(),any(),any())).thenReturn(null);
+		when(packetManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenReturn(null);
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");

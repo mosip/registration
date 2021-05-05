@@ -7,15 +7,9 @@ import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessor
 import io.mosip.registration.processor.rest.client.service.impl.RegistrationProcessorRestClientServiceImpl;
 import io.mosip.registration.processor.stages.demodedupe.DemoDedupe;
 import io.mosip.registration.processor.stages.demodedupe.DemodedupeProcessor;
-import io.mosip.registration.processor.stages.demodedupe.DemoDedupeStage;
 
 @Configuration
 public class DemoDedupeConfig {
-
-	@Bean
-	public DemoDedupeStage getDemoDedupeStage() {
-		return new DemoDedupeStage();
-	}
 
 	@Bean
 	public DemoDedupe getDemoDedupe() {

@@ -21,6 +21,7 @@ import io.mosip.registration.processor.core.eventbus.MosipEventBusFactory;
 import io.mosip.registration.processor.core.exception.UnsupportedEventBusTypeException;
 
 public class ConsumerVerticle extends MosipVerticleManager {
+	private static final String EMPTY_STRING = "";
 	private MessageDTO messageDTO;
 	public MosipEventBus mosipEventBus;
 	private MosipEventBusFactory mosipEventBusFactory;
@@ -30,14 +31,14 @@ public class ConsumerVerticle extends MosipVerticleManager {
 
 		mosipEventBusFactory = new MosipEventBusFactory();
 		mosipEventBusFactory.setTracing(Tracing.newBuilder().build());
-		this.mosipEventBus = mosipEventBusFactory.getEventBus(vertx, "vertx");
+		this.mosipEventBus = mosipEventBusFactory.getEventBus(vertx, "vertx", getPropertyPrefix());
 		this.messageDTO = new MessageDTO();
 		this.messageDTO.setRid("1001");
 		this.messageDTO.setRetryCount(0);
 		this.messageDTO.setMessageBusAddress(MessageBusAddress.PACKET_VALIDATOR_BUS_IN);
 		this.messageDTO.setIsValid(true);
 		this.messageDTO.setInternalError(false);
-		this.messageDTO.setReg_type(RegistrationType.NEW);
+		this.messageDTO.setReg_type(RegistrationType.NEW.name());
 
 		//this.consume(mosipEventBus, MessageBusAddress.PACKET_VALIDATOR_BUS_IN);
 		//this.consumeAndSend(mosipEventBus, MessageBusAddress.PACKET_VALIDATOR_BUS_OUT, MessageBusAddress.RETRY_BUS);
@@ -72,6 +73,11 @@ public class ConsumerVerticle extends MosipVerticleManager {
 	@Override
 	public String getEventBusType() {
 		return "vertx";
+	}
+
+	@Override
+	protected String getPropertyPrefix() {
+		return EMPTY_STRING;
 	}
 
 }

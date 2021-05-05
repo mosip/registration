@@ -356,7 +356,7 @@ public class ManualVerificationServiceTest {
 	public void TablenotAccessibleExceptionTest() throws Exception {
 		Mockito.when(basePacketRepository.getAllAssignedRecord(any(), any())).thenReturn(entities);
 
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegStatusForMainProcess(anyString())).thenReturn(registrationStatusDto);
 		Mockito.when(basePacketRepository.update(any(ManualVerificationEntity.class)))
 				.thenThrow(new TablenotAccessibleException(""));
 		manualAdjudicationService.updatePacketStatus(manualAdjudicationResponseDTO, stageName,queue);
@@ -436,7 +436,7 @@ public class ManualVerificationServiceTest {
 		manualAdjudicationResponseDTO.setCandidateList(candidateList);
 		Mockito.when(basePacketRepository.getAllAssignedRecord( anyString(), anyString()))
 				.thenReturn(entitiesTemp);
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegStatusForMainProcess(anyString())).thenReturn(registrationStatusDto);
 		manualAdjudicationService.updatePacketStatus(manualAdjudicationResponseDTO, stageName,queue);
 
 	}
@@ -446,7 +446,7 @@ public class ManualVerificationServiceTest {
 	public void updatePacketStatusApprovalMethodCheck() {
 		Mockito.when(basePacketRepository.getAllAssignedRecord(anyString(),  anyString()))
 				.thenReturn(entities);
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegStatusForMainProcess(anyString())).thenReturn(registrationStatusDto);
 		Mockito.when(basePacketRepository.getAssignedApplicantDetails(anyString(), anyString())).thenReturn(null);
 		Mockito.when(basePacketRepository.update(any(ManualVerificationEntity.class)))
 				.thenReturn(manualVerificationEntity);
@@ -484,7 +484,7 @@ public class ManualVerificationServiceTest {
 		;
 		Mockito.when(basePacketRepository.getAllAssignedRecord(anyString(),  anyString()))
 				.thenReturn(entities);
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegStatusForMainProcess(anyString())).thenReturn(registrationStatusDto);
 		Mockito.when(basePacketRepository.getAssignedApplicantDetails(anyString(), anyString())).thenReturn(null);
 		Mockito.when(basePacketRepository.update(any())).thenReturn(manualVerificationEntity);
 

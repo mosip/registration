@@ -21,6 +21,6 @@ public interface PacketUploaderService<U> {
 	 * 		      The name of the current stage
 	 * @return the u
 	 */
-	public U validateAndUploadPacket(String regId,String stageName);
+	public U validateAndUploadPacket(String regId, String process, int iteration, String stageName);
 
 }

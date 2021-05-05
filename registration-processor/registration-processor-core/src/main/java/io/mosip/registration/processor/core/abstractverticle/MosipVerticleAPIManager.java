@@ -1,18 +1,19 @@
 package io.mosip.registration.processor.core.abstractverticle;
 
-import brave.Tracing;
-import io.mosip.registration.processor.core.tracing.VertxWebTracingLocal;
-import io.vertx.core.Handler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
+import org.springframework.util.ClassUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import brave.Tracing;
 import io.mosip.registration.processor.core.constant.HealthConstant;
+import io.mosip.registration.processor.core.tracing.VertxWebTracingLocal;
 import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
@@ -33,13 +34,13 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 	DigitalSignatureUtility digitalSignatureUtility;
 
 	@Autowired
-	Environment environment;
-
-	@Autowired
 	ObjectMapper objectMapper;
 
 	@Autowired
 	private Tracing tracing;
+	
+	@Autowired
+	private Environment environment;
 
 	/**
 	 * This method creates a body handler for the routes
@@ -58,17 +59,18 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 				.failureHandler(routingContextHandler);
 
 		router.route().handler(BodyHandler.create());
+		String servletPath = getServletPath();
 		if (consumeAddress == null && sendAddress == null)
-			configureHealthCheckEndpoint(vertx, router, environment.getProperty(HealthConstant.SERVLET_PATH), null,
+			configureHealthCheckEndpoint(vertx, router, servletPath, null,
 					null);
 		else if (consumeAddress == null)
-			configureHealthCheckEndpoint(vertx, router, environment.getProperty(HealthConstant.SERVLET_PATH), null,
+			configureHealthCheckEndpoint(vertx, router, servletPath, null,
 					sendAddress.getAddress());
 		else if (sendAddress == null)
-			configureHealthCheckEndpoint(vertx, router, environment.getProperty(HealthConstant.SERVLET_PATH),
+			configureHealthCheckEndpoint(vertx, router, servletPath,
 					consumeAddress.getAddress(), null);
 		else
-			configureHealthCheckEndpoint(vertx, router, environment.getProperty(HealthConstant.SERVLET_PATH),
+			configureHealthCheckEndpoint(vertx, router, servletPath,
 					consumeAddress.getAddress(), sendAddress.getAddress());
 		return router;
 	}
@@ -178,5 +180,15 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 	// an abstract method, but later this need to be marked as abstract
 	public void deployVerticle() {
 
+	}
+	
+
+	/**
+	 * Gets the stage name.
+	 *
+	 * @return the stage name
+	 */
+	protected String getStageName() {
+		return ClassUtils.getUserClass(this.getClass()).getSimpleName();
 	}
 }

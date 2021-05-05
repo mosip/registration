@@ -177,7 +177,7 @@ public class PacketValidateProcessor {
 		try {
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PRINT_SERVICE.toString());
-			registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
+			registrationStatusDto.setRegistrationStageName(stageName);
 			object.setMessageBusAddress(MessageBusAddress.PACKET_VALIDATOR_BUS_IN);
 			object.setIsValid(Boolean.FALSE);
 			object.setInternalError(Boolean.FALSE);
@@ -186,7 +186,8 @@ public class PacketValidateProcessor {
 			registrationId = object.getRid();
 			packetValidationDto.setTransactionSuccessful(false);
 
-			registrationStatusDto = registrationStatusService.getRegistrationStatus(registrationId);
+			registrationStatusDto = registrationStatusService.getRegistrationStatus(
+					registrationId, object.getReg_type(), object.getIteration());
 
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.VALIDATE_PACKET.toString());

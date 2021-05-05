@@ -282,7 +282,7 @@ public class OSIValidatorTest {
 		registrationStatusDto.setApplicantType("Child");
 		registrationStatusDto.setRegistrationType("New");
 
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any())).thenReturn(registrationStatusDto);
 
 		FieldValue officerBiofileName = new FieldValue();
 		officerBiofileName.setLabel(MappingJsonConstants.OFFICERBIOMETRICFILENAME);
@@ -541,7 +541,7 @@ public class OSIValidatorTest {
 	@Test
 	public void testIntroducerRIDFailedOnHold() throws ApisResourceAccessException, IOException, Exception {
 		registrationStatusDto.setStatusCode("FAILED");
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any())).thenReturn(registrationStatusDto);
 		when(packetManagerService.getFieldByMappingJsonKey("reg1234","parentOrGuardianUIN","New", ProviderStageName.OSI_VALIDATOR)).thenReturn(null);
 		when(packetManagerService.getFieldByMappingJsonKey("reg1234","parentOrGuardianRID","New", ProviderStageName.OSI_VALIDATOR)).thenReturn("field");
 		boolean isValid = osiValidator.isValidOSI("reg1234", registrationStatusDto, metaInfo);
@@ -558,7 +558,7 @@ public class OSIValidatorTest {
 		InternalRegistrationStatusDto introducerRegistrationStatusDto = new InternalRegistrationStatusDto();
 
 		introducerRegistrationStatusDto.setStatusCode((RegistrationStatusCode.PROCESSING.toString()));
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any()))
 				.thenReturn(introducerRegistrationStatusDto);
 		when(packetManagerService.getFieldByMappingJsonKey("reg1234","parentOrGuardianUIN","New", ProviderStageName.OSI_VALIDATOR)).thenReturn(null);
 		when(packetManagerService.getFieldByMappingJsonKey("reg1234","parentOrGuardianRID","New", ProviderStageName.OSI_VALIDATOR)).thenReturn("field");
@@ -583,7 +583,7 @@ public class OSIValidatorTest {
 		registrationStatusDto.setRegistrationType("NEW");
 		when(packetManagerService.getFieldByMappingJsonKey("reg1234","parentOrGuardianUIN","New", ProviderStageName.OSI_VALIDATOR)).thenReturn(null);
 		when(packetManagerService.getFieldByMappingJsonKey("reg1234","parentOrGuardianRID","New", ProviderStageName.OSI_VALIDATOR)).thenReturn("field");
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(null);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any())).thenReturn(null);
 		osiValidator.isValidOSI("reg1234",  registrationStatusDto, metaInfo);
 	}
 
@@ -605,7 +605,7 @@ public class OSIValidatorTest {
 		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
 
 		registrationStatusDto.setStatusCode("PROCESSED");
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(idRepoService.getUinByRid(any(), any())).thenReturn("123456789");
 		boolean isValid = osiValidator.isValidOSI("reg1234",  registrationStatusDto, metaInfo);
 
@@ -631,7 +631,7 @@ public class OSIValidatorTest {
 	@Test
 	public void testIntroducerAuthFalse() throws Exception {
 		registrationStatusDto.setStatusCode("PROCESSED");
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any())).thenReturn(registrationStatusDto);
 		/*Mockito.when(osiUtils.getMetaDataValue(anyString(), any())).thenReturn("2015/01/01");
 		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString(), Mockito.anyString())).thenReturn(
 				JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(childMappingJson, JSONObject.class), "identity"));*/
@@ -652,7 +652,7 @@ public class OSIValidatorTest {
 	public void testIntroducerUINNull() throws Exception {
 		InternalRegistrationStatusDto introducerRegistrationStatusDto = new InternalRegistrationStatusDto();
 		introducerRegistrationStatusDto.setStatusCode((RegistrationStatusCode.PROCESSED.toString()));
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any()))
 				.thenReturn(introducerRegistrationStatusDto);
 		when(packetManagerService.getFieldByMappingJsonKey("reg1234","parentOrGuardianUIN","New", ProviderStageName.OSI_VALIDATOR)).thenReturn(null);
 		when(packetManagerService.getFieldByMappingJsonKey("reg1234","parentOrGuardianRID","New", ProviderStageName.OSI_VALIDATOR)).thenReturn("field");

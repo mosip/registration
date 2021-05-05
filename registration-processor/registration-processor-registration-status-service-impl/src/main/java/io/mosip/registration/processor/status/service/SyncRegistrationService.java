@@ -50,6 +50,8 @@ public interface SyncRegistrationService<T, U> {
 	 */
 	public SyncRegistrationEntity findByRegistrationId(String resgistrationId);
 
+	public SyncRegistrationEntity findByPacketId(String packetId);
+
 	/**
 	 * Decrypt and get sync request.
 	 *
