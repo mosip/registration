@@ -166,6 +166,7 @@ public class PrintingStageTest {
 	public void setup() throws Exception {
 		when(env.getProperty("mosip.registration.processor.datetime.pattern"))
 				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		when(env.getProperty("mosip.regproc.printing.server.port")).thenReturn("8099");
 
 		ReflectionTestUtils.setField(stage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(stage, "messageExpiryTimeLimit", Long.valueOf(0));

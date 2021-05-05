@@ -22,10 +22,12 @@ import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.ModuleName;
+import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
@@ -34,6 +36,8 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.vertx.core.json.JsonObject;
 @Component
 public class WorkflowEventUpdateVerticle extends MosipVerticleAPIManager {
+
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.reprocessor.";
 
 	/** The Constant USER. */
 	private static final String USER = "MOSIP_SYSTEM";
@@ -122,15 +126,17 @@ public class WorkflowEventUpdateVerticle extends MosipVerticleAPIManager {
 		registrationStatusDto.setStatusComment(workflowEventDto.getStatusComment());
 		registrationStatusDto.setDefaultResumeAction(workflowEventDto.getDefaultResumeAction());
 		LocalDateTime resumeTimeStamp = DateUtils.parseToLocalDateTime(workflowEventDto.getResumeTimestamp());
-		LocalDateTime updateTimeStamp = DateUtils.parseToLocalDateTime(workflowEventDto.getEventTimestamp());
 		registrationStatusDto.setResumeTimeStamp(resumeTimeStamp);
-		registrationStatusDto.setUpdateDateTime(updateTimeStamp);
 		registrationStatusDto.setUpdatedBy(USER);
+			registrationStatusDto.setResumeRemoveTags(workflowEventDto.getResumeRemoveTags());
+			registrationStatusDto
+					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.WORKFLOW_PAUSE.toString());
+			registrationStatusDto.setSubStatusCode(StatusUtil.WORKFLOW_EVENT_UPDATE_SUCCESS.getCode());
 
 			String moduleId = PlatformSuccessMessages.RPR_WORKFLOW_EVENT_UPDATE_SUCCESS.getCode();
 			String moduleName = ModuleName.WORKFLOW_EVENT_UPDATE.toString();
 
-			registrationStatusService.updateRegistrationStatusForWorkflow(registrationStatusDto, moduleId, moduleName);
+			registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);
 
 			isTransactionSuccessful = true;
 			description.setMessage(PlatformSuccessMessages.RPR_WORKFLOW_EVENT_UPDATE_SUCCESS.getMessage());
@@ -184,6 +190,11 @@ public class WorkflowEventUpdateVerticle extends MosipVerticleAPIManager {
 		regProcLogger.error("Error in  WorkflowEventUpdateVerticle  for registration id {} {} {} {}", registrationId,
 				platformErrorMessages.getMessage(), e.getMessage(), ExceptionUtils.getStackTrace(e));
 
+	}
+
+	@Override
+	protected String getPropertyPrefix() {
+		return STAGE_PROPERTY_PREFIX;
 	}
 
 }

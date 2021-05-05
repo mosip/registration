@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -67,7 +68,7 @@ public class PacketReceiverExceptionHandler {
 	 */
 	public PacketReceiverResponseDTO duplicateentry(final DuplicateUploadRequestException e) {
 		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-				e.getErrorCode(), e.getStackTrace()[0].toString());
+				e.getErrorCode(), ExceptionUtils.getFullStackTrace(e));
 		return buildPacketReceiverExceptionResponse((Exception) e);
 	}
 
@@ -80,7 +81,7 @@ public class PacketReceiverExceptionHandler {
 	 */
 	public PacketReceiverResponseDTO handlePacketNotAvailableException(final MissingServletRequestPartException e) {
 		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-				e.getMessage(), e.getStackTrace()[0].toString());
+				e.getMessage(), ExceptionUtils.getFullStackTrace(e));
 		PacketNotAvailableException packetNotAvailableException = new PacketNotAvailableException(
 				PlatformErrorMessages.RPR_PKR_PACKET_NOT_AVAILABLE.getMessage(), e);
 		return buildPacketReceiverExceptionResponse((Exception) packetNotAvailableException);
@@ -95,7 +96,7 @@ public class PacketReceiverExceptionHandler {
 	 */
 	public PacketReceiverResponseDTO handlePacketNotValidException(final PacketNotValidException e) {
 		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-				e.getErrorCode(), e.getStackTrace()[0].toString());
+				e.getErrorCode(), ExceptionUtils.getFullStackTrace(e));
 		return buildPacketReceiverExceptionResponse((Exception) e);
 	}
 
@@ -108,7 +109,7 @@ public class PacketReceiverExceptionHandler {
 	 */
 	public PacketReceiverResponseDTO handleFileSizeExceedException(final FileSizeExceedException e) {
 		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-				e.getErrorCode(), e.getStackTrace()[0].toString());
+				e.getErrorCode(), ExceptionUtils.getFullStackTrace(e));
 		return buildPacketReceiverExceptionResponse((Exception) e);
 	}
 
@@ -121,7 +122,7 @@ public class PacketReceiverExceptionHandler {
 	 */
 	public PacketReceiverResponseDTO handleTablenotAccessibleException(final TablenotAccessibleException e) {
 		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-				e.getErrorCode(), e.getStackTrace()[0].toString());
+				e.getErrorCode(), ExceptionUtils.getFullStackTrace(e));
 		return buildPacketReceiverExceptionResponse((Exception) e);
 	}
 
@@ -134,7 +135,7 @@ public class PacketReceiverExceptionHandler {
 	 */
 	public PacketReceiverResponseDTO handleTimeoutException(final TimeoutException e) {
 		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-				e.getErrorCode(), e.getStackTrace()[0].toString());
+				e.getErrorCode(), ExceptionUtils.getFullStackTrace(e));
 		return buildPacketReceiverExceptionResponse((Exception) e);
 	}
 
@@ -147,7 +148,7 @@ public class PacketReceiverExceptionHandler {
 	 */
 	public PacketReceiverResponseDTO handleUnexpectedException(final UnexpectedException e) {
 		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-				e.getErrorCode(), e.getStackTrace()[0].toString());
+				e.getErrorCode(), ExceptionUtils.getFullStackTrace(e));
 		return buildPacketReceiverExceptionResponse((Exception) e);
 	}
 
@@ -160,7 +161,7 @@ public class PacketReceiverExceptionHandler {
 	 */
 	public PacketReceiverResponseDTO handleValidationException(final ValidationException e) {
 		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-				e.getErrorCode(), e.getStackTrace()[0].toString());
+				e.getErrorCode(), ExceptionUtils.getFullStackTrace(e));
 		return buildPacketReceiverExceptionResponse((Exception) e);
 	}
 
@@ -208,7 +209,7 @@ public class PacketReceiverExceptionHandler {
 	 */
 	public PacketReceiverResponseDTO handlePacketNotSyncException(final PacketNotSyncException e) {
 		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-				e.getErrorCode(), e.getStackTrace()[0].toString());
+				e.getErrorCode(), ExceptionUtils.getFullStackTrace(e));
 		return buildPacketReceiverExceptionResponse((Exception) e);
 	}
 

@@ -48,6 +48,8 @@ public class MosipBridgeFactory extends MosipVerticleAPIManager {
 	
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(MosipBridgeFactory.class);
+	
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.camel.bridge.";
 
 	@Value("${mosip.regproc.eventbus.type:vertx}")
 	private String eventBusType;
@@ -59,10 +61,6 @@ public class MosipBridgeFactory extends MosipVerticleAPIManager {
 	@Value("${vertx.cluster.configuration}")
 	private String clusterManagerUrl;
 	
-	/** server port number. */
-	@Value("${server.port}")
-	private String port;
-
 	/** The mosip event bus. */
 	MosipEventBus mosipEventBus = null;
 	
@@ -115,7 +113,7 @@ public class MosipBridgeFactory extends MosipVerticleAPIManager {
 		
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				"router set  ", "router.setRoute()");
-		this.createServer(router.getRouter(), Integer.parseInt(port));
+		this.createServer(router.getRouter(), getPort());
 		    String[] beanNames=applicationContext.getBeanDefinitionNames();
 		    if (beanNames != null) {
 		      Map<String,String> enviroment= new HashMap<>();
@@ -172,5 +170,10 @@ public class MosipBridgeFactory extends MosipVerticleAPIManager {
 	public MessageDTO process(MessageDTO object) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+	
+	@Override
+	protected String getPropertyPrefix() {
+		return STAGE_PROPERTY_PREFIX;
 	}
 }

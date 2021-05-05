@@ -73,14 +73,10 @@ public class WorkflowActionServiceTest {
 		registrationStatusDto.setRegistrationStageName("SecurezoneNotificationStage");
 		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.name());
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.PAUSED.name());
-		ReflectionTestUtils.setField(workflowActionService, "hotListedTag", "test");
+		registrationStatusDto.setResumeRemoveTags("testhotlisted,test1hotlisted");
 		ReflectionTestUtils.setField(workflowActionService, "resumeFromBeginningStage", "SecurezoneNotificationStage");
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(),
 				Mockito.any());
-		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(),
-				Mockito.any());
-
-
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(null);
 
@@ -88,21 +84,9 @@ public class WorkflowActionServiceTest {
 
 	@Test
 	public void testResumeProcessing() throws WorkflowActionException {
-		Mockito.when(registrationStatusService.getRegStatusForMainProcess(Mockito.any())).thenReturn(registrationStatusDto);
-		List<String> workflowIds = new ArrayList<String>();
-		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "RESUME_PROCESSING");
-
-	}
-
-	@Test
-	public void testResumeProcessingWorkflowIdNull() throws WorkflowActionException {
-		Mockito.when(registrationStatusService.getRegStatusForMainProcess(anyString()))
-				.thenReturn(null);
-
-		List<String> workflowIds = new ArrayList<String>();
-		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "RESUME_PROCESSING");
+		List<InternalRegistrationStatusDto> internalRegistrationStatusDtos = new ArrayList<InternalRegistrationStatusDto>();
+		internalRegistrationStatusDtos.add(registrationStatusDto);
+		workflowActionService.processWorkflowAction(internalRegistrationStatusDtos, "RESUME_PROCESSING");
 
 	}
 
@@ -110,164 +94,78 @@ public class WorkflowActionServiceTest {
 	public void testResumeProcessingTablenotAccessibleException() throws WorkflowActionException {
 		TablenotAccessibleException tablenotAccessibleException = new TablenotAccessibleException(
 				PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage());
-		Mockito.when(registrationStatusService.getRegStatusForMainProcess(anyString()))
-				.thenThrow(tablenotAccessibleException);
-		List<String> workflowIds = new ArrayList<String>();
-		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "RESUME_PROCESSING");
+		Mockito.doThrow(tablenotAccessibleException).when(registrationStatusService)
+				.updateRegistrationStatus(any(),
+				anyString(), anyString());
+		List<InternalRegistrationStatusDto> internalRegistrationStatusDtos = new ArrayList<InternalRegistrationStatusDto>();
+		internalRegistrationStatusDtos.add(registrationStatusDto);
+		workflowActionService.processWorkflowAction(internalRegistrationStatusDtos, "RESUME_PROCESSING");
 
 	}
 
-	@Test
-	public void testResumeProcessingAndRemoveHotlistedTag() throws WorkflowActionException {
-		Mockito.when(registrationStatusService.getRegStatusForMainProcess(Mockito.any())).thenReturn(registrationStatusDto);
-		List<String> workflowIds = new ArrayList<String>();
-		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "RESUME_PROCESSING_AND_REMOVE_HOTLISTED_TAG");
-
-	}
-
-
-
-	@Test(expected = WorkflowActionException.class)
-	public void testResumeProcessingAndRemoveHotlistedTagTablenotAccessibleException() throws WorkflowActionException {
-		TablenotAccessibleException tablenotAccessibleException = new TablenotAccessibleException(
-				PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage());
-		Mockito.when(registrationStatusService.getRegStatusForMainProcess(anyString()))
-				.thenThrow(tablenotAccessibleException);
-		List<String> workflowIds = new ArrayList<String>();
-		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "RESUME_PROCESSING_AND_REMOVE_HOTLISTED_TAG");
-
-	}
-
-	@Test
-	public void testResumeProcessingAndRemoveHotlistedTagWorkflowIdNull() throws WorkflowActionException {
-		Mockito.when(registrationStatusService.getRegStatusForMainProcess(anyString())).thenReturn(null);
-		List<String> workflowIds = new ArrayList<String>();
-		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "RESUME_PROCESSING_AND_REMOVE_HOTLISTED_TAG");
-
-	}
 
 	@Test
 	public void testResumeFromBeginning() throws WorkflowActionException {
-		Mockito.when(registrationStatusService.getRegStatusForMainProcess(Mockito.any())).thenReturn(registrationStatusDto);
-		List<String> workflowIds = new ArrayList<String>();
-		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "RESUME_FROM_BEGINNING");
+		List<InternalRegistrationStatusDto> internalRegistrationStatusDtos = new ArrayList<InternalRegistrationStatusDto>();
+		internalRegistrationStatusDtos.add(registrationStatusDto);
+		workflowActionService.processWorkflowAction(internalRegistrationStatusDtos, "RESUME_FROM_BEGINNING");
 
 	}
 
-	@Test
-	public void testResumeFromBeginningWorkflowIdNull() throws WorkflowActionException {
-		Mockito.when(registrationStatusService.getRegStatusForMainProcess(anyString())).thenReturn(null);
-		List<String> workflowIds = new ArrayList<String>();
-		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "RESUME_FROM_BEGINNING");
-
-	}
 
 	@Test(expected = WorkflowActionException.class)
 	public void testResumeFromBeginningTablenotAccessibleException() throws WorkflowActionException {
 		TablenotAccessibleException tablenotAccessibleException = new TablenotAccessibleException(
 				PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage());
-		Mockito.when(registrationStatusService.getRegStatusForMainProcess(anyString()))
-				.thenThrow(tablenotAccessibleException);
-		List<String> workflowIds = new ArrayList<String>();
-		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "RESUME_FROM_BEGINNING");
-
-	}
-
-	@Test
-	public void testResumeFromBeginningAndRemoveHotlistedTag()
-			throws WorkflowActionException {
-		Mockito.when(registrationStatusService.getRegStatusForMainProcess(Mockito.any())).thenReturn(registrationStatusDto);
-		List<String> workflowIds = new ArrayList<String>();
-		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "RESUME_FROM_BEGINNING_AND_REMOVE_HOTLISTED_TAG");
+		Mockito.doThrow(tablenotAccessibleException).when(registrationStatusService)
+				.updateRegistrationStatus(any(),
+				anyString(), anyString());
+		List<InternalRegistrationStatusDto> internalRegistrationStatusDtos = new ArrayList<InternalRegistrationStatusDto>();
+		internalRegistrationStatusDtos.add(registrationStatusDto);
+		workflowActionService.processWorkflowAction(internalRegistrationStatusDtos, "RESUME_FROM_BEGINNING");
 
 	}
 
 
-	@Test
-	public void testResumeFromBeginningAndRemoveHotlistedTagWorkflowIdNull() throws WorkflowActionException {
-		Mockito.when(registrationStatusService.getRegStatusForMainProcess(anyString())).thenReturn(null);
-		List<String> workflowIds = new ArrayList<String>();
-		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "RESUME_FROM_BEGINNING_AND_REMOVE_HOTLISTED_TAG");
 
-	}
-
-	@Test(expected = WorkflowActionException.class)
-	public void testResumeFromBeginningAndRemoveHotlistedTagTablenotAccessibleException()
-			throws WorkflowActionException {
-		TablenotAccessibleException tablenotAccessibleException = new TablenotAccessibleException(
-				PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage());
-		Mockito.when(registrationStatusService.getRegStatusForMainProcess(anyString()))
-				.thenThrow(tablenotAccessibleException);
-		List<String> workflowIds = new ArrayList<String>();
-		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "RESUME_FROM_BEGINNING_AND_REMOVE_HOTLISTED_TAG");
-
-	}
 	@Test
 	public void testStopProcessing() throws WorkflowActionException {
-		Mockito.when(registrationStatusService.getRegStatusForMainProcess(Mockito.any())).thenReturn(registrationStatusDto);
-		List<String> workflowIds = new ArrayList<String>();
-		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "STOP_PROCESSING");
+		List<InternalRegistrationStatusDto> internalRegistrationStatusDtos = new ArrayList<InternalRegistrationStatusDto>();
+		internalRegistrationStatusDtos.add(registrationStatusDto);
+		workflowActionService.processWorkflowAction(internalRegistrationStatusDtos, "STOP_PROCESSING");
 
 	}
 
-	@Test
-	public void testStopProcessingWorkflowIdNull() throws WorkflowActionException {
-		Mockito.when(registrationStatusService.getRegStatusForMainProcess(anyString())).thenReturn(null);
-		List<String> workflowIds = new ArrayList<String>();
-		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "STOP_PROCESSING");
-
-	}
 
 	@Test(expected = WorkflowActionException.class)
 	public void testStopProcessingTablenotAccessibleException() throws WorkflowActionException {
 		TablenotAccessibleException tablenotAccessibleException = new TablenotAccessibleException(
 				PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage());
-		Mockito.when(registrationStatusService.getRegStatusForMainProcess(anyString()))
-				.thenThrow(tablenotAccessibleException);
-		List<String> workflowIds = new ArrayList<String>();
-		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "STOP_PROCESSING");
+		Mockito.doThrow(tablenotAccessibleException).when(registrationStatusService)
+				.updateRegistrationStatus(any(),
+				anyString(), anyString());
+		List<InternalRegistrationStatusDto> internalRegistrationStatusDtos = new ArrayList<InternalRegistrationStatusDto>();
+		internalRegistrationStatusDtos.add(registrationStatusDto);
+		workflowActionService.processWorkflowAction(internalRegistrationStatusDtos, "STOP_PROCESSING");
 
 	}
 
 	@Test(expected = WorkflowActionException.class)
 	public void testUnknownWorkflow() throws WorkflowActionException {
-		Mockito.when(registrationStatusService.getRegStatusForMainProcess(Mockito.any())).thenReturn(registrationStatusDto);
-		List<String> workflowIds = new ArrayList<String>();
-		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "test");
+		List<InternalRegistrationStatusDto> internalRegistrationStatusDtos = new ArrayList<InternalRegistrationStatusDto>();
+		internalRegistrationStatusDtos.add(registrationStatusDto);
+		workflowActionService.processWorkflowAction(internalRegistrationStatusDtos, "test");
 
 	}
 
-	@Test
-	public void testStopProcessingWithNotPausedRecord() throws WorkflowActionException {
-		registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
-		Mockito.when(registrationStatusService.getRegStatusForMainProcess(Mockito.any())).thenReturn(registrationStatusDto);
-		List<String> workflowIds = new ArrayList<String>();
-		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "STOP_PROCESSING");
 
-	}
 
 	@Test
 	public void testResumeProcessingWithReprocessFailed() throws WorkflowActionException {
 		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS_FAILED.name());
-		Mockito.when(registrationStatusService.getRegStatusForMainProcess(Mockito.any())).thenReturn(registrationStatusDto);
-		List<String> workflowIds = new ArrayList<String>();
-		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "RESUME_PROCESSING");
+		List<InternalRegistrationStatusDto> internalRegistrationStatusDtos = new ArrayList<InternalRegistrationStatusDto>();
+		internalRegistrationStatusDtos.add(registrationStatusDto);
+		workflowActionService.processWorkflowAction(internalRegistrationStatusDtos, "RESUME_PROCESSING");
 
 	}
 }

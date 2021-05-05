@@ -60,6 +60,8 @@ import io.vertx.core.json.JsonObject;
  */
 public class ReprocessorStage extends MosipVerticleAPIManager {
 
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.reprocessor.";
+
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(ReprocessorStage.class);
 
 	/** The cluster manager url. */
@@ -232,6 +234,7 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 			if (!CollectionUtils.isEmpty(reprocessorDtoList)) {
 				reprocessorDtoList.forEach(dto -> {
 					this.registrationId = dto.getRegistrationId();
+					MessageDTO messageDTO = new MessageDTO();
 					if (reprocessCount.equals(dto.getReProcessRetryCount())) {
 						dto.setLatestTransactionStatusCode(
 								RegistrationTransactionStatusCode.REPROCESS_FAILED.toString());
@@ -240,16 +243,16 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 						dto.setStatusComment(StatusUtil.RE_PROCESS_FAILED.getMessage());
 						dto.setStatusCode(RegistrationStatusCode.REPROCESS_FAILED.toString());
 						dto.setSubStatusCode(StatusUtil.RE_PROCESS_FAILED.getCode());
-						object.setRid(registrationId);
-						object.setIsValid(false);
-						object.setReg_type(dto.getRegistrationType());
+						messageDTO.setRid(registrationId);
+						messageDTO.setIsValid(false);
+						messageDTO.setReg_type(dto.getRegistrationType());
 						description.setMessage(PlatformSuccessMessages.RPR_RE_PROCESS_FAILED.getMessage());
 						description.setCode(PlatformSuccessMessages.RPR_RE_PROCESS_FAILED.getCode());
 
 					} else {
-						object.setRid(registrationId);
-						object.setIsValid(true);
-						object.setReg_type(dto.getRegistrationType());
+						messageDTO.setRid(registrationId);
+						messageDTO.setIsValid(true);
+						messageDTO.setReg_type(dto.getRegistrationType());
 						isTransactionSuccessful = true;
 						String stageName = MessageBusUtil.getMessageBusAdress(dto.getRegistrationStageName());
 						if (RegistrationTransactionStatusCode.SUCCESS.name()
@@ -259,7 +262,7 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 							stageName = stageName.concat(ReprocessorConstants.BUS_IN);
 						}
 						MessageBusAddress address = new MessageBusAddress(stageName);
-						sendMessage(object, address);
+						sendMessage(messageDTO, address);
 						dto.setUpdatedBy(ReprocessorConstants.USER);
 						Integer reprocessRetryCount = dto.getReProcessRetryCount() != null
 								? dto.getReProcessRetryCount() + 1
@@ -339,22 +342,28 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 
 	public void processResumablePackets() throws WorkflowActionException {
 		List<InternalRegistrationStatusDto> resumableDtoList = registrationStatusService.getResumablePackets(fetchSize);
-		Map<String,List<String>> defaultResumeActionPacketIdsMap=new HashMap<>();
+		Map<String, List<InternalRegistrationStatusDto>> defaultResumeActionPacketIdsMap = new HashMap<>();
 		for(InternalRegistrationStatusDto dto:resumableDtoList) {
 				if(defaultResumeActionPacketIdsMap.containsKey(dto.getDefaultResumeAction())) {
-					List<String> ids=defaultResumeActionPacketIdsMap.get(dto.getDefaultResumeAction());
-					ids.add(dto.getRegistrationId());
-					defaultResumeActionPacketIdsMap.put(dto.getDefaultResumeAction(), ids);
+				List<InternalRegistrationStatusDto> internalRegistrationStatusDtos = defaultResumeActionPacketIdsMap
+						.get(dto.getDefaultResumeAction());
+				internalRegistrationStatusDtos.add(dto);
+				defaultResumeActionPacketIdsMap.put(dto.getDefaultResumeAction(), internalRegistrationStatusDtos);
 				}
 				else  {
-					defaultResumeActionPacketIdsMap.put(dto.getDefaultResumeAction(), Arrays.asList(dto.getRegistrationId()));
+				defaultResumeActionPacketIdsMap.put(dto.getDefaultResumeAction(), Arrays.asList(dto));
 				}
 		}
-		for(Entry<String,List<String>> entry:defaultResumeActionPacketIdsMap.entrySet()) {
+		for (Entry<String, List<InternalRegistrationStatusDto>> entry : defaultResumeActionPacketIdsMap.entrySet()) {
 
 			workflowActionService.processWorkflowAction(entry.getValue(), entry.getKey());
 
 		}
 
+	}
+
+	@Override
+	protected String getPropertyPrefix() {
+		return STAGE_PROPERTY_PREFIX;
 	}
 }

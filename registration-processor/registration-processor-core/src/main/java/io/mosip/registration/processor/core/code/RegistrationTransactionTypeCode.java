@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.core.code;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Enum RegistrationTransactionTypeCode.
  */
@@ -37,12 +38,21 @@ public enum RegistrationTransactionTypeCode {
     PRINT,
 	/** The reprocess. */
 	PACKET_REPROCESS,
-	/** The Quality Check*/
+
+	/** The Quality Check. */
 	QUALITY_CHECK,
-	/** The biometric Authentication*/
+
+	/** The biometric Authentication. */
 	BIOMETRIC_AUTHENTICATION,
-	/** The securezone notification stage */
+
+	/** The securezone notification stage. */
 	SECUREZONE_NOTIFICATION,
-	CORRECTION
+
+
+	/** The workflow pause. */
+	WORKFLOW_PAUSE,
+
+	/** The workflow resume. */
+	WORKFLOW_RESUME;
 
 }

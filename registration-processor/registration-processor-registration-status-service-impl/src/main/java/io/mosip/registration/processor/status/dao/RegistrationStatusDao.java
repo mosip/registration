@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.assertj.core.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -62,6 +61,8 @@ public class RegistrationStatusDao {
 	public static final String ORDER_BY = "order by ";
 
 	public static final String CREATED_DATE_TIME = "createDateTime";
+
+	public static final String UPDATED_DATE_TIME = "updateDateTime";
 
 	/**
 	 * Save.
@@ -314,7 +315,8 @@ public class RegistrationStatusDao {
 
 		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
 				+ ".statusCode =:status" +  EMPTY_STRING + AND + EMPTY_STRING + alias
-				+ ".resumeTimeStamp < now()"+  EMPTY_STRING + AND + EMPTY_STRING + alias+ ".defaultResumeAction is not null";
+				+ ".resumeTimeStamp < now()" + EMPTY_STRING + AND + EMPTY_STRING + alias
+				+ ".defaultResumeAction is not null" + EMPTY_STRING + ORDER_BY + EMPTY_STRING + UPDATED_DATE_TIME;
 
 		params.put("status", RegistrationStatusCode.PAUSED.toString());
 		

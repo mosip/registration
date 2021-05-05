@@ -109,6 +109,9 @@ public final class StatusConstants {
 	public static final String REQUEST_HANDLER_MODULE_SUCCESS = REQUEST_HANDLER_MODULE + SUCCESS;
 	public static final String REQUEST_HANDLER_MODULE_FAILED = REQUEST_HANDLER_MODULE + FAILED;
 
+	public static final String WORKFLOW_EVENT_UPDATE = RPR_REGISTRATION_PROCESSOR_PREFIX + "WE-";
+
+	public static final String WORKFLOW_ACTION_SERVICE = RPR_REGISTRATION_PROCESSOR_PREFIX + "WAS-";
 
 
 }

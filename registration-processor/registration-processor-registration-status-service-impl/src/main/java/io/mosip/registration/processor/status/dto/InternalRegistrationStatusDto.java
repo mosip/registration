@@ -88,6 +88,9 @@ public class InternalRegistrationStatusDto implements Serializable {
 
 	private int iteration;
 
+
+	private String resumeRemoveTags;
+
 	/**
 	 * Gets the ref id.
 	 *
@@ -585,6 +588,15 @@ public class InternalRegistrationStatusDto implements Serializable {
 	 * 
 	 * @see java.lang.Object#toString()
 	 */
+
+	public String getResumeRemoveTags() {
+		return resumeRemoveTags;
+	}
+
+	public void setResumeRemoveTags(String resumeRemoveTags) {
+		this.resumeRemoveTags = resumeRemoveTags;
+	}
+
 	@Override
 	public String toString() {
 		return "InternalRegistrationStatusDto [registrationId=" + registrationId + ", registrationType="
@@ -598,7 +610,7 @@ public class InternalRegistrationStatusDto implements Serializable {
 				+ latestTransactionStatusCode + ", latestTransactionTimes=" + latestTransactionTimes
 				+ ", registrationStageName=" + registrationStageName + ", reProcessRetryCount=" + reProcessRetryCount
 				+ ", subStatusCode=" + subStatusCode + ", resumeTimeStamp=" + resumeTimeStamp + ", defaultResumeAction="
-				+ defaultResumeAction + ", refId=" + refId + "]";
+				+ defaultResumeAction + ", resumeRemoveTags=" + resumeRemoveTags + ", refId=" + refId + "]";
 	}
 
 	

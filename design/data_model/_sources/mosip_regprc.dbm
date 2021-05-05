@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.3" use-changelog="false" last-position="278,42" last-zoom="0.65" max-obj-count="40"
+<dbmodel pgmodeler-ver="0.9.3" use-changelog="false" last-position="116,0" last-zoom="0.65" max-obj-count="40"
 	 default-schema="public" default-owner="postgres">
 <role name="sysadmin"
       superuser="true"
@@ -53,7 +53,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<role name="sysadmin"/>
 </schema>
 
-<table name="registration" layer="0" collapse-mode="2" max-obj-count="28" z-value="0">
+<table name="registration" layer="0" collapse-mode="2" max-obj-count="30" z-value="0">
 	<schema name="regprc"/>
 	<role name="sysadmin"/>
 	<comment><![CDATA[Registration: Registration Processor table is to store registration requests that are being processed, Also maintains packet id details and status of the registration requests.]]></comment>
@@ -153,6 +153,10 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<column name="default_resume_action">
 		<type name="character varying" length="50"/>
 		<comment><![CDATA[Default Resume Action]]></comment>
+	</column>
+	<column name="resume_remove_tags">
+		<type name="character varying" length="256"/>
+		<comment><![CDATA[Contains comma separated tag names]]></comment>
 	</column>
 	<constraint name="pk_reg_id" type="pk-constr" table="regprc.registration">
 		<columns names="id" ref-type="src-columns"/>

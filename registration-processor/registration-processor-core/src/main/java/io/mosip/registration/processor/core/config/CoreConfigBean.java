@@ -6,17 +6,17 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-
-import brave.Tracer;
-import brave.Tracing;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.Environment;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
+import brave.Tracer;
+import brave.Tracing;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
@@ -29,6 +29,7 @@ import io.mosip.registration.processor.core.spi.queue.MosipQueueConnectionFactor
 import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import io.mosip.registration.processor.core.token.validation.TokenValidator;
 import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
+import io.mosip.registration.processor.core.util.PropertiesUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.vertx.config.ConfigRetriever;
 import io.vertx.config.ConfigRetrieverOptions;
@@ -183,5 +184,10 @@ public class CoreConfigBean {
 	@Bean
 	public ObjectMapper getObjectMapper() {
 		return new ObjectMapper().registerModule(new JavaTimeModule());
+	}
+	
+	@Bean
+	public PropertiesUtil getPropertiesUtil() {
+		return new PropertiesUtil();
 	}
 }

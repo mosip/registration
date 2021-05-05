@@ -128,7 +128,5 @@ public interface RegistrationStatusService<T, U, D> {
 	 */
 	public List<U> getByIdsAndTimestamp(List<String> ids);
 
-	public void updateRegistrationStatusForWorkflow(U registrationStatusDto, String moduleId, String moduleName);
-
 	public List<InternalRegistrationStatusDto> getResumablePackets(Integer fetchSize);
 }

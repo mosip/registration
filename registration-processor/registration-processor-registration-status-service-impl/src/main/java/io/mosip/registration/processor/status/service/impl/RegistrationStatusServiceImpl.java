@@ -427,6 +427,7 @@ public class RegistrationStatusServiceImpl
 		registrationStatusDto.setDefaultResumeAction(entity.getDefaultResumeAction());
 		registrationStatusDto.setSource(entity.getSource());
 		registrationStatusDto.setIteration(entity.getIteration());
+		registrationStatusDto.setResumeRemoveTags(entity.getResumeRemoveTags());
 		return registrationStatusDto;
 	}
 
@@ -472,6 +473,7 @@ public class RegistrationStatusServiceImpl
 		registrationStatusEntity.setLatestTransactionTimes(LocalDateTime.now(ZoneId.of("UTC")));
 		registrationStatusEntity.setResumeTimeStamp(dto.getResumeTimeStamp());
 		registrationStatusEntity.setDefaultResumeAction(dto.getDefaultResumeAction());
+		registrationStatusEntity.setResumeRemoveTags(dto.getResumeRemoveTags());
 		return registrationStatusEntity;
 	}
 
