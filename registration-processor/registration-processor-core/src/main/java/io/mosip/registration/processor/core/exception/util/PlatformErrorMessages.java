@@ -451,6 +451,18 @@ public enum PlatformErrorMessages {
 	// UIN check - JSON file encoding failed.
 	UNSUPPORTED_ENCODING("", "Json Object Parsing Failed"),
 
+	/** The cmd validation failed. */
+	// Stages - CMD Exception error code and message
+	CMD_VALIDATION_FAILED("", "CMD Validation Failed"),
+
+	/** The cmd base unchecked exception. */
+	CMD_BASE_UNCHECKED_EXCEPTION(PlatformConstants.RPR_CMD_VALIDATOR_MODULE + "001",
+			"CMD Validation Failed"),
+
+	/** The cmd base checked exception. */
+	CMD_BASE_CHECKED_EXCEPTION(PlatformConstants.RPR_CMD_VALIDATOR_MODULE + "002",
+			"CMD Validation Failed"),
+	
 	/** The osi validation failed. */
 	// Stages - OSI Exception error code and message
 	OSI_VALIDATION_FAILED("", "OSI Validation Failed"),

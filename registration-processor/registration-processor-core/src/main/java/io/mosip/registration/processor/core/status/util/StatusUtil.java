@@ -84,6 +84,7 @@ public enum StatusUtil {
 	CHILD_PACKET_REJECTED(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "022", "Packet Rejected as Parent Packet is Rejected"),
 	MACHINE_ID_NOT_FOUND_MASTER_DB(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "023", "MachineId not found in master db - "),
 	OSI_VALIDATION_SUCCESS(StatusConstants.OSI_VALIDAOR_MODULE_SUCCESS + "001", "OSI Validation is Successful"),
+	CMD_VALIDATION_SUCCESS(StatusConstants.CMD_VALIDAOR_MODULE_SUCCESS + "001", "CMD Validation is Successful"),
 
 	// printing stage
 	PRINT_REQUEST_SUCCESS(StatusConstants.PRINT_STAGE_MODULE_SUCCESS + "001", "Print request submitted"),

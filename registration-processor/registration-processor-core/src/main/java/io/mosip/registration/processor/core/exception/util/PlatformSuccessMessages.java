@@ -38,6 +38,9 @@ public enum PlatformSuccessMessages {
 	// OSI validator Success messages
 	/** The rpr pkr osi validate. */
 	RPR_PKR_OSI_VALIDATE(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "000", "OSI Validation Success"),
+	
+	// CMD validator Success messages
+	RPR_PKR_CMD_VALIDATE(PlatformConstants.RPR_CMD_VALIDATOR_MODULE + "000", "CMD Validation Success"),
 
 	// DEMO-De-dupe Success Messages
 	/** The rpr pkr demode-dupe validate. */

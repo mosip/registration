@@ -22,6 +22,8 @@ public enum ModuleName {
 
 	/** The osi validator. */
 	OSI_VALIDATOR,
+	
+	CMD_VALIDATOR,
 
 	/** The demo dedupe. */
 	DEMO_DEDUPE,

@@ -7,6 +7,7 @@ public enum  ProviderStageName {
     PACKET_VALIDATOR("packetvalidator"),
     QUALITY_CHECKER("qualitychecker"),
     OSI_VALIDATOR("osivalidator"),
+    CMD_VALIDATOR("cmdvalidator"),
     DEMO_DEDUPE("demodedupe"),
     CLASSIFICATION("classification"),
     BIO_DEDUPE("classifier"),

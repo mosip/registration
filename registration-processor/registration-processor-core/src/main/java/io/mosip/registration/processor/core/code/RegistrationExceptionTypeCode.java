@@ -164,6 +164,9 @@ public enum RegistrationExceptionTypeCode {
 
 	/** The packet osi validation failed. */
 	PACKET_OSI_VALIDATION_FAILED,
+	
+	/** The packet cmd validation failed. */
+	PACKET_CMD_VALIDATION_FAILED,
 
 	/** The packet structural validation failed. */
 	PACKET_STRUCTURAL_VALIDATION_FAILED,

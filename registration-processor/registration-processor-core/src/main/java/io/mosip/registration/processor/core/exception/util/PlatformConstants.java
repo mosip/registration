@@ -35,6 +35,9 @@ public final class PlatformConstants {
 
 	/** The Constant RPR_OSI_VALIDATOR_MODULE. */
 	public static final String RPR_OSI_VALIDATOR_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "OSI-";
+	
+	/** The Constant RPR_OSI_VALIDATOR_MODULE. */
+	public static final String RPR_CMD_VALIDATOR_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "OSI-";
 
 	/** The Constant RPR_DEMO_DEDUPE_MODULE. */
 	public static final String RPR_DEMO_DEDUPE_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "DDD-";

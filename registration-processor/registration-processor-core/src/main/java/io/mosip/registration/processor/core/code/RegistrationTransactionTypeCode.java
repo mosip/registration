@@ -18,6 +18,8 @@ public enum RegistrationTransactionTypeCode {
 	PACKET_CLASSIFICATION,
 	/** The osi validate. */
 	OSI_VALIDATE,
+	/** The cmd validate. */
+	CMD_VALIDATE,
 	/** The external integration. */
 	EXTERNAL_INTEGRATION,
 	/** The demographic verification. */
