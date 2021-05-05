@@ -5,6 +5,8 @@ import java.util.List;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -21,7 +23,6 @@ import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
-import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
@@ -42,12 +43,6 @@ import io.mosip.registration.processor.status.service.SubWorkflowMappingService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Component;
 
 @Component
 @Configuration
@@ -102,8 +97,6 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
     @Autowired
     private RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 
-    @Autowired
-    private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationService;
     /** The core audit request builder. */
     @Autowired
     private AuditLogRequestBuilder auditLogRequestBuilder;
@@ -113,6 +106,9 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
     
     @Autowired
     private SubWorkflowMappingService subWorkflowMappingService;
+    
+    @Autowired
+    private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationService;
 
     /**
      * Deploy verticle.
@@ -170,24 +166,11 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
             messageDTO.setIsValid(obj.getBoolean("isValid"));
             messageDTO.setSource(obj.getString("source"));
             messageDTO.setIteration(obj.getInteger("iteration"));
-           
-            List<SubWorkflowDto> swfDtos=subWorkflowMappingService.
-            		getWorkflowMappingByRIdAndProcessAndIteration(messageDTO.getRid(), 
-            				messageDTO.getReg_type(), messageDTO.getIteration());
-           
-            if(swfDtos!=null &&swfDtos.size()==1) {
-            	  
+            if(validateWorkflow(messageDTO)) {
+           	  
             registrationStatusDto = registrationStatusService.getRegistrationStatus(
                     messageDTO.getRid(), messageDTO.getReg_type(), messageDTO.getIteration());
             
-            if(swfDtos.get(0).getAdditionalInfoReqId().equals(registrationStatusDto.getAdditionalInfoReqId())) {
-            	isTransactionSuccessful = false;
-            	messageDTO.setIsValid(Boolean.FALSE);
-            	regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-                 LoggerFileConstant.REGISTRATIONID.toString(), messageDTO.getRid(),
-                 "Packet already received");
-            }
-
             if (registrationStatusDto != null && messageDTO.getRid().equalsIgnoreCase(registrationStatusDto.getRegistrationId())) {
                 registrationStatusDto
                         .setLatestTransactionTypeCode(RegistrationTransactionTypeCode.SECUREZONE_NOTIFICATION.toString());
@@ -215,20 +198,9 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
         		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
                     LoggerFileConstant.REGISTRATIONID.toString(), messageDTO.getRid(),
                     "Transaction failed. RID not found in registration table.");
-        		}
-            }	else {
-            	isTransactionSuccessful = false;
-            	messageDTO.setIsValid(Boolean.FALSE);
-            	if(swfDtos.size()==0) {
-            		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-                     LoggerFileConstant.REGISTRATIONID.toString(), messageDTO.getRid(),
-                     "Additional_info_id not present db");
-            	}else {
-            		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-                    LoggerFileConstant.REGISTRATIONID.toString(), messageDTO.getRid(),
-                    "Additional_info_id not valid");
-            	}
+        	}
             }
+            
             
 
 
@@ -302,7 +274,39 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
         }
     }
 
-    /**
+    private boolean validateWorkflow(MessageDTO messageDTO) {
+    	boolean isValid=false;
+		if(messageDTO.getIteration()>1){
+			List<SubWorkflowDto> swfDtos=subWorkflowMappingService.
+            		getWorkflowMappingByRIdAndProcessAndIteration(messageDTO.getRid(), 
+            				messageDTO.getReg_type(), messageDTO.getIteration());
+			if(swfDtos!=null &&swfDtos.size()==1) {
+				SyncResponseDto syncResponseDto=syncRegistrationService.findByAdditionalInfoReqId(swfDtos.get(0).getAdditionalInfoReqId());
+				if(syncResponseDto==null) {
+					isValid= true;
+				}
+			}else {
+            	messageDTO.setIsValid(Boolean.FALSE);
+            	if(swfDtos.size()==0) {
+            		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+                     LoggerFileConstant.REGISTRATIONID.toString(), messageDTO.getRid(),
+                     "Additional_info_id not present db");
+            	}else {
+            		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+                    LoggerFileConstant.REGISTRATIONID.toString(), messageDTO.getRid(),
+                    "Additional_info_id not valid");
+            	}
+			}
+			
+		}else {
+			if(!(messageDTO.getIteration()<=0)) {
+			isValid= true;
+			}
+		}
+		return isValid;
+	}
+
+	/**
      * This is for failure handler
      *
      * @param routingContext

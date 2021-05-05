@@ -34,9 +34,12 @@ import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequest
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
+import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
+import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.SubWorkflowMappingService;
+import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -78,6 +81,9 @@ public class SecurezoneNotificationStageTest {
 	private Environment environment;
 	@Mock
 	private AuditLogRequestBuilder auditLogRequestBuilder;
+	
+	@Mock
+	private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationService;
 
 	private RoutingContext ctx;
 	private Boolean responseObject;
@@ -262,7 +268,7 @@ public class SecurezoneNotificationStageTest {
                 obj.put("isValid", true);
                 obj.put("internalError", false);
                 obj.put("reg_type", "NEW");
-                obj.put("iteration", 1);
+                obj.put("iteration", 2);
                 obj.put("source", "REGISTRATION_CLIENT");
                 return obj;
             }
@@ -406,6 +412,7 @@ public class SecurezoneNotificationStageTest {
         messageDTO.setRid("2018701130000410092018110735");
         Mockito.when(subWorkflowMappingService.getWorkflowMappingByRIdAndProcessAndIteration(anyString(),any(), any())).thenReturn(swfDtos);
         Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any())).thenReturn(registrationStatusDto);
+        Mockito.when(syncRegistrationService.findByAdditionalInfoReqId(anyString())).thenReturn(null);
         Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(),any(),any());
         Mockito.doReturn(responseWrapper).when(auditLogRequestBuilder).createAuditRequestBuilder(anyString(), anyString(), anyString(),
                 anyString(), anyString(), anyString(), anyString());

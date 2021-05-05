@@ -172,4 +172,22 @@ public class SyncRegistrationDao {
 
 		return !syncRegistrationEntityList.isEmpty() ? syncRegistrationEntityList.get(0) : null;
 	}
+
+	public SyncRegistrationEntity findByAdditionalInfoReqId(String additionalInfoReqId) {
+		Map<String, Object> params = new HashMap<>();
+		String className = SyncRegistrationEntity.class.getSimpleName();
+
+		String alias = SyncRegistrationEntity.class.getName().toLowerCase().substring(0, 1);
+		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + EMPTY_STRING+alias
+				+ ".additionalInfoReqId = :additionalInfoReqId" + AND 
+				+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
+		params.put("additionalInfoReqId", additionalInfoReqId);
+		
+		params.put(ISDELETED, Boolean.FALSE);
+
+		List<SyncRegistrationEntity> syncRegistrationEntityList = syncRegistrationRepository
+				.createQuerySelect(queryStr, params);
+
+		return !syncRegistrationEntityList.isEmpty() ? syncRegistrationEntityList.get(0) : null;
+	}
 }

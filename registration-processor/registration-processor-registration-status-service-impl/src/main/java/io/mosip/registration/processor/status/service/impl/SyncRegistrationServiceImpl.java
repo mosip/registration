@@ -708,38 +708,27 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	public boolean deleteAdditionalInfo(SyncRegistrationEntity syncEntity) {
 		return syncRegistrationDao.deleteAdditionalInfo(syncEntity);
 	}
-	private SyncRegistrationDto convertEntityToDto(SyncRegistrationEntity syncRegistrationEntity) {
-		SyncRegistrationDto syncRegistrationDto=new SyncRegistrationDto();
-		syncRegistrationDto.setAdditionalInfoReqId(syncRegistrationEntity.getAdditionalInfoReqId());
-		syncRegistrationDto.setCreateDateTime(syncRegistrationEntity.getCreateDateTime());
-		syncRegistrationDto.setDeletedDateTime(syncRegistrationEntity.getDeletedDateTime());
-		syncRegistrationDto.setLangCode(syncRegistrationEntity.getLangCode());
-		syncRegistrationDto.setPacketHashValue(syncRegistrationEntity.getPacketHashValue());
-		syncRegistrationDto.setPacketId(syncRegistrationEntity.getPacketId());
-		syncRegistrationDto.setPacketSize(syncRegistrationEntity.getPacketSize());
-		syncRegistrationDto.setRegistrationId(syncRegistrationEntity.getRegistrationId());
-		syncRegistrationDto.setSupervisorComment(syncRegistrationEntity.getSupervisorComment());
-		syncRegistrationDto.setSupervisorStatus(syncRegistrationEntity.getSupervisorStatus());
-		syncRegistrationDto.setSyncType(syncRegistrationEntity.getRegistrationType());
-		syncRegistrationDto.setUpdateDateTime(syncRegistrationEntity.getUpdateDateTime());
-		return syncRegistrationDto;
+    
+	private SyncResponseDto convertEntityToDto(SyncRegistrationEntity syncEntity) {
+		SyncResponseDto SyncResponseDto=new SyncResponseDto();
+		SyncResponseDto.setRegistrationId(syncEntity.getRegistrationId());
+		SyncResponseDto.setStatus(syncEntity.getStatusCode());
+		return SyncResponseDto;
+		
 	}
-
+	
 	@Override
-	public SyncRegistrationDto getSyncRegistrationByIdAndByRegtypeAndByIteration(String rid, String regType,
-			int iteration) {
+	public SyncResponseDto findByAdditionalInfoReqId(String additionalInfoReqId) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-				"SyncRegistrationServiceImpl::getByIds()::entry");
+				"SyncRegistrationServiceImpl::findByAdditionalInfoReqId()::entry");
 
 		try {
 			
-				SyncRegistrationEntity syncRegistrationEntity = syncRegistrationDao.getByIdAndRegTypeAndIteration(rid,regType,iteration);
+			SyncRegistrationEntity syncEntity= syncRegistrationDao.findByAdditionalInfoReqId(additionalInfoReqId);
 
 				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 						"SyncRegistrationServiceImpl::getByIds()::exit");
-				return syncRegistrationEntity!=null? convertEntityToDto(syncRegistrationEntity):null;
-			
-			
+				return convertEntityToDto(syncEntity);
 		} catch (DataAccessLayerException e) {
 
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -748,4 +737,5 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
 		}
 	}
+	
 }

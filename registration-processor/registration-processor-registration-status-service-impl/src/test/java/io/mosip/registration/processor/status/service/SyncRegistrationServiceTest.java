@@ -321,7 +321,7 @@ public class SyncRegistrationServiceTest {
 		syncRegistrationEntity.setUpdatedBy("MOSIP");
 		syncRegistrationEntities.add(syncRegistrationEntity);
 		Mockito.when(ridValidator.validateId(any())).thenReturn(true);
-		Mockito.when(syncRegistrationDao.getByAdditionalInfoReqId(any())).thenReturn(null);
+//		Mockito.when(syncRegistrationDao.getByAdditionalInfoReqId(any())).thenReturn(null);
 	}
 
 	/**
