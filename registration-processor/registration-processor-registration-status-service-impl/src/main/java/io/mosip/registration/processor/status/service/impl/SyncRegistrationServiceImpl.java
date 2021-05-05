@@ -708,4 +708,34 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	public boolean deleteAdditionalInfo(SyncRegistrationEntity syncEntity) {
 		return syncRegistrationDao.deleteAdditionalInfo(syncEntity);
 	}
+    
+	private SyncResponseDto convertEntityToDto(SyncRegistrationEntity syncEntity) {
+		SyncResponseDto SyncResponseDto=new SyncResponseDto();
+		SyncResponseDto.setRegistrationId(syncEntity.getRegistrationId());
+		SyncResponseDto.setStatus(syncEntity.getStatusCode());
+		return SyncResponseDto;
+		
+	}
+	
+	@Override
+	public SyncResponseDto findByAdditionalInfoReqId(String additionalInfoReqId) {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				"SyncRegistrationServiceImpl::findByAdditionalInfoReqId()::entry");
+
+		try {
+			
+			SyncRegistrationEntity syncEntity= syncRegistrationDao.findByAdditionalInfoReqId(additionalInfoReqId);
+
+				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+						"SyncRegistrationServiceImpl::getByIds()::exit");
+				return convertEntityToDto(syncEntity);
+		} catch (DataAccessLayerException e) {
+
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
+			throw new TablenotAccessibleException(
+					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
+		}
+	}
+	
 }

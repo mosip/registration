@@ -626,3 +626,4 @@ public class RegistrationStatusServiceImpl
 	}
 
 }
+

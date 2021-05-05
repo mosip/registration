@@ -183,7 +183,7 @@ public class DemodedupeProcessorTest {
 		ReflectionTestUtils.setField(demodedupeProcessor, "infantDedupe", "Y");
 		ReflectionTestUtils.setField(demodedupeProcessor, "ageLimit", "4");
 		dto.setRid("2018701130000410092018110735");
-
+		dto.setIteration(1);
 		MockitoAnnotations.initMocks(this);
 
 		DemographicInfoDto dto1 = new DemographicInfoDto();
