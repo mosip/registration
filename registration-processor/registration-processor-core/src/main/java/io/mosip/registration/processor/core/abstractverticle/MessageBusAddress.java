@@ -227,12 +227,6 @@ public class MessageBusAddress implements Serializable {
 
 	/** The Constant STRUCTURE_BUS_OUT. */
 	public static final MessageBusAddress PACKET_CLASSIFIER_BUS_OUT = new MessageBusAddress("packet-classifier-bus-out");
-	
-	/** The Constant STRUCTURE_BUS_IN. */
-	public static final MessageBusAddress CORRECTION_BUS_IN = new MessageBusAddress("correction-bus-in");
-
-	/** The Constant STRUCTURE_BUS_OUT. */
-	public static final MessageBusAddress CORRECTION_BUS_OUT = new MessageBusAddress("correction-bus-out");
 
 	/** The Constant WORKFLOW_INTERNAL_ACTION_ADDRESS. */
 	public static final MessageBusAddress WORKFLOW_INTERNAL_ACTION_ADDRESS = new MessageBusAddress(
