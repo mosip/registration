@@ -161,43 +161,20 @@ public class RegistrationStatusDao {
 			Iterator<FilterInfo> searchIterator = filters.iterator();
 		while (searchIterator.hasNext()) {
 			FilterInfo filterInfo = searchIterator.next();
-			if (filterInfo.getColumnName().equals("workflowId")) {
-				sb.append(EMPTY_STRING + AND + EMPTY_STRING + alias + "." + "id" + "=:" + "id");
-			} else {
-				sb.append(EMPTY_STRING + AND + EMPTY_STRING + alias + "." + filterInfo.getColumnName() + "=:"
-						+ filterInfo.getColumnName());
-			}
+			sb.append(EMPTY_STRING + AND + EMPTY_STRING + alias + "." + filterInfo.getColumnName() + "=:"
+					+ filterInfo.getColumnName());
+			params.put(filterInfo.getColumnName(), filterInfo.getValue());
+
 		}
 	}
+
 	sb.append(EMPTY_STRING + ORDER_BY + sort.getSortField() + EMPTY_STRING + sort.getSortType());
-	setRegistrationQueryParams(params, filters);
 		List<RegistrationStatusEntity> result = registrationStatusRepositary.createQuerySelect(sb.toString(), params,
 			pagination.getPageFetch());
 		rows = registrationStatusRepositary.count();
 		return new PageImpl<>(result,
 				PageRequest.of(pagination.getPageStart(), pagination.getPageFetch()),
 				rows);
-
-	}
-
-	private void setRegistrationQueryParams(Map<String, Object> params, List<FilterInfo> list) {
-		Iterator<FilterInfo> filterInfoIter = list.iterator();
-		while (filterInfoIter.hasNext()) {
-			FilterInfo filterInfo = filterInfoIter.next();
-			switch (filterInfo.getColumnName()) {
-			case "statusCode":
-				params.put("statusCode", filterInfo.getValue());
-				break;
-			case "isActive":
-				params.put(ISACTIVE, Boolean.valueOf(filterInfo.getValue()));
-				break;
-			case "workflowId":
-				params.put("id", filterInfo.getValue());
-				break;
-			default:
-				break;
-			}
-		}
 
 	}
 

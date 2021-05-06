@@ -7,6 +7,7 @@ import java.util.Objects;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 
 import io.mosip.kernel.core.exception.IOException;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -33,6 +34,7 @@ import io.mosip.registration.processor.core.workflow.dto.WorkflowSearchResponseD
 import io.mosip.registration.processor.reprocessor.service.WorkflowSearchService;
 import io.mosip.registration.processor.reprocessor.validator.WorkflowSearchRequestValidator;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
+import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 
@@ -135,6 +137,9 @@ public class WorkflowSearchApi extends MosipVerticleAPIManager {
 		boolean isTransactionSuccessful = false;
 		LogDescription description = new LogDescription();
 		String user = null;
+		PageResponseDTO<WorkflowDetail> pageResponseDto = new PageResponseDTO<>();
+		List<WorkflowDetail> workflowDetails = new ArrayList<WorkflowDetail>();
+
 		try {
 			JsonObject obj = ctx.getBodyAsJson();
 			user = getUser(ctx);
@@ -142,28 +147,40 @@ public class WorkflowSearchApi extends MosipVerticleAPIManager {
 					.jsonStringToJavaObject(WorkflowSearchRequestDTO.class, obj.toString());
 			regProcLogger.debug("WorkflowActionApi:processURL called");
 			workflowSearchRequestValidator.validate(searchRequestDTO);
-			PageResponseDTO<WorkflowDetail> pageResponeDto = workflowSearchService
+			Page<InternalRegistrationStatusDto> pageDtos = workflowSearchService
 					.searchRegistrationDetails(searchRequestDTO.getRequest());
+			
+			if (!pageDtos.getContent().isEmpty()) {
+				for (InternalRegistrationStatusDto regs : pageDtos.getContent()) {
+					WorkflowDetail workflowDetail = convertToWorkflowDetail(regs);
+					workflowDetails.add(workflowDetail);
+				}
+			}
+			pageResponseDto = buildPageReponse(pageDtos);
+			pageResponseDto.setData(workflowDetails);
 			isTransactionSuccessful = true;
+			description.setCode(PlatformSuccessMessages.RPR_WORKFLOW_SEARCH_API_SUCCESS.getCode());
 			description.setMessage(PlatformSuccessMessages.RPR_WORKFLOW_SEARCH_API_SUCCESS.getMessage());
 			updateAudit(description, "", isTransactionSuccessful, user);
 			regProcLogger.info("Process the workflowSearch successfully");
-			buildResponse(ctx, pageResponeDto, null);
+			buildResponse(ctx, pageResponseDto, null);
 			regProcLogger.debug("WorkflowSearchApi:processURL ended");
-
 
 		} catch (IOException e) {
 			description.setMessage(PlatformErrorMessages.RPR_WORKFLOW_SEARCH_API_FAILED.getMessage());
+			description.setCode(e.getErrorCode());
 			updateAudit(description, "", isTransactionSuccessful, user);
 			logError(
 					PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode(),
 					PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), e,ctx);
 		} catch (WorkFlowSearchException e) {
-			description.setMessage(PlatformErrorMessages.RPR_WORKFLOW_SEARCH_API_FAILED.getMessage());
+			description.setMessage(e.getMessage());
+			description.setCode(e.getErrorCode());
 			updateAudit(description, "", isTransactionSuccessful, user);
 			logError(e.getErrorCode(), e.getMessage(), e, ctx);
 		} catch (Exception e) {
 			description.setMessage(PlatformErrorMessages.RPR_WORKFLOW_SEARCH_API_FAILED.getMessage());
+			description.setCode(PlatformErrorMessages.RPR_WAA_UNKNOWN_EXCEPTION.getCode());
 			updateAudit(description, "", isTransactionSuccessful, user);
 			logError(
 					PlatformErrorMessages.RPR_WAA_UNKNOWN_EXCEPTION.getCode(),
@@ -237,6 +254,40 @@ public class WorkflowSearchApi extends MosipVerticleAPIManager {
 		if (Objects.nonNull(ctx.user()) && Objects.nonNull(ctx.user().principal()))
 			user = ctx.user().principal().getString("username");
 		return user;
+	}
+
+	private WorkflowDetail convertToWorkflowDetail(InternalRegistrationStatusDto regSt) {
+		WorkflowDetail wfd = new WorkflowDetail();
+		wfd.setWorkflowId(regSt.getRegistrationId());
+		wfd.setCreateDateTime(regSt.getCreateDateTime().toString());
+		wfd.setCreatedBy(regSt.getCreatedBy());
+		wfd.setCurrentStageName(regSt.getRegistrationStageName());
+		wfd.setDefaultResumeAction(regSt.getDefaultResumeAction());
+		wfd.setResumeRemoveTags(regSt.getResumeRemoveTags());
+		wfd.setStatusComment(regSt.getStatusComment());
+		wfd.setStatusCode(regSt.getStatusCode());
+		if (regSt.getResumeTimeStamp() != null) {
+			wfd.setResumeTimestamp(regSt.getResumeTimeStamp().toString());
+		}
+		wfd.setWorkflowType(regSt.getRegistrationType());
+		wfd.setUpdatedBy(regSt.getUpdatedBy());
+		if (regSt.getUpdateDateTime() != null) {
+			wfd.setUpdateDateTime(regSt.getUpdateDateTime().toString());
+		}
+		return wfd;
+	}
+
+	public static <T, D> PageResponseDTO<D> buildPageReponse(Page<T> page) {
+		PageResponseDTO<D> pageResponse = new PageResponseDTO<>();
+		if (page != null) {
+			long totalItem = page.getTotalElements();
+			int pageSize = page.getSize();
+			int start = (page.getNumber() * pageSize) + 1;
+			pageResponse.setFromRecord(start);
+			pageResponse.setToRecord((long) (start - 1) + page.getNumberOfElements());
+			pageResponse.setTotalRecord(totalItem);
+		}
+		return pageResponse;
 	}
 
 	@Override

@@ -122,7 +122,6 @@ public class WorkflowSearchRequestValidator {
 	 * @throws WorkflowActionRequestValidationException
 	 */
 	private void validateSort(SortInfo sortInfo) throws WorkFlowSearchException {
-		System.out.println(">>>>" + sortInfo.getSortType());
 		if (Objects.isNull(sortInfo)) {
 			throw new WorkFlowSearchException(
 					PlatformErrorMessages.RPR_WAA_MISSING_INPUT_PARAMETER.getCode(),
@@ -155,7 +154,7 @@ public class WorkflowSearchRequestValidator {
 
 		}
 		for (FilterInfo filter : filterInfos) {
-			if (filter.getColumnName().equals("isActive") || filter.getColumnName().equals("statusCode")
+			if (filter.getColumnName().equals("workflowType") || filter.getColumnName().equals("statusCode")
 					|| filter.getColumnName().equals("workflowId")) {
 
 			} else {
