@@ -139,7 +139,7 @@ public class WorkflowSearchApi extends MosipVerticleAPIManager {
 			String user = getUser(ctx);
 			WorkflowSearchRequestDTO searchRequestDTO = (WorkflowSearchRequestDTO) JsonUtils
 					.jsonStringToJavaObject(WorkflowSearchRequestDTO.class, obj.toString());
-			regProcLogger.debug("WorkflowActionApi:processURL called {}");
+			regProcLogger.debug("WorkflowActionApi:processURL called");
 			workflowSearchRequestValidator.validate(searchRequestDTO);
 			PageResponseDto<WorkflowDetail> pageResponeDto = workflowSearchService
 					.searchRegistrationDetails(searchRequestDTO.getRequest());
@@ -167,7 +167,7 @@ public class WorkflowSearchApi extends MosipVerticleAPIManager {
 			String errorCode, String errorMessage, Exception e, RoutingContext ctx) {
 		if (e != null) {
 			regProcLogger.error(
-					"Error in  WorkflowSearchApi:processURL  for workflowSearch {} {} {} {} {}",
+					"Error in  WorkflowSearchApi:processURL  for workflowSearch {} {} {}",
 					errorMessage, e.getMessage(), ExceptionUtils.getStackTrace(e));
 		}
 
