@@ -3,7 +3,7 @@ package io.mosip.registration.processor.core.workflow.dto;
 import lombok.Data;
 
 @Data
-public class SearchResponseDTO {
+public class WorkflowDetail {
 
 	private static final long serialVersionUID = 6705845720255847210L;
 

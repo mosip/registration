@@ -13,8 +13,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
-import io.mosip.registration.processor.core.workflow.dto.SearchDto;
-import io.mosip.registration.processor.core.workflow.dto.SearchFilter;
+import io.mosip.registration.processor.core.workflow.dto.FilterInfo;
+import io.mosip.registration.processor.core.workflow.dto.PaginationInfo;
+import io.mosip.registration.processor.core.workflow.dto.SortInfo;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
@@ -145,7 +146,8 @@ public class RegistrationStatusDao {
 		return registrationStatusRepositary.createQuerySelect(queryStr, params);
 	}
 
-	public Page<RegistrationStatusEntity> nativeRegistrationQuerySearch(SearchDto searchDto) {
+	public Page<RegistrationStatusEntity> getPagedSearchResults(List<FilterInfo> filters, SortInfo sort,
+			PaginationInfo pagination) {
 		Map<String, Object> params = new HashMap<>();
 		String className = RegistrationStatusEntity.class.getSimpleName();
 		String queryStr=null;
@@ -155,43 +157,42 @@ public class RegistrationStatusDao {
 		queryStr = SELECT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias + ISDELETED_COLON
 				+ ISDELETED;
 		StringBuilder sb = new StringBuilder(queryStr);
-		if (!searchDto.getFilters().isEmpty()) {
-			Iterator<SearchFilter> searchIterator = searchDto.getFilters().iterator();
+		if (!filters.isEmpty()) {
+			Iterator<FilterInfo> searchIterator = filters.iterator();
 		while (searchIterator.hasNext()) {
-			SearchFilter searchFilter = searchIterator.next();
-			if (searchFilter.getColumnName().equals("workflowId")) {
+			FilterInfo filterInfo = searchIterator.next();
+			if (filterInfo.getColumnName().equals("workflowId")) {
 				sb.append(EMPTY_STRING + AND + EMPTY_STRING + alias + "." + "id" + "=:" + "id");
 			} else {
-				sb.append(EMPTY_STRING + AND + EMPTY_STRING + alias + "." + searchFilter.getColumnName() + "=:"
-					+ searchFilter.getColumnName());
+				sb.append(EMPTY_STRING + AND + EMPTY_STRING + alias + "." + filterInfo.getColumnName() + "=:"
+						+ filterInfo.getColumnName());
 			}
 		}
 	}
-		sb.append(EMPTY_STRING + ORDER_BY + searchDto.getSort().get(0).getSortField() + EMPTY_STRING
-				+ searchDto.getSort().get(0).getSortType());
-		setRegistrationQueryParams(params, searchDto.getFilters());
+	sb.append(EMPTY_STRING + ORDER_BY + sort.getSortField() + EMPTY_STRING + sort.getSortType());
+	setRegistrationQueryParams(params, filters);
 		List<RegistrationStatusEntity> result = registrationStatusRepositary.createQuerySelect(sb.toString(), params,
-				searchDto.getPagination().getPageFetch());
+			pagination.getPageFetch());
 		rows = registrationStatusRepositary.count();
 		return new PageImpl<>(result,
-				PageRequest.of(searchDto.getPagination().getPageStart(), searchDto.getPagination().getPageFetch()),
+				PageRequest.of(pagination.getPageStart(), pagination.getPageFetch()),
 				rows);
 
 	}
 
-	private void setRegistrationQueryParams(Map<String, Object> params, List<SearchFilter> list) {
-		Iterator<SearchFilter> searchIter = list.iterator();
-		while (searchIter.hasNext()) {
-			SearchFilter searchFilter = searchIter.next();
-			switch (searchFilter.getColumnName()) {
+	private void setRegistrationQueryParams(Map<String, Object> params, List<FilterInfo> list) {
+		Iterator<FilterInfo> filterInfoIter = list.iterator();
+		while (filterInfoIter.hasNext()) {
+			FilterInfo filterInfo = filterInfoIter.next();
+			switch (filterInfo.getColumnName()) {
 			case "statusCode":
-				params.put("statusCode", searchFilter.getValue());
+				params.put("statusCode", filterInfo.getValue());
 				break;
 			case "isActive":
-				params.put(ISACTIVE, Boolean.valueOf(searchFilter.getValue()));
+				params.put(ISACTIVE, Boolean.valueOf(filterInfo.getValue()));
 				break;
 			case "workflowId":
-				params.put("id", searchFilter.getValue());
+				params.put("id", filterInfo.getValue());
 				break;
 			default:
 				break;

@@ -6,12 +6,12 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class SearchRequestDto extends BaseRestRequestDTO {
+public class WorkflowSearchRequestDTO extends BaseRestRequestDTO {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private SearchDto request;
+	private SearchInfo request;
 }

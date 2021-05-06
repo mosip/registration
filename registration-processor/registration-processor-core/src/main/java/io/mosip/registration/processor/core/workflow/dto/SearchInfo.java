@@ -18,17 +18,17 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SearchDto {
+public class SearchInfo {
 
 	@NotNull
 	@Valid
-	private List<SearchFilter> filters;
+	private List<FilterInfo> filters;
 
 	@NotNull
-	private List<SearchSort> sort;
+	private SortInfo sort;
 
 	// @NotNull
-	private Pagination pagination;
+	private PaginationInfo pagination;
 
 	// private String languageCode;
 }

@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
-import io.mosip.registration.processor.core.workflow.dto.SearchDto;
+import io.mosip.registration.processor.core.workflow.dto.SearchInfo;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDto;
 
@@ -128,5 +128,5 @@ public interface RegistrationStatusService<T, U, D> {
 
 	public List<InternalRegistrationStatusDto> getResumablePackets(Integer fetchSize);
 
-	public Page<InternalRegistrationStatusDto> searchRegistrationDetails(SearchDto searchDto);
+	public Page<InternalRegistrationStatusDto> searchRegistrationDetails(SearchInfo searchInfo);
 }

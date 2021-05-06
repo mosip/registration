@@ -9,14 +9,14 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class WorkFlowSearchResponseDTO extends BaseRestResponseDTO {
+public class WorkflowSearchResponseDTO extends BaseRestResponseDTO {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private PageResponseDto<SearchResponseDTO> response;
+	private PageResponseDto<WorkflowDetail> response;
 
 	/** The error. */
 	private List<ErrorDTO> errors;

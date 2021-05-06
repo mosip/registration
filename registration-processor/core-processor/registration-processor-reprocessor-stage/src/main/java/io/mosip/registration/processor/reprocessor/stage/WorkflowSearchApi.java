@@ -27,10 +27,11 @@ import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessag
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.workflow.dto.PageResponseDto;
-import io.mosip.registration.processor.core.workflow.dto.SearchRequestDto;
-import io.mosip.registration.processor.core.workflow.dto.SearchResponseDTO;
-import io.mosip.registration.processor.core.workflow.dto.WorkFlowSearchResponseDTO;
+import io.mosip.registration.processor.core.workflow.dto.WorkflowDetail;
+import io.mosip.registration.processor.core.workflow.dto.WorkflowSearchRequestDTO;
+import io.mosip.registration.processor.core.workflow.dto.WorkflowSearchResponseDTO;
 import io.mosip.registration.processor.reprocessor.service.WorkflowSearchService;
+import io.mosip.registration.processor.reprocessor.validator.WorkflowSearchRequestValidator;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
@@ -91,6 +92,9 @@ public class WorkflowSearchApi extends MosipVerticleAPIManager {
 	@Autowired
 	WorkflowSearchService workflowSearchService;
 
+	@Autowired
+	WorkflowSearchRequestValidator workflowSearchRequestValidator;
+
 	/**
 	 * Deploy verticle.
 	 */
@@ -131,14 +135,16 @@ public class WorkflowSearchApi extends MosipVerticleAPIManager {
 		boolean isTransactionSuccessful = false;
 		LogDescription description = new LogDescription();
 		try {
-		JsonObject obj = ctx.getBodyAsJson();
-		String user = getUser(ctx);
-		SearchRequestDto searchRequestDTO = (SearchRequestDto) JsonUtils.jsonStringToJavaObject(SearchRequestDto.class,
-				obj.toString());
-		regProcLogger.debug("WorkflowActionApi:processURL called {}");
-		PageResponseDto<SearchResponseDTO> pageResponeDto = workflowSearchService
+			JsonObject obj = ctx.getBodyAsJson();
+			String user = getUser(ctx);
+			WorkflowSearchRequestDTO searchRequestDTO = (WorkflowSearchRequestDTO) JsonUtils
+					.jsonStringToJavaObject(WorkflowSearchRequestDTO.class, obj.toString());
+			regProcLogger.debug("WorkflowActionApi:processURL called {}");
+			workflowSearchRequestValidator.validate(searchRequestDTO);
+			PageResponseDto<WorkflowDetail> pageResponeDto = workflowSearchService
 					.searchRegistrationDetails(searchRequestDTO.getRequest());
-
+			isTransactionSuccessful = true;
+			description.setMessage("workflowSearch api fetch the record successfully");
 			updateAudit(description, "", isTransactionSuccessful, user);
 			regProcLogger.info("Process the workflowSearch successfully{}");
 			buildResponse(ctx, pageResponeDto, null);
@@ -181,10 +187,10 @@ public class WorkflowSearchApi extends MosipVerticleAPIManager {
 		return null;
 	}
 
-	private void buildResponse(RoutingContext routingContext, PageResponseDto<SearchResponseDTO> wfs,
+	private void buildResponse(RoutingContext routingContext, PageResponseDto<WorkflowDetail> wfs,
 			List<ErrorDTO> errors) {
 
-		WorkFlowSearchResponseDTO workflowSearchResponseDTO = new WorkFlowSearchResponseDTO();
+		WorkflowSearchResponseDTO workflowSearchResponseDTO = new WorkflowSearchResponseDTO();
 		workflowSearchResponseDTO.setId(id);
 		workflowSearchResponseDTO.setVersion(version);
 		workflowSearchResponseDTO.setResponsetime(DateUtils.getUTCCurrentDateTimeString(dateTimePattern));

@@ -5,18 +5,19 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * dto to hold the Sort criteria.
+ * Dtp to hold the search parameters
  * 
  * @author Abhishek Kumar
- * @since 1.0
+ * @since 1.0.0
  */
 
 @Data
-@AllArgsConstructor
+@AllArgsConstructor()
 @NoArgsConstructor
-public class SearchSort {
+public class FilterInfo {
 
-	private String sortField;
+	private String columnName;
 
-	private String sortType;
+	private String value;
+
 }

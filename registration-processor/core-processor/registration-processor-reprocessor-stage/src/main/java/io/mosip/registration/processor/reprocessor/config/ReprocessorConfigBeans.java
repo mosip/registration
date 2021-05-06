@@ -19,6 +19,7 @@ import io.mosip.registration.processor.reprocessor.stage.WorkflowEventUpdateVert
 import io.mosip.registration.processor.reprocessor.stage.WorkflowSearchApi;
 import io.mosip.registration.processor.reprocessor.util.WebSubUtil;
 import io.mosip.registration.processor.reprocessor.validator.WorkflowActionRequestValidator;
+import io.mosip.registration.processor.reprocessor.validator.WorkflowSearchRequestValidator;
 import io.mosip.registration.processor.rest.client.service.impl.RegistrationProcessorRestClientServiceImpl;
 
 /**
@@ -59,6 +60,11 @@ public class ReprocessorConfigBeans {
 	@Bean
 	public WorkflowActionRequestValidator getWorkflowActionRequestValidator() {
 		return new WorkflowActionRequestValidator();
+	}
+
+	@Bean
+	public WorkflowSearchRequestValidator getWorkflowSearchRequestValidator() {
+		return new WorkflowSearchRequestValidator();
 	}
 
 	@Bean

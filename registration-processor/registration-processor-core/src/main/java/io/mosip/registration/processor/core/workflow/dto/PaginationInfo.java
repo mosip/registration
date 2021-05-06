@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Pagination {
+public class PaginationInfo {
 
 	private int pageStart;
 

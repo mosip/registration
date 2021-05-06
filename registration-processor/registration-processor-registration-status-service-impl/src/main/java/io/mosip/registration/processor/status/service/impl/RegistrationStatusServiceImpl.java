@@ -23,7 +23,7 @@ import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.workflow.dto.SearchDto;
+import io.mosip.registration.processor.core.workflow.dto.SearchInfo;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationExternalStatusCode;
 import io.mosip.registration.processor.status.dao.RegistrationStatusDao;
@@ -100,13 +100,14 @@ public class RegistrationStatusServiceImpl
 	 */
 
 	@Override
-	public Page<InternalRegistrationStatusDto> searchRegistrationDetails(SearchDto searchDto) {
+	public Page<InternalRegistrationStatusDto> searchRegistrationDetails(SearchInfo searchInfo) {
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"RegistrationStatusServiceImpl::searchRegistrationDetails()::entry");
 		List<InternalRegistrationStatusDto> regList = new ArrayList<InternalRegistrationStatusDto>();
 		try {
-			Page<RegistrationStatusEntity> pageDto = registrationStatusDao.nativeRegistrationQuerySearch(searchDto);
+			Page<RegistrationStatusEntity> pageDto = registrationStatusDao
+					.getPagedSearchResults(searchInfo.getFilters(), searchInfo.getSort(), searchInfo.getPagination());
 
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 					"RegistrationStatusServiceImpl::searchRegistrationDetails()::exit");
@@ -119,7 +120,8 @@ public class RegistrationStatusServiceImpl
 
 			}
 			return new PageImpl<>(regList,
-					PageRequest.of(searchDto.getPagination().getPageStart(), searchDto.getPagination().getPageFetch()),
+					PageRequest.of(searchInfo.getPagination().getPageStart(),
+							searchInfo.getPagination().getPageFetch()),
 					pageDto.getTotalElements());
 		} catch (DataAccessLayerException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -454,9 +456,9 @@ public class RegistrationStatusServiceImpl
 		registrationStatusEntity.setLatestTransactionTypeCode(dto.getLatestTransactionTypeCode());
 		registrationStatusEntity.setRegistrationStageName(dto.getRegistrationStageName());
 		registrationStatusEntity.setLatestTransactionTimes(LocalDateTime.now(ZoneId.of("UTC")));
-		// registrationStatusEntity.setResumeTimeStamp(dto.getResumeTimeStamp());
-		// registrationStatusEntity.setDefaultResumeAction(dto.getDefaultResumeAction());
-		// registrationStatusEntity.setResumeRemoveTags(dto.getResumeRemoveTags());
+		registrationStatusEntity.setResumeTimeStamp(dto.getResumeTimeStamp());
+		registrationStatusEntity.setDefaultResumeAction(dto.getDefaultResumeAction());
+		registrationStatusEntity.setResumeRemoveTags(dto.getResumeRemoveTags());
 		return registrationStatusEntity;
 	}
 
