@@ -11,7 +11,6 @@ import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.code.ModuleName;
-import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.WorkFlowSearchException;
 import io.mosip.registration.processor.core.exception.WorkflowActionException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -20,7 +19,7 @@ import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.workflow.dto.PageResponseDto;
 import io.mosip.registration.processor.core.workflow.dto.SearchDto;
-import io.mosip.registration.processor.core.workflow.dto.SearchResponseDto;
+import io.mosip.registration.processor.core.workflow.dto.SearchResponseDTO;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
@@ -46,32 +45,28 @@ public class WorkflowSearchService {
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(WorkflowActionService.class);
 
-	public PageResponseDto<SearchResponseDto> searchRegistrationDetails(SearchDto searchDto)
+	public PageResponseDto<SearchResponseDTO> searchRegistrationDetails(SearchDto searchDto)
 			throws WorkFlowSearchException {
 
-		PageResponseDto<SearchResponseDto> pageResponseDto = new PageResponseDto<>();
-		List<SearchResponseDto> searchResDtos = new ArrayList<SearchResponseDto>();
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-				"WorkflowSearchService::searchRegistrationDetails()::entry");
+		PageResponseDto<SearchResponseDTO> pageResponseDto = new PageResponseDto<>();
+		List<SearchResponseDTO> searchResDtos = new ArrayList<SearchResponseDTO>();
+		regProcLogger.debug(
+				"WorkflowSearchService::searchRegistrationDetails()::entry  {} {} {} {}");
 		try {
 			Page<InternalRegistrationStatusDto> pageDtos = registrationStatusService.searchRegistrationDetails(searchDto);
-
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-					"WorkflowSearchService::searchRegistrationDetails()::exit");
+			regProcLogger.debug("WorkflowSearchService::searchRegistrationDetails()::exit  {} {} {} {}");
 
 			if (!pageDtos.getContent().isEmpty()) {
 				for (InternalRegistrationStatusDto regs : pageDtos.getContent()) {
-					SearchResponseDto searchRes = dtoMapper(regs);
+					SearchResponseDTO searchRes = convertToWorkflowDetail(regs);
 					searchResDtos.add(searchRes);
 				}
-
 			}
 			pageResponseDto = pageResponse(pageDtos);
 			pageResponseDto.setData(searchResDtos);
 
 		} catch (DataAccessLayerException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
+			regProcLogger.error(e.getMessage() + ExceptionUtils.getStackTrace(e) + " {} {} {} {}");
 			logAndThrowError(e, PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getCode(),
 					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), null);
 		}
@@ -92,9 +87,9 @@ public class WorkflowSearchService {
 		return pageResponse;
 	}
 
-	private SearchResponseDto dtoMapper(InternalRegistrationStatusDto regSt) {
-		SearchResponseDto wfs = new SearchResponseDto();
-		wfs.setRegistrationId(regSt.getRegistrationId());
+	private SearchResponseDTO convertToWorkflowDetail(InternalRegistrationStatusDto regSt) {
+		SearchResponseDTO wfs = new SearchResponseDTO();
+		wfs.setWorkflowId(regSt.getRegistrationId());
 		wfs.setCreateDateTime(regSt.getCreateDateTime().toString());
 		wfs.setCreatedBy(regSt.getCreatedBy());
 		wfs.setCurrentStageName(regSt.getRegistrationStageName());
@@ -103,8 +98,9 @@ public class WorkflowSearchService {
 		wfs.setStatusComment(regSt.getStatusComment());
 		wfs.setStatusCode(regSt.getStatusCode());
 		if (regSt.getResumeTimeStamp() != null) {
-			wfs.setResumeTimeStamp(regSt.getResumeTimeStamp().toString());
+			wfs.setResumeTimestamp(regSt.getResumeTimeStamp().toString());
 		}
+		wfs.setWorkflowType(regSt.getRegistrationType());
 		wfs.setUpdatedBy(regSt.getUpdatedBy());
 		if (regSt.getUpdateDateTime() != null) {
 		wfs.setUpdateDateTime(regSt.getUpdateDateTime().toString());

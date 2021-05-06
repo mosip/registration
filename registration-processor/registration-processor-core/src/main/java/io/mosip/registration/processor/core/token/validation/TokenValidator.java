@@ -163,8 +163,13 @@ public class TokenValidator {
 					return true;
 			}
 		}
-		else if (url.contains("workflow")) {
+		else if (url.contains("workflowaction")) {
 			for (String assignedRole : APIAuthorityList.WORKFLOWACTION.getList()) {
+				if (role.contains(assignedRole))
+					return true;
+			}
+		} else if (url.contains("workflow/search")) {
+			for (String assignedRole : APIAuthorityList.WORKFLOWSEARCH.getList()) {
 				if (role.contains(assignedRole))
 					return true;
 			}

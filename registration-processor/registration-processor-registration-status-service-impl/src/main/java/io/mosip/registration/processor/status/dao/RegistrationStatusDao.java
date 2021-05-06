@@ -159,9 +159,12 @@ public class RegistrationStatusDao {
 			Iterator<SearchFilter> searchIterator = searchDto.getFilters().iterator();
 		while (searchIterator.hasNext()) {
 			SearchFilter searchFilter = searchIterator.next();
-
-			sb.append(EMPTY_STRING + AND + EMPTY_STRING + alias + "." + searchFilter.getColumnName() + "=:"
+			if (searchFilter.getColumnName().equals("workflowId")) {
+				sb.append(EMPTY_STRING + AND + EMPTY_STRING + alias + "." + "id" + "=:" + "id");
+			} else {
+				sb.append(EMPTY_STRING + AND + EMPTY_STRING + alias + "." + searchFilter.getColumnName() + "=:"
 					+ searchFilter.getColumnName());
+			}
 		}
 	}
 		sb.append(EMPTY_STRING + ORDER_BY + searchDto.getSort().get(0).getSortField() + EMPTY_STRING
@@ -187,7 +190,7 @@ public class RegistrationStatusDao {
 			case "isActive":
 				params.put(ISACTIVE, Boolean.valueOf(searchFilter.getValue()));
 				break;
-			case "id":
+			case "workflowId":
 				params.put("id", searchFilter.getValue());
 				break;
 			default:
