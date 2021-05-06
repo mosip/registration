@@ -12,9 +12,11 @@ import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessor
 import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventDTO;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.reprocessor.service.WorkflowActionService;
+import io.mosip.registration.processor.reprocessor.service.WorkflowSearchService;
 import io.mosip.registration.processor.reprocessor.stage.ReprocessorStage;
 import io.mosip.registration.processor.reprocessor.stage.WorkflowActionApi;
 import io.mosip.registration.processor.reprocessor.stage.WorkflowEventUpdateVerticle;
+import io.mosip.registration.processor.reprocessor.stage.WorkflowSearchApi;
 import io.mosip.registration.processor.reprocessor.util.WebSubUtil;
 import io.mosip.registration.processor.reprocessor.validator.WorkflowActionRequestValidator;
 import io.mosip.registration.processor.rest.client.service.impl.RegistrationProcessorRestClientServiceImpl;
@@ -50,6 +52,11 @@ public class ReprocessorConfigBeans {
 	}
 
 	@Bean
+	public WorkflowSearchApi getWorkflowSearchApi() {
+		return new WorkflowSearchApi();
+	}
+
+	@Bean
 	public WorkflowActionRequestValidator getWorkflowActionRequestValidator() {
 		return new WorkflowActionRequestValidator();
 	}
@@ -57,6 +64,11 @@ public class ReprocessorConfigBeans {
 	@Bean
 	public WorkflowActionService getWorkflowActionService() {
 		return new WorkflowActionService();
+	}
+
+	@Bean
+	public WorkflowSearchService getWorkflowSearchService() {
+		return new WorkflowSearchService();
 	}
 
 	@Bean

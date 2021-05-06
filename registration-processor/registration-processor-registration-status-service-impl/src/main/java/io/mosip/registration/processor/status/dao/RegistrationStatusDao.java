@@ -3,12 +3,18 @@ package io.mosip.registration.processor.status.dao;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
+import io.mosip.registration.processor.core.workflow.dto.SearchDto;
+import io.mosip.registration.processor.core.workflow.dto.SearchFilter;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
@@ -137,6 +143,58 @@ public class RegistrationStatusDao {
 		params.put(ISACTIVE, Boolean.TRUE);
 		params.put(ISDELETED, Boolean.FALSE);
 		return registrationStatusRepositary.createQuerySelect(queryStr, params);
+	}
+
+	public Page<RegistrationStatusEntity> nativeRegistrationQuerySearch(SearchDto searchDto) {
+		Map<String, Object> params = new HashMap<>();
+		String className = RegistrationStatusEntity.class.getSimpleName();
+		String queryStr=null;
+		long rows = 0;
+		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
+		params.put(ISDELETED, Boolean.FALSE);
+		queryStr = SELECT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias + ISDELETED_COLON
+				+ ISDELETED;
+		StringBuilder sb = new StringBuilder(queryStr);
+		if (!searchDto.getFilters().isEmpty()) {
+			Iterator<SearchFilter> searchIterator = searchDto.getFilters().iterator();
+		while (searchIterator.hasNext()) {
+			SearchFilter searchFilter = searchIterator.next();
+
+			sb.append(EMPTY_STRING + AND + EMPTY_STRING + alias + "." + searchFilter.getColumnName() + "=:"
+					+ searchFilter.getColumnName());
+		}
+	}
+		sb.append(EMPTY_STRING + ORDER_BY + searchDto.getSort().get(0).getSortField() + EMPTY_STRING
+				+ searchDto.getSort().get(0).getSortType());
+		setRegistrationQueryParams(params, searchDto.getFilters());
+		List<RegistrationStatusEntity> result = registrationStatusRepositary.createQuerySelect(sb.toString(), params,
+				searchDto.getPagination().getPageFetch());
+		rows = registrationStatusRepositary.count();
+		return new PageImpl<>(result,
+				PageRequest.of(searchDto.getPagination().getPageStart(), searchDto.getPagination().getPageFetch()),
+				rows);
+
+	}
+
+	private void setRegistrationQueryParams(Map<String, Object> params, List<SearchFilter> list) {
+		Iterator<SearchFilter> searchIter = list.iterator();
+		while (searchIter.hasNext()) {
+			SearchFilter searchFilter = searchIter.next();
+			switch (searchFilter.getColumnName()) {
+			case "statusCode":
+				params.put("statusCode", searchFilter.getValue());
+				break;
+			case "isActive":
+				params.put(ISACTIVE, Boolean.valueOf(searchFilter.getValue()));
+				break;
+			case "id":
+				params.put("id", searchFilter.getValue());
+				break;
+			default:
+				break;
+			}
+		}
+
 	}
 
 	/**

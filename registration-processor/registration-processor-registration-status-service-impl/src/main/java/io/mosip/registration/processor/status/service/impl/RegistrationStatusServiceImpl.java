@@ -8,6 +8,9 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
@@ -20,6 +23,7 @@ import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.workflow.dto.SearchDto;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationExternalStatusCode;
 import io.mosip.registration.processor.status.dao.RegistrationStatusDao;
@@ -82,6 +86,44 @@ public class RegistrationStatusServiceImpl
 
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId, e.getMessage() + ExceptionUtils.getStackTrace(e));
+			throw new TablenotAccessibleException(
+					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see
+	 * io.mosip.registration.processor.status.service.RegistrationStatusService#
+	 * searchRegistrationDetails(java.lang.Object)
+	 */
+
+	@Override
+	public Page<InternalRegistrationStatusDto> searchRegistrationDetails(SearchDto searchDto) {
+
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				"RegistrationStatusServiceImpl::searchRegistrationDetails()::entry");
+		List<InternalRegistrationStatusDto> regList = new ArrayList<InternalRegistrationStatusDto>();
+		try {
+			Page<RegistrationStatusEntity> pageDto = registrationStatusDao.nativeRegistrationQuerySearch(searchDto);
+
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+					"RegistrationStatusServiceImpl::searchRegistrationDetails()::exit");
+
+			if (!pageDto.getContent().isEmpty()) {
+				for (RegistrationStatusEntity regs : pageDto.getContent()) {
+					InternalRegistrationStatusDto internalRegis = convertEntityToDto(regs);
+					regList.add(internalRegis);
+				}
+
+			}
+			return new PageImpl<>(regList,
+					PageRequest.of(searchDto.getPagination().getPageStart(), searchDto.getPagination().getPageFetch()),
+					pageDto.getTotalElements());
+		} catch (DataAccessLayerException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
 			throw new TablenotAccessibleException(
 					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
 		}
@@ -412,9 +454,9 @@ public class RegistrationStatusServiceImpl
 		registrationStatusEntity.setLatestTransactionTypeCode(dto.getLatestTransactionTypeCode());
 		registrationStatusEntity.setRegistrationStageName(dto.getRegistrationStageName());
 		registrationStatusEntity.setLatestTransactionTimes(LocalDateTime.now(ZoneId.of("UTC")));
-		registrationStatusEntity.setResumeTimeStamp(dto.getResumeTimeStamp());
-		registrationStatusEntity.setDefaultResumeAction(dto.getDefaultResumeAction());
-		registrationStatusEntity.setResumeRemoveTags(dto.getResumeRemoveTags());
+		// registrationStatusEntity.setResumeTimeStamp(dto.getResumeTimeStamp());
+		// registrationStatusEntity.setDefaultResumeAction(dto.getDefaultResumeAction());
+		// registrationStatusEntity.setResumeRemoveTags(dto.getResumeRemoveTags());
 		return registrationStatusEntity;
 	}
 
