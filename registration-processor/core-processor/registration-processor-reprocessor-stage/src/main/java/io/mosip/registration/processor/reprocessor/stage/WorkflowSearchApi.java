@@ -146,9 +146,9 @@ public class WorkflowSearchApi extends MosipVerticleAPIManager {
 			isTransactionSuccessful = true;
 			description.setMessage("workflowSearch api fetch the record successfully");
 			updateAudit(description, "", isTransactionSuccessful, user);
-			regProcLogger.info("Process the workflowSearch successfully{}");
+			regProcLogger.info("Process the workflowSearch successfully");
 			buildResponse(ctx, pageResponeDto, null);
-			regProcLogger.debug("WorkflowSearchApi:processURL ended{}");
+			regProcLogger.debug("WorkflowSearchApi:processURL ended");
 
 		} catch (IOException e) {
 			logError(
