@@ -52,10 +52,6 @@ public class WorkflowSearchApi extends MosipVerticleAPIManager {
 
 	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.reprocessor.";
 
-	public static final String SEARCH_SUCCESS = "fetch the record successfully";
-
-	public static final String SEARCH_FAILED = "error occured while searching the record";
-
 	@Value("${mosip.regproc.workflowsearch.eventbus.port}")
 	private String eventBusPort;
 

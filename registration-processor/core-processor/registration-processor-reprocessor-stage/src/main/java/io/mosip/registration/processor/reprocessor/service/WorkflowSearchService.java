@@ -10,11 +10,9 @@ import org.springframework.stereotype.Component;
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.exception.WorkFlowSearchException;
 import io.mosip.registration.processor.core.exception.WorkflowActionException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
-import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.workflow.dto.PageResponseDTO;
@@ -35,12 +33,6 @@ public class WorkflowSearchService {
 	/** The core audit request builder. */
 	@Autowired
 	AuditLogRequestBuilder auditLogRequestBuilder;
-
-	/** The module name. */
-	public static String MODULE_NAME = ModuleName.WORKFLOW_ACTION_SERVICE.toString();
-
-	/** The module id. */
-	public static String MODULE_ID = PlatformSuccessMessages.RPR_WORKFLOW_ACTION_SERVICE_SUCCESS.getCode();
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(WorkflowActionService.class);
