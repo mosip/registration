@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PageResponseDto<T> {
+public class PageResponseDTO<T> {
 	private long fromRecord;
 	private long toRecord;
 	private long totalRecord;

@@ -17,7 +17,7 @@ import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.workflow.dto.PageResponseDto;
+import io.mosip.registration.processor.core.workflow.dto.PageResponseDTO;
 import io.mosip.registration.processor.core.workflow.dto.SearchInfo;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowDetail;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
@@ -45,10 +45,10 @@ public class WorkflowSearchService {
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(WorkflowActionService.class);
 
-	public PageResponseDto<WorkflowDetail> searchRegistrationDetails(SearchInfo searchInfo)
+	public PageResponseDTO<WorkflowDetail> searchRegistrationDetails(SearchInfo searchInfo)
 			throws WorkFlowSearchException {
 
-		PageResponseDto<WorkflowDetail> pageResponseDto = new PageResponseDto<>();
+		PageResponseDTO<WorkflowDetail> pageResponseDto = new PageResponseDTO<>();
 		List<WorkflowDetail> searchResDtos = new ArrayList<WorkflowDetail>();
 		regProcLogger.debug(
 				"WorkflowSearchService::searchRegistrationDetails()::entry");
@@ -75,8 +75,8 @@ public class WorkflowSearchService {
 
 	}
 
-	public static <T, D> PageResponseDto<D> buildPageReponse(Page<T> page) {
-		PageResponseDto<D> pageResponse = new PageResponseDto<>();
+	public static <T, D> PageResponseDTO<D> buildPageReponse(Page<T> page) {
+		PageResponseDTO<D> pageResponse = new PageResponseDTO<>();
 		if (page != null) {
 			long totalItem = page.getTotalElements();
 			int pageSize = page.getSize();

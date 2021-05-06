@@ -26,7 +26,7 @@ import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.workflow.dto.PageResponseDto;
+import io.mosip.registration.processor.core.workflow.dto.PageResponseDTO;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowDetail;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowSearchRequestDTO;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowSearchResponseDTO;
@@ -51,6 +51,10 @@ public class WorkflowSearchApi extends MosipVerticleAPIManager {
 	private Integer workerPoolSize;
 
 	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.reprocessor.";
+
+	public static final String SEARCH_SUCCESS = "fetch the record successfully";
+
+	public static final String SEARCH_FAILED = "error occured while searching the record";
 
 	@Value("${mosip.regproc.workflowsearch.eventbus.port}")
 	private String eventBusPort;
@@ -134,29 +138,37 @@ public class WorkflowSearchApi extends MosipVerticleAPIManager {
 
 		boolean isTransactionSuccessful = false;
 		LogDescription description = new LogDescription();
+		String user = null;
 		try {
 			JsonObject obj = ctx.getBodyAsJson();
-			String user = getUser(ctx);
+			user = getUser(ctx);
 			WorkflowSearchRequestDTO searchRequestDTO = (WorkflowSearchRequestDTO) JsonUtils
 					.jsonStringToJavaObject(WorkflowSearchRequestDTO.class, obj.toString());
 			regProcLogger.debug("WorkflowActionApi:processURL called");
 			workflowSearchRequestValidator.validate(searchRequestDTO);
-			PageResponseDto<WorkflowDetail> pageResponeDto = workflowSearchService
+			PageResponseDTO<WorkflowDetail> pageResponeDto = workflowSearchService
 					.searchRegistrationDetails(searchRequestDTO.getRequest());
 			isTransactionSuccessful = true;
-			description.setMessage("workflowSearch api fetch the record successfully");
+			description.setMessage(PlatformSuccessMessages.RPR_WORKFLOW_SEARCH_API_SUCCESS.getMessage());
 			updateAudit(description, "", isTransactionSuccessful, user);
 			regProcLogger.info("Process the workflowSearch successfully");
 			buildResponse(ctx, pageResponeDto, null);
 			regProcLogger.debug("WorkflowSearchApi:processURL ended");
 
+
 		} catch (IOException e) {
+			description.setMessage(PlatformErrorMessages.RPR_WORKFLOW_SEARCH_API_FAILED.getMessage());
+			updateAudit(description, "", isTransactionSuccessful, user);
 			logError(
 					PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode(),
 					PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), e,ctx);
 		} catch (WorkFlowSearchException e) {
+			description.setMessage(PlatformErrorMessages.RPR_WORKFLOW_SEARCH_API_FAILED.getMessage());
+			updateAudit(description, "", isTransactionSuccessful, user);
 			logError(e.getErrorCode(), e.getMessage(), e, ctx);
 		} catch (Exception e) {
+			description.setMessage(PlatformErrorMessages.RPR_WORKFLOW_SEARCH_API_FAILED.getMessage());
+			updateAudit(description, "", isTransactionSuccessful, user);
 			logError(
 					PlatformErrorMessages.RPR_WAA_UNKNOWN_EXCEPTION.getCode(),
 					PlatformErrorMessages.RPR_WAA_UNKNOWN_EXCEPTION.getMessage(), e, ctx);
@@ -187,7 +199,7 @@ public class WorkflowSearchApi extends MosipVerticleAPIManager {
 		return null;
 	}
 
-	private void buildResponse(RoutingContext routingContext, PageResponseDto<WorkflowDetail> wfs,
+	private void buildResponse(RoutingContext routingContext, PageResponseDTO<WorkflowDetail> wfs,
 			List<ErrorDTO> errors) {
 
 		WorkflowSearchResponseDTO workflowSearchResponseDTO = new WorkflowSearchResponseDTO();

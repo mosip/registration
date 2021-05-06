@@ -16,7 +16,7 @@ public class WorkflowSearchResponseDTO extends BaseRestResponseDTO {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private PageResponseDto<WorkflowDetail> response;
+	private PageResponseDTO<WorkflowDetail> response;
 
 	/** The error. */
 	private List<ErrorDTO> errors;
