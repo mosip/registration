@@ -519,7 +519,20 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	public SyncRegistrationEntity findByRegistrationId(String registrationId) {
 		return syncRegistrationDao.findById(registrationId);
 	}
-
+	
+	 /**
+	   * Find by registration id and additional info req id.
+	   * @param registrationId
+	   *            the registration id
+	   * @param additionalInfoRequestId
+	   *            the additional info req id
+	   * @return the sync registration entity
+	   */
+	@Override
+	public SyncRegistrationEntity findByRegistrationIdAndAdditionalInfoReqId(String registrationId, String additionalInfoRequestId) {
+		return syncRegistrationDao.findByRegistrationIdIdAndAdditionalInfoReqId(registrationId,additionalInfoRequestId);
+	}
+		
 	@Override
 	public SyncRegistrationEntity findByPacketId(String packetId) {
 		return syncRegistrationDao.findByPacketId(packetId);

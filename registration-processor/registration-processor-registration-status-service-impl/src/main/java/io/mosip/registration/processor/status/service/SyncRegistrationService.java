@@ -50,6 +50,14 @@ public interface SyncRegistrationService<T, U> {
 	 */
 	public SyncRegistrationEntity findByRegistrationId(String resgistrationId);
 
+	/**
+	 * Find by registration id and additional info req id. 
+	 * @param registrationId
+	 * @param additionalInfoReqId
+	 * @return sync registration entity
+	 */
+	public SyncRegistrationEntity findByRegistrationIdAndAdditionalInfoReqId(String registrationId, String additionalInfoReqId);
+
 	public SyncRegistrationEntity findByPacketId(String packetId);
 
 	/**
