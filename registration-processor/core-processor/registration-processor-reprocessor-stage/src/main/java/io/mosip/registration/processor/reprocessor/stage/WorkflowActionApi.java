@@ -159,7 +159,7 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 						if (!internalRegistrationStatusDto.getStatusCode()
 								.equalsIgnoreCase(RegistrationStatusCode.PAUSED.name())) {
 							description.setMessage(PlatformErrorMessages.RPR_WAA_NOT_PAUSED.getMessage());
-						updateAudit(description, internalRegistrationStatusDto.getRegistrationId(),
+							updateAudit(description, internalRegistrationStatusDto.getRegistrationId(),
 								isTransactionSuccessful, user);
 							throw new WorkflowActionException(PlatformErrorMessages.RPR_WAA_NOT_PAUSED.getCode(),
 								String.format(PlatformErrorMessages.RPR_WAA_NOT_PAUSED.getMessage(),
