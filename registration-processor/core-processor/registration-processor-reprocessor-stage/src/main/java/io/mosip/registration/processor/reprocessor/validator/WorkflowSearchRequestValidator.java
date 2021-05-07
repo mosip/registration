@@ -129,7 +129,7 @@ public class WorkflowSearchRequestValidator {
 
 		} else if (sortInfo.getSortType().equals("asc") || sortInfo.getSortType().equals("desc")) {
 
-		} else if (sortInfo.getSortField() == null) {
+		} else if (sortInfo.getSortField() == null || sortInfo.getSortField().isBlank()) {
 			throw new WorkFlowSearchException(PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getCode(),
 					String.format(PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getMessage(), "sortField"));
 		} else {
