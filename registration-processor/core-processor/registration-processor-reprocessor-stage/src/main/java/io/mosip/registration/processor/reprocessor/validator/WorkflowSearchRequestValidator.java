@@ -128,10 +128,7 @@ public class WorkflowSearchRequestValidator {
 					String.format(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER.getMessage(), "sort"));
 
 		} else if (sortInfo.getSortType().equals("asc") || sortInfo.getSortType().equals("desc")) {
-
-		} else if (sortInfo.getSortField() == null || sortInfo.getSortField().isBlank()) {
-			throw new WorkFlowSearchException(PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getCode(),
-					String.format(PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getMessage(), "sortField"));
+			validateSortField(sortInfo);
 		} else {
 			throw new WorkFlowSearchException(
 					PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getCode(),
@@ -139,6 +136,30 @@ public class WorkflowSearchRequestValidator {
 		}
 
 	}
+
+	/**
+	 * Validate sortInfo.
+	 *
+	 * @param version the version
+	 * @param errors  the errors
+	 * @return true, if successful
+	 * @throws WorkflowActionRequestValidationException
+	 */
+	private void validateSortField(SortInfo sortInfo) throws WorkFlowSearchException {
+		if (sortInfo.getSortField() == null || sortInfo.getSortField().isBlank()) {
+			throw new WorkFlowSearchException(PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getCode(),
+					String.format(PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getMessage(), "sortField"));
+
+		} else if (sortInfo.getSortField().equals("createDateTime") || sortInfo.getSortField().equals("updateDateTime")
+				|| sortInfo.getSortField().equals("resumeTimestamp")) {
+			
+		} else {
+			throw new WorkFlowSearchException(PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getCode(),
+					String.format(PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getMessage(), "sortField"));
+		}
+
+	}
+
 
 	/**
 	 * Validate filter.
