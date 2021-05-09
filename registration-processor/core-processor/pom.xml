@@ -14,14 +14,14 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
   	<modules>
-		<module>registration-processor-demo-dedupe-stage</module>
+        <!--<module>registration-processor-demo-dedupe-stage</module>
         <module>registration-processor-bio-dedupe-stage</module>
-        <module>registration-processor-uin-generator-stage</module>
         <module>registration-processor-abis</module>
-		<module>registration-processor-manual-verification-stage</module>
-		<module>registration-processor-reprocessor-stage</module>
+        <module>registration-processor-manual-verification-stage</module>
+        <module>registration-processor-reprocessor-stage</module>
         <module>registration-processor-abis-handler-stage</module>
         <module>registration-processor-abis-middleware-stage</module>
-    	<module>registration-processor-biometric-authentication-stage</module>
+        <module>registration-processor-biometric-authentication-stage</module> -->
+        <module>registration-processor-uin-generator-stage</module>
   </modules>
 </project>
