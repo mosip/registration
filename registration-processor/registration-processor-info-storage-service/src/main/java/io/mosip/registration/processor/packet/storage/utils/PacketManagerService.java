@@ -80,7 +80,11 @@ public class PacketManagerService {
         request.setVersion(VERSION);
         request.setRequesttime(DateUtils.getUTCCurrentDateTime());
         request.setRequest(fieldDto);
+        regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                id, "Calling PACKETMANAGER_SEARCH_FIELD API to get value for : " + field);
         ResponseWrapper<FieldResponseDto> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_SEARCH_FIELD, "", "", request, ResponseWrapper.class);
+        regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                id, "Received response from PACKETMANAGER_SEARCH_FIELD API for : " + field);
 
         if (response.getErrors() != null && response.getErrors().size() > 0) {
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
@@ -123,7 +127,14 @@ public class PacketManagerService {
         request.setVersion(VERSION);
         request.setRequesttime(DateUtils.getUTCCurrentDateTime());
         request.setRequest(fieldDto);
+
+        regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                id, "Calling PACKETMANAGER_SEARCH_FIELDS API to get values for : " + fields);
+
         ResponseWrapper<FieldResponseDto> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_SEARCH_FIELDS, "", "", request, ResponseWrapper.class);
+
+        regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                id, "Received response from PACKETMANAGER_SEARCH_FIELDS API for : " + fields);
 
         if (response.getErrors() != null && response.getErrors().size() > 0) {
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
@@ -148,7 +159,13 @@ public class PacketManagerService {
         request.setVersion(VERSION);
         request.setRequesttime(DateUtils.getUTCCurrentDateTime());
         request.setRequest(fieldDto);
+        regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                id, "Calling PACKETMANAGER_SEARCH_DOCUMENT API for : " + documentName);
+
         ResponseWrapper<Document> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_SEARCH_DOCUMENT, "", "", request, ResponseWrapper.class);
+
+        regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                id, "Received response from PACKETMANAGER_SEARCH_DOCUMENT API for : " + documentName);
 
         if (response.getErrors() != null && response.getErrors().size() > 0) {
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
@@ -221,8 +238,13 @@ public class PacketManagerService {
         request.setVersion(VERSION);
         request.setRequesttime(DateUtils.getUTCCurrentDateTime());
         request.setRequest(fieldDto);
+        regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                id, "Calling PACKETMANAGER_SEARCH_BIOMETRICS API for : " + person);
+
         ResponseWrapper<BiometricRecord> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_SEARCH_BIOMETRICS, "", "", request, ResponseWrapper.class);
 
+        regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                id, "Received response from PACKETMANAGER_SEARCH_BIOMETRICS API for : " + person);
         if (response.getErrors() != null && response.getErrors().size() > 0) {
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
             throw new PacketManagerException(response.getErrors().get(0).getErrorCode(), response.getErrors().get(0).getMessage());
