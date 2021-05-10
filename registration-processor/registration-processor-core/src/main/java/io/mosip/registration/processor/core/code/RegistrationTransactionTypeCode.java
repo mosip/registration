@@ -20,6 +20,9 @@ public enum RegistrationTransactionTypeCode {
 	OSI_VALIDATE,
 	/** The cmd validate. */
 	CMD_VALIDATE,
+	OPERATOR_VALIDATE,
+	SUPERVISOR_VALIDATE,
+	INTRODUCER_VALIDATE,
 	/** The external integration. */
 	EXTERNAL_INTEGRATION,
 	/** The demographic verification. */

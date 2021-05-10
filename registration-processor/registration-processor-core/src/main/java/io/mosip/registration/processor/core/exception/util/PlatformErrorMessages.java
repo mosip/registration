@@ -463,10 +463,43 @@ public enum PlatformErrorMessages {
 	CMD_BASE_CHECKED_EXCEPTION(PlatformConstants.RPR_CMD_VALIDATOR_MODULE + "002",
 			"CMD Validation Failed"),
 	
+	/** The operator base unchecked exception. */
+	OPERATOR_BASE_UNCHECKED_EXCEPTION(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "001",
+			"operator Validation Failed"),
+
+	/** The operator base checked exception. */
+	OPERATOR_BASE_CHECKED_EXCEPTION(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "002",
+			"operator Validation Failed"),
+	
+	/** The Operator validation failed. */
+	OPERATOR_VALIDATION_FAILED("", "Operator Validation Failed"),
+
+	/** The Supervisor base unchecked exception. */
+	SUPERVISOR_BASE_UNCHECKED_EXCEPTION(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "001",
+			"Supervisor Validation Failed"),
+
+	/** The Supervisor base checked exception. */
+	SUPERVISOR_BASE_CHECKED_EXCEPTION(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "002",
+			"Supervisor Validation Failed"),
+	
+	/** The Supervisor validation failed. */
+	SUPERVISOR_VALIDATION_FAILED("", "Supervisor Validation Failed"),
+
+	/** The INTRODUCER base unchecked exception. */
+	INTRODUCER_BASE_UNCHECKED_EXCEPTION(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "001",
+			"INTRODUCER Validation Failed"),
+
+	/** The INTRODUCER base checked exception. */
+	INTRODUCER_BASE_CHECKED_EXCEPTION(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "002",
+			"INTRODUCER Validation Failed"),
+	
+	/** The INTRODUCER validation failed. */
+	INTRODUCER_VALIDATION_FAILED("", "INTRODUCER Validation Failed"),
+
 	/** The osi validation failed. */
 	// Stages - OSI Exception error code and message
 	OSI_VALIDATION_FAILED("", "OSI Validation Failed"),
-
+	
 	/** The osi validation packet store not accessible. */
 	OSI_VALIDATION_PACKET_STORE_NOT_ACCESSIBLE(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "005",
 			"Unable to Access Packet Store"),

@@ -135,6 +135,24 @@ public class MessageBusAddress implements Serializable {
 
 	/** The Constant STRUCTURE_BUS_OUT. */
 	public static final MessageBusAddress CMD_BUS_OUT = new MessageBusAddress("c-m-d-validator-bus-out");
+	
+	/** The Constant OPERATOR_BUS_IN. */
+	public static final MessageBusAddress OPERATOR_BUS_IN = new MessageBusAddress("operator-validator-bus-in");
+
+	/** The Constant OPERATOR_BUS_OUT. */
+	public static final MessageBusAddress OPERATOR_BUS_OUT = new MessageBusAddress("operator-validator-bus-out");
+	
+	/** The Constant SUPERVISOR_BUS_IN. */
+	public static final MessageBusAddress SUPERVISOR_BUS_IN = new MessageBusAddress("supervisor-validator-bus-in");
+
+	/** The Constant SUPERVISOR_BUS_OUT. */
+	public static final MessageBusAddress SUPERVISOR_BUS_OUT = new MessageBusAddress("supervisor-validator-bus-out");
+	
+	/** The Constant INTRODUCER_BUS_IN. */
+	public static final MessageBusAddress INTRODUCER_BUS_IN = new MessageBusAddress("introducer-validator-bus-in");
+
+	/** The Constant SUPERVISOR_BUS_OUT. */
+	public static final MessageBusAddress INTRODUCER_BUS_OUT = new MessageBusAddress("introducer-validator-bus-out");
 
 	/** The Constant DEMODEDUPE_BUS_IN. */
 	public static final MessageBusAddress DEMO_DEDUPE_BUS_IN = new MessageBusAddress("demo-dedupe-bus-in");

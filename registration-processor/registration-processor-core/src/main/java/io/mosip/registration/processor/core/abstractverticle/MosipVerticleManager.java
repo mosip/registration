@@ -71,7 +71,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	private static final String ID = "mosip.commmons.packetmanager";
     private static final String VERSION = "v1";
 
-	private static final boolean DEFAULT_MESSAGE_TAG_LOADING_DISABLE_VALUE = false;
+	private static final boolean DEFAULT_MESSAGE_TAG_LOADING_DISABLE_VALUE = true;
 
     @Autowired
     private RegistrationProcessorRestClientService<Object> restApi;

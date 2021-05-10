@@ -70,12 +70,14 @@ public enum StatusUtil {
 	FAILED_TO_GET_MACHINE_DETAIL(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "013", "Failed to Get machine id details "),
 	FAILED_TO_GET_CENTER_DETAIL(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "014", "Failed to Get center id details "),
 	PACKET_IS_ON_HOLD(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "015", "Packet is on Hold due to parent packet processing"),
-
+	OFFICER_NOT_ACTIVE(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "016","OfficerId is inActive"),
+	
 	SUPERVISOR_OFFICER_NOT_FOUND_PACKET(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "012","Both Officer and Supervisor IDs are NULL"),
 	SUPERVISOR_OR_OFFICER_WAS_INACTIVE(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "013","Officer or Supervisor was Not Active during Packet Creation - "),
 	PACKET_CREATION_DATE_NOT_FOUND_IN_PACKET(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "014","Packet Creation Date is NULL"),
 	PASSWORD_OTP_FAILURE(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "015","Password or OTP Verification Failed for Officer - "),
-	OFFICER_SUPERVISOR_AUTHENTICATION_FAILED(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "016","Officer or Supervisor Biometric Authentication Failed - "), 
+	OFFICER_SUPERVISOR_AUTHENTICATION_FAILED(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "016","Officer or Supervisor Biometric Authentication Failed - "),
+	INTRODUCER_AUTHENTICATION_FAILED(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "030","INTRODUCER Biometric Authentication Failed - "),
 	PASSWORD_OTP_FAILURE_SUPERVISOR(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "017","Password or OTP Verification Failed for Supervisor - "),
 	UIN_RID_NOT_FOUND(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "018", "UIN or RID of Parent Not Found in Packet"),
 	PARENT_UIN_NOT_FOUND(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "019", "Parent UIN not Found for the Given RID"),
@@ -84,7 +86,14 @@ public enum StatusUtil {
 	CHILD_PACKET_REJECTED(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "022", "Packet Rejected as Parent Packet is Rejected"),
 	MACHINE_ID_NOT_FOUND_MASTER_DB(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "023", "MachineId not found in master db - "),
 	OSI_VALIDATION_SUCCESS(StatusConstants.OSI_VALIDAOR_MODULE_SUCCESS + "001", "OSI Validation is Successful"),
+	OPERATOR_VALIDATION_SUCCESS(StatusConstants.OSI_VALIDAOR_MODULE_SUCCESS + "025", "OPERATOR Validation is Successful"),
+	SUPERVISOR_VALIDATION_SUCCESS(StatusConstants.OSI_VALIDAOR_MODULE_SUCCESS + "026", "SUPERVISOR Validation is Successful"),
+	INTRODUCER_VALIDATION_SUCCESS(StatusConstants.OSI_VALIDAOR_MODULE_SUCCESS + "027", "INTRODUCER Validation is Successful"),
 	CMD_VALIDATION_SUCCESS(StatusConstants.CMD_VALIDAOR_MODULE_SUCCESS + "001", "CMD Validation is Successful"),
+	OFFICER_NOT_FOUND_PACKET(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "023","Officer ID is NULL"),
+	OFFICER_WAS_INACTIVE(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "024","Officer was Not Active during Packet Creation - "),
+	SUPERVISOR_NOT_FOUND_PACKET(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "028","Supervisor ID is NULL"),
+	SUPERVISOR_WAS_INACTIVE(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "029","Supervisor was Not Active during Packet Creation - "),
 
 	// printing stage
 	PRINT_REQUEST_SUCCESS(StatusConstants.PRINT_STAGE_MODULE_SUCCESS + "001", "Print request submitted"),

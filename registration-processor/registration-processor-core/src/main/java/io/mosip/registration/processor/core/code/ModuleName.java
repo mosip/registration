@@ -24,6 +24,12 @@ public enum ModuleName {
 	OSI_VALIDATOR,
 	
 	CMD_VALIDATOR,
+	
+	OPERATOR_VALIDATOR,
+	
+	SUPERVISOR_VALIDATOR,
+	
+	INTRODUCER_VALIDATOR,
 
 	/** The demo dedupe. */
 	DEMO_DEDUPE,
