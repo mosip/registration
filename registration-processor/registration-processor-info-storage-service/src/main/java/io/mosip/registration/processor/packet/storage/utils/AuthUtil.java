@@ -12,7 +12,11 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import javax.crypto.SecretKey;
@@ -32,7 +36,11 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.mosip.kernel.core.cbeffutil.entity.BIR;
+import io.mosip.kernel.biometrics.constant.BiometricFunction;
+import io.mosip.kernel.biometrics.constant.BiometricType;
+import io.mosip.kernel.biometrics.entities.BIR;
+import io.mosip.kernel.biosdk.provider.factory.BioAPIFactory;
+import io.mosip.kernel.biosdk.provider.spi.iBioProviderApi;
 import io.mosip.kernel.core.crypto.spi.CryptoCoreSpec;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
@@ -56,7 +64,6 @@ import io.mosip.registration.processor.core.http.RequestWrapper;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
-import io.mosip.registration.processor.core.util.CbeffToBiometricUtil;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.manager.dto.CryptomanagerResponseDto;
 import io.mosip.registration.processor.packet.storage.dto.CryptoManagerEncryptDto;
@@ -110,6 +117,10 @@ public class AuthUtil {
 
 	@Autowired
 	private Environment env;
+
+	/** The bio api factory. */
+	@Autowired(required = false)
+	private BioAPIFactory bioApiFactory;
 
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
 	private static final String VERSION = "1.0";
@@ -216,7 +227,6 @@ public class AuthUtil {
 			throws BioTypeException, NoSuchAlgorithmException {
 
 		String previousHash = HMACUtils2.digestAsPlainText("".getBytes());
-		CbeffToBiometricUtil CbeffToBiometricUtil = new CbeffToBiometricUtil();
 		List<BioInfo> biometrics = new ArrayList<>();
 		try {
 			for (io.mosip.kernel.biometrics.entities.BIR bir : list) {
@@ -225,8 +235,9 @@ public class AuthUtil {
 				dataInfoDTO.setEnv(domainUrl);
 				dataInfoDTO.setDomainUri(domainUrl);
 				dataInfoDTO.setTransactionId(DUMMY_TRANSACTION_ID);
-				BIR birApiResponse = CbeffToBiometricUtil.extractTemplate(BIRConverter.convertToBIR(bir), null);
-
+				List<BIR> birList = List.of(bir);
+				List<BIR> birApiResponseList = extractTemplates(birList, new HashMap<String,String>());
+				BIR birApiResponse = birApiResponseList.get(0);
 				dataInfoDTO.setBioType(birApiResponse.getBdbInfo().getType().get(0).toString());
 				List<String> bioSubType = birApiResponse.getBdbInfo().getSubtype();
 				// converting list to string
@@ -418,4 +429,37 @@ public class AuthUtil {
 		return DigestUtils.sha256(cert.getEncoded());
 	}
 
+	/**
+	 * Extract templates.
+	 *
+	 * @param birs              the birs
+	 * @param extractionFormats the extraction formats
+	 * @return the list
+	 * @throws BioTypeException
+	 */
+	public List<BIR> extractTemplates(List<BIR> birs, Map<String, String> extractionFormats) throws BioTypeException
+	{
+		try {
+			Map<BiometricType, List<BIR>> birsByType = birs.stream()
+					.collect(Collectors.groupingBy(bir -> bir.getBdbInfo().getType().get(0)));
+
+			List<BIR> allExtractedTemplates = new ArrayList<>();
+
+			for (Entry<BiometricType, List<BIR>> entry : birsByType.entrySet()) {
+				BiometricType modality = entry.getKey();
+				iBioProviderApi bioProvider = bioApiFactory.getBioProvider(BiometricType.fromValue(modality.value()),
+						BiometricFunction.EXTRACT);
+				List<BIR> extractedTemplates = bioProvider.extractTemplate(entry.getValue(), extractionFormats);
+				allExtractedTemplates.addAll(extractedTemplates);
+			}
+
+			return allExtractedTemplates;
+
+		} catch (Exception e) {
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", PlatformErrorMessages.OSI_VALIDATION_BIO_TYPE_EXCEPTION.getMessage() + "-" + e.getMessage());
+			throw new BioTypeException(
+					PlatformErrorMessages.OSI_VALIDATION_BIO_TYPE_EXCEPTION.getMessage() + "-" + e.getMessage());
+		}
+	}
 }

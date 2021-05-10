@@ -22,6 +22,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import io.mosip.kernel.biometrics.commons.CbeffValidator;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.constant.ProcessedLevelType;
 import io.mosip.kernel.biometrics.constant.PurposeType;
@@ -33,7 +34,6 @@ import io.mosip.kernel.biometrics.entities.BIRInfo.BIRInfoBuilder;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.entities.RegistryIDType;
 import io.mosip.kernel.biometrics.entities.VersionType;
-import io.mosip.kernel.core.cbeffutil.common.CbeffValidator;
 import io.mosip.kernel.core.cbeffutil.exception.CbeffException;
 import io.mosip.registration.processor.core.packet.dto.packetvalidator.PacketValidationDto;
 import io.mosip.registration.processor.core.util.JsonUtil;

@@ -20,9 +20,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import io.mosip.registration.processor.core.constant.PolicyConstant;
-import io.mosip.registration.processor.core.constant.ProviderStageName;
-import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
@@ -41,7 +38,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
+import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
@@ -61,6 +58,8 @@ import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.PacketFiles;
+import io.mosip.registration.processor.core.constant.PolicyConstant;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
@@ -107,8 +106,7 @@ import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.dto.Document;
 import io.mosip.registration.processor.packet.storage.entity.ManualVerificationEntity;
 import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
-import io.mosip.registration.processor.packet.storage.utils.BIRConverter;
-import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -719,7 +717,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 			List<String> modalities = getModalities(policy);
 			BiometricRecord biometricRecord = packetManagerService.getBiometrics(
 					id, individualBiometricsLabel, modalities, process, ProviderStageName.MANUAL_VERIFICATION);
-			byte[] content = cbeffutil.createXML(BIRConverter.convertSegmentsToBIRList(biometricRecord.getSegments()));
+			byte[] content = cbeffutil.createXML(biometricRecord.getSegments());
 			requestDto.setBiometrics(content != null ? CryptoUtil.encodeBase64(content) : null);
 		}
 

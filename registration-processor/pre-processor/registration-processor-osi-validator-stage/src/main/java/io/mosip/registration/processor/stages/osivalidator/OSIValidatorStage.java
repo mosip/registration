@@ -59,7 +59,7 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 		"io.mosip.registration.processor.packet.manager.config", 
 		"io.mosip.kernel.idobjectvalidator.config",
 		"io.mosip.registration.processor.core.kernel.beans",
-		"io.mosip.registration.processor.stages.osivalidator" })
+		"io.mosip.registration.processor.stages.osivalidator", "io.mosip.kernel.biosdk.provider.impl" })
 public class OSIValidatorStage extends MosipVerticleAPIManager {
 	
 	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.osi.validator.";
