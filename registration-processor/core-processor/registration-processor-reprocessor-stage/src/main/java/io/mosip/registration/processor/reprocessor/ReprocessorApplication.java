@@ -27,8 +27,6 @@ public class ReprocessorApplication {
 		workflowEventUpdateVerticle.deployVerticle();
         WorkflowActionApi workflowActionApi = ctx.getBean(WorkflowActionApi.class);
         workflowActionApi.deployVerticle();
-		// WorkflowSearchApi workflowSearchApi = ctx.getBean(WorkflowSearchApi.class);
-		// workflowSearchApi.deployVerticle();
 	}
 
 }

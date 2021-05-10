@@ -112,12 +112,8 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 
 	}
 
-	/**
-	 * 
-	 */
 	@Override
 	public void start() {
-
 		router.setRoute(this.postUrl(getVertx(), null, null));
 		this.routes(router);
 		// Todo: Create common verticle for api handling, change workflowActionApi also

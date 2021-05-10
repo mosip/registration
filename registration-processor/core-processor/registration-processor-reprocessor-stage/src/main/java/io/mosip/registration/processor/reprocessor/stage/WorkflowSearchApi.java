@@ -80,10 +80,9 @@ public class WorkflowSearchApi extends MosipRouter {
 	 *
 	 * @param router
 	 */
-	public void routes(MosipRouter router) {
+	private void routes(MosipRouter router) {
 		router.post(contextPath + "/workflow/search");
 		router.handler(this::processURL, this::failure);
-
 	}
 	/**
 	 * method to process the context received.
@@ -155,7 +154,6 @@ public class WorkflowSearchApi extends MosipRouter {
 	}
 
 	private void failure(RoutingContext routingContext) {
-		regProcLogger.info("failure method is getting called>>>>>>>>>");
 		this.setResponse(routingContext, routingContext.failure().getMessage());
 	}
 
@@ -173,8 +171,6 @@ public class WorkflowSearchApi extends MosipRouter {
 		}
 		this.setResponse(routingContext, workflowSearchResponseDTO);
 	}
-
-
 
 	/**
 	 * Update audit.
@@ -203,8 +199,6 @@ public class WorkflowSearchApi extends MosipRouter {
 			user = ctx.user().principal().getString("username");
 		return user;
 	}
-
-
 
 	public static <T, D> PageResponseDTO<D> buildPageReponse(Page<T> page) {
 		PageResponseDTO<D> pageResponse = new PageResponseDTO<>();
