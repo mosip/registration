@@ -118,13 +118,13 @@
 		<registration.processor.message.sender.version>1.2.0-SNAPSHOT</registration.processor.message.sender.version>
 
 		<!-- Kernel -->
-		<kernel.core.version>1.2.0-SNAPSHOT</kernel.core.version>
+		<kernel.core.version>1.1.7-SNAPSHOT</kernel.core.version>
 		<kernel.dataaccess.hibernate.version>1.2.0-SNAPSHOT</kernel.dataaccess.hibernate.version>
 		<kernel.templatemanager.velocity.version>1.2.0-SNAPSHOT</kernel.templatemanager.velocity.version>
 		<kernel.idvalidator.uin.version>1.2.0-SNAPSHOT</kernel.idvalidator.uin.version>
 		<kernel.idvalidator.rid.version>1.2.0-SNAPSHOT</kernel.idvalidator.rid.version>
 		<kernel.clamav.version>1.2.0-SNAPSHOT</kernel.clamav.version>
-		<kernel.cbeffutil.version>1.2.0-SNAPSHOT</kernel.cbeffutil.version>
+		<kernel.cbeffutil.version>1.1.7-SNAPSHOT</kernel.cbeffutil.version>
         <kernel.bioapi.provider.version>1.2.0-SNAPSHOT</kernel.bioapi.provider.version>
         <kernel.auth.adapter.version>1.2.0-SNAPSHOT</kernel.auth.adapter.version>
         <kernel.pdfgenerator.itext.version>1.2.0-SNAPSHOT</kernel.pdfgenerator.itext.version>
@@ -132,9 +132,10 @@
 		<kernel.logger.logback.version>1.2.0-SNAPSHOT</kernel.logger.logback.version>
 		<kernel.idvalidator.vid.version>1.2.0-SNAPSHOT</kernel.idvalidator.vid.version>
 		<object.store.khazana.version>1.2.0-SNAPSHOT</object.store.khazana.version>
-		<kernel.biometrics.api.version>1.2.0-SNAPSHOT</kernel.biometrics.api.version>
+		<kernel.biometrics.api.version>1.1.7-SNAPSHOT</kernel.biometrics.api.version>
 		<kernel-keymanager-service.version>1.2.0-SNAPSHOT</kernel-keymanager-service.version>
 		 <kernel.websubclient.version>1.2.0-SNAPSHOT</kernel.websubclient.version>
+		 <kernel-biosdk-provider.version>1.1.7-SNAPSHOT</kernel-biosdk-provider.version>
 			<sonar.coverage.exclusions>**/dto/**,
 			**/exception/*Exception.java,
 			**/config/*Config.java,

@@ -14,6 +14,8 @@ public enum PlatformErrorMessages {
 
 	/** The rpr pkr invalid packet size. */
 	RPR_PKR_INVALID_PACKET_SIZE(PlatformConstants.RPR_PACKET_RECEIVER_MODULE + "002", "Invalid Packet Size"),
+	RPR_WORKFLOW_SEARCH_API_FAILED(PlatformConstants.RPR_WORKFLOW_SEARCH_API + "000",
+			"Process the workflow search failed"),
 
 	/** The rpr pkr packet hash not equals synced hash. */
 	RPR_PKR_PACKET_HASH_NOT_EQUALS_SYNCED_HASH(PlatformConstants.RPR_PACKET_RECEIVER_MODULE + "009",

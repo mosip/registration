@@ -1,21 +1,24 @@
 package io.mosip.registration.processor.packet.storage.utils;
 
-import io.mosip.kernel.biometrics.constant.BiometricType;
-import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
-import io.mosip.kernel.core.cbeffutil.entity.BIR;
-import io.mosip.kernel.core.cbeffutil.entity.BIRInfo;
-import io.mosip.kernel.core.cbeffutil.entity.BIRVersion;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.*;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import io.mosip.kernel.biometrics.constant.BiometricType;
+import io.mosip.kernel.biometrics.constant.ProcessedLevelType;
+import io.mosip.kernel.biometrics.constant.PurposeType;
+import io.mosip.kernel.biometrics.constant.QualityType;
+import io.mosip.kernel.biometrics.entities.BDBInfo;
+import io.mosip.kernel.biometrics.entities.BIR;
+import io.mosip.kernel.biometrics.entities.BIRInfo;
+import io.mosip.kernel.biometrics.entities.RegistryIDType;
+import io.mosip.kernel.biometrics.entities.VersionType;
 
 public class BIRConverter {
 
     public static io.mosip.kernel.biometrics.entities.BIR convertToBiometricRecordBIR(BIR bir) {
         List<BiometricType> bioTypes = new ArrayList<>();
-        for(SingleType type : bir.getBdbInfo().getType()) {
+		for (BiometricType type : bir.getBdbInfo().getType()) {
             bioTypes.add(BiometricType.fromValue(type.value()));
         }
 
@@ -87,9 +90,9 @@ public class BIRConverter {
     }
 
     public static BIR convertToBIR(io.mosip.kernel.biometrics.entities.BIR bir) {
-        List<SingleType> bioTypes = new ArrayList<>();
+		List<BiometricType> bioTypes = new ArrayList<>();
         for(BiometricType type : bir.getBdbInfo().getType()) {
-            bioTypes.add(SingleType.fromValue(type.value()));
+			bioTypes.add(BiometricType.fromValue(type.value()));
         }
 
         RegistryIDType format = null;
@@ -118,10 +121,11 @@ public class BIRConverter {
 
         return new BIR.BIRBuilder()
                 .withBdb(bir.getBdb())
-                .withVersion(bir.getVersion() == null ? null : new BIRVersion.BIRVersionBuilder()
+                .withVersion(bir.getVersion() == null ? null : new VersionType.VersionTypeBuilder()
                         .withMinor(bir.getVersion().getMinor())
                         .withMajor(bir.getVersion().getMajor()).build())
-                .withCbeffversion(bir.getCbeffversion() == null ? null : new BIRVersion.BIRVersionBuilder()
+				.withCbeffversion(bir.getCbeffversion() == null ? null
+						: new VersionType.VersionTypeBuilder()
                         .withMinor(bir.getCbeffversion().getMinor())
                         .withMajor(bir.getCbeffversion().getMajor()).build())
                 .withBirInfo(new BIRInfo.BIRInfoBuilder().withIntegrity(true).build())
