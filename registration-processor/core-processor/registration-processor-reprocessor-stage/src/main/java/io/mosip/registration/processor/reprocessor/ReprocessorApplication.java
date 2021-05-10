@@ -5,7 +5,6 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import io.mosip.registration.processor.reprocessor.stage.ReprocessorStage;
 import io.mosip.registration.processor.reprocessor.stage.WorkflowActionApi;
 import io.mosip.registration.processor.reprocessor.stage.WorkflowEventUpdateVerticle;
-import io.mosip.registration.processor.reprocessor.stage.WorkflowSearchApi;
 
 /**
  * Main class for Reprocessor Application
@@ -28,8 +27,8 @@ public class ReprocessorApplication {
 		workflowEventUpdateVerticle.deployVerticle();
         WorkflowActionApi workflowActionApi = ctx.getBean(WorkflowActionApi.class);
         workflowActionApi.deployVerticle();
-		WorkflowSearchApi workflowSearchApi = ctx.getBean(WorkflowSearchApi.class);
-		workflowSearchApi.deployVerticle();
+		// WorkflowSearchApi workflowSearchApi = ctx.getBean(WorkflowSearchApi.class);
+		// workflowSearchApi.deployVerticle();
 	}
 
 }
