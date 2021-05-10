@@ -13,10 +13,7 @@ import io.mosip.kernel.core.exception.IOException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
-import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
-import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
-import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
@@ -34,27 +31,13 @@ import io.mosip.registration.processor.core.workflow.dto.WorkflowSearchResponseD
 import io.mosip.registration.processor.reprocessor.service.WorkflowSearchService;
 import io.mosip.registration.processor.reprocessor.validator.WorkflowSearchRequestValidator;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
-public class WorkflowSearchApi extends MosipVerticleAPIManager {
+public class WorkflowSearchApi extends MosipRouter {
 
-
-	@Value("${vertx.cluster.configuration}")
-	private String clusterManagerUrl;
-
-	/** server port number. */
-	@Value("${mosip.regproc.workflowsearch.server.port}")
-	private String port;
-
-	/** worker pool size. */
-	@Value("${worker.pool.size}")
-	private Integer workerPoolSize;
-
-	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.reprocessor.";
-
-	@Value("${mosip.regproc.workflowsearch.eventbus.port}")
-	private String eventBusPort;
 
 	@Value("${mosip.registration.processor.datetime.pattern}")
 	private String dateTimePattern;
@@ -65,16 +48,11 @@ public class WorkflowSearchApi extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.workflow.search.version}")
 	private String version;
 
-	@Autowired
-	MosipRouter router;
-
 	/**
 	 * The context path.
 	 */
 	@Value("${server.servlet.path}")
 	private String contextPath;
-
-	private MosipEventBus mosipEventBus = null;
 
 
 	/** The reg proc logger. */
@@ -96,26 +74,6 @@ public class WorkflowSearchApi extends MosipVerticleAPIManager {
 	@Autowired
 	WorkflowSearchRequestValidator workflowSearchRequestValidator;
 
-	/**
-	 * Deploy verticle.
-	 */
-	public void deployVerticle() {
-		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
-
-
-	}
-
-	@Override
-	public void start() {
-		router.setRoute(this.postUrl(getVertx(), null, null));
-		this.routes(router);
-		this.createServer(router.getRouter(), Integer.parseInt(port));
-	}
-
-	@Override
-	public Integer getEventBusPort() {
-		return Integer.parseInt(eventBusPort);
-	}
 
 	/**
 	 * contains all the routes in this stage
@@ -198,10 +156,6 @@ public class WorkflowSearchApi extends MosipVerticleAPIManager {
 	private void failure(RoutingContext routingContext) {
 		this.setResponse(routingContext, routingContext.failure().getMessage());
 	}
-	@Override
-	public MessageDTO process(MessageDTO object) {
-		return null;
-	}
 
 	private void buildResponse(RoutingContext routingContext, PageResponseDTO<WorkflowDetail> wfs,
 			List<ErrorDTO> errors) {
@@ -217,7 +171,6 @@ public class WorkflowSearchApi extends MosipVerticleAPIManager {
 		}
 		this.setResponse(routingContext, workflowSearchResponseDTO);
 	}
-
 
 	/**
 	 * Update audit.
@@ -247,8 +200,6 @@ public class WorkflowSearchApi extends MosipVerticleAPIManager {
 		return user;
 	}
 
-
-
 	public static <T, D> PageResponseDTO<D> buildPageReponse(Page<T> page) {
 		PageResponseDTO<D> pageResponse = new PageResponseDTO<>();
 		if (page != null) {
@@ -262,9 +213,15 @@ public class WorkflowSearchApi extends MosipVerticleAPIManager {
 		return pageResponse;
 	}
 
-	@Override
-	protected String getPropertyPrefix() {
-		return STAGE_PROPERTY_PREFIX;
+	public void setResponse(RoutingContext ctx, Object object) {
+		ctx.response().putHeader("content-type", "text/plain").putHeader("Access-Control-Allow-Origin", "*")
+				.putHeader("Access-Control-Allow-Methods", "GET, POST").setStatusCode(200)
+				.end(Json.encodePrettily(object));
+	};
+
+	public void setApiRoute(Router router) {
+		setRoute(router);
+		routes(this);
 	}
 
 }
