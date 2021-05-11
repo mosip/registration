@@ -2,7 +2,12 @@ package io.mosip.registration.processor.quality.checker.stage;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +51,8 @@ import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
+import io.mosip.registration.processor.packet.storage.utils.BIRConverter;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.quality.checker.exception.FileMissingException;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
@@ -62,17 +69,13 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 @Component
 @Configuration
 @ComponentScan(basePackages = { "io.mosip.registration.processor.core.config",
-		"io.mosip.registration.processor.quality.checker.config",
-		"io.mosip.registration.processor.stages.config", 
-		"io.mosip.registrationprocessor.stages.config", 
-		"io.mosip.registration.processor.status.config",
-		"io.mosip.registration.processor.rest.client.config", 
-		"io.mosip.registration.processor.packet.storage.config",
-		"io.mosip.registration.processor.packet.manager.config", 
-		"io.mosip.kernel.idobjectvalidator.config",
+		"io.mosip.registration.processor.quality.checker.config", "io.mosip.registration.processor.stages.config",
+		"io.mosip.registrationprocessor.stages.config", "io.mosip.registration.processor.status.config",
+		"io.mosip.registration.processor.rest.client.config", "io.mosip.registration.processor.packet.storage.config",
+		"io.mosip.registration.processor.packet.manager.config", "io.mosip.kernel.idobjectvalidator.config",
 		"io.mosip.registration.processor.core.kernel.beans", "io.mosip.kernel.biosdk.provider.impl" })
 public class QualityCheckerStage extends MosipVerticleAPIManager {
-	
+
 	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.quality.checker.";
 
 	/** The Constant FINGER. */
@@ -129,7 +132,10 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
 
-	/** After this time intervel, message should be considered as expired (In seconds). */
+	/**
+	 * After this time intervel, message should be considered as expired (In
+	 * seconds).
+	 */
 	@Value("${mosip.regproc.quality.checker.message.expiry-time-limit}")
 	private Long messageExpiryTimeLimit;
 
@@ -146,11 +152,35 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 	private MosipRouter router;
 
 	@Autowired
-	private PriorityBasedPacketManagerService packetManagerService;
+	private PriorityBasedPacketManagerService basedPacketManagerService;
+
+	@Autowired
+	private PacketManagerService packetManagerService;
 
 	/** The registration status mapper util. */
 	@Autowired
 	private RegistrationExceptionMapperUtil registrationStatusMapperUtil;
+
+	/**
+	 * Below quality classifications map should contain proper quality
+	 * classification name and quality range, any overlap of the quality range will
+	 * result in a random behaviour of tagging. In range, upper and lower values are
+	 * inclusive.
+	 */
+	
+	@Value("#{${mosip.regproc.packet.classifier.tagging.quality.ranges:{'Poor':'0-29','Good':'30-69','Very Good':'70-100'}}}")
+	private Map<String, String> qualityClassficaticationsRangeMap;
+
+	@Value("${mosip.regproc.packet.classifier.tagging.quality.prefix:Quality_}")
+	private String qualityTagPrefix;
+
+	private static String RANGE_DELIMITER = "-";
+
+	/**
+	 * Filter qualityClassficaticationsRangeMap using delimiter and store into
+	 * parsedQualityRangemap using @PostConstruct
+	 */
+	private Map<String, int[]> parsedQualityRangemap;
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(QualityCheckerStage.class);
@@ -165,6 +195,18 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 	@Autowired
 	private BioAPIFactory bioApiFactory;
 
+	@PostConstruct
+	private void generateParsedAgeGroupRangeMap() {
+		parsedQualityRangemap = new HashMap<>();
+		for (Map.Entry<String, String> entry : qualityClassficaticationsRangeMap.entrySet()) {
+			String[] range = entry.getValue().split(RANGE_DELIMITER);
+			int[] rangeArray = new int[2];
+			rangeArray[0] = Integer.parseInt(range[0]);
+			rangeArray[1] = Integer.parseInt(range[1]);
+			parsedQualityRangemap.put(entry.getKey(), rangeArray);
+		}
+	}
+
 	/**
 	 * Deploy verticle.
 	 */
@@ -173,7 +215,7 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.QUALITY_CHECKER_BUS_IN,
 				MessageBusAddress.QUALITY_CHECKER_BUS_OUT, messageExpiryTimeLimit);
 	}
-	
+
 	@Override
 	protected String getPropertyPrefix() {
 		return STAGE_PROPERTY_PREFIX;
@@ -181,8 +223,7 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 
 	@Override
 	public void start() {
-		router.setRoute(
-				this.postUrl(getVertx(), MessageBusAddress.OSI_BUS_IN, MessageBusAddress.OSI_BUS_OUT));
+		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.OSI_BUS_IN, MessageBusAddress.OSI_BUS_OUT));
 		this.createServer(router.getRouter(), getPort());
 	}
 
@@ -205,8 +246,9 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(regId);
 
 		try {
-			String individualBiometricsObject = packetManagerService.getFieldByMappingJsonKey(
-					regId, MappingJsonConstants.INDIVIDUAL_BIOMETRICS, registrationStatusDto.getRegistrationType(), ProviderStageName.QUALITY_CHECKER);
+			String individualBiometricsObject = basedPacketManagerService.getFieldByMappingJsonKey(regId,
+					MappingJsonConstants.INDIVIDUAL_BIOMETRICS, registrationStatusDto.getRegistrationType(),
+					ProviderStageName.QUALITY_CHECKER);
 			if (StringUtils.isEmpty(individualBiometricsObject)) {
 				description.setCode(PlatformErrorMessages.INDIVIDUAL_BIOMETRIC_NOT_FOUND.getCode());
 				description.setMessage(PlatformErrorMessages.INDIVIDUAL_BIOMETRIC_NOT_FOUND.getMessage());
@@ -220,15 +262,18 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
 						"Individual Biometric parameter is not present in ID Json");
 			} else {
-				BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(
-						regId, MappingJsonConstants.INDIVIDUAL_BIOMETRICS, registrationStatusDto.getRegistrationType(), ProviderStageName.QUALITY_CHECKER);
+				BiometricRecord biometricRecord = basedPacketManagerService.getBiometricsByMappingJsonKey(regId,
+						MappingJsonConstants.INDIVIDUAL_BIOMETRICS, registrationStatusDto.getRegistrationType(),
+						ProviderStageName.QUALITY_CHECKER);
 
 				if (biometricRecord == null || CollectionUtils.isEmpty(biometricRecord.getSegments())) {
-					biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(
-							regId, MappingJsonConstants.AUTHENTICATION_BIOMETRICS, registrationStatusDto.getRegistrationType(), ProviderStageName.QUALITY_CHECKER);
+					biometricRecord = basedPacketManagerService.getBiometricsByMappingJsonKey(regId,
+							MappingJsonConstants.AUTHENTICATION_BIOMETRICS, registrationStatusDto.getRegistrationType(),
+							ProviderStageName.QUALITY_CHECKER);
 				}
 
-				if (biometricRecord == null || biometricRecord.getSegments() == null || biometricRecord.getSegments().size() == 0) {
+				if (biometricRecord == null || biometricRecord.getSegments() == null
+						|| biometricRecord.getSegments().size() == 0) {
 					description.setCode(PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getCode());
 					description.setMessage(PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getMessage());
 					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
@@ -237,59 +282,70 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 					throw new FileMissingException(PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getCode(),
 							PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getMessage());
 				}
-				List<BIR> birList = biometricRecord.getSegments();
+				HashMap<String, Float> bioTypeMinScoreMap = new HashMap<String, Float>();
+
 				// get individual biometrics file name from id.json
-				int scoreCounter = 0;
-				for (BIR bir : birList) {
+				for (BIR bir : biometricRecord.getSegments()) {
 					BiometricType biometricType = bir.getBdbInfo().getType().get(0);
-					List<String> subtype = bir.getBdbInfo().getSubtype();
-					Integer threshold = getThresholdBasedOnType(biometricType, subtype);
-					float[] qualityScoreresponse;
 					BIR[] birArray = new BIR[1];
-					birArray[0]=bir;
-					qualityScoreresponse = getBioSdkInstance(biometricType).getSegmentQuality(birArray, null);
-					int qualityScore = Float.valueOf(qualityScoreresponse[0]).intValue();
-					if (qualityScore < threshold) {
-						object.setIsValid(Boolean.FALSE);
-						isTransactionSuccessful = Boolean.FALSE;
-						registrationStatusDto
-								.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
-						registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
-						registrationStatusDto.setStatusComment(StatusUtil.BIOMETRIC_QUALITY_CHECK_FAILED.getMessage());
-						registrationStatusDto.setSubStatusCode(StatusUtil.BIOMETRIC_QUALITY_CHECK_FAILED.getCode());
-						description.setCode(PlatformErrorMessages.BIOMETRIC_QUALITY_CHECK_FAILED.getCode());
-						description.setMessage(PlatformErrorMessages.BIOMETRIC_QUALITY_CHECK_FAILED.getMessage());
-						break;
-					} else {
-						scoreCounter++;
+					birArray[0] = bir;
+					float[] qualityScoreresponse = getBioSdkInstance(biometricType).getSegmentQuality(birArray, null);
+
+					float score = Float.valueOf(qualityScoreresponse[0]);
+					String tagName = qualityTagPrefix.concat(bir.getBdbInfo().getType().get(0).value());
+
+					// Check for entry
+					Float storedMinScore = bioTypeMinScoreMap.get(tagName);
+
+					bioTypeMinScoreMap.put(tagName,
+							storedMinScore == null ? score : storedMinScore > score ? score : storedMinScore);
+
+				}
+
+				Map<String, String> tags = new HashMap<String, String>();
+
+				for (Entry<String, Float> bioTypeMinEntry : bioTypeMinScoreMap.entrySet()) {
+
+					for (Entry<String, int[]> qualityRangeEntry : parsedQualityRangemap.entrySet()) {
+
+						if (bioTypeMinEntry.getValue() >= qualityRangeEntry.getValue()[0]
+								&& bioTypeMinEntry.getValue() <= qualityRangeEntry.getValue()[1]) {
+
+							tags.put(bioTypeMinEntry.getKey(), qualityRangeEntry.getKey());
+							break;
+						}
+
 					}
 				}
-				if (scoreCounter == birList.size()) {
-					object.setIsValid(Boolean.TRUE);
-					description.setCode(PlatformSuccessMessages.RPR_QUALITY_CHECK_SUCCESS.getCode());
-					description.setMessage(PlatformSuccessMessages.RPR_QUALITY_CHECK_SUCCESS.getMessage());
-					isTransactionSuccessful = Boolean.TRUE;
-					registrationStatusDto
-							.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
-					registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-					registrationStatusDto.setStatusComment(StatusUtil.BIOMETRIC_QUALITY_CHECK_SUCCESS.getMessage());
-					registrationStatusDto.setSubStatusCode(StatusUtil.BIOMETRIC_QUALITY_CHECK_SUCCESS.getCode());
-					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), regId, "QualityCheckerImpl::success");
-				}
+
+				packetManagerService.addOrUpdateTags(regId, tags);
+
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
+						"UpdatingTags::success ");
+
+				object.setIsValid(Boolean.TRUE);
+				description.setCode(PlatformSuccessMessages.RPR_QUALITY_CHECK_SUCCESS.getCode());
+				description.setMessage(PlatformSuccessMessages.RPR_QUALITY_CHECK_SUCCESS.getMessage());
+				isTransactionSuccessful = Boolean.TRUE;
+				registrationStatusDto
+						.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
+				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+				registrationStatusDto.setStatusComment(StatusUtil.BIOMETRIC_QUALITY_CHECK_SUCCESS.getMessage());
+				registrationStatusDto.setSubStatusCode(StatusUtil.BIOMETRIC_QUALITY_CHECK_SUCCESS.getCode());
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), regId, "QualityCheckerImpl::success");
 			}
 
 		} catch (ApisResourceAccessException e) {
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION));
+			registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
+					.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION));
 			registrationStatusDto.setStatusComment(trimExpMessage
 					.trimExceptionMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage() + e.getMessage()));
 			registrationStatusDto.setSubStatusCode(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode());
 			object.setInternalError(true);
 			object.setIsValid(false);
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					regId,
-					PlatformErrorMessages.RPR_PUM_NGINX_ACCESS_FAILED.name() + ExceptionUtils.getStackTrace(e));
+					regId, PlatformErrorMessages.RPR_PUM_NGINX_ACCESS_FAILED.name() + ExceptionUtils.getStackTrace(e));
 
 			description.setMessage(PlatformErrorMessages.RPR_PUM_NGINX_ACCESS_FAILED.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_PUM_NGINX_ACCESS_FAILED.getCode());
@@ -324,17 +380,16 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 			description.setCode(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getCode());
 			description.setMessage(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getMessage());
 			object.setRid(regId);
-		}
-		catch (JsonProcessingException e) {
+		} catch (JsonProcessingException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					regId,
-					RegistrationStatusCode.FAILED.toString() + e.getMessage() + org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
+					regId, RegistrationStatusCode.FAILED.toString() + e.getMessage()
+							+ org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-			registrationStatusDto.setStatusComment(
-					trimExceptionMsg.trimExceptionMessage(StatusUtil.JSON_PARSING_EXCEPTION.getMessage() + e.getMessage()));
+			registrationStatusDto.setStatusComment(trimExceptionMsg
+					.trimExceptionMessage(StatusUtil.JSON_PARSING_EXCEPTION.getMessage() + e.getMessage()));
 			registrationStatusDto.setSubStatusCode(StatusUtil.JSON_PARSING_EXCEPTION.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.JSON_PROCESSING_EXCEPTION));
+			registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
+					.getStatusCode(RegistrationExceptionTypeCode.JSON_PROCESSING_EXCEPTION));
 			isTransactionSuccessful = false;
 			description.setMessage(PlatformErrorMessages.RPR_SYS_JSON_PARSING_EXCEPTION.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_SYS_JSON_PARSING_EXCEPTION.getCode());
@@ -344,8 +399,8 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 			e.printStackTrace();
 		} catch (IOException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					regId,
-					RegistrationStatusCode.FAILED.toString() + e.getMessage() + org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
+					regId, RegistrationStatusCode.FAILED.toString() + e.getMessage()
+							+ org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 			registrationStatusDto.setStatusComment(
 					trimExceptionMsg.trimExceptionMessage(StatusUtil.IO_EXCEPTION.getMessage() + e.getMessage()));
@@ -360,11 +415,11 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 			object.setRid(registrationStatusDto.getRegistrationId());
 		} catch (PacketManagerException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					regId,
-					RegistrationStatusCode.FAILED.toString() + e.getMessage() + org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
+					regId, RegistrationStatusCode.FAILED.toString() + e.getMessage()
+							+ org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
-			registrationStatusDto.setStatusComment(
-					trimExceptionMsg.trimExceptionMessage(StatusUtil.PACKET_MANAGER_EXCEPTION.getMessage() + e.getMessage()));
+			registrationStatusDto.setStatusComment(trimExceptionMsg
+					.trimExceptionMessage(StatusUtil.PACKET_MANAGER_EXCEPTION.getMessage() + e.getMessage()));
 			registrationStatusDto.setSubStatusCode(StatusUtil.PACKET_MANAGER_EXCEPTION.getCode());
 			registrationStatusDto.setLatestTransactionStatusCode(
 					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_EXCEPTION));
