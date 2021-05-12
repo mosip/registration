@@ -76,7 +76,7 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 		"io.mosip.registration.processor.core.kernel.beans", "io.mosip.kernel.biosdk.provider.impl" })
 public class QualityClassifierStage extends MosipVerticleAPIManager {
 
-	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.quality.checker.";
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.quality.classifier.";
 
 	/** The Constant FINGER. */
 	private static final String FINGER = "FINGER";
@@ -168,10 +168,10 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 	 * inclusive.
 	 */
 	
-	@Value("#{${mosip.regproc.packet.classifier.tagging.quality.ranges:{'Poor':'0-29','Good':'30-69','Very Good':'70-100'}}}")
-	private Map<String, String> qualityClassficaticationsRangeMap;
+	@Value("#{${mosip.regproc.quality.classifier.tagging.quality.ranges:{'Poor':'0-29','Average':'30-69','Good':'70-100'}}}")
+	private Map<String, String> qualityClassificationRangeMap;
 
-	@Value("${mosip.regproc.packet.classifier.tagging.quality.prefix:Quality_}")
+	@Value("${mosip.regproc.quality.classifier.tagging.quality.prefix:Biometric_Quality-}")
 	private String qualityTagPrefix;
 
 	private static String RANGE_DELIMITER = "-";
@@ -180,7 +180,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 	 * Filter qualityClassficaticationsRangeMap using delimiter and store into
 	 * parsedQualityRangemap using @PostConstruct
 	 */
-	private Map<String, int[]> parsedQualityRangemap;
+	private Map<String, int[]> parsedQualityRangeMap;
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(QualityClassifierStage.class);
@@ -196,14 +196,14 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 	private BioAPIFactory bioApiFactory;
 
 	@PostConstruct
-	private void generateParsedAgeGroupRangeMap() {
-		parsedQualityRangemap = new HashMap<>();
-		for (Map.Entry<String, String> entry : qualityClassficaticationsRangeMap.entrySet()) {
+	private void generateParsedQualityRangeMap() {
+		parsedQualityRangeMap = new HashMap<>();
+		for (Map.Entry<String, String> entry : qualityClassificationRangeMap.entrySet()) {
 			String[] range = entry.getValue().split(RANGE_DELIMITER);
 			int[] rangeArray = new int[2];
 			rangeArray[0] = Integer.parseInt(range[0]);
 			rangeArray[1] = Integer.parseInt(range[1]);
-			parsedQualityRangemap.put(entry.getKey(), rangeArray);
+			parsedQualityRangeMap.put(entry.getKey(), rangeArray);
 		}
 	}
 
@@ -292,12 +292,12 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 					float[] qualityScoreresponse = getBioSdkInstance(biometricType).getSegmentQuality(birArray, null);
 
 					float score = Float.valueOf(qualityScoreresponse[0]);
-					String tagName = qualityTagPrefix.concat(bir.getBdbInfo().getType().get(0).value());
+					String bioType = bir.getBdbInfo().getType().get(0).value();
 
 					// Check for entry
-					Float storedMinScore = bioTypeMinScoreMap.get(tagName);
+					Float storedMinScore = bioTypeMinScoreMap.get(bioType);
 
-					bioTypeMinScoreMap.put(tagName,
+					bioTypeMinScoreMap.put(bioType,
 							storedMinScore == null ? score : storedMinScore > score ? score : storedMinScore);
 
 				}
@@ -306,12 +306,12 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 
 				for (Entry<String, Float> bioTypeMinEntry : bioTypeMinScoreMap.entrySet()) {
 
-					for (Entry<String, int[]> qualityRangeEntry : parsedQualityRangemap.entrySet()) {
+					for (Entry<String, int[]> qualityRangeEntry : parsedQualityRangeMap.entrySet()) {
 
 						if (bioTypeMinEntry.getValue() >= qualityRangeEntry.getValue()[0]
 								&& bioTypeMinEntry.getValue() <= qualityRangeEntry.getValue()[1]) {
 
-							tags.put(bioTypeMinEntry.getKey(), qualityRangeEntry.getKey());
+							tags.put( qualityTagPrefix.concat(bioTypeMinEntry.getKey()), qualityRangeEntry.getKey());
 							break;
 						}
 
