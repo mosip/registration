@@ -19,6 +19,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
+import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
@@ -150,7 +151,7 @@ public class RegistrationStatusServiceImpl
 			String transactionId = generateId();
 			registrationStatusDto.setLatestRegistrationTransactionId(transactionId);
 			registrationStatusDto.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
-			RegistrationStatusEntity entity = convertDtoToEntity(registrationStatusDto);
+			RegistrationStatusEntity entity = convertDtoToEntity(registrationStatusDto, null);
 			registrationStatusDao.save(entity);
 			isTransactionSuccessful = true;
 			description.setMessage("Registration status added successfully");
@@ -222,7 +223,8 @@ public class RegistrationStatusServiceImpl
 			InternalRegistrationStatusDto dto = getRegistrationStatus(registrationStatusDto.getRegistrationId());
 			if (dto != null) {
 				dto.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
-				RegistrationStatusEntity entity = convertDtoToEntity(registrationStatusDto);
+				RegistrationStatusEntity entity = convertDtoToEntity(registrationStatusDto, 
+					dto.getLastSuccessStageName());
 				registrationStatusDao.save(entity);
 				isTransactionSuccessful = true;
 				description.setMessage("Updated registration status successfully");
@@ -413,6 +415,7 @@ public class RegistrationStatusServiceImpl
 		registrationStatusDto.setResumeTimeStamp(entity.getResumeTimeStamp());
 		registrationStatusDto.setDefaultResumeAction(entity.getDefaultResumeAction());
 		registrationStatusDto.setResumeRemoveTags(entity.getResumeRemoveTags());
+		registrationStatusDto.setLastSuccessStageName(entity.getLastSuccessStageName());
 		return registrationStatusDto;
 	}
 
@@ -423,7 +426,8 @@ public class RegistrationStatusServiceImpl
 	 *            the dto
 	 * @return the registration status entity
 	 */
-	private RegistrationStatusEntity convertDtoToEntity(InternalRegistrationStatusDto dto) {
+	private RegistrationStatusEntity convertDtoToEntity(InternalRegistrationStatusDto dto, 
+			String existingLastSuccessStageName) {
 		RegistrationStatusEntity registrationStatusEntity = new RegistrationStatusEntity();
 		registrationStatusEntity.setId(dto.getRegistrationId());
 		registrationStatusEntity.setRegistrationType(dto.getRegistrationType());
@@ -459,6 +463,12 @@ public class RegistrationStatusServiceImpl
 		registrationStatusEntity.setResumeTimeStamp(dto.getResumeTimeStamp());
 		registrationStatusEntity.setDefaultResumeAction(dto.getDefaultResumeAction());
 		registrationStatusEntity.setResumeRemoveTags(dto.getResumeRemoveTags());
+		if(dto.getLatestTransactionStatusCode().equals(RegistrationTransactionStatusCode.SUCCESS.toString()) 
+			|| dto.getLatestTransactionStatusCode().equals(
+				RegistrationTransactionStatusCode.PROCESSED.toString()))
+			registrationStatusEntity.setLastSuccessStageName(dto.getRegistrationStageName());
+		else
+			registrationStatusEntity.setLastSuccessStageName(existingLastSuccessStageName);
 		return registrationStatusEntity;
 	}
 
