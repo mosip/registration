@@ -41,8 +41,8 @@ import io.mosip.registration.processor.stages.validator.impl.PacketValidatorImpl
 public class ValidatorConfig {
 
 	public static final String PACKET_VALIDATOR_PROVIDER = "packet.validator.provider";
-
-	private static Logger logger = RegProcessorLogger.getLogger(ValidatorConfig.class);
+	
+    private static Logger logger = RegProcessorLogger.getLogger(ValidatorConfig.class);
 
 	@Autowired
 	private RestApiClient restApiClient;
@@ -60,6 +60,7 @@ public class ValidatorConfig {
 		return new ApplicantDocumentValidation();
 	}
 
+	
 	@Bean
 	public PacketValidateProcessor getPacketValidateProcessor() {
 		return new PacketValidateProcessor();
@@ -81,7 +82,7 @@ public class ValidatorConfig {
 		restTemplate.setInterceptors(Collections.singletonList(new RestTemplateInterceptor(restApiClient)));
 		return restTemplate;
 	}
-
+	
 	@Bean
 	public RestHelper getRestHelper() {
 		return new RestHelperImpl();
@@ -101,24 +102,24 @@ public class ValidatorConfig {
 	public NotificationUtility notificationUtility() {
 		return new NotificationUtility();
 	}
-
+	
 	@Bean
 	public TemplateGenerator getTemplateGenerator() {
 		return new TemplateGenerator();
 	}
+	
+/*	@Bean
+	@Primary
+	public IdObjectValidator idObjectCompositeValidator() {
+		return new IdObjectCompositeValidator();
+	}
 
-	/*
-	 * @Bean
-	 * 
-	 * @Primary public IdObjectValidator idObjectCompositeValidator() { return new
-	 * IdObjectCompositeValidator(); }
-	 * 
-	 * @Bean public IdObjectPatternValidator idObjectPatternValidator() {
-	 * IdObjectPatternValidator idObjectPatternValidator = new
-	 * IdObjectPatternValidator();
-	 * idObjectPatternValidator.setValidation(getValidationMap()); return
-	 * idObjectPatternValidator; }
-	 */
+	@Bean
+	public IdObjectPatternValidator idObjectPatternValidator() {
+		IdObjectPatternValidator idObjectPatternValidator = new IdObjectPatternValidator();
+		idObjectPatternValidator.setValidation(getValidationMap());
+		return  idObjectPatternValidator;
+	}*/
 
 	@Bean
 	public PacketValidatorImpl packetValidatorImpl() {
@@ -128,12 +129,12 @@ public class ValidatorConfig {
 	@PostConstruct
 	public void validateReferenceValidatorImpl() throws ClassNotFoundException {
 		if (org.apache.commons.lang3.StringUtils.isNotBlank(env.getProperty(PACKET_VALIDATOR_PROVIDER))) {
-			logger.debug("validating referenceValidatorImpl Class is present or not",
-					env.getProperty(PACKET_VALIDATOR_PROVIDER), "loading reference validator", "");
+			logger.debug("validating referenceValidatorImpl Class is present or not", env.getProperty(PACKET_VALIDATOR_PROVIDER),
+					"loading reference validator", "");
 			Class.forName(env.getProperty(PACKET_VALIDATOR_PROVIDER));
 		}
-		logger.debug("referenceValidatorImpl: referenceValidator Class is not provided",
-				env.getProperty(PACKET_VALIDATOR_PROVIDER), "failed to load reference validator", "");
+		logger.debug("referenceValidatorImpl: referenceValidator Class is not provided", env.getProperty(PACKET_VALIDATOR_PROVIDER),
+				"failed to load reference validator", "");
 	}
 
 	@Bean
@@ -149,19 +150,16 @@ public class ValidatorConfig {
 					"loading reference validator", "");
 			return new PacketValidator() {
 				@Override
-				public boolean validate(String registrationId, String process, PacketValidationDto packetValidationDto)
-						throws ApisResourceAccessException, RegistrationProcessorCheckedException, IOException,
-						JsonProcessingException {
+				public boolean validate(String registrationId, String process, PacketValidationDto packetValidationDto) throws ApisResourceAccessException, RegistrationProcessorCheckedException, IOException, JsonProcessingException {
 					return true;
 				}
 			};
 		}
 	}
-
-	/*
-	 * public Map<String, String> getValidationMap(){ Map<String, String> map=new
-	 * HashMap<String, String>(); return map;
-	 * 
-	 * }
-	 */
+	
+/*	public Map<String, String> getValidationMap(){
+		Map<String, String> map=new HashMap<String, String>();
+		return map;
+		
+	}*/
 }
