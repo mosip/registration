@@ -1,9 +1,12 @@
-package io.mosip.registration.processor.quality.checker.stage.test;
+package io.mosip.registration.processor.quality.qualifier.stage.test;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -12,19 +15,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Answers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.kernel.biometrics.constant.BiometricType;
@@ -50,6 +57,7 @@ import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.quality.classifier.stage.QualityClassifierStage;
@@ -64,7 +72,7 @@ import io.mosip.kernel.biosdk.provider.spi.iBioProviderApi;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*","com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", })
-public class QualityCheckerStageTest {
+public class QualityClassifierStageTest {
 
 	@Mock
 	private AuditLogRequestBuilder auditLogRequestBuilder;
@@ -82,7 +90,7 @@ public class QualityCheckerStageTest {
 	private Utilities utility;
 
 	@Mock
-	private PriorityBasedPacketManagerService packetManagerService;
+	private PriorityBasedPacketManagerService basedPacketManagerService;
 
 	/** The cbeff util. */
 	@Mock
@@ -93,6 +101,9 @@ public class QualityCheckerStageTest {
 	@Mock
 	private iBioProviderApi iBioProviderApi;
 	
+	@Mock
+	private PacketManagerService packetManagerService;
+//	
 	JSONObject mappingJSONObject;
 
 
@@ -150,6 +161,23 @@ public class QualityCheckerStageTest {
 		ReflectionTestUtils.setField(qualityClassifierStage, "rightFingerThreshold", 80);
 		ReflectionTestUtils.setField(qualityClassifierStage, "thumbFingerThreshold", 80);
 		ReflectionTestUtils.setField(qualityClassifierStage, "faceThreshold", 25);
+		ReflectionTestUtils.setField(qualityClassifierStage, "qualityTagPrefix", "Biometric_Quality-");
+		
+		Map<String, String> qualityClassificationRangeMap =new HashMap<String, String>();
+		qualityClassificationRangeMap.put("Poor","0-29");
+		qualityClassificationRangeMap.put("Average","30-69");
+		qualityClassificationRangeMap.put("Good","70-100");
+		
+		ReflectionTestUtils.setField(qualityClassifierStage, "qualityClassificationRangeMap", qualityClassificationRangeMap);
+		
+		
+		Map<String, int[]> parsedMap =new HashMap<String, int[]>();
+		parsedMap.put("Poor",new int[]{0,29});
+		parsedMap.put("Average",new int[]{30,69});
+		parsedMap.put("Good",new int[]{70,100});
+		
+		ReflectionTestUtils.setField(qualityClassifierStage, "parsedQualityRangeMap", parsedMap);
+		
 
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
@@ -224,8 +252,10 @@ public class QualityCheckerStageTest {
 
 		BiometricRecord biometricRecord = new BiometricRecord();
 		biometricRecord.setSegments(birTypeList);
-		when(packetManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenReturn(biometricRecord);
-		when(packetManagerService.getFieldByMappingJsonKey(any(), any(), any(), any())).thenReturn("individualBiometrics");
+		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenReturn(biometricRecord);
+		when(basedPacketManagerService.getFieldByMappingJsonKey(any(), any(), any(), any())).thenReturn("individualBiometrics");
+		Mockito.doNothing().when(packetManagerService).addOrUpdateTags(any(), any());
+
 
 		File file = new File(classLoader.getResource("RegistrationProcessorIdentity.json").getFile());
 		InputStream inputStream = new FileInputStream(file);
@@ -236,6 +266,7 @@ public class QualityCheckerStageTest {
 		float[] scores=new float[1];
 		scores[0]=100;
 		Mockito.when(iBioProviderApi.getSegmentQuality(any(), any())).thenReturn(scores);
+		
 	}
 
 	@Test
@@ -244,7 +275,7 @@ public class QualityCheckerStageTest {
 	}
 
 	@Test
-	public void testQualityCheckerSuccess() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
+	public void testQualityClassifierSuccess() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
 		List<BIR> birTypeList = new ArrayList<>();
 		BIR birType1 = new BIR.BIRBuilder().build();
 		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType1 = new io.mosip.kernel.biometrics.entities.BDBInfo.BDBInfoBuilder().build();
@@ -302,7 +333,8 @@ public class QualityCheckerStageTest {
 
 		BiometricRecord biometricRecord = new BiometricRecord();
 		biometricRecord.setSegments(birTypeList);
-		when(packetManagerService.getBiometricsByMappingJsonKey(any(),any(), any(), any())).thenReturn(null).thenReturn(biometricRecord);
+		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(),any(), any(), any())).thenReturn(biometricRecord);
+		doNothing().when(packetManagerService).addOrUpdateTags(any(), any());
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
@@ -314,7 +346,7 @@ public class QualityCheckerStageTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testException() throws Exception {
-		when(packetManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenThrow(new PacketManagerException("code","message"));
+		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenThrow(new PacketManagerException("code","message"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO messageDTO = qualityClassifierStage.process(dto);
@@ -323,7 +355,7 @@ public class QualityCheckerStageTest {
 	
 	@Test
 	public void testCbeffNotFound() throws IOException, PacketManagerException, JsonProcessingException, ApisResourceAccessException {
-		when(packetManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenThrow(new IOException("message"));
+		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenThrow(new IOException("message"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO messageDTO = qualityClassifierStage.process(dto);
@@ -333,7 +365,7 @@ public class QualityCheckerStageTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testApiNotAccessibleTest() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
-		when(packetManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenThrow(new ApisResourceAccessException("message"));
+		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenThrow(new ApisResourceAccessException("message"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO messageDTO = qualityClassifierStage.process(dto);
@@ -342,12 +374,14 @@ public class QualityCheckerStageTest {
 	}
 
 	@Test
-	public void testQualityCheckFailure() throws IOException, BiometricException {
+	public void testQualityClassifierFailure() throws IOException, BiometricException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 		Mockito.when(utility.getRegistrationProcessorMappingJson(anyString())).thenReturn(JsonUtil.getJSONObject(mappingJSONObject, "identity"));
 		Mockito.when(bioApiFactory.getBioProvider(any(), any())).thenReturn(iBioProviderApi);
 		float[] scores=new float[1];
 		scores[0]=0;
 		Mockito.when(iBioProviderApi.getSegmentQuality(any(), any())).thenReturn(scores);
+
+		doThrow(PacketManagerException.class).when(packetManagerService).addOrUpdateTags(any(), any());
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
@@ -358,7 +392,7 @@ public class QualityCheckerStageTest {
 
 	@Test
 	public void testFileNameMissing() throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
-		when(packetManagerService.getBiometricsByMappingJsonKey(any(),any(), any(), any())).thenReturn(null).thenReturn(null);
+		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(),any(), any(), any())).thenReturn(null).thenReturn(null);
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO result = qualityClassifierStage.process(dto);
@@ -389,7 +423,7 @@ public class QualityCheckerStageTest {
 	@Test
 	public void testFileMissing() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
-		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(),any(), any(),any())).thenReturn(null);
+		when(basedPacketManagerService.getBiometricsByMappingJsonKey(anyString(),any(), any(),any())).thenReturn(null);
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
@@ -401,7 +435,7 @@ public class QualityCheckerStageTest {
 	@Test
 	public void testBioetricFileNotPresentInIdObject() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
 
-		when(packetManagerService.getFieldByMappingJsonKey(any(), any(), any(), any())).thenReturn(null);
+		when(basedPacketManagerService.getFieldByMappingJsonKey(any(), any(), any(), any())).thenReturn(null);
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
@@ -413,7 +447,7 @@ public class QualityCheckerStageTest {
 	@Test
 	public void testNoBiometricInPacket() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
 
-		when(packetManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenReturn(null);
+		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenReturn(null);
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
@@ -425,7 +459,7 @@ public class QualityCheckerStageTest {
 
 	@Test
 	public void testJsonProcessingException() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
-		when(packetManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenThrow(new JsonProcessingException("Json exception"));
+		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenThrow(new JsonProcessingException("Json exception"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO result = qualityClassifierStage.process(dto);
