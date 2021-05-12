@@ -168,8 +168,13 @@ public class AbisHandlerStageTest {
 		ReflectionTestUtils.setField(abisHandlerStage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(abisHandlerStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(abisHandlerStage, "clusterManagerUrl", "/dummyPath");
+		ReflectionTestUtils.setField(abisHandlerStage, "httpProtocol", "http");
+		ReflectionTestUtils.setField(abisHandlerStage, "internalDomainName", "localhost");
 		Mockito.when(env.getProperty("mosip.registration.processor.datetime.pattern"))
 				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		
+		Mockito.when(env.getProperty("DATASHARECREATEURL"))
+		.thenReturn("/v1/datashare/create");
 		AbisApplicationDto dto = new AbisApplicationDto();
 		dto.setCode("ABIS1");
 		abisApplicationDtos.add(dto);
@@ -201,7 +206,7 @@ public class AbisHandlerStageTest {
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg-client");
 		when(cbeffutil.createXML(any())).thenReturn("abishandlerstage".getBytes());
 
-		Mockito.when(packetManagerService.getBiometrics(any(),any(),any(), any())).thenReturn(biometricRecord);
+		Mockito.when(packetManagerService.getBiometrics(any(),any(),any(), any(),any())).thenReturn(biometricRecord);
 
 		Mockito.doNothing().when(registrationStatusDto).setLatestTransactionStatusCode(any());
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
@@ -247,7 +252,7 @@ public class AbisHandlerStageTest {
 
 		when(registrationProcessorRestClientService.getApi(any(),any(),anyString(),anyString(),any())).thenReturn(policy);
 
-		Mockito.when(registrationProcessorRestClientService.postApi(any(ApiName.class), any(MediaType.class), any(),any(),any(), any(), any())).thenReturn(dataShareResponseDto);
+		Mockito.when(registrationProcessorRestClientService.postApi(anyString(), any(MediaType.class), any(),any(),any(), any(), any())).thenReturn(dataShareResponseDto);
 	}
 
 	@Test
