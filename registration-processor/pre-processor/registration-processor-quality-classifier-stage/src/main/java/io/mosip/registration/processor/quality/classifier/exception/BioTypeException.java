@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.quality.checker.exception;
+package io.mosip.registration.processor.quality.classifier.exception;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
 

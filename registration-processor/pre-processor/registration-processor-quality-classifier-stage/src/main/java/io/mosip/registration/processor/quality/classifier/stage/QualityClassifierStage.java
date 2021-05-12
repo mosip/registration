@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.quality.checker.stage;
+package io.mosip.registration.processor.quality.classifier.stage;
 
 import java.io.File;
 import java.io.IOException;
@@ -54,7 +54,7 @@ import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil
 import io.mosip.registration.processor.packet.storage.utils.BIRConverter;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
-import io.mosip.registration.processor.quality.checker.exception.FileMissingException;
+import io.mosip.registration.processor.quality.classifier.exception.FileMissingException;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -69,12 +69,12 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 @Component
 @Configuration
 @ComponentScan(basePackages = { "io.mosip.registration.processor.core.config",
-		"io.mosip.registration.processor.quality.checker.config", "io.mosip.registration.processor.stages.config",
+		"io.mosip.registration.processor.quality.classifier.config", "io.mosip.registration.processor.stages.config",
 		"io.mosip.registrationprocessor.stages.config", "io.mosip.registration.processor.status.config",
 		"io.mosip.registration.processor.rest.client.config", "io.mosip.registration.processor.packet.storage.config",
 		"io.mosip.registration.processor.packet.manager.config", "io.mosip.kernel.idobjectvalidator.config",
 		"io.mosip.registration.processor.core.kernel.beans", "io.mosip.kernel.biosdk.provider.impl" })
-public class QualityCheckerStage extends MosipVerticleAPIManager {
+public class QualityClassifierStage extends MosipVerticleAPIManager {
 
 	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.quality.checker.";
 
@@ -183,7 +183,7 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 	private Map<String, int[]> parsedQualityRangemap;
 
 	/** The reg proc logger. */
-	private static Logger regProcLogger = RegProcessorLogger.getLogger(QualityCheckerStage.class);
+	private static Logger regProcLogger = RegProcessorLogger.getLogger(QualityClassifierStage.class);
 
 	/** The Constant FILE_SEPARATOR. */
 	public static final String FILE_SEPARATOR = File.separator;

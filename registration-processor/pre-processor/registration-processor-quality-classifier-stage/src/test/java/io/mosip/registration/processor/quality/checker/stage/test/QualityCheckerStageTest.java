@@ -52,7 +52,7 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
-import io.mosip.registration.processor.quality.checker.stage.QualityCheckerStage;
+import io.mosip.registration.processor.quality.classifier.stage.QualityClassifierStage;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
@@ -98,7 +98,7 @@ public class QualityCheckerStageTest {
 
 
 	@InjectMocks
-	private QualityCheckerStage qualityCheckerStage = new QualityCheckerStage() {
+	private QualityClassifierStage qualityClassifierStage = new QualityClassifierStage() {
 		@Override
 		public MosipEventBus getEventBus(Object verticleName, String url, int instanceNumber) {
 			vertx = Vertx.vertx();
@@ -142,14 +142,14 @@ public class QualityCheckerStageTest {
 
 	@Before
 	public void setUp() throws Exception {
-		ReflectionTestUtils.setField(qualityCheckerStage, "workerPoolSize", 10);
-		ReflectionTestUtils.setField(qualityCheckerStage, "clusterManagerUrl", "/dummyPath");
-		ReflectionTestUtils.setField(qualityCheckerStage, "messageExpiryTimeLimit", Long.valueOf(0));
-		ReflectionTestUtils.setField(qualityCheckerStage, "irisThreshold", 70);
-		ReflectionTestUtils.setField(qualityCheckerStage, "leftFingerThreshold", 80);
-		ReflectionTestUtils.setField(qualityCheckerStage, "rightFingerThreshold", 80);
-		ReflectionTestUtils.setField(qualityCheckerStage, "thumbFingerThreshold", 80);
-		ReflectionTestUtils.setField(qualityCheckerStage, "faceThreshold", 25);
+		ReflectionTestUtils.setField(qualityClassifierStage, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(qualityClassifierStage, "clusterManagerUrl", "/dummyPath");
+		ReflectionTestUtils.setField(qualityClassifierStage, "messageExpiryTimeLimit", Long.valueOf(0));
+		ReflectionTestUtils.setField(qualityClassifierStage, "irisThreshold", 70);
+		ReflectionTestUtils.setField(qualityClassifierStage, "leftFingerThreshold", 80);
+		ReflectionTestUtils.setField(qualityClassifierStage, "rightFingerThreshold", 80);
+		ReflectionTestUtils.setField(qualityClassifierStage, "thumbFingerThreshold", 80);
+		ReflectionTestUtils.setField(qualityClassifierStage, "faceThreshold", 25);
 
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
@@ -240,7 +240,7 @@ public class QualityCheckerStageTest {
 
 	@Test
 	public void testDeployVerticle() {
-		qualityCheckerStage.deployVerticle();
+		qualityClassifierStage.deployVerticle();
 	}
 
 	@Test
@@ -306,7 +306,7 @@ public class QualityCheckerStageTest {
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
-		MessageDTO result = qualityCheckerStage.process(dto);
+		MessageDTO result = qualityClassifierStage.process(dto);
 
 		assertTrue(result.getIsValid());
 	}
@@ -317,7 +317,7 @@ public class QualityCheckerStageTest {
 		when(packetManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenThrow(new PacketManagerException("code","message"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
-		MessageDTO messageDTO = qualityCheckerStage.process(dto);
+		MessageDTO messageDTO = qualityClassifierStage.process(dto);
 		assertFalse(messageDTO.getIsValid());
 	}
 	
@@ -326,7 +326,7 @@ public class QualityCheckerStageTest {
 		when(packetManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenThrow(new IOException("message"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
-		MessageDTO messageDTO = qualityCheckerStage.process(dto);
+		MessageDTO messageDTO = qualityClassifierStage.process(dto);
 		assertFalse(messageDTO.getIsValid());
 	}
 	
@@ -336,7 +336,7 @@ public class QualityCheckerStageTest {
 		when(packetManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenThrow(new ApisResourceAccessException("message"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
-		MessageDTO messageDTO = qualityCheckerStage.process(dto);
+		MessageDTO messageDTO = qualityClassifierStage.process(dto);
 		assertFalse(messageDTO.getIsValid());
 
 	}
@@ -351,7 +351,7 @@ public class QualityCheckerStageTest {
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
-		MessageDTO result = qualityCheckerStage.process(dto);
+		MessageDTO result = qualityClassifierStage.process(dto);
 
 		assertFalse(result.getIsValid());
 	}
@@ -361,7 +361,7 @@ public class QualityCheckerStageTest {
 		when(packetManagerService.getBiometricsByMappingJsonKey(any(),any(), any(), any())).thenReturn(null).thenReturn(null);
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
-		MessageDTO result = qualityCheckerStage.process(dto);
+		MessageDTO result = qualityClassifierStage.process(dto);
 
 		assertTrue(result.getInternalError());
 	}
@@ -371,7 +371,7 @@ public class QualityCheckerStageTest {
 		Mockito.when(bioApiFactory.getBioProvider(any(), any())).thenThrow(new BiometricException("", "error from provider"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
-		MessageDTO result = qualityCheckerStage.process(dto);
+		MessageDTO result = qualityClassifierStage.process(dto);
 
 		assertTrue(result.getInternalError());
 	}
@@ -381,7 +381,7 @@ public class QualityCheckerStageTest {
 		Mockito.when(bioApiFactory.getBioProvider(any(), any())).thenReturn(null);
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
-		MessageDTO result = qualityCheckerStage.process(dto);
+		MessageDTO result = qualityClassifierStage.process(dto);
 
 		assertTrue(result.getInternalError());
 	}
@@ -393,7 +393,7 @@ public class QualityCheckerStageTest {
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
-		MessageDTO result = qualityCheckerStage.process(dto);
+		MessageDTO result = qualityClassifierStage.process(dto);
 
 		assertTrue(result.getInternalError());
 	}
@@ -405,7 +405,7 @@ public class QualityCheckerStageTest {
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
-		MessageDTO result = qualityCheckerStage.process(dto);
+		MessageDTO result = qualityClassifierStage.process(dto);
 
 		assertTrue(result.getIsValid());
 	}
@@ -417,7 +417,7 @@ public class QualityCheckerStageTest {
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
-		MessageDTO result = qualityCheckerStage.process(dto);
+		MessageDTO result = qualityClassifierStage.process(dto);
 
 		assertFalse(result.getIsValid());
 	}
@@ -428,7 +428,7 @@ public class QualityCheckerStageTest {
 		when(packetManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenThrow(new JsonProcessingException("Json exception"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
-		MessageDTO result = qualityCheckerStage.process(dto);
+		MessageDTO result = qualityClassifierStage.process(dto);
 
 		assertTrue(result.getInternalError());
 	}

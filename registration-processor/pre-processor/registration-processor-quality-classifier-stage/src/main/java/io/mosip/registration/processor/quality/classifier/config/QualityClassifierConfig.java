@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.quality.checker.config;
+package io.mosip.registration.processor.quality.classifier.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,7 +11,7 @@ import io.mosip.kernel.cbeffutil.impl.CbeffImpl;
 
 @PropertySource("classpath:bootstrap.properties")
 @Configuration
-public class QualityCheckerConfig {
+public class QualityClassifierConfig {
 
 
 	@Bean
