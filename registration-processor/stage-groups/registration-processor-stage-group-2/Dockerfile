@@ -45,9 +45,6 @@ ARG container_user_uid=1001
 # can be passed during Docker build as build time environment for github branch to pickup configuration from.
 ARG container_user_gid=1001
 
-# set working directory for the user
-WORKDIR /home/${container_user}
-
 #ARG bio_sdk_folder=mock/0.9
 ARG biosdk_zip_path
 
