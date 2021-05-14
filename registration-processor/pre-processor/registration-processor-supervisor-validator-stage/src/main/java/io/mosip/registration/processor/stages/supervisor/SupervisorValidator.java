@@ -98,21 +98,10 @@ public class SupervisorValidator {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "SupervisorValidator::validate()::entry");
 
-		String supervisorId = regOsi.getSupervisorId();
-		if (supervisorId == null || supervisorId.isEmpty()) {
-			registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
-					.getStatusCode(RegistrationExceptionTypeCode.SUPERVISORID_NOT_PRESENT_IN_PACKET));
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, "Supervisor ID is not present in Packet");
-			throw new BaseCheckedException(StatusUtil.SUPERVISOR_NOT_FOUND_PACKET.getMessage(),
-					StatusUtil.SUPERVISOR_NOT_FOUND_PACKET.getCode());
-		} else {
-			ActiveUserId(registrationId, regOsi, registrationStatusDto);
-			validateSupervisor(regOsi, registrationId, registrationStatusDto);
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, "SupervisorValidator::validate()::exit");
-		}
+		ActiveUserId(registrationId, regOsi, registrationStatusDto);
+		validateSupervisor(regOsi, registrationId, registrationStatusDto);
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				registrationId, "SupervisorValidator::validate()::exit");
 	}
 
 	private void ActiveUserId(String registrationId, RegOsiDto regOsi,

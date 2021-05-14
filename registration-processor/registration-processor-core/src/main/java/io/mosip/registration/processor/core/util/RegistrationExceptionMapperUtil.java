@@ -148,10 +148,6 @@ public class RegistrationExceptionMapperUtil {
 				RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.PACKET_CREATION_DATE_NOT_PRESENT_IN_PACKET,
 				RegistrationTransactionStatusCode.FAILED);
-		statusMap.put(RegistrationExceptionTypeCode.OFFICERID_NOT_PRESENT_IN_PACKET,
-				RegistrationTransactionStatusCode.FAILED);
-		statusMap.put(RegistrationExceptionTypeCode.SUPERVISORID_NOT_PRESENT_IN_PACKET,
-				RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.SUPERVISOR_OR_OFFICER_WAS_INACTIVE,
 				RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.OFFICER_WAS_INACTIVE, RegistrationTransactionStatusCode.FAILED);

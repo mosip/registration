@@ -105,10 +105,25 @@ public class SupervisorValidationProcessor {
 					registrationStatusDto.getRegistrationType(), ProviderStageName.SUPERVISOR_VALIDATOR);
 			RegOsiDto regOsi = osiUtils.getOSIDetailsFromMetaInfo(metaInfo);
 			
-			supervisorValidator.validate(registrationId, registrationStatusDto, regOsi);
-			umcValidator.validateUMCmapping(regOsi.getPacketCreationDate(), regOsi.getRegcntrId(), regOsi.getMachineId(),
-					regOsi.getSupervisorId(), registrationStatusDto);
-
+			String officerId = regOsi.getOfficerId();
+			String supervisorId = regOsi.getSupervisorId();
+			if ((officerId == null || officerId.isEmpty()) && (supervisorId == null || supervisorId.isEmpty())) {
+				registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
+						.getStatusCode(RegistrationExceptionTypeCode.SUPERVISORID_AND_OFFICERID_NOT_PRESENT_IN_PACKET));
+				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+						"Both Officer and Supervisor ID are not present in Packet");
+				throw new BaseCheckedException(StatusUtil.SUPERVISOR_OFFICER_NOT_FOUND_PACKET.getMessage(),
+						StatusUtil.SUPERVISOR_OFFICER_NOT_FOUND_PACKET.getCode());
+			}
+			
+			if (supervisorId != null && !supervisorId.isEmpty()) {
+				supervisorValidator.validate(registrationId, registrationStatusDto, regOsi);
+				umcValidator.validateUMCmapping(regOsi.getPacketCreationDate(), regOsi.getRegcntrId(),
+						regOsi.getMachineId(), regOsi.getSupervisorId(), registrationStatusDto);
+			}
+			
 			registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 			registrationStatusDto.setStatusComment(StatusUtil.SUPERVISOR_VALIDATION_SUCCESS.getMessage());
 			registrationStatusDto.setSubStatusCode(StatusUtil.SUPERVISOR_VALIDATION_SUCCESS.getCode());

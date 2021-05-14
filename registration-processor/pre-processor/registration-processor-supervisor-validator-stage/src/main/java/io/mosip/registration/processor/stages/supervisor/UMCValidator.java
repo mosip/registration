@@ -59,14 +59,9 @@ public class UMCValidator {
 		supervisorpathsegments.add(machineId);
 		supervisorpathsegments.add(supervisorId);
 
-		if (supervisorId != null) {
-			if (!validateMapping(supervisorpathsegments, registrationStatusDto)) {
-				throw new BaseCheckedException(StatusUtil.SUPERVISOR_NOT_ACTIVE.getMessage(),
-						StatusUtil.SUPERVISOR_NOT_ACTIVE.getCode());
-			}
-		} else {
-			throw new BaseCheckedException(StatusUtil.SUPERVISOR_NOT_FOUND_PACKET.getMessage(),
-					StatusUtil.SUPERVISOR_NOT_FOUND_PACKET.getCode());
+		if (!validateMapping(supervisorpathsegments, registrationStatusDto)) {
+			throw new BaseCheckedException(StatusUtil.SUPERVISOR_NOT_ACTIVE.getMessage(),
+					StatusUtil.SUPERVISOR_NOT_ACTIVE.getCode());
 		}
 	}
 

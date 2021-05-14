@@ -58,15 +58,12 @@ public class UMCValidator {
 		officerpathsegments.add(registrationCenterId);
 		officerpathsegments.add(machineId);
 		officerpathsegments.add(officerId);
-		if (officerId != null) {
-			if (!validateMapping(officerpathsegments, registrationStatusDto)) {
-				throw new BaseCheckedException(StatusUtil.OFFICER_NOT_ACTIVE.getMessage(),
-						StatusUtil.OFFICER_NOT_ACTIVE.getCode());
-			}
-		} else {
-			throw new BaseCheckedException(StatusUtil.OFFICER_NOT_FOUND_PACKET.getMessage(),
-					StatusUtil.OFFICER_NOT_FOUND_PACKET.getCode());
+
+		if (!validateMapping(officerpathsegments, registrationStatusDto)) {
+			throw new BaseCheckedException(StatusUtil.OFFICER_NOT_ACTIVE.getMessage(),
+					StatusUtil.OFFICER_NOT_ACTIVE.getCode());
 		}
+
 	}
 
 	private boolean validateMapping(List<String> pathsegments, InternalRegistrationStatusDto registrationStatusDto)

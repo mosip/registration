@@ -91,9 +91,7 @@ public enum StatusUtil {
 	SUPERVISOR_VALIDATION_SUCCESS(StatusConstants.OSI_VALIDAOR_MODULE_SUCCESS + "026", "SUPERVISOR Validation is Successful"),
 	INTRODUCER_VALIDATION_SUCCESS(StatusConstants.OSI_VALIDAOR_MODULE_SUCCESS + "027", "INTRODUCER Validation is Successful"),
 	CMD_VALIDATION_SUCCESS(StatusConstants.CMD_VALIDAOR_MODULE_SUCCESS + "001", "CMD Validation is Successful"),
-	OFFICER_NOT_FOUND_PACKET(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "023","Officer ID is NULL"),
 	OFFICER_WAS_INACTIVE(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "024","Officer was Not Active during Packet Creation - "),
-	SUPERVISOR_NOT_FOUND_PACKET(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "028","Supervisor ID is NULL"),
 	SUPERVISOR_WAS_INACTIVE(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "029","Supervisor was Not Active during Packet Creation - "),
 
 	// printing stage

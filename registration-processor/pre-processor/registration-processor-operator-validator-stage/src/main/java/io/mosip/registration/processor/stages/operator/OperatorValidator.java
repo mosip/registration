@@ -98,19 +98,8 @@ public class OperatorValidator {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "OperatorValidator::validate()::entry");
 
-		String officerId = regOsi.getOfficerId();
-		if (officerId == null || officerId.isEmpty()) {
-			registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
-					.getStatusCode(RegistrationExceptionTypeCode.OFFICERID_NOT_PRESENT_IN_PACKET));
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, "Operator ID are not present in Packet");
-			throw new BaseCheckedException(StatusUtil.OFFICER_NOT_FOUND_PACKET.getMessage(),
-					StatusUtil.OFFICER_NOT_FOUND_PACKET.getCode());
-		} else {
-			ActiveUserId(registrationId, regOsi, registrationStatusDto);
-			validateOperator(regOsi, registrationId, registrationStatusDto);
-		}
+		ActiveUserId(registrationId, regOsi, registrationStatusDto);
+		validateOperator(regOsi, registrationId, registrationStatusDto);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "OperatorValidator::validate()::exit");
 	}
