@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.stages.cmdvalidator.utils;
+package io.mosip.registration.processor.packet.storage.utils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,7 +26,7 @@ import io.mosip.registration.processor.core.packet.dto.NewRegisteredDevice;
 import io.mosip.registration.processor.core.packet.dto.RegOsiDto;
 
 @Service
-public class CMDUtils {
+public class OSIUtils {
 
 	@Autowired
 	private ObjectMapper objectMapper;

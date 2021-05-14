@@ -87,7 +87,6 @@ public class IntroducerValidator {
 	 *
 	 * @param registrationId        the registration id
 	 * @param registrationStatusDto
-	 * @return true, if is valid introducer
 	 * @throws IOException                                Signals that an I/O
 	 *                                                    exception has occurred.
 	 * @throws SAXException
@@ -100,11 +99,10 @@ public class IntroducerValidator {
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
 	 */
-	public boolean isValidIntroducer(String registrationId, InternalRegistrationStatusDto registrationStatusDto)
-			throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, CertificateException,
-			BaseCheckedException {
+	public void validate(String registrationId, InternalRegistrationStatusDto registrationStatusDto) throws IOException,
+			InvalidKeySpecException, NoSuchAlgorithmException, CertificateException, BaseCheckedException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "IntroducerValidator::isValidIntroducer()::entry");
+				registrationId, "IntroducerValidator::validate()::entry");
 
 		if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.NEW.name())
 				|| (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.UPDATE.name()))) {
@@ -113,7 +111,7 @@ public class IntroducerValidator {
 			int ageThreshold = Integer.parseInt(ageLimit);
 			if (age < ageThreshold) {
 				if (!introducerValidation)
-					return true;
+					return;
 
 				String introducerUIN = packetManagerService.getFieldByMappingJsonKey(registrationId,
 						MappingJsonConstants.PARENT_OR_GUARDIAN_UIN, registrationStatusDto.getRegistrationType(),
@@ -134,7 +132,7 @@ public class IntroducerValidator {
 				}
 
 				if ((introducerUIN == null || introducerUIN.isEmpty())
-						&& validateIntroducerRid(introducerRID, registrationId, registrationStatusDto)) {
+						&& isValidIntroducerRid(introducerRID, registrationId, registrationStatusDto)) {
 
 					introducerUIN = idRepoService.getUinByRid(introducerRID,
 							utility.getGetRegProcessorDemographicIdentity());
@@ -152,7 +150,7 @@ public class IntroducerValidator {
 
 				}
 				if (introducerUIN != null && !introducerUIN.isEmpty()) {
-					return validateIntroducerBiometric(registrationId, registrationStatusDto, introducerUIN);
+					validateIntroducerBiometric(registrationId, registrationStatusDto, introducerUIN);
 				} else {
 					throw new BaseCheckedException(StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getMessage(),
 							StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getCode());
@@ -161,9 +159,7 @@ public class IntroducerValidator {
 
 		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "IntroducerValidator::isValidIntroducer()::exit");
-
-		return true;
+				registrationId, "IntroducerValidator::validate()::exit");
 	}
 
 	private boolean isValidIntroducer(String introducerUIN, String introducerRID) {
@@ -180,7 +176,7 @@ public class IntroducerValidator {
 	 * @return true, if successful
 	 * @throws BaseCheckedException
 	 */
-	private boolean validateIntroducerRid(String introducerRid, String registrationId,
+	private boolean isValidIntroducerRid(String introducerRid, String registrationId,
 			InternalRegistrationStatusDto registrationStatusDto) throws BaseCheckedException {
 		InternalRegistrationStatusDto introducerRegistrationStatusDto = registrationStatusService
 				.getRegistrationStatus(introducerRid);
@@ -232,15 +228,15 @@ public class IntroducerValidator {
 
 	}
 
-	private boolean validateIntroducerBiometric(String registrationId,
-			InternalRegistrationStatusDto registrationStatusDto, String introducerUIN)
+	private void validateIntroducerBiometric(String registrationId, InternalRegistrationStatusDto registrationStatusDto,
+			String introducerUIN)
 			throws IOException, CertificateException, NoSuchAlgorithmException, BaseCheckedException {
 		BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(registrationId,
 				MappingJsonConstants.PARENT_OR_GUARDIAN_BIO, registrationStatusDto.getRegistrationType(),
 				ProviderStageName.INTRODUCER_VALIDATOR);
 		if (biometricRecord != null && biometricRecord.getSegments() != null) {
-			return validateUserBiometric(registrationId, introducerUIN, biometricRecord.getSegments(),
-					INDIVIDUAL_TYPE_UIN, registrationStatusDto);
+			validateUserBiometric(registrationId, introducerUIN, biometricRecord.getSegments(), INDIVIDUAL_TYPE_UIN,
+					registrationStatusDto);
 		} else {
 			registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
 					.getStatusCode(RegistrationExceptionTypeCode.PARENT_BIOMETRIC_NOT_IN_PACKET));
@@ -260,7 +256,6 @@ public class IntroducerValidator {
 	 * @param list                  biometric data as BIR object
 	 * @param individualType        user type
 	 * @param registrationStatusDto
-	 * @return true, if successful
 	 * @throws SAXException
 	 * @throws ParserConfigurationException
 	 * @throws NoSuchAlgorithmException
@@ -271,15 +266,13 @@ public class IntroducerValidator {
 	 * @throws BiometricException
 	 */
 
-	private boolean validateUserBiometric(String registrationId, String userId, List<BIR> list, String individualType,
+	private void validateUserBiometric(String registrationId, String userId, List<BIR> list, String individualType,
 			InternalRegistrationStatusDto registrationStatusDto)
 			throws IOException, CertificateException, NoSuchAlgorithmException, BaseCheckedException {
 
 		AuthResponseDTO authResponseDTO = authUtil.authByIdAuthentication(userId, individualType, list);
 		if (authResponseDTO.getErrors() == null || authResponseDTO.getErrors().isEmpty()) {
-			if (authResponseDTO.getResponse().isAuthStatus()) {
-				return true;
-			} else {
+			if (!authResponseDTO.getResponse().isAuthStatus()) {
 				registrationStatusDto.setLatestTransactionStatusCode(
 						registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.AUTH_FAILED));
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());

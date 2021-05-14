@@ -42,17 +42,15 @@ public class MachineValidator {
 	 * @param langCode              the lang code
 	 * @param effdatetimes          the effdatetimes
 	 * @param registrationStatusDto
-	 * @return true, if successful
 	 * @throws IOException
 	 * @throws BaseCheckedException
 	 * @throws JsonProcessingException
 	 * @throws com.fasterxml.jackson.databind.JsonMappingException
 	 * @throws com.fasterxml.jackson.core.JsonParseException
 	 */
-	public boolean isValidMachine(String machineId, String langCode, String effdatetimes, String registrationId)
+	public void validate(String machineId, String langCode, String effdatetimes, String registrationId)
 			throws IOException, BaseCheckedException, ApisResourceAccessException {
 
-		boolean isActiveMachine = false;
 		if (machineId == null) {
 			throw new BaseCheckedException(StatusUtil.MACHINE_ID_NOT_FOUND.getMessage(),
 					StatusUtil.MACHINE_ID_NOT_FOUND.getCode());
@@ -70,14 +68,13 @@ public class MachineValidator {
 		mhrdto = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
 				MachineHistoryResponseDto.class);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "MachineValidator::isValidMachine()::MachineHistory service ended with response data : "
+				registrationId, "MachineValidator::validate()::MachineHistory service ended with response data : "
 						+ JsonUtil.objectMapperObjectToJson(mhrdto));
 		if (responseWrapper.getErrors() == null) {
 			MachineHistoryDto dto = mhrdto.getMachineHistoryDetails().get(0);
 
 			if (dto.getId() != null && dto.getId().matches(machineId)) {
-				isActiveMachine = dto.getIsActive();
-				if (!isActiveMachine) {
+				if (!dto.getIsActive()) {
 					throw new BaseCheckedException(StatusUtil.MACHINE_ID_NOT_ACTIVE.getMessage() + machineId,
 							StatusUtil.MACHINE_ID_NOT_ACTIVE.getCode());
 				}
@@ -90,12 +87,11 @@ public class MachineValidator {
 			List<ErrorDTO> error = responseWrapper.getErrors();
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId,
-					"MachineValidator::isValidMachine()::MachineHistory service ended with response data : "
+					"MachineValidator::validate()::MachineHistory service ended with response data : "
 							+ error.get(0).getMessage());
 			throw new BaseCheckedException(error.get(0).getMessage(),
 					StatusUtil.FAILED_TO_GET_MACHINE_DETAIL.getCode());
 		}
-		return isActiveMachine;
 	}
 
 }

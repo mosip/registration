@@ -6,7 +6,6 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -28,7 +27,6 @@ import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
 import io.mosip.registration.processor.core.auth.dto.IndividualIdDto;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
-import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
@@ -48,7 +46,6 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
-import io.mosip.registration.processor.stages.utils.OSIUtils;
 import io.mosip.registration.processor.stages.utils.StatusMessage;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -63,9 +60,6 @@ public class OperatorValidator {
 	private static final String INDIVIDUAL_TYPE_USERID = "USERID";
 
 	private static final String APPID = "regproc";
-
-	@Autowired
-	private OSIUtils osiUtils;
 
 	@Autowired
 	RegistrationExceptionMapperUtil registrationExceptionMapperUtil;
@@ -83,10 +77,9 @@ public class OperatorValidator {
 	ObjectMapper mapper;
 
 	/**
-	 * Checks if is valid OSI.
+	 * Checks if is valid Operator.
 	 *
 	 * @param registrationId the registration id
-	 * @return true, if is valid OSI
 	 * @throws IOException                                Signals that an I/O
 	 *                                                    exception has occurred.
 	 * @throws SAXException
@@ -99,15 +92,12 @@ public class OperatorValidator {
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
 	 */
-	public boolean isValidOperator(String registrationId, InternalRegistrationStatusDto registrationStatusDto,
-			Map<String, String> metaInfo) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException,
-			NumberFormatException, JSONException, CertificateException, BaseCheckedException {
+	public void validate(String registrationId, InternalRegistrationStatusDto registrationStatusDto, RegOsiDto regOsi)
+			throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, NumberFormatException, JSONException,
+			CertificateException, BaseCheckedException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "OperatorValidator::isValidOperator()::entry");
-		boolean isValidOsi = false;
+				registrationId, "OperatorValidator::validate()::entry");
 
-		/** Getting data from packet MetadataInfo */
-		RegOsiDto regOsi = osiUtils.getOSIDetailsFromMetaInfo(metaInfo);
 		String officerId = regOsi.getOfficerId();
 		if (officerId == null || officerId.isEmpty()) {
 			registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
@@ -118,37 +108,25 @@ public class OperatorValidator {
 			throw new BaseCheckedException(StatusUtil.OFFICER_NOT_FOUND_PACKET.getMessage(),
 					StatusUtil.OFFICER_NOT_FOUND_PACKET.getCode());
 		} else {
-			boolean isActive = isActiveUserId(registrationId, regOsi, metaInfo, registrationStatusDto);
-			if (!isActive) {
+			ActiveUserId(registrationId, regOsi, registrationStatusDto);
+			validateOperator(regOsi, registrationId, registrationStatusDto);
+		}
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				registrationId, "OperatorValidator::validate()::exit");
+	}
+
+	private void ActiveUserId(String registrationId, RegOsiDto regOsi,
+			InternalRegistrationStatusDto registrationStatusDto) throws IOException, BaseCheckedException {
+		String creationDate = regOsi.getPacketCreationDate();
+		if (creationDate != null && !(StringUtils.isEmpty(creationDate))) {
+			if (!isActiveUser(regOsi.getOfficerId(), creationDate, registrationStatusDto)) {
 				registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
 						.getStatusCode(RegistrationExceptionTypeCode.OFFICER_WAS_INACTIVE));
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-
 				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), registrationId, StatusMessage.OFFICER_NOT_ACTIVE);
 				throw new BaseCheckedException(StatusUtil.OFFICER_WAS_INACTIVE.getMessage() + regOsi.getOfficerId(),
 						StatusUtil.OFFICER_WAS_INACTIVE.getCode());
-			}
-			if (isValidOperator(regOsi, registrationId, registrationStatusDto)) {
-				isValidOsi = true;
-			}
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, "OperatorValidator::isValidOperator()::exit");
-		}
-		return isValidOsi;
-	}
-
-	private boolean isActiveUserId(String registrationId, RegOsiDto regOsi, Map<String, String> metaInfo,
-			InternalRegistrationStatusDto registrationStatusDto) throws IOException, BaseCheckedException {
-		boolean isValid = false;
-		String creationDate = metaInfo.get(JsonConstant.CREATIONDATE);
-		if (creationDate != null && !(StringUtils.isEmpty(creationDate))) {
-
-			isValid = isActiveUser(regOsi.getOfficerId(), creationDate, registrationStatusDto);
-			if (!isValid) {
-				registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
-						.getStatusCode(RegistrationExceptionTypeCode.OFFICER_WAS_INACTIVE));
-				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 			}
 
 		} else {
@@ -160,7 +138,6 @@ public class OperatorValidator {
 			throw new BaseCheckedException(StatusUtil.PACKET_CREATION_DATE_NOT_FOUND_IN_PACKET.getMessage(),
 					StatusUtil.PACKET_CREATION_DATE_NOT_FOUND_IN_PACKET.getCode());
 		}
-		return isValid;
 	}
 
 	private boolean isActiveUser(String officerId, String creationDate,
@@ -208,7 +185,6 @@ public class OperatorValidator {
 	 *
 	 * @param regOsi         the reg osi
 	 * @param registrationId the registration id
-	 * @return true, if is valid operator
 	 * @throws IOException
 	 * @throws SAXException
 	 * @throws ParserConfigurationException
@@ -221,56 +197,47 @@ public class OperatorValidator {
 	 * @throws Exception
 	 * 
 	 */
-	private boolean isValidOperator(RegOsiDto regOsi, String registrationId,
+	private void validateOperator(RegOsiDto regOsi, String registrationId,
 			InternalRegistrationStatusDto registrationStatusDto)
 			throws IOException, CertificateException, NoSuchAlgorithmException, BaseCheckedException {
-		boolean isValid = false;
 		String officerId = regOsi.getOfficerId();
-		if (officerId != null) {
-			// officer password and otp check
-			String officerPassword = regOsi.getOfficerHashedPwd();
-			String officerOTPAuthentication = regOsi.getOfficerOTPAuthentication();
+		// officer password and otp check
+		String officerPassword = regOsi.getOfficerHashedPwd();
+		String officerOTPAuthentication = regOsi.getOfficerOTPAuthentication();
 
-			String officerBiometricFileName = regOsi.getOfficerBiometricFileName();
+		String officerBiometricFileName = regOsi.getOfficerBiometricFileName();
 
-			if (StringUtils.isEmpty(officerBiometricFileName) || officerBiometricFileName == null) {
-				isValid = validateOtpAndPwd(officerPassword, officerOTPAuthentication);
-				if (!isValid) {
-					registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
-							.getStatusCode(RegistrationExceptionTypeCode.PASSWORD_OTP_FAILURE));
-					registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-							StatusMessage.PASSWORD_OTP_FAILURE);
-					throw new BaseCheckedException(StatusUtil.PASSWORD_OTP_FAILURE.getMessage() + officerId,
-							StatusUtil.PASSWORD_OTP_FAILURE.getCode());
-				}
-			} else {
-				BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(registrationId,
-						MappingJsonConstants.OFFICERBIOMETRICFILENAME, registrationStatusDto.getRegistrationType(),
-						ProviderStageName.OPERATOR_VALIDATOR);
-
-				if (biometricRecord == null || biometricRecord.getSegments() == null
-						|| biometricRecord.getSegments().isEmpty()) {
-					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-							"ERROR =======>" + StatusUtil.BIOMETRICS_VALIDATION_FAILURE.getMessage());
-
-					registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-					isValid = false;
-					throw new BaseCheckedException(
-							StatusUtil.BIOMETRICS_VALIDATION_FAILURE.getMessage() + " for officer : " + officerId,
-							StatusUtil.BIOMETRICS_VALIDATION_FAILURE.getCode());
-				} else {
-					isValid = validateUserBiometric(registrationId, officerId, biometricRecord.getSegments(),
-							INDIVIDUAL_TYPE_USERID, registrationStatusDto);
-				}
+		if (StringUtils.isEmpty(officerBiometricFileName) || officerBiometricFileName == null) {
+			if (!validateOtpAndPwd(officerPassword, officerOTPAuthentication)) {
+				registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
+						.getStatusCode(RegistrationExceptionTypeCode.PASSWORD_OTP_FAILURE));
+				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+						StatusMessage.PASSWORD_OTP_FAILURE);
+				throw new BaseCheckedException(StatusUtil.PASSWORD_OTP_FAILURE.getMessage() + officerId,
+						StatusUtil.PASSWORD_OTP_FAILURE.getCode());
 			}
 		} else {
-			// isValid = true; // either officer or supervisor information is mandatory.
-			// Officer id can be null
+			BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(registrationId,
+					MappingJsonConstants.OFFICERBIOMETRICFILENAME, registrationStatusDto.getRegistrationType(),
+					ProviderStageName.OPERATOR_VALIDATOR);
+
+			if (biometricRecord == null || biometricRecord.getSegments() == null
+					|| biometricRecord.getSegments().isEmpty()) {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+						"ERROR =======>" + StatusUtil.BIOMETRICS_VALIDATION_FAILURE.getMessage());
+
+				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+				throw new BaseCheckedException(
+						StatusUtil.BIOMETRICS_VALIDATION_FAILURE.getMessage() + " for officer : " + officerId,
+						StatusUtil.BIOMETRICS_VALIDATION_FAILURE.getCode());
+			} else {
+				validateUserBiometric(registrationId, officerId, biometricRecord.getSegments(), INDIVIDUAL_TYPE_USERID,
+						registrationStatusDto);
+			}
 		}
-		return isValid;
 	}
 
 	/**
@@ -292,7 +259,6 @@ public class OperatorValidator {
 	 * @param list                  biometric data as BIR object
 	 * @param individualType        user type
 	 * @param registrationStatusDto
-	 * @return true, if successful
 	 * @throws SAXException
 	 * @throws ParserConfigurationException
 	 * @throws NoSuchAlgorithmException
@@ -303,7 +269,7 @@ public class OperatorValidator {
 	 * @throws BiometricException
 	 */
 
-	private boolean validateUserBiometric(String registrationId, String userId, List<BIR> list, String individualType,
+	private void validateUserBiometric(String registrationId, String userId, List<BIR> list, String individualType,
 			InternalRegistrationStatusDto registrationStatusDto)
 			throws IOException, CertificateException, NoSuchAlgorithmException, BaseCheckedException {
 
@@ -314,16 +280,13 @@ public class OperatorValidator {
 
 		AuthResponseDTO authResponseDTO = authUtil.authByIdAuthentication(userId, individualType, list);
 		if (authResponseDTO.getErrors() == null || authResponseDTO.getErrors().isEmpty()) {
-			if (authResponseDTO.getResponse().isAuthStatus()) {
-				return true;
-			} else {
+			if (!authResponseDTO.getResponse().isAuthStatus()) {
 				registrationStatusDto.setLatestTransactionStatusCode(
 						registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.AUTH_FAILED));
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 				throw new BaseCheckedException(StatusUtil.OFFICER_AUTHENTICATION_FAILED.getMessage() + userId,
 						StatusUtil.OFFICER_AUTHENTICATION_FAILED.getCode());
 			}
-
 		} else {
 			List<io.mosip.registration.processor.core.auth.dto.ErrorDTO> errors = authResponseDTO.getErrors();
 			if (errors.stream().anyMatch(error -> error.getErrorCode().equalsIgnoreCase("IDA-MLC-007"))) {

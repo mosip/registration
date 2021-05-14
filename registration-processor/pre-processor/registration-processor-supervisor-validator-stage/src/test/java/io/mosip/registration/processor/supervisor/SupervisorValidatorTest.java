@@ -64,9 +64,9 @@ import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
+import io.mosip.registration.processor.packet.storage.utils.OSIUtils;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.stages.supervisor.SupervisorValidator;
-import io.mosip.registration.processor.stages.utils.OSIUtils;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.TransactionDto;
@@ -198,6 +198,7 @@ public class SupervisorValidatorTest {
 		regOsiDto.setSupervisorId("S1234");
 		regOsiDto.setSupervisorHashedPin("supervisorHashedPin");
 		regOsiDto.setIntroducerTyp("Parent");
+		regOsiDto.setPacketCreationDate("2020-08-06T11:35:13.934Z");
 		demographicDedupeDtoList.add(demographicInfoDto);
 
 		Mockito.when(env.getProperty("mosip.kernel.applicant.type.age.limit")).thenReturn("5");
@@ -363,8 +364,7 @@ public class SupervisorValidatorTest {
 
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
-		boolean isValid = supervisorValidator.isValidSupervisor("reg1234", registrationStatusDto, metaInfo);
-		assertTrue(isValid);
+		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
 
 	@Test(expected = BaseCheckedException.class)
@@ -377,7 +377,7 @@ public class SupervisorValidatorTest {
 
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
-		supervisorValidator.isValidSupervisor("reg1234", registrationStatusDto, metaInfo);
+		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
 
 	@Test(expected = BaseCheckedException.class)
@@ -392,7 +392,7 @@ public class SupervisorValidatorTest {
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(userResponseDto)
 				.thenReturn(userResponseDto);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
-		supervisorValidator.isValidSupervisor("reg1234", registrationStatusDto, metaInfo);
+		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
 
 	@Test(expected = BaseCheckedException.class)
@@ -407,7 +407,7 @@ public class SupervisorValidatorTest {
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(userResponseDto)
 				.thenReturn(userResponseDto);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
-		supervisorValidator.isValidSupervisor("reg1234", registrationStatusDto, metaInfo);
+		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
 
 	@Test(expected = ApisResourceAccessException.class)
@@ -418,7 +418,7 @@ public class SupervisorValidatorTest {
 
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
-		supervisorValidator.isValidSupervisor("reg1234", registrationStatusDto, metaInfo);
+		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
 
 	@Test(expected = ApisResourceAccessException.class)
@@ -432,7 +432,7 @@ public class SupervisorValidatorTest {
 
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
-		supervisorValidator.isValidSupervisor("reg1234", registrationStatusDto, metaInfo);
+		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 
 	}
 
@@ -447,7 +447,7 @@ public class SupervisorValidatorTest {
 
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
-		supervisorValidator.isValidSupervisor("reg1234", registrationStatusDto, metaInfo);
+		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 
 	}
 
@@ -461,7 +461,7 @@ public class SupervisorValidatorTest {
 		regOsiDto.setOfficerId(null);
 		regOsiDto.setSupervisorId(null);
 		Mockito.when(osiUtils.getOSIDetailsFromMetaInfo(anyMap())).thenReturn(regOsiDto);
-		supervisorValidator.isValidSupervisor("reg1234", registrationStatusDto, metaInfo);
+		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
 
 }

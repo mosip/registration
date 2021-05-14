@@ -6,7 +6,6 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -28,7 +27,6 @@ import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
 import io.mosip.registration.processor.core.auth.dto.IndividualIdDto;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
-import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
@@ -48,7 +46,6 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
-import io.mosip.registration.processor.stages.utils.OSIUtils;
 import io.mosip.registration.processor.stages.utils.StatusMessage;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -63,9 +60,6 @@ public class SupervisorValidator {
 	private static final String INDIVIDUAL_TYPE_USERID = "USERID";
 
 	private static final String APPID = "regproc";
-
-	@Autowired
-	private OSIUtils osiUtils;
 
 	@Autowired
 	RegistrationExceptionMapperUtil registrationExceptionMapperUtil;
@@ -86,7 +80,6 @@ public class SupervisorValidator {
 	 * Checks if is valid Supervisor.
 	 *
 	 * @param registrationId the registration id
-	 * @return true, if is valid Supervisor
 	 * @throws IOException                                Signals that an I/O
 	 *                                                    exception has occurred.
 	 * @throws SAXException
@@ -99,15 +92,12 @@ public class SupervisorValidator {
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
 	 */
-	public boolean isValidSupervisor(String registrationId, InternalRegistrationStatusDto registrationStatusDto,
-			Map<String, String> metaInfo) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException,
-			NumberFormatException, JSONException, CertificateException, BaseCheckedException {
+	public void validate(String registrationId, InternalRegistrationStatusDto registrationStatusDto, RegOsiDto regOsi)
+			throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, NumberFormatException, JSONException,
+			CertificateException, BaseCheckedException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "SupervisorValidator::isValidSupervisor()::entry");
-		boolean isValidOsi = false;
+				registrationId, "SupervisorValidator::validate()::entry");
 
-		/** Getting data from packet MetadataInfo */
-		RegOsiDto regOsi = osiUtils.getOSIDetailsFromMetaInfo(metaInfo);
 		String supervisorId = regOsi.getSupervisorId();
 		if (supervisorId == null || supervisorId.isEmpty()) {
 			registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
@@ -118,39 +108,27 @@ public class SupervisorValidator {
 			throw new BaseCheckedException(StatusUtil.SUPERVISOR_NOT_FOUND_PACKET.getMessage(),
 					StatusUtil.SUPERVISOR_NOT_FOUND_PACKET.getCode());
 		} else {
-			boolean isActive = isActiveUserId(registrationId, regOsi, metaInfo, registrationStatusDto);
-			if (!isActive) {
+			ActiveUserId(registrationId, regOsi, registrationStatusDto);
+			validateSupervisor(regOsi, registrationId, registrationStatusDto);
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId, "SupervisorValidator::validate()::exit");
+		}
+	}
+
+	private void ActiveUserId(String registrationId, RegOsiDto regOsi,
+			InternalRegistrationStatusDto registrationStatusDto) throws IOException, BaseCheckedException {
+		String creationDate = regOsi.getPacketCreationDate();
+		if (creationDate != null && !(StringUtils.isEmpty(creationDate))) {
+			if (!isActiveUser(creationDate, regOsi.getSupervisorId(), registrationStatusDto)) {
 				registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
 						.getStatusCode(RegistrationExceptionTypeCode.SUPERVISOR_WAS_INACTIVE));
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-
 				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
 						StatusMessage.SUPERVISOR_WAS_INACTIVE);
 				throw new BaseCheckedException(
 						StatusUtil.SUPERVISOR_WAS_INACTIVE.getMessage() + regOsi.getSupervisorId(),
 						StatusUtil.SUPERVISOR_WAS_INACTIVE.getCode());
-			}
-			if (isValidSupervisor(regOsi, registrationId, registrationStatusDto)) {
-				isValidOsi = true;
-			}
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, "SupervisorValidator::isValidSupervisor()::exit");
-		}
-		return isValidOsi;
-	}
-
-	private boolean isActiveUserId(String registrationId, RegOsiDto regOsi, Map<String, String> metaInfo,
-			InternalRegistrationStatusDto registrationStatusDto) throws IOException, BaseCheckedException {
-		boolean isValid = false;
-		String creationDate = metaInfo.get(JsonConstant.CREATIONDATE);
-		if (creationDate != null && !(StringUtils.isEmpty(creationDate))) {
-
-			isValid = isActiveUser(creationDate, regOsi.getSupervisorId(), registrationStatusDto);
-			if (!isValid) {
-				registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
-						.getStatusCode(RegistrationExceptionTypeCode.SUPERVISOR_WAS_INACTIVE));
-				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 			}
 
 		} else {
@@ -163,7 +141,6 @@ public class SupervisorValidator {
 					StatusUtil.PACKET_CREATION_DATE_NOT_FOUND_IN_PACKET.getCode());
 
 		}
-		return isValid;
 	}
 
 	private boolean isActiveUser(String creationDate, String supervisorId,
@@ -214,7 +191,6 @@ public class SupervisorValidator {
 	 * @param regOsi                the reg osi
 	 * @param registrationId        the registration id
 	 * @param registrationStatusDto
-	 * @return true, if is valid supervisor
 	 * @throws IOException
 	 * @throws SAXException
 	 * @throws ParserConfigurationException
@@ -225,62 +201,49 @@ public class SupervisorValidator {
 	 * @throws PacketDecryptionFailureException
 	 * @throws Exception
 	 */
-	private boolean isValidSupervisor(RegOsiDto regOsi, String registrationId,
+	private void validateSupervisor(RegOsiDto regOsi, String registrationId,
 			InternalRegistrationStatusDto registrationStatusDto) throws IOException, InvalidKeySpecException,
 			NoSuchAlgorithmException, CertificateException, BaseCheckedException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "SupervisorValidator::isValidSupervisor()::entry");
+				registrationId, "SupervisorValidator::validateSupervisor()::entry");
 		String supervisorId = regOsi.getSupervisorId();
-		boolean isValid = false;
-		if (supervisorId != null) {
 
-			// officer password and otp check
-			String supervisiorPassword = regOsi.getSupervisorHashedPwd();
-			String supervisorOTP = regOsi.getSupervisorOTPAuthentication();
+		// officer password and otp check
+		String supervisiorPassword = regOsi.getSupervisorHashedPwd();
+		String supervisorOTP = regOsi.getSupervisorOTPAuthentication();
 
-			String supervisorBiometricFileName = regOsi.getSupervisorBiometricFileName();
+		String supervisorBiometricFileName = regOsi.getSupervisorBiometricFileName();
 
-			if (StringUtils.isEmpty(supervisorBiometricFileName) || supervisorBiometricFileName == null) {
-				isValid = validateOtpAndPwd(supervisiorPassword, supervisorOTP);
-				if (!isValid) {
-					registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
-							.getStatusCode(RegistrationExceptionTypeCode.PASSWORD_OTP_FAILURE));
-					registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-							StatusMessage.PASSWORD_OTP_FAILURE);
-					throw new BaseCheckedException(
-							StatusUtil.PASSWORD_OTP_FAILURE_SUPERVISOR.getMessage() + supervisorId,
-							StatusUtil.PASSWORD_OTP_FAILURE_SUPERVISOR.getCode());
-				}
-			} else {
-				BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(registrationId,
-						MappingJsonConstants.SUPERVISORBIOMETRICFILENAME, registrationStatusDto.getRegistrationType(),
-						ProviderStageName.SUPERVISOR_VALIDATOR);
-
-				if (biometricRecord == null || biometricRecord.getSegments() == null
-						|| biometricRecord.getSegments().isEmpty()) {
-					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-							"ERROR =======>" + StatusUtil.BIOMETRICS_VALIDATION_FAILURE.getMessage());
-					registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-					isValid = false;
-					throw new BaseCheckedException(
-							StatusUtil.BIOMETRICS_VALIDATION_FAILURE.getMessage() + " for Supervisor : " + supervisorId,
-							StatusUtil.BIOMETRICS_VALIDATION_FAILURE.getCode());
-				}
-				isValid = validateUserBiometric(registrationId, supervisorId, biometricRecord.getSegments(),
-						INDIVIDUAL_TYPE_USERID, registrationStatusDto);
+		if (StringUtils.isEmpty(supervisorBiometricFileName) || supervisorBiometricFileName == null) {
+			if (!validateOtpAndPwd(supervisiorPassword, supervisorOTP)) {
+				registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
+						.getStatusCode(RegistrationExceptionTypeCode.PASSWORD_OTP_FAILURE));
+				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+						StatusMessage.PASSWORD_OTP_FAILURE);
+				throw new BaseCheckedException(StatusUtil.PASSWORD_OTP_FAILURE_SUPERVISOR.getMessage() + supervisorId,
+						StatusUtil.PASSWORD_OTP_FAILURE_SUPERVISOR.getCode());
 			}
-
 		} else {
-			// isValid = true; // either officer or supervisor information is mandatory.
-			// Supervisor id can be null
+			BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(registrationId,
+					MappingJsonConstants.SUPERVISORBIOMETRICFILENAME, registrationStatusDto.getRegistrationType(),
+					ProviderStageName.SUPERVISOR_VALIDATOR);
 
+			if (biometricRecord == null || biometricRecord.getSegments() == null
+					|| biometricRecord.getSegments().isEmpty()) {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+						"ERROR =======>" + StatusUtil.BIOMETRICS_VALIDATION_FAILURE.getMessage());
+				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+				throw new BaseCheckedException(
+						StatusUtil.BIOMETRICS_VALIDATION_FAILURE.getMessage() + " for Supervisor : " + supervisorId,
+						StatusUtil.BIOMETRICS_VALIDATION_FAILURE.getCode());
+			}
+			validateUserBiometric(registrationId, supervisorId, biometricRecord.getSegments(), INDIVIDUAL_TYPE_USERID,
+					registrationStatusDto);
 		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "SupervisorValidator::isValidSupervisor()::exit");
-		return isValid;
+
 	}
 
 	/**
@@ -302,7 +265,6 @@ public class SupervisorValidator {
 	 * @param list                  biometric data as BIR object
 	 * @param individualType        user type
 	 * @param registrationStatusDto
-	 * @return true, if successful
 	 * @throws SAXException
 	 * @throws ParserConfigurationException
 	 * @throws NoSuchAlgorithmException
@@ -313,7 +275,7 @@ public class SupervisorValidator {
 	 * @throws BiometricException
 	 */
 
-	private boolean validateUserBiometric(String registrationId, String userId, List<BIR> list, String individualType,
+	private void validateUserBiometric(String registrationId, String userId, List<BIR> list, String individualType,
 			InternalRegistrationStatusDto registrationStatusDto)
 			throws IOException, CertificateException, NoSuchAlgorithmException, BaseCheckedException {
 
@@ -324,16 +286,13 @@ public class SupervisorValidator {
 
 		AuthResponseDTO authResponseDTO = authUtil.authByIdAuthentication(userId, individualType, list);
 		if (authResponseDTO.getErrors() == null || authResponseDTO.getErrors().isEmpty()) {
-			if (authResponseDTO.getResponse().isAuthStatus()) {
-				return true;
-			} else {
+			if (!authResponseDTO.getResponse().isAuthStatus()) {
 				registrationStatusDto.setLatestTransactionStatusCode(
 						registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.AUTH_FAILED));
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 				throw new BaseCheckedException(StatusUtil.SUPERVISOR_AUTHENTICATION_FAILED.getMessage() + userId,
 						StatusUtil.SUPERVISOR_AUTHENTICATION_FAILED.getCode());
 			}
-
 		} else {
 			List<io.mosip.registration.processor.core.auth.dto.ErrorDTO> errors = authResponseDTO.getErrors();
 			if (errors.stream().anyMatch(error -> error.getErrorCode().equalsIgnoreCase("IDA-MLC-007"))) {

@@ -301,8 +301,7 @@ public class IntroducerValidatorTest {
 	@Test
 	@Ignore
 	public void testIntroducerDetailsNull() throws Exception {
-		boolean isValid = introducerValidator.isValidIntroducer("reg1234", registrationStatusDto);
-		assertFalse(isValid);
+		introducerValidator.validate("reg1234", registrationStatusDto);
 	}
 
 	/**
@@ -327,7 +326,7 @@ public class IntroducerValidatorTest {
 				ProviderStageName.INTRODUCER_VALIDATOR)).thenReturn(null);
 		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "parentOrGuardianRID", "New",
 				ProviderStageName.INTRODUCER_VALIDATOR)).thenReturn("field");
-		introducerValidator.isValidIntroducer("reg1234", registrationStatusDto);
+		introducerValidator.validate("reg1234", registrationStatusDto);
 	}
 
 	@Test(expected = ParentOnHoldException.class)
@@ -345,7 +344,7 @@ public class IntroducerValidatorTest {
 		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "parentOrGuardianRID", "New",
 				ProviderStageName.INTRODUCER_VALIDATOR)).thenReturn("field");
 
-		introducerValidator.isValidIntroducer("reg1234", registrationStatusDto);
+		introducerValidator.validate("reg1234", registrationStatusDto);
 	}
 
 	@Test(expected = BaseCheckedException.class)
@@ -355,7 +354,7 @@ public class IntroducerValidatorTest {
 		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "parentOrGuardianRID", "New",
 				ProviderStageName.INTRODUCER_VALIDATOR)).thenReturn(null);
 
-		introducerValidator.isValidIntroducer("reg1234", registrationStatusDto);
+		introducerValidator.validate("reg1234", registrationStatusDto);
 	}
 
 	@Test(expected = ParentOnHoldException.class)
@@ -369,7 +368,7 @@ public class IntroducerValidatorTest {
 		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "parentOrGuardianRID", "New",
 				ProviderStageName.INTRODUCER_VALIDATOR)).thenReturn("field");
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(null);
-		introducerValidator.isValidIntroducer("reg1234", registrationStatusDto);
+		introducerValidator.validate("reg1234", registrationStatusDto);
 	}
 
 	@Test
@@ -386,9 +385,7 @@ public class IntroducerValidatorTest {
 		registrationStatusDto.setStatusCode("PROCESSED");
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
 		Mockito.when(idRepoService.getUinByRid(any(), any())).thenReturn("123456789");
-		boolean isValid = introducerValidator.isValidIntroducer("reg1234", registrationStatusDto);
-
-		assertTrue(isValid);
+		introducerValidator.validate("reg1234", registrationStatusDto);
 	}
 
 	@Test(expected = BaseCheckedException.class)
@@ -404,7 +401,7 @@ public class IntroducerValidatorTest {
 		io.mosip.registration.processor.core.auth.dto.ResponseDTO responseDTO = new io.mosip.registration.processor.core.auth.dto.ResponseDTO();
 		responseDTO.setAuthStatus(true);
 		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
-		introducerValidator.isValidIntroducer("reg1234", registrationStatusDto);
+		introducerValidator.validate("reg1234", registrationStatusDto);
 	}
 
 	@Test(expected = BaseCheckedException.class)
@@ -426,7 +423,7 @@ public class IntroducerValidatorTest {
 		authResponseDTO1.setResponse(responseDTO);
 		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO1);
 		Mockito.when(idRepoService.getUinByRid(any(), any())).thenReturn("123456789");
-		introducerValidator.isValidIntroducer("reg1234", registrationStatusDto);
+		introducerValidator.validate("reg1234", registrationStatusDto);
 	}
 
 	@Test(expected = BaseCheckedException.class)
@@ -441,6 +438,6 @@ public class IntroducerValidatorTest {
 				ProviderStageName.INTRODUCER_VALIDATOR)).thenReturn("field");
 		Mockito.when(idRepoService.getUinByRid(any(), any())).thenReturn(null);
 
-		introducerValidator.isValidIntroducer("reg1234", registrationStatusDto);
+		introducerValidator.validate("reg1234", registrationStatusDto);
 	}
 }

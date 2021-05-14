@@ -35,7 +35,7 @@ public class CenterValidator {
 
 	ObjectMapper mapper = new ObjectMapper();
 
-	@Value("${mosip.workinghour.validation.required}")
+	@Value("${mosip.registration.processor.workinghour.validation.required}")
 	private Boolean isWorkingHourValidationRequired;
 
 	@Autowired
@@ -48,16 +48,14 @@ public class CenterValidator {
 	 * @param langCode              the lang code
 	 * @param effectiveDate         the effective date
 	 * @param registrationStatusDto
-	 * @return true, if successful
 	 * @throws IOException
 	 * @throws BaseCheckedException
 	 * @throws JsonProcessingException
 	 * @throws com.fasterxml.jackson.databind.JsonMappingException
 	 * @throws com.fasterxml.jackson.core.JsonParseException
 	 */
-	private boolean isValidRegistrationCenter(String registrationCenterId, String langCode, String effectiveDate,
+	private void validateRegistrationCenter(String registrationCenterId, String langCode, String effectiveDate,
 			String registrationId) throws IOException, BaseCheckedException, ApisResourceAccessException {
-		boolean activeRegCenter = false;
 		if (registrationCenterId == null || effectiveDate == null) {
 			throw new BaseCheckedException(StatusUtil.CENTER_ID_NOT_FOUND.getMessage(),
 					StatusUtil.CENTER_ID_NOT_FOUND.getCode());
@@ -76,12 +74,11 @@ public class CenterValidator {
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId,
-				"CenterValidator::isValidRegistrationCenter()::CenterHistory service ended with response data : "
+				"CenterValidator::validateRegistrationCenter()::CenterHistory service ended with response data : "
 						+ JsonUtil.objectMapperObjectToJson(rcpdto));
 
 		if (responseWrapper.getErrors() == null) {
-			activeRegCenter = rcpdto.getRegistrationCentersHistory().get(0).getIsActive();
-			if (!activeRegCenter) {
+			if (!rcpdto.getRegistrationCentersHistory().get(0).getIsActive()) {
 				throw new BaseCheckedException(StatusUtil.CENTER_ID_INACTIVE.getMessage(),
 						StatusUtil.CENTER_ID_INACTIVE.getCode());
 			}
@@ -89,12 +86,10 @@ public class CenterValidator {
 			List<ErrorDTO> error = responseWrapper.getErrors();
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId,
-					"CenterValidator::isValidRegistrationCenter()::CenterHistory service ended with response data : "
+					"CenterValidator::validateRegistrationCenter()::CenterHistory service ended with response data : "
 							+ error.get(0).getMessage());
 			throw new BaseCheckedException(error.get(0).getMessage(), StatusUtil.FAILED_TO_GET_CENTER_DETAIL.getCode());
 		}
-
-		return activeRegCenter;
 
 	}
 
@@ -105,7 +100,6 @@ public class CenterValidator {
 	 *
 	 * @param rcmDto                the RegistrationCenterMachineDto
 	 * @param registrationStatusDto the InternalRegistrationStatusDto
-	 * @return true, if is valid center id timestamp
 	 * @throws IOException
 	 * @throws BaseCheckedException
 	 * @throws JsonProcessingException
@@ -114,9 +108,8 @@ public class CenterValidator {
 	 *
 	 */
 
-	private boolean validateCenterIdAndTimestamp(RegOsiDto rcmDto, String primaryLanguagecode, String registrationId)
+	private void validateCenterIdAndTimestamp(RegOsiDto rcmDto, String primaryLanguagecode, String registrationId)
 			throws IOException, BaseCheckedException, ApisResourceAccessException {
-		boolean isValid = false;
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				rcmDto.getRegId(), "CenterValidator::validateCenterIdAndTimestamp()::entry");
@@ -134,12 +127,10 @@ public class CenterValidator {
 				RegistartionCenterTimestampResponseDto.class);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId,
-				"CenterValidator::isDeviceActive()::CenterUserMachineHistory service ended with response data : "
+				"CenterValidator::validateCenterIdAndTimestamp()::CenterUserMachineHistory service ended with response data : "
 						+ JsonUtil.objectMapperObjectToJson(result));
 		if (responseWrapper.getErrors() == null) {
-			if (result.getStatus().equals(VALID)) {
-				isValid = true;
-			} else {
+			if (!result.getStatus().equals(VALID)) {
 				throw new BaseCheckedException(
 						StatusUtil.PACKET_CREATION_WORKING_HOURS.getMessage() + rcmDto.getPacketCreationDate(),
 						StatusUtil.PACKET_CREATION_WORKING_HOURS.getCode());
@@ -148,7 +139,7 @@ public class CenterValidator {
 			List<ErrorDTO> error = responseWrapper.getErrors();
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId,
-					"CenterValidator::isDeviceActive()::CenterUserMachineHistory service ended with response data : "
+					"CenterValidator::validateCenterIdAndTimestamp()::CenterUserMachineHistory service ended with response data : "
 							+ error.get(0).getMessage());
 			throw new BaseCheckedException(error.get(0).getMessage(),
 					StatusUtil.REGISTRATION_CENTER_TIMESTAMP_FAILURE.getCode());
@@ -156,13 +147,15 @@ public class CenterValidator {
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				rcmDto.getRegId(), "CenterValidator::validateCenterIdAndTimestamp()::exit");
-		return isValid;
 	}
 
-	public boolean isValidCenterDetails(String primaryLanguagecode, RegOsiDto regOsi, String registrationId)
+	public void validate(String primaryLanguagecode, RegOsiDto regOsi, String registrationId)
 			throws IOException, BaseCheckedException {
-		return isValidRegistrationCenter(regOsi.getRegcntrId(), primaryLanguagecode, regOsi.getPacketCreationDate(),
-				registrationId) && validateCenterIdAndTimestamp(regOsi, primaryLanguagecode, registrationId);
+		validateRegistrationCenter(regOsi.getRegcntrId(), primaryLanguagecode, regOsi.getPacketCreationDate(),
+				registrationId);
+		if(isWorkingHourValidationRequired) {
+			validateCenterIdAndTimestamp(regOsi, primaryLanguagecode, registrationId);
+		}
 	}
 
 }

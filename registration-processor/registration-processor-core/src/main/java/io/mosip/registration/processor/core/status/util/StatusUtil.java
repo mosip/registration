@@ -71,6 +71,7 @@ public enum StatusUtil {
 	FAILED_TO_GET_CENTER_DETAIL(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "014", "Failed to Get center id details "),
 	PACKET_IS_ON_HOLD(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "015", "Packet is on Hold due to parent packet processing"),
 	OFFICER_NOT_ACTIVE(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "016","OfficerId is inActive"),
+	SUPERVISOR_NOT_ACTIVE(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "016","SupervisorId is inActive"),
 	
 	SUPERVISOR_OFFICER_NOT_FOUND_PACKET(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "012","Both Officer and Supervisor IDs are NULL"),
 	SUPERVISOR_OR_OFFICER_WAS_INACTIVE(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "013","Officer or Supervisor was Not Active during Packet Creation - "),

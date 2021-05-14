@@ -1,9 +1,8 @@
 package io.mosip.registration.processor.operator;
 
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyMap;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -15,12 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.kernel.biometrics.constant.BiometricType;
-import io.mosip.kernel.biometrics.constant.QualityType;
-import io.mosip.kernel.biometrics.entities.BDBInfo;
-import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.mosip.kernel.biometrics.entities.BIR;
-import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
 import org.json.simple.JSONObject;
@@ -38,6 +31,12 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+
+import io.mosip.kernel.biometrics.constant.BiometricType;
+import io.mosip.kernel.biometrics.constant.QualityType;
+import io.mosip.kernel.biometrics.entities.BDBInfo;
+import io.mosip.kernel.biometrics.entities.BIR;
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
 import io.mosip.registration.processor.core.constant.JsonConstant;
@@ -64,9 +63,10 @@ import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
+import io.mosip.registration.processor.packet.storage.utils.OSIUtils;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.stages.operator.OperatorValidator;
-import io.mosip.registration.processor.stages.utils.OSIUtils;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.TransactionDto;
@@ -198,6 +198,7 @@ public class OperatorValidatorTest {
 		regOsiDto.setSupervisorId("S1234");
 		regOsiDto.setSupervisorHashedPin("supervisorHashedPin");
 		regOsiDto.setIntroducerTyp("Parent");
+		regOsiDto.setPacketCreationDate("2020-08-06T11:35:13.934Z");
 		demographicDedupeDtoList.add(demographicInfoDto);
 
 		Mockito.when(env.getProperty("mosip.kernel.applicant.type.age.limit")).thenReturn("5");
@@ -363,8 +364,7 @@ public class OperatorValidatorTest {
 
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
-		boolean isValid = operatorValidator.isValidOperator("reg1234", registrationStatusDto, metaInfo);
-		assertTrue(isValid);
+		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
 
 	@Test(expected = BaseCheckedException.class)
@@ -377,7 +377,7 @@ public class OperatorValidatorTest {
 
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
-		operatorValidator.isValidOperator("reg1234", registrationStatusDto, metaInfo);
+		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
 
 	@Test(expected = BaseCheckedException.class)
@@ -392,7 +392,7 @@ public class OperatorValidatorTest {
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(userResponseDto)
 				.thenReturn(userResponseDto);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
-		operatorValidator.isValidOperator("reg1234", registrationStatusDto, metaInfo);
+		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
 
 	@Test(expected = BaseCheckedException.class)
@@ -407,7 +407,7 @@ public class OperatorValidatorTest {
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(userResponseDto)
 				.thenReturn(userResponseDto);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
-		operatorValidator.isValidOperator("reg1234", registrationStatusDto, metaInfo);
+		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
 
 	@Test(expected = ApisResourceAccessException.class)
@@ -418,7 +418,7 @@ public class OperatorValidatorTest {
 
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
-		operatorValidator.isValidOperator("reg1234", registrationStatusDto, metaInfo);
+		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
 
 	@Test(expected = ApisResourceAccessException.class)
@@ -432,7 +432,7 @@ public class OperatorValidatorTest {
 
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
-		operatorValidator.isValidOperator("reg1234", registrationStatusDto, metaInfo);
+		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 
 	}
 
@@ -447,7 +447,7 @@ public class OperatorValidatorTest {
 
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
-		operatorValidator.isValidOperator("reg1234", registrationStatusDto, metaInfo);
+		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 
 	}
 
@@ -461,7 +461,7 @@ public class OperatorValidatorTest {
 		regOsiDto.setOfficerId(null);
 		regOsiDto.setSupervisorId(null);
 		Mockito.when(osiUtils.getOSIDetailsFromMetaInfo(anyMap())).thenReturn(regOsiDto);
-		operatorValidator.isValidOperator("reg1234", registrationStatusDto, metaInfo);
+		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
 
 }

@@ -25,10 +25,9 @@ import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 /**
  * The Class UMCValidator.
  *
- * @author Jyothi
- * @author Ranjitha Siddegowda
+ * @author Satish Gohil
  */
-@Service
+@Service("operatorUMCValidator")
 public class UMCValidator {
 
 	/** The reg proc logger. */
@@ -40,37 +39,34 @@ public class UMCValidator {
 	ObjectMapper mapper = new ObjectMapper();
 
 	/**
-	 * Validate UM cmapping.
+	 * Validate UMC cmapping.
 	 *
 	 * @param effectiveTimestamp    the effective timestamp
 	 * @param registrationCenterId  the registration center id
 	 * @param machineId             the machine id
-	 * @param superviserId          the superviser id
 	 * @param officerId             the officer id
 	 * @param registrationStatusDto
-	 * @return true, if successful
 	 * @throws IOException
 	 * @throws BaseCheckedException
 	 */
-	public boolean isValidUMCmapping(String effectiveTimestamp, String registrationCenterId, String machineId,
+	public void validateUMCmapping(String effectiveTimestamp, String registrationCenterId, String machineId,
 			String officerId, InternalRegistrationStatusDto registrationStatusDto)
 			throws IOException, BaseCheckedException {
-
-		boolean officerActive = false;
 
 		List<String> officerpathsegments = new ArrayList<>();
 		officerpathsegments.add(effectiveTimestamp);
 		officerpathsegments.add(registrationCenterId);
 		officerpathsegments.add(machineId);
 		officerpathsegments.add(officerId);
-		if (officerId != null)
-			officerActive = validateMapping(officerpathsegments, registrationStatusDto);
-
-		if (!officerActive) {
-			throw new BaseCheckedException(StatusUtil.OFFICER_NOT_ACTIVE.getMessage(),
-					StatusUtil.OFFICER_NOT_ACTIVE.getCode());
+		if (officerId != null) {
+			if (!validateMapping(officerpathsegments, registrationStatusDto)) {
+				throw new BaseCheckedException(StatusUtil.OFFICER_NOT_ACTIVE.getMessage(),
+						StatusUtil.OFFICER_NOT_ACTIVE.getCode());
+			}
+		} else {
+			throw new BaseCheckedException(StatusUtil.OFFICER_NOT_FOUND_PACKET.getMessage(),
+					StatusUtil.OFFICER_NOT_FOUND_PACKET.getCode());
 		}
-		return officerActive;
 	}
 
 	private boolean validateMapping(List<String> pathsegments, InternalRegistrationStatusDto registrationStatusDto)
@@ -85,7 +81,7 @@ public class UMCValidator {
 				RegistrationCenterUserMachineMappingHistoryResponseDto.class);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationStatusDto.getRegistrationId(),
-				"OperatorValidator::validateMapping()::CenterUserMachineHistory service ended with response data : "
+				"UMCValidator::validateMapping()::CenterUserMachineHistory service ended with response data : "
 						+ JsonUtil.objectMapperObjectToJson(userDto));
 		if (userDto != null) {
 			if (responseWrapper.getErrors() == null) {
@@ -94,7 +90,7 @@ public class UMCValidator {
 				List<ErrorDTO> error = responseWrapper.getErrors();
 				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
-						"OperatorValidator::validateMapping()::CenterUserMachineHistory service ended with response data : "
+						"UMCValidator::validateMapping()::CenterUserMachineHistory service ended with response data : "
 								+ error.get(0).getMessage());
 				throw new BaseCheckedException(error.get(0).getMessage(),
 						StatusUtil.CENTER_DEVICE_MAPPING_NOT_FOUND.getCode());

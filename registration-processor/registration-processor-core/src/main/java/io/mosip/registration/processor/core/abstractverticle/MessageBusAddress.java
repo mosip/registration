@@ -125,34 +125,28 @@ public class MessageBusAddress implements Serializable {
 	public static final MessageBusAddress PACKET_RECEIVER_OUT = new MessageBusAddress("packet-receiver-bus-out");
 
 	/** The Constant STRUCTURE_BUS_IN. */
-	public static final MessageBusAddress OSI_BUS_IN = new MessageBusAddress("o-s-i-validator-bus-in");
+	public static final MessageBusAddress CMD_VALIDATOR_BUS_IN = new MessageBusAddress("c-m-d-validator-bus-in");
 
 	/** The Constant STRUCTURE_BUS_OUT. */
-	public static final MessageBusAddress OSI_BUS_OUT = new MessageBusAddress("o-s-i-validator-bus-out");
-	
-	/** The Constant STRUCTURE_BUS_IN. */
-	public static final MessageBusAddress CMD_BUS_IN = new MessageBusAddress("c-m-d-validator-bus-in");
-
-	/** The Constant STRUCTURE_BUS_OUT. */
-	public static final MessageBusAddress CMD_BUS_OUT = new MessageBusAddress("c-m-d-validator-bus-out");
+	public static final MessageBusAddress CMD_VALIDATOR_BUS_OUT = new MessageBusAddress("c-m-d-validator-bus-out");
 	
 	/** The Constant OPERATOR_BUS_IN. */
-	public static final MessageBusAddress OPERATOR_BUS_IN = new MessageBusAddress("operator-validator-bus-in");
+	public static final MessageBusAddress OPERATOR_VALIDATOR_BUS_IN = new MessageBusAddress("operator-validator-bus-in");
 
 	/** The Constant OPERATOR_BUS_OUT. */
-	public static final MessageBusAddress OPERATOR_BUS_OUT = new MessageBusAddress("operator-validator-bus-out");
+	public static final MessageBusAddress OPERATOR_VALIDATOR_BUS_OUT = new MessageBusAddress("operator-validator-bus-out");
 	
 	/** The Constant SUPERVISOR_BUS_IN. */
-	public static final MessageBusAddress SUPERVISOR_BUS_IN = new MessageBusAddress("supervisor-validator-bus-in");
+	public static final MessageBusAddress SUPERVISOR_VALIDATOR_BUS_IN = new MessageBusAddress("supervisor-validator-bus-in");
 
 	/** The Constant SUPERVISOR_BUS_OUT. */
-	public static final MessageBusAddress SUPERVISOR_BUS_OUT = new MessageBusAddress("supervisor-validator-bus-out");
+	public static final MessageBusAddress SUPERVISOR_VALIDATOR_BUS_OUT = new MessageBusAddress("supervisor-validator-bus-out");
 	
 	/** The Constant INTRODUCER_BUS_IN. */
-	public static final MessageBusAddress INTRODUCER_BUS_IN = new MessageBusAddress("introducer-validator-bus-in");
+	public static final MessageBusAddress INTRODUCER_VALIDATOR_BUS_IN = new MessageBusAddress("introducer-validator-bus-in");
 
 	/** The Constant SUPERVISOR_BUS_OUT. */
-	public static final MessageBusAddress INTRODUCER_BUS_OUT = new MessageBusAddress("introducer-validator-bus-out");
+	public static final MessageBusAddress INTRODUCER_VALIDATOR_BUS_OUT = new MessageBusAddress("introducer-validator-bus-out");
 
 	/** The Constant DEMODEDUPE_BUS_IN. */
 	public static final MessageBusAddress DEMO_DEDUPE_BUS_IN = new MessageBusAddress("demo-dedupe-bus-in");

@@ -118,15 +118,14 @@ public class IntroducerValidatorProcessorTest {
 	}
 
 	/**
-	 * Testis valid CMD success.
+	 * Testis valid Introducer success.
 	 *
 	 * @throws Exception the exception
 	 */
 	@Test
-	public void testisValidOperatorSuccess() throws Exception {
+	public void testisValidIntroducerSuccess() throws Exception {
 
-		Mockito.when(introducerValidator.isValidIntroducer(anyString(), any())).thenReturn(Boolean.TRUE);
-
+		Mockito.doNothing().when(introducerValidator).validate(anyString(), any());
 		assertTrue(introducerValidationProcessor.process(dto, stageName).getIsValid());
 	}
 
@@ -138,19 +137,17 @@ public class IntroducerValidatorProcessorTest {
 	@Test
 	public void IOExceptionTest() throws Exception {
 
-		Mockito.when(introducerValidator.isValidIntroducer(anyString(), any())).thenThrow(new IOException());
-
+		Mockito.doThrow(new IOException()).when(introducerValidator).validate(anyString(), any());
 		assertEquals(false, introducerValidationProcessor.process(dto, stageName).getIsValid());
 	}
 
 	@Test
 	public void exceptionTest() throws Exception {
 
-		Mockito.when(introducerValidator.isValidIntroducer(anyString(), any()))
-				.thenThrow(new NullPointerException(""));
+		Mockito.doThrow(new NullPointerException("")).when(introducerValidator).validate(anyString(), any());
 		assertEquals(false, introducerValidationProcessor.process(dto, stageName).getIsValid());
 	}
-	
+
 	/**
 	 * Data access exception test.
 	 *
@@ -159,25 +156,24 @@ public class IntroducerValidatorProcessorTest {
 	@Test
 	public void dataAccessExceptionTest() throws Exception {
 
-		Mockito.when(introducerValidator.isValidIntroducer(anyString(), any()))
-				.thenThrow(new DataAccessException("") {
-				});
+		Mockito.doThrow(new DataAccessException("") {
+		}).when(introducerValidator).validate(anyString(), any());
 		assertEquals(false, introducerValidationProcessor.process(dto, stageName).getIsValid());
 	}
 
 	@Test
 	public void testAuthSystemException() throws Exception {
 
-		Mockito.when(introducerValidator.isValidIntroducer(anyString(), any()))
-				.thenThrow(new AuthSystemException(StatusUtil.AUTH_SYSTEM_EXCEPTION.getMessage()));
+		Mockito.doThrow(new AuthSystemException(StatusUtil.AUTH_SYSTEM_EXCEPTION.getMessage()))
+				.when(introducerValidator).validate(anyString(), any());
 		assertEquals(false, introducerValidationProcessor.process(dto, stageName).getIsValid());
 	}
 
 	@Test
 	public void packetManagerExceptionTest() throws Exception {
 
-		Mockito.when(introducerValidator.isValidIntroducer(anyString(), any()))
-				.thenThrow(new PacketManagerException("id", "message"));
+		Mockito.doThrow(new PacketManagerException("id", "message")).when(introducerValidator).validate(anyString(),
+				any());
 		assertEquals(false, introducerValidationProcessor.process(dto, stageName).getIsValid());
 	}
 }

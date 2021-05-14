@@ -55,29 +55,10 @@ public class DeviceValidator {
 	private String deviceValidateHistoryId;
 
 	/**
-	 * Checks if is valid device.
-	 *
-	 * @param regOsi                the rcm dto
-	 * @param registrationStatusDto
-	 * @return true, if is valid device
-	 * @throws IOException
-	 * @throws BaseCheckedException, ApisResourceAccessException
-	 */
-	public boolean isValidDevice(RegOsiDto regOsi, String registrationId)
-			throws IOException, BaseCheckedException, ApisResourceAccessException {
-		boolean isValidDevice = false;
-		if (isDeviceActive(regOsi, registrationId)) {
-			isValidDevice = true;
-		}
-		return isValidDevice;
-	}
-
-	/**
 	 * Checks if is device active.
 	 *
-	 * @param rcmDto                the rcm dto
+	 * @param regOsi                the regOsi dto
 	 * @param registrationStatusDto
-	 * @return true, if is device active
 	 * @throws IOException
 	 * @throws JsonProcessingException
 	 * @throws BaseCheckedException,                               ApisResourceAccessException
@@ -85,11 +66,10 @@ public class DeviceValidator {
 	 * @throws com.fasterxml.jackson.core.JsonParseException
 	 */
 
-	private boolean isDeviceActive(RegOsiDto rcmDto, String registrationId)
+	public void validate(RegOsiDto regOsi, String registrationId)
 			throws JsonProcessingException, IOException, BaseCheckedException, ApisResourceAccessException {
-		boolean isDeviceValid = false;
 
-		List<NewRegisteredDevice> registreredDevices = rcmDto.getCapturedRegisteredDevices();
+		List<NewRegisteredDevice> registreredDevices = regOsi.getCapturedRegisteredDevices();
 		if (registreredDevices != null && !registreredDevices.isEmpty()) {
 			for (NewRegisteredDevice deviceDetails : registreredDevices) {
 				RegisteredDevice registeredDevice = convert(deviceDetails);
@@ -97,7 +77,7 @@ public class DeviceValidator {
 				deviceValidateHistoryRequest.setDeviceCode(registeredDevice.getDeviceCode());
 				deviceValidateHistoryRequest.setDeviceServiceVersion(registeredDevice.getDeviceServiceVersion());
 				deviceValidateHistoryRequest.setDigitalId(registeredDevice.getDigitalId());
-				deviceValidateHistoryRequest.setTimeStamp(rcmDto.getPacketCreationDate());
+				deviceValidateHistoryRequest.setTimeStamp(regOsi.getPacketCreationDate());
 				RequestWrapper<DeviceValidateHistoryRequest> request = new RequestWrapper<>();
 
 				request.setRequest(deviceValidateHistoryRequest);
@@ -117,39 +97,26 @@ public class DeviceValidator {
 						DeviceValidateHistoryResponse.class);
 				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-						"DeviceValidator::isDeviceActive()::DeviceValidate service ended with response data : "
+						"DeviceValidator::validate()::DeviceValidate service ended with response data : "
 								+ JsonUtil.objectMapperObjectToJson(deviceValidateResponse));
 				if (responseWrapper.getErrors() == null || responseWrapper.getErrors().isEmpty()) {
-					if (deviceValidateResponse.getStatus().equalsIgnoreCase(VALID)) {
-						isDeviceValid = true;
-					} else {
-						isDeviceValid = false;
+					if (!deviceValidateResponse.getStatus().equalsIgnoreCase(VALID)) {
 						throw new BaseCheckedException(StatusUtil.DEVICE_VALIDATION_FAILED.getMessage(),
 								StatusUtil.DEVICE_VALIDATION_FAILED.getCode());
 					}
-
 				} else {
-					isDeviceValid = false;
 					List<ErrorDTO> error = responseWrapper.getErrors();
 					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-							"DeviceValidator::isDeviceActive()::DEVICEVALIDATE service ended with error data : "
+							"DeviceValidator::validate()::DEVICEVALIDATE service ended with error data : "
 									+ error.get(0).getMessage());
 					throw new BaseCheckedException(
 							error.get(0).getMessage() + " " + "for" + " " + deviceDetails.getDigitalId().getType(),
 							StatusUtil.DEVICE_VALIDATION_FAILED.getCode());
 
 				}
-				if (!isDeviceValid) {
-					break;
-				}
-
 			}
-
-		} else {
-			isDeviceValid = true;
 		}
-		return isDeviceValid;
 	}
 
 	/**

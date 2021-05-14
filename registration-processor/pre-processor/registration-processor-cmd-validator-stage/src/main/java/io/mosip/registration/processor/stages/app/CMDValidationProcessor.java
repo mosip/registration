@@ -35,12 +35,12 @@ import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
+import io.mosip.registration.processor.packet.storage.utils.OSIUtils;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.stages.cmdvalidator.CenterValidator;
 import io.mosip.registration.processor.stages.cmdvalidator.DeviceValidator;
 import io.mosip.registration.processor.stages.cmdvalidator.MachineValidator;
-import io.mosip.registration.processor.stages.cmdvalidator.utils.CMDUtils;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
@@ -81,7 +81,7 @@ public class CMDValidationProcessor {
 	private DeviceValidator deviceValidator;
 
 	@Autowired
-	private CMDUtils cmdUtils;
+	private OSIUtils osiUtils;
 
 	@Value("${mosip.registration.gps_device_enable_flag}")
 	private String gpsEnable;
@@ -89,13 +89,13 @@ public class CMDValidationProcessor {
 	@Value("${mosip.primary-language}")
 	private String primaryLanguagecode;
 
-	@Value("${mosip.registartion.processor.validateCenter}")
+	@Value("${mosip.registration.processor.validate-center}")
 	private boolean validateCenter;
 
-	@Value("${mosip.registartion.processor.validateMachine}")
+	@Value("${mosip.registration.processor.validate-machine}")
 	private boolean validateMachine;
 
-	@Value("${mosip.registartion.processor.validateDevice}")
+	@Value("${mosip.registration.processor.validate-device}")
 	private boolean validateDevice;
 
 	public MessageDTO process(MessageDTO object, String stageName) {
@@ -103,9 +103,9 @@ public class CMDValidationProcessor {
 		LogDescription description = new LogDescription();
 		boolean isTransactionSuccessful = false;
 		String registrationId = "";
-		object.setMessageBusAddress(MessageBusAddress.CMD_BUS_IN);
+		object.setMessageBusAddress(MessageBusAddress.CMD_VALIDATOR_BUS_IN);
 		object.setIsValid(Boolean.FALSE);
-		object.setInternalError(Boolean.FALSE);
+		object.setInternalError(Boolean.TRUE);
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "CMDValidatorStage::process()::entry");
@@ -121,7 +121,7 @@ public class CMDValidationProcessor {
 			Map<String, String> metaInfo = packetManagerService.getMetaInfo(registrationId,
 					registrationStatusDto.getRegistrationType(), ProviderStageName.CMD_VALIDATOR);
 
-			RegOsiDto regOsi = cmdUtils.getOSIDetailsFromMetaInfo(metaInfo);
+			RegOsiDto regOsi = osiUtils.getOSIDetailsFromMetaInfo(metaInfo);
 
 			if ((gpsEnable.equalsIgnoreCase(GLOBAL_CONFIG_TRUE_VALUE))
 					&& (regOsi.getLatitude() == null || regOsi.getLongitude() == null
@@ -149,17 +149,16 @@ public class CMDValidationProcessor {
 			}
 
 			if (validateCenter) {
-				centerValidator.isValidCenterDetails(primaryLanguagecode, regOsi,
-						registrationStatusDto.getRegistrationId());
+				centerValidator.validate(primaryLanguagecode, regOsi, registrationStatusDto.getRegistrationId());
 			}
 
 			if (validateMachine) {
-				machineValidator.isValidMachine(regOsi.getMachineId(), primaryLanguagecode,
-						regOsi.getPacketCreationDate(), registrationStatusDto.getRegistrationId());
+				machineValidator.validate(regOsi.getMachineId(), primaryLanguagecode, regOsi.getPacketCreationDate(),
+						registrationStatusDto.getRegistrationId());
 			}
 
 			if (validateDevice) {
-				deviceValidator.isValidDevice(regOsi, registrationStatusDto.getRegistrationId());
+				deviceValidator.validate(regOsi, registrationStatusDto.getRegistrationId());
 			}
 
 			registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
@@ -241,10 +240,6 @@ public class CMDValidationProcessor {
 		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				description.getCode() + " -- " + registrationStatusDto.getRegistrationId(),
 				platformErrorMessages.getMessage() + e.getMessage() + ExceptionUtils.getStackTrace(e));
-		// object.setIsValid(Boolean.FALSE);
-		// object.setInternalError(Boolean.TRUE);
-		// object.setRid(registrationStatusDto.getRegistrationId());
-
 	}
 
 	private void updateAudit(LogDescription description, boolean isTransactionSuccessful, String moduleId,

@@ -67,9 +67,9 @@ public class IntroducerValidationProcessor {
 		LogDescription description = new LogDescription();
 		boolean isTransactionSuccessful = false;
 		String registrationId = "";
-		object.setMessageBusAddress(MessageBusAddress.INTRODUCER_BUS_IN);
+		object.setMessageBusAddress(MessageBusAddress.INTRODUCER_VALIDATOR_BUS_IN);
 		object.setIsValid(Boolean.FALSE);
-		object.setInternalError(Boolean.FALSE);
+		object.setInternalError(Boolean.TRUE);
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "IntroducerValidatorStage::process()::entry");
@@ -83,7 +83,7 @@ public class IntroducerValidationProcessor {
 		registrationStatusDto.setRegistrationStageName(stageName);
 		try {
 
-			introducerValidator.isValidIntroducer(registrationId, registrationStatusDto);
+			introducerValidator.validate(registrationId, registrationStatusDto);
 
 			registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 			registrationStatusDto.setStatusComment(StatusUtil.INTRODUCER_VALIDATION_SUCCESS.getMessage());
@@ -165,10 +165,6 @@ public class IntroducerValidationProcessor {
 		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				description.getCode() + " -- " + registrationStatusDto.getRegistrationId(),
 				platformErrorMessages.getMessage() + e.getMessage() + ExceptionUtils.getStackTrace(e));
-		// object.setIsValid(Boolean.FALSE);
-		// object.setInternalError(Boolean.TRUE);
-		// object.setRid(registrationStatusDto.getRegistrationId());
-
 	}
 
 	private void updateAudit(LogDescription description, boolean isTransactionSuccessful, String moduleId,
