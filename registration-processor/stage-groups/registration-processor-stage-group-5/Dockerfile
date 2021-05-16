@@ -101,7 +101,7 @@ CMD if [ "$is_glowroot_env" = "present" ]; then \
     unzip glowroot.zip ; \
     rm -rf glowroot.zip ; \
     sed -i 's/<service_name>/registration-processor-external-stage/g' glowroot/glowroot.properties ; \
-    java java -Dloader.path=./biosdk-client/  -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -Dstage-group-name=${group_name} -jar -javaagent:glowroot/glowroot.jar ${group_name}.jar ; \
+    java java -Dloader.path="${loader_path_env}"  -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -Dstage-group-name=${group_name} -jar -javaagent:glowroot/glowroot.jar ${group_name}.jar ; \
     else \
-    java java -Dloader.path=./biosdk-client/  -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -Dstage-group-name=${group_name} -jar ${group_name}.jar ; \
+    java java -Dloader.path="${loader_path_env}"  -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -Dstage-group-name=${group_name} -jar ${group_name}.jar ; \
     fi
