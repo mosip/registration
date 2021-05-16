@@ -27,7 +27,6 @@ import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
 import io.mosip.registration.processor.core.auth.dto.IndividualIdDto;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
-import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
@@ -46,7 +45,6 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
-import io.mosip.registration.processor.stages.utils.StatusMessage;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 
@@ -95,13 +93,11 @@ public class OperatorValidator {
 	public void validate(String registrationId, InternalRegistrationStatusDto registrationStatusDto, RegOsiDto regOsi)
 			throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, NumberFormatException, JSONException,
 			CertificateException, BaseCheckedException {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "OperatorValidator::validate()::entry");
+		regProcLogger.debug("validate called for registrationId {}", registrationId);
 
 		ActiveUserId(registrationId, regOsi, registrationStatusDto);
 		validateOperator(regOsi, registrationId, registrationStatusDto);
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "OperatorValidator::validate()::exit");
+		regProcLogger.debug("validate call ended for registrationId {}", registrationId);
 	}
 
 	private void ActiveUserId(String registrationId, RegOsiDto regOsi,
@@ -112,8 +108,8 @@ public class OperatorValidator {
 				registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
 						.getStatusCode(RegistrationExceptionTypeCode.OFFICER_WAS_INACTIVE));
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString(), registrationId, StatusMessage.OFFICER_NOT_ACTIVE);
+				regProcLogger.debug("ActiveUserId call ended for registrationId {} {}", registrationId,
+						StatusUtil.OFFICER_WAS_INACTIVE.getMessage() + regOsi.getOfficerId());
 				throw new BaseCheckedException(StatusUtil.OFFICER_WAS_INACTIVE.getMessage() + regOsi.getOfficerId(),
 						StatusUtil.OFFICER_WAS_INACTIVE.getCode());
 			}
@@ -122,8 +118,8 @@ public class OperatorValidator {
 			registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
 					.getStatusCode(RegistrationExceptionTypeCode.PACKET_CREATION_DATE_NOT_PRESENT_IN_PACKET));
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, "packet creationDate is null");
+			regProcLogger.debug("ActiveUserId call ended for registrationId {}. packet creationDate is null",
+					registrationId);
 			throw new BaseCheckedException(StatusUtil.PACKET_CREATION_DATE_NOT_FOUND_IN_PACKET.getMessage(),
 					StatusUtil.PACKET_CREATION_DATE_NOT_FOUND_IN_PACKET.getCode());
 		}
@@ -137,13 +133,12 @@ public class OperatorValidator {
 			if (officerResponse.getErrors() == null) {
 				wasOfficerActiveDuringPCT = officerResponse.getResponse().getUserResponseDto().get(0).getIsActive();
 				if (!wasOfficerActiveDuringPCT) {
-					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), "", StatusMessage.OFFICER_NOT_ACTIVE);
+					regProcLogger.debug("isActiveUser call ended for registrationId {} {}",
+							registrationStatusDto.getRegistrationId(), StatusUtil.OFFICER_WAS_INACTIVE.getMessage());
 				}
 			} else {
 				List<ServerError> errors = officerResponse.getErrors();
-				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString(), "", errors.get(0).getMessage());
+				regProcLogger.debug("isActiveUser call ended with error {}", errors.get(0).getMessage());
 				throw new BaseCheckedException(
 						StatusUtil.OFFICER_AUTHENTICATION_FAILED.getMessage() + errors.get(0).getMessage(),
 						StatusUtil.OFFICER_AUTHENTICATION_FAILED.getCode());
@@ -161,11 +156,8 @@ public class OperatorValidator {
 
 		userResponse = (UserResponseDto) restClientService.getApi(ApiName.USERDETAILS, pathSegments, "", "",
 				UserResponseDto.class);
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationStatusDto.getRegistrationId(),
-				"OperatorValidator::isUserActive()::User Details Api ended with response data : "
-						+ JsonUtil.objectMapperObjectToJson(userResponse));
-
+		regProcLogger.debug("isUserActive call ended with response data {}",
+				JsonUtil.objectMapperObjectToJson(userResponse));
 		return userResponse;
 	}
 
@@ -201,9 +193,8 @@ public class OperatorValidator {
 				registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
 						.getStatusCode(RegistrationExceptionTypeCode.PASSWORD_OTP_FAILURE));
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-						StatusMessage.PASSWORD_OTP_FAILURE);
+				regProcLogger.debug("validateOperator call ended for registrationId {} {}", registrationId,
+						StatusUtil.PASSWORD_OTP_FAILURE.getMessage() + officerId);
 				throw new BaseCheckedException(StatusUtil.PASSWORD_OTP_FAILURE.getMessage() + officerId,
 						StatusUtil.PASSWORD_OTP_FAILURE.getCode());
 			}
@@ -214,8 +205,7 @@ public class OperatorValidator {
 
 			if (biometricRecord == null || biometricRecord.getSegments() == null
 					|| biometricRecord.getSegments().isEmpty()) {
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+				regProcLogger.error("validateOperator call ended for registrationId {} {}", registrationId,
 						"ERROR =======>" + StatusUtil.BIOMETRICS_VALIDATION_FAILURE.getMessage());
 
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
@@ -285,8 +275,8 @@ public class OperatorValidator {
 						registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.AUTH_ERROR));
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 				String result = errors.stream().map(s -> s.getErrorMessage() + " ").collect(Collectors.joining());
-				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString(), registrationId, result);
+				regProcLogger.debug("validateUserBiometric call ended for registrationId {} {}", registrationId,
+						result);
 				throw new BaseCheckedException(result, StatusUtil.OFFICER_AUTHENTICATION_FAILED.getCode());
 			}
 
@@ -303,8 +293,8 @@ public class OperatorValidator {
 	 * @throws IOException
 	 */
 	private String getIndividualIdByUserId(String userid) throws ApisResourceAccessException, IOException {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-				"OperatorValidator::getIndividualIdByUserId():: entry");
+		
+		regProcLogger.debug("getIndividualIdByUserId called for userid {}", userid);
 		List<String> pathSegments = new ArrayList<>();
 		pathSegments.add(APPID);
 		pathSegments.add(userid);
@@ -312,8 +302,8 @@ public class OperatorValidator {
 		ResponseWrapper<?> response = null;
 		response = (ResponseWrapper<?>) restClientService.getApi(ApiName.GETINDIVIDUALIDFROMUSERID, pathSegments, "",
 				"", ResponseWrapper.class);
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-				"OperatorValidator::getIndividualIdByUserId():: GETINDIVIDUALIDFROMUSERID GET service call ended successfully");
+		regProcLogger.debug(
+				"getIndividualIdByUserId called for with GETINDIVIDUALIDFROMUSERID GET service call ended successfully");
 		if (response.getErrors() != null) {
 			throw new ApisResourceAccessException(
 					PlatformErrorMessages.LINK_FOR_USERID_INDIVIDUALID_FAILED_OSI_EXCEPTION.toString());
@@ -322,8 +312,7 @@ public class OperatorValidator {
 					IndividualIdDto.class);
 			individualId = readValue.getIndividualId();
 		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-				"OperatorValidator::getIndividualIdByUserId():: exit");
+		regProcLogger.debug("getIndividualIdByUserId call ended for userid {}", userid);
 		return individualId;
 	}
 

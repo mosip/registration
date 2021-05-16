@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.stages.app;
 
 import java.io.IOException;
+
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -20,7 +21,6 @@ import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
-import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
@@ -71,8 +71,7 @@ public class IntroducerValidationProcessor {
 		object.setIsValid(Boolean.FALSE);
 		object.setInternalError(Boolean.TRUE);
 
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "IntroducerValidatorStage::process()::entry");
+		regProcLogger.debug("process called for registrationId {}", registrationId);
 		registrationId = object.getRid();
 
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
@@ -94,8 +93,8 @@ public class IntroducerValidationProcessor {
 					PlatformSuccessMessages.RPR_PKR_INTRODUCER_VALIDATE.getMessage() + " -- " + registrationId);
 			description.setCode(PlatformSuccessMessages.RPR_PKR_INTRODUCER_VALIDATE.getCode());
 
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, description.getCode() + description.getMessage());
+			regProcLogger.info("process call ended for registrationId {} {} {}", registrationId,
+					description.getCode() + description.getMessage());
 
 			object.setIsValid(Boolean.TRUE);
 			object.setInternalError(Boolean.FALSE);
@@ -162,9 +161,9 @@ public class IntroducerValidationProcessor {
 				registrationStatusMapperUtil.getStatusCode(registrationExceptionTypeCode));
 		description.setMessage(platformErrorMessages.getMessage());
 		description.setCode(platformErrorMessages.getCode());
-		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				description.getCode() + " -- " + registrationStatusDto.getRegistrationId(),
-				platformErrorMessages.getMessage() + e.getMessage() + ExceptionUtils.getStackTrace(e));
+		regProcLogger.error("Error in  process  for registration id  {} {} {} {} {}",
+				registrationStatusDto.getRegistrationId(), description.getCode(), platformErrorMessages.getMessage(),
+				e.getMessage(), ExceptionUtils.getStackTrace(e));
 	}
 
 	private void updateAudit(LogDescription description, boolean isTransactionSuccessful, String moduleId,

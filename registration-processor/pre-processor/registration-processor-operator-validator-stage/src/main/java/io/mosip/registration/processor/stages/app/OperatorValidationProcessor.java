@@ -23,7 +23,6 @@ import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
-import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -89,8 +88,7 @@ public class OperatorValidationProcessor {
 		object.setIsValid(Boolean.FALSE);
 		object.setInternalError(Boolean.TRUE);
 
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "OperatorValidatorStage::process()::entry");
+		regProcLogger.debug("process called for registrationId {}", registrationId);
 		registrationId = object.getRid();
 
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
@@ -111,9 +109,9 @@ public class OperatorValidationProcessor {
 				registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
 						.getStatusCode(RegistrationExceptionTypeCode.SUPERVISORID_AND_OFFICERID_NOT_PRESENT_IN_PACKET));
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-						"Both Officer and Supervisor ID are not present in Packet");
+				regProcLogger.debug(
+						"process called for registrationId {}. Both Officer and Supervisor ID are not present in Packet",
+						registrationId);
 				throw new BaseCheckedException(StatusUtil.SUPERVISOR_OFFICER_NOT_FOUND_PACKET.getMessage(),
 						StatusUtil.SUPERVISOR_OFFICER_NOT_FOUND_PACKET.getCode());
 			}
@@ -133,8 +131,8 @@ public class OperatorValidationProcessor {
 					PlatformSuccessMessages.RPR_PKR_OPERATOR_VALIDATE.getMessage() + " -- " + registrationId);
 			description.setCode(PlatformSuccessMessages.RPR_PKR_OPERATOR_VALIDATE.getCode());
 
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, description.getCode() + description.getMessage());
+			regProcLogger.info("process call ended for registrationId {} {} {}", registrationId,
+					description.getCode() + description.getMessage());
 
 			object.setIsValid(Boolean.TRUE);
 			object.setInternalError(Boolean.FALSE);
@@ -201,9 +199,9 @@ public class OperatorValidationProcessor {
 				registrationStatusMapperUtil.getStatusCode(registrationExceptionTypeCode));
 		description.setMessage(platformErrorMessages.getMessage());
 		description.setCode(platformErrorMessages.getCode());
-		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				description.getCode() + " -- " + registrationStatusDto.getRegistrationId(),
-				platformErrorMessages.getMessage() + e.getMessage() + ExceptionUtils.getStackTrace(e));
+		regProcLogger.error("Error in  process  for registration id  {} {} {} {} {}",
+				registrationStatusDto.getRegistrationId(), description.getCode(), platformErrorMessages.getMessage(),
+				e.getMessage(), ExceptionUtils.getStackTrace(e));
 	}
 
 	private void updateAudit(LogDescription description, boolean isTransactionSuccessful, String moduleId,

@@ -14,7 +14,6 @@ import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
-import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
@@ -23,7 +22,6 @@ import io.mosip.registration.processor.core.packet.dto.regcentermachine.MachineH
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.util.JsonUtil;
-import io.mosip.registration.processor.stages.cmdvalidator.utils.StatusMessage;
 
 @Service
 public class MachineValidator {
@@ -67,9 +65,6 @@ public class MachineValidator {
 				pathsegments, "", "", ResponseWrapper.class);
 		mhrdto = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
 				MachineHistoryResponseDto.class);
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "MachineValidator::validate()::MachineHistory service ended with response data : "
-						+ JsonUtil.objectMapperObjectToJson(mhrdto));
 		if (responseWrapper.getErrors() == null) {
 			MachineHistoryDto dto = mhrdto.getMachineHistoryDetails().get(0);
 
@@ -80,18 +75,18 @@ public class MachineValidator {
 				}
 
 			} else {
-				throw new BaseCheckedException(StatusMessage.MACHINE_ID_NOT_FOUND,
+				throw new BaseCheckedException(StatusUtil.MACHINE_ID_NOT_FOUND_MASTER_DB.getMessage(),
 						StatusUtil.MACHINE_ID_NOT_FOUND_MASTER_DB.getCode());
 			}
 		} else {
 			List<ErrorDTO> error = responseWrapper.getErrors();
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId,
-					"MachineValidator::validate()::MachineHistory service ended with response data : "
-							+ error.get(0).getMessage());
+			regProcLogger.error("validate call ended for registrationId {} with error data : {}", registrationId,
+					error.get(0).getMessage());
 			throw new BaseCheckedException(error.get(0).getMessage(),
 					StatusUtil.FAILED_TO_GET_MACHINE_DETAIL.getCode());
 		}
+		regProcLogger.debug("validate call ended for registrationId {} with response data : {}", registrationId,
+				JsonUtil.objectMapperObjectToJson(mhrdto));
 	}
 
 }

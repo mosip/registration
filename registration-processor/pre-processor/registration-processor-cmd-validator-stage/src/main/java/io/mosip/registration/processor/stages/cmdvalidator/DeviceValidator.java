@@ -18,7 +18,6 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
-import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.http.RequestWrapper;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
@@ -95,10 +94,6 @@ public class DeviceValidator {
 						.postApi(ApiName.DEVICEVALIDATEHISTORY, "", "", request, ResponseWrapper.class);
 				deviceValidateResponse = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
 						DeviceValidateHistoryResponse.class);
-				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-						"DeviceValidator::validate()::DeviceValidate service ended with response data : "
-								+ JsonUtil.objectMapperObjectToJson(deviceValidateResponse));
 				if (responseWrapper.getErrors() == null || responseWrapper.getErrors().isEmpty()) {
 					if (!deviceValidateResponse.getStatus().equalsIgnoreCase(VALID)) {
 						throw new BaseCheckedException(StatusUtil.DEVICE_VALIDATION_FAILED.getMessage(),
@@ -106,15 +101,15 @@ public class DeviceValidator {
 					}
 				} else {
 					List<ErrorDTO> error = responseWrapper.getErrors();
-					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-							"DeviceValidator::validate()::DEVICEVALIDATE service ended with error data : "
-									+ error.get(0).getMessage());
+					regProcLogger.error("validate call ended for registrationId {} with error data : {}",
+							registrationId, error.get(0).getMessage());
 					throw new BaseCheckedException(
 							error.get(0).getMessage() + " " + "for" + " " + deviceDetails.getDigitalId().getType(),
 							StatusUtil.DEVICE_VALIDATION_FAILED.getCode());
 
 				}
+				regProcLogger.debug("validate call ended for registrationId {} with response data : {}", registrationId,
+						JsonUtil.objectMapperObjectToJson(deviceValidateResponse));
 			}
 		}
 	}

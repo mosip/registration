@@ -13,7 +13,6 @@ import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
-import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.regcentermachine.RegistrationCenterUserMachineMappingHistoryResponseDto;
@@ -75,19 +74,15 @@ public class UMCValidator {
 				pathsegments, "", "", ResponseWrapper.class);
 		userDto = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
 				RegistrationCenterUserMachineMappingHistoryResponseDto.class);
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationStatusDto.getRegistrationId(),
-				"UMCValidator::validateMapping()::CenterUserMachineHistory service ended with response data : "
-						+ JsonUtil.objectMapperObjectToJson(userDto));
+		regProcLogger.debug("validateMapping call ended for registrationId {} with response data {}",
+				registrationStatusDto.getRegistrationId(), JsonUtil.objectMapperObjectToJson(userDto));
 		if (userDto != null) {
 			if (responseWrapper.getErrors() == null) {
 				isValidUser = userDto.getRegistrationCenters().get(0).getIsActive();
 			} else {
 				List<ErrorDTO> error = responseWrapper.getErrors();
-				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
-						"UMCValidator::validateMapping()::CenterUserMachineHistory service ended with response data : "
-								+ error.get(0).getMessage());
+				regProcLogger.debug("validateMapping call ended for registrationId {} with error data {}",
+						registrationStatusDto.getRegistrationId(), error.get(0).getMessage());
 				throw new BaseCheckedException(error.get(0).getMessage(),
 						StatusUtil.CENTER_DEVICE_MAPPING_NOT_FOUND.getCode());
 			}

@@ -23,7 +23,6 @@ import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
-import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -107,8 +106,7 @@ public class CMDValidationProcessor {
 		object.setIsValid(Boolean.FALSE);
 		object.setInternalError(Boolean.TRUE);
 
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "CMDValidatorStage::process()::entry");
+		regProcLogger.debug("process called for registration id {}", registrationId);
 		registrationId = object.getRid();
 
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
@@ -169,8 +167,8 @@ public class CMDValidationProcessor {
 			description.setMessage(PlatformSuccessMessages.RPR_PKR_CMD_VALIDATE.getMessage() + " -- " + registrationId);
 			description.setCode(PlatformSuccessMessages.RPR_PKR_CMD_VALIDATE.getCode());
 
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, description.getCode() + description.getMessage());
+			regProcLogger.debug("process call ended for registration id {} {} {}", registrationId,
+					description.getCode() + description.getMessage());
 
 			object.setIsValid(Boolean.TRUE);
 			object.setInternalError(Boolean.FALSE);
@@ -237,9 +235,9 @@ public class CMDValidationProcessor {
 				registrationStatusMapperUtil.getStatusCode(registrationExceptionTypeCode));
 		description.setMessage(platformErrorMessages.getMessage());
 		description.setCode(platformErrorMessages.getCode());
-		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				description.getCode() + " -- " + registrationStatusDto.getRegistrationId(),
-				platformErrorMessages.getMessage() + e.getMessage() + ExceptionUtils.getStackTrace(e));
+		regProcLogger.error("Error in  process  for registration id  {} {} {} {} {}",
+				registrationStatusDto.getRegistrationId(), description.getCode(), platformErrorMessages.getMessage(),
+				e.getMessage(), ExceptionUtils.getStackTrace(e));
 	}
 
 	private void updateAudit(LogDescription description, boolean isTransactionSuccessful, String moduleId,

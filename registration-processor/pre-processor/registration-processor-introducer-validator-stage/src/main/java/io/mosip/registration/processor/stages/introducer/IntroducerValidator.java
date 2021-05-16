@@ -23,7 +23,6 @@ import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
-import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.AuthSystemException;
@@ -38,7 +37,6 @@ import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoServic
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
-import io.mosip.registration.processor.stages.utils.StatusMessage;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
@@ -101,9 +99,8 @@ public class IntroducerValidator {
 	 */
 	public void validate(String registrationId, InternalRegistrationStatusDto registrationStatusDto) throws IOException,
 			InvalidKeySpecException, NoSuchAlgorithmException, CertificateException, BaseCheckedException {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "IntroducerValidator::validate()::entry");
-
+		
+		regProcLogger.debug("validate called for registrationId {}", registrationId);
 		if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.NEW.name())
 				|| (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.UPDATE.name()))) {
 			int age = utility.getApplicantAge(registrationId, registrationStatusDto.getRegistrationType(),
@@ -124,9 +121,8 @@ public class IntroducerValidator {
 					registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
 							.getStatusCode(RegistrationExceptionTypeCode.PARENT_UIN_AND_RID_NOT_IN_PACKET));
 					registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
-					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-							StatusMessage.PARENT_UIN_AND_RID_NOT_IN_PACKET);
+					regProcLogger.debug("validate called for registrationId {} {}", registrationId,
+							StatusUtil.UIN_RID_NOT_FOUND.getMessage());
 					throw new BaseCheckedException(StatusUtil.UIN_RID_NOT_FOUND.getMessage(),
 							StatusUtil.UIN_RID_NOT_FOUND.getCode());
 				}
@@ -141,9 +137,8 @@ public class IntroducerValidator {
 						registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
 								.getStatusCode(RegistrationExceptionTypeCode.PARENT_UIN_NOT_AVAIALBLE));
 						registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-						regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-								LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-								StatusMessage.PARENT_UIN_NOT_AVAIALBLE);
+						regProcLogger.debug("validate called for registrationId {} {}", registrationId,
+								StatusUtil.PARENT_UIN_NOT_FOUND.getMessage());
 						throw new BaseCheckedException(StatusUtil.PARENT_UIN_NOT_FOUND.getMessage(),
 								StatusUtil.PARENT_UIN_NOT_FOUND.getCode());
 					}
@@ -158,8 +153,7 @@ public class IntroducerValidator {
 			}
 
 		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "IntroducerValidator::validate()::exit");
+		regProcLogger.debug("validate call ended for registrationId {}", registrationId);
 	}
 
 	private boolean isValidIntroducer(String introducerUIN, String introducerRID) {
@@ -189,8 +183,8 @@ public class IntroducerValidator {
 				registrationStatusDto.setStatusComment(StatusUtil.PACKET_ON_HOLD.getMessage());
 				registrationStatusDto.setSubStatusCode(StatusUtil.PACKET_ON_HOLD.getCode());
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString(), registrationId, StatusMessage.PACKET_IS_ON_HOLD);
+				regProcLogger.debug("isValidIntroducerRid call ended for registrationId {} {}", registrationId,
+						StatusUtil.PACKET_ON_HOLD.getMessage());
 				throw new ParentOnHoldException(StatusUtil.PACKET_ON_HOLD.getCode(),
 						StatusUtil.PACKET_ON_HOLD.getMessage());
 
@@ -203,10 +197,8 @@ public class IntroducerValidator {
 						.getStatusCode(RegistrationExceptionTypeCode.OSI_FAILED_REJECTED_PARENT));
 
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-						StatusMessage.OSI_FAILED_REJECTED_PARENT);
-
+				regProcLogger.debug("isValidIntroducerRid call ended for registrationId {} {}", registrationId,
+						StatusUtil.CHILD_PACKET_REJECTED.getMessage());
 				throw new BaseCheckedException(StatusUtil.CHILD_PACKET_REJECTED.getMessage(),
 						StatusUtil.CHILD_PACKET_REJECTED.getCode());
 			} else {
@@ -220,8 +212,8 @@ public class IntroducerValidator {
 			registrationStatusDto.setStatusComment(StatusUtil.PACKET_IS_ON_HOLD.getMessage());
 			registrationStatusDto.setSubStatusCode(StatusUtil.PACKET_IS_ON_HOLD.getCode());
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, StatusMessage.PACKET_IS_ON_HOLD);
+			regProcLogger.debug("isValidIntroducerRid call ended for registrationId {} {}", registrationId,
+					StatusUtil.PACKET_ON_HOLD.getMessage());
 			throw new ParentOnHoldException(StatusUtil.PACKET_ON_HOLD.getCode(),
 					StatusUtil.PACKET_ON_HOLD.getMessage());
 		}
@@ -241,8 +233,8 @@ public class IntroducerValidator {
 			registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
 					.getStatusCode(RegistrationExceptionTypeCode.PARENT_BIOMETRIC_NOT_IN_PACKET));
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, StatusMessage.PARENT_BIOMETRIC_NOT_IN_PACKET);
+			regProcLogger.debug("validateIntroducerBiometric call ended for registrationId {} {}", registrationId,
+					StatusUtil.PARENT_BIOMETRIC_FILE_NAME_NOT_FOUND.getMessage());
 			throw new BaseCheckedException(StatusUtil.PARENT_BIOMETRIC_FILE_NAME_NOT_FOUND.getMessage(),
 					StatusUtil.PARENT_BIOMETRIC_FILE_NAME_NOT_FOUND.getCode());
 		}
@@ -289,8 +281,8 @@ public class IntroducerValidator {
 						registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.AUTH_ERROR));
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 				String result = errors.stream().map(s -> s.getErrorMessage() + " ").collect(Collectors.joining());
-				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString(), registrationId, result);
+				regProcLogger.debug("validateUserBiometric call ended for registrationId {} {}", registrationId,
+						result);
 				throw new BaseCheckedException(result, StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getCode());
 			}
 

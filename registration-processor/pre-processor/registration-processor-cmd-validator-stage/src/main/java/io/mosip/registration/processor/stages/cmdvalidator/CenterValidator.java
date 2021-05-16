@@ -15,7 +15,6 @@ import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
-import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
@@ -56,6 +55,8 @@ public class CenterValidator {
 	 */
 	private void validateRegistrationCenter(String registrationCenterId, String langCode, String effectiveDate,
 			String registrationId) throws IOException, BaseCheckedException, ApisResourceAccessException {
+		
+		regProcLogger.debug("validateRegistrationCenter called for registrationId {}", registrationId);
 		if (registrationCenterId == null || effectiveDate == null) {
 			throw new BaseCheckedException(StatusUtil.CENTER_ID_NOT_FOUND.getMessage(),
 					StatusUtil.CENTER_ID_NOT_FOUND.getCode());
@@ -72,11 +73,6 @@ public class CenterValidator {
 		rcpdto = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
 				RegistrationCenterResponseDto.class);
 
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId,
-				"CenterValidator::validateRegistrationCenter()::CenterHistory service ended with response data : "
-						+ JsonUtil.objectMapperObjectToJson(rcpdto));
-
 		if (responseWrapper.getErrors() == null) {
 			if (!rcpdto.getRegistrationCentersHistory().get(0).getIsActive()) {
 				throw new BaseCheckedException(StatusUtil.CENTER_ID_INACTIVE.getMessage(),
@@ -84,12 +80,13 @@ public class CenterValidator {
 			}
 		} else {
 			List<ErrorDTO> error = responseWrapper.getErrors();
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId,
-					"CenterValidator::validateRegistrationCenter()::CenterHistory service ended with response data : "
-							+ error.get(0).getMessage());
+			regProcLogger.error("validateRegistrationCenter call ended for registrationId {} with error data: {}",
+					registrationId, error.get(0).getMessage());
 			throw new BaseCheckedException(error.get(0).getMessage(), StatusUtil.FAILED_TO_GET_CENTER_DETAIL.getCode());
 		}
+		
+		regProcLogger.debug("validateRegistrationCenter call ended for registrationId {} with response data: {}",
+				registrationId, JsonUtil.objectMapperObjectToJson(rcpdto));
 
 	}
 
@@ -111,8 +108,7 @@ public class CenterValidator {
 	private void validateCenterIdAndTimestamp(RegOsiDto rcmDto, String primaryLanguagecode, String registrationId)
 			throws IOException, BaseCheckedException, ApisResourceAccessException {
 
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				rcmDto.getRegId(), "CenterValidator::validateCenterIdAndTimestamp()::entry");
+		regProcLogger.debug("validateCenterIdAndTimestamp called for registrationId {}", rcmDto.getRegId());
 		List<String> pathsegments = new ArrayList<>();
 		pathsegments.add(rcmDto.getRegcntrId());
 		pathsegments.add(primaryLanguagecode);
@@ -125,10 +121,7 @@ public class CenterValidator {
 
 		result = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
 				RegistartionCenterTimestampResponseDto.class);
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId,
-				"CenterValidator::validateCenterIdAndTimestamp()::CenterUserMachineHistory service ended with response data : "
-						+ JsonUtil.objectMapperObjectToJson(result));
+		
 		if (responseWrapper.getErrors() == null) {
 			if (!result.getStatus().equals(VALID)) {
 				throw new BaseCheckedException(
@@ -137,16 +130,14 @@ public class CenterValidator {
 			}
 		} else {
 			List<ErrorDTO> error = responseWrapper.getErrors();
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId,
-					"CenterValidator::validateCenterIdAndTimestamp()::CenterUserMachineHistory service ended with response data : "
-							+ error.get(0).getMessage());
+			regProcLogger.error("validateCenterIdAndTimestamp call ended for registrationId {} with error data: {}",
+					registrationId, error.get(0).getMessage());
 			throw new BaseCheckedException(error.get(0).getMessage(),
 					StatusUtil.REGISTRATION_CENTER_TIMESTAMP_FAILURE.getCode());
 		}
 
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				rcmDto.getRegId(), "CenterValidator::validateCenterIdAndTimestamp()::exit");
+		regProcLogger.debug("validateCenterIdAndTimestamp call ended for registrationId {} with response data: {}",
+				registrationId, JsonUtil.objectMapperObjectToJson(result));
 	}
 
 	public void validate(String primaryLanguagecode, RegOsiDto regOsi, String registrationId)
