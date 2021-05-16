@@ -35,6 +35,7 @@ import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.AuthSystemException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.core.exception.ValidationFailedException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.packet.dto.RegOsiDto;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
@@ -170,6 +171,7 @@ public class CMDValidatorProcessorTest {
 		Mockito.doNothing().when(machineValidator).validate(anyString(), anyString(), anyString(), anyString());
 
 		assertTrue(cmdValidationProcessor.process(dto, stageName).getIsValid());
+		assertFalse(cmdValidationProcessor.process(dto, stageName).getInternalError());
 	}
 
 	/**
@@ -186,6 +188,19 @@ public class CMDValidatorProcessorTest {
 				anyString());
 
 		assertEquals(false, cmdValidationProcessor.process(dto, stageName).getIsValid());
+		assertEquals(true, cmdValidationProcessor.process(dto, stageName).getInternalError());
+	}
+	
+	@Test
+	public void ValidationFailedExceptionTest() throws Exception {
+
+		Mockito.doNothing().when(centerValidator).validate(anyString(), any(), anyString());
+		Mockito.doNothing().when(deviceValidator).validate(any(), anyString());
+		Mockito.doThrow(new ValidationFailedException("id", "message")).when(machineValidator).validate(anyString(),
+				anyString(), anyString(), anyString());
+
+		assertEquals(false, cmdValidationProcessor.process(dto, stageName).getIsValid());
+		assertEquals(false, cmdValidationProcessor.process(dto, stageName).getInternalError());
 	}
 
 	@Test
@@ -197,6 +212,7 @@ public class CMDValidatorProcessorTest {
 				anyString(), anyString());
 
 		assertEquals(false, cmdValidationProcessor.process(dto, stageName).getIsValid());
+		assertEquals(true, cmdValidationProcessor.process(dto, stageName).getInternalError());
 	}
 
 	@Test
@@ -208,6 +224,7 @@ public class CMDValidatorProcessorTest {
 				anyString(), anyString());
 
 		assertEquals(false, cmdValidationProcessor.process(dto, stageName).getIsValid());
+		assertEquals(true, cmdValidationProcessor.process(dto, stageName).getInternalError());
 	}
 
 	@Test
@@ -222,6 +239,7 @@ public class CMDValidatorProcessorTest {
 		Mockito.doThrow(apisResourceAccessException).when(machineValidator).validate(anyString(), anyString(),
 				anyString(), anyString());
 		assertEquals(false, cmdValidationProcessor.process(dto, stageName).getIsValid());
+		assertEquals(true, cmdValidationProcessor.process(dto, stageName).getInternalError());
 	}
 
 	@Test
@@ -237,6 +255,7 @@ public class CMDValidatorProcessorTest {
 				anyString(), anyString());
 
 		assertEquals(false, cmdValidationProcessor.process(dto, stageName).getIsValid());
+		assertEquals(true, cmdValidationProcessor.process(dto, stageName).getInternalError());
 	}
 
 	/**
@@ -253,6 +272,7 @@ public class CMDValidatorProcessorTest {
 		}).when(machineValidator).validate(anyString(), anyString(), anyString(), anyString());
 
 		assertEquals(false, cmdValidationProcessor.process(dto, stageName).getIsValid());
+		assertEquals(true, cmdValidationProcessor.process(dto, stageName).getInternalError());
 	}
 
 	/**
@@ -267,6 +287,7 @@ public class CMDValidatorProcessorTest {
 		regOsi.setLatitude(null);
 
 		assertFalse(cmdValidationProcessor.process(dto, stageName).getIsValid());
+		assertTrue(cmdValidationProcessor.process(dto, stageName).getInternalError());
 	}
 
 	@Test
@@ -277,6 +298,7 @@ public class CMDValidatorProcessorTest {
 		Mockito.doThrow(new AuthSystemException(StatusUtil.AUTH_SYSTEM_EXCEPTION.getMessage())).when(machineValidator)
 				.validate(anyString(), anyString(), anyString(), anyString());
 		assertEquals(false, cmdValidationProcessor.process(dto, stageName).getIsValid());
+		assertEquals(true, cmdValidationProcessor.process(dto, stageName).getInternalError());
 	}
 
 	@Test
@@ -287,5 +309,6 @@ public class CMDValidatorProcessorTest {
 		Mockito.doThrow(new PacketManagerException("id", "message")).when(machineValidator).validate(anyString(),
 				anyString(), anyString(), anyString());
 		assertEquals(false, cmdValidationProcessor.process(dto, stageName).getIsValid());
+		assertEquals(true, cmdValidationProcessor.process(dto, stageName).getInternalError());
 	}
 }

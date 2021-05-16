@@ -33,6 +33,7 @@ import io.mosip.registration.processor.core.exception.ApisResourceAccessExceptio
 import io.mosip.registration.processor.core.exception.AuthSystemException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
+import io.mosip.registration.processor.core.exception.ValidationFailedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
@@ -195,7 +196,7 @@ public class OperatorValidator {
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 				regProcLogger.debug("validateOperator call ended for registrationId {} {}", registrationId,
 						StatusUtil.PASSWORD_OTP_FAILURE.getMessage() + officerId);
-				throw new BaseCheckedException(StatusUtil.PASSWORD_OTP_FAILURE.getMessage() + officerId,
+				throw new ValidationFailedException(StatusUtil.PASSWORD_OTP_FAILURE.getMessage() + officerId,
 						StatusUtil.PASSWORD_OTP_FAILURE.getCode());
 			}
 		} else {
@@ -209,7 +210,7 @@ public class OperatorValidator {
 						"ERROR =======>" + StatusUtil.BIOMETRICS_VALIDATION_FAILURE.getMessage());
 
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-				throw new BaseCheckedException(
+				throw new ValidationFailedException(
 						StatusUtil.BIOMETRICS_VALIDATION_FAILURE.getMessage() + " for officer : " + officerId,
 						StatusUtil.BIOMETRICS_VALIDATION_FAILURE.getCode());
 			} else {
@@ -263,7 +264,7 @@ public class OperatorValidator {
 				registrationStatusDto.setLatestTransactionStatusCode(
 						registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.AUTH_FAILED));
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-				throw new BaseCheckedException(StatusUtil.OFFICER_AUTHENTICATION_FAILED.getMessage() + userId,
+				throw new ValidationFailedException(StatusUtil.OFFICER_AUTHENTICATION_FAILED.getMessage() + userId,
 						StatusUtil.OFFICER_AUTHENTICATION_FAILED.getCode());
 			}
 		} else {
@@ -277,7 +278,7 @@ public class OperatorValidator {
 				String result = errors.stream().map(s -> s.getErrorMessage() + " ").collect(Collectors.joining());
 				regProcLogger.debug("validateUserBiometric call ended for registrationId {} {}", registrationId,
 						result);
-				throw new BaseCheckedException(result, StatusUtil.OFFICER_AUTHENTICATION_FAILED.getCode());
+				throw new ValidationFailedException(result, StatusUtil.OFFICER_AUTHENTICATION_FAILED.getCode());
 			}
 
 		}

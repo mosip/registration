@@ -15,6 +15,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.ValidationFailedException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.regcentermachine.MachineHistoryDto;
@@ -70,7 +71,7 @@ public class MachineValidator {
 
 			if (dto.getId() != null && dto.getId().matches(machineId)) {
 				if (!dto.getIsActive()) {
-					throw new BaseCheckedException(StatusUtil.MACHINE_ID_NOT_ACTIVE.getMessage() + machineId,
+					throw new ValidationFailedException(StatusUtil.MACHINE_ID_NOT_ACTIVE.getMessage() + machineId,
 							StatusUtil.MACHINE_ID_NOT_ACTIVE.getCode());
 				}
 

@@ -29,6 +29,7 @@ import io.mosip.registration.processor.core.exception.AuthSystemException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.ParentOnHoldException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
+import io.mosip.registration.processor.core.exception.ValidationFailedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
@@ -147,7 +148,7 @@ public class IntroducerValidator {
 				if (introducerUIN != null && !introducerUIN.isEmpty()) {
 					validateIntroducerBiometric(registrationId, registrationStatusDto, introducerUIN);
 				} else {
-					throw new BaseCheckedException(StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getMessage(),
+					throw new ValidationFailedException(StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getMessage(),
 							StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getCode());
 				}
 			}
@@ -268,7 +269,7 @@ public class IntroducerValidator {
 				registrationStatusDto.setLatestTransactionStatusCode(
 						registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.AUTH_FAILED));
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-				throw new BaseCheckedException(StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getMessage() + userId,
+				throw new ValidationFailedException(StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getMessage() + userId,
 						StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getCode());
 			}
 

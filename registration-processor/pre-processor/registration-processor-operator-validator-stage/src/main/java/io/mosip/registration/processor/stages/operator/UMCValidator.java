@@ -13,6 +13,7 @@ import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
+import io.mosip.registration.processor.core.exception.ValidationFailedException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.regcentermachine.RegistrationCenterUserMachineMappingHistoryResponseDto;
@@ -59,7 +60,7 @@ public class UMCValidator {
 		officerpathsegments.add(officerId);
 
 		if (!validateMapping(officerpathsegments, registrationStatusDto)) {
-			throw new BaseCheckedException(StatusUtil.OFFICER_NOT_ACTIVE.getMessage(),
+			throw new ValidationFailedException(StatusUtil.OFFICER_NOT_ACTIVE.getMessage(),
 					StatusUtil.OFFICER_NOT_ACTIVE.getCode());
 		}
 

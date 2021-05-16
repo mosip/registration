@@ -16,6 +16,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.ValidationFailedException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.RegOsiDto;
@@ -75,7 +76,7 @@ public class CenterValidator {
 
 		if (responseWrapper.getErrors() == null) {
 			if (!rcpdto.getRegistrationCentersHistory().get(0).getIsActive()) {
-				throw new BaseCheckedException(StatusUtil.CENTER_ID_INACTIVE.getMessage(),
+				throw new ValidationFailedException(StatusUtil.CENTER_ID_INACTIVE.getMessage(),
 						StatusUtil.CENTER_ID_INACTIVE.getCode());
 			}
 		} else {
@@ -124,7 +125,7 @@ public class CenterValidator {
 		
 		if (responseWrapper.getErrors() == null) {
 			if (!result.getStatus().equals(VALID)) {
-				throw new BaseCheckedException(
+				throw new ValidationFailedException(
 						StatusUtil.PACKET_CREATION_WORKING_HOURS.getMessage() + rcmDto.getPacketCreationDate(),
 						StatusUtil.PACKET_CREATION_WORKING_HOURS.getCode());
 			}

@@ -185,6 +185,8 @@ public enum RegistrationExceptionTypeCode {
 
 	/** The introspection exception. */
 	INTROSPECTION_EXCEPTION,
+	
+	VALIDATION_FAILED_EXCEPTION,
 
 	/** The base unchecked exception. */
 	BASE_UNCHECKED_EXCEPTION,

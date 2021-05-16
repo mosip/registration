@@ -19,6 +19,7 @@ import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.ValidationFailedException;
 import io.mosip.registration.processor.core.http.RequestWrapper;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
@@ -96,7 +97,7 @@ public class DeviceValidator {
 						DeviceValidateHistoryResponse.class);
 				if (responseWrapper.getErrors() == null || responseWrapper.getErrors().isEmpty()) {
 					if (!deviceValidateResponse.getStatus().equalsIgnoreCase(VALID)) {
-						throw new BaseCheckedException(StatusUtil.DEVICE_VALIDATION_FAILED.getMessage(),
+						throw new ValidationFailedException(StatusUtil.DEVICE_VALIDATION_FAILED.getMessage(),
 								StatusUtil.DEVICE_VALIDATION_FAILED.getCode());
 					}
 				} else {
