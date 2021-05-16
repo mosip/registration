@@ -51,7 +51,6 @@ import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
-import io.mosip.registration.processor.packet.storage.utils.BIRConverter;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.quality.classifier.exception.FileMissingException;
@@ -78,23 +77,6 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 
 	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.quality.classifier.";
 
-	/** The Constant FINGER. */
-	private static final String FINGER = "FINGER";
-
-	/** The Constant THUMB. */
-	private static final String THUMB = "Thumb";
-
-	/** The Constant RIGHT. */
-	private static final String RIGHT = "Right";
-
-	/** The Constant LEFT. */
-	private static final String LEFT = "Left";
-
-	/** The Constant IRIS. */
-	private static final String IRIS = "IRIS";
-
-	/** The Constant FACE. */
-	private static final String FACE = "FACE";
 
 	/** The Constant UTF_8. */
 	public static final String UTF_8 = "UTF-8";
@@ -108,26 +90,6 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 	@Value("${vertx.cluster.configuration}")
 	private String clusterManagerUrl;
 
-	/** The iris threshold. */
-	@Value("${mosip.iris_threshold}")
-	private Integer irisThreshold;
-
-	/** The left finger threshold. */
-	@Value("${mosip.leftslap_fingerprint_threshold}")
-	private Integer leftFingerThreshold;
-
-	/** The right finger threshold. */
-	@Value("${mosip.rightslap_fingerprint_threshold}")
-	private Integer rightFingerThreshold;
-
-	/** The thumb finger threshold. */
-	@Value("${mosip.thumbs_fingerprint_threshold}")
-	private Integer thumbFingerThreshold;
-
-	/** The face threshold. */
-	@Value("${mosip.facequalitythreshold}")
-	private Integer faceThreshold;
-
 	/** worker pool size. */
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
@@ -136,7 +98,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 	 * After this time intervel, message should be considered as expired (In
 	 * seconds).
 	 */
-	@Value("${mosip.regproc.quality.checker.message.expiry-time-limit}")
+	@Value("${mosip.regproc.quality.classifier.message.expiry-time-limit}")
 	private Long messageExpiryTimeLimit;
 
 	/** The core audit request builder. */
@@ -282,43 +244,9 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 					throw new FileMissingException(PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getCode(),
 							PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getMessage());
 				}
-				HashMap<String, Float> bioTypeMinScoreMap = new HashMap<String, Float>();
+				
 
-				// get individual biometrics file name from id.json
-				for (BIR bir : biometricRecord.getSegments()) {
-					BiometricType biometricType = bir.getBdbInfo().getType().get(0);
-					BIR[] birArray = new BIR[1];
-					birArray[0] = bir;
-					float[] qualityScoreresponse = getBioSdkInstance(biometricType).getSegmentQuality(birArray, null);
-
-					float score = Float.valueOf(qualityScoreresponse[0]);
-					String bioType = bir.getBdbInfo().getType().get(0).value();
-
-					// Check for entry
-					Float storedMinScore = bioTypeMinScoreMap.get(bioType);
-
-					bioTypeMinScoreMap.put(bioType,
-							storedMinScore == null ? score : storedMinScore > score ? score : storedMinScore);
-
-				}
-
-				Map<String, String> tags = new HashMap<String, String>();
-
-				for (Entry<String, Float> bioTypeMinEntry : bioTypeMinScoreMap.entrySet()) {
-
-					for (Entry<String, int[]> qualityRangeEntry : parsedQualityRangeMap.entrySet()) {
-
-						if (bioTypeMinEntry.getValue() >= qualityRangeEntry.getValue()[0]
-								&& bioTypeMinEntry.getValue() <= qualityRangeEntry.getValue()[1]) {
-
-							tags.put( qualityTagPrefix.concat(bioTypeMinEntry.getKey()), qualityRangeEntry.getKey());
-							break;
-						}
-
-					}
-				}
-
-				packetManagerService.addOrUpdateTags(regId, tags);
+				packetManagerService.addOrUpdateTags(regId, getQualityTags(biometricRecord.getSegments()));
 
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
 						"UpdatingTags::success ");
@@ -463,32 +391,50 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 		return object;
 	}
 
-	/**
-	 * Gets the threshold based on type.
-	 *
-	 * @param singleType the single type
-	 * @param subtype    the subtype
-	 * @return the threshold based on type
-	 */
-	private Integer getThresholdBasedOnType(BiometricType biometricType, List<String> subtype) {
-		if (biometricType.value().equalsIgnoreCase(FINGER)) {
-			if (subtype.contains(THUMB)) {
-				return thumbFingerThreshold;
-			} else if (subtype.contains(RIGHT)) {
-				return rightFingerThreshold;
-			} else if (subtype.contains(LEFT)) {
-				return leftFingerThreshold;
-			}
-		} else if (biometricType.value().equalsIgnoreCase(IRIS)) {
-			return irisThreshold;
-		} else if (biometricType.value().equalsIgnoreCase(FACE)) {
-			return faceThreshold;
-		}
-		return 0;
-	}
 
 	private iBioProviderApi getBioSdkInstance(BiometricType biometricType) throws BiometricException {
 		iBioProviderApi bioProvider = bioApiFactory.getBioProvider(biometricType, BiometricFunction.QUALITY_CHECK);
 		return bioProvider;
+	}
+	
+	public Map<String, String> getQualityTags(List<BIR> birs) throws BiometricException{
+		
+		HashMap<String, Float> bioTypeMinScoreMap = new HashMap<String, Float>();
+
+		// get individual biometrics file name from id.json
+		for (BIR bir : birs) {
+			BiometricType biometricType = bir.getBdbInfo().getType().get(0);
+			BIR[] birArray = new BIR[1];
+			birArray[0] = bir;
+			float[] qualityScoreresponse = getBioSdkInstance(biometricType).getSegmentQuality(birArray, null);
+
+			float score = Float.valueOf(qualityScoreresponse[0]);
+			String bioType = bir.getBdbInfo().getType().get(0).value();
+
+			// Check for entry
+			Float storedMinScore = bioTypeMinScoreMap.get(bioType);
+
+			bioTypeMinScoreMap.put(bioType,
+					storedMinScore == null ? score : storedMinScore > score ? score : storedMinScore);
+
+		}
+
+		Map<String, String> tags = new HashMap<String, String>();
+
+		for (Entry<String, Float> bioTypeMinEntry : bioTypeMinScoreMap.entrySet()) {
+
+			for (Entry<String, int[]> qualityRangeEntry : parsedQualityRangeMap.entrySet()) {
+
+				if (bioTypeMinEntry.getValue() >= qualityRangeEntry.getValue()[0]
+						&& bioTypeMinEntry.getValue() <= qualityRangeEntry.getValue()[1]) {
+
+					tags.put( qualityTagPrefix.concat(bioTypeMinEntry.getKey()), qualityRangeEntry.getKey());
+					break;
+				}
+
+			}
+		}
+		
+		return tags;
 	}
 }

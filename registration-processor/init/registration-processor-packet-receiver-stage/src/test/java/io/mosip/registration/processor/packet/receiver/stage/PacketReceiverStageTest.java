@@ -102,8 +102,14 @@ public class PacketReceiverStageTest {
 			
 		}
 		
+		@Override
 		public Integer getPort() {
 			return 8080;
+		}
+
+		@Override
+		public String getServletPath() {
+			return null;
 		}
 	};
 
