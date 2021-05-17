@@ -3,12 +3,19 @@ package io.mosip.registration.processor.status.dao;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
+import io.mosip.registration.processor.core.workflow.dto.FilterInfo;
+import io.mosip.registration.processor.core.workflow.dto.PaginationInfo;
+import io.mosip.registration.processor.core.workflow.dto.SortInfo;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
@@ -137,6 +144,38 @@ public class RegistrationStatusDao {
 		params.put(ISACTIVE, Boolean.TRUE);
 		params.put(ISDELETED, Boolean.FALSE);
 		return registrationStatusRepositary.createQuerySelect(queryStr, params);
+	}
+
+	public Page<RegistrationStatusEntity> getPagedSearchResults(List<FilterInfo> filters, SortInfo sort,
+			PaginationInfo pagination) {
+		Map<String, Object> params = new HashMap<>();
+		String className = RegistrationStatusEntity.class.getSimpleName();
+		String queryStr=null;
+		long rows = 0;
+		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
+		params.put(ISDELETED, Boolean.FALSE);
+		queryStr = SELECT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias + ISDELETED_COLON
+				+ ISDELETED;
+		StringBuilder sb = new StringBuilder(queryStr);
+		if (!filters.isEmpty()) {
+			Iterator<FilterInfo> searchIterator = filters.iterator();
+		while (searchIterator.hasNext()) {
+			FilterInfo filterInfo = searchIterator.next();
+			sb.append(EMPTY_STRING + AND + EMPTY_STRING + alias + "." + filterInfo.getColumnName() + "=:"
+					+ filterInfo.getColumnName());
+			params.put(filterInfo.getColumnName(), filterInfo.getValue());
+
+		}
+	}
+
+	sb.append(EMPTY_STRING + ORDER_BY + sort.getSortField() + EMPTY_STRING + sort.getSortType());
+		List<RegistrationStatusEntity> result = registrationStatusRepositary.createQuerySelect(sb.toString(), params,
+			pagination.getPageFetch());
+		rows = registrationStatusRepositary.count();
+		return new PageImpl<>(result,
+				PageRequest.of(pagination.getPageStart(), pagination.getPageFetch()),
+				rows);
+
 	}
 
 	/**

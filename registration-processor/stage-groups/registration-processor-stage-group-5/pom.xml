@@ -49,7 +49,7 @@
 				<configuration>
 					<executable>true</executable>
 					<mainClass>io.mosip.registration.processor.stages.executor.MosipStageExecutorApplication</mainClass>
-					<layout>JAR</layout>
+					<layout>ZIP</layout>
 				</configuration>
 				<executions>
 					<execution>

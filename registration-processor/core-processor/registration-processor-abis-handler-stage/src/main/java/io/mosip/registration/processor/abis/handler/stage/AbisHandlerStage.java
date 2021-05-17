@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.abis.handler.stage;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -131,6 +132,12 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	@Value("${registration.processor.subscriber.id}")
 	private String subscriberId;
 
+	@Value("${mosip.regproc.data.share.protocol}")
+	private String httpProtocol;
+
+	@Value("${mosip.regproc.data.share.internal.domain.name}")
+	private String internalDomainName;
+
 	@Autowired
 	private RegistrationProcessorRestClientService registrationProcessorRestClientService;
 
@@ -171,6 +178,9 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	private static final String DATASHARECREATEURL = "DATASHARECREATEURL";
 
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
+
+	/** The Constant PROTOCOL. */
+	public static final String PROTOCOL = "https";
 	/**
 	 * Deploy verticle.
 	 */
@@ -571,8 +581,18 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		List<String> pathSegments = new ArrayList<>();
 		pathSegments.add(policyId);
 		pathSegments.add(subscriberId);
+		URL dataShareUrl = null;
+		String protocol = PROTOCOL;
+		String url = null;
 
-		DataShareResponseDto response = (DataShareResponseDto) registrationProcessorRestClientService.postApi(ApiName.DATASHARECREATEURL, MediaType.MULTIPART_FORM_DATA, pathSegments, null, null, map, DataShareResponseDto.class);
+		if (httpProtocol != null && !httpProtocol.isEmpty()) {
+			protocol = httpProtocol;
+		}
+
+		dataShareUrl = new URL(protocol, internalDomainName, env.getProperty(ApiName.DATASHARECREATEURL.name()));
+		url = dataShareUrl.toString();
+		url = url.replaceAll("[\\[\\]]", "");
+		DataShareResponseDto response = (DataShareResponseDto) registrationProcessorRestClientService.postApi(url, MediaType.MULTIPART_FORM_DATA, pathSegments, null, null, map, DataShareResponseDto.class);
 		if (response == null || (response.getErrors() != null && response.getErrors().size() >0))
 			throw new DataShareException(response == null ? "Datashare response is null" : response.getErrors().get(0).getMessage());
 

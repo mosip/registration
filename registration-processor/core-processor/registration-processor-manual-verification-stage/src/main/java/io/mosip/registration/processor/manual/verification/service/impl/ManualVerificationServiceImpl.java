@@ -4,6 +4,7 @@ import static io.mosip.registration.processor.manual.verification.constants.Manu
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -156,6 +157,12 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	@Value("${activemq.message.format}")
 	private String messageFormat;
 
+	@Value("${mosip.regproc.data.share.protocol}")
+	private String httpProtocol;
+
+	@Value("${mosip.regproc.data.share.internal.domain.name}")
+	private String internalDomainName;
+
 	@Autowired
 	private RegistrationProcessorRestClientService registrationProcessorRestClientService;
 
@@ -201,6 +208,9 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 	@Autowired
 	RegistrationExceptionMapperUtil registrationExceptionMapperUtil;
+
+	/** The Constant PROTOCOL. */
+	public static final String PROTOCOL = "https";
 
 	/*
 	 * * (non-Javadoc)
@@ -739,9 +749,20 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		List<String> pathSegments = new ArrayList<>();
 		pathSegments.add(policyId);
 		pathSegments.add(subscriberId);
+		URL dataShareUrl = null;
+		String protocol = PROTOCOL;
+		String url = null;
+
+		if (httpProtocol != null && !httpProtocol.isEmpty()) {
+			protocol = httpProtocol;
+		}
+
+		dataShareUrl = new URL(protocol, internalDomainName, env.getProperty(ApiName.DATASHARECREATEURL.name()));
+		url = dataShareUrl.toString();
+		url = url.replaceAll("[\\[\\]]", "");
 		io.mosip.kernel.core.http.ResponseWrapper<DataShareResponseDto> resp = new io.mosip.kernel.core.http.ResponseWrapper<>();
 
-		LinkedHashMap response = (LinkedHashMap) registrationProcessorRestClientService.postApi(ApiName.DATASHARECREATEURL, MediaType.MULTIPART_FORM_DATA, pathSegments, null, null, map, LinkedHashMap.class);
+		LinkedHashMap response = (LinkedHashMap) registrationProcessorRestClientService.postApi(url, MediaType.MULTIPART_FORM_DATA, pathSegments, null, null, map, LinkedHashMap.class);
 		if (response == null || (response.get(ERRORS) != null))
 			throw new DataShareException(response == null ? "Datashare response is null" : response.get(ERRORS).toString());
 

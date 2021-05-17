@@ -8,8 +8,9 @@
 -- 
 -- Modified Date        Modified By         Comments / Remarks
 -- ------------------------------------------------------------------------------------------
--- Mar-2021		Ram Bhatt	    Added resume_timestamp and default_resume_action columns
 -- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
+-- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes for 1.1.5
+-- Apr-2021		Ram Bhatt	    Added resume_remove_tags column
 -- ------------------------------------------------------------------------------------------
 
 -- object: regprc.registration | type: TABLE --
@@ -35,10 +36,11 @@ CREATE TABLE regprc.registration(
 	cr_dtimes timestamp NOT NULL,
 	upd_by character varying(256),
 	upd_dtimes timestamp,
-	is_deleted boolean NOT NULL DEFAULT FALSE,
+	is_deleted boolean DEFAULT FALSE,
 	del_dtimes timestamp,
 	resume_timestamp timestamp,
 	default_resume_action character varying(50),
+	resume_remove_tags character varying(256),
 	CONSTRAINT pk_reg_id PRIMARY KEY (id)
 
 );
@@ -89,4 +91,5 @@ COMMENT ON COLUMN regprc.registration.is_deleted IS 'IS_Deleted : Flag to mark w
 -- ddl-end --
 COMMENT ON COLUMN regprc.registration.del_dtimes IS 'Deleted DateTimestamp : Date and Timestamp when the record is soft deleted with is_deleted=TRUE';
 -- ddl-end --
-
+COMMENT ON COLUMN regprc.registration.resume_remove_tags IS E'Contains comma separated tag names';
+-- ddl-end --

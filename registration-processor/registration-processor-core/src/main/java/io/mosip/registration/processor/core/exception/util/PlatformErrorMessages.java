@@ -14,6 +14,8 @@ public enum PlatformErrorMessages {
 
 	/** The rpr pkr invalid packet size. */
 	RPR_PKR_INVALID_PACKET_SIZE(PlatformConstants.RPR_PACKET_RECEIVER_MODULE + "002", "Invalid Packet Size"),
+	RPR_WORKFLOW_SEARCH_API_FAILED(PlatformConstants.RPR_WORKFLOW_SEARCH_API + "000",
+			"Process the workflow search failed"),
 
 	/** The rpr pkr packet hash not equals synced hash. */
 	RPR_PKR_PACKET_HASH_NOT_EQUALS_SYNCED_HASH(PlatformConstants.RPR_PACKET_RECEIVER_MODULE + "009",
@@ -940,6 +942,10 @@ public enum PlatformErrorMessages {
 	/** The message expired. */
 	RPR_SYS_MESSAGE_EXPIRED(PlatformConstants.RPR_SYSTEM_EXCEPTION + "020",
 			"Message expired as per the last hop timestamp"),
+
+	/** The stage processing failed. */
+	RPR_SYS_STAGE_PROCESSING_FAILED(PlatformConstants.RPR_SYSTEM_EXCEPTION + "021",
+			"Stage processing of message failed with an exception"),
 
 	// Cbeff Util Exceptions
 	/** The rpr utl biometric tag match. */
