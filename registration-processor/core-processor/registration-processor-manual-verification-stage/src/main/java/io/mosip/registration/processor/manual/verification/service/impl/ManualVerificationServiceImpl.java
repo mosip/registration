@@ -107,6 +107,7 @@ import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.dto.Document;
 import io.mosip.registration.processor.packet.storage.entity.ManualVerificationEntity;
 import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
+import io.mosip.registration.processor.packet.storage.utils.BIRConverter;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
@@ -727,7 +728,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 			List<String> modalities = getModalities(policy);
 			BiometricRecord biometricRecord = packetManagerService.getBiometrics(
 					id, individualBiometricsLabel, modalities, process, ProviderStageName.MANUAL_VERIFICATION);
-			byte[] content = cbeffutil.createXML(biometricRecord.getSegments());
+			byte[] content = cbeffutil.createXML(BIRConverter.convertSegmentsToBIRList(biometricRecord.getSegments()));
 			requestDto.setBiometrics(content != null ? CryptoUtil.encodeBase64(content) : null);
 		}
 
