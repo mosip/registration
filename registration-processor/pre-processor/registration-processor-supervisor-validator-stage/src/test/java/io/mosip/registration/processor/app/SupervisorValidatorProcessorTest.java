@@ -46,9 +46,8 @@ import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketM
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
-import io.mosip.registration.processor.stages.app.SupervisorValidationProcessor;
-import io.mosip.registration.processor.stages.supervisor.SupervisorValidator;
-import io.mosip.registration.processor.stages.supervisor.UMCValidator;
+import io.mosip.registration.processor.stages.supervisorvalidator.SupervisorValidationProcessor;
+import io.mosip.registration.processor.stages.supervisorvalidator.SupervisorValidator;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
@@ -78,9 +77,6 @@ public class SupervisorValidatorProcessorTest {
 	/** The center validator. */
 	@Mock
 	private SupervisorValidator supervisorValidator;
-
-	@Mock
-	private UMCValidator umcValidator;
 
 	/** The dto. */
 	MessageDTO dto = new MessageDTO();
@@ -155,8 +151,6 @@ public class SupervisorValidatorProcessorTest {
 	public void testisValidOperatorSuccess() throws Exception {
 
 		Mockito.doNothing().when(supervisorValidator).validate(anyString(), any(), any());
-		Mockito.doNothing().when(umcValidator).validateUMCmapping(anyString(), anyString(), anyString(), anyString(),
-				any());
 		assertTrue(supervisorValidationProcessor.process(dto, stageName).getIsValid());
 		assertFalse(supervisorValidationProcessor.process(dto, stageName).getInternalError());
 	}
@@ -170,8 +164,6 @@ public class SupervisorValidatorProcessorTest {
 	public void IOExceptionTest() throws Exception {
 
 		Mockito.doThrow(new IOException()).when(supervisorValidator).validate(anyString(), any(), any());
-		Mockito.doNothing().when(umcValidator).validateUMCmapping(anyString(), anyString(), anyString(), anyString(),
-				any());
 		assertEquals(false, supervisorValidationProcessor.process(dto, stageName).getIsValid());
 		assertEquals(true, supervisorValidationProcessor.process(dto, stageName).getInternalError());
 	}
@@ -181,8 +173,6 @@ public class SupervisorValidatorProcessorTest {
 
 		Mockito.doThrow(new ValidationFailedException("id", "message")).when(supervisorValidator).validate(anyString(),
 				any(), any());
-		Mockito.doNothing().when(umcValidator).validateUMCmapping(anyString(), anyString(), anyString(), anyString(),
-				any());
 		assertEquals(false, supervisorValidationProcessor.process(dto, stageName).getIsValid());
 		assertEquals(false, supervisorValidationProcessor.process(dto, stageName).getInternalError());
 	}
@@ -191,8 +181,6 @@ public class SupervisorValidatorProcessorTest {
 	public void apiResourceExceptionTest() throws Exception {
 
 		Mockito.doThrow(new ApisResourceAccessException("")).when(supervisorValidator).validate(anyString(), any(),
-				any());
-		Mockito.doNothing().when(umcValidator).validateUMCmapping(anyString(), anyString(), anyString(), anyString(),
 				any());
 
 		assertEquals(false, supervisorValidationProcessor.process(dto, stageName).getIsValid());
@@ -203,8 +191,6 @@ public class SupervisorValidatorProcessorTest {
 	public void exceptionTest() throws Exception {
 
 		Mockito.doThrow(new NullPointerException("")).when(supervisorValidator).validate(anyString(), any(), any());
-		Mockito.doNothing().when(umcValidator).validateUMCmapping(anyString(), anyString(), anyString(), anyString(),
-				any());
 		assertEquals(false, supervisorValidationProcessor.process(dto, stageName).getIsValid());
 		assertEquals(true, supervisorValidationProcessor.process(dto, stageName).getInternalError());
 	}
@@ -217,8 +203,6 @@ public class SupervisorValidatorProcessorTest {
 		Mockito.when(apisResourceAccessException.getCause()).thenReturn(httpServerErrorException);
 
 		Mockito.doThrow(apisResourceAccessException).when(supervisorValidator).validate(anyString(), any(), any());
-		Mockito.doNothing().when(umcValidator).validateUMCmapping(anyString(), anyString(), anyString(), anyString(),
-				any());
 		assertEquals(false, supervisorValidationProcessor.process(dto, stageName).getIsValid());
 		assertEquals(true, supervisorValidationProcessor.process(dto, stageName).getInternalError());
 	}
@@ -230,8 +214,6 @@ public class SupervisorValidatorProcessorTest {
 				HttpStatus.INTERNAL_SERVER_ERROR, "KER-FSE-004:encrypted data is corrupted or not base64 encoded");
 		Mockito.when(apisResourceAccessException.getCause()).thenReturn(httpClientErrorException);
 		Mockito.doThrow(apisResourceAccessException).when(supervisorValidator).validate(anyString(), any(), any());
-		Mockito.doNothing().when(umcValidator).validateUMCmapping(anyString(), anyString(), anyString(), anyString(),
-				any());
 		assertEquals(false, supervisorValidationProcessor.process(dto, stageName).getIsValid());
 		assertEquals(true, supervisorValidationProcessor.process(dto, stageName).getInternalError());
 	}
@@ -246,8 +228,6 @@ public class SupervisorValidatorProcessorTest {
 
 		Mockito.doThrow(new DataAccessException("") {
 		}).when(supervisorValidator).validate(anyString(), any(), any());
-		Mockito.doNothing().when(umcValidator).validateUMCmapping(anyString(), anyString(), anyString(), anyString(),
-				any());
 		assertEquals(false, supervisorValidationProcessor.process(dto, stageName).getIsValid());
 		assertEquals(true, supervisorValidationProcessor.process(dto, stageName).getInternalError());
 	}
@@ -257,8 +237,6 @@ public class SupervisorValidatorProcessorTest {
 
 		Mockito.doThrow(new AuthSystemException(StatusUtil.AUTH_SYSTEM_EXCEPTION.getMessage()))
 				.when(supervisorValidator).validate(anyString(), any(), any());
-		Mockito.doNothing().when(umcValidator).validateUMCmapping(anyString(), anyString(), anyString(), anyString(),
-				any());
 		assertEquals(false, supervisorValidationProcessor.process(dto, stageName).getIsValid());
 		assertEquals(true, supervisorValidationProcessor.process(dto, stageName).getInternalError());
 	}
@@ -268,8 +246,6 @@ public class SupervisorValidatorProcessorTest {
 
 		Mockito.doThrow(new PacketManagerException("id", "message")).when(supervisorValidator).validate(anyString(),
 				any(), any());
-		Mockito.doNothing().when(umcValidator).validateUMCmapping(anyString(), anyString(), anyString(), anyString(),
-				any());
 		assertEquals(false, supervisorValidationProcessor.process(dto, stageName).getIsValid());
 		assertEquals(true, supervisorValidationProcessor.process(dto, stageName).getInternalError());
 	}

@@ -4,9 +4,6 @@ import io.mosip.kernel.core.exception.BaseCheckedException;
 
 public class ValidationFailedException extends BaseCheckedException {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
 	public ValidationFailedException(String errorCode, String message) {

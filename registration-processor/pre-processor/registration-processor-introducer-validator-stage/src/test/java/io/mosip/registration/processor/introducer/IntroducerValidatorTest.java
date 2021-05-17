@@ -1,7 +1,5 @@
 package io.mosip.registration.processor.introducer;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -72,7 +70,7 @@ import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoServic
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
-import io.mosip.registration.processor.stages.introducer.IntroducerValidator;
+import io.mosip.registration.processor.stages.introducervalidator.IntroducerValidator;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
@@ -174,9 +172,7 @@ public class IntroducerValidatorTest {
 		InputStream is = new FileInputStream(childFile);
 		childMappingJson = IOUtils.toString(is, "UTF-8");
 
-		ReflectionTestUtils.setField(introducerValidator, "ageLimit", "5");
 		ReflectionTestUtils.setField(introducerValidator, "dobFormat", "yyyy/MM/dd");
-		ReflectionTestUtils.setField(introducerValidator, "introducerValidation", true);
 		File idJson = new File(classLoader.getResource("ID.json").getFile());
 		InputStream ip = new FileInputStream(idJson);
 

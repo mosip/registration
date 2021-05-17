@@ -162,7 +162,8 @@ public class RegistrationExceptionMapperUtil {
 		statusMap.put(RegistrationExceptionTypeCode.AUTH_FAILED, RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.IDA_AUTHENTICATION_FAILURE,
 				RegistrationTransactionStatusCode.FAILED);
-		statusMap.put(RegistrationExceptionTypeCode.PASSWORD_OTP_FAILURE, RegistrationTransactionStatusCode.FAILED);
+		statusMap.put(RegistrationExceptionTypeCode.OPERATOR_PASSWORD_OTP_FAILURE, RegistrationTransactionStatusCode.FAILED);
+		statusMap.put(RegistrationExceptionTypeCode.SUPERVISOR_PASSWORD_OTP_FAILURE, RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.BIOMETRIC_EXCEPTION, RegistrationTransactionStatusCode.REPROCESS);
 		statusMap.put(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_ID_REPO_ERROR,
 				RegistrationTransactionStatusCode.REPROCESS);

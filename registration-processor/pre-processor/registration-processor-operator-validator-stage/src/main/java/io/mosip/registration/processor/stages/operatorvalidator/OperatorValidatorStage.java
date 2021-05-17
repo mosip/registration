@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.stages.app;
+package io.mosip.registration.processor.stages.operatorvalidator;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

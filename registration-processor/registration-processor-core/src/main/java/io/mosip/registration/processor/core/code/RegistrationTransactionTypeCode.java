@@ -16,13 +16,14 @@ public enum RegistrationTransactionTypeCode {
 	VALIDATE_PACKET,
 	/** The packet classification. */
 	PACKET_CLASSIFICATION,
-	/** The osi validate. */
-	OSI_VALIDATE,
 	/** The cmd validate. */
-	CMD_VALIDATE,
-	OPERATOR_VALIDATE,
-	SUPERVISOR_VALIDATE,
-	INTRODUCER_VALIDATE,
+	CMD_VALIDATION,
+	/** The operator validate. */
+	OPERATOR_VALIDATION,
+	/** The supervisor validate. */
+	SUPERVISOR_VALIDATION,
+	/** The introducer validate. */
+	INTRODUCER_VALIDATION,
 	/** The external integration. */
 	EXTERNAL_INTEGRATION,
 	/** The demographic verification. */

@@ -35,15 +35,11 @@ public enum PlatformSuccessMessages {
 
 	RPR_PKR_ADDITIONAL_INFO_DELETED(PlatformConstants.RPR_PACKET_VALIDATOR_MODULE + "000", "Deleted additionalInfo from RegistrationList"),
 
-	// OSI validator Success messages
-	/** The rpr pkr osi validate. */
-	RPR_PKR_OSI_VALIDATE(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "000", "OSI Validation Success"),
+	RPR_PKR_OPERATOR_VALIDATE(PlatformConstants.RPR_OVM_VALIDATOR_MODULE + "000", "OPERATOR Validation Success"),
 	
-	RPR_PKR_OPERATOR_VALIDATE(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "000", "OPERATOR Validation Success"),
+	RPR_PKR_SUPERVISOR_VALIDATE(PlatformConstants.RPR_SVM_VALIDATOR_MODULE + "000", "SUPERVISOR Validation Success"),
 	
-	RPR_PKR_SUPERVISOR_VALIDATE(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "000", "SUPERVISOR Validation Success"),
-	
-	RPR_PKR_INTRODUCER_VALIDATE(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "000", "INTRODUCER Validation Success"),
+	RPR_PKR_INTRODUCER_VALIDATE(PlatformConstants.RPR_IVM_VALIDATOR_MODULE + "000", "INTRODUCER Validation Success"),
 	
 	// CMD validator Success messages
 	RPR_PKR_CMD_VALIDATE(PlatformConstants.RPR_CMD_VALIDATOR_MODULE + "000", "CMD Validation Success"),

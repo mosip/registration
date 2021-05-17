@@ -17,7 +17,10 @@
 	</properties>
 	<modules>
 		<module>registration-processor-packet-validator-stage</module>
-		<module>registration-processor-osi-validator-stage</module>
+		<module>registration-processor-cmd-validator-stage</module>
+		<module>registration-processor-operator-validator-stage</module>
+		<module>registration-processor-supervisor-validator-stage</module>
+		<module>registration-processor-introducer-validator-stage</module>
 		<module>registration-processor-packet-uploader-stage</module>
 		<module>registration-processor-quality-checker-stage</module>
         <module>registration-processor-securezone-notification-stage</module>

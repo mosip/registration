@@ -1,11 +1,10 @@
-package io.mosip.registration.processor.stages.app;
+package io.mosip.registration.processor.stages.operatorvalidator;
 
 import java.io.IOException;
 import java.util.Map;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,8 +37,6 @@ import io.mosip.registration.processor.packet.storage.exception.ParsingException
 import io.mosip.registration.processor.packet.storage.utils.OSIUtils;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
-import io.mosip.registration.processor.stages.operator.OperatorValidator;
-import io.mosip.registration.processor.stages.operator.UMCValidator;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
@@ -76,10 +73,6 @@ public class OperatorValidationProcessor {
 	@Autowired
 	private OSIUtils osiUtils;
 
-	@Autowired
-	@Qualifier("operatorUMCValidator")
-	private UMCValidator umcValidator;
-
 	public MessageDTO process(MessageDTO object, String stageName) {
 
 		LogDescription description = new LogDescription();
@@ -96,7 +89,7 @@ public class OperatorValidationProcessor {
 				.getRegistrationStatus(registrationId);
 
 		registrationStatusDto
-				.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.OPERATOR_VALIDATE.toString());
+				.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.OPERATOR_VALIDATION.toString());
 		registrationStatusDto.setRegistrationStageName(stageName);
 		try {
 
@@ -119,8 +112,6 @@ public class OperatorValidationProcessor {
 			
 			if (officerId != null && !officerId.isEmpty()) {
 				operatorValidator.validate(registrationId, registrationStatusDto, regOsi);
-				umcValidator.validateUMCmapping(regOsi.getPacketCreationDate(), regOsi.getRegcntrId(),
-						regOsi.getMachineId(), regOsi.getOfficerId(), registrationStatusDto);
 			}
 
 			registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());

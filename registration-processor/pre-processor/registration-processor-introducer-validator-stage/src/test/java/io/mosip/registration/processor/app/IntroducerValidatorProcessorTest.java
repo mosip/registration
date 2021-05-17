@@ -39,8 +39,8 @@ import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketM
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
-import io.mosip.registration.processor.stages.app.IntroducerValidationProcessor;
-import io.mosip.registration.processor.stages.introducer.IntroducerValidator;
+import io.mosip.registration.processor.stages.introducervalidator.IntroducerValidationProcessor;
+import io.mosip.registration.processor.stages.introducervalidator.IntroducerValidator;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;

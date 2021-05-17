@@ -46,9 +46,8 @@ import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketM
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
-import io.mosip.registration.processor.stages.app.OperatorValidationProcessor;
-import io.mosip.registration.processor.stages.operator.OperatorValidator;
-import io.mosip.registration.processor.stages.operator.UMCValidator;
+import io.mosip.registration.processor.stages.operatorvalidator.OperatorValidationProcessor;
+import io.mosip.registration.processor.stages.operatorvalidator.OperatorValidator;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
@@ -78,9 +77,6 @@ public class OperatorValidatorProcessorTest {
 	/** The center validator. */
 	@Mock
 	private OperatorValidator operatorValidator;
-
-	@Mock
-	private UMCValidator umcValidator;
 
 	/** The dto. */
 	MessageDTO dto = new MessageDTO();
@@ -155,8 +151,6 @@ public class OperatorValidatorProcessorTest {
 	public void testisValidOperatorSuccess() throws Exception {
 
 		Mockito.doNothing().when(operatorValidator).validate(anyString(), any(), any());
-		Mockito.doNothing().when(umcValidator).validateUMCmapping(anyString(), anyString(), anyString(), anyString(),
-				any());
 
 		assertTrue(operatorValidationProcessor.process(dto, stageName).getIsValid());
 		assertFalse(operatorValidationProcessor.process(dto, stageName).getInternalError());
@@ -171,8 +165,6 @@ public class OperatorValidatorProcessorTest {
 	public void IOExceptionTest() throws Exception {
 
 		Mockito.doThrow(new IOException()).when(operatorValidator).validate(anyString(), any(), any());
-		Mockito.doNothing().when(umcValidator).validateUMCmapping(anyString(), anyString(), anyString(), anyString(),
-				any());
 
 		assertEquals(false, operatorValidationProcessor.process(dto, stageName).getIsValid());
 		assertEquals(true, operatorValidationProcessor.process(dto, stageName).getInternalError());
@@ -183,9 +175,6 @@ public class OperatorValidatorProcessorTest {
 
 		Mockito.doThrow(new ValidationFailedException("id", "message")).when(operatorValidator).validate(anyString(),
 				any(), any());
-		Mockito.doNothing().when(umcValidator).validateUMCmapping(anyString(), anyString(), anyString(), anyString(),
-				any());
-
 		assertEquals(false, operatorValidationProcessor.process(dto, stageName).getIsValid());
 		assertEquals(false, operatorValidationProcessor.process(dto, stageName).getInternalError());
 	}
@@ -195,8 +184,6 @@ public class OperatorValidatorProcessorTest {
 
 		Mockito.doThrow(new ApisResourceAccessException("")).when(operatorValidator).validate(anyString(), any(),
 				any());
-		Mockito.doNothing().when(umcValidator).validateUMCmapping(anyString(), anyString(), anyString(), anyString(),
-				any());
 		assertEquals(false, operatorValidationProcessor.process(dto, stageName).getIsValid());
 		assertEquals(true, operatorValidationProcessor.process(dto, stageName).getInternalError());
 	}
@@ -205,8 +192,6 @@ public class OperatorValidatorProcessorTest {
 	public void exceptionTest() throws Exception {
 
 		Mockito.doThrow(new NullPointerException("")).when(operatorValidator).validate(anyString(), any(), any());
-		Mockito.doNothing().when(umcValidator).validateUMCmapping(anyString(), anyString(), anyString(), anyString(),
-				any());
 
 		assertEquals(false, operatorValidationProcessor.process(dto, stageName).getIsValid());
 		assertEquals(true, operatorValidationProcessor.process(dto, stageName).getInternalError());
@@ -220,8 +205,6 @@ public class OperatorValidatorProcessorTest {
 		Mockito.when(apisResourceAccessException.getCause()).thenReturn(httpServerErrorException);
 
 		Mockito.doThrow(apisResourceAccessException).when(operatorValidator).validate(anyString(), any(), any());
-		Mockito.doNothing().when(umcValidator).validateUMCmapping(anyString(), anyString(), anyString(), anyString(),
-				any());
 
 		assertEquals(false, operatorValidationProcessor.process(dto, stageName).getIsValid());
 		assertEquals(true, operatorValidationProcessor.process(dto, stageName).getInternalError());
@@ -234,8 +217,6 @@ public class OperatorValidatorProcessorTest {
 				HttpStatus.INTERNAL_SERVER_ERROR, "KER-FSE-004:encrypted data is corrupted or not base64 encoded");
 		Mockito.when(apisResourceAccessException.getCause()).thenReturn(httpClientErrorException);
 		Mockito.doThrow(apisResourceAccessException).when(operatorValidator).validate(anyString(), any(), any());
-		Mockito.doNothing().when(umcValidator).validateUMCmapping(anyString(), anyString(), anyString(), anyString(),
-				any());
 		assertEquals(false, operatorValidationProcessor.process(dto, stageName).getIsValid());
 		assertEquals(true, operatorValidationProcessor.process(dto, stageName).getInternalError());
 	}
@@ -250,8 +231,6 @@ public class OperatorValidatorProcessorTest {
 
 		Mockito.doThrow(new DataAccessException("") {
 		}).when(operatorValidator).validate(anyString(), any(), any());
-		Mockito.doNothing().when(umcValidator).validateUMCmapping(anyString(), anyString(), anyString(), anyString(),
-				any());
 		assertEquals(false, operatorValidationProcessor.process(dto, stageName).getIsValid());
 		assertEquals(true, operatorValidationProcessor.process(dto, stageName).getInternalError());
 	}
@@ -261,8 +240,6 @@ public class OperatorValidatorProcessorTest {
 
 		Mockito.doThrow(new AuthSystemException(StatusUtil.AUTH_SYSTEM_EXCEPTION.getMessage())).when(operatorValidator)
 				.validate(anyString(), any(), any());
-		Mockito.doNothing().when(umcValidator).validateUMCmapping(anyString(), anyString(), anyString(), anyString(),
-				any());
 		assertEquals(false, operatorValidationProcessor.process(dto, stageName).getIsValid());
 		assertEquals(true, operatorValidationProcessor.process(dto, stageName).getInternalError());
 	}
@@ -272,8 +249,6 @@ public class OperatorValidatorProcessorTest {
 
 		Mockito.doThrow(new PacketManagerException("id", "message")).when(operatorValidator).validate(anyString(),
 				any(), any());
-		Mockito.doNothing().when(umcValidator).validateUMCmapping(anyString(), anyString(), anyString(), anyString(),
-				any());
 		assertEquals(false, operatorValidationProcessor.process(dto, stageName).getIsValid());
 		assertEquals(true, operatorValidationProcessor.process(dto, stageName).getInternalError());
 	}

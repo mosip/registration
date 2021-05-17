@@ -452,6 +452,8 @@ public enum PlatformErrorMessages {
 	/** The unsupported encoding. */
 	// UIN check - JSON file encoding failed.
 	UNSUPPORTED_ENCODING("", "Json Object Parsing Failed"),
+	
+	OSI_VALIDATION_BIO_TYPE_EXCEPTION(PlatformConstants.RPR_CMD_VALIDATOR_MODULE + "007", "Bio Type Exception"),
 
 	/** The cmd validation failed. */
 	// Stages - CMD Exception error code and message
@@ -466,57 +468,44 @@ public enum PlatformErrorMessages {
 			"CMD Validation Failed"),
 	
 	/** The operator base unchecked exception. */
-	OPERATOR_BASE_UNCHECKED_EXCEPTION(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "001",
+	OPERATOR_BASE_UNCHECKED_EXCEPTION(PlatformConstants.RPR_OVM_VALIDATOR_MODULE + "001",
 			"operator Validation Failed"),
 
 	/** The operator base checked exception. */
-	OPERATOR_BASE_CHECKED_EXCEPTION(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "002",
+	OPERATOR_BASE_CHECKED_EXCEPTION(PlatformConstants.RPR_OVM_VALIDATOR_MODULE + "002",
 			"operator Validation Failed"),
 	
 	/** The Operator validation failed. */
 	OPERATOR_VALIDATION_FAILED("", "Operator Validation Failed"),
+	
+	LINK_FOR_USERID_INDIVIDUALID_FAILED_OVM_EXCEPTION(PlatformConstants.RPR_OVM_VALIDATOR_MODULE + "003",
+			"Unable to get the IndividualId for UserId"),
 
 	/** The Supervisor base unchecked exception. */
-	SUPERVISOR_BASE_UNCHECKED_EXCEPTION(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "001",
+	SUPERVISOR_BASE_UNCHECKED_EXCEPTION(PlatformConstants.RPR_SVM_VALIDATOR_MODULE + "001",
 			"Supervisor Validation Failed"),
 
 	/** The Supervisor base checked exception. */
-	SUPERVISOR_BASE_CHECKED_EXCEPTION(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "002",
+	SUPERVISOR_BASE_CHECKED_EXCEPTION(PlatformConstants.RPR_SVM_VALIDATOR_MODULE + "002",
 			"Supervisor Validation Failed"),
 	
 	/** The Supervisor validation failed. */
 	SUPERVISOR_VALIDATION_FAILED("", "Supervisor Validation Failed"),
+	
+	LINK_FOR_USERID_INDIVIDUALID_FAILED_SVM_EXCEPTION(PlatformConstants.RPR_SVM_VALIDATOR_MODULE + "003",
+			"Unable to get the IndividualId for UserId"),
 
 	/** The INTRODUCER base unchecked exception. */
-	INTRODUCER_BASE_UNCHECKED_EXCEPTION(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "001",
+	INTRODUCER_BASE_UNCHECKED_EXCEPTION(PlatformConstants.RPR_IVM_VALIDATOR_MODULE + "001",
 			"INTRODUCER Validation Failed"),
 
 	/** The INTRODUCER base checked exception. */
-	INTRODUCER_BASE_CHECKED_EXCEPTION(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "002",
+	INTRODUCER_BASE_CHECKED_EXCEPTION(PlatformConstants.RPR_IVM_VALIDATOR_MODULE + "002",
 			"INTRODUCER Validation Failed"),
 	
 	/** The INTRODUCER validation failed. */
 	INTRODUCER_VALIDATION_FAILED("", "INTRODUCER Validation Failed"),
 
-	/** The osi validation failed. */
-	// Stages - OSI Exception error code and message
-	OSI_VALIDATION_FAILED("", "OSI Validation Failed"),
-	
-	/** The osi validation packet store not accessible. */
-	OSI_VALIDATION_PACKET_STORE_NOT_ACCESSIBLE(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "005",
-			"Unable to Access Packet Store"),
-
-	/** The osi validation packe api resouce access failed. */
-	OSI_VALIDATION_PACKE_API_RESOUCE_ACCESS_FAILED(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "006",
-			"Unable to Access API Resource"),
-
-	/** The osi validation bio type exception. */
-	OSI_VALIDATION_BIO_TYPE_EXCEPTION(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "007", "Bio Type Exception"),
-	
-	OSI_VALIDATION_AUTH_SYSTEM_EXCEPTION(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "008", "Request could not be processed. Please try again"),
-
-	LINK_FOR_USERID_INDIVIDUALID_FAILED_OSI_EXCEPTION(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "009", "Unable to get the IndividualId for UserId"),	
-	
 	/** The packet demo dedupe failed. */
 	// Stages - Demo-Dedupe error code and message
 	PACKET_DEMO_DEDUPE_FAILED("", "Demo Dedupe Failed"),

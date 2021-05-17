@@ -1,9 +1,8 @@
 package io.mosip.registration.processor.supervisor;
 
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyMap;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -15,12 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.kernel.biometrics.constant.BiometricType;
-import io.mosip.kernel.biometrics.constant.QualityType;
-import io.mosip.kernel.biometrics.entities.BDBInfo;
-import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.mosip.kernel.biometrics.entities.BIR;
-import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
 import org.json.simple.JSONObject;
@@ -38,6 +31,14 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.mosip.kernel.biometrics.constant.BiometricType;
+import io.mosip.kernel.biometrics.constant.QualityType;
+import io.mosip.kernel.biometrics.entities.BDBInfo;
+import io.mosip.kernel.biometrics.entities.BIR;
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
 import io.mosip.registration.processor.core.constant.JsonConstant;
@@ -58,6 +59,8 @@ import io.mosip.registration.processor.core.packet.dto.demographicinfo.Demograph
 import io.mosip.registration.processor.core.packet.dto.masterdata.UserDetailsDto;
 import io.mosip.registration.processor.core.packet.dto.masterdata.UserDetailsResponseDto;
 import io.mosip.registration.processor.core.packet.dto.masterdata.UserResponseDto;
+import io.mosip.registration.processor.core.packet.dto.regcentermachine.RegistrationCenterUserMachineMappingHistoryDto;
+import io.mosip.registration.processor.core.packet.dto.regcentermachine.RegistrationCenterUserMachineMappingHistoryResponseDto;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
@@ -65,8 +68,9 @@ import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoServic
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
 import io.mosip.registration.processor.packet.storage.utils.OSIUtils;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
-import io.mosip.registration.processor.stages.supervisor.SupervisorValidator;
+import io.mosip.registration.processor.stages.supervisorvalidator.SupervisorValidator;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.TransactionDto;
@@ -86,6 +90,9 @@ public class SupervisorValidatorTest {
 	/** The input stream. */
 	@Mock
 	private InputStream inputStream;
+	
+	@Mock
+	ObjectMapper mapper;
 
 	/** The registration status service. */
 	@Mock
@@ -157,6 +164,11 @@ public class SupervisorValidatorTest {
 	private ResponseDTO responseDTO1 = new ResponseDTO();
 	private RIDResponseDto ridResponseDto1 = new RIDResponseDto();
 	private IdResponseDTO idResponseDTO = new IdResponseDTO();
+	private io.mosip.registration.processor.core.http.ResponseWrapper<RegistrationCenterUserMachineMappingHistoryResponseDto> centerResponse = new io.mosip.registration.processor.core.http.ResponseWrapper<RegistrationCenterUserMachineMappingHistoryResponseDto>();
+	private RegistrationCenterUserMachineMappingHistoryResponseDto centerMapping = new RegistrationCenterUserMachineMappingHistoryResponseDto();
+	private List<RegistrationCenterUserMachineMappingHistoryDto> registrationCenters = new ArrayList<RegistrationCenterUserMachineMappingHistoryDto>();
+	private RegistrationCenterUserMachineMappingHistoryDto center = new RegistrationCenterUserMachineMappingHistoryDto();
+	
 	@Mock
 	RegistrationExceptionMapperUtil registrationExceptionMapperUtil;
 
@@ -200,8 +212,6 @@ public class SupervisorValidatorTest {
 		regOsiDto.setIntroducerTyp("Parent");
 		regOsiDto.setPacketCreationDate("2020-08-06T11:35:13.934Z");
 		demographicDedupeDtoList.add(demographicInfoDto);
-
-		Mockito.when(env.getProperty("mosip.kernel.applicant.type.age.limit")).thenReturn("5");
 
 		metaInfo = new HashMap<>();
 		metaInfo.put(JsonConstant.OFFICERPIN, "S1234");
@@ -317,9 +327,19 @@ public class SupervisorValidatorTest {
 		idResponseDTO.setResponse(responseDTO1);
 		regOsiDto.setSupervisorHashedPwd("true");
 		regOsiDto.setOfficerHashedPwd("true");
-		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(userResponseDto)
-				.thenReturn(userResponseDto).thenReturn(ridResponseDto1).thenReturn(idResponseDTO)
-				.thenReturn(ridResponseDto1).thenReturn(idResponseDTO);
+		center.setCntrId("10001");
+		center.setIsActive(true);
+		registrationCenters.add(center);
+		centerMapping.setRegistrationCenters(registrationCenters);
+		centerResponse.setErrors(null);
+		centerResponse.setResponse(centerMapping);
+		
+		//ObjectMapper mockObjectMapper = Mockito.mock(ObjectMapper.class);
+		Mockito.when(mapper.writeValueAsString(any())).thenReturn("");
+		Mockito.when(mapper.readValue(anyString(),
+				Mockito.eq(RegistrationCenterUserMachineMappingHistoryResponseDto.class))).thenReturn(centerMapping);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any()))
+				.thenReturn(userResponseDto).thenReturn(centerResponse);
 		Mockito.when(osiUtils.getOSIDetailsFromMetaInfo(anyMap())).thenReturn(regOsiDto);
 		File cbeffFile = new File(classLoader.getResource("cbeff.xml").getFile());
 

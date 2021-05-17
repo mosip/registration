@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.stages.app;
+package io.mosip.registration.processor.stages.supervisorvalidator;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,12 +18,12 @@ import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIMan
 		"io.mosip.registration.processor.stages.config", "io.mosip.registration.processor.status.config",
 		"io.mosip.registration.processor.rest.client.config", "io.mosip.registration.processor.packet.storage.config",
 		"io.mosip.registration.processor.packet.manager.config", "io.mosip.registration.processor.core.kernel.beans" })
-public class IntroducerValidatorStage extends MosipVerticleAPIManager {
+public class SupervisorValidatorStage extends MosipVerticleAPIManager {
 
-	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.introducer-validator.";
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.supervisor-validator.";
 
 	@Autowired
-	IntroducerValidationProcessor introducerValidationProcessor;
+	SupervisorValidationProcessor supervisorValidationProcessor;
 
 	/** Mosip router for APIs */
 	@Autowired
@@ -47,7 +47,7 @@ public class IntroducerValidatorStage extends MosipVerticleAPIManager {
 	 * After this time intervel, message should be considered as expired (In
 	 * seconds).
 	 */
-	@Value("${mosip.regproc.introducer-validator.message.expiry-time-limit}")
+	@Value("${mosip.regproc.supervisor-validator.message.expiry-time-limit}")
 	private Long messageExpiryTimeLimit;
 
 	/** The mosip event bus. */
@@ -55,20 +55,20 @@ public class IntroducerValidatorStage extends MosipVerticleAPIManager {
 
 	public void deployVerticle() {
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
-		this.consumeAndSend(mosipEventBus, MessageBusAddress.INTRODUCER_VALIDATOR_BUS_IN,
-				MessageBusAddress.INTRODUCER_VALIDATOR_BUS_OUT, messageExpiryTimeLimit);
+		this.consumeAndSend(mosipEventBus, MessageBusAddress.SUPERVISOR_VALIDATOR_BUS_IN,
+				MessageBusAddress.SUPERVISOR_VALIDATOR_BUS_OUT, messageExpiryTimeLimit);
 	}
 
 	@Override
 	public void start() {
-		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.INTRODUCER_VALIDATOR_BUS_IN,
-				MessageBusAddress.INTRODUCER_VALIDATOR_BUS_OUT));
+		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.SUPERVISOR_VALIDATOR_BUS_IN,
+				MessageBusAddress.SUPERVISOR_VALIDATOR_BUS_OUT));
 		this.createServer(router.getRouter(), getPort());
 	}
 
 	@Override
 	public MessageDTO process(MessageDTO object) {
-		return introducerValidationProcessor.process(object, getStageName());
+		return supervisorValidationProcessor.process(object, getStageName());
 	}
 
 	@Override

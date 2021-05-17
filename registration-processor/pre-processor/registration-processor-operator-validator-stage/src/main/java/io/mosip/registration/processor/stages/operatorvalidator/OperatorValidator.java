@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.stages.supervisor;
+package io.mosip.registration.processor.stages.operatorvalidator;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -27,6 +27,7 @@ import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
 import io.mosip.registration.processor.core.auth.dto.IndividualIdDto;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
+import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
@@ -40,6 +41,7 @@ import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.RegOsiDto;
 import io.mosip.registration.processor.core.packet.dto.ServerError;
 import io.mosip.registration.processor.core.packet.dto.masterdata.UserResponseDto;
+import io.mosip.registration.processor.core.packet.dto.regcentermachine.RegistrationCenterUserMachineMappingHistoryResponseDto;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.util.JsonUtil;
@@ -50,9 +52,9 @@ import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 
 @Service
-public class SupervisorValidator {
+public class OperatorValidator {
 
-	private static Logger regProcLogger = RegProcessorLogger.getLogger(SupervisorValidator.class);
+	private static Logger regProcLogger = RegProcessorLogger.getLogger(OperatorValidator.class);
 
 	private static final String ISTRUE = "true";
 
@@ -76,7 +78,7 @@ public class SupervisorValidator {
 	ObjectMapper mapper;
 
 	/**
-	 * Checks if is valid Supervisor.
+	 * Checks if is valid Operator.
 	 *
 	 * @param registrationId the registration id
 	 * @throws IOException                                Signals that an I/O
@@ -96,24 +98,25 @@ public class SupervisorValidator {
 			CertificateException, BaseCheckedException {
 		regProcLogger.debug("validate called for registrationId {}", registrationId);
 
-		ActiveUserId(registrationId, regOsi, registrationStatusDto);
-		validateSupervisor(regOsi, registrationId, registrationStatusDto);
+		validateOperator(registrationId, regOsi, registrationStatusDto);
+		authenticateOperator(regOsi, registrationId, registrationStatusDto);
+		validateUMCmapping(regOsi.getPacketCreationDate(), regOsi.getRegcntrId(), regOsi.getMachineId(),
+				regOsi.getOfficerId(), registrationStatusDto);
 		regProcLogger.debug("validate call ended for registrationId {}", registrationId);
 	}
 
-	private void ActiveUserId(String registrationId, RegOsiDto regOsi,
+	private void validateOperator(String registrationId, RegOsiDto regOsi,
 			InternalRegistrationStatusDto registrationStatusDto) throws IOException, BaseCheckedException {
 		String creationDate = regOsi.getPacketCreationDate();
 		if (creationDate != null && !(StringUtils.isEmpty(creationDate))) {
-			if (!isActiveUser(creationDate, regOsi.getSupervisorId(), registrationStatusDto)) {
+			if (!isActiveUser(regOsi.getOfficerId(), creationDate, registrationStatusDto)) {
 				registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
-						.getStatusCode(RegistrationExceptionTypeCode.SUPERVISOR_WAS_INACTIVE));
+						.getStatusCode(RegistrationExceptionTypeCode.OFFICER_WAS_INACTIVE));
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 				regProcLogger.debug("ActiveUserId call ended for registrationId {} {}", registrationId,
-						StatusUtil.SUPERVISOR_WAS_INACTIVE.getMessage() + regOsi.getSupervisorId());
-				throw new BaseCheckedException(
-						StatusUtil.SUPERVISOR_WAS_INACTIVE.getMessage() + regOsi.getSupervisorId(),
-						StatusUtil.SUPERVISOR_WAS_INACTIVE.getCode());
+						StatusUtil.OFFICER_WAS_INACTIVE.getMessage() + regOsi.getOfficerId());
+				throw new BaseCheckedException(StatusUtil.OFFICER_WAS_INACTIVE.getMessage() + regOsi.getOfficerId(),
+						StatusUtil.OFFICER_WAS_INACTIVE.getCode());
 			}
 
 		} else {
@@ -122,37 +125,34 @@ public class SupervisorValidator {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 			regProcLogger.debug("ActiveUserId call ended for registrationId {}. packet creationDate is null",
 					registrationId);
-			throw new BaseCheckedException(StatusUtil.PACKET_CREATION_DATE_NOT_FOUND_IN_PACKET.getMessage(),
-					StatusUtil.PACKET_CREATION_DATE_NOT_FOUND_IN_PACKET.getCode());
-
+			throw new BaseCheckedException(StatusUtil.OPERATOR_PACKET_CREATION_DATE_NOT_FOUND_IN_PACKET.getMessage(),
+					StatusUtil.OPERATOR_PACKET_CREATION_DATE_NOT_FOUND_IN_PACKET.getCode());
 		}
 	}
 
-	private boolean isActiveUser(String creationDate, String supervisorId,
+	private boolean isActiveUser(String officerId, String creationDate,
 			InternalRegistrationStatusDto registrationStatusDto) throws IOException, BaseCheckedException {
-		boolean wasSupervisorActiveDuringPCT = false;
-
-		if (supervisorId != null && !supervisorId.isEmpty()) {
-			UserResponseDto supervisorResponse = isUserActive(supervisorId, creationDate, registrationStatusDto);
-			if (supervisorResponse.getErrors() == null) {
-				wasSupervisorActiveDuringPCT = supervisorResponse.getResponse().getUserResponseDto().get(0)
-						.getIsActive();
-				if (!wasSupervisorActiveDuringPCT) {
+		boolean wasOfficerActiveDuringPCT = false;
+		if (officerId != null && !officerId.isEmpty()) {
+			UserResponseDto officerResponse = getUserDetails(officerId, creationDate, registrationStatusDto);
+			if (officerResponse.getErrors() == null) {
+				wasOfficerActiveDuringPCT = officerResponse.getResponse().getUserResponseDto().get(0).getIsActive();
+				if (!wasOfficerActiveDuringPCT) {
 					regProcLogger.debug("isActiveUser call ended for registrationId {} {}",
-							registrationStatusDto.getRegistrationId(), StatusUtil.SUPERVISOR_WAS_INACTIVE.getMessage());
+							registrationStatusDto.getRegistrationId(), StatusUtil.OFFICER_WAS_INACTIVE.getMessage());
 				}
 			} else {
-				List<ServerError> errors = supervisorResponse.getErrors();
+				List<ServerError> errors = officerResponse.getErrors();
 				regProcLogger.debug("isActiveUser call ended with error {}", errors.get(0).getMessage());
 				throw new BaseCheckedException(
-						StatusUtil.SUPERVISOR_AUTHENTICATION_FAILED.getMessage() + errors.get(0).getMessage(),
-						StatusUtil.SUPERVISOR_AUTHENTICATION_FAILED.getCode());
+						StatusUtil.OFFICER_AUTHENTICATION_FAILED.getMessage() + errors.get(0).getMessage(),
+						StatusUtil.OFFICER_AUTHENTICATION_FAILED.getCode());
 			}
 		}
-		return wasSupervisorActiveDuringPCT;
+		return wasOfficerActiveDuringPCT;
 	}
 
-	private UserResponseDto isUserActive(String operatorId, String creationDate,
+	private UserResponseDto getUserDetails(String operatorId, String creationDate,
 			InternalRegistrationStatusDto registrationStatusDto) throws ApisResourceAccessException, IOException {
 		UserResponseDto userResponse;
 		List<String> pathSegments = new ArrayList<>();
@@ -163,65 +163,65 @@ public class SupervisorValidator {
 				UserResponseDto.class);
 		regProcLogger.debug("isUserActive call ended with response data {}",
 				JsonUtil.objectMapperObjectToJson(userResponse));
-
 		return userResponse;
 	}
 
 	/**
-	 * Checks if is valid supervisor.
+	 * To authenticate operator.
 	 *
-	 * @param regOsi                the reg osi
-	 * @param registrationId        the registration id
-	 * @param registrationStatusDto
+	 * @param regOsi         the reg osi
+	 * @param registrationId the registration id
 	 * @throws IOException
 	 * @throws SAXException
 	 * @throws ParserConfigurationException
+	 * @throws BiometricException
 	 * @throws NoSuchAlgorithmException
 	 * @throws InvalidKeySpecException
 	 * @throws io.mosip.kernel.core.exception.IOException
 	 * @throws BaseCheckedException
 	 * @throws PacketDecryptionFailureException
 	 * @throws Exception
+	 * 
 	 */
-	private void validateSupervisor(RegOsiDto regOsi, String registrationId,
-			InternalRegistrationStatusDto registrationStatusDto) throws IOException, InvalidKeySpecException,
-			NoSuchAlgorithmException, CertificateException, BaseCheckedException {
-		String supervisorId = regOsi.getSupervisorId();
-
+	private void authenticateOperator(RegOsiDto regOsi, String registrationId,
+			InternalRegistrationStatusDto registrationStatusDto)
+			throws IOException, CertificateException, NoSuchAlgorithmException, BaseCheckedException {
+		String officerId = regOsi.getOfficerId();
 		// officer password and otp check
-		String supervisiorPassword = regOsi.getSupervisorHashedPwd();
-		String supervisorOTP = regOsi.getSupervisorOTPAuthentication();
+		String officerPassword = regOsi.getOfficerHashedPwd();
+		String officerOTPAuthentication = regOsi.getOfficerOTPAuthentication();
 
-		String supervisorBiometricFileName = regOsi.getSupervisorBiometricFileName();
+		String officerBiometricFileName = regOsi.getOfficerBiometricFileName();
 
-		if (StringUtils.isEmpty(supervisorBiometricFileName) || supervisorBiometricFileName == null) {
-			if (!validateOtpAndPwd(supervisiorPassword, supervisorOTP)) {
+		if (StringUtils.isEmpty(officerBiometricFileName) || officerBiometricFileName == null) {
+			if (!validateOtpAndPwd(officerPassword, officerOTPAuthentication)) {
 				registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
-						.getStatusCode(RegistrationExceptionTypeCode.PASSWORD_OTP_FAILURE));
+						.getStatusCode(RegistrationExceptionTypeCode.OPERATOR_PASSWORD_OTP_FAILURE));
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-				regProcLogger.debug("validateSupervisor call ended for registrationId {} {}", registrationId,
-						StatusUtil.PASSWORD_OTP_FAILURE_SUPERVISOR.getMessage() + supervisorId);
-				throw new ValidationFailedException(StatusUtil.PASSWORD_OTP_FAILURE_SUPERVISOR.getMessage() + supervisorId,
-						StatusUtil.PASSWORD_OTP_FAILURE_SUPERVISOR.getCode());
+				regProcLogger.debug("validateOperator call ended for registrationId {} {}", registrationId,
+						StatusUtil.OPERATOR_PASSWORD_OTP_FAILURE.getMessage() + officerId);
+				throw new ValidationFailedException(StatusUtil.OPERATOR_PASSWORD_OTP_FAILURE.getMessage() + officerId,
+						StatusUtil.OPERATOR_PASSWORD_OTP_FAILURE.getCode());
 			}
 		} else {
 			BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(registrationId,
-					MappingJsonConstants.SUPERVISORBIOMETRICFILENAME, registrationStatusDto.getRegistrationType(),
-					ProviderStageName.SUPERVISOR_VALIDATOR);
+					MappingJsonConstants.OFFICERBIOMETRICFILENAME, registrationStatusDto.getRegistrationType(),
+					ProviderStageName.OPERATOR_VALIDATOR);
 
 			if (biometricRecord == null || biometricRecord.getSegments() == null
 					|| biometricRecord.getSegments().isEmpty()) {
-				regProcLogger.error("validateSupervisor call ended for registrationId {} {}", registrationId,
+				regProcLogger.error("validateOperator call ended for registrationId {} {}", registrationId,
 						"ERROR =======>" + StatusUtil.BIOMETRICS_VALIDATION_FAILURE.getMessage());
+
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 				throw new ValidationFailedException(
-						StatusUtil.BIOMETRICS_VALIDATION_FAILURE.getMessage() + " for Supervisor : " + supervisorId,
+						StatusUtil.BIOMETRICS_VALIDATION_FAILURE.getMessage() + " for officer : " + officerId,
 						StatusUtil.BIOMETRICS_VALIDATION_FAILURE.getCode());
+			} else {
+				validateUserBiometric(registrationId, officerId, biometricRecord.getSegments(), INDIVIDUAL_TYPE_USERID,
+						registrationStatusDto);
 			}
-			validateUserBiometric(registrationId, supervisorId, biometricRecord.getSegments(), INDIVIDUAL_TYPE_USERID,
-					registrationStatusDto);
 		}
-
 	}
 
 	/**
@@ -268,8 +268,8 @@ public class SupervisorValidator {
 				registrationStatusDto.setLatestTransactionStatusCode(
 						registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.AUTH_FAILED));
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-				throw new ValidationFailedException(StatusUtil.SUPERVISOR_AUTHENTICATION_FAILED.getMessage() + userId,
-						StatusUtil.SUPERVISOR_AUTHENTICATION_FAILED.getCode());
+				throw new ValidationFailedException(StatusUtil.OFFICER_AUTHENTICATION_FAILED.getMessage() + userId,
+						StatusUtil.OFFICER_AUTHENTICATION_FAILED.getCode());
 			}
 		} else {
 			List<io.mosip.registration.processor.core.auth.dto.ErrorDTO> errors = authResponseDTO.getErrors();
@@ -282,7 +282,7 @@ public class SupervisorValidator {
 				String result = errors.stream().map(s -> s.getErrorMessage() + " ").collect(Collectors.joining());
 				regProcLogger.debug("validateUserBiometric call ended for registrationId {} {}", registrationId,
 						result);
-				throw new ValidationFailedException(result, StatusUtil.SUPERVISOR_AUTHENTICATION_FAILED.getCode());
+				throw new ValidationFailedException(result, StatusUtil.OFFICER_AUTHENTICATION_FAILED.getCode());
 			}
 
 		}
@@ -298,7 +298,7 @@ public class SupervisorValidator {
 	 * @throws IOException
 	 */
 	private String getIndividualIdByUserId(String userid) throws ApisResourceAccessException, IOException {
-
+		
 		regProcLogger.debug("getIndividualIdByUserId called for userid {}", userid);
 		List<String> pathSegments = new ArrayList<>();
 		pathSegments.add(APPID);
@@ -311,7 +311,7 @@ public class SupervisorValidator {
 				"getIndividualIdByUserId called for with GETINDIVIDUALIDFROMUSERID GET service call ended successfully");
 		if (response.getErrors() != null) {
 			throw new ApisResourceAccessException(
-					PlatformErrorMessages.LINK_FOR_USERID_INDIVIDUALID_FAILED_OSI_EXCEPTION.toString());
+					PlatformErrorMessages.LINK_FOR_USERID_INDIVIDUALID_FAILED_OVM_EXCEPTION.toString());
 		} else {
 			IndividualIdDto readValue = mapper.readValue(mapper.writeValueAsString(response.getResponse()),
 					IndividualIdDto.class);
@@ -320,5 +320,61 @@ public class SupervisorValidator {
 		regProcLogger.debug("getIndividualIdByUserId call ended for userid {}", userid);
 		return individualId;
 	}
+	
+	/**
+	 * Validate UMC cmapping.
+	 *
+	 * @param effectiveTimestamp    the effective timestamp
+	 * @param registrationCenterId  the registration center id
+	 * @param machineId             the machine id
+	 * @param officerId             the officer id
+	 * @param registrationStatusDto
+	 * @throws IOException
+	 * @throws BaseCheckedException
+	 */
+	private void validateUMCmapping(String effectiveTimestamp, String registrationCenterId, String machineId,
+			String officerId, InternalRegistrationStatusDto registrationStatusDto)
+			throws IOException, BaseCheckedException {
+
+		List<String> officerpathsegments = new ArrayList<>();
+		officerpathsegments.add(effectiveTimestamp);
+		officerpathsegments.add(registrationCenterId);
+		officerpathsegments.add(machineId);
+		officerpathsegments.add(officerId);
+
+		if (!validateMapping(officerpathsegments, registrationStatusDto)) {
+			throw new ValidationFailedException(StatusUtil.OFFICER_NOT_ACTIVE.getMessage(),
+					StatusUtil.OFFICER_NOT_ACTIVE.getCode());
+		}
+
+	}
+
+	private boolean validateMapping(List<String> pathsegments, InternalRegistrationStatusDto registrationStatusDto)
+			throws IOException, BaseCheckedException {
+		boolean isValidUser = false;
+		ResponseWrapper<?> responseWrapper;
+		RegistrationCenterUserMachineMappingHistoryResponseDto userDto = null;
+
+		responseWrapper = (ResponseWrapper<?>) restClientService.getApi(ApiName.CENTERUSERMACHINEHISTORY,
+				pathsegments, "", "", ResponseWrapper.class);
+		userDto = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
+				RegistrationCenterUserMachineMappingHistoryResponseDto.class);
+		regProcLogger.debug("validateMapping call ended for registrationId {} with response data {}",
+				registrationStatusDto.getRegistrationId(), JsonUtil.objectMapperObjectToJson(userDto));
+		if (userDto != null) {
+			if (responseWrapper.getErrors() == null) {
+				isValidUser = userDto.getRegistrationCenters().get(0).getIsActive();
+			} else {
+				List<ErrorDTO> error = responseWrapper.getErrors();
+				regProcLogger.debug("validateMapping call ended for registrationId {} with error data {}",
+						registrationStatusDto.getRegistrationId(), error.get(0).getMessage());
+				throw new BaseCheckedException(error.get(0).getMessage(),
+						StatusUtil.CENTER_DEVICE_MAPPING_NOT_FOUND.getCode());
+			}
+		}
+
+		return isValidUser;
+	}
+
 
 }

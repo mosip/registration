@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.stages.introducer;
+package io.mosip.registration.processor.stages.introducervalidator;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -41,7 +41,6 @@ import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
-import io.mosip.registration.processor.status.dto.SyncTypeDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 
 @Service
@@ -72,14 +71,8 @@ public class IntroducerValidator {
 	@Autowired
 	private Utilities utility;
 
-	@Value("${mosip.kernel.applicant.type.age.limit}")
-	private String ageLimit;
-
 	@Value("${registration.processor.applicant.dob.format}")
 	private String dobFormat;
-
-	@Value("${registration.processor.validate.introducer}")
-	private boolean introducerValidation;
 
 	/**
 	 * Checks if is valid introducer.
@@ -100,60 +93,49 @@ public class IntroducerValidator {
 	 */
 	public void validate(String registrationId, InternalRegistrationStatusDto registrationStatusDto) throws IOException,
 			InvalidKeySpecException, NoSuchAlgorithmException, CertificateException, BaseCheckedException {
-		
+
 		regProcLogger.debug("validate called for registrationId {}", registrationId);
-		if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.NEW.name())
-				|| (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.UPDATE.name()))) {
-			int age = utility.getApplicantAge(registrationId, registrationStatusDto.getRegistrationType(),
-					ProviderStageName.INTRODUCER_VALIDATOR);
-			int ageThreshold = Integer.parseInt(ageLimit);
-			if (age < ageThreshold) {
-				if (!introducerValidation)
-					return;
 
-				String introducerUIN = packetManagerService.getFieldByMappingJsonKey(registrationId,
-						MappingJsonConstants.PARENT_OR_GUARDIAN_UIN, registrationStatusDto.getRegistrationType(),
-						ProviderStageName.INTRODUCER_VALIDATOR);
-				String introducerRID = packetManagerService.getFieldByMappingJsonKey(registrationId,
-						MappingJsonConstants.PARENT_OR_GUARDIAN_RID, registrationStatusDto.getRegistrationType(),
-						ProviderStageName.INTRODUCER_VALIDATOR);
+		String introducerUIN = packetManagerService.getFieldByMappingJsonKey(registrationId,
+				MappingJsonConstants.PARENT_OR_GUARDIAN_UIN, registrationStatusDto.getRegistrationType(),
+				ProviderStageName.INTRODUCER_VALIDATOR);
+		String introducerRID = packetManagerService.getFieldByMappingJsonKey(registrationId,
+				MappingJsonConstants.PARENT_OR_GUARDIAN_RID, registrationStatusDto.getRegistrationType(),
+				ProviderStageName.INTRODUCER_VALIDATOR);
 
-				if (isValidIntroducer(introducerUIN, introducerRID)) {
-					registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
-							.getStatusCode(RegistrationExceptionTypeCode.PARENT_UIN_AND_RID_NOT_IN_PACKET));
-					registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
-					regProcLogger.debug("validate called for registrationId {} {}", registrationId,
-							StatusUtil.UIN_RID_NOT_FOUND.getMessage());
-					throw new BaseCheckedException(StatusUtil.UIN_RID_NOT_FOUND.getMessage(),
-							StatusUtil.UIN_RID_NOT_FOUND.getCode());
-				}
+		if (isValidIntroducer(introducerUIN, introducerRID)) {
+			registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
+					.getStatusCode(RegistrationExceptionTypeCode.PARENT_UIN_AND_RID_NOT_IN_PACKET));
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
+			regProcLogger.debug("validate called for registrationId {} {}", registrationId,
+					StatusUtil.UIN_RID_NOT_FOUND.getMessage());
+			throw new BaseCheckedException(StatusUtil.UIN_RID_NOT_FOUND.getMessage(),
+					StatusUtil.UIN_RID_NOT_FOUND.getCode());
+		}
 
-				if ((introducerUIN == null || introducerUIN.isEmpty())
-						&& isValidIntroducerRid(introducerRID, registrationId, registrationStatusDto)) {
+		if ((introducerUIN == null || introducerUIN.isEmpty())
+				&& isValidIntroducerRid(introducerRID, registrationId, registrationStatusDto)) {
 
-					introducerUIN = idRepoService.getUinByRid(introducerRID,
-							utility.getGetRegProcessorDemographicIdentity());
+			introducerUIN = idRepoService.getUinByRid(introducerRID, utility.getGetRegProcessorDemographicIdentity());
 
-					if (introducerUIN == null) {
-						registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
-								.getStatusCode(RegistrationExceptionTypeCode.PARENT_UIN_NOT_AVAIALBLE));
-						registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-						regProcLogger.debug("validate called for registrationId {} {}", registrationId,
-								StatusUtil.PARENT_UIN_NOT_FOUND.getMessage());
-						throw new BaseCheckedException(StatusUtil.PARENT_UIN_NOT_FOUND.getMessage(),
-								StatusUtil.PARENT_UIN_NOT_FOUND.getCode());
-					}
-
-				}
-				if (introducerUIN != null && !introducerUIN.isEmpty()) {
-					validateIntroducerBiometric(registrationId, registrationStatusDto, introducerUIN);
-				} else {
-					throw new ValidationFailedException(StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getMessage(),
-							StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getCode());
-				}
+			if (introducerUIN == null) {
+				registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
+						.getStatusCode(RegistrationExceptionTypeCode.PARENT_UIN_NOT_AVAIALBLE));
+				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+				regProcLogger.debug("validate called for registrationId {} {}", registrationId,
+						StatusUtil.PARENT_UIN_NOT_FOUND.getMessage());
+				throw new BaseCheckedException(StatusUtil.PARENT_UIN_NOT_FOUND.getMessage(),
+						StatusUtil.PARENT_UIN_NOT_FOUND.getCode());
 			}
 
 		}
+		if (introducerUIN != null && !introducerUIN.isEmpty()) {
+			validateIntroducerBiometric(registrationId, registrationStatusDto, introducerUIN);
+		} else {
+			throw new ValidationFailedException(StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getMessage(),
+					StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getCode());
+		}
+
 		regProcLogger.debug("validate call ended for registrationId {}", registrationId);
 	}
 
