@@ -2,6 +2,7 @@ package io.mosip.registration.processor.stages.osivalidator;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyMap;
 import static org.mockito.Matchers.anyString;
@@ -17,8 +18,10 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -82,6 +85,8 @@ import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessor
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
+import io.mosip.registration.processor.packet.storage.dto.ContainerInfoDto;
+import io.mosip.registration.processor.packet.storage.dto.InfoResponseDto;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
@@ -204,6 +209,15 @@ public class OSIValidatorTest {
 		ReflectionTestUtils.setField(osiValidator, "ageLimit", "5");
 		ReflectionTestUtils.setField(osiValidator, "dobFormat", "yyyy/MM/dd");
 		ReflectionTestUtils.setField(osiValidator, "introducerValidation", true);
+		ReflectionTestUtils.setField(osiValidator, "supervisorBiometricFileNameProvider", "source:CNIE\\/process:CORRECTION,"
+				+ "source:REGISTRATION_CLIENT\\/process:NEW|UPDATE|LOST,source:RESIDENT\\/process:ACTIVATED|DEACTIVATED|RES_UPDATE|RES_REPRINT");
+		ReflectionTestUtils.setField(osiValidator, "officerBiometricFileNameProvider", "source:CNIE\\/process:CORRECTION,"
+				+ "source:REGISTRATION_CLIENT\\/process:NEW|UPDATE|LOST,source:RESIDENT\\/process:ACTIVATED|DEACTIVATED|RES_UPDATE|RES_REPRINT");
+		ReflectionTestUtils.setField(osiValidator, "parentOrGuardianBiometricsProvider", "source:CNIE\\/process:CORRECTION,"
+				+ "source:REGISTRATION_CLIENT\\/process:NEW|UPDATE|LOST,source:RESIDENT\\/process:ACTIVATED|DEACTIVATED|RES_UPDATE|RES_REPRINT");
+		ReflectionTestUtils.setField(osiValidator, "subProcesses", "UPDATE,LOST,CORRECTION,BIOMETRIC-CORRECTION");
+		
+		
 		File idJson = new File(classLoader.getResource("ID.json").getFile());
 		InputStream ip = new FileInputStream(idJson);
 
@@ -374,6 +388,18 @@ public class OSIValidatorTest {
 		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(),any(),any(), any())).thenReturn(biometricRecord);
 
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any())).thenReturn("field");
+		InfoResponseDto infoResponseDto=new InfoResponseDto();
+		ContainerInfoDto dto=new ContainerInfoDto();
+		dto.setProcess("NEW");
+		Set<String> demos=new HashSet<>();
+		demos.add("supervisorBiometricFileName");
+		demos.add("officerBiometricFileName");
+		demos.add("parentOrGuardianBiometrics");
+		dto.setDemographics(demos);
+		List<ContainerInfoDto>  list=new ArrayList<>();
+		list.add(dto);
+		infoResponseDto.setInfo(list);
+		Mockito.when(packetManagerService.getInfo(anyString())).thenReturn(infoResponseDto);
 	}
 
 	/**

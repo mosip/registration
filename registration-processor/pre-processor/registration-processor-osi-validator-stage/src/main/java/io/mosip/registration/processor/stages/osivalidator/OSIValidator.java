@@ -47,6 +47,7 @@ import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.packet.dto.RegOsiDto;
 import io.mosip.registration.processor.core.packet.dto.ServerError;
 import io.mosip.registration.processor.core.packet.dto.masterdata.UserResponseDto;
+
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
@@ -54,6 +55,8 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
+import io.mosip.registration.processor.packet.storage.dto.ContainerInfoDto;
+import io.mosip.registration.processor.packet.storage.dto.InfoResponseDto;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
@@ -113,6 +116,18 @@ public class OSIValidator {
 
 	@Value("${registration.processor.applicant.dob.format}")
 	private String dobFormat;
+	
+	@Value("${packetmanager.provider.osivalidator.parentOrGuardianBiometrics}")
+	private String parentOrGuardianBiometricsProvider;
+	
+	@Value("${packetmanager.provider.osivalidator.officerBiometricFileName}")
+	private String officerBiometricFileNameProvider;
+	
+	@Value("${packetmanager.provider.osivalidator.supervisorBiometricFileName}")
+	private String supervisorBiometricFileNameProvider;
+	
+	@Value("${registration.processor.osi.sub-processes}")
+	private String subProcesses;
 
 	@Value("${registration.processor.validate.introducer}")
 	private boolean introducerValidation;
@@ -323,8 +338,24 @@ public class OSIValidator {
 							StatusMessage.PASSWORD_OTP_FAILURE);
 				}
 			} else {
+				String process=registrationStatusDto.getRegistrationType();
+			
+				if(!subProcesses.contains(process)) {
+				InfoResponseDto infoResponseDto=packetManagerService.getInfo(registrationId);
+				infoResponseDto.getInfo().removeIf(i->!i.getDemographics().contains(MappingJsonConstants.OFFICERBIOMETRICFILENAME));
+				String[] officerBiometricFileNameProcessArray=officerBiometricFileNameProvider.split(",");
+				for(String processArr:officerBiometricFileNameProcessArray) {
+					String process1=processArr.split("process:")[1];
+					for(ContainerInfoDto containerInfoDto:infoResponseDto.getInfo()) {
+						if(containerInfoDto.getProcess().contentEquals(process1)) {
+							process=process1;
+							break;
+						}
+					}
+				}
+				}
 				BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(registrationId,
-						MappingJsonConstants.OFFICERBIOMETRICFILENAME, registrationStatusDto.getRegistrationType(), ProviderStageName.OSI_VALIDATOR);
+						MappingJsonConstants.OFFICERBIOMETRICFILENAME, process, ProviderStageName.OSI_VALIDATOR);
 
 				if (biometricRecord == null || biometricRecord.getSegments() == null || biometricRecord.getSegments().isEmpty()) {
 					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -411,8 +442,24 @@ public class OSIValidator {
 							StatusMessage.PASSWORD_OTP_FAILURE);
 				}
 			} else {
+				String process=registrationStatusDto.getRegistrationType();
+				
+				if(!subProcesses.contains(process)) {
+				InfoResponseDto infoResponseDto=packetManagerService.getInfo(registrationId);
+				infoResponseDto.getInfo().removeIf(i->!i.getDemographics().contains(MappingJsonConstants.SUPERVISORBIOMETRICFILENAME));
+				String[] supervisorBiometricFileNameProcessArray=supervisorBiometricFileNameProvider.split(",");
+				for(String processArr:supervisorBiometricFileNameProcessArray) {
+					String process1=processArr.split("process:")[1];
+					for(ContainerInfoDto containerInfoDto:infoResponseDto.getInfo()) {
+						if(containerInfoDto.getProcess().contentEquals(process1)) {
+							process=process1;
+							break;
+						}
+					}
+				}
+				}
 				BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(registrationId,
-						MappingJsonConstants.SUPERVISORBIOMETRICFILENAME, registrationStatusDto.getRegistrationType(), ProviderStageName.OSI_VALIDATOR);
+						MappingJsonConstants.SUPERVISORBIOMETRICFILENAME, process, ProviderStageName.OSI_VALIDATOR);
 
 				if (biometricRecord == null || biometricRecord.getSegments() == null || biometricRecord.getSegments().isEmpty()) {
 					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -526,8 +573,24 @@ public class OSIValidator {
 			InternalRegistrationStatusDto registrationStatusDto,
 			String introducerUIN) throws IOException, ApisResourceAccessException,
 			BioTypeException, AuthSystemException, JsonProcessingException, PacketManagerException, CertificateException, NoSuchAlgorithmException {
+		String process=registrationStatusDto.getRegistrationType();
+		
+		if(!subProcesses.contains(process)) {
+		InfoResponseDto infoResponseDto=packetManagerService.getInfo(registrationId);
+		infoResponseDto.getInfo().removeIf(i->!i.getDemographics().contains(MappingJsonConstants.PARENT_OR_GUARDIAN_BIO));
+		String[] parentOrGuardianBiometricFileNameProcessArray=parentOrGuardianBiometricsProvider.split(",");
+		for(String processArr:parentOrGuardianBiometricFileNameProcessArray) {
+			String process1=processArr.split("process:")[1];
+			for(ContainerInfoDto containerInfoDto:infoResponseDto.getInfo()) {
+				if(containerInfoDto.getProcess().contentEquals(process1)) {
+					process=process1;
+					break;
+				}
+			}
+		}
+		}
 		BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(registrationId,
-				MappingJsonConstants.PARENT_OR_GUARDIAN_BIO, registrationStatusDto.getRegistrationType(), ProviderStageName.OSI_VALIDATOR);
+				MappingJsonConstants.PARENT_OR_GUARDIAN_BIO, process, ProviderStageName.OSI_VALIDATOR);
 		if (biometricRecord != null && biometricRecord.getSegments() != null) {
 			return validateUserBiometric(registrationId, introducerUIN, biometricRecord.getSegments(),
 					INDIVIDUAL_TYPE_UIN, registrationStatusDto);

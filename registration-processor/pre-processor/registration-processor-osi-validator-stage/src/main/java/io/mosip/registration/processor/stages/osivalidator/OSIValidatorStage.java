@@ -2,6 +2,10 @@ package io.mosip.registration.processor.stages.osivalidator;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -27,6 +31,7 @@ import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.AuthSystemException;
@@ -39,9 +44,12 @@ import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
+import io.mosip.registration.processor.packet.storage.dto.ContainerInfoDto;
+import io.mosip.registration.processor.packet.storage.dto.InfoResponseDto;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
+import io.mosip.registration.processor.status.code.RegistrationType;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
@@ -105,6 +113,12 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 	
 	@Value("${mosip.registartion.processor.validateUMC}")
 	private boolean validateUMC;
+	
+	@Value("${packetmanager.provider.metainfo}")
+	private String metainfoProvider;
+	
+	@Value("${registration.processor.osi.sub-processes}")
+	private String subProcesses;
 
 	private MosipEventBus mosipEventBus = null;
 
@@ -158,8 +172,31 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 		registrationStatusDto.setRegistrationStageName(getStageName());
 
 		try {
-			Map<String, String> metaInfo = packetManagerService.getMetaInfo(registrationId,
-					registrationStatusDto.getRegistrationType(), ProviderStageName.OSI_VALIDATOR);
+			Map<String, String> metaInfo = new HashMap<>();
+			if(subProcesses.contains(object.getReg_type())) {
+				metaInfo=packetManagerService.getMetaInfo(registrationId,
+						object.getReg_type(), ProviderStageName.OSI_VALIDATOR);
+			}
+			else {
+			InfoResponseDto infoResponseDto=packetManagerService.getInfo(registrationId);
+			
+			String[] processArray=metainfoProvider.split(",");
+			List<String> processes=new ArrayList<>();
+			for(String processArr:processArray) {
+				processes.add(processArr.split("process:")[1]);
+			}
+			Collections.reverse(processes);
+			for(String process:processes) {
+				
+				for(ContainerInfoDto containerInfoDto:infoResponseDto.getInfo()) {
+					if(process.contains(containerInfoDto.getProcess())) {
+						
+						metaInfo.putAll(packetManagerService.getMetaInfo(registrationId,
+								process, ProviderStageName.OSI_VALIDATOR));
+					}
+				}
+			}
+			}
 			if (validateUMC)
 				isValidUMC = umcValidator.isValidUMC(registrationId, registrationStatusDto, metaInfo);
 			else

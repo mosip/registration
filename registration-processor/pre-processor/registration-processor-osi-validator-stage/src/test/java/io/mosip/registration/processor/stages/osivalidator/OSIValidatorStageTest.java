@@ -9,10 +9,14 @@ import static org.mockito.Matchers.any;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.packet.storage.dto.ContainerInfoDto;
+import io.mosip.registration.processor.packet.storage.dto.InfoResponseDto;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
@@ -127,7 +131,9 @@ public class OSIValidatorStageTest {
 		ReflectionTestUtils.setField(osiValidatorStage, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(osiValidatorStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(osiValidatorStage, "validateUMC", true);
-
+		ReflectionTestUtils.setField(osiValidatorStage, "metainfoProvider", "source:CNIE\\/process:CORRECTION,"
+				+ "source:REGISTRATION_CLIENT\\/process:NEW|UPDATE|LOST,source:RESIDENT\\/process:ACTIVATED|DEACTIVATED|RES_UPDATE|RES_REPRINT");
+		ReflectionTestUtils.setField(osiValidatorStage, "subProcesses", "UPDATE,LOST,CORRECTION,BIOMETRIC-CORRECTION");
 		@SuppressWarnings("unchecked")
 		RegistrationProcessorRestClientService<Object> mockObj = Mockito
 				.mock(RegistrationProcessorRestClientService.class);
@@ -143,7 +149,13 @@ public class OSIValidatorStageTest {
 		dto.setRid("reg1234");
 		registrationStatusDto.setRegistrationId("reg1234");
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any())).thenReturn(registrationStatusDto);
-
+		InfoResponseDto infoResponseDto=new InfoResponseDto();
+		ContainerInfoDto dto=new ContainerInfoDto();
+		dto.setProcess("NEW");
+		List<ContainerInfoDto>  list=new ArrayList<>();
+		list.add(dto);
+		infoResponseDto.setInfo(list);
+		Mockito.when(packetManagerService.getInfo(anyString())).thenReturn(infoResponseDto);
 	}
 
 	/**

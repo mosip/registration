@@ -146,6 +146,22 @@ public class PriorityBasedPacketManagerService {
     }
 
     /**
+     * Get  info 
+     *
+     * @param id
+     * @param process
+     * @param stageName
+     * @return
+     * @throws ApisResourceAccessException
+     * @throws PacketManagerException
+     * @throws JsonProcessingException
+     * @throws IOException
+     */
+    public InfoResponseDto getInfo(String id) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+       return packetManagerService.info(id);
+    }
+
+    /**
      * Get document by priority
      *
      * @param id
