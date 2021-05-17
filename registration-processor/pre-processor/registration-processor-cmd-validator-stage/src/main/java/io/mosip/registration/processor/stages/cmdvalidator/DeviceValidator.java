@@ -105,7 +105,7 @@ public class DeviceValidator {
 					regProcLogger.error("validate call ended for registrationId {} with error data : {}",
 							registrationId, error.get(0).getMessage());
 					throw new BaseCheckedException(
-							error.get(0).getMessage() + " " + "for" + " " + deviceDetails.getDigitalId().getType(),
+							error.get(0).getMessage() + " for " + deviceDetails.getDigitalId().getType(),
 							StatusUtil.DEVICE_VALIDATION_FAILED.getCode());
 
 				}

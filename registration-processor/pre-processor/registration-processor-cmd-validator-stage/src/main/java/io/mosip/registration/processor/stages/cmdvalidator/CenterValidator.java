@@ -35,7 +35,7 @@ public class CenterValidator {
 
 	ObjectMapper mapper = new ObjectMapper();
 
-	@Value("${mosip.registration.processor.workinghour.validation.required}")
+	@Value("${mosip.regproc.cmd-validator.working-hour-validation-required}")
 	private Boolean isWorkingHourValidationRequired;
 
 	@Autowired
