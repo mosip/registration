@@ -7,6 +7,7 @@ import org.springframework.http.MediaType;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Interface RegistrationProcessorRestClientService.
  *
@@ -36,6 +37,17 @@ public interface RegistrationProcessorRestClientService<T> {
 	public T getApi(ApiName apiName, List<String> pathsegments, String queryParam, String queryParamValue,
 			Class<?> responseType) throws ApisResourceAccessException;
 
+	/**
+	 * Gets the api.
+	 *
+	 * @param apiName the api name
+	 * @param pathsegments the pathsegments
+	 * @param queryParam the query param
+	 * @param queryParamValue the query param value
+	 * @param responseType the response type
+	 * @return the api
+	 * @throws ApisResourceAccessException the apis resource access exception
+	 */
 	public T getApi(ApiName apiName, List<String> pathsegments, List<String> queryParam, List<Object> queryParamValue,
 					Class<?> responseType) throws ApisResourceAccessException;
 
@@ -105,17 +117,17 @@ public interface RegistrationProcessorRestClientService<T> {
 			T requestedData, Class<?> responseType) throws ApisResourceAccessException;
 
 	/**
-	 * Post Api
+	 * Post Api.
 	 *
-	 * @param apiName
-	 * @param mediaType
-	 * @param pathsegments
-	 * @param queryParam
-	 * @param queryParamValue
-	 * @param requestedData
-	 * @param responseType
-	 * @return
-	 * @throws ApisResourceAccessException
+	 * @param apiName the api name
+	 * @param mediaType the media type
+	 * @param pathsegments the pathsegments
+	 * @param queryParam the query param
+	 * @param queryParamValue the query param value
+	 * @param requestedData the requested data
+	 * @param responseType the response type
+	 * @return the t
+	 * @throws ApisResourceAccessException the apis resource access exception
 	 */
 	public T postApi(ApiName apiName, MediaType mediaType, List<String> pathsegments, List<String> queryParam, List<Object> queryParamValue,
 					 T requestedData, Class<?> responseType) throws ApisResourceAccessException;
@@ -151,9 +163,26 @@ public interface RegistrationProcessorRestClientService<T> {
 	 * @param queryParamValue the query param value
 	 * @param requestedData the requested data
 	 * @param responseType the response type
+	 * @param mediaType the media type
 	 * @return the t
-	 * @throws ApisResourceAccessException 
+	 * @throws ApisResourceAccessException the apis resource access exception
 	 */
 	public T putApi(ApiName apiName, List<String> pathsegments, String queryParam, String queryParamValue,
 			T requestedData, Class<?> responseType,MediaType mediaType) throws ApisResourceAccessException;
+	
+	/**
+	 * Post api.
+	 *
+	 * @param url the url
+	 * @param mediaType the media type
+	 * @param pathsegments the pathsegments
+	 * @param queryParam the query param
+	 * @param queryParamValue the query param value
+	 * @param requestedData the requested data
+	 * @param responseType the response type
+	 * @return the t
+	 * @throws ApisResourceAccessException the apis resource access exception
+	 */
+	public T postApi(String url, MediaType mediaType, List<String> pathsegments, List<String> queryParam, List<Object> queryParamValue,
+			 T requestedData, Class<?> responseType) throws ApisResourceAccessException;
 }

@@ -9,8 +9,6 @@ on:
       - master
       - 1.*
       - develop
-      - MOSIP-12124
-      - MOSIP-12124-2
   
 jobs:
   build:
@@ -214,15 +212,15 @@ jobs:
         
     - name: Push image
       run: |
-          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+        IMAGE_ID=$NAMESPACE/$SERVICE_NAME
 
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          VERSION=$BRANCH_NAME
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
+        # Change all uppercase to lowercase
+        IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+        VERSION=$BRANCH_NAME
+        echo IMAGE_ID=$IMAGE_ID
+        echo VERSION=$VERSION
+        docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+        docker push $IMAGE_ID:$VERSION
       env:
         NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
         SERVICE_NAME: registration-processor-stage-group-6

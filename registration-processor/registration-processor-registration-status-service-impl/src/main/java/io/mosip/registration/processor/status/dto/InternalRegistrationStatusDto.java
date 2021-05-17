@@ -84,8 +84,11 @@ public class InternalRegistrationStatusDto implements Serializable {
 	/** The default resume action. */
 	private String defaultResumeAction;
 
-
+	/** The comma separate tags that will be removed on resume. */
 	private String resumeRemoveTags;
+
+	/** The last success stage name. */
+	private String lastSuccessStageName;
 
 	/**
 	 * Gets the ref id.
@@ -570,6 +573,24 @@ public class InternalRegistrationStatusDto implements Serializable {
 
 	public void setResumeRemoveTags(String resumeRemoveTags) {
 		this.resumeRemoveTags = resumeRemoveTags;
+	}
+
+	/**
+	 * Gets the last success stage name.
+	 *
+	 * @return the last success stage name
+	 */
+	public String getLastSuccessStageName() {
+		return lastSuccessStageName;
+	}
+
+	/**
+	 * Sets the last success stage name.
+	 *
+	 * @param lastSuccessStageName the last success stage name
+	 */
+	public void setLastSuccessStageName(String lastSuccessStageName) {
+		this.lastSuccessStageName = lastSuccessStageName;
 	}
 
 	@Override
