@@ -173,9 +173,9 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 
 		try {
 			Map<String, String> metaInfo = new HashMap<>();
-			if(subProcesses.contains(object.getReg_type())) {
+			if(subProcesses.contains(registrationStatusDto.getRegistrationType())) {
 				metaInfo=packetManagerService.getMetaInfo(registrationId,
-						object.getReg_type(), ProviderStageName.OSI_VALIDATOR);
+						registrationStatusDto.getRegistrationType(), ProviderStageName.OSI_VALIDATOR);
 			}
 			else {
 			InfoResponseDto infoResponseDto=packetManagerService.getInfo(registrationId);
