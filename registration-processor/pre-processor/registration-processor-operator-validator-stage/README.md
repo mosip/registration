@@ -8,9 +8,6 @@ This component validates the Operator details from the Packet
 
 ## Default Context-path and Port
 ```
-spring.cloud.config.uri=localhost
-spring.cloud.config.label=master
-spring.profiles.active=mz
 registration.processor.zone=secure
 vertx.cluster.configuration=${spring.cloud.config.uri}/*/${spring.profiles.active}/${spring.cloud.config.label}/hazelcast_${registration.processor.zone}.xml
 worker.pool.size=10

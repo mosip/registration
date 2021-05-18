@@ -104,7 +104,7 @@ public class SupervisorValidationProcessor {
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 				regProcLogger.debug("process called for registrationId {}. Supervisor ID is not present in Packet",
 						registrationId);
-				throw new BaseCheckedException(StatusUtil.SUPERVISOR_NOT_FOUND_PACKET.getMessage(),
+				throw new ValidationFailedException(StatusUtil.SUPERVISOR_NOT_FOUND_PACKET.getMessage(),
 						StatusUtil.SUPERVISOR_NOT_FOUND_PACKET.getCode());
 			}
 

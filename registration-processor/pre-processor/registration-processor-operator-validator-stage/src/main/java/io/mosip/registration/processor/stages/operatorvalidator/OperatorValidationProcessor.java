@@ -104,7 +104,7 @@ public class OperatorValidationProcessor {
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 				regProcLogger.debug("process called for registrationId {}. Officer is not present in Packet",
 						registrationId);
-				throw new BaseCheckedException(StatusUtil.OFFICER_NOT_FOUND_PACKET.getMessage(),
+				throw new ValidationFailedException(StatusUtil.OFFICER_NOT_FOUND_PACKET.getMessage(),
 						StatusUtil.OFFICER_NOT_FOUND_PACKET.getCode());
 			}
 
