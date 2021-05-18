@@ -20,6 +20,9 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.micrometer.MicrometerMetricsOptions;
 import io.vertx.micrometer.VertxPrometheusOptions;
+import io.vertx.core.http.HttpServerOptions;
+import io.vertx.micrometer.MicrometerMetricsOptions;
+import io.vertx.micrometer.VertxPrometheusOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -76,6 +79,8 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 
     @Autowired
     private ObjectMapper objectMapper;
+
+	private static final String PROMETHEUS_ENDPOINT = "/actuator/prometheus";
 
 	private static final String PROMETHEUS_ENDPOINT = "/actuator/prometheus";
 
