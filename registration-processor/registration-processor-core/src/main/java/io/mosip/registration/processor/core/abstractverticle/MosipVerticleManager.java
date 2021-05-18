@@ -12,6 +12,10 @@ import java.util.concurrent.ExecutionException;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.MDC;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import io.vertx.core.http.HttpServerOptions;
+import io.vertx.micrometer.MicrometerMetricsOptions;
+import io.vertx.micrometer.VertxPrometheusOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -79,6 +83,8 @@ public abstract class MosipVerticleManager extends AbstractVerticle
     @Autowired
     private ObjectMapper objectMapper;
 
+	private static final String PROMETHEUS_ENDPOINT = "/actuator/prometheus";
+
 	@Value("${mosip.regproc.eventbus.type:vertx}")
 	private String eventBusType;
 
@@ -124,9 +130,19 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 		} catch (UnknownHostException e1) {
 			throw new DeploymentFailureException(PlatformErrorMessages.RPR_CMB_MALFORMED_URL_EXCEPTION.getMessage());
 		}
+
+		MicrometerMetricsOptions micrometerMetricsOptions = new MicrometerMetricsOptions()
+				.setPrometheusOptions(new VertxPrometheusOptions()
+						.setStartEmbeddedServer(true)
+						.setEmbeddedServerOptions(new HttpServerOptions().setPort(getPort()))
+						.setEmbeddedServerEndpoint(getServletPath() + PROMETHEUS_ENDPOINT)
+						.setEnabled(true))
+				.setEnabled(true);
+
 		VertxOptions options = new VertxOptions().setClustered(true).setClusterManager(clusterManager)
 				.setHAEnabled(false).setWorkerPoolSize(instanceNumber)
-				.setEventBusOptions(new EventBusOptions().setPort(getEventBusPort()).setHost(address));
+				.setEventBusOptions(new EventBusOptions().setPort(getEventBusPort()).setHost(address))
+				.setMetricsOptions(micrometerMetricsOptions);
 		Vertx.clusteredVertx(options, result -> {
 			if (result.succeeded()) {
 				result.result().deployVerticle((Verticle) verticleName,
@@ -175,7 +191,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 					result.setLastHopTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 					future.complete(result);
 				} catch (Exception e) {
-					logger.error("{} -- {} {} {}", 
+					logger.error("{} -- {} {} {}",
 						PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getCode(),
 						PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getMessage(),
 						e.getMessage(), ExceptionUtils.getStackTrace(e));
@@ -185,7 +201,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 					messageDTO.setLastHopTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 					future.complete(messageDTO);
 				}
-				
+
 			}, false, handler);
 			MDC.clear();
 		});
@@ -235,7 +251,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 					MessageDTO result = process(messageDTO);
 					future.complete(result);
 				} catch (Exception e) {
-					logger.error("{} -- {} {} {}", 
+					logger.error("{} -- {} {} {}",
 						PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getCode(),
 						PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getMessage(),
 						e.getMessage(), ExceptionUtils.getStackTrace(e));
@@ -255,11 +271,11 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	public Integer getPort() {
 		return getIntegerPropertyForSuffix("server.port");
 	}
-	
+
 	protected Integer getIntegerPropertyForSuffix(String propSuffix) {
 		return propertiesUtil.getIntegerProperty(getPropertyPrefix(), propSuffix);
 	}
-	
+
 	protected Boolean getBooleanPropertyForSuffix(String propSuffix, Boolean defaultValue) {
 		return propertiesUtil.getProperty(getPropertyPrefix() + propSuffix, Boolean.class, defaultValue);
 	}
@@ -292,17 +308,17 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 		}
 		try {
 			messageDTO.setTags(getTagsFromPacket(messageDTO.getRid()));
-		} catch (ApisResourceAccessException | PacketManagerException | 
+		} catch (ApisResourceAccessException | PacketManagerException |
 				JsonProcessingException | IOException e) {
-			logger.error(PlatformErrorMessages.RPR_SYS_PACKET_TAGS_COPYING_FAILED.getCode() + 
-				" -- " + PlatformErrorMessages.RPR_SYS_PACKET_TAGS_COPYING_FAILED.getMessage() + 
+			logger.error(PlatformErrorMessages.RPR_SYS_PACKET_TAGS_COPYING_FAILED.getCode() +
+				" -- " + PlatformErrorMessages.RPR_SYS_PACKET_TAGS_COPYING_FAILED.getMessage() +
 				e.getMessage() + ExceptionUtils.getStackTrace(e));
 			messageDTO.setInternalError(true);
 			messageDTO.setTags(new HashMap<>());
 		}
 	}
 
-	private Map<String, String> getTagsFromPacket(String id) throws ApisResourceAccessException, 
+	private Map<String, String> getTagsFromPacket(String id) throws ApisResourceAccessException,
 			PacketManagerException, JsonProcessingException, IOException {
         InfoRequestDto infoRequestDto = new InfoRequestDto(id);
 
@@ -315,7 +331,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 			ApiName.PACKETMANAGER_INFO, EMPTY_STRING, EMPTY_STRING, request, ResponseWrapper.class);
 
         if (response.getErrors() != null && response.getErrors().size() > 0) {
-			throw new PacketManagerException(response.getErrors().get(0).getErrorCode(), 
+			throw new PacketManagerException(response.getErrors().get(0).getErrorCode(),
 				response.getErrors().get(0).getMessage());
         }
 
