@@ -77,7 +77,7 @@ public enum StatusUtil {
 	OPERATOR_PACKET_CREATION_DATE_NOT_FOUND_IN_PACKET(StatusConstants.OVM_VALIDAOR_MODULE_FAILED + "002","Packet Creation Date is NULL"),
 	OPERATOR_PASSWORD_OTP_FAILURE(StatusConstants.OVM_VALIDAOR_MODULE_FAILED + "003","Password or OTP Verification Failed for Officer - "),
 	OFFICER_WAS_INACTIVE(StatusConstants.OVM_VALIDAOR_MODULE_FAILED + "004","Officer was Not Active during Packet Creation - "),
-	SUPERVISOR_OFFICER_NOT_FOUND_PACKET(StatusConstants.OVM_VALIDAOR_MODULE_FAILED + "005","Both Officer and Supervisor IDs are NULL"),
+	OFFICER_NOT_FOUND_PACKET(StatusConstants.OVM_VALIDAOR_MODULE_FAILED + "005","Officer ID is NULL"),
 	
 	// Supervisor Validator stage
 	SUPERVISOR_VALIDATION_SUCCESS(StatusConstants.SVM_VALIDAOR_MODULE_SUCCESS + "001", "SUPERVISOR Validation is Successful"),
@@ -86,6 +86,7 @@ public enum StatusUtil {
 	SUPERVISOR_PASSWORD_OTP_FAILURE(StatusConstants.SVM_VALIDAOR_MODULE_FAILED + "003","Password or OTP Verification Failed for Officer - "),
 	SUPERVISOR_WAS_INACTIVE(StatusConstants.SVM_VALIDAOR_MODULE_FAILED + "004","Supervisor was Not Active during Packet Creation - "),
 	PASSWORD_OTP_FAILURE_SUPERVISOR(StatusConstants.SVM_VALIDAOR_MODULE_FAILED + "005","Password or OTP Verification Failed for Supervisor - "),
+	SUPERVISOR_NOT_FOUND_PACKET(StatusConstants.OVM_VALIDAOR_MODULE_FAILED + "006","Supervisor ID is NULL"),
 	
 	// Introducer Validator stage
 	INTRODUCER_VALIDATION_SUCCESS(StatusConstants.IVM_VALIDAOR_MODULE_SUCCESS + "001", "INTRODUCER Validation is Successful"),

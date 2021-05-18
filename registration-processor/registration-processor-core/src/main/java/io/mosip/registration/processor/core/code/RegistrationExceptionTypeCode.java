@@ -232,6 +232,12 @@ public enum RegistrationExceptionTypeCode {
 
 	/** The supervisorid and officerid not present in packet. */
 	SUPERVISORID_AND_OFFICERID_NOT_PRESENT_IN_PACKET,
+	
+	/** The officerid not present in packet. */
+	OFFICERID_NOT_PRESENT_IN_PACKET,
+	
+	/** The supervisorid not present in packet. */
+	SUPERVISORID_NOT_PRESENT_IN_PACKET,
 
 	/** The packet creation date not present in packet. */
 	PACKET_CREATION_DATE_NOT_PRESENT_IN_PACKET,

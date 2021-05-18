@@ -98,21 +98,17 @@ public class OperatorValidationProcessor {
 			RegOsiDto regOsi = osiUtils.getOSIDetailsFromMetaInfo(metaInfo);
 			
 			String officerId = regOsi.getOfficerId();
-			String supervisorId = regOsi.getSupervisorId();
-			if ((officerId == null || officerId.isEmpty()) && (supervisorId == null || supervisorId.isEmpty())) {
+			if (officerId == null || officerId.isEmpty()) {
 				registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
-						.getStatusCode(RegistrationExceptionTypeCode.SUPERVISORID_AND_OFFICERID_NOT_PRESENT_IN_PACKET));
+						.getStatusCode(RegistrationExceptionTypeCode.OFFICERID_NOT_PRESENT_IN_PACKET));
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-				regProcLogger.debug(
-						"process called for registrationId {}. Both Officer and Supervisor ID are not present in Packet",
+				regProcLogger.debug("process called for registrationId {}. Officer is not present in Packet",
 						registrationId);
-				throw new BaseCheckedException(StatusUtil.SUPERVISOR_OFFICER_NOT_FOUND_PACKET.getMessage(),
-						StatusUtil.SUPERVISOR_OFFICER_NOT_FOUND_PACKET.getCode());
+				throw new BaseCheckedException(StatusUtil.OFFICER_NOT_FOUND_PACKET.getMessage(),
+						StatusUtil.OFFICER_NOT_FOUND_PACKET.getCode());
 			}
-			
-			if (officerId != null && !officerId.isEmpty()) {
-				operatorValidator.validate(registrationId, registrationStatusDto, regOsi);
-			}
+
+			operatorValidator.validate(registrationId, registrationStatusDto, regOsi);
 
 			registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 			registrationStatusDto.setStatusComment(StatusUtil.OPERATOR_VALIDATION_SUCCESS.getMessage());

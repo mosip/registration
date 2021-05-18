@@ -46,6 +46,7 @@ import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.ValidationFailedException;
 import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO;
 import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
 import io.mosip.registration.processor.core.logger.LogDescription;
@@ -483,6 +484,23 @@ public class OperatorValidatorTest {
 		regOsiDto.setOfficerId(null);
 		regOsiDto.setSupervisorId(null);
 		Mockito.when(osiUtils.getOSIDetailsFromMetaInfo(anyMap())).thenReturn(regOsiDto);
+		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
+	}
+	
+	@Test(expected = ValidationFailedException.class)
+	public void testUMCValidationFailed() throws Exception {
+		
+		center.setCntrId("10001");
+		center.setIsActive(false);
+		registrationCenters.add(center);
+		centerMapping.setRegistrationCenters(registrationCenters);
+		centerResponse.setErrors(null);
+		centerResponse.setResponse(centerMapping);
+		Mockito.when(mapper.writeValueAsString(any())).thenReturn("");
+		Mockito.when(mapper.readValue(anyString(),
+				Mockito.eq(RegistrationCenterUserMachineMappingHistoryResponseDto.class))).thenReturn(centerMapping);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any()))
+		.thenReturn(userResponseDto).thenReturn(centerResponse);
 		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
 

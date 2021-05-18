@@ -8,14 +8,25 @@ This component validates the User, Machine, Centre details from the Packet
 
 ## Default Context-path and Port
 ```
-server.port=8089
-eventbus.port=5716
-server.servlet.path=/registrationprocessor/v1/cmdvalidator
+spring.cloud.config.uri=localhost
+spring.cloud.config.label=master
+spring.profiles.active=mz
+registration.processor.zone=secure
+vertx.cluster.configuration=${spring.cloud.config.uri}/*/${spring.profiles.active}/${spring.cloud.config.label}/hazelcast_${registration.processor.zone}.xml
+worker.pool.size=10
+
+mosip.regproc.cmd-validator.server.port=8089
+mosip.regproc.cmd-validator.eventbus.port=5716
+mosip.regproc.cmd-validator.server.servlet.path=/registrationprocessor/v1/cmdvalidator
+mosip.regproc.cmd-validator.message.expiry-time-limit=3600
 ```
 ## Configurable properties from Configuration Server
 ```
 mosip.regproc.cmd-validator.working-hour-validation-required=true
 mosip.identity.auth.internal.requestid=mosip.identity.auth.internal
+mosip.registration.gps_device_enable_flag=true
+mosip.primary-language=eng
+mosip.kernel.device.validate.history.id=""
 mosip.registration.processor.validate-machine=true
 mosip.registration.processor.validate-device=true
 mosip.registration.processor.validate-center=true

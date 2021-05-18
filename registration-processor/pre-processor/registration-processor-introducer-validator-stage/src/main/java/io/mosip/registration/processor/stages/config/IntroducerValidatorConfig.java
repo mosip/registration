@@ -9,7 +9,7 @@ import io.mosip.registration.processor.stages.introducervalidator.IntroducerVali
 public class IntroducerValidatorConfig {
 
 	@Bean
-	public IntroducerValidationProcessor getSupervisorValidationProcessor() {
+	public IntroducerValidationProcessor getIntroducerValidationProcessor() {
 		return new IntroducerValidationProcessor();
 	}
 }
