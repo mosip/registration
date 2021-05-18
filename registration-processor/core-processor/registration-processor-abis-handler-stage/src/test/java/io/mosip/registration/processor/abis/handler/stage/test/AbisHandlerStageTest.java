@@ -172,7 +172,7 @@ public class AbisHandlerStageTest {
 		ReflectionTestUtils.setField(abisHandlerStage, "internalDomainName", "localhost");
 		Mockito.when(env.getProperty("mosip.registration.processor.datetime.pattern"))
 				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		
+
 		Mockito.when(env.getProperty("DATASHARECREATEURL"))
 		.thenReturn("/v1/datashare/create");
 		AbisApplicationDto dto = new AbisApplicationDto();
