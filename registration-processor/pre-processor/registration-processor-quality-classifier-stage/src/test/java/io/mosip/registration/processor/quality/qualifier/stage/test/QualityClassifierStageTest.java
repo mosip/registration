@@ -4,9 +4,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -25,6 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Answers;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -34,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import io.mosip.kernel.biometrics.constant.BiometricFunction;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.constant.QualityType;
 import io.mosip.kernel.biometrics.entities.BDBInfo;
@@ -68,10 +72,12 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.kafka.client.consumer.OffsetAndMetadata;
 import io.mosip.kernel.biosdk.provider.spi.iBioProviderApi;
 
 @RunWith(PowerMockRunner.class)
-@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*","com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", })
+@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*", "com.sun.org.apache.xerces.*", "javax.xml.*",
+		"org.xml.*", })
 public class QualityClassifierStageTest {
 
 	@Mock
@@ -95,20 +101,29 @@ public class QualityClassifierStageTest {
 	/** The cbeff util. */
 	@Mock
 	private CbeffUtil cbeffUtil;
-	
+
 	@Mock
 	private BioAPIFactory bioApiFactory;
 	@Mock
-	private iBioProviderApi iBioProviderApi;
-	
+	private iBioProviderApi faceIBioProviderApi;
+	@Mock
+	private iBioProviderApi fingerIBioProviderApi;
+	@Mock
+	private iBioProviderApi irisIBioProviderApi;
+
 	@Mock
 	private PacketManagerService packetManagerService;
-	
-	private String qualityPrefixTag ="Biometric_Quality-";
+
+	private String qualityPrefixTag = "Biometric_Quality-";
+
+	private String AVERAGE = "Average";
+
+	private String POOR = "Poor";
+
+	private String GOOD = "Good";
+
 //	
 	JSONObject mappingJSONObject;
-
-
 
 	@InjectMocks
 	private QualityClassifierStage qualityClassifierStage = new QualityClassifierStage() {
@@ -164,22 +179,21 @@ public class QualityClassifierStageTest {
 //		ReflectionTestUtils.setField(qualityClassifierStage, "thumbFingerThreshold", 80);
 //		ReflectionTestUtils.setField(qualityClassifierStage, "faceThreshold", 25);
 		ReflectionTestUtils.setField(qualityClassifierStage, "qualityTagPrefix", qualityPrefixTag);
-		
-		Map<String, String> qualityClassificationRangeMap =new HashMap<String, String>();
-		qualityClassificationRangeMap.put("Poor","0-29");
-		qualityClassificationRangeMap.put("Average","30-69");
-		qualityClassificationRangeMap.put("Good","70-100");
-		
-		ReflectionTestUtils.setField(qualityClassifierStage, "qualityClassificationRangeMap", qualityClassificationRangeMap);
-		
-		
-		Map<String, int[]> parsedMap =new HashMap<String, int[]>();
-		parsedMap.put("Poor",new int[]{0,29});
-		parsedMap.put("Average",new int[]{30,69});
-		parsedMap.put("Good",new int[]{70,100});
-		
+
+		Map<String, String> qualityClassificationRangeMap = new HashMap<String, String>();
+		qualityClassificationRangeMap.put(POOR, "0-29");
+		qualityClassificationRangeMap.put(AVERAGE, "30-69");
+		qualityClassificationRangeMap.put(GOOD, "70-100");
+
+		ReflectionTestUtils.setField(qualityClassifierStage, "qualityClassificationRangeMap",
+				qualityClassificationRangeMap);
+
+		Map<String, int[]> parsedMap = new HashMap<String, int[]>();
+		parsedMap.put(POOR, new int[] { 0, 29 });
+		parsedMap.put(AVERAGE, new int[] { 30, 69 });
+		parsedMap.put(GOOD, new int[] { 70, 100 });
+
 		ReflectionTestUtils.setField(qualityClassifierStage, "parsedQualityRangeMap", parsedMap);
-		
 
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
@@ -199,7 +213,8 @@ public class QualityClassifierStageTest {
 
 		List<BIR> birTypeList = new ArrayList<>();
 		BIR birType1 = new BIR.BIRBuilder().build();
-		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType1 = new io.mosip.kernel.biometrics.entities.BDBInfo.BDBInfoBuilder().build();
+		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType1 = new io.mosip.kernel.biometrics.entities.BDBInfo.BDBInfoBuilder()
+				.build();
 		io.mosip.kernel.biometrics.entities.RegistryIDType registryIDType = new io.mosip.kernel.biometrics.entities.RegistryIDType();
 		registryIDType.setOrganization("Mosip");
 		registryIDType.setType("257");
@@ -217,7 +232,8 @@ public class QualityClassifierStageTest {
 		birTypeList.add(birType1);
 
 		BIR birType2 = new BIR.BIRBuilder().build();
-		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType2 = new io.mosip.kernel.biometrics.entities.BDBInfo.BDBInfoBuilder().build();
+		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType2 = new io.mosip.kernel.biometrics.entities.BDBInfo.BDBInfoBuilder()
+				.build();
 		bdbInfoType2.setQuality(quality);
 		BiometricType singleType2 = BiometricType.FINGER;
 		List<BiometricType> singleTypeList2 = new ArrayList<>();
@@ -229,7 +245,8 @@ public class QualityClassifierStageTest {
 		birTypeList.add(birType2);
 
 		BIR birType3 = new BIR.BIRBuilder().build();
-		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType3 = new io.mosip.kernel.biometrics.entities.BDBInfo.BDBInfoBuilder().build();
+		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType3 = new io.mosip.kernel.biometrics.entities.BDBInfo.BDBInfoBuilder()
+				.build();
 		bdbInfoType3.setQuality(quality);
 		BiometricType singleType3 = BiometricType.IRIS;
 		List<BiometricType> singleTypeList3 = new ArrayList<>();
@@ -241,7 +258,8 @@ public class QualityClassifierStageTest {
 		birTypeList.add(birType3);
 
 		BIR birType4 = new BIR.BIRBuilder().build();
-		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType4 = new io.mosip.kernel.biometrics.entities.BDBInfo.BDBInfoBuilder().build();
+		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType4 = new io.mosip.kernel.biometrics.entities.BDBInfo.BDBInfoBuilder()
+				.build();
 		bdbInfoType4.setQuality(quality);
 		BiometricType singleType4 = BiometricType.FACE;
 		List<BiometricType> singleTypeList4 = new ArrayList<>();
@@ -254,21 +272,29 @@ public class QualityClassifierStageTest {
 
 		BiometricRecord biometricRecord = new BiometricRecord();
 		biometricRecord.setSegments(birTypeList);
-		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenReturn(biometricRecord);
-		when(basedPacketManagerService.getFieldByMappingJsonKey(any(), any(), any(), any())).thenReturn("individualBiometrics");
-		Mockito.doNothing().when(packetManagerService).addOrUpdateTags(any(), any());
-
+		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(), any(), any(), any()))
+				.thenReturn(biometricRecord);
+		when(basedPacketManagerService.getFieldByMappingJsonKey(any(), any(), any(), any()))
+				.thenReturn("individualBiometrics");
+//		Mockito.doNothing().when(packetManagerService).addOrUpdateTags(any(), any());
 
 		File file = new File(classLoader.getResource("RegistrationProcessorIdentity.json").getFile());
 		InputStream inputStream = new FileInputStream(file);
 		String mappingJson = IOUtils.toString(inputStream);
-		 mappingJSONObject = JsonUtil.objectMapperReadValue(mappingJson, JSONObject.class);
-		Mockito.when(utility.getRegistrationProcessorMappingJson(anyString())).thenReturn(JsonUtil.getJSONObject(mappingJSONObject, "identity"));
-		Mockito.when(bioApiFactory.getBioProvider(any(), any())).thenReturn(iBioProviderApi);
-		float[] scores=new float[1];
-		scores[0]=100;
-		Mockito.when(iBioProviderApi.getSegmentQuality(any(), any())).thenReturn(scores);
-		
+		mappingJSONObject = JsonUtil.objectMapperReadValue(mappingJson, JSONObject.class);
+		Mockito.when(utility.getRegistrationProcessorMappingJson(anyString()))
+				.thenReturn(JsonUtil.getJSONObject(mappingJSONObject, "identity"));
+		Mockito.when(bioApiFactory.getBioProvider(any(), any())).thenReturn(faceIBioProviderApi);
+		Mockito.when(bioApiFactory.getBioProvider(BiometricType.FACE, BiometricFunction.QUALITY_CHECK))
+				.thenReturn(faceIBioProviderApi);
+		Mockito.when(bioApiFactory.getBioProvider(BiometricType.FINGER, BiometricFunction.QUALITY_CHECK))
+				.thenReturn(fingerIBioProviderApi);
+		Mockito.when(bioApiFactory.getBioProvider(BiometricType.IRIS, BiometricFunction.QUALITY_CHECK))
+				.thenReturn(irisIBioProviderApi);
+		float[] scores = new float[1];
+		scores[0] = 100;
+		Mockito.when(faceIBioProviderApi.getSegmentQuality(any(), any())).thenReturn(scores);
+
 	}
 
 	@Test
@@ -277,22 +303,79 @@ public class QualityClassifierStageTest {
 	}
 
 	@Test
-	public void testQualityClassifierSuccess() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
-		
-		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(),any(), any(), any())).thenReturn(getMockBiometricRecord());
-		doNothing().when(packetManagerService).addOrUpdateTags(any(), any());
+	public void testQualityClassifierMixTags() throws ApisResourceAccessException, IOException, PacketManagerException,
+			JsonProcessingException, BiometricException {
+
+		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(), any(), any(), any()))
+				.thenReturn(getMockBiometricRecord());
+
+		mockScores(40, 20, 98);
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO result = qualityClassifierStage.process(dto);
 
 		assertTrue(result.getIsValid());
+
+		ArgumentCaptor<Map<String, String>> argument = ArgumentCaptor.forClass(Map.class);
+
+		verify(packetManagerService, atLeastOnce()).addOrUpdateTags(any(), argument.capture());
+
+		assertQualityTags(argument.getAllValues().get(0), AVERAGE, POOR, GOOD);
+
 	}
-	
+
+	@Test
+	public void testQualityClassifierAllGoodTags() throws ApisResourceAccessException, IOException,
+			PacketManagerException, JsonProcessingException, BiometricException {
+
+		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(), any(), any(), any()))
+				.thenReturn(getMockBiometricRecord());
+
+		mockScores(90, 94, 98);
+
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("1234567890");
+		MessageDTO result = qualityClassifierStage.process(dto);
+
+		assertTrue(result.getIsValid());
+
+		ArgumentCaptor<Map<String, String>> argument = ArgumentCaptor.forClass(Map.class);
+
+		verify(packetManagerService, atLeastOnce()).addOrUpdateTags(any(), argument.capture());
+
+		assertQualityTags(argument.getAllValues().get(0), GOOD, GOOD, GOOD);
+
+	}
+
+	private void assertQualityTags(Map<String, String> qualityTags, String irisClassification,
+			String fingerClassification, String faceClassification) {
+
+		assertTrue(qualityTags.get(qualityPrefixTag + BiometricType.FACE.value()).equalsIgnoreCase(faceClassification));
+		assertTrue(qualityTags.get(qualityPrefixTag + BiometricType.FINGER.value())
+				.equalsIgnoreCase(fingerClassification));
+		assertTrue(qualityTags.get(qualityPrefixTag + BiometricType.IRIS.value()).equalsIgnoreCase(irisClassification));
+	}
+
+	private void mockScores(float irisScore, float fingerScore, float faceScore) {
+		float[] faceScores = new float[1];
+		faceScores[0] = faceScore;
+		Mockito.when(faceIBioProviderApi.getSegmentQuality(any(), any())).thenReturn(faceScores);
+
+		float[] irisScores = new float[1];
+		irisScores[0] = irisScore;
+		Mockito.when(irisIBioProviderApi.getSegmentQuality(any(), any())).thenReturn(irisScores);
+
+		float[] fingerScores = new float[1];
+		fingerScores[0] = fingerScore;
+		Mockito.when(fingerIBioProviderApi.getSegmentQuality(any(), any())).thenReturn(fingerScores);
+	}
+
 	private BiometricRecord getMockBiometricRecord() {
 		List<BIR> birTypeList = new ArrayList<>();
 		BIR birType1 = new BIR.BIRBuilder().build();
-		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType1 = new io.mosip.kernel.biometrics.entities.BDBInfo.BDBInfoBuilder().build();
+		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType1 = new io.mosip.kernel.biometrics.entities.BDBInfo.BDBInfoBuilder()
+				.build();
 		RegistryIDType registryIDType = new RegistryIDType();
 		registryIDType.setOrganization("Mosip");
 		registryIDType.setType("257");
@@ -310,7 +393,8 @@ public class QualityClassifierStageTest {
 		birTypeList.add(birType1);
 
 		BIR birType2 = new BIR.BIRBuilder().build();
-		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType2 = new io.mosip.kernel.biometrics.entities.BDBInfo.BDBInfoBuilder().build();
+		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType2 = new io.mosip.kernel.biometrics.entities.BDBInfo.BDBInfoBuilder()
+				.build();
 		bdbInfoType2.setQuality(quality);
 		BiometricType singleType2 = BiometricType.FINGER;
 		List<BiometricType> singleTypeList2 = new ArrayList<>();
@@ -353,26 +437,31 @@ public class QualityClassifierStageTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testException() throws Exception {
-		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenThrow(new PacketManagerException("code","message"));
+		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(), any(), any(), any()))
+				.thenThrow(new PacketManagerException("code", "message"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO messageDTO = qualityClassifierStage.process(dto);
 		assertFalse(messageDTO.getIsValid());
 	}
-	
+
 	@Test
-	public void testCbeffNotFound() throws IOException, PacketManagerException, JsonProcessingException, ApisResourceAccessException {
-		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenThrow(new IOException("message"));
+	public void testCbeffNotFound()
+			throws IOException, PacketManagerException, JsonProcessingException, ApisResourceAccessException {
+		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(), any(), any(), any()))
+				.thenThrow(new IOException("message"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO messageDTO = qualityClassifierStage.process(dto);
 		assertFalse(messageDTO.getIsValid());
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testApiNotAccessibleTest() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
-		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenThrow(new ApisResourceAccessException("message"));
+	public void testApiNotAccessibleTest()
+			throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
+		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(), any(), any(), any()))
+				.thenThrow(new ApisResourceAccessException("message"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO messageDTO = qualityClassifierStage.process(dto);
@@ -380,26 +469,12 @@ public class QualityClassifierStageTest {
 
 	}
 
-	@Test
-	public void testQualityClassifierFailure() throws IOException, BiometricException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
-		Mockito.when(utility.getRegistrationProcessorMappingJson(anyString())).thenReturn(JsonUtil.getJSONObject(mappingJSONObject, "identity"));
-		Mockito.when(bioApiFactory.getBioProvider(any(), any())).thenReturn(iBioProviderApi);
-		float[] scores=new float[1];
-		scores[0]=0;
-		Mockito.when(iBioProviderApi.getSegmentQuality(any(), any())).thenReturn(scores);
-
-		doThrow(PacketManagerException.class).when(packetManagerService).addOrUpdateTags(any(), any());
-
-		MessageDTO dto = new MessageDTO();
-		dto.setRid("1234567890");
-		MessageDTO result = qualityClassifierStage.process(dto);
-
-		assertFalse(result.getIsValid());
-	}
 
 	@Test
-	public void testFileNameMissing() throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
-		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(),any(), any(), any())).thenReturn(null).thenReturn(null);
+	public void testFileNameMissing()
+			throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
+		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(), any(), any(), any())).thenReturn(null)
+				.thenReturn(null);
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO result = qualityClassifierStage.process(dto);
@@ -409,7 +484,8 @@ public class QualityClassifierStageTest {
 
 	@Test
 	public void testBiometricException() throws BiometricException {
-		Mockito.when(bioApiFactory.getBioProvider(any(), any())).thenThrow(new BiometricException("", "error from provider"));
+		Mockito.when(bioApiFactory.getBioProvider(any(), any()))
+				.thenThrow(new BiometricException("", "error from provider"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO result = qualityClassifierStage.process(dto);
@@ -428,9 +504,11 @@ public class QualityClassifierStageTest {
 	}
 
 	@Test
-	public void testFileMissing() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
+	public void testFileMissing()
+			throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
-		when(basedPacketManagerService.getBiometricsByMappingJsonKey(anyString(),any(), any(),any())).thenReturn(null);
+		when(basedPacketManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
+				.thenReturn(null);
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
@@ -440,7 +518,8 @@ public class QualityClassifierStageTest {
 	}
 
 	@Test
-	public void testBioetricFileNotPresentInIdObject() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
+	public void testBioetricFileNotPresentInIdObject()
+			throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
 
 		when(basedPacketManagerService.getFieldByMappingJsonKey(any(), any(), any(), any())).thenReturn(null);
 
@@ -452,9 +531,10 @@ public class QualityClassifierStageTest {
 	}
 
 	@Test
-	public void testNoBiometricInPacket() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
+	public void testNoBiometricInPacket()
+			throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
 
-		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenReturn(null);
+		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(), any(), any(), any())).thenReturn(null);
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
@@ -463,65 +543,16 @@ public class QualityClassifierStageTest {
 		assertFalse(result.getIsValid());
 	}
 
-
 	@Test
-	public void testJsonProcessingException() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
-		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenThrow(new JsonProcessingException("Json exception"));
+	public void testJsonProcessingException()
+			throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
+		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(), any(), any(), any()))
+				.thenThrow(new JsonProcessingException("Json exception"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO result = qualityClassifierStage.process(dto);
 
 		assertTrue(result.getInternalError());
 	}
-	
-	
-	@Test
-	public void getQualityTagsAllGood() throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException, BiometricException {
-		
-		float[] scores=new float[1];
-		scores[0]=90;
-		Mockito.when(iBioProviderApi.getSegmentQuality(any(), any())).thenReturn(scores);
-		
-		Map<String, String> result = qualityClassifierStage.getQualityTags(getMockBiometricRecord().getSegments());		
-		
-		assertTrue(result.get(qualityPrefixTag+BiometricType.FACE.value()).equalsIgnoreCase("GOOD"));
-		assertTrue(result.get(qualityPrefixTag+BiometricType.FINGER.value()).equalsIgnoreCase("GOOD"));
-		assertTrue(result.get(qualityPrefixTag+BiometricType.IRIS.value()).equalsIgnoreCase("GOOD"));
-	}
-	
-	@Test
-	public void getQualityTagsAllPoor() throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException, BiometricException {
-		
-		float[] scores=new float[1];
-		scores[0]=10;
-		Mockito.when(iBioProviderApi.getSegmentQuality(any(), any())).thenReturn(scores);
-		
-		Map<String, String> result = qualityClassifierStage.getQualityTags(getMockBiometricRecord().getSegments());		
-		
-		assertTrue(result.get(qualityPrefixTag+BiometricType.FACE.value()).equalsIgnoreCase("Poor"));
-		assertTrue(result.get(qualityPrefixTag+BiometricType.FINGER.value()).equalsIgnoreCase("Poor"));
-		assertTrue(result.get(qualityPrefixTag+BiometricType.IRIS.value()).equalsIgnoreCase("Poor"));
-	}
-	
-	@Test
-	public void getQualityTagsAllAvg() throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException, BiometricException {
-		
-		float[] scores=new float[1];
-		scores[0]=40;
-		Mockito.when(iBioProviderApi.getSegmentQuality(any(), any())).thenReturn(scores);
-	
-		Map<String, String> result = qualityClassifierStage.getQualityTags(getMockBiometricRecord().getSegments());		
-		
-		assertTrue(result.get(qualityPrefixTag+BiometricType.FACE.value()).equalsIgnoreCase("Average"));
-		assertTrue(result.get(qualityPrefixTag+BiometricType.FINGER.value()).equalsIgnoreCase("Average"));
-		assertTrue(result.get(qualityPrefixTag+BiometricType.IRIS.value()).equalsIgnoreCase("Average"));
-	}
-	
-	@Test(expected = BiometricException.class)
-	public void getQualityTagsExceptionTest() throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException, BiometricException {
-		
-		Mockito.when(bioApiFactory.getBioProvider(any(), any())).thenThrow(BiometricException.class);
-		qualityClassifierStage.getQualityTags(getMockBiometricRecord().getSegments());		
-		
-	}
+
 }
