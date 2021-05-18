@@ -6,6 +6,9 @@ import java.net.UnknownHostException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import io.vertx.core.http.HttpServerOptions;
+import io.vertx.micrometer.MicrometerMetricsOptions;
+import io.vertx.micrometer.VertxPrometheusOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -45,11 +48,20 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	/** The logger. */
 	private Logger logger = LoggerFactory.getLogger(MosipVerticleManager.class);
 
+	private static final String PROMETHEUS_ENDPOINT = "/actuator/prometheus";
+
 	@Value("${mosip.regproc.eventbus.type:vertx}")
 	private String eventBusType;
 
 	@Value("${eventbus.port}")
 	private String eventBusPort;
+
+	/** server port number. */
+	@Value("${server.port}")
+	private String port;
+
+	@Value("${server.servlet.path}")
+	private String serverPath;
 
 	@Autowired
 	private MosipEventBusFactory mosipEventBusFactory;
@@ -90,9 +102,19 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 		} catch (UnknownHostException e1) {
 			throw new DeploymentFailureException(PlatformErrorMessages.RPR_CMB_MALFORMED_URL_EXCEPTION.getMessage());
 		}
+
+		MicrometerMetricsOptions micrometerMetricsOptions = new MicrometerMetricsOptions()
+				.setPrometheusOptions(new VertxPrometheusOptions()
+						.setStartEmbeddedServer(true)
+						.setEmbeddedServerOptions(new HttpServerOptions().setPort(Integer.parseInt(port)))
+						.setEmbeddedServerEndpoint(serverPath + PROMETHEUS_ENDPOINT)
+						.setEnabled(true))
+				.setEnabled(true);
+
 		VertxOptions options = new VertxOptions().setClustered(true).setClusterManager(clusterManager)
 				.setHAEnabled(false).setWorkerPoolSize(instanceNumber)
-				.setEventBusOptions(new EventBusOptions().setPort(getEventBusPort()).setHost(address));
+				.setEventBusOptions(new EventBusOptions().setPort(getEventBusPort()).setHost(address))
+				.setMetricsOptions(micrometerMetricsOptions);
 		Vertx.clusteredVertx(options, result -> {
 			if (result.succeeded()) {
 				result.result().deployVerticle((Verticle) verticleName,

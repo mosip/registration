@@ -35,6 +35,7 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 import com.google.gson.Gson;
@@ -76,7 +77,6 @@ public class RestApiClient {
 	 * Gets the api. *
 	 * 
 	 * @param              <T> the generic type
-	 * @param getURI       the get URI
 	 * @param responseType the response type
 	 * @return the api
 	 * @throws Exception
@@ -92,6 +92,7 @@ public class RestApiClient {
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					LoggerFileConstant.APPLICATIONID.toString(), e.getMessage() + ExceptionUtils.getStackTrace(e));
+			tokenExceptionHandler(e);
 			throw e;
 		}
 		return result;
@@ -124,7 +125,7 @@ public class RestApiClient {
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					LoggerFileConstant.APPLICATIONID.toString(), e.getMessage() + ExceptionUtils.getStackTrace(e));
-
+			tokenExceptionHandler(e);
 			throw e;
 		}
 		return result;
@@ -156,10 +157,9 @@ public class RestApiClient {
 			result = (T) restTemplate.patchForObject(uri, setRequestHeader(requestType, mediaType), responseClass);
 
 		} catch (Exception e) {
-
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					LoggerFileConstant.APPLICATIONID.toString(), e.getMessage() + ExceptionUtils.getStackTrace(e));
-
+			tokenExceptionHandler(e);
 			throw e;
 		}
 		return result;
@@ -200,10 +200,9 @@ public class RestApiClient {
 					setRequestHeader(requestType.toString(), mediaType), responseClass);
 			result = response.getBody();
 		} catch (Exception e) {
-
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					LoggerFileConstant.APPLICATIONID.toString(), e.getMessage() + ExceptionUtils.getStackTrace(e));
-
+			tokenExceptionHandler(e);
 			throw e;
 		}
 		return result;
@@ -337,6 +336,17 @@ public class RestApiClient {
 		request.setPassword(environment.getProperty("token.request.password"));
 		request.setUserName(environment.getProperty("token.request.username"));
 		return request;
+	}
+
+	public void tokenExceptionHandler(Exception e) {
+		if (e instanceof HttpStatusCodeException) {
+			HttpStatusCodeException ex = (HttpStatusCodeException) e;
+			if (ex.getRawStatusCode() == 401) {
+				logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
+						LoggerFileConstant.APPLICATIONID.toString(), "Authentication failed. Resetting auth token.");
+				System.setProperty("token", "");
+			}
+		}
 	}
 
 
