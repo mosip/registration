@@ -88,6 +88,7 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					LoggerFileConstant.APPLICATIONID.toString(), e.getMessage() + ExceptionUtils.getStackTrace(e));
+			restApiClient.tokenExceptionHandler(e);
 			throw e;
 		}
 	}
