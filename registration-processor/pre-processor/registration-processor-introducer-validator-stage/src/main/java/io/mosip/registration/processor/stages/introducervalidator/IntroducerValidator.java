@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.xml.sax.SAXException;
 
@@ -70,9 +69,6 @@ public class IntroducerValidator {
 
 	@Autowired
 	private Utilities utility;
-
-	@Value("${registration.processor.applicant.dob.format}")
-	private String dobFormat;
 
 	/**
 	 * Checks if is valid introducer.
