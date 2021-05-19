@@ -13,7 +13,7 @@ public class SupervisorValidatorConfig {
 	public SupervisorValidationProcessor getSupervisorValidationProcessor() {
 		return new SupervisorValidationProcessor();
 	}
-	
+
 	@Bean
 	public SupervisorValidator getSupervisorValidator() {
 		return new SupervisorValidator();

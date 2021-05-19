@@ -159,18 +159,20 @@ public class RegistrationStatusDao {
 		StringBuilder sb = new StringBuilder(queryStr);
 		if (!filters.isEmpty()) {
 			Iterator<FilterInfo> searchIterator = filters.iterator();
-		while (searchIterator.hasNext()) {
-			FilterInfo filterInfo = searchIterator.next();
-			sb.append(EMPTY_STRING + AND + EMPTY_STRING + alias + "." + filterInfo.getColumnName() + "=:"
-					+ filterInfo.getColumnName());
-			params.put(filterInfo.getColumnName(), filterInfo.getValue());
+			while (searchIterator.hasNext()) {
+				FilterInfo filterInfo = searchIterator.next();
+				sb.append(EMPTY_STRING + AND + EMPTY_STRING + alias + "." + filterInfo.getColumnName() + "=:"
+						+ filterInfo.getColumnName());
+				params.put(filterInfo.getColumnName(), filterInfo.getValue());
 
+			}
 		}
-	}
-
-	sb.append(EMPTY_STRING + ORDER_BY + sort.getSortField() + EMPTY_STRING + sort.getSortType());
+		if (sort != null) {
+			sb.append(EMPTY_STRING + ORDER_BY + sort.getSortField() + EMPTY_STRING + sort.getSortType());
+		}
 		List<RegistrationStatusEntity> result = registrationStatusRepositary.createQuerySelect(sb.toString(), params,
 			pagination.getPageFetch());
+
 		rows = registrationStatusRepositary.count();
 		return new PageImpl<>(result,
 				PageRequest.of(pagination.getPageStart(), pagination.getPageFetch()),

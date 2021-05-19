@@ -14,7 +14,7 @@ public class OperatorValidatorConfig {
 	public OperatorValidationProcessor getOperatorValidationProcessor() {
 		return new OperatorValidationProcessor();
 	}
-	
+
 	@Bean
 	public OperatorValidator getOperatorValidator() {
 		return new OperatorValidator();
