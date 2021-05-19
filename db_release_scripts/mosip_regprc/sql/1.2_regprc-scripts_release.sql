@@ -118,7 +118,7 @@ UPDATE regprc.registration SET last_success_stage_name = 'PacketUploaderStage' w
 UPDATE regprc.registration SET last_success_stage_name = 'PacketValidatorStage' where latest_trn_type_code='PACKET_REPROCESS' and reg_stage_name ='PacketClassifierStage' and reg_type = 'LOST';
 UPDATE regprc.registration SET last_success_stage_name = 'PacketClassifierStage' where latest_trn_type_code='PACKET_REPROCESS' and reg_stage_name ='QualityCheckerStage' and reg_type = 'LOST';
 UPDATE regprc.registration SET last_success_stage_name = 'QualityCheckerStage' where latest_trn_type_code='PACKET_REPROCESS' and reg_stage_name ='OSIValidatorStage' and reg_type = 'LOST';
-UPDATE regprc.registration SET last_success_stage_name = 'OSIValidatorStage' where latest_trn_type_code='PACKET_REPROCESS' and reg_stage_name ='BioDedupeStage and reg_type' = 'LOST';
+UPDATE regprc.registration SET last_success_stage_name = 'OSIValidatorStage' where latest_trn_type_code='PACKET_REPROCESS' and reg_stage_name ='BioDedupeStage' and reg_type = 'LOST';
 UPDATE regprc.registration SET last_success_stage_name = 'BioDedupeStage' where latest_trn_type_code='PACKET_REPROCESS' and reg_stage_name ='ManualVerificationStage' and reg_type = 'LOST';
 UPDATE regprc.registration SET last_success_stage_name = 'BioDedupeStage' where latest_trn_type_code='PACKET_REPROCESS' and reg_stage_name ='UinGeneratorStage' and reg_type = 'LOST';
 UPDATE regprc.registration SET last_success_stage_name = 'UinGeneratorStage' where latest_trn_type_code='PACKET_REPROCESS' and reg_stage_name ='PrintingStage' and reg_type = 'LOST';
