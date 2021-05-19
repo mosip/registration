@@ -48,20 +48,11 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	/** The logger. */
 	private Logger logger = LoggerFactory.getLogger(MosipVerticleManager.class);
 
-	private static final String PROMETHEUS_ENDPOINT = "/actuator/prometheus";
-
 	@Value("${mosip.regproc.eventbus.type:vertx}")
 	private String eventBusType;
 
 	@Value("${eventbus.port}")
 	private String eventBusPort;
-
-	/** server port number. */
-	@Value("${server.port}")
-	private String port;
-
-	@Value("${server.servlet.path}")
-	private String serverPath;
 
 	@Autowired
 	private MosipEventBusFactory mosipEventBusFactory;
@@ -103,11 +94,9 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 			throw new DeploymentFailureException(PlatformErrorMessages.RPR_CMB_MALFORMED_URL_EXCEPTION.getMessage());
 		}
 
+		
 		MicrometerMetricsOptions micrometerMetricsOptions = new MicrometerMetricsOptions()
 				.setPrometheusOptions(new VertxPrometheusOptions()
-						.setStartEmbeddedServer(true)
-						.setEmbeddedServerOptions(new HttpServerOptions().setPort(Integer.parseInt(port)))
-						.setEmbeddedServerEndpoint(serverPath + PROMETHEUS_ENDPOINT)
 						.setEnabled(true))
 				.setEnabled(true);
 
