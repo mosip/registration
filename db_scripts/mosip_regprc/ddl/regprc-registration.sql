@@ -11,6 +11,7 @@
 -- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
 -- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes for 1.1.5
 -- Apr-2021		Ram Bhatt	    Added resume_remove_tags column
+-- May-2021		Ram Bhatt	    Added new column last_success_stage_name
 -- ------------------------------------------------------------------------------------------
 
 -- object: regprc.registration | type: TABLE --
@@ -41,6 +42,7 @@ CREATE TABLE regprc.registration(
 	resume_timestamp timestamp,
 	default_resume_action character varying(50),
 	resume_remove_tags character varying(256),
+	last_success_stage_name character varying(50),
 	CONSTRAINT pk_reg_id PRIMARY KEY (id)
 
 );

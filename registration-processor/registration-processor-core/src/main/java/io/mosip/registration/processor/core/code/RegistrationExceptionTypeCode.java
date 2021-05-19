@@ -164,6 +164,9 @@ public enum RegistrationExceptionTypeCode {
 
 	/** The packet osi validation failed. */
 	PACKET_OSI_VALIDATION_FAILED,
+	
+	/** The packet cmd validation failed. */
+	PACKET_CMD_VALIDATION_FAILED,
 
 	/** The packet structural validation failed. */
 	PACKET_STRUCTURAL_VALIDATION_FAILED,
@@ -182,6 +185,8 @@ public enum RegistrationExceptionTypeCode {
 
 	/** The introspection exception. */
 	INTROSPECTION_EXCEPTION,
+	
+	VALIDATION_FAILED_EXCEPTION,
 
 	/** The base unchecked exception. */
 	BASE_UNCHECKED_EXCEPTION,
@@ -227,12 +232,24 @@ public enum RegistrationExceptionTypeCode {
 
 	/** The supervisorid and officerid not present in packet. */
 	SUPERVISORID_AND_OFFICERID_NOT_PRESENT_IN_PACKET,
+	
+	/** The officerid not present in packet. */
+	OFFICERID_NOT_PRESENT_IN_PACKET,
+	
+	/** The supervisorid not present in packet. */
+	SUPERVISORID_NOT_PRESENT_IN_PACKET,
 
 	/** The packet creation date not present in packet. */
 	PACKET_CREATION_DATE_NOT_PRESENT_IN_PACKET,
 
 	/** The supervisor or officer was inactive. */
 	SUPERVISOR_OR_OFFICER_WAS_INACTIVE,
+	
+	/** officer was inactive. */
+	OFFICER_WAS_INACTIVE,
+	
+	/** The officer was inactive. */
+	SUPERVISOR_WAS_INACTIVE,
 
 	/** The officer biometric not in packet. */
 	OFFICER_BIOMETRIC_NOT_IN_PACKET,
@@ -251,6 +268,12 @@ public enum RegistrationExceptionTypeCode {
 
 	/** The password otp failure. */
 	PASSWORD_OTP_FAILURE,
+	
+	/** The password otp failure. */
+	OPERATOR_PASSWORD_OTP_FAILURE,
+	
+	/** The password otp failure. */
+	SUPERVISOR_PASSWORD_OTP_FAILURE,
 
 	/** The biometric exception. */
 	BIOMETRIC_EXCEPTION,

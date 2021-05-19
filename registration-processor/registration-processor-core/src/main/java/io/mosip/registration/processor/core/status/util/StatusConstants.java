@@ -49,13 +49,26 @@ public final class StatusConstants {
 	public static final String EXTERNAL_SATGE_MODULE_SUCCESS = EXTERNAL_SATGE_MODULE + SUCCESS;
 	public static final String EXTERNAL_SATGE_MODULE_FAILED = EXTERNAL_SATGE_MODULE + FAILED;
 
-	// OSI Validator stage
-	public static final String OSI_VALIDAOR_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "OSI-";
-	public static final String OSI_VALIDAOR_MODULE_SUCCESS = OSI_VALIDAOR_MODULE + SUCCESS;
-	public static final String OSI_VALIDAOR_MODULE_FAILED = OSI_VALIDAOR_MODULE + FAILED;
-	public static final String OMESSAGE_SENDER_MODULE_SUCCESS = OSI_VALIDAOR_MODULE + SUCCESS;
-	public static final String OMESSAGE_SENDER_MODULE_FAILED = OSI_VALIDAOR_MODULE + FAILED;
+	// Operator Validator stage
+	public static final String OVM_VALIDAOR_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "OVM-";
+	public static final String OVM_VALIDAOR_MODULE_SUCCESS = OVM_VALIDAOR_MODULE + SUCCESS;
+	public static final String OVM_VALIDAOR_MODULE_FAILED = OVM_VALIDAOR_MODULE + FAILED;
+	
+	// Supervisor Validator stage
+	public static final String SVM_VALIDAOR_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "SVM-";
+	public static final String SVM_VALIDAOR_MODULE_SUCCESS = SVM_VALIDAOR_MODULE + SUCCESS;
+	public static final String SVM_VALIDAOR_MODULE_FAILED = SVM_VALIDAOR_MODULE + FAILED;
+	
+	// Introducer Validator stage
+	public static final String IVM_VALIDAOR_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "IVM-";
+	public static final String IVM_VALIDAOR_MODULE_SUCCESS = IVM_VALIDAOR_MODULE + SUCCESS;
+	public static final String IVM_VALIDAOR_MODULE_FAILED = IVM_VALIDAOR_MODULE + FAILED;
 
+	// CMD Validator stage
+	public static final String CMD_VALIDAOR_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "CMD-";
+	public static final String CMD_VALIDAOR_MODULE_SUCCESS = CMD_VALIDAOR_MODULE + SUCCESS;
+	public static final String CMD_VALIDAOR_MODULE_FAILED = CMD_VALIDAOR_MODULE + FAILED;
+	
 	// Printing stage
 	public static final String PRINT_STAGE_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "PPS-";
 	public static final String PRINT_STAGE_MODULE_SUCCESS = PRINT_STAGE_MODULE + SUCCESS;
