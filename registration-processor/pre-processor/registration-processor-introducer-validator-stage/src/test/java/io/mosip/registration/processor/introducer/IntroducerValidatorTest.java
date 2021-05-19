@@ -172,7 +172,6 @@ public class IntroducerValidatorTest {
 		InputStream is = new FileInputStream(childFile);
 		childMappingJson = IOUtils.toString(is, "UTF-8");
 
-		ReflectionTestUtils.setField(introducerValidator, "dobFormat", "yyyy/MM/dd");
 		File idJson = new File(classLoader.getResource("ID.json").getFile());
 		InputStream ip = new FileInputStream(idJson);
 
@@ -256,7 +255,7 @@ public class IntroducerValidatorTest {
 		String identityJson = "{\"UIN\":\"123456\"}";
 		responseDTO1.setIdentity(identityJson);
 		idResponseDTO.setResponse(responseDTO1);
-		File cbeffFile = new File(classLoader.getResource("cbeff.xml").getFile());
+		//File cbeffFile = new File(classLoader.getResource("cbeff.xml").getFile());
 
 		BIR birType3 = new BIR.BIRBuilder().build();
 		BDBInfo bdbInfoType3 = new BDBInfo.BDBInfoBuilder().build();
