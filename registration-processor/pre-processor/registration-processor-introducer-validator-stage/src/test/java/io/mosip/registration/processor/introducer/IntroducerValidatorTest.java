@@ -255,6 +255,7 @@ public class IntroducerValidatorTest {
 		String identityJson = "{\"UIN\":\"123456\"}";
 		responseDTO1.setIdentity(identityJson);
 		idResponseDTO.setResponse(responseDTO1);
+
 		//File cbeffFile = new File(classLoader.getResource("cbeff.xml").getFile());
 
 		BIR birType3 = new BIR.BIRBuilder().build();
