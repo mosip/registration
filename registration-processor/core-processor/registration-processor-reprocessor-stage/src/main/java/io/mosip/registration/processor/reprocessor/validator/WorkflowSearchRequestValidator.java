@@ -78,12 +78,10 @@ public class WorkflowSearchRequestValidator {
 			throw new WorkFlowSearchException(
 					PlatformErrorMessages.RPR_WAA_MISSING_INPUT_PARAMETER.getCode(),
 					String.format(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER.getMessage(), VER));
-
 		} else if (!version.equalsIgnoreCase(env.getProperty(WORKFLOW_SEARCH_VERSION))) {
 			throw new WorkFlowSearchException(
 					PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getCode(),
 					String.format(PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getMessage(), VER));
-
 		}
 	}
 
@@ -122,19 +120,14 @@ public class WorkflowSearchRequestValidator {
 	 * @throws WorkflowActionRequestValidationException
 	 */
 	private void validateSort(SortInfo sortInfo) throws WorkFlowSearchException {
-		if (Objects.isNull(sortInfo)) {
-			throw new WorkFlowSearchException(
-					PlatformErrorMessages.RPR_WAA_MISSING_INPUT_PARAMETER.getCode(),
-					String.format(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER.getMessage(), "sort"));
-
-		} else if (sortInfo.getSortType().equals("asc") || sortInfo.getSortType().equals("desc")) {
-			validateSortField(sortInfo);
-		} else {
-			throw new WorkFlowSearchException(
-					PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getCode(),
-					String.format(PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getMessage(), "sort"));
+		if (!Objects.isNull(sortInfo)) {
+			if (sortInfo.getSortType().equals("asc") || sortInfo.getSortType().equals("desc")) {
+				validateSortField(sortInfo);
+			} else {
+				throw new WorkFlowSearchException(PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getCode(),
+						String.format(PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getMessage(), "sort"));
+			}
 		}
-
 	}
 
 	/**
