@@ -92,7 +92,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-jsonpath</artifactId>
+  			<artifactId>camel-jsonpath</artifactId>
 			<version>${camel.vertx.version}</version>
 		</dependency>
 	</dependencies>
