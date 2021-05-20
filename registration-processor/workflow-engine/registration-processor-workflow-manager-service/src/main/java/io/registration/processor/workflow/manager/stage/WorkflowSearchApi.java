@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.reprocessor.stage;
+package io.registration.processor.workflow.manager.stage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,9 +28,9 @@ import io.mosip.registration.processor.core.workflow.dto.PageResponseDTO;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowDetail;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowSearchRequestDTO;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowSearchResponseDTO;
-import io.mosip.registration.processor.reprocessor.service.WorkflowSearchService;
-import io.mosip.registration.processor.reprocessor.validator.WorkflowSearchRequestValidator;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
+import io.registration.processor.workflow.manager.service.WorkflowSearchService;
+import io.registration.processor.workflow.manager.validator.WorkflowSearchRequestValidator;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;

@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.reprocessor.stage;
+package io.registration.processor.workflow.manager.stage;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;

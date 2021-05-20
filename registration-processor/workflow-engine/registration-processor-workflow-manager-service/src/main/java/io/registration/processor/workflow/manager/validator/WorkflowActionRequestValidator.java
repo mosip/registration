@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.reprocessor.validator;
+package io.registration.processor.workflow.manager.validator;
 
 import java.util.Objects;
 

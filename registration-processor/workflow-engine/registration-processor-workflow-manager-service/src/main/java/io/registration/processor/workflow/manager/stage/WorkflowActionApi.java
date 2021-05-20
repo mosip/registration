@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.reprocessor.stage;
+package io.registration.processor.workflow.manager.stage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,13 +30,13 @@ import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.workflow.dto.ResponseDTO;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowActionDTO;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowActionResponseDTO;
-import io.mosip.registration.processor.reprocessor.service.WorkflowActionService;
-import io.mosip.registration.processor.reprocessor.validator.WorkflowActionRequestValidator;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import io.registration.processor.workflow.manager.service.WorkflowActionService;
+import io.registration.processor.workflow.manager.validator.WorkflowActionRequestValidator;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 
@@ -116,7 +116,7 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 	public void start() {
 		router.setRoute(this.postUrl(getVertx(), null, null));
 		this.routes(router);
-		// Todo: Create common verticle for api handling, change workflowActionApi also
+		// TODO : Create common verticle for api handling, change workflowActionApi also
 		// like workflowSearchApi and call both setApiRoute method from the common
 		// verticle class
 		workflowSearchApi.setApiRoute(router.getRouter());

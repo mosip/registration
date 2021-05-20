@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.reprocessor.validator.test;
+package io.registration.processor.workflow.manager.validator.test;
 
 import static org.mockito.Mockito.when;
 
@@ -12,7 +12,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import io.mosip.registration.processor.core.exception.WorkflowActionRequestValidationException;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowActionDTO;
-import io.mosip.registration.processor.reprocessor.validator.WorkflowActionRequestValidator;
+import io.registration.processor.workflow.manager.validator.WorkflowActionRequestValidator;
 
 @RunWith(SpringRunner.class)
 public class WorkflowActionRequestValidatorTest {
