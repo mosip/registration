@@ -143,6 +143,9 @@ public class SyncRegistrationServiceTest {
 		syncRegistrationDto.setPacketHashValue("ab123");
 		syncRegistrationDto.setSupervisorStatus("APPROVED");
 		syncRegistrationDto.setSyncType(SyncTypeDto.NEW.getValue());
+		syncRegistrationDto.setName("mosip");
+		syncRegistrationDto.setPhone("1234567890");
+		syncRegistrationDto.setEmail("mosip@gmail.com");
 
 		syncRegistrationDto1 = new SyncRegistrationDto();
 

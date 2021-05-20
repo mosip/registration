@@ -1,13 +1,18 @@
 package io.mosip.registration.processor.status.dao;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import io.mosip.registration.processor.core.workflow.dto.FilterInfo;
+import io.mosip.registration.processor.core.workflow.dto.SortInfo;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
 
@@ -29,6 +34,8 @@ public class SyncRegistrationDao {
 	/** The Constant EMPTY_STRING. */
 	public static final String EMPTY_STRING = " ";
 
+	public static final String SELECT = "SELECT ";
+
 	/** The Constant SELECT_DISTINCT. */
 	public static final String SELECT_DISTINCT = "SELECT DISTINCT ";
 
@@ -37,6 +44,8 @@ public class SyncRegistrationDao {
 
 	/** The Constant WHERE. */
 	public static final String WHERE = " WHERE ";
+
+	public static final String ORDER_BY = "order by ";
 
 	/** The Constant ISACTIVE. */
 	public static final String ISACTIVE = "isActive";
@@ -49,6 +58,9 @@ public class SyncRegistrationDao {
 
 	/** The Constant ISDELETED_COLON. */
 	public static final String ISDELETED_COLON = ".isDeleted=:";
+
+	@Value("${registration.processor.max.registrationid:5}")
+	private int maxResultFetch;
 
 	/**
 	 * Save.
@@ -133,4 +145,36 @@ public class SyncRegistrationDao {
 
 		return updatedEntity != null ? true : false;
 	}
+
+	public List<String> getSearchResults(List<FilterInfo> filters, List<SortInfo> sort) {
+		Map<String, Object> params = new HashMap<>();
+		List<String> registrationIdlist = new ArrayList<String>();
+		String className = SyncRegistrationEntity.class.getSimpleName();
+		String queryStr=null;
+		String alias = SyncRegistrationEntity.class.getName().toLowerCase().substring(0, 1);
+		params.put(ISDELETED, Boolean.FALSE);
+		queryStr = SELECT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias + ISDELETED_COLON
+				+ ISDELETED;
+		StringBuilder sb = new StringBuilder(queryStr);
+		if (!filters.isEmpty()) {
+			Iterator<FilterInfo> searchIterator = filters.iterator();
+			while (searchIterator.hasNext()) {
+				FilterInfo filterInfo = searchIterator.next();
+				sb.append(EMPTY_STRING + AND + EMPTY_STRING + alias + "." + filterInfo.getColumnName() + "=:"
+						+ filterInfo.getColumnName());
+				params.put(filterInfo.getColumnName(), filterInfo.getValue());
+			}
+		}
+		if (!sort.isEmpty()) {
+			sb.append(EMPTY_STRING + ORDER_BY + sort.get(0).getSortField() + EMPTY_STRING + sort.get(0).getSortType());
+		}
+		List<SyncRegistrationEntity> result = syncRegistrationRepository.createQuerySelect(sb.toString(), params,
+				maxResultFetch);
+
+		for (SyncRegistrationEntity syncRegEn : result) {
+			registrationIdlist.add(syncRegEn.getRegistrationId());
+		}
+		return registrationIdlist;
+	}
+
 }

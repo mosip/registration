@@ -4,9 +4,11 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import io.mosip.registration.processor.status.dto.LostRidDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.RegistrationSyncRequestDTO;
+import io.mosip.registration.processor.status.dto.SearchInfo;
 import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 
@@ -82,5 +84,7 @@ public interface SyncRegistrationService<T, U> {
 	 * @return true / false
 	 */
 	public boolean deleteAdditionalInfo(SyncRegistrationEntity syncEntity);
+
+	public LostRidDto searchLostRid(SearchInfo searchInfo);
 
 }

@@ -3,13 +3,19 @@
  */
 package io.mosip.registration.processor.status.service.impl;
 
+import java.net.URI;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -17,6 +23,8 @@ import io.mosip.kernel.core.exception.IOException;
 import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
 import io.mosip.kernel.core.idvalidator.spi.RidValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonMappingException;
 import io.mosip.kernel.core.util.exception.JsonParseException;
@@ -34,15 +42,19 @@ import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.workflow.dto.FilterInfo;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
+import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 import io.mosip.registration.processor.status.code.RegistrationExternalStatusCode;
 import io.mosip.registration.processor.status.code.SupervisorStatus;
 import io.mosip.registration.processor.status.dao.SyncRegistrationDao;
 import io.mosip.registration.processor.status.decryptor.Decryptor;
+import io.mosip.registration.processor.status.dto.LostRidDto;
 import io.mosip.registration.processor.status.dto.RegistrationAdditionalInfoDTO;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.RegistrationSyncRequestDTO;
+import io.mosip.registration.processor.status.dto.SearchInfo;
 import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
 import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.dto.SyncResponseFailDto;
@@ -76,6 +88,9 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	/** The event name. */
 	private String eventName = "";
 
+	@Value("${mosip.registration.processor.postalcode.req.url}")
+	private String postalCodeReqUrl;
+
 	/** The event type. */
 	private String eventType = "";
 
@@ -91,6 +106,9 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	@Autowired
 	private RidValidator<String> ridValidator;
 
+	@Autowired
+	ObjectMapper objectMapper;
+
 	/** The lancode length. */
 	private int LANCODE_LENGTH = 3;
 
@@ -104,6 +122,9 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	/** The encryptor. */
 	@Autowired
 	private Encryptor encryptor;
+
+	@Autowired
+	RestApiClient restApiClient;
 
 	/**
 	 * Instantiates a new sync registration service impl.
@@ -451,7 +472,6 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		syncRegistrationEntity.setSupervisorStatus(dto.getSupervisorStatus());
 		syncRegistrationEntity.setSupervisorComment(dto.getSupervisorComment());
 		syncRegistrationEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
-
 		try {
 			RegistrationAdditionalInfoDTO regAdditionalInfo = new RegistrationAdditionalInfoDTO();
 			regAdditionalInfo.setName(dto.getName());
@@ -460,8 +480,20 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			
 			String additionalInfo = JsonUtils.javaObjectToJsonString(regAdditionalInfo);
 			byte[] encryptedInfo = encryptor.encrypt(additionalInfo, referenceId, timeStamp);
-			syncRegistrationEntity.setOptionalValues(encryptedInfo);			
-		} catch(JsonProcessingException | EncryptionFailureException | ApisResourceAccessException exception) {
+			syncRegistrationEntity.setOptionalValues(encryptedInfo);
+			syncRegistrationEntity.setName(getHMACHashCode(dto.getName()));
+			syncRegistrationEntity.setEmail(getHMACHashCode(dto.getEmail()));
+			syncRegistrationEntity.setCenterId(getHMACHashCode(referenceId.split("_")[0]));
+			syncRegistrationEntity.setPhone(getHMACHashCode(dto.getPhone()));
+			syncRegistrationEntity
+					.setPostalCode(getHMACHashCode(getPostalCode(referenceId.split("_")[0], dto.getLangCode())));
+			if (dto.getCreateDateTime() != null) {
+				syncRegistrationEntity
+						.setRegistrationDate(getHMACHashCode(dto.getCreateDateTime().toLocalDate().toString()));
+
+			}
+		} catch (JsonProcessingException | NoSuchAlgorithmException | EncryptionFailureException
+				| ApisResourceAccessException exception) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", exception.getMessage() + ExceptionUtils.getStackTrace(exception));
 		}		
@@ -575,6 +607,32 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 
 	}
 
+	@Override
+	public LostRidDto searchLostRid(SearchInfo searchInfo) {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				"SyncRegistrationServiceImpl::getByIds()::entry");
+		try {
+			LostRidDto lostRidDto = new LostRidDto();
+			createSearchInfoDto(searchInfo);
+			List<String> registrationIds = syncRegistrationDao.getSearchResults(searchInfo.getFilters(),
+					searchInfo.getSort());
+			lostRidDto.setRegistartionIds(registrationIds);
+			return lostRidDto;
+		} catch (DataAccessLayerException | NoSuchAlgorithmException e) {
+
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
+			throw new TablenotAccessibleException(
+					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
+		}
+	}
+
+	private void createSearchInfoDto(SearchInfo searchInfo) throws NoSuchAlgorithmException {
+		for (FilterInfo fi : searchInfo.getFilters()) {
+			fi.setValue(getHMACHashCode(fi.getValue()));
+		}
+	}
+
 	/**
 	 * Convert entity list to dto list and get external status.
 	 *
@@ -608,8 +666,30 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		return registrationStatusDto;
 	}
 
+	private String getPostalCode(String centerId, String langCode) {
+		String requestUrl = postalCodeReqUrl + "/" + centerId + "/" + langCode;
+		URI requestUri = URI.create(requestUrl);
+		String postalCode = null;
+		try {
+			String response = restApiClient.getApi(requestUri, String.class);
+			JSONObject jsonObjects = new JSONObject(response);
+			postalCode = ((JSONObject) jsonObjects.getJSONObject("response").getJSONArray("registrationCenters").get(0))
+					.getString("locationCode");
+		} catch (Exception e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
+		}
+		return postalCode;
+	}
+
 	@Override
 	public boolean deleteAdditionalInfo(SyncRegistrationEntity syncEntity) {
 		return syncRegistrationDao.deleteAdditionalInfo(syncEntity);
+	}
+
+	public static String getHMACHashCode(String value) throws java.security.NoSuchAlgorithmException {
+		if (value == null)
+			return null;
+		return CryptoUtil.encodeBase64(HMACUtils2.generateHash(value.getBytes()));
 	}
 }

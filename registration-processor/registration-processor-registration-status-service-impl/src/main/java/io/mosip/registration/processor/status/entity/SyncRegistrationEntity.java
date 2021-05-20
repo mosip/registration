@@ -5,14 +5,10 @@ package io.mosip.registration.processor.status.entity;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 /**
  * The Class SyncRegistrationEntity.
@@ -86,6 +82,27 @@ public class SyncRegistrationEntity extends BaseRegistrationEntity {
 	/** The deleted date time. */
 	@Column(name = "del_dtimes")
 	private LocalDateTime deletedDateTime;
+
+	@Column(name = "name")
+	private String name;
+
+	@Column(name = "phone")
+	private String phone;
+
+	@Column(name = "email")
+	private String email;
+
+	@Column(name = "center_id")
+	private String centerId;
+
+	@Column(name = "registration_date")
+	private String registrationDate;
+
+	@Column(name = "postal_code")
+	private String postalCode;
+
+	@Column(name = "salt")
+	private String salt;
 
 	/**
 	 * Instantiates a new sync registration entity.
@@ -396,6 +413,62 @@ public class SyncRegistrationEntity extends BaseRegistrationEntity {
 	 */
 	public void setDeletedDateTime(LocalDateTime deletedDateTime) {
 		this.deletedDateTime = deletedDateTime;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getPhone() {
+		return phone;
+	}
+
+	public void setPhone(String phone) {
+		this.phone = phone;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public String getCenterId() {
+		return centerId;
+	}
+
+	public void setCenterId(String centerId) {
+		this.centerId = centerId;
+	}
+
+	public String getRegistrationDate() {
+		return registrationDate;
+	}
+
+	public void setRegistrationDate(String registrationDate) {
+		this.registrationDate = registrationDate;
+	}
+
+	public String getPostalCode() {
+		return postalCode;
+	}
+
+	public void setPostalCode(String postalCode) {
+		this.postalCode = postalCode;
+	}
+
+	public String getSalt() {
+		return salt;
+	}
+
+	public void setSalt(String salt) {
+		this.salt = salt;
 	}
 
 }
