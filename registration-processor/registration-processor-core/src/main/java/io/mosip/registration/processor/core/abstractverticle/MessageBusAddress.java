@@ -7,6 +7,7 @@ import java.util.List;
 
 import io.mosip.registration.processor.core.constant.RegistrationType;
 
+// TODO: Auto-generated Javadoc
 /**
  * This class contains the address values to be used in Registration process.
  *
@@ -19,6 +20,7 @@ public class MessageBusAddress implements Serializable {
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 
+	/** The Constant BUS_OUT. */
 	public static final String BUS_OUT = "bus-out";
 
 	/**
@@ -27,6 +29,12 @@ public class MessageBusAddress implements Serializable {
 	public MessageBusAddress() {
 	}
 
+	/**
+	 * Instantiates a new message bus address.
+	 *
+	 * @param messageBusAddress the message bus address
+	 * @param regType           the reg type
+	 */
 	public MessageBusAddress(MessageBusAddress messageBusAddress, RegistrationType regType) {
 
 		List<String> addressList = (List<String>)Arrays.asList(messageBusAddress.getAddress().split("-"));
@@ -117,10 +125,28 @@ public class MessageBusAddress implements Serializable {
 	public static final MessageBusAddress PACKET_RECEIVER_OUT = new MessageBusAddress("packet-receiver-bus-out");
 
 	/** The Constant STRUCTURE_BUS_IN. */
-	public static final MessageBusAddress OSI_BUS_IN = new MessageBusAddress("o-s-i-validator-bus-in");
+	public static final MessageBusAddress CMD_VALIDATOR_BUS_IN = new MessageBusAddress("c-m-d-validator-bus-in");
 
 	/** The Constant STRUCTURE_BUS_OUT. */
-	public static final MessageBusAddress OSI_BUS_OUT = new MessageBusAddress("o-s-i-validator-bus-out");
+	public static final MessageBusAddress CMD_VALIDATOR_BUS_OUT = new MessageBusAddress("c-m-d-validator-bus-out");
+	
+	/** The Constant OPERATOR_BUS_IN. */
+	public static final MessageBusAddress OPERATOR_VALIDATOR_BUS_IN = new MessageBusAddress("operator-validator-bus-in");
+
+	/** The Constant OPERATOR_BUS_OUT. */
+	public static final MessageBusAddress OPERATOR_VALIDATOR_BUS_OUT = new MessageBusAddress("operator-validator-bus-out");
+	
+	/** The Constant SUPERVISOR_BUS_IN. */
+	public static final MessageBusAddress SUPERVISOR_VALIDATOR_BUS_IN = new MessageBusAddress("supervisor-validator-bus-in");
+
+	/** The Constant SUPERVISOR_BUS_OUT. */
+	public static final MessageBusAddress SUPERVISOR_VALIDATOR_BUS_OUT = new MessageBusAddress("supervisor-validator-bus-out");
+	
+	/** The Constant INTRODUCER_BUS_IN. */
+	public static final MessageBusAddress INTRODUCER_VALIDATOR_BUS_IN = new MessageBusAddress("introducer-validator-bus-in");
+
+	/** The Constant SUPERVISOR_BUS_OUT. */
+	public static final MessageBusAddress INTRODUCER_VALIDATOR_BUS_OUT = new MessageBusAddress("introducer-validator-bus-out");
 
 	/** The Constant DEMODEDUPE_BUS_IN. */
 	public static final MessageBusAddress DEMO_DEDUPE_BUS_IN = new MessageBusAddress("demo-dedupe-bus-in");
@@ -202,6 +228,9 @@ public class MessageBusAddress implements Serializable {
 	/** The Constant STRUCTURE_BUS_OUT. */
 	public static final MessageBusAddress PACKET_CLASSIFIER_BUS_OUT = new MessageBusAddress("packet-classifier-bus-out");
 	
+	/** The Constant WORKFLOW_EVENTUPDATE_BUS_IN. */
+	public static final MessageBusAddress WORKFLOW_EVENT_UPDATE_ADDRESS = new MessageBusAddress(
+			"workflow-event-update");
 	
 	/*
 	 * (non-Javadoc)

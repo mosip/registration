@@ -10,16 +10,6 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.mosip.kernel.biometrics.constant.BiometricType;
-import io.mosip.kernel.biometrics.constant.QualityType;
-import io.mosip.kernel.biometrics.entities.BDBInfo;
-import io.mosip.kernel.biometrics.entities.RegistryIDType;
-import io.mosip.registration.processor.abis.handler.dto.Filter;
-import io.mosip.registration.processor.abis.handler.dto.ShareableAttributes;
-import io.mosip.registration.processor.abis.handler.dto.Source;
-import io.mosip.registration.processor.core.constant.PolicyConstant;
-import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,13 +26,22 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.mosip.kernel.biometrics.constant.BiometricType;
+import io.mosip.kernel.biometrics.constant.QualityType;
+import io.mosip.kernel.biometrics.entities.BDBInfo;
 import io.mosip.kernel.biometrics.entities.BIR;
-import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.biometrics.entities.RegistryIDType;
+import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.abis.handler.dto.DataShare;
 import io.mosip.registration.processor.abis.handler.dto.DataShareResponseDto;
+import io.mosip.registration.processor.abis.handler.dto.Filter;
+import io.mosip.registration.processor.abis.handler.dto.ShareableAttributes;
+import io.mosip.registration.processor.abis.handler.dto.Source;
 import io.mosip.registration.processor.abis.handler.stage.AbisHandlerStage;
 import io.mosip.registration.processor.abis.queue.dto.AbisQueueDetails;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
@@ -50,6 +49,7 @@ import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.code.ApiName;
+import io.mosip.registration.processor.core.constant.PolicyConstant;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
@@ -64,6 +64,7 @@ import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
@@ -153,6 +154,11 @@ public class AbisHandlerStageTest {
 		public void consumeAndSend(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
 				MessageBusAddress toAddress, long messageExpiryTimeLimit) {
 		}
+		
+		@Override
+		public Integer getPort() {
+			return 8080;
+		};
 	};
 
 	@Before
@@ -162,8 +168,13 @@ public class AbisHandlerStageTest {
 		ReflectionTestUtils.setField(abisHandlerStage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(abisHandlerStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(abisHandlerStage, "clusterManagerUrl", "/dummyPath");
+		ReflectionTestUtils.setField(abisHandlerStage, "httpProtocol", "http");
+		ReflectionTestUtils.setField(abisHandlerStage, "internalDomainName", "localhost");
 		Mockito.when(env.getProperty("mosip.registration.processor.datetime.pattern"))
 				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+
+		Mockito.when(env.getProperty("DATASHARECREATEURL"))
+		.thenReturn("/v1/datashare/create");
 		AbisApplicationDto dto = new AbisApplicationDto();
 		dto.setCode("ABIS1");
 		abisApplicationDtos.add(dto);
@@ -195,7 +206,7 @@ public class AbisHandlerStageTest {
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg-client");
 		when(cbeffutil.createXML(any())).thenReturn("abishandlerstage".getBytes());
 
-		Mockito.when(packetManagerService.getBiometrics(any(),any(),any(), any())).thenReturn(biometricRecord);
+		Mockito.when(packetManagerService.getBiometrics(any(),any(),any(), any(),any())).thenReturn(biometricRecord);
 
 		Mockito.doNothing().when(registrationStatusDto).setLatestTransactionStatusCode(any());
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
@@ -241,7 +252,7 @@ public class AbisHandlerStageTest {
 
 		when(registrationProcessorRestClientService.getApi(any(),any(),anyString(),anyString(),any())).thenReturn(policy);
 
-		Mockito.when(registrationProcessorRestClientService.postApi(any(ApiName.class), any(MediaType.class), any(),any(),any(), any(), any())).thenReturn(dataShareResponseDto);
+		Mockito.when(registrationProcessorRestClientService.postApi(anyString(), any(MediaType.class), any(),any(),any(), any(), any())).thenReturn(dataShareResponseDto);
 	}
 
 	@Test

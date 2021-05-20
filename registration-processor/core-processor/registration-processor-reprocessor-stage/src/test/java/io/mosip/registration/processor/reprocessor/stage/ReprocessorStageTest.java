@@ -3,11 +3,12 @@ package io.mosip.registration.processor.reprocessor.stage;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 
 import java.lang.reflect.Field;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,10 +30,14 @@ import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.core.exception.WorkflowActionException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
+import io.mosip.registration.processor.reprocessor.service.WorkflowActionService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -92,6 +97,9 @@ public class ReprocessorStageTest {
 
 	@Mock
 	private LogDescription description;
+	
+	@Mock
+	WorkflowActionService workflowActionService;
 
 	@Before
 	public void setup() throws Exception {
@@ -119,16 +127,23 @@ public class ReprocessorStageTest {
 	}
 
 	@Test
-	public void testProcessValid() {
+	public void testProcessValid() throws TablenotAccessibleException, PacketManagerException,
+			ApisResourceAccessException, WorkflowActionException {
 
 		List<InternalRegistrationStatusDto> dtolist = new ArrayList<>();
+		List<InternalRegistrationStatusDto> resumableDtoList  = new ArrayList<>();
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 
 		registrationStatusDto.setRegistrationId("2018701130000410092018110735");
 		registrationStatusDto.setRegistrationStageName("PacketValidatorStage");
+		registrationStatusDto.setDefaultResumeAction("RESUME_PROCESSING");
+		registrationStatusDto.setResumeTimeStamp(LocalDateTime.now());
 		registrationStatusDto.setReProcessRetryCount(0);
 		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
 		dtolist.add(registrationStatusDto);
+		resumableDtoList.add(registrationStatusDto);
+		Mockito.when(registrationStatusService.getResumablePackets(anyInt()))
+		.thenReturn(resumableDtoList);
 		InternalRegistrationStatusDto registrationStatusDto1 = new InternalRegistrationStatusDto();
 
 		registrationStatusDto1.setRegistrationId("2018701130000410092018110734");
@@ -139,22 +154,30 @@ public class ReprocessorStageTest {
 		dtolist.add(registrationStatusDto1);
 		Mockito.when(registrationStatusService.getUnProcessedPackets(anyInt(), anyLong(), anyInt(), anyList()))
 				.thenReturn(dtolist);
+		
+		Mockito.doNothing().when(workflowActionService).processWorkflowAction(anyList(), Mockito.anyString());
 		dto = reprocessorStage.process(dto);
 		assertTrue(dto.getIsValid());
 	}
 
 	@Test
-	public void testProcessFailure() {
+	public void testProcessFailure() throws TablenotAccessibleException, PacketManagerException,
+			ApisResourceAccessException, WorkflowActionException {
 
 		List<InternalRegistrationStatusDto> dtolist = new ArrayList<>();
+		List<InternalRegistrationStatusDto> resumableDtoList  = new ArrayList<>();
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 
 		registrationStatusDto.setRegistrationId("2018701130000410092018110735");
 		registrationStatusDto.setRegistrationStageName("PacketValidatorStage");
-
+		registrationStatusDto.setDefaultResumeAction("RESUME_PROCESSING");
+		registrationStatusDto.setResumeTimeStamp(LocalDateTime.now());
 		registrationStatusDto.setRegistrationType("NEW");
 		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
 		dtolist.add(registrationStatusDto);
+		resumableDtoList.add(registrationStatusDto);
+		Mockito.when(registrationStatusService.getResumablePackets(anyInt()))
+		.thenReturn(resumableDtoList);
 		InternalRegistrationStatusDto registrationStatusDto1 = new InternalRegistrationStatusDto();
 
 		registrationStatusDto1.setRegistrationId("2018701130000410092018110734");
@@ -165,6 +188,8 @@ public class ReprocessorStageTest {
 		dtolist.add(registrationStatusDto1);
 		Mockito.when(registrationStatusService.getUnProcessedPackets(anyInt(), anyLong(), anyInt(), anyList()))
 				.thenReturn(dtolist);
+		
+		Mockito.doNothing().when(workflowActionService).processWorkflowAction(anyList(), Mockito.anyString());
 		dto = reprocessorStage.process(dto);
 		assertFalse(dto.getIsValid());
 	}

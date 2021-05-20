@@ -11,9 +11,6 @@ import java.net.URLConnection;
 
 import javax.net.ssl.HttpsURLConnection;
 
-import io.mosip.registration.processor.core.tracing.ContextualData;
-import io.mosip.registration.processor.core.tracing.TracingConstant;
-import io.vertx.ext.web.RoutingContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -27,6 +24,8 @@ import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.token.validation.dto.TokenResponseDTO;
 import io.mosip.registration.processor.core.token.validation.exception.AccessDeniedException;
 import io.mosip.registration.processor.core.token.validation.exception.InvalidTokenException;
+import io.mosip.registration.processor.core.tracing.ContextualData;
+import io.mosip.registration.processor.core.tracing.TracingConstant;
 import io.mosip.registration.processor.core.util.JsonUtil;
 
 @Service
@@ -47,10 +46,10 @@ public class TokenValidator {
 	Environment env;
 
 
-	public void validate(String token, String url) {
+	public String validate(String token, String url) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"TokenValidator::validate()::entry");
-
+		String userId = "";
 		if (token == null)
 			throw new InvalidTokenException(INVALIDTOKENMESSAGE);
 		try {
@@ -88,6 +87,7 @@ public class TokenValidator {
 							ACCESSDENIEDMESSAGE + tokenResponseDTO.getResponse().getRole());
 					throw new AccessDeniedException(ACCESSDENIEDMESSAGE + tokenResponseDTO.getResponse().getRole());
 				}
+				userId = tokenResponseDTO.getResponse().getUserId();
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), VALIDATEDMESSAGE,
 						tokenResponseDTO.getResponse().getRole());
@@ -101,7 +101,7 @@ public class TokenValidator {
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"TokenValidator::validate()::exit");
-
+		return userId;
 	}
 
 	public boolean validateAccess(String url, String role) {
@@ -159,6 +159,17 @@ public class TokenValidator {
 			}
 		} else if (url.contains("requesthandler")) {
 			for (String assignedRole : APIAuthorityList.REQUESTHANDLER.getList()) {
+				if (role.contains(assignedRole))
+					return true;
+			}
+		}
+		else if (url.contains("workflowaction")) {
+			for (String assignedRole : APIAuthorityList.WORKFLOWACTION.getList()) {
+				if (role.contains(assignedRole))
+					return true;
+			}
+		} else if (url.contains("workflow/search")) {
+			for (String assignedRole : APIAuthorityList.WORKFLOWSEARCH.getList()) {
 				if (role.contains(assignedRole))
 					return true;
 			}

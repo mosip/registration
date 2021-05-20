@@ -10,13 +10,8 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.packet.dto.packetmanager.InfoRequestDto;
-import io.mosip.registration.processor.core.packet.dto.packetmanager.InfoResponseDto;
-
-import org.slf4j.MDC;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -24,21 +19,27 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.UrlXmlConfig;
 
+import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.code.ApiName;
+import io.mosip.registration.processor.core.constant.HealthConstant;
 import io.mosip.registration.processor.core.eventbus.MosipEventBusFactory;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.DeploymentFailureException;
 import io.mosip.registration.processor.core.exception.MessageExpiredException;
-import io.mosip.registration.processor.core.exception.UnsupportedEventBusTypeException;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.core.exception.UnsupportedEventBusTypeException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.http.RequestWrapper;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.packet.dto.packetmanager.InfoRequestDto;
+import io.mosip.registration.processor.core.packet.dto.packetmanager.InfoResponseDto;
 import io.mosip.registration.processor.core.spi.eventbus.EventBusManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
+import io.mosip.registration.processor.core.util.PropertiesUtil;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Verticle;
@@ -62,11 +63,15 @@ import io.vertx.spi.cluster.hazelcast.HazelcastClusterManager;
 public abstract class MosipVerticleManager extends AbstractVerticle
 		implements EventBusManager<MosipEventBus, MessageBusAddress, MessageDTO> {
 
+	private static final String EMPTY_STRING = "";
+
 	/** The logger. */
 	private Logger logger = RegProcessorLogger.getLogger(MosipVerticleManager.class);
 
 	private static final String ID = "mosip.commmons.packetmanager";
     private static final String VERSION = "v1";
+
+	private static final boolean DEFAULT_MESSAGE_TAG_LOADING_DISABLE_VALUE = false;
 
     @Autowired
     private RegistrationProcessorRestClientService<Object> restApi;
@@ -77,11 +82,8 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	@Value("${mosip.regproc.eventbus.type:vertx}")
 	private String eventBusType;
 
-	@Value("${eventbus.port}")
-	private String eventBusPort;
-
-	@Value("${mosip.regproc.message.tag.loading.disable:false}")
-	private Boolean disableTagLoading;
+	@Autowired
+	protected PropertiesUtil propertiesUtil;
 
 	@Autowired
 	private MosipEventBusFactory mosipEventBusFactory;
@@ -138,7 +140,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 
 		try {
 			Vertx vert = eventBus.get();
-			mosipEventBus = mosipEventBusFactory.getEventBus(vert, getEventBusType());
+			mosipEventBus = mosipEventBusFactory.getEventBus(vert, getEventBusType(), getPropertyPrefix());
 		} catch (InterruptedException | ExecutionException | UnsupportedEventBusTypeException e) {
 			Thread.currentThread().interrupt();
 			throw new DeploymentFailureException(PlatformErrorMessages.RPR_CMB_DEPLOYMENT_FAILURE.getMessage(), e);
@@ -163,15 +165,27 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 				JsonObject jsonObject = (JsonObject) msg.getBody();
 				MessageDTO messageDTO = jsonObject.mapTo(MessageDTO.class);
 				if(isMessageExpired(messageDTO, messageExpiryTimeLimit)) {
-					future.fail(new MessageExpiredException("rid: " + messageDTO.getRid() + 
+					future.fail(new MessageExpiredException("rid: " + messageDTO.getRid() +
 						" lastHopTimestamp " + messageDTO.getLastHopTimestamp()));
 					return;
 				}
-				MessageDTO result = process(messageDTO);
-				if(result.getTags() == null)
+				try {
+					MessageDTO result = process(messageDTO);
 					addTagsToMessageDTO(result);
-				result.setLastHopTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
-				future.complete(result);
+					result.setLastHopTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+					future.complete(result);
+				} catch (Exception e) {
+					logger.error("{} -- {} {} {}", 
+						PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getCode(),
+						PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getMessage(),
+						e.getMessage(), ExceptionUtils.getStackTrace(e));
+					messageDTO.setIsValid(false);
+					messageDTO.setInternalError(true);
+					addTagsToMessageDTO(messageDTO);
+					messageDTO.setLastHopTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+					future.complete(messageDTO);
+				}
+				
 			}, false, handler);
 			MDC.clear();
 		});
@@ -188,8 +202,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	 *            The message that needs to be sent
 	 */
 	public void send(MosipEventBus mosipEventBus, MessageBusAddress toAddress, MessageDTO message) {
-		if(message.getTags() == null)
-			addTagsToMessageDTO(message);
+		addTagsToMessageDTO(message);
 		message.setLastHopTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 		mosipEventBus.send(toAddress, message);
 	}
@@ -204,7 +217,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	 * @param messageExpiryTimeLimit
 	 * 			  The time limit in seconds, after which message should considered as expired
 	 */
-	public void consume(MosipEventBus mosipEventBus, MessageBusAddress fromAddress, 
+	public void consume(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
 			long messageExpiryTimeLimit) {
 		mosipEventBus.consume(fromAddress, (msg, handler) -> {
 			logger.debug("Received from {} {}",fromAddress.toString(), msg.getBody());
@@ -214,23 +227,57 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 				JsonObject jsonObject = (JsonObject) msg.getBody();
 				MessageDTO messageDTO = jsonObject.mapTo(MessageDTO.class);
 				if(isMessageExpired(messageDTO, messageExpiryTimeLimit)) {
-					future.fail(new MessageExpiredException("rid: " + messageDTO.getRid() + 
+					future.fail(new MessageExpiredException("rid: " + messageDTO.getRid() +
 						" lastHopTimestamp " + messageDTO.getLastHopTimestamp()));
 					return;
 				}
-				MessageDTO result = process(messageDTO);
-				future.complete(result);
+				try {
+					MessageDTO result = process(messageDTO);
+					future.complete(result);
+				} catch (Exception e) {
+					logger.error("{} -- {} {} {}", 
+						PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getCode(),
+						PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getMessage(),
+						e.getMessage(), ExceptionUtils.getStackTrace(e));
+					messageDTO.setIsValid(false);
+					messageDTO.setInternalError(true);
+					future.complete(messageDTO);
+				}
 			}, false, handler);
 			MDC.clear();
 		});
 	}
 
 	public Integer getEventBusPort() {
-		return Integer.parseInt(eventBusPort);
+		return getIntegerPropertyForSuffix("eventbus.port");
+	}
+
+	public Integer getPort() {
+		return getIntegerPropertyForSuffix("server.port");
+	}
+	
+	protected Integer getIntegerPropertyForSuffix(String propSuffix) {
+		return propertiesUtil.getIntegerProperty(getPropertyPrefix(), propSuffix);
+	}
+	
+	protected Boolean getBooleanPropertyForSuffix(String propSuffix, Boolean defaultValue) {
+		return propertiesUtil.getProperty(getPropertyPrefix() + propSuffix, Boolean.class, defaultValue);
+	}
+
+	protected String getPropertyForSuffix(String propSuffix) {
+		return propertiesUtil.getProperty(getPropertyPrefix(), propSuffix);
+	}
+
+	protected String getServletPath() {
+		return getPropertyForSuffix(HealthConstant.SERVLET_PATH);
 	}
 
 	public String getEventBusType() {
 		return this.eventBusType;
+	}
+
+	public Boolean isTagLoadingDisabled() {
+		return getBooleanPropertyForSuffix("message.tag.loading.disable", DEFAULT_MESSAGE_TAG_LOADING_DISABLE_VALUE);
 	}
 
 	//TODO Temporarely added for passing the existing unit test case, later to be removed and unit test case to be changed based on SpringRunner
@@ -239,7 +286,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	}
 
 	private void addTagsToMessageDTO(MessageDTO messageDTO) {
-		if(disableTagLoading) {
+		if(isTagLoadingDisabled()) {
 			messageDTO.setTags(new HashMap<>());
 			return;
 		}
@@ -251,6 +298,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 				" -- " + PlatformErrorMessages.RPR_SYS_PACKET_TAGS_COPYING_FAILED.getMessage() + 
 				e.getMessage() + ExceptionUtils.getStackTrace(e));
 			messageDTO.setInternalError(true);
+			messageDTO.setTags(new HashMap<>());
 		}
 	}
 
@@ -264,7 +312,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
         request.setRequesttime(DateUtils.getUTCCurrentDateTime());
         request.setRequest(infoRequestDto);
         ResponseWrapper<InfoResponseDto> response = (ResponseWrapper) restApi.postApi(
-			ApiName.PACKETMANAGER_INFO, "", "", request, ResponseWrapper.class);
+			ApiName.PACKETMANAGER_INFO, EMPTY_STRING, EMPTY_STRING, request, ResponseWrapper.class);
 
         if (response.getErrors() != null && response.getErrors().size() > 0) {
 			throw new PacketManagerException(response.getErrors().get(0).getErrorCode(), 
@@ -275,7 +323,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 			response.getResponse()), InfoResponseDto.class);
 		return infoResponseDto.getTags();
 	}
-	
+
 	private boolean isMessageExpired(MessageDTO messageDTO, long messageExpiryTimeLimit) {
 		if(messageExpiryTimeLimit <= 0)
 			return false;
@@ -286,11 +334,13 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 				return false;
 			return true;
 		} catch(Exception e) {
-			logger.error("{} {} {} {}", PlatformErrorMessages.RPR_SYS_PARSING_DATE_EXCEPTION.getCode(), 
-				PlatformErrorMessages.RPR_SYS_PARSING_DATE_EXCEPTION.getMessage(), e.getMessage(), 
+			logger.error("{} {} {} {}", PlatformErrorMessages.RPR_SYS_PARSING_DATE_EXCEPTION.getCode(),
+				PlatformErrorMessages.RPR_SYS_PARSING_DATE_EXCEPTION.getMessage(), e.getMessage(),
 				ExceptionUtils.getStackTrace(e));
 			return true;
 		}
 	}
+
+	protected abstract String getPropertyPrefix();
 
 }

@@ -42,26 +42,59 @@ ENV artifactory_url_env=${artifactory_url}
 # environment variable to pass iam_adapter url, at docker runtime
 ENV iam_adapter_url_env=${iam_adapter_url}
 
-# change volume to whichever storage directory you want to use for this container.
-VOLUME /home/logs
+# can be passed during Docker build as build time environment for github branch to pickup configuration from.
+ARG container_user=mosip
 
-COPY ./target/registration-processor-registration-transaction-service-*.jar registration-processor-registration-transaction-service.jar
+# can be passed during Docker build as build time environment for github branch to pickup configuration from.
+ARG container_user_group=mosip
+
+# can be passed during Docker build as build time environment for github branch to pickup configuration from.
+ARG container_user_uid=1001
+
+# can be passed during Docker build as build time environment for github branch to pickup configuration from.
+ARG container_user_gid=1001
+
+RUN apt-get -y update \
+&& apt-get install -y unzip sudo \
+&& groupadd -g ${container_user_gid} ${container_user_group} \
+&& useradd -u ${container_user_uid} -g ${container_user_group} -s /bin/sh -m ${container_user} \
+&& adduser ${container_user} sudo
+
+# set working directory for the user
+WORKDIR /home/${container_user}
+
+ENV work_dir=/home/${container_user}
+
+ARG loader_path=${work_dir}/additional_jars/
+
+RUN mkdir -p ${loader_path}
+
+ENV loader_path_env=${loader_path}
+
+# change volume to whichever storage directory you want to use for this container.
+VOLUME ${work_dir}/logs ${work_dir}/Glowroot
+
+ADD ./target/registration-processor-registration-transaction-service-*.jar registration-processor-registration-transaction-service.jar
+
+# change permissions of file inside working dir
+RUN chown -R ${container_user}:${container_user} /home/${container_user}
+
+# select container user for all tasks
+USER ${container_user_uid}:${container_user_gid}
 
 EXPOSE 8110
 
 CMD if [ "$is_glowroot_env" = "present" ]; then \
     wget "${artifactory_url_env}"/artifactory/libs-release-local/io/mosip/testing/glowroot.zip ; \
-    wget "${iam_adapter_url_env}" -O kernel-auth-adapter.jar; \
-    java -Dloader.path=./kernel-auth-adapter.jar -jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}"  -Dspring.cloud.config.uri="${spring_config_url_env}" registration-processor-registration-transaction-service.jar; \    
-    apt-get update && apt-get install -y unzip ; \
+    wget "${iam_adapter_url_env}" -O "${loader_path}"/kernel-auth-adapter.jar; \
+    #java -Dloader.path="${loader_path}" -jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}"  -Dspring.cloud.config.uri="${spring_config_url_env}" registration-processor-registration-transaction-service.jar; \
     unzip glowroot.zip ; \
     rm -rf glowroot.zip ; \
-    
     sed -i 's/<service_name>/registration-processor-registration-transaction-service/g' glowroot/glowroot.properties ; \
-    java -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1 -XX:+HeapDumpOnOutOfMemoryError -XX:+UseG1GC -XX:+UseStringDeduplication -jar -javaagent:glowroot/glowroot.jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" registration-processor-registration-transaction-service.jar ; \
+    java -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1 -XX:+HeapDumpOnOutOfMemoryError -XX:+UseG1GC -XX:+UseStringDeduplication -jar -javaagent:glowroot/glowroot.jar -Dloader.path="${loader_path}" -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" registration-processor-registration-transaction-service.jar ; \
    else \
-   wget "${iam_adapter_url_env}" -O kernel-auth-adapter.jar; \
-    java -Dloader.path=./kernel-auth-adapter.jar -jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}"  -Dspring.cloud.config.uri="${spring_config_url_env}" registration-processor-registration-transaction-service.jar; \   
+    wget "${iam_adapter_url_env}" -O "${loader_path}"/kernel-auth-adapter.jar; \
+    java -Dloader.path="${loader_path}" -jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}"  -Dspring.cloud.config.uri="${spring_config_url_env}" registration-processor-registration-transaction-service.jar; \
    fi
 
 

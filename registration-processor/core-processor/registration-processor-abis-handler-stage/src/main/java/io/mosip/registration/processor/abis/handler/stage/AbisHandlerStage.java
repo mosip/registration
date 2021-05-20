@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.abis.handler.stage;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -8,13 +9,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import io.mosip.registration.processor.core.constant.PolicyConstant;
-import io.mosip.registration.processor.core.constant.ProviderStageName;
-import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.MediaType;
@@ -29,7 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
+import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
@@ -56,6 +57,8 @@ import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.constant.PolicyConstant;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
@@ -78,6 +81,7 @@ import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.utils.BIRConverter;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -89,8 +93,19 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
  * 
  * @author M1048358 Alok
  */
+@RefreshScope
 @Service
+@Configuration
+@ComponentScan(basePackages = { "io.mosip.registration.processor.abis.handler.config",
+        "io.mosip.registration.processor.status.config",
+        "io.mosip.registration.processor.rest.client.config",
+        "io.mosip.registration.processor.packet.storage.config",
+        "io.mosip.registration.processor.core.config",
+		"io.mosip.registration.processor.core.kernel.beans",
+		"io.mosip.kernel.packetmanager.config"})
 public class AbisHandlerStage extends MosipVerticleAPIManager {
+	
+	private static final String STAGE_PROPERTY_PREFIX="mosip.regproc.abis.handler.";
 
 	/** The cluster manager url. */
 	@Value("${vertx.cluster.configuration}")
@@ -103,10 +118,6 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	/** The target FPIR. */
 	@Value("${registration.processor.abis.targetFPIR}")
 	private String targetFPIR;
-
-	/** server port number. */
-	@Value("${server.port}")
-	private String port;
 
 	/** worker pool size. */
 	@Value("${worker.pool.size}")
@@ -121,6 +132,12 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 	@Value("${registration.processor.subscriber.id}")
 	private String subscriberId;
+
+	@Value("${mosip.regproc.data.share.protocol}")
+	private String httpProtocol;
+
+	@Value("${mosip.regproc.data.share.internal.domain.name}")
+	private String internalDomainName;
 
 	@Autowired
 	private RegistrationProcessorRestClientService registrationProcessorRestClientService;
@@ -162,6 +179,9 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	private static final String DATASHARECREATEURL = "DATASHARECREATEURL";
 
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
+
+	/** The Constant PROTOCOL. */
+	public static final String PROTOCOL = "https";
 	/**
 	 * Deploy verticle.
 	 */
@@ -173,9 +193,14 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 	@Override
 	public void start() {
-		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.ABIS_HANDLER_BUS_IN,
+		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.ABIS_HANDLER_BUS_IN,
 				MessageBusAddress.ABIS_HANDLER_BUS_OUT));
-		this.createServer(router.getRouter(), Integer.parseInt(port));
+		this.createServer(router.getRouter(), getPort());
+	}
+	
+	@Override
+	protected String getPropertyPrefix() {
+		return STAGE_PROPERTY_PREFIX;
 	}
 
 	/*
@@ -557,8 +582,18 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		List<String> pathSegments = new ArrayList<>();
 		pathSegments.add(policyId);
 		pathSegments.add(subscriberId);
+		URL dataShareUrl = null;
+		String protocol = PROTOCOL;
+		String url = null;
 
-		DataShareResponseDto response = (DataShareResponseDto) registrationProcessorRestClientService.postApi(ApiName.DATASHARECREATEURL, MediaType.MULTIPART_FORM_DATA, pathSegments, null, null, map, DataShareResponseDto.class);
+		if (httpProtocol != null && !httpProtocol.isEmpty()) {
+			protocol = httpProtocol;
+		}
+
+		dataShareUrl = new URL(protocol, internalDomainName, env.getProperty(ApiName.DATASHARECREATEURL.name()));
+		url = dataShareUrl.toString();
+		url = url.replaceAll("[\\[\\]]", "");
+		DataShareResponseDto response = (DataShareResponseDto) registrationProcessorRestClientService.postApi(url, MediaType.MULTIPART_FORM_DATA, pathSegments, null, null, map, DataShareResponseDto.class);
 		if (response == null || (response.getErrors() != null && response.getErrors().size() >0))
 			throw new DataShareException(response == null ? "Datashare response is null" : response.getErrors().get(0).getMessage());
 

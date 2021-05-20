@@ -35,9 +35,14 @@ public enum PlatformSuccessMessages {
 
 	RPR_PKR_ADDITIONAL_INFO_DELETED(PlatformConstants.RPR_PACKET_VALIDATOR_MODULE + "000", "Deleted additionalInfo from RegistrationList"),
 
-	// OSI validator Success messages
-	/** The rpr pkr osi validate. */
-	RPR_PKR_OSI_VALIDATE(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "000", "OSI Validation Success"),
+	RPR_PKR_OPERATOR_VALIDATE(PlatformConstants.RPR_OVM_VALIDATOR_MODULE + "000", "OPERATOR Validation Success"),
+	
+	RPR_PKR_SUPERVISOR_VALIDATE(PlatformConstants.RPR_SVM_VALIDATOR_MODULE + "000", "SUPERVISOR Validation Success"),
+	
+	RPR_PKR_INTRODUCER_VALIDATE(PlatformConstants.RPR_IVM_VALIDATOR_MODULE + "000", "INTRODUCER Validation Success"),
+	
+	// CMD validator Success messages
+	RPR_PKR_CMD_VALIDATE(PlatformConstants.RPR_CMD_VALIDATOR_MODULE + "000", "CMD Validation Success"),
 
 	// DEMO-De-dupe Success Messages
 	/** The rpr pkr demode-dupe validate. */
@@ -68,6 +73,18 @@ public enum PlatformSuccessMessages {
 	RPR_RE_PROCESS_FAILED(PlatformConstants.RPR_REPROCESSOR_STAGE + "002", "Reprocessor FAILED"),
 
 	RPR_SENT_TO_REPROCESS_SUCCESS(PlatformConstants.RPR_REPROCESSOR_STAGE + "001", "sent to reprocess Success"),
+
+	RPR_WORKFLOW_EVENT_UPDATE_SUCCESS(PlatformConstants.RPR_WORKFLOW_EVENT_UPDATE + "000",
+			"Update Work Flow action"),
+
+	RPR_WORKFLOW_ACTION_SERVICE_SUCCESS(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "000",
+			"Processed the workflow action - %s"),
+
+	RPR_WORKFLOW_ACTION_API_SUCCESS(PlatformConstants.RPR_WORKFLOW_ACTION_API + "000",
+			"Process the workflow action success"),
+	RPR_WORKFLOW_SEARCH_API_SUCCESS(PlatformConstants.RPR_WORKFLOW_SEARCH_API + "000",
+			"Process the workflow search success"),
+
 
 	RPR_EXTERNAL_STAGE_SUCCESS(PlatformConstants.RPR_EXTERNAL_STAGE + "000", "External stage  Success"),
 
@@ -111,7 +128,9 @@ public enum PlatformSuccessMessages {
 	RPR_SYNC_REGISTRATION_SERVICE_SUCCESS(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "000", "SYNC successfull"),
 
 	RPR_REQUEST_HANDLER_LOST_PACKET_SUCCESS(PlatformConstants.RPR_PACKET_REQUEST_HANDLER_MODULE + "000",
-			"Lost packet id value fetched successfully");
+			"Lost packet id value fetched successfully"),
+
+	PACKET_PAUSED_HOTLISTED("","packet paused  because of hotlisting");
 
 	/** The success message. */
 	private final String successMessage;

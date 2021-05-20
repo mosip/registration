@@ -198,6 +198,9 @@ public enum ApiName {
 
 	/** get operator rid from id. */
 	GETRIDFROMUSERID,
+	
+	/** get individualId from userid. */
+	GETINDIVIDUALIDFROMUSERID,
 
 	/** The internalauth. */
 	INTERNALAUTH,
@@ -224,6 +227,7 @@ public enum ApiName {
 	PACKETMANAGER_SEARCH_BIOMETRICS,
 	PACKETMANAGER_SEARCH_AUDITS,
 	PACKETMANAGER_UPDATE_TAGS,
+	PACKETMANAGER_DELETE_TAGS,
 	DATASHARECREATEURL,
 	PMS,
 	DATASHAREGETEURL,

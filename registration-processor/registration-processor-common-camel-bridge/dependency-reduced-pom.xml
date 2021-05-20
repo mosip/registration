@@ -3,11 +3,11 @@
   <parent>
     <artifactId>registration-processor</artifactId>
     <groupId>io.mosip.registrationprocessor</groupId>
-    <version>1.1.5</version>
+    <version>1.2.0-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>registration-processor-common-camel-bridge</artifactId>
-  <version>1.1.5</version>
+  <version>1.2.0-SNAPSHOT</version>
   <build>
     <plugins>
       <plugin>
@@ -49,6 +49,46 @@
       <version>3.9.1</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>3.4.4</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>byte-buddy-agent</artifactId>
+          <groupId>net.bytebuddy</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>objenesis</artifactId>
+          <groupId>org.objenesis</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-junit4</artifactId>
+      <version>2.0.7</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>powermock-module-junit4-common</artifactId>
+          <groupId>org.powermock</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-api-mockito2</artifactId>
+      <version>2.0.7</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>powermock-api-support</artifactId>
+          <groupId>org.powermock</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
   </dependencies>
   <dependencyManagement>
     <dependencies>
@@ -62,6 +102,7 @@
   <properties>
     <vertx.verticle>io.mosip.registration.processor.camel.bridge.MosipCamelBridge</vertx.verticle>
     <fabric8-vertx-maven-plugin.version>1.0.5</fabric8-vertx-maven-plugin.version>
+    <registration.processor.registration.status.service.impl.version>1.2.0-SNAPSHOT</registration.processor.registration.status.service.impl.version>
   </properties>
 </project>
 

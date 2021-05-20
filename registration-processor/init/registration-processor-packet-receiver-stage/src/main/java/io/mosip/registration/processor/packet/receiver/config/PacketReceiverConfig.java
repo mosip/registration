@@ -11,8 +11,8 @@ import org.springframework.context.annotation.Primary;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.cbeffutil.impl.CbeffImpl;
-import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.idvalidator.spi.RidValidator;
 import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
 import io.mosip.kernel.idvalidator.rid.impl.RidValidatorImpl;
@@ -29,7 +29,6 @@ import io.mosip.registration.processor.packet.receiver.builder.PacketReceiverRes
 import io.mosip.registration.processor.packet.receiver.exception.handler.PacketReceiverExceptionHandler;
 import io.mosip.registration.processor.packet.receiver.service.PacketReceiverService;
 import io.mosip.registration.processor.packet.receiver.service.impl.PacketReceiverServiceImpl;
-import io.mosip.registration.processor.packet.receiver.stage.PacketReceiverStage;
 
 /**
  * The Class PacketReceiverConfig.
@@ -50,16 +49,6 @@ public class PacketReceiverConfig {
 	@Bean
 	public PacketReceiverService<File, MessageDTO> getPacketReceiverService() {
 		return new PacketReceiverServiceImpl();
-	}
-
-	/**
-	 * PacketReceiverStage bean.
-	 *
-	 * @return the packet receiver stage
-	 */
-	@Bean
-	public PacketReceiverStage getPacketReceiverStage() {
-		return new PacketReceiverStage();
 	}
 
 	/**

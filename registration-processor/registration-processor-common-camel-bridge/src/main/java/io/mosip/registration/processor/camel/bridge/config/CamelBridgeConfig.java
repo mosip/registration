@@ -1,14 +1,20 @@
+
 package io.mosip.registration.processor.camel.bridge.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.apache.camel.Predicate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.Primary;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import io.mosip.registration.processor.camel.bridge.MosipBridgeFactory;
+import io.mosip.registration.processor.camel.bridge.intercepter.RouteIntercepter;
+import io.mosip.registration.processor.camel.bridge.intercepter.PauseFlowPredicate;
 import io.mosip.registration.processor.camel.bridge.processor.TokenGenerationProcessor;
-import org.springframework.context.annotation.Primary;
 
 @Configuration
 @EnableAspectJAutoProxy
@@ -28,6 +34,16 @@ public class CamelBridgeConfig {
 	@Primary
 	public ObjectMapper getObjectMapper() {
 		return new ObjectMapper().registerModule(new JavaTimeModule());
+	}
+	
+	@Bean
+	public PauseFlowPredicate pauseFlowPredicate() {
+		return new PauseFlowPredicate();
+	}
+	
+	@Bean
+	public RouteIntercepter routeIntercepter() {
+		return new RouteIntercepter();
 	}
 
 }

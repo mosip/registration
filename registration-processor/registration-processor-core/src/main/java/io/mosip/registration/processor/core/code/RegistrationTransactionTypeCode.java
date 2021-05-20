@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.core.code;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Enum RegistrationTransactionTypeCode.
  */
@@ -15,8 +16,14 @@ public enum RegistrationTransactionTypeCode {
 	VALIDATE_PACKET,
 	/** The packet classification. */
 	PACKET_CLASSIFICATION,
-	/** The osi validate. */
-	OSI_VALIDATE,
+	/** The cmd validate. */
+	CMD_VALIDATION,
+	/** The operator validate. */
+	OPERATOR_VALIDATION,
+	/** The supervisor validate. */
+	SUPERVISOR_VALIDATION,
+	/** The introducer validate. */
+	INTRODUCER_VALIDATION,
 	/** The external integration. */
 	EXTERNAL_INTEGRATION,
 	/** The demographic verification. */
@@ -37,11 +44,21 @@ public enum RegistrationTransactionTypeCode {
     PRINT,
 	/** The reprocess. */
 	PACKET_REPROCESS,
-	/** The Quality Check*/
+
+	/** The Quality Check. */
 	QUALITY_CHECK,
-	/** The biometric Authentication*/
+
+	/** The biometric Authentication. */
 	BIOMETRIC_AUTHENTICATION,
-	/** The securezone notification stage */
-	SECUREZONE_NOTIFICATION
+
+	/** The securezone notification stage. */
+	SECUREZONE_NOTIFICATION,
+
+
+	/** The workflow pause. */
+	WORKFLOW_PAUSE,
+
+	/** The workflow resume. */
+	WORKFLOW_RESUME;
 
 }

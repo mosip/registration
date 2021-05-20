@@ -21,7 +21,8 @@ public enum StatusUtil {
 	PACKET_HASHCODE_VALIDATION_FAILED(StatusConstants.PACKET_UPLOADER_MODULE_FAILED + "005","Packet Hash Code Validation Failed"),
 	VIRUS_SCANNER_FAILED_UPLOADER(StatusConstants.PACKET_UPLOADER_MODULE_FAILED + "006","Packet is Virus Infected"),
 	PACKET_UPLOAD_DECRYPTION_FAILED(StatusConstants.PACKET_UPLOADER_MODULE_FAILED + "007", "Packet Decryption Failed"),
-
+	PACKET_RETRY_CNT_EXCEEDED(StatusConstants.PACKET_UPLOADER_MODULE_FAILED + "008", "Retry count has exceeded the maximum limit specified"),
+	
 	// Quality checker stage
 	INDIVIDUAL_BIOMETRIC_NOT_FOUND(StatusConstants.QUALITY_CHECKER_MODULE_SUCCESS + "001","Individual Biometric Parameter Not Found in ID JSON"), 
 	BIOMETRIC_QUALITY_CHECK_SUCCESS(StatusConstants.QUALITY_CHECKER_MODULE_SUCCESS + "002","Biometric Quality Check is Successful"),
@@ -43,6 +44,7 @@ public enum StatusUtil {
 	PACKET_MANAGER_VALIDATION_FAILURE(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "012", "Packet validation failed in packet manager"),
 	BIOMETRICS_VALIDATION_FAILURE(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "013", "Biometric file validation failed"),
 	PACKET_MANAGER_EXCEPTION(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "014", "Exception occured in packet manager."),
+	XSD_VALIDATION_EXCEPTION(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "015", "XSD validation failed."),
 
 	// packet classifier stage
 	PACKET_CLASSIFICATION_SUCCESS(StatusConstants.PACKET_CLASSIFIER_MODULE_SUCCESS + "001","Packet Classification is Successful"),
@@ -51,38 +53,51 @@ public enum StatusUtil {
 	EXTERNAL_STAGE_SUCCESS(StatusConstants.EXTERNAL_SATGE_MODULE_SUCCESS + "001", "Packet processing in External stage is sucessful"),
 	EXTERNAL_STAGE_FAILED(StatusConstants.EXTERNAL_SATGE_MODULE_SUCCESS + "001", "Packet processing in External stage failed"),
 
-	// OSI Validator stage
-	// 1.UMC Validator stage
-	GPS_DETAILS_NOT_FOUND(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "001", "GPS Details are Not Found in Packet"),
-	CENTER_ID_NOT_FOUND(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "002","Center ID Not Found in Master DB - "), 
-	CENTER_ID_INACTIVE(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "003","Center was InActive during Packet Creation - "),
-	MACHINE_ID_NOT_FOUND(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "004","Machine ID Not Found in Master DB - "),
-	MACHINE_ID_NOT_ACTIVE(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "005","Machine ID was InActive during Packet Creation - "),
-	SUPERVISOR_OFFICER_NOT_ACTIVE(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "006","SupervisorId and OfficerId are inActive"),
-	CENTER_DEVICE_MAPPING_NOT_FOUND(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "007","Center-Device Mapping Not Found - "),
-	CENTER_DEVICE_MAPPING_INACTIVE(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "008","Center-Device Mapping was InActive during Packet Creation - "),
-	DEVICE_NOT_FOUND_MASTER_DB(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "009","Device Not Found in Master DB - "),
-	DEVICE_VALIDATION_FAILED(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "010", "Device Validation Failed"),
-	PACKET_CREATION_WORKING_HOURS(StatusConstants.OSI_VALIDAOR_MODULE_FAILED  + "011", "Packet was Not Created during Working Hours - "),
-	REGISTRATION_CENTER_TIMESTAMP_FAILURE(StatusConstants.OSI_VALIDAOR_MODULE_FAILED  + "012", "Registration Center timestamp failed"),
-	FAILED_TO_GET_MACHINE_DETAIL(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "013", "Failed to Get machine id details "),
-	FAILED_TO_GET_CENTER_DETAIL(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "014", "Failed to Get center id details "),
-	PACKET_IS_ON_HOLD(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "015", "Packet is on Hold due to parent packet processing"),
-
-	SUPERVISOR_OFFICER_NOT_FOUND_PACKET(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "012","Both Officer and Supervisor IDs are NULL"),
-	SUPERVISOR_OR_OFFICER_WAS_INACTIVE(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "013","Officer or Supervisor was Not Active during Packet Creation - "),
-	PACKET_CREATION_DATE_NOT_FOUND_IN_PACKET(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "014","Packet Creation Date is NULL"),
-	PASSWORD_OTP_FAILURE(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "015","Password or OTP Verification Failed for Officer - "),
-	OFFICER_SUPERVISOR_AUTHENTICATION_FAILED(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "016","Officer or Supervisor Biometric Authentication Failed - "), 
-	PASSWORD_OTP_FAILURE_SUPERVISOR(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "017","Password or OTP Verification Failed for Supervisor - "),
-	UIN_RID_NOT_FOUND(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "018", "UIN or RID of Parent Not Found in Packet"),
-	PARENT_UIN_NOT_FOUND(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "019", "Parent UIN not Found for the Given RID"),
-	PARENT_BIOMETRIC_FILE_NAME_NOT_FOUND(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "020", "Parent Biometric File Name Not Found"),
-	PACKET_ON_HOLD(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "021", "Packet On-Hold as Parent RID Not Found"),
-	CHILD_PACKET_REJECTED(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "022", "Packet Rejected as Parent Packet is Rejected"),
-	MACHINE_ID_NOT_FOUND_MASTER_DB(StatusConstants.OSI_VALIDAOR_MODULE_FAILED + "023", "MachineId not found in master db - "),
-	OSI_VALIDATION_SUCCESS(StatusConstants.OSI_VALIDAOR_MODULE_SUCCESS + "001", "OSI Validation is Successful"),
-
+	// CMD Validator stage
+	CMD_VALIDATION_SUCCESS(StatusConstants.CMD_VALIDAOR_MODULE_SUCCESS + "001", "CMD Validation is Successful"),
+	GPS_DETAILS_NOT_FOUND(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "001", "GPS Details are Not Found in Packet"),
+	CENTER_ID_NOT_FOUND(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "002","Center ID Not Found in Master DB - "), 
+	CENTER_ID_INACTIVE(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "003","Center was InActive during Packet Creation - "),
+	MACHINE_ID_NOT_FOUND(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "004","Machine ID Not Found in Master DB - "),
+	MACHINE_ID_NOT_ACTIVE(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "005","Machine ID was InActive during Packet Creation - "),
+	CENTER_DEVICE_MAPPING_NOT_FOUND(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "006","Center-Device Mapping Not Found - "),
+	CENTER_DEVICE_MAPPING_INACTIVE(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "007","Center-Device Mapping was InActive during Packet Creation - "),
+	DEVICE_NOT_FOUND_MASTER_DB(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "008","Device Not Found in Master DB - "),
+	DEVICE_VALIDATION_FAILED(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "009", "Device Validation Failed"),
+	PACKET_CREATION_WORKING_HOURS(StatusConstants.CMD_VALIDAOR_MODULE_FAILED  + "010", "Packet was Not Created during Working Hours - "),
+	REGISTRATION_CENTER_TIMESTAMP_FAILURE(StatusConstants.CMD_VALIDAOR_MODULE_FAILED  + "011", "Registration Center timestamp failed"),
+	FAILED_TO_GET_MACHINE_DETAIL(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "012", "Failed to Get machine id details "),
+	FAILED_TO_GET_CENTER_DETAIL(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "013", "Failed to Get center id details "),
+	VALIDATION_FAILED_EXCEPTION(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "014", "Exception occured due to validation failure."),
+	MACHINE_ID_NOT_FOUND_MASTER_DB(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "015", "MachineId not found in master db - "),
+	
+	// Operator Validator stage
+	OPERATOR_VALIDATION_SUCCESS(StatusConstants.OVM_VALIDAOR_MODULE_SUCCESS + "001", "OPERATOR Validation is Successful"),
+	OFFICER_NOT_ACTIVE(StatusConstants.OVM_VALIDAOR_MODULE_FAILED + "001","OfficerId is inActive"),
+	OPERATOR_PACKET_CREATION_DATE_NOT_FOUND_IN_PACKET(StatusConstants.OVM_VALIDAOR_MODULE_FAILED + "002","Packet Creation Date is NULL"),
+	OPERATOR_PASSWORD_OTP_FAILURE(StatusConstants.OVM_VALIDAOR_MODULE_FAILED + "003","Password or OTP Verification Failed for Officer - "),
+	OFFICER_WAS_INACTIVE(StatusConstants.OVM_VALIDAOR_MODULE_FAILED + "004","Officer was Not Active during Packet Creation - "),
+	OFFICER_NOT_FOUND_PACKET(StatusConstants.OVM_VALIDAOR_MODULE_FAILED + "005","Officer ID is NULL"),
+	
+	// Supervisor Validator stage
+	SUPERVISOR_VALIDATION_SUCCESS(StatusConstants.SVM_VALIDAOR_MODULE_SUCCESS + "001", "SUPERVISOR Validation is Successful"),
+	SUPERVISOR_NOT_ACTIVE(StatusConstants.SVM_VALIDAOR_MODULE_FAILED + "001","SupervisorId is inActive"),
+	SUPERVISOR_PACKET_CREATION_DATE_NOT_FOUND_IN_PACKET(StatusConstants.SVM_VALIDAOR_MODULE_FAILED + "002","Packet Creation Date is NULL"),
+	SUPERVISOR_PASSWORD_OTP_FAILURE(StatusConstants.SVM_VALIDAOR_MODULE_FAILED + "003","Password or OTP Verification Failed for Officer - "),
+	SUPERVISOR_WAS_INACTIVE(StatusConstants.SVM_VALIDAOR_MODULE_FAILED + "004","Supervisor was Not Active during Packet Creation - "),
+	PASSWORD_OTP_FAILURE_SUPERVISOR(StatusConstants.SVM_VALIDAOR_MODULE_FAILED + "005","Password or OTP Verification Failed for Supervisor - "),
+	SUPERVISOR_NOT_FOUND_PACKET(StatusConstants.OVM_VALIDAOR_MODULE_FAILED + "006","Supervisor ID is NULL"),
+	
+	// Introducer Validator stage
+	INTRODUCER_VALIDATION_SUCCESS(StatusConstants.IVM_VALIDAOR_MODULE_SUCCESS + "001", "INTRODUCER Validation is Successful"),
+	INTRODUCER_AUTHENTICATION_FAILED(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "001","INTRODUCER Biometric Authentication Failed - "),
+	UIN_RID_NOT_FOUND(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "002", "UIN or RID of Parent Not Found in Packet"),
+	PARENT_UIN_NOT_FOUND(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "003", "Parent UIN not Found for the Given RID"),
+	PARENT_BIOMETRIC_FILE_NAME_NOT_FOUND(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "004", "Parent Biometric File Name Not Found"),
+	PACKET_ON_HOLD(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "005", "Packet On-Hold as Parent RID Not Found"),
+	CHILD_PACKET_REJECTED(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "006", "Packet Rejected as Parent Packet is Rejected"),
+	PACKET_IS_ON_HOLD(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "007", "Packet is on Hold due to parent packet processing"),
+	
 	// printing stage
 	PRINT_REQUEST_SUCCESS(StatusConstants.PRINT_STAGE_MODULE_SUCCESS + "001", "Print request submitted"),
 	PDF_ADDED_TO_QUEUE_FAILED(StatusConstants.PRINT_STAGE_MODULE_FAILED + "001","PDF was not added to Queue due to Queue Failure"),
@@ -211,7 +226,14 @@ public enum StatusUtil {
     MESSAGE_SENDER_SMS_SUCCESS(StatusConstants.MESSAGE_SENDER_NOTIF_SUCCESS_CODE + "004","SMS Notification was sent"),
     MESSAGE_SENDER_EMAIL_FAILED(StatusConstants.MESSAGE_SENDER__FAILED_CODE + "005","Notification was not sent as the required mode of channel was not available"),
     MESSAGE_SENDER_SMS_FAILED(StatusConstants.MESSAGE_SENDER__FAILED_CODE + "006","Notification was not sent as the required mode of channel was not available"),
-    MESSAGE_SENDER_NOTIFICATION_FAILED(StatusConstants.MESSAGE_SENDER__FAILED_CODE + "006","Notification was not sent as the required mode of channel was not available");
+    MESSAGE_SENDER_NOTIFICATION_FAILED(StatusConstants.MESSAGE_SENDER__FAILED_CODE + "006","Notification was not sent as the required mode of channel was not available"),
+	VID_CREATION_FAILED(StatusConstants.UIN_GENERATOR_MODULE_FAILED + "009", "VID creation failed -"),
+
+	WORKFLOW_EVENT_UPDATE_SUCCESS(StatusConstants.WORKFLOW_EVENT_UPDATE + "001",
+			"Packet workflow updated successfully"),
+	
+	WORKFLOW_ACTION_SERVICE_SUCCESS(StatusConstants.WORKFLOW_ACTION_SERVICE + "001",
+			"Packet workflow resume  successfully");
 
 	private final String statusComment;
 	private final String statusCode;

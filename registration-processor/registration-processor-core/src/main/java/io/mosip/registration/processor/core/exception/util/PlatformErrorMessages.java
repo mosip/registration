@@ -1,4 +1,3 @@
-
 package io.mosip.registration.processor.core.exception.util;
 
 // TODO: Auto-generated Javadoc
@@ -15,6 +14,8 @@ public enum PlatformErrorMessages {
 
 	/** The rpr pkr invalid packet size. */
 	RPR_PKR_INVALID_PACKET_SIZE(PlatformConstants.RPR_PACKET_RECEIVER_MODULE + "002", "Invalid Packet Size"),
+	RPR_WORKFLOW_SEARCH_API_FAILED(PlatformConstants.RPR_WORKFLOW_SEARCH_API + "000",
+			"Process the workflow search failed"),
 
 	/** The rpr pkr packet hash not equals synced hash. */
 	RPR_PKR_PACKET_HASH_NOT_EQUALS_SYNCED_HASH(PlatformConstants.RPR_PACKET_RECEIVER_MODULE + "009",
@@ -455,23 +456,59 @@ public enum PlatformErrorMessages {
 	/** The unsupported encoding. */
 	// UIN check - JSON file encoding failed.
 	UNSUPPORTED_ENCODING("", "Json Object Parsing Failed"),
-
-	/** The osi validation failed. */
-	// Stages - OSI Exception error code and message
-	OSI_VALIDATION_FAILED("", "OSI Validation Failed"),
-
-	/** The osi validation packet store not accessible. */
-	OSI_VALIDATION_PACKET_STORE_NOT_ACCESSIBLE(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "005",
-			"Unable to Access Packet Store"),
-
-	/** The osi validation packe api resouce access failed. */
-	OSI_VALIDATION_PACKE_API_RESOUCE_ACCESS_FAILED(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "006",
-			"Unable to Access API Resource"),
-
-	/** The osi validation bio type exception. */
-	OSI_VALIDATION_BIO_TYPE_EXCEPTION(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "007", "Bio Type Exception"),
 	
-	OSI_VALIDATION_AUTH_SYSTEM_EXCEPTION(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "008", "Request could not be processed. Please try again"),
+	OSI_VALIDATION_BIO_TYPE_EXCEPTION(PlatformConstants.RPR_CMD_VALIDATOR_MODULE + "007", "Bio Type Exception"),
+
+	/** The cmd validation failed. */
+	// Stages - CMD Exception error code and message
+	CMD_VALIDATION_FAILED("", "CMD Validation Failed"),
+
+	/** The cmd base unchecked exception. */
+	CMD_BASE_UNCHECKED_EXCEPTION(PlatformConstants.RPR_CMD_VALIDATOR_MODULE + "001",
+			"CMD Validation Failed"),
+
+	/** The cmd base checked exception. */
+	CMD_BASE_CHECKED_EXCEPTION(PlatformConstants.RPR_CMD_VALIDATOR_MODULE + "002",
+			"CMD Validation Failed"),
+	
+	/** The operator base unchecked exception. */
+	OPERATOR_BASE_UNCHECKED_EXCEPTION(PlatformConstants.RPR_OVM_VALIDATOR_MODULE + "001",
+			"operator Validation Failed"),
+
+	/** The operator base checked exception. */
+	OPERATOR_BASE_CHECKED_EXCEPTION(PlatformConstants.RPR_OVM_VALIDATOR_MODULE + "002",
+			"operator Validation Failed"),
+	
+	/** The Operator validation failed. */
+	OPERATOR_VALIDATION_FAILED("", "Operator Validation Failed"),
+	
+	LINK_FOR_USERID_INDIVIDUALID_FAILED_OVM_EXCEPTION(PlatformConstants.RPR_OVM_VALIDATOR_MODULE + "003",
+			"Unable to get the IndividualId for UserId"),
+
+	/** The Supervisor base unchecked exception. */
+	SUPERVISOR_BASE_UNCHECKED_EXCEPTION(PlatformConstants.RPR_SVM_VALIDATOR_MODULE + "001",
+			"Supervisor Validation Failed"),
+
+	/** The Supervisor base checked exception. */
+	SUPERVISOR_BASE_CHECKED_EXCEPTION(PlatformConstants.RPR_SVM_VALIDATOR_MODULE + "002",
+			"Supervisor Validation Failed"),
+	
+	/** The Supervisor validation failed. */
+	SUPERVISOR_VALIDATION_FAILED("", "Supervisor Validation Failed"),
+	
+	LINK_FOR_USERID_INDIVIDUALID_FAILED_SVM_EXCEPTION(PlatformConstants.RPR_SVM_VALIDATOR_MODULE + "003",
+			"Unable to get the IndividualId for UserId"),
+
+	/** The INTRODUCER base unchecked exception. */
+	INTRODUCER_BASE_UNCHECKED_EXCEPTION(PlatformConstants.RPR_IVM_VALIDATOR_MODULE + "001",
+			"INTRODUCER Validation Failed"),
+
+	/** The INTRODUCER base checked exception. */
+	INTRODUCER_BASE_CHECKED_EXCEPTION(PlatformConstants.RPR_IVM_VALIDATOR_MODULE + "002",
+			"INTRODUCER Validation Failed"),
+	
+	/** The INTRODUCER validation failed. */
+	INTRODUCER_VALIDATION_FAILED("", "INTRODUCER Validation Failed"),
 
 	/** The packet demo dedupe failed. */
 	// Stages - Demo-Dedupe error code and message
@@ -807,6 +844,9 @@ public enum PlatformErrorMessages {
 	/** The rpr pum packet not found exception. */
 	RPR_PUM_PACKET_UPLOAD_FAILURE(PlatformConstants.RPR_PACKET_UPLOADER_MODULE + "011",
 			"Failure in uploading the packet to Packet Store"),
+    
+	RPR_PUM_PACKET_RETRY_CNT_FAILURE(PlatformConstants.RPR_PACKET_UPLOADER_MODULE + "012",
+            "packet upload failed due to Retry count has exceeded the max limit specified"),
 
 	/** The rpr bdd abis internal error. */
 	RPR_BDD_ABIS_INTERNAL_ERROR(PlatformConstants.RPR_BIO_DEDUPE_SERVICE_MODULE + "001",
@@ -940,6 +980,10 @@ public enum PlatformErrorMessages {
 	/** The message expired. */
 	RPR_SYS_MESSAGE_EXPIRED(PlatformConstants.RPR_SYSTEM_EXCEPTION + "020",
 			"Message expired as per the last hop timestamp"),
+
+	/** The stage processing failed. */
+	RPR_SYS_STAGE_PROCESSING_FAILED(PlatformConstants.RPR_SYSTEM_EXCEPTION + "021",
+			"Stage processing of message failed with an exception"),
 
 	// Cbeff Util Exceptions
 	/** The rpr utl biometric tag match. */
@@ -1087,6 +1131,8 @@ public enum PlatformErrorMessages {
 	/** The uin generation failed. */
 	UIN_GENERATION_FAILED(PlatformConstants.RPR_UIN_GENERATOR_STAGE + "013", "UIN Generation failed"),
 
+	VID_CREATION_FAILED(PlatformConstants.RPR_UIN_GENERATOR_STAGE + "014", "VID creation failed"),
+
 	/** The rpr pgs file not present. */
 	RPR_PGS_FILE_NOT_PRESENT(PlatformConstants.RPR_PACKET_GENERATOR_MODULE + "001",
 			"The Packet store set by the System is not accessible"),
@@ -1184,6 +1230,39 @@ public enum PlatformErrorMessages {
 
 	/** Reprocessor Stage Failed. */
 	REPROCESSOR_STAGE_FAILED("", "Reprocessor Stage Failed"),
+
+	RPR_WFE_DATE_TIME_EXCEPTION(PlatformConstants.RPR_WORKFLOW_EVENT_UPDATE + "000",
+			"Error while parsing event or resume timestamp"),
+
+	RPR_WORKFLOW_EVENT_UPDATE_FAILED(PlatformConstants.RPR_WORKFLOW_EVENT_UPDATE + "001",
+			"Work flow event update failed"),
+
+	RPR_WAA_MISSING_INPUT_PARAMETER(PlatformConstants.RPR_WORKFLOW_ACTION_API + "000",
+			"Missing Request Value - %s"),
+
+	RPR_WAA_INVALID_INPUT_PARAMETER(PlatformConstants.RPR_WORKFLOW_ACTION_API + "001",
+			"Invalid Request Value - %s"),
+
+	RPR_WAA_UNKNOWN_EXCEPTION(PlatformConstants.RPR_WORKFLOW_ACTION_API + "002", "Unknown Exception"),
+
+	RPR_WAS_UNKNOWN_WORKFLOW_ACTION(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "000",
+			"Workflow Action not supported"),
+
+	RPR_WAS_REMOVE_HOTLISTED_TAG_FAILED(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "001",
+			"Removing hotlisted tag failed"),
+
+	RPR_WAA_WORKFLOW_ID_NOT_FOUND(PlatformConstants.RPR_WORKFLOW_ACTION_API + "003",
+			"Workflow id  %s  not found in registration table"),
+
+	RPR_WAS_UNKNOWN_EXCEPTION(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "003", "Unknown Exception"),
+
+	RPR_WAS_REPROCESS_FAILED(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "004",
+			"When REPROCESS_FAILED then Resume should not occur"),
+
+	RPR_WAA_NOT_PAUSED(PlatformConstants.RPR_WORKFLOW_ACTION_API + "004",
+			"Workflow id  %s is not PAUSED"),
+
+	RPR_WAA_VALIDATION_SUCCESS(PlatformConstants.RPR_WORKFLOW_ACTION_API + "005", "Workflow id validated successfully"),
 
 	/** The external stage failed. */
 	EXTERNAL_STAGE_FAILED("", "External Stage Failed"),

@@ -33,8 +33,17 @@ public final class PlatformConstants {
 	/** The Constant RPR_PACKET_MANAGER_MODULE. */
 	public static final String RPR_PACKET_MANAGER_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "PKM-";
 
-	/** The Constant RPR_OSI_VALIDATOR_MODULE. */
-	public static final String RPR_OSI_VALIDATOR_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "OSI-";
+	/** The Constant RPR_CMD_VALIDATOR_MODULE. */
+	public static final String RPR_CMD_VALIDATOR_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "CMD-";
+	
+	/** The Constant RPR_OVM_VALIDATOR_MODULE. */
+	public static final String RPR_OVM_VALIDATOR_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "OVM-";
+	
+	/** The Constant RPR_SVM_VALIDATOR_MODULE. */
+	public static final String RPR_SVM_VALIDATOR_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "SVM-";
+	
+	/** The Constant RPR_IVM_VALIDATOR_MODULE. */
+	public static final String RPR_IVM_VALIDATOR_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "IVM-";
 
 	/** The Constant RPR_DEMO_DEDUPE_MODULE. */
 	public static final String RPR_DEMO_DEDUPE_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "DDD-";
@@ -110,6 +119,16 @@ public final class PlatformConstants {
 	public static final String RPR_ABIS_HANDLER = RPR_REGISTRATION_PROCESSOR_PREFIX + "ABIS-HANDLER-";
 
 	public static final String RPR_MA_MIDDLEWARE = RPR_REGISTRATION_PROCESSOR_PREFIX + "MANUAL-ADJUDICATION-";
+
+	public static final String RPR_WORKFLOW_EVENT_UPDATE = RPR_REGISTRATION_PROCESSOR_PREFIX + "WE-";
+
+	public static final String RPR_WORKFLOW_ACTION_API = RPR_REGISTRATION_PROCESSOR_PREFIX + "WAA-";
+	
+	public static final String RPR_WORKFLOW_SEARCH_API = RPR_REGISTRATION_PROCESSOR_PREFIX + "WAA-";
+
+
+	public static final String RPR_WORKFLOW_ACTION_SERVICE = RPR_REGISTRATION_PROCESSOR_PREFIX + "WAS-";
+
 	/**
 	 * Instantiates a new RPR platform error codes.
 	 */

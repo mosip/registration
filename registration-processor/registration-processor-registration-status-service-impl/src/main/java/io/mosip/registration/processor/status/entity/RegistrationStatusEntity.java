@@ -6,6 +6,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
+
 /**
  * The Class RegistrationStatusEntity.
  */
@@ -93,6 +94,22 @@ public class RegistrationStatusEntity extends BaseRegistrationEntity {
 	/** The reg process retry count. */
 	@Column(name = "reg_process_retry_count")
 	private Integer regProcessRetryCount;
+
+	/** The resume time stamp. */
+	@Column(name = "resume_timestamp")
+	private LocalDateTime resumeTimeStamp;
+
+	/** The default resume action. */
+	@Column(name = "default_resume_action")
+	private String defaultResumeAction;
+
+	/** The comma separate tags that will be removed on resume. */
+	@Column(name = "resume_remove_tags")
+	private String resumeRemoveTags;
+
+	/** The last success stage name. */
+	@Column(name = "last_success_stage_name")
+	private String lastSuccessStageName;
 
 	/**
 	 * Instantiates a new registration status entity.
@@ -480,6 +497,78 @@ public class RegistrationStatusEntity extends BaseRegistrationEntity {
 	 */
 	public void setRegProcessRetryCount(Integer regProcessRetryCount) {
 		this.regProcessRetryCount = regProcessRetryCount;
+	}
+
+	/**
+	 * Gets the resume time stamp.
+	 *
+	 * @return the resume time stamp
+	 */
+	public LocalDateTime getResumeTimeStamp() {
+		return resumeTimeStamp;
+	}
+
+	/**
+	 * Sets the resume time stamp.
+	 *
+	 * @param resumeTimeStamp the new resume time stamp
+	 */
+	public void setResumeTimeStamp(LocalDateTime resumeTimeStamp) {
+		this.resumeTimeStamp = resumeTimeStamp;
+	}
+
+	/**
+	 * Gets the default resume action.
+	 *
+	 * @return the default resume action
+	 */
+	public String getDefaultResumeAction() {
+		return defaultResumeAction;
+	}
+
+	/**
+	 * Sets the default resume action.
+	 *
+	 * @param defaultResumeAction the new default resume action
+	 */
+	public void setDefaultResumeAction(String defaultResumeAction) {
+		this.defaultResumeAction = defaultResumeAction;
+	}
+
+	/**
+	 * Gets the resume remove tags.
+	 *
+	 * @return the resume remove tags
+	 */
+	public String getResumeRemoveTags() {
+		return resumeRemoveTags;
+	}
+
+	/**
+	 * Sets the resume remove tags.
+	 *
+	 * @param resumeRemoveTags the new resume remove tags
+	 */
+	public void setResumeRemoveTags(String resumeRemoveTags) {
+		this.resumeRemoveTags = resumeRemoveTags;
+	}
+
+	/**
+	 * Gets the last success stage name.
+	 *
+	 * @return the last success stage name
+	 */
+	public String getLastSuccessStageName() {
+		return lastSuccessStageName;
+	}
+
+	/**
+	 * Sets the last success stage name.
+	 *
+	 * @param lastSuccessStageName the last success stage name
+	 */
+	public void setLastSuccessStageName(String lastSuccessStageName) {
+		this.lastSuccessStageName = lastSuccessStageName;
 	}
 
 }

@@ -1,5 +1,11 @@
 package io.mosip.registration.processor.core.tracing;
 
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import brave.Span;
 import brave.Tracer;
 import brave.Tracing;
@@ -12,11 +18,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import io.vertx.kafka.client.producer.KafkaProducerRecord;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 /**
  * Handler to trace events,
@@ -179,7 +180,12 @@ public class EventTracingHandler {
     private void initializeContextWithTracing(Span span, String rid) {
         ContextualData.put(TracingConstant.TRACER, span);
         ContextualData.put(TracingConstant.TRACE_ID_KEY, span.context().traceIdString());
-        ContextualData.put(TracingConstant.RID_KEY, rid);
+		if (rid == null) {
+			ContextualData.put(TracingConstant.RID_KEY, "-");
+		} else {
+			ContextualData.put(TracingConstant.RID_KEY, rid);
+		}
+
     }
 
 }

@@ -20,6 +20,8 @@ public enum RegistrationStatusCode {
 
 	PROCESSED,
 
-	REPROCESS_FAILED
+	REPROCESS_FAILED,
+	
+	PAUSED
 
 }

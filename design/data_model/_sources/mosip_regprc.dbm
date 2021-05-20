@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.3" use-changelog="false" last-position="45,27" last-zoom="0.65" max-obj-count="40"
+<dbmodel pgmodeler-ver="0.9.3" use-changelog="false" last-position="0,626" last-zoom="0.65" max-obj-count="40"
 	 default-schema="public" default-owner="postgres">
 <role name="sysadmin"
       superuser="true"
@@ -53,11 +53,11 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<role name="sysadmin"/>
 </schema>
 
-<table name="registration" layer="0" collapse-mode="2" max-obj-count="26" z-value="0">
+<table name="registration" layer="0" collapse-mode="2" max-obj-count="31" z-value="0">
 	<schema name="regprc"/>
 	<role name="sysadmin"/>
 	<comment><![CDATA[Registration: Registration Processor table is to store registration requests that are being processed, Also maintains packet id details and status of the registration requests.]]></comment>
-	<position x="920" y="100"/>
+	<position x="960" y="0"/>
 	<column name="id" not-null="true">
 		<type name="character varying" length="39"/>
 		<comment><![CDATA[ID: Id of the registration Request]]></comment>
@@ -145,6 +145,21 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<column name="reg_stage_name">
 		<type name="character varying" length="36"/>
 		<comment><![CDATA[Registration Process Stage Name: Registration process stage/transaction name of the registration transaction]]></comment>
+	</column>
+	<column name="resume_timestamp">
+		<type name="timestamp" length="0"/>
+		<comment><![CDATA[Resume Timestamp]]></comment>
+	</column>
+	<column name="default_resume_action">
+		<type name="character varying" length="50"/>
+		<comment><![CDATA[Default Resume Action]]></comment>
+	</column>
+	<column name="resume_remove_tags">
+		<type name="character varying" length="256"/>
+		<comment><![CDATA[Contains comma separated tag names]]></comment>
+	</column>
+	<column name="last_success_stage_name">
+		<type name="character varying" length="50"/>
 	</column>
 	<constraint name="pk_reg_id" type="pk-constr" table="regprc.registration">
 		<columns names="id" ref-type="src-columns"/>

@@ -1,13 +1,22 @@
 package io.mosip.registration.processor.status.dao;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
+import io.mosip.registration.processor.core.workflow.dto.FilterInfo;
+import io.mosip.registration.processor.core.workflow.dto.PaginationInfo;
+import io.mosip.registration.processor.core.workflow.dto.SortInfo;
+import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
 
@@ -59,6 +68,8 @@ public class RegistrationStatusDao {
 	public static final String ORDER_BY = "order by ";
 
 	public static final String CREATED_DATE_TIME = "createDateTime";
+
+	public static final String UPDATED_DATE_TIME = "updateDateTime";
 
 	/**
 	 * Save.
@@ -135,6 +146,40 @@ public class RegistrationStatusDao {
 		return registrationStatusRepositary.createQuerySelect(queryStr, params);
 	}
 
+	public Page<RegistrationStatusEntity> getPagedSearchResults(List<FilterInfo> filters, SortInfo sort,
+			PaginationInfo pagination) {
+		Map<String, Object> params = new HashMap<>();
+		String className = RegistrationStatusEntity.class.getSimpleName();
+		String queryStr=null;
+		long rows = 0;
+		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
+		params.put(ISDELETED, Boolean.FALSE);
+		queryStr = SELECT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias + ISDELETED_COLON
+				+ ISDELETED;
+		StringBuilder sb = new StringBuilder(queryStr);
+		if (!filters.isEmpty()) {
+			Iterator<FilterInfo> searchIterator = filters.iterator();
+			while (searchIterator.hasNext()) {
+				FilterInfo filterInfo = searchIterator.next();
+				sb.append(EMPTY_STRING + AND + EMPTY_STRING + alias + "." + filterInfo.getColumnName() + "=:"
+						+ filterInfo.getColumnName());
+				params.put(filterInfo.getColumnName(), filterInfo.getValue());
+
+			}
+		}
+		if (sort != null) {
+			sb.append(EMPTY_STRING + ORDER_BY + sort.getSortField() + EMPTY_STRING + sort.getSortType());
+		}
+		List<RegistrationStatusEntity> result = registrationStatusRepositary.createQuerySelect(sb.toString(), params,
+			pagination.getPageFetch());
+
+		rows = registrationStatusRepositary.count();
+		return new PageImpl<>(result,
+				PageRequest.of(pagination.getPageStart(), pagination.getPageFetch()),
+				rows);
+
+	}
+
 	/**
 	 * Gets the by ids.
 	 *
@@ -178,13 +223,16 @@ public class RegistrationStatusDao {
 		String className = RegistrationStatusEntity.class.getSimpleName();
 		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
 		LocalDateTime timeDifference = LocalDateTime.now().minusSeconds(elapseTime);
-
+		List<String> statusCodes=new ArrayList<>();
+		statusCodes.add(RegistrationStatusCode.PAUSED.toString());
 		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
 				+ ".latestTransactionStatusCode IN :status" + EMPTY_STRING + AND + EMPTY_STRING + alias
 				+ ".regProcessRetryCount<=" + ":reprocessCount" + EMPTY_STRING + AND + EMPTY_STRING + alias
-				+ ".latestTransactionTimes<" + ":timeDifference";
+				+ ".latestTransactionTimes<" + ":timeDifference"+ EMPTY_STRING + AND + EMPTY_STRING+ alias
+				+ ".statusCode  NOT IN :statusCode ";
 
 		params.put("status", status);
+		params.put("statusCode", statusCodes);
 		params.put("reprocessCount", reprocessCount);
 		params.put("timeDifference", timeDifference);
 
@@ -197,13 +245,16 @@ public class RegistrationStatusDao {
 		String className = RegistrationStatusEntity.class.getSimpleName();
 		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
 		LocalDateTime timeDifference = LocalDateTime.now().minusSeconds(elapseTime);
-
+		List<String> statusCodes=new ArrayList<>();
+		statusCodes.add(RegistrationStatusCode.PAUSED.toString());
 		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
 				+ ".latestTransactionStatusCode IN :status" + EMPTY_STRING + AND + EMPTY_STRING + alias
 				+ ".regProcessRetryCount<=" + ":reprocessCount" + EMPTY_STRING + AND + EMPTY_STRING + alias
-				+ ".latestTransactionTimes<" + ":timeDifference";
+				+ ".latestTransactionTimes<" + ":timeDifference"+ EMPTY_STRING + AND + EMPTY_STRING+ alias
+				+ ".statusCode  NOT IN :statusCode ";
 
 		params.put("status", status);
+		params.put("statusCode", statusCodes);
 		params.put("reprocessCount", reprocessCount);
 		params.put("timeDifference", timeDifference);
 		List<RegistrationStatusEntity> unprocessedPackets = registrationStatusRepositary.createQuerySelect(queryStr,
@@ -254,6 +305,23 @@ public class RegistrationStatusDao {
 		params.put(ISDELETED, Boolean.FALSE);
 
 		return registrationStatusRepositary.createQuerySelect(queryStr, params);
+	}
+
+	public List<RegistrationStatusEntity> getResumablePackets(Integer fetchSize) {
+		Map<String, Object> params = new HashMap<>();
+		String className = RegistrationStatusEntity.class.getSimpleName();
+		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
+		
+
+		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
+				+ ".statusCode =:status" +  EMPTY_STRING + AND + EMPTY_STRING + alias
+				+ ".resumeTimeStamp < now()" + EMPTY_STRING + AND + EMPTY_STRING + alias
+				+ ".defaultResumeAction is not null" + EMPTY_STRING + ORDER_BY + EMPTY_STRING + UPDATED_DATE_TIME;
+
+		params.put("status", RegistrationStatusCode.PAUSED.toString());
+		
+
+		return registrationStatusRepositary.createQuerySelect(queryStr, params, fetchSize);
 	}
 
 }
