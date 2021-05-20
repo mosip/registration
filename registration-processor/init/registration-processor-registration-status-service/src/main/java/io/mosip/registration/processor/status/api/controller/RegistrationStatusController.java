@@ -71,7 +71,9 @@ public class RegistrationStatusController {
 	LostRidRequestValidator lostRidRequestValidator;
 
 	private static final String REG_STATUS_SERVICE_ID = "mosip.registration.processor.registration.status.id";
+	private static final String REG_LOSTRID_SERVICE_ID = "mosip.registration.processor.lostrid.id";
 	private static final String REG_STATUS_APPLICATION_VERSION = "mosip.registration.processor.registration.status.version";
+	private static final String REG_LOSTRID_APPLICATION_VERSION = "mosip.registration.processor.lostrid.version";
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
 	private static final String RESPONSE_SIGNATURE = "Response-Signature";
 
@@ -210,13 +212,13 @@ public class RegistrationStatusController {
 
 		LostRidResponseDto response = new LostRidResponseDto();
 		if (Objects.isNull(response.getId())) {
-			response.setId(env.getProperty(REG_STATUS_SERVICE_ID));
+			response.setId(env.getProperty(REG_LOSTRID_SERVICE_ID));
 		}
 		response.setResponsetime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
-		response.setVersion(env.getProperty(REG_STATUS_APPLICATION_VERSION));
+		response.setVersion(env.getProperty(REG_LOSTRID_APPLICATION_VERSION));
 		response.setResponse(lostRidDto);
 		List<ErrorDTO> errors = new ArrayList<ErrorDTO>();
-		if (!lostRidDto.getRegistartionIds().isEmpty()) {
+		if (lostRidDto.getRegistartionIds().isEmpty()) {
 			RegistrationStatusErrorDto errorDto = new RegistrationStatusErrorDto(
 					PlatformErrorMessages.RPR_RGS_RID_NOT_FOUND.getCode(),
 					PlatformErrorMessages.RPR_RGS_RID_NOT_FOUND.getMessage());
