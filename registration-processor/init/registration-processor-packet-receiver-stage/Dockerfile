@@ -44,9 +44,13 @@ RUN apt-get -y update \
 
 # set working directory for the user
 WORKDIR /home/${container_user}
+
 ENV work_dir=/home/${container_user}
+
 ARG loader_path=${work_dir}/additional_jars/
+
 RUN mkdir -p ${loader_path}
+
 ENV loader_path_env=${loader_path}
 
 # change volume to whichever storage directory you want to use for this container.
@@ -65,7 +69,6 @@ EXPOSE 4001
 
 CMD if [ "$active_profile_env" = "preprod" ]; then \
     wget 'http://13.71.87.138:8040/artifactory/libs-release-local/io/mosip/testing/glowroot.zip' ; \
-    #apt-get update && apt-get install -y unzip ; \
     unzip glowroot.zip ; \
     rm -rf glowroot.zip ; \
     sed -i 's/<service_name>/registration-processor-packet-receiver-stage/g' glowroot/glowroot.properties ; \
