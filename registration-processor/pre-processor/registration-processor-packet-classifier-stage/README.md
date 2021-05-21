@@ -17,6 +17,8 @@ server.servlet.path=/registrationprocessor/v1/packetclassifier
 # List of tag generator that should be run on every packet
 # Available tag generators MosipIDObjectFields,MosipMetaInfo,MosipAgeGroup,MosipSupervisorApprovalStatus,MosipExceptionBiometrics // DocumentMissing,MosipBiometricsMissing
 mosip.regproc.packet.classifier.tag-generators=MosipIDObjectFields,MosipMetaInfo,MosipAgeGroup,MosipSupervisorApprovalStatus,MosipExceptionBiometrics
+# The tag value that will be used by default when the packet does not have value for the tag field
+mosip.regproc.packet.classifier.tagging.not-available-tag-value=--TAG_VALUE_NOT_AVAILABLE--
 # These field names should be as in keys of registraion-processor-identity.json file Identity segment
 # and should have proper default source configured
 mosip.regproc.packet.classifier.tagging.idobjectfields.mapping-field-names=gender,city,residenceStatus
