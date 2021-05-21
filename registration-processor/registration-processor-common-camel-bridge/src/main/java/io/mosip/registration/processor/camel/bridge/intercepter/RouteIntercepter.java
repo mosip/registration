@@ -23,7 +23,10 @@ public class RouteIntercepter {
 	@Autowired
 	private PauseFlowPredicate pauseFlowPredicate;
 
-	private String workflowStatusUpdateAddress = MessageBusAddress.WORKFLOW_EVENT_UPDATE_ADDRESS.getAddress();
+	@Autowired
+	private WorkflowPredicate workflowPredicate;
+
+	private String workflowInternalActionAddress = MessageBusAddress.WORKFLOW_INTERNAL_ACTION_ADDRESS.getAddress();
 
 	public List<RouteDefinition> intercept(CamelContext camelContext, List<RouteDefinition> routeDefinitions) {
 		routeDefinitions.forEach(x -> {
@@ -33,7 +36,10 @@ public class RouteIntercepter {
 					@Override
 					public void configure() throws Exception {
 
-						interceptFrom("*").when(pauseFlowPredicate).to(endpointPrefix + workflowStatusUpdateAddress).stop();
+						interceptFrom("*").when(pauseFlowPredicate).to(endpointPrefix + workflowInternalActionAddress)
+								.stop();
+						interceptSendToEndpoint("*").when(workflowPredicate)
+								.to(endpointPrefix + workflowInternalActionAddress).stop();
 					}
 				});
 

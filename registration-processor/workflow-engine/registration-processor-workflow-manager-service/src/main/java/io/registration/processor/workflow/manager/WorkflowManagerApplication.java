@@ -3,7 +3,7 @@ package io.registration.processor.workflow.manager;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import io.registration.processor.workflow.manager.stage.WorkflowActionApi;
-import io.registration.processor.workflow.manager.stage.WorkflowEventUpdateVerticle;
+import io.registration.processor.workflow.manager.stage.WorkflowInternalActionVerticle;
 
 
 public class WorkflowManagerApplication 
@@ -14,7 +14,7 @@ public class WorkflowManagerApplication
 				"io.mosip.registration.processor.status.config", "io.mosip.registration.processor.core.kernel.beans",
 				"io.mosip.registration.processor.packet.storage.config");
 		ctx.refresh();
-		WorkflowEventUpdateVerticle workflowEventUpdateVerticle = ctx.getBean(WorkflowEventUpdateVerticle.class);
+		WorkflowInternalActionVerticle workflowEventUpdateVerticle = ctx.getBean(WorkflowInternalActionVerticle.class);
 		workflowEventUpdateVerticle.deployVerticle();
 		WorkflowActionApi workflowActionApi = ctx.getBean(WorkflowActionApi.class);
 		workflowActionApi.deployVerticle();

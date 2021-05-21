@@ -11,7 +11,7 @@ import io.mosip.registration.processor.packet.storage.utils.PacketManagerService
 import io.registration.processor.workflow.manager.service.WorkflowActionService;
 import io.registration.processor.workflow.manager.service.WorkflowSearchService;
 import io.registration.processor.workflow.manager.stage.WorkflowActionApi;
-import io.registration.processor.workflow.manager.stage.WorkflowEventUpdateVerticle;
+import io.registration.processor.workflow.manager.stage.WorkflowInternalActionVerticle;
 import io.registration.processor.workflow.manager.stage.WorkflowSearchApi;
 import io.registration.processor.workflow.manager.util.WebSubUtil;
 import io.registration.processor.workflow.manager.validator.WorkflowActionRequestValidator;
@@ -19,8 +19,8 @@ import io.registration.processor.workflow.manager.validator.WorkflowSearchReques
 
 public class WorkflowManagerConfigBeans {
 	@Bean
-	public WorkflowEventUpdateVerticle getWorkflowEventUpdateVerticle() {
-		return new WorkflowEventUpdateVerticle();
+	public WorkflowInternalActionVerticle getWorkflowEventUpdateVerticle() {
+		return new WorkflowInternalActionVerticle();
 	}
 
 	@Bean

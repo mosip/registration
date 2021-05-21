@@ -19,11 +19,11 @@ import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.camel.bridge.model.Setting;
-import io.mosip.registration.processor.core.abstractverticle.WorkflowEventDTO;
+import io.mosip.registration.processor.core.abstractverticle.WorkflowInternalActionDTO;
+import io.mosip.registration.processor.core.code.WorkflowInternalActionCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.vertx.core.json.JsonObject;
 import net.minidev.json.JSONArray;
 
@@ -65,17 +65,19 @@ public class PauseFlowPredicate implements Predicate {
 			JSONArray jsonArray = JsonPath.read(message, setting.getMatchExpression());
 			if (Pattern.matches(setting.getFromAddress(), fromAddress)
 					&& !jsonArray.isEmpty()) {
-				WorkflowEventDTO workflowEventDTO = new WorkflowEventDTO();
-				workflowEventDTO.setResumeTimestamp(DateUtils
+					WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
+					workflowInternalActionDTO.setResumeTimestamp(DateUtils
 						.formatToISOString(DateUtils.getUTCCurrentDateTime().plusSeconds(setting.getPauseFor())));
-				workflowEventDTO.setRid(json.getString("rid"));
-				workflowEventDTO.setDefaultResumeAction(setting.getDefaultResumeAction());
-				workflowEventDTO.setStatusCode(RegistrationStatusCode.PAUSED.toString());
-				workflowEventDTO.setEventTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
-				workflowEventDTO.setStatusComment(PlatformSuccessMessages.PACKET_PAUSED_HOTLISTED.getMessage());
-				workflowEventDTO.setResumeRemoveTags(setting.getResumeRemoveTags());
+					workflowInternalActionDTO.setRid(json.getString("rid"));
+					workflowInternalActionDTO.setDefaultResumeAction(setting.getDefaultResumeAction());
+					workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.PACKET_FOR_PAUSED.toString());
+					workflowInternalActionDTO
+							.setEventTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+					workflowInternalActionDTO
+							.setActionMessage(PlatformSuccessMessages.PACKET_PAUSED_HOTLISTED.getMessage());
+					workflowInternalActionDTO.setResumeRemoveTags(setting.getResumeRemoveTags());
 		
-					exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
+					exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowInternalActionDTO));
 					return true;
 				} 
 			}catch (JsonProcessingException e) {

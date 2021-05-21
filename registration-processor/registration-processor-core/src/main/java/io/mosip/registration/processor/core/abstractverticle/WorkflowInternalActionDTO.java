@@ -3,11 +3,11 @@ package io.mosip.registration.processor.core.abstractverticle;
 import java.io.Serializable;
 
 
-// TODO: Auto-generated Javadoc
+
 /**
- * The Class WorkFlowEventDTO.
+ * The Class WorkflowInternalActionDTO.
  */
-public class WorkflowEventDTO extends MessageDTO implements Serializable {
+public class WorkflowInternalActionDTO extends MessageDTO implements Serializable {
 
 
 	/** The Constant serialVersionUID. */
@@ -16,18 +16,20 @@ public class WorkflowEventDTO extends MessageDTO implements Serializable {
 	/**
 	 * Instantiates a new work flow event DTO.
 	 */
-	public WorkflowEventDTO() {
+	public WorkflowInternalActionDTO() {
 		super();
 	}
 
 	/** The rid. */
 	private String rid;
 
-	/** The status code. */
-	private String statusCode;
 
-	/** The status comment. */
-	private String statusComment;
+	/** The action code. */
+	private String actionCode;
+
+
+	/** The action message. */
+	private String actionMessage;
 
 	/** The resume timestamp. */
 	private String resumeTimestamp;
@@ -40,6 +42,7 @@ public class WorkflowEventDTO extends MessageDTO implements Serializable {
 
 	/** The resume remove tags. */
 	private String resumeRemoveTags;
+
 
 
 	/*
@@ -64,39 +67,39 @@ public class WorkflowEventDTO extends MessageDTO implements Serializable {
 	}
 
 	/**
-	 * Gets the status code.
+	 * Gets the action code.
 	 *
-	 * @return the status code
+	 * @return the action code
 	 */
-	public String getStatusCode() {
-		return statusCode;
+	public String getActionCode() {
+		return actionCode;
 	}
 
 	/**
-	 * Sets the status code.
+	 * Sets the action code.
 	 *
-	 * @param statusCode the new status code
+	 * @param actionCode the new action code
 	 */
-	public void setStatusCode(String statusCode) {
-		this.statusCode = statusCode;
+	public void setActionCode(String actionCode) {
+		this.actionCode = actionCode;
 	}
 
 	/**
-	 * Gets the status comment.
+	 * Gets the action message.
 	 *
-	 * @return the status comment
+	 * @return the action message
 	 */
-	public String getStatusComment() {
-		return statusComment;
+	public String getActionMessage() {
+		return actionMessage;
 	}
 
 	/**
-	 * Sets the status comment.
+	 * Sets the action message.
 	 *
-	 * @param statusComment the new status comment
+	 * @param actionMessage the new action message
 	 */
-	public void setStatusComment(String statusComment) {
-		this.statusComment = statusComment;
+	public void setActionMessage(String actionMessage) {
+		this.actionMessage = actionMessage;
 	}
 
 	/**
