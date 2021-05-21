@@ -82,6 +82,9 @@ public class WorkflowActionApiTest {
 	
 	List<InternalRegistrationStatusDto> internalRegistrationStatusDtos;
 
+	@Mock
+	WorkflowSearchApi workflowSearchApi;
+
 	@InjectMocks
 	WorkflowActionApi workflowActionApi = new WorkflowActionApi() {
 
