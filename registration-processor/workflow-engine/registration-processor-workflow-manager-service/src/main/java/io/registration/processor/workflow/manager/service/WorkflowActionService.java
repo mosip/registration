@@ -15,8 +15,6 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.kernel.websub.api.exception.WebSubClientException;
-import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
-import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
@@ -25,7 +23,6 @@ import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.code.WorkflowActionCode;
-import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.WorkflowActionException;
@@ -34,7 +31,6 @@ import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessag
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
-import io.mosip.registration.processor.core.util.MessageBusUtil;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventDTO;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
@@ -43,7 +39,6 @@ import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
-import io.registration.processor.workflow.manager.constants.ReprocessorConstants;
 import io.registration.processor.workflow.manager.util.WebSubUtil;
 
 
@@ -220,8 +215,7 @@ public class WorkflowActionService {
 						description.setMessage(PlatformErrorMessages.RPR_WAS_REPROCESS_FAILED.getMessage());
 					} else {
 					internalRegistrationStatusDto = updateRegistrationStatus(internalRegistrationStatusDto,
-								RegistrationStatusCode.PROCESSING, workflowActionCode);
-					sendPacketEventforResumeBeginning(internalRegistrationStatusDto);
+							RegistrationStatusCode.RESUMABLE, workflowActionCode);
 						description.setMessage(
 								String.format(PlatformSuccessMessages.RPR_WORKFLOW_ACTION_SERVICE_SUCCESS.getMessage(),
 										workflowActionCode.name()));
@@ -282,8 +276,7 @@ public class WorkflowActionService {
 							description.setMessage(PlatformErrorMessages.RPR_WAS_REPROCESS_FAILED.getMessage());
 					} else {
 						internalRegistrationStatusDto = updateRegistrationStatus(internalRegistrationStatusDto,
-									RegistrationStatusCode.PROCESSING, workflowActionCode);
-							sendPacketEventForResumeProcessing(internalRegistrationStatusDto);
+							RegistrationStatusCode.RESUMABLE, workflowActionCode);
 							description.setMessage(String.format(
 									PlatformSuccessMessages.RPR_WORKFLOW_ACTION_SERVICE_SUCCESS.getMessage(),
 								workflowActionCode.name()));
@@ -313,111 +306,6 @@ public class WorkflowActionService {
 
 
 	}
-
-	/**
-	 * send packet event for resume processing.
-	 *
-	 * @param registrationStatusDto the registration status dto
-	 */
-	private void sendPacketEventForResumeProcessing(
-			InternalRegistrationStatusDto registrationStatusDto) {
-		String stageAddress = MessageBusUtil
-				.getMessageBusAdress(registrationStatusDto.getRegistrationStageName());
-		RegistrationTransactionStatusCode registrationLatestTransactionStatusCode=RegistrationTransactionStatusCode.valueOf(registrationStatusDto.getLatestTransactionStatusCode());
-		MessageDTO object = null;
-		switch (registrationLatestTransactionStatusCode) {
-		case SUCCESS:
-			object = getMessageDto(registrationStatusDto, true, false);
-			stageAddress = stageAddress.concat(ReprocessorConstants.BUS_OUT);
-			break;
-		case FAILED:
-			object = getMessageDto(registrationStatusDto, false, false);
-			stageAddress = stageAddress.concat(ReprocessorConstants.BUS_OUT);
-			break;
-		case IN_PROGRESS:
-			object = getMessageDto(registrationStatusDto, true, false);
-			stageAddress = stageAddress.concat(ReprocessorConstants.BUS_IN);
-			break;
-		case ERROR:
-			object = getMessageDto(registrationStatusDto, false, true);
-			stageAddress = stageAddress.concat(ReprocessorConstants.BUS_OUT);
-			break;
-		case REPROCESS:
-			object = getMessageDto(registrationStatusDto, true, false);
-			stageAddress = stageAddress.concat(ReprocessorConstants.BUS_IN);
-			break;
-		case PROCESSED:
-			object = getMessageDto(registrationStatusDto, true, false);
-			stageAddress = stageAddress.concat(ReprocessorConstants.BUS_OUT);
-			break;
-		case REJECTED:
-			object = getMessageDto(registrationStatusDto, false, false);
-			stageAddress = stageAddress.concat(ReprocessorConstants.BUS_OUT);
-			break;
-		case PROCESSING:
-			object = getMessageDto(registrationStatusDto, true, false);
-			stageAddress = stageAddress.concat(ReprocessorConstants.BUS_IN);
-			break;
-		default:
-			regProcLogger.debug(PlatformErrorMessages.RPR_WAS_REPROCESS_FAILED.getMessage());
-			break;
-		}
-
-		if (object != null) {
-			MessageBusAddress address = new MessageBusAddress(stageAddress);
-			sendMessage(object, address);
-		}
-
-	}
-
-	/**
-	 * Gets the message dto.
-	 *
-	 * @param registrationStatusDto the registration status dto
-	 * @param isValid               the is valid
-	 * @param isInternalError       the is internal error
-	 * @return the message dto
-	 */
-	private MessageDTO getMessageDto(InternalRegistrationStatusDto registrationStatusDto, boolean isValid,
-			boolean isInternalError) {
-		MessageDTO object = new MessageDTO();
-		object.setRid(registrationStatusDto.getRegistrationId());
-		object.setIsValid(isValid);
-		object.setReg_type(RegistrationType.valueOf(registrationStatusDto.getRegistrationType()));
-		object.setInternalError(isInternalError);
-		return object;
-
-	}
-
-	/**
-	 * send packet eventfor resume beginning.
-	 *
-	 * @param registrationStatusDto the registration status dto
-	 */
-	private void sendPacketEventforResumeBeginning(
-			InternalRegistrationStatusDto registrationStatusDto) {
-		String stageAddress = MessageBusUtil.getMessageBusAdress(resumeFromBeginningStage);
-		MessageDTO object = getMessageDto(registrationStatusDto, true, false);
-		stageAddress = stageAddress.concat(ReprocessorConstants.BUS_IN);
-		MessageBusAddress address = new MessageBusAddress(stageAddress);
-		sendMessage(object, address);
-
-	}
-
-	/**
-	 * send message.
-	 *
-	 * @param object        the object
-	 * @param address       the address
-	 */
-	private void sendMessage(MessageDTO object, MessageBusAddress address) {
-		regProcLogger.debug("sendMessage called for workflowId and address {} {}", object.getRid(),
-				address.getAddress());
-		// WorkflowEventUpdateVerticle.sendMessage(object, address);
-	}
-
-
-
 
 	/**
 	 * Removes the hotlisted tag.

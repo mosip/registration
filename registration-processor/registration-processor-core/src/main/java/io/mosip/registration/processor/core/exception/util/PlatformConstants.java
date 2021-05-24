@@ -129,6 +129,8 @@ public final class PlatformConstants {
 
 	public static final String RPR_WORKFLOW_ACTION_SERVICE = RPR_REGISTRATION_PROCESSOR_PREFIX + "WAS-";
 
+	public static final String RPR_WORKFLOW_ACTION_JOB = RPR_REGISTRATION_PROCESSOR_PREFIX + "WAJ-";
+
 	/**
 	 * Instantiates a new RPR platform error codes.
 	 */

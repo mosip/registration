@@ -225,6 +225,7 @@ public class RegistrationStatusDao {
 		LocalDateTime timeDifference = LocalDateTime.now().minusSeconds(elapseTime);
 		List<String> statusCodes=new ArrayList<>();
 		statusCodes.add(RegistrationStatusCode.PAUSED.toString());
+		statusCodes.add(RegistrationStatusCode.RESUMABLE.toString());
 		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
 				+ ".latestTransactionStatusCode IN :status" + EMPTY_STRING + AND + EMPTY_STRING + alias
 				+ ".regProcessRetryCount<=" + ":reprocessCount" + EMPTY_STRING + AND + EMPTY_STRING + alias
@@ -307,19 +308,19 @@ public class RegistrationStatusDao {
 		return registrationStatusRepositary.createQuerySelect(queryStr, params);
 	}
 
-	public List<RegistrationStatusEntity> getResumablePackets(Integer fetchSize) {
+	public List<RegistrationStatusEntity> getActionablePausedPackets(Integer fetchSize) {
 		Map<String, Object> params = new HashMap<>();
 		String className = RegistrationStatusEntity.class.getSimpleName();
 		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
 		
 
 		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
-				+ ".statusCode =:status" +  EMPTY_STRING + AND + EMPTY_STRING + alias
+				+ ".statusCode IN :statusCodes" + EMPTY_STRING + AND + EMPTY_STRING + alias
 				+ ".resumeTimeStamp < now()" + EMPTY_STRING + AND + EMPTY_STRING + alias
 				+ ".defaultResumeAction is not null" + EMPTY_STRING + ORDER_BY + EMPTY_STRING + UPDATED_DATE_TIME;
-
-		params.put("status", RegistrationStatusCode.PAUSED.toString());
-		
+		List<String> statusCodes = new ArrayList<String>();
+		statusCodes.add(RegistrationStatusCode.PAUSED.toString());
+		params.put("statusCodes", statusCodes);
 
 		return registrationStatusRepositary.createQuerySelect(queryStr, params, fetchSize);
 	}

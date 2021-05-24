@@ -1262,6 +1262,8 @@ public enum PlatformErrorMessages {
 
 	RPR_WAA_VALIDATION_SUCCESS(PlatformConstants.RPR_WORKFLOW_ACTION_API + "005", "Workflow id validated successfully"),
 
+	RPR_WORKFLOW_ACTION_JOB_FAILED(PlatformConstants.RPR_WORKFLOW_ACTION_JOB, "Workflow action job  failed"),
+
 	/** The external stage failed. */
 	EXTERNAL_STAGE_FAILED("", "External Stage Failed"),
 
