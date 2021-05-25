@@ -47,7 +47,6 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.SubWorkflowMappingService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -187,20 +186,10 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
         regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                 registrationId, "PacketUploaderServiceImpl::validateAndUploadPacket()::entry");
         messageDTO.setRid(registrationId);
-        String additionalInfoReqId = null;
         SyncRegistrationEntity regEntity = null;
         
         try {
-        	if (mainProcess.contains(process)) {
-                regEntity = syncRegistrationService.findByRegistrationId(registrationId);
-           	}
-        	else {
-        		List<SubWorkflowDto> subWorkflowDtos = subWorkflowMappingService.getSubWorkflowMappingByRegIdAndProcessAndIteration(registrationId, process, iteration);
-	       		 if (CollectionUtils.isNotEmpty(subWorkflowDtos)) {
-	       			 additionalInfoReqId = subWorkflowDtos.get(0).getAdditionalInfoReqId();
-	       		 }
-	       		regEntity = syncRegistrationService.findByRegistrationIdAndAdditionalInfoReqId(registrationId, additionalInfoReqId);
-        	}
+        	regEntity = syncRegistrationService.findByRegistrationIdAndProcessAndIteration(registrationId, process, iteration);
         	
             messageDTO.setReg_type(regEntity.getRegistrationType());
             dto = registrationStatusService.getRegistrationStatus(registrationId, process, iteration);
