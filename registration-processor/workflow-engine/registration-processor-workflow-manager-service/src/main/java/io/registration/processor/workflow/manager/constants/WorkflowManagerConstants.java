@@ -16,11 +16,11 @@ public class WorkflowManagerConstants {
 	public static final String MONTHS = "months";
 	public static final String DAYS_OF_WEEK = "days of week";
 	public static final String TYPE_VALUE = "registration.processor.workflow.action.job.type";
-	public static final String SECONDS_VALUE = "registration.processor.workflow.action.job..seconds";
-	public static final String MINUTES_VALUE = "registration.processor.workflow.action.job..minutes";
-	public static final String HOURS_VALUE = "registration.processor.workflow.action.job..hours";
-	public static final String DAY_OF_MONTH_VALUE = "registration.processor.workflow.action.job..days_of_month";
-	public static final String MONTHS_VALUE = "registration.processor.workflow.action.job..months";
+	public static final String SECONDS_VALUE = "registration.processor.workflow.action.job.seconds";
+	public static final String MINUTES_VALUE = "registration.processor.workflow.action.job.minutes";
+	public static final String HOURS_VALUE = "registration.processor.workflow.action.job.hours";
+	public static final String DAY_OF_MONTH_VALUE = "registration.processor.workflow.action.jobs.days_of_month";
+	public static final String MONTHS_VALUE = "registration.processor.workflow.action.job.months";
 	public static final String DAYS_OF_WEEK_VALUE = "registration.processor.workflow.action.job.days_of_week";
 	public static final String CHIME = "chime";
 	public static final String OPERATION = "operation";
