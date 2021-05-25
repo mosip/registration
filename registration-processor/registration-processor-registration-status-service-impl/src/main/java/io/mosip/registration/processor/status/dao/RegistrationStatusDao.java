@@ -325,4 +325,18 @@ public class RegistrationStatusDao {
 		return registrationStatusRepositary.createQuerySelect(queryStr, params, fetchSize);
 	}
 
+	public List<RegistrationStatusEntity> getResumablePackets(Integer fetchSize) {
+		Map<String, Object> params = new HashMap<>();
+		String className = RegistrationStatusEntity.class.getSimpleName();
+		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
+
+		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
+				+ ".statusCode =:status" + EMPTY_STRING
+				+ ORDER_BY + EMPTY_STRING + UPDATED_DATE_TIME;
+
+		params.put("status", RegistrationStatusCode.RESUMABLE.toString());
+
+		return registrationStatusRepositary.createQuerySelect(queryStr, params, fetchSize);
+	}
+
 }

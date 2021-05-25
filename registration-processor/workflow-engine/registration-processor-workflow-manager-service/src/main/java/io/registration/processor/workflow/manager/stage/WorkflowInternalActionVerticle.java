@@ -22,6 +22,7 @@ import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.ModuleName;
+import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.code.WorkflowInternalActionCode;
 import io.mosip.registration.processor.core.exception.WorkflowInternalActionException;
@@ -30,12 +31,14 @@ import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessag
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
+import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventDTO;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import io.registration.processor.workflow.manager.util.WebSubUtil;
 import io.vertx.core.json.JsonObject;
 @Component
 public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
@@ -77,6 +80,10 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 	public static String MODULE_NAME = ModuleName.WORKFLOW_INTERNAL_ACTION.toString();
 
 	public static String MODULE_ID = PlatformSuccessMessages.RPR_WORKFLOW_INTERNAL_ACTION_SUCCESS.getCode();
+
+	/** The web sub util. */
+	@Autowired
+	WebSubUtil webSubUtil;
 
 	/**
 	 * Deploy verticle.
@@ -125,7 +132,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		try {
 			workflowInternalActionCode = WorkflowInternalActionCode.valueOf(workflowInternalActionDTO.getActionCode());
 			switch (workflowInternalActionCode) {
-			case PACKET_FOR_PAUSED:
+			case MARK_AS_PAUSED:
 				processPacketForPaused(workflowInternalActionDTO);
 				break;
 			case COMPLETE_AS_PROCESSED:
@@ -183,8 +190,9 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 	private void processMarkAsReprocess(WorkflowInternalActionDTO workflowInternalActionDTO) {
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
 				.getRegistrationStatus(workflowInternalActionDTO.getRid());
-		// registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSED);
+		registrationStatusDto.setStatusCode(RegistrationStatusCode.REPROCESS.toString());
 		registrationStatusService.updateRegistrationStatus(registrationStatusDto, MODULE_ID, MODULE_NAME);
+		// TODO new notifiction service need to create for execution failed
 	}
 
 	private void processMarkAsFailed(WorkflowInternalActionDTO workflowInternalActionDTO) {
@@ -192,6 +200,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 				.getRegistrationStatus(workflowInternalActionDTO.getRid());
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 		registrationStatusService.updateRegistrationStatus(registrationStatusDto, MODULE_ID, MODULE_NAME);
+		// TODO new notifiction service need to create for execution failed
 	}
 
 	private void processCompleteAsRejected(WorkflowInternalActionDTO workflowInternalActionDTO) {
@@ -199,6 +208,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 				.getRegistrationStatus(workflowInternalActionDTO.getRid());
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
 		registrationStatusService.updateRegistrationStatus(registrationStatusDto, MODULE_ID, MODULE_NAME);
+		sendWebSubEvent(registrationStatusDto);
 	}
 
 	private void processCompleteAsProcessed(WorkflowInternalActionDTO workflowInternalActionDTO) {
@@ -206,6 +216,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 				.getRegistrationStatus(workflowInternalActionDTO.getRid());
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSED.toString());
 		registrationStatusService.updateRegistrationStatus(registrationStatusDto, MODULE_ID, MODULE_NAME);
+		sendWebSubEvent(registrationStatusDto);
 	}
 
 	private void processPacketForPaused(WorkflowInternalActionDTO workflowInternalActionDTO) {
@@ -255,6 +266,19 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 	@Override
 	protected String getPropertyPrefix() {
 		return STAGE_PROPERTY_PREFIX;
+	}
+
+	private void sendWebSubEvent(InternalRegistrationStatusDto registrationStatusDto) {
+		WorkflowCompletedEventDTO workflowCompletedEventDTO = new WorkflowCompletedEventDTO();
+		workflowCompletedEventDTO.setInstanceId(registrationStatusDto.getRegistrationId());
+		workflowCompletedEventDTO.setResultCode(registrationStatusDto.getStatusCode());
+		workflowCompletedEventDTO.setWorkflowType(registrationStatusDto.getRegistrationType());
+		if (registrationStatusDto.getStatusCode().equalsIgnoreCase(RegistrationStatusCode.REJECTED.toString())) {
+			workflowCompletedEventDTO.setErrorCode(RegistrationExceptionTypeCode.PACKET_REJECTED.name());
+		}
+
+		webSubUtil.publishEvent(workflowCompletedEventDTO);
+
 	}
 
 }

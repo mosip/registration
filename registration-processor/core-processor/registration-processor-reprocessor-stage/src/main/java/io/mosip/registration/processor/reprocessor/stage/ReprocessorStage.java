@@ -217,9 +217,20 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ReprocessorStage::process()::entry");
 		try {
+			reprocessorDtoList = registrationStatusService.getResumablePackets(fetchSize);
+			if (!CollectionUtils.isEmpty(reprocessorDtoList)) {
+				if (reprocessorDtoList.size() < fetchSize) {
+					List<InternalRegistrationStatusDto>  reprocessorPacketList = registrationStatusService.getUnProcessedPackets(fetchSize - reprocessorDtoList.size(), elapseTime,
+							reprocessCount, statusList);
+					if (!CollectionUtils.isEmpty(reprocessorPacketList)) {
+						reprocessorDtoList.addAll(reprocessorPacketList);
+					}
+				}
+			} else {
+				reprocessorDtoList = registrationStatusService.getUnProcessedPackets(fetchSize, elapseTime,
+						reprocessCount, statusList);
+			}
 
-			reprocessorDtoList = registrationStatusService.getUnProcessedPackets(fetchSize, elapseTime, reprocessCount,
-					statusList);
 
 			if (!CollectionUtils.isEmpty(reprocessorDtoList)) {
 				reprocessorDtoList.forEach(dto -> {

@@ -214,6 +214,9 @@ public class WorkflowActionService {
 								RegistrationStatusCode.REPROCESS_FAILED, workflowActionCode);
 						description.setMessage(PlatformErrorMessages.RPR_WAS_REPROCESS_FAILED.getMessage());
 					} else {
+					internalRegistrationStatusDto
+							.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+					internalRegistrationStatusDto.setRegistrationStageName(resumeFromBeginningStage);
 					internalRegistrationStatusDto = updateRegistrationStatus(internalRegistrationStatusDto,
 							RegistrationStatusCode.RESUMABLE, workflowActionCode);
 						description.setMessage(

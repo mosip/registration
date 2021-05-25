@@ -12,12 +12,13 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.abstractverticle.WorkflowInternalActionDTO;
 import io.mosip.registration.processor.core.code.WorkflowInternalActionCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.vertx.core.json.JsonObject;
 
-public class WorkflowPredicate implements Predicate {
+public class WorkflowCommandPredicate implements Predicate {
 
-	private static final Logger LOGGER = RegProcessorLogger.getLogger(WorkflowPredicate.class);
+	private static final Logger LOGGER = RegProcessorLogger.getLogger(WorkflowCommandPredicate.class);
 
 	@Autowired
 	private ObjectMapper objectMapper;
@@ -68,8 +69,7 @@ public class WorkflowPredicate implements Predicate {
 
 		workflowEventDTO.setRid(json.getString("rid"));
 		workflowEventDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_REJECTED.toString());
-		// TODO statusMessage update is needed?
-		// workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_PAUSED_FOR_ADDITIONAL_INFO.getMessage());
+		workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_COMPLETE_AS_REJECTED.getMessage());
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
 
 	}
@@ -81,8 +81,7 @@ public class WorkflowPredicate implements Predicate {
 
 		workflowEventDTO.setRid(json.getString("rid"));
 		workflowEventDTO.setActionCode(WorkflowInternalActionCode.MARK_AS_REPROCESS.toString());
-		// TODO statusMessage update is needed?
-		// workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_PAUSED_FOR_ADDITIONAL_INFO.getMessage());
+		workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_MARK_AS_REPROCESS.getMessage());
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
 	}
 
@@ -93,8 +92,7 @@ public class WorkflowPredicate implements Predicate {
 
 		workflowEventDTO.setRid(json.getString("rid"));
 		workflowEventDTO.setActionCode(WorkflowInternalActionCode.MARK_AS_FAILED.toString());
-		// TODO statusMessage update is needed?
-		// workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_PAUSED_FOR_ADDITIONAL_INFO.getMessage());
+		workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_MARK_AS_FAILED.getMessage());
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
 
 	}
@@ -106,8 +104,7 @@ public class WorkflowPredicate implements Predicate {
 
 		workflowEventDTO.setRid(json.getString("rid"));
 		workflowEventDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_PROCESSED.toString());
-		// TODO statusMessage update is needed?
-		// workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_PAUSED_FOR_ADDITIONAL_INFO.getMessage());
+		workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_COMPLETE_AS_PROCESSED.getMessage());
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
 
 	}

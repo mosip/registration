@@ -113,7 +113,7 @@ public class WorkflowInternalActionVerticleTest {
 	public void testProcessSuccess() {
 		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
 		workflowInternalActionDTO.setRid("10006100390000920200603070407");
-		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.PACKET_FOR_PAUSED.toString());
+		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.MARK_AS_PAUSED.toString());
 		workflowInternalActionDTO.setActionMessage("packet is paused");
 		workflowInternalActionDTO.setResumeTimestamp("2021-03-02T08:24:29.526Z");
 		workflowInternalActionDTO.setEventTimestamp("2021-03-02T08:24:29.526Z");
@@ -131,7 +131,7 @@ public class WorkflowInternalActionVerticleTest {
 	public void testTablenotAccessibleException() {
 		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
 		workflowInternalActionDTO.setRid("10006100390000920200603070407");
-		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.PACKET_FOR_PAUSED.toString());
+		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.MARK_AS_PAUSED.toString());
 		workflowInternalActionDTO.setActionMessage("packet is paused");
 		workflowInternalActionDTO.setResumeTimestamp("2021-03-02T08:24:29.526Z");
 		workflowInternalActionDTO.setEventTimestamp("2021-03-02T08:24:29.526Z");
@@ -151,7 +151,7 @@ public class WorkflowInternalActionVerticleTest {
 	public void testDateTimeParseException() {
 		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
 		workflowInternalActionDTO.setRid("10006100390000920200603070407");
-		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.PACKET_FOR_PAUSED.toString());
+		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.MARK_AS_PAUSED.toString());
 		workflowInternalActionDTO.setActionMessage("packet is paused");
 		workflowInternalActionDTO.setResumeTimestamp("2021-03-02T08:24:29.5Z");
 		workflowInternalActionDTO.setEventTimestamp("2021-03-02T08:24:29.526Z");
@@ -169,7 +169,7 @@ public class WorkflowInternalActionVerticleTest {
 	public void testException() {
 		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
 		workflowInternalActionDTO.setRid("10006100390000920200603070407");
-		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.PACKET_FOR_PAUSED.toString());
+		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.MARK_AS_PAUSED.toString());
 		workflowInternalActionDTO.setActionMessage("packet is paused");
 		workflowInternalActionDTO.setResumeTimestamp("2021-03-02T08:24:29.5Z");
 		workflowInternalActionDTO.setEventTimestamp("2021-03-02T08:24:29.526Z");

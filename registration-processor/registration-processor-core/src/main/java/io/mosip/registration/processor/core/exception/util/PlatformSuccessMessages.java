@@ -130,7 +130,11 @@ public enum PlatformSuccessMessages {
 	RPR_REQUEST_HANDLER_LOST_PACKET_SUCCESS(PlatformConstants.RPR_PACKET_REQUEST_HANDLER_MODULE + "000",
 			"Lost packet id value fetched successfully"),
 
-	PACKET_PAUSED_HOTLISTED("","packet paused  because of hotlisting");
+	PACKET_MARK_AS_PAUSED("", "packet paused  because of hotlisting"),
+	PACKET_COMPLETE_AS_PROCESSED("", "packet process complete as processed"),
+	PACKET_COMPLETE_AS_REJECTED("", "packet process complete as rejected"),
+	PACKET_MARK_AS_FAILED("", "packet mark as failed"),
+	PACKET_MARK_AS_REPROCESS("", "packet mark as reprocess");
 
 	/** The success message. */
 	private final String successMessage;

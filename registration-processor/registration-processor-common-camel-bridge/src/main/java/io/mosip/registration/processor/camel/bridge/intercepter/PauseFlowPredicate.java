@@ -70,11 +70,11 @@ public class PauseFlowPredicate implements Predicate {
 						.formatToISOString(DateUtils.getUTCCurrentDateTime().plusSeconds(setting.getPauseFor())));
 					workflowInternalActionDTO.setRid(json.getString("rid"));
 					workflowInternalActionDTO.setDefaultResumeAction(setting.getDefaultResumeAction());
-					workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.PACKET_FOR_PAUSED.toString());
+					workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.MARK_AS_PAUSED.toString());
 					workflowInternalActionDTO
 							.setEventTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 					workflowInternalActionDTO
-							.setActionMessage(PlatformSuccessMessages.PACKET_PAUSED_HOTLISTED.getMessage());
+							.setActionMessage(PlatformSuccessMessages.PACKET_MARK_AS_PAUSED.getMessage());
 					workflowInternalActionDTO.setResumeRemoveTags(setting.getResumeRemoveTags());
 		
 					exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowInternalActionDTO));

@@ -129,4 +129,6 @@ public interface RegistrationStatusService<T, U, D> {
 	public List<InternalRegistrationStatusDto> getActionablePausedPackets(Integer fetchSize);
 
 	public Page<InternalRegistrationStatusDto> searchRegistrationDetails(SearchInfo searchInfo);
+
+	public List<InternalRegistrationStatusDto> getResumablePackets(Integer fetchSize);
 }

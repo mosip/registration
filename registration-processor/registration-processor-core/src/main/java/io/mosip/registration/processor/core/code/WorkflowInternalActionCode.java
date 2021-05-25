@@ -2,7 +2,7 @@ package io.mosip.registration.processor.core.code;
 
 public enum WorkflowInternalActionCode {
 
-	PACKET_FOR_PAUSED,
+	MARK_AS_PAUSED,
 
 	COMPLETE_AS_PROCESSED,
 

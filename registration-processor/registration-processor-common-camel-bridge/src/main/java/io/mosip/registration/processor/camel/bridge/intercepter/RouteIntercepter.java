@@ -24,7 +24,7 @@ public class RouteIntercepter {
 	private PauseFlowPredicate pauseFlowPredicate;
 
 	@Autowired
-	private WorkflowPredicate workflowPredicate;
+	private WorkflowCommandPredicate workflowCommandPredicate;
 
 	private String workflowInternalActionAddress = MessageBusAddress.WORKFLOW_INTERNAL_ACTION_ADDRESS.getAddress();
 
@@ -38,7 +38,7 @@ public class RouteIntercepter {
 
 						interceptFrom("*").when(pauseFlowPredicate).to(endpointPrefix + workflowInternalActionAddress)
 								.stop();
-						interceptSendToEndpoint("*").when(workflowPredicate)
+						interceptSendToEndpoint("*").when(workflowCommandPredicate)
 								.to(endpointPrefix + workflowInternalActionAddress).stop();
 					}
 				});
