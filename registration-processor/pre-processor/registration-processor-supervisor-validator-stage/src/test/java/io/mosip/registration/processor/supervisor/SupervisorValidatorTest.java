@@ -157,8 +157,6 @@ public class SupervisorValidatorTest {
 	/** The identity. */
 	private Identity identity = new Identity();
 
-	private String childMappingJson;
-
 	private JSONObject demoJson = new JSONObject();
 	private UserResponseDto userResponseDto = new UserResponseDto();
 	private RidDto ridDto = new RidDto();
@@ -188,9 +186,6 @@ public class SupervisorValidatorTest {
 	@Before
 	public void setUp() throws Exception {
 		classLoader = getClass().getClassLoader();
-		File childFile = new File(classLoader.getResource("Child_ID.json").getFile());
-		InputStream is = new FileInputStream(childFile);
-		childMappingJson = IOUtils.toString(is, "UTF-8");
 
 		File idJson = new File(classLoader.getResource("ID.json").getFile());
 		InputStream ip = new FileInputStream(idJson);
