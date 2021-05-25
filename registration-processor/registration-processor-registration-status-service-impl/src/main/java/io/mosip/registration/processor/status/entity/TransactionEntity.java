@@ -14,7 +14,7 @@ import org.hibernate.annotations.UpdateTimestamp;
  */
 @Entity
 @Table(name = "registration_transaction", schema = "regprc")
-public class TransactionEntity extends BaseRegistrationEntity {
+public class TransactionEntity extends BaseSyncRegistrationEntity {
 
 	/** The registration id. */
 	@Column(name = "reg_id")
