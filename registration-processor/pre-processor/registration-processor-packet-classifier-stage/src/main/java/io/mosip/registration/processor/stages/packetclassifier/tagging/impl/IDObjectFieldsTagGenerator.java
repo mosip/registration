@@ -86,7 +86,7 @@ public class IDObjectFieldsTagGenerator implements TagGenerator {
      */
     @Override
     public Map<String, String> generateTags(String registrationId, String process, 
-        Map<String, FieldDTO> idObjectFieldDTOMap, Map<String, String> metaInfoMap)  
+        Map<String, FieldDTO> idObjectFieldDTOMap, Map<String, String> metaInfoMap, int iteration)  
                 throws BaseCheckedException {
         try {
             Map<String, String> tags = new HashMap<String, String>();

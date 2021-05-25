@@ -210,7 +210,7 @@ public class PacketClassificationProcessor {
 						RegistrationTransactionTypeCode.PACKET_CLASSIFICATION.toString());
 			registrationStatusDto.setRegistrationStageName(stageName);
 
-			generateAndAddTags(registrationId, registrationStatusDto.getRegistrationType());
+			generateAndAddTags(registrationId, registrationStatusDto.getRegistrationType(), object.getIteration());
 			object.setTags(null);
 
 			registrationStatusDto.setLatestTransactionStatusCode(
@@ -316,7 +316,7 @@ public class PacketClassificationProcessor {
 			eventType, moduleId, moduleName, registrationId);
 	}
 
-	private void generateAndAddTags(String registrationId, String process)
+	private void generateAndAddTags(String registrationId, String process,int iteration)
 			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, 
 				IOException, BaseCheckedException, NumberFormatException, JSONException {
 		regProcLogger.debug("generateAndAddTags called for registration id {} {}", registrationId, 
@@ -330,7 +330,7 @@ public class PacketClassificationProcessor {
 		Map<String, String> allTags = new HashMap<String, String>();
 		for(TagGenerator tagGenerator : tagGenerators) {
 			Map<String, String> tags = tagGenerator.generateTags(registrationId, process, 
-				idObjectFieldDTOMap, metaInfoMap);
+				idObjectFieldDTOMap, metaInfoMap, iteration);
 			if(tags != null && !tags.isEmpty())
 				allTags.putAll(tags);
 		}
