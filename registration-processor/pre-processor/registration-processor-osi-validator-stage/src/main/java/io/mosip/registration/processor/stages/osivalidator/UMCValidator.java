@@ -87,7 +87,24 @@ public class UMCValidator {
 
 	@Value("${mosip.registration.gps_device_enable_flag}")
 	private String gpsEnable;
+	
+	@Value("${registration.processor.sub-process}")
+	private String subProcesses;
+	
+	@Value("${registration.processor.validateMachineforSubProcess.enabled}")
+	private boolean validateMachineforSubProcess;
+	
+	@Value("${registration-processor.validateRegistrationCenterforSubProcess.enabled}")
+	private boolean validateRegistrationCenterforSubProcess;
+	
+	@Value("${registration-processor.validateUMCMappingforSubProcess.enabled}")
+	private boolean validateUMCMappingforSubProcess;
+	
+	@Value("${registration-processor.validateDeviceforSubProcess.enabled}")
+	private boolean validateDeviceforSubProcess;
 
+	@Value("${registration-processor.validateCenterIdAndTimestampForSubProcess.enabled}")
+	private boolean validateCenterIdAndTimestampForSubProcess;
 	/** The identity iterator util. */
 	IdentityIteratorUtil identityIteratorUtil = new IdentityIteratorUtil();
 
@@ -97,6 +114,8 @@ public class UMCValidator {
 
 	@Autowired
 	private Environment env;
+
+	
 
 	/**
 	 * Validate registration center.
@@ -119,6 +138,9 @@ public class UMCValidator {
 	@SuppressWarnings("unchecked")
 	private boolean isValidRegistrationCenter(String registrationCenterId, String langCode, String effectiveDate,
 			InternalRegistrationStatusDto registrationStatusDto) throws ApisResourceAccessException, IOException {
+		if(!validateRegistrationCenterforSubProcess && subProcesses.contains(registrationStatusDto.getRegistrationType())) {
+			return true;
+		}
 		boolean activeRegCenter = false;
 		if (registrationCenterId == null || effectiveDate == null) {
 			registrationStatusDto.setStatusComment(StatusUtil.CENTER_ID_NOT_FOUND.getMessage());
@@ -186,6 +208,9 @@ public class UMCValidator {
 	private boolean isValidMachine(String machineId, String langCode, String effdatetimes,
 			InternalRegistrationStatusDto registrationStatusDto) throws ApisResourceAccessException, IOException {
 
+		if(!validateMachineforSubProcess  && subProcesses.contains(registrationStatusDto.getRegistrationType())) {
+			return true;
+		}
 		boolean isActiveMachine = false;
 		if (machineId == null) {
 			registrationStatusDto.setStatusComment(StatusUtil.MACHINE_ID_NOT_FOUND.getMessage());
@@ -258,7 +283,9 @@ public class UMCValidator {
 	private boolean isValidUMCmapping(String effectiveTimestamp, String registrationCenterId, String machineId,
 			String superviserId, String officerId, InternalRegistrationStatusDto registrationStatusDto)
 			throws ApisResourceAccessException, IOException {
-
+        if(!validateUMCMappingforSubProcess && subProcesses.contains(registrationStatusDto.getRegistrationType())){
+        	return true;
+        }
 		boolean supervisorActive = false;
 		boolean officerActive = false;
 		List<String> pathsegments = new ArrayList<>();
@@ -417,6 +444,9 @@ public class UMCValidator {
 	 */
 	private boolean isValidDevice(RegOsiDto regOsi,
 			InternalRegistrationStatusDto registrationStatusDto) throws ApisResourceAccessException, IOException {
+		if(!validateDeviceforSubProcess && subProcesses.contains(registrationStatusDto.getRegistrationType())) {
+			return true;
+		}
 		boolean isValidDevice = false;
 		if (isDeviceActive(regOsi, registrationStatusDto)) {
 			isValidDevice = true;
@@ -553,6 +583,9 @@ public class UMCValidator {
 
 	private boolean validateCenterIdAndTimestamp(RegOsiDto rcmDto,
 			InternalRegistrationStatusDto registrationStatusDto) throws ApisResourceAccessException, IOException {
+		if(!validateCenterIdAndTimestampForSubProcess && subProcesses.contains(registrationStatusDto.getRegistrationType())) {
+			return true;
+		}
 		boolean isValid = false;
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),

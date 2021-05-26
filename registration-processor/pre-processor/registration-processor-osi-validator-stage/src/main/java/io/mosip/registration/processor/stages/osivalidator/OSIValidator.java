@@ -117,6 +117,17 @@ public class OSIValidator {
 	@Value("${registration.processor.validate.introducer}")
 	private boolean introducerValidation;
 
+	@Value("${registration.processor.sub-process}")
+	private String subProcesses;
+	
+	@Value("${registration.processor.validateIndividualBiometricsforSubProcess.enabled}")
+	private boolean validateIndividualBiometricsforSubProcess;
+	
+	@Value("${registration-processor.validateOfficerOrSupervisorBiometricsforSubProcess.enabled}")
+	private boolean validateOfficerOrSupervisorBiometricsforSubProcess;
+	
+	
+	
 	@Autowired
 	private Utilities utility;
 
@@ -172,6 +183,12 @@ public class OSIValidator {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "OSIValidator::isValidOSI()::entry");
 		boolean isValidOsi = false;
+		
+		
+		if(subProcesses.contains(registrationStatusDto.getRegistrationType())) {
+			return validateOSIforSubProcess( registrationId,  registrationStatusDto, metaInfo);
+			
+		}
 
 		/** Getting data from packet MetadataInfo */
 		RegOsiDto regOsi = osiUtils.getOSIDetailsFromMetaInfo(metaInfo);
@@ -214,6 +231,65 @@ public class OSIValidator {
 					registrationId, "OSIValidator::isValidOSI()::exit");
 		}
 		return isValidOsi;
+	}
+
+	private boolean  validateOSIforSubProcess(String registrationId, InternalRegistrationStatusDto registrationStatusDto,
+			Map<String, String> metaInfo) throws ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException, BioTypeException, ParentOnHoldException, AuthSystemException, JsonProcessingException, PacketManagerException, CertificateException, IOException, JSONException, BiometricException {
+		boolean isValidIntroducer=false;
+		boolean isValidOfficerOrSupervisor=false;
+		if(validateIndividualBiometricsforSubProcess) {
+			isValidIntroducer=isValidIntroducer(registrationId, registrationStatusDto);
+		}
+		else {
+			isValidIntroducer=true;
+		}
+		if(validateOfficerOrSupervisorBiometricsforSubProcess) {
+			
+			RegOsiDto regOsi = osiUtils.getOSIDetailsFromMetaInfo(metaInfo);
+			String officerId = regOsi.getOfficerId();
+			String supervisorId = regOsi.getSupervisorId();
+			if ((officerId == null || officerId.isEmpty()) && (supervisorId == null || supervisorId.isEmpty())) {
+				registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
+						.getStatusCode(RegistrationExceptionTypeCode.SUPERVISORID_AND_OFFICERID_NOT_PRESENT_IN_PACKET));
+				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+				registrationStatusDto.setStatusComment(StatusUtil.SUPERVISOR_OFFICER_NOT_FOUND_PACKET.getMessage());
+				registrationStatusDto.setSubStatusCode(StatusUtil.SUPERVISOR_OFFICER_NOT_FOUND_PACKET.getCode());
+				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						registrationId, "Both Officer and Supervisor ID are not present in Packet");
+				isValidOfficerOrSupervisor= false;
+			} else {
+				boolean isActive = isActiveUserId(registrationId, regOsi, metaInfo, registrationStatusDto);
+				if (!isActive) {
+					registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
+							.getStatusCode(RegistrationExceptionTypeCode.SUPERVISOR_OR_OFFICER_WAS_INACTIVE));
+					registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+					String userId;
+					if (StringUtils.isNotEmpty(regOsi.getOfficerId())) {
+						userId = regOsi.getOfficerId();
+					} else {
+						userId = regOsi.getSupervisorId();
+					}
+					registrationStatusDto
+							.setStatusComment(StatusUtil.SUPERVISOR_OR_OFFICER_WAS_INACTIVE.getMessage() + userId);
+					registrationStatusDto.setSubStatusCode(StatusUtil.SUPERVISOR_OR_OFFICER_WAS_INACTIVE.getCode());
+					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+							StatusMessage.SUPERVISOR_OR_OFFICER_WAS_INACTIVE);
+					isValidOfficerOrSupervisor= false;
+				}
+				if (((isValidOperator(regOsi, registrationId, registrationStatusDto))
+						&& (isValidSupervisor(regOsi, registrationId, registrationStatusDto)))) {
+					isValidOfficerOrSupervisor = true;
+				}
+			}
+		}
+		else {
+			isValidOfficerOrSupervisor=true;
+		}
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				registrationId, "OSIValidator::validateOSIforSubProcess()::exit");
+		return isValidIntroducer && isValidOfficerOrSupervisor;
+		
 	}
 
 	private boolean isActiveUser(String officerId, String creationDate, String supervisorId,
