@@ -12,13 +12,13 @@
 			"value": "dateOfBirth",
 			"isMandatory": true
 		},
-		"parentOrGuardianRID": {
+		"introducerRID": {
 			"value": "parentOrGuardianRID"
 		},
-		"parentOrGuardianUIN": {
+		"introducerUIN": {
 			"value": "parentOrGuardianUIN"
 		},
-		"parentOrGuardianName": {
+		"introducerName": {
 			"value": "parentOrGuardianName"
 		},
 		"poa": {
@@ -60,7 +60,7 @@
 		"city": {
 			"value": "city"
 		},
-		"parentOrGuardianBiometrics": {
+		"introducerBiometrics": {
 			"value": "parentOrGuardianBiometrics"
 		}
 	}

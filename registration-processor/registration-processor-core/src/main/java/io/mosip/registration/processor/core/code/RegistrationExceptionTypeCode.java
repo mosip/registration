@@ -212,23 +212,23 @@ public enum RegistrationExceptionTypeCode {
 	/**Retry count has exceeded the maximum limit specified */
 	PACKET_UPLOAD_FAILED_ON_MAX_RETRY_CNT,
 
-	/** The osi failed on hold parent packet. */
-	OSI_FAILED_ON_HOLD_PARENT_PACKET,
+	/** The osi failed on hold introducer packet. */
+	OSI_FAILED_ON_HOLD_INTRODUCER_PACKET,
 
 	/** Packet hash failed in uploader stage */
 	PACKET_HASH_VALIDATION_FAILED,
 	
-	/** The parent uin and rid not in packet. */
-	PARENT_UIN_AND_RID_NOT_IN_PACKET,
+	/** The introducer uin and rid not in packet. */
+	INTRODUCER_UIN_AND_RID_NOT_IN_PACKET,
 
-	/** The parent uin not avaialble. */
-	PARENT_UIN_NOT_AVAIALBLE,
+	/** The introducer uin not avaialble. */
+	INTRODUCER_UIN_NOT_AVAIALBLE,
 
-	/** The osi failed rejected parent. */
-	OSI_FAILED_REJECTED_PARENT,
+	/** The osi failed rejected introducer. */
+	OSI_FAILED_REJECTED_INTRODUCER,
 
-	/** The parent biometric not in packet. */
-	PARENT_BIOMETRIC_NOT_IN_PACKET,
+	/** The introducer biometric not in packet. */
+	INTRODUCER_BIOMETRIC_NOT_IN_PACKET,
 
 	/** The supervisorid and officerid not present in packet. */
 	SUPERVISORID_AND_OFFICERID_NOT_PRESENT_IN_PACKET,

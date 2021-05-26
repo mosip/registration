@@ -9,8 +9,8 @@ public class MappingJsonConstants {
 	public static final String POE = "poe";
 	public static final String INDIVIDUAL_BIOMETRICS = "individualBiometrics";
 	public static final String AUTHENTICATION_BIOMETRICS = "individualAuthBiometrics";
-	public static final String PARENT_OR_GUARDIAN_UIN = "parentOrGuardianUIN";
-	public static final String PARENT_OR_GUARDIAN_RID = "parentOrGuardianRID";
+	public static final String INTRODUCER_UIN = "introducerUIN";
+	public static final String INTRODUCER_RID = "introducerRID";
 	public static final String IDENTITY = "identity";
 	public static final String METAINFO = "metaInfo";
 	public static final String AUDITS = "audits";
@@ -18,7 +18,7 @@ public class MappingJsonConstants {
 	public static final String DOCUMENT = "documents";
 	public static final String BIOMETRICS = "biometrics";
 
-	public static final String PARENT_OR_GUARDIAN_BIO = "parentOrGuardianBiometrics";
+	public static final String INTRODUCER_BIO = "introducerBiometrics";
 	/** The Constant OFFICERBIOMETRICFILENAME. */
 	public static final String OFFICERBIOMETRICFILENAME = "officerBiometricFileName";
 

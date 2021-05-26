@@ -91,9 +91,9 @@ public enum StatusUtil {
 	// Introducer Validator stage
 	INTRODUCER_VALIDATION_SUCCESS(StatusConstants.IVM_VALIDAOR_MODULE_SUCCESS + "001", "INTRODUCER Validation is Successful"),
 	INTRODUCER_AUTHENTICATION_FAILED(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "001","INTRODUCER Biometric Authentication Failed - "),
-	UIN_RID_NOT_FOUND(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "002", "UIN or RID of Parent Not Found in Packet"),
-	PARENT_UIN_NOT_FOUND(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "003", "Parent UIN not Found for the Given RID"),
-	PARENT_BIOMETRIC_FILE_NAME_NOT_FOUND(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "004", "Parent Biometric File Name Not Found"),
+	UIN_RID_NOT_FOUND(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "002", "UIN or RID of Introducer Not Found in Packet"),
+	INTRODUCER_UIN_NOT_FOUND(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "003", "Introducer UIN not Found for the Given RID"),
+	INTRODUCER_BIOMETRIC_FILE_NAME_NOT_FOUND(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "004", "Introducer Biometric File Name Not Found"),
 	PACKET_ON_HOLD(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "005", "Packet On-Hold as Parent RID Not Found"),
 	CHILD_PACKET_REJECTED(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "006", "Packet Rejected as Parent Packet is Rejected"),
 	PACKET_IS_ON_HOLD(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "007", "Packet is on Hold due to parent packet processing"),
