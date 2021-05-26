@@ -1,6 +1,6 @@
 package io.registration.processor.workflow.manager.stage;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -246,7 +246,9 @@ public class WorkflowActionJob extends MosipVerticleAPIManager {
 				internalRegistrationStatusDtos.add(dto);
 				defaultResumeActionPacketIdsMap.put(dto.getDefaultResumeAction(), internalRegistrationStatusDtos);
 			} else {
-				defaultResumeActionPacketIdsMap.put(dto.getDefaultResumeAction(), Arrays.asList(dto));
+				List<InternalRegistrationStatusDto> internalRegistrationStatusDtos = new ArrayList<InternalRegistrationStatusDto>();
+				internalRegistrationStatusDtos.add(dto);
+				defaultResumeActionPacketIdsMap.put(dto.getDefaultResumeAction(), internalRegistrationStatusDtos);
 			}
 		}
 		for (Entry<String, List<InternalRegistrationStatusDto>> entry : defaultResumeActionPacketIdsMap.entrySet()) {
