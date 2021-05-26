@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 
+import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -215,6 +216,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		TrimExceptionMessage trimExceptionMessage = new TrimExceptionMessage();
 		LogDescription description = new LogDescription();
 		object.setMessageBusAddress(MessageBusAddress.ABIS_HANDLER_BUS_IN);
+		object.setIsValid(Boolean.TRUE);
 		Boolean isTransactionSuccessful = false;
 		String regId = object.getRid();
 		InternalRegistrationStatusDto registrationStatusDto = null;
@@ -256,6 +258,10 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					regId, description.getMessage());
 		} catch (Exception e) {
+			
+			if(e instanceof DataShareException) {
+				object.setIsValid(false);
+			}
 			description.setStatusComment(AbisHandlerStageConstant.ERROR_IN_ABIS_HANDLER);
 			description.setMessage(PlatformErrorMessages.RPR_MESSAGE_SENDER_STAGE_FAILED.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_MESSAGE_SENDER_STAGE_FAILED.getCode());
@@ -565,6 +571,9 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 				MappingJsonConstants.VALUE);
 		BiometricRecord biometricRecord = priorityBasedPacketManagerService.getBiometrics(
 				id, individualBiometricsLabel, modalities, process, ProviderStageName.BIO_DEDUPE);
+		
+		validateBiometricRecord(biometricRecord, modalities);
+		
 		byte[] content = cbeffutil.createXML(BIRConverter.convertSegmentsToBIRList(biometricRecord.getSegments()));
 
 		MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
@@ -599,6 +608,32 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 		return response.getDataShare().getUrl();
 	}
+	private void validateBiometricRecord(BiometricRecord biometricRecord, List<String> modalities) throws DataShareException {
+		if(biometricRecord == null  || biometricRecord.getSegments() == null
+				|| biometricRecord.getSegments().isEmpty() || modalities==null || modalities.isEmpty()) {
+			throw new DataShareException("No Biometrics Found with Data Share Policy");
+
+		}
+		
+		boolean flag = false;
+		for(BIR bir : biometricRecord.getSegments()) {
+			
+			if(!flag && modalities.contains(bir.getBdbInfo().getType().get(0).value())) {
+				flag = true;
+			}
+			if(bir.getBdb() == null && ( bir.getOthers()==null ?
+					true : bir.getOthers().containsKey("EXCEPTION") ?
+							(boolean) bir.getOthers().get("EXCEPTION"): true)) {
+				throw new DataShareException("Invalid Biometrics Found with Data Share Policy : Empty BDB val found");
+				
+			}
+		}
+		
+		if(!flag) {
+			throw new DataShareException("No Biometric Matched with Data Share Policy");
+		}
+	}
+
 	public Map<String, List<String>> createTypeSubtypeMapping() throws ApisResourceAccessException, DataShareException, JsonParseException, JsonMappingException, com.fasterxml.jackson.core.JsonProcessingException, IOException{
 		Map<String, List<String>> typeAndSubTypeMap = new HashMap<>();
 		ResponseWrapper<?> policyResponse = (ResponseWrapper<?>) registrationProcessorRestClientService.getApi(
