@@ -13,13 +13,13 @@
 			"isMandatory": true
 		},
 		"introducerRID": {
-			"value": "parentOrGuardianRID"
+			"value": "introducerRID"
 		},
 		"introducerUIN": {
-			"value": "parentOrGuardianUIN"
+			"value": "introducerUIN"
 		},
 		"introducerName": {
-			"value": "parentOrGuardianName"
+			"value": "introducerName"
 		},
 		"poa": {
 			"value": "proofOfAddress"
@@ -61,7 +61,7 @@
 			"value": "city"
 		},
 		"introducerBiometrics": {
-			"value": "parentOrGuardianBiometrics"
+			"value": "introducerBiometrics"
 		}
 	}
 }

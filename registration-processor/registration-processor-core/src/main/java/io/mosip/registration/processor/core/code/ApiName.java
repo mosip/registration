@@ -150,8 +150,8 @@ public enum ApiName {
 	/** The proofofdateofbirth. */
 	PROOFOFDATEOFBIRTH,
 
-	/** The parentorguardianbiometrics. */
-	PARENTORGUARDIANBIOMETRICS,
+	/** The introducerbiometrics. */
+	INTRODUCERBIOMETRICS,
 
 	/** The idschemaversion. */
 	IDSCHEMAVERSION,
