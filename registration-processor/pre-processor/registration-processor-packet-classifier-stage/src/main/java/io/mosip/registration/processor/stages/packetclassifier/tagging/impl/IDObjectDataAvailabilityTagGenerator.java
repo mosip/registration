@@ -20,25 +20,25 @@ import java.util.stream.Collectors;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.mvel2.MVEL;
+import org.mvel2.ParserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnExpression(value = "'${mosip.regproc.packet.classifier.tag-generators}'.contains('MosipIDObjectFields')")
-public class IDObjectFieldsTagGenerator implements TagGenerator {
+@ConditionalOnExpression(value = "'${mosip.regproc.packet.classifier.tag-generators}'.contains('MosipIDObjectDataAvailability')")
+public class IDObjectDataAvailabilityTagGenerator implements TagGenerator {
 
     /**
-     * These field names should be as in keys of registraion-processor-identity.json file Identity segment
-     * and should have proper default source configured
+     * The keys of this map will used as tag names and values should be single field or a boolean mvel 
+     * expression continaing multiple fields. These field names in expression should be as in keys of 
+     * registraion-processor-identity.json file Identity segment and should have proper default source 
+     * configured
      */
-    @Value("#{'${mosip.regproc.packet.classifier.tagging.idobjectfields.mapping-field-names}'.split(',')}")
-    private List<String> mappingFieldNames;
-
-    /** The tag name that will be prefixed with every idobjectfield tags */
-    @Value("${mosip.regproc.packet.classifier.tagging.idobjectfields.tag-name-prefix:ID_OBJECT-}")
-    private String tagNamePrefix;
+    @Value("#{${mosip.regproc.packet.classifier.tagging.idobject-data-availability.availability-expression-map:{}}}")
+    private Map<String,String> availabilityExpressionMap;
 
     /** The language that should be used when dealing with field type that has values in multiple languages */
     @Value("${mosip.primary-language}")
@@ -55,7 +55,8 @@ public class IDObjectFieldsTagGenerator implements TagGenerator {
     private static final String LANGUAGE_LABEL = "language";
 
     /** The reg proc logger. */
-	private static Logger regProcLogger = RegProcessorLogger.getLogger(IDObjectFieldsTagGenerator.class);
+	private static Logger regProcLogger = RegProcessorLogger.getLogger(
+        IDObjectDataAvailabilityTagGenerator.class);
 
     /** Frequently used util methods are available in this bean */
     @Autowired
@@ -73,17 +74,23 @@ public class IDObjectFieldsTagGenerator implements TagGenerator {
     @Override
     public List<String> getRequiredIdObjectFieldNames() throws BaseCheckedException {
         try {
-            org.json.simple.JSONObject identityMappingJson = utility.getRegistrationProcessorMappingJson(
-                MappingJsonConstants.IDENTITY);
+            org.json.simple.JSONObject identityMappingJson = 
+                utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
             requiredIDObjectFieldNamesMap = new HashMap<>();
-            for(String field : mappingFieldNames) {
-                String actualFieldName = JsonUtil.getJSONValue(
-                    JsonUtil.getJSONObject(identityMappingJson, field), VALUE_LABEL);
-                if(actualFieldName == null)
-                    throw new BaseCheckedException(
-                        PlatformErrorMessages.RPR_PCM_FIELD_NAME_NOT_AVAILABLE_IN_MAPPING_JSON.getCode(), 
-                        PlatformErrorMessages.RPR_PCM_FIELD_NAME_NOT_AVAILABLE_IN_MAPPING_JSON.getMessage());
-                requiredIDObjectFieldNamesMap.put(actualFieldName, field);
+            for(Map.Entry<String, String> expressionEntry : availabilityExpressionMap.entrySet()) {
+                ParserContext parserContext = ParserContext.create();
+                MVEL.analysisCompile(expressionEntry.getValue(), parserContext);
+                Map<String, Class> expressionVariablesMap = parserContext.getInputs();
+                for(Map.Entry<String, Class> variableEntry: expressionVariablesMap.entrySet()) {
+                    String actualFieldName = JsonUtil.getJSONValue(
+                        JsonUtil.getJSONObject(identityMappingJson, variableEntry.getKey()), 
+                            VALUE_LABEL);
+                    if(actualFieldName == null)
+                        throw new BaseCheckedException(
+                            PlatformErrorMessages.RPR_PCM_FIELD_NAME_NOT_AVAILABLE_IN_MAPPING_JSON.getCode(), 
+                            PlatformErrorMessages.RPR_PCM_FIELD_NAME_NOT_AVAILABLE_IN_MAPPING_JSON.getMessage());
+                    requiredIDObjectFieldNamesMap.put(actualFieldName, variableEntry.getKey());
+                }
             }
             return requiredIDObjectFieldNamesMap.keySet().stream().collect(Collectors.toList());
         } catch (IOException e) {
@@ -101,10 +108,21 @@ public class IDObjectFieldsTagGenerator implements TagGenerator {
         Map<String, FieldDTO> idObjectFieldDTOMap, Map<String, String> metaInfoMap)  
                 throws BaseCheckedException {
         try {
-            Map<String, String> tags = new HashMap<String, String>();
+            Map<String, Boolean> fieldAvailabilityMap = new HashMap<String, Boolean>();
             for(Map.Entry<String, String> entry : requiredIDObjectFieldNamesMap.entrySet()) {
-                String tagFieldValue = getValueBasedOnType(entry.getKey(), idObjectFieldDTOMap.get(entry.getKey()));
-                tags.put(tagNamePrefix + entry.getValue(), tagFieldValue);
+                String tagFieldValue = getValueBasedOnType(entry.getKey(), 
+                    idObjectFieldDTOMap.get(entry.getKey()));
+                if(tagFieldValue == null || tagFieldValue.trim().length() == 0 || 
+                        tagFieldValue.equals(notAvailableTagValue))
+                    fieldAvailabilityMap.put(entry.getValue(), false);
+                else
+                    fieldAvailabilityMap.put(entry.getValue(), true);
+            }
+
+            Map<String, String> tags = new HashMap<String, String>();
+            for(Map.Entry<String, String> entry : availabilityExpressionMap.entrySet()) {
+                Boolean result = (Boolean) MVEL.eval(entry.getValue(), fieldAvailabilityMap);   
+                tags.put(entry.getKey(), result.toString());
             }
             return tags;
         } catch(JSONException e) {
@@ -159,5 +177,4 @@ public class IDObjectFieldsTagGenerator implements TagGenerator {
                     " Field name: " + fieldName + " type: " + type);
         }
     }
-    
 }
