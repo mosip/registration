@@ -11,7 +11,6 @@ import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.abstractverticle.WorkflowInternalActionDTO;
 import io.mosip.registration.processor.core.code.WorkflowInternalActionCode;
-import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.vertx.core.json.JsonObject;
@@ -27,25 +26,23 @@ public class WorkflowCommandPredicate implements Predicate {
 	public boolean matches(Exchange exchange) {
 		boolean matches = false;
 
-		LOGGER.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-				"exchange.getFromEndpoint().toString() " + exchange.getFromEndpoint().toString());
 		try {
+			String toaddress = (String) exchange.getMessage().getHeader(Exchange.INTERCEPTED_ENDPOINT);
 
-			String fromAddress = exchange.getFromEndpoint().toString();
-			switch (fromAddress) {
-			case "workflow-cmd:complete-as-processed":
+			switch (toaddress) {
+			case "workflow-cmd://complete-as-processed":
 				processCompleteAsProcessed(exchange);
 				matches = true;
 				break;
-			case "workflow-cmd:complete-as-rejected":
+			case "workflow-cmd://complete-as-rejected":
 				processCompleteAsRejected(exchange);
 				matches = true;
 				break;
-			case "workflow-cmd:mark-as-failed":
+			case "workflow-cmd://mark-as-failed":
 				processMarkAsFailed(exchange);
 				matches = true;
 				break;
-			case "workflow-cmd:mark-as-reprocess":
+			case "workflow-cmd://:mark-as-reprocess":
 				processMarkAsReprocess(exchange);
 				matches = true;
 				break;
