@@ -112,13 +112,13 @@ public class NotificationServiceImpl implements NotificationService {
 	@Value("${registration.processor.updated.subject}")
 	private String uinUpdatedSubject;
 	
-	@Value("${registration.processor.notification_service_subscriber_hub_url}")
+	@Value("${websub.hub.url}")
 	private String hubURL;
 	
 	@Value("${registration.processor.notification_service_subscriber_secret}")
 	private String secret;
 	
-	@Value("${registration.processor.notification_service_subscriber_topic}")
+	@Value("${mosip.regproc.workflow.complete.topic}")
 	private String topic;
 	
 	@Value("${registration.processor.notification_service_subscriber_callback_url}")

@@ -39,22 +39,10 @@ public class WebSubUtil {
 
 	public void publishEvent(WorkflowCompletedEventDTO workflowCompletedEventDTO) throws WebSubClientException {
 		String rid = workflowCompletedEventDTO.getInstanceId();
-		//registerTopic(rid);
 		HttpHeaders httpHeaders = new HttpHeaders();
 		publisher.publishUpdate(workflowCompleteTopic, workflowCompletedEventDTO, MediaType.APPLICATION_JSON_UTF8_VALUE,
 				httpHeaders, webSubPublishUrl);
 		regProcLogger.info("Publish the update successfully  for registration id {}", rid);
-
-	}
-
-	@Deprecated(since = "1.1.7")
-	private void registerTopic(String rid) {
-		try {
-			publisher.registerTopic(workflowCompleteTopic, webSubPublishUrl);
-		} catch (WebSubClientException e) {
-			regProcLogger.error("Topic already registered for registration id {}", rid);
-
-		}
 
 	}
 
