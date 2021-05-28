@@ -141,8 +141,8 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 			case COMPLETE_AS_REJECTED:
 				processCompleteAsRejected(workflowInternalActionDTO);
 				break;
-			case MARK_AS_FAILED:
-				processMarkAsFailed(workflowInternalActionDTO);
+			case COMPLETE_AS_FAILED:
+				processCompleteAsFailed(workflowInternalActionDTO);
 				break;
 			case MARK_AS_REPROCESS:
 				processMarkAsReprocess(workflowInternalActionDTO);
@@ -192,15 +192,14 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 				.getRegistrationStatus(workflowInternalActionDTO.getRid());
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.REPROCESS.toString());
 		registrationStatusService.updateRegistrationStatus(registrationStatusDto, MODULE_ID, MODULE_NAME);
-		// TODO new notifiction service need to create for execution failed
 	}
 
-	private void processMarkAsFailed(WorkflowInternalActionDTO workflowInternalActionDTO) {
+	private void processCompleteAsFailed(WorkflowInternalActionDTO workflowInternalActionDTO) {
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
 				.getRegistrationStatus(workflowInternalActionDTO.getRid());
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 		registrationStatusService.updateRegistrationStatus(registrationStatusDto, MODULE_ID, MODULE_NAME);
-		// TODO new notifiction service need to create for execution failed
+		sendWebSubEvent(registrationStatusDto);
 	}
 
 	private void processCompleteAsRejected(WorkflowInternalActionDTO workflowInternalActionDTO) {
@@ -275,6 +274,9 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		workflowCompletedEventDTO.setWorkflowType(registrationStatusDto.getRegistrationType());
 		if (registrationStatusDto.getStatusCode().equalsIgnoreCase(RegistrationStatusCode.REJECTED.toString())) {
 			workflowCompletedEventDTO.setErrorCode(RegistrationExceptionTypeCode.PACKET_REJECTED.name());
+		}
+		if (registrationStatusDto.getStatusCode().equalsIgnoreCase(RegistrationStatusCode.FAILED.toString())) {
+			workflowCompletedEventDTO.setErrorCode(RegistrationExceptionTypeCode.PACKET_FAILED.name());
 		}
 
 		webSubUtil.publishEvent(workflowCompletedEventDTO);

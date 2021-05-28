@@ -38,8 +38,8 @@ public class WorkflowCommandPredicate implements Predicate {
 				processCompleteAsRejected(exchange);
 				matches = true;
 				break;
-			case "workflow-cmd://mark-as-failed":
-				processMarkAsFailed(exchange);
+			case "workflow-cmd://complete-as-failed":
+				processCompleteAsFailed(exchange);
 				matches = true;
 				break;
 			case "workflow-cmd://:mark-as-reprocess":
@@ -82,14 +82,14 @@ public class WorkflowCommandPredicate implements Predicate {
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
 	}
 
-	private void processMarkAsFailed(Exchange exchange) throws JsonProcessingException {
+	private void processCompleteAsFailed(Exchange exchange) throws JsonProcessingException {
 		String message = (String) exchange.getMessage().getBody();
 		JsonObject json = new JsonObject(message);
 		WorkflowInternalActionDTO workflowEventDTO = new WorkflowInternalActionDTO();
 
 		workflowEventDTO.setRid(json.getString("rid"));
-		workflowEventDTO.setActionCode(WorkflowInternalActionCode.MARK_AS_FAILED.toString());
-		workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_MARK_AS_FAILED.getMessage());
+		workflowEventDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_FAILED.toString());
+		workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_COMPLETE_AS_FAILED.getMessage());
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
 
 	}

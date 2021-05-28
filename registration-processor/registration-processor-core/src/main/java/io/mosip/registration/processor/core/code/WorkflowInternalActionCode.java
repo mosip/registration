@@ -8,7 +8,7 @@ public enum WorkflowInternalActionCode {
 
 	COMPLETE_AS_REJECTED,
 
-	MARK_AS_FAILED,
+	COMPLETE_AS_FAILED,
 
 	MARK_AS_REPROCESS
 }

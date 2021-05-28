@@ -22,6 +22,8 @@ public enum NotificationStageStatus {
 
 	BIOMETRIC_AUTHENTICATION_FAILED, 
 	
-	PACKET_REJECTED
+	PACKET_REJECTED,
+
+	PACKET_FAILED;
 
 }

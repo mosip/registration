@@ -133,7 +133,7 @@ public enum PlatformSuccessMessages {
 	PACKET_MARK_AS_PAUSED("", "packet paused  because of hotlisting"),
 	PACKET_COMPLETE_AS_PROCESSED("", "packet process complete as processed"),
 	PACKET_COMPLETE_AS_REJECTED("", "packet process complete as rejected"),
-	PACKET_MARK_AS_FAILED("", "packet mark as failed"),
+	PACKET_COMPLETE_AS_FAILED("", "packet process complete  as failed"),
 	PACKET_MARK_AS_REPROCESS("", "packet mark as reprocess");
 
 	/** The success message. */
