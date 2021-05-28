@@ -191,6 +191,8 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
 				.getRegistrationStatus(workflowInternalActionDTO.getRid());
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.REPROCESS.toString());
+		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
+		registrationStatusDto.setSubStatusCode(StatusUtil.WORKFLOW_INTERNAL_ACTION_SUCCESS.getCode());
 		registrationStatusService.updateRegistrationStatus(registrationStatusDto, MODULE_ID, MODULE_NAME);
 	}
 
@@ -198,6 +200,8 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
 				.getRegistrationStatus(workflowInternalActionDTO.getRid());
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
+		registrationStatusDto.setSubStatusCode(StatusUtil.WORKFLOW_INTERNAL_ACTION_SUCCESS.getCode());
 		registrationStatusService.updateRegistrationStatus(registrationStatusDto, MODULE_ID, MODULE_NAME);
 		sendWebSubEvent(registrationStatusDto);
 	}
@@ -206,6 +210,8 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
 				.getRegistrationStatus(workflowInternalActionDTO.getRid());
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
+		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
+		registrationStatusDto.setSubStatusCode(StatusUtil.WORKFLOW_INTERNAL_ACTION_SUCCESS.getCode());
 		registrationStatusService.updateRegistrationStatus(registrationStatusDto, MODULE_ID, MODULE_NAME);
 		sendWebSubEvent(registrationStatusDto);
 	}
@@ -214,6 +220,8 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
 				.getRegistrationStatus(workflowInternalActionDTO.getRid());
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSED.toString());
+		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
+		registrationStatusDto.setSubStatusCode(StatusUtil.WORKFLOW_INTERNAL_ACTION_SUCCESS.getCode());
 		registrationStatusService.updateRegistrationStatus(registrationStatusDto, MODULE_ID, MODULE_NAME);
 		sendWebSubEvent(registrationStatusDto);
 	}
@@ -231,7 +239,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		}
 		registrationStatusDto.setUpdatedBy(USER);
 		registrationStatusDto.setResumeRemoveTags(workflowInternalActionDTO.getResumeRemoveTags());
-		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.WORKFLOW_PAUSE.toString());
+		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
 		registrationStatusDto.setSubStatusCode(StatusUtil.WORKFLOW_INTERNAL_ACTION_SUCCESS.getCode());
 		registrationStatusService.updateRegistrationStatus(registrationStatusDto, MODULE_ID, MODULE_NAME);
 
