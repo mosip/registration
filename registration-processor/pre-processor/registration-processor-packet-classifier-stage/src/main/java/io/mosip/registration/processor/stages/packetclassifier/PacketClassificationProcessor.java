@@ -15,6 +15,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -83,6 +84,10 @@ public class PacketClassificationProcessor {
      * java class to trim exception message
      */
 	private TrimExceptionMessage trimExpMessage = new TrimExceptionMessage();
+
+	/** The tag value that will be used by default when the packet does not have value for the tag field */
+	@Value("${mosip.regproc.packet.classifier.tagging.not-available-tag-value}")
+	private String notAvailableTagValue;
 	
 	/**
 	 * The packet manager service that will invoked for all the packet related activities
@@ -296,10 +301,6 @@ public class PacketClassificationProcessor {
 			LoggerFileConstant.REGISTRATIONID.toString(),
 			description.getCode() + " -- " + registrationStatusDto.getRegistrationId(),
 			platformErrorMessages.getMessage() + e.getMessage() + ExceptionUtils.getStackTrace(e));
-		// object.setIsValid(Boolean.FALSE);
-		// object.setInternalError(Boolean.TRUE);
-		// object.setRid(registrationStatusDto.getRegistrationId());
-
 	}
 
 	private void updateAudit(LogDescription description, boolean isTransactionSuccessful, String moduleId,
@@ -333,6 +334,7 @@ public class PacketClassificationProcessor {
 			if(tags != null && !tags.isEmpty())
 				allTags.putAll(tags);
 		}
+		handleNullValueTags(allTags);
 		regProcLogger.debug("generated tags {}", new JSONObject(allTags).toString());
 		if(!allTags.isEmpty())
 			packetManagerService.addOrUpdateTags(registrationId, allTags);
@@ -354,6 +356,13 @@ public class PacketClassificationProcessor {
 				Double.parseDouble(idSchemaVersion));
 		regProcLogger.debug("getDefaultFields item {}", new JSONObject(fieldTypeMap).toString());
 		return fieldTypeMap;
+	}
+
+	private void handleNullValueTags(Map<String, String> tags) {
+		for (Map.Entry<String, String> entry : tags.entrySet()) {
+			if(entry.getValue() == null)
+				entry.setValue(notAvailableTagValue);
+		}
 	}
 
 }

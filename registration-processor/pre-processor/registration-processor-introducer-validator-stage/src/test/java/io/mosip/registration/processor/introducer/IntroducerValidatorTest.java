@@ -51,7 +51,7 @@ import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.BioTypeException;
-import io.mosip.registration.processor.core.exception.ParentOnHoldException;
+import io.mosip.registration.processor.core.exception.IntroducerOnHoldException;
 import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO;
 import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
 import io.mosip.registration.processor.core.logger.LogDescription;
@@ -318,14 +318,14 @@ public class IntroducerValidatorTest {
 	public void testIntroducerRIDFailedOnHold() throws ApisResourceAccessException, IOException, Exception {
 		registrationStatusDto.setStatusCode("FAILED");
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
-		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "parentOrGuardianUIN", "New",
+		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "introducerUIN", "New",
 				ProviderStageName.INTRODUCER_VALIDATOR)).thenReturn(null);
-		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "parentOrGuardianRID", "New",
+		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "introducerRID", "New",
 				ProviderStageName.INTRODUCER_VALIDATOR)).thenReturn("field");
 		introducerValidator.validate("reg1234", registrationStatusDto);
 	}
 
-	@Test(expected = ParentOnHoldException.class)
+	@Test(expected = IntroducerOnHoldException.class)
 	public void testIntroducerRIDProcessingOnHold()
 			throws NumberFormatException, InvalidKeySpecException, NoSuchAlgorithmException, IOException,
 			ParserConfigurationException, SAXException, JSONException, CertificateException, BaseCheckedException {
@@ -335,9 +335,9 @@ public class IntroducerValidatorTest {
 		introducerRegistrationStatusDto.setStatusCode((RegistrationStatusCode.PROCESSING.toString()));
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
 				.thenReturn(introducerRegistrationStatusDto);
-		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "parentOrGuardianUIN", "New",
+		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "introducerUIN", "New",
 				ProviderStageName.INTRODUCER_VALIDATOR)).thenReturn(null);
-		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "parentOrGuardianRID", "New",
+		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "introducerRID", "New",
 				ProviderStageName.INTRODUCER_VALIDATOR)).thenReturn("field");
 
 		introducerValidator.validate("reg1234", registrationStatusDto);
@@ -345,23 +345,23 @@ public class IntroducerValidatorTest {
 
 	@Test(expected = BaseCheckedException.class)
 	public void testIntroducerUINAndRIDNull() throws Exception {
-		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "parentOrGuardianUIN", "New",
+		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "introducerUIN", "New",
 				ProviderStageName.INTRODUCER_VALIDATOR)).thenReturn(null);
-		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "parentOrGuardianRID", "New",
+		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "introducerRID", "New",
 				ProviderStageName.INTRODUCER_VALIDATOR)).thenReturn(null);
 
 		introducerValidator.validate("reg1234", registrationStatusDto);
 	}
 
-	@Test(expected = ParentOnHoldException.class)
+	@Test(expected = IntroducerOnHoldException.class)
 	@Ignore
 	public void testIntroducerNotInRegProc() throws Exception {
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
 		registrationStatusDto.setRegistrationType("NEW");
-		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "parentOrGuardianUIN", "New",
+		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "introducerUIN", "New",
 				ProviderStageName.INTRODUCER_VALIDATOR)).thenReturn(null);
-		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "parentOrGuardianRID", "New",
+		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "introducerRID", "New",
 				ProviderStageName.INTRODUCER_VALIDATOR)).thenReturn("field");
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(null);
 		introducerValidator.validate("reg1234", registrationStatusDto);
@@ -428,9 +428,9 @@ public class IntroducerValidatorTest {
 		introducerRegistrationStatusDto.setStatusCode((RegistrationStatusCode.PROCESSED.toString()));
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
 				.thenReturn(introducerRegistrationStatusDto);
-		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "parentOrGuardianUIN", "New",
+		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "introducerUIN", "New",
 				ProviderStageName.INTRODUCER_VALIDATOR)).thenReturn(null);
-		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "parentOrGuardianRID", "New",
+		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "introducerRID", "New",
 				ProviderStageName.INTRODUCER_VALIDATOR)).thenReturn("field");
 		Mockito.when(idRepoService.getUinByRid(any(), any())).thenReturn(null);
 
