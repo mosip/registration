@@ -25,6 +25,7 @@ import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.packet.dto.SubWorkflowDto;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
@@ -43,7 +44,9 @@ import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import io.mosip.registration.processor.status.service.SubWorkflowMappingService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
+
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -95,6 +98,12 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
      */
     @Value("${registration.processor.max.retry}")
     private int maxRetryCount;
+    
+    /**
+     * The main process
+     */
+    @Value("${registration.processor.main-process}")
+	private String mainProcess;
 
     @Autowired
     private ObjectStoreAdapter objectStoreAdapter;
@@ -110,6 +119,9 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
      */
     @Autowired
     private RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
+
+    @Autowired
+    private SubWorkflowMappingService subWorkflowMappingService;
 
     /**
      * The core audit request builder.
@@ -174,17 +186,18 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
         regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                 registrationId, "PacketUploaderServiceImpl::validateAndUploadPacket()::entry");
         messageDTO.setRid(registrationId);
-
+        SyncRegistrationEntity regEntity = null;
+        
         try {
-
-            SyncRegistrationEntity regEntity = syncRegistrationService.findByRegistrationId(registrationId);
+        	regEntity = syncRegistrationService.findByRegistrationIdAndProcessAndIteration(registrationId, process, iteration);
+        	
             messageDTO.setReg_type(regEntity.getRegistrationType());
             dto = registrationStatusService.getRegistrationStatus(registrationId, process, iteration);
 
             dto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.UPLOAD_PACKET.toString());
             dto.setRegistrationStageName(stageName);
 
-            final byte[] encryptedByteArray = getPakcetFromDMZ(registrationId);
+            final byte[] encryptedByteArray = getPakcetFromDMZ(regEntity.getPacketId());
 
             if (encryptedByteArray != null) {
 
@@ -525,9 +538,9 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
         return maxRetryCount;
     }
 
-    private byte[] getPakcetFromDMZ(String rid) throws ApisResourceAccessException {
+    private byte[] getPakcetFromDMZ(String packetId) throws ApisResourceAccessException {
         List<String> pathSegment = new ArrayList<>();
-        pathSegment.add(rid + extention);
+        pathSegment.add(packetId + extention);
         byte[] packet = null;
 
         try {

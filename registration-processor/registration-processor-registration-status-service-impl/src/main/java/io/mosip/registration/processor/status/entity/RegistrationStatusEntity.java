@@ -1,8 +1,10 @@
 package io.mosip.registration.processor.status.entity;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
@@ -12,11 +14,24 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "registration", schema = "regprc")
-public class RegistrationStatusEntity extends BaseRegistrationEntity {
+public class RegistrationStatusEntity extends BaseRegistrationEntity<BaseRegistrationPKEntity> implements Serializable {
 
-	/** The registration type. */
-	@Column(name = "reg_type", nullable = false)
-	private String registrationType;
+/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	@Embedded
+	BaseRegistrationPKEntity id;
+	
+	public BaseRegistrationPKEntity getId() {
+		return id;
+	}
+
+
+	public void setId(BaseRegistrationPKEntity id) {
+		this.id = id;
+	}
 
 	/** The reference registration id. */
 	@Column(name = "ref_reg_id")
@@ -24,10 +39,8 @@ public class RegistrationStatusEntity extends BaseRegistrationEntity {
 	
 	@Column(name = "source")
 	private String source;
-	
-	@Column(name = "iteration")
-	private Integer iteration=1;
 
+	
 	/** The status code. */
 	@Column(name = "status_code", nullable = false)
 	private String statusCode;
@@ -124,24 +137,6 @@ public class RegistrationStatusEntity extends BaseRegistrationEntity {
 		super();
 
 	}
-	/**
-	 * Gets the registration type.
-	 *
-	 * @return the registration type
-	 */
-	public String getRegistrationType() {
-		return registrationType;
-	}
-
-	/**
-	 * Sets the registration type.
-	 *
-	 * @param registrationType
-	 *            the new registration type
-	 */
-	public void setRegistrationType(String registrationType) {
-		this.registrationType = registrationType;
-	}
 
 	/**
 	 * Gets the reference registration id.
@@ -167,12 +162,7 @@ public class RegistrationStatusEntity extends BaseRegistrationEntity {
 	public void setSource(String source) {
 		this.source = source;
 	}
-	public Integer getIteration() {
-		return iteration;
-	}
-	public void setIteration(Integer iteration) {
-		this.iteration = iteration;
-	}
+
 	/**
 	 * Gets the status code.
 	 *

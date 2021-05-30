@@ -45,7 +45,8 @@ public class PacketValidatorImpl implements PacketValidator {
 	public static final String APPROVED = "APPROVED";
 	public static final String REJECTED = "REJECTED";
 	private static final String VALIDATEAPPLICANTDOCUMENT = "registration.processor.validateApplicantDocument";
-
+    private static final String VALIDATEAPPLICANTDOCUMENTPROCESS = "registration.processor.validateApplicantDocument.process";
+    
 	@Autowired
 	private PriorityBasedPacketManagerService packetManagerService;
 
@@ -188,14 +189,17 @@ public class PacketValidatorImpl implements PacketValidator {
 			throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException {
 		if (env.getProperty(VALIDATEAPPLICANTDOCUMENT).trim().equalsIgnoreCase(VALIDATIONFALSE))
 			return true;
-
-		boolean result = applicantDocumentValidation.validateDocument(registrationId, process);
-		if (!result) {
-			packetValidationDto
-					.setPacketValidaionFailureMessage(StatusUtil.APPLICANT_DOCUMENT_VALIDATION_FAILED.getMessage());
-			packetValidationDto.setPacketValidatonStatusCode(StatusUtil.APPLICANT_DOCUMENT_VALIDATION_FAILED.getCode());
+		else {
+			if(env.getProperty(VALIDATEAPPLICANTDOCUMENTPROCESS).contains(process)) {
+				boolean result = applicantDocumentValidation.validateDocument(registrationId, process);
+				if (!result) {
+					packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.APPLICANT_DOCUMENT_VALIDATION_FAILED.getMessage());
+					packetValidationDto.setPacketValidatonStatusCode(StatusUtil.APPLICANT_DOCUMENT_VALIDATION_FAILED.getCode());
+				}
+				return result;
+			}
+			return true;
 		}
-		return result;
 	}
 
 }

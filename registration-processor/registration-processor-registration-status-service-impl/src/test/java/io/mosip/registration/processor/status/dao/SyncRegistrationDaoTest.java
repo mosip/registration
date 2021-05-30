@@ -19,6 +19,7 @@ import io.mosip.registration.processor.status.dto.SyncStatusDto;
 import io.mosip.registration.processor.status.dto.SyncTypeDto;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
+import io.mosip.registration.processor.status.repositary.SyncRegistrationRepository;
 
 /**
  * The Class SyncRegistrationDaoTest.
@@ -34,7 +35,7 @@ public class SyncRegistrationDaoTest {
 
 	/** The sync registration repository. */
 	@Mock
-	RegistrationRepositary<SyncRegistrationEntity, String> syncRegistrationRepository;
+	SyncRegistrationRepository<SyncRegistrationEntity, String> syncRegistrationRepository;
 
 	/** The sync registration entity. */
 	private SyncRegistrationEntity syncRegistrationEntity;
@@ -115,4 +116,11 @@ public class SyncRegistrationDaoTest {
 		assertEquals(syncRegistrationEntityList, rEntityList);
 	}
 
+	@Test
+	public void findByRegistrationIdIdAndRegTypeTest() {
+		Mockito.when(syncRegistrationRepository.createQuerySelect(any(), any())).thenReturn(syncRegistrationEntityList);
+		SyncRegistrationEntity syncRegistrationEntityResult = syncRegistrationDao.findByRegistrationIdIdAndAdditionalInfoReqId("1000", "NEW");
+		assertEquals("Check id Registration Id is present in DB, expected valie is 1001",
+				syncRegistrationEntity.getRegistrationId(), syncRegistrationEntityResult.getRegistrationId());
+	}
 }

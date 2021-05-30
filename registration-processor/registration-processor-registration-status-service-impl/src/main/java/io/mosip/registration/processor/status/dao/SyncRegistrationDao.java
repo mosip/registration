@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
-import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
+import io.mosip.registration.processor.status.repositary.SyncRegistrationRepository;
 
 /**
  * The Class SyncRegistrationDao.
@@ -21,7 +21,7 @@ public class SyncRegistrationDao {
 
 	/** The registration sync status. */
 	@Autowired
-	RegistrationRepositary<SyncRegistrationEntity, String> syncRegistrationRepository;
+	SyncRegistrationRepository<SyncRegistrationEntity, String> syncRegistrationRepository;
 
 	/** The Constant AND. */
 	public static final String AND = "AND";
@@ -100,6 +100,48 @@ public class SyncRegistrationDao {
 		return !CollectionUtils.isEmpty(syncRegistrationEntityList) ? syncRegistrationEntityList.get(0) : null;
 	}
 
+	public SyncRegistrationEntity findByRegistrationIdIdAndAdditionalInfoReqId(String registrationId, String additionalInfoReqId) {
+		Map<String, Object> params = new HashMap<>();
+		String className = SyncRegistrationEntity.class.getSimpleName();
+
+		String alias = SyncRegistrationEntity.class.getName().toLowerCase().substring(0, 1);
+
+		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
+				+ ".registrationId=:registrationId" + EMPTY_STRING + AND + EMPTY_STRING + alias +".additionalInfoReqId=:additionalInfoReqId"+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON
+				+ ISDELETED;
+
+		params.put("registrationId", registrationId);
+		params.put("additionalInfoReqId", additionalInfoReqId);
+		params.put(ISDELETED, Boolean.FALSE);
+
+		List<SyncRegistrationEntity> syncRegistrationEntityList = syncRegistrationRepository.createQuerySelect(queryStr,
+				params);
+
+		return !CollectionUtils.isEmpty(syncRegistrationEntityList) ? syncRegistrationEntityList.get(0) : null;
+
+	}
+	
+	public SyncRegistrationEntity findByRegistrationIdIdAndRegType(String registrationId, String registrationType) {
+		Map<String, Object> params = new HashMap<>();
+		String className = SyncRegistrationEntity.class.getSimpleName();
+
+		String alias = SyncRegistrationEntity.class.getName().toLowerCase().substring(0, 1);
+
+		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
+				+ ".registrationId=:registrationId" + EMPTY_STRING + AND + EMPTY_STRING + alias +".registrationType=:registrationType"+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON
+				+ ISDELETED;
+
+		params.put("registrationId", registrationId);
+		params.put("registrationType", registrationType);
+		params.put(ISDELETED, Boolean.FALSE);
+
+		List<SyncRegistrationEntity> syncRegistrationEntityList = syncRegistrationRepository.createQuerySelect(queryStr,
+				params);
+
+		return !CollectionUtils.isEmpty(syncRegistrationEntityList) ? syncRegistrationEntityList.get(0) : null;
+
+	}
+	
 	/**
 	 * Gets the by ids.
 	 *

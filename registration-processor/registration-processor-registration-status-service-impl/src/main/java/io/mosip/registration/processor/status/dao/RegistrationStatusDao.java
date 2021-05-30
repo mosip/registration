@@ -110,23 +110,23 @@ public class RegistrationStatusDao {
 		String queryStr = null;
 		if (process != null && iteration != null)
 			queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
-					+ ".id=:registrationId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ".registrationType=:registrationType"
-					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ".iteration=:iteration"
+					+ ".id.id=:registrationId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ".id.registrationType=:registrationType"
+					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ".id.iteration=:iteration"
 					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE
 				+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
 		else if (process != null)
 			queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
-					+ ".id=:registrationId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ".registrationType=:registrationType"
+					+ ".id.id=:registrationId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ".id.registrationType=:registrationType"
 					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE
 					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
 		else if (iteration != null)
 			queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
-					+ ".id=:registrationId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ".iteration=:iteration"
+					+ ".id.id=:registrationId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ".id.iteration=:iteration"
 					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE
 					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
 		else
 			queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
-					+ ".id=:registrationId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE
+					+ ".id.id=:registrationId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE
 					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
 
 		params.put("registrationId", rid);

@@ -11,4 +11,7 @@ public interface SubWorkflowMappingService {
     public List<SubWorkflowDto> getSubWorkflowMapping(String regId);*/
 
     public List<SubWorkflowDto> getWorkflowMappingByReqId(String infoRequestId);
+    
+    public List<SubWorkflowDto> getSubWorkflowMappingByRegIdAndProcessAndIteration(String regId,String process,int iteration);
+
 }

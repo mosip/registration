@@ -34,7 +34,7 @@ public interface TagGenerator {
      * wrapped in BaseCheckedException and thrown
      */
     Map<String,String> generateTags(String registrationId, String process, 
-        Map<String, FieldDTO> idObjectFieldDTOMap, Map<String, String> metaInfoMap) 
+        Map<String, FieldDTO> idObjectFieldDTOMap, Map<String, String> metaInfoMap, int iteration) 
             throws BaseCheckedException;
     
 }

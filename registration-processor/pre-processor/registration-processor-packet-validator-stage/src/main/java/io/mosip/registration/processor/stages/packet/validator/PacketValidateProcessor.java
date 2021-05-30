@@ -278,7 +278,7 @@ public class PacketValidateProcessor {
 						description.getMessage());
 			}
 			registrationStatusDto.setUpdatedBy(USER);
-			SyncRegistrationEntity regEntity = syncRegistrationService.findByRegistrationId(registrationId);
+			SyncRegistrationEntity regEntity = syncRegistrationService.findByRegistrationIdAndProcessAndIteration(registrationId, object.getReg_type(), object.getIteration());
 			sendNotification(regEntity, registrationStatusDto, packetValidationDto.isTransactionSuccessful());
 		} catch (PacketManagerException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
