@@ -9,8 +9,7 @@ on:
       - master
       - 1.*
       - develop
-      - MOSIP-12124
-      - MOSIP-12124-2
+      - MOSIP-11739
   
 jobs:
   build:
