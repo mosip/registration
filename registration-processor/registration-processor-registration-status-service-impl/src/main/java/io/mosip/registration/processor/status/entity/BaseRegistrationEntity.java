@@ -1,10 +1,10 @@
 package io.mosip.registration.processor.status.entity;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
+
+import javax.persistence.EmbeddedId;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
+import javax.persistence.MappedSuperclass;
 
 /**
  * The Class BaseRegistrationEntity.
@@ -15,38 +15,29 @@ import javax.persistence.InheritanceType;
 // SyncRegistrationEntity extends this. This is created to implement common
 // repository(RegistrationRepository)
 
-@Entity
+@MappedSuperclass
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-public abstract class BaseRegistrationEntity {
+public class BaseRegistrationEntity<C>  {
 
-	/**
-	 * Instantiates a new base registration entity.
-	 */
-	public BaseRegistrationEntity() {
-		super();
-	}
-
-	/** The id. */
-	@Column(name = "id", nullable = false)
-	@Id
-	protected String id;
+	@EmbeddedId
+	protected C id;
 
 	/**
 	 * Gets the id.
 	 *
 	 * @return the id
 	 */
-	public String getId() {
+	public C getId() {
 		return id;
 	}
 
 	/**
 	 * Sets the id.
 	 *
-	 * @param baseId the new id
+	 * @param id the new id
 	 */
-	public void setId(String baseId) {
-		this.id = baseId;
+	public void setId(C id) {
+		this.id = id;
 	}
 
 }

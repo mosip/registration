@@ -67,6 +67,7 @@ import io.mosip.registration.processor.stages.utils.BiometricsXSDValidator;
 import io.mosip.registration.processor.stages.validator.impl.PacketValidatorImpl;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
+import io.mosip.registration.processor.status.repositary.SyncRegistrationRepository;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ JsonUtil.class, IOUtils.class, HMACUtils2.class, Utilities.class, MasterDataValidation.class,
@@ -106,7 +107,7 @@ public class PacketValidatorImplTest {
 	private PriorityBasedPacketManagerService packetManagerService;
 
 	@Mock
-	private RegistrationRepositary<SyncRegistrationEntity, String> registrationRepositary;
+	private SyncRegistrationRepository<SyncRegistrationEntity, String> registrationRepositary;
 	
 	@Mock
 	private RegistrationProcessorRestClientService<Object> registrationProcessorRestService;

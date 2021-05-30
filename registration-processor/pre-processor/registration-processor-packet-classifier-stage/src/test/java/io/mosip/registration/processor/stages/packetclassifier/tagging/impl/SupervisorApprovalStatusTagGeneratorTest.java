@@ -52,7 +52,7 @@ public class SupervisorApprovalStatusTagGeneratorTest {
 		Mockito.when(syncRegistrationService.findByRegistrationId(anyString()))
 			.thenReturn(syncRegistrationEntity);
 		Map<String, String> tags = 
-			supervisorApprovalStatusTagGenerator.generateTags("1234", "NEW", null, null);
+			supervisorApprovalStatusTagGenerator.generateTags("1234", "NEW", null, null, 0);
 		assertEquals(supervisorStatus, tags.get(tagName));
 	}
 
@@ -60,7 +60,7 @@ public class SupervisorApprovalStatusTagGeneratorTest {
 	public void testGenerateTagsForSyncRegistrationStatusNotAvailable() throws BaseCheckedException {
 		Mockito.when(syncRegistrationService.findByRegistrationId(anyString()))
 			.thenReturn(null);
-		supervisorApprovalStatusTagGenerator.generateTags("1234", "NEW", null, null);
+		supervisorApprovalStatusTagGenerator.generateTags("1234", "NEW", null, null, 0);
 	}
 	
 }

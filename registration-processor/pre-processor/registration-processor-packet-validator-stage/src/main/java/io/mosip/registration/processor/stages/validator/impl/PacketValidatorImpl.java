@@ -47,10 +47,14 @@ public class PacketValidatorImpl implements PacketValidator {
     public static final String APPROVED = "APPROVED";
     public static final String REJECTED = "REJECTED";
     private static final String VALUE = "value";
-    private static final String VALIDATEMASTERDATA = "registration.processor.validateMasterData";
-    private static final String VALIDATEMANDATORY = "registration-processor.validatemandotary";
-    private static final String VALIDATEAPPLICANTDOCUMENT = "registration.processor.validateApplicantDocument";
+    private static final String VALIDATEMASTERDATA = "registration.processor.validateMasterData.enabled";
+    private static final String VALIDATEMANDATORY = "registration-processor.validatemandotary.enabled";
+    private static final String VALIDATEAPPLICANTDOCUMENT = "registration.processor.validateApplicantDocument.enabled";
 
+    private static final String VALIDATEMASTERDATAPROCESS = "registration.processor.validateMasterData.process";
+    private static final String VALIDATEMANDATORYPROCESS = "registration-processor.validatemandotary.process";
+    private static final String VALIDATEAPPLICANTDOCUMENTPROCESS = "registration.processor.validateApplicantDocument.process";
+    
     @Autowired
     private PriorityBasedPacketManagerService packetManagerService;
 
@@ -214,13 +218,17 @@ public class PacketValidatorImpl implements PacketValidator {
             throws ApisResourceAccessException, IOException, JsonProcessingException, PacketManagerException {
         if (env.getProperty(VALIDATEMASTERDATA).trim().equalsIgnoreCase(VALIDATIONFALSE)) {
             return true;
+        }else {
+        	if(env.getProperty(VALIDATEMASTERDATAPROCESS).contains(process)){
+        		boolean result = masterDataValidation.validateMasterData(id, process);
+                if (!result) {
+                    packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.MASTER_DATA_VALIDATION_FAILED.getMessage());
+                    packetValidationDto.setPacketValidatonStatusCode(StatusUtil.MASTER_DATA_VALIDATION_FAILED.getCode());
+                }
+                return result;
+        	}
+        	return true;
         }
-        boolean result = masterDataValidation.validateMasterData(id, process);
-        if (!result) {
-            packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.MASTER_DATA_VALIDATION_FAILED.getMessage());
-            packetValidationDto.setPacketValidatonStatusCode(StatusUtil.MASTER_DATA_VALIDATION_FAILED.getCode());
-        }
-        return result;
     }
 
     private boolean uinPresentInIdRepo(String uin) throws ApisResourceAccessException, IOException {
@@ -234,13 +242,15 @@ public class PacketValidatorImpl implements PacketValidator {
         if (env.getProperty(VALIDATEMANDATORY).trim().equalsIgnoreCase(VALIDATIONFALSE))
             return true;
         else {
-            boolean result = mandatoryValidation.mandatoryFieldValidation(rid, process, packetValidationDto);
-
-            if (!result) {
-                packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.MANDATORY_VALIDATION_FAILED.getMessage());
-                packetValidationDto.setPacketValidatonStatusCode(StatusUtil.MANDATORY_VALIDATION_FAILED.getCode());
-            }
-            return result;
+        	if(env.getProperty(VALIDATEMANDATORYPROCESS).contains(process)) {
+        		 boolean result = mandatoryValidation.mandatoryFieldValidation(rid, process, packetValidationDto);
+                 if (!result) {
+                     packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.MANDATORY_VALIDATION_FAILED.getMessage());
+                     packetValidationDto.setPacketValidatonStatusCode(StatusUtil.MANDATORY_VALIDATION_FAILED.getCode());
+                 }
+                 return result;
+        	}
+           return true;
         }
     }
 
@@ -248,13 +258,18 @@ public class PacketValidatorImpl implements PacketValidator {
             throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException {
         if (env.getProperty(VALIDATEAPPLICANTDOCUMENT).trim().equalsIgnoreCase(VALIDATIONFALSE))
             return true;
-
-        boolean result = applicantDocumentValidation.validateDocument(registrationId, process);
-        if (!result) {
-            packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.APPLICANT_DOCUMENT_VALIDATION_FAILED.getMessage());
-            packetValidationDto.setPacketValidatonStatusCode(StatusUtil.APPLICANT_DOCUMENT_VALIDATION_FAILED.getCode());
+        else {
+        	if(env.getProperty(VALIDATEAPPLICANTDOCUMENTPROCESS).contains(process)) {
+        		boolean result = applicantDocumentValidation.validateDocument(registrationId, process);
+                if (!result) {
+                    packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.APPLICANT_DOCUMENT_VALIDATION_FAILED.getMessage());
+                    packetValidationDto.setPacketValidatonStatusCode(StatusUtil.APPLICANT_DOCUMENT_VALIDATION_FAILED.getCode());
+                }
+                return result;
+        	}
+        	return true;
         }
-        return result;
+        
     }
 
 

@@ -49,6 +49,18 @@ public interface SyncRegistrationService<T, U> {
 	 * @return the sync registration entity
 	 */
 	public SyncRegistrationEntity findByRegistrationId(String resgistrationId);
+	
+	
+	 public SyncRegistrationEntity findByRegistrationIdAndProcessAndIteration(String registrationId,String process,int iteration);
+
+
+	/**
+	 * Find by registration id and additional info req id. 
+	 * @param registrationId
+	 * @param additionalInfoReqId
+	 * @return sync registration entity
+	 */
+	public SyncRegistrationEntity findByRegistrationIdAndAdditionalInfoReqId(String registrationId, String additionalInfoReqId);
 
 	public SyncRegistrationEntity findByPacketId(String packetId);
 

@@ -30,6 +30,7 @@ import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.TransactionDto;
+import io.mosip.registration.processor.status.entity.BaseRegistrationPKEntity;
 import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
@@ -161,6 +162,7 @@ public class RegistrationStatusServiceImpl
 			String transactionId = generateId();
 			registrationStatusDto.setLatestRegistrationTransactionId(transactionId);
 			registrationStatusDto.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+			registrationStatusDto.setSource("REGISTRATION_CLIENT");
 			RegistrationStatusEntity entity = convertDtoToEntity(registrationStatusDto);
 			registrationStatusDao.save(entity);
 			isTransactionSuccessful = true;
@@ -358,7 +360,7 @@ public class RegistrationStatusServiceImpl
 	 */
 	private RegistrationStatusDto convertEntityToDtoAndGetExternalStatus(RegistrationStatusEntity entity) {
 		RegistrationStatusDto registrationStatusDto = new RegistrationStatusDto();
-		registrationStatusDto.setRegistrationId(entity.getId());
+		registrationStatusDto.setRegistrationId(entity.getId().getId());
 		if (entity.getStatusCode() != null) {
 			RegistrationExternalStatusCode registrationExternalStatusCode = regexternalstatusUtil
 					.getExternalStatus(entity);
@@ -402,8 +404,8 @@ public class RegistrationStatusServiceImpl
 	 */
 	private InternalRegistrationStatusDto convertEntityToDto(RegistrationStatusEntity entity) {
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
-		registrationStatusDto.setRegistrationId(entity.getId());
-		registrationStatusDto.setRegistrationType(entity.getRegistrationType());
+		registrationStatusDto.setRegistrationId(entity.getId().getId());
+		registrationStatusDto.setRegistrationType(entity.getId().getRegistrationType());
 		registrationStatusDto.setReferenceRegistrationId(entity.getReferenceRegistrationId());
 		registrationStatusDto.setStatusCode(entity.getStatusCode());
 		registrationStatusDto.setLangCode(entity.getLangCode());
@@ -426,7 +428,7 @@ public class RegistrationStatusServiceImpl
 		registrationStatusDto.setResumeTimeStamp(entity.getResumeTimeStamp());
 		registrationStatusDto.setDefaultResumeAction(entity.getDefaultResumeAction());
 		registrationStatusDto.setSource(entity.getSource());
-		registrationStatusDto.setIteration(entity.getIteration());
+		registrationStatusDto.setIteration(entity.getId().getIteration());
 		registrationStatusDto.setResumeRemoveTags(entity.getResumeRemoveTags());
 		return registrationStatusDto;
 	}
@@ -440,10 +442,14 @@ public class RegistrationStatusServiceImpl
 	 */
 	private RegistrationStatusEntity convertDtoToEntity(InternalRegistrationStatusDto dto) {
 		RegistrationStatusEntity registrationStatusEntity = new RegistrationStatusEntity();
-		registrationStatusEntity.setId(dto.getRegistrationId());
-		registrationStatusEntity.setRegistrationType(dto.getRegistrationType());
+		BaseRegistrationPKEntity pk = new BaseRegistrationPKEntity();
+		pk.setId(dto.getRegistrationId());
+		pk.setRegistrationType(dto.getRegistrationType());
+		pk.setIteration(dto.getIteration());
+		registrationStatusEntity.setId(pk);
 		registrationStatusEntity.setReferenceRegistrationId(dto.getReferenceRegistrationId());
 		registrationStatusEntity.setStatusCode(dto.getStatusCode());
+		registrationStatusEntity.setSource(dto.getSource());
 		registrationStatusEntity.setLangCode(dto.getLangCode());
 		registrationStatusEntity.setStatusComment(dto.getStatusComment());
 		registrationStatusEntity.setLatestRegistrationTransactionId(dto.getLatestRegistrationTransactionId());
