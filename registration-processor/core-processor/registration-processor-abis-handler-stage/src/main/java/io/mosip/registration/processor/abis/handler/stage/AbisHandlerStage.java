@@ -269,7 +269,6 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					regId, description.getMessage());
 		} catch (Exception e) {
-			
 			if(e instanceof DataShareException) {
 				object.setIsValid(false);
 			}
@@ -619,7 +618,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 		return response.getDataShare().getUrl();
 	}
-	private void validateBiometricRecord(BiometricRecord biometricRecord, List<String> modalities, Map<String, String> map) throws DataShareException, JsonParseException, JsonMappingException, IOException {
+	private void validateBiometricRecord(BiometricRecord biometricRecord, List<String> modalities, Map<String, String> metaInfoMap) throws DataShareException, JsonParseException, JsonMappingException, IOException {
 		
 		if(modalities==null || modalities.isEmpty()) {
 			throw new DataShareException("Data Share Policy Modalities were Empty");
@@ -631,7 +630,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 		}	
 		
-		String exceptionBometricsMap = map.get("exceptionBiometrics");
+		String exceptionBometricsMap = metaInfoMap.get("exceptionBiometrics");
 		
 
 		 ObjectMapper mapper = new ObjectMapper();
@@ -666,11 +665,11 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 					}
 					
 					
-					if(optionalBIR.isPresent()) {
+					if(optionalBIR!=null && optionalBIR.isPresent()) {
 						BIR bir = optionalBIR.get();
 						
-						if(bir.getBdb() == null && (( bir.getOthers()==null && bir.getOthers().containsKey("EXCEPTION") ?
-							!(boolean) bir.getOthers().get("EXCEPTION"): false) )) {
+						if(bir.getBdb() == null && (( bir.getOthers()==null || !bir.getOthers().containsKey("EXCEPTION")) ? true :
+							!(boolean) bir.getOthers().get("EXCEPTION"))) {
 							
 							throw new DataShareException("Biometric BDB Not Found : "+segment);
 						}

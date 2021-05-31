@@ -4,15 +4,17 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.assertj.core.util.Lists;
 import org.junit.Before;
@@ -31,6 +33,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
 
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.constant.QualityType;
@@ -177,9 +181,15 @@ public class AbisHandlerStageTest {
 		ReflectionTestUtils.setField(abisHandlerStage, "internalDomainName", "localhost");
 		Mockito.when(env.getProperty("mosip.registration.processor.datetime.pattern"))
 				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		
+		Map<String, List<String>> biometricModalitySegmentsMap = new HashMap();
+		biometricModalitySegmentsMap.put("Finger", getFingerList());
+		biometricModalitySegmentsMap.put("Iris", getIrisList());
+		biometricModalitySegmentsMap.put("Face", getFaceList());
+		ReflectionTestUtils.setField(abisHandlerStage, "biometricModalitySegmentsMap", biometricModalitySegmentsMap);
+		ReflectionTestUtils.setField(abisHandlerStage, "exceptionModalityMap", getExceptionModalityMap());
 
-		Mockito.when(env.getProperty("DATASHARECREATEURL"))
-		.thenReturn("/v1/datashare/create");
+		Mockito.when(env.getProperty("DATASHARECREATEURL")).thenReturn("/v1/datashare/create");
 		AbisApplicationDto dto = new AbisApplicationDto();
 		dto.setCode("ABIS1");
 		abisApplicationDtos.add(dto);
@@ -188,7 +198,7 @@ public class AbisHandlerStageTest {
 		Mockito.when(description.getMessage()).thenReturn("description");
 
 		byte[] bdbBytes = new byte[1048];
-		
+
 		List<BIR> birTypeList = new ArrayList<>();
 		BIR birType1 = new BIR.BIRBuilder().build();
 		BDBInfo bdbInfoType1 = new BDBInfo.BDBInfoBuilder().build();
@@ -214,7 +224,7 @@ public class AbisHandlerStageTest {
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg-client");
 		when(cbeffutil.createXML(any())).thenReturn("abishandlerstage".getBytes());
 
-		Mockito.when(packetManagerService.getBiometrics(any(),any(),any(), any(),any())).thenReturn(biometricRecord);
+		Mockito.when(packetManagerService.getBiometrics(any(), any(), any(), any(), any())).thenReturn(biometricRecord);
 
 		Mockito.doNothing().when(registrationStatusDto).setLatestTransactionStatusCode(any());
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
@@ -238,38 +248,75 @@ public class AbisHandlerStageTest {
 		dataShare.setUrl("http://localhost");
 		dataShareResponseDto.setDataShare(dataShare);
 
-
-
-		
 		mockDataSharePolicy(Lists.newArrayList(BiometricType.FACE, BiometricType.FINGER));
+		setMetaInfoMap(new LinkedList<String>(getExceptionModalityMap().values()));
+
+		Mockito.when(registrationProcessorRestClientService.postApi(anyString(), any(MediaType.class), any(), any(),
+				any(), any(), any())).thenReturn(dataShareResponseDto);
+	}
+
+	private Map<String, String> getExceptionModalityMap() {
+		Map<String, String> exceptionMap = new HashMap<String, String>();
+		exceptionMap.put("Left Thumb" , "leftThumb");
+		exceptionMap.put("Right Thumb" , "rightThumb");
+		exceptionMap.put("Left MiddleFinger" , "leftMiddle");
+		exceptionMap.put("Left RingFinger" , "leftRing");
+		exceptionMap.put("Left LittleFinger" , "leftLittle");
+		exceptionMap.put("Left IndexFinger" , "leftIndex");
+		exceptionMap.put("Right MiddleFinger" , "rightMiddle");
+		exceptionMap.put("Right RingFinger" , "rightRing");
+		exceptionMap.put("Right LittleFinger" , "rightLittle");
+		exceptionMap.put("Right IndexFinger" , "rightIndex");
+		exceptionMap.put("Left" , "leftEye");
+		exceptionMap.put("Right" , "rightEye");
+		exceptionMap.put("Face" , "face");
 		
+		return exceptionMap;
+	}
 
+	private List<String> getFaceList() {
+		return Arrays.asList("Face");
+	}
 
-		Mockito.when(registrationProcessorRestClientService.postApi(anyString(), any(MediaType.class), any(),any(),any(), any(), any())).thenReturn(dataShareResponseDto);
+	private List<String> getIrisList() {
+		return Arrays.asList("Left", "Right");
+
+	}
+
+	private List<String> getFingerList() {
+		return Arrays.asList("Left Thumb", "Left LittleFinger", "Left IndexFinger", "Left MiddleFinger",
+				"Left RingFinger", "Right Thumb", "Right LittleFinger",
+				"Right IndexFinger", "Right MiddleFinger",
+				"Right RingFinger");
 	}
 
 	private void mockDataSharePolicy(List<BiometricType> sherableBiometricList) throws ApisResourceAccessException {
-		when(registrationProcessorRestClientService.getApi(any(),any(),anyString(),anyString(),any())).thenReturn(getMockDataSharePolicy(sherableBiometricList));
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), anyString(), any()))
+				.thenReturn(getMockDataSharePolicy(sherableBiometricList));
 	}
 
-	private ResponseWrapper<LinkedHashMap<String, Object>> getMockDataSharePolicy(List<BiometricType> sherableBiometricList) {
-		ShareableAttributes shareableAttributes = new ShareableAttributes();
-		List<Source> sourceList = new ArrayList<>();
-		
-		for(BiometricType bioType : sherableBiometricList) {
-			Filter filter = new Filter();
-			filter.setType(bioType.value());
-			Source src = new Source();
-			src.setFilter(Lists.newArrayList(filter));
-			sourceList.add(src);
-		}
-		
-		
-		shareableAttributes.setSource(sourceList);
+	private ResponseWrapper<LinkedHashMap<String, Object>> getMockDataSharePolicy(
+			List<BiometricType> sherableBiometricList) {
 
 		ObjectMapper mapper = new ObjectMapper();
 
-		List<ShareableAttributes> attr = Lists.newArrayList(shareableAttributes);
+		List<ShareableAttributes> attr = new LinkedList<>();
+		if (sherableBiometricList != null && !sherableBiometricList.isEmpty()) {
+
+			ShareableAttributes shareableAttributes = new ShareableAttributes();
+			List<Source> sourceList = new ArrayList<>();
+
+			for (BiometricType bioType : sherableBiometricList) {
+				Filter filter = new Filter();
+				filter.setType(bioType.value());
+				Source src = new Source();
+				src.setFilter(Lists.newArrayList(filter));
+				sourceList.add(src);
+			}
+
+			shareableAttributes.setSource(sourceList);
+			attr = Lists.newArrayList(shareableAttributes);
+		}
 
 		ResponseWrapper<LinkedHashMap<String, Object>> policy = new ResponseWrapper<>();
 		LinkedHashMap<String, Object> policies = new LinkedHashMap<>();
@@ -277,7 +324,7 @@ public class AbisHandlerStageTest {
 		sharableAttributes.put(PolicyConstant.SHAREABLE_ATTRIBUTES, attr);
 		policies.put(PolicyConstant.POLICIES, sharableAttributes);
 		policy.setResponse(policies);
-		
+
 		return policy;
 	}
 
@@ -525,30 +572,48 @@ public class AbisHandlerStageTest {
 
 		assertTrue(result.getInternalError());
 	}
-	
+
 	@Test
 	public void bioRecordDataShareMisMatch() throws ApisResourceAccessException {
-		
+
 		defaultMockToProcess();
 
 		mockDataSharePolicy(Lists.newArrayList(BiometricType.IRIS));
-		
+
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("10003100030001520190422074511");
 		MessageDTO result = abisHandlerStage.process(dto);
 
 		assertFalse(result.getIsValid());
 	}
-	
+
 	@Test
-	public void bioRecordDataNotFound() throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
-		
+	public void bioRecordDataNotFound()
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+
 		defaultMockToProcess();
 
-		Mockito.when(packetManagerService.getBiometrics(any(),any(),any(), any(),any())).thenReturn(null);
-		mockDataSharePolicy(Lists.newArrayList(BiometricType.IRIS,BiometricType.FINGER
-				,BiometricType.FACE));
-		
+		Mockito.when(packetManagerService.getBiometrics(any(), any(), any(), any(), any())).thenReturn(null);
+		mockDataSharePolicy(Lists.newArrayList(BiometricType.IRIS, BiometricType.FINGER, BiometricType.FACE));
+
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("10003100030001520190422074511");
+		MessageDTO result = abisHandlerStage.process(dto);
+
+		assertFalse(result.getIsValid());
+	}
+
+	@Test
+	public void biometricsNotFoundWithSegmentConfig()
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+
+		defaultMockToProcess();
+
+//		Mockito.when(packetManagerService.getBiometrics(any(),any(),any(), any(),any())).thenReturn(null);
+		mockDataSharePolicy(Lists.newArrayList(BiometricType.FACE, BiometricType.IRIS, BiometricType.FINGER));
+
+		setMetaInfoMap(Arrays.asList("leftEye"));
+//		setMetaInfoMap(Arrays.asList("rightMiddle"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("10003100030001520190422074511");
 		MessageDTO result = abisHandlerStage.process(dto);
@@ -557,8 +622,28 @@ public class AbisHandlerStageTest {
 	}
 	
 	@Test
-	public void emptyBdbFound() throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
-		
+	public void biometricsTypeNotFoundConfig()
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+
+		defaultMockToProcess();
+
+//		Mockito.when(packetManagerService.getBiometrics(any(),any(),any(), any(),any())).thenReturn(null);
+		mockDataSharePolicy(Lists.newArrayList(BiometricType.FOOT));
+
+		setMetaInfoMap(Arrays.asList("leftEye"));
+//		setMetaInfoMap(Arrays.asList("rightMiddle"));
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("10003100030001520190422074511");
+		MessageDTO result = abisHandlerStage.process(dto);
+
+		assertFalse(result.getIsValid());
+	}
+
+
+	@Test
+	public void emptyBdbFound()
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+
 		defaultMockToProcess();
 
 		List<BIR> birTypeList = new ArrayList<>();
@@ -578,24 +663,23 @@ public class AbisHandlerStageTest {
 		bdbInfoType1.setSubtype(subtype1);
 		bdbInfoType1.setType(singleTypeList1);
 		birType1.setBdbInfo(bdbInfoType1);
+		Map<String, Object> others = new HashMap<>();
+		others.put("EXCEPTION", false);
 		birType1.setBdb(null);
 		birTypeList.add(birType1);
 
 		BiometricRecord biometricRecord = new BiometricRecord();
 		biometricRecord.setSegments(birTypeList);
 
-		Mockito.when(packetManagerService.getBiometrics(any(),any(),any(), any(),any())).thenReturn(biometricRecord);
-		mockDataSharePolicy(Lists.newArrayList(BiometricType.IRIS,BiometricType.FINGER
-				,BiometricType.FACE));
-		
+		Mockito.when(packetManagerService.getBiometrics(any(), any(), any(), any(), any())).thenReturn(biometricRecord);
+		mockDataSharePolicy(Lists.newArrayList(BiometricType.IRIS, BiometricType.FINGER, BiometricType.FACE));
+
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("10003100030001520190422074511");
 		MessageDTO result = abisHandlerStage.process(dto);
 
 		assertFalse(result.getIsValid());
 	}
-	
-	
 
 	private void defaultMockToProcess() {
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
@@ -617,7 +701,38 @@ public class AbisHandlerStageTest {
 		regDemoDedupeListDto.setMatchedRegId("10003100030001520190422074511");
 		regDemoDedupeListDtoList.add(regDemoDedupeListDto);
 		Mockito.when(packetInfoManager.getDemoListByTransactionId(any())).thenReturn(regDemoDedupeListDtoList);
-		
+
 	}
 
+	private void setMetaInfoMap(List<String> exceptionAttributes) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException{
+		
+		Map<String, String> metaInfoMap = new HashMap<>();
+		
+		Map<String, Map<String, Object>> exceptionBiometrcisMap = new HashMap<>();
+		
+		Map<String, Object> applicantExceptionBiometrcisMap = new HashMap<String, Object>();
+		
+		for(String exceptionAttribute : exceptionAttributes) {
+		
+		Map<String, String> detailMap = new HashMap<String, String>();
+		detailMap.put("missingBiometric", exceptionAttribute);
+		detailMap.put("reason", "Temporary");
+		detailMap.put("individualType", "applicant");
+		
+		applicantExceptionBiometrcisMap.put(exceptionAttribute, detailMap);
+		
+		}
+		
+
+		exceptionBiometrcisMap.put("applicant", applicantExceptionBiometrcisMap);
+		Gson gson = new Gson();
+        Type gsonType = new TypeToken<HashMap>(){}.getType();
+//		exceptionBiometrcisMap.put("applicant", gson.toJson(applicantExceptionBiometrcisMap,gsonType));
+		
+        String gsonString = gson.toJson(exceptionBiometrcisMap,gsonType);
+        
+		metaInfoMap.put("exceptionBiometrics", gsonString);
+		Mockito.when(packetManagerService.getMetaInfo(any(), any(), any())).thenReturn(metaInfoMap);
+	}
+	
 }
