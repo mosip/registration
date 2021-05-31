@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -25,10 +27,12 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 
+import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
@@ -139,6 +143,13 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 	@Value("${mosip.regproc.data.share.internal.domain.name}")
 	private String internalDomainName;
+	
+	
+	@Value("#{${mosip.regproc.data.share.modalities.segments}}")
+	private Map<String, List<String>> biometricModalitySegmentsMap;
+	
+	@Value("#{${mosip.regproc.data.share.segments.exception}}")
+	private Map<String, String> exceptionModalityMap;
 
 	@Autowired
 	private RegistrationProcessorRestClientService registrationProcessorRestClientService;
@@ -572,7 +583,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		BiometricRecord biometricRecord = priorityBasedPacketManagerService.getBiometrics(
 				id, individualBiometricsLabel, modalities, process, ProviderStageName.BIO_DEDUPE);
 		
-		validateBiometricRecord(biometricRecord, modalities);
+		validateBiometricRecord(biometricRecord, modalities, priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE));
 		
 		byte[] content = cbeffutil.createXML(BIRConverter.convertSegmentsToBIRList(biometricRecord.getSegments()));
 
@@ -608,30 +619,78 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 		return response.getDataShare().getUrl();
 	}
-	private void validateBiometricRecord(BiometricRecord biometricRecord, List<String> modalities) throws DataShareException {
-		if(biometricRecord == null  || biometricRecord.getSegments() == null
-				|| biometricRecord.getSegments().isEmpty() || modalities==null || modalities.isEmpty()) {
-			throw new DataShareException("No Biometrics Found with Data Share Policy");
+	private void validateBiometricRecord(BiometricRecord biometricRecord, List<String> modalities, Map<String, String> map) throws DataShareException, JsonParseException, JsonMappingException, IOException {
+		
+		if(modalities==null || modalities.isEmpty()) {
+			throw new DataShareException("Data Share Policy Modalities were Empty");
 
 		}
+		if(biometricRecord == null  || biometricRecord.getSegments() == null
+				|| biometricRecord.getSegments().isEmpty()) {
+			throw new DataShareException("No Biometrics Found with Data Share Policy");
+
+		}	
 		
-		boolean flag = false;
-		for(BIR bir : biometricRecord.getSegments()) {
+		String exceptionBometricsMap = map.get("exceptionBiometrics");
+		
+
+		 ObjectMapper mapper = new ObjectMapper();
+		Map<String, Map<String,Object>> metaInfoExceptionBiometrics = mapper.readValue(exceptionBometricsMap, new TypeReference<Map<String, Map<String,Object>>>() {
+		        });
+		
+		
+		Set<String> exceptionList =  metaInfoExceptionBiometrics.get("applicant").keySet();
+		
+
+		boolean isBioFound = false;
+		for(String modality : modalities) {
 			
-			if(!flag && modalities.contains(bir.getBdbInfo().getType().get(0).value())) {
-				flag = true;
-			}
-			if(bir.getBdb() == null && ( bir.getOthers()==null ?
-					true : bir.getOthers().containsKey("EXCEPTION") ?
-							(boolean) bir.getOthers().get("EXCEPTION"): true)) {
-				throw new DataShareException("Invalid Biometrics Found with Data Share Policy : Empty BDB val found");
+			if(biometricModalitySegmentsMap.containsKey(modality)) {
+				
+				for(String segment : biometricModalitySegmentsMap.get(modality)) {
+					
+					Optional<BIR> optionalBIR = null;
+					if(segment.equalsIgnoreCase("Face")) {
+						
+						optionalBIR = biometricRecord.getSegments().stream()
+								.filter(bir -> bir.getBdbInfo().getType().get(0).equals(BiometricType.FACE)).findFirst();
+					} else {
+						
+						String[] segmentArray = segment.split(" ");
+					
+						optionalBIR = biometricRecord.getSegments().stream()
+								.filter(bir -> bir.getBdbInfo().getSubtype().size() == segmentArray.length ?
+										(bir.getBdbInfo().getSubtype().get(0).equalsIgnoreCase(segmentArray[0])
+										&& (segmentArray.length >1 ? bir.getBdbInfo().getSubtype().get(1).equalsIgnoreCase(segmentArray[1]) : true)) : false
+										).findFirst();
+					}
+					
+					
+					if(optionalBIR.isPresent()) {
+						BIR bir = optionalBIR.get();
+						
+						if(bir.getBdb() == null && (( bir.getOthers()==null && bir.getOthers().containsKey("EXCEPTION") ?
+							!(boolean) bir.getOthers().get("EXCEPTION"): false) )) {
+							
+							throw new DataShareException("Biometric BDB Not Found : "+segment);
+						}
+						isBioFound = true;
+					} else if(!exceptionList.contains(exceptionModalityMap.get(segment))){
+
+						throw new DataShareException("Biometrics/Exceptions Not Found : "+segment);
+						}
+					}
+				
+			} else {
+				throw new DataShareException("Biometrics Segments Not Configured for modality : "+modality);
 				
 			}
 		}
 		
-		if(!flag) {
+		if(!isBioFound) {
 			throw new DataShareException("No Biometric Matched with Data Share Policy");
 		}
+		
 	}
 
 	public Map<String, List<String>> createTypeSubtypeMapping() throws ApisResourceAccessException, DataShareException, JsonParseException, JsonMappingException, com.fasterxml.jackson.core.JsonProcessingException, IOException{
