@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -145,10 +146,10 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	private String internalDomainName;
 	
 	
-	@Value("#{${mosip.regproc.data.share.modalities.segments}}")
+	@Value("#{${mosip.regproc.abis.handler.biometric-modalities-segments-mapping}}")
 	private Map<String, List<String>> biometricModalitySegmentsMap;
 	
-	@Value("#{${mosip.regproc.data.share.segments.exception}}")
+	@Value("#{${mosip.regproc.abis.handler.biometric-segments-exceptions-mapping}}")
 	private Map<String, String> exceptionModalityMap;
 
 	@Autowired
@@ -269,6 +270,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					regId, description.getMessage());
 		} catch (Exception e) {
+			
 			if(e instanceof DataShareException) {
 				object.setIsValid(false);
 			}
@@ -630,21 +632,28 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 		}	
 		
-		String exceptionBometricsMap = metaInfoMap.get("exceptionBiometrics");
+		Map<String, Map<String,Object>> metaInfoExceptionBiometrics = metaInfoMap!=null && metaInfoMap.containsKey("exceptionBiometrics") 
+				? new ObjectMapper().
+				readValue(metaInfoMap.get("exceptionBiometrics"), new TypeReference<Map<String, Map<String,Object>>>() {
+		        }) : null;
 		
+		
+		Set<String> exceptionList =null;
+		if(metaInfoExceptionBiometrics!=null && metaInfoExceptionBiometrics.containsKey("applicant")) {
+			
 
-		 ObjectMapper mapper = new ObjectMapper();
-		Map<String, Map<String,Object>> metaInfoExceptionBiometrics = mapper.readValue(exceptionBometricsMap, new TypeReference<Map<String, Map<String,Object>>>() {
-		        });
+			exceptionList =  metaInfoExceptionBiometrics.get("applicant").keySet();
+		}
 		
-		
-		Set<String> exceptionList =  metaInfoExceptionBiometrics.get("applicant").keySet();
 		
 
 		boolean isBioFound = false;
 		for(String modality : modalities) {
 			
-			if(biometricModalitySegmentsMap.containsKey(modality)) {
+				if(!biometricModalitySegmentsMap.containsKey(modality)) {
+	
+					throw new DataShareException("Biometrics Segments Not Configured for modality : "+modality);
+				}
 				
 				for(String segment : biometricModalitySegmentsMap.get(modality)) {
 					
@@ -652,7 +661,8 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 					if(segment.equalsIgnoreCase("Face")) {
 						
 						optionalBIR = biometricRecord.getSegments().stream()
-								.filter(bir -> bir.getBdbInfo().getType().get(0).equals(BiometricType.FACE)).findFirst();
+								.filter(bir -> bir.getBdbInfo().getType()!=null && 
+								bir.getBdbInfo().getType().get(0).equals(BiometricType.FACE)).findFirst();
 					} else {
 						
 						String[] segmentArray = segment.split(" ");
@@ -668,22 +678,21 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 					if(optionalBIR!=null && optionalBIR.isPresent()) {
 						BIR bir = optionalBIR.get();
 						
-						if(bir.getBdb() == null && (( bir.getOthers()==null || !bir.getOthers().containsKey("EXCEPTION")) ? true :
-							!(boolean) bir.getOthers().get("EXCEPTION"))) {
+						if(bir.getBdb() != null) {
+							isBioFound = true;
+						} else if(( bir.getOthers()==null || !bir.getOthers().containsKey("EXCEPTION")) ? true :
+							!(boolean) bir.getOthers().get("EXCEPTION")) {
 							
 							throw new DataShareException("Biometric BDB Not Found : "+segment);
 						}
-						isBioFound = true;
-					} else if(!exceptionList.contains(exceptionModalityMap.get(segment))){
+						
+					} else if(exceptionList==null || !exceptionList.contains(exceptionModalityMap.get(segment))){
 
 						throw new DataShareException("Biometrics/Exceptions Not Found : "+segment);
 						}
 					}
 				
-			} else {
-				throw new DataShareException("Biometrics Segments Not Configured for modality : "+modality);
-				
-			}
+			
 		}
 		
 		if(!isBioFound) {
