@@ -11,6 +11,7 @@ import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.abstractverticle.WorkflowInternalActionDTO;
 import io.mosip.registration.processor.core.code.WorkflowInternalActionCode;
+import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.vertx.core.json.JsonObject;
@@ -42,12 +43,21 @@ public class WorkflowCommandPredicate implements Predicate {
 				processCompleteAsFailed(exchange);
 				matches = true;
 				break;
-			case "workflow-cmd://:mark-as-reprocess":
+			case "workflow-cmd://mark-as-reprocess":
 				processMarkAsReprocess(exchange);
 				matches = true;
 				break;
 			default:
+				if (toaddress.startsWith("workflow-cmd://")) {
+					matches = true;
+					LOGGER.error("Error in  RoutePredicate::matches {}",
+							PlatformErrorMessages.RPR_CMB_WORKFLOW_COMMAND_NOT_SUPPORTED.getMessage());
+					throw new BaseUncheckedException(
+							PlatformErrorMessages.RPR_CMB_WORKFLOW_COMMAND_NOT_SUPPORTED.getCode(),
+							PlatformErrorMessages.RPR_CMB_WORKFLOW_COMMAND_NOT_SUPPORTED.getMessage());
+				}
 				break;
+
 			}
 		} catch (JsonProcessingException e) {
 			LOGGER.error("Error in  RoutePredicate::matches {}", e.getMessage());

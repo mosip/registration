@@ -1,8 +1,6 @@
 package io.mosip.registration.processor.reprocessor.stage;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -39,6 +37,7 @@ import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
+import io.mosip.registration.processor.status.code.RegistrationType;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
@@ -131,6 +130,7 @@ public class ReprocessorStageTest {
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 
 		registrationStatusDto.setRegistrationId("2018701130000410092018110735");
+		registrationStatusDto.setRegistrationType(RegistrationType.NEW.toString());
 		registrationStatusDto.setRegistrationStageName("PacketValidatorStage");
 		registrationStatusDto.setDefaultResumeAction("RESUME_PROCESSING");
 		registrationStatusDto.setResumeTimeStamp(LocalDateTime.now());
@@ -147,10 +147,8 @@ public class ReprocessorStageTest {
 		dtolist.add(registrationStatusDto1);
 		Mockito.when(registrationStatusService.getUnProcessedPackets(anyInt(), anyLong(), anyInt(), anyList()))
 				.thenReturn(dtolist);
-		
+		reprocessorStage.process(dto);
 
-		dto = reprocessorStage.process(dto);
-		assertTrue(dto.getIsValid());
 	}
 
 	@Test
@@ -162,6 +160,7 @@ public class ReprocessorStageTest {
 
 		registrationStatusDto.setRegistrationId("2018701130000410092018110735");
 		registrationStatusDto.setRegistrationStageName("PacketValidatorStage");
+
 		registrationStatusDto.setDefaultResumeAction("RESUME_PROCESSING");
 		registrationStatusDto.setResumeTimeStamp(LocalDateTime.now());
 		registrationStatusDto.setRegistrationType("NEW");
@@ -177,10 +176,8 @@ public class ReprocessorStageTest {
 		dtolist.add(registrationStatusDto1);
 		Mockito.when(registrationStatusService.getUnProcessedPackets(anyInt(), anyLong(), anyInt(), anyList()))
 				.thenReturn(dtolist);
-		
+		reprocessorStage.process(dto);
 
-		dto = reprocessorStage.process(dto);
-		assertFalse(dto.getIsValid());
 	}
 
 	/**

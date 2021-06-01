@@ -124,12 +124,10 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 
 	public void schedulerResult(AsyncResult<String> res) {
 		if (res.succeeded()) {
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					"", "ReprocessorStage::schedular()::deployed");
+			regProcLogger.info("ReprocessorStage::schedular()::deployed");
 			cronScheduling(vertx);
 		} else {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					"", "ReprocessorStage::schedular()::deploymemnt failure " + res.cause());
+			regProcLogger.error("ReprocessorStage::schedular()::deployment failure");
 		}
 	}
 

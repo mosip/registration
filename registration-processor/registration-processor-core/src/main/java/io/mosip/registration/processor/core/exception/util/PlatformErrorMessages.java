@@ -273,6 +273,10 @@ public enum PlatformErrorMessages {
 	/** The rpr cmb unknown host exception. */
 	RPR_CMB_UNKNOWN_HOST_EXCEPTION(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "005", "Unknown Host Exception"),
 
+
+	RPR_CMB_WORKFLOW_COMMAND_NOT_SUPPORTED(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "006",
+			"Workflow command not supported"),
+
 	/** The rpr qcr registration table not accessible. */
 	// Quality Checker Exception error code and message
 	RPR_QCR_REGISTRATION_TABLE_NOT_ACCESSIBLE(PlatformConstants.RPR_QUALITY_CHECKER_MODULE + "001",
