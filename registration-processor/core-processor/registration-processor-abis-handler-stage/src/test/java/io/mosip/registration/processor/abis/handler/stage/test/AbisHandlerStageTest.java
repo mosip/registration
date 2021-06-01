@@ -187,7 +187,7 @@ public class AbisHandlerStageTest {
 		biometricModalitySegmentsMap.put("Iris", getIrisList());
 		biometricModalitySegmentsMap.put("Face", getFaceList());
 		ReflectionTestUtils.setField(abisHandlerStage, "biometricModalitySegmentsMap", biometricModalitySegmentsMap);
-		ReflectionTestUtils.setField(abisHandlerStage, "exceptionModalityMap", getExceptionModalityMap());
+		ReflectionTestUtils.setField(abisHandlerStage, "exceptionSegmentsMap", getExceptionModalityMap());
 
 		Mockito.when(env.getProperty("DATASHARECREATEURL")).thenReturn("/v1/datashare/create");
 		AbisApplicationDto dto = new AbisApplicationDto();
@@ -600,7 +600,7 @@ public class AbisHandlerStageTest {
 		biometricModalitySegmentsMap.put("Finger", getFingerList());
 		biometricModalitySegmentsMap.put("Iris", getIrisList());
 		ReflectionTestUtils.setField(abisHandlerStage, "biometricModalitySegmentsMap", biometricModalitySegmentsMap);
-		ReflectionTestUtils.setField(abisHandlerStage, "exceptionModalityMap", getExceptionModalityMap());
+		ReflectionTestUtils.setField(abisHandlerStage, "exceptionSegmentsMap", getExceptionModalityMap());
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("10003100030001520190422074511");

@@ -149,7 +149,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	private Map<String, List<String>> biometricModalitySegmentsMap;
 
 	@Value("#{${mosip.regproc.abis.handler.biometric-segments-exceptions-mapping}}")
-	private Map<String, String> exceptionModalityMap;
+	private Map<String, String> exceptionSegmentsMap;
 
 	@Autowired
 	private RegistrationProcessorRestClientService registrationProcessorRestClientService;
@@ -662,7 +662,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 							: !(boolean) bir.getOthers().get("EXCEPTION")) {
 						throw new DataShareException("Biometric BDB Not Found : " + segment);
 					}
-				} else if (exceptionList == null || !exceptionList.contains(exceptionModalityMap.get(segment))) {
+				} else if (exceptionList == null || !exceptionList.contains(exceptionSegmentsMap.get(segment))) {
 					throw new DataShareException("Biometrics/Exceptions Not Found : " + segment);
 				}
 			}
