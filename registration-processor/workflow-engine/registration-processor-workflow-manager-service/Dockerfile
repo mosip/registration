@@ -33,23 +33,55 @@ ENV is_glowroot_env=${is_glowroot}
 # environment variable to pass artifactory url, at docker runtime
 ENV artifactory_url_env=${artifactory_url}
 
-# change volume to whichever storage directory you want to use for this container.
-VOLUME /home/logs
+# can be passed during Docker build as build time environment for github branch to pickup configuration from.
+ARG container_user=mosip
 
-COPY ./target/registration-processor-workflow-manager-service-*.jar registration-processor-workflow-manager-service.jar
+# can be passed during Docker build as build time environment for github branch to pickup configuration from.
+ARG container_user_group=mosip
+
+# can be passed during Docker build as build time environment for github branch to pickup configuration from.
+ARG container_user_uid=1001
+
+# can be passed during Docker build as build time environment for github branch to pickup configuration from.
+ARG container_user_gid=1001
+
+RUN apt-get -y update \
+&& apt-get install -y unzip sudo \
+&& groupadd -g ${container_user_gid} ${container_user_group} \
+&& useradd -u ${container_user_uid} -g ${container_user_group} -s /bin/sh -m ${container_user} \
+&& adduser ${container_user} sudo
+
+# set working directory for the user
+WORKDIR /home/${container_user}
+
+ENV work_dir=/home/${container_user}
+
+ARG loader_path=${work_dir}/additional_jars/
+
+RUN mkdir -p ${loader_path}
+
+ENV loader_path_env=${loader_path}
+
+# change volume to whichever storage directory you want to use for this container.
+VOLUME ${work_dir}/logs ${work_dir}/Glowroot
+
+ADD ./target/registration-processor-workflow-manager-service-*.jar registration-processor-workflow-manager-service.jar
 
 #Below 4 lines is added only as a temporary fix to downloaded the ceylon dependencies for chime scheduler
 #later this chime to be replaced with something else
-CMD apt-get update && apt-get install -y unzip ; \
-    wget "${artifactory_url_env}"/artifactory/libs-release-local/io/mosip/testing/regproc-reprocessor-ceylon-cache-repo.zip ; \
+# change permissions of file inside working dir
+RUN chown -R ${container_user}:${container_user} /home/${container_user}
+
+# select container user for all tasks
+USER ${container_user_uid}:${container_user_gid}
+
+CMD wget "${artifactory_url_env}"/artifactory/libs-release-local/io/mosip/testing/regproc-reprocessor-ceylon-cache-repo.zip ; \
     unzip regproc-reprocessor-ceylon-cache-repo.zip ; \
     rm -rf regproc-reprocessor-ceylon-cache-repo.zip ; \
-
     if [ "$is_glowroot_env" = "present" ]; then \
     wget "${artifactory_url_env}"/artifactory/libs-release-local/io/mosip/testing/glowroot.zip ; \
     unzip glowroot.zip ; \
     rm -rf glowroot.zip ; \
-    
     sed -i 's/<service_name>/registration-processor-workflow-manager-service/g' glowroot/glowroot.properties ; \
     java -jar -javaagent:glowroot/glowroot.jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -Dceylon.cache.repo=./regproc-reprocessor-ceylon-cache-repo registration-processor-workflow-manager-service.jar ; \
     else \
@@ -57,4 +89,3 @@ CMD apt-get update && apt-get install -y unzip ; \
     fi
 
 #CMD ["java","-Dspring.cloud.config.label=${spring_config_label_env}","-Dspring.profiles.active=${active_profile_env}","-Dspring.cloud.config.uri=${spring_config_url_env}","-jar","registration-processor-workflow-manager-service.jar"]
-
