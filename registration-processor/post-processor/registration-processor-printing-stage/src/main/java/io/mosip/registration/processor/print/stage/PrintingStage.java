@@ -173,6 +173,7 @@ public class PrintingStage extends MosipVerticleAPIManager {
 		TrimExceptionMessage trimeExpMessage = new TrimExceptionMessage();
 		object.setMessageBusAddress(MessageBusAddress.PRINTING_BUS);
 		object.setInternalError(Boolean.FALSE);
+		object.setIsValid(Boolean.FALSE);
 		LogDescription description = new LogDescription();
 
 		boolean isTransactionSuccessful = false;
@@ -307,6 +308,9 @@ public class PrintingStage extends MosipVerticleAPIManager {
 			object.setInternalError(Boolean.TRUE);
 		}
 		finally {
+			if (object.getInternalError()) {
+				updateErrorFlags(registrationStatusDto, object);
+			}
 			String eventId = "";
 			String eventName = "";
 			String eventType = "";
@@ -406,5 +410,15 @@ public class PrintingStage extends MosipVerticleAPIManager {
 		}
 
 		return vid;
+	}
+	
+	private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
+		object.setInternalError(true);
+		if (registrationStatusDto.getLatestTransactionStatusCode()
+				.equalsIgnoreCase(RegistrationTransactionStatusCode.REPROCESS.toString())) {
+			object.setIsValid(true);
+		} else {
+			object.setIsValid(false);
+		}
 	}
 }

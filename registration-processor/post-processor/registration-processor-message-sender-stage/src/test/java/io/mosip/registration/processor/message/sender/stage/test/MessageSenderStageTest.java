@@ -492,7 +492,7 @@ public class MessageSenderStageTest {
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("85425022110000120190117110505");
 		MessageDTO result = stage.process(dto);
-		assertTrue(result.getIsValid());
+		assertFalse(result.getIsValid());
 	}
 
 	@Test
