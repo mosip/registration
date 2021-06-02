@@ -38,7 +38,7 @@ public class RouteIntercepter {
 
 						interceptFrom("*").when(pauseFlowPredicate).to(endpointPrefix + workflowInternalActionAddress)
 								.stop();
-						interceptSendToEndpoint("*").when(workflowCommandPredicate)
+						interceptSendToEndpoint("workflow-cmd:*").when(workflowCommandPredicate)
 								.to(endpointPrefix + workflowInternalActionAddress).stop();
 					}
 				});

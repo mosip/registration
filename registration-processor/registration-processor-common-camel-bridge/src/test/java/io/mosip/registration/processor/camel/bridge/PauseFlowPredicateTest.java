@@ -33,6 +33,8 @@ import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.camel.bridge.intercepter.PauseFlowPredicate;
 import io.mosip.registration.processor.camel.bridge.model.Setting;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
+import io.mosip.registration.processor.core.abstractverticle.WorkflowInternalActionDTO;
+import io.mosip.registration.processor.core.code.WorkflowInternalActionCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.vertx.core.json.JsonObject;
@@ -80,19 +82,19 @@ public class PauseFlowPredicateTest {
 
 			@Override
 			public boolean isSingleton() {
-				// TODO Auto-generated method stub
+
 				return false;
 			}
 
 			@Override
 			public Producer createProducer() throws Exception {
-				// TODO Auto-generated method stub
+
 				return null;
 			}
 
 			@Override
 			public Consumer createConsumer(Processor processor) throws Exception {
-				// TODO Auto-generated method stub
+
 				return null;
 			}
 		};
@@ -115,6 +117,10 @@ public class PauseFlowPredicateTest {
 		JsonObject json = new JsonObject((String) exchange.getMessage().getBody());
 		assertEquals("STOP_PROCESSING", json.getString("defaultResumeAction"));
 		assertTrue(dateTimeBefore.isBefore(DateUtils.parseToLocalDateTime(json.getString("resumeTimestamp"))) && dateTimeAfter.isAfter(DateUtils.parseToLocalDateTime(json.getString("resumeTimestamp"))));
+		WorkflowInternalActionDTO workflowInternalActionDTO = objectMapper
+				.readValue(exchange.getMessage().getBody().toString(), WorkflowInternalActionDTO.class);
+		assertEquals(WorkflowInternalActionCode.MARK_AS_PAUSED.toString(),
+				workflowInternalActionDTO.getActionCode());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -135,25 +141,25 @@ public class PauseFlowPredicateTest {
 		Endpoint wrongEndpoint = new DefaultEndpoint() {
 			@Override
 			public String toString() {
-				// TODO Auto-generated method stub
+
 				return "wrongendpointtest";
 			}
 
 			@Override
 			public boolean isSingleton() {
-				// TODO Auto-generated method stub
+
 				return false;
 			}
 
 			@Override
 			public Producer createProducer() throws Exception {
-				// TODO Auto-generated method stub
+
 				return null;
 			}
 
 			@Override
 			public Consumer createConsumer(Processor processor) throws Exception {
-				// TODO Auto-generated method stub
+
 				return null;
 			}
 		};
