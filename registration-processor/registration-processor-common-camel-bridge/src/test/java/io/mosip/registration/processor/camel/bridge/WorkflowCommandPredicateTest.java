@@ -1744,4 +1744,14 @@ public class WorkflowCommandPredicateTest {
 		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT, null);
 		workflowCommandPredicate.matches(exchange);
 	}
+
+	@SuppressWarnings("unchecked")
+	@Test(expected = BaseUncheckedException.class)
+	public void testRoutePredicateDefault() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("10002100741000120201231071308");
+		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
+		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT, "workflow-cmd://complete-as-faled");
+		workflowCommandPredicate.matches(exchange);
+	}
 }
