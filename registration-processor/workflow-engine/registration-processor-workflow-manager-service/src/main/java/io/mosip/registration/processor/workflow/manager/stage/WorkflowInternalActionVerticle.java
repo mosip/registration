@@ -69,7 +69,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
 
-	@Value("${mosip.regproc.workflow-manager.action.eventbus.port}")
+	@Value("${mosip.regproc.workflow-manager.internal.action.eventbus.port}")
 	private String eventBusPort;
 
 	@Autowired

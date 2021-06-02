@@ -32,10 +32,10 @@ public class WorkflowSearchRequestValidator {
 	private static final String ID_FIELD = "id";
 
 	/** The Constant WORKFLOW_ACTION_ID. */
-	private static final String WORKFLOW_SEARCH_ID = "mosip.regproc.workflow.search.api-id";
+	private static final String WORKFLOW_SEARCH_ID = "mosip.regproc.workflow-manager.search.api-id";
 
 	/** The Constant WORKFLOW_ACTION_VERSION. */
-	private static final String WORKFLOW_SEARCH_VERSION = "mosip.regproc.workflow.search.version";
+	private static final String WORKFLOW_SEARCH_VERSION = "mosip.regproc.workflow-manager.search.version";
 
 	Logger regProcLogger = RegProcessorLogger.getLogger(WorkflowActionRequestValidator.class);
 

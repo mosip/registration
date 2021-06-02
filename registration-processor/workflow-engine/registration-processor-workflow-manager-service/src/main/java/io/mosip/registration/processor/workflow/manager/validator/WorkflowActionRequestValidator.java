@@ -31,10 +31,10 @@ public class WorkflowActionRequestValidator {
 	private static final String ID_FIELD = "id";
 
 	/** The Constant WORKFLOW_ACTION_ID. */
-	private static final String WORKFLOW_ACTION_ID = "mosip.regproc.workflow.action.api-id";
+	private static final String WORKFLOW_ACTION_ID = "mosip.regproc.workflow-manager.action.api-id";
 
 	/** The Constant WORKFLOW_ACTION_VERSION. */
-	private static final String WORKFLOW_ACTION_VERSION = "mosip.regproc.workflow.action.version";
+	private static final String WORKFLOW_ACTION_VERSION = "mosip.regproc.workflow-manager.action.version";
 
 	Logger regProcLogger = RegProcessorLogger.getLogger(WorkflowActionRequestValidator.class);
 
