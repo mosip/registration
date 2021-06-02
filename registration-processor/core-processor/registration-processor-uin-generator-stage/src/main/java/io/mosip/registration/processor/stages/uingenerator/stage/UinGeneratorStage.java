@@ -15,6 +15,10 @@ import io.mosip.registration.processor.packet.storage.dto.ConfigEnum;
 import io.mosip.registration.processor.packet.storage.dto.Document;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.packet.storage.utils.*;
+import io.mosip.registration.processor.core.constant.VidType;
+import io.mosip.registration.processor.core.idrepo.dto.VidsInfosDTO;
+import io.mosip.registration.processor.stages.uingenerator.exception.VidServiceFailedException;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -1021,24 +1025,22 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 	@SuppressWarnings("unchecked")
 	private void generateVid(String registrationId, String UIN, boolean isUinAlreadyPresent)
-			throws ApisResourceAccessException, IOException, VidCreationException {
+			throws ApisResourceAccessException, IOException, VidCreationException, VidServiceFailedException {
 		VidRequestDto vidRequestDto = new VidRequestDto();
 		RequestWrapper<VidRequestDto> request = new RequestWrapper<>();
 		ResponseWrapper<VidResponseDto> response;
 
 		try {
+			String uin = UIN;
 			if (isUinAlreadyPresent) {
-				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-						registrationId, "Getting UIN from rid by calling IDREPO API");
-
-				String uin = idRepoService.getUinByRid(registrationId, utility.getGetRegProcessorDemographicIdentity());
-
-				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-						registrationId, "Received response from IDREPO for UIN");
-				vidRequestDto.setUIN(uin);
-			} else {
-				vidRequestDto.setUIN(UIN);
+				uin = idRepoService.getUinByRid(registrationId, utility.getGetRegProcessorDemographicIdentity());
+				if (isPerpetualVidAlreadyPresent(uin)) {
+					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+							registrationId, "VID already present. Skipping vid generation.");
+					return;
+				}
 			}
+			vidRequestDto.setUIN(uin);
 			vidRequestDto.setVidType(vidType);
 			request.setId(env.getProperty(UINConstants.VID_CREATE_ID));
 			request.setRequest(vidRequestDto);
@@ -1072,7 +1074,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 			}
 
-		} catch (ApisResourceAccessException e) {
+		} catch (ApisResourceAccessException | VidServiceFailedException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId, PlatformErrorMessages.RPR_UGS_API_RESOURCE_EXCEPTION.getMessage() + e.getMessage()
 							+ ExceptionUtils.getStackTrace(e));
@@ -1181,5 +1183,32 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		}
 
 		return idResponse;
+	}
+
+	private boolean isPerpetualVidAlreadyPresent(String uin) throws ApisResourceAccessException, VidServiceFailedException {
+		List<String> pathsegments = new ArrayList<>();
+		pathsegments.add(uin);
+
+		VidsInfosDTO vidsInfosDTO;
+
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+				"PrintServiceImpl::getVid():: get GETVIDSBYUIN service call started with request data : "
+		);
+
+		vidsInfosDTO =  (VidsInfosDTO) registrationProcessorRestClientService.getApi(ApiName.GETVIDSBYUIN,
+				pathsegments, "", "", VidsInfosDTO.class);
+
+		if (CollectionUtils.isEmpty(vidsInfosDTO.getErrors())
+				&& CollectionUtils.isNotEmpty(vidsInfosDTO.getResponse())) {
+			for (io.mosip.registration.processor.core.idrepo.dto.VidInfoDTO VidInfoDTO : vidsInfosDTO.getResponse()) {
+				if (VidType.PERPETUAL.name().equalsIgnoreCase(VidInfoDTO.getVidType())) {
+					return true;
+				}
+			}
+		} else if (CollectionUtils.isNotEmpty(vidsInfosDTO.getErrors())) {
+			throw new VidServiceFailedException(vidsInfosDTO.getErrors().iterator().next().getErrorCode(),
+					vidsInfosDTO.getErrors().iterator().next().getMessage());
+		}
+		return false;
 	}
 }
