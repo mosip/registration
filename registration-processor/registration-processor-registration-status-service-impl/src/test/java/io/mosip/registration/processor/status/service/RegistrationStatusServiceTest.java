@@ -285,4 +285,23 @@ public class RegistrationStatusServiceTest {
 		registrationStatusService.getByIdsAndTimestamp(ids);
 
 	}
+
+	@Test
+	public void testGetResumablePackets()
+	{
+		registrationStatusEntity.setStatusCode("PAUSED");
+		Mockito.when(registrationStatusDao.getResumablePackets(anyInt()))
+				.thenReturn(List.of(registrationStatusEntity));
+		List<InternalRegistrationStatusDto> dtolist = registrationStatusService.getResumablePackets(1);
+		assertEquals("PAUSED", dtolist.get(0).getStatusCode());
+	}
+
+	@Test(expected = TablenotAccessibleException.class)
+	public void testGetResumablePacketsFailure() {
+		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
+				"errorMessage", new Exception());
+		Mockito.when(registrationStatusDao.getResumablePackets(anyInt())).thenThrow(exp);
+		registrationStatusService.getResumablePackets(1);
+
+	}
 }

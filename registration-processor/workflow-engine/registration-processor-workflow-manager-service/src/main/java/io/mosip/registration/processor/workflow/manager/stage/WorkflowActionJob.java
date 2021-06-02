@@ -20,7 +20,6 @@ import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.ModuleName;
-import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.WorkflowActionException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
@@ -150,13 +149,9 @@ public class WorkflowActionJob extends MosipVerticleAPIManager {
 						.put(WorkflowManagerConstants.DESCRIPTION, timer),
 				ar -> {
 					if (ar.succeeded()) {
-						regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-								LoggerFileConstant.REGISTRATIONID.toString(), "",
-								"WorkflowActionJob::schedular()::started");
+						regProcLogger.info("WorkflowActionJob::schedular()::started");
 					} else {
-						regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-								LoggerFileConstant.REGISTRATIONID.toString(), "",
-								"WorkflowActionJob::schedular()::failed " + ar.cause());
+						regProcLogger.error("WorkflowActionJob::schedular()::failed {} ", ar.cause());
 						vertx.close();
 					}
 				});
@@ -181,43 +176,43 @@ public class WorkflowActionJob extends MosipVerticleAPIManager {
 	public MessageDTO process(MessageDTO object) {
 		LogDescription description = new LogDescription();
 
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-				"WorkflowActionJob::process()::entry");
+		regProcLogger.debug("WorkflowActionJob::process()::entry");
 		try {
 			processActionablePausedPackets();
+			isTransactionSuccessful = true;
 
 		} catch (TablenotAccessibleException e) {
 			isTransactionSuccessful = false;
 			object.setInternalError(Boolean.TRUE);
 			description.setMessage(PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getCode());
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-					description.getCode() + " -- " + registrationId,
-					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e.toString());
-
+			regProcLogger.error(
+					"Error in  WorkflowActionJob:process  {} {} {}",
+					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e.getMessage(),
+					ExceptionUtils.getStackTrace(e));
 		} catch (WorkflowActionException e) {
 			isTransactionSuccessful = false;
 			object.setInternalError(Boolean.TRUE);
 			description.setMessage(e.getMessage());
 			description.setCode(e.getErrorCode());
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-					description.getCode() + " -- " + registrationId, e.getMessage(), e.toString());
-		} catch (Exception ex) {
+			regProcLogger.error("Error in  WorkflowActionJob:process  {} {}", e.getMessage(),
+					ExceptionUtils.getStackTrace(e));
+		} catch (Exception e) {
 			isTransactionSuccessful = false;
 			description.setMessage(PlatformErrorMessages.RPR_WORKFLOW_ACTION_JOB_FAILED.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_WORKFLOW_ACTION_JOB_FAILED.getCode());
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					description.getCode() + " -- " + registrationId,
-					PlatformErrorMessages.RPR_WORKFLOW_ACTION_JOB_FAILED.getMessage() + ex.getMessage()
-							+ ExceptionUtils.getStackTrace(ex));
+			regProcLogger.error("Error in  WorkflowActionJob:process  {} {} {}",
+					PlatformErrorMessages.RPR_WORKFLOW_ACTION_JOB_FAILED.getMessage(), e.getMessage(),
+					ExceptionUtils.getStackTrace(e));
 			object.setInternalError(Boolean.TRUE);
 
 		} finally {
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, description.getMessage());
-			if (isTransactionSuccessful)
-				description.setMessage(PlatformSuccessMessages.RPR_WORKFLOW_ACTION_JOB_SUCCESS.getMessage());
 
+			if (isTransactionSuccessful) {
+				description.setCode(PlatformSuccessMessages.RPR_WORKFLOW_ACTION_JOB_SUCCESS.getCode());
+				description.setMessage(PlatformSuccessMessages.RPR_WORKFLOW_ACTION_JOB_SUCCESS.getMessage());
+			}
+			regProcLogger.info(description.getMessage());
 			String eventId = isTransactionSuccessful ? EventId.RPR_402.toString() : EventId.RPR_405.toString();
 			String eventName = isTransactionSuccessful ? EventName.UPDATE.toString() : EventName.EXCEPTION.toString();
 			String eventType = isTransactionSuccessful ? EventType.BUSINESS.toString() : EventType.SYSTEM.toString();

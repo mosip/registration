@@ -116,4 +116,14 @@ public class RegistrationStatusDaoTest {
 		List<RegistrationStatusEntity> rEntityList = registrationStatusDao.getByIdsAndTimestamp(idList);
 		assertEquals(list, rEntityList);
 	}
+
+	@Test
+	public void testResumablePackets() {
+		List<String> statusList = new ArrayList<>();
+		statusList.add("SUCCESS");
+		Mockito.when(registrationStatusRepositary.createQuerySelect(Matchers.anyString(), Matchers.anyMap(),
+				Matchers.anyInt())).thenReturn(list);
+		List<RegistrationStatusEntity> rEntityList = registrationStatusDao.getResumablePackets(2);
+		assertEquals(list, rEntityList);
+	}
 }

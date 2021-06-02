@@ -206,4 +206,35 @@ public class ReprocessorStageTest {
 
 	}
 
+	@Test
+	public void testProcessValidWithResumablePackets() throws TablenotAccessibleException, PacketManagerException,
+			ApisResourceAccessException, WorkflowActionException {
+
+		List<InternalRegistrationStatusDto> dtolist = new ArrayList<>();
+		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
+
+		registrationStatusDto.setRegistrationId("2018701130000410092018110735");
+		registrationStatusDto.setRegistrationType(RegistrationType.NEW.toString());
+		registrationStatusDto.setRegistrationStageName("PacketValidatorStage");
+		registrationStatusDto.setDefaultResumeAction("RESUME_PROCESSING");
+		registrationStatusDto.setResumeTimeStamp(LocalDateTime.now());
+		registrationStatusDto.setReProcessRetryCount(0);
+		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+		dtolist.add(registrationStatusDto);
+		List<InternalRegistrationStatusDto> reprocessorDtoList = new ArrayList<>();
+		InternalRegistrationStatusDto registrationStatusDto1 = new InternalRegistrationStatusDto();
+
+		registrationStatusDto1.setRegistrationId("2018701130000410092018110734");
+		registrationStatusDto1.setRegistrationStageName("PacketValidatorStage");
+		registrationStatusDto1.setReProcessRetryCount(1);
+		registrationStatusDto1.setRegistrationType("NEW");
+		registrationStatusDto1.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
+		reprocessorDtoList.add(registrationStatusDto1);
+		Mockito.when(registrationStatusService.getResumablePackets(anyInt()))
+				.thenReturn(dtolist);
+		Mockito.when(registrationStatusService.getUnProcessedPackets(anyInt(), anyLong(), anyInt(), anyList()))
+				.thenReturn(reprocessorDtoList);
+		reprocessorStage.process(dto);
+
+	}
 }
