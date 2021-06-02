@@ -84,7 +84,7 @@ public enum PlatformSuccessMessages {
 			"Process the workflow action success"),
 	RPR_WORKFLOW_SEARCH_API_SUCCESS(PlatformConstants.RPR_WORKFLOW_SEARCH_API + "000",
 			"Process the workflow search success"),
-	RPR_WORKFLOW_ACTION_JOB_SUCCESS(PlatformConstants.RPR_WORKFLOW_ACTION_JOB + "000", "Workflow action job  success"),
+	RPR_WORKFLOW_ACTION_JOB_SUCCESS(PlatformConstants.RPR_WORKFLOW_ACTION_JOB + "000", "Workflow action job success"),
 
 	RPR_EXTERNAL_STAGE_SUCCESS(PlatformConstants.RPR_EXTERNAL_STAGE + "000", "External stage  Success"),
 
@@ -131,13 +131,14 @@ public enum PlatformSuccessMessages {
 			"Lost packet id value fetched successfully"),
 
 	PACKET_MARK_AS_PAUSED(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "000",
-			"packet paused  because of pausesettings match"),
+			"Packet paused because of pause settings match"),
 	PACKET_COMPLETE_AS_PROCESSED(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "001",
-			"packet process complete as processed"),
+			"Packet processing completed with processed status"),
 	PACKET_COMPLETE_AS_REJECTED(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "002",
-			"packet process complete as rejected"),
-	PACKET_COMPLETE_AS_FAILED(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "003", "packet process complete  as failed"),
-	PACKET_MARK_AS_REPROCESS(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "004", "packet mark as reprocess");
+			"Packet processing completed with reject status"),
+	PACKET_COMPLETE_AS_FAILED(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "003",
+			"Packet processing completed with failed status"),
+	PACKET_MARK_AS_REPROCESS(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "004", "Packet marked for reprocessing");
 
 	/** The success message. */
 	private final String successMessage;
