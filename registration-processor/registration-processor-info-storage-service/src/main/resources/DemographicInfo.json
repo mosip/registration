@@ -204,27 +204,27 @@
 				"value": null
 			}
 		],
-		"parentOrGuardianName": [
+		"introducerName": [
 			{
 				"language": "en",
-				"label": "parentOrGuardianName",
+				"label": "introducerName",
 				"value": null
 			},
 			{
 				"language": "ar",
-				"label": "parentOrGuardianName",
+				"label": "introducerName",
 				"value": null
 			}
 		],
-		"parentOrGuardianRIDOrUIN": [
+		"introducerRIDOrUIN": [
 			{
 				"language": "en",
-				"label": "parentOrGuardianRIDOrUIN",
+				"label": "introducerRIDOrUIN",
 				"value": null
 			},
 			{
 				"language": "ar",
-				"label": "parentOrGuardianRIDOrUIN",
+				"label": "introducerRIDOrUIN",
 				"value": null
 			}
 		]

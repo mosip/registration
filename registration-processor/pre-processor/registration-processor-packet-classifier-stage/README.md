@@ -15,8 +15,10 @@ server.servlet.path=/registrationprocessor/v1/packetclassifier
 ## Configurable Properties from Config Server
 ```
 # List of tag generator that should be run on every packet
-# Available tag generators MosipIDObjectFields,MosipMetaInfo,MosipAgeGroup,MosipSupervisorApprovalStatus,MosipExceptionBiometrics // DocumentMissing,MosipBiometricsMissing
+# Available tag generators MosipIDObjectFields,MosipMetaInfo,MosipAgeGroup,MosipSupervisorApprovalStatus,MosipExceptionBiometrics,MosipIDObjectDataAvailability
 mosip.regproc.packet.classifier.tag-generators=MosipIDObjectFields,MosipMetaInfo,MosipAgeGroup,MosipSupervisorApprovalStatus,MosipExceptionBiometrics
+# The tag value that will be used by default when the packet does not have value for the tag field
+mosip.regproc.packet.classifier.tagging.not-available-tag-value=--TAG_VALUE_NOT_AVAILABLE--
 # These field names should be as in keys of registraion-processor-identity.json file Identity segment
 # and should have proper default source configured
 mosip.regproc.packet.classifier.tagging.idobjectfields.mapping-field-names=gender,city,residenceStatus
@@ -48,4 +50,8 @@ mosip.regproc.packet.classifier.tagging.supervisorapprovalstatus.tag-name=SUPERV
 mosip.regproc.packet.classifier.tagging.exceptionbiometrics.tag-name=EXCEPTION_BIOMETRICS
 # This mapping will contain the short words for each missing biometrics, the values will used for concatenating in the tags
 mosip.regproc.packet.classifier.tagging.exceptionbiometrics.bio-value-mapping={'leftLittle':'LL','leftRing':'LR','leftMiddle':'LM','leftIndex':'LI','leftThumb':'LT','rightLittle':'RL','rightRing':'RR','rightMiddle':'RM','rightIndex':'RI','rightThumb':'RT','leftEye':'LE','rightEye':'RE'}
+# The keys of this map will used as tag names and values should be single field or a boolean mvel expression 
+# continaing multiple fields. These field names in expression should be as in keys of registraion-processor-identity.json 
+# file Identity segment and should have proper default source configured
+mosip.regproc.packet.classifier.tagging.idobject-data-availability.availability-expression-map={'INTRODUCER_AVAILABILITY':'introducerUIN || introducerRID || introducerVID'}
 ```

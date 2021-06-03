@@ -1,8 +1,10 @@
 package io.mosip.registration.processor.stages.packetclassifier.tagging.impl;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
+import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.stages.packetclassifier.dto.FieldDTO;
@@ -52,6 +54,13 @@ public class MetaInfoTagGenerator implements TagGenerator {
     /** The serial numbers of devices type on metainfo.capturedRegisteredDevices array that needs to be tagged */
     @Value("#{'${mosip.regproc.packet.classifier.tagging.metainfo.capturedregistereddevices.device-types:}'.split(',')}")
     private List<String> capturedRegisteredDeviceTypes;
+
+    /** The tag value that will be used by default when the packet does not have value for the tag field */
+    @Value("${mosip.regproc.packet.classifier.tagging.not-available-tag-value}")
+    private String notAvailableTagValue;
+
+    /** The reg proc logger. */
+	private static Logger regProcLogger = RegProcessorLogger.getLogger(AgeGroupTagGenerator.class);
 
     /** Mapper utility used for unmarshalling JSON to Java objects  */
     @Autowired
@@ -105,8 +114,17 @@ public class MetaInfoTagGenerator implements TagGenerator {
         JSONArray operationsDataJsonArray = new JSONArray(operationsDataString);
         Map<String, String> operationsDataMap = getMapFromLabelValueArray(operationsDataJsonArray);
         operationsDataTagLabels.forEach(tagLabel -> {
-            String tagLabelValue = operationsDataMap.get(tagLabel);
-            tags.put(operationsDataTagNamePrefix + tagLabel, tagLabelValue);
+            if(operationsDataMap.containsKey(tagLabel)) {
+                String tagLabelValue = operationsDataMap.get(tagLabel);
+                tags.put(operationsDataTagNamePrefix + tagLabel, tagLabelValue);
+            } else {
+                regProcLogger.warn("{} --> {}, for label {}, setting tag value as {}", 
+                    PlatformErrorMessages.RPR_PCM_OPERATIONS_DATA_ENTRY_NOT_AVAILABLE.getCode(), 
+                    PlatformErrorMessages.RPR_PCM_OPERATIONS_DATA_ENTRY_NOT_AVAILABLE.getMessage(),
+                    tagLabel, notAvailableTagValue);
+                tags.put(operationsDataTagNamePrefix + tagLabel, notAvailableTagValue);
+            }
+
         });
         return tags;
     }
@@ -122,8 +140,16 @@ public class MetaInfoTagGenerator implements TagGenerator {
         JSONArray metaDataJsonArray = new JSONArray(metaDataString);
         Map<String, String> metaDataMap = getMapFromLabelValueArray(metaDataJsonArray);
         metaDataTagLabels.forEach(tagLabel -> {
-            String tagLabelValue = metaDataMap.get(tagLabel);
-            tags.put(metaDataTagNamePrefix + tagLabel, tagLabelValue);
+            if(metaDataMap.containsKey(tagLabel)) {
+                String tagLabelValue = metaDataMap.get(tagLabel);
+                tags.put(metaDataTagNamePrefix + tagLabel, tagLabelValue);
+            } else {
+                regProcLogger.warn("{} --> {}, for label {}, setting tag value as {}", 
+                    PlatformErrorMessages.RPR_PCM_META_DATA_ENTRY_NOT_AVAILABLE.getCode(), 
+                    PlatformErrorMessages.RPR_PCM_META_DATA_ENTRY_NOT_AVAILABLE.getMessage(),
+                    tagLabel, notAvailableTagValue);
+                tags.put(metaDataTagNamePrefix + tagLabel, notAvailableTagValue);
+            }
         });
         return tags;
     }
@@ -146,6 +172,13 @@ public class MetaInfoTagGenerator implements TagGenerator {
                         digitalId.getString(JsonConstant.DIGITALIDMAKE) + TAG_VALUE_DELIMITER +
                         digitalId.getString(JsonConstant.DIGITALIDMODEL) + TAG_VALUE_DELIMITER +
                         digitalId.getString(JsonConstant.DIGITALIDSERIALNO));
+            }
+            if(!tags.containsKey(capturedRegisteredDevicesTagNamePrefix + deviceType)) {
+                regProcLogger.warn("{} --> {}, for deviceType {}, setting tag value as {}", 
+                    PlatformErrorMessages.RPR_PCM_CAPTURED_REGISTERED_DEVICES_ENTRY_NOT_AVAILABLE.getCode(), 
+                    PlatformErrorMessages.RPR_PCM_CAPTURED_REGISTERED_DEVICES_ENTRY_NOT_AVAILABLE.getMessage(),
+                    deviceType, notAvailableTagValue);
+                tags.put(capturedRegisteredDevicesTagNamePrefix + deviceType, notAvailableTagValue);
             }
         }
         return tags;

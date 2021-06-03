@@ -1,5 +1,7 @@
 package io.mosip.registration.processor.reprocessor.util;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -17,7 +19,6 @@ public class WebSubUtil {
 	@Autowired
 	private PublisherClient<String, WorkflowCompletedEventDTO, HttpHeaders> publisher;
 
-
 	@Value("${mosip.regproc.workflow.complete.topic}")
 	private String workflowCompleteTopic;
 
@@ -27,22 +28,29 @@ public class WebSubUtil {
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(WebSubUtil.class);
 
-	public void publishEvent(WorkflowCompletedEventDTO workflowCompletedEventDTO)
-			throws WebSubClientException {
-		String rid = workflowCompletedEventDTO.getInstanceId();
-		registerTopic(rid);
-		HttpHeaders httpHeaders = new HttpHeaders();
-		publisher.publishUpdate(workflowCompleteTopic, workflowCompletedEventDTO,
-				MediaType.APPLICATION_JSON_UTF8_VALUE, httpHeaders, webSubPublishUrl);
-		regProcLogger.info("Publish the update successfully  for registration id {}", rid);
+	@PostConstruct
+	private void registerTopic() {
+		try {
+			publisher.registerTopic(workflowCompleteTopic, webSubPublishUrl);
+		} catch (WebSubClientException exception) {
+			regProcLogger.warn(exception.getMessage());
+		}
+	}
 
+	public void publishEvent(WorkflowCompletedEventDTO workflowCompletedEventDTO) throws WebSubClientException {
+		String rid = workflowCompletedEventDTO.getInstanceId();
+		//registerTopic(rid);
+		HttpHeaders httpHeaders = new HttpHeaders();
+		publisher.publishUpdate(workflowCompleteTopic, workflowCompletedEventDTO, MediaType.APPLICATION_JSON_UTF8_VALUE,
+				httpHeaders, webSubPublishUrl);
+		regProcLogger.info("Publish the update successfully  for registration id {}", rid);
 
 	}
 
+	@Deprecated(since = "1.1.7")
 	private void registerTopic(String rid) {
 		try {
-			publisher.registerTopic(workflowCompleteTopic,
-					webSubPublishUrl);
+			publisher.registerTopic(workflowCompleteTopic, webSubPublishUrl);
 		} catch (WebSubClientException e) {
 			regProcLogger.error("Topic already registered for registration id {}", rid);
 

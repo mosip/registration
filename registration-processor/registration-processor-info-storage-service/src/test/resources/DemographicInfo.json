@@ -180,7 +180,7 @@
 				"value": "AB453625"
 			}
 		],
-		"parentOrGuardianName": [
+		"introducerName": [
 			{
 				"language": "ar",
 				"label": "اسم ولي الأمر / الوصي",
@@ -188,11 +188,11 @@
 			},
 			{
 				"language": "fr",
-				"label": "Nom du parent / tuteur",
+				"label": "Nom du introducer / tuteur",
 				"value": "salma"
 			}
 		],
-		"parentOrGuardianRIDOrUIN": [
+		"introducerRIDOrUIN": [
 			{
 				"language": "ar",
 				"label": "الوالد / الوصي RID / UIN",
@@ -200,7 +200,7 @@
 			},
 			{
 				"language": "fr",
-				"label": "parent / tuteur RID / UIN",
+				"label": "introducer / tuteur RID / UIN",
 				"value": "123456789123"
 			}
 		]

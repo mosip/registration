@@ -46,7 +46,7 @@ public class JsonUtilTest {
 	 */
 	@Before
 	public void setup() throws IOException, ClassNotFoundException {
-		value = "{\"identity\":{\"parentOrGuardianBiometrics\":{\"format\":\"cbeff\",\"version\":1.0,\"value\":\"authentication_bio_CBEFF\"}}}";
+		value = "{\"identity\":{\"introducerBiometrics\":{\"format\":\"cbeff\",\"version\":1.0,\"value\":\"authentication_bio_CBEFF\"}}}";
 		inputString = "{\"registrationId\":\"1001\",\"langCode\":\"eng\",\"createdBy\":\"mosip_system\"}";
 		inputStream = new ByteArrayInputStream(inputString.getBytes(StandardCharsets.UTF_8));
 	}

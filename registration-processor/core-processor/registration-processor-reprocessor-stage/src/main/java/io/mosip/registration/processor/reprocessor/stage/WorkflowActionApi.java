@@ -51,6 +51,9 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.workflowaction.server.port}")
 	private String port;
 
+	@Autowired
+	WorkflowSearchApi workflowSearchApi;
+
 	/** worker pool size. */
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
@@ -66,6 +69,7 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 
 	@Value("${mosip.regproc.workflow.action.version}")
 	private String version;
+
 	@Autowired
 	MosipRouter router;
 
@@ -112,6 +116,10 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 	public void start() {
 		router.setRoute(this.postUrl(getVertx(), null, null));
 		this.routes(router);
+		// Todo: Create common verticle for api handling, change workflowActionApi also
+		// like workflowSearchApi and call both setApiRoute method from the common
+		// verticle class
+		workflowSearchApi.setApiRoute(router.getRouter());
 		this.createServer(router.getRouter(), Integer.parseInt(port));
 	}
 
@@ -159,7 +167,7 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 						if (!internalRegistrationStatusDto.getStatusCode()
 								.equalsIgnoreCase(RegistrationStatusCode.PAUSED.name())) {
 							description.setMessage(PlatformErrorMessages.RPR_WAA_NOT_PAUSED.getMessage());
-						updateAudit(description, internalRegistrationStatusDto.getRegistrationId(),
+							updateAudit(description, internalRegistrationStatusDto.getRegistrationId(),
 								isTransactionSuccessful, user);
 							throw new WorkflowActionException(PlatformErrorMessages.RPR_WAA_NOT_PAUSED.getCode(),
 								String.format(PlatformErrorMessages.RPR_WAA_NOT_PAUSED.getMessage(),
@@ -294,4 +302,5 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 	protected String getPropertyPrefix() {
 		return STAGE_PROPERTY_PREFIX;
 	}
+
 }

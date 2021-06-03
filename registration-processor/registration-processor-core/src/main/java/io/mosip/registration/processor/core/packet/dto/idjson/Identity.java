@@ -10,8 +10,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 /**
- * This class contains the applicant demographic, biometric, proofs and parent
- * or guardian biometric details.
+ * This class contains the applicant demographic, biometric, proofs and introducer
+ * biometric details.
  *
  * @author Balaji Sridharan
  * @since 1.0.0
@@ -71,11 +71,11 @@ public class Identity {
 	/** The local administrative authority. */
 	private List<ValuesDTO> localAdministrativeAuthority;
 
-	/** The parent or guardian RID or UIN. */
-	private BigInteger parentOrGuardianRIDOrUIN;
+	/** The introducer RID or UIN. */
+	private BigInteger introducerRIDOrUIN;
 
-	/** The parent or guardian name. */
-	private List<ValuesDTO> parentOrGuardianName;
+	/** The introducer name. */
+	private List<ValuesDTO> introducerName;
 
 	/** The proof of address. */
 	private DocumentDetailsDTO proofOfAddress;
@@ -92,8 +92,8 @@ public class Identity {
 	/** The individual biometrics. */
 	private CBEFFFilePropertiesDTO individualBiometrics;
 
-	/** The parent or guardian biometrics. */
-	private CBEFFFilePropertiesDTO parentOrGuardianBiometrics;
+	/** The introducer biometrics. */
+	private CBEFFFilePropertiesDTO introducerBiometrics;
 
 	@Override
 	public String toString() {
@@ -102,11 +102,11 @@ public class Identity {
 				+ addressLine1 + ", addressLine2=" + addressLine2 + ", addressLine3=" + addressLine3 + ", region="
 				+ region + ", province=" + province + ", city=" + city + ", postalCode=" + postalCode + ", phone="
 				+ phone + ", email=" + email + ", localAdministrativeAuthority="
-				+ localAdministrativeAuthority + ", parentOrGuardianRIDOrUIN=" + parentOrGuardianRIDOrUIN
-				+ ", parentOrGuardianName=" + parentOrGuardianName + ", proofOfAddress=" + proofOfAddress
+				+ localAdministrativeAuthority + ", introducerRIDOrUIN=" + introducerRIDOrUIN
+				+ ", introducerName=" + introducerName + ", proofOfAddress=" + proofOfAddress
 				+ ", proofOfIdentity=" + proofOfIdentity + ", proofOfRelationship=" + proofOfRelationship
 				+ ", proofOfDateOfBirth=" + proofOfDateOfBirth + ", individualBiometrics=" + individualBiometrics
-				+ ", parentOrGuardianBiometrics=" + parentOrGuardianBiometrics + "]";
+				+ ", introducerBiometrics=" + introducerBiometrics + "]";
 	}
 
 }

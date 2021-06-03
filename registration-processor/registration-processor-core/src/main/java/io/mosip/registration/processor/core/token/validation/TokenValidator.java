@@ -168,6 +168,11 @@ public class TokenValidator {
 				if (role.contains(assignedRole))
 					return true;
 			}
+		} else if (url.contains("workflow/search")) {
+			for (String assignedRole : APIAuthorityList.WORKFLOWSEARCH.getList()) {
+				if (role.contains(assignedRole))
+					return true;
+			}
 		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"TokenValidator::validateAccess()::exit");

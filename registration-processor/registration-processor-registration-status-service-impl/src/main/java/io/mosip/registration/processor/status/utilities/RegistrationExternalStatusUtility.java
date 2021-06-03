@@ -2,6 +2,7 @@ package io.mosip.registration.processor.status.utilities;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -30,6 +31,13 @@ public class RegistrationExternalStatusUtility {
 	@Value("${registration.processor.reprocess.elapse.time}")
 	private int elapsedTime;
 
+	/** 
+	 * The list of comma separated stages that should be successfully completed before packet 
+	 * reaches the stage that uploads packets to the packet store 
+	 * */
+	@Value("#{'${mosip.registration.processor.registration.status.stages-before-reaching-packet-store:PacketReceiverStage,SecurezoneNotificationStage}'.split(',')}")
+	private List<String> stagesBeforeReachingPacketStore;
+
 	/**
 	 * Instantiates a new registration external status utility.
 	 */
@@ -52,7 +60,7 @@ public class RegistrationExternalStatusUtility {
 
 		String status = entity.getStatusCode();
 		if (status.equalsIgnoreCase(RegistrationTransactionStatusCode.PROCESSED.toString())) {
-			mappedValue = RegistrationExternalStatusCode.PROCESSED;
+			mappedValue = RegistrationExternalStatusCode.UIN_GENERATED;
 		} else if (status.equalsIgnoreCase(RegistrationTransactionStatusCode.PROCESSING.toString())) {
 			mappedValue = checkStatusforPacketReceiver(entity);
 		} else if (status.equalsIgnoreCase(RegistrationTransactionStatusCode.FAILED.toString())) {
@@ -82,10 +90,11 @@ public class RegistrationExternalStatusUtility {
 				return RegistrationExternalStatusCode.RESEND;
 			}
 			return RegistrationExternalStatusCode.REREGISTER;
-		} else {
+		} else if(entity.getLastSuccessStageName() == null ||
+				stagesBeforeReachingPacketStore.contains(entity.getLastSuccessStageName()))
 			return RegistrationExternalStatusCode.PROCESSING;
-		}
-
+		else
+			return RegistrationExternalStatusCode.PROCESSED;
 	}
 
 	/**

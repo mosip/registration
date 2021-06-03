@@ -61,8 +61,6 @@ import io.mosip.registration.processor.packet.storage.exception.IdentityNotFound
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.stages.utils.ApplicantDocumentValidation;
-import io.mosip.registration.processor.stages.utils.MandatoryValidation;
-import io.mosip.registration.processor.stages.utils.MasterDataValidation;
 import io.mosip.registration.processor.stages.utils.BiometricsXSDValidator;
 import io.mosip.registration.processor.stages.validator.impl.PacketValidatorImpl;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
@@ -70,7 +68,7 @@ import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
 import io.mosip.registration.processor.status.repositary.SyncRegistrationRepository;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ JsonUtil.class, IOUtils.class, HMACUtils2.class, Utilities.class, MasterDataValidation.class,
+@PrepareForTest({ JsonUtil.class, IOUtils.class, HMACUtils2.class, Utilities.class,
 		MessageDigest.class })
 @PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*","com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*" })
 @TestPropertySource(locations = "classpath:application.properties")
@@ -84,12 +82,6 @@ public class PacketValidatorImplTest {
 	
 	@Mock
 	private Utilities utility;
-
-	@Mock
-	private MandatoryValidation mandatoryValidation;
-
-	@Mock
-	private MasterDataValidation masterDataValidation;
 	
 	@Mock
 	private BiometricsXSDValidator biometricsXSDValidator;
@@ -220,8 +212,7 @@ public class PacketValidatorImplTest {
 		PowerMockito.mockStatic(JsonUtil.class);
 		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
 		.thenReturn(packetMetaInfo);
-		when(masterDataValidation.validateMasterData(anyString(),anyString())).thenReturn(true);
-		when(mandatoryValidation.mandatoryFieldValidation(anyString(),anyString(),any())).thenReturn(true);
+		
 		byte[] data = "{}".getBytes();
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(data);
@@ -270,13 +261,6 @@ public class PacketValidatorImplTest {
 		assertTrue(PacketValidator.validate("123456789","UPDATE", packetValidationDto));
 	}
 	
-	@SuppressWarnings("unchecked")
-	@Test(expected=PacketManagerException.class)
-	public void testException() throws PacketValidatorException, io.mosip.kernel.core.exception.IOException, IOException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, PacketManagerException {
-		//when(packetReaderService.getFile(anyString(),anyString(),anyString())).thenThrow(PacketDecryptionFailureException.class);
-        when(mandatoryValidation.mandatoryFieldValidation(anyString(),anyString(),any())).thenThrow(new PacketManagerException("code","message"));
-		PacketValidator.validate("123456789", "NEW", packetValidationDto);
-	}
 	
 	@Test
 	public void testUINNotPresentinIDrepo() throws PacketValidatorException, ApisResourceAccessException, IOException, RegistrationProcessorCheckedException, JsonProcessingException, PacketManagerException {
@@ -293,24 +277,6 @@ public class PacketValidatorImplTest {
 		when(env.getProperty(VALIDATEMASTERDATA)).thenReturn("false");
 		when(env.getProperty(VALIDATEMANDATORY)).thenReturn("false");
 		assertTrue(PacketValidator.validate("123456789", "NEW", packetValidationDto));
-	}
-	
-	@Test
-	public void testindividualBiometricsValidationFailure() throws PacketValidatorException, io.mosip.kernel.core.exception.IOException, IOException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, PacketManagerException {
-        when(packetManagerService.getBiometricsByMappingJsonKey(anyString(),any() ,any(), any())).thenReturn(null);
-		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
-	}
-	
-	@Test
-	public void testMasterdataValidationFailure() throws PacketValidatorException, ApisResourceAccessException, IOException, RegistrationProcessorCheckedException, JsonProcessingException, PacketManagerException {
-		when(masterDataValidation.validateMasterData(anyString(), anyString())).thenReturn(false);
-		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
-	}
-	
-	@Test
-	public void testMandatoryValidationFailure() throws PacketValidatorException, io.mosip.kernel.core.exception.IOException, IOException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, PacketManagerException {
-		when(mandatoryValidation.mandatoryFieldValidation(anyString(), anyString(),any())).thenReturn(false);
-		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
 	
 	@Test(expected=RegistrationProcessorCheckedException.class)

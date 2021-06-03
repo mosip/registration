@@ -32,8 +32,6 @@ import io.mosip.registration.processor.stages.packet.validator.PacketValidatePro
 import io.mosip.registration.processor.stages.utils.ApplicantDocumentValidation;
 import io.mosip.registration.processor.stages.utils.AuditUtility;
 import io.mosip.registration.processor.stages.utils.BiometricsXSDValidator;
-import io.mosip.registration.processor.stages.utils.MandatoryValidation;
-import io.mosip.registration.processor.stages.utils.MasterDataValidation;
 import io.mosip.registration.processor.stages.utils.NotificationUtility;
 import io.mosip.registration.processor.stages.utils.RestTemplateInterceptor;
 import io.mosip.registration.processor.stages.validator.impl.CompositePacketValidator;
@@ -53,16 +51,6 @@ public class ValidatorConfig {
 	private Environment env;
 
 	@Bean
-	public MandatoryValidation mandatoryValidation() {
-		return new MandatoryValidation();
-	}
-
-	@Bean
-	public MasterDataValidation masterDataValidation() {
-		return new MasterDataValidation();
-	}
-	
-	@Bean
 	public BiometricsXSDValidator biometricsXSDValidator() {
 		return new BiometricsXSDValidator();
 	}
@@ -72,6 +60,7 @@ public class ValidatorConfig {
 		return new ApplicantDocumentValidation();
 	}
 
+	
 	@Bean
 	public PacketValidateProcessor getPacketValidateProcessor() {
 		return new PacketValidateProcessor();
@@ -98,7 +87,7 @@ public class ValidatorConfig {
 	public RestHelper getRestHelper() {
 		return new RestHelperImpl();
 	}
-	
+
 	@Bean
 	public AuditUtility getAuditUtility() {
 		return new AuditUtility();

@@ -10,4 +10,7 @@
 
 \c mosip_regprc sysadmin
 
+
+ALTER TABLE regprc.reg_manual_verification DROP COLUMN res_text;
+
 ----------------------------------------------------------------------------------------------------

@@ -144,11 +144,6 @@
 			<version>${kernel.cbeffutil.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-bioapi-provider</artifactId>
-			<version>${kernel.bioapi.provider.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
 		</dependency>

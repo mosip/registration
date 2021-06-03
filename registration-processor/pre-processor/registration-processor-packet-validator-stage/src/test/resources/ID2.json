@@ -68,8 +68,8 @@
       "language" : "arb",
       "value" : "محدوة"
     } ],
-    "parentOrGuardianRIDOrUIN" : 426789089018,
-    "parentOrGuardianName" : [ {
+    "introducerRIDOrUIN" : 426789089018,
+    "introducerName" : [ {
       "language" : "eng",
       "value" : "Mohammad Naib"
     }, {
@@ -101,7 +101,7 @@
       "version" : 1.0,
       "value" : "applicant_bio_CBEFF"
     },
-    "parentOrGuardianBiometrics" : {
+    "introducerBiometrics" : {
       "format" : "cbeff",
       "version" : 1.0,
       "value" : "introducer_bio_CBEFF"
