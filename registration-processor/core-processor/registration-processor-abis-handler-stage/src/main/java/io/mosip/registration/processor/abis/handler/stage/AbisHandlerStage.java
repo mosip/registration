@@ -4,13 +4,13 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
@@ -610,6 +610,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		return response.getDataShare().getUrl();
 	}
 
+	@SuppressWarnings("deprecation")
 	private void validateBiometricRecord(BiometricRecord biometricRecord, List<String> modalities,
 			Map<String, String> metaInfoMap)
 			throws DataShareException, JsonParseException, JsonMappingException, IOException {
@@ -656,10 +657,16 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 				}
 				if (optionalBIR != null && optionalBIR.isPresent()) {
 					BIR bir = optionalBIR.get();
+					Map<String, String> othersMap = new HashMap<String, String>();
+					if (bir.getOthers() != null) {
+						othersMap = bir.getOthers().stream()
+								.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+					}
+
 					if (bir.getBdb() != null) {
 						isBioFound = true;
-					} else if ((bir.getOthers() == null || !bir.getOthers().containsKey("EXCEPTION")) ? true
-							: !(boolean) bir.getOthers().get("EXCEPTION")) {
+					} else if ((othersMap == null || !othersMap.containsKey("EXCEPTION")) ? true
+							: !(Boolean.parseBoolean(othersMap.get("EXCEPTION")))) {
 						throw new DataShareException("Biometric BDB Not Found : " + segment);
 					}
 				} else if (exceptionList == null || !exceptionList.contains(exceptionSegmentsMap.get(segment))) {

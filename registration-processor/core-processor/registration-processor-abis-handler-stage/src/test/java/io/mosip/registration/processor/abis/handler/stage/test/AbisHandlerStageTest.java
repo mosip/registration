@@ -41,6 +41,7 @@ import io.mosip.kernel.biometrics.constant.QualityType;
 import io.mosip.kernel.biometrics.entities.BDBInfo;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.biometrics.entities.Entry;
 import io.mosip.kernel.biometrics.entities.RegistryIDType;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.util.JsonUtils;
@@ -741,7 +742,12 @@ public class AbisHandlerStageTest {
 			if(bdb==null) {
 				Map<String, Object> others = new HashMap<>();
 				others.put("EXCEPTION", true);
-				birType1.setOthers(others);
+				Entry entry = new Entry();
+				entry.setKey("EXCEPTION");
+				entry.setValue("true");
+				List<Entry> entryList = new ArrayList<Entry>();
+				entryList.add(entry);
+				birType1.setOthers(entryList);
 				
 			}
 			
