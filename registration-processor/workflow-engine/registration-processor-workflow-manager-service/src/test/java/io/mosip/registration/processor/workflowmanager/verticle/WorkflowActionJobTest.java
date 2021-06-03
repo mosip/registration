@@ -3,7 +3,7 @@ package io.mosip.registration.processor.workflowmanager.verticle;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.lang.reflect.Field;
@@ -14,7 +14,6 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -128,17 +127,36 @@ public class WorkflowActionJobTest {
 		registrationStatusDto.setResumeTimeStamp(LocalDateTime.now());
 		registrationStatusDto.setReProcessRetryCount(0);
 		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+		registrationStatusDto.setStatusCode("PAUSED");
 
 		actionablePausedPacketList.add(registrationStatusDto);
+		InternalRegistrationStatusDto registrationStatusDto2 = new InternalRegistrationStatusDto();
+
+		registrationStatusDto2.setRegistrationId("2018701130000410092018110734");
+		registrationStatusDto2.setRegistrationStageName("PacketValidatorStage");
+		registrationStatusDto2.setDefaultResumeAction("RESUME_FROM_BEGINNING");
+		registrationStatusDto2.setResumeTimeStamp(LocalDateTime.now());
+		registrationStatusDto2.setReProcessRetryCount(0);
+		registrationStatusDto2.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+		registrationStatusDto2.setStatusCode("PAUSED");
+
+		actionablePausedPacketList.add(registrationStatusDto2);
+
+		InternalRegistrationStatusDto registrationStatusDto3 = new InternalRegistrationStatusDto();
+
+		registrationStatusDto3.setRegistrationId("2018701130000410092018110736");
+		registrationStatusDto3.setRegistrationStageName("PacketValidatorStage");
+		registrationStatusDto3.setDefaultResumeAction("STOP_PROCESSING");
+		registrationStatusDto3.setResumeTimeStamp(LocalDateTime.now());
+		registrationStatusDto3.setReProcessRetryCount(0);
+		registrationStatusDto3.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+		registrationStatusDto3.setStatusCode("PAUSED");
+
+		actionablePausedPacketList.add(registrationStatusDto3);
 		Mockito.when(registrationStatusService.getActionablePausedPackets(anyInt()))
 				.thenReturn(actionablePausedPacketList);
 		dto = workflowActionJob.process(dto);
-		ArgumentCaptor<List<InternalRegistrationStatusDto>> argument = ArgumentCaptor.forClass(List.class);
-
-		verify(workflowActionService, atLeastOnce()).processWorkflowAction(argument.capture(), Mockito.anyString());
-		assertEquals(registrationStatusDto, argument.getAllValues().get(0).get(0));
-
-
+		verify(workflowActionService, times(3)).processWorkflowAction(Mockito.any(), Mockito.anyString());
 	}
 
 	@Test
