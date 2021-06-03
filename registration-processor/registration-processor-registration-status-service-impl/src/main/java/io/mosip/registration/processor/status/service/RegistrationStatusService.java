@@ -126,7 +126,9 @@ public interface RegistrationStatusService<T, U, D> {
 	 */
 	public List<U> getByIdsAndTimestamp(List<String> ids);
 
-	public List<InternalRegistrationStatusDto> getResumablePackets(Integer fetchSize);
+	public List<InternalRegistrationStatusDto> getActionablePausedPackets(Integer fetchSize);
 
 	public Page<InternalRegistrationStatusDto> searchRegistrationDetails(SearchInfo searchInfo);
+
+	public List<InternalRegistrationStatusDto> getResumablePackets(Integer fetchSize);
 }

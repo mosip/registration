@@ -17,7 +17,7 @@ public class NotificationController {
 	private NotificationService notificationService;
 
 	@PostMapping(value = "callback/notify", consumes = "application/json")
-	@PreAuthenticateContentAndVerifyIntent(secret = "${registration.processor.notification_service_subscriber_secret}", callback = "/registrationprocessor/v1/notification/callback/notify", topic = "${registration.processor.notification_service_subscriber_topic}")
+	@PreAuthenticateContentAndVerifyIntent(secret = "${registration.processor.notification_service_subscriber_secret}", callback = "/registrationprocessor/v1/notification/callback/notify", topic = "${mosip.regproc.workflow.complete.topic}")
 	public ResponseEntity<Void> process(@RequestBody WorkflowCompletedEventDTO object) {
 		{
 			return notificationService.process(object);
