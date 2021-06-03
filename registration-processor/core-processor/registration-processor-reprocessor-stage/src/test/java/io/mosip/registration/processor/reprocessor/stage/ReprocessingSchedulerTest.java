@@ -5,7 +5,6 @@ import static org.junit.Assert.assertNotNull;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.groups.Tuple;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -19,9 +18,11 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import io.mosip.registration.processor.core.abstractverticle.EventDTO;
+import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
+import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
-import io.mosip.registration.processor.core.eventbus.MosipEventBusFactory;
-import io.mosip.registration.processor.core.exception.UnsupportedEventBusTypeException;
+import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -84,11 +85,32 @@ public class ReprocessingSchedulerTest {
 		 */
 		@Override
 		public MosipEventBus getEventBus(Object verticleName, String clusterManagerUrl) {
-			try {
-				return new MosipEventBusFactory().getEventBus(vertx, "vertx", "");
-			} catch (UnsupportedEventBusTypeException e) {
-				throw new RuntimeException(e);
-			}
+			vertx = Vertx.vertx();
+
+			return new MosipEventBus() {
+
+				@Override
+				public Vertx getEventbus() {
+					return vertx;
+				}
+
+				@Override
+				public void consume(MessageBusAddress fromAddress,
+						EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> eventHandler) {
+
+				}
+
+				@Override
+				public void consumeAndSend(MessageBusAddress fromAddress, MessageBusAddress toAddress,
+						EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> eventHandler) {
+
+				}
+
+				@Override
+				public void send(MessageBusAddress toAddress, MessageDTO message) {
+
+				}
+			};
 		}
 	};
 
@@ -105,7 +127,6 @@ public class ReprocessingSchedulerTest {
 	 * Success Test for Chime Scheduler deployment
 	 */
 	@Test
-	@Ignore
 	public void testDeploySchedulerTest() {
 		listAppender.start();
 		fooLogger.addAppender(listAppender);
@@ -113,15 +134,14 @@ public class ReprocessingSchedulerTest {
 		Mockito.when(vertx.eventBus()).thenReturn(getMockEventBus());
 		reprocessorStage.schedulerResult(res);
 		Assertions.assertThat(listAppender.list).extracting(ILoggingEvent::getLevel, ILoggingEvent::getFormattedMessage)
-				.contains(Tuple.tuple(Level.DEBUG,
-						"SESSIONID - REGISTRATIONID -  - ReprocessorStage::schedular()::deployed"));
+				.contains(Tuple.tuple(Level.INFO,
+						"ReprocessorStage::schedular()::deployed"));
 	}
 
 	/**
 	 * Failure Test for Chime Scheduler deployment
 	 */
 	@Test
-	@Ignore
 	public void testDeploySchedulerFailureTest() {
 		listAppender.start();
 		fooLogger.addAppender(listAppender);
@@ -129,8 +149,8 @@ public class ReprocessingSchedulerTest {
 		//Mockito.when(vertx.eventBus()).thenReturn(getMockEventBus());
 		reprocessorStage.schedulerResult(res);
 		Assertions.assertThat(listAppender.list).extracting(ILoggingEvent::getLevel, ILoggingEvent::getFormattedMessage)
-				.contains(Tuple.tuple(Level.DEBUG,
-						"SESSIONID - REGISTRATIONID -  - ReprocessorStage::schedular()::deploymemnt failure"));
+				.contains(Tuple.tuple(Level.ERROR,
+						"ReprocessorStage::schedular()::deployment failure"));
 	}
 	/**
 	 * Returns dummy eventbus instance

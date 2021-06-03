@@ -273,6 +273,10 @@ public enum PlatformErrorMessages {
 	/** The rpr cmb unknown host exception. */
 	RPR_CMB_UNKNOWN_HOST_EXCEPTION(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "005", "Unknown Host Exception"),
 
+
+	RPR_CMB_WORKFLOW_COMMAND_NOT_SUPPORTED(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "006",
+			"Workflow command not supported"),
+
 	/** The rpr qcr registration table not accessible. */
 	// Quality Checker Exception error code and message
 	RPR_QCR_REGISTRATION_TABLE_NOT_ACCESSIBLE(PlatformConstants.RPR_QUALITY_CHECKER_MODULE + "001",
@@ -1231,11 +1235,13 @@ public enum PlatformErrorMessages {
 	/** Reprocessor Stage Failed. */
 	REPROCESSOR_STAGE_FAILED("", "Reprocessor Stage Failed"),
 
-	RPR_WFE_DATE_TIME_EXCEPTION(PlatformConstants.RPR_WORKFLOW_EVENT_UPDATE + "000",
+	RPR_WIA_DATE_TIME_EXCEPTION(PlatformConstants.RPR_WORKFLOW_INTERNAL_ACTION + "000",
 			"Error while parsing event or resume timestamp"),
 
-	RPR_WORKFLOW_EVENT_UPDATE_FAILED(PlatformConstants.RPR_WORKFLOW_EVENT_UPDATE + "001",
-			"Work flow event update failed"),
+	RPR_WORKFLOW_INTERNAL_ACTION_FAILED(PlatformConstants.RPR_WORKFLOW_INTERNAL_ACTION + "001",
+			"Work flow internal action failed"),
+
+	RPR_WIA_UNKNOWN_WORKFLOW_ACTION(PlatformConstants.RPR_WORKFLOW_INTERNAL_ACTION + "002", "Unknown Exception"),
 
 	RPR_WAA_MISSING_INPUT_PARAMETER(PlatformConstants.RPR_WORKFLOW_ACTION_API + "000",
 			"Missing Request Value - %s"),
@@ -1263,6 +1269,8 @@ public enum PlatformErrorMessages {
 			"Workflow id  %s is not PAUSED"),
 
 	RPR_WAA_VALIDATION_SUCCESS(PlatformConstants.RPR_WORKFLOW_ACTION_API + "005", "Workflow id validated successfully"),
+
+	RPR_WORKFLOW_ACTION_JOB_FAILED(PlatformConstants.RPR_WORKFLOW_ACTION_JOB, "Workflow action job  failed"),
 
 	/** The external stage failed. */
 	EXTERNAL_STAGE_FAILED("", "External Stage Failed"),

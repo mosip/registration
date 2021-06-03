@@ -561,14 +561,14 @@ public class RegistrationStatusServiceImpl
 
 	
 	@Override
-	public List<InternalRegistrationStatusDto> getResumablePackets(Integer fetchSize) {
+	public List<InternalRegistrationStatusDto> getActionablePausedPackets(Integer fetchSize) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-				"RegistrationStatusServiceImpl::getResumablePackets()::entry");
+				"RegistrationStatusServiceImpl::getActionablePausedPackets()::entry");
 		try {
-			List<RegistrationStatusEntity> entityList = registrationStatusDao.getResumablePackets( fetchSize);
+			List<RegistrationStatusEntity> entityList = registrationStatusDao.getActionablePausedPackets( fetchSize);
 
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-					"RegistrationStatusServiceImpl::getResumablePackets()::exit");
+					"RegistrationStatusServiceImpl::getActionablePausedPackets()::exit");
 
 			return convertEntityListToDtoList(entityList);
 
@@ -620,4 +620,24 @@ public class RegistrationStatusServiceImpl
 		}
 	}
 
+	@Override
+	public List<InternalRegistrationStatusDto> getResumablePackets(Integer fetchSize) {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				"RegistrationStatusServiceImpl::getResumablePackets()::entry");
+		try {
+			List<RegistrationStatusEntity> entityList = registrationStatusDao.getResumablePackets(fetchSize);
+
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+					"RegistrationStatusServiceImpl::getResumablePackets()::exit");
+
+			return convertEntityListToDtoList(entityList);
+
+		} catch (DataAccessException | DataAccessLayerException e) {
+
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
+			throw new TablenotAccessibleException(
+					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
+		}
+	}
 }
