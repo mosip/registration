@@ -644,7 +644,7 @@ jobs:
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-workflow-manager-service
-      SERVICE_LOCATION: registration-processor/registration-processor-workflow-manager-service
+      SERVICE_LOCATION: registration-processor/workflow-engine/registration-processor-workflow-manager-service
 
     steps:
       - uses: actions/checkout@v2
