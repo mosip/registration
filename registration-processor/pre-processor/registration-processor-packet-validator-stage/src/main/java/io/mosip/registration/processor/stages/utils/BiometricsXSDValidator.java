@@ -1,8 +1,6 @@
 package io.mosip.registration.processor.stages.utils;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,23 +9,18 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import io.mosip.kernel.biometrics.commons.CbeffValidator;
 import io.mosip.kernel.biometrics.constant.BiometricType;
+import io.mosip.kernel.biometrics.constant.ProcessedLevelType;
+import io.mosip.kernel.biometrics.constant.PurposeType;
+import io.mosip.kernel.biometrics.constant.QualityType;
+import io.mosip.kernel.biometrics.entities.BDBInfo;
+import io.mosip.kernel.biometrics.entities.BIR;
+import io.mosip.kernel.biometrics.entities.BIRInfo;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.biometrics.entities.RegistryIDType;
+import io.mosip.kernel.biometrics.entities.VersionType;
 import io.mosip.kernel.cbeffutil.container.impl.CbeffContainerImpl;
-import io.mosip.kernel.core.cbeffutil.common.CbeffValidator;
-import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
-import io.mosip.kernel.core.cbeffutil.entity.BIR;
-import io.mosip.kernel.core.cbeffutil.entity.BIRInfo;
-import io.mosip.kernel.core.cbeffutil.entity.BIRVersion;
-import io.mosip.kernel.core.cbeffutil.exception.CbeffException;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRType;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.ProcessedLevelType;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.PurposeType;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.QualityType;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.RegistryIDType;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
-import io.mosip.registration.processor.core.packet.dto.packetvalidator.PacketValidationDto;
-import io.mosip.registration.processor.core.status.util.StatusUtil;
 @Component
 public class BiometricsXSDValidator {
 
@@ -42,15 +35,15 @@ public class BiometricsXSDValidator {
             CbeffContainerImpl cbeffContainer = new CbeffContainerImpl();
             List<BIR> birList = new ArrayList<>();
             biometricRecord.getSegments().forEach(s -> birList.add(convertToBIR(s)));
-            BIRType bir = cbeffContainer.createBIRType(birList);           
+			BIR bir = cbeffContainer.createBIRType(birList);
             CbeffValidator.createXMLBytes(bir, IOUtils.toByteArray(xsd));//validates XSD 
         }
     } 
 
 	public  BIR convertToBIR(io.mosip.kernel.biometrics.entities.BIR bir) {
-        List<SingleType> bioTypes = new ArrayList<>();
+		List<BiometricType> bioTypes = new ArrayList<>();
         for(BiometricType type : bir.getBdbInfo().getType()) {
-            bioTypes.add(SingleType.fromValue(type.value()));
+			bioTypes.add(BiometricType.fromValue(type.value()));
         }
 
         RegistryIDType format = null;
@@ -79,10 +72,12 @@ public class BiometricsXSDValidator {
 
         return new BIR.BIRBuilder()
                 .withBdb(bir.getBdb())
-                .withVersion(bir.getVersion() == null ? null : new BIRVersion.BIRVersionBuilder()
+				.withVersion(bir.getVersion() == null ? null
+						: new VersionType.VersionTypeBuilder()
                         .withMinor(bir.getVersion().getMinor())
                         .withMajor(bir.getVersion().getMajor()).build())
-                .withCbeffversion(bir.getCbeffversion() == null ? null : new BIRVersion.BIRVersionBuilder()
+				.withCbeffversion(bir.getCbeffversion() == null ? null
+						: new VersionType.VersionTypeBuilder()
                         .withMinor(bir.getCbeffversion().getMinor())
                         .withMajor(bir.getCbeffversion().getMajor()).build())
                 .withBirInfo(new BIRInfo.BIRInfoBuilder().withIntegrity(true).build())

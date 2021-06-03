@@ -20,17 +20,14 @@ import io.mosip.registration.processor.core.packet.dto.idjson.Document;
 import io.mosip.registration.processor.core.packet.dto.packetvalidator.ExceptionJSONInfoDTO;
 import io.mosip.registration.processor.core.packet.dto.packetvalidator.MainResponseDTO;
 import io.mosip.registration.processor.core.packet.dto.packetvalidator.ReverseDatasyncReponseDTO;
-import io.mosip.registration.processor.core.spi.packet.validator.PacketValidator;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.manager.decryptor.Decryptor;
-import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.stages.utils.AuditUtility;
-import io.mosip.registration.processor.stages.utils.MasterDataValidation;
 import io.mosip.registration.processor.stages.utils.NotificationUtility;
 import io.mosip.registration.processor.stages.validator.impl.PacketValidatorImpl;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -44,7 +41,6 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -74,7 +70,6 @@ import java.util.Map;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 
 
@@ -83,7 +78,7 @@ import static org.mockito.Matchers.anyString;
  */
 @RefreshScope
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ JsonUtils.class, JsonUtil.class, IOUtils.class, HMACUtils2.class, Utilities.class, MasterDataValidation.class,
+@PrepareForTest({ JsonUtils.class, JsonUtil.class, IOUtils.class, HMACUtils2.class, Utilities.class,
 		MessageDigest.class })
 @PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*","com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*" })
 @TestPropertySource(locations = "classpath:application.properties")

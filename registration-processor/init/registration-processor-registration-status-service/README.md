@@ -20,5 +20,7 @@ server.servlet.path=/registrationprocessor/v1/registrationstatus
 registration.processor.max.retry=3
 mosip.registration.processor.registration.status.id=mosip.registration.status
 mosip.registration.processor.registration.sync.id=mosip.registration.sync
-
+# The comma separate list of external statuses that should be considered as processed 
+# for search API response consumed by regclient
+mosip.registration.processor.registration.status.external-statuses-to-consider-processed=UIN_GENERATED,REREGISTER,REJECTED,REPROCESS_FAILED	
 ```

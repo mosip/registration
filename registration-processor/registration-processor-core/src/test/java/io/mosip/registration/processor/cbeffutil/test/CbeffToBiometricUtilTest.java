@@ -21,10 +21,10 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.BDBInfoType;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRType;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
-import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
+import io.mosip.kernel.biometrics.constant.BiometricType;
+import io.mosip.kernel.biometrics.entities.BDBInfo;
+import io.mosip.kernel.biometrics.entities.BIR;
+import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.registration.processor.core.util.CbeffToBiometricUtil;
 import io.mosip.registration.processor.core.util.exception.BiometricTagMatchException;
 
@@ -52,18 +52,18 @@ public class CbeffToBiometricUtilTest {
 	@Before
 	public void setup() throws Exception {
 		byte[] bioBytes = "individual biometric value".getBytes();
-		List<SingleType> singleList = new ArrayList<>();
-		singleList.add(SingleType.FACE);
+		List<BiometricType> singleList = new ArrayList<>();
+		singleList.add(BiometricType.FACE);
 		List<String> subtypeList = new ArrayList<>();
-		BIRType type = new BIRType();
-		type.setBDB(bioBytes);
-		BDBInfoType bdbinfotype = new BDBInfoType();
-		bdbinfotype.setType(singleList);
-		bdbinfotype.setSubtype(subtypeList);
-		type.setBDBInfo(bdbinfotype);
-		List<BIRType> birtypeList = new ArrayList<>();
-		birtypeList.add(type);
-		Mockito.when(cbeffUtil.getBIRDataFromXML(Matchers.any())).thenReturn(birtypeList);
+		BIR type = new BIR();
+		type.setBdb(bioBytes);
+		BDBInfo bDBInfo = new BDBInfo();
+		bDBInfo.setType(singleList);
+		bDBInfo.setSubtype(subtypeList);
+		type.setBdbInfo(bDBInfo);
+		List<BIR> birList = new ArrayList<>();
+		birList.add(type);
+		Mockito.when(cbeffUtil.getBIRDataFromXML(Matchers.any())).thenReturn(birList);
 	}
 	
 	/**
@@ -108,34 +108,34 @@ public class CbeffToBiometricUtilTest {
 		String cbeff1 = IOUtils.toString(inputStream1, "UTF-8");
 
 		byte[] bioBytes = cbeff1.getBytes();
-		List<SingleType> singleList = new ArrayList<>();
-		singleList.add(SingleType.FACE);
+		List<BiometricType> singleList = new ArrayList<>();
+		singleList.add(BiometricType.FACE);
 		List<String> subtypeList = new ArrayList<>();
-		BIRType type = new BIRType();
-		type.setBDB(bioBytes);
-		BDBInfoType bdbinfotype = new BDBInfoType();
-		bdbinfotype.setType(singleList);
-		bdbinfotype.setSubtype(subtypeList);
-		type.setBDBInfo(bdbinfotype);
-		List<BIRType> birtypeList = new ArrayList<>();
-		birtypeList.add(type);
+		BIR type = new BIR();
+		type.setBdb(bioBytes);
+		BDBInfo bdbInfo = new BDBInfo();
+		bdbInfo.setType(singleList);
+		bdbInfo.setSubtype(subtypeList);
+		type.setBdbInfo(bdbInfo);
+		List<BIR> birList = new ArrayList<>();
+		birList.add(type);
 
 		File cbeffFile2 = new File(classLoader.getResource("cbeff2.xml").getFile());
 		InputStream inputStream2 = new FileInputStream(cbeffFile2);
 		String cbeff2 = IOUtils.toString(inputStream2, "UTF-8");
 		byte[] bioBytes2 = cbeff2.getBytes();
-		List<SingleType> singleList2 = new ArrayList<>();
-		singleList2.add(SingleType.IRIS);
+		List<BiometricType> singleList2 = new ArrayList<>();
+		singleList2.add(BiometricType.IRIS);
 		List<String> subtypeList2 = new ArrayList<>();
-		BIRType type2 = new BIRType();
-		type2.setBDB(bioBytes2);
-		BDBInfoType bdbinfotype2 = new BDBInfoType();
-		bdbinfotype2.setType(singleList2);
-		bdbinfotype2.setSubtype(subtypeList2);
-		type2.setBDBInfo(bdbinfotype2);
-		List<BIRType> birtypeList2 = new ArrayList<>();
-		birtypeList2.add(type2);
-		Mockito.when(cbeffUtil.getBIRDataFromXML(Matchers.any())).thenReturn(birtypeList).thenReturn(birtypeList2);
+		BIR type2 = new BIR();
+		type2.setBdb(bioBytes2);
+		BDBInfo bdbInfo2 = new BDBInfo();
+		bdbInfo2.setType(singleList2);
+		bdbInfo2.setSubtype(subtypeList2);
+		type2.setBdbInfo(bdbInfo2);
+		List<BIR> birList2 = new ArrayList<>();
+		birList2.add(type2);
+		Mockito.when(cbeffUtil.getBIRDataFromXML(Matchers.any())).thenReturn(birList).thenReturn(birList2);
 
 		Mockito.when(cbeffUtil.createXML(Matchers.any())).thenReturn("mergedcbeff".getBytes());
 

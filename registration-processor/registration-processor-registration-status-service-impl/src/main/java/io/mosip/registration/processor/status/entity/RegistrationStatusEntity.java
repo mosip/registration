@@ -125,6 +125,10 @@ public class RegistrationStatusEntity extends BaseRegistrationEntity<BaseRegistr
 	/** The default resume action. */
 	@Column(name = "resume_remove_tags")
 	private String resumeRemoveTags;
+	
+	/** The last success stage name. */
+	@Column(name = "last_success_stage_name")
+	private String lastSuccessStageName;
 
 	/**
 	 * Instantiates a new registration status entity.
@@ -554,6 +558,23 @@ public class RegistrationStatusEntity extends BaseRegistrationEntity<BaseRegistr
 	 */
 	public void setResumeRemoveTags(String resumeRemoveTags) {
 		this.resumeRemoveTags = resumeRemoveTags;
+	}
+	
+	/**
+	 * Gets the last success stage name.
+	 *
+	 * @return the last success stage name
+	 */
+	public String getLastSuccessStageName() {
+		return lastSuccessStageName;
+	}
+	/**
+	 * Sets the last success stage name.
+	 *
+	 * @param lastSuccessStageName the last success stage name
+	 */
+	public void setLastSuccessStageName(String lastSuccessStageName) {
+		this.lastSuccessStageName = lastSuccessStageName;
 	}
 
 }

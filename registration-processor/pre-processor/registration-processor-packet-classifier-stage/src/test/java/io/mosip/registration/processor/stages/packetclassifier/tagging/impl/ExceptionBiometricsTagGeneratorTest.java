@@ -30,6 +30,8 @@ public class ExceptionBiometricsTagGeneratorTest {
 
 	private static String tagName = "EXCEPTION_BIOMETRICS";
 
+	private static String notAvailableTagValue = "--TAG_VALUE_NOT_AVAILABLE--";
+
 	@InjectMocks
 	private ExceptionBiometricsTagGenerator exceptionBiometricsTagGenerator;
 
@@ -50,6 +52,8 @@ public class ExceptionBiometricsTagGeneratorTest {
 		bioValueMapping.put("leftEye", "LE");
 		bioValueMapping.put("rightEye", "RE");
 		Whitebox.setInternalState(exceptionBiometricsTagGenerator, "bioValueMapping", bioValueMapping);
+		Whitebox.setInternalState(exceptionBiometricsTagGenerator, "notAvailableTagValue", 
+			notAvailableTagValue);
 	}
 
 	@Test
@@ -88,7 +92,7 @@ public class ExceptionBiometricsTagGeneratorTest {
 		metaInfoMap.put(JsonConstant.EXCEPTIONBIOMETRICS, "{}");
 		Map<String, String> tags = 
 			exceptionBiometricsTagGenerator.generateTags("1234", "NEW", null, metaInfoMap, 0);
-		assertEquals("", tags.get(tagName));
+		assertEquals(notAvailableTagValue, tags.get(tagName));
 	}
 
 	@Test(expected = ParsingException.class)
@@ -106,7 +110,7 @@ public class ExceptionBiometricsTagGeneratorTest {
 		Map<String, String> metaInfoMap = new HashMap<>();
 		Map<String, String> tags = 
 			exceptionBiometricsTagGenerator.generateTags("1234", "NEW", null, metaInfoMap, 0);
-		assertEquals("", tags.get(tagName));
+		assertEquals(notAvailableTagValue, tags.get(tagName));
 	}
 	
 }

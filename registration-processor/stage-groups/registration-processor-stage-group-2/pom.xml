@@ -27,7 +27,7 @@
 		<!-- Stages -->
 		<dependency>
 			<groupId>io.mosip.registrationprocessor</groupId>
-			<artifactId>registration-processor-quality-checker-stage</artifactId>
+			<artifactId>registration-processor-quality-classifier-stage</artifactId>
 			<version>1.2.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
@@ -53,7 +53,7 @@
 				<configuration>
 					<executable>true</executable>
 					<mainClass>io.mosip.registration.processor.stages.executor.MosipStageExecutorApplication</mainClass>
-					<layout>JAR</layout>
+					<layout>ZIP</layout>
 				</configuration>
 				<executions>
 					<execution>

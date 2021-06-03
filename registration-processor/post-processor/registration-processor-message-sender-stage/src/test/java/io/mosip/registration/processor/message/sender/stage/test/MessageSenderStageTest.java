@@ -482,7 +482,7 @@ public class MessageSenderStageTest {
 
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any())).thenReturn(registrationStatusDto);
 		Mockito.when(registrationStatusDto.getLatestTransactionTypeCode())
-				.thenReturn(RegistrationTransactionTypeCode.OSI_VALIDATE.name());
+				.thenReturn(RegistrationTransactionTypeCode.CMD_VALIDATION.name());
 		Mockito.when(registrationStatusDto.getLatestTransactionStatusCode())
 				.thenReturn(RegistrationTransactionStatusCode.FAILED.name());
 		Mockito.when(registrationStatusDto.getStatusCode()).thenReturn(RegistrationStatusCode.FAILED.name());
@@ -563,7 +563,7 @@ public class MessageSenderStageTest {
 				.thenReturn(RegistrationTransactionStatusCode.PROCESSED.name());
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any())).thenReturn(registrationStatusDto);
 		Mockito.when(registrationStatusDto.getLatestTransactionTypeCode())
-				.thenReturn(RegistrationTransactionTypeCode.OSI_VALIDATE.name());
+				.thenReturn(RegistrationTransactionTypeCode.CMD_VALIDATION.name());
 		Mockito.when(registrationStatusDto.getLatestTransactionStatusCode())
 				.thenReturn(RegistrationTransactionStatusCode.FAILED.name());
 

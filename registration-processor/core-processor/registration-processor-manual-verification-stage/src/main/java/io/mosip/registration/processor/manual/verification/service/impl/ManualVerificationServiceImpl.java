@@ -4,6 +4,7 @@ import static io.mosip.registration.processor.manual.verification.constants.Manu
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -20,9 +21,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import io.mosip.registration.processor.core.constant.PolicyConstant;
-import io.mosip.registration.processor.core.constant.ProviderStageName;
-import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
@@ -41,7 +39,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
+import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
@@ -61,6 +59,8 @@ import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.PacketFiles;
+import io.mosip.registration.processor.core.constant.PolicyConstant;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
@@ -108,7 +108,7 @@ import io.mosip.registration.processor.packet.storage.dto.Document;
 import io.mosip.registration.processor.packet.storage.entity.ManualVerificationEntity;
 import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
 import io.mosip.registration.processor.packet.storage.utils.BIRConverter;
-import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -158,6 +158,12 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	@Value("${activemq.message.format}")
 	private String messageFormat;
 
+	@Value("${mosip.regproc.data.share.protocol}")
+	private String httpProtocol;
+
+	@Value("${mosip.regproc.data.share.internal.domain.name}")
+	private String internalDomainName;
+
 	@Autowired
 	private RegistrationProcessorRestClientService registrationProcessorRestClientService;
 
@@ -203,6 +209,9 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 	@Autowired
 	RegistrationExceptionMapperUtil registrationExceptionMapperUtil;
+
+	/** The Constant PROTOCOL. */
+	public static final String PROTOCOL = "https";
 
 	/*
 	 * * (non-Javadoc)
@@ -445,9 +454,11 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 				.getRegStatusForMainProcess(regId);
 		messageDTO.setReg_type(registrationStatusDto.getRegistrationType());
 		try {
-			if(manualVerificationDTO.getReturnValue()==2) {
+			//Below lines are resending the same message to mv queue even after receiving the response, 
+			//but want to check with developer before deleting these lines
+			/*if(manualVerificationDTO.getReturnValue()==2) {
 				pushRequestToQueue(regId, queue);
-				}
+				}*/
 			if (entities.isEmpty()) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 						regId, "ManualVerificationServiceImpl::updatePacketStatus()"
@@ -741,9 +752,20 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		List<String> pathSegments = new ArrayList<>();
 		pathSegments.add(policyId);
 		pathSegments.add(subscriberId);
+		URL dataShareUrl = null;
+		String protocol = PROTOCOL;
+		String url = null;
+
+		if (httpProtocol != null && !httpProtocol.isEmpty()) {
+			protocol = httpProtocol;
+		}
+
+		dataShareUrl = new URL(protocol, internalDomainName, env.getProperty(ApiName.DATASHARECREATEURL.name()));
+		url = dataShareUrl.toString();
+		url = url.replaceAll("[\\[\\]]", "");
 		io.mosip.kernel.core.http.ResponseWrapper<DataShareResponseDto> resp = new io.mosip.kernel.core.http.ResponseWrapper<>();
 
-		LinkedHashMap response = (LinkedHashMap) registrationProcessorRestClientService.postApi(ApiName.DATASHARECREATEURL, MediaType.MULTIPART_FORM_DATA, pathSegments, null, null, map, LinkedHashMap.class);
+		LinkedHashMap response = (LinkedHashMap) registrationProcessorRestClientService.postApi(url, MediaType.MULTIPART_FORM_DATA, pathSegments, null, null, map, LinkedHashMap.class);
 		if (response == null || (response.get(ERRORS) != null))
 			throw new DataShareException(response == null ? "Datashare response is null" : response.get(ERRORS).toString());
 

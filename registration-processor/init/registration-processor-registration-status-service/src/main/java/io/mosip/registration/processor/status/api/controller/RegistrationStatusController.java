@@ -78,6 +78,13 @@ public class RegistrationStatusController {
 	@Value("${registration.processor.signature.isEnabled}")
 	private Boolean isEnabled;
 
+	/** 
+	 * The comma separate list of external statuses that should be considered as processed 
+	 * for search API response consumed by regclient
+	 */
+	@Value("#{'${mosip.registration.processor.registration.status.external-statuses-to-consider-processed:UIN_GENERATED,REREGISTER,REJECTED,REPROCESS_FAILED}'.split(',')}")
+	private List<String> externalStatusesConsideredProcessed;
+
 	@Autowired
 	private DigitalSignatureUtility digitalSignatureUtility;
 
@@ -102,6 +109,7 @@ public class RegistrationStatusController {
 					env.getProperty(REG_STATUS_SERVICE_ID));
 			List<RegistrationStatusDto> registrations = registrationStatusService
 					.getByIds(registrationStatusRequestDTO.getRequest());
+			
 			List<RegistrationStatusSubRequestDto> requestIdsNotAvailable = registrationStatusRequestDTO.getRequest()
 					.stream()
 					.filter(request -> registrations.stream().noneMatch(
@@ -111,6 +119,8 @@ public class RegistrationStatusController {
 			if (registrationsList != null && !registrationsList.isEmpty()) {
 				registrations.addAll(syncRegistrationService.getByIds(requestIdsNotAvailable));
 			}
+
+			updatedConditionalStatusToProcessed(registrations);
 
 			if (isEnabled) {
 				RegStatusResponseDTO response = buildRegistrationStatusResponse(registrations,
@@ -157,6 +167,13 @@ public class RegistrationStatusController {
 		}
 		response.setErrors(errors);
 		return response;
+	}
+
+	private void updatedConditionalStatusToProcessed(List<RegistrationStatusDto> registrations) {
+		for(RegistrationStatusDto registrationStatusDto : registrations) {
+			if(externalStatusesConsideredProcessed.contains(registrationStatusDto.getStatusCode()))
+				registrationStatusDto.setStatusCode(RegistrationExternalStatusCode.PROCESSED.toString());
+		}
 	}
 
 }

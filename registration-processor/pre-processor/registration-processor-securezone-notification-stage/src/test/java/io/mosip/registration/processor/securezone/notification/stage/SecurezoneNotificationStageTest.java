@@ -381,7 +381,7 @@ public class SecurezoneNotificationStageTest {
         ReflectionTestUtils.setField(notificationStage, "workerPoolSize", 10);
         ReflectionTestUtils.setField(notificationStage, "clusterManagerUrl", "/dummyPath");
         ReflectionTestUtils.setField(notificationStage, "messageExpiryTimeLimit", Long.valueOf(0));
-        ReflectionTestUtils.setField(notificationStage, "port", "7999");
+        //ReflectionTestUtils.setField(notificationStage, "port", "7999");
         Mockito.when(router.post(Mockito.any())).thenReturn(null);
         Mockito.doNothing().when(router).setRoute(Mockito.any());
         Mockito.doNothing().when(router).nonSecureHandler(Mockito.any(),Mockito.any());
