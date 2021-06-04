@@ -150,7 +150,7 @@ public class CMDValidatorProcessorTest {
 		dto.setRid("123456789");
 		dto.setInternalError(false);
 		dto.setIsValid(true);
-		dto.setReg_type(RegistrationType.NEW);
+		dto.setReg_type(RegistrationType.NEW.name());
 		stageName = "cmdValidatorStage";
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("123456789");

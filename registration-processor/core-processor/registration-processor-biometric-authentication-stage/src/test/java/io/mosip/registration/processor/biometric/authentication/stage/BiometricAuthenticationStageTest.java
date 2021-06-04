@@ -49,6 +49,7 @@ import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
 import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
+import io.mosip.registration.processor.status.repositary.SyncRegistrationRepository;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.vertx.core.AsyncResult;
@@ -197,7 +198,7 @@ public class BiometricAuthenticationStageTest {
 	ObjectMapper mapIdentityJsonStringToObject;
 
 	@Mock
-	private RegistrationRepositary<SyncRegistrationEntity, String> registrationRepositary;
+	private SyncRegistrationRepository<SyncRegistrationEntity, String> registrationRepositary;
 
 	StatusResponseDto statusResponseDto;
 
