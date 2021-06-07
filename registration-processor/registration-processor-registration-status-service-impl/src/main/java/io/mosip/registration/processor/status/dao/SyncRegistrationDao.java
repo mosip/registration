@@ -7,14 +7,15 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import io.mosip.registration.processor.core.workflow.dto.FilterInfo;
 import io.mosip.registration.processor.core.workflow.dto.SortInfo;
+import io.mosip.registration.processor.status.dto.FilterInfo;
+import io.mosip.registration.processor.status.entity.SaltEntity;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
+import io.mosip.registration.processor.status.repositary.SaltRepository;
 
 /**
  * The Class SyncRegistrationDao.
@@ -27,6 +28,9 @@ public class SyncRegistrationDao {
 	/** The registration sync status. */
 	@Autowired
 	RegistrationRepositary<SyncRegistrationEntity, String> syncRegistrationRepository;
+
+	@Autowired
+	SaltRepository saltRepository;
 
 	/** The Constant AND. */
 	public static final String AND = "AND";
@@ -53,14 +57,14 @@ public class SyncRegistrationDao {
 	/** The Constant ISDELETED. */
 	public static final String ISDELETED = "isDeleted";
 
+	public static final String BETWEEN = "BETWEEN ";
+
 	/** The Constant ISACTIVE_COLON. */
 	public static final String ISACTIVE_COLON = ".isActive=:";
 
 	/** The Constant ISDELETED_COLON. */
 	public static final String ISDELETED_COLON = ".isDeleted=:";
 
-	@Value("${registration.processor.max.registrationid:5}")
-	private int maxResultFetch;
 
 	/**
 	 * Save.
@@ -160,21 +164,38 @@ public class SyncRegistrationDao {
 			Iterator<FilterInfo> searchIterator = filters.iterator();
 			while (searchIterator.hasNext()) {
 				FilterInfo filterInfo = searchIterator.next();
-				sb.append(EMPTY_STRING + AND + EMPTY_STRING + alias + "." + filterInfo.getColumnName() + "=:"
-						+ filterInfo.getColumnName());
-				params.put(filterInfo.getColumnName(), filterInfo.getValue());
+				if (!filterInfo.getType().equalsIgnoreCase("between")) {
+					sb.append(EMPTY_STRING + AND + EMPTY_STRING + alias + "." + filterInfo.getColumnName() + "=:"
+							+ filterInfo.getColumnName());
+					params.put(filterInfo.getColumnName(), filterInfo.getValue());
+				} else {
+					sb.append(EMPTY_STRING + AND + EMPTY_STRING + alias + "." + filterInfo.getColumnName()
+							+ EMPTY_STRING + BETWEEN + "'" + filterInfo.getFromValue() + "'" + EMPTY_STRING + AND
+							+ EMPTY_STRING + "'" + filterInfo.getToValue() + "'");
+					// params.put(filterInfo.getToValue(), filterInfo.getToValue());
+					// params.put(filterInfo.getFromValue(), filterInfo.getFromValue());
+				}
 			}
 		}
 		if (!sort.isEmpty()) {
 			sb.append(EMPTY_STRING + ORDER_BY + sort.get(0).getSortField() + EMPTY_STRING + sort.get(0).getSortType());
 		}
-		List<SyncRegistrationEntity> result = syncRegistrationRepository.createQuerySelect(sb.toString(), params,
-				maxResultFetch);
+		List<SyncRegistrationEntity> result = syncRegistrationRepository.createQuerySelect(sb.toString(), params);
 
 		for (SyncRegistrationEntity syncRegEn : result) {
 			registrationIdlist.add(syncRegEn.getRegistrationId());
 		}
 		return registrationIdlist;
+	}
+
+	/**
+	 * 
+	 * @param id
+	 * @return
+	 */
+	public String getSaltValue(Long id) {
+		SaltEntity saltEntity = saltRepository.findSaltById(id);
+		return saltEntity.getSalt();
 	}
 
 }

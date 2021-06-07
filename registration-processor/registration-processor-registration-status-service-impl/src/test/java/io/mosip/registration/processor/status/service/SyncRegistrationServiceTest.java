@@ -561,7 +561,6 @@ public class SyncRegistrationServiceTest {
 		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
 				"errorMessage", new Exception());
 		Mockito.when(syncRegistrationDao.getByIds(any())).thenThrow(exp);
-
 		syncRegistrationService.getByIds(registrationIds);
 
 	}

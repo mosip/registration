@@ -8,6 +8,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.json.JSONObject;
@@ -42,13 +43,13 @@ import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.workflow.dto.FilterInfo;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 import io.mosip.registration.processor.status.code.RegistrationExternalStatusCode;
 import io.mosip.registration.processor.status.code.SupervisorStatus;
 import io.mosip.registration.processor.status.dao.SyncRegistrationDao;
 import io.mosip.registration.processor.status.decryptor.Decryptor;
+import io.mosip.registration.processor.status.dto.FilterInfo;
 import io.mosip.registration.processor.status.dto.LostRidDto;
 import io.mosip.registration.processor.status.dto.RegistrationAdditionalInfoDTO;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
@@ -64,7 +65,9 @@ import io.mosip.registration.processor.status.dto.SyncTypeDto;
 import io.mosip.registration.processor.status.encryptor.Encryptor;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.exception.EncryptionFailureException;
+import io.mosip.registration.processor.status.exception.LostRidValidationException;
 import io.mosip.registration.processor.status.exception.PacketDecryptionFailureException;
+import io.mosip.registration.processor.status.exception.RegStatusAppException;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.mosip.registration.processor.status.utilities.RegistrationUtility;
@@ -90,6 +93,12 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 
 	@Value("${mosip.registration.processor.postalcode.req.url}")
 	private String postalCodeReqUrl;
+
+	@Value("${mosip.registration.processor.lostrid.iteration.max.count:10000}")
+	private int iteration;
+
+	@Value("${registration.processor.lostrid.max.registrationid:5}")
+	private int maxSearchResult;
 
 	/** The event type. */
 	private String eventType = "";
@@ -479,21 +488,20 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			regAdditionalInfo.setPhone(dto.getPhone());
 			
 			String additionalInfo = JsonUtils.javaObjectToJsonString(regAdditionalInfo);
-			byte[] encryptedInfo = encryptor.encrypt(additionalInfo, referenceId, timeStamp);
+			byte[] encryptedInfo = encryptor.encrypt(additionalInfo, referenceId,
+			 timeStamp);
 			syncRegistrationEntity.setOptionalValues(encryptedInfo);
-			syncRegistrationEntity.setName(getHMACHashCode(dto.getName()));
-			syncRegistrationEntity.setEmail(getHMACHashCode(dto.getEmail()));
-			syncRegistrationEntity.setCenterId(getHMACHashCode(referenceId.split("_")[0]));
-			syncRegistrationEntity.setPhone(getHMACHashCode(dto.getPhone()));
+			syncRegistrationEntity.setName(getHashCode(dto.getName().replaceAll("\\s", "").toLowerCase()));
+			syncRegistrationEntity.setEmail(getHashCode(dto.getEmail()));
+			syncRegistrationEntity.setCenterId(getHashCode(referenceId.split("_")[0]));
+			syncRegistrationEntity.setPhone(getHashCode(dto.getPhone()));
 			syncRegistrationEntity
-					.setPostalCode(getHMACHashCode(getPostalCode(referenceId.split("_")[0], dto.getLangCode())));
+					.setPostalCode(getHashCode(getPostalCode(referenceId.split("_")[0], dto.getLangCode())));
 			if (dto.getCreateDateTime() != null) {
 				syncRegistrationEntity
-						.setRegistrationDate(getHMACHashCode(dto.getCreateDateTime().toLocalDate().toString()));
-
+						.setRegistrationDate(dto.getCreateDateTime().toLocalDate());
 			}
-		} catch (JsonProcessingException | NoSuchAlgorithmException | EncryptionFailureException
-				| ApisResourceAccessException exception) {
+		} catch (JsonProcessingException | EncryptionFailureException | ApisResourceAccessException exception) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", exception.getMessage() + ExceptionUtils.getStackTrace(exception));
 		}		
@@ -616,9 +624,10 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			createSearchInfoDto(searchInfo);
 			List<String> registrationIds = syncRegistrationDao.getSearchResults(searchInfo.getFilters(),
 					searchInfo.getSort());
+			validateRegistrationIds(registrationIds);
 			lostRidDto.setRegistartionIds(registrationIds);
 			return lostRidDto;
-		} catch (DataAccessLayerException | NoSuchAlgorithmException e) {
+		} catch (DataAccessLayerException | NoSuchAlgorithmException | RegStatusAppException e) {
 
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
@@ -627,9 +636,22 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		}
 	}
 
+	private void validateRegistrationIds(List<String> registrationIds) throws RegStatusAppException {
+		LostRidValidationException exception = new LostRidValidationException();
+		if (registrationIds.size() >= maxSearchResult) {
+			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_INVALID_SEARCH, exception);
+		}
+
+	}
+
 	private void createSearchInfoDto(SearchInfo searchInfo) throws NoSuchAlgorithmException {
 		for (FilterInfo fi : searchInfo.getFilters()) {
-			fi.setValue(getHMACHashCode(fi.getValue()));
+			if (!fi.getColumnName().equalsIgnoreCase("registrationDate")
+					&& !fi.getColumnName().equalsIgnoreCase("name")) {
+				fi.setValue(getHashCode(fi.getValue()));
+			} else if (!fi.getColumnName().equalsIgnoreCase("registrationDate")) {
+				fi.setValue(getHashCode(fi.getValue().replaceAll("\\s", "").toLowerCase()));
+			}
 		}
 	}
 
@@ -687,9 +709,43 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		return syncRegistrationDao.deleteAdditionalInfo(syncEntity);
 	}
 
-	public static String getHMACHashCode(String value) throws java.security.NoSuchAlgorithmException {
+	private static byte[] getHMACHash(String value) throws java.security.NoSuchAlgorithmException {
+		if (value == null)
+			return null;
+		return HMACUtils2.generateHash(value.getBytes());
+	}
+
+	private static String getHMACHashCode(String value) throws java.security.NoSuchAlgorithmException {
 		if (value == null)
 			return null;
 		return CryptoUtil.encodeBase64(HMACUtils2.generateHash(value.getBytes()));
 	}
+
+	private String getHashCode(String value) {
+		StringBuilder hashedSaltValue = null;
+		try {
+			hashedSaltValue = new StringBuilder();
+			byte[] hashCode = getHMACHash(value);
+			byte[] nonce = Arrays.copyOfRange(hashCode, hashCode.length - 2, hashCode.length);
+			String result = convertBytesToHex(nonce);
+			Long hashValue = Long.parseLong(result, 16);
+			String salt=syncRegistrationDao.getSaltValue(hashValue);
+			for (int i = 0; i <= iteration; i++) {
+				hashedSaltValue = hashedSaltValue.append(getHMACHashCode(value + salt));
+			}
+		} catch (NoSuchAlgorithmException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
+		}
+		return hashedSaltValue.toString();
+	}
+
+	private static String convertBytesToHex(byte[] bytes) {
+		StringBuilder result = new StringBuilder();
+		for (byte temp : bytes) {
+			result.append(String.format("%02x", temp));
+		}
+		return result.substring(0, 3).toString();
+	}
+
 }

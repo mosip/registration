@@ -4,6 +4,7 @@
 package io.mosip.registration.processor.status.entity;
 
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import javax.persistence.Column;
@@ -96,7 +97,7 @@ public class SyncRegistrationEntity extends BaseRegistrationEntity {
 	private String centerId;
 
 	@Column(name = "registration_date")
-	private String registrationDate;
+	private LocalDate registrationDate;
 
 	@Column(name = "postal_code")
 	private String postalCode;
@@ -447,12 +448,12 @@ public class SyncRegistrationEntity extends BaseRegistrationEntity {
 		this.centerId = centerId;
 	}
 
-	public String getRegistrationDate() {
+	public LocalDate getRegistrationDate() {
 		return registrationDate;
 	}
 
-	public void setRegistrationDate(String registrationDate) {
-		this.registrationDate = registrationDate;
+	public void setRegistrationDate(LocalDate date) {
+		this.registrationDate = date;
 	}
 
 	public String getPostalCode() {
