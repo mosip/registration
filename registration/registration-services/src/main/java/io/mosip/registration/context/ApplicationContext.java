@@ -1,9 +1,6 @@
 package io.mosip.registration.context;
 
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.ResourceBundle;
+import java.util.*;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.StringUtils;
@@ -48,6 +45,9 @@ public class ApplicationContext {
 
 	/** The application languge. */
 	private String applicationLanguge;
+
+	private List<String> exemptedColumn;
+
 
 	/** The primary language right to left. */
 	private boolean primaryLanguageRightToLeft;
@@ -143,6 +143,9 @@ public class ApplicationContext {
 			LOGGER.error("Application Context", RegistrationConstants.APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID, exception.getMessage());
 		}
+
+		String exemptedColumnList = (String) applicationMap.get(RegistrationConstants.TRANSLITERATION_EXEMPTED_COLUMNS);
+		exemptedColumn = StringUtils.isNotBlank(exemptedColumnList) ? Arrays.asList(exemptedColumnList.split(",", 0)) : new ArrayList<>();
 
 		String languageSupport = (String) applicationMap.get(RegistrationConstants.LANGUAGE_SUPPORT);
 		if (StringUtils.isNotBlank(languageSupport)) {
@@ -351,6 +354,10 @@ public class ApplicationContext {
 	 */
 	public String getApplicationLanguage() {
 		return applicationLanguge;
+	}
+
+	public List<String> getExemptedColumns() {
+		return exemptedColumn;
 	}
 
 	/**

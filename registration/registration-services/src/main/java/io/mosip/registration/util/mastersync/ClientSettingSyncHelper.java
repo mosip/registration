@@ -604,7 +604,7 @@ public class ClientSettingSyncHelper {
 	private void checkForDuplicates(List<DynamicField> fields, List<DynamicField> existingFields) {
 		for (DynamicField tobeUpdatedField : fields) {
 			for (DynamicField existingField : existingFields) {
-				if(tobeUpdatedField.getName().equalsIgnoreCase(existingField.getName())) {
+				if(tobeUpdatedField.getId().equalsIgnoreCase(existingField.getId())) {
 					dynamicFieldRepository.delete(existingField);
 				}
 			}
