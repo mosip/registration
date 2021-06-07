@@ -1757,14 +1757,9 @@ public class DemographicDetailController extends BaseController {
 					LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 							"Setting secondary langauge text");
 
-					// excempted column list
-					String[] exemptedTransliteration = new String[]{"email", "nationalIdentityNumber", "phoneNumber"};
-					List<String> exemptList = new ArrayList<>(Arrays.asList(exemptedTransliteration));
-
-					if(exemptList.contains(textField.getId())){
-						hasToBeTransliterated = false;
-					} else {
-						hasToBeTransliterated = true;
+					List<String> exemptedTransliteration = applicationContext.getExemptedColumns();
+					if (!exemptedTransliteration.isEmpty()) {
+						hasToBeTransliterated = !exemptedTransliteration.contains(textField.getId());
 					}
 
 					// Set Local lang

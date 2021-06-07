@@ -303,6 +303,8 @@ public class RegistrationConstants {
 	public static final String TOGGLE_BIO_METRIC_EXCEPTION = "toggleBiometricException";
 	public static final String IS_LOW_QUALITY_BIOMETRICS = "Low Quality Biometrics";
 
+	public static final String TRANSLITERATION_EXEMPTED_COLUMNS = "mosip.transliteration-exemptions";
+
 	// Reasons for Exception
 	public static final String MISSING_BIOMETRICS = "Missing biometrics";
 	public static final String LOW_QUALITY_BIOMETRICS = "Low quality of biometrics";
