@@ -203,7 +203,6 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 			}
 
 			else {
-				object.setIsValid(Boolean.TRUE);
 				isTransactionSuccessful = true;
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), registrationId,

@@ -217,9 +217,9 @@ public class CMDValidatorProcessorTest {
 		Mockito.doThrow(new ApisResourceAccessException("")).when(machineValidator).validate(anyString(), anyString(),
 				anyString(), anyString());
 		Mockito.when(registrationStatusMapperUtil
-				.getStatusCode(RegistrationExceptionTypeCode.BASE_CHECKED_EXCEPTION)).thenReturn("ERROR");
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 		MessageDTO object = cmdValidationProcessor.process(dto, stageName);
-		assertFalse(object.getIsValid());
+		assertTrue(object.getIsValid());
 		assertTrue(object.getInternalError());
 	}
 
@@ -249,9 +249,9 @@ public class CMDValidatorProcessorTest {
 		Mockito.doThrow(apisResourceAccessException).when(machineValidator).validate(anyString(), anyString(),
 				anyString(), anyString());
 		Mockito.when(registrationStatusMapperUtil
-				.getStatusCode(RegistrationExceptionTypeCode.BASE_CHECKED_EXCEPTION)).thenReturn("ERROR");
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 		MessageDTO object = cmdValidationProcessor.process(dto, stageName);
-		assertFalse(object.getIsValid());
+		assertTrue(object.getIsValid());
 		assertTrue(object.getInternalError());
 	}
 
@@ -267,10 +267,10 @@ public class CMDValidatorProcessorTest {
 		Mockito.doThrow(apisResourceAccessException).when(machineValidator).validate(anyString(), anyString(),
 				anyString(), anyString());
 		Mockito.when(registrationStatusMapperUtil
-				.getStatusCode(RegistrationExceptionTypeCode.BASE_CHECKED_EXCEPTION)).thenReturn("ERROR");
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 
 		MessageDTO object = cmdValidationProcessor.process(dto, stageName);
-		assertFalse(object.getIsValid());
+		assertTrue(object.getIsValid());
 		assertTrue(object.getInternalError());
 	}
 
@@ -320,9 +320,9 @@ public class CMDValidatorProcessorTest {
 		Mockito.doThrow(new AuthSystemException(StatusUtil.AUTH_SYSTEM_EXCEPTION.getMessage())).when(machineValidator)
 				.validate(anyString(), anyString(), anyString(), anyString());
 		Mockito.when(registrationStatusMapperUtil
-				.getStatusCode(RegistrationExceptionTypeCode.BASE_CHECKED_EXCEPTION)).thenReturn("ERROR");
+				.getStatusCode(RegistrationExceptionTypeCode.AUTH_SYSTEM_EXCEPTION)).thenReturn("REPROCESS");
 		MessageDTO object = cmdValidationProcessor.process(dto, stageName);
-		assertFalse(object.getIsValid());
+		assertTrue(object.getIsValid());
 		assertTrue(object.getInternalError());
 	}
 

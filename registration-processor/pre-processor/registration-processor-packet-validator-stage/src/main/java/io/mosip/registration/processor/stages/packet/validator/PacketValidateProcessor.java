@@ -341,7 +341,32 @@ public class PacketValidateProcessor {
 					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(),
 					ExceptionUtils.getStackTrace(e));
 
-		} catch (RegistrationProcessorCheckedException e) {
+		} catch (ApisResourceAccessException e) {
+			if (e.getCause() instanceof HttpClientErrorException) {
+				HttpClientErrorException httpClientException = (HttpClientErrorException) e.getCause();
+				regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+						PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getMessage(),
+						httpClientException.getResponseBodyAsString() + ExceptionUtils.getStackTrace(e));
+			} else if (e.getCause() instanceof HttpServerErrorException) {
+				HttpServerErrorException httpServerException = (HttpServerErrorException) e.getCause();
+				regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+						PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getMessage(),
+						httpServerException.getResponseBodyAsString() + ExceptionUtils.getStackTrace(e));
+			} else {
+				regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+						PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getMessage(), e.getMessage());
+			}
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.REPROCESS.toString());
+			registrationStatusDto.setLatestTransactionStatusCode(
+                    registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION));
+			registrationStatusDto.setStatusComment(trimMessage
+                    .trimExceptionMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage() + e.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode());
+			packetValidationDto.setTransactionSuccessful(false);
+
+			description.setMessage(PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getMessage());
+			description.setCode(PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getCode());
+        } catch (RegistrationProcessorCheckedException e) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 			registrationStatusDto.setStatusComment(
 					trimMessage.trimExceptionMessage(StatusUtil.BASE_CHECKED_EXCEPTION.getMessage() + e.getMessage()));
@@ -427,11 +452,13 @@ public class PacketValidateProcessor {
 		return false;
 	}
 
+	@SuppressWarnings("unchecked")
 	private void reverseDataSync(String id, String process, LogDescription description,
 			PacketValidationDto packetValidationDto) throws IOException, ApisResourceAccessException,
 			PacketManagerException, JsonProcessingException, JSONException {
 
-		Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(id, process, ProviderStageName.PACKET_VALIDATOR);
+		Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(id, process,
+				ProviderStageName.PACKET_VALIDATOR);
 		String metadata = metaInfoMap.get(JsonConstant.METADATA);
 		if (StringUtils.isNotEmpty(metadata)) {
 			JSONArray jsonArray = new JSONArray(metadata);
@@ -454,92 +481,49 @@ public class PacketValidateProcessor {
 						"Reverse datasync is not applicable for the registration id");
 				return;
 			}
-			try {
-				if (registrationId != null) {
+			if (registrationId != null) {
+				packetValidationDto.setTransactionSuccessful(false);
+				MainResponseDTO<ReverseDatasyncReponseDTO> mainResponseDto = null;
+				if (preRegId != null && !preRegId.trim().isEmpty()) {
+					MainRequestDTO<ReverseDataSyncRequestDTO> mainRequestDto = new MainRequestDTO<>();
+					mainRequestDto.setId(PRE_REG_ID);
+					mainRequestDto.setVersion(VERSION);
+					mainRequestDto.setRequesttime(new Date());
+					ReverseDataSyncRequestDTO reverseDataSyncRequestDto = new ReverseDataSyncRequestDTO();
+					reverseDataSyncRequestDto.setPreRegistrationIds(Arrays.asList(preRegId));
+					mainRequestDto.setRequest(reverseDataSyncRequestDto);
+					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+							"PacketValidateProcessor::reverseDataSync()::ReverseDataSync Api call started with request data :"
+									+ JsonUtil.objectMapperObjectToJson(mainRequestDto));
+					mainResponseDto = (MainResponseDTO) restClientService.postApi(ApiName.REVERSEDATASYNC, "", "",
+							mainRequestDto, MainResponseDTO.class);
+
+					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+							"\"PacketValidateProcessor::reverseDataSync()::ReverseDataSync Api call ended with response data : "
+									+ JsonUtil.objectMapperObjectToJson(mainResponseDto));
+					packetValidationDto.setTransactionSuccessful(true);
+
+				}
+				if (mainResponseDto != null && mainResponseDto.getErrors() != null
+						&& mainResponseDto.getErrors().size() > 0) {
+					regProcLogger.error(LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+							PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getMessage(),
+							mainResponseDto.getErrors().toString());
 					packetValidationDto.setTransactionSuccessful(false);
-					MainResponseDTO<ReverseDatasyncReponseDTO> mainResponseDto = null;
-					if (preRegId != null && !preRegId.trim().isEmpty()) {
-						MainRequestDTO<ReverseDataSyncRequestDTO> mainRequestDto = new MainRequestDTO<>();
-						mainRequestDto.setId(PRE_REG_ID);
-						mainRequestDto.setVersion(VERSION);
-						mainRequestDto.setRequesttime(new Date());
-						ReverseDataSyncRequestDTO reverseDataSyncRequestDto = new ReverseDataSyncRequestDTO();
-						reverseDataSyncRequestDto.setPreRegistrationIds(Arrays.asList(preRegId));
-						mainRequestDto.setRequest(reverseDataSyncRequestDto);
-						regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-								LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-								"PacketValidateProcessor::reverseDataSync()::ReverseDataSync Api call started with request data :"
-										+ JsonUtil.objectMapperObjectToJson(mainRequestDto));
-						mainResponseDto = (MainResponseDTO) restClientService.postApi(ApiName.REVERSEDATASYNC, "", "",
-								mainRequestDto, MainResponseDTO.class);
-
-						regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-								LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-								"\"PacketValidateProcessor::reverseDataSync()::ReverseDataSync Api call ended with response data : "
-										+ JsonUtil.objectMapperObjectToJson(mainResponseDto));
-						packetValidationDto.setTransactionSuccessful(true);
-
-					}
-					if (mainResponseDto != null && mainResponseDto.getErrors() != null
-							&& mainResponseDto.getErrors().size() > 0) {
-						regProcLogger.error(LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-								PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getMessage(),
-								mainResponseDto.getErrors().toString());
-						packetValidationDto.setTransactionSuccessful(false);
-						description.setMessage(PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getMessage());
-
-					} else if (mainResponseDto == null) {
-						packetValidationDto.setTransactionSuccessful(false);
-						description.setMessage(PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getMessage()
-								+ " null response from rest client ");
-					} else {
-						packetValidationDto.setTransactionSuccessful(true);
-						regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-								PlatformErrorMessages.REVERSE_DATA_SYNC_SUCCESS.getMessage(), "");
-					}
-
-				}
-
-			} catch (ApisResourceAccessException e) {
-
-				if (e.getCause() instanceof HttpClientErrorException) {
-					HttpClientErrorException httpClientException = (HttpClientErrorException) e.getCause();
-					regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-							PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getMessage(),
-							httpClientException.getResponseBodyAsString() + ExceptionUtils.getStackTrace(e));
 					description.setMessage(PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getMessage());
-					description.setCode(PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getCode());
-				} else if (e.getCause() instanceof HttpServerErrorException) {
-					HttpServerErrorException httpServerException = (HttpServerErrorException) e.getCause();
-					regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-							PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getMessage(),
-							httpServerException.getResponseBodyAsString() + ExceptionUtils.getStackTrace(e));
-					description.setMessage(PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getMessage());
-					description.setCode(PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getCode());
+
+				} else if (mainResponseDto == null) {
+					packetValidationDto.setTransactionSuccessful(false);
+					description.setMessage(PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getMessage()
+							+ " null response from rest client ");
 				} else {
+					packetValidationDto.setTransactionSuccessful(true);
 					regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-							PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getMessage(), e.getMessage());
-					description.setMessage(PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getMessage());
-					description.setCode(PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getCode());
+							PlatformErrorMessages.REVERSE_DATA_SYNC_SUCCESS.getMessage(), "");
 				}
 
-			} finally {
-				if (packetValidationDto.isTransactionSuccessful())
-					description.setMessage("Reverse data sync of Pre-RegistrationIds sucessful");
-				String eventId = packetValidationDto.isTransactionSuccessful() ? EventId.RPR_402.toString()
-						: EventId.RPR_405.toString();
-				String eventName = packetValidationDto.isTransactionSuccessful() ? EventName.UPDATE.toString()
-						: EventName.EXCEPTION.toString();
-				String eventType = packetValidationDto.isTransactionSuccessful() ? EventType.BUSINESS.toString()
-						: EventType.SYSTEM.toString();
-
-				/** Module-Id can be Both Success/Error code */
-				String moduleId = packetValidationDto.isTransactionSuccessful()
-						? PlatformSuccessMessages.RPR_PKR_PACKET_VALIDATE.getCode()
-						: description.getCode();
-				String moduleName = ModuleName.PACKET_VALIDATOR.toString();
-				auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName,
-						eventType, moduleId, moduleName, registrationId);
 			}
 		}
 

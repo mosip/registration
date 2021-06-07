@@ -387,7 +387,6 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
                 }
             }
             if (!isInputFileClean) {
-            	messageDTO.setInternalError(Boolean.TRUE);
                 description.setMessage(PlatformErrorMessages.RPR_PUM_PACKET_VIRUS_SCAN_FAILED.getMessage());
                 description.setCode(PlatformErrorMessages.RPR_PUM_PACKET_VIRUS_SCAN_FAILED.getCode());
                 dto.setStatusCode(RegistrationExceptionTypeCode.VIRUS_SCAN_FAILED_EXCEPTION.toString());

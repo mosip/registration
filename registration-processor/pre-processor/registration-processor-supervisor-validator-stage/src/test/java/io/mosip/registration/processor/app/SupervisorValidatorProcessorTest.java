@@ -149,7 +149,7 @@ public class SupervisorValidatorProcessorTest {
 	 * @throws Exception the exception
 	 */
 	@Test
-	public void testisValidOperatorSuccess() throws Exception {
+	public void testisValidSupervisorSuccess() throws Exception {
 
 		Mockito.doNothing().when(supervisorValidator).validate(anyString(), any(), any());
 		MessageDTO object = supervisorValidationProcessor.process(dto, stageName);
@@ -189,9 +189,9 @@ public class SupervisorValidatorProcessorTest {
 		Mockito.doThrow(new ApisResourceAccessException("")).when(supervisorValidator).validate(anyString(), any(),
 				any());
 		Mockito.when(registrationStatusMapperUtil
-				.getStatusCode(RegistrationExceptionTypeCode.BASE_CHECKED_EXCEPTION)).thenReturn("ERROR");
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 		MessageDTO object = supervisorValidationProcessor.process(dto, stageName);
-		assertFalse(object.getIsValid());
+		assertTrue(object.getIsValid());
 		assertTrue(object.getInternalError());
 	}
 
@@ -213,10 +213,10 @@ public class SupervisorValidatorProcessorTest {
 				HttpStatus.INTERNAL_SERVER_ERROR, "KER-FSE-004:encrypted data is corrupted or not base64 encoded");
 		Mockito.when(apisResourceAccessException.getCause()).thenReturn(httpServerErrorException);
 		Mockito.when(registrationStatusMapperUtil
-				.getStatusCode(RegistrationExceptionTypeCode.BASE_CHECKED_EXCEPTION)).thenReturn("ERROR");
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 		Mockito.doThrow(apisResourceAccessException).when(supervisorValidator).validate(anyString(), any(), any());
 		MessageDTO object = supervisorValidationProcessor.process(dto, stageName);
-		assertFalse(object.getIsValid());
+		assertTrue(object.getIsValid());
 		assertTrue(object.getInternalError());
 	}
 
@@ -227,10 +227,10 @@ public class SupervisorValidatorProcessorTest {
 				HttpStatus.INTERNAL_SERVER_ERROR, "KER-FSE-004:encrypted data is corrupted or not base64 encoded");
 		Mockito.when(apisResourceAccessException.getCause()).thenReturn(httpClientErrorException);
 		Mockito.when(registrationStatusMapperUtil
-				.getStatusCode(RegistrationExceptionTypeCode.BASE_CHECKED_EXCEPTION)).thenReturn("ERROR");
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 		Mockito.doThrow(apisResourceAccessException).when(supervisorValidator).validate(anyString(), any(), any());
 		MessageDTO object = supervisorValidationProcessor.process(dto, stageName);
-		assertFalse(object.getIsValid());
+		assertTrue(object.getIsValid());
 		assertTrue(object.getInternalError());
 	}
 
@@ -257,9 +257,9 @@ public class SupervisorValidatorProcessorTest {
 		Mockito.doThrow(new AuthSystemException(StatusUtil.AUTH_SYSTEM_EXCEPTION.getMessage()))
 				.when(supervisorValidator).validate(anyString(), any(), any());
 		Mockito.when(registrationStatusMapperUtil
-				.getStatusCode(RegistrationExceptionTypeCode.BASE_CHECKED_EXCEPTION)).thenReturn("ERROR");
+				.getStatusCode(RegistrationExceptionTypeCode.AUTH_SYSTEM_EXCEPTION)).thenReturn("REPROCESS");
 		MessageDTO object = supervisorValidationProcessor.process(dto, stageName);
-		assertFalse(object.getIsValid());
+		assertTrue(object.getIsValid());
 		assertTrue(object.getInternalError());
 	}
 

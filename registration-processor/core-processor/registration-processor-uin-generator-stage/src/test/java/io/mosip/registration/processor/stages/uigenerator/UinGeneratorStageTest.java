@@ -2014,7 +2014,7 @@ public class UinGeneratorStageTest {
 				.thenReturn(idResponseDTO1);
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
-		assertFalse(result.getInternalError());
+		assertTrue(result.getInternalError());
 		assertFalse(result.getIsValid());
 	}
 	

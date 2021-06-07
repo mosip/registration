@@ -272,6 +272,9 @@ public class DemodedupeProcessor {
 			}
 
 			registrationStatusDto.setRegistrationStageName(stageName);
+			if (isTransactionSuccessful) {
+				object.setIsValid(Boolean.TRUE);
+			}
 
 		} catch (FSAdapterException e) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());

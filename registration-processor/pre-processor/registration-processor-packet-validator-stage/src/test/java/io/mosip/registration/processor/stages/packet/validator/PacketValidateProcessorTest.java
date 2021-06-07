@@ -52,6 +52,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -281,9 +282,9 @@ public class PacketValidateProcessorTest {
 		ApisResourceAccessException exc=new ApisResourceAccessException("Ex");
 		Mockito.when(packetValidator.validate(any(),any(), any())).thenThrow(exc);
 		Mockito.when(registrationStatusMapperUtil
-				.getStatusCode(RegistrationExceptionTypeCode.EXCEPTION)).thenReturn("ERROR");
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
-		assertFalse(object.getIsValid());
+		assertTrue(object.getIsValid());
 		assertTrue(object.getInternalError());
 	}
 	
@@ -340,9 +341,11 @@ public class PacketValidateProcessorTest {
 		
 		Mockito.when(restClientService.postApi(any(), any(), any(), any(),
 				any())).thenThrow(new ApisResourceAccessException("",new HttpClientErrorException(HttpStatus.GATEWAY_TIMEOUT, "")));
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
 		assertTrue(object.getIsValid());
-		assertFalse(object.getInternalError());
+		assertTrue(object.getInternalError());
 	}
 	
 	@Test
@@ -350,9 +353,11 @@ public class PacketValidateProcessorTest {
 		
 		Mockito.when(restClientService.postApi(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any(),
 				Matchers.any())).thenThrow(new ApisResourceAccessException("",new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "")));
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
 		assertTrue(object.getIsValid());
-		assertFalse(object.getInternalError());
+		assertTrue(object.getInternalError());
 	}
 	
 	@Test
@@ -360,9 +365,11 @@ public class PacketValidateProcessorTest {
 		
 		Mockito.when(restClientService.postApi(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any(),
 				Matchers.any())).thenThrow(new ApisResourceAccessException(""));
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
 		assertTrue(object.getIsValid());
-		assertFalse(object.getInternalError());
+		assertTrue(object.getInternalError());
 	}
 
 	@Test
@@ -379,17 +386,17 @@ public class PacketValidateProcessorTest {
 	@Test
 	public void DataNotAccessibleExceptionest() throws Exception  {
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
-				.thenThrow( BaseUncheckedException.class);
-		Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BASE_UNCHECKED_EXCEPTION))
-				.thenReturn("ERROR");
+				.thenThrow( new DataAccessException("DataAccessException") {});
+		Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.DATA_ACCESS_EXCEPTION))
+				.thenReturn("REPROCESS");
 		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
-		assertFalse(object.getIsValid());
+		assertTrue(object.getIsValid());
 		assertTrue(object.getInternalError());
 	}
 	
 	@Test
 	public void BaseUnCheckedExceptionTest() throws Exception  {
-		Mockito.when(registrationStatusService.getRegistrationStatus(any()))
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
 				.thenThrow(BaseUncheckedException.class);
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.BASE_UNCHECKED_EXCEPTION)).thenReturn("ERROR");

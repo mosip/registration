@@ -195,9 +195,9 @@ public class IntroducerValidatorProcessorTest {
 		Mockito.doThrow(new AuthSystemException(StatusUtil.AUTH_SYSTEM_EXCEPTION.getMessage()))
 				.when(introducerValidator).validate(anyString(), any());
 		Mockito.when(registrationStatusMapperUtil
-				.getStatusCode(RegistrationExceptionTypeCode.BASE_CHECKED_EXCEPTION)).thenReturn("ERROR");
+				.getStatusCode(RegistrationExceptionTypeCode.AUTH_SYSTEM_EXCEPTION)).thenReturn("REPROCESS");
 		MessageDTO object = introducerValidationProcessor.process(dto, stageName);
-		assertFalse(object.getIsValid());
+		assertTrue(object.getIsValid());
 		assertTrue(object.getInternalError());
 	}
 

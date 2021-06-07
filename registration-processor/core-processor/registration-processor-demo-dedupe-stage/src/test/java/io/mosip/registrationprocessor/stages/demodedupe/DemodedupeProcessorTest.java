@@ -505,7 +505,6 @@ public class DemodedupeProcessorTest {
 	}
 
 	@Test
-	@Ignore
 	public void testDemoDedupePotentialMatchWithEmpty() throws Exception {
 		List<AbisResponseDto> abisResponseDtos = new ArrayList<>();
 		List<AbisResponseDetDto> abisResponseDetDtos = new ArrayList<>();
@@ -536,17 +535,16 @@ public class DemodedupeProcessorTest {
 		Mockito.when(packetInfoManager.getAbisResponseRecords(anyString(), anyString())).thenReturn(abisResponseDtos);
 		Mockito.when(packetInfoManager.getAbisResponseDetRecordsList(any())).thenReturn(abisResponseDetDtos);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), any())).thenReturn(matchedRegIds);
-		doNothing().when(packetInfoManager).saveManualAdjudicationData(anyList(), anyString(), any(), any(), any(),null,null);
+		Mockito.doNothing().when(packetInfoManager).saveManualAdjudicationData(anyList(), anyString(), any(), any(),
+				any(), any(), any());
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 
 		assertFalse(messageDto.getIsValid());
-		assertTrue(messageDto.getInternalError());
-
+		assertFalse(messageDto.getInternalError());
 	}
 	
 	@Test
-	@Ignore
 	public void testDemoDedupeEmptyMatch() throws Exception {
 		List<AbisResponseDto> abisResponseDtos = new ArrayList<>();
 		List<AbisResponseDetDto> abisResponseDetDtos = new ArrayList<>();
@@ -576,13 +574,13 @@ public class DemodedupeProcessorTest {
 		Mockito.when(packetInfoManager.getAbisResponseRecords(anyString(), anyString())).thenReturn(abisResponseDtos);
 		Mockito.when(packetInfoManager.getAbisResponseDetRecordsList(any())).thenReturn(abisResponseDetDtos);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), any())).thenReturn(matchedRegIds);
-		doNothing().when(packetInfoManager).saveManualAdjudicationData(anyList(), anyString(), any(), any(), any(),null,null);
+		Mockito.doNothing().when(packetInfoManager).saveManualAdjudicationData(anyList(), anyString(), any(), any(),
+				any(), any(), any());
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 
 		assertFalse(messageDto.getIsValid());
-		assertTrue(messageDto.getInternalError());
-
+		assertFalse(messageDto.getInternalError());
 	}
 
 	@Test
@@ -610,7 +608,7 @@ public class DemodedupeProcessorTest {
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 
-		assertFalse(messageDto.getIsValid());
+		assertTrue(messageDto.getIsValid());
 		assertFalse(messageDto.getInternalError());
 	}
 

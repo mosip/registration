@@ -670,7 +670,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 							? result.getErrors().get(0).getMessage()
 							: UINConstants.NULL_IDREPO_RESPONSE);
 			description.setTransactionStatusCode(RegistrationTransactionStatusCode.PROCESSING.toString());
-			object.setIsValid(Boolean.FALSE);
+			object.setInternalError(Boolean.TRUE);
 		}
 		return isTransactionSuccessful;
 	}

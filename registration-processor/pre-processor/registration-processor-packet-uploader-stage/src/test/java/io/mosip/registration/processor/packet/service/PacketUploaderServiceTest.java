@@ -319,7 +319,7 @@ public class PacketUploaderServiceTest {
 		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any())).thenReturn(is);
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "");
 		assertFalse(result.getIsValid());
-		assertTrue(result.getInternalError());
+		assertFalse(result.getInternalError());
 	}
 
 	@Test

@@ -190,9 +190,9 @@ public class OperatorValidatorProcessorTest {
 		Mockito.doThrow(new ApisResourceAccessException("")).when(operatorValidator).validate(anyString(), any(),
 				any());
 		Mockito.when(registrationStatusMapperUtil
-				.getStatusCode(RegistrationExceptionTypeCode.BASE_CHECKED_EXCEPTION)).thenReturn("ERROR");
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 		MessageDTO object = operatorValidationProcessor.process(dto, stageName);
-		assertFalse(object.getIsValid());
+		assertTrue(object.getIsValid());
 		assertTrue(object.getInternalError());
 	}
 
@@ -215,11 +215,11 @@ public class OperatorValidatorProcessorTest {
 				HttpStatus.INTERNAL_SERVER_ERROR, "KER-FSE-004:encrypted data is corrupted or not base64 encoded");
 		Mockito.when(apisResourceAccessException.getCause()).thenReturn(httpServerErrorException);
 		Mockito.when(registrationStatusMapperUtil
-				.getStatusCode(RegistrationExceptionTypeCode.BASE_CHECKED_EXCEPTION)).thenReturn("ERROR");
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 		Mockito.doThrow(apisResourceAccessException).when(operatorValidator).validate(anyString(), any(), any());
 
 		MessageDTO object = operatorValidationProcessor.process(dto, stageName);
-		assertFalse(object.getIsValid());
+		assertTrue(object.getIsValid());
 		assertTrue(object.getInternalError());
 	}
 
@@ -230,10 +230,10 @@ public class OperatorValidatorProcessorTest {
 				HttpStatus.INTERNAL_SERVER_ERROR, "KER-FSE-004:encrypted data is corrupted or not base64 encoded");
 		Mockito.when(apisResourceAccessException.getCause()).thenReturn(httpClientErrorException);
 		Mockito.when(registrationStatusMapperUtil
-				.getStatusCode(RegistrationExceptionTypeCode.BASE_CHECKED_EXCEPTION)).thenReturn("ERROR");
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 		Mockito.doThrow(apisResourceAccessException).when(operatorValidator).validate(anyString(), any(), any());
 		MessageDTO object = operatorValidationProcessor.process(dto, stageName);
-		assertFalse(object.getIsValid());
+		assertTrue(object.getIsValid());
 		assertTrue(object.getInternalError());
 	}
 
@@ -260,9 +260,9 @@ public class OperatorValidatorProcessorTest {
 		Mockito.doThrow(new AuthSystemException(StatusUtil.AUTH_SYSTEM_EXCEPTION.getMessage())).when(operatorValidator)
 				.validate(anyString(), any(), any());
 		Mockito.when(registrationStatusMapperUtil
-				.getStatusCode(RegistrationExceptionTypeCode.BASE_CHECKED_EXCEPTION)).thenReturn("ERROR");
+				.getStatusCode(RegistrationExceptionTypeCode.AUTH_SYSTEM_EXCEPTION)).thenReturn("REPROCESS");
 		MessageDTO object = operatorValidationProcessor.process(dto, stageName);
-		assertFalse(object.getIsValid());
+		assertTrue(object.getIsValid());
 		assertTrue(object.getInternalError());
 	}
 
