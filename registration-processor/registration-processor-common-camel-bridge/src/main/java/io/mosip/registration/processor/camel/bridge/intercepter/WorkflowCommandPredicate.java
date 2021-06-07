@@ -9,7 +9,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.abstractverticle.WorkflowInternalActionDTO;
+import io.mosip.registration.processor.core.code.WorkflowActionCode;
 import io.mosip.registration.processor.core.code.WorkflowInternalActionCode;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
@@ -47,6 +49,22 @@ public class WorkflowCommandPredicate implements Predicate {
 				processMarkAsReprocess(exchange);
 				matches = true;
 				break;
+			case "workflow-cmd://pause-and-request-additional-info":
+				processPauseAndRequestAdditionalInfo(exchange);
+				matches = true;
+				break;
+			case "workflow-cmd://resume-parent-flow":
+				processResumeParentFlow(exchange);
+				matches = true;
+				break;
+			case "workflow-cmd://restart-parent-flow":
+				processRestartParentFlow(exchange);
+				matches = true;
+				break;
+			case "workflow-cmd://stop-and-notify":
+				processStopAndNotify(exchange);
+				matches = true;
+				break;
 			default:
 				if (toaddress.startsWith("workflow-cmd://")) {
 					matches = true;
@@ -68,6 +86,8 @@ public class WorkflowCommandPredicate implements Predicate {
 		}
 		return matches;
 	}
+
+
 
 	private void processCompleteAsRejected(Exchange exchange) throws JsonProcessingException {
 		String message = (String) exchange.getMessage().getBody();
@@ -116,5 +136,52 @@ public class WorkflowCommandPredicate implements Predicate {
 
 	}
 
+	private void processRestartParentFlow(Exchange exchange) throws JsonProcessingException {
+		String message = (String) exchange.getMessage().getBody();
+		JsonObject json = new JsonObject(message);
+		WorkflowInternalActionDTO workflowEventDTO = new WorkflowInternalActionDTO();
+		workflowEventDTO.setRid(json.getString("rid"));
+		workflowEventDTO.setActionCode(WorkflowInternalActionCode.RESTART_PARENT_FLOW.toString());
+		workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_RESTART_PARENT_FLOW.getMessage());
+		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
+	}
 
+	private void processStopAndNotify(Exchange exchange) throws JsonProcessingException {
+		String message = (String) exchange.getMessage().getBody();
+		JsonObject json = new JsonObject(message);
+		WorkflowInternalActionDTO workflowEventDTO = new WorkflowInternalActionDTO();
+		workflowEventDTO.setRid(json.getString("rid"));
+		workflowEventDTO.setActionCode(WorkflowInternalActionCode.STOP_AND_NOTIFY.toString());
+		workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_STOP_AND_NOTIFY.getMessage());
+		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
+
+	}
+
+	private void processResumeParentFlow(Exchange exchange) throws JsonProcessingException {
+		String message = (String) exchange.getMessage().getBody();
+		JsonObject json = new JsonObject(message);
+		WorkflowInternalActionDTO workflowEventDTO = new WorkflowInternalActionDTO();
+		workflowEventDTO.setRid(json.getString("rid"));
+		workflowEventDTO.setActionCode(WorkflowInternalActionCode.RESUME_PARENT_FLOW.toString());
+		workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_RESUME_PARENT_FLOW.getMessage());
+		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
+
+	}
+
+	private void processPauseAndRequestAdditionalInfo(Exchange exchange) throws JsonProcessingException {
+		String message = (String) exchange.getMessage().getBody();
+		JsonObject json = new JsonObject(message);
+		WorkflowInternalActionDTO workflowEventDTO = new WorkflowInternalActionDTO();
+
+		workflowEventDTO.setResumeTimestamp(DateUtils.formatToISOString(
+				DateUtils.getUTCCurrentDateTime().plusSeconds((Long) exchange.getProperty("pauseFor"))));
+		workflowEventDTO.setRid(json.getString("rid"));
+		workflowEventDTO.setDefaultResumeAction(WorkflowActionCode.STOP_PROCESSING.toString());
+		workflowEventDTO.setActionCode(WorkflowInternalActionCode.PAUSED_FOR_ADDITIONAL_INFO.toString());
+		workflowEventDTO.setEventTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+		workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_PAUSED_FOR_ADDITIONAL_INFO.getMessage());
+		workflowEventDTO.setSubProcess((String) exchange.getProperty("subProcess"));
+
+		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
+	}
 }

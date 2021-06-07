@@ -1,7 +1,10 @@
 package io.mosip.registration.processor.workflowmanager.verticle;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -24,12 +27,15 @@ import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
+import io.mosip.registration.processor.core.code.WorkflowActionCode;
 import io.mosip.registration.processor.core.code.WorkflowInternalActionCode;
+import io.mosip.registration.processor.core.exception.WorkflowActionException;
 import io.mosip.registration.processor.core.exception.WorkflowInternalActionException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.packet.dto.SubWorkflowDto;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventDTO;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
@@ -38,6 +44,8 @@ import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import io.mosip.registration.processor.status.service.SubWorkflowMappingService;
+import io.mosip.registration.processor.workflowmanager.service.WorkflowActionService;
 import io.mosip.registration.processor.workflowmanager.util.WebSubUtil;
 import io.vertx.core.json.JsonObject;
 @Component
@@ -74,6 +82,12 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
 	@Autowired
 	MosipRouter router;
+
+	@Autowired
+	SubWorkflowMappingService subWorkflowMappingService;
+
+	@Autowired
+	private WorkflowActionService workflowActionService;
 
 	private MosipEventBus mosipEventBus = null;
 	
@@ -146,6 +160,18 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 				break;
 			case MARK_AS_REPROCESS:
 				processMarkAsReprocess(workflowInternalActionDTO);
+				break;
+			case PAUSED_FOR_ADDITIONAL_INFO:
+				processPausedForAdditionalInfo(workflowInternalActionDTO);
+				break;
+			case RESUME_PARENT_FLOW:
+				processResumeParentFlow(workflowInternalActionDTO);
+				break;
+			case RESTART_PARENT_FLOW:
+				processRestartParentFlow(workflowInternalActionDTO);
+				break;
+			case STOP_AND_NOTIFY:
+				processStopAndNotify(workflowInternalActionDTO);
 				break;
 			default:
 				throw new WorkflowInternalActionException(
@@ -300,4 +326,95 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
 	}
 
+	private void processStopAndNotify(WorkflowInternalActionDTO workflowInternalActionDTO) {
+		// TODO Logic need to decide
+
+	}
+
+	private void processRestartParentFlow(WorkflowInternalActionDTO workflowInternalActionDTO)
+			throws WorkflowActionException {
+		List<SubWorkflowDto> subWorkflowDtos = subWorkflowMappingService
+				.getSubWorkflowMappingByRegIdAndProcessAndIteration(workflowInternalActionDTO.getRid(),
+						workflowInternalActionDTO.getReg_type(), workflowInternalActionDTO.getIteration());
+		if (subWorkflowDtos != null && subWorkflowDtos.isEmpty()) {
+			SubWorkflowDto subWorkflowDto = subWorkflowDtos.get(0);
+			InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(
+					subWorkflowDto.getRegId(), subWorkflowDto.getParentProcess(), subWorkflowDto.getParentIteration());
+			List<InternalRegistrationStatusDto> internalRegistrationStatusDtos = new ArrayList<InternalRegistrationStatusDto>();
+			internalRegistrationStatusDtos.add(registrationStatusDto);
+			workflowActionService.processWorkflowAction(internalRegistrationStatusDtos,
+					WorkflowActionCode.RESUME_FROM_BEGINNING.toString());
+		}
+	}
+
+	private void processResumeParentFlow(WorkflowInternalActionDTO workflowInternalActionDTO)
+			throws WorkflowActionException {
+		List<SubWorkflowDto> subWorkflowDtos = subWorkflowMappingService
+				.getSubWorkflowMappingByRegIdAndProcessAndIteration(workflowInternalActionDTO.getRid(),
+						workflowInternalActionDTO.getReg_type(), workflowInternalActionDTO.getIteration());
+		if (subWorkflowDtos != null && subWorkflowDtos.isEmpty()) {
+			SubWorkflowDto subWorkflowDto = subWorkflowDtos.get(0);
+			InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(
+					subWorkflowDto.getRegId(), subWorkflowDto.getParentProcess(), subWorkflowDto.getParentIteration());
+			List<InternalRegistrationStatusDto> internalRegistrationStatusDtos = new ArrayList<InternalRegistrationStatusDto>();
+			internalRegistrationStatusDtos.add(registrationStatusDto);
+			workflowActionService.processWorkflowAction(internalRegistrationStatusDtos,
+					WorkflowActionCode.RESUME_PROCESSING.toString());
+		}
+	}
+
+	private void processPausedForAdditionalInfo(WorkflowInternalActionDTO workflowInternalActionDTO) {
+		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(
+				workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getReg_type(),
+				workflowInternalActionDTO.getIteration());
+
+		registrationStatusDto.setStatusCode(RegistrationStatusCode.PAUSED_FOR_ADDITIONAL_INFO.toString());
+		registrationStatusDto.setStatusComment(workflowInternalActionDTO.getActionMessage());
+		registrationStatusDto.setDefaultResumeAction(workflowInternalActionDTO.getDefaultResumeAction());
+		if (workflowInternalActionDTO.getResumeTimestamp() != null) {
+			LocalDateTime resumeTimeStamp = DateUtils
+					.parseToLocalDateTime(workflowInternalActionDTO.getResumeTimestamp());
+			registrationStatusDto.setResumeTimeStamp(resumeTimeStamp);
+		}
+		registrationStatusDto.setUpdatedBy(USER);
+		registrationStatusDto.setResumeRemoveTags(workflowInternalActionDTO.getResumeRemoveTags());
+		registrationStatusDto
+				.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
+		registrationStatusDto.setSubStatusCode(StatusUtil.WORKFLOW_INTERNAL_ACTION_SUCCESS.getCode());
+		registrationStatusService.updateRegistrationStatus(registrationStatusDto, MODULE_ID, MODULE_NAME);
+		String additionalRequestId = createSubWorkflowMapping(workflowInternalActionDTO);
+		// TODO need to create service for websub notification with process and
+		// subprocess,additional_info_req_id ,rid and status code need to sent for new
+		// method
+		// in notifcation service
+
+	}
+
+	private String createSubWorkflowMapping(WorkflowInternalActionDTO workflowInternalActionDTO) {
+		List<SubWorkflowDto> subWorkflowDtos = subWorkflowMappingService.getSubWorkflowMappingByRegIdAndProcess(
+				workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getSubProcess());
+		int iteration = 0;
+		if (subWorkflowDtos != null && !subWorkflowDtos.isEmpty()) {
+			iteration = subWorkflowDtos.get(0).getIteration() + 1;
+		} else {
+			iteration = 1;
+		}
+		String additionalRequestId = createAdditionalRequestId(workflowInternalActionDTO, iteration);
+		SubWorkflowDto subWorkflowDto = new SubWorkflowDto();
+		subWorkflowDto.setRegId(workflowInternalActionDTO.getRid());
+		subWorkflowDto.setAdditionalInfoReqId(additionalRequestId);
+		subWorkflowDto.setProcess(workflowInternalActionDTO.getSubProcess());
+		subWorkflowDto.setIteration(iteration);
+		subWorkflowDto.setParentProcess(workflowInternalActionDTO.getReg_type());
+		subWorkflowDto.setParentIteration(workflowInternalActionDTO.getIteration());
+		subWorkflowDto.setTimestamp(LocalDateTime.now(ZoneId.of("UTC")));
+		subWorkflowMappingService.addSubWorkflowMapping(subWorkflowDto);
+		return additionalRequestId;
+	}
+
+	private String createAdditionalRequestId(WorkflowInternalActionDTO workflowInternalActionDTO, int iteration) {
+		String additionalRequestId = workflowInternalActionDTO.getRid() + "-"
+				+ workflowInternalActionDTO.getSubProcess() + "-" + iteration;
+		return additionalRequestId;
+	}
 }

@@ -1,11 +1,12 @@
 package io.mosip.registration.processor.status.entity;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 
 /**
  * The persistent class for the sub_workflow_mapping table.
@@ -24,6 +25,12 @@ public class SubWorkflowMappingEntity extends BasePacketEntity<SubWorkflowPKEnti
 
 	@Column(name = "timestamp", updatable = false)
 	private LocalDateTime timestamp;
+
+	@Column(name = "parent_process")
+	private String parentProcess;
+
+	@Column(name = "parent_iteration")
+	private int parentIteration;
 
 	public SubWorkflowMappingEntity() {
 
@@ -51,6 +58,22 @@ public class SubWorkflowMappingEntity extends BasePacketEntity<SubWorkflowPKEnti
 
 	public void setTimestamp(LocalDateTime timestamp) {
 		this.timestamp = timestamp;
+	}
+
+	public String getParentProcess() {
+		return parentProcess;
+	}
+
+	public void setParentProcess(String parentProcess) {
+		this.parentProcess = parentProcess;
+	}
+
+	public int getParentIteration() {
+		return parentIteration;
+	}
+
+	public void setParentIteration(int parentIteration) {
+		this.parentIteration = parentIteration;
 	}
 
 	@Override

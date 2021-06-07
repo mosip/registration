@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class WorkflowInternalActionDTO.
  */
@@ -42,6 +43,9 @@ public class WorkflowInternalActionDTO extends MessageDTO implements Serializabl
 
 	/** The resume remove tags. */
 	private String resumeRemoveTags;
+
+	/** The sub process. */
+	private String subProcess;
 
 
 
@@ -172,6 +176,24 @@ public class WorkflowInternalActionDTO extends MessageDTO implements Serializabl
 	 */
 	public void setResumeRemoveTags(String resumeRemoveTags) {
 		this.resumeRemoveTags = resumeRemoveTags;
+	}
+
+	/**
+	 * Gets the sub process.
+	 *
+	 * @return the sub process
+	 */
+	public String getSubProcess() {
+		return subProcess;
+	}
+
+	/**
+	 * Sets the sub process.
+	 *
+	 * @param subProcess the new sub process
+	 */
+	public void setSubProcess(String subProcess) {
+		this.subProcess = subProcess;
 	}
 
 }
