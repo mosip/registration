@@ -126,17 +126,18 @@ public class IDObjectFieldsTagGeneratorTest {
 		idObjectFieldsTagGenerator.getRequiredIdObjectFieldNames();
 		Map<String, String> tags = idObjectFieldsTagGenerator.generateTags("1234", "NEW", 
 			idObjectFieldDTOMap, null);
-		for(int i=0; i < actualFieldNames.size(); i++) {
-			String actualFieldName = actualFieldNames.get(i);
-			assertEquals(tags.get(tagNamePrefix + actualFieldName), tagValues.get(i));
+		for(int i=0; i < mappingFieldNames.size(); i++) {
+			String mappingFieldName = mappingFieldNames.get(i);
+			assertEquals(tags.get(tagNamePrefix + mappingFieldName), tagValues.get(i));
 		}
 	}
 
+	@Test
 	public void testGenerateTagsForFieldNotAvailableInFieldDTOMap() throws BaseCheckedException {
 		idObjectFieldsTagGenerator.getRequiredIdObjectFieldNames();
 		idObjectFieldDTOMap.remove(actualFieldNames.get(0));
 		Map<String, String> tags = idObjectFieldsTagGenerator.generateTags("1234", "NEW", idObjectFieldDTOMap, null);
-		assertEquals(tags.get(tagNamePrefix + actualFieldNames.get(0)), notAvailableTagValue);
+		assertEquals(tags.get(tagNamePrefix + mappingFieldNames.get(0)), notAvailableTagValue);
 	}
 
 	@Test(expected = BaseCheckedException.class)

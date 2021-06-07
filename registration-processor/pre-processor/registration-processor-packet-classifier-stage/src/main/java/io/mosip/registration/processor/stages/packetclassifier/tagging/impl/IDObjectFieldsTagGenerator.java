@@ -12,10 +12,10 @@ import io.mosip.registration.processor.stages.packetclassifier.dto.FieldDTO;
 import io.mosip.registration.processor.stages.packetclassifier.tagging.TagGenerator;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -61,8 +61,11 @@ public class IDObjectFieldsTagGenerator implements TagGenerator {
     @Autowired
     private Utilities utility;
     
-    /** This list will hold the actual field names once resolved using the mapping JSON */
-    private List<String> requiredIDObjectFieldNames;
+    /** 
+     * This map will hold the actual field names after resolving, using mapping JSON as keys and 
+     * configured field names as values 
+     */
+    private Map<String, String> requiredIDObjectFieldNamesMap;
 
     /**
      * {@inheritDoc}
@@ -72,7 +75,7 @@ public class IDObjectFieldsTagGenerator implements TagGenerator {
         try {
             org.json.simple.JSONObject identityMappingJson = utility.getRegistrationProcessorMappingJson(
                 MappingJsonConstants.IDENTITY);
-            requiredIDObjectFieldNames = new ArrayList<>();
+            requiredIDObjectFieldNamesMap = new HashMap<>();
             for(String field : mappingFieldNames) {
                 String actualFieldName = JsonUtil.getJSONValue(
                     JsonUtil.getJSONObject(identityMappingJson, field), VALUE_LABEL);
@@ -80,9 +83,9 @@ public class IDObjectFieldsTagGenerator implements TagGenerator {
                     throw new BaseCheckedException(
                         PlatformErrorMessages.RPR_PCM_FIELD_NAME_NOT_AVAILABLE_IN_MAPPING_JSON.getCode(), 
                         PlatformErrorMessages.RPR_PCM_FIELD_NAME_NOT_AVAILABLE_IN_MAPPING_JSON.getMessage());
-                requiredIDObjectFieldNames.add(actualFieldName);
+                requiredIDObjectFieldNamesMap.put(actualFieldName, field);
             }
-            return requiredIDObjectFieldNames;
+            return requiredIDObjectFieldNamesMap.keySet().stream().collect(Collectors.toList());
         } catch (IOException e) {
             throw new BaseCheckedException(
                 PlatformErrorMessages.RPR_PCM_ACCESSING_IDOBJECT_MAPPING_FILE_FAILED.getCode(), 
@@ -99,9 +102,9 @@ public class IDObjectFieldsTagGenerator implements TagGenerator {
                 throws BaseCheckedException {
         try {
             Map<String, String> tags = new HashMap<String, String>();
-            for(String fieldName : requiredIDObjectFieldNames) {
-                String tagFieldValue = getValueBasedOnType(fieldName, idObjectFieldDTOMap.get(fieldName));
-                tags.put(tagNamePrefix + fieldName, tagFieldValue);
+            for(Map.Entry<String, String> entry : requiredIDObjectFieldNamesMap.entrySet()) {
+                String tagFieldValue = getValueBasedOnType(entry.getKey(), idObjectFieldDTOMap.get(entry.getKey()));
+                tags.put(tagNamePrefix + entry.getValue(), tagFieldValue);
             }
             return tags;
         } catch(JSONException e) {
@@ -126,6 +129,8 @@ public class IDObjectFieldsTagGenerator implements TagGenerator {
                 for(int i=0; i < jsonArray.length(); i++) {
                     JSONObject jsonObject = jsonArray.getJSONObject(i);
                     if(jsonObject.getString(LANGUAGE_LABEL).equals(tagLanguage)) {
+                        if(jsonObject.isNull(VALUE_LABEL))
+                            return null;
                         return jsonObject.getString(VALUE_LABEL);
                     }
                 }
@@ -138,9 +143,15 @@ public class IDObjectFieldsTagGenerator implements TagGenerator {
             case "number":
                 return value;
             case "documentType":
-                return new JSONObject(value).getString(VALUE_LABEL);
+                JSONObject documentTypeJSON = new JSONObject(value);
+                if(documentTypeJSON.isNull(VALUE_LABEL))
+                    return null;
+                return documentTypeJSON.getString(VALUE_LABEL);
             case "biometricsType":
-                return new JSONObject(value).getString(VALUE_LABEL);
+                JSONObject biometricsTypeJSON = new JSONObject(value);
+                if(biometricsTypeJSON.isNull(VALUE_LABEL))
+                    return null;
+                return biometricsTypeJSON.getString(VALUE_LABEL);
             default:
                 throw new BaseCheckedException(
                     PlatformErrorMessages.RPR_PCM_UNKNOWN_SCHEMA_DATA_TYPE.getCode(), 

@@ -86,11 +86,11 @@ public class NotificationServiceTest {
 	@Autowired
 	private NotificationService notificationService;
 	
-	@Value("${registration.processor.notification_service_subscriber_hub_url}")
+	@Value("${websub.hub.url}")
 	private String hubURL;
 	
 	
-	@Value("${registration.processor.notification_service_subscriber_topic}")
+	@Value("${mosip.regproc.workflow.complete.topic}")
 	private String topic;
 	
 	@MockBean

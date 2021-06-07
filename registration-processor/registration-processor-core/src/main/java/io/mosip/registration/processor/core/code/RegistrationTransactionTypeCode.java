@@ -55,8 +55,8 @@ public enum RegistrationTransactionTypeCode {
 	SECUREZONE_NOTIFICATION,
 
 
-	/** The workflow pause. */
-	WORKFLOW_PAUSE,
+	/** The internal workflow action. */
+	INTERNAL_WORKFLOW_ACTION,
 
 	/** The workflow resume. */
 	WORKFLOW_RESUME;
