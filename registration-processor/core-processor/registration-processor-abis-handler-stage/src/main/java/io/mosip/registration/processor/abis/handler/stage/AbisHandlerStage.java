@@ -37,6 +37,7 @@ import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
+import io.mosip.kernel.biosdk.provider.util.BIRConverter;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
@@ -86,7 +87,6 @@ import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
-import io.mosip.registration.processor.packet.storage.utils.BIRConverter;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
@@ -573,7 +573,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		validateBiometricRecord(biometricRecord, modalities,
 				priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE));
 
-		byte[] content = cbeffutil.createXML(BIRConverter.convertSegmentsToBIRList(biometricRecord.getSegments()));
+		byte[] content = cbeffutil.createXML(biometricRecord.getSegments());
 
 		MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 		map.add("name", individualBiometricsLabel);
