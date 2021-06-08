@@ -12,6 +12,7 @@ import io.mosip.registration.processor.core.common.rest.dto.BaseRestResponseDTO;
 import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.queue.factory.MosipQueue;
@@ -179,8 +180,19 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 
 	@Override
 	public void start() {
+		if (mosipEventBus == null) {
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.MANUAL_VERIFICATION_BUS_IN, MessageBusAddress.MANUAL_VERIFICATION_BUS_OUT));
 		this.createServer(router.getRouter(), Integer.parseInt(port));
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("10005101020002520210603061415");
+		messageDTO.setReg_type(RegistrationType.NEW);
+		process(messageDTO);
 	}
 	
 

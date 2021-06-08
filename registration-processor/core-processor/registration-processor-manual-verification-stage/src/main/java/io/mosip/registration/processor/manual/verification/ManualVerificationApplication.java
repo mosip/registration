@@ -1,5 +1,7 @@
 package io.mosip.registration.processor.manual.verification;
 
+import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
+import io.mosip.registration.processor.core.constant.RegistrationType;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -35,6 +37,5 @@ public class ManualVerificationApplication {
 		ManualVerificationStage manualVerificationStage = configApplicationContext
 				.getBean(ManualVerificationStage.class);
 		manualVerificationStage.deployStage();
-
 	}
 }
