@@ -61,11 +61,6 @@ public class WorkflowActionJob extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.workflow-manager.action.job.fetchsize}")
 	private Integer fetchSize;
 
-	/** The elapse time. */
-	@Value("${mosip.regproc.workflow-manager.action.job.elapse.time}")
-	private long elapseTime;
-
-
 	/** The is transaction successful. */
 	boolean isTransactionSuccessful;
 
