@@ -10,6 +10,7 @@
 -- Apr-2021		Ram Bhatt	   Added resume_remove_tags column to registration table
 -- Apr-2021		Ram Bhatt	   Added rows to transaction_type.csv
 -- May-2021		Ram Bhatt	   Creation of last_success_stage_name in registration table
+-- Jun-2021		Ram Bhatt	   Added rows to transaction_type.csv
 ----------------------------------------------------------------------------------------------------
 \c mosip_regprc sysadmin
 
