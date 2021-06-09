@@ -99,6 +99,9 @@ public enum PlatformSuccessMessages {
 	RPR_MANUAL_VERIFICATION_APPROVED(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "000",
 			"Manual verification approved"),
 
+	RPR_MANUAL_VERIFICATION_RESEND(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "002",
+			"Manual verification resend"),
+
 	RPR_MANUAL_VERIFICATION_SENT(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "001",
 			"Manual verification Sent to queue"),
 

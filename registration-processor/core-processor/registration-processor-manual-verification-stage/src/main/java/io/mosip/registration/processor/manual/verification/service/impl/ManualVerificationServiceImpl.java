@@ -432,6 +432,8 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
 				.getRegistrationStatus(regId);
 		messageDTO.setReg_type(RegistrationType.valueOf(registrationStatusDto.getRegistrationType()));
+		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.MANUAL_VERIFICATION.name());
+		registrationStatusDto.setRegistrationStageName(stageName);
 
 		try {
 
@@ -441,13 +443,20 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 						regId, "Received resend request from manual verification application. Resending request again.");
 
 				// updating status code to pending so that it can be marked for manual verification again
-				/*entities = basePacketRepository.getAllAssignedRecord(
+				entities = basePacketRepository.getAllAssignedRecord(
 						regId, ManualVerificationStatus.INQUEUE.name());
 				entities.forEach(e -> {
 					e.setStatusCode(ManualVerificationStatus.PENDING.name());
 					basePacketRepository.update(e);
-				});*/
-				pushRequestToQueue(regId, queue, true);
+				});
+				//pushRequestToQueue(regId, queue, true);
+				registrationStatusDto.setStatusComment(StatusUtil.RPR_MANUAL_VERIFICATION_RESEND.getMessage());
+				registrationStatusDto.setSubStatusCode(StatusUtil.RPR_MANUAL_VERIFICATION_RESEND.getCode());
+				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+				registrationStatusDto
+						.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+				description.setMessage(PlatformSuccessMessages.RPR_MANUAL_VERIFICATION_RESEND.getMessage());
+				description.setCode(PlatformSuccessMessages.RPR_MANUAL_VERIFICATION_RESEND.getCode());
 			} else {
 				if(manualVerificationDTO.getReturnValue() == 1 &&
 						CollectionUtils.isEmpty(manualVerificationDTO.getCandidateList().getCandidates()))
@@ -659,27 +668,17 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	/*
 	 * Get matched ref id for given RID and form request ,push to queue
 	 */
-	private void pushRequestToQueue(String refId, MosipQueue queue, boolean isResendFlow) throws Exception {
+	private void pushRequestToQueue(String refId, MosipQueue queue) throws Exception {
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				refId, "ManualVerificationServiceImpl::pushRequestToQueue()::entry");
-		List<ManualVerificationEntity> mves = getMatchingEntitiesforRefId(refId, isResendFlow);
+		List<ManualVerificationEntity> mves = getMatchingEntitiesforRefId(refId);
 		if (mves.size() == 0 || null == mves)
 			throw new MatchedRefNotExistsException(
 					PlatformErrorMessages.RPR_MVS_NO_MATCHEDRID_FOUND_FOR_GIVEN_RID.getCode(),
 					PlatformErrorMessages.RPR_MVS_NO_MATCHEDRID_FOUND_FOR_GIVEN_RID.getMessage());
 
-		ManualAdjudicationRequestDTO mar = new ManualAdjudicationRequestDTO();//prepareManualAdjudicationRequest(mves);
-		mar.setId("mosip.manual.adjudication.adjudicate");
-		mar.setVersion("1.0");
-		mar.setRequesttime(DateUtils.getUTCCurrentDateTimeString());
-		Gallery g = new Gallery();
-		ReferenceIds referenceIds = new ReferenceIds();
-		referenceIds.setReferenceId("10005101020001620210602090137");
-		referenceIds.setReferenceURL("http://datashare-service/v1/datashare/get/mpolicy-default-adjudication/mpartner-default-adjudication/mpartner-default-adjudicationmpolicy-default-adjudication20210607113711IDxbIzhD");
-		g.setReferenceIds(Lists.newArrayList(referenceIds));
-		mar.setGallery(g);
-
+		ManualAdjudicationRequestDTO mar = prepareManualAdjudicationRequest(mves);
 		String requestId = UUID.randomUUID().toString();
 		mar.setRequestId(requestId);
 		regProcLogger.info("Request : " + JsonUtils.javaObjectToJsonString(mar));
@@ -845,12 +844,11 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	/*
 	 * get matched ref id for a given registration id
 	 */
-	private List<ManualVerificationEntity> getMatchingEntitiesforRefId(String rid, boolean isResendFlow) {
+	private List<ManualVerificationEntity> getMatchingEntitiesforRefId(String rid) {
 		regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
 				"ManualVerificationServiceImpl::getMatchingEntitiesforRefId()::entry");
 
-		List<ManualVerificationEntity> matchedEntities = basePacketRepository.getMatchedIds(rid, isResendFlow ?
-				ManualVerificationStatus.INQUEUE.name() : ManualVerificationStatus.PENDING.name());
+		List<ManualVerificationEntity> matchedEntities = basePacketRepository.getMatchedIds(rid, ManualVerificationStatus.PENDING.name());
 
 		regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
 				"ManualVerificationServiceImpl::getMatchingEntitiesforRefId()::entry");
@@ -952,7 +950,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 						PlatformErrorMessages.RPR_MVS_NO_RID_SHOULD_NOT_EMPTY_OR_NULL.getMessage());
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					object.getRid(), "ManualVerificationServiceImpl::process()::entry");
-			pushRequestToQueue(object.getRid(), queue, false);
+			pushRequestToQueue(object.getRid(), queue);
 
 		} catch (DataShareException de) {
 			object.setInternalError(true);
