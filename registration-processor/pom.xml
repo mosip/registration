@@ -10,7 +10,7 @@
 
 	<groupId>io.mosip.registrationprocessor</groupId>
 	<artifactId>registration-processor</artifactId>
-	<version>1.1.5</version>
+	<version>1.1.5.2</version>
 	<packaging>pom</packaging>
 
 	<name>registration-processor</name>
@@ -108,13 +108,13 @@
 		<jsch.version>0.1.55</jsch.version>
 
 		<!-- local -->
-		<registration.status.service.version>1.1.5</registration.status.service.version>
-		<registration.processor.core.version>1.1.5</registration.processor.core.version>
-		<packet.manager.version>1.1.5</packet.manager.version>
-		<registration.processor.rest.client.version>1.1.5</registration.processor.rest.client.version>
-		<packet.info.storage.service.version>1.1.5</packet.info.storage.service.version>
-		<packet.bio.dedupe.service.impl.version>1.1.5</packet.bio.dedupe.service.impl.version>
-		<registration.processor.message.sender.version>1.1.5</registration.processor.message.sender.version>
+		<registration.status.service.version>1.1.5.2</registration.status.service.version>
+		<registration.processor.core.version>1.1.5.2</registration.processor.core.version>
+		<packet.manager.version>1.1.5.2</packet.manager.version>
+		<registration.processor.rest.client.version>1.1.5.2</registration.processor.rest.client.version>
+		<packet.info.storage.service.version>1.1.5.2</packet.info.storage.service.version>
+		<packet.bio.dedupe.service.impl.version>1.1.5.2</packet.bio.dedupe.service.impl.version>
+		<registration.processor.message.sender.version>1.1.5.2</registration.processor.message.sender.version>
 
 		<!-- Kernel -->
 		<kernel.core.version>1.1.5</kernel.core.version>
