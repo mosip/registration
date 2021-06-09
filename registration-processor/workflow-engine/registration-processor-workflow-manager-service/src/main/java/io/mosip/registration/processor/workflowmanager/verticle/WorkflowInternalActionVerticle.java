@@ -336,7 +336,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		List<SubWorkflowDto> subWorkflowDtos = subWorkflowMappingService
 				.getSubWorkflowMappingByRegIdAndProcessAndIteration(workflowInternalActionDTO.getRid(),
 						workflowInternalActionDTO.getReg_type(), workflowInternalActionDTO.getIteration());
-		if (subWorkflowDtos != null && subWorkflowDtos.isEmpty()) {
+		if (subWorkflowDtos != null && !subWorkflowDtos.isEmpty()) {
 			SubWorkflowDto subWorkflowDto = subWorkflowDtos.get(0);
 			InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(
 					subWorkflowDto.getRegId(), subWorkflowDto.getParentProcess(), subWorkflowDto.getParentIteration());
@@ -352,7 +352,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		List<SubWorkflowDto> subWorkflowDtos = subWorkflowMappingService
 				.getSubWorkflowMappingByRegIdAndProcessAndIteration(workflowInternalActionDTO.getRid(),
 						workflowInternalActionDTO.getReg_type(), workflowInternalActionDTO.getIteration());
-		if (subWorkflowDtos != null && subWorkflowDtos.isEmpty()) {
+		if (subWorkflowDtos != null && !subWorkflowDtos.isEmpty()) {
 			SubWorkflowDto subWorkflowDto = subWorkflowDtos.get(0);
 			InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(
 					subWorkflowDto.getRegId(), subWorkflowDto.getParentProcess(), subWorkflowDto.getParentIteration());
