@@ -1503,6 +1503,9 @@ public class WorkflowCommandPredicateTest {
 	public void testRoutePredicatePositiveForCompleteAsProcessed() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10002100741000120201231071308");
+		messageDTO.setReg_type("NEW");
+		messageDTO.setIteration(1);
+		messageDTO.setSource("REGISTRATION_CLIENT");
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
 		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT, "workflow-cmd://complete-as-processed");
 		assertTrue(workflowCommandPredicate.matches(exchange));
@@ -1518,6 +1521,9 @@ public class WorkflowCommandPredicateTest {
 	public void testRoutePredicatePositiveForCompleteAsRejected() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10002100741000120201231071308");
+		messageDTO.setReg_type("NEW");
+		messageDTO.setIteration(1);
+		messageDTO.setSource("REGISTRATION_CLIENT");
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
 		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT, ("workflow-cmd://complete-as-rejected"));
 		assertTrue(workflowCommandPredicate.matches(exchange));
@@ -1532,6 +1538,9 @@ public class WorkflowCommandPredicateTest {
 	public void testRoutePredicatePositiveForMarkAsReprocess() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10002100741000120201231071308");
+		messageDTO.setReg_type("NEW");
+		messageDTO.setIteration(1);
+		messageDTO.setSource("REGISTRATION_CLIENT");
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
 		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT, "workflow-cmd://mark-as-reprocess");
 		assertTrue(workflowCommandPredicate.matches(exchange));
@@ -1546,6 +1555,9 @@ public class WorkflowCommandPredicateTest {
 	public void testRoutePredicatePositiveForCompleteAsFailed() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10002100741000120201231071308");
+		messageDTO.setReg_type("NEW");
+		messageDTO.setIteration(1);
+		messageDTO.setSource("REGISTRATION_CLIENT");
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
 		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT, "workflow-cmd://complete-as-failed");
 		assertTrue(workflowCommandPredicate.matches(exchange));
@@ -1560,6 +1572,9 @@ public class WorkflowCommandPredicateTest {
 	public void testRoutePredicateNegative() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10002100741000120201231071308");
+		messageDTO.setReg_type("NEW");
+		messageDTO.setIteration(1);
+		messageDTO.setSource("REGISTRATION_CLIENT");
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
 		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT, null);
 		workflowCommandPredicate.matches(exchange);
@@ -1570,8 +1585,84 @@ public class WorkflowCommandPredicateTest {
 	public void testRoutePredicateDefault() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10002100741000120201231071308");
+		messageDTO.setReg_type("NEW");
+		messageDTO.setIteration(1);
+		messageDTO.setSource("REGISTRATION_CLIENT");
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
 		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT, "workflow-cmd://complete-as-faled");
 		workflowCommandPredicate.matches(exchange);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testRoutePredicatePositiveForPauseAndRequestAdditionalInfo() throws Exception
+	{
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("10002100741000120201231071308");
+		messageDTO.setReg_type("NEW");
+		messageDTO.setIteration(1);
+		messageDTO.setSource("REGISTRATION_CLIENT");
+		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
+		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT,
+				"workflow-cmd://pause-and-request-additional-info");
+		exchange.setProperty("subProcess", "CORRECTION");
+		exchange.setProperty("pauseFor", 200l);
+		assertTrue(workflowCommandPredicate.matches(exchange));
+		WorkflowInternalActionDTO workflowInternalActionDTO = objectMapper
+				.readValue(exchange.getMessage().getBody().toString(), WorkflowInternalActionDTO.class);
+		assertEquals(WorkflowInternalActionCode.PAUSED_FOR_ADDITIONAL_INFO.toString(),
+				workflowInternalActionDTO.getActionCode());
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testRoutePredicatePositiveForResumeParentFlow() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("10002100741000120201231071308");
+		messageDTO.setReg_type("CORRECTION");
+		messageDTO.setIteration(1);
+		messageDTO.setSource("REGISTRATION_CLIENT");
+		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
+		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT,
+				"workflow-cmd://resume-parent-flow");
+		assertTrue(workflowCommandPredicate.matches(exchange));
+		WorkflowInternalActionDTO workflowInternalActionDTO = objectMapper
+				.readValue(exchange.getMessage().getBody().toString(), WorkflowInternalActionDTO.class);
+		assertEquals(WorkflowInternalActionCode.RESUME_PARENT_FLOW.toString(),
+				workflowInternalActionDTO.getActionCode());
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testRoutePredicatePositiveForRestartParentFlow() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("10002100741000120201231071308");
+		messageDTO.setReg_type("CORRECTION");
+		messageDTO.setIteration(1);
+		messageDTO.setSource("REGISTRATION_CLIENT");
+		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
+		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT, "workflow-cmd://restart-parent-flow");
+		assertTrue(workflowCommandPredicate.matches(exchange));
+		WorkflowInternalActionDTO workflowInternalActionDTO = objectMapper
+				.readValue(exchange.getMessage().getBody().toString(), WorkflowInternalActionDTO.class);
+		assertEquals(WorkflowInternalActionCode.RESTART_PARENT_FLOW.toString(),
+				workflowInternalActionDTO.getActionCode());
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testRoutePredicatePositiveForStopAndNotify() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("10002100741000120201231071308");
+		messageDTO.setReg_type("CORRECTION");
+		messageDTO.setIteration(1);
+		messageDTO.setSource("REGISTRATION_CLIENT");
+		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
+		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT, "workflow-cmd://stop-and-notify");
+		assertTrue(workflowCommandPredicate.matches(exchange));
+		WorkflowInternalActionDTO workflowInternalActionDTO = objectMapper
+				.readValue(exchange.getMessage().getBody().toString(), WorkflowInternalActionDTO.class);
+		assertEquals(WorkflowInternalActionCode.STOP_AND_NOTIFY.toString(),
+				workflowInternalActionDTO.getActionCode());
 	}
 }

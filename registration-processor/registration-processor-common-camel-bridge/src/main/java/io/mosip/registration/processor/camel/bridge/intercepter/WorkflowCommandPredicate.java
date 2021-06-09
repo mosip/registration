@@ -97,6 +97,9 @@ public class WorkflowCommandPredicate implements Predicate {
 		workflowEventDTO.setRid(json.getString("rid"));
 		workflowEventDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_REJECTED.toString());
 		workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_COMPLETE_AS_REJECTED.getMessage());
+		workflowEventDTO.setReg_type(json.getString("reg_type"));
+		workflowEventDTO.setIteration(json.getInteger("iteration"));
+		workflowEventDTO.setSource(json.getString("source"));
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
 
 	}
@@ -109,6 +112,9 @@ public class WorkflowCommandPredicate implements Predicate {
 		workflowEventDTO.setRid(json.getString("rid"));
 		workflowEventDTO.setActionCode(WorkflowInternalActionCode.MARK_AS_REPROCESS.toString());
 		workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_MARK_AS_REPROCESS.getMessage());
+		workflowEventDTO.setReg_type(json.getString("reg_type"));
+		workflowEventDTO.setIteration(json.getInteger("iteration"));
+		workflowEventDTO.setSource(json.getString("source"));
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
 	}
 
@@ -120,6 +126,9 @@ public class WorkflowCommandPredicate implements Predicate {
 		workflowEventDTO.setRid(json.getString("rid"));
 		workflowEventDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_FAILED.toString());
 		workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_COMPLETE_AS_FAILED.getMessage());
+		workflowEventDTO.setReg_type(json.getString("reg_type"));
+		workflowEventDTO.setIteration(json.getInteger("iteration"));
+		workflowEventDTO.setSource(json.getString("source"));
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
 
 	}
@@ -132,6 +141,9 @@ public class WorkflowCommandPredicate implements Predicate {
 		workflowEventDTO.setRid(json.getString("rid"));
 		workflowEventDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_PROCESSED.toString());
 		workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_COMPLETE_AS_PROCESSED.getMessage());
+		workflowEventDTO.setReg_type(json.getString("reg_type"));
+		workflowEventDTO.setIteration(json.getInteger("iteration"));
+		workflowEventDTO.setSource(json.getString("source"));
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
 
 	}
@@ -143,6 +155,9 @@ public class WorkflowCommandPredicate implements Predicate {
 		workflowEventDTO.setRid(json.getString("rid"));
 		workflowEventDTO.setActionCode(WorkflowInternalActionCode.RESTART_PARENT_FLOW.toString());
 		workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_RESTART_PARENT_FLOW.getMessage());
+		workflowEventDTO.setReg_type(json.getString("reg_type"));
+		workflowEventDTO.setIteration(json.getInteger("iteration"));
+		workflowEventDTO.setSource(json.getString("source"));
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
 	}
 
@@ -153,6 +168,9 @@ public class WorkflowCommandPredicate implements Predicate {
 		workflowEventDTO.setRid(json.getString("rid"));
 		workflowEventDTO.setActionCode(WorkflowInternalActionCode.STOP_AND_NOTIFY.toString());
 		workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_STOP_AND_NOTIFY.getMessage());
+		workflowEventDTO.setReg_type(json.getString("reg_type"));
+		workflowEventDTO.setIteration(json.getInteger("iteration"));
+		workflowEventDTO.setSource(json.getString("source"));
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
 
 	}
@@ -164,6 +182,9 @@ public class WorkflowCommandPredicate implements Predicate {
 		workflowEventDTO.setRid(json.getString("rid"));
 		workflowEventDTO.setActionCode(WorkflowInternalActionCode.RESUME_PARENT_FLOW.toString());
 		workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_RESUME_PARENT_FLOW.getMessage());
+		workflowEventDTO.setReg_type(json.getString("reg_type"));
+		workflowEventDTO.setIteration(json.getInteger("iteration"));
+		workflowEventDTO.setSource(json.getString("source"));
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
 
 	}
@@ -174,14 +195,16 @@ public class WorkflowCommandPredicate implements Predicate {
 		WorkflowInternalActionDTO workflowEventDTO = new WorkflowInternalActionDTO();
 
 		workflowEventDTO.setResumeTimestamp(DateUtils.formatToISOString(
-				DateUtils.getUTCCurrentDateTime().plusSeconds((Long) exchange.getProperty("pauseFor"))));
+				DateUtils.getUTCCurrentDateTime().plusSeconds((long) exchange.getProperty("pauseFor"))));
 		workflowEventDTO.setRid(json.getString("rid"));
 		workflowEventDTO.setDefaultResumeAction(WorkflowActionCode.STOP_PROCESSING.toString());
 		workflowEventDTO.setActionCode(WorkflowInternalActionCode.PAUSED_FOR_ADDITIONAL_INFO.toString());
 		workflowEventDTO.setEventTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 		workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_PAUSED_FOR_ADDITIONAL_INFO.getMessage());
 		workflowEventDTO.setSubProcess((String) exchange.getProperty("subProcess"));
-
+		workflowEventDTO.setReg_type(json.getString("reg_type"));
+		workflowEventDTO.setIteration(json.getInteger("iteration"));
+		workflowEventDTO.setSource(json.getString("source"));
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
 	}
 }
