@@ -466,6 +466,8 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 				description.setMessage(PlatformSuccessMessages.RPR_MANUAL_VERIFICATION_RESEND.getMessage());
 				description.setCode(PlatformSuccessMessages.RPR_MANUAL_VERIFICATION_RESEND.getCode());
 				messageDTO.setInternalError(true);
+				messageDTO.setIsValid(isTransactionSuccessful);
+				manualVerificationStage.sendMessage(messageDTO);
 			} else {
 				if(manualVerificationDTO.getReturnValue() == 1 &&
 						CollectionUtils.isEmpty(manualVerificationDTO.getCandidateList().getCandidates()))
