@@ -233,7 +233,11 @@ public enum StatusUtil {
 			"Packet workflow internal action completed successfully"),
 	
 	WORKFLOW_ACTION_SERVICE_SUCCESS(StatusConstants.WORKFLOW_ACTION_SERVICE + "001",
-			"Packet workflow resume  successfully");
+			"Packet workflow resume  successfully"),
+	TIMESTAMP_AFTER_PACKETTIME(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "016"  ,
+			"digital id timestamp is after packet creation time"),
+	TIMESTAMP_BEFORE_PACKETTIME(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "017"  ,
+			"digital id timestamp is before packet creation time");
 
 	private final String statusComment;
 	private final String statusCode;
