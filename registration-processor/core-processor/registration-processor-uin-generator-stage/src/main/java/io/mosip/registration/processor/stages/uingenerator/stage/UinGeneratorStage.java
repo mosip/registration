@@ -206,6 +206,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 				registrationId, "UinGeneratorStage::process()::entry");
 		UinGenResponseDto uinResponseDto = null;
 
+		regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				registrationId, "Started processing rid in UinGeneratorStage");
+
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(registrationId);
 		try {
 			registrationStatusDto
@@ -235,8 +238,14 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 				if (StringUtils.isEmpty(uinField) || uinField.equalsIgnoreCase("null") ) {
 
+					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+							registrationId, "Calling UINGENERATOR API to get unused uin");
+
 					String test = (String) registrationProcessorRestClientService.getApi(ApiName.UINGENERATOR, null, "",
 							"", String.class);
+
+					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+							registrationId, "Received response from UINGENERATOR API");
 
 					Gson gsonObj = new Gson();
 					uinResponseDto = gsonObj.fromJson(test, UinGenResponseDto.class);
@@ -407,8 +416,13 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			String eventType = eventId.equalsIgnoreCase(EventId.RPR_402.toString()) ? EventType.BUSINESS.toString()
 					: EventType.SYSTEM.toString();
 
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId, "Auditing stage result");
 			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
 					moduleId, moduleName, registrationId);
+
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId, "Finished processing rid in UinGeneratorStage");
 
 		}
 
@@ -481,8 +495,14 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 		try {
 
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId, "Calling IDREPOSITORY create API to link uin with applicant");
+
 			result = (IdResponseDTO) registrationProcessorRestClientService.postApi(ApiName.IDREPOSITORY, "", "",
 					idRequestDTO, IdResponseDTO.class);
+
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId, "Received response from IDREPOSITORY create API");
 
 		} catch (ApisResourceAccessException e) {
 
@@ -972,7 +992,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 				String uinSuccessDescription = "Kernel service called successfully to update the uin status as assigned";
 
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString() + registrationId, "Success",
+						LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
 						uinSuccessDescription);
 			} else {
 				String uinErrorDescription = "Kernel service called successfully to update the uin status as unassigned";
@@ -1007,7 +1027,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 	@Override
 	public void start() {
-		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.UIN_GENERATION_BUS_IN,
+		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.UIN_GENERATION_BUS_IN,
 				MessageBusAddress.UIN_GENERATION_BUS_OUT));
 		this.createServer(router.getRouter(), Integer.parseInt(port));
 
@@ -1022,7 +1042,13 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 		try {
 			if (isUinAlreadyPresent) {
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						registrationId, "Getting UIN from rid by calling IDREPO API");
+
 				String uin = idRepoService.getUinByRid(registrationId, utility.getGetRegProcessorDemographicIdentity());
+
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						registrationId, "Received response from IDREPO for UIN");
 				vidRequestDto.setUIN(uin);
 			} else {
 				vidRequestDto.setUIN(UIN);
@@ -1041,8 +1067,14 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 					"UinGeneratorStage::generateVid():: post CREATEVID service call started with request data : "
 							+ JsonUtil.objectMapperObjectToJson(request));
 
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId, "Calling IDREPO CREATEVID API to create new vid");
+
 			response = (ResponseWrapper<VidResponseDto>) registrationProcessorRestClientService
 					.postApi(ApiName.CREATEVID, "", "", request, ResponseWrapper.class);
+
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId, "Received response from CREATEVID API");
 
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId,

@@ -116,7 +116,7 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 	@Override
 	public void start() {
 		router.setRoute(
-				this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.OSI_BUS_IN, MessageBusAddress.OSI_BUS_OUT));
+				this.postUrl(getVertx(), MessageBusAddress.OSI_BUS_IN, MessageBusAddress.OSI_BUS_OUT));
 		this.createServer(router.getRouter(), Integer.parseInt(port));
 	}
 

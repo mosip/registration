@@ -17,6 +17,12 @@ import io.mosip.registration.processor.core.packet.dto.packetmanager.InfoRespons
 
 import org.slf4j.MDC;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import io.vertx.core.http.HttpServerOptions;
+import io.vertx.micrometer.MicrometerMetricsOptions;
+import io.vertx.micrometer.VertxPrometheusOptions;
+import io.vertx.core.http.HttpServerOptions;
+import io.vertx.micrometer.MicrometerMetricsOptions;
+import io.vertx.micrometer.VertxPrometheusOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -122,9 +128,16 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 		} catch (UnknownHostException e1) {
 			throw new DeploymentFailureException(PlatformErrorMessages.RPR_CMB_MALFORMED_URL_EXCEPTION.getMessage());
 		}
+
+		MicrometerMetricsOptions micrometerMetricsOptions = new MicrometerMetricsOptions()
+				.setPrometheusOptions(new VertxPrometheusOptions()
+						.setEnabled(true))
+				.setEnabled(true);
+
 		VertxOptions options = new VertxOptions().setClustered(true).setClusterManager(clusterManager)
 				.setHAEnabled(false).setWorkerPoolSize(instanceNumber)
-				.setEventBusOptions(new EventBusOptions().setPort(getEventBusPort()).setHost(address));
+				.setEventBusOptions(new EventBusOptions().setPort(getEventBusPort()).setHost(address))
+				.setMetricsOptions(micrometerMetricsOptions);
 		Vertx.clusteredVertx(options, result -> {
 			if (result.succeeded()) {
 				result.result().deployVerticle((Verticle) verticleName,
@@ -163,7 +176,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 				JsonObject jsonObject = (JsonObject) msg.getBody();
 				MessageDTO messageDTO = jsonObject.mapTo(MessageDTO.class);
 				if(isMessageExpired(messageDTO, messageExpiryTimeLimit)) {
-					future.fail(new MessageExpiredException("rid: " + messageDTO.getRid() + 
+					future.fail(new MessageExpiredException("rid: " + messageDTO.getRid() +
 						" lastHopTimestamp " + messageDTO.getLastHopTimestamp()));
 					return;
 				}
@@ -204,7 +217,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	 * @param messageExpiryTimeLimit
 	 * 			  The time limit in seconds, after which message should considered as expired
 	 */
-	public void consume(MosipEventBus mosipEventBus, MessageBusAddress fromAddress, 
+	public void consume(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
 			long messageExpiryTimeLimit) {
 		mosipEventBus.consume(fromAddress, (msg, handler) -> {
 			logger.debug("Received from {} {}",fromAddress.toString(), msg.getBody());
@@ -214,7 +227,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 				JsonObject jsonObject = (JsonObject) msg.getBody();
 				MessageDTO messageDTO = jsonObject.mapTo(MessageDTO.class);
 				if(isMessageExpired(messageDTO, messageExpiryTimeLimit)) {
-					future.fail(new MessageExpiredException("rid: " + messageDTO.getRid() + 
+					future.fail(new MessageExpiredException("rid: " + messageDTO.getRid() +
 						" lastHopTimestamp " + messageDTO.getLastHopTimestamp()));
 					return;
 				}
@@ -245,16 +258,16 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 		}
 		try {
 			messageDTO.setTags(getTagsFromPacket(messageDTO.getRid()));
-		} catch (ApisResourceAccessException | PacketManagerException | 
+		} catch (ApisResourceAccessException | PacketManagerException |
 				JsonProcessingException | IOException e) {
-			logger.error(PlatformErrorMessages.RPR_SYS_PACKET_TAGS_COPYING_FAILED.getCode() + 
-				" -- " + PlatformErrorMessages.RPR_SYS_PACKET_TAGS_COPYING_FAILED.getMessage() + 
+			logger.error(PlatformErrorMessages.RPR_SYS_PACKET_TAGS_COPYING_FAILED.getCode() +
+				" -- " + PlatformErrorMessages.RPR_SYS_PACKET_TAGS_COPYING_FAILED.getMessage() +
 				e.getMessage() + ExceptionUtils.getStackTrace(e));
 			messageDTO.setInternalError(true);
 		}
 	}
 
-	private Map<String, String> getTagsFromPacket(String id) throws ApisResourceAccessException, 
+	private Map<String, String> getTagsFromPacket(String id) throws ApisResourceAccessException,
 			PacketManagerException, JsonProcessingException, IOException {
         InfoRequestDto infoRequestDto = new InfoRequestDto(id);
 
@@ -267,7 +280,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 			ApiName.PACKETMANAGER_INFO, "", "", request, ResponseWrapper.class);
 
         if (response.getErrors() != null && response.getErrors().size() > 0) {
-			throw new PacketManagerException(response.getErrors().get(0).getErrorCode(), 
+			throw new PacketManagerException(response.getErrors().get(0).getErrorCode(),
 				response.getErrors().get(0).getMessage());
         }
 
@@ -275,7 +288,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 			response.getResponse()), InfoResponseDto.class);
 		return infoResponseDto.getTags();
 	}
-	
+
 	private boolean isMessageExpired(MessageDTO messageDTO, long messageExpiryTimeLimit) {
 		if(messageExpiryTimeLimit <= 0)
 			return false;
@@ -286,8 +299,8 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 				return false;
 			return true;
 		} catch(Exception e) {
-			logger.error("{} {} {} {}", PlatformErrorMessages.RPR_SYS_PARSING_DATE_EXCEPTION.getCode(), 
-				PlatformErrorMessages.RPR_SYS_PARSING_DATE_EXCEPTION.getMessage(), e.getMessage(), 
+			logger.error("{} {} {} {}", PlatformErrorMessages.RPR_SYS_PARSING_DATE_EXCEPTION.getCode(),
+				PlatformErrorMessages.RPR_SYS_PARSING_DATE_EXCEPTION.getMessage(), e.getMessage(),
 				ExceptionUtils.getStackTrace(e));
 			return true;
 		}

@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.kernel.core.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -177,12 +178,12 @@ public class RegistrationStatusDao {
 		Map<String, Object> params = new HashMap<>();
 		String className = RegistrationStatusEntity.class.getSimpleName();
 		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
-		LocalDateTime timeDifference = LocalDateTime.now().minusSeconds(elapseTime);
+		LocalDateTime timeDifference = DateUtils.getUTCCurrentDateTime().minusSeconds(elapseTime);
 
-		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
-				+ ".latestTransactionStatusCode IN :status" + EMPTY_STRING + AND + EMPTY_STRING + alias
-				+ ".regProcessRetryCount<=" + ":reprocessCount" + EMPTY_STRING + AND + EMPTY_STRING + alias
-				+ ".latestTransactionTimes<" + ":timeDifference";
+		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + EMPTY_STRING + alias
+				+ ".latestTransactionTimes<" + ":timeDifference " + AND + EMPTY_STRING + alias
+				+ ".latestTransactionStatusCode IN :status " + AND + EMPTY_STRING + alias
+				+ ".regProcessRetryCount<=" + ":reprocessCount order by "+ alias + ".updateDateTime asc";
 
 		params.put("status", status);
 		params.put("reprocessCount", reprocessCount);
@@ -196,7 +197,7 @@ public class RegistrationStatusDao {
 		Map<String, Object> params = new HashMap<>();
 		String className = RegistrationStatusEntity.class.getSimpleName();
 		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
-		LocalDateTime timeDifference = LocalDateTime.now().minusSeconds(elapseTime);
+		LocalDateTime timeDifference = DateUtils.getUTCCurrentDateTime().minusSeconds(elapseTime);
 
 		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
 				+ ".latestTransactionStatusCode IN :status" + EMPTY_STRING + AND + EMPTY_STRING + alias
