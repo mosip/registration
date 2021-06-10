@@ -157,8 +157,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 	 */
 	public void deployStage() {
 		this.mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
-		this.consumeAndSend(mosipEventBus, MessageBusAddress.MANUAL_VERIFICATION_BUS_IN, 
-			MessageBusAddress.MANUAL_VERIFICATION_BUS_OUT, messageExpiryTimeLimit);
+		this.consume(mosipEventBus, MessageBusAddress.MANUAL_VERIFICATION_BUS_IN, messageExpiryTimeLimit);
 		queue = getQueueConnection();
 		if (queue != null) {
 
@@ -182,7 +181,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.MANUAL_VERIFICATION_BUS_IN, MessageBusAddress.MANUAL_VERIFICATION_BUS_OUT));
 		this.createServer(router.getRouter(), Integer.parseInt(port));
 	}
-	
+
 
 	public void sendMessage(MessageDTO messageDTO) {
 		this.send(this.mosipEventBus, MessageBusAddress.MANUAL_VERIFICATION_BUS_OUT, messageDTO);
