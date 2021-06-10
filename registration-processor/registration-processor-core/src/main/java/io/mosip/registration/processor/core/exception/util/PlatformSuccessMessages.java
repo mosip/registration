@@ -145,9 +145,7 @@ public enum PlatformSuccessMessages {
 
 	PACKET_RESUME_PARENT_FLOW(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "006", "packet parent flow resume"),
 
-	PACKET_RESTART_PARENT_FLOW(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "007", "packet parent flow restart"),
-
-	PACKET_STOP_AND_NOTIFY(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "007", "packet flow stop and notify");
+	PACKET_RESTART_PARENT_FLOW(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "007", "packet parent flow restart");
 
 	/** The success message. */
 	private final String successMessage;

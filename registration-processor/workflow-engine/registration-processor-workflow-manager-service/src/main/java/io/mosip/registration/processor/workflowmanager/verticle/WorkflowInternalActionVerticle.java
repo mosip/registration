@@ -170,9 +170,6 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 			case RESTART_PARENT_FLOW:
 				processRestartParentFlow(workflowInternalActionDTO);
 				break;
-			case STOP_AND_NOTIFY:
-				processStopAndNotify(workflowInternalActionDTO);
-				break;
 			default:
 				throw new WorkflowInternalActionException(
 						PlatformErrorMessages.RPR_WIA_UNKNOWN_WORKFLOW_ACTION.getCode(),
@@ -323,11 +320,6 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		}
 
 		webSubUtil.publishEvent(workflowCompletedEventDTO);
-
-	}
-
-	private void processStopAndNotify(WorkflowInternalActionDTO workflowInternalActionDTO) {
-		// TODO Logic need to decide
 
 	}
 

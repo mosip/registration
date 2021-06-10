@@ -61,10 +61,6 @@ public class WorkflowCommandPredicate implements Predicate {
 				processRestartParentFlow(exchange);
 				matches = true;
 				break;
-			case "workflow-cmd://stop-and-notify":
-				processStopAndNotify(exchange);
-				matches = true;
-				break;
 			default:
 				if (toaddress.startsWith("workflow-cmd://")) {
 					matches = true;
@@ -159,20 +155,6 @@ public class WorkflowCommandPredicate implements Predicate {
 		workflowEventDTO.setIteration(json.getInteger("iteration"));
 		workflowEventDTO.setSource(json.getString("source"));
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
-	}
-
-	private void processStopAndNotify(Exchange exchange) throws JsonProcessingException {
-		String message = (String) exchange.getMessage().getBody();
-		JsonObject json = new JsonObject(message);
-		WorkflowInternalActionDTO workflowEventDTO = new WorkflowInternalActionDTO();
-		workflowEventDTO.setRid(json.getString("rid"));
-		workflowEventDTO.setActionCode(WorkflowInternalActionCode.STOP_AND_NOTIFY.toString());
-		workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_STOP_AND_NOTIFY.getMessage());
-		workflowEventDTO.setReg_type(json.getString("reg_type"));
-		workflowEventDTO.setIteration(json.getInteger("iteration"));
-		workflowEventDTO.setSource(json.getString("source"));
-		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
-
 	}
 
 	private void processResumeParentFlow(Exchange exchange) throws JsonProcessingException {

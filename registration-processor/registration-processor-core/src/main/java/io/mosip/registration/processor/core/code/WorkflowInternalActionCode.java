@@ -30,7 +30,4 @@ public enum WorkflowInternalActionCode {
 	/** The restart parent flow. */
 	RESTART_PARENT_FLOW,
 
-	/** The stop and notify. */
-	STOP_AND_NOTIFY,
-
 }
