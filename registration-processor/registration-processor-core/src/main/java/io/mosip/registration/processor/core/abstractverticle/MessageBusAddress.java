@@ -40,8 +40,8 @@ public class MessageBusAddress implements Serializable {
 		List<String> addressList = (List<String>)Arrays.asList(messageBusAddress.getAddress().split("-"));
 
 		ArrayList<String> modifiableArrayList = new ArrayList<String>(addressList);
-
-		modifiableArrayList.add(addressList.size() - 2, regType);
+		// TODO this is workaround for regtype to accept as lowercase in address
+		modifiableArrayList.add(addressList.size() - 2, RegistrationType.valueOf(regType).toString());
 		String modifiedAddress = null;
 
 		if(messageBusAddress.getAddress().contains(BUS_OUT)) {
