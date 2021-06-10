@@ -306,6 +306,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 						isTransactionSuccessful = false;
 						description.setMessage(PlatformErrorMessages.RPR_UGS_UIN_UPDATE_FAILURE.getMessage());
 						description.setCode(PlatformErrorMessages.RPR_UGS_UIN_UPDATE_FAILURE.getCode());
+						description.setSubStatusCode(StatusUtil.UIN_GENERATION_FAILED.getCode());
 						String idres = idResponseDTO != null ? idResponseDTO.toString()
 								: UINConstants.NULL_IDREPO_RESPONSE;
 
