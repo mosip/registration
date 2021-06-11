@@ -1606,7 +1606,7 @@ public class WorkflowCommandPredicateTest {
 		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT,
 				"workflow-cmd://pause-and-request-additional-info");
 		exchange.setProperty("subProcess", "CORRECTION");
-		exchange.setProperty("pauseFor", 200l);
+		exchange.setProperty("pauseFor", "200");
 		assertTrue(workflowCommandPredicate.matches(exchange));
 		WorkflowInternalActionDTO workflowInternalActionDTO = objectMapper
 				.readValue(exchange.getMessage().getBody().toString(), WorkflowInternalActionDTO.class);

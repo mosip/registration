@@ -61,6 +61,8 @@ public class SubWorkflowMappingServiceImpl implements SubWorkflowMappingService 
 		subWorkflowMappingEntity.setIteration(subWorkflowDto.getIteration());
 		subWorkflowMappingEntity.setProcess(subWorkflowDto.getProcess());
 		subWorkflowMappingEntity.setTimestamp(subWorkflowDto.getTimestamp());
+		subWorkflowMappingEntity.setParentIteration(subWorkflowDto.getParentIteration());
+		subWorkflowMappingEntity.setParentProcess(subWorkflowDto.getParentProcess());
         subWorkflowRepository.save(subWorkflowMappingEntity);
 	}
 

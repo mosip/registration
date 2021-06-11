@@ -177,7 +177,8 @@ public class WorkflowCommandPredicate implements Predicate {
 		WorkflowInternalActionDTO workflowEventDTO = new WorkflowInternalActionDTO();
 
 		workflowEventDTO.setResumeTimestamp(DateUtils.formatToISOString(
-				DateUtils.getUTCCurrentDateTime().plusSeconds((long) exchange.getProperty("pauseFor"))));
+				DateUtils.getUTCCurrentDateTime()
+						.plusSeconds(Long.parseLong((String) exchange.getProperty("pauseFor")))));
 		workflowEventDTO.setRid(json.getString("rid"));
 		workflowEventDTO.setDefaultResumeAction(WorkflowActionCode.STOP_PROCESSING.toString());
 		workflowEventDTO.setActionCode(WorkflowInternalActionCode.PAUSED_FOR_ADDITIONAL_INFO.toString());
