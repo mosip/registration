@@ -209,7 +209,7 @@ public class RegistrationStatusServiceImpl
 	}
 
 	private void updateRegistrationStatus(InternalRegistrationStatusDto registrationStatusDto, String moduleId,
-			String moduleName, boolean isStatusCodeShouldUpdate) {
+			String moduleName, boolean updateStatusCode) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationStatusDto.getRegistrationId(),
 				"RegistrationStatusServiceImpl::updateRegistrationStatus()::entry");
@@ -237,7 +237,7 @@ public class RegistrationStatusServiceImpl
 				dto.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 				RegistrationStatusEntity entity = convertDtoToEntity(registrationStatusDto, 
 					dto.getLastSuccessStageName());
-				if (!isStatusCodeShouldUpdate) {
+				if (!updateStatusCode) {
 					// to not update registration status code from stages
 					entity.setStatusCode(dto.getStatusCode());
 				}

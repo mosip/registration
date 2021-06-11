@@ -62,7 +62,7 @@ public interface RegistrationStatusService<T, U, D> {
 	public void updateRegistrationStatus(U registrationStatusDto, String moduleId, String moduleName);
 	
 	/**
-	 * Update registration status.
+	 * Update registration status for workflow Engine.
 	 *
 	 * @param registrationStatusDto
 	 *            the registration status dto
