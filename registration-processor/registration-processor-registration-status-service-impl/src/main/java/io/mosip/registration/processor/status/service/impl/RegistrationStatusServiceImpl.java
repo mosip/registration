@@ -151,8 +151,8 @@ public class RegistrationStatusServiceImpl
 			String transactionId = generateId();
 			registrationStatusDto.setLatestRegistrationTransactionId(transactionId);
 			registrationStatusDto.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
-			RegistrationStatusEntity entity = convertDtoToEntity(registrationStatusDto, null, false,
-					RegistrationTransactionStatusCode.PROCESSING.toString());
+			RegistrationStatusEntity entity = convertDtoToEntity(registrationStatusDto, null, false);
+			entity.setStatusCode(RegistrationTransactionStatusCode.PROCESSING.toString());
 			registrationStatusDao.save(entity);
 			isTransactionSuccessful = true;
 			description.setMessage("Registration status added successfully");
@@ -236,7 +236,10 @@ public class RegistrationStatusServiceImpl
 			if (dto != null) {
 				dto.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 				RegistrationStatusEntity entity = convertDtoToEntity(registrationStatusDto,
-						dto.getLastSuccessStageName(), updateStatusCode, dto.getStatusCode());
+						dto.getLastSuccessStageName(), updateStatusCode);
+				if (entity.getStatusCode() == null) {
+					entity.setStatusCode(dto.getStatusCode());
+				}
 				registrationStatusDao.save(entity);
 				isTransactionSuccessful = true;
 				description.setMessage("Updated registration status successfully");
@@ -439,22 +442,19 @@ public class RegistrationStatusServiceImpl
 	 * @return the registration status entity
 	 */
 	private RegistrationStatusEntity convertDtoToEntity(InternalRegistrationStatusDto dto, 
-			String existingLastSuccessStageName, boolean updateStatusCode, String statusCode) {
+			String existingLastSuccessStageName, boolean updateStatusCode) {
 		RegistrationStatusEntity registrationStatusEntity = new RegistrationStatusEntity();
 		registrationStatusEntity.setId(dto.getRegistrationId());
 		registrationStatusEntity.setRegistrationType(dto.getRegistrationType());
 		registrationStatusEntity.setReferenceRegistrationId(dto.getReferenceRegistrationId());
+		if (updateStatusCode) {
+			registrationStatusEntity.setStatusCode(dto.getStatusCode());
+		}
 		registrationStatusEntity.setLangCode(dto.getLangCode());
 		registrationStatusEntity.setStatusComment(dto.getStatusComment());
 		registrationStatusEntity.setLatestRegistrationTransactionId(dto.getLatestRegistrationTransactionId());
 		registrationStatusEntity.setIsActive(dto.isActive());
 		registrationStatusEntity.setCreatedBy(dto.getCreatedBy());
-		if (updateStatusCode) {
-			registrationStatusEntity.setStatusCode(dto.getStatusCode());
-		} else {
-			registrationStatusEntity.setStatusCode(statusCode);
-		}
-		
 		if (dto.getCreateDateTime() == null) {
 			registrationStatusEntity.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 		} else {
