@@ -225,8 +225,6 @@ public class RegistrationStatusServiceImpl
 				dto.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 				RegistrationStatusEntity entity = convertDtoToEntity(registrationStatusDto, 
 					dto.getLastSuccessStageName());
-				// to not update registration status code from stage
-				entity.setStatusCode(dto.getStatusCode());
 				registrationStatusDao.save(entity);
 				isTransactionSuccessful = true;
 				description.setMessage("Updated registration status successfully");
