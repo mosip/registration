@@ -7,6 +7,7 @@ import java.util.Map;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -52,6 +53,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
 	/** The registration status service. */
 	@Autowired
+    @Qualifier("workflowStatusServiceImpl")
 	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 
 	/** The audit log request builder. */

@@ -515,10 +515,6 @@ public class DemodedupeProcessorTest {
 		abisResponseDto.setLangCode("eng");
 		abisResponseDtos.add(abisResponseDto);
 
-		AbisResponseDetDto abisResponseDetDto = new AbisResponseDetDto();
-		abisResponseDetDto.setAbiRespId("100");
-		abisResponseDetDtos.add(abisResponseDetDto);
-
 		matchedRegIds.add("2018701130000410092018110735");
 		byte[] b = "sds".getBytes();
 
@@ -540,7 +536,7 @@ public class DemodedupeProcessorTest {
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 
-		assertFalse(messageDto.getIsValid());
+		assertTrue(messageDto.getIsValid());
 		assertFalse(messageDto.getInternalError());
 	}
 	
@@ -554,10 +550,6 @@ public class DemodedupeProcessorTest {
 		abisResponseDto.setStatusCode(AbisStatusCode.SUCCESS.toString());
 		abisResponseDto.setLangCode("eng");
 		abisResponseDtos.add(abisResponseDto);
-
-		AbisResponseDetDto abisResponseDetDto = new AbisResponseDetDto();
-		abisResponseDetDto.setAbiRespId("100");
-		abisResponseDetDtos.add(abisResponseDetDto);
 		
 		byte[] b = "sds".getBytes();
 
@@ -579,7 +571,7 @@ public class DemodedupeProcessorTest {
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 
-		assertFalse(messageDto.getIsValid());
+		assertTrue(messageDto.getIsValid());
 		assertFalse(messageDto.getInternalError());
 	}
 
