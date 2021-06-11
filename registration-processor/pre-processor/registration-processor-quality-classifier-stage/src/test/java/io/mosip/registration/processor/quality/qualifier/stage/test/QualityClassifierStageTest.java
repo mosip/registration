@@ -5,9 +5,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -26,15 +23,12 @@ import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Answers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.kernel.biometrics.constant.BiometricFunction;
@@ -47,15 +41,12 @@ import io.mosip.kernel.biometrics.entities.RegistryIDType;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.biosdk.provider.factory.BioAPIFactory;
 import io.mosip.kernel.core.bioapi.exception.BiometricException;
-import io.mosip.kernel.core.bioapi.model.QualityScore;
-import io.mosip.kernel.core.bioapi.model.Response;
-import io.mosip.kernel.core.bioapi.spi.IBioApi;
-import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
+import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
@@ -72,7 +63,6 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.kafka.client.consumer.OffsetAndMetadata;
 import io.mosip.kernel.biosdk.provider.spi.iBioProviderApi;
 
 @RunWith(PowerMockRunner.class)
@@ -89,7 +79,6 @@ public class QualityClassifierStageTest {
 	@Mock
 	private RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 
-	@Mock
 	private InternalRegistrationStatusDto registrationStatusDto;
 
 	@Mock
@@ -195,7 +184,9 @@ public class QualityClassifierStageTest {
 
 		ReflectionTestUtils.setField(qualityClassifierStage, "parsedQualityRangeMap", parsedMap);
 
-		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		registrationStatusDto = new InternalRegistrationStatusDto();
+		registrationStatusDto.setRegistrationId("123456789");
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
 		String idJsonString = "{\n" + "  \"identity\" : {\n" + "    \"fullName\" : [ {\n"
 				+ "      \"language\" : \"eng\",\n" + "      \"value\" : \"Ragavendran V\"\n" + "    }, {\n"
@@ -434,15 +425,17 @@ public class QualityClassifierStageTest {
 		return biometricRecord;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testException() throws Exception {
 		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(), any(), any(), any()))
 				.thenThrow(new PacketManagerException("code", "message"));
+		Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_EXCEPTION))
+		.thenReturn("REPROCESS");
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO messageDTO = qualityClassifierStage.process(dto);
-		assertFalse(messageDTO.getIsValid());
+		assertTrue(messageDTO.getIsValid());
+		assertTrue(messageDTO.getInternalError());
 	}
 
 	@Test
@@ -450,23 +443,27 @@ public class QualityClassifierStageTest {
 			throws IOException, PacketManagerException, JsonProcessingException, ApisResourceAccessException {
 		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(), any(), any(), any()))
 				.thenThrow(new IOException("message"));
+		Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.IOEXCEPTION))
+		.thenReturn("ERROR");
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO messageDTO = qualityClassifierStage.process(dto);
 		assertFalse(messageDTO.getIsValid());
+		assertTrue(messageDTO.getInternalError());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testApiNotAccessibleTest()
 			throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
 		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(), any(), any(), any()))
 				.thenThrow(new ApisResourceAccessException("message"));
+		Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION))
+		.thenReturn("REPROCESS");
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO messageDTO = qualityClassifierStage.process(dto);
-		assertFalse(messageDTO.getIsValid());
-
+		assertTrue(messageDTO.getIsValid());
+		assertTrue(messageDTO.getInternalError());
 	}
 
 
@@ -475,10 +472,13 @@ public class QualityClassifierStageTest {
 			throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(), any(), any(), any())).thenReturn(null)
 				.thenReturn(null);
+		when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BIOMETRIC_EXCEPTION))
+		.thenReturn("REPROCESS");
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO result = qualityClassifierStage.process(dto);
 
+		assertTrue(result.getIsValid());
 		assertTrue(result.getInternalError());
 	}
 
@@ -486,20 +486,26 @@ public class QualityClassifierStageTest {
 	public void testBiometricException() throws BiometricException {
 		Mockito.when(bioApiFactory.getBioProvider(any(), any()))
 				.thenThrow(new BiometricException("", "error from provider"));
+		Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BIOMETRIC_EXCEPTION))
+		.thenReturn("REPROCESS");
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO result = qualityClassifierStage.process(dto);
 
+		assertTrue(result.getIsValid());
 		assertTrue(result.getInternalError());
 	}
 
 	@Test
 	public void testQualityCheckfailureException() throws BiometricException {
 		Mockito.when(bioApiFactory.getBioProvider(any(), any())).thenReturn(null);
+		when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.EXCEPTION))
+		.thenReturn("ERROR");
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO result = qualityClassifierStage.process(dto);
 
+		assertFalse(result.getIsValid());
 		assertTrue(result.getInternalError());
 	}
 
@@ -509,11 +515,13 @@ public class QualityClassifierStageTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
 		when(basedPacketManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
 				.thenReturn(null);
-
+		when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BIOMETRIC_EXCEPTION))
+		.thenReturn("REPROCESS");
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO result = qualityClassifierStage.process(dto);
 
+		assertTrue(result.getIsValid());
 		assertTrue(result.getInternalError());
 	}
 
@@ -527,6 +535,7 @@ public class QualityClassifierStageTest {
 		dto.setRid("1234567890");
 		MessageDTO result = qualityClassifierStage.process(dto);
 
+		assertFalse(result.getInternalError());
 		assertTrue(result.getIsValid());
 	}
 
@@ -535,12 +544,13 @@ public class QualityClassifierStageTest {
 			throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
 
 		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(), any(), any(), any())).thenReturn(null);
-
+		when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BIOMETRIC_EXCEPTION))
+		.thenReturn("REPROCESS");
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO result = qualityClassifierStage.process(dto);
-
-		assertFalse(result.getIsValid());
+		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 	@Test
@@ -548,10 +558,13 @@ public class QualityClassifierStageTest {
 			throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
 		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(), any(), any(), any()))
 				.thenThrow(new JsonProcessingException("Json exception"));
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.JSON_PROCESSING_EXCEPTION))
+		.thenReturn("ERROR");
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO result = qualityClassifierStage.process(dto);
-
+		assertFalse(result.getIsValid());
 		assertTrue(result.getInternalError());
 	}
 

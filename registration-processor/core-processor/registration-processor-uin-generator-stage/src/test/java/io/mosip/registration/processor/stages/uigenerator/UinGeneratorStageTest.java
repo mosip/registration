@@ -69,6 +69,7 @@ import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
+import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.RegistrationType;
@@ -250,7 +251,7 @@ public class UinGeneratorStageTest {
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(),
 				anyString(), any(Class.class))).thenReturn(str);
 
-		when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("EXCEPTION");
+		//when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("EXCEPTION");
 		Mockito.doNothing().when(description).setCode(Mockito.anyString());
 		Mockito.doNothing().when(description).setMessage(Mockito.anyString());
 		when(description.getCode()).thenReturn("CODE");
@@ -393,7 +394,7 @@ public class UinGeneratorStageTest {
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getInternalError());
-
+		assertTrue(result.getIsValid());
 	}
 
 	@Test
@@ -429,8 +430,11 @@ public class UinGeneratorStageTest {
 				.thenReturn(idResponseDTO).thenReturn(responseVid);
 		// Mockito.when(registrationProcessorRestClientService.postApi(any(), any(),
 		// any(), any(), any(Class.class)));
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_RPROCESS)).thenReturn("REPROCESS");
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
-		//assertFalse(result.getInternalError());
+		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 	@Test
 	public void testUinGenerationF() throws Exception {
@@ -471,10 +475,11 @@ public class UinGeneratorStageTest {
 				.thenReturn(idResponseDTO).thenReturn(responseVid).thenReturn(response);
 
 //		Mockito.when(registrationProcessorRestClientService.postApi(any(), any(),  any(), any(), any()));
-
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_RPROCESS)).thenReturn("REPROCESS");
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getInternalError());
-
+		assertTrue(result.getIsValid());
 	}
 
 	@Test
@@ -522,7 +527,7 @@ public class UinGeneratorStageTest {
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getInternalError());
-
+		assertTrue(result.getIsValid());
 	}
 	
 	@Test
@@ -555,7 +560,7 @@ public class UinGeneratorStageTest {
 
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
-		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
+		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -571,10 +576,9 @@ public class UinGeneratorStageTest {
 
 		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any()))
 				.thenReturn(idResponseDTO);
-
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getIsValid());
-
+		assertFalse(result.getInternalError());
 	}
 	
 	@Test
@@ -592,7 +596,7 @@ public class UinGeneratorStageTest {
 
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
-		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
+		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -633,10 +637,9 @@ public class UinGeneratorStageTest {
 
 		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
 				.thenReturn(idResponseDTO1);
-
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
-		//assertTrue(result.getIsValid());
-
+		assertFalse(result.getIsValid());
+		assertFalse(result.getInternalError());
 	}
 	@Test
 	public void testUinReActivationWithoutResponseDTO() throws Exception {
@@ -654,7 +657,7 @@ public class UinGeneratorStageTest {
 
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
-		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
+		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -695,20 +698,19 @@ public class UinGeneratorStageTest {
 
 		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
 				.thenReturn(idResponseDTO1);
-
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
-		//assertTrue(result.getIsValid());
-
+		assertFalse(result.getIsValid());
+		assertFalse(result.getInternalError());
 	}
 
 
 	@Test
 	public void testUinReActivationWithStatusAsAny() throws Exception {
 
-		Map<String, String> fieldMap = new HashMap<>();
-		fieldMap.put("UIN", "123456");
-		fieldMap.put("name", "mono");
-		fieldMap.put("email", "mono@mono.com");
+		Map<String, String> fieldMaps = new HashMap<>();
+		fieldMaps.put("UIN", "123456");
+		fieldMaps.put("name", "mono");
+		fieldMaps.put("email", "mono@mono.com");
 
 		List<String> defaultFields = new ArrayList<>();
 		defaultFields.add("name");
@@ -718,7 +720,7 @@ public class UinGeneratorStageTest {
 
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
-		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
+		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMaps);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -749,8 +751,7 @@ public class UinGeneratorStageTest {
 		idResponseDTO1.setVersion("1.0");
 
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
-				.thenReturn(idResponseDTO);
-
+		.thenReturn(idResponseDTO);
 		String idJsonData = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
 		InputStream idJsonStream = new ByteArrayInputStream(idJsonData.getBytes(StandardCharsets.UTF_8));
 
@@ -761,11 +762,9 @@ public class UinGeneratorStageTest {
 				.thenReturn(idResponseDTO1);
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
-		//assertTrue(result.getIsValid());
-
+		assertFalse(result.getIsValid());
+		assertFalse(result.getInternalError());
 	}
-
-	
 
 	@Test
 	public void testUinReActivationIfNotActivatedSuccess() throws Exception {
@@ -822,7 +821,7 @@ public class UinGeneratorStageTest {
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getIsValid());
-
+		assertFalse(result.getInternalError());
 	}
 	@Test
 	public void testUinReActivationIfNotGotActivatedStaus() throws Exception {
@@ -840,7 +839,7 @@ public class UinGeneratorStageTest {
 
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
-		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
+		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -880,10 +879,9 @@ public class UinGeneratorStageTest {
 
 		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
 				.thenReturn(idResponseDTO1);
-
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getIsValid());
-
+		assertFalse(result.getInternalError());
 	}
 
 	@Test
@@ -941,10 +939,11 @@ public class UinGeneratorStageTest {
 
 		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
 				.thenReturn(idResponseDTO1);
-
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_RPROCESS)).thenReturn("REPROCESS");
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
-		assertFalse(result.getIsValid());
-
+		assertTrue(result.getIsValid());
+		assertTrue(result.getInternalError());
 	}
 
 	@Test
@@ -986,11 +985,13 @@ public class UinGeneratorStageTest {
 
 		String Str = "{\"uin\":\"6517036426\"}";
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(Str);
-
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_RPROCESS)).thenReturn("REPROCESS");
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 	@Test
@@ -999,9 +1000,13 @@ public class UinGeneratorStageTest {
 				HibernateErrorCode.ERR_DATABASE.getErrorCode());
 
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(exp);
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_RPROCESS)).thenReturn("REPROCESS");
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
-		uinGeneratorStage.process(messageDTO);
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 	@Test
@@ -1012,9 +1017,13 @@ public class UinGeneratorStageTest {
 		String Str = "{\"uin\":\"6517036426\"}";
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(Str);
 		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any())).thenThrow(exp);
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_RPROCESS)).thenReturn("REPROCESS");
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
-		uinGeneratorStage.process(messageDTO);
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 	@Test
@@ -1025,7 +1034,11 @@ public class UinGeneratorStageTest {
 		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any())).thenThrow(exp);
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
-		uinGeneratorStage.process(messageDTO);
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_RPROCESS)).thenReturn("REPROCESS");
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 	@Test
@@ -1076,6 +1089,7 @@ public class UinGeneratorStageTest {
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getIsValid());
+		assertFalse(result.getInternalError());
 	}
 	
 	@Test
@@ -1094,7 +1108,7 @@ public class UinGeneratorStageTest {
 
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
-		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
+		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -1114,11 +1128,11 @@ public class UinGeneratorStageTest {
 
 		//Mockito.when(packetReaderService.getFile("10031100110005020190313110030",
 				////PacketFiles.ID.name(), "id"))//.thenReturn(idJsonStream1);
-		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any(Class.class)))
 				.thenReturn(responsedto);
-
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getIsValid());
+		assertFalse(result.getInternalError());
 	}
 	@Test
 	public void deactivateTestWithDeactivate() throws ApisResourceAccessException, IOException, JSONException, JsonProcessingException, PacketManagerException {
@@ -1135,7 +1149,7 @@ public class UinGeneratorStageTest {
 
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
-		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
+		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -1166,9 +1180,9 @@ public class UinGeneratorStageTest {
 				.thenReturn(responsedto);
 		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
 				.thenReturn(idResponseDTO);
-
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
-		//assertTrue(result.getIsValid());
+		assertFalse(result.getIsValid());
+		assertFalse(result.getInternalError());
 	}
 			
 	@Test
@@ -1186,7 +1200,7 @@ public class UinGeneratorStageTest {
 
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
-		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
+		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -1213,11 +1227,12 @@ public class UinGeneratorStageTest {
 				.thenReturn(responsedto);
 		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
 				.thenReturn(idResponseDTO);
-
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_RPROCESS)).thenReturn("REPROCESS");
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
-		//assertTrue(result.getIsValid());
+		assertFalse(result.getIsValid());
+		assertFalse(result.getInternalError());
 	}
-	
 
 	@Test
 	public void deactivateTestForExistingUinTestSuccess() throws ApisResourceAccessException, PacketManagerException, IOException, JsonProcessingException, JSONException {
@@ -1256,7 +1271,7 @@ public class UinGeneratorStageTest {
 
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
-		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
+		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -1264,9 +1279,9 @@ public class UinGeneratorStageTest {
 				.thenReturn(idResponseDTO);
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(idResponseDTO);
-
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getIsValid());
+		assertFalse(result.getInternalError());
 	}
 
 	@Test
@@ -1325,7 +1340,11 @@ public class UinGeneratorStageTest {
 
 		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
 				.thenThrow(exp);
-		uinGeneratorStage.process(messageDTO);
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_RPROCESS)).thenReturn("REPROCESS");
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 	@Test
@@ -1349,7 +1368,11 @@ public class UinGeneratorStageTest {
 
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenThrow(apisResourceAccessException);
-		uinGeneratorStage.process(messageDTO);
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 	
 	
@@ -1372,9 +1395,11 @@ public class UinGeneratorStageTest {
 
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 		.thenThrow(apisResourceAccessException);
-		
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
-		//assertTrue(result.getIsValid());
+		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
 
 	}
 	@Test
@@ -1395,9 +1420,11 @@ public class UinGeneratorStageTest {
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 		.thenThrow(apisResourceAccessException);
 		
-
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
-		//assertTrue(result.getIsValid());
+		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
 
 	}
 
@@ -1417,9 +1444,11 @@ public class UinGeneratorStageTest {
 		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any())).thenThrow(apisResourceAccessException);
 
 		messageDTO.setReg_type(RegistrationType.NEW);
-
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
-		//assertFalse(result.getInternalError());
+		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
 
 	}
 
@@ -1437,12 +1466,13 @@ public class UinGeneratorStageTest {
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
 		
 		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any())).thenThrow(apisResourceAccessException);
-
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 		messageDTO.setReg_type(RegistrationType.NEW);
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
-		//assertFalse(result.getInternalError());
-
+		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 
@@ -1466,7 +1496,11 @@ public class UinGeneratorStageTest {
 
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenThrow(apisResourceAccessException);
-		uinGeneratorStage.process(messageDTO);
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 	@Test
@@ -1486,18 +1520,25 @@ public class UinGeneratorStageTest {
 
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenThrow(apisResourceAccessException);
-		uinGeneratorStage.process(messageDTO);
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 	
 	@Test
 	public void testIOException() {
 		IOException exception = new IOException("File not found");
 
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_RPROCESS)).thenReturn("REPROCESS");
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
 		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 
@@ -1534,6 +1575,7 @@ public class UinGeneratorStageTest {
 				.thenReturn(idResponseDTO);
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertTrue(result.getInternalError());
 		assertTrue(result.getIsValid());
 	}
 
@@ -1558,8 +1600,11 @@ public class UinGeneratorStageTest {
 
 		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any()))
 				.thenReturn(idResponseDTO);
-
-		uinGeneratorStage.process(messageDTO);
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_RPROCESS)).thenReturn("REPROCESS");
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 	@Test
@@ -1610,9 +1655,11 @@ public class UinGeneratorStageTest {
 				.thenReturn(responsedto);
 		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
 				.thenReturn(idResponseDTO);
-
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_RPROCESS)).thenReturn("REPROCESS");
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
-		assertFalse(result.getIsValid());
+		assertTrue(result.getIsValid());
+		assertTrue(result.getInternalError());
 	}
 
 	@Test
@@ -1664,7 +1711,7 @@ public class UinGeneratorStageTest {
 		when(regLostUinDetEntity.getLostUinMatchedRegId(any())).thenReturn("27847657360002520181210094052");
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getInternalError());
-
+		assertTrue(result.getIsValid());
 	}
 
 	@Test
@@ -1709,6 +1756,7 @@ public class UinGeneratorStageTest {
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getIsValid());
+		assertFalse(result.getInternalError());
 	}
 
 	@Test
@@ -1748,11 +1796,13 @@ public class UinGeneratorStageTest {
 
 		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any(Class.class)))
 				.thenReturn(idResponseDTO).thenReturn(responseVid).thenReturn(response);
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.VID_CREATION_EXCEPTION)).thenReturn("REPROCESS");
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
-
+		assertTrue(result.getIsValid());
+		assertTrue(result.getInternalError());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void vidJSONException() throws ApisResourceAccessException {
 		MessageDTO messageDTO = new MessageDTO();
@@ -1790,9 +1840,11 @@ public class UinGeneratorStageTest {
 
 		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any(Class.class)))
 				.thenReturn(idResponseDTO).thenThrow(ApisResourceAccessException.class);
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getInternalError());
-
+		assertTrue(result.getIsValid());
 	}
 
 	@Test
@@ -1827,7 +1879,7 @@ public class UinGeneratorStageTest {
 				.thenReturn(idResponseDTO);
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getIsValid());
-
+		assertFalse(result.getInternalError());
 	}
 
 	@Test
@@ -1862,6 +1914,7 @@ public class UinGeneratorStageTest {
 				.thenReturn(null);
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getIsValid());
+		assertFalse(result.getInternalError());
 	}
 
 	@Test
@@ -1922,6 +1975,7 @@ public class UinGeneratorStageTest {
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 	
@@ -1961,7 +2015,9 @@ public class UinGeneratorStageTest {
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getInternalError());
+		assertFalse(result.getIsValid());
 	}
+	
 	@Test
 	public void testUpdateunsuccess() throws Exception {
 		Map<String, String> fieldMap = new HashMap<>();
@@ -2009,8 +2065,11 @@ public class UinGeneratorStageTest {
 				//PacketFiles.ID.name(), "id"))//.thenReturn(idJsonStream1);
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responsedto);
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_RPROCESS)).thenReturn("REPROCESS");
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
-		assertFalse(result.getIsValid());
+		assertTrue(result.getIsValid());
+		assertTrue(result.getInternalError());
 	}
 
 	@Test
@@ -2070,7 +2129,7 @@ public class UinGeneratorStageTest {
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getIsValid());
-
+		assertFalse(result.getInternalError());
 	}
 
 
@@ -2142,19 +2201,20 @@ public class UinGeneratorStageTest {
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getInternalError());
-
+		assertTrue(result.getIsValid());
 	}
 
 	@Test
 	public void testPacketFetchingException() throws Exception {
-		ApisResourceAccessException exp = new ApisResourceAccessException(
-				HibernateErrorCode.ERR_DATABASE.getErrorCode());
-
 		when(packetManagerService.getFieldByMappingJsonKey(any(), any(),any(), any())).thenThrow(new PacketManagerException("", ""));
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.NEW);
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_EXCEPTION)).thenReturn("REPROCESS");
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 	@Test
@@ -2163,8 +2223,11 @@ public class UinGeneratorStageTest {
 		when(packetManagerService.getFieldByMappingJsonKey(any(), any(),any(), any())).thenThrow(new io.mosip.kernel.core.util.exception.JsonProcessingException(""));
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_RPROCESS)).thenReturn("REPROCESS");
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 	@Test
@@ -2218,8 +2281,8 @@ public class UinGeneratorStageTest {
 				.thenReturn(idResponseDTO1);
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
-		 assertFalse(result.getIsValid());
-
+		assertFalse(result.getIsValid());
+		assertFalse(result.getInternalError());
 	}
 
 
@@ -2271,7 +2334,8 @@ public class UinGeneratorStageTest {
 
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
-		// assertTrue(result.getIsValid());
+		assertFalse(result.getIsValid());
+		assertFalse(result.getInternalError());
 	}
 
 	@Test
@@ -2317,11 +2381,13 @@ public class UinGeneratorStageTest {
 		ApisResourceAccessException ex=new ApisResourceAccessException("", new HttpClientErrorException(HttpStatus.BAD_REQUEST));
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenThrow(ex);
-
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
-		// assertTrue(result.getIsValid());
+		assertTrue(result.getIsValid());
+		assertTrue(result.getInternalError());
 	}
 
 	@Test
@@ -2367,11 +2433,13 @@ public class UinGeneratorStageTest {
 		ApisResourceAccessException ex=new ApisResourceAccessException("", new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenThrow(ex);
-
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
-		// assertTrue(result.getIsValid());
+		assertTrue(result.getIsValid());
+		assertTrue(result.getInternalError());
 	}
 
 	@Test
@@ -2417,11 +2485,13 @@ public class UinGeneratorStageTest {
 		ApisResourceAccessException ex=new ApisResourceAccessException("");
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenThrow(ex);
-
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
-		// assertTrue(result.getIsValid());
+		assertTrue(result.getIsValid());
+		assertTrue(result.getInternalError());
 	}
 
 	@Test
@@ -2472,6 +2542,7 @@ public class UinGeneratorStageTest {
 
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
-		 assertFalse(result.getIsValid());
+		assertFalse(result.getIsValid());
+		assertFalse(result.getInternalError());
 	}
 }
