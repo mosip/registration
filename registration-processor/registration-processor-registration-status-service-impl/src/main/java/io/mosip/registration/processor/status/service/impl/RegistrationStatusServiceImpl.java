@@ -152,6 +152,7 @@ public class RegistrationStatusServiceImpl
 			registrationStatusDto.setLatestRegistrationTransactionId(transactionId);
 			registrationStatusDto.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 			RegistrationStatusEntity entity = convertDtoToEntity(registrationStatusDto, null);
+			entity.setStatusCode(RegistrationTransactionStatusCode.PROCESSING.toString());
 			registrationStatusDao.save(entity);
 			isTransactionSuccessful = true;
 			description.setMessage("Registration status added successfully");
@@ -198,6 +199,17 @@ public class RegistrationStatusServiceImpl
 	@Override
 	public void updateRegistrationStatus(InternalRegistrationStatusDto registrationStatusDto, String moduleId,
 			String moduleName) {
+		updateRegistrationStatus(registrationStatusDto, moduleId, moduleName, false);
+	}
+	
+	@Override
+	public void updateRegistrationStatusForWorkflowEngine(InternalRegistrationStatusDto registrationStatusDto, String moduleId,
+			String moduleName) {
+		updateRegistrationStatus(registrationStatusDto, moduleId, moduleName, true);
+	}
+
+	private void updateRegistrationStatus(InternalRegistrationStatusDto registrationStatusDto, String moduleId,
+			String moduleName, boolean isStatusCodeShouldUpdate) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationStatusDto.getRegistrationId(),
 				"RegistrationStatusServiceImpl::updateRegistrationStatus()::entry");
@@ -225,10 +237,10 @@ public class RegistrationStatusServiceImpl
 				dto.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 				RegistrationStatusEntity entity = convertDtoToEntity(registrationStatusDto, 
 					dto.getLastSuccessStageName());
-				
-				// to not update registration status code from stage
-				entity.setStatusCode(dto.getStatusCode());
-				
+				if (!isStatusCodeShouldUpdate) {
+					// to not update registration status code from stages
+					entity.setStatusCode(dto.getStatusCode());
+				}
 				registrationStatusDao.save(entity);
 				isTransactionSuccessful = true;
 				description.setMessage("Updated registration status successfully");
