@@ -34,7 +34,7 @@ public class StatusNotificationTypeMapUtil {
 	 */
 	private static Map<NotificationStageStatus, NotificationTemplateType> statusMapper() {
 		statusMap.put(NotificationStageStatus.QUALITY_CHECK_FAILED, NotificationTemplateType.TECHNICAL_ISSUE);
-		statusMap.put(NotificationStageStatus.OSI_VALIDATE_FAILED, NotificationTemplateType.TECHNICAL_ISSUE);
+		statusMap.put(NotificationStageStatus.CMD_VALIDATION_FAILED, NotificationTemplateType.TECHNICAL_ISSUE);
 		statusMap.put(NotificationStageStatus.VALIDATE_PACKET_REJECTED, NotificationTemplateType.TECHNICAL_ISSUE);
 		statusMap.put(NotificationStageStatus.VALIDATE_PACKET_FAILED, NotificationTemplateType.TECHNICAL_ISSUE);
 		statusMap.put(NotificationStageStatus.MANUAL_VERIFICATION_FAILED, NotificationTemplateType.DUPLICATE_UIN);
