@@ -44,7 +44,6 @@ import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
-import io.mosip.registration.processor.packet.storage.utils.BIRConverter;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
@@ -338,7 +337,7 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 		try {
 			BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(
 					registrationId, MappingJsonConstants.INDIVIDUAL_BIOMETRICS, process, ProviderStageName.BIO_DEDUPE);
-			file = cbeffutil.createXML(BIRConverter.convertSegmentsToBIRList(biometricRecord.getSegments()));
+			file = cbeffutil.createXML(biometricRecord.getSegments());
 
 
 		} catch (UnsupportedEncodingException exp) {
