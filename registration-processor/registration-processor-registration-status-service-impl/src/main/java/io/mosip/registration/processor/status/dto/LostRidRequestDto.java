@@ -5,7 +5,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * 
+ * The Class LostRidResponseDto
+ *
  * @author Dhanendra
  *
  */
@@ -13,10 +14,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class LostRidRequestDto extends BaseRestRequestDTO {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -2987693214912415439L;
-	/** The request. */
+
 	private SearchInfo request;
 }

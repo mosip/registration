@@ -501,7 +501,8 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 				syncRegistrationEntity
 						.setRegistrationDate(dto.getCreateDateTime().toLocalDate());
 			}
-		} catch (JsonProcessingException | EncryptionFailureException | ApisResourceAccessException exception) {
+		} catch (JsonProcessingException | EncryptionFailureException | ApisResourceAccessException
+				| RegStatusAppException exception) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", exception.getMessage() + ExceptionUtils.getStackTrace(exception));
 		}		
@@ -617,11 +618,11 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 
 	@Override
 	public LostRidDto searchLostRid(SearchInfo searchInfo) {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+		regProcLogger.debug("{}", "{}", "",
 				"SyncRegistrationServiceImpl::getByIds()::entry");
 		try {
 			LostRidDto lostRidDto = new LostRidDto();
-			createSearchInfoDto(searchInfo);
+			updateFiltersWithHashedValues(searchInfo);
 			List<String> registrationIds = syncRegistrationDao.getSearchResults(searchInfo.getFilters(),
 					searchInfo.getSort());
 			validateRegistrationIds(registrationIds);
@@ -629,7 +630,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			return lostRidDto;
 		} catch (DataAccessLayerException | NoSuchAlgorithmException | RegStatusAppException e) {
 
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+			regProcLogger.error("{}", "{}",
 					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
 			throw new TablenotAccessibleException(
 					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
@@ -644,13 +645,14 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 
 	}
 
-	private void createSearchInfoDto(SearchInfo searchInfo) throws NoSuchAlgorithmException {
-		for (FilterInfo fi : searchInfo.getFilters()) {
-			if (!fi.getColumnName().equalsIgnoreCase("registrationDate")
-					&& !fi.getColumnName().equalsIgnoreCase("name")) {
-				fi.setValue(getHashCode(fi.getValue()));
-			} else if (!fi.getColumnName().equalsIgnoreCase("registrationDate")) {
-				fi.setValue(getHashCode(fi.getValue().replaceAll("\\s", "").toLowerCase()));
+	private void updateFiltersWithHashedValues(SearchInfo searchInfo)
+			throws NoSuchAlgorithmException, RegStatusAppException {
+		for (FilterInfo filterInfo : searchInfo.getFilters()) {
+			if (!filterInfo.getColumnName().equalsIgnoreCase("registrationDate")
+					&& !filterInfo.getColumnName().equalsIgnoreCase("name")) {
+				filterInfo.setValue(getHashCode(filterInfo.getValue()));
+			} else if (!filterInfo.getColumnName().equalsIgnoreCase("registrationDate")) {
+				filterInfo.setValue(getHashCode(filterInfo.getValue().replaceAll("\\s", "").toLowerCase()));
 			}
 		}
 	}
@@ -698,8 +700,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			postalCode = ((JSONObject) jsonObjects.getJSONObject("response").getJSONArray("registrationCenters").get(0))
 					.getString("locationCode");
 		} catch (Exception e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
+			regProcLogger.error("{}", "{}", "", e.getMessage() + ExceptionUtils.getStackTrace(e));
 		}
 		return postalCode;
 	}
@@ -715,27 +716,28 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		return HMACUtils2.generateHash(value.getBytes());
 	}
 
-	private static String getHMACHashCode(String value) throws java.security.NoSuchAlgorithmException {
+	private static String getEncodedHMACHash(String value) throws java.security.NoSuchAlgorithmException {
 		if (value == null)
 			return null;
 		return CryptoUtil.encodeBase64(HMACUtils2.generateHash(value.getBytes()));
 	}
 
-	private String getHashCode(String value) {
-		StringBuilder hashedSaltValue = null;
+	private String getHashCode(String value) throws RegStatusAppException {
+		String hashedSaltValue = null;
 		try {
-			hashedSaltValue = new StringBuilder();
 			byte[] hashCode = getHMACHash(value);
 			byte[] nonce = Arrays.copyOfRange(hashCode, hashCode.length - 2, hashCode.length);
 			String result = convertBytesToHex(nonce);
 			Long hashValue = Long.parseLong(result, 16);
 			String salt=syncRegistrationDao.getSaltValue(hashValue);
+			String saltHashValue = getEncodedHMACHash(value + salt);
 			for (int i = 0; i <= iteration; i++) {
-				hashedSaltValue = hashedSaltValue.append(getHMACHashCode(value + salt));
+				hashedSaltValue += getHMACHash(saltHashValue);
 			}
 		} catch (NoSuchAlgorithmException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+			regProcLogger.error("{}", "{}",
 					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
+			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_INVALID_SEARCH, e);
 		}
 		return hashedSaltValue.toString();
 	}

@@ -18,7 +18,7 @@ import lombok.Data;
  * Instantiates a new salt entity.
  */
 @Data
-@Table(name = "rid_encrypt_salt", schema = "regprc")
+@Table(name = "crypto_salt", schema = "regprc")
 public class SaltEntity {
 
 	/** The id. */

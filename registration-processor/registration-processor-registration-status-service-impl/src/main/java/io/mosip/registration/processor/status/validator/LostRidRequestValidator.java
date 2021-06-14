@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.WorkFlowSearchException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
@@ -62,7 +61,7 @@ public class LostRidRequestValidator {
 	 */
 	public void validate(LostRidRequestDto lostRidRequestDto)
 			throws RegStatusAppException, WorkFlowSearchException {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+		regProcLogger.debug("{}", "{}", "",
 				"LostRidRequestValidator::validate()::entry");
 
 		validateId(lostRidRequestDto.getId());
@@ -71,7 +70,7 @@ public class LostRidRequestValidator {
 		validateFilter(lostRidRequestDto.getRequest().getFilters());
 		validateSortField(lostRidRequestDto.getRequest().getSort());
 
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+		regProcLogger.debug("{}", "{}", "",
 				"LostRidRequestValidator::validate()::exit");
 
 	}
@@ -113,10 +112,37 @@ public class LostRidRequestValidator {
 		for (FilterInfo filter : filterInfos) {
 			if (filter.getColumnName().equals("name") || filter.getColumnName().equals("email")
 					|| filter.getColumnName().equals("phone") || filter.getColumnName().equals("centerId")
-					|| filter.getColumnName().equals("registrationDate")) {
-
+					|| filter.getColumnName().equals("registrationDate")
+					|| filter.getColumnName().equals("postalCode")) {
+				validateFilterType(filterInfos);
 			} else {
 				throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER_VERSION, exception);
+			}
+		}
+
+	}
+
+	/**
+	 * Validate filter type.
+	 *
+	 * @param version the version
+	 * @param errors  the errors
+	 * @return true, if successful
+	 * @throws RegStatusAppException
+	 * 
+	 */
+	private void validateFilterType(List<FilterInfo> filterInfos)
+			throws WorkFlowSearchException, RegStatusAppException {
+		LostRidValidationException exception = new LostRidValidationException();
+		if (Objects.isNull(filterInfos)) {
+			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER_VERSION, exception);
+		}
+		for (FilterInfo filter : filterInfos) {
+			if (filter.getType().equals("equals") || filter.getType().equalsIgnoreCase("between")) {
+
+			} else {
+				throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER_VERSION,
+						exception);
 			}
 		}
 

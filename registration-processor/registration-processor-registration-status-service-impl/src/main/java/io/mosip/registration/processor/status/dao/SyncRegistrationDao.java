@@ -164,16 +164,15 @@ public class SyncRegistrationDao {
 			Iterator<FilterInfo> searchIterator = filters.iterator();
 			while (searchIterator.hasNext()) {
 				FilterInfo filterInfo = searchIterator.next();
-				if (!filterInfo.getType().equalsIgnoreCase("between")) {
-					sb.append(EMPTY_STRING + AND + EMPTY_STRING + alias + "." + filterInfo.getColumnName() + "=:"
-							+ filterInfo.getColumnName());
-					params.put(filterInfo.getColumnName(), filterInfo.getValue());
-				} else {
+				if (filterInfo.getType().equalsIgnoreCase("between")) {
 					sb.append(EMPTY_STRING + AND + EMPTY_STRING + alias + "." + filterInfo.getColumnName()
 							+ EMPTY_STRING + BETWEEN + "'" + filterInfo.getFromValue() + "'" + EMPTY_STRING + AND
 							+ EMPTY_STRING + "'" + filterInfo.getToValue() + "'");
-					// params.put(filterInfo.getToValue(), filterInfo.getToValue());
-					// params.put(filterInfo.getFromValue(), filterInfo.getFromValue());
+
+				} else {
+					sb.append(EMPTY_STRING + AND + EMPTY_STRING + alias + "." + filterInfo.getColumnName() + "=:"
+							+ filterInfo.getColumnName());
+					params.put(filterInfo.getColumnName(), filterInfo.getValue());
 				}
 			}
 		}

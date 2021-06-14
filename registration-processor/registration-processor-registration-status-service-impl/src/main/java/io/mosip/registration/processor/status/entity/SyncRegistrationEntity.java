@@ -102,9 +102,6 @@ public class SyncRegistrationEntity extends BaseRegistrationEntity {
 	@Column(name = "postal_code")
 	private String postalCode;
 
-	@Column(name = "salt")
-	private String salt;
-
 	/**
 	 * Instantiates a new sync registration entity.
 	 */
@@ -464,12 +461,5 @@ public class SyncRegistrationEntity extends BaseRegistrationEntity {
 		this.postalCode = postalCode;
 	}
 
-	public String getSalt() {
-		return salt;
-	}
-
-	public void setSalt(String salt) {
-		this.salt = salt;
-	}
 
 }

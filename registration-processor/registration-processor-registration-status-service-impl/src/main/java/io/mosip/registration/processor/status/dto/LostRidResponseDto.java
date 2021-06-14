@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
+ * The Class LostRidResponseDto.
  * 
  * @author Dhanendra
  *

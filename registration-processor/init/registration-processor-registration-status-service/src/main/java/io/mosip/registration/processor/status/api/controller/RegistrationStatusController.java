@@ -152,7 +152,7 @@ public class RegistrationStatusController {
 	 * @throws RegStatusAppException
 	 */
 	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_OFFICER', 'ZONAL_ADMIN','GLOBAL_ADMIN')")
-	@PostMapping(path = "/lost", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping(path = "/lostridsearch", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiOperation(value = "Get the lost registration id", response = RegistrationExternalStatusCode.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Registration id successfully fetched"),
 			@ApiResponse(code = 400, message = "Unable to fetch the Registration id") })
