@@ -174,8 +174,8 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 	 */
 	public void deployVerticle() {
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
-		this.consumeAndSend(mosipEventBus, MessageBusAddress.QUALITY_CHECKER_BUS_IN,
-				MessageBusAddress.QUALITY_CHECKER_BUS_OUT, messageExpiryTimeLimit);
+		this.consumeAndSend(mosipEventBus, MessageBusAddress.QUALITY_CLASSIFIER_BUS_IN,
+				MessageBusAddress.QUALITY_CLASSIFIER_BUS_OUT, messageExpiryTimeLimit);
 	}
 
 	@Override
@@ -185,8 +185,8 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 
 	@Override
 	public void start() {
-		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.QUALITY_CHECKER_BUS_IN,
-				MessageBusAddress.QUALITY_CHECKER_BUS_OUT));
+		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.QUALITY_CLASSIFIER_BUS_IN,
+				MessageBusAddress.QUALITY_CLASSIFIER_BUS_OUT));
 		this.createServer(router.getRouter(), getPort());
 	}
 
@@ -199,7 +199,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 	 */
 	@Override
 	public MessageDTO process(MessageDTO object) {
-		object.setMessageBusAddress(MessageBusAddress.QUALITY_CHECKER_BUS_IN);
+		object.setMessageBusAddress(MessageBusAddress.QUALITY_CLASSIFIER_BUS_IN);
 		String regId = object.getRid();
 		LogDescription description = new LogDescription();
 		object.setInternalError(Boolean.FALSE);

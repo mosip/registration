@@ -211,10 +211,10 @@ public class MessageBusAddress implements Serializable {
 	public static final MessageBusAddress BIOMETRIC_AUTHENTICATION_BUS_OUT = new MessageBusAddress("biometric-authentication-bus-out");
 
 	/** The Constant QUALITY_CHECKER_BUS_IN. */
-	public static final MessageBusAddress QUALITY_CHECKER_BUS_IN = new MessageBusAddress("quality-checker-bus-in");
+	public static final MessageBusAddress QUALITY_CLASSIFIER_BUS_IN = new MessageBusAddress("quality-classifier-bus-in");
 
 	/** The Constant QUALITY_CHECKER_BUS_OUT. */
-	public static final MessageBusAddress QUALITY_CHECKER_BUS_OUT = new MessageBusAddress("quality-checker-bus-out");
+	public static final MessageBusAddress QUALITY_CLASSIFIER_BUS_OUT = new MessageBusAddress("quality-classifier-bus-out");
 
 	/** The Constant SECUREZONE_NOTIFICATION_IN. */
 	public static final MessageBusAddress SECUREZONE_NOTIFICATION_IN = new MessageBusAddress("securezone-notification-bus-in");
