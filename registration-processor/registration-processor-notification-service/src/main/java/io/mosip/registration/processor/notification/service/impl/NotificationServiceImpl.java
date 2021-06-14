@@ -589,18 +589,6 @@ public class NotificationServiceImpl implements NotificationService {
 
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					id, "NotificationServiceImpl::success");
-		} catch (EmailIdNotFoundException | PhoneNumberNotFoundException | TemplateGenerationFailedException |
-
-				ConfigurationNotFoundException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					id, e.getMessage() + ExceptionUtils.getStackTrace(e));
-			description.setStatusComment(trimExceptionMessage.trimExceptionMessage(
-					StatusUtil.EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getMessage() + e.getMessage()));
-			description.setSubStatusCode(StatusUtil.EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getCode());
-			description.setMessage(PlatformErrorMessages.RPR_EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getMessage());
-			description.setCode(PlatformErrorMessages.RPR_EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getCode());
-
-			responseEntity = new ResponseEntity<Void>(HttpStatus.INTERNAL_SERVER_ERROR);
 		} catch (TemplateNotFoundException tnf) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					id, tnf.getMessage() + ExceptionUtils.getStackTrace(tnf));
