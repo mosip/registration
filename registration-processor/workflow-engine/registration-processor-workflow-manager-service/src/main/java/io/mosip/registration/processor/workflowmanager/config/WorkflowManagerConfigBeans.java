@@ -10,6 +10,7 @@ import io.mosip.kernel.core.websub.spi.PublisherClient;
 import io.mosip.kernel.websub.api.client.PublisherClientImpl;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventDTO;
+import io.mosip.registration.processor.core.workflow.dto.WorkflowPausedForAdditionalInfoEventDTO;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.rest.client.service.impl.RegistrationProcessorRestClientServiceImpl;
 import io.mosip.registration.processor.workflowmanager.service.WorkflowActionService;
@@ -88,5 +89,10 @@ public class WorkflowManagerConfigBeans {
 	@Bean
 	public WorkflowActionJob getWorkflowActionJob() {
 		return new WorkflowActionJob();
+	}
+
+	@Bean
+	public PublisherClient<String, WorkflowPausedForAdditionalInfoEventDTO, HttpHeaders> getWebPublisherClientForPausedForAdditionalInfo() {
+		return new PublisherClientImpl<WorkflowPausedForAdditionalInfoEventDTO>();
 	}
 }

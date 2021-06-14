@@ -2,17 +2,14 @@ package io.mosip.registration.processor.notification;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,32 +25,25 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.websub.spi.SubscriptionClient;
-import io.mosip.kernel.websub.api.config.IntentVerificationConfig;
 import io.mosip.kernel.websub.api.model.SubscriptionChangeRequest;
 import io.mosip.kernel.websub.api.model.SubscriptionChangeResponse;
 import io.mosip.kernel.websub.api.model.UnsubscriptionRequest;
 import io.mosip.kernel.websub.api.verifier.AuthenticatedContentVerifier;
 import io.mosip.registration.processor.core.code.ApiName;
-import io.mosip.registration.processor.core.constant.IdType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
-import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.notification.template.generator.dto.ResponseDto;
 import io.mosip.registration.processor.core.notification.template.generator.dto.SmsResponseDto;
 import io.mosip.registration.processor.core.notification.template.generator.dto.TemplateDto;
 import io.mosip.registration.processor.core.notification.template.generator.dto.TemplateResponseDto;
-import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
 import io.mosip.registration.processor.core.spi.message.sender.MessageNotificationService;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
-import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
+import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventDTO;
 import io.mosip.registration.processor.message.sender.exception.EmailIdNotFoundException;
 import io.mosip.registration.processor.message.sender.exception.PhoneNumberNotFoundException;
 import io.mosip.registration.processor.message.sender.exception.TemplateGenerationFailedException;
-import io.mosip.registration.processor.message.sender.utility.NotificationTemplateCode;
-import io.mosip.registration.processor.notification.dto.MessageSenderDto;
-import io.mosip.registration.processor.notification.dto.WorkflowCompletedEventDTO;
 import io.mosip.registration.processor.notification.service.NotificationService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 

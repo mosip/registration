@@ -38,6 +38,7 @@ import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.SubWorkflowDto;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventDTO;
+import io.mosip.registration.processor.core.workflow.dto.WorkflowPausedForAdditionalInfoEventDTO;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -375,11 +376,8 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		registrationStatusDto.setSubStatusCode(StatusUtil.WORKFLOW_INTERNAL_ACTION_SUCCESS.getCode());
 		registrationStatusService.updateRegistrationStatus(registrationStatusDto, MODULE_ID, MODULE_NAME);
 		String additionalRequestId = createSubWorkflowMapping(workflowInternalActionDTO);
-		// TODO need to create service for websub notification with process and
-		// subprocess,additional_info_req_id ,rid and status code need to sent for new
-		// method
-		// in notifcation service
-
+		sendWorkflowPausedForAdditionalInfoEvent(registrationStatusDto, additionalRequestId,
+				workflowInternalActionDTO.getSubProcess());
 	}
 
 	private String createSubWorkflowMapping(WorkflowInternalActionDTO workflowInternalActionDTO) {
@@ -408,5 +406,17 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		String additionalRequestId = workflowInternalActionDTO.getRid() + "-"
 				+ workflowInternalActionDTO.getSubProcess() + "-" + iteration;
 		return additionalRequestId;
+	}
+
+	private void sendWorkflowPausedForAdditionalInfoEvent(InternalRegistrationStatusDto registrationStatusDto,
+			String additonalInfoRequestId, String subProcess) {
+		WorkflowPausedForAdditionalInfoEventDTO workflowPausedForAdditionalInfoEventDTO = new WorkflowPausedForAdditionalInfoEventDTO();
+		workflowPausedForAdditionalInfoEventDTO.setInstanceId(registrationStatusDto.getRegistrationId());
+		workflowPausedForAdditionalInfoEventDTO.setResultCode(registrationStatusDto.getStatusCode());
+		workflowPausedForAdditionalInfoEventDTO.setWorkflowType(registrationStatusDto.getRegistrationType());
+		workflowPausedForAdditionalInfoEventDTO.setSubProcess(subProcess);
+		workflowPausedForAdditionalInfoEventDTO.setAdditionalInfoRequestId(additonalInfoRequestId);
+		webSubUtil.publishEvent(workflowPausedForAdditionalInfoEventDTO);
+
 	}
 }

@@ -32,6 +32,7 @@ import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessag
 import io.mosip.registration.processor.core.packet.dto.SubWorkflowDto;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventDTO;
+import io.mosip.registration.processor.core.workflow.dto.WorkflowPausedForAdditionalInfoEventDTO;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -346,6 +347,13 @@ public class WorkflowInternalActionVerticleTest {
 
 		verify(subWorkflowMappingService, atLeastOnce()).addSubWorkflowMapping(argument1.capture());
 		assertEquals(workflowInternalActionDTO.getSubProcess(), argument1.getAllValues().get(0).getProcess());
+		ArgumentCaptor<WorkflowPausedForAdditionalInfoEventDTO> argument2 = ArgumentCaptor
+				.forClass(WorkflowPausedForAdditionalInfoEventDTO.class);
+
+		verify(webSubUtil, atLeastOnce()).publishEvent(argument2.capture());
+		assertEquals(RegistrationStatusCode.PAUSED_FOR_ADDITIONAL_INFO.toString(),
+				argument2.getAllValues().get(0).getResultCode());
+
 	}
 
 	@Test
