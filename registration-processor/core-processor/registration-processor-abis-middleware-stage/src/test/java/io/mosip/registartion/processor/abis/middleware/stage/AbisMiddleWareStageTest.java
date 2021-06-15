@@ -344,12 +344,14 @@ public class AbisMiddleWareStageTest {
 		stage.deployVerticle();
 		stage.process(dto);
 		assertTrue(dto.getIsValid());
+		assertTrue(dto.getInternalError());
 
 		// test for null transactionId
 		Mockito.when(registrationStatusDao.findById(Mockito.anyString())).thenReturn(null);
 		Mockito.when(packetInfoManager.getReferenceIdByRid(Mockito.anyString())).thenReturn(abisRefList);
 		stage.process(dto);
 		assertTrue(dto.getIsValid());
+		assertTrue(dto.getInternalError());
 
 		// test for empty insertidentify request List
 		Mockito.when(registrationStatusDao.findById(Mockito.anyString())).thenReturn(regStatusEntity);
@@ -358,6 +360,7 @@ public class AbisMiddleWareStageTest {
 		Mockito.when(packetInfoManager.getReferenceIdByRid(Mockito.anyString())).thenReturn(abisRefList);
 		stage.process(dto);
 		assertTrue(dto.getIsValid());
+		assertTrue(dto.getInternalError());
 
 		// test for send to queue failed
 		Mockito.when(registrationStatusDao.findById(Mockito.anyString())).thenReturn(regStatusEntity);
@@ -391,6 +394,7 @@ public class AbisMiddleWareStageTest {
 		dto.setRid("10003100030001520190422074511");
 		stage.process(dto);
 		assertTrue(dto.getIsValid());
+		assertTrue(dto.getInternalError());
 	}
 		
 	
