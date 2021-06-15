@@ -454,7 +454,7 @@ public class BioDedupeProcessorTest {
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any())).thenReturn(matchedRidList);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
-		assertFalse(messageDto.getIsValid());
+		assertTrue(messageDto.getIsValid());
 		assertFalse(messageDto.getInternalError());
 	}
 
