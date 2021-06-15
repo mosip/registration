@@ -267,6 +267,10 @@ public class RegistrationStatusDao {
 		List<String> statusCodes=new ArrayList<>();
 		statusCodes.add(RegistrationStatusCode.PAUSED.toString());
 		statusCodes.add(RegistrationStatusCode.RESUMABLE.toString());
+		statusCodes.add(RegistrationStatusCode.PAUSED_FOR_ADDITIONAL_INFO.toString());
+		statusCodes.add(RegistrationStatusCode.REJECTED.toString());
+		statusCodes.add(RegistrationStatusCode.FAILED.toString());
+		statusCodes.add(RegistrationStatusCode.PROCESSED.toString());
 		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
 				+ ".latestTransactionStatusCode IN :status" + EMPTY_STRING + AND + EMPTY_STRING + alias
 				+ ".regProcessRetryCount<=" + ":reprocessCount" + EMPTY_STRING + AND + EMPTY_STRING + alias
