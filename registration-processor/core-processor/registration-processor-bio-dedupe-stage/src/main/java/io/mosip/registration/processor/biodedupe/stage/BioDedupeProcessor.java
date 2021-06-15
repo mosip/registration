@@ -298,6 +298,7 @@ public class BioDedupeProcessor {
 	private void newPacketPreAbisIdentification(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object)
 			throws ApisResourceAccessException, IOException, JsonProcessingException, PacketManagerException {
 		if (isValidCbeff(registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType())) {
+			object.setIsValid(Boolean.TRUE);
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 			registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_INPROGRESS.getMessage());
 			registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_INPROGRESS.getCode());
@@ -337,6 +338,7 @@ public class BioDedupeProcessor {
 
 
 		if (StringUtils.isNotEmpty(bioField)) {
+			object.setIsValid(Boolean.TRUE);
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 			registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_INPROGRESS.getMessage());
 			registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_INPROGRESS.getCode());
@@ -404,7 +406,7 @@ public class BioDedupeProcessor {
 			//send message to manual adjudication
 			object.setInternalError(Boolean.FALSE);
 			object.setRid(registrationStatusDto.getRegistrationId());
-			object.setIsValid(Boolean.FALSE);
+			object.setIsValid(Boolean.TRUE);
 			object.setReg_type(RegistrationType.valueOf(registrationType));
 			object.setMessageBusAddress(MessageBusAddress.MANUAL_VERIFICATION_BUS_IN);
 
@@ -472,6 +474,7 @@ public class BioDedupeProcessor {
 	private void lostPacketPreAbisIdentification(InternalRegistrationStatusDto registrationStatusDto,
 			MessageDTO object) {
 
+		object.setIsValid(Boolean.TRUE);
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 		registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_INPROGRESS.getMessage());
 		registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_INPROGRESS.getCode());
