@@ -40,6 +40,11 @@ public class WebSubUtil {
 	private void registerTopic() {
 		try {
 			workflowCompletedPublisher.registerTopic(workflowCompleteTopic, webSubPublishUrl);
+
+		} catch (WebSubClientException exception) {
+			regProcLogger.warn(exception.getMessage());
+		}
+		try {
 			workflowPausedForAdditionalInfoPublisher.registerTopic(workflowPausedforadditionalinfoTopic,
 					webSubPublishUrl);
 		} catch (WebSubClientException exception) {
