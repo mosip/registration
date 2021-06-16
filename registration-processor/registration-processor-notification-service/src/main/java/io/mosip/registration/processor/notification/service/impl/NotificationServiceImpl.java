@@ -624,14 +624,17 @@ public class NotificationServiceImpl implements NotificationService {
 		return responseEntity;
 	}
 
-	private void setTemplateAndSubjectForPausedForAdditionalInfo(String subProcess, String workflowType,
+	private void setTemplateAndSubjectForPausedForAdditionalInfo(String additionalInfoProcess, String workflowType,
 			MessageSenderDto messageSenderDto) {
 		messageSenderDto
-				.setSmsTemplateCode(env.getProperty("mosip.regproc.notification_service." + subProcess + ".sms"));
+				.setSmsTemplateCode(
+						env.getProperty("mosip.regproc.notification_service." + additionalInfoProcess + ".sms"));
 		messageSenderDto
-				.setEmailTemplateCode(env.getProperty("mosip.regproc.notification_service." + subProcess + ".email"));
+				.setEmailTemplateCode(
+						env.getProperty("mosip.regproc.notification_service." + additionalInfoProcess + ".email"));
 		messageSenderDto.setIdType(IdType.RID);
-		messageSenderDto.setSubject(env.getProperty("mosip.regproc.notification_service." + subProcess + ".subject"));
+		messageSenderDto.setSubject(
+				env.getProperty("mosip.regproc.notification_service." + additionalInfoProcess + ".subject"));
 
 	}
 

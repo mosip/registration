@@ -1,8 +1,6 @@
 package io.mosip.registration.processor.core.abstractverticle;
 
 import java.io.Serializable;
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class WorkflowInternalActionDTO.
  */
@@ -38,7 +36,7 @@ public class WorkflowInternalActionDTO extends MessageDTO implements Serializabl
 	/** The resume remove tags. */
 	private String resumeRemoveTags;
 
-	/** The sub process. */
+	/** The additional info process. */
 	private String additionalInfoProcess;
 	/*
 	 * (non-Javadoc)

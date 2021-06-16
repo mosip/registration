@@ -171,7 +171,7 @@ public class WorkflowCommandPredicate implements Predicate {
 		workflowEventDTO.setActionCode(WorkflowInternalActionCode.PAUSE_AND_REQUEST_ADDITIONAL_INFO.toString());
 		workflowEventDTO.setEventTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 		workflowEventDTO.setActionMessage(PlatformSuccessMessages.PAUSE_AND_REQUEST_ADDITIONAL_INFO.getMessage());
-		workflowEventDTO.setAdditionalInfoProcess((String) exchange.getProperty("ADDITIONAL_INFO_PROCESS"));
+		workflowEventDTO.setAdditionalInfoProcess((String) exchange.getProperty(JsonConstant.ADDITIONAL_INFO_PROCESS));
 		workflowEventDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
 		workflowEventDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
 		workflowEventDTO.setSource(json.getString(JsonConstant.SOURCE));
