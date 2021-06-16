@@ -16,6 +16,8 @@ public class SubWorkflowDto {
     String process;
     int iteration;
     LocalDateTime timestamp;
+    String parentProcess;
+    int parentIteration;
 
 
 }

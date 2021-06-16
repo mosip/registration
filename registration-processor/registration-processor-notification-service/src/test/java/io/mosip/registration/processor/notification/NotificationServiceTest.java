@@ -2,10 +2,8 @@ package io.mosip.registration.processor.notification;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.MethodMode;
@@ -28,32 +27,26 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.websub.spi.SubscriptionClient;
-import io.mosip.kernel.websub.api.config.IntentVerificationConfig;
 import io.mosip.kernel.websub.api.model.SubscriptionChangeRequest;
 import io.mosip.kernel.websub.api.model.SubscriptionChangeResponse;
 import io.mosip.kernel.websub.api.model.UnsubscriptionRequest;
 import io.mosip.kernel.websub.api.verifier.AuthenticatedContentVerifier;
 import io.mosip.registration.processor.core.code.ApiName;
-import io.mosip.registration.processor.core.constant.IdType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
-import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.notification.template.generator.dto.ResponseDto;
 import io.mosip.registration.processor.core.notification.template.generator.dto.SmsResponseDto;
 import io.mosip.registration.processor.core.notification.template.generator.dto.TemplateDto;
 import io.mosip.registration.processor.core.notification.template.generator.dto.TemplateResponseDto;
-import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
 import io.mosip.registration.processor.core.spi.message.sender.MessageNotificationService;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
-import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
+import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventDTO;
+import io.mosip.registration.processor.core.workflow.dto.WorkflowPausedForAdditionalInfoEventDTO;
 import io.mosip.registration.processor.message.sender.exception.EmailIdNotFoundException;
 import io.mosip.registration.processor.message.sender.exception.PhoneNumberNotFoundException;
 import io.mosip.registration.processor.message.sender.exception.TemplateGenerationFailedException;
-import io.mosip.registration.processor.message.sender.utility.NotificationTemplateCode;
-import io.mosip.registration.processor.notification.dto.MessageSenderDto;
-import io.mosip.registration.processor.notification.dto.WorkflowCompletedEventDTO;
 import io.mosip.registration.processor.notification.service.NotificationService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 
@@ -96,6 +89,8 @@ public class NotificationServiceTest {
 	@MockBean
 	private  SubscriptionClient<SubscriptionChangeRequest,UnsubscriptionRequest, SubscriptionChangeResponse> subs; 
 	
+	@Mock
+	private Environment env;
 
 	@Before
 	public void setup() throws Exception {
@@ -104,6 +99,12 @@ public class NotificationServiceTest {
 		subscriptionChangeResponse.setTopic(topic);
 		when(subs.subscribe(Mockito.any())).thenReturn(subscriptionChangeResponse);
 		when(authenticatedContentVerifier.verifyAuthorizedContentVerified(any(), any())).thenReturn(true);
+		when(env.getProperty("mosip.regproc.notification_service.correction.email"))
+				.thenReturn("RPR_PAUSED_FOR_ADDITIONAL_INFO_EMAIL");
+		when(env.getProperty("mosip.regproc.notification_service.correction.sms"))
+				.thenReturn("RPR_PAUSED_FOR_ADDITIONAL_INFO_SMS");
+		when(env.getProperty("mosip.regproc.notification_service.correction.subject"))
+				.thenReturn("Requesting the additional details for progressing on the application of UIN");
 
 	}
 
@@ -674,4 +675,124 @@ public class NotificationServiceTest {
 		assertEquals(500, res.getStatusCodeValue());
 	}
 
-}
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testMessageSentPausedForAdditionalRequest() throws Exception {
+		List<TemplateDto> templates = new ArrayList<TemplateDto>();
+		TemplateDto templateEmail = new TemplateDto();
+		TemplateDto templateSMS = new TemplateDto();
+		TemplateResponseDto templateResponseDto = new TemplateResponseDto();
+		templateSMS.setTemplateTypeCode("RPR_PAUSED_FOR_ADDITIONAL_INFO_SMS");
+		templates.add(templateSMS);
+		templateEmail.setTemplateTypeCode("RPR_PAUSED_FOR_ADDITIONAL_INFO_EMAIL");
+		templates.add(templateEmail);
+		templateResponseDto.setTemplates(templates);
+		ResponseWrapper<TemplateResponseDto> responseWrapper = new ResponseWrapper<>();
+		responseWrapper.setResponse(templateResponseDto);
+		responseWrapper.setErrors(null);
+		SmsResponseDto smsResponse = new SmsResponseDto();
+		smsResponse.setStatus("success");
+		ResponseDto responseDto = new ResponseDto();
+		responseDto.setStatus("success");
+		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
+		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(responseDto);
+		when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""),
+				Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
+		WorkflowPausedForAdditionalInfoEventDTO workflowPausedForAdditionalInfoEventDTO = new WorkflowPausedForAdditionalInfoEventDTO();
+		workflowPausedForAdditionalInfoEventDTO.setInstanceId("85425022110000120190117110505");
+		workflowPausedForAdditionalInfoEventDTO.setWorkflowType("NEW");
+		workflowPausedForAdditionalInfoEventDTO.setAdditionalInfoProcess("correction");
+		ResponseEntity<Void> res = notificationService.process(workflowPausedForAdditionalInfoEventDTO);
+		assertEquals(200, res.getStatusCodeValue());
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testMessageTemplateExceptionForPausedForAdditionalRequest() throws Exception {
+		List<TemplateDto> templates = new ArrayList<TemplateDto>();
+		TemplateResponseDto templateResponseDto = new TemplateResponseDto();
+		templateResponseDto.setTemplates(templates);
+		ResponseWrapper<TemplateResponseDto> responseWrapper = new ResponseWrapper<>();
+		responseWrapper.setResponse(templateResponseDto);
+		responseWrapper.setErrors(null);
+		SmsResponseDto smsResponse = new SmsResponseDto();
+		smsResponse.setStatus("success");
+		ResponseDto responseDto = new ResponseDto();
+		responseDto.setStatus("success");
+		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
+		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(responseDto);
+        when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
+		WorkflowPausedForAdditionalInfoEventDTO workflowPausedForAdditionalInfoEventDTO = new WorkflowPausedForAdditionalInfoEventDTO();
+		workflowPausedForAdditionalInfoEventDTO.setInstanceId("85425022110000120190117110505");
+		workflowPausedForAdditionalInfoEventDTO.setWorkflowType("NEW");
+		workflowPausedForAdditionalInfoEventDTO.setAdditionalInfoProcess("correction");
+		ResponseEntity<Void> res = notificationService.process(workflowPausedForAdditionalInfoEventDTO);
+		assertEquals(500, res.getStatusCodeValue());
+	}
+
+	@Test
+	public void testMessageEmailTemplateGenerationFailedExceptionForPausedForAdditionalRequest() throws Exception {
+		List<TemplateDto> templates = new ArrayList<TemplateDto>();
+		TemplateDto templateEmail = new TemplateDto();
+		TemplateDto templateSMS = new TemplateDto();
+		TemplateResponseDto templateResponseDto = new TemplateResponseDto();
+		templateSMS.setTemplateTypeCode("RPR_PAUSED_FOR_ADDITIONAL_INFO_SMS");
+		templates.add(templateSMS);
+		templateEmail.setTemplateTypeCode("RPR_PAUSED_FOR_ADDITIONAL_INFO_EMAIL");
+		templates.add(templateEmail);
+		templateResponseDto.setTemplates(templates);
+		ResponseWrapper<TemplateResponseDto> responseWrapper = new ResponseWrapper<>();
+		responseWrapper.setResponse(templateResponseDto);
+		responseWrapper.setErrors(null);
+		SmsResponseDto smsResponse = new SmsResponseDto();
+		smsResponse.setStatus("success");
+		ResponseDto responseDto = new ResponseDto();
+		responseDto.setStatus("success");
+		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
+		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any()))
+				.thenThrow(new TemplateGenerationFailedException());
+		when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""),
+				Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
+		WorkflowPausedForAdditionalInfoEventDTO workflowPausedForAdditionalInfoEventDTO = new WorkflowPausedForAdditionalInfoEventDTO();
+		workflowPausedForAdditionalInfoEventDTO.setInstanceId("85425022110000120190117110505");
+		workflowPausedForAdditionalInfoEventDTO.setWorkflowType("NEW");
+		workflowPausedForAdditionalInfoEventDTO.setAdditionalInfoProcess("correction");
+		ResponseEntity<Void> res = notificationService.process(workflowPausedForAdditionalInfoEventDTO);
+		assertEquals(500, res.getStatusCodeValue());
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	@DirtiesContext(methodMode = MethodMode.AFTER_METHOD)
+	public void testMessageConfigurationExceptionForPausedForAdditionalRequest() throws Exception {
+		ReflectionTestUtils.setField(notificationService, "notificationTypes", "");
+		List<TemplateDto> templates = new ArrayList<TemplateDto>();
+		TemplateDto templateEmail = new TemplateDto();
+		TemplateDto templateSMS = new TemplateDto();
+		TemplateResponseDto templateResponseDto = new TemplateResponseDto();
+		templateSMS.setTemplateTypeCode("RPR_PAUSED_FOR_ADDITIONAL_INFO_SMS");
+		templates.add(templateSMS);
+		templateEmail.setTemplateTypeCode("RPR_PAUSED_FOR_ADDITIONAL_INFO_EMAIL");
+		templates.add(templateEmail);
+		templateResponseDto.setTemplates(templates);
+		ResponseWrapper<TemplateResponseDto> responseWrapper = new ResponseWrapper<>();
+		responseWrapper.setResponse(templateResponseDto);
+		responseWrapper.setErrors(null);
+		SmsResponseDto smsResponse = new SmsResponseDto();
+		smsResponse.setStatus("success");
+		ResponseDto responseDto = new ResponseDto();
+		responseDto.setStatus("success");
+		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
+		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(responseDto);
+		when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""),
+				Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
+		WorkflowPausedForAdditionalInfoEventDTO workflowPausedForAdditionalInfoEventDTO = new WorkflowPausedForAdditionalInfoEventDTO();
+		workflowPausedForAdditionalInfoEventDTO.setInstanceId("85425022110000120190117110505");
+		workflowPausedForAdditionalInfoEventDTO.setWorkflowType("NEW");
+		workflowPausedForAdditionalInfoEventDTO.setAdditionalInfoProcess("correction");
+		ResponseEntity<Void> res = notificationService.process(workflowPausedForAdditionalInfoEventDTO);
+		assertEquals(500, res.getStatusCodeValue());
+	}
+	}

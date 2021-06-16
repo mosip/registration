@@ -115,6 +115,7 @@ import io.mosip.registration.processor.camel.bridge.intercepter.WorkflowCommandP
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.WorkflowInternalActionDTO;
 import io.mosip.registration.processor.core.code.WorkflowInternalActionCode;
+import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 
 @RunWith(PowerMockRunner.class)
@@ -1503,6 +1504,9 @@ public class WorkflowCommandPredicateTest {
 	public void testRoutePredicatePositiveForCompleteAsProcessed() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10002100741000120201231071308");
+		messageDTO.setReg_type("NEW");
+		messageDTO.setIteration(1);
+		messageDTO.setSource("REGISTRATION_CLIENT");
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
 		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT, "workflow-cmd://complete-as-processed");
 		assertTrue(workflowCommandPredicate.matches(exchange));
@@ -1518,6 +1522,9 @@ public class WorkflowCommandPredicateTest {
 	public void testRoutePredicatePositiveForCompleteAsRejected() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10002100741000120201231071308");
+		messageDTO.setReg_type("NEW");
+		messageDTO.setIteration(1);
+		messageDTO.setSource("REGISTRATION_CLIENT");
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
 		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT, ("workflow-cmd://complete-as-rejected"));
 		assertTrue(workflowCommandPredicate.matches(exchange));
@@ -1532,6 +1539,9 @@ public class WorkflowCommandPredicateTest {
 	public void testRoutePredicatePositiveForMarkAsReprocess() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10002100741000120201231071308");
+		messageDTO.setReg_type("NEW");
+		messageDTO.setIteration(1);
+		messageDTO.setSource("REGISTRATION_CLIENT");
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
 		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT, "workflow-cmd://mark-as-reprocess");
 		assertTrue(workflowCommandPredicate.matches(exchange));
@@ -1546,6 +1556,9 @@ public class WorkflowCommandPredicateTest {
 	public void testRoutePredicatePositiveForCompleteAsFailed() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10002100741000120201231071308");
+		messageDTO.setReg_type("NEW");
+		messageDTO.setIteration(1);
+		messageDTO.setSource("REGISTRATION_CLIENT");
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
 		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT, "workflow-cmd://complete-as-failed");
 		assertTrue(workflowCommandPredicate.matches(exchange));
@@ -1560,6 +1573,9 @@ public class WorkflowCommandPredicateTest {
 	public void testRoutePredicateNegative() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10002100741000120201231071308");
+		messageDTO.setReg_type("NEW");
+		messageDTO.setIteration(1);
+		messageDTO.setSource("REGISTRATION_CLIENT");
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
 		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT, null);
 		workflowCommandPredicate.matches(exchange);
@@ -1570,8 +1586,67 @@ public class WorkflowCommandPredicateTest {
 	public void testRoutePredicateDefault() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10002100741000120201231071308");
+		messageDTO.setReg_type("NEW");
+		messageDTO.setIteration(1);
+		messageDTO.setSource("REGISTRATION_CLIENT");
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
 		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT, "workflow-cmd://complete-as-faled");
 		workflowCommandPredicate.matches(exchange);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testRoutePredicatePositiveForPauseAndRequestAdditionalInfo() throws Exception
+	{
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("10002100741000120201231071308");
+		messageDTO.setReg_type("NEW");
+		messageDTO.setIteration(1);
+		messageDTO.setSource("REGISTRATION_CLIENT");
+		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
+		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT,
+				"workflow-cmd://pause-and-request-additional-info");
+		exchange.setProperty(JsonConstant.ADDITIONAL_INFO_PROCESS, "CORRECTION");
+		exchange.setProperty(JsonConstant.PAUSE_FOR, "200");
+		assertTrue(workflowCommandPredicate.matches(exchange));
+		WorkflowInternalActionDTO workflowInternalActionDTO = objectMapper
+				.readValue(exchange.getMessage().getBody().toString(), WorkflowInternalActionDTO.class);
+		assertEquals(WorkflowInternalActionCode.PAUSE_AND_REQUEST_ADDITIONAL_INFO.toString(),
+				workflowInternalActionDTO.getActionCode());
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testRoutePredicatePositiveForResumeParentFlow() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("10002100741000120201231071308");
+		messageDTO.setReg_type("CORRECTION");
+		messageDTO.setIteration(1);
+		messageDTO.setSource("REGISTRATION_CLIENT");
+		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
+		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT,
+				"workflow-cmd://resume-parent-flow");
+		assertTrue(workflowCommandPredicate.matches(exchange));
+		WorkflowInternalActionDTO workflowInternalActionDTO = objectMapper
+				.readValue(exchange.getMessage().getBody().toString(), WorkflowInternalActionDTO.class);
+		assertEquals(WorkflowInternalActionCode.RESUME_PARENT_FLOW.toString(),
+				workflowInternalActionDTO.getActionCode());
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testRoutePredicatePositiveForRestartParentFlow() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("10002100741000120201231071308");
+		messageDTO.setReg_type("CORRECTION");
+		messageDTO.setIteration(1);
+		messageDTO.setSource("REGISTRATION_CLIENT");
+		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
+		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT, "workflow-cmd://restart-parent-flow");
+		assertTrue(workflowCommandPredicate.matches(exchange));
+		WorkflowInternalActionDTO workflowInternalActionDTO = objectMapper
+				.readValue(exchange.getMessage().getBody().toString(), WorkflowInternalActionDTO.class);
+		assertEquals(WorkflowInternalActionCode.RESTART_PARENT_FLOW.toString(),
+				workflowInternalActionDTO.getActionCode());
 	}
 }

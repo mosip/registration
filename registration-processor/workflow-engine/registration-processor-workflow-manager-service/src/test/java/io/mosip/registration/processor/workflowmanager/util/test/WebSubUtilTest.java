@@ -15,6 +15,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import io.mosip.kernel.core.websub.spi.PublisherClient;
 import io.mosip.kernel.websub.api.exception.WebSubClientException;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventDTO;
+import io.mosip.registration.processor.core.workflow.dto.WorkflowPausedForAdditionalInfoEventDTO;
 import io.mosip.registration.processor.workflowmanager.util.WebSubUtil;
 
 
@@ -22,6 +23,9 @@ import io.mosip.registration.processor.workflowmanager.util.WebSubUtil;
 public class WebSubUtilTest {
 	@Mock
 	private PublisherClient<String, WorkflowCompletedEventDTO, HttpHeaders> pb;
+
+	@Mock
+	private PublisherClient<String, WorkflowPausedForAdditionalInfoEventDTO, HttpHeaders> workflowPausedForAdditionalInfoPublisher;
 
 	@InjectMocks
 	WebSubUtil webSubUtil;
@@ -37,4 +41,15 @@ public class WebSubUtilTest {
 		verify(pb, times(1)).publishUpdate(any(), any(WorkflowCompletedEventDTO.class), any(), any(), any());
 	}
 
+	@Test
+	public void testPublishPausedForAdditionalInfoEventSuccess() throws WebSubClientException {
+		ReflectionTestUtils.setField(webSubUtil, "webSubPublishUrl", "/websubdummypublishurl");
+		ReflectionTestUtils.setField(webSubUtil, "workflowPausedforadditionalinfoTopic",
+				"registration_processor_workflow_paused_for_additional_info_event");
+		WorkflowPausedForAdditionalInfoEventDTO workflowPausedForAdditionalInfoEventDTO = new WorkflowPausedForAdditionalInfoEventDTO();
+		webSubUtil.publishEvent(workflowPausedForAdditionalInfoEventDTO);
+		verify(workflowPausedForAdditionalInfoPublisher, times(1)).publishUpdate(any(),
+				any(WorkflowPausedForAdditionalInfoEventDTO.class), any(), any(),
+				any());
+	}
 }

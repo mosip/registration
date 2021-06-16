@@ -26,6 +26,8 @@ public enum RegistrationStatusCode {
 
 	RESUMABLE,
 
-	REPROCESS
+	REPROCESS,
+
+	PAUSED_FOR_ADDITIONAL_INFO
 
 }
