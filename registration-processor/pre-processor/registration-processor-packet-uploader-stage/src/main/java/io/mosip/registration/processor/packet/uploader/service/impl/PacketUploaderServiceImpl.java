@@ -186,6 +186,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
         regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                 registrationId, "PacketUploaderServiceImpl::validateAndUploadPacket()::entry");
         messageDTO.setRid(registrationId);
+        messageDTO.setIteration(iteration);
         SyncRegistrationEntity regEntity = null;
         
         try {
