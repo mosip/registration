@@ -162,8 +162,8 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 			case MARK_AS_REPROCESS:
 				processMarkAsReprocess(workflowInternalActionDTO);
 				break;
-			case PAUSED_FOR_ADDITIONAL_INFO:
-				processPausedForAdditionalInfo(workflowInternalActionDTO);
+			case PAUSE_AND_REQUEST_ADDITIONAL_INFO:
+				processPauseAndRequestAdditionalInfo(workflowInternalActionDTO);
 				break;
 			case RESUME_PARENT_FLOW:
 				processResumeParentFlow(workflowInternalActionDTO);
@@ -337,6 +337,11 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 			internalRegistrationStatusDtos.add(registrationStatusDto);
 			workflowActionService.processWorkflowAction(internalRegistrationStatusDtos,
 					WorkflowActionCode.RESUME_FROM_BEGINNING.toString());
+		} else {
+			regProcLogger.error(
+					"Error in  WorkflowEventUpdateVerticle:processRestartParentFlow for registration id {} {}",
+					workflowInternalActionDTO.getRid(),
+					PlatformErrorMessages.RPR_WIA_SUBWORKFLOW_NOT_FOUND.getMessage());
 		}
 	}
 
@@ -353,10 +358,15 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 			internalRegistrationStatusDtos.add(registrationStatusDto);
 			workflowActionService.processWorkflowAction(internalRegistrationStatusDtos,
 					WorkflowActionCode.RESUME_PROCESSING.toString());
+		} else {
+			regProcLogger.error(
+					"Error in  WorkflowEventUpdateVerticle:processRestartParentFlow for registration id {} {}",
+					workflowInternalActionDTO.getRid(),
+					PlatformErrorMessages.RPR_WIA_SUBWORKFLOW_NOT_FOUND.getMessage());
 		}
 	}
 
-	private void processPausedForAdditionalInfo(WorkflowInternalActionDTO workflowInternalActionDTO) {
+	private void processPauseAndRequestAdditionalInfo(WorkflowInternalActionDTO workflowInternalActionDTO) {
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(
 				workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getReg_type(),
 				workflowInternalActionDTO.getIteration());
@@ -377,12 +387,12 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		registrationStatusService.updateRegistrationStatus(registrationStatusDto, MODULE_ID, MODULE_NAME);
 		String additionalRequestId = createSubWorkflowMapping(workflowInternalActionDTO);
 		sendWorkflowPausedForAdditionalInfoEvent(registrationStatusDto, additionalRequestId,
-				workflowInternalActionDTO.getSubProcess());
+				workflowInternalActionDTO.getAdditionalInfoProcess());
 	}
 
 	private String createSubWorkflowMapping(WorkflowInternalActionDTO workflowInternalActionDTO) {
 		List<SubWorkflowDto> subWorkflowDtos = subWorkflowMappingService.getSubWorkflowMappingByRegIdAndProcess(
-				workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getSubProcess());
+				workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getAdditionalInfoProcess());
 		int iteration = 0;
 		if (subWorkflowDtos != null && !subWorkflowDtos.isEmpty()) {
 			iteration = subWorkflowDtos.get(0).getIteration() + 1;
@@ -393,7 +403,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		SubWorkflowDto subWorkflowDto = new SubWorkflowDto();
 		subWorkflowDto.setRegId(workflowInternalActionDTO.getRid());
 		subWorkflowDto.setAdditionalInfoReqId(additionalRequestId);
-		subWorkflowDto.setProcess(workflowInternalActionDTO.getSubProcess());
+		subWorkflowDto.setProcess(workflowInternalActionDTO.getAdditionalInfoProcess());
 		subWorkflowDto.setIteration(iteration);
 		subWorkflowDto.setParentProcess(workflowInternalActionDTO.getReg_type());
 		subWorkflowDto.setParentIteration(workflowInternalActionDTO.getIteration());
@@ -404,17 +414,16 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
 	private String createAdditionalRequestId(WorkflowInternalActionDTO workflowInternalActionDTO, int iteration) {
 		String additionalRequestId = workflowInternalActionDTO.getRid() + "-"
-				+ workflowInternalActionDTO.getSubProcess() + "-" + iteration;
+				+ workflowInternalActionDTO.getAdditionalInfoProcess() + "-" + iteration;
 		return additionalRequestId;
 	}
 
 	private void sendWorkflowPausedForAdditionalInfoEvent(InternalRegistrationStatusDto registrationStatusDto,
-			String additonalInfoRequestId, String subProcess) {
+			String additonalInfoRequestId, String additionalInfoProcess) {
 		WorkflowPausedForAdditionalInfoEventDTO workflowPausedForAdditionalInfoEventDTO = new WorkflowPausedForAdditionalInfoEventDTO();
 		workflowPausedForAdditionalInfoEventDTO.setInstanceId(registrationStatusDto.getRegistrationId());
-		workflowPausedForAdditionalInfoEventDTO.setResultCode(registrationStatusDto.getStatusCode());
 		workflowPausedForAdditionalInfoEventDTO.setWorkflowType(registrationStatusDto.getRegistrationType());
-		workflowPausedForAdditionalInfoEventDTO.setSubProcess(subProcess);
+		workflowPausedForAdditionalInfoEventDTO.setAdditionalInfoProcess(additionalInfoProcess);
 		workflowPausedForAdditionalInfoEventDTO.setAdditionalInfoRequestId(additonalInfoRequestId);
 		webSubUtil.publishEvent(workflowPausedForAdditionalInfoEventDTO);
 

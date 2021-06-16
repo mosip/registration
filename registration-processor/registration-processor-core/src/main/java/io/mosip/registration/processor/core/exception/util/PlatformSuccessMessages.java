@@ -140,8 +140,8 @@ public enum PlatformSuccessMessages {
 			"Packet processing completed with failed status"),
 	PACKET_MARK_AS_REPROCESS(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "004", "Packet marked for reprocessing"),
 
-	PACKET_PAUSED_FOR_ADDITIONAL_INFO(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "005",
-			"packet paused because of additional info"),
+	PAUSE_AND_REQUEST_ADDITIONAL_INFO(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "005",
+			"packet paused and request additional info"),
 
 	PACKET_RESUME_PARENT_FLOW(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "006", "packet parent flow resume"),
 

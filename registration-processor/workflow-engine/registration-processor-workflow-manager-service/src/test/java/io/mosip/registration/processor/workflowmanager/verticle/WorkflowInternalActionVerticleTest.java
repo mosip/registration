@@ -315,16 +315,16 @@ public class WorkflowInternalActionVerticleTest {
 	}
 
 	@Test
-	public void testProcessSuccessForPausedForAdditionalInfo() {
+	public void testProcessSuccessForPauseAndRequestAdditionalInfo() {
 		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
 		workflowInternalActionDTO.setRid("10006100390000920200603070407");
-		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.PAUSED_FOR_ADDITIONAL_INFO.toString());
+		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.PAUSE_AND_REQUEST_ADDITIONAL_INFO.toString());
 		workflowInternalActionDTO.setActionMessage("packet is paused for Additional Info");
 		workflowInternalActionDTO.setResumeTimestamp("2021-03-02T08:24:29.526Z");
 		workflowInternalActionDTO.setDefaultResumeAction(WorkflowActionCode.STOP_PROCESSING.toString());
 		workflowInternalActionDTO.setIteration(1);
 		workflowInternalActionDTO.setReg_type("NEW");
-		workflowInternalActionDTO.setSubProcess("CORRECTION");
+		workflowInternalActionDTO.setAdditionalInfoProcess("CORRECTION");
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
@@ -346,13 +346,14 @@ public class WorkflowInternalActionVerticleTest {
 		ArgumentCaptor<SubWorkflowDto> argument1 = ArgumentCaptor.forClass(SubWorkflowDto.class);
 
 		verify(subWorkflowMappingService, atLeastOnce()).addSubWorkflowMapping(argument1.capture());
-		assertEquals(workflowInternalActionDTO.getSubProcess(), argument1.getAllValues().get(0).getProcess());
+		assertEquals(workflowInternalActionDTO.getAdditionalInfoProcess(),
+				argument1.getAllValues().get(0).getProcess());
 		ArgumentCaptor<WorkflowPausedForAdditionalInfoEventDTO> argument2 = ArgumentCaptor
 				.forClass(WorkflowPausedForAdditionalInfoEventDTO.class);
 
 		verify(webSubUtil, atLeastOnce()).publishEvent(argument2.capture());
-		assertEquals(RegistrationStatusCode.PAUSED_FOR_ADDITIONAL_INFO.toString(),
-				argument2.getAllValues().get(0).getResultCode());
+		assertEquals(workflowInternalActionDTO.getAdditionalInfoProcess(),
+				argument2.getAllValues().get(0).getAdditionalInfoProcess());
 
 	}
 

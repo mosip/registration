@@ -72,7 +72,7 @@ public class WorkflowManagerConfigBeans {
 	}
 
 	@Bean
-	public PublisherClient<String, WorkflowCompletedEventDTO, HttpHeaders> getWebPublisherClient() {
+	public PublisherClient<String, WorkflowCompletedEventDTO, HttpHeaders> getWebPublisherClientForWorkflowCompletedEvent() {
 		return new PublisherClientImpl<WorkflowCompletedEventDTO>();
 	}
 
@@ -92,7 +92,7 @@ public class WorkflowManagerConfigBeans {
 	}
 
 	@Bean
-	public PublisherClient<String, WorkflowPausedForAdditionalInfoEventDTO, HttpHeaders> getWebPublisherClientForPausedForAdditionalInfo() {
+	public PublisherClient<String, WorkflowPausedForAdditionalInfoEventDTO, HttpHeaders> getWebPublisherClientForWorkflowPausedForAdditionalInfoEvent() {
 		return new PublisherClientImpl<WorkflowPausedForAdditionalInfoEventDTO>();
 	}
 }

@@ -115,6 +115,7 @@ import io.mosip.registration.processor.camel.bridge.intercepter.WorkflowCommandP
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.WorkflowInternalActionDTO;
 import io.mosip.registration.processor.core.code.WorkflowInternalActionCode;
+import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 
 @RunWith(PowerMockRunner.class)
@@ -1605,12 +1606,12 @@ public class WorkflowCommandPredicateTest {
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
 		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT,
 				"workflow-cmd://pause-and-request-additional-info");
-		exchange.setProperty("subProcess", "CORRECTION");
-		exchange.setProperty("pauseFor", "200");
+		exchange.setProperty(JsonConstant.ADDITIONAL_INFO_PROCESS, "CORRECTION");
+		exchange.setProperty(JsonConstant.PAUSE_FOR, "200");
 		assertTrue(workflowCommandPredicate.matches(exchange));
 		WorkflowInternalActionDTO workflowInternalActionDTO = objectMapper
 				.readValue(exchange.getMessage().getBody().toString(), WorkflowInternalActionDTO.class);
-		assertEquals(WorkflowInternalActionCode.PAUSED_FOR_ADDITIONAL_INFO.toString(),
+		assertEquals(WorkflowInternalActionCode.PAUSE_AND_REQUEST_ADDITIONAL_INFO.toString(),
 				workflowInternalActionDTO.getActionCode());
 	}
 

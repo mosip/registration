@@ -3,11 +3,13 @@ package io.mosip.registration.processor.core.workflow.dto;
 import java.io.Serializable;
 
 import lombok.Data;
-
-
+/**
+ * The Class WorkflowPausedForAdditionalInfoEventDTO.
+ */
 /* (non-Javadoc)
  * @see java.lang.Object#toString()
  */
+
 @Data
 public class WorkflowPausedForAdditionalInfoEventDTO implements Serializable {
 
@@ -25,14 +27,12 @@ public class WorkflowPausedForAdditionalInfoEventDTO implements Serializable {
 	/** The instance id. */
 	private String instanceId;
 
-	/** The result code. */
-	private String resultCode;
-
 	/** The workflow type. */
 	private String workflowType;
 
-	/** The sub process. */
-	private String subProcess;
+
+	/** The additional info process. */
+	private String additionalInfoProcess;
 
 	/** The additional info request id. */
 	private String additionalInfoRequestId;

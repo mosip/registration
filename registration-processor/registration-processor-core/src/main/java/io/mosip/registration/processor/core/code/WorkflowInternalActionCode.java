@@ -21,8 +21,8 @@ public enum WorkflowInternalActionCode {
 	/** The mark as reprocess. */
 	MARK_AS_REPROCESS,
 
-	/** The paused for additional info. */
-	PAUSED_FOR_ADDITIONAL_INFO,
+	/** The paused and request additional info. */
+	PAUSE_AND_REQUEST_ADDITIONAL_INFO,
 
 	/** The resume parent flow. */
 	RESUME_PARENT_FLOW,

@@ -2,15 +2,11 @@ package io.mosip.registration.processor.core.abstractverticle;
 
 import java.io.Serializable;
 
-
-
 // TODO: Auto-generated Javadoc
 /**
  * The Class WorkflowInternalActionDTO.
  */
 public class WorkflowInternalActionDTO extends MessageDTO implements Serializable {
-
-
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 
@@ -24,10 +20,8 @@ public class WorkflowInternalActionDTO extends MessageDTO implements Serializabl
 	/** The rid. */
 	private String rid;
 
-
 	/** The action code. */
 	private String actionCode;
-
 
 	/** The action message. */
 	private String actionMessage;
@@ -45,10 +39,7 @@ public class WorkflowInternalActionDTO extends MessageDTO implements Serializabl
 	private String resumeRemoveTags;
 
 	/** The sub process. */
-	private String subProcess;
-
-
-
+	private String additionalInfoProcess;
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -179,21 +170,22 @@ public class WorkflowInternalActionDTO extends MessageDTO implements Serializabl
 	}
 
 	/**
-	 * Gets the sub process.
+	 * Gets the additional info process.
 	 *
-	 * @return the sub process
+	 * @return the additional info process
 	 */
-	public String getSubProcess() {
-		return subProcess;
+	public String getAdditionalInfoProcess() {
+		return additionalInfoProcess;
 	}
 
 	/**
-	 * Sets the sub process.
+	 * Sets the additional info process.
 	 *
-	 * @param subProcess the new sub process
+	 * @param additionalInfoProcess the new additional info process
 	 */
-	public void setSubProcess(String subProcess) {
-		this.subProcess = subProcess;
+	public void setAdditionalInfoProcess(String additionalInfoProcess) {
+		this.additionalInfoProcess = additionalInfoProcess;
 	}
+
 
 }

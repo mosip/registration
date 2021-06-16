@@ -701,9 +701,8 @@ public class NotificationServiceTest {
 				Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
 		WorkflowPausedForAdditionalInfoEventDTO workflowPausedForAdditionalInfoEventDTO = new WorkflowPausedForAdditionalInfoEventDTO();
 		workflowPausedForAdditionalInfoEventDTO.setInstanceId("85425022110000120190117110505");
-		workflowPausedForAdditionalInfoEventDTO.setResultCode("PAUSED_FOR_ADDITIONAL_INFO");
 		workflowPausedForAdditionalInfoEventDTO.setWorkflowType("NEW");
-		workflowPausedForAdditionalInfoEventDTO.setSubProcess("correction");
+		workflowPausedForAdditionalInfoEventDTO.setAdditionalInfoProcess("correction");
 		ResponseEntity<Void> res = notificationService.process(workflowPausedForAdditionalInfoEventDTO);
 		assertEquals(200, res.getStatusCodeValue());
 	}
@@ -726,9 +725,8 @@ public class NotificationServiceTest {
         when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
 		WorkflowPausedForAdditionalInfoEventDTO workflowPausedForAdditionalInfoEventDTO = new WorkflowPausedForAdditionalInfoEventDTO();
 		workflowPausedForAdditionalInfoEventDTO.setInstanceId("85425022110000120190117110505");
-		workflowPausedForAdditionalInfoEventDTO.setResultCode("PAUSED_FOR_ADDITIONAL_INFO");
 		workflowPausedForAdditionalInfoEventDTO.setWorkflowType("NEW");
-		workflowPausedForAdditionalInfoEventDTO.setSubProcess("correction");
+		workflowPausedForAdditionalInfoEventDTO.setAdditionalInfoProcess("correction");
 		ResponseEntity<Void> res = notificationService.process(workflowPausedForAdditionalInfoEventDTO);
 		assertEquals(500, res.getStatusCodeValue());
 	}
@@ -758,9 +756,8 @@ public class NotificationServiceTest {
 				Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
 		WorkflowPausedForAdditionalInfoEventDTO workflowPausedForAdditionalInfoEventDTO = new WorkflowPausedForAdditionalInfoEventDTO();
 		workflowPausedForAdditionalInfoEventDTO.setInstanceId("85425022110000120190117110505");
-		workflowPausedForAdditionalInfoEventDTO.setResultCode("PAUSED_FOR_ADDITIONAL_INFO");
 		workflowPausedForAdditionalInfoEventDTO.setWorkflowType("NEW");
-		workflowPausedForAdditionalInfoEventDTO.setSubProcess("correction");
+		workflowPausedForAdditionalInfoEventDTO.setAdditionalInfoProcess("correction");
 		ResponseEntity<Void> res = notificationService.process(workflowPausedForAdditionalInfoEventDTO);
 		assertEquals(500, res.getStatusCodeValue());
 	}
@@ -793,9 +790,8 @@ public class NotificationServiceTest {
 				Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
 		WorkflowPausedForAdditionalInfoEventDTO workflowPausedForAdditionalInfoEventDTO = new WorkflowPausedForAdditionalInfoEventDTO();
 		workflowPausedForAdditionalInfoEventDTO.setInstanceId("85425022110000120190117110505");
-		workflowPausedForAdditionalInfoEventDTO.setResultCode("PAUSED_FOR_ADDITIONAL_INFO");
 		workflowPausedForAdditionalInfoEventDTO.setWorkflowType("NEW");
-		workflowPausedForAdditionalInfoEventDTO.setSubProcess("correction");
+		workflowPausedForAdditionalInfoEventDTO.setAdditionalInfoProcess("correction");
 		ResponseEntity<Void> res = notificationService.process(workflowPausedForAdditionalInfoEventDTO);
 		assertEquals(500, res.getStatusCodeValue());
 	}

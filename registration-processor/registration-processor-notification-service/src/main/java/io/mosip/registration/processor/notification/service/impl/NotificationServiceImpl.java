@@ -556,13 +556,10 @@ public class NotificationServiceImpl implements NotificationService {
 				"NotificationServiceImpl::process()::entry");
 
 		try {
-
-			String resultCode = object.getResultCode();
 			String workflowType = object.getWorkflowType();
-
-			setTemplateAndSubjectForPausedForAdditionalInfo(object.getSubProcess(), workflowType, messageSenderDto);
-
-				Map<String, Object> attributes = new HashMap<>();
+			setTemplateAndSubjectForPausedForAdditionalInfo(object.getAdditionalInfoProcess(), workflowType,
+					messageSenderDto);
+			Map<String, Object> attributes = new HashMap<>();
 			attributes.put("additionalInfoRequestId", object.getAdditionalInfoRequestId());
 				String[] ccEMailList = null;
 

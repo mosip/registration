@@ -19,7 +19,7 @@ import io.mosip.registration.processor.core.workflow.dto.WorkflowPausedForAdditi
 @Component
 public class WebSubUtil {
 	@Autowired
-	private PublisherClient<String, WorkflowCompletedEventDTO, HttpHeaders> publisher;
+	private PublisherClient<String, WorkflowCompletedEventDTO, HttpHeaders> workflowCompletedPublisher;
 
 	@Autowired
 	private PublisherClient<String, WorkflowPausedForAdditionalInfoEventDTO, HttpHeaders> workflowPausedForAdditionalInfoPublisher;
@@ -39,8 +39,9 @@ public class WebSubUtil {
 	@PostConstruct
 	private void registerTopic() {
 		try {
-			publisher.registerTopic(workflowCompleteTopic, webSubPublishUrl);
-			publisher.registerTopic(workflowPausedforadditionalinfoTopic, webSubPublishUrl);
+			workflowCompletedPublisher.registerTopic(workflowCompleteTopic, webSubPublishUrl);
+			workflowPausedForAdditionalInfoPublisher.registerTopic(workflowPausedforadditionalinfoTopic,
+					webSubPublishUrl);
 		} catch (WebSubClientException exception) {
 			regProcLogger.warn(exception.getMessage());
 		}
@@ -49,7 +50,8 @@ public class WebSubUtil {
 	public void publishEvent(WorkflowCompletedEventDTO workflowCompletedEventDTO) throws WebSubClientException {
 		String rid = workflowCompletedEventDTO.getInstanceId();
 		HttpHeaders httpHeaders = new HttpHeaders();
-		publisher.publishUpdate(workflowCompleteTopic, workflowCompletedEventDTO, MediaType.APPLICATION_JSON_UTF8_VALUE,
+		workflowCompletedPublisher.publishUpdate(workflowCompleteTopic, workflowCompletedEventDTO,
+				MediaType.APPLICATION_JSON_UTF8_VALUE,
 				httpHeaders, webSubPublishUrl);
 		regProcLogger.info("Publish the update successfully  for registration id {}", rid);
 
