@@ -135,8 +135,8 @@ public class SyncRegistrationDaoTest {
 		filterInfos.add(filterInfo);
 		sortInfos.add(sortInfo);
 		testIdList.add("1001");
-		List<String> idList = syncRegistrationDao.getSearchResults(filterInfos, sortInfos);
-		assertEquals(idList, testIdList);
+		List<SyncRegistrationEntity> idList = syncRegistrationDao.getSearchResults(filterInfos, sortInfos);
+		assertEquals(idList.get(0).getRegistrationId(), testIdList.get(0));
 	}
 
 }

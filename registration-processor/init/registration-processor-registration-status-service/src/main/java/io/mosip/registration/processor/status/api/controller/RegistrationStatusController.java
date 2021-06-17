@@ -162,9 +162,9 @@ public class RegistrationStatusController {
 
 		try {
 			lostRidRequestValidator.validate(lostRidRequestDto);
-			LostRidDto lostRidDto = syncRegistrationService.searchLostRid(lostRidRequestDto.getRequest());
+			List<LostRidDto> lostRidDtos = syncRegistrationService.searchLostRid(lostRidRequestDto.getRequest());
 			return ResponseEntity.status(HttpStatus.OK)
-					.body(buildLostRidResponse(lostRidDto));
+					.body(buildLostRidResponse(lostRidDtos));
 		} catch (RegStatusAppException e) {
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_DATA_VALIDATION_FAILED, e);
 		} catch (Exception e) {
@@ -208,7 +208,8 @@ public class RegistrationStatusController {
 				registrationStatusDto.setStatusCode(RegistrationExternalStatusCode.PROCESSED.toString());
 		}
 	}
-	public LostRidResponseDto buildLostRidResponse(LostRidDto lostRidDto) {
+
+	public LostRidResponseDto buildLostRidResponse(List<LostRidDto> lostRidDtos) {
 
 		LostRidResponseDto response = new LostRidResponseDto();
 		if (Objects.isNull(response.getId())) {
@@ -216,9 +217,9 @@ public class RegistrationStatusController {
 		}
 		response.setResponsetime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		response.setVersion(env.getProperty(REG_LOSTRID_APPLICATION_VERSION));
-		response.setResponse(lostRidDto);
+		response.setResponse(lostRidDtos);
 		List<ErrorDTO> errors = new ArrayList<ErrorDTO>();
-		if (lostRidDto.getRegistartionIds().isEmpty()) {
+		if (lostRidDtos.isEmpty()) {
 			RegistrationStatusErrorDto errorDto = new RegistrationStatusErrorDto(
 					PlatformErrorMessages.RPR_RGS_RID_NOT_FOUND.getCode(),
 					PlatformErrorMessages.RPR_RGS_RID_NOT_FOUND.getMessage());

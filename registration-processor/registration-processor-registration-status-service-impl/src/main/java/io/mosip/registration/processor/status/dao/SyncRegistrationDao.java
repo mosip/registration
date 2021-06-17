@@ -150,7 +150,7 @@ public class SyncRegistrationDao {
 		return updatedEntity != null ? true : false;
 	}
 
-	public List<String> getSearchResults(List<FilterInfo> filters, List<SortInfo> sort) {
+	public List<SyncRegistrationEntity> getSearchResults(List<FilterInfo> filters, List<SortInfo> sort) {
 		Map<String, Object> params = new HashMap<>();
 		List<String> registrationIdlist = new ArrayList<String>();
 		String className = SyncRegistrationEntity.class.getSimpleName();
@@ -181,10 +181,7 @@ public class SyncRegistrationDao {
 		}
 		List<SyncRegistrationEntity> result = syncRegistrationRepository.createQuerySelect(sb.toString(), params);
 
-		for (SyncRegistrationEntity syncRegEn : result) {
-			registrationIdlist.add(syncRegEn.getRegistrationId());
-		}
-		return registrationIdlist;
+		return result;
 	}
 
 	/**

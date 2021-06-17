@@ -107,7 +107,7 @@ public class LostRidRequestValidator {
 	private void validateFilter(List<FilterInfo> filterInfos) throws WorkFlowSearchException, RegStatusAppException {
 		LostRidValidationException exception = new LostRidValidationException();
 		if (Objects.isNull(filterInfos)) {
-			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER_VERSION, exception);
+			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER, exception);
 		}
 		for (FilterInfo filter : filterInfos) {
 			if (filter.getColumnName().equals("name") || filter.getColumnName().equals("email")
@@ -116,7 +116,7 @@ public class LostRidRequestValidator {
 					|| filter.getColumnName().equals("postalCode")) {
 				validateFilterType(filterInfos);
 			} else {
-				throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER_VERSION, exception);
+				throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER, exception);
 			}
 		}
 
@@ -134,18 +134,14 @@ public class LostRidRequestValidator {
 	private void validateFilterType(List<FilterInfo> filterInfos)
 			throws WorkFlowSearchException, RegStatusAppException {
 		LostRidValidationException exception = new LostRidValidationException();
-		if (Objects.isNull(filterInfos)) {
-			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER_VERSION, exception);
-		}
 		for (FilterInfo filter : filterInfos) {
 			if (filter.getType().equals("equals") || filter.getType().equalsIgnoreCase("between")) {
 
 			} else {
-				throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER_VERSION,
+				throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER,
 						exception);
 			}
 		}
-
 	}
 
 	/**
@@ -176,11 +172,12 @@ public class LostRidRequestValidator {
 	 */
 	private void validateSortField(List<SortInfo> sortInfos) throws WorkFlowSearchException, RegStatusAppException {
 		LostRidValidationException exception = new LostRidValidationException();
-		if (Objects.isNull(sortInfos)) {
+		if (sortInfos.size() > 1) {
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER, exception);
-		} else if (sortInfos.get(0).getSortField().equals("createDateTime")
-				|| sortInfos.get(0).getSortField().equals("updateDateTime")
-				|| sortInfos.get(0).getSortField().equals("registrationDate")) {
+		} else if (sortInfos.get(0).getSortField().equals("name") || sortInfos.get(0).getSortField().equals("email")
+				|| sortInfos.get(0).getSortField().equals("phone") || sortInfos.get(0).getSortField().equals("centerId")
+				|| sortInfos.get(0).getSortField().equals("registrationDate")
+				|| sortInfos.get(0).getSortField().equals("postalCode")) {
 
 		} else {
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER, exception);

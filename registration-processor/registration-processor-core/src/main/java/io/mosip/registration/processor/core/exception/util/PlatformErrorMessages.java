@@ -135,7 +135,7 @@ public enum PlatformErrorMessages {
 			"Missing Request Value - version"),
 
 	/** The rpr rgs missing input parameter version. */
-	RPR_RGS_INVALID_SEARCH(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "030", "plz narrow down your search"),
+	RPR_RGS_INVALID_SEARCH(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "032", "plz narrow down your search"),
 
 	/** The rpr rgs missing input parameter timestamp. */
 	RPR_RGS_MISSING_INPUT_PARAMETER_TIMESTAMP(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "020",

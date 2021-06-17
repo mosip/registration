@@ -32,12 +32,16 @@ import io.mosip.kernel.dataaccess.hibernate.constant.HibernateErrorCode;
 import io.mosip.kernel.idvalidator.rid.constant.RidExceptionProperty;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.logger.LogDescription;
+import io.mosip.registration.processor.core.workflow.dto.SortInfo;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.dao.SyncRegistrationDao;
 import io.mosip.registration.processor.status.decryptor.Decryptor;
+import io.mosip.registration.processor.status.dto.FilterInfo;
+import io.mosip.registration.processor.status.dto.LostRidDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.RegistrationSyncRequestDTO;
+import io.mosip.registration.processor.status.dto.SearchInfo;
 import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
 import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.dto.SyncResponseFailureDto;
@@ -145,7 +149,7 @@ public class SyncRegistrationServiceTest {
 		syncRegistrationDto.setSyncType(SyncTypeDto.NEW.getValue());
 		syncRegistrationDto.setName("mosip");
 		syncRegistrationDto.setPhone("1234567890");
-		syncRegistrationDto.setEmail("mosip@gmail.com");
+		syncRegistrationDto.setEmail("mosip1@gmail.com");
 
 		syncRegistrationDto1 = new SyncRegistrationDto();
 
@@ -154,6 +158,9 @@ public class SyncRegistrationServiceTest {
 
 		syncRegistrationDto1.setIsActive(true);
 		syncRegistrationDto1.setIsDeleted(false);
+		syncRegistrationDto1.setName("mosip");
+		syncRegistrationDto1.setPhone("1234567890");
+		syncRegistrationDto1.setEmail("mosip1@gmail.com");
 
 		syncRegistrationDto1.setSyncType("NEW_REGISTRATION");
 		syncRegistrationDto1.setPacketHashValue("ab123");
@@ -165,7 +172,9 @@ public class SyncRegistrationServiceTest {
 		syncRegistrationDto2.setLangCode("eng");
 		syncRegistrationDto2.setIsActive(true);
 		syncRegistrationDto2.setIsDeleted(false);
-
+		syncRegistrationDto1.setName("mosip");
+		syncRegistrationDto1.setPhone("1234567890");
+		syncRegistrationDto1.setEmail("mosip1@gmail.com");
 		syncRegistrationDto2.setSyncType(SyncTypeDto.UPDATE.getValue());
 		syncRegistrationDto2.setPacketHashValue("ab123");
 		syncRegistrationDto2.setSupervisorStatus("APPROVED");
@@ -563,6 +572,33 @@ public class SyncRegistrationServiceTest {
 		Mockito.when(syncRegistrationDao.getByIds(any())).thenThrow(exp);
 		syncRegistrationService.getByIds(registrationIds);
 
+	}
+
+	@Test(expected = TablenotAccessibleException.class)
+	public void searchLostRid() {
+		SearchInfo searchInfo = new SearchInfo();
+		List<FilterInfo> filterInfos = new ArrayList<FilterInfo>();
+		List<SortInfo> sortInfos = new ArrayList<SortInfo>();
+		List<String> testIdList = new ArrayList<String>();
+		FilterInfo filterInfo = new FilterInfo();
+		filterInfo.setColumnName("name");
+		filterInfo.setValue("mosip");
+		filterInfo.setType("equals");
+		FilterInfo filterInfo1 = new FilterInfo();
+		filterInfo1.setColumnName("email");
+		filterInfo1.setValue("mosip1@gmail.com");
+		filterInfo1.setType("equals");
+		SortInfo sortInfo = new SortInfo();
+		sortInfo.setSortField("createDateTime");
+		sortInfo.setSortType("desc");
+		filterInfos.add(filterInfo);
+		filterInfos.add(filterInfo1);
+		sortInfos.add(sortInfo);
+		testIdList.add("1001");
+		searchInfo.setFilters(filterInfos);
+		searchInfo.setSort(sortInfos);
+		List<LostRidDto> lostRidDtos = syncRegistrationService.searchLostRid(searchInfo);
+		assertEquals(lostRidDtos.get(0).getRegistrationId(), testIdList.get(0));
 	}
 
 }

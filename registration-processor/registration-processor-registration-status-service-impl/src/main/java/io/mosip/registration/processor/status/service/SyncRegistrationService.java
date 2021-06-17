@@ -85,6 +85,6 @@ public interface SyncRegistrationService<T, U> {
 	 */
 	public boolean deleteAdditionalInfo(SyncRegistrationEntity syncEntity);
 
-	public LostRidDto searchLostRid(SearchInfo searchInfo);
+	public List<LostRidDto> searchLostRid(SearchInfo searchInfo);
 
 }

@@ -491,7 +491,9 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			byte[] encryptedInfo = encryptor.encrypt(additionalInfo, referenceId,
 			 timeStamp);
 			syncRegistrationEntity.setOptionalValues(encryptedInfo);
-			syncRegistrationEntity.setName(getHashCode(dto.getName().replaceAll("\\s", "").toLowerCase()));
+			if (dto.getName() != null) {
+				syncRegistrationEntity.setName(getHashCode(dto.getName().replaceAll("\\s", "").toLowerCase()));
+			}
 			syncRegistrationEntity.setEmail(getHashCode(dto.getEmail()));
 			syncRegistrationEntity.setCenterId(getHashCode(referenceId.split("_")[0]));
 			syncRegistrationEntity.setPhone(getHashCode(dto.getPhone()));
@@ -617,17 +619,17 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	}
 
 	@Override
-	public LostRidDto searchLostRid(SearchInfo searchInfo) {
+	public List<LostRidDto> searchLostRid(SearchInfo searchInfo) {
 		regProcLogger.debug("{}", "{}", "",
 				"SyncRegistrationServiceImpl::getByIds()::entry");
 		try {
-			LostRidDto lostRidDto = new LostRidDto();
 			updateFiltersWithHashedValues(searchInfo);
-			List<String> registrationIds = syncRegistrationDao.getSearchResults(searchInfo.getFilters(),
+			List<SyncRegistrationEntity> syncRegistrationEntities = syncRegistrationDao.getSearchResults(
+					searchInfo.getFilters(),
 					searchInfo.getSort());
-			validateRegistrationIds(registrationIds);
-			lostRidDto.setRegistartionIds(registrationIds);
-			return lostRidDto;
+			List<LostRidDto> lostRidDtos = entityToDtoMapper(syncRegistrationEntities);
+			validateRegistrationIds(lostRidDtos);
+			return lostRidDtos;
 		} catch (DataAccessLayerException | NoSuchAlgorithmException | RegStatusAppException e) {
 
 			regProcLogger.error("{}", "{}",
@@ -637,9 +639,20 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		}
 	}
 
-	private void validateRegistrationIds(List<String> registrationIds) throws RegStatusAppException {
+	private List<LostRidDto> entityToDtoMapper(List<SyncRegistrationEntity> syncRegistrationEntities) {
+		List<LostRidDto> lostRidDtos = new ArrayList<LostRidDto>();
+		syncRegistrationEntities.forEach(syncEntity -> {
+			LostRidDto lostRidDto = new LostRidDto();
+			lostRidDto.setRegistrationId(syncEntity.getRegistrationId());
+			lostRidDto.setRegistartionDate(syncEntity.getRegistrationDate().toString());
+			lostRidDtos.add(lostRidDto);
+		});
+		return lostRidDtos;
+	}
+
+	private void validateRegistrationIds(List<LostRidDto> lostRidDtos) throws RegStatusAppException {
 		LostRidValidationException exception = new LostRidValidationException();
-		if (registrationIds.size() >= maxSearchResult) {
+		if (lostRidDtos.size() >= maxSearchResult) {
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_INVALID_SEARCH, exception);
 		}
 
@@ -648,10 +661,12 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	private void updateFiltersWithHashedValues(SearchInfo searchInfo)
 			throws NoSuchAlgorithmException, RegStatusAppException {
 		for (FilterInfo filterInfo : searchInfo.getFilters()) {
-			if (!filterInfo.getColumnName().equalsIgnoreCase("registrationDate")
-					&& !filterInfo.getColumnName().equalsIgnoreCase("name")) {
+			if (filterInfo.getColumnName().equals("email") || filterInfo.getColumnName().equals("phone")
+					|| filterInfo.getColumnName().equals("centerId")
+					|| filterInfo.getColumnName().equals("postalCode")) {
+
 				filterInfo.setValue(getHashCode(filterInfo.getValue()));
-			} else if (!filterInfo.getColumnName().equalsIgnoreCase("registrationDate")) {
+			} else if (filterInfo.getColumnName().equalsIgnoreCase("name")) {
 				filterInfo.setValue(getHashCode(filterInfo.getValue().replaceAll("\\s", "").toLowerCase()));
 			}
 		}
@@ -724,16 +739,21 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 
 	private String getHashCode(String value) throws RegStatusAppException {
 		String hashedSaltValue = null;
+		if (value == null) {
+			return null;
+		}
 		try {
 			byte[] hashCode = getHMACHash(value);
 			byte[] nonce = Arrays.copyOfRange(hashCode, hashCode.length - 2, hashCode.length);
 			String result = convertBytesToHex(nonce);
 			Long hashValue = Long.parseLong(result, 16);
-			String salt=syncRegistrationDao.getSaltValue(hashValue);
+			Long saltIndex = hashValue % 10000;
+			String salt = syncRegistrationDao.getSaltValue(saltIndex);
 			String saltHashValue = getEncodedHMACHash(value + salt);
 			for (int i = 0; i <= iteration; i++) {
 				hashedSaltValue += getHMACHash(saltHashValue);
 			}
+			hashedSaltValue = getEncodedHMACHash(hashedSaltValue);
 		} catch (NoSuchAlgorithmException e) {
 			regProcLogger.error("{}", "{}",
 					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
@@ -747,7 +767,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		for (byte temp : bytes) {
 			result.append(String.format("%02x", temp));
 		}
-		return result.substring(0, 3).toString();
+		return result.toString();
 	}
 
 }
