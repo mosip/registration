@@ -13,7 +13,6 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,7 +48,6 @@ import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.JsonValue;
 import io.mosip.registration.processor.core.spi.biodedupe.BioDedupeService;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
-import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.JsonUtil;
@@ -100,10 +98,6 @@ public class BioDedupeProcessor {
 	@Autowired
 	private AuditLogRequestBuilder auditLogRequestBuilder;
 
-	/** The rest client service. */
-	@Autowired
-	private RegistrationProcessorRestClientService<Object> restClientService;
-
 	/** The registration exception mapper util. */
 	@Autowired
 	RegistrationExceptionMapperUtil registrationExceptionMapperUtil;
@@ -114,9 +108,6 @@ public class BioDedupeProcessor {
 
 	@Autowired
 	private BioDedupeService biodedupeServiceImpl;
-
-	@Autowired
-	private Environment env;
 
 	/** The config server file storage URL. */
 	@Value("${config.server.file.storage.uri}")
@@ -134,8 +125,6 @@ public class BioDedupeProcessor {
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(BioDedupeProcessor.class);
 
 
-
-	private static final String VALIDATIONFALSE = "false";
 
 	@Value("${registration.processor.infant.dedupe}")
 	private String infantDedupe;
@@ -218,7 +207,6 @@ public class BioDedupeProcessor {
 					description.getCode() + " -- " + LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
 					description.getMessage() + "\n" + ExceptionUtils.getStackTrace(e));
 			object.setInternalError(Boolean.TRUE);
-			object.setIsValid(Boolean.FALSE);
 		} catch (ApisResourceAccessException e) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
 			registrationStatusDto.setStatusComment(
@@ -232,7 +220,6 @@ public class BioDedupeProcessor {
 					description.getCode() + " -- " + LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
 					description + "\n" + ExceptionUtils.getStackTrace(e));
 			object.setInternalError(Boolean.TRUE);
-			object.setIsValid(Boolean.FALSE);
 		} catch (CbeffNotFoundException ex) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
 			registrationStatusDto.setStatusComment(StatusUtil.CBEF_NOT_FOUND.getMessage());
@@ -245,7 +232,6 @@ public class BioDedupeProcessor {
 					description.getCode() + " -- " + LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
 					description.getMessage() + "\n" + ExceptionUtils.getStackTrace(ex));
 			object.setInternalError(Boolean.TRUE);
-			object.setIsValid(Boolean.FALSE);
 		} catch (IdentityNotFoundException | IOException ex) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
 			registrationStatusDto.setStatusComment(trimExceptionMessage
@@ -259,7 +245,6 @@ public class BioDedupeProcessor {
 					description.getCode() + " -- " + LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
 					description.getMessage() + "\n" + ExceptionUtils.getStackTrace(ex));
 			object.setInternalError(Boolean.TRUE);
-			object.setIsValid(Boolean.FALSE);
 		} catch (Exception ex) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
 			registrationStatusDto.setStatusComment(trimExceptionMessage
@@ -273,8 +258,10 @@ public class BioDedupeProcessor {
 					description.getCode() + " -- " + LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
 					description.getMessage() + "\n" + ExceptionUtils.getStackTrace(ex));
 			object.setInternalError(Boolean.TRUE);
-			object.setIsValid(Boolean.FALSE);
 		} finally {
+			if (object.getInternalError()) {
+				updateErrorFlags(registrationStatusDto, object);
+			}
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.BIOGRAPHIC_VERIFICATION.toString());
 			String moduleId = isTransactionSuccessful ? PlatformSuccessMessages.RPR_BIO_DEDUPE_SUCCESS.getCode()
@@ -311,6 +298,7 @@ public class BioDedupeProcessor {
 	private void newPacketPreAbisIdentification(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object)
 			throws ApisResourceAccessException, IOException, JsonProcessingException, PacketManagerException {
 		if (isValidCbeff(registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType())) {
+			object.setIsValid(Boolean.TRUE);
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 			registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_INPROGRESS.getMessage());
 			registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_INPROGRESS.getCode());
@@ -350,6 +338,7 @@ public class BioDedupeProcessor {
 
 
 		if (StringUtils.isNotEmpty(bioField)) {
+			object.setIsValid(Boolean.TRUE);
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 			registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_INPROGRESS.getMessage());
 			registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_INPROGRESS.getCode());
@@ -417,7 +406,7 @@ public class BioDedupeProcessor {
 			//send message to manual adjudication
 			object.setInternalError(Boolean.FALSE);
 			object.setRid(registrationStatusDto.getRegistrationId());
-			object.setIsValid(Boolean.FALSE);
+			object.setIsValid(Boolean.TRUE);
 			object.setReg_type(RegistrationType.valueOf(registrationType));
 			object.setMessageBusAddress(MessageBusAddress.MANUAL_VERIFICATION_BUS_IN);
 
@@ -485,6 +474,7 @@ public class BioDedupeProcessor {
 	private void lostPacketPreAbisIdentification(InternalRegistrationStatusDto registrationStatusDto,
 			MessageDTO object) {
 
+		object.setIsValid(Boolean.TRUE);
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 		registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_INPROGRESS.getMessage());
 		registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_INPROGRESS.getCode());
@@ -638,5 +628,15 @@ public class BioDedupeProcessor {
 		}
 
 		return attribute;
+	}
+	
+	private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
+		object.setInternalError(true);
+		if (registrationStatusDto.getLatestTransactionStatusCode()
+				.equalsIgnoreCase(RegistrationTransactionStatusCode.REPROCESS.toString())) {
+			object.setIsValid(true);
+		} else {
+			object.setIsValid(false);
+		}
 	}
 }

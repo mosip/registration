@@ -52,6 +52,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -253,14 +254,17 @@ public class PacketValidateProcessorTest {
 	
 	@Test
 	public void PacketValidationSuccessTest() {
-		assertTrue(packetValidateProcessor.process(messageDTO, stageName).getIsValid());
+		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
+		assertTrue(object.getIsValid());
+		assertFalse(object.getInternalError());
 	}
 	
 	@Test
 	public void PacketValidationFailureTest() throws PacketValidatorException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException {
-		Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.EXCEPTION)).thenReturn("ERROR");
 		Mockito.when(packetValidator.validate(any(), any(),any())).thenReturn(false);
-		assertFalse(packetValidateProcessor.process(messageDTO, stageName).getIsValid());
+		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
+		assertFalse(object.getIsValid());
+		assertFalse(object.getInternalError());
 	}
 	
 	@Test
@@ -268,28 +272,42 @@ public class PacketValidateProcessorTest {
 		regEntity=new SyncRegistrationEntity();
 		regEntity.setSupervisorStatus("REJECTED");
 		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
-		assertFalse(packetValidateProcessor.process(messageDTO, stageName).getIsValid());
+		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
+		assertFalse(object.getIsValid());
+		assertFalse(object.getInternalError());
 	}
 	
 	@Test
 	public void PacketValidationAPIResourceExceptionTest() throws PacketValidatorException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException {
 		ApisResourceAccessException exc=new ApisResourceAccessException("Ex");
 		Mockito.when(packetValidator.validate(any(),any(), any())).thenThrow(exc);
-		assertTrue(packetValidateProcessor.process(messageDTO, stageName).getInternalError());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
+		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
+		assertTrue(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 	
 	@Test
 	public void PacketValidationIOExceptionTest() throws PacketValidatorException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException {
 		IOException exc=new IOException("Ex");
 		Mockito.when(packetValidator.validate(any(),any(), any())).thenThrow(exc);
-		assertTrue(packetValidateProcessor.process(messageDTO, stageName).getInternalError());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.IOEXCEPTION)).thenReturn("ERROR");
+		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
+		assertFalse(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 	
 	@Test
 	public void PacketValidationBaseCheckedExceptionTest() throws PacketValidatorException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException {
 		RegistrationProcessorCheckedException exc=new RegistrationProcessorCheckedException("", "", new RegistrationProcessorCheckedException("", ""));
 		Mockito.when(packetValidator.validate(any(), any(),any())).thenThrow(exc);
-		assertTrue(packetValidateProcessor.process(messageDTO, stageName).getInternalError());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.BASE_CHECKED_EXCEPTION)).thenReturn("ERROR");
+		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
+		assertFalse(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 
 	@Test
@@ -303,7 +321,9 @@ public class PacketValidateProcessorTest {
 		mainResponseDTO.setResponse(null);
 		Mockito.when(restClientService.postApi(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any(),
 				Matchers.any())).thenReturn(mainResponseDTO);
-		assertTrue(packetValidateProcessor.process(messageDTO, stageName).getIsValid());
+		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
+		assertTrue(object.getIsValid());
+		assertFalse(object.getInternalError());
 	}
 	
 	@Test
@@ -311,7 +331,9 @@ public class PacketValidateProcessorTest {
 		
 		Mockito.when(restClientService.postApi(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any(),
 				Matchers.any())).thenReturn(null);
-		assertTrue(packetValidateProcessor.process(messageDTO, stageName).getIsValid());
+		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
+		assertTrue(object.getIsValid());
+		assertFalse(object.getInternalError());
 	}
 	
 	@Test
@@ -319,7 +341,11 @@ public class PacketValidateProcessorTest {
 		
 		Mockito.when(restClientService.postApi(any(), any(), any(), any(),
 				any())).thenThrow(new ApisResourceAccessException("",new HttpClientErrorException(HttpStatus.GATEWAY_TIMEOUT, "")));
-		assertTrue(packetValidateProcessor.process(messageDTO, stageName).getIsValid());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
+		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
+		assertTrue(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 	
 	@Test
@@ -327,7 +353,11 @@ public class PacketValidateProcessorTest {
 		
 		Mockito.when(restClientService.postApi(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any(),
 				Matchers.any())).thenThrow(new ApisResourceAccessException("",new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "")));
-		assertTrue(packetValidateProcessor.process(messageDTO, stageName).getIsValid());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
+		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
+		assertTrue(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 	
 	@Test
@@ -335,34 +365,44 @@ public class PacketValidateProcessorTest {
 		
 		Mockito.when(restClientService.postApi(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any(),
 				Matchers.any())).thenThrow(new ApisResourceAccessException(""));
-		assertTrue(packetValidateProcessor.process(messageDTO, stageName).getIsValid());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
+		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
+		assertTrue(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void TableNotAccessibleExceptionest() throws Exception  {
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
 				.thenThrow( TablenotAccessibleException.class);
-		
-		assertFalse(packetValidateProcessor.process(messageDTO, stageName).getIsValid());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.TABLE_NOT_ACCESSIBLE_EXCEPTION)).thenReturn("REPROCESS");
+		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
+		assertTrue(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Test
 	public void DataNotAccessibleExceptionest() throws Exception  {
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
-				.thenThrow( BaseUncheckedException.class);
-		
-		assertFalse(packetValidateProcessor.process(messageDTO, stageName).getIsValid());
+				.thenThrow( new DataAccessException("DataAccessException") {});
+		Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.DATA_ACCESS_EXCEPTION))
+				.thenReturn("REPROCESS");
+		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
+		assertTrue(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Test
-	public void BaseCheckedExceptionTest() throws Exception  {
-		Mockito.when(registrationStatusService.getRegistrationStatus(any()))
+	public void BaseUnCheckedExceptionTest() throws Exception  {
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
 				.thenThrow(BaseUncheckedException.class);
-		
-		assertFalse(packetValidateProcessor.process(messageDTO, stageName).getIsValid());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.BASE_UNCHECKED_EXCEPTION)).thenReturn("ERROR");
+		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
+		assertFalse(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 	
 }

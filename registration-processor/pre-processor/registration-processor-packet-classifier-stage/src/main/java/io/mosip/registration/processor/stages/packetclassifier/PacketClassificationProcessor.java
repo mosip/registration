@@ -261,18 +261,19 @@ public class PacketClassificationProcessor {
 				description, PlatformErrorMessages.RPR_PCM_BASE_UNCHECKED_EXCEPTION, e);
 		} catch (BaseCheckedException e) {
 			updateDTOsAndLogError(registrationStatusDto, RegistrationStatusCode.FAILED, 
-				StatusUtil.BASE_CHECKED_EXCEPTION, RegistrationExceptionTypeCode.BASE_UNCHECKED_EXCEPTION, 
+				StatusUtil.BASE_CHECKED_EXCEPTION, RegistrationExceptionTypeCode.BASE_CHECKED_EXCEPTION, 
 				description, PlatformErrorMessages.RPR_PCM_BASE_CHECKED_EXCEPTION, e);
 		} catch (Exception e) {
 			updateDTOsAndLogError(registrationStatusDto, RegistrationStatusCode.FAILED, 
 				StatusUtil.UNKNOWN_EXCEPTION_OCCURED, RegistrationExceptionTypeCode.EXCEPTION, 
 				description, PlatformErrorMessages.PACKET_CLASSIFICATION_FAILED, e);
 		} finally {
-			if (!isTransactionSuccessful) {
+			if (object.getInternalError()) {
 				int retryCount = registrationStatusDto.getRetryCount() != null
 						? registrationStatusDto.getRetryCount() + 1
 						: 1;
 				registrationStatusDto.setRetryCount(retryCount);
+				updateErrorFlags(registrationStatusDto, object);
 			}
 			registrationStatusDto.setUpdatedBy(USER);
 			/** Module-Id can be Both Success/Error code */
@@ -362,6 +363,16 @@ public class PacketClassificationProcessor {
 		for (Map.Entry<String, String> entry : tags.entrySet()) {
 			if(entry.getValue() == null)
 				entry.setValue(notAvailableTagValue);
+		}
+	}
+	
+	private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
+		object.setInternalError(true);
+		if (registrationStatusDto.getLatestTransactionStatusCode()
+				.equalsIgnoreCase(RegistrationTransactionStatusCode.REPROCESS.toString())) {
+			object.setIsValid(true);
+		} else {
+			object.setIsValid(false);
 		}
 	}
 

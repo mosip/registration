@@ -524,7 +524,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 					regId, description.getMessage());
 
 		} catch (TablenotAccessibleException e) {
-
+			messageDTO.setInternalError(true);
 			registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
 					.getStatusCode(RegistrationExceptionTypeCode.TABLE_NOT_ACCESSIBLE_EXCEPTION));
 			registrationStatusDto.setStatusComment(trimExceptionMessage
@@ -536,6 +536,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					regId, e.getMessage() + ExceptionUtils.getStackTrace(e));
 		} catch (IOException e) {
+			messageDTO.setInternalError(true);
 			registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
 					.getStatusCode(RegistrationExceptionTypeCode.IOEXCEPTION));
 			registrationStatusDto.setStatusComment(trimExceptionMessage
@@ -547,6 +548,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					regId, e.getMessage() + ExceptionUtils.getStackTrace(e));
 		} catch (Exception e) {
+			messageDTO.setInternalError(true);
 			registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
 					.getStatusCode(RegistrationExceptionTypeCode.EXCEPTION));
 			registrationStatusDto.setStatusComment(trimExceptionMessage
@@ -560,6 +562,9 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		}
 
 		finally {
+			if(messageDTO.getInternalError()) {
+				updateErrorFlags(registrationStatusDto, messageDTO);
+			}
 			/** Module-Id can be Both Success/Error code */
 			String moduleId = isTransactionSuccessful
 					? PlatformSuccessMessages.RPR_MANUAL_VERIFICATION_APPROVED.getCode()
@@ -988,6 +993,16 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					mve.getId().getRegId(), "ManualVerificationServiceImpl::updateManualVerificationEntityRID()::exit");
 		});
+	}
+	
+	private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
+		object.setInternalError(true);
+		if (registrationStatusDto.getLatestTransactionStatusCode()
+				.equalsIgnoreCase(RegistrationTransactionStatusCode.REPROCESS.toString())) {
+			object.setIsValid(true);
+		} else {
+			object.setIsValid(false);
+		}
 	}
 
 }

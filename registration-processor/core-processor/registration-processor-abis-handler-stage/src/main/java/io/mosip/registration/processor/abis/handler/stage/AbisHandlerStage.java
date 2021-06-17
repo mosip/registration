@@ -230,6 +230,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		object.setIsValid(Boolean.TRUE);
 		Boolean isTransactionSuccessful = false;
 		String regId = object.getRid();
+		object.setInternalError(Boolean.FALSE);
 		InternalRegistrationStatusDto registrationStatusDto = null;
 		String transactionTypeCode = null;
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -294,6 +295,9 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 			String moduleName = ModuleName.ABIS_HANDLER.toString();
 			registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);
 		} finally {
+			if (object.getInternalError()) {
+				updateErrorFlags(registrationStatusDto, object);
+			}
 			String eventId = isTransactionSuccessful ? EventId.RPR_402.toString() : EventId.RPR_405.toString();
 			String eventName = isTransactionSuccessful ? EventName.UPDATE.toString() : EventName.EXCEPTION.toString();
 			String eventType = isTransactionSuccessful ? EventType.BUSINESS.toString() : EventType.SYSTEM.toString();
@@ -712,5 +716,15 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		}
 		return typeAndSubTypeMap;
 
+	}
+	
+	private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
+		object.setInternalError(true);
+		if (registrationStatusDto.getLatestTransactionStatusCode()
+				.equalsIgnoreCase(RegistrationTransactionStatusCode.REPROCESS.toString())) {
+			object.setIsValid(true);
+		} else {
+			object.setIsValid(false);
+		}
 	}
 }
