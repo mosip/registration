@@ -365,6 +365,7 @@ public class RegistrationStatusDao {
 				+ ".defaultResumeAction is not null" + EMPTY_STRING + ORDER_BY + EMPTY_STRING + UPDATED_DATE_TIME;
 		List<String> statusCodes = new ArrayList<String>();
 		statusCodes.add(RegistrationStatusCode.PAUSED.toString());
+		statusCodes.add(RegistrationStatusCode.PAUSED_FOR_ADDITIONAL_INFO.toString());
 		params.put("statusCodes", statusCodes);
 
 		return registrationStatusRepositary.createQuerySelect(queryStr, params, fetchSize);
