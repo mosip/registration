@@ -237,7 +237,9 @@ public enum StatusUtil {
 	TIMESTAMP_AFTER_PACKETTIME(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "016"  ,
 			"digital id timestamp is after packet creation time"),
 	TIMESTAMP_BEFORE_PACKETTIME(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "017"  ,
-			"digital id timestamp is before packet creation time");
+			"digital id timestamp is before packet creation time"),
+	DEVICE_HOTLISTED(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "018"  ,
+			"Device has been hot listed");
 
 	private final String statusComment;
 	private final String statusCode;
