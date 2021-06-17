@@ -104,7 +104,7 @@ public class DeviceValidator {
 			if(bir.getOthers()!=null) {
 			for(Entry entry: bir.getOthers()) {
 				if(entry.getKey().equals("PAYLOAD")) {
-					payloads.add(mapper.readValue(entry.getValue(), JSONObject.class));				
+					payloads.add(new JSONObject(entry.getValue()));				
 				}
 			}
 			}
