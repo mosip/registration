@@ -134,9 +134,6 @@ public enum PlatformErrorMessages {
 	RPR_RGS_MISSING_INPUT_PARAMETER_VERSION(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "019",
 			"Missing Request Value - version"),
 
-	/** The rpr rgs missing input parameter version. */
-	RPR_RGS_INVALID_SEARCH(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "032", "plz narrow down your search"),
-
 	/** The rpr rgs missing input parameter timestamp. */
 	RPR_RGS_MISSING_INPUT_PARAMETER_TIMESTAMP(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "020",
 			"Missing Request Parameter - requesttime"),
@@ -1332,7 +1329,12 @@ public enum PlatformErrorMessages {
 
 	/** The queue json validation failed. */
 	QUEUE_JSON_VALIDATION_FAILED(PlatformConstants.RPR_MA_MIDDLEWARE + "004",
-			"Unable to find Connection Properties");
+			"Unable to find Connection Properties"),
+
+	RPR_RGS_INVALID_SEARCH(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "032", "plz narrow down your search"),
+
+	RPR_RGS_SORTING_VALIDATION_FAILED(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "033",
+			"sorting not supported for more than 1 field - %s");
 
 	/** The error message. */
 	private final String errorMessage; 

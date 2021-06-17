@@ -61,7 +61,7 @@ public class LostRidRequestValidator {
 	 */
 	public void validate(LostRidRequestDto lostRidRequestDto)
 			throws RegStatusAppException, WorkFlowSearchException {
-		regProcLogger.debug("{}", "{}", "",
+		regProcLogger.debug(
 				"LostRidRequestValidator::validate()::entry");
 
 		validateId(lostRidRequestDto.getId());
@@ -70,7 +70,7 @@ public class LostRidRequestValidator {
 		validateFilter(lostRidRequestDto.getRequest().getFilters());
 		validateSortField(lostRidRequestDto.getRequest().getSort());
 
-		regProcLogger.debug("{}", "{}", "",
+		regProcLogger.debug(
 				"LostRidRequestValidator::validate()::exit");
 
 	}
@@ -173,7 +173,7 @@ public class LostRidRequestValidator {
 	private void validateSortField(List<SortInfo> sortInfos) throws WorkFlowSearchException, RegStatusAppException {
 		LostRidValidationException exception = new LostRidValidationException();
 		if (sortInfos.size() > 1) {
-			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER, exception);
+			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_SORTING_VALIDATION_FAILED, exception);
 		} else if (sortInfos.get(0).getSortField().equals("name") || sortInfos.get(0).getSortField().equals("email")
 				|| sortInfos.get(0).getSortField().equals("phone") || sortInfos.get(0).getSortField().equals("centerId")
 				|| sortInfos.get(0).getSortField().equals("registrationDate")
