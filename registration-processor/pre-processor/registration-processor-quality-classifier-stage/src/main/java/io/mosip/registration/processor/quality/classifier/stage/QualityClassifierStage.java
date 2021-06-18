@@ -135,6 +135,10 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 
 	@Value("${mosip.regproc.quality.classifier.tagging.quality.prefix:Biometric_Quality-}")
 	private String qualityTagPrefix;
+	
+    /** The tag value that will be used by default when the packet does not have value for the biometric tag field */
+    @Value("${mosip.regproc.quality.classifier.tagging.biometric-not-available-tag-value}")
+    private String biometricNotAvailableTagValue;
 
 	private static String RANGE_DELIMITER = "-";
 
@@ -215,6 +219,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 					MappingJsonConstants.INDIVIDUAL_BIOMETRICS, registrationStatusDto.getRegistrationType(),
 					ProviderStageName.QUALITY_CHECKER);
 			if (StringUtils.isEmpty(individualBiometricsObject)) {
+				packetManagerService.addOrUpdateTags(regId, getQualityTags(null));
 				description.setCode(PlatformErrorMessages.INDIVIDUAL_BIOMETRIC_NOT_FOUND.getCode());
 				description.setMessage(PlatformErrorMessages.INDIVIDUAL_BIOMETRIC_NOT_FOUND.getMessage());
 				object.setIsValid(Boolean.TRUE);
@@ -390,6 +395,15 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 	
 	private Map<String, String> getQualityTags(List<BIR> birs) throws BiometricException{
 		
+		Map<String, String> tags = new HashMap<String, String>();
+		
+		if (birs == null) {
+			tags.put(qualityTagPrefix.concat("Iris"), biometricNotAvailableTagValue);
+			tags.put(qualityTagPrefix.concat("Finger"), biometricNotAvailableTagValue);
+			tags.put(qualityTagPrefix.concat("Face"), biometricNotAvailableTagValue);
+			return tags;
+		}
+		
 		HashMap<String, Float> bioTypeMinScoreMap = new HashMap<String, Float>();
 
 		// get individual biometrics file name from id.json
@@ -409,8 +423,6 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 					storedMinScore == null ? score : storedMinScore > score ? score : storedMinScore);
 
 		}
-
-		Map<String, String> tags = new HashMap<String, String>();
 
 		for (Entry<String, Float> bioTypeMinEntry : bioTypeMinScoreMap.entrySet()) {
 
