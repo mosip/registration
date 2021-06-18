@@ -1,5 +1,8 @@
 package io.mosip.registration.processor.status.validator;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 import java.util.TimeZone;
@@ -112,8 +115,7 @@ public class LostRidRequestValidator {
 		for (FilterInfo filter : filterInfos) {
 			if (filter.getColumnName().equals("name") || filter.getColumnName().equals("email")
 					|| filter.getColumnName().equals("phone") || filter.getColumnName().equals("centerId")
-					|| filter.getColumnName().equals("registrationDate")
-					|| filter.getColumnName().equals("postalCode")) {
+					|| filter.getColumnName().equals("postalCode")||filter.getColumnName().equals("registrationDate")) {
 				validateFilterType(filterInfos);
 			} else {
 				throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER, exception);
@@ -135,8 +137,17 @@ public class LostRidRequestValidator {
 			throws WorkFlowSearchException, RegStatusAppException {
 		LostRidValidationException exception = new LostRidValidationException();
 		for (FilterInfo filter : filterInfos) {
-			if (filter.getType().equals("equals") || filter.getType().equalsIgnoreCase("between")) {
+			if (filter.getType().equals("equals")) {
 
+			} else if (filter.getColumnName().equals("registrationDate")
+					&& filter.getType().equalsIgnoreCase("between")) {
+				DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+				LocalDate dateForm = LocalDate.parse(filter.getFromValue(), dtf);
+				LocalDate dateTo = LocalDate.parse(filter.getToValue(), dtf);
+				long noOfDaysBetween = ChronoUnit.DAYS.between(dateForm, dateTo);
+				if (noOfDaysBetween > 30) {
+					throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_DATE_VALIDATION_FAILED, exception);
+				}
 			} else {
 				throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER,
 						exception);

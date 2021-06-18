@@ -1334,7 +1334,9 @@ public enum PlatformErrorMessages {
 	RPR_RGS_INVALID_SEARCH(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "032", "plz narrow down your search"),
 
 	RPR_RGS_SORTING_VALIDATION_FAILED(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "033",
-			"sorting not supported for more than 1 field - %s");
+			"sorting not supported for more than 1 field - %s"),
+	RPR_RGS_DATE_VALIDATION_FAILED(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "034",
+			"searching between date should be less then 30 days - %s");
 
 	/** The error message. */
 	private final String errorMessage; 
