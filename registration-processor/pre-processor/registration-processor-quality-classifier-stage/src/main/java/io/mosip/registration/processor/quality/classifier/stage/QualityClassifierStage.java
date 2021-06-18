@@ -137,8 +137,11 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 	private String qualityTagPrefix;
 	
     /** The tag value that will be used by default when the packet does not have value for the biometric tag field */
-    @Value("${mosip.regproc.quality.classifier.tagging.biometric-not-available-tag-value}")
+    @Value("${mosip.regproc.quality.classifier.tagging.quality.biometric-not-available-tag-value}")
     private String biometricNotAvailableTagValue;
+    
+    @Value("#{'${mosip.regproc.quality.classifier.tagging.quality.modalities}'.split(',')}")
+    private List<String> modalities;
 
 	private static String RANGE_DELIMITER = "-";
 
@@ -398,9 +401,9 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 		Map<String, String> tags = new HashMap<String, String>();
 		
 		if (birs == null) {
-			tags.put(qualityTagPrefix.concat("Iris"), biometricNotAvailableTagValue);
-			tags.put(qualityTagPrefix.concat("Finger"), biometricNotAvailableTagValue);
-			tags.put(qualityTagPrefix.concat("Face"), biometricNotAvailableTagValue);
+			modalities.forEach(modality -> {
+				tags.put(qualityTagPrefix.concat(modality), biometricNotAvailableTagValue);
+			});
 			return tags;
 		}
 		
@@ -437,6 +440,12 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 
 			}
 		}
+		
+		modalities.forEach(modality -> {
+			if (!tags.containsKey(qualityTagPrefix.concat(modality))) {
+				tags.put(qualityTagPrefix.concat(modality), biometricNotAvailableTagValue);
+			}
+		});
 		
 		return tags;
 	}
