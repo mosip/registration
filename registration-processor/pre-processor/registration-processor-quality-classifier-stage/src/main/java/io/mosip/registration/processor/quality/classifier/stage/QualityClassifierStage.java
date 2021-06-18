@@ -133,6 +133,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 	@Value("#{${mosip.regproc.quality.classifier.tagging.quality.ranges:{'Poor':'0-29','Average':'30-69','Good':'70-100'}}}")
 	private Map<String, String> qualityClassificationRangeMap;
 
+	/** Quality Tag Prefix */
 	@Value("${mosip.regproc.quality.classifier.tagging.quality.prefix:Biometric_Quality-}")
 	private String qualityTagPrefix;
 	
@@ -140,6 +141,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
     @Value("${mosip.regproc.quality.classifier.tagging.quality.biometric-not-available-tag-value}")
     private String biometricNotAvailableTagValue;
     
+    /** modality arrays that needs to be tagged */
     @Value("#{'${mosip.regproc.quality.classifier.tagging.quality.modalities}'.split(',')}")
     private List<String> modalities;
 
