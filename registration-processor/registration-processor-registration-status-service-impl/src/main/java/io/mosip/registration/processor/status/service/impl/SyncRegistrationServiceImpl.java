@@ -488,8 +488,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			regAdditionalInfo.setPhone(dto.getPhone());
 			
 			String additionalInfo = JsonUtils.javaObjectToJsonString(regAdditionalInfo);
-			byte[] encryptedInfo = encryptor.encrypt(additionalInfo, referenceId,
-			 timeStamp);
+			byte[] encryptedInfo = encryptor.encrypt(additionalInfo, referenceId, timeStamp);
 			syncRegistrationEntity.setOptionalValues(encryptedInfo);
 			if (dto.getName() != null) {
 				syncRegistrationEntity.setName(getHashCode(dto.getName().replaceAll("\\s", "").toLowerCase()));
@@ -503,8 +502,8 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 				syncRegistrationEntity
 						.setRegistrationDate(dto.getCreateDateTime().toLocalDate());
 			}
-		} catch (JsonProcessingException | EncryptionFailureException | ApisResourceAccessException
-				| RegStatusAppException exception) {
+		} catch (JsonProcessingException | RegStatusAppException | EncryptionFailureException
+				| ApisResourceAccessException exception) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", exception.getMessage() + ExceptionUtils.getStackTrace(exception));
 		}		
@@ -731,14 +730,15 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		return HMACUtils2.generateHash(value.getBytes());
 	}
 
-	private static String getEncodedHMACHash(String value) throws java.security.NoSuchAlgorithmException {
-		if (value == null)
+	private static byte[] getHMACHashWithSalt(byte[] valueBytes, byte[] saltBytes)
+			throws java.security.NoSuchAlgorithmException {
+		if (valueBytes == null)
 			return null;
-		return CryptoUtil.encodeBase64(HMACUtils2.generateHash(value.getBytes()));
+		return HMACUtils2.digestAsPlainTextWithSalt(valueBytes, saltBytes).getBytes();
 	}
 
 	private String getHashCode(String value) throws RegStatusAppException {
-		String hashedSaltValue = null;
+		String encodedHash = null;
 		if (value == null) {
 			return null;
 		}
@@ -749,16 +749,17 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			Long hashValue = Long.parseLong(result, 16);
 			Long saltIndex = hashValue % 10000;
 			String salt = syncRegistrationDao.getSaltValue(saltIndex);
-			String saltHashValue = getEncodedHMACHash(value + salt);
+			byte[] saltBytes = CryptoUtil.decodeBase64(salt);
+			byte[] hashBytes = value.getBytes();
 			for (int i = 0; i <= iteration; i++) {
-				saltHashValue += getHMACHash(saltHashValue);
+				hashBytes = getHMACHashWithSalt(hashBytes, saltBytes);
 			}
-			hashedSaltValue = getEncodedHMACHash(saltHashValue);
+			encodedHash = CryptoUtil.encodeBase64(hashBytes);
 		} catch (NoSuchAlgorithmException e) {
 			regProcLogger.error(e.getMessage() + ExceptionUtils.getStackTrace(e));
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_INVALID_SEARCH, e);
 		}
-		return hashedSaltValue.toString();
+		return encodedHash;
 	}
 
 	private static String convertBytesToHex(byte[] bytes) {

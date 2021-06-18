@@ -41,8 +41,8 @@ public class LostRidRequestValidator {
 	/** The Constant REG_STATUS_SERVICE. */
 	private static final String REG_STATUS_SERVICE = "RegStatusService";
 
-	@Value("${mosip.registration.processor.lostrid.max.days.between:30}")
-	private int maxDayBetween;
+	@Value("${mosip.registration.processor.lostrid.max-registration-date-filter-interval:30}")
+	private int maxRegistrationDateFilterInterval;
 
 	/** The Constant REG_STATUS_APPLICATION_VERSION. */
 	private static final String REG_LOSTRID_APPLICATION_VERSION = "mosip.registration.processor.lostrid.version";
@@ -119,7 +119,7 @@ public class LostRidRequestValidator {
 			if (filter.getColumnName().equals("name") || filter.getColumnName().equals("email")
 					|| filter.getColumnName().equals("phone") || filter.getColumnName().equals("centerId")
 					|| filter.getColumnName().equals("postalCode")||filter.getColumnName().equals("registrationDate")) {
-				validateFilterType(filterInfos);
+				validateFilterType(filter);
 			} else {
 				throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER, exception);
 			}
@@ -136,24 +136,21 @@ public class LostRidRequestValidator {
 	 * @throws RegStatusAppException
 	 * 
 	 */
-	private void validateFilterType(List<FilterInfo> filterInfos)
+	private void validateFilterType(FilterInfo filter)
 			throws WorkFlowSearchException, RegStatusAppException {
 		LostRidValidationException exception = new LostRidValidationException();
-		for (FilterInfo filter : filterInfos) {
-			if (filter.getColumnName().equals("registrationDate")
-					&& filter.getType().equalsIgnoreCase("between")) {
-				DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-				LocalDate dateForm = LocalDate.parse(filter.getFromValue(), dtf);
-				LocalDate dateTo = LocalDate.parse(filter.getToValue(), dtf);
-				long noOfDaysBetween = ChronoUnit.DAYS.between(dateForm, dateTo);
-				if (noOfDaysBetween > maxDayBetween) {
-					throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_DATE_VALIDATION_FAILED, exception);
-				}
-			} else if (!filter.getType().equals("equals") || !filter.getType().equals("between")) {
-				throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER,
-						exception);
+		if (filter.getColumnName().equals("registrationDate") && filter.getType().equalsIgnoreCase("between")) {
+			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+			LocalDate dateForm = LocalDate.parse(filter.getFromValue(), dtf);
+			LocalDate dateTo = LocalDate.parse(filter.getToValue(), dtf);
+			long noOfDaysBetween = ChronoUnit.DAYS.between(dateForm, dateTo);
+			if (noOfDaysBetween > maxRegistrationDateFilterInterval) {
+				throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_DATE_VALIDATION_FAILED, exception);
 			}
+		} else if (!filter.getType().equalsIgnoreCase("equals") || !filter.getType().equalsIgnoreCase("between")) {
+			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER, exception);
 		}
+
 	}
 
 	/**
