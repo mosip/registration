@@ -41,6 +41,9 @@ public class LostRidRequestValidator {
 	/** The Constant REG_STATUS_SERVICE. */
 	private static final String REG_STATUS_SERVICE = "RegStatusService";
 
+	@Value("${mosip.registration.processor.lostrid.max.days.between:30}")
+	private int maxDayBetween;
+
 	/** The Constant REG_STATUS_APPLICATION_VERSION. */
 	private static final String REG_LOSTRID_APPLICATION_VERSION = "mosip.registration.processor.lostrid.version";
 
@@ -145,7 +148,7 @@ public class LostRidRequestValidator {
 				LocalDate dateForm = LocalDate.parse(filter.getFromValue(), dtf);
 				LocalDate dateTo = LocalDate.parse(filter.getToValue(), dtf);
 				long noOfDaysBetween = ChronoUnit.DAYS.between(dateForm, dateTo);
-				if (noOfDaysBetween > 30) {
+				if (noOfDaysBetween > maxDayBetween) {
 					throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_DATE_VALIDATION_FAILED, exception);
 				}
 			} else {
