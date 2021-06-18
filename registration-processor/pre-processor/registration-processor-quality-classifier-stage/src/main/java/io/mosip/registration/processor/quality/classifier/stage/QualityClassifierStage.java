@@ -133,8 +133,17 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 	@Value("#{${mosip.regproc.quality.classifier.tagging.quality.ranges:{'Poor':'0-29','Average':'30-69','Good':'70-100'}}}")
 	private Map<String, String> qualityClassificationRangeMap;
 
+	/** Quality Tag Prefix */
 	@Value("${mosip.regproc.quality.classifier.tagging.quality.prefix:Biometric_Quality-}")
 	private String qualityTagPrefix;
+	
+    /** The tag value that will be used by default when the packet does not have value for the biometric tag field */
+    @Value("${mosip.regproc.quality.classifier.tagging.quality.biometric-not-available-tag-value}")
+    private String biometricNotAvailableTagValue;
+    
+    /** modality arrays that needs to be tagged */
+    @Value("#{'${mosip.regproc.quality.classifier.tagging.quality.modalities}'.split(',')}")
+    private List<String> modalities;
 
 	private static String RANGE_DELIMITER = "-";
 
@@ -215,6 +224,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 					MappingJsonConstants.INDIVIDUAL_BIOMETRICS, registrationStatusDto.getRegistrationType(),
 					ProviderStageName.QUALITY_CHECKER);
 			if (StringUtils.isEmpty(individualBiometricsObject)) {
+				packetManagerService.addOrUpdateTags(regId, getQualityTags(null));
 				description.setCode(PlatformErrorMessages.INDIVIDUAL_BIOMETRIC_NOT_FOUND.getCode());
 				description.setMessage(PlatformErrorMessages.INDIVIDUAL_BIOMETRIC_NOT_FOUND.getMessage());
 				object.setIsValid(Boolean.TRUE);
@@ -390,6 +400,16 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 	
 	private Map<String, String> getQualityTags(List<BIR> birs) throws BiometricException{
 		
+		Map<String, String> tags = new HashMap<String, String>();
+		
+		// setting biometricNotAvailableTagValue for each modality in case biometrics are not available
+		if (birs == null) {
+			modalities.forEach(modality -> {
+				tags.put(qualityTagPrefix.concat(modality), biometricNotAvailableTagValue);
+			});
+			return tags;
+		}
+		
 		HashMap<String, Float> bioTypeMinScoreMap = new HashMap<String, Float>();
 
 		// get individual biometrics file name from id.json
@@ -410,8 +430,6 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 
 		}
 
-		Map<String, String> tags = new HashMap<String, String>();
-
 		for (Entry<String, Float> bioTypeMinEntry : bioTypeMinScoreMap.entrySet()) {
 
 			for (Entry<String, int[]> qualityRangeEntry : parsedQualityRangeMap.entrySet()) {
@@ -425,6 +443,13 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 
 			}
 		}
+		
+		// setting biometricNotAvailableTagValue for modalities those are not available in BIRs
+		modalities.forEach(modality -> {
+			if (!tags.containsKey(qualityTagPrefix.concat(modality))) {
+				tags.put(qualityTagPrefix.concat(modality), biometricNotAvailableTagValue);
+			}
+		});
 		
 		return tags;
 	}
