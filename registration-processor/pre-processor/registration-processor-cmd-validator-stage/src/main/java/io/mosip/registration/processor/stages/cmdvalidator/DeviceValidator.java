@@ -73,8 +73,8 @@ public class DeviceValidator {
 
 	@Value("${mosip.kernel.device.validate.history.id}")
 	private String deviceValidateHistoryId;
-	@Value("${mosip.regproc.validate.trust:false}")
-	private Boolean isTrustValidationRequired;
+	@Value("${mosip.regproc.cmd-validator.device.disable-trust-validation:false}")
+	private Boolean disableTrustValidation;
 	
 	@Value("${regproc.device.timestamp.validate:+5}")
 	private String deviceTimeStamp;
@@ -131,7 +131,7 @@ public class DeviceValidator {
 		pathSegments.add("DEVICE");
 		pathSegments.add(deviceCode);
 		ResponseWrapper<?> responseWrapper = (ResponseWrapper<?>) registrationProcessorRestService
-				.getApi(ApiName.HOTLIST, pathSegments,"", "", ResponseWrapper.class);
+				.getApi(ApiName.DEVICEHOTLIST, pathSegments,"", "", ResponseWrapper.class);
 		if(responseWrapper.getResponse() !=null) {
 			HotlistRequestResponseDTO hotListResponse=mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
 					HotlistRequestResponseDTO.class);
@@ -200,7 +200,7 @@ public class DeviceValidator {
 		jwtSignatureVerifyRequestDto.setApplicationId("REGISTRATION");
 		jwtSignatureVerifyRequestDto.setReferenceId("SIGN");
 		jwtSignatureVerifyRequestDto.setJwtSignatureData(payload.getString("digitalId"));
-		jwtSignatureVerifyRequestDto.setValidateTrust(isTrustValidationRequired);
+		jwtSignatureVerifyRequestDto.setValidateTrust(!disableTrustValidation);
 		jwtSignatureVerifyRequestDto.setDomain("Device");
 		RequestWrapper<JWTSignatureVerifyRequestDto> request = new RequestWrapper<>();
 
@@ -216,7 +216,7 @@ public class DeviceValidator {
 		JWTSignatureVerifyResponseDto jwtResponse = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
 				JWTSignatureVerifyResponseDto.class);
 				
-		return isTrustValidationRequired
+		return !disableTrustValidation
 				? jwtResponse.isSignatureValid()
 						&& jwtResponse.getTrustValid().contentEquals(SignatureConstant.TRUST_VALID)
 				: jwtResponse.isSignatureValid();
