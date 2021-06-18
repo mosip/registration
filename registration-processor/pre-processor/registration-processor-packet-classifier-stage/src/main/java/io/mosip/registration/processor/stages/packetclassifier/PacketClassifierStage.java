@@ -62,7 +62,7 @@ public class PacketClassifierStage extends MosipVerticleAPIManager {
 
 	@Override
 	public void start(){
-		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), 
+		router.setRoute(this.postUrl(getVertx(),
 			MessageBusAddress.PACKET_CLASSIFIER_BUS_IN, MessageBusAddress.PACKET_CLASSIFIER_BUS_OUT));
 		this.createServer(router.getRouter(), Integer.parseInt(port));
 	}
