@@ -18,6 +18,11 @@ mosip.registration.leftslap_fingerprint_threshold=80
 mosip.registration.rightslap_fingerprint_threshold=80
 mosip.registration.thumbs_fingerprint_threshold=80
 mosip.registration.facequalitythreshold=25
+
+mosip.regproc.quality.classifier.tagging.quality.prefix=Biometric_Quality-
+mosip.regproc.quality.classifier.tagging.quality.biometric-not-available-tag-value=--Biometrics-Not-Available--
+mosip.regproc.quality.classifier.tagging.quality.modalities=Iris,Finger,Face
+mosip.regproc.quality.classifier.tagging.quality.ranges={'Poor':'0-29','Average':'30-69','Good':'70-100'}
 ```
 ## Validations in Quality Checker Stage
 1. Validation of all the quality values of biometric types of applicant cbeff with the values from config server. Passing the stage if 

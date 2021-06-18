@@ -400,6 +400,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 		
 		Map<String, String> tags = new HashMap<String, String>();
 		
+		// setting biometricNotAvailableTagValue for each modality in case biometrics are not available
 		if (birs == null) {
 			modalities.forEach(modality -> {
 				tags.put(qualityTagPrefix.concat(modality), biometricNotAvailableTagValue);
@@ -441,6 +442,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 			}
 		}
 		
+		// setting biometricNotAvailableTagValue for modalities those are not available in BIRs
 		modalities.forEach(modality -> {
 			if (!tags.containsKey(qualityTagPrefix.concat(modality))) {
 				tags.put(qualityTagPrefix.concat(modality), biometricNotAvailableTagValue);
