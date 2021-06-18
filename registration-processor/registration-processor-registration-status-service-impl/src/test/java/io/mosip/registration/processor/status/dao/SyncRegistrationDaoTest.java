@@ -1,7 +1,7 @@
 package io.mosip.registration.processor.status.dao;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -15,6 +15,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import io.mosip.registration.processor.core.workflow.dto.SortInfo;
+import io.mosip.registration.processor.status.dto.FilterInfo;
 import io.mosip.registration.processor.status.dto.SyncStatusDto;
 import io.mosip.registration.processor.status.dto.SyncTypeDto;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
@@ -62,6 +64,9 @@ public class SyncRegistrationDaoTest {
 		syncRegistrationEntity.setUpdateDateTime(LocalDateTime.now());
 		syncRegistrationEntity.setCreatedBy("MOSIP");
 		syncRegistrationEntity.setUpdatedBy("MOSIP");
+		syncRegistrationEntity.setEmail("mosip@gmail.com");
+		syncRegistrationEntity.setName("mosip");
+		syncRegistrationEntity.setPhone("9188556611");
 
 		syncRegistrationEntityList.add(syncRegistrationEntity);
 
@@ -113,6 +118,25 @@ public class SyncRegistrationDaoTest {
 		idList.add("1000.zip");
 		List<SyncRegistrationEntity> rEntityList = syncRegistrationDao.getByIds(idList);
 		assertEquals(syncRegistrationEntityList, rEntityList);
+	}
+
+	@Test
+	public void getSearchResults() {
+		List<FilterInfo> filterInfos = new ArrayList<FilterInfo>();
+		List<SortInfo> sortInfos = new ArrayList<SortInfo>();
+		List<String> testIdList = new ArrayList<String>();
+		FilterInfo filterInfo=new FilterInfo();
+		filterInfo.setColumnName("name");
+		filterInfo.setValue("mosip");
+		filterInfo.setType("equals");
+		SortInfo sortInfo=new SortInfo();
+		sortInfo.setSortField("createDateTime");
+		sortInfo.setSortType("desc");
+		filterInfos.add(filterInfo);
+		sortInfos.add(sortInfo);
+		testIdList.add("1001");
+		List<SyncRegistrationEntity> idList = syncRegistrationDao.getSearchResults(filterInfos, sortInfos);
+		assertEquals(idList.get(0).getRegistrationId(), testIdList.get(0));
 	}
 
 }

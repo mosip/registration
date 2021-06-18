@@ -175,9 +175,16 @@ public enum PlatformErrorMessages {
 	/** The rpr rgs data access exception. */
 	RPR_RGS_DATA_ACCESS_EXCEPTION(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "030",
 			"DataAccessLayerException while syncing Registartion Id's"),
-
 	/** The rpr rgs rid not found. */
 	RPR_RGS_RID_NOT_FOUND(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "031", "RID Not Found"),
+
+	RPR_RGS_INVALID_SEARCH(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "032", "plz narrow down your search"),
+
+	RPR_RGS_SORTING_VALIDATION_FAILED(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "033",
+			"sorting not supported for more than 1 field - %s"),
+
+	RPR_RGS_DATE_VALIDATION_FAILED(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "034",
+			"searching between date should be less then 30 days - %s"),
 
 	/** The rpr pis registration table not accessible. */
 	// Packet Info Storage Exception error code and message
