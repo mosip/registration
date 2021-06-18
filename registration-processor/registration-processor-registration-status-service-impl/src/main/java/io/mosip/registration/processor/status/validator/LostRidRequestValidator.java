@@ -140,9 +140,7 @@ public class LostRidRequestValidator {
 			throws WorkFlowSearchException, RegStatusAppException {
 		LostRidValidationException exception = new LostRidValidationException();
 		for (FilterInfo filter : filterInfos) {
-			if (filter.getType().equals("equals")) {
-
-			} else if (filter.getColumnName().equals("registrationDate")
+			if (filter.getColumnName().equals("registrationDate")
 					&& filter.getType().equalsIgnoreCase("between")) {
 				DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 				LocalDate dateForm = LocalDate.parse(filter.getFromValue(), dtf);
@@ -151,7 +149,7 @@ public class LostRidRequestValidator {
 				if (noOfDaysBetween > maxDayBetween) {
 					throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_DATE_VALIDATION_FAILED, exception);
 				}
-			} else {
+			} else if (!filter.getType().equals("equals") || !filter.getType().equals("between")) {
 				throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER,
 						exception);
 			}
@@ -188,12 +186,11 @@ public class LostRidRequestValidator {
 		LostRidValidationException exception = new LostRidValidationException();
 		if (sortInfos.size() > 1) {
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_SORTING_VALIDATION_FAILED, exception);
-		} else if (sortInfos.get(0).getSortField().equals("name") || sortInfos.get(0).getSortField().equals("email")
-				|| sortInfos.get(0).getSortField().equals("phone") || sortInfos.get(0).getSortField().equals("centerId")
-				|| sortInfos.get(0).getSortField().equals("registrationDate")
-				|| sortInfos.get(0).getSortField().equals("postalCode")) {
-
-		} else {
+		} else if (!sortInfos.get(0).getSortField().equals("name") || !sortInfos.get(0).getSortField().equals("email")
+				|| !sortInfos.get(0).getSortField().equals("phone")
+				|| !sortInfos.get(0).getSortField().equals("centerId")
+				|| !sortInfos.get(0).getSortField().equals("registrationDate")
+				|| !sortInfos.get(0).getSortField().equals("postalCode")) {
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER, exception);
 
 		}
