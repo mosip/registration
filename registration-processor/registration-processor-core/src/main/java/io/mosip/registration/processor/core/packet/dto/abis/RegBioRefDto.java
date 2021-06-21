@@ -17,6 +17,10 @@ public class RegBioRefDto implements Serializable {
 	
 	private String bioRefId;
 
+	private String regType;
+	
+	private int iteration;
+	
 	private String crBy ;
 
 	private LocalDateTime crDtimes;

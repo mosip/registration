@@ -200,6 +200,15 @@ public interface PacketInfoManager<T, /** D, M, */
 	public List<RegBioRefDto> getBioRefIdByRegId(String regId);
 
 	/**
+	 * Gets the bio ref ids list by bioRefId.
+	 *
+	 * @param bioRefId
+	 *            the bio ref id
+	 * @return all the bioRefIds dto
+	 */
+	public List<RegBioRefDto> getRegBioRefDataByBioRefId(List<String> bioRefId);
+
+	/**
 	 * Gets the all abis details.
 	 *
 	 * @return the all abis details

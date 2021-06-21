@@ -178,7 +178,7 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	 *            the rid
 	 * @return the reference id by rid
 	 */
-	@Query("SELECT abis.abisRefId FROM RegAbisRefEntity abis WHERE abis.id.regId =:rid")
+	@Query("SELECT abis.abisRefId FROM RegAbisRefEntity abis WHERE abis.id.regId =:rid order by crDtimes desc")
 	public List<String> getReferenceIdByRid(@Param("rid") String rid);
 
 	/**
@@ -349,6 +349,24 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	public List<String> getAbisRefRegIdsByMatchedRefIds(@Param("bioRefIds") List<String> bioRefId);
 
 	/**
+	 * Gets the RegId by bioRefId,regType & iteration.
+	 * @param bioRefId
+	 * @param regType
+	 * @param iteration
+	 * @return regId
+	 */
+	@Query("SELECT regBioRef.id.regId FROM RegBioRefEntity regBioRef WHERE regBioRef.bioRefId=:bioRefId and regBioRef.regType=:regType and regBioRef.iteration=:iteration")
+	public String getRegIdByRefIdAndRegTypeAndIteration(@Param("bioRefId") String bioRefId, @Param("regType") String regType, @Param("iteration") int iteration);
+
+	/**
+	 * Gets the bio Ref entity list by bioRefId.
+	 * @param bioRefIds
+	 * @return RegBioRef Entities
+	 */
+	@Query("SELECT regBioRef FROM RegBioRefEntity regBioRef WHERE regBioRef.bioRefId in :bioRefIds")
+	public List<RegBioRefEntity> getBioRefIdsByRefIds(@Param("bioRefIds") List<String> bioRefId);
+
+	/**
 	 * Gets the identify by transaction id.
 	 *
 	 * @param transactionId
@@ -408,7 +426,7 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	 *            the reg id
 	 * @return the abis ref matched ref id by rid
 	 */
-	@Query("SELECT regBioRef.bioRefId FROM RegBioRefEntity regBioRef WHERE regBioRef.id.regId =:regId")
+	@Query("SELECT regBioRef.bioRefId FROM RegBioRefEntity regBioRef WHERE regBioRef.id.regId =:regId order by regBioRef.id.crDtimes desc")
 	public List<String> getAbisRefMatchedRefIdByRid(@Param("regId") String regId);
 
 	/**

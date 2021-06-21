@@ -33,6 +33,12 @@ public class RegBioRefEntity extends BasePacketEntity<RegBioRefPKEntity> impleme
 	@Column(name = "upd_dtimes")
 	private LocalDateTime updDtimes;
 
+	@Column(name = "reg_type")
+	private String regType;
+	
+	@Column(name = "iteration")
+	private int iteration;
+	
 	public RegBioRefEntity() {
 	}
 
@@ -91,5 +97,19 @@ public class RegBioRefEntity extends BasePacketEntity<RegBioRefPKEntity> impleme
 	public void setUpdDtimes(LocalDateTime updDtimes) {
 		this.updDtimes = updDtimes;
 	}
+	public String getRegType() {
+		return regType;
+	}
 
+	public void setRegType(String regType) {
+		this.regType = regType;
+	}
+
+	public int getIteration() {
+		return iteration;
+	}
+
+	public void setIteration(int iteration) {
+		this.iteration = iteration;
+	}
 }
