@@ -66,7 +66,7 @@ public class DeviceValidator {
 	@Value("${mosip.regproc.cmd-validator.device.disable-trust-validation:false}")
 	private Boolean disableTrustValidation;
 	
-	@Value("${mosip.regproc.cmd-validator.device.allowed-digital-id-timestamp-variation:+5}")
+	@Value("${mosip.regproc.cmd-validator.device.allowed-digital-id-timestamp-variation:5}")
 	private String allowedDigitalIdTimestampVariation;
 
 	/**
@@ -102,18 +102,18 @@ public class DeviceValidator {
 		if(payloads==null || payloads.isEmpty()) {
 			throw new BaseCheckedException(
 					StatusUtil.DEVICE_VALIDATION_FAILED.getCode(),StatusUtil.DEVICE_VALIDATION_FAILED.getMessage()+"-->Others info is not prsent in packet");
-		}else {
-			for(JSONObject payload :payloads) {
+		}
+		for(JSONObject payload :payloads) {
 				validateDigitalId(payload) ;
 				
 				String digitalIdString=new String(CryptoUtil.decodeBase64(payload.getString("digitalId").split("\\.")[1]));
 				NewDigitalId newDigitalId=mapper.readValue(digitalIdString, NewDigitalId.class);
 				
-				validateDigitalIdTimestamp (payload,regOsi.getPacketCreationDate(),newDigitalId.getDateTime()) ;
-				
+				validateTimestamp (payload,regOsi.getPacketCreationDate(),newDigitalId.getDateTime()) ;
+				validateTimestamp(payload,regOsi.getPacketCreationDate(),payload.getString("timestamp"));
 				validateDeviceForHotlist(payload.getString("deviceCode"),newDigitalId.getDateTime());
 				
-		}
+		
 		}
 	}
 
@@ -154,35 +154,23 @@ public class DeviceValidator {
 		}
 	}
 
-	private void validateDigitalIdTimestamp (JSONObject payload, String packetCreationDate,String digitalIdDate) throws JSONException, BaseCheckedException, JsonParseException, JsonMappingException, IOException {
+	private void validateTimestamp (JSONObject payload, String packetCreationDate,String dateTime) throws JSONException, BaseCheckedException, JsonParseException, JsonMappingException, IOException {
 		DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 		LocalDateTime packetCreationDateTime = LocalDateTime
 				.parse(packetCreationDate, format);
-		LocalDateTime digitalIdTimestamp = LocalDateTime
-				.parse(digitalIdDate, format);
+		LocalDateTime timestamp = LocalDateTime
+				.parse(dateTime, format);
 		
 		String prefix = allowedDigitalIdTimestampVariation.substring(0, 1);
 		String timeString = allowedDigitalIdTimestampVariation.replaceAll("\\" + prefix, "");
-		boolean isBetween = digitalIdTimestamp
-				.isAfter(packetCreationDateTime.minus(Long.valueOf("2"), ChronoUnit.MINUTES))
-				&& digitalIdTimestamp.isBefore(
-						packetCreationDateTime.plus(Long.valueOf(timeString), ChronoUnit.MINUTES));
-		if (prefix.equals("+")) {
-			if (!isBetween) {
+		
+			if (timestamp.isAfter(packetCreationDateTime)|| timestamp.isBefore(
+							packetCreationDateTime.minus(Long.valueOf(timeString), ChronoUnit.MINUTES))) {
 				throw new BaseCheckedException(
-						StatusUtil.TIMESTAMP_AFTER_PACKETTIME.getCode(),
-						String.format(StatusUtil.TIMESTAMP_AFTER_PACKETTIME.getMessage(),
-								timeString));
+						StatusUtil.TIMESTAMP_NOT_VALID.getCode(),
+						StatusUtil.TIMESTAMP_NOT_VALID.getMessage());
 			}
-		} else if (prefix.equals("-")) {
-			if (packetCreationDateTime
-					.isBefore(digitalIdTimestamp.plus(Long.valueOf(timeString), ChronoUnit.MINUTES))) {
-				throw new BaseCheckedException(
-						StatusUtil.TIMESTAMP_BEFORE_PACKETTIME.getCode(),
-						String.format(StatusUtil.TIMESTAMP_BEFORE_PACKETTIME.getMessage(),
-								timeString));
-			}
-		}
+		
 		
 	}
 
