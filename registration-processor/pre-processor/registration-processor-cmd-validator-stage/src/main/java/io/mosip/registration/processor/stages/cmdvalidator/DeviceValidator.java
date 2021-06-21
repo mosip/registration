@@ -213,7 +213,7 @@ public class DeviceValidator {
 					StatusUtil.DEVICE_SIGNATURE_VALIDATION_FAILED.getCode(),StatusUtil.DEVICE_SIGNATURE_VALIDATION_FAILED.getMessage());
 		}
 		else {
-		if(!disableTrustValidation&& !jwtResponse.getTrustValid().contentEquals(SignatureConstant.TRUST_VALID)) {
+		if(!disableTrustValidation && !jwtResponse.getTrustValid().contentEquals(SignatureConstant.TRUST_VALID)) {
 			throw new BaseCheckedException(
 					StatusUtil.DEVICE_SIGNATURE_VALIDATION_FAILED.getCode(),StatusUtil.DEVICE_SIGNATURE_VALIDATION_FAILED.getMessage()+"-->"+jwtResponse.getTrustValid());
 		}
