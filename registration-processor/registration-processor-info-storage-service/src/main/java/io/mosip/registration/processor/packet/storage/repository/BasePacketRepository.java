@@ -355,7 +355,7 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	 * @param iteration
 	 * @return regId
 	 */
-	@Query("SELECT regBioRef.id.regId FROM RegBioRefEntity regBioRef WHERE regBioRef.bioRefId=:bioRefId and regBioRef.id.process=:process and regBioRef.id.iteration=:iteration")
+	@Query("SELECT regBioRef.id.regId FROM RegBioRefEntity regBioRef WHERE regBioRef.bioRefId=:bioRefId and regBioRef.process=:process and regBioRef.iteration=:iteration")
 	public String getRegIdByRefIdAndProcessAndIteration(@Param("bioRefId") String bioRefId, @Param("process") String process, @Param("iteration") int iteration);
 
 	/**
