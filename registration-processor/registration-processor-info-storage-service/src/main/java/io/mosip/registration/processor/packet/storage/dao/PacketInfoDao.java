@@ -465,7 +465,7 @@ public class PacketInfoDao {
 	/**
 	 * Gets the RegId by bioRefId,regType & iteration.
 	 * @param bioRefId
-	 * @param regType
+	 * @param process
 	 * @param iteration
 	 * @return regId
 	 */
