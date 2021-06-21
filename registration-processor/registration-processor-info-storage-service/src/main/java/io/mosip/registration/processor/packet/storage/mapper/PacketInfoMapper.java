@@ -260,8 +260,8 @@ public class PacketInfoMapper {
 		bioRefDto.setIsDeleted(regBioRefEntity.getIsDeleted());
 		bioRefDto.setRegId(regBioRefEntity.getId().getRegId());
 		bioRefDto.setUpdBy(regBioRefEntity.getUpdBy());
-		bioRefDto.setRegType(regBioRefEntity.getRegType());
-		bioRefDto.setIteration(regBioRefEntity.getIteration());
+		bioRefDto.setProcess(regBioRefEntity.getId().getProcess());
+		bioRefDto.setIteration(regBioRefEntity.getId().getIteration());
 		return bioRefDto;
 	}
 
@@ -275,9 +275,9 @@ public class PacketInfoMapper {
 		RegBioRefPKEntity refPKEntity = new RegBioRefPKEntity();
 		refPKEntity.setRegId(regBioRefDto.getRegId());
 		refPKEntity.setCrDtimes(DateUtils.getUTCCurrentDateTime());
+		refPKEntity.setProcess(regBioRefDto.getProcess());
+		refPKEntity.setIteration(regBioRefDto.getIteration());
 		entity.setId(refPKEntity);
-		entity.setRegType(regBioRefDto.getRegType());
-		entity.setIteration(regBioRefDto.getIteration());
 		return entity;
 	}
 

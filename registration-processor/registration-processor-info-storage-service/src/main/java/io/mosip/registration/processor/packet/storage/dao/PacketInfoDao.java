@@ -274,7 +274,7 @@ public class PacketInfoDao {
 	 * @param bioRefIds
 	 * @return RegBioRef Entities
 	 */
-	public List<RegBioRefEntity> getRegBioRefDataByBioRefId(List<String> bioRefId) {
+	public List<RegBioRefEntity> getRegBioRefDataByBioRefIds(List<String> bioRefId) {
 		return regBioRefRepository.getBioRefIdsByRefIds(bioRefId);
 	}
 

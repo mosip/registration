@@ -388,10 +388,10 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 			List<String> bioRefId = packetInfoManager.getReferenceIdByBatchId(batchId);
 			validateNullCheck(bioRefId, "ABIS_REFERENCE_ID_NOT_FOUND");
 	
-			List<RegBioRefDto> regBioRefist = packetInfoManager.getRegBioRefDataByBioRefId(bioRefId);
+			List<RegBioRefDto> regBioRefist = packetInfoManager.getRegBioRefDataByBioRefIds(bioRefId);
 			RegBioRefDto regBioRefDto = regBioRefist.get(0);
-			registrationId = packetInfoDao.getRegIdByRefIdAndRegTypeAndIteration(regBioRefDto.getBioRefId(),regBioRefDto.getRegType(),regBioRefDto.getIteration());
-			internalRegStatusDto = registrationStatusService.getRegistrationStatus(registrationId,regBioRefDto.getRegType(),regBioRefDto.getIteration());
+			registrationId = packetInfoDao.getRegIdByRefIdAndRegTypeAndIteration(regBioRefDto.getBioRefId(),regBioRefDto.getProcess(),regBioRefDto.getIteration());
+			internalRegStatusDto = registrationStatusService.getRegistrationStatus(registrationId,regBioRefDto.getProcess(),regBioRefDto.getIteration());
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 					"AbisMiddlewareStage::consumerListener()::response from abis for requestId ::" + requestId);
 

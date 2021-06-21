@@ -1017,8 +1017,8 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	}
 
 	@Override
-	public List<RegBioRefDto> getRegBioRefDataByBioRefId(List<String> bioRefId) {
-		List<RegBioRefEntity> regBioRefList = packetInfoDao.getRegBioRefDataByBioRefId(bioRefId);
+	public List<RegBioRefDto> getRegBioRefDataByBioRefIds(List<String> bioRefId) {
+		List<RegBioRefEntity> regBioRefList = packetInfoDao.getRegBioRefDataByBioRefIds(bioRefId);
 		return PacketInfoMapper.convertRegBioRefEntityListToDto(regBioRefList);
 	}
 

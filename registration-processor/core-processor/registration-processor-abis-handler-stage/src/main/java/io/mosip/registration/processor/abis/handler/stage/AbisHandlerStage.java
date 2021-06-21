@@ -436,7 +436,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	 * @param regId    the reg id
 	 * @param bioRefId the bio ref id
 	 */
-	private void insertInBioRef(String regId, String bioRefId, String regType, int iteration) {
+	private void insertInBioRef(String regId, String bioRefId, String process, int iteration) {
 		RegBioRefDto regBioRefDto = new RegBioRefDto();
 		regBioRefDto.setBioRefId(bioRefId);
 		regBioRefDto.setCrBy(AbisHandlerStageConstant.USER);
@@ -444,7 +444,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		regBioRefDto.setIsDeleted(Boolean.FALSE);
 		regBioRefDto.setRegId(regId);
 		regBioRefDto.setUpdBy(null);
-		regBioRefDto.setRegType(regType);
+		regBioRefDto.setProcess(process);
 		regBioRefDto.setIteration(iteration);
 		String moduleId = PlatformSuccessMessages.RPR_ABIS_HANDLER_STAGE_SUCCESS.getCode();
 		String moduleName = ModuleName.ABIS_HANDLER.toString();

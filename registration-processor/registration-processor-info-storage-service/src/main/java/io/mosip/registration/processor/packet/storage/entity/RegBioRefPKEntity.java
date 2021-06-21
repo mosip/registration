@@ -15,6 +15,12 @@ public class RegBioRefPKEntity implements Serializable {
 	@Column(name = "cr_dtimes", updatable = false)
 	private LocalDateTime crDtimes;
 
+	@Column(name = "process")
+	private String process;
+	
+	@Column(name = "iteration")
+	private int iteration;
+	
 	public String getRegId() {
 		return regId;
 	}
@@ -31,6 +37,22 @@ public class RegBioRefPKEntity implements Serializable {
 		this.crDtimes = crDtimes;
 	}
 
+	public String getProcess() {
+		return process;
+	}
+
+	public void setProcess(String process) {
+		this.process = process;
+	}
+
+	public int getIteration() {
+		return iteration;
+	}
+
+	public void setIteration(int iteration) {
+		this.iteration = iteration;
+	}
+	
 	@Override
 	public int hashCode() {
 		return super.hashCode();
