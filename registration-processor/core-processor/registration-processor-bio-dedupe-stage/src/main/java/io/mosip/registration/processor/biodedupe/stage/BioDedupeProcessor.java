@@ -405,6 +405,7 @@ public class BioDedupeProcessor {
 		if (matchedRegIds != null && !matchedRegIds.isEmpty()
 				&& matchedRegIds.contains(registrationStatusDto.getRegistrationId())) {
 			matchedRegIds.remove(registrationStatusDto.getRegistrationId());
+			matchedRegIdsList.remove(registrationStatusDto.getRegistrationId());
 		}
 		if (matchedRegIds == null || matchedRegIds.isEmpty()) {
 			registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
