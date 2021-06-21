@@ -160,9 +160,8 @@ public class DemodedupeProcessor {
 				.getRegistrationStatus(registrationId, object.getReg_type(), object.getIteration());
 
 		try {
-			// Persist Demographic packet Data if packet Registration type is NEW or CORRECTION
-			if (registrationStatusDto.getRegistrationType().equals(RegistrationType.NEW.name())
-					||registrationStatusDto.getRegistrationType().equals(RegistrationType.CORRECTION.name())) {
+			  // Persist Demographic packet Data if packet Registration type is NEW
+			  if (registrationStatusDto.getRegistrationType().equals(RegistrationType.NEW.name())) {
 
 				String packetStatus = abisHandlerUtil.getPacketStatus(registrationStatusDto);
 
