@@ -191,6 +191,7 @@ public class DeviceValidator {
 		jwtSignatureVerifyRequestDto.setApplicationId("REGISTRATION");
 		jwtSignatureVerifyRequestDto.setReferenceId("SIGN");
 		jwtSignatureVerifyRequestDto.setJwtSignatureData(payload.getString("digitalId"));
+		jwtSignatureVerifyRequestDto.setActualData(payload.getString("digitalId").split("\\.")[1]);
 		jwtSignatureVerifyRequestDto.setValidateTrust(!disableTrustValidation);
 		jwtSignatureVerifyRequestDto.setDomain("Device");
 		RequestWrapper<JWTSignatureVerifyRequestDto> request = new RequestWrapper<>();
@@ -207,13 +208,15 @@ public class DeviceValidator {
 		JWTSignatureVerifyResponseDto jwtResponse = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
 				JWTSignatureVerifyResponseDto.class);
 				
-		if(!(!disableTrustValidation
-				? jwtResponse.isSignatureValid()
-						&& jwtResponse.getTrustValid().contentEquals(SignatureConstant.TRUST_VALID)
-				: jwtResponse.isSignatureValid())) {
+		if( !jwtResponse.isSignatureValid()) {
 			throw new BaseCheckedException(
 					StatusUtil.DEVICE_SIGNATURE_VALIDATION_FAILED.getCode(),StatusUtil.DEVICE_SIGNATURE_VALIDATION_FAILED.getMessage());
-		
+		}
+		else {
+		if(!disableTrustValidation&& !jwtResponse.getTrustValid().contentEquals(SignatureConstant.TRUST_VALID)) {
+			throw new BaseCheckedException(
+					StatusUtil.DEVICE_SIGNATURE_VALIDATION_FAILED.getCode(),StatusUtil.DEVICE_SIGNATURE_VALIDATION_FAILED.getMessage()+"-->"+jwtResponse.getTrustValid());
+		}
 		}
 		}
 		else {
