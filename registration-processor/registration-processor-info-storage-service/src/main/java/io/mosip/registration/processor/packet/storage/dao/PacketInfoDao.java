@@ -463,7 +463,7 @@ public class PacketInfoDao {
 	}
 
 	/**
-	 * Gets the RegId by bioRefId,regType & iteration.
+	 * Gets the RegId by bioRefId,process & iteration.
 	 * @param bioRefId
 	 * @param process
 	 * @param iteration
