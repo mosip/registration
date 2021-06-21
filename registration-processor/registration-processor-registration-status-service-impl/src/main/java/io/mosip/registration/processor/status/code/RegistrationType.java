@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.status.code;
 
 
+
 /**
  * The Enum RegistrationType.
  */
@@ -29,5 +30,9 @@ public enum RegistrationType {
 	
 	
 	/** The res reprint. */
-	RES_REPRINT;
+	RES_REPRINT,
+
+	/** The biomteric correction. */
+	BIOMTERIC_CORRECTION;
+
 }
