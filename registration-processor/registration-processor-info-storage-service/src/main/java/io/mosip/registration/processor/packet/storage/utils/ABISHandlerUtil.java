@@ -2,9 +2,11 @@ package io.mosip.registration.processor.packet.storage.utils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
@@ -69,7 +71,7 @@ public class ABISHandlerUtil {
 	 *                                               has occurred.
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 */
-	public List<String> getUniqueRegIds(String registrationId, String registrationType, 
+	public Set<String> getUniqueRegIds(String registrationId, String registrationType, 
 										int iteration, ProviderStageName stageName) throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationId, "ABISHandlerUtil::getUniqueRegIds()::entry");
@@ -79,7 +81,7 @@ public class ABISHandlerUtil {
 		List<String> regBioRefIds = packetInfoDao.getAbisRefMatchedRefIdByRid(registrationId);
 
 		List<String> machedRefIds = new ArrayList<>();
-		List<String> uniqueRIDs = new ArrayList<>();
+		Set<String> uniqueRIDs = new HashSet<>();
 		List<AbisResponseDetDto> abisResponseDetDtoList = new ArrayList<>();
 
 		if (!regBioRefIds.isEmpty()) {
@@ -120,7 +122,7 @@ public class ABISHandlerUtil {
 	 * @return the packet status
 	 */
 	public String getPacketStatus(InternalRegistrationStatusDto registrationStatusDto) {
-		if (getMatchedRegIds(registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationId(), registrationStatusDto.getIteration()).isEmpty()) {
+		if (getMatchedRegIds(registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration()).isEmpty()) {
 			return AbisConstant.PRE_ABIS_IDENTIFICATION;
 		}
 		return AbisConstant.POST_ABIS_IDENTIFICATION;
@@ -160,12 +162,12 @@ public class ABISHandlerUtil {
 	 *                                               has occurred.
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 */
-	public List<String> getUniqueRegIds(List<String> matchedRegistrationIds, String registrationId,
+	public Set<String> getUniqueRegIds(List<String> matchedRegistrationIds, String registrationId,
 										String registrationType, ProviderStageName stageName) throws ApisResourceAccessException, IOException,
 			JsonProcessingException, PacketManagerException {
 
 		Map<String, String> filteredRegMap = new LinkedHashMap<>();
-		List<String> filteredRIds = new ArrayList<>();
+		Set<String> filteredRIds = new HashSet<>();
 
 		for (String machedRegId : matchedRegistrationIds) {
 
@@ -188,7 +190,7 @@ public class ABISHandlerUtil {
 
 		}
 		if (!filteredRegMap.isEmpty()) {
-			filteredRIds = new ArrayList<>(filteredRegMap.values());
+			filteredRIds = new HashSet<String>(filteredRegMap.values());
 		}
 
 		return filteredRIds;
