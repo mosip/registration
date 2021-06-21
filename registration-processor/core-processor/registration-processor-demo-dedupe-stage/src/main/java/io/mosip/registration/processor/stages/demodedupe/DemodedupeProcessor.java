@@ -160,8 +160,8 @@ public class DemodedupeProcessor {
 				.getRegistrationStatus(registrationId, object.getReg_type(), object.getIteration());
 
 		try {
-			// Persist Demographic packet Data if packet Registration type is NEW
-			if (registrationStatusDto.getRegistrationType().equals(RegistrationType.NEW.name())) {
+			 // Persist Demographic packet Data if packet Registration type is NEW
+			 if (registrationStatusDto.getRegistrationType().equals(RegistrationType.NEW.name())) {
 
 				String packetStatus = abisHandlerUtil.getPacketStatus(registrationStatusDto);
 
@@ -261,7 +261,7 @@ public class DemodedupeProcessor {
 						: demographicData.getEmail());
 
 				packetInfoManager.saveIndividualDemographicDedupeUpdatePacket(demoDedupeData, registrationId, moduleId,
-						moduleName);
+						registrationStatusDto.getRegistrationType(),moduleName);
 				object.setIsValid(Boolean.TRUE);
 				registrationStatusDto
 						.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());

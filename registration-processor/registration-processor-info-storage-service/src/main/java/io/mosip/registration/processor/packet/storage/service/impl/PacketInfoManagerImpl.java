@@ -296,7 +296,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 
 		try {
 			List<IndividualDemographicDedupeEntity> applicantDemographicEntities = PacketInfoMapper
-					.converDemographicDedupeDtoToEntity(demographicData, regId);
+					.converDemographicDedupeDtoToEntity(demographicData, regId,process);
 			for (IndividualDemographicDedupeEntity applicantDemographicEntity : applicantDemographicEntities) {
 				demographicDedupeRepository.save(applicantDemographicEntity);
 
@@ -334,7 +334,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 */
 	@Override
 	public void saveIndividualDemographicDedupeUpdatePacket(IndividualDemographicDedupe demographicData,
-			String registrationId, String moduleId, String moduleName) {
+			String registrationId, String moduleId,String process, String moduleName) {
 		boolean isTransactionSuccessful = false;
 		LogDescription description = new LogDescription();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
@@ -342,7 +342,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 
 		try {
 			List<IndividualDemographicDedupeEntity> applicantDemographicEntities = PacketInfoMapper
-					.converDemographicDedupeDtoToEntity(demographicData, registrationId);
+					.converDemographicDedupeDtoToEntity(demographicData, registrationId,process);
 			for (IndividualDemographicDedupeEntity applicantDemographicEntity : applicantDemographicEntities) {
 				demographicDedupeRepository.save(applicantDemographicEntity);
 

@@ -318,7 +318,7 @@ public interface PacketInfoManager<T, /** D, M, */
 	 *            the reg id
 	 */
 	public void saveIndividualDemographicDedupeUpdatePacket(IndividualDemographicDedupe demoDedupeData, String regId,
-			String moduleId, String moduleName);
+			String moduleId, String process,String moduleName);
 
 	/**
 	 * Gets the identity keys and fetch values from JSON.
