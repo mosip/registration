@@ -469,8 +469,8 @@ public class PacketInfoDao {
 	 * @param iteration
 	 * @return regId
 	 */
-	public String getRegIdByRefIdAndRegTypeAndIteration(String matchRefId, String regType, int iteration) {
-		return regBioRefRepository.getRegIdByRefIdAndRegTypeAndIteration(matchRefId,regType,iteration);
+	public String getRegIdByRefIdAndProcessAndIteration(String matchRefId, String regType, int iteration) {
+		return regBioRefRepository.getRegIdByRefIdAndProcessAndIteration(matchRefId,regType,iteration);
 	}
 	
 	/**

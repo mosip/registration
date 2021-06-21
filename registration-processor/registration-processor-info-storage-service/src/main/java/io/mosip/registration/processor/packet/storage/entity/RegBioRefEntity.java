@@ -33,8 +33,6 @@ public class RegBioRefEntity extends BasePacketEntity<RegBioRefPKEntity> impleme
 	@Column(name = "upd_dtimes")
 	private LocalDateTime updDtimes;
 
-	
-	
 	public RegBioRefEntity() {
 	}
 

@@ -349,14 +349,14 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	public List<String> getAbisRefRegIdsByMatchedRefIds(@Param("bioRefIds") List<String> bioRefId);
 
 	/**
-	 * Gets the RegId by bioRefId,regType & iteration.
+	 * Gets the RegId by bioRefId,process & iteration.
 	 * @param bioRefId
-	 * @param regType
+	 * @param process
 	 * @param iteration
 	 * @return regId
 	 */
-	@Query("SELECT regBioRef.id.regId FROM RegBioRefEntity regBioRef WHERE regBioRef.bioRefId=:bioRefId and regBioRef.regType=:regType and regBioRef.iteration=:iteration")
-	public String getRegIdByRefIdAndRegTypeAndIteration(@Param("bioRefId") String bioRefId, @Param("regType") String regType, @Param("iteration") int iteration);
+	@Query("SELECT regBioRef.id.regId FROM RegBioRefEntity regBioRef WHERE regBioRef.bioRefId=:bioRefId and regBioRef.process=:process and regBioRef.iteration=:iteration")
+	public String getRegIdByRefIdAndProcessAndIteration(@Param("bioRefId") String bioRefId, @Param("process") String process, @Param("iteration") int iteration);
 
 	/**
 	 * Gets the bio Ref entity list by bioRefId.
