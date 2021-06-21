@@ -26,6 +26,7 @@ import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
+import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.code.WorkflowActionCode;
 import io.mosip.registration.processor.core.code.WorkflowInternalActionCode;
@@ -354,6 +355,8 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 			SubWorkflowDto subWorkflowDto = subWorkflowDtos.get(0);
 			InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(
 					subWorkflowDto.getRegId(), subWorkflowDto.getParentProcess(), subWorkflowDto.getParentIteration());
+			registrationStatusDto
+					.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
 			List<InternalRegistrationStatusDto> internalRegistrationStatusDtos = new ArrayList<InternalRegistrationStatusDto>();
 			internalRegistrationStatusDtos.add(registrationStatusDto);
 			workflowActionService.processWorkflowAction(internalRegistrationStatusDtos,
