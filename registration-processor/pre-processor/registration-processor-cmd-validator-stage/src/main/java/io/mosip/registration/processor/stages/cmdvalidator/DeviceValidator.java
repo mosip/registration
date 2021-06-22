@@ -5,7 +5,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -67,7 +69,7 @@ public class DeviceValidator {
 	private Boolean disableTrustValidation;
 	
 	@Value("${mosip.regproc.cmd-validator.device.allowed-digital-id-timestamp-variation:5}")
-	private String allowedDigitalIdTimestampVariation;
+	private int allowedDigitalIdTimestampVariation;
 
 	/**
 	 * Checks if is device active.
@@ -103,15 +105,23 @@ public class DeviceValidator {
 			throw new BaseCheckedException(
 					StatusUtil.DEVICE_VALIDATION_FAILED.getCode(),StatusUtil.DEVICE_VALIDATION_FAILED.getMessage()+"-->Others info is not prsent in packet");
 		}
+		Set<String> signatures=new HashSet<>();
+		Set<String> deviceCodeTimestamps=new HashSet<>();
 		for(JSONObject payload :payloads) {
-				validateDigitalId(payload) ;
-				
 				String digitalIdString=new String(CryptoUtil.decodeBase64(payload.getString("digitalId").split("\\.")[1]));
 				NewDigitalId newDigitalId=mapper.readValue(digitalIdString, NewDigitalId.class);
-				
+				if(!signatures.contains(digitalIdString)) {
+					validateDigitalId(payload) ;
+					signatures.add(digitalIdString);
+				}
+				signatures.add(digitalIdString);
 				validateTimestamp (payload,regOsi.getPacketCreationDate(),newDigitalId.getDateTime()) ;
 				validateTimestamp(payload,regOsi.getPacketCreationDate(),payload.getString("timestamp"));
-				validateDeviceForHotlist(payload.getString("deviceCode"),newDigitalId.getDateTime());
+				if(!deviceCodeTimestamps.contains(payload.getString("deviceCode")+newDigitalId.getDateTime())) {
+					validateDeviceForHotlist(payload.getString("deviceCode"),newDigitalId.getDateTime());
+					deviceCodeTimestamps.add(payload.getString("deviceCode")+newDigitalId.getDateTime());
+				}
+				
 				
 		
 		}
@@ -161,11 +171,8 @@ public class DeviceValidator {
 		LocalDateTime timestamp = LocalDateTime
 				.parse(dateTime, format);
 		
-		String prefix = allowedDigitalIdTimestampVariation.substring(0, 1);
-		String timeString = allowedDigitalIdTimestampVariation.replaceAll("\\" + prefix, "");
-		
 			if (timestamp.isAfter(packetCreationDateTime)|| timestamp.isBefore(
-							packetCreationDateTime.minus(Long.valueOf(timeString), ChronoUnit.MINUTES))) {
+							packetCreationDateTime.minus(allowedDigitalIdTimestampVariation, ChronoUnit.MINUTES))) {
 				throw new BaseCheckedException(
 						StatusUtil.TIMESTAMP_NOT_VALID.getCode(),
 						StatusUtil.TIMESTAMP_NOT_VALID.getMessage());
