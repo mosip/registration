@@ -32,7 +32,7 @@ public enum RegistrationType {
 	/** The res reprint. */
 	RES_REPRINT,
 
-	/** The biomteric correction. */
-	BIOMTERIC_CORRECTION;
+	/** The biometric correction. */
+	BIOMETRIC_CORRECTION;
 
 }
