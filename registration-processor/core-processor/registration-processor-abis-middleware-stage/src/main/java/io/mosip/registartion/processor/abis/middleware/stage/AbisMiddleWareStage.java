@@ -383,7 +383,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 
 				updateAbisResponseEntity(abisInsertResponseDto, response);
 				updteAbisRequestProcessed(abisInsertResponseDto, abisCommonRequestDto);
-				if (isInsertSuccessResponse(abisInsertResponseDto)) {
+				if (isInsertSuccess(abisInsertResponseDto)) {
 					List<String> transactionIdList = packetInfoManager.getAbisTransactionIdByRequestId(requestId);
 					validateNullCheck(transactionIdList, "LATEST_TRANSACTION_ID_NOT_FOUND");
 					List<AbisRequestDto> abisIdentifyRequestList = packetInfoManager.getIdentifyReqListByTransactionId(
@@ -547,7 +547,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 		AbisRequestPKEntity abisReqPKEntity = new AbisRequestPKEntity();
 		abisReqPKEntity.setId(abisCommonResponseDto.getRequestId());
 		abisReqEntity.setId(abisReqPKEntity);
-		abisReqEntity.setStatusCode(isInsertSuccessResponse(abisCommonResponseDto) ? AbisStatusCode.PROCESSED.toString()
+		abisReqEntity.setStatusCode(isInsertSuccess(abisCommonResponseDto) ? AbisStatusCode.PROCESSED.toString()
 				: AbisStatusCode.FAILED.toString());
 		abisReqEntity.setStatusComment(
 				abisCommonResponseDto.getReturnValue().equalsIgnoreCase("1") ? StatusUtil.INSERT_IDENTIFY_RESPONSE_SUCCESS.getMessage()
@@ -624,7 +624,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 		abisResponseDto.setId(RegistrationUtility.generateId());
 		abisResponseDto.setRespText(response.getBytes());
 
-		abisResponseDto.setStatusCode(isInsertSuccessResponse(abisCommonResponseDto) ?
+		abisResponseDto.setStatusCode(isInsertSuccess(abisCommonResponseDto) ?
 				AbisStatusCode.SUCCESS.toString() : AbisStatusCode.FAILED.toString());
 		abisResponseDto.setStatusComment(io.mosip.registartion.processor.abis.middleware.constants.FailureReason.getValueFromKey(abisCommonResponseDto.getFailureReason()));
 		abisResponseDto.setLangCode("eng");
@@ -704,7 +704,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 	 * @param abisInsertResponseDto
 	 * @return boolean
 	 */
-	private boolean isInsertSuccessResponse(AbisCommonResponseDto abisInsertResponseDto) {
+	private boolean isInsertSuccess(AbisCommonResponseDto abisInsertResponseDto) {
 		return abisInsertResponseDto.getReturnValue().equalsIgnoreCase("1")
 				|| (abisInsertResponseDto.getFailureReason() != null
 				&& abisInsertResponseDto.getFailureReason().equalsIgnoreCase("10"));
