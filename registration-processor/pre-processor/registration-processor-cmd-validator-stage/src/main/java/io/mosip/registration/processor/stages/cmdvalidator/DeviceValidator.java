@@ -122,8 +122,6 @@ public class DeviceValidator {
 					deviceCodeTimestamps.add(payload.getString("deviceCode")+newDigitalId.getDateTime());
 				}
 				
-				
-		
 		}
 	}
 
