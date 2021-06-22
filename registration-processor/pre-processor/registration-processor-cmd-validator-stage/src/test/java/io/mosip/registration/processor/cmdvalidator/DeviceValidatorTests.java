@@ -57,7 +57,7 @@ public class DeviceValidatorTests {
 		registrationId="1234567890";
 		regOsi=new RegOsiDto();
 		regOsi.setPacketCreationDate("2021-06-04T07:31:59.831Z");
-		ReflectionTestUtils.setField(deviceValidator, "allowedDigitalIdTimestampVariation", "+30");
+		ReflectionTestUtils.setField(deviceValidator, "allowedDigitalIdTimestampVariation", 30);
 		ReflectionTestUtils.setField(deviceValidator, "disableTrustValidation", true);
 		
 		BiometricRecord biometricRecord = new BiometricRecord();
