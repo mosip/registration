@@ -50,6 +50,7 @@ import io.mosip.registration.processor.core.packet.dto.abis.AbisInsertResponseDt
 import io.mosip.registration.processor.core.packet.dto.abis.AbisRequestDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisResponseDto;
 import io.mosip.registration.processor.core.packet.dto.abis.CandidatesDto;
+import io.mosip.registration.processor.core.packet.dto.abis.RegBioRefDto;
 import io.mosip.registration.processor.core.queue.factory.MosipQueue;
 import io.mosip.registration.processor.core.queue.factory.QueueListener;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
@@ -386,9 +387,11 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 			validateNullCheck(batchId, "ABIS_BATCH_ID_NOT_FOUND");
 			List<String> bioRefId = packetInfoManager.getReferenceIdByBatchId(batchId);
 			validateNullCheck(bioRefId, "ABIS_REFERENCE_ID_NOT_FOUND");
-			List<String> registrationIds = packetInfoDao.getAbisRefRegIdsByMatchedRefIds(bioRefId);
-			internalRegStatusDto = registrationStatusService.getRegStatusForMainProcess(registrationIds.get(0));
-			registrationId = internalRegStatusDto.getRegistrationId();
+	
+			List<RegBioRefDto> regBioRefist = packetInfoManager.getRegBioRefDataByBioRefIds(bioRefId);
+			RegBioRefDto regBioRefDto = regBioRefist.get(0);
+			registrationId = packetInfoDao.getRegIdByRefIdAndProcessAndIteration(regBioRefDto.getBioRefId(),regBioRefDto.getProcess(),regBioRefDto.getIteration());
+			internalRegStatusDto = registrationStatusService.getRegistrationStatus(registrationId,regBioRefDto.getProcess(),regBioRefDto.getIteration());
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 					"AbisMiddlewareStage::consumerListener()::response from abis for requestId ::" + requestId);
 
@@ -474,8 +477,8 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 							"",
 							"AbisMiddlewareStage::consumerListener()::All identify are requests processed sending to Abis handler");
 
-					sendToAbisHandler(eventBus, bioRefId, registrationIds.get(0),
-							internalRegStatusDto.getRegistrationType());
+					sendToAbisHandler(eventBus, bioRefId, registrationId, 
+							internalRegStatusDto.getRegistrationType(),internalRegStatusDto.getIteration());
 
 					}
 				} else {
@@ -735,11 +738,14 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 		return false;
 	}
 
-	private void sendToAbisHandler(MosipEventBus eventBus, List<String> bioRefId, String regId, String regType) {
+	private void sendToAbisHandler(MosipEventBus eventBus, List<String> bioRefId, String regId, String regType, int iteration ) {
 		if (bioRefId != null) {
 			MessageDTO messageDto = new MessageDTO();
 			messageDto.setRid(regId);
 			messageDto.setReg_type(regType);
+			messageDto.setIsValid(true);
+			messageDto.setInternalError(false);
+			messageDto.setIteration(iteration);
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 					"AbisMiddlewareStage::consumerListener()::sending to Abis handler");
 			this.send(eventBus, MessageBusAddress.ABIS_MIDDLEWARE_BUS_OUT, messageDto);
