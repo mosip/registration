@@ -376,9 +376,14 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 				AbisInsertResponseDto abisInsertResponseDto = JsonUtil.objectMapperReadValue(response,
 						AbisInsertResponseDto.class);
 
+				if (abisInsertResponseDto.getFailureReason() != null && abisInsertResponseDto.getFailureReason().equalsIgnoreCase("10"))
+					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+							"Received failure response from abis.",
+							"Reference id already present for requestId : " + requestId +". Regproc will pass this insert response.");
+
 				updateAbisResponseEntity(abisInsertResponseDto, response);
 				updteAbisRequestProcessed(abisInsertResponseDto, abisCommonRequestDto);
-				if (abisInsertResponseDto.getReturnValue().equalsIgnoreCase("1")) {
+				if (isInsertSuccessResponse(abisInsertResponseDto)) {
 					List<String> transactionIdList = packetInfoManager.getAbisTransactionIdByRequestId(requestId);
 					validateNullCheck(transactionIdList, "LATEST_TRANSACTION_ID_NOT_FOUND");
 					List<AbisRequestDto> abisIdentifyRequestList = packetInfoManager.getIdentifyReqListByTransactionId(
@@ -542,7 +547,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 		AbisRequestPKEntity abisReqPKEntity = new AbisRequestPKEntity();
 		abisReqPKEntity.setId(abisCommonResponseDto.getRequestId());
 		abisReqEntity.setId(abisReqPKEntity);
-		abisReqEntity.setStatusCode(abisCommonResponseDto.getReturnValue().equalsIgnoreCase("1") ? AbisStatusCode.PROCESSED.toString()
+		abisReqEntity.setStatusCode(isInsertSuccessResponse(abisCommonResponseDto) ? AbisStatusCode.PROCESSED.toString()
 				: AbisStatusCode.FAILED.toString());
 		abisReqEntity.setStatusComment(
 				abisCommonResponseDto.getReturnValue().equalsIgnoreCase("1") ? StatusUtil.INSERT_IDENTIFY_RESPONSE_SUCCESS.getMessage()
@@ -618,10 +623,9 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 
 		abisResponseDto.setId(RegistrationUtility.generateId());
 		abisResponseDto.setRespText(response.getBytes());
-		String responseStatus = abisCommonResponseDto.getReturnValue();
 
-		abisResponseDto.setStatusCode(
-				responseStatus.equalsIgnoreCase("1") ? AbisStatusCode.SUCCESS.toString() : AbisStatusCode.FAILED.toString());
+		abisResponseDto.setStatusCode(isInsertSuccessResponse(abisCommonResponseDto) ?
+				AbisStatusCode.SUCCESS.toString() : AbisStatusCode.FAILED.toString());
 		abisResponseDto.setStatusComment(io.mosip.registartion.processor.abis.middleware.constants.FailureReason.getValueFromKey(abisCommonResponseDto.getFailureReason()));
 		abisResponseDto.setLangCode("eng");
 		abisResponseDto.setCrBy(SYSTEM);
@@ -692,6 +696,18 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 		for (CandidatesDto candidatesDto : candidatesDtos) {
 			updateAbisResponseDetail(candidatesDto, abisResponseDto, bioRefId);
 		}
+	}
+
+	/**
+	 * If return value is 1 or failure reason is 10(which means ABIS has already processed the
+	 * reference id) then return true
+	 * @param abisInsertResponseDto
+	 * @return boolean
+	 */
+	private boolean isInsertSuccessResponse(AbisCommonResponseDto abisInsertResponseDto) {
+		return abisInsertResponseDto.getReturnValue().equalsIgnoreCase("1")
+				|| (abisInsertResponseDto.getFailureReason() != null
+				&& abisInsertResponseDto.getFailureReason().equalsIgnoreCase("10"));
 	}
 
 }
