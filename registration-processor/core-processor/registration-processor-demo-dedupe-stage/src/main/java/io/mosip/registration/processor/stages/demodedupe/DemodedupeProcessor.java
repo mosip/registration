@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
@@ -585,12 +586,13 @@ public class DemodedupeProcessor {
 	 */
 	private void saveManualAdjudicationData(InternalRegistrationStatusDto registrationStatusDto)
 			throws ApisResourceAccessException, IOException, JsonProcessingException, PacketManagerException {
-		List<String> matchedRegIds = abisHandlerUtil.getUniqueRegIds(registrationStatusDto.getRegistrationId(),
+		Set<String> matchedRegIds = abisHandlerUtil.getUniqueRegIds(registrationStatusDto.getRegistrationId(),
 				registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(), ProviderStageName.DEMO_DEDUPE);
+		ArrayList<String> matchedRegIdsList = new ArrayList<String>(matchedRegIds);
 		if (!matchedRegIds.isEmpty()) {
 			String moduleId = PlatformErrorMessages.RPR_DEMO_SENDING_FOR_MANUAL.getCode();
 			String moduleName = ModuleName.DEMO_DEDUPE.toString();
-			packetInfoManager.saveManualAdjudicationData(matchedRegIds, registrationStatusDto.getRegistrationId(),
+			packetInfoManager.saveManualAdjudicationData(matchedRegIdsList, registrationStatusDto.getRegistrationId(),
 					DedupeSourceName.DEMO, moduleId, moduleName,null,null);
 		} else {
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
