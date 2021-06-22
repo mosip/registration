@@ -131,13 +131,12 @@ public class DeviceValidatorTests {
 	
 	@Test(expected=BaseCheckedException.class)
 	public void deviceValidationdigitalIdTimestampAfterCreationTest() throws JsonProcessingException, ApisResourceAccessException, IOException, BaseCheckedException, JSONException {
-		regOsi.setPacketCreationDate("2021-06-03T07:31:59.831Z");
+		regOsi.setPacketCreationDate("2021-06-05T07:31:59.831Z");
 		deviceValidator.validate(regOsi, process, registrationId);
 	}
 	
 	@Test(expected=BaseCheckedException.class)
 	public void deviceValidationdigitalIdTimestampBeforeCreationTest() throws JsonProcessingException, ApisResourceAccessException, IOException, BaseCheckedException, JSONException {
-		ReflectionTestUtils.setField(deviceValidator, "allowedDigitalIdTimestampVariation", "-30");
 		regOsi.setPacketCreationDate("2021-06-03T07:31:59.831Z");
 		deviceValidator.validate(regOsi, process, registrationId);
 	}
