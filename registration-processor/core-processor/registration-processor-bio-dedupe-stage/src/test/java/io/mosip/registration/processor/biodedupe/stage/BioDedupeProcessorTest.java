@@ -12,9 +12,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
@@ -333,11 +335,11 @@ public class BioDedupeProcessorTest {
 	@Test
 	public void testNewIdentifyToManualStage() throws Exception {
 
-		List<String> list = new ArrayList<>();
-		list.add("1");
+		Set<String> set = new HashSet<>();
+		set.add("1");
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
 
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any(),any())).thenReturn(list);
+		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any(),any())).thenReturn(set);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
 		assertFalse(messageDto.getIsValid());
@@ -409,7 +411,7 @@ public class BioDedupeProcessorTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any())).thenReturn(registrationStatusDto);
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
 
-		List<String> matchedRidList = new ArrayList<>();
+		Set<String> matchedRidList = new HashSet<>();
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any(),any())).thenReturn(matchedRidList);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
@@ -434,7 +436,7 @@ public class BioDedupeProcessorTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any())).thenReturn(registrationStatusDto);
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
 
-		List<String> matchedRidList = new ArrayList<>();
+		Set<String> matchedRidList = new HashSet<>();
 		matchedRidList.add("27847657360002520190320095010");
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any(),any())).thenReturn(matchedRidList);
 
@@ -460,7 +462,7 @@ public class BioDedupeProcessorTest {
 		registrationStatusDto.setRegistrationType("LOST");
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any())).thenReturn(registrationStatusDto);
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
-		List<String> matchedRidList = new ArrayList<>();
+		Set<String> matchedRidList = new HashSet<>();
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any(),any())).thenReturn(matchedRidList);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
@@ -485,7 +487,7 @@ public class BioDedupeProcessorTest {
 		registrationStatusDto.setRegistrationType("LOST");
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any())).thenReturn(registrationStatusDto);
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
-		List<String> matchedRidList = new ArrayList<>();
+		Set<String> matchedRidList = new HashSet<>();
 		matchedRidList.add("27847657360002520190320095010");
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any(),any())).thenReturn(matchedRidList);
 
@@ -506,7 +508,7 @@ public class BioDedupeProcessorTest {
 		registrationStatusDto.setRegistrationType("LOST");
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any())).thenReturn(registrationStatusDto);
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
-		List<String> matchedRidList = new ArrayList<>();
+		Set<String> matchedRidList = new HashSet<>();
 		matchedRidList.add("27847657360002520190320095010");
 		matchedRidList.add("27847657360002520190320095011");
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any(),any())).thenReturn(matchedRidList);
@@ -540,7 +542,7 @@ public class BioDedupeProcessorTest {
 		registrationStatusDto.setRegistrationType("LOST");
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any())).thenReturn(registrationStatusDto);
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
-		List<String> matchedRidList = new ArrayList<>();
+		Set<String> matchedRidList = new HashSet<>();
 		matchedRidList.add("27847657360002520190320095010");
 		matchedRidList.add("27847657360002520190320095011");
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any(),any())).thenReturn(matchedRidList);
@@ -563,7 +565,7 @@ public class BioDedupeProcessorTest {
 		registrationStatusDto.setRegistrationType("LOST");
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any())).thenReturn(registrationStatusDto);
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
-		List<String> matchedRidList = new ArrayList<>();
+		Set<String> matchedRidList = new HashSet<>();
 		matchedRidList.add("27847657360002520190320095010");
 		matchedRidList.add("27847657360002520190320095011");
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any(),any())).thenReturn(matchedRidList);
@@ -590,7 +592,7 @@ public class BioDedupeProcessorTest {
 		registrationStatusDto.setRegistrationType("LOST");
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any())).thenReturn(registrationStatusDto);
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
-		List<String> matchedRidList = new ArrayList<>();
+		Set<String> matchedRidList = new HashSet<>();
 		matchedRidList.add("27847657360002520190320095010");
 		matchedRidList.add("27847657360002520190320095011");
 		matchedRidList.add("27847657360002520190320095012");

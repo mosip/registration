@@ -18,7 +18,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import org.apache.commons.io.IOUtils;
@@ -506,7 +508,7 @@ public class DemodedupeProcessorTest {
 	public void testDemoDedupePotentialMatchWithEmpty() throws Exception {
 		List<AbisResponseDto> abisResponseDtos = new ArrayList<>();
 		List<AbisResponseDetDto> abisResponseDetDtos = new ArrayList<>();
-		List<String> matchedRegIds = new ArrayList<>();
+		Set<String> matchedRegIds = new HashSet<>();
 		AbisResponseDto abisResponseDto = new AbisResponseDto();
 		abisResponseDto.setId("100");
 		abisResponseDto.setStatusCode(AbisStatusCode.SUCCESS.toString());
@@ -546,7 +548,7 @@ public class DemodedupeProcessorTest {
 	public void testDemoDedupeEmptyMatch() throws Exception {
 		List<AbisResponseDto> abisResponseDtos = new ArrayList<>();
 		List<AbisResponseDetDto> abisResponseDetDtos = new ArrayList<>();
-		List<String> matchedRegIds = new ArrayList<>();
+		Set<String> matchedRegIds = new HashSet<>();
 		AbisResponseDto abisResponseDto = new AbisResponseDto();
 		abisResponseDto.setId("100");
 		abisResponseDto.setStatusCode(AbisStatusCode.SUCCESS.toString());

@@ -32,7 +32,7 @@ public enum RegistrationType {
 
 	RES_REPRINT("res_reprint"),
 
-	BIOMTERIC_CORRECTION("biometric_correction");
+	BIOMETRIC_CORRECTION("biometric_correction");
 
 	public String regType;
 

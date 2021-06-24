@@ -268,6 +268,15 @@ public class PacketInfoDao {
 		return abisRequestRepository.getReferenceIdByBatchId(batchId);
 
 	}
+	
+	/**
+	 * Gets the bio ref entity list by bioRefId.
+	 * @param bioRefIds
+	 * @return RegBioRef Entities
+	 */
+	public List<RegBioRefEntity> getRegBioRefDataByBioRefIds(List<String> bioRefId) {
+		return regBioRefRepository.getBioRefIdsByRefIds(bioRefId);
+	}
 
 	/**
 	 * Gets the abis transaction id by request id.
@@ -453,6 +462,17 @@ public class PacketInfoDao {
 
 	}
 
+	/**
+	 * Gets the RegId by bioRefId,process & iteration.
+	 * @param bioRefId
+	 * @param process
+	 * @param iteration
+	 * @return regId
+	 */
+	public String getRegIdByRefIdAndProcessAndIteration(String matchRefId, String process, int iteration) {
+		return regBioRefRepository.getRegIdByRefIdAndProcessAndIteration(matchRefId,process,iteration);
+	}
+	
 	/**
 	 * Gets the abis ref matched ref id by rid.
 	 *

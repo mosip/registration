@@ -254,7 +254,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 							AbisHandlerStageConstant.DETAILS_NOT_FOUND);
 					throw new AbisHandlerException(PlatformErrorMessages.RPR_ABIS_INTERNAL_ERROR.getCode());
 				}
-				createRequest(regId, abisQueueDetails, transactionId, registrationStatusDto.getRegistrationType(),
+				createRequest(regId, abisQueueDetails, transactionId, registrationStatusDto.getRegistrationType(),registrationStatusDto.getIteration(),
 						description, transactionTypeCode);
 				object.setMessageBusAddress(MessageBusAddress.ABIS_MIDDLEWARE_BUS_IN);
 			} else {
@@ -313,9 +313,9 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	}
 
 	private void createRequest(String regId, List<AbisQueueDetails> abisQueueDetails, String transactionId,
-			String process, LogDescription description, String transactionTypeCode) throws Exception {
+			String process, int iteration, LogDescription description, String transactionTypeCode) throws Exception {
 		String bioRefId = getUUID();
-		insertInBioRef(regId, bioRefId);
+		insertInBioRef(regId, bioRefId,process,iteration);
 		createInsertRequest(abisQueueDetails, transactionId, bioRefId, regId, process, description);
 		createIdentifyRequest(abisQueueDetails, transactionId, bioRefId, transactionTypeCode, description);
 
@@ -436,7 +436,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	 * @param regId    the reg id
 	 * @param bioRefId the bio ref id
 	 */
-	private void insertInBioRef(String regId, String bioRefId) {
+	private void insertInBioRef(String regId, String bioRefId, String process, int iteration) {
 		RegBioRefDto regBioRefDto = new RegBioRefDto();
 		regBioRefDto.setBioRefId(bioRefId);
 		regBioRefDto.setCrBy(AbisHandlerStageConstant.USER);
@@ -444,6 +444,8 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		regBioRefDto.setIsDeleted(Boolean.FALSE);
 		regBioRefDto.setRegId(regId);
 		regBioRefDto.setUpdBy(null);
+		regBioRefDto.setProcess(process);
+		regBioRefDto.setIteration(iteration);
 		String moduleId = PlatformSuccessMessages.RPR_ABIS_HANDLER_STAGE_SUCCESS.getCode();
 		String moduleName = ModuleName.ABIS_HANDLER.toString();
 		packetInfoManager.saveBioRef(regBioRefDto, moduleId, moduleName);

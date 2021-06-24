@@ -561,6 +561,7 @@ public class NotificationServiceImpl implements NotificationService {
 					messageSenderDto);
 			Map<String, Object> attributes = new HashMap<>();
 			attributes.put("additionalInfoRequestId", object.getAdditionalInfoRequestId());
+			attributes.put("additionalInfoProcess", object.getAdditionalInfoProcess());
 				String[] ccEMailList = null;
 
 				if (isNotificationTypesEmpty()) {
