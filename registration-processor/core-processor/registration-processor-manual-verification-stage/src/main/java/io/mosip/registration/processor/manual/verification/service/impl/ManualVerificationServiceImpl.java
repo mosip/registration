@@ -444,6 +444,16 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		registrationStatusDto.setRegistrationStageName(stageName);
 
 		try {
+			entities.addAll(basePacketRepository.getAllAssignedRecord(
+					regId, ManualVerificationStatus.INQUEUE.name()));
+
+			if (entities.isEmpty()) {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						regId, "ManualVerificationServiceImpl::updatePacketStatus()"
+								+ PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getMessage());
+				throw new NoRecordAssignedException(PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getCode(),
+						PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getMessage());
+			}
 
 			//Below lines are resending the same message to mv queue even after receiving the response,
 			if(manualVerificationDTO.getReturnValue()==2) {
@@ -451,8 +461,6 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 						regId, "Received resend request from manual verification application. Resending request again.");
 
 				// updating status code to pending so that it can be marked for manual verification again
-				entities = basePacketRepository.getAllAssignedRecord(
-						regId, ManualVerificationStatus.INQUEUE.name());
 				entities.forEach(e -> {
 					e.setStatusCode(ManualVerificationStatus.PENDING.name());
 					basePacketRepository.update(e);
@@ -474,26 +482,19 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 					statusCode=ManualVerificationStatus.APPROVED.name();
 				else
 					statusCode=ManualVerificationStatus.REJECTED.name();
+				for (int i = 0; i < entities.size(); i++) {
+					ObjectMapper objectMapper = new ObjectMapper();
+					byte[] responsetext = objectMapper.writeValueAsBytes(manualVerificationDTO);
 
-				if (entities.isEmpty()) {
-					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-							regId, "ManualVerificationServiceImpl::updatePacketStatus()"
-									+ PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getMessage());
-					throw new NoRecordAssignedException(PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getCode(),
-							PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getMessage());
-				} else {
-					for (int i = 0; i < entities.size(); i++) {
-						ObjectMapper objectMapper = new ObjectMapper();
-						byte[] responsetext = objectMapper.writeValueAsBytes(manualVerificationDTO);
-
-						ManualVerificationEntity manualVerificationEntity=entities.get(i);
-						manualVerificationEntity.setStatusCode(statusCode);
-						manualVerificationEntity.setReponseText(responsetext);
-						entities.set(i, manualVerificationEntity);
-
-					}
-					isTransactionSuccessful = true;
+					ManualVerificationEntity manualVerificationEntity=entities.get(i);
+					manualVerificationEntity.setStatusCode(statusCode);
+					manualVerificationEntity.setReponseText(responsetext);
+					manualVerificationEntity.setStatusComment(statusCode.equalsIgnoreCase(ManualVerificationStatus.APPROVED.name()) ?
+							StatusUtil.MANUAL_VERIFIER_APPROVED_PACKET.getMessage() :
+							StatusUtil.MANUAL_VERIFIER_REJECTED_PACKET.getMessage());
+					entities.set(i, manualVerificationEntity);
 				}
+				isTransactionSuccessful = true;
 				registrationStatusDto
 						.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.MANUAL_VERIFICATION.toString());
 				registrationStatusDto.setRegistrationStageName(stageName);
