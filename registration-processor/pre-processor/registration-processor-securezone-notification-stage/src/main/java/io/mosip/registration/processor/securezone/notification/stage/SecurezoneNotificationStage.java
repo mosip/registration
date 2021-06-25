@@ -201,16 +201,6 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
                         LoggerFileConstant.REGISTRATIONID.toString(), messageDTO.getRid(),
                         "Transaction failed. RID not found in registration table.");
             }
-            }
-            else {
-            	this.setResponse(ctx,
-                        "Packet with registrationId '" + obj.getString("rid") + "' The  additional info  is invalid.");
-
-                regProcLogger.info(obj.getString("rid"),
-                        "Packet with registrationId '" + messageDTO.getRid() + "' The  additional info  is invalid.",
-                        null, null);
-            }
-
             if (messageDTO.getIsValid()) {
                 sendMessage(messageDTO);
                 this.setResponse(ctx,
@@ -227,6 +217,17 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
                         "Packet with registrationId '" + messageDTO.getRid() + "' has not been uploaded to file System",
                         null, null);
             }
+            }
+            else {
+            	this.setResponse(ctx,
+                        "Packet with registrationId '" + obj.getString("rid") + "' The  additional info  is invalid.");
+
+                regProcLogger.info(obj.getString("rid"),
+                        "Packet with registrationId '" + messageDTO.getRid() + "' The  additional info  is invalid.",
+                        null, null);
+            }
+
+            
         } catch (TablenotAccessibleException e) {
             registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
             registrationStatusDto.setStatusComment(
