@@ -111,6 +111,9 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
 
     @Autowired
     private RegistrationExceptionMapperUtil registrationStatusMapperUtil;
+    
+    @Value("registration.processor.sub-process")
+    private String subProcess;
 
     /**
      * Deploy verticle.
@@ -284,7 +287,7 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
 
     private boolean validateWorkflow(MessageDTO messageDTO) {
     	boolean isValid=false;
-		
+		if(subProcess.contains(messageDTO.getReg_type())) {
 			List<SubWorkflowDto> swfDtos=subWorkflowMappingService.
 					getSubWorkflowMappingByRegIdAndProcessAndIteration(messageDTO.getRid(), 
             				messageDTO.getReg_type(), messageDTO.getIteration());
@@ -306,7 +309,9 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
                     "Additional_info_id not valid");
             	}
 			}
-			
+		}else {
+			isValid=true;
+		}
 		
 		return isValid;
 	}
