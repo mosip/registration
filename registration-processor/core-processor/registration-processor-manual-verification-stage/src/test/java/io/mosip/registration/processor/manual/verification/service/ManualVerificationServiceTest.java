@@ -4,13 +4,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Matchers.anyString;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -20,7 +18,6 @@ import java.util.Map;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 
-import org.assertj.core.util.Arrays;
 import org.assertj.core.util.Lists;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -42,7 +39,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.kernel.master.dto.UserResponseDTO;
 import io.mosip.registration.processor.core.kernel.master.dto.UserResponseDTOWrapper;
@@ -59,11 +55,6 @@ import io.mosip.registration.processor.manual.verification.dto.ManualVerificatio
 import io.mosip.registration.processor.manual.verification.dto.MatchDetail;
 import io.mosip.registration.processor.manual.verification.dto.UserDto;
 import io.mosip.registration.processor.manual.verification.exception.InvalidFileNameException;
-import io.mosip.registration.processor.manual.verification.exception.InvalidUpdateException;
-import io.mosip.registration.processor.manual.verification.exception.MatchTypeNotFoundException;
-import io.mosip.registration.processor.manual.verification.exception.NoRecordAssignedException;
-import io.mosip.registration.processor.manual.verification.exception.UserIDNotPresentException;
-import io.mosip.registration.processor.manual.verification.response.dto.AnalyticsDTO;
 import io.mosip.registration.processor.manual.verification.response.dto.Candidate;
 import io.mosip.registration.processor.manual.verification.response.dto.CandidateList;
 import io.mosip.registration.processor.manual.verification.response.dto.ManualAdjudicationResponseDTO;
@@ -418,13 +409,6 @@ public class ManualVerificationServiceTest {
 		
 		candidate.setReferenceId("1234567890987654321");
 		Map<String,String> analytics=new HashMap<>();
-		AnalyticsDTO analyticsDTO=new AnalyticsDTO();
-		analyticsDTO.setPrimaryOperatorID("110006");
-		analyticsDTO.setPrimaryOperatorComments("abcd");
-		analyticsDTO.setSecondaryOperatorComments("asbd");
-		analyticsDTO.setSecondaryOperatorID("110005");
-		analyticsDTO.setAnalytics(analytics);
-		candidate.setAnalytics(analyticsDTO);
 		candidates.add(candidate);
 		CandidateList candidateList=new CandidateList();
 		candidateList.setCandidates(candidates);
@@ -463,14 +447,8 @@ public class ManualVerificationServiceTest {
 		List<Candidate> candidates=new ArrayList<>();
 		
 		candidate.setReferenceId("1234567890987654321");
-		Map<String,String> analytics=new HashMap<>();
-		AnalyticsDTO analyticsDTO=new AnalyticsDTO();
-		analyticsDTO.setPrimaryOperatorID("110006");
-		analyticsDTO.setPrimaryOperatorComments("abcd");
-		analyticsDTO.setSecondaryOperatorComments("asbd");
-		analyticsDTO.setSecondaryOperatorID("110005");
-		analyticsDTO.setAnalytics(analytics);
-		candidate.setAnalytics(analyticsDTO);
+		JSONObject analytics=new JSONObject();
+		candidate.setAnalytics(analytics);
 		candidates.add(candidate);
 		CandidateList candidateList=new CandidateList();
 		candidateList.setCandidates(candidates);

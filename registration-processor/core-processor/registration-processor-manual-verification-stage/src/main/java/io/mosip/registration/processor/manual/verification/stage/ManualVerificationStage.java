@@ -206,6 +206,8 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 				TextMessage textMessage = (TextMessage) message;
 				response = textMessage.getText();
 			}
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REFFERENCEID.toString(),
+					"Response received from mv system", response);
 			if (response == null) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 						PlatformErrorMessages.RPR_INVALID_MESSSAGE.getCode(), PlatformErrorMessages.RPR_INVALID_MESSSAGE.getMessage());
