@@ -38,9 +38,6 @@ public class StatusNotificationTypeMapUtil {
 		statusMap.put(NotificationStageStatus.OPERATOR_VALIDATION_FAILED, NotificationTemplateType.TECHNICAL_ISSUE);
 		statusMap.put(NotificationStageStatus.SUPERVISOR_VALIDATION_FAILED, NotificationTemplateType.TECHNICAL_ISSUE);
 		statusMap.put(NotificationStageStatus.INTRODUCER_VALIDATION_FAILED, NotificationTemplateType.DUPLICATE_UIN);
-		statusMap.put(NotificationStageStatus.CMD_VALIDATION_ERROR, NotificationTemplateType.TECHNICAL_ISSUE);
-		statusMap.put(NotificationStageStatus.OPERATOR_VALIDATION_ERROR, NotificationTemplateType.TECHNICAL_ISSUE);
-		statusMap.put(NotificationStageStatus.SUPERVISOR_VALIDATION_ERROR, NotificationTemplateType.TECHNICAL_ISSUE);
 		statusMap.put(NotificationStageStatus.VALIDATE_PACKET_REJECTED, NotificationTemplateType.TECHNICAL_ISSUE);
 		statusMap.put(NotificationStageStatus.VALIDATE_PACKET_FAILED, NotificationTemplateType.TECHNICAL_ISSUE);
 		statusMap.put(NotificationStageStatus.MANUAL_VERIFICATION_FAILED, NotificationTemplateType.DUPLICATE_UIN);
