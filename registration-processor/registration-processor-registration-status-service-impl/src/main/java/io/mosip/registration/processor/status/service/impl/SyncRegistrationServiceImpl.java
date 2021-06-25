@@ -619,7 +619,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 
 	@Override
 	public List<LostRidDto> searchLostRid(SearchInfo searchInfo) {
-		regProcLogger.debug(
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"SyncRegistrationServiceImpl::getByIds()::entry");
 		try {
 			updateFiltersWithHashedValues(searchInfo);
@@ -631,8 +631,8 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			return lostRidDtos;
 		} catch (DataAccessLayerException | NoSuchAlgorithmException | RegStatusAppException e) {
 
-			regProcLogger.error(
-					e.getMessage() + ExceptionUtils.getStackTrace(e));
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
 			throw new TablenotAccessibleException(
 					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
 		}
@@ -714,7 +714,8 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			postalCode = ((JSONObject) jsonObjects.getJSONObject("response").getJSONArray("registrationCenters").get(0))
 					.getString("locationCode");
 		} catch (Exception e) {
-			regProcLogger.error(e.getMessage() + ExceptionUtils.getStackTrace(e));
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
 		}
 		return postalCode;
 	}
@@ -756,7 +757,8 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			}
 			encodedHash = CryptoUtil.encodeBase64(hashBytes);
 		} catch (NoSuchAlgorithmException e) {
-			regProcLogger.error(e.getMessage() + ExceptionUtils.getStackTrace(e));
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_INVALID_SEARCH, e);
 		}
 		return encodedHash;

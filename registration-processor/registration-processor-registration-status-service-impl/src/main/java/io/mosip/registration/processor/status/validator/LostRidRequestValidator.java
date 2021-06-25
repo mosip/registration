@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.WorkFlowSearchException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
@@ -67,7 +68,7 @@ public class LostRidRequestValidator {
 	 */
 	public void validate(LostRidRequestDto lostRidRequestDto)
 			throws RegStatusAppException, WorkFlowSearchException {
-		regProcLogger.debug(
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"LostRidRequestValidator::validate()::entry");
 
 		validateId(lostRidRequestDto.getId());
@@ -76,7 +77,7 @@ public class LostRidRequestValidator {
 		validateFilter(lostRidRequestDto.getRequest().getFilters());
 		validateSortField(lostRidRequestDto.getRequest().getSort());
 
-		regProcLogger.debug(
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"LostRidRequestValidator::validate()::exit");
 
 	}
@@ -147,7 +148,7 @@ public class LostRidRequestValidator {
 			if (noOfDaysBetween > maxRegistrationDateFilterInterval) {
 				throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_DATE_VALIDATION_FAILED, exception);
 			}
-		} else if (!filter.getType().equalsIgnoreCase("equals") || !filter.getType().equalsIgnoreCase("between")) {
+		} else if (!filter.getType().equalsIgnoreCase("equals")) {
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER, exception);
 		}
 
@@ -166,7 +167,6 @@ public class LostRidRequestValidator {
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER_VERSION, exception);
 
 		} else if (!version.equals(ver)) {
-
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_INVALID_INPUT_PARAMETER_VERSION, exception);
 		}
 	}
@@ -183,11 +183,12 @@ public class LostRidRequestValidator {
 		LostRidValidationException exception = new LostRidValidationException();
 		if (sortInfos.size() > 1) {
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_SORTING_VALIDATION_FAILED, exception);
-		} else if (!sortInfos.get(0).getSortField().equals("name") || !sortInfos.get(0).getSortField().equals("email")
-				|| !sortInfos.get(0).getSortField().equals("phone")
-				|| !sortInfos.get(0).getSortField().equals("centerId")
-				|| !sortInfos.get(0).getSortField().equals("registrationDate")
-				|| !sortInfos.get(0).getSortField().equals("postalCode")) {
+		} else if (sortInfos.get(0).getSortField().equals("name") || sortInfos.get(0).getSortField().equals("email")
+				|| sortInfos.get(0).getSortField().equals("phone") || sortInfos.get(0).getSortField().equals("centerId")
+				|| sortInfos.get(0).getSortField().equals("registrationDate")
+				|| sortInfos.get(0).getSortField().equals("postalCode")) {
+
+		} else {
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER, exception);
 
 		}
