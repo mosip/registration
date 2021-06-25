@@ -742,4 +742,9 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	public boolean deleteAdditionalInfo(SyncRegistrationEntity syncEntity) {
 		return syncRegistrationDao.deleteAdditionalInfo(syncEntity);
 	}
+
+	@Override
+	public SyncRegistrationEntity findByAdditionalInfoReqId(String additionalInfoReqId) {
+		return syncRegistrationDao.findByAdditionalInfoReqId(additionalInfoReqId);
+	}
 }
