@@ -32,6 +32,7 @@ import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.manager.decryptor.Decryptor;
 import io.mosip.registration.processor.packet.manager.utils.ZipUtils;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.packet.uploader.archiver.util.PacketArchiver;
 import io.mosip.registration.processor.packet.uploader.exception.PacketNotFoundException;
 import io.mosip.registration.processor.packet.uploader.service.PacketUploaderService;
@@ -41,6 +42,7 @@ import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
 import io.mosip.registration.processor.status.dto.SyncResponseDto;
+import io.mosip.registration.processor.status.entity.SubWorkflowMappingEntity;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
@@ -83,6 +85,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
     private static final String USER = "MOSIP_SYSTEM";
     private static final String ZIP = ".zip";
     private static final String JSON = ".json";
+    private static final String FORWARD_SLASH = "/";
 
     @Value("${packet.manager.account.name}")
     private String packetManagerAccount;
@@ -98,12 +101,6 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
      */
     @Value("${registration.processor.max.retry}")
     private int maxRetryCount;
-    
-    /**
-     * The main process
-     */
-    @Value("${registration.processor.main-process}")
-	private String mainProcess;
 
     @Autowired
     private ObjectStoreAdapter objectStoreAdapter;
@@ -150,6 +147,9 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
     @Autowired
     private ObjectMapper mapper;
 
+    @Autowired
+    private Utilities utility;
+
 
     /**
      * The is transaction successful.
@@ -191,7 +191,6 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
         
         try {
         	regEntity = syncRegistrationService.findByRegistrationIdAndProcessAndIteration(registrationId, process, iteration);
-        	
             messageDTO.setReg_type(regEntity.getRegistrationType());
             dto = registrationStatusService.getRegistrationStatus(registrationId, process, iteration);
 
@@ -204,14 +203,15 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
 
                 if (validateHashCode(new ByteArrayInputStream(encryptedByteArray), regEntity, registrationId, dto,
                         description)) {
-                    InputStream decryptedPacket = decryptor.decrypt(new ByteArrayInputStream(encryptedByteArray), registrationId);
+                    InputStream decryptedPacket = decryptor.decrypt(new ByteArrayInputStream(encryptedByteArray),
+                                                        utility.getRefId(registrationId, regEntity.getReferenceId()));
                     final byte[] decryptedPacketBytes = IOUtils.toByteArray(decryptedPacket);
-                    if (scanFile(encryptedByteArray, registrationId, ZipUtils.unzipAndGetFiles(new ByteArrayInputStream(decryptedPacketBytes)), dto, description)) {
+                    if (scanFile(encryptedByteArray, registrationId, regEntity.getReferenceId(), ZipUtils.unzipAndGetFiles(new ByteArrayInputStream(decryptedPacketBytes)), dto, description)) {
                         int retrycount = (dto.getRetryCount() == null) ? 0 : dto.getRetryCount() + 1;
                         dto.setRetryCount(retrycount);
                         if (retrycount < getMaxRetryCount()) {
 
-                            messageDTO = uploadPacket(dto, ZipUtils.unzipAndGetFiles(new ByteArrayInputStream(decryptedPacketBytes)), messageDTO, description);
+                            messageDTO = uploadPacket(regEntity, dto, ZipUtils.unzipAndGetFiles(new ByteArrayInputStream(decryptedPacketBytes)), messageDTO, description);
                             if (messageDTO.getIsValid()) {
                                 dto.setLatestTransactionStatusCode(
                                         RegistrationTransactionStatusCode.SUCCESS.toString());
@@ -377,14 +377,14 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
      * Scan file.
      *
      * @param input    the input stream
-     * @param id
+     * @param refId
      * @param description
      * @return true, if successful
      * @throws IOException
      * @throws ApisResourceAccessException
      */
-    private boolean scanFile(final byte[] input, String id, final Map<String, InputStream> sourcePackets, InternalRegistrationStatusDto dto,
-                             LogDescription description) throws ApisResourceAccessException, PacketDecryptionFailureException, IOException {
+    private boolean scanFile(final byte[] input, String id, String refId, final Map<String, InputStream> sourcePackets, InternalRegistrationStatusDto dto,
+                             LogDescription description) throws ApisResourceAccessException, PacketDecryptionFailureException {
         boolean isInputFileClean = false;
         try {
             InputStream packet = new ByteArrayInputStream(input);
@@ -396,7 +396,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
                 for (final Map.Entry<String, InputStream> source : sourcePackets.entrySet()) {
                     if (source.getKey().endsWith(ZIP)) {
                         InputStream decryptedData = decryptor
-                                .decrypt(source.getValue(), id);
+                                .decrypt(source.getValue(), utility.getRefId(id, refId));
                         isInputFileClean = virusScannerService.scanFile(decryptedData);
                     } else
                         isInputFileClean = virusScannerService.scanFile(source.getValue());
@@ -478,7 +478,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
      * @throws IOException                Signals that an I/O exception has occurred.
      * @throws SftpFileOperationException
      */
-    private MessageDTO uploadPacket(InternalRegistrationStatusDto dto, final Map<String, InputStream> sourcePackets,
+    private MessageDTO uploadPacket(SyncRegistrationEntity regEntity, InternalRegistrationStatusDto dto, final Map<String, InputStream> sourcePackets,
                                     MessageDTO object, LogDescription description) throws ObjectStoreNotAccessibleException {
 
         object.setIsValid(false);
@@ -488,7 +488,8 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
             for (Map.Entry<String, InputStream> entry : sourcePackets.entrySet()) {
                 if (entry.getKey().endsWith(ZIP)) {
                     boolean result = objectStoreAdapter.putObject(packetManagerAccount, registrationId,
-                            null, null, entry.getKey().replace(ZIP, ""), entry.getValue());
+                            null, null,
+                            getFinalKey(regEntity, entry.getKey().replace(ZIP, ""), object.getIteration()), entry.getValue());
                     if (!result)
                         throw new ObjectStoreNotAccessibleException("Failed to store packet : " + entry.getKey());
                 }
@@ -501,7 +502,8 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
                     String jsonString = new String(bytearray);
                     LinkedHashMap<String, Object> currentIdMap = (LinkedHashMap<String, Object>) mapper.readValue(jsonString, LinkedHashMap.class);
                     objectStoreAdapter.addObjectMetaData(packetManagerAccount, registrationId,
-                            null, null, entry.getKey().replace(JSON, ""), currentIdMap);
+                            null, null,
+                            getFinalKey(regEntity, entry.getKey().replace(JSON, ""), object.getIteration()), currentIdMap);
                 }
             }
         } catch (Exception e) {
@@ -555,6 +557,32 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
                 throw e;
         }
         return packet;
+    }
+
+    /**
+     * Modify process name to add iteration before uploading to object store.
+     * @param regEntity
+     * @param packetKey
+     * @return
+     */
+    private String getFinalKey(SyncRegistrationEntity regEntity, String packetKey, int iteration) {
+        String[] tempKeys = packetKey.split(FORWARD_SLASH);
+        // if known format of source/process/objectName only then modify the process
+        if (tempKeys != null && tempKeys.length == 3) {
+            String source = tempKeys[0];
+            String process = tempKeys[1];
+            String objectName = tempKeys[2];
+            SubWorkflowMappingEntity workflowMappingEntity = syncRegistrationService
+                    .findWorkflowMappingByIdProcessIteration(regEntity.getRegistrationId(), process, iteration);
+
+            if (workflowMappingEntity != null &&
+                    workflowMappingEntity.getId().getAdditionalInfoReqId().equals(regEntity.getAdditionalInfoReqId())) {
+                return source + FORWARD_SLASH + process + "-" + iteration + FORWARD_SLASH + objectName;
+            } else
+                return packetKey;
+
+        } else
+            return packetKey;
     }
 
 }
