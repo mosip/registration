@@ -21,7 +21,7 @@ public interface Decryptor {
 	 * @throws DateTimeParseException
 	 *             if fail to parse date from registration id
 	 */
-	public InputStream decrypt(InputStream input, String registrationId)
+	public InputStream decrypt(InputStream input, String refId)
 			throws PacketDecryptionFailureException, ApisResourceAccessException;
 
 }
