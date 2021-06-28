@@ -139,5 +139,5 @@ public interface RegistrationStatusService<T, U, D> {
 
 	public List<InternalRegistrationStatusDto> getResumablePackets(Integer fetchSize);
 
-	public SubWorkflowMappingEntity findWorkflowMappingByIdProcessAndIteration(String id, String process, int iteration);
+	public SubWorkflowMappingEntity findWorkflowMappingByIdAndProcessAndIteration(String id, String process, int iteration);
 }

@@ -712,7 +712,7 @@ public class RegistrationStatusServiceImpl
 	}
 
 	@Override
-	public SubWorkflowMappingEntity findWorkflowMappingByIdProcessAndIteration(String id, String process, int iteration) {
+	public SubWorkflowMappingEntity findWorkflowMappingByIdAndProcessAndIteration(String id, String process, int iteration) {
 		List<SubWorkflowMappingEntity> entities = subWorkflowRepository.workflowMappingByRegIdAndProcessAndIteration(id, process, iteration);
 		return (CollectionUtils.isNotEmpty(entities)) ? entities.get(0) : null;
 

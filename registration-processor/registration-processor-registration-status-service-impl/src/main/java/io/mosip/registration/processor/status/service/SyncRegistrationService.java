@@ -2,7 +2,6 @@ package io.mosip.registration.processor.status.service;
 
 import java.util.List;
 
-import io.mosip.registration.processor.status.entity.SubWorkflowMappingEntity;
 import org.springframework.stereotype.Service;
 
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
@@ -53,6 +52,7 @@ public interface SyncRegistrationService<T, U> {
 	
 	
 	 public SyncRegistrationEntity findByRegistrationIdAndProcessAndIteration(String registrationId,String process,int iteration);
+
 
 	/**
 	 * Find by registration id and additional info req id. 

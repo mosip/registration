@@ -16,7 +16,6 @@ import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
-import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.ObjectStoreNotAccessibleException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
@@ -25,7 +24,6 @@ import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.packet.dto.SubWorkflowDto;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
@@ -575,7 +573,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
             String process = tempKeys[1];
             String objectName = tempKeys[2];
             SubWorkflowMappingEntity workflowMappingEntity = registrationStatusService
-                    .findWorkflowMappingByIdProcessAndIteration(messageDTO.getRid(), messageDTO.getReg_type(), messageDTO.getIteration());
+                    .findWorkflowMappingByIdAndProcessAndIteration(messageDTO.getRid(), messageDTO.getReg_type(), messageDTO.getIteration());
 
             if (workflowMappingEntity != null &&
                     workflowMappingEntity.getId().getAdditionalInfoReqId().equals(regEntity.getAdditionalInfoReqId())) {
