@@ -89,7 +89,7 @@ public class RegistrationSyncController {
 	 * @throws RegStatusAppException
 	 */
 	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_PROCESSOR', 'REGISTRATION_OFFICER','REGISTRATION_SUPERVISOR', 'RESIDENT' )")
-	@PostMapping(path = "/v1/registrationstatus/sync", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping(path = "/sync", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiOperation(value = "Get the synchronizing registration entity", response = RegistrationStatusCode.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Synchronizing Registration Entity successfully fetched") })
@@ -133,7 +133,7 @@ public class RegistrationSyncController {
 	 * @throws RegStatusAppException
 	 */
 	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_PROCESSOR', 'REGISTRATION_OFFICER','REGISTRATION_SUPERVISOR', 'RESIDENT' )")
-	@PostMapping(path = "/v2/registrationstatus/sync", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping(path = "/syncV2", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiOperation(value = "Get the synchronizing registration entity", response = RegistrationStatusCode.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Synchronizing Registration Entity successfully fetched") })
