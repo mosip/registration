@@ -447,8 +447,31 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 						PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getMessage());
 			}
 
+			boolean isResendFlow = false;
+			if (manualVerificationDTO.getReturnValue() == 1
+					&& manualVerificationDTO.getCandidateList().getCount() != null
+					&& manualVerificationDTO.getCandidateList().getCount() > 0) {
+				List<String> refIds = manualVerificationDTO.getCandidateList() != null
+						&& !CollectionUtils.isEmpty(manualVerificationDTO.getCandidateList().getCandidates()) ?
+						manualVerificationDTO.getCandidateList().getCandidates().stream().map(
+								c -> c.getReferenceId()).collect(Collectors.toList())
+						: null;
+				if (refIds == null
+				|| !manualVerificationDTO.getCandidateList().getCount().equals(refIds.size())
+				|| !entities.stream().map(e -> e.getId().getMatchedRefId()).collect(Collectors.toList()).containsAll(refIds)) {
+					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+							regId, "Validation error occured. The candidates sent are not correct. " +
+									"The response received from manual verification system is audited.");
+					auditLogRequestBuilder.createAuditRequestBuilder("Validation error occured for manual verification response "
+									+JsonUtils.javaObjectToJsonString(manualVerificationDTO), EventId.RPR_405.toString(),
+							EventName.EXCEPTION.name(), EventType.BUSINESS.name(),
+							PlatformSuccessMessages.RPR_MANUAL_VERIFICATION_RESEND.getCode(), ModuleName.MANUAL_VERIFICATION.toString(), regId);
+					isResendFlow = true;
+				}
+			}
+
 			//Below lines are resending the same message to mv queue even after receiving the response,
-			if(manualVerificationDTO.getReturnValue()==2) {
+			if(manualVerificationDTO.getReturnValue()==2 || isResendFlow) {
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 						regId, "Received resend request from manual verification application. Resending request again.");
 
