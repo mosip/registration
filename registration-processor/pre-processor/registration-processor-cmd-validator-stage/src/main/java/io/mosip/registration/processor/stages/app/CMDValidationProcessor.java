@@ -1,6 +1,8 @@
 package io.mosip.registration.processor.stages.app;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -97,6 +99,18 @@ public class CMDValidationProcessor {
 
 	@Value("${mosip.registration.processor.validate-device}")
 	private boolean validateDevice;
+	
+	@Value("registration.processor.sub-process")
+    private String subProcess;
+	
+	@Value("${mosip.registration.processor.validate-center-for-sub-process:true}")
+	private boolean validateCenterForSubProcess;
+
+	@Value("${mosip.registration.processor.validate-machine-for-sub-process:true}")
+	private boolean validateMachineForSubProcess;
+
+	@Value("${mosip.registration.processor.validate-device-for-sub-process:true}")
+	private boolean validateDeviceForSubProcess;
 
 	public MessageDTO process(MessageDTO object, String stageName) {
 
@@ -146,20 +160,36 @@ public class CMDValidationProcessor {
 				updateAudit(description, isTransactionSuccessful, moduleId, moduleName, registrationId);
 				return object;
 			}
+			String[] subProcesses=subProcess.split(",");
+			List<String> subProcessList=Arrays.asList(subProcesses);
+			if(subProcessList.contains(registrationStatusDto.getRegistrationType())) {
+				if (validateCenter && validateCenterForSubProcess) {
+					centerValidator.validate(primaryLanguagecode, regOsi, registrationStatusDto.getRegistrationId());
+				}
 
-			if (validateCenter) {
-				centerValidator.validate(primaryLanguagecode, regOsi, registrationStatusDto.getRegistrationId());
+				if (validateMachine && validateMachineForSubProcess) {
+					machineValidator.validate(regOsi.getMachineId(), primaryLanguagecode, regOsi.getPacketCreationDate(),
+							registrationStatusDto.getRegistrationId());
+				}
+
+				if (validateDevice && validateDeviceForSubProcess) {
+					deviceValidator.validate(regOsi, registrationStatusDto.getRegistrationId());
+				}
 			}
+			else {
+				if (validateCenter) {
+					centerValidator.validate(primaryLanguagecode, regOsi, registrationStatusDto.getRegistrationId());
+				}
 
-			if (validateMachine) {
-				machineValidator.validate(regOsi.getMachineId(), primaryLanguagecode, regOsi.getPacketCreationDate(),
-						registrationStatusDto.getRegistrationId());
+				if (validateMachine) {
+					machineValidator.validate(regOsi.getMachineId(), primaryLanguagecode, regOsi.getPacketCreationDate(),
+							registrationStatusDto.getRegistrationId());
+				}
+
+				if (validateDevice) {
+					deviceValidator.validate(regOsi, registrationStatusDto.getRegistrationId());
+				}
 			}
-
-			if (validateDevice) {
-				deviceValidator.validate(regOsi, registrationStatusDto.getRegistrationId());
-			}
-
 			registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 			registrationStatusDto.setStatusComment(StatusUtil.CMD_VALIDATION_SUCCESS.getMessage());
 			registrationStatusDto.setSubStatusCode(StatusUtil.CMD_VALIDATION_SUCCESS.getCode());
