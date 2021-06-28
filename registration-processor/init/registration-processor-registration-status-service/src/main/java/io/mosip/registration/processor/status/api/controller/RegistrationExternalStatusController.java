@@ -36,7 +36,7 @@ import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.exception.RegStatusAppException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
-import io.mosip.registration.processor.status.sync.response.dto.RegStatusResponseDTO;
+import io.mosip.registration.processor.status.sync.response.dto.RegExternalStatusResponseDTO;
 import io.mosip.registration.processor.status.validator.RegistrationExternalStatusRequestValidator;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -106,7 +106,7 @@ public class RegistrationExternalStatusController {
 			}
 
 			if (isEnabled) {
-				RegStatusResponseDTO response = buildRegistrationStatusResponse(registrations,
+				RegExternalStatusResponseDTO response = buildRegistrationStatusResponse(registrations,
 						registrationExternalStatusRequestDTO.getRequest());
 				Gson gson = new GsonBuilder().serializeNulls().create();
 				HttpHeaders headers = new HttpHeaders();
@@ -122,10 +122,10 @@ public class RegistrationExternalStatusController {
 		}
 	}
 	
-	public RegStatusResponseDTO buildRegistrationStatusResponse(List<RegistrationStatusDto> registrations,
+	public RegExternalStatusResponseDTO buildRegistrationStatusResponse(List<RegistrationStatusDto> registrations,
 			List<RegistrationStatusSubRequestDto> requestIds) {
 
-		RegStatusResponseDTO response = new RegStatusResponseDTO();
+		RegExternalStatusResponseDTO response = new RegExternalStatusResponseDTO();
 		if (Objects.isNull(response.getId())) {
 			response.setId(env.getProperty(REG_EXTERNAL_STATUS_SERVICE_ID));
 		}

@@ -34,7 +34,6 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.util.NestedServletException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -54,7 +53,6 @@ import io.mosip.registration.processor.status.dto.SearchInfo;
 import io.mosip.registration.processor.status.exception.RegStatusAppException;
 import io.mosip.registration.processor.status.service.impl.RegistrationStatusServiceImpl;
 import io.mosip.registration.processor.status.service.impl.SyncRegistrationServiceImpl;
-import io.mosip.registration.processor.status.sync.response.dto.RegStatusResponseDTO;
 import io.mosip.registration.processor.status.validator.LostRidRequestValidator;
 import io.mosip.registration.processor.status.validator.RegistrationExternalStatusRequestValidator;
 import io.mosip.registration.processor.status.validator.RegistrationStatusRequestValidator;
@@ -186,10 +184,13 @@ public class RegistrationExternalStatusControllerTest {
 		JSONArray responseObject = (JSONArray) object.get("response");
 		JSONArray errorObject = (JSONArray) object.get("errors");
 		JSONObject registrationStatusDto = (JSONObject) responseObject.get(0);
+		JSONObject registrationStatusDto1 = (JSONObject) responseObject.get(1);
 		JSONObject registrationStatusErrorDto = (JSONObject) errorObject.get(0);
 
 		assertEquals(registrationStatusDto.get("registrationId").toString(), "1001");
 		assertEquals(registrationStatusDto.get("statusCode").toString(), "PROCESSED");
+		assertEquals(registrationStatusDto1.get("registrationId").toString(), "1002");
+		assertEquals(registrationStatusDto1.get("statusCode").toString(), "PROCESSED");
 		assertEquals(registrationStatusErrorDto.get("registrationId").toString(), "1003");
 		assertEquals(registrationStatusErrorDto.get("errorMessage").toString(), "RID Not Found");
 	}
