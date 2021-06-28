@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import io.mosip.registration.processor.status.entity.SubWorkflowMappingEntity;
+import io.mosip.registration.processor.status.repositary.BaseRegProcRepository;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -56,6 +58,9 @@ public class RegistrationStatusServiceImpl
 	/** The transcation status service. */
 	@Autowired
 	private TransactionService<TransactionDto> transcationStatusService;
+
+	@Autowired
+	private BaseRegProcRepository<SubWorkflowMappingEntity, String> subWorkflowRepository;
 
 	/** The core audit request builder. */
 	@Autowired
@@ -704,6 +709,13 @@ public class RegistrationStatusServiceImpl
 			throw new TablenotAccessibleException(
 					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
 		}
+	}
+
+	@Override
+	public SubWorkflowMappingEntity findWorkflowMappingByIdProcessAndIteration(String id, String process, int iteration) {
+		List<SubWorkflowMappingEntity> entities = subWorkflowRepository.workflowMappingByRegIdAndProcessAndIteration(id, process, iteration);
+		return (CollectionUtils.isNotEmpty(entities)) ? entities.get(0) : null;
+
 	}
 
 	private RegistrationStatusEntity convertDtoToEntityForWorkFlow(InternalRegistrationStatusDto dto) {

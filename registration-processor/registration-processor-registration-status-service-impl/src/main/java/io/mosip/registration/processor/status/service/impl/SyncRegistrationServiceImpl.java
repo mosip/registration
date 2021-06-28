@@ -525,13 +525,6 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	public SyncRegistrationEntity findByRegistrationId(String registrationId) {
 		return syncRegistrationDao.findById(registrationId);
 	}
-
-	@Override
-	public SubWorkflowMappingEntity findWorkflowMappingByIdProcessIteration(String id, String process, int iteration) {
-		List<SubWorkflowMappingEntity> entities = subWorkflowRepository.workflowMappingByRegIdAndProcessAndIteration(id, process, iteration);
-		return (CollectionUtils.isNotEmpty(entities)) ? entities.get(0) : null;
-
-	}
 	
 
 	@Override

@@ -54,8 +54,6 @@ public interface SyncRegistrationService<T, U> {
 	
 	 public SyncRegistrationEntity findByRegistrationIdAndProcessAndIteration(String registrationId,String process,int iteration);
 
-	public SubWorkflowMappingEntity findWorkflowMappingByIdProcessIteration(String id, String process, int iteration);
-
 	/**
 	 * Find by registration id and additional info req id. 
 	 * @param registrationId

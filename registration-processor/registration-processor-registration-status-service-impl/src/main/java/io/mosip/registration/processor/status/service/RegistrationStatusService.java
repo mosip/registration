@@ -2,6 +2,7 @@ package io.mosip.registration.processor.status.service;
 
 import java.util.List;
 
+import io.mosip.registration.processor.status.entity.SubWorkflowMappingEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
@@ -137,4 +138,6 @@ public interface RegistrationStatusService<T, U, D> {
 	public void updateRegistrationStatusForWorkflow(U registrationStatusDto, String moduleId, String moduleName);
 
 	public List<InternalRegistrationStatusDto> getResumablePackets(Integer fetchSize);
+
+	public SubWorkflowMappingEntity findWorkflowMappingByIdProcessAndIteration(String id, String process, int iteration);
 }

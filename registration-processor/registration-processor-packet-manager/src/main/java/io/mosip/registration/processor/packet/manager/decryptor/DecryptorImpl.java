@@ -83,13 +83,13 @@ public class DecryptorImpl implements Decryptor {
 	 * InputStream, java.lang.String)
 	 */
 	@Override
-	public InputStream decrypt(InputStream packetStream, String refId)
+	public InputStream decrypt(String id, String refId, InputStream packetStream)
 			throws PacketDecryptionFailureException, ApisResourceAccessException {
 		InputStream outstream = null;
 		boolean isTransactionSuccessful = false;
 		LogDescription description = new LogDescription();
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REFERENCEID.toString(),
-				refId, "Decryptor::decrypt()::entry");
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				id, "Decryptor::decrypt()::entry");
 		try {
 			byte[] packet = IOUtils.toByteArray(packetStream);
 			CryptomanagerRequestDto cryptomanagerRequestDto = new CryptomanagerRequestDto();
@@ -98,7 +98,7 @@ public class DecryptorImpl implements Decryptor {
 			cryptomanagerRequestDto.setApplicationId(applicationId);
 			cryptomanagerRequestDto.setReferenceId(refId);
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-					LoggerFileConstant.REGISTRATIONID.toString(), refId,
+					LoggerFileConstant.REGISTRATIONID.toString(), id,
 					"Size = " + packet.length);
 			byte[] nonce = Arrays.copyOfRange(packet, 0, CryptomanagerConstant.GCM_NONCE_LENGTH);
 			byte[] aad = Arrays.copyOfRange(packet, CryptomanagerConstant.GCM_NONCE_LENGTH,
@@ -124,7 +124,7 @@ public class DecryptorImpl implements Decryptor {
 			if (response.getErrors() != null && !response.getErrors().isEmpty()) {
 				ServiceError error = response.getErrors().get(0);
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString(), refId, DECRYPTION_FAILURE);
+						LoggerFileConstant.REGISTRATIONID.toString(), id, DECRYPTION_FAILURE);
 				description.setMessage(PlatformErrorMessages.RPR_PDS_PACKET_DECRYPTION_FAILURE.getMessage());
 				description.setCode(PlatformErrorMessages.RPR_PDS_PACKET_DECRYPTION_FAILURE.getCode());
 				throw new PacketDecryptionFailureException(error.getErrorCode(), error.getMessage());
@@ -136,15 +136,15 @@ public class DecryptorImpl implements Decryptor {
 			description.setCode(PlatformSuccessMessages.RPR_DECRYPTION_SUCCESS.getCode());
 
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					refId, "Decryptor::decrypt()::exit");
+					id, "Decryptor::decrypt()::exit");
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					refId, description.getMessage());
+					id, description.getMessage());
 		} catch (IOException e) {
 			description.setMessage(PlatformErrorMessages.RPR_PDS_IO_EXCEPTION.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_PDS_IO_EXCEPTION.getCode());
 
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					refId, description.getMessage());
+					id, description.getMessage());
 			throw new PacketDecryptionFailureException(
 					PacketDecryptionFailureExceptionConstant.MOSIP_PACKET_DECRYPTION_FAILURE_ERROR_CODE.getErrorCode(),
 					IO_EXCEPTION, e);
@@ -153,13 +153,13 @@ public class DecryptorImpl implements Decryptor {
 			description.setCode(PlatformErrorMessages.RPR_PDS_DATE_TIME_EXCEPTION.getCode());
 
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					refId, description.getMessage());
+					id, description.getMessage());
 			throw new PacketDecryptionFailureException(
 					PacketDecryptionFailureExceptionConstant.MOSIP_PACKET_DECRYPTION_FAILURE_ERROR_CODE.getErrorCode(),
 					DATE_TIME_EXCEPTION);
 		} catch (ApisResourceAccessException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					refId, "Internal Error occurred ");
+					id, "Internal Error occurred ");
 			if (e.getCause() instanceof HttpClientErrorException) {
 				HttpClientErrorException httpClientException = (HttpClientErrorException) e.getCause();
 
@@ -204,10 +204,10 @@ public class DecryptorImpl implements Decryptor {
 					: description.getCode();
 			String moduleName = ModuleName.DECRYPTOR.toString();
 			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
-					moduleId, moduleName, refId);
+					moduleId, moduleName, id);
 		}
 		regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				refId, DECRYPTION_SUCCESS);
+				id, DECRYPTION_SUCCESS);
 		return outstream;
 	}
 

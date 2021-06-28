@@ -203,8 +203,10 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
 
                 if (validateHashCode(new ByteArrayInputStream(encryptedByteArray), regEntity, registrationId, dto,
                         description)) {
-                    InputStream decryptedPacket = decryptor.decrypt(new ByteArrayInputStream(encryptedByteArray),
-                                                        utility.getRefId(registrationId, regEntity.getReferenceId()));
+                    InputStream decryptedPacket = decryptor.decrypt(
+                            registrationId,
+                            utility.getRefId(registrationId, regEntity.getReferenceId()),
+                            new ByteArrayInputStream(encryptedByteArray));
                     final byte[] decryptedPacketBytes = IOUtils.toByteArray(decryptedPacket);
                     if (scanFile(encryptedByteArray, registrationId, regEntity.getReferenceId(), ZipUtils.unzipAndGetFiles(new ByteArrayInputStream(decryptedPacketBytes)), dto, description)) {
                         int retrycount = (dto.getRetryCount() == null) ? 0 : dto.getRetryCount() + 1;
@@ -396,7 +398,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
                 for (final Map.Entry<String, InputStream> source : sourcePackets.entrySet()) {
                     if (source.getKey().endsWith(ZIP)) {
                         InputStream decryptedData = decryptor
-                                .decrypt(source.getValue(), utility.getRefId(id, refId));
+                                .decrypt(id, utility.getRefId(id, refId), source.getValue());
                         isInputFileClean = virusScannerService.scanFile(decryptedData);
                     } else
                         isInputFileClean = virusScannerService.scanFile(source.getValue());
@@ -489,7 +491,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
                 if (entry.getKey().endsWith(ZIP)) {
                     boolean result = objectStoreAdapter.putObject(packetManagerAccount, registrationId,
                             null, null,
-                            getFinalKey(regEntity, entry.getKey().replace(ZIP, ""), object.getIteration()), entry.getValue());
+                            getFinalKey(regEntity, entry.getKey().replace(ZIP, ""), object), entry.getValue());
                     if (!result)
                         throw new ObjectStoreNotAccessibleException("Failed to store packet : " + entry.getKey());
                 }
@@ -503,7 +505,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
                     LinkedHashMap<String, Object> currentIdMap = (LinkedHashMap<String, Object>) mapper.readValue(jsonString, LinkedHashMap.class);
                     objectStoreAdapter.addObjectMetaData(packetManagerAccount, registrationId,
                             null, null,
-                            getFinalKey(regEntity, entry.getKey().replace(JSON, ""), object.getIteration()), currentIdMap);
+                            getFinalKey(regEntity, entry.getKey().replace(JSON, ""), object), currentIdMap);
                 }
             }
         } catch (Exception e) {
@@ -565,24 +567,27 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
      * @param packetKey
      * @return
      */
-    private String getFinalKey(SyncRegistrationEntity regEntity, String packetKey, int iteration) {
+    private String getFinalKey(SyncRegistrationEntity regEntity, String packetKey, MessageDTO messageDTO) {
         String[] tempKeys = packetKey.split(FORWARD_SLASH);
         // if known format of source/process/objectName only then modify the process
         if (tempKeys != null && tempKeys.length == 3) {
             String source = tempKeys[0];
             String process = tempKeys[1];
             String objectName = tempKeys[2];
-            SubWorkflowMappingEntity workflowMappingEntity = syncRegistrationService
-                    .findWorkflowMappingByIdProcessIteration(regEntity.getRegistrationId(), process, iteration);
+            SubWorkflowMappingEntity workflowMappingEntity = registrationStatusService
+                    .findWorkflowMappingByIdProcessAndIteration(messageDTO.getRid(), messageDTO.getReg_type(), messageDTO.getIteration());
 
             if (workflowMappingEntity != null &&
                     workflowMappingEntity.getId().getAdditionalInfoReqId().equals(regEntity.getAdditionalInfoReqId())) {
-                return source + FORWARD_SLASH + process + "-" + iteration + FORWARD_SLASH + objectName;
+                return source + FORWARD_SLASH + process + "-" + messageDTO.getIteration() + FORWARD_SLASH + objectName;
             } else
                 return packetKey;
 
-        } else
+        } else {
+            regProcLogger.warn("PacketUploaderServiceImpl::getFinalKey() The packet key is not in source/process/objectName format "
+                    + packetKey + " id : " + messageDTO.getRid());
             return packetKey;
+        }
     }
 
 }

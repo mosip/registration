@@ -198,7 +198,7 @@ public class PacketUploaderServiceTest {
 		ReflectionTestUtils.setField(packetuploaderservice, "maxRetryCount", 3);
 		
 		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class))).thenReturn(Boolean.TRUE);
-		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any())).thenReturn(is);
+		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any(),Mockito.any())).thenReturn(is);
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(),"NEW", 1, "PacketUploaderStage");
 		assertTrue(result.getIsValid());
 	}
@@ -208,7 +208,7 @@ public class PacketUploaderServiceTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(entry);
 		
 		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class))).thenReturn(Boolean.TRUE);
-		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any())).thenReturn(is);
+		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any(),Mockito.any())).thenReturn(is);
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(),"NEW", 1, "PacketUploaderStage");
 		assertFalse(result.getIsValid());
 	}
@@ -219,7 +219,7 @@ public class PacketUploaderServiceTest {
 				.thenThrow(new TablenotAccessibleException());
 		
 		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class))).thenReturn(Boolean.TRUE);
-		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any())).thenReturn(is);
+		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any(),Mockito.any())).thenReturn(is);
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(),"NEW", 1, "PacketUploaderStage");
 		assertFalse(result.getIsValid());
 	}
@@ -239,7 +239,7 @@ public class PacketUploaderServiceTest {
 		ReflectionTestUtils.setField(packetuploaderservice, "maxRetryCount", 3);
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(entry);
 		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class))).thenReturn(Boolean.TRUE);
-		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any())).thenReturn(is);
+		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any(),Mockito.any())).thenReturn(is);
 		Mockito.when(objectStoreAdapter.putObject(any(), any(), any(), any(), any(), any())).thenThrow(FileNotFoundInDestinationException.class);
 
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(),"NEW", 1, "PacketUploaderStage");
@@ -252,7 +252,7 @@ public class PacketUploaderServiceTest {
 		ReflectionTestUtils.setField(packetuploaderservice, "maxRetryCount", 3);
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(entry);
 		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class))).thenReturn(Boolean.TRUE);
-		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any())).thenReturn(is);
+		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any(),Mockito.any())).thenReturn(is);
 		Mockito.when(objectStoreAdapter.putObject(any(), any(), any(), any(), any(), any())).thenReturn(false);
 
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(),"NEW", 1, "PacketUploaderStage");
@@ -270,7 +270,7 @@ public class PacketUploaderServiceTest {
 	public void testPacketDecryptionException() throws ApisResourceAccessException, PacketDecryptionFailureException {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(entry);
 		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class))).thenReturn(Boolean.TRUE);
-		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any()))
+		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any(),Mockito.any()))
 				.thenThrow(new PacketDecryptionFailureException("", ""));
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(),"NEW", 1, "PacketUploaderStage");
 		assertFalse(result.getIsValid());
@@ -281,7 +281,7 @@ public class PacketUploaderServiceTest {
 		ReflectionTestUtils.setField(packetuploaderservice, "maxRetryCount", 3);
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(entry);
 		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class))).thenReturn(Boolean.TRUE);
-		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any())).thenReturn(is);
+		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any(),Mockito.any())).thenReturn(is);
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(IOUtils.toByteArray(any(InputStream.class))).thenThrow(new IOException("IO execption occured"));
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(),"NEW", 1, "PacketUploaderStage");
@@ -293,7 +293,7 @@ public class PacketUploaderServiceTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(entry);
 		ReflectionTestUtils.setField(packetuploaderservice, "maxRetryCount", 3);
 		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class))).thenReturn(Boolean.TRUE);
-		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any())).thenReturn(is);
+		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any(),Mockito.any())).thenReturn(is);
 		Mockito.when(objectStoreAdapter.putObject(any(),any(), any(), any(), any(),any())).thenReturn(false);
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(),"NEW", 1, "PacketUploaderStage");
 		assertFalse(result.getIsValid());
