@@ -206,6 +206,8 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 				TextMessage textMessage = (TextMessage) message;
 				response = textMessage.getText();
 			}
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REFFERENCEID.toString(),
+					"Response received from mv system", response);
 			if (response == null) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 						PlatformErrorMessages.RPR_INVALID_MESSSAGE.getCode(), PlatformErrorMessages.RPR_INVALID_MESSSAGE.getMessage());
@@ -213,13 +215,11 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 			}
 			ManualAdjudicationResponseDTO resp = JsonUtil.readValueWithUnknownProperties(response, ManualAdjudicationResponseDTO.class);
 			if (resp != null) {
-				ManualAdjudicationResponseDTO decisionDto = manualAdjudicationService
-						.updatePacketStatus(resp, this.getClass().getSimpleName(),queue);
+				boolean isProcessingSuccessful = manualAdjudicationService.updatePacketStatus(resp, this.getClass().getSimpleName(),queue);
 				
-				if (decisionDto != null) {
+				if (isProcessingSuccessful)
 					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 							"", "ManualVerificationStage::processDecision::success");
-				}
 
 			}
 		} catch (Exception e) {
