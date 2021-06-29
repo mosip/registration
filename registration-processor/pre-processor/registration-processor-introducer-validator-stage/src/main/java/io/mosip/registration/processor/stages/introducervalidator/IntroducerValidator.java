@@ -4,14 +4,12 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.xml.sax.SAXException;
 
@@ -71,15 +69,6 @@ public class IntroducerValidator {
 
 	@Autowired
 	private Utilities utility;
-	
-	@Value("registration.processor.sub-process")
-    private String subProcess;
-
-	@Value("${mosip.registration.processor.validate-IntroducerID-for-sub-process:true}")
-	private boolean validateIntroducerIDForSubProcess;
-
-	@Value("${mosip.registration.processor.validate-IntroducerBIOMETRIC-for-sub-process:true}")
-	private boolean validateIntroducerBIOMETRICForSubProcess;
 
 	/**
 	 * Checks if is valid introducer.
@@ -103,10 +92,6 @@ public class IntroducerValidator {
 
 		regProcLogger.debug("validate called for registrationId {}", registrationId);
 
-		boolean isSubProcess=false;
-		if(subProcess!=null || !subProcess.isBlank()) {
-		 isSubProcess=Arrays.asList(subProcess.split(",")).contains(registrationStatusDto.getRegistrationType());
-		}
 		String introducerUIN = packetManagerService.getFieldByMappingJsonKey(registrationId,
 				MappingJsonConstants.INTRODUCER_UIN, registrationStatusDto.getRegistrationType(),
 				ProviderStageName.INTRODUCER_VALIDATOR);
@@ -114,7 +99,7 @@ public class IntroducerValidator {
 				MappingJsonConstants.INTRODUCER_RID, registrationStatusDto.getRegistrationType(),
 				ProviderStageName.INTRODUCER_VALIDATOR);
 
-		if (isValidIntroducer(introducerUIN, introducerRID,isSubProcess)) {
+		if (isValidIntroducer(introducerUIN, introducerRID)) {
 			registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
 					.getStatusCode(RegistrationExceptionTypeCode.INTRODUCER_UIN_AND_RID_NOT_IN_PACKET));
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
@@ -125,7 +110,7 @@ public class IntroducerValidator {
 		}
 
 		if ((introducerUIN == null || introducerUIN.isEmpty())
-				&& isValidIntroducerRid(introducerRID, registrationId, registrationStatusDto,isSubProcess)) {
+				&& isValidIntroducerRid(introducerRID, registrationId, registrationStatusDto)) {
 
 			introducerUIN = idRepoService.getUinByRid(introducerRID, utility.getGetRegProcessorDemographicIdentity());
 
@@ -141,7 +126,7 @@ public class IntroducerValidator {
 
 		}
 		if (introducerUIN != null && !introducerUIN.isEmpty()) {
-			validateIntroducerBiometric(registrationId, registrationStatusDto, introducerUIN,isSubProcess);
+			validateIntroducerBiometric(registrationId, registrationStatusDto, introducerUIN);
 		} else {
 			throw new ValidationFailedException(StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getMessage(),
 					StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getCode());
@@ -150,14 +135,9 @@ public class IntroducerValidator {
 		regProcLogger.debug("validate call ended for registrationId {}", registrationId);
 	}
 
-	private boolean isValidIntroducer(String introducerUIN, String introducerRID, boolean isSubProcess) {
-		if(isSubProcess && !validateIntroducerIDForSubProcess) {
-			return true;
-		}
-		else {
+	private boolean isValidIntroducer(String introducerUIN, String introducerRID) {
 		return ((introducerUIN == null && introducerRID == null) || ((introducerUIN != null && introducerUIN.isEmpty())
 				&& (introducerRID != null && introducerRID.isEmpty())));
-		}
 	}
 
 	/**
@@ -170,12 +150,8 @@ public class IntroducerValidator {
 	 * @throws BaseCheckedException
 	 */
 	private boolean isValidIntroducerRid(String introducerRid, String registrationId,
-			InternalRegistrationStatusDto registrationStatusDto,boolean isSubProcess) throws BaseCheckedException {
+			InternalRegistrationStatusDto registrationStatusDto) throws BaseCheckedException {
 		//TODO : Temp fix done to overcome compilation errors, below NEW to be checked once
-		if(isSubProcess && !validateIntroducerIDForSubProcess) {
-			return true;
-		}
-		else {
 		InternalRegistrationStatusDto introducerRegistrationStatusDto = registrationStatusService
 				.getRegistrationStatus(introducerRid, "NEW", 1);
 		if (introducerRegistrationStatusDto != null) {
@@ -221,13 +197,12 @@ public class IntroducerValidator {
 			throw new IntroducerOnHoldException(StatusUtil.PACKET_ON_HOLD.getCode(),
 					StatusUtil.PACKET_ON_HOLD.getMessage());
 		}
-		}
+
 	}
 
 	private void validateIntroducerBiometric(String registrationId, InternalRegistrationStatusDto registrationStatusDto,
-			String introducerUIN,boolean isSubProcess)
+			String introducerUIN)
 			throws IOException, CertificateException, NoSuchAlgorithmException, BaseCheckedException {
-		if(!isSubProcess || validateIntroducerBIOMETRICForSubProcess) {
 		BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(registrationId,
 				MappingJsonConstants.INTRODUCER_BIO, registrationStatusDto.getRegistrationType(),
 				ProviderStageName.INTRODUCER_VALIDATOR);
@@ -242,7 +217,6 @@ public class IntroducerValidator {
 					StatusUtil.INTRODUCER_BIOMETRIC_FILE_NAME_NOT_FOUND.getMessage());
 			throw new BaseCheckedException(StatusUtil.INTRODUCER_BIOMETRIC_FILE_NAME_NOT_FOUND.getMessage(),
 					StatusUtil.INTRODUCER_BIOMETRIC_FILE_NAME_NOT_FOUND.getCode());
-		}
 		}
 	}
 
