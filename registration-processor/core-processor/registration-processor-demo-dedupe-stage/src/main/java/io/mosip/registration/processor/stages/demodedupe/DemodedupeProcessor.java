@@ -161,57 +161,7 @@ public class DemodedupeProcessor {
 				.getRegistrationStatus(registrationId, object.getReg_type(), object.getIteration());
 
 		try {
-			 // Persist Demographic packet Data if packet Registration type is NEW
-			 if (registrationStatusDto.getRegistrationType().equals(RegistrationType.NEW.name())) {
-
-				String packetStatus = abisHandlerUtil.getPacketStatus(registrationStatusDto);
-
-				if (packetStatus.equalsIgnoreCase(AbisConstant.PRE_ABIS_IDENTIFICATION)) {
-
-					packetInfoManager.saveDemographicInfoJson(registrationId,
-							registrationStatusDto.getRegistrationType(), moduleId, moduleName);
-					int age = utility.getApplicantAge(registrationId, registrationStatusDto.getRegistrationType(), ProviderStageName.DEMO_DEDUPE);
-					int ageThreshold = Integer.parseInt(ageLimit);
-					if (age < ageThreshold) {
-						if (infantDedupe.equalsIgnoreCase(GLOBAL_CONFIG_TRUE_VALUE)) {
-							isDemoDedupeSkip = false;
-							duplicateDtos = performDemoDedupe(registrationStatusDto, object, description);
-							if (duplicateDtos.isEmpty())
-								isTransactionSuccessful = true;
-						}
-					}
-					else {
-						if (env.getProperty(DEMODEDUPEENABLE).trim().equalsIgnoreCase(TRUE)) {
-							isDemoDedupeSkip = false;
-						duplicateDtos = performDemoDedupe(registrationStatusDto, object, description);
-						if (duplicateDtos.isEmpty())
-							isTransactionSuccessful = true;
-						}
-					}
-
-					if (isDemoDedupeSkip) {
-						object.setIsValid(Boolean.TRUE);
-						registrationStatusDto
-								.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
-						registrationStatusDto.setStatusComment(StatusUtil.DEMO_DEDUPE_SKIPPED.getMessage());
-						registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-						registrationStatusDto.setSubStatusCode(StatusUtil.DEMO_DEDUPE_SKIPPED.getCode());
-						description.setCode(PlatformSuccessMessages.RPR_PKR_DEMO_DE_DUP_SKIP.getCode());
-						description.setMessage(PlatformSuccessMessages.RPR_PKR_DEMO_DE_DUP_SKIP.getMessage() + " -- "
-								+ registrationId);
-						regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), description.getCode(),
-								registrationId, description.getMessage());
-						registrationStatusDto.setUpdatedBy(DemoDedupeConstants.USER);
-						regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-								LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
-								DemoDedupeConstants.DEMO_SKIP);
-					}
-				} else if (packetStatus.equalsIgnoreCase(AbisConstant.POST_ABIS_IDENTIFICATION)) {
-					isTransactionSuccessful = processDemoDedupeRequesthandler(registrationStatusDto, object,
-							description);
-				}
-
-			} else if (registrationStatusDto.getRegistrationType().equals(RegistrationType.UPDATE.name())
+			 if (registrationStatusDto.getRegistrationType().equals(RegistrationType.UPDATE.name())
 					|| registrationStatusDto.getRegistrationType().equals(RegistrationType.RES_UPDATE.name())) {
 				IndividualDemographicDedupe demoDedupeData = new IndividualDemographicDedupe();
 
@@ -269,6 +219,55 @@ public class DemodedupeProcessor {
 				registrationStatusDto.setStatusComment(StatusUtil.DEMO_DEDUPE_SKIPPED.getMessage());
 				registrationStatusDto.setSubStatusCode(StatusUtil.DEMO_DEDUPE_SKIPPED.getCode());
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+
+			}
+			else {
+				String packetStatus = abisHandlerUtil.getPacketStatus(registrationStatusDto);
+
+				if (packetStatus.equalsIgnoreCase(AbisConstant.PRE_ABIS_IDENTIFICATION)) {
+
+					packetInfoManager.saveDemographicInfoJson(registrationId,
+							registrationStatusDto.getRegistrationType(), moduleId, moduleName);
+					int age = utility.getApplicantAge(registrationId, registrationStatusDto.getRegistrationType(), ProviderStageName.DEMO_DEDUPE);
+					int ageThreshold = Integer.parseInt(ageLimit);
+					if (age < ageThreshold) {
+						if (infantDedupe.equalsIgnoreCase(GLOBAL_CONFIG_TRUE_VALUE)) {
+							isDemoDedupeSkip = false;
+							duplicateDtos = performDemoDedupe(registrationStatusDto, object, description);
+							if (duplicateDtos.isEmpty())
+								isTransactionSuccessful = true;
+						}
+					}
+					else {
+						if (env.getProperty(DEMODEDUPEENABLE).trim().equalsIgnoreCase(TRUE)) {
+							isDemoDedupeSkip = false;
+						duplicateDtos = performDemoDedupe(registrationStatusDto, object, description);
+						if (duplicateDtos.isEmpty())
+							isTransactionSuccessful = true;
+						}
+					}
+
+					if (isDemoDedupeSkip) {
+						object.setIsValid(Boolean.TRUE);
+						registrationStatusDto
+								.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
+						registrationStatusDto.setStatusComment(StatusUtil.DEMO_DEDUPE_SKIPPED.getMessage());
+						registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+						registrationStatusDto.setSubStatusCode(StatusUtil.DEMO_DEDUPE_SKIPPED.getCode());
+						description.setCode(PlatformSuccessMessages.RPR_PKR_DEMO_DE_DUP_SKIP.getCode());
+						description.setMessage(PlatformSuccessMessages.RPR_PKR_DEMO_DE_DUP_SKIP.getMessage() + " -- "
+								+ registrationId);
+						regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), description.getCode(),
+								registrationId, description.getMessage());
+						registrationStatusDto.setUpdatedBy(DemoDedupeConstants.USER);
+						regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+								LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
+								DemoDedupeConstants.DEMO_SKIP);
+					}
+				} else if (packetStatus.equalsIgnoreCase(AbisConstant.POST_ABIS_IDENTIFICATION)) {
+					isTransactionSuccessful = processDemoDedupeRequesthandler(registrationStatusDto, object,
+							description);
+				}
 
 			}
 
