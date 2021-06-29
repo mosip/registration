@@ -90,13 +90,13 @@ public class CMDValidationProcessor {
 	@Value("${mosip.primary-language}")
 	private String primaryLanguagecode;
 
-	@Value("#{'${mosip.regproc.cmd.center.validation.processes:CORRECTION,NEW,UPDATE,LOST,BIO-CORRECTION,DOC-CORRECTION,DEMO-CORRECTION}'.split(',')}")
+	@Value("#{'${mosip.regproc.cmd.center.validation.processes:CORRECTION,NEW,UPDATE,LOST,BIOMETRIC_CORRECTION,DOCUMENT_CORRECTION,DEMOGRAPHIC_CORRECTION}'.split(',')}")
 	private List<String> centerSubProcesses;
 	
-	@Value("#{'${mosip.regproc.cmd.center.validation.processes:CORRECTION,NEW,UPDATE,LOST,BIO-CORRECTION,DOC-CORRECTION,DEMO-CORRECTION}'.split(',')}")
+	@Value("#{'${mosip.regproc.cmd.machine.validation.processes:CORRECTION,NEW,UPDATE,LOST,BIOMETRIC_CORRECTION,DOCUMENT_CORRECTION,DEMOGRAPHIC_CORRECTION}'.split(',')}")
 	private List<String> machineSubProcesses;
 	
-	@Value("#{'${mosip.regproc.cmd.center.validation.processes:NEW,UPDATE,LOST,BIO-CORRECTION}'.split(',')}")
+	@Value("#{'${mosip.regproc.cmd.device.validation.processes:NEW,UPDATE,LOST,BIOMETRIC_CORRECTION}'.split(',')}")
 	private List<String> deviceSubProcesses;
 	
 	public MessageDTO process(MessageDTO object, String stageName) {
