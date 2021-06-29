@@ -30,6 +30,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
@@ -190,7 +191,7 @@ public class OperatorValidatorTest {
 
 		File idJson = new File(classLoader.getResource("ID.json").getFile());
 		InputStream ip = new FileInputStream(idJson);
-
+		ReflectionTestUtils.setField(operatorValidator, "subProcess", "CORRECTION");
 		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
 		File file = new File(classLoader.getResource("RegistrationProcessorIdentity.json").getFile());
 		InputStream inputStream = new FileInputStream(file);
@@ -380,6 +381,16 @@ public class OperatorValidatorTest {
 	@Test
 	public void testisValidOperatorSuccess() throws Exception {
 
+		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
+		registrationStatusDto.setRegistrationType("ACTIVATED");
+		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
+	}
+	
+	@Test
+	public void testisValidOperatorSuccessForSubProcess() throws Exception {
+		ReflectionTestUtils.setField(operatorValidator, "validateOperatorForSubProcess", true);
+		ReflectionTestUtils.setField(operatorValidator, "authenticateOperatorForSubProcess", true);
+		ReflectionTestUtils.setField(operatorValidator, "validateUMCmappingForSubProcess", true);
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
 		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);

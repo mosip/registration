@@ -29,6 +29,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
@@ -189,7 +190,7 @@ public class SupervisorValidatorTest {
 
 		File idJson = new File(classLoader.getResource("ID.json").getFile());
 		InputStream ip = new FileInputStream(idJson);
-
+		ReflectionTestUtils.setField(supervisorValidator, "subProcess", "CORRECTION,BIO-CORRECTION");
 		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
 		File file = new File(classLoader.getResource("RegistrationProcessorIdentity.json").getFile());
 		InputStream inputStream = new FileInputStream(file);
@@ -382,6 +383,17 @@ public class SupervisorValidatorTest {
 		registrationStatusDto.setRegistrationType("ACTIVATED");
 		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
+	
+	@Test
+	public void testisValidSupervisorSuccessForSubProcess() throws Exception {
+		ReflectionTestUtils.setField(supervisorValidator, "validateSupervisorForSubProcess", true);
+		ReflectionTestUtils.setField(supervisorValidator, "authenticateSupervisorForSubProcess", true);
+		ReflectionTestUtils.setField(supervisorValidator, "validateUMCmappingForSubProcess", true);
+		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
+		registrationStatusDto.setRegistrationType("ACTIVATED");
+		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
+	}
+
 
 	@Test(expected = BaseCheckedException.class)
 	public void testoperatorPasswordNull() throws Exception {

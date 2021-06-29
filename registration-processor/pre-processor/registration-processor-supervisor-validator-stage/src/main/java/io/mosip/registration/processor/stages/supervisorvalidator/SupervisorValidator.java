@@ -5,6 +5,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -12,6 +13,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.xml.sax.SAXException;
 
@@ -76,6 +78,18 @@ public class SupervisorValidator {
 
 	@Autowired
 	ObjectMapper mapper;
+	
+	@Value("registration.processor.sub-process")
+    private String subProcess;
+
+	@Value("${mosip.registration.processor.validate-supervisor-for-sub-process:true}")
+	private boolean validateSupervisorForSubProcess;
+
+	@Value("${mosip.registration.processor.authenticate-supervisor-for-sub-process:true}")
+	private boolean authenticateSupervisorForSubProcess;
+
+	@Value("${mosip.registration.processor.validate-supervisor-UMCmapping-for-sub-process:true}")
+	private boolean validateUMCmappingForSubProcess;
 
 	/**
 	 * Checks if is valid Supervisor.
@@ -97,11 +111,28 @@ public class SupervisorValidator {
 			throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, NumberFormatException, JSONException,
 			CertificateException, BaseCheckedException {
 		regProcLogger.debug("validate called for registrationId {}", registrationId);
-
+		boolean isSubProcess=false;
+		if(subProcess!=null || !subProcess.isBlank()) {
+		 isSubProcess=Arrays.asList(subProcess.split(",")).contains(registrationStatusDto.getRegistrationType());
+		}
+		if(isSubProcess) {
+			if(validateSupervisorForSubProcess) {
+				validateSupervisor(registrationId, regOsi, registrationStatusDto);
+			}
+			if(authenticateSupervisorForSubProcess) {
+				authenticateSupervisor(regOsi, registrationId, registrationStatusDto);
+			}
+			if(validateUMCmappingForSubProcess) {
+				validateUMCmapping(regOsi.getPacketCreationDate(), regOsi.getRegcntrId(), regOsi.getMachineId(),
+						regOsi.getOfficerId(), registrationStatusDto);
+			}
+		}
+		else {
 		validateSupervisor(registrationId, regOsi, registrationStatusDto);
 		authenticateSupervisor(regOsi, registrationId, registrationStatusDto);
 		validateUMCmapping(regOsi.getPacketCreationDate(), regOsi.getRegcntrId(), regOsi.getMachineId(),
 				regOsi.getSupervisorId(), registrationStatusDto);
+		}
 		regProcLogger.debug("validate call ended for registrationId {}", registrationId);
 	}
 

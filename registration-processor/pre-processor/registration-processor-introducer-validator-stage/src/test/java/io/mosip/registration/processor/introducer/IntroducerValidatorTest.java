@@ -171,7 +171,7 @@ public class IntroducerValidatorTest {
 		File childFile = new File(classLoader.getResource("Child_ID.json").getFile());
 		InputStream is = new FileInputStream(childFile);
 		childMappingJson = IOUtils.toString(is, "UTF-8");
-
+		ReflectionTestUtils.setField(introducerValidator, "subProcess", "CORRECTION");
 		File idJson = new File(classLoader.getResource("ID.json").getFile());
 		InputStream ip = new FileInputStream(idJson);
 

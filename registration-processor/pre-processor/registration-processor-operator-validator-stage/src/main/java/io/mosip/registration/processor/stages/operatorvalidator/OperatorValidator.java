@@ -5,6 +5,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -12,6 +13,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.xml.sax.SAXException;
 
@@ -76,6 +78,19 @@ public class OperatorValidator {
 
 	@Autowired
 	ObjectMapper mapper;
+	
+	@Value("registration.processor.sub-process")
+    private String subProcess;
+
+	@Value("${mosip.registration.processor.validate-operator-for-sub-process:true}")
+	private boolean validateOperatorForSubProcess;
+
+	@Value("${mosip.registration.processor.authenticate-operator-for-sub-process:true}")
+	private boolean authenticateOperatorForSubProcess;
+
+	@Value("${mosip.registration.processor.validate-operator-UMCmapping-for-sub-process:true}")
+	private boolean validateUMCmappingForSubProcess;
+
 
 	/**
 	 * Checks if is valid Operator.
@@ -97,11 +112,28 @@ public class OperatorValidator {
 			throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, NumberFormatException, JSONException,
 			CertificateException, BaseCheckedException {
 		regProcLogger.debug("validate called for registrationId {}", registrationId);
-
+		boolean isSubProcess=false;
+		if(subProcess!=null || !subProcess.isBlank()) {
+		 isSubProcess=Arrays.asList(subProcess.split(",")).contains(registrationStatusDto.getRegistrationType());
+		}
+		if(isSubProcess) {
+			if(validateOperatorForSubProcess) {
+				validateOperator(registrationId, regOsi, registrationStatusDto);
+			}
+			if(authenticateOperatorForSubProcess) {
+				authenticateOperator(regOsi, registrationId, registrationStatusDto);
+			}
+			if(validateUMCmappingForSubProcess) {
+				validateUMCmapping(regOsi.getPacketCreationDate(), regOsi.getRegcntrId(), regOsi.getMachineId(),
+						regOsi.getOfficerId(), registrationStatusDto);
+			}
+		}
+		else {
 		validateOperator(registrationId, regOsi, registrationStatusDto);
 		authenticateOperator(regOsi, registrationId, registrationStatusDto);
 		validateUMCmapping(regOsi.getPacketCreationDate(), regOsi.getRegcntrId(), regOsi.getMachineId(),
 				regOsi.getOfficerId(), registrationStatusDto);
+		}
 		regProcLogger.debug("validate call ended for registrationId {}", registrationId);
 	}
 

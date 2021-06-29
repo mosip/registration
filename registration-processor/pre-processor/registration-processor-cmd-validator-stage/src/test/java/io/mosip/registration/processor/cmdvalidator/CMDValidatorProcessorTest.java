@@ -134,7 +134,7 @@ public class CMDValidatorProcessorTest {
 		ReflectionTestUtils.setField(cmdValidationProcessor, "validateMachine", true);
 		ReflectionTestUtils.setField(cmdValidationProcessor, "validateDevice", true);
 		ReflectionTestUtils.setField(cmdValidationProcessor, "primaryLanguagecode", "eng");
-
+		ReflectionTestUtils.setField(cmdValidationProcessor, "subProcess", "CORRECTION");
 		@SuppressWarnings("unchecked")
 		RegistrationProcessorRestClientService<Object> mockObj = Mockito
 				.mock(RegistrationProcessorRestClientService.class);
@@ -174,6 +174,23 @@ public class CMDValidatorProcessorTest {
 		assertFalse(cmdValidationProcessor.process(dto, stageName).getInternalError());
 	}
 
+	@Test
+	public void testisValidCMDSuccessForSubProcess() throws Exception {
+		ReflectionTestUtils.setField(cmdValidationProcessor, "validateCenterForSubProcess", true);
+		ReflectionTestUtils.setField(cmdValidationProcessor, "validateMachineForSubProcess", true);
+		ReflectionTestUtils.setField(cmdValidationProcessor, "validateDeviceForSubProcess", true);
+		registrationStatusDto = new InternalRegistrationStatusDto();
+		registrationStatusDto.setRegistrationId("123456789");
+		registrationStatusDto.setRegistrationType("CORRECTION");
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(),any(), any())).thenReturn(registrationStatusDto);
+
+		Mockito.doNothing().when(centerValidator).validate(anyString(), any(), anyString());
+		Mockito.doNothing().when(deviceValidator).validate(any(), anyString());
+		Mockito.doNothing().when(machineValidator).validate(anyString(), anyString(), anyString(), anyString());
+
+		assertTrue(cmdValidationProcessor.process(dto, stageName).getIsValid());
+		assertFalse(cmdValidationProcessor.process(dto, stageName).getInternalError());
+	}
 	/**
 	 * IO exception test.
 	 *
