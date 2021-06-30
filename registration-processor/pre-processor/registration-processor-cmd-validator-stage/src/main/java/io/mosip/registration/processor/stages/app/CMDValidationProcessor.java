@@ -90,13 +90,13 @@ public class CMDValidationProcessor {
 	@Value("${mosip.primary-language}")
 	private String primaryLanguagecode;
 
-	@Value("#{'${mosip.registration.processor.validate-center:NEW,UPDATE,LOST,BIOMETRIC_CORRECTION}'.split(',')}")
+	@Value("#{'${mosip.regproc.cmd-validator.center-validation.processes:NEW,UPDATE,LOST,BIOMETRIC_CORRECTION}'.split(',')}")
 	private List<String> centerValidationProcessList ;
 	
-	@Value("#{'${mosip.registration.processor.validate-machine:NEW,UPDATE,LOST,BIOMETRIC_CORRECTION}'.split(',')}")
+	@Value("#{'${mosip.regproc.cmd-validator.machine-validation.processes:NEW,UPDATE,LOST,BIOMETRIC_CORRECTION}'.split(',')}")
 	private List<String> machineValidationProcessList ;
 	
-	@Value("#{'${mosip.registration.processor.validate-device:NEW,UPDATE,LOST,BIOMETRIC_CORRECTION}'.split(',')}")
+	@Value("#{'${mosip.regproc.cmd-validator.device-validation.processes:NEW,UPDATE,LOST,BIOMETRIC_CORRECTION}'.split(',')}")
 	private List<String> deviceValidationProcessList ;
 	
 	public MessageDTO process(MessageDTO object, String stageName) {
