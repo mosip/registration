@@ -175,6 +175,17 @@ public class CMDValidatorProcessorTest {
 		assertTrue(cmdValidationProcessor.process(dto, stageName).getIsValid());
 		assertFalse(cmdValidationProcessor.process(dto, stageName).getInternalError());
 	}
+	
+	@Test
+	public void testisValidCMDSuccesswithNullProperties() throws Exception {
+		ReflectionTestUtils.setField(cmdValidationProcessor, "deviceValidationProcessList", null);
+		
+		Mockito.doNothing().when(centerValidator).validate(anyString(), any(), anyString());
+		Mockito.doNothing().when(machineValidator).validate(anyString(), anyString(), anyString(), anyString());
+
+		assertTrue(cmdValidationProcessor.process(dto, stageName).getIsValid());
+		assertFalse(cmdValidationProcessor.process(dto, stageName).getInternalError());
+	}
 
 	/**
 	 * IO exception test.
