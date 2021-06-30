@@ -150,7 +150,7 @@ public class PacketValidateProcessorTest {
 		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
 		
 		InputStream inputStream = IOUtils.toInputStream("optionalvalues", "UTF-8");
-		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any())).thenReturn(inputStream);
+		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(inputStream);
 		
 		RegistrationAdditionalInfoDTO registrationAdditionalInfoDTO = new RegistrationAdditionalInfoDTO();
 		registrationAdditionalInfoDTO.setName("abc");
