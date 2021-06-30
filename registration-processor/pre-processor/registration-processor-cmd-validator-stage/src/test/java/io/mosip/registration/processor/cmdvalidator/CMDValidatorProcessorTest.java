@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import org.apache.commons.io.IOUtils;
@@ -130,9 +131,9 @@ public class CMDValidatorProcessorTest {
 		Mockito.when(packetManagerService.getMetaInfo(anyString(), anyString(), any())).thenReturn(new HashMap<>());
 
 		ReflectionTestUtils.setField(cmdValidationProcessor, "gpsEnable", "y");
-		ReflectionTestUtils.setField(cmdValidationProcessor, "validateCenter", true);
-		ReflectionTestUtils.setField(cmdValidationProcessor, "validateMachine", true);
-		ReflectionTestUtils.setField(cmdValidationProcessor, "validateDevice", true);
+		ReflectionTestUtils.setField(cmdValidationProcessor, "centerValidationProcessList", Arrays.asList("NEW","UPDATE","LOST","BIOMETRIC_CORRECTION"));
+		ReflectionTestUtils.setField(cmdValidationProcessor, "machineValidationProcessList", Arrays.asList("NEW","UPDATE","LOST","BIOMETRIC_CORRECTION"));
+		ReflectionTestUtils.setField(cmdValidationProcessor, "deviceValidationProcessList", Arrays.asList("NEW","UPDATE","LOST","BIOMETRIC_CORRECTION"));
 		ReflectionTestUtils.setField(cmdValidationProcessor, "primaryLanguagecode", "eng");
 
 		@SuppressWarnings("unchecked")
@@ -155,6 +156,7 @@ public class CMDValidatorProcessorTest {
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("123456789");
 		registrationStatusDto.setRegistrationId("reg1234");
+		registrationStatusDto.setRegistrationType("NEW");
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(),any(), any())).thenReturn(registrationStatusDto);
 	}
 

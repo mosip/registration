@@ -90,14 +90,14 @@ public class CMDValidationProcessor {
 	@Value("${mosip.primary-language}")
 	private String primaryLanguagecode;
 
-	@Value("#{'${mosip.regproc.cmd.center.validation.processes:CORRECTION,NEW,UPDATE,LOST,BIOMETRIC_CORRECTION,DOCUMENT_CORRECTION,DEMOGRAPHIC_CORRECTION}'.split(',')}")
-	private List<String> centerSubProcesses;
+	@Value("#{'${mosip.registration.processor.validate-center:NEW,UPDATE,LOST,BIOMETRIC_CORRECTION}'.split(',')}")
+	private List<String> centerValidationProcessList ;
 	
-	@Value("#{'${mosip.regproc.cmd.machine.validation.processes:CORRECTION,NEW,UPDATE,LOST,BIOMETRIC_CORRECTION,DOCUMENT_CORRECTION,DEMOGRAPHIC_CORRECTION}'.split(',')}")
-	private List<String> machineSubProcesses;
+	@Value("#{'${mosip.registration.processor.validate-machine:NEW,UPDATE,LOST,BIOMETRIC_CORRECTION}'.split(',')}")
+	private List<String> machineValidationProcessList ;
 	
-	@Value("#{'${mosip.regproc.cmd.device.validation.processes:NEW,UPDATE,LOST,BIOMETRIC_CORRECTION}'.split(',')}")
-	private List<String> deviceSubProcesses;
+	@Value("#{'${mosip.registration.processor.validate-device:NEW,UPDATE,LOST,BIOMETRIC_CORRECTION}'.split(',')}")
+	private List<String> deviceValidationProcessList ;
 	
 	public MessageDTO process(MessageDTO object, String stageName) {
 
@@ -148,16 +148,16 @@ public class CMDValidationProcessor {
 				return object;
 			}
 
-			if (centerSubProcesses.contains(registrationStatusDto.getRegistrationType())) {
+			if (centerValidationProcessList !=null && !centerValidationProcessList.isEmpty() && centerValidationProcessList.contains(registrationStatusDto.getRegistrationType())) {
 				centerValidator.validate(primaryLanguagecode, regOsi, registrationStatusDto.getRegistrationId());
 			}
 
-			if (machineSubProcesses.contains(registrationStatusDto.getRegistrationType())) {
+			if (machineValidationProcessList !=null && ! machineValidationProcessList.isEmpty() && machineValidationProcessList.contains(registrationStatusDto.getRegistrationType())) {
 				machineValidator.validate(regOsi.getMachineId(), primaryLanguagecode, regOsi.getPacketCreationDate(),
 						registrationStatusDto.getRegistrationId());
 			}
 
-			if (deviceSubProcesses.contains(registrationStatusDto.getRegistrationType())) {
+			if (deviceValidationProcessList !=null && !deviceValidationProcessList.isEmpty() && deviceValidationProcessList.contains(registrationStatusDto.getRegistrationType())) {
 				deviceValidator.validate(regOsi, registrationStatusDto.getRegistrationId());
 			}
 
