@@ -11,6 +11,8 @@
 -- Apr-2021		Ram Bhatt	   Added rows to transaction_type.csv
 -- May-2021		Ram Bhatt	   Creation of last_success_stage_name in registration table
 -- Jun-2021		Ram Bhatt	   Added rows to transaction_type.csv
+-- Jun-2021		Ram Bhatt	   Added columns to registration list table
+-- Jun-2021 		Ram Bhatt	   Create crypto salt table.
 ----------------------------------------------------------------------------------------------------
 \c mosip_regprc sysadmin
 
@@ -169,4 +171,18 @@ UPDATE regprc.registration SET last_success_stage_name = 'PacketUploaderStage' w
 UPDATE regprc.registration SET last_success_stage_name = 'UinGeneratorStage' where latest_trn_type_code='PACKET_REPROCESS' and reg_stage_name ='PrintingStage' and reg_type = 'DEACTIVATED';
 
 -------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------Add columns to registration_list----------------------------------------------
 
+ALTER TABLE regprc.registration_list ADD COLUMN name character varying;
+ALTER TABLE regprc.registration_list ADD COLUMN phone character varying;
+ALTER TABLE regprc.registration_list ADD COLUMN email character varying;
+ALTER TABLE regprc.registration_list ADD COLUMN center_id character varying;
+ALTER TABLE regprc.registration_list ADD COLUMN registration_date date;
+ALTER TABLE regprc.registration_list ADD COLUMN postal_code character varying;
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------Creation of crypto salt table--------------------------------------------------------------
+
+\ir ../ddl/regprc-crypto_salt.sql
+
+--------------------------------------------------------------------------------------------------------------------------------------------
