@@ -10,6 +10,7 @@
 -- ------------------------------------------------------------------------------------------
 -- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
 -- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes for 1.1.5
+-- Jun-2021		Ram Bhatt	    Added additional columns to table
 -- ------------------------------------------------------------------------------------------
 
 -- object: regprc.registration_list | type: TABLE --
@@ -32,6 +33,12 @@ CREATE TABLE regprc.registration_list(
 	upd_dtimes timestamp,
 	is_deleted boolean DEFAULT FALSE,
 	del_dtimes timestamp,
+	name character varying,
+	phone character varying,
+	email character varying,
+	center_id character varying,
+	registration_date date
+	postal_code id character varying,
 	CONSTRAINT pk_reglist_id PRIMARY KEY (id)
 
 );
