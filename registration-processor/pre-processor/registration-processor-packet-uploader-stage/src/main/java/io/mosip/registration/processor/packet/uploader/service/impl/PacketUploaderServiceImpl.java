@@ -88,6 +88,9 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
     @Value("${packet.manager.account.name}")
     private String packetManagerAccount;
 
+    @Value("${packet.manager.iteration.addition.enabled:false}")
+    private boolean isIterationAdditionEnabled;
+
     /**
      * the packet extension(Ex - .zip)
      */
@@ -487,9 +490,12 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
         try {
             for (Map.Entry<String, InputStream> entry : sourcePackets.entrySet()) {
                 if (entry.getKey().endsWith(ZIP)) {
+                    String objStoreKey = isIterationAdditionEnabled ?
+                            getFinalKey(regEntity, entry.getKey().replace(ZIP, ""), object)
+                            :
+                            entry.getKey().replace(ZIP, "");
                     boolean result = objectStoreAdapter.putObject(packetManagerAccount, registrationId,
-                            null, null,
-                            getFinalKey(regEntity, entry.getKey().replace(ZIP, ""), object), entry.getValue());
+                            null, null, objStoreKey, entry.getValue());
                     if (!result)
                         throw new ObjectStoreNotAccessibleException("Failed to store packet : " + entry.getKey());
                 }
@@ -501,9 +507,12 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
                     byte[] bytearray = IOUtils.toByteArray(entry.getValue());
                     String jsonString = new String(bytearray);
                     LinkedHashMap<String, Object> currentIdMap = (LinkedHashMap<String, Object>) mapper.readValue(jsonString, LinkedHashMap.class);
+                    String objStoreKey = isIterationAdditionEnabled ?
+                            getFinalKey(regEntity, entry.getKey().replace(JSON, ""), object)
+                            :
+                            entry.getKey().replace(JSON, "");
                     objectStoreAdapter.addObjectMetaData(packetManagerAccount, registrationId,
-                            null, null,
-                            getFinalKey(regEntity, entry.getKey().replace(JSON, ""), object), currentIdMap);
+                            null, null, objStoreKey, currentIdMap);
                 }
             }
         } catch (Exception e) {
