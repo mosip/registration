@@ -585,7 +585,10 @@ public class PacketValidateProcessor {
 				String[] allNotificationTypes = notificationTypes.split("\\|");
 				boolean isProcessingSuccess;
 			    InputStream inputStream = new ByteArrayInputStream(regEntity.getOptionalValues());
-				InputStream decryptedInputStream = decryptor.decrypt(inputStream, registrationId);
+				InputStream decryptedInputStream = decryptor.decrypt(
+						registrationId,
+						utility.getRefId(registrationId, regEntity.getReferenceId()),
+						inputStream);
 				String decryptedData = IOUtils.toString(decryptedInputStream, "UTF-8");
 				RegistrationAdditionalInfoDTO registrationAdditionalInfoDTO = (RegistrationAdditionalInfoDTO) JsonUtils
 						.jsonStringToJavaObject(RegistrationAdditionalInfoDTO.class, decryptedData);
