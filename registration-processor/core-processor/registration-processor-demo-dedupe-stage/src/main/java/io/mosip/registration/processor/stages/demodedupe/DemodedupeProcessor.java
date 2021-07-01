@@ -376,7 +376,6 @@ public class DemodedupeProcessor {
 		return 	demographicData.getDateOfBirth()!=null && !demographicData.getDateOfBirth().isBlank() &&
 				demographicData.getEmail()!=null && !demographicData.getEmail().isBlank() &&
 				demographicData.getGender()!=null && demographicData.getGender().length>0 &&
-//				demographicData.getPheoniticName()!=null && !demographicData.getPheoniticName().isBlank() &&
 				demographicData.getPhone()!=null && !demographicData.getPhone().isBlank() &&
 				demographicData.getName()!=null && !demographicData.getName().isEmpty();
 	}
