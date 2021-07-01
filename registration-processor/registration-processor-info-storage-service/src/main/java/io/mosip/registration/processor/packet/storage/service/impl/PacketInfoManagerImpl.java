@@ -288,7 +288,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 * @param description
 	 */
 	private void saveIndividualDemographicDedupe(String regId, String process, LogDescription description,
-			String moduleId, String moduleName, int iteration) throws Exception {
+			String moduleId, String moduleName, Integer iteration) throws Exception {
 
 		boolean isTransactionSuccessful = false;
 
@@ -334,7 +334,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 */
 	@Override
 	public void saveIndividualDemographicDedupeUpdatePacket(IndividualDemographicDedupe demographicData,
-			String registrationId, String moduleId,String process, String moduleName,int iteration) {
+			String registrationId, String moduleId,String process, String moduleName,Integer iteration) {
 		boolean isTransactionSuccessful = false;
 		LogDescription description = new LogDescription();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
@@ -381,7 +381,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 */
 	@Override
 	public void saveDemographicInfoJson(String registrationId, String process, String moduleId,
-			String moduleName,int iteration) throws Exception {
+			String moduleName,Integer iteration) throws Exception {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"PacketInfoManagerImpl::saveDemographicInfoJson()::entry");
 		LogDescription description = new LogDescription();
