@@ -162,16 +162,19 @@ public class DemodedupeProcessor {
 
 		try {
 			 
-			IndividualDemographicDedupe demographicData = packetInfoManager.getIdentityKeysAndFetchValuesFromJSON(registrationId, registrationStatusDto.getRegistrationType(), ProviderStageName.DEMO_DEDUPE);
+			IndividualDemographicDedupe demographicData = packetInfoManager.
+					getIdentityKeysAndFetchValuesFromJSON(registrationId, registrationStatusDto.getRegistrationType(), ProviderStageName.DEMO_DEDUPE);
 			
 			JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 			String uinFieldCheck = utility.getUIn(registrationId, registrationStatusDto.getRegistrationType(), ProviderStageName.DEMO_DEDUPE);
 			JSONObject jsonObject = utility.retrieveIdrepoJson(uinFieldCheck);
 			if(jsonObject == null) {
-				insertDemodedupDetailsAndPerformDedup (demographicData,registrationStatusDto,duplicateDtos,object,isTransactionSuccessful,moduleId,moduleName,isDemoDedupeSkip,description);
+				insertDemodedupDetailsAndPerformDedup (demographicData,registrationStatusDto,duplicateDtos,
+						object,isTransactionSuccessful,moduleId,moduleName,isDemoDedupeSkip,description);
 			}
 			 else {
-				 insertDemodedupDetails(demographicData,regProcessorIdentityJson,jsonObject,registrationStatusDto,object,moduleId,moduleName);	
+				 insertDemodedupDetails(demographicData,regProcessorIdentityJson,jsonObject,
+						 registrationStatusDto,object,moduleId,moduleName);	
 			}
 
 			registrationStatusDto.setRegistrationStageName(stageName);
@@ -275,7 +278,9 @@ public class DemodedupeProcessor {
 	}
 
 
-	private void insertDemodedupDetails(IndividualDemographicDedupe demographicData, JSONObject regProcessorIdentityJson, JSONObject jsonObject, InternalRegistrationStatusDto registrationStatusDto, MessageDTO object, String moduleId, String moduleName) {
+	private void insertDemodedupDetails(IndividualDemographicDedupe demographicData, JSONObject regProcessorIdentityJson, 
+			JSONObject jsonObject, InternalRegistrationStatusDto registrationStatusDto, MessageDTO object, 
+			String moduleId, String moduleName) {
 		IndividualDemographicDedupe demoDedupeData = new IndividualDemographicDedupe();
 		List<JsonValue[]> jsonValueList = new ArrayList<>();
 		if (demographicData.getName() == null || demographicData.getName().isEmpty()) {
@@ -324,7 +329,10 @@ public class DemodedupeProcessor {
 
 
 	private void insertDemodedupDetailsAndPerformDedup(IndividualDemographicDedupe demographicData,
-			InternalRegistrationStatusDto registrationStatusDto, List<DemographicInfoDto> duplicateDtos, MessageDTO object, boolean isTransactionSuccessful, String moduleId, String moduleName, boolean isDemoDedupeSkip, LogDescription description) throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException {
+			InternalRegistrationStatusDto registrationStatusDto, List<DemographicInfoDto> duplicateDtos,
+			MessageDTO object, boolean isTransactionSuccessful, String moduleId, String moduleName,
+			boolean isDemoDedupeSkip, LogDescription description) throws ApisResourceAccessException, 
+	JsonProcessingException, PacketManagerException, IOException, PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException {
 		
 		String packetStatus = abisHandlerUtil.getPacketStatus(registrationStatusDto);
 		String registrationId=registrationStatusDto.getRegistrationId();
