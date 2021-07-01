@@ -224,7 +224,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "AbisMiddlewareStage::process()::entry");
 		InternalRegistrationStatusDto internalRegDto = registrationStatusService.getRegistrationStatus(
-					registrationId, object.getReg_type(), object.getIteration());
+					registrationId, object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
 		try {
 			List<String> abisRefList = packetInfoManager.getReferenceIdByRid(registrationId);
 			validateNullCheck(abisRefList, "ABIS_REFERENCE_ID_NOT_FOUND");
@@ -391,7 +391,8 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 			List<RegBioRefDto> regBioRefist = packetInfoManager.getRegBioRefDataByBioRefIds(bioRefId);
 			RegBioRefDto regBioRefDto = regBioRefist.get(0);
 			registrationId = packetInfoDao.getRegIdByRefIdAndProcessAndIteration(regBioRefDto.getBioRefId(),regBioRefDto.getProcess(),regBioRefDto.getIteration());
-			internalRegStatusDto = registrationStatusService.getRegistrationStatus(registrationId,regBioRefDto.getProcess(),regBioRefDto.getIteration());
+			internalRegStatusDto = registrationStatusService.getRegistrationStatus(registrationId,
+					regBioRefDto.getProcess(), regBioRefDto.getIteration(), regBioRefDto.getWorkflowInstanceId());
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 					"AbisMiddlewareStage::consumerListener()::response from abis for requestId ::" + requestId);
 
@@ -722,8 +723,8 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 
 	}
 
-	private String getLatestTransactionId(String registrationId, String process, int iteration) {
-		RegistrationStatusEntity entity = registrationStatusDao.find(registrationId, process, iteration);
+	private String getLatestTransactionId(String registrationId, String process, int iteration, String workflowInstanceId) {
+		RegistrationStatusEntity entity = registrationStatusDao.find(registrationId, process, iteration, workflowInstanceId);
 		return entity != null ? entity.getLatestRegistrationTransactionId() : null;
 
 	}

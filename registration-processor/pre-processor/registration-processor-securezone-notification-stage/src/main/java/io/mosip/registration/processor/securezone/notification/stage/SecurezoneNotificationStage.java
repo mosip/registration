@@ -155,7 +155,7 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
             messageDTO.setIteration(obj.getInteger("iteration"));
 
             registrationStatusDto = registrationStatusService.getRegistrationStatus(
-                    messageDTO.getRid(), messageDTO.getReg_type(), messageDTO.getIteration());
+                    messageDTO.getRid(), messageDTO.getReg_type(), messageDTO.getIteration(), messageDTO.getWorkflowInstanceId());
 
             if (registrationStatusDto != null && messageDTO.getRid().equalsIgnoreCase(registrationStatusDto.getRegistrationId())) {
                 registrationStatusDto

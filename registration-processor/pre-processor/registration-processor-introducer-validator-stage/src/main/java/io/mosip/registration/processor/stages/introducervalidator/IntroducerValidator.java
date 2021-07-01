@@ -153,7 +153,7 @@ public class IntroducerValidator {
 			InternalRegistrationStatusDto registrationStatusDto) throws BaseCheckedException {
 		//TODO : Temp fix done to overcome compilation errors, below NEW to be checked once
 		InternalRegistrationStatusDto introducerRegistrationStatusDto = registrationStatusService
-				.getRegistrationStatus(introducerRid, "NEW", 1);
+				.getRegistrationStatus(introducerRid, "NEW", 1, "");
 		if (introducerRegistrationStatusDto != null) {
 			if (introducerRegistrationStatusDto.getStatusCode().equals(RegistrationStatusCode.PROCESSING.toString())) {
 

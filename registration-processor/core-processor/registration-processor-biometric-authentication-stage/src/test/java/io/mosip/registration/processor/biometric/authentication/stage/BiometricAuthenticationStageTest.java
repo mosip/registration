@@ -252,7 +252,7 @@ public class BiometricAuthenticationStageTest {
 		listAppender.start();
 		list.add(registrationStatusDto);
 		when(registrationStatusService.getByStatus(anyString())).thenReturn(list);
-		when(registrationStatusService.getRegistrationStatus(anyString(), any(), any())).thenReturn(registrationStatusDto);
+		when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
 
 		when(identityIteratorUtil.getFieldValue(any(), any())).thenReturn("UPDATE");

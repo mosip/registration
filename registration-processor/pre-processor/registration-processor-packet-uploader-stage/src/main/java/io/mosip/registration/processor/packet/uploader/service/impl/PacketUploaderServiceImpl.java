@@ -193,7 +193,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
         try {
         	regEntity = syncRegistrationService.findByRegistrationIdAndProcessAndIteration(registrationId, process, iteration);
             messageDTO.setReg_type(regEntity.getRegistrationType());
-            dto = registrationStatusService.getRegistrationStatus(registrationId, process, iteration);
+            dto = registrationStatusService.getRegistrationStatus(registrationId, process, iteration, regEntity.getWorkflowInstanceId());
 
             dto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.UPLOAD_PACKET.toString());
             dto.setRegistrationStageName(stageName);
@@ -582,7 +582,8 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
             String process = tempKeys[1];
             String objectName = tempKeys[2];
             SubWorkflowMappingEntity workflowMappingEntity = registrationStatusService
-                    .findWorkflowMappingByIdAndProcessAndIteration(messageDTO.getRid(), messageDTO.getReg_type(), messageDTO.getIteration());
+                    .findWorkflowMappingByIdAndProcessAndIteration(messageDTO.getRid(),
+                            messageDTO.getReg_type(), messageDTO.getIteration());
 
             if (workflowMappingEntity != null &&
                     workflowMappingEntity.getId().getAdditionalInfoReqId().equals(regEntity.getAdditionalInfoReqId())) {

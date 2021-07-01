@@ -210,7 +210,7 @@ public class PacketClassificationProcessor {
 			registrationId = object.getRid();
 
 			registrationStatusDto = registrationStatusService.getRegistrationStatus(
-					registrationId, object.getReg_type(), object.getIteration());
+					registrationId, object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
 			registrationStatusDto.setLatestTransactionTypeCode(
 						RegistrationTransactionTypeCode.PACKET_CLASSIFICATION.toString());
 			registrationStatusDto.setRegistrationStageName(stageName);

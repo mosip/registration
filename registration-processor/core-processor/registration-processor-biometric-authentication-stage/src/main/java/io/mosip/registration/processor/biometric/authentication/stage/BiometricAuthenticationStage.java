@@ -149,7 +149,7 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 		object.setIsValid(Boolean.FALSE);
 		object.setInternalError(Boolean.FALSE);
 		InternalRegistrationStatusDto registrationStatusDto=registrationStatusService
-				.getRegistrationStatus(registrationId, object.getReg_type(), object.getIteration());
+				.getRegistrationStatus(registrationId, object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
 
 		registrationStatusDto
 				.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.BIOMETRIC_AUTHENTICATION.toString());

@@ -98,22 +98,30 @@ public class RegistrationStatusDao {
 	/**
 	 * Find by id.
 	 *
-	 * @param enrolmentId
+	 * @param rid
 	 *            the enrolment id
 	 * @return the registration status entity
 	 */
-	public RegistrationStatusEntity find(String rid, String process, Integer iteration) {
+	public RegistrationStatusEntity find(String rid, String process, Integer iteration, String workflowInstanceId) {
 		Map<String, Object> params = new HashMap<>();
 		String className = RegistrationStatusEntity.class.getSimpleName();
 
 		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
 		String queryStr = null;
-		if (process != null && iteration != null)
+		// TODO : need to verify this logic
+		if (process != null && iteration != null && workflowInstanceId != null)
+			queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
+					+ ".id.id=:registrationId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ".id.registrationType=:registrationType"
+					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ".id.iteration=:iteration"
+					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ".id.workflowInstanceId=:workflowInstanceId"
+					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE
+				+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
+		else if (workflowInstanceId == null && process != null && iteration != null)
 			queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
 					+ ".id.id=:registrationId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ".id.registrationType=:registrationType"
 					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ".id.iteration=:iteration"
 					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE
-				+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
+					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
 		else if (process != null)
 			queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
 					+ ".id.id=:registrationId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ".id.registrationType=:registrationType"

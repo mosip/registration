@@ -158,7 +158,7 @@ public class DemodedupeProcessor {
 		String moduleName = ModuleName.DEMO_DEDUPE.toString();
 		String moduleId = PlatformSuccessMessages.RPR_PKR_DEMO_DE_DUP.getCode();
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
-				.getRegistrationStatus(registrationId, object.getReg_type(), object.getIteration());
+				.getRegistrationStatus(registrationId, object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
 
 		try {
 			 // Persist Demographic packet Data if packet Registration type is NEW
@@ -426,8 +426,8 @@ public class DemodedupeProcessor {
 	 *            the registration id
 	 * @return the latest transaction id
 	 */
-	private String getLatestTransactionId(String registrationId, String process, int iteration) {
-		RegistrationStatusEntity entity = registrationStatusDao.find(registrationId, process, iteration);
+	private String getLatestTransactionId(String registrationId, String process, int iteration, String workflowInstanceId) {
+		RegistrationStatusEntity entity = registrationStatusDao.find(registrationId, process, iteration, workflowInstanceId);
 		return entity != null ? entity.getLatestRegistrationTransactionId() : null;
 	}
 
@@ -454,7 +454,7 @@ public class DemodedupeProcessor {
 		List<String> responsIds = new ArrayList<>();
 
 		String latestTransactionId = getLatestTransactionId(registrationStatusDto.getRegistrationId(),
-				registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration());
+				registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId());
 
 		List<AbisResponseDto> abisResponseDto = packetInfoManager.getAbisResponseRecords(latestTransactionId,
 				DemoDedupeConstants.IDENTIFY);
@@ -537,7 +537,7 @@ public class DemodedupeProcessor {
 		for (DemographicInfoDto demographicInfoDto : duplicateDtos) {
 			InternalRegistrationStatusDto potentialMatchRegistrationDto = registrationStatusService
 					.getRegistrationStatus(demographicInfoDto.getRegId(),
-							registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration());
+							registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId());
 			if (potentialMatchRegistrationDto.getLatestTransactionStatusCode()
 					.equalsIgnoreCase(RegistrationTransactionStatusCode.REPROCESS.toString())
 					|| potentialMatchRegistrationDto.getLatestTransactionStatusCode()
@@ -550,7 +550,7 @@ public class DemodedupeProcessor {
 					|| potentialMatchRegistrationDto.getLatestTransactionStatusCode()
 							.equalsIgnoreCase(RegistrationTransactionStatusCode.PROCESSED.toString())) {
 				String latestTransactionId = getLatestTransactionId(registrationStatusDto.getRegistrationId(),
-						registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration());
+						registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId());
 				RegDemoDedupeListDto regDemoDedupeListDto = new RegDemoDedupeListDto();
 				regDemoDedupeListDto.setRegId(registrationStatusDto.getRegistrationId());
 				regDemoDedupeListDto.setMatchedRegId(demographicInfoDto.getRegId());
@@ -587,7 +587,8 @@ public class DemodedupeProcessor {
 	private void saveManualAdjudicationData(InternalRegistrationStatusDto registrationStatusDto)
 			throws ApisResourceAccessException, IOException, JsonProcessingException, PacketManagerException {
 		Set<String> matchedRegIds = abisHandlerUtil.getUniqueRegIds(registrationStatusDto.getRegistrationId(),
-				registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(), ProviderStageName.DEMO_DEDUPE);
+				registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(),
+				registrationStatusDto.getWorkflowInstanceId(), ProviderStageName.DEMO_DEDUPE);
 		ArrayList<String> matchedRegIdsList = new ArrayList<String>(matchedRegIds);
 		if (!matchedRegIds.isEmpty()) {
 			String moduleId = PlatformErrorMessages.RPR_DEMO_SENDING_FOR_MANUAL.getCode();

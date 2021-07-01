@@ -22,6 +22,9 @@ public interface BaseRegProcRepository<T extends BasePacketEntity, E> extends Ba
     @Query("SELECT subWorkflow FROM SubWorkflowMappingEntity subWorkflow WHERE subWorkflow.id.regId =:regId AND subWorkflow.process =:process AND subWorkflow.iteration=:iteration")
     public List<SubWorkflowMappingEntity> workflowMappingByRegIdAndProcessAndIteration(@Param("regId") String regId, @Param("process") String process, @Param("iteration")  int iteration);
 
+    @Query("SELECT subWorkflow FROM SubWorkflowMappingEntity subWorkflow WHERE subWorkflow.id.additionalInfoReqId =:additionalInfoReqId")
+    public List<SubWorkflowMappingEntity> workflowMappingByAdditionalReqId(@Param("additionalInfoReqId") String additionalInfoReqId);
+
 	@Query("SELECT subWorkflow FROM SubWorkflowMappingEntity subWorkflow WHERE subWorkflow.id.regId =:regId AND subWorkflow.process =:process order by subWorkflow.iteration desc")
 	public List<SubWorkflowMappingEntity> workflowMappingByRegIdAndProcess(@Param("regId") String regId,
 			@Param("process") String process);

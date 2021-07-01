@@ -174,7 +174,7 @@ public class BioDedupeProcessor {
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 		try {
 			registrationStatusDto = registrationStatusService.getRegistrationStatus(
-					registrationId, object.getReg_type(), object.getIteration());
+					registrationId, object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
 			String registrationType = registrationStatusDto.getRegistrationType();
 			if (registrationType.equalsIgnoreCase(SyncTypeDto.NEW.toString())
 			|| (subProcess != null && subProcess.contains(registrationType))) {
@@ -204,7 +204,7 @@ public class BioDedupeProcessor {
 				} else if (packetStatus.equalsIgnoreCase(AbisConstant.POST_ABIS_IDENTIFICATION)) {
 					Set<String> matchedRegIds = abisHandlerUtil
 							.getUniqueRegIds(registrationStatusDto.getRegistrationId(),
-									registrationType, object.getIteration(), ProviderStageName.BIO_DEDUPE);
+									registrationType, object.getIteration(), object.getWorkflowInstanceId(), ProviderStageName.BIO_DEDUPE);
 					lostPacketPostAbisIdentification(registrationStatusDto, object, matchedRegIds);
 				}
 
@@ -399,7 +399,7 @@ public class BioDedupeProcessor {
 		String moduleId = "";
 		String moduleName = ModuleName.BIO_DEDUPE.toString();
 		Set<String> matchedRegIds = abisHandlerUtil.getUniqueRegIds(registrationStatusDto.getRegistrationId(),
-				registrationType, registrationStatusDto.getIteration(), ProviderStageName.BIO_DEDUPE);
+				registrationType, registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId(), ProviderStageName.BIO_DEDUPE);
 		ArrayList<String> matchedRegIdsList = new ArrayList<String>(matchedRegIds);
 		// TODO : temporary fix. Need to analyze more.
 		if (matchedRegIds != null && !matchedRegIds.isEmpty()

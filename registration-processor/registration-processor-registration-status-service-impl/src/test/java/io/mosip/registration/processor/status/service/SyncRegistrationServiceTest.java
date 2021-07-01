@@ -308,7 +308,7 @@ public class SyncRegistrationServiceTest {
 		syncResponseDto.setStatus("Success");
 
 		syncRegistrationEntity = new SyncRegistrationEntity();
-		syncRegistrationEntity.setId("0c326dc2-ac54-4c2a-98b4-b0c620f1661f");
+		syncRegistrationEntity.setWorkflowInstanceId("0c326dc2-ac54-4c2a-98b4-b0c620f1661f");
 		syncRegistrationEntity.setRegistrationId(syncRegistrationDto.getRegistrationId());
 		syncRegistrationEntity.setRegistrationType(syncRegistrationDto.getRegistrationType().toString());
 
