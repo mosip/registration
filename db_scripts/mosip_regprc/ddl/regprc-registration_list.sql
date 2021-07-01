@@ -38,7 +38,7 @@ CREATE TABLE regprc.registration_list(
 	email character varying,
 	center_id character varying,
 	registration_date date
-	postal_code id character varying,
+	postal_code character varying,
 	CONSTRAINT pk_reglist_id PRIMARY KEY (id)
 
 );
