@@ -143,8 +143,6 @@ public enum PlatformSuccessMessages {
 	PAUSE_AND_REQUEST_ADDITIONAL_INFO(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "005",
 			"packet paused and request additional info"),
 
-	PACKET_RESUME_PARENT_FLOW(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "006", "packet parent flow resume"),
-
 	PACKET_RESTART_PARENT_FLOW(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "007", "packet parent flow restart");
 
 	/** The success message. */

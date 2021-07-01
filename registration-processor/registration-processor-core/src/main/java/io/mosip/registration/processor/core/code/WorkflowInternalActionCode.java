@@ -24,9 +24,6 @@ public enum WorkflowInternalActionCode {
 	/** The paused and request additional info. */
 	PAUSE_AND_REQUEST_ADDITIONAL_INFO,
 
-	/** The resume parent flow. */
-	RESUME_PARENT_FLOW,
-
 	/** The restart parent flow. */
 	RESTART_PARENT_FLOW,
 

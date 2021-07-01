@@ -1247,6 +1247,9 @@ public enum PlatformErrorMessages {
 
 	RPR_WIA_SUBWORKFLOW_NOT_FOUND(PlatformConstants.RPR_WORKFLOW_INTERNAL_ACTION + "003", "SubWorkflow not found"),
 
+	RPR_WIA_SUBWORKFLOW_CANNOT_REQUEST(PlatformConstants.RPR_WORKFLOW_INTERNAL_ACTION + "004",
+			"SubWorkflow cannot be  PauseAndRequestAdditionalInfo so it is failed"),
+
 	RPR_WAA_MISSING_INPUT_PARAMETER(PlatformConstants.RPR_WORKFLOW_ACTION_API + "000",
 			"Missing Request Value - %s"),
 

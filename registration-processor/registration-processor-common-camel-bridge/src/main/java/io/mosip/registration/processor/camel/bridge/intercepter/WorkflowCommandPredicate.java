@@ -52,10 +52,6 @@ public class WorkflowCommandPredicate implements Predicate {
 				processPauseAndRequestAdditionalInfo(exchange);
 				matches = true;
 				break;
-			case "workflow-cmd://resume-parent-flow":
-				processResumeParentFlow(exchange);
-				matches = true;
-				break;
 			case "workflow-cmd://restart-parent-flow":
 				processRestartParentFlow(exchange);
 				matches = true;
@@ -140,19 +136,6 @@ public class WorkflowCommandPredicate implements Predicate {
 		workflowEventDTO.setRid(json.getString(JsonConstant.RID));
 		workflowEventDTO.setActionCode(WorkflowInternalActionCode.RESTART_PARENT_FLOW.toString());
 		workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_RESTART_PARENT_FLOW.getMessage());
-		workflowEventDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
-		workflowEventDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
-		workflowEventDTO.setSource(json.getString(JsonConstant.SOURCE));
-		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
-	}
-
-	private void processResumeParentFlow(Exchange exchange) throws JsonProcessingException {
-		String message = (String) exchange.getMessage().getBody();
-		JsonObject json = new JsonObject(message);
-		WorkflowInternalActionDTO workflowEventDTO = new WorkflowInternalActionDTO();
-		workflowEventDTO.setRid(json.getString(JsonConstant.RID));
-		workflowEventDTO.setActionCode(WorkflowInternalActionCode.RESUME_PARENT_FLOW.toString());
-		workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_RESUME_PARENT_FLOW.getMessage());
 		workflowEventDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
 		workflowEventDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
 		workflowEventDTO.setSource(json.getString(JsonConstant.SOURCE));
