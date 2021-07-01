@@ -39,7 +39,7 @@ public interface PacketInfoManager<T, /** D, M, */
 	 *            the meta moduleId
 	 */
 	public void saveDemographicInfoJson(String regId, String process, String moduleId,
-			String moduleName) throws Exception;
+			String moduleName,int iteration) throws Exception;
 
 	/**
 	 * Gets the packetsfor QC user.
@@ -316,9 +316,10 @@ public interface PacketInfoManager<T, /** D, M, */
 	 *            the demo dedupe data
 	 * @param regId
 	 *            the reg id
+	 * @param iteration 
 	 */
 	public void saveIndividualDemographicDedupeUpdatePacket(IndividualDemographicDedupe demoDedupeData, String regId,
-			String moduleId, String process,String moduleName);
+			String moduleId, String process,String moduleName, int iteration);
 
 	/**
 	 * Gets the identity keys and fetch values from JSON.

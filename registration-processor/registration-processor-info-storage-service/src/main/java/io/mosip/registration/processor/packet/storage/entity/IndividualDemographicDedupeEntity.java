@@ -59,6 +59,9 @@ public class IndividualDemographicDedupeEntity extends BasePacketEntity<Individu
 	
 	@Column(name = "process")
 	private String process;
+	
+	@Column(name = "iteration")
+	private Integer iteration;
 
 	public IndividualDemographicDedupeEntity() {
 		super();
@@ -174,6 +177,14 @@ public class IndividualDemographicDedupeEntity extends BasePacketEntity<Individu
 
 	public void setProcess(String process) {
 		this.process = process;
+	}
+
+	public int getIteration() {
+		return iteration;
+	}
+
+	public void setIteration(int iteration) {
+		this.iteration = iteration;
 	}
 
 }
