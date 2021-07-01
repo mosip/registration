@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.stages.app;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -89,15 +90,15 @@ public class CMDValidationProcessor {
 	@Value("${mosip.primary-language}")
 	private String primaryLanguagecode;
 
-	@Value("${mosip.registration.processor.validate-center}")
-	private boolean validateCenter;
-
-	@Value("${mosip.registration.processor.validate-machine}")
-	private boolean validateMachine;
-
-	@Value("${mosip.registration.processor.validate-device}")
-	private boolean validateDevice;
-
+	@Value("#{'${mosip.regproc.cmd-validator.center-validation.processes:NEW,UPDATE,LOST,BIOMETRIC_CORRECTION}'.split(',')}")
+	private List<String> centerValidationProcessList ;
+	
+	@Value("#{'${mosip.regproc.cmd-validator.machine-validation.processes:NEW,UPDATE,LOST,BIOMETRIC_CORRECTION}'.split(',')}")
+	private List<String> machineValidationProcessList ;
+	
+	@Value("#{'${mosip.regproc.cmd-validator.device-validation.processes:NEW,UPDATE,LOST,BIOMETRIC_CORRECTION}'.split(',')}")
+	private List<String> deviceValidationProcessList ;
+	
 	public MessageDTO process(MessageDTO object, String stageName) {
 
 		LogDescription description = new LogDescription();
@@ -147,16 +148,16 @@ public class CMDValidationProcessor {
 				return object;
 			}
 
-			if (validateCenter) {
+			if (centerValidationProcessList !=null && !centerValidationProcessList.isEmpty() && centerValidationProcessList.contains(registrationStatusDto.getRegistrationType())) {
 				centerValidator.validate(primaryLanguagecode, regOsi, registrationStatusDto.getRegistrationId());
 			}
 
-			if (validateMachine) {
+			if (machineValidationProcessList !=null && ! machineValidationProcessList.isEmpty() && machineValidationProcessList.contains(registrationStatusDto.getRegistrationType())) {
 				machineValidator.validate(regOsi.getMachineId(), primaryLanguagecode, regOsi.getPacketCreationDate(),
 						registrationStatusDto.getRegistrationId());
 			}
 
-			if (validateDevice) {
+			if (deviceValidationProcessList !=null && !deviceValidationProcessList.isEmpty() && deviceValidationProcessList.contains(registrationStatusDto.getRegistrationType())) {
 				deviceValidator.validate(regOsi, registrationStatusDto.getRegistrationId());
 			}
 
