@@ -32,7 +32,6 @@ import io.mosip.registration.processor.core.token.validation.exception.AccessDen
 import io.mosip.registration.processor.core.token.validation.exception.InvalidTokenException;
 import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
 import io.mosip.registration.processor.status.api.controller.RegistrationExternalStatusController;
-import io.mosip.registration.processor.status.api.controller.RegistrationStatusController;
 import io.mosip.registration.processor.status.dto.ErrorDTO;
 import io.mosip.registration.processor.status.exception.RegStatusAppException;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
