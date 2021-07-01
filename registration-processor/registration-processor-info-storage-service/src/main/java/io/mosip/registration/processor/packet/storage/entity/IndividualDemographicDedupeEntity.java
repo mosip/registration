@@ -179,11 +179,11 @@ public class IndividualDemographicDedupeEntity extends BasePacketEntity<Individu
 		this.process = process;
 	}
 
-	public int getIteration() {
+	public Integer getIteration() {
 		return iteration;
 	}
 
-	public void setIteration(int iteration) {
+	public void setIteration(Integer iteration) {
 		this.iteration = iteration;
 	}
 
