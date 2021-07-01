@@ -161,11 +161,11 @@ public class PacketInfoMapper {
 
 			applicantDemographicPKEntity.setRegId(regId);
 			applicantDemographicPKEntity.setLangCode(languageArray[i]);
+			applicantDemographicPKEntity.setIteration(iteration);
+			applicantDemographicPKEntity.setProcess(process);
 			entity.setCrDtimes(LocalDateTime.now(ZoneId.of("UTC")));
 			entity.setUpdDtimes(LocalDateTime.now(ZoneId.of("UTC")));
 			entity.setId(applicantDemographicPKEntity);
-			entity.setProcess(process);
-			entity.setIteration(iteration);
 			entity.setIsActive(true);
 			entity.setIsDeleted(false);
 			StringBuilder applicantFullName = new StringBuilder();
