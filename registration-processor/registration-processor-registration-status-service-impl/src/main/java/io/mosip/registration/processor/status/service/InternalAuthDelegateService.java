@@ -4,6 +4,8 @@ import java.util.Optional;
 
 import org.springframework.http.HttpHeaders;
 
+import io.mosip.registration.processor.core.auth.dto.AuthRequestDTO;
+
 /**
  * The Interface InternalAuthDelegateService - the service that delegates
  * the calls to ID-Authentication's internal auth APIs
@@ -20,7 +22,7 @@ public interface InternalAuthDelegateService {
 	 * @return the object
 	 * @throws Exception 
 	 */
-	public Object authenticate(Object authRequestDTO, HttpHeaders headers) throws Exception;
+	public Object authenticate(AuthRequestDTO authRequestDTO, HttpHeaders headers) throws Exception;
 
 	/**
 	 * Gets the certificate.

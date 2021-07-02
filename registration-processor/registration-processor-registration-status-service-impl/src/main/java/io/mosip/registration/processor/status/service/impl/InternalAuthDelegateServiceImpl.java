@@ -1,5 +1,8 @@
 package io.mosip.registration.processor.status.service.impl;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -13,9 +16,18 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.registration.processor.core.auth.dto.AuthRequestDTO;
+import io.mosip.registration.processor.core.auth.dto.IndividualIdDto;
+import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
+import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 import io.mosip.registration.processor.status.service.InternalAuthDelegateService;
 
@@ -33,10 +45,18 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 	private static final String REFERENCE_ID = "referenceId";
 
 	private static final String APPLICATION_ID = "applicationId";
+	
+	private static final String APPID = "regproc";
 
 	/** The rest api client. */
 	@Autowired
 	private RestApiClient restApiClient;
+	
+	@Autowired
+	RegistrationProcessorRestClientService<Object> restClientService;
+	
+	@Autowired
+	ObjectMapper mapper;
 	
 	/** The internal auth uri. */
 	@Value("${ida-internal-auth-uri}")
@@ -55,7 +75,13 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 	 * @throws Exception 
 	 */
 	@Override
-	public HttpEntity<Object> authenticate(Object authRequestDTO, HttpHeaders headers) throws Exception {
+	public HttpEntity<Object> authenticate(AuthRequestDTO authRequestDTO, HttpHeaders headers) throws Exception {
+		
+		// get individualId from userId
+		String individualId = getIndividualIdByUserId(authRequestDTO.getIndividualId());
+		
+		authRequestDTO.setIndividualId(individualId);
+		
 		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(internalAuthUri);
 		HttpEntity<?> httpRequestEntity = new HttpEntity<Object>(authRequestDTO, headers);
 		return postApi(builder.toUriString(), MediaType.APPLICATION_JSON, httpRequestEntity, Object.class);
@@ -90,6 +116,38 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 					LoggerFileConstant.APPLICATIONID.toString(), e.getMessage() + ExceptionUtils.getStackTrace(e));
 			throw e;
 		}
+	}
+	
+	/**
+	 * get the individualId by userid
+	 * 
+	 * @param userid
+	 * @return individualId
+	 * @throws ApisResourceAccessException
+	 * @throws IOException
+	 */
+	private String getIndividualIdByUserId(String userid) throws ApisResourceAccessException, IOException {
+		
+		logger.debug("getIndividualIdByUserId called for userid {}", userid);
+		List<String> pathSegments = new ArrayList<>();
+		pathSegments.add(APPID);
+		pathSegments.add(userid);
+		String individualId = null;
+		ResponseWrapper<?> response = null;
+		response = (ResponseWrapper<?>) restClientService.getApi(ApiName.GETINDIVIDUALIDFROMUSERID, pathSegments, "",
+				"", ResponseWrapper.class);
+		logger.debug(
+				"getIndividualIdByUserId called for with GETINDIVIDUALIDFROMUSERID GET service call ended successfully");
+		if (response.getErrors() != null) {
+			throw new ApisResourceAccessException(
+					PlatformErrorMessages.LINK_FOR_USERID_INDIVIDUALID_FAILED_STATUS_EXCEPTION.toString());
+		} else {
+			IndividualIdDto readValue = mapper.readValue(mapper.writeValueAsString(response.getResponse()),
+					IndividualIdDto.class);
+			individualId = readValue.getIndividualId();
+		}
+		logger.debug("getIndividualIdByUserId call ended for userid {}", userid);
+		return individualId;
 	}
 
 }

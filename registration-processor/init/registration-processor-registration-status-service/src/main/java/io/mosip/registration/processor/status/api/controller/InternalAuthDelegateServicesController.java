@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.mosip.kernel.core.http.ResponseFilter;
+import io.mosip.registration.processor.core.auth.dto.AuthRequestDTO;
 import io.mosip.registration.processor.status.service.InternalAuthDelegateService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -48,7 +49,7 @@ public class InternalAuthDelegateServicesController {
 	@PostMapping(path = "/auth", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiOperation(value = "Authenticate Internal Request")
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Request authenticated successfully") })
-	public Object authenticate(@Validated @RequestBody Object authRequestDTO, @RequestHeader HttpHeaders headers) throws Exception {
+	public Object authenticate(@Validated @RequestBody AuthRequestDTO authRequestDTO, @RequestHeader HttpHeaders headers) throws Exception {
 		return internalAuthDelegateService.authenticate(authRequestDTO, headers);
 	}
 
