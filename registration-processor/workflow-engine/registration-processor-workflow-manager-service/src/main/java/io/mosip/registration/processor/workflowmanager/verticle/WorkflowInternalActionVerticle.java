@@ -260,8 +260,10 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 			internalRegistrationStatusDtos.add(mainFlowregistrationStatusDto);
 			workflowActionService.processWorkflowAction(internalRegistrationStatusDtos,
 					WorkflowActionCode.RESUME_PROCESSING.toString());
+		} else {
+			sendWorkflowCompletedWebSubEvent(registrationStatusDto);
 		}
-		sendWorkflowCompletedWebSubEvent(registrationStatusDto);
+
 	}
 
 	private void processCompleteAsRejected(WorkflowInternalActionDTO workflowInternalActionDTO)
@@ -294,8 +296,10 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 			internalRegistrationStatusDtos.add(mainFlowregistrationStatusDto);
 			workflowActionService.processWorkflowAction(internalRegistrationStatusDtos,
 					WorkflowActionCode.RESUME_PROCESSING.toString());
+		} else {
+			sendWorkflowCompletedWebSubEvent(registrationStatusDto);
 		}
-		sendWorkflowCompletedWebSubEvent(registrationStatusDto);
+
 	}
 
 	private void processCompleteAsProcessed(WorkflowInternalActionDTO workflowInternalActionDTO)
@@ -327,8 +331,10 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 			internalRegistrationStatusDtos.add(mainFlowregistrationStatusDto);
 			workflowActionService.processWorkflowAction(internalRegistrationStatusDtos,
 					WorkflowActionCode.RESUME_PROCESSING.toString());
+		} else {
+			sendWorkflowCompletedWebSubEvent(registrationStatusDto);
 		}
-		sendWorkflowCompletedWebSubEvent(registrationStatusDto);
+
 	}
 
 	private void processPacketForPaused(WorkflowInternalActionDTO workflowInternalActionDTO) {
@@ -429,7 +435,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 			regProcLogger.error(
 					"Error in  WorkflowEventUpdateVerticle:processRestartParentFlow for registration id {} {}",
 					workflowInternalActionDTO.getRid(),
-					PlatformErrorMessages.RPR_WIA_SUBWORKFLOW_NOT_FOUND.getMessage());
+					PlatformErrorMessages.RPR_WIA_ADDITIONALINFOPROCESS_NOT_FOUND.getMessage());
 		}
 	}
 
@@ -443,12 +449,12 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 				workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getReg_type(),
 				workflowInternalActionDTO.getIteration());
 		if (subWorkflowDtos != null && !subWorkflowDtos.isEmpty()) {
-			regProcLogger.info(
+			regProcLogger.warn(
 					"Info in WorkflowEventUpdateVerticle:processRestartParentFlow for registration id {} {}",
 					workflowInternalActionDTO.getRid(),
-					PlatformErrorMessages.RPR_WIA_SUBWORKFLOW_CANNOT_REQUEST.getMessage());
+					PlatformErrorMessages.RPR_WIA_ADDITIONALINFOPROCESS_CANNOT_REQUEST.getMessage());
 			registrationStatusDto
-					.setStatusComment(PlatformErrorMessages.RPR_WIA_SUBWORKFLOW_CANNOT_REQUEST.getMessage());
+					.setStatusComment(PlatformErrorMessages.RPR_WIA_ADDITIONALINFOPROCESS_CANNOT_REQUEST.getMessage());
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());

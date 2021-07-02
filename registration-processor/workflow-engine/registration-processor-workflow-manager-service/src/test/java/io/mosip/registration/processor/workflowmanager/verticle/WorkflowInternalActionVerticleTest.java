@@ -427,10 +427,6 @@ public class WorkflowInternalActionVerticleTest {
 		verify(registrationStatusService, atLeastOnce()).updateRegistrationStatus(argument.capture(), Mockito.any(),
 				Mockito.any());
 		assertEquals(RegistrationStatusCode.PROCESSED.toString(), argument.getAllValues().get(0).getStatusCode());
-		ArgumentCaptor<WorkflowCompletedEventDTO> argument1 = ArgumentCaptor.forClass(WorkflowCompletedEventDTO.class);
-
-		verify(webSubUtil, atLeastOnce()).publishEvent(argument1.capture());
-		assertEquals(RegistrationStatusCode.PROCESSED.toString(), argument1.getAllValues().get(0).getResultCode());
 		verify(workflowActionService, times(1)).processWorkflowAction(Mockito.any(), Mockito.anyString());
 		verify(packetManagerService, times(1)).addOrUpdateTags(Mockito.anyString(), Mockito.any());
 	}
@@ -468,9 +464,6 @@ public class WorkflowInternalActionVerticleTest {
 		verify(registrationStatusService, atLeastOnce()).updateRegistrationStatus(argument.capture(), Mockito.any(),
 				Mockito.any());
 		assertEquals(RegistrationStatusCode.REJECTED.toString(), argument.getAllValues().get(0).getStatusCode());
-		ArgumentCaptor<WorkflowCompletedEventDTO> argument1 = ArgumentCaptor.forClass(WorkflowCompletedEventDTO.class);
-		verify(webSubUtil, atLeastOnce()).publishEvent(argument1.capture());
-		assertEquals(RegistrationStatusCode.REJECTED.toString(), argument1.getAllValues().get(0).getResultCode());
 		verify(workflowActionService, times(1)).processWorkflowAction(Mockito.any(), Mockito.anyString());
 		verify(packetManagerService, times(1)).addOrUpdateTags(Mockito.anyString(), Mockito.any());
 	}
@@ -508,9 +501,6 @@ public class WorkflowInternalActionVerticleTest {
 		verify(registrationStatusService, atLeastOnce()).updateRegistrationStatus(argument.capture(), Mockito.any(),
 				Mockito.any());
 		assertEquals(RegistrationStatusCode.FAILED.toString(), argument.getAllValues().get(0).getStatusCode());
-		ArgumentCaptor<WorkflowCompletedEventDTO> argument1 = ArgumentCaptor.forClass(WorkflowCompletedEventDTO.class);
-		verify(webSubUtil, atLeastOnce()).publishEvent(argument1.capture());
-		assertEquals(RegistrationStatusCode.FAILED.toString(), argument1.getAllValues().get(0).getResultCode());
 		verify(workflowActionService, times(1)).processWorkflowAction(Mockito.any(), Mockito.anyString());
 		verify(packetManagerService, times(1)).addOrUpdateTags(Mockito.anyString(), Mockito.any());
 	}
