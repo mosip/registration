@@ -56,6 +56,10 @@ public class WorkflowCommandPredicate implements Predicate {
 				processRestartParentFlow(exchange);
 				matches = true;
 				break;
+			case "workflow-cmd://complete-as-rejected-without-parent-flow":
+				processCompleteAsRejectedWithoutParentFlow(exchange);
+				matches = true;
+				break;
 			default:
 				if (toaddress.startsWith("workflow-cmd://")) {
 					matches = true;
@@ -75,6 +79,20 @@ public class WorkflowCommandPredicate implements Predicate {
 			throw new BaseUncheckedException(e.getMessage());
 		}
 		return matches;
+	}
+
+	private void processCompleteAsRejectedWithoutParentFlow(Exchange exchange) throws JsonProcessingException {
+		String message = (String) exchange.getMessage().getBody();
+		JsonObject json = new JsonObject(message);
+		WorkflowInternalActionDTO workflowEventDTO = new WorkflowInternalActionDTO();
+		workflowEventDTO.setRid(json.getString(JsonConstant.RID));
+		workflowEventDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_REJECTED_WITHOUT_PARENT_FLOW.toString());
+		workflowEventDTO
+				.setActionMessage(PlatformSuccessMessages.PACKET_COMPLETE_AS_REJECTED_WITHOUT_PARENT_FLOW.getMessage());
+		workflowEventDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
+		workflowEventDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
+		workflowEventDTO.setSource(json.getString(JsonConstant.SOURCE));
+		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
 	}
 
 	private void processCompleteAsRejected(Exchange exchange) throws JsonProcessingException {

@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.core.code;
 
 
+// TODO: Auto-generated Javadoc
 /**
  * The Enum WorkflowInternalActionCode.
  */
@@ -26,5 +27,8 @@ public enum WorkflowInternalActionCode {
 
 	/** The restart parent flow. */
 	RESTART_PARENT_FLOW,
+	
+	/** The complete as rejected without parent flow. */
+	COMPLETE_AS_REJECTED_WITHOUT_PARENT_FLOW,
 
 }

@@ -545,4 +545,29 @@ public class WorkflowInternalActionVerticleTest {
 		verify(workflowActionService, times(1)).processWorkflowAction(Mockito.any(), Mockito.anyString());
 		verify(packetManagerService, times(1)).addOrUpdateTags(Mockito.anyString(), Mockito.any());
 	}
+
+	@Test
+	public void testProcessSuccessForCompleteAsRejectedWithoutParentFlow() {
+		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
+		workflowInternalActionDTO.setRid("10006100390000920200603070407");
+		workflowInternalActionDTO
+				.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_REJECTED_WITHOUT_PARENT_FLOW.toString());
+		workflowInternalActionDTO
+				.setActionMessage("Packet processing completed with reject status without Parent flow");
+		workflowInternalActionDTO.setReg_type("CORRECTION");
+		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
+		registrationStatusDto = new InternalRegistrationStatusDto();
+		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
+		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(null);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any()))
+				.thenReturn(registrationStatusDto);
+		workflowInternalActionVerticle.process(workflowInternalActionDTO);
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+
+		verify(registrationStatusService, atLeastOnce()).updateRegistrationStatus(argument.capture(), Mockito.any(),
+				Mockito.any());
+		assertEquals(RegistrationStatusCode.REJECTED.toString(), argument.getAllValues().get(0).getStatusCode());
+	}
 }

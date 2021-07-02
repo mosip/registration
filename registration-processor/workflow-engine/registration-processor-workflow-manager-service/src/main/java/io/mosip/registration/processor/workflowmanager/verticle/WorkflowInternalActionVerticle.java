@@ -178,6 +178,9 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 			case RESTART_PARENT_FLOW:
 				processRestartParentFlow(workflowInternalActionDTO);
 				break;
+			case COMPLETE_AS_REJECTED_WITHOUT_PARENT_FLOW:
+				processCompleteAsRejectedWithoutParentFlow(workflowInternalActionDTO);
+				break;
 			default:
 				throw new WorkflowInternalActionException(
 						PlatformErrorMessages.RPR_WIA_UNKNOWN_WORKFLOW_ACTION.getCode(),
@@ -216,6 +219,18 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		}
 		return object;
 
+	}
+
+	private void processCompleteAsRejectedWithoutParentFlow(WorkflowInternalActionDTO workflowInternalActionDTO) {
+		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(
+				workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getReg_type(),
+				workflowInternalActionDTO.getIteration());
+		registrationStatusDto.setStatusComment(workflowInternalActionDTO.getActionMessage());
+		registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
+		registrationStatusDto
+				.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
+		registrationStatusDto.setSubStatusCode(StatusUtil.WORKFLOW_INTERNAL_ACTION_SUCCESS.getCode());
+		registrationStatusService.updateRegistrationStatus(registrationStatusDto, MODULE_ID, MODULE_NAME);
 	}
 
 	private void processMarkAsReprocess(WorkflowInternalActionDTO workflowInternalActionDTO) {
