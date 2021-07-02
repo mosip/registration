@@ -24,6 +24,12 @@ public class IndividualDemographicDedupePKEntity implements Serializable {
 	/** The lang code. */
 	@Column(name = "lang_code", nullable = false)
 	private String langCode;
+	
+	@Column(name = "process")
+	private String process;
+	
+	@Column(name = "iteration")
+	private Integer iteration;
 
 	/**
 	 * Instantiates a new individual demographic dedupe PK entity.
@@ -67,6 +73,23 @@ public class IndividualDemographicDedupePKEntity implements Serializable {
 	public void setLangCode(String langCode) {
 		this.langCode = langCode;
 	}
+	
+
+	public String getProcess() {
+		return process;
+	}
+
+	public void setProcess(String process) {
+		this.process = process;
+	}
+
+	public Integer getIteration() {
+		return iteration;
+	}
+
+	public void setIteration(Integer iteration) {
+		this.iteration = iteration;
+	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#equals(java.lang.Object)
@@ -80,7 +103,8 @@ public class IndividualDemographicDedupePKEntity implements Serializable {
 			return false;
 		}
 		IndividualDemographicDedupePKEntity castOther = (IndividualDemographicDedupePKEntity) other;
-		return this.regId.equals(castOther.regId) && this.langCode.equals(castOther.langCode);
+		return this.regId.equals(castOther.regId) && this.langCode.equals(castOther.langCode) &&
+				this.process.equals(castOther.process) && this.iteration.equals(castOther.iteration);
 	}
 
 	/* (non-Javadoc)
@@ -92,6 +116,8 @@ public class IndividualDemographicDedupePKEntity implements Serializable {
 		int hash = 17;
 		hash = hash * prime + this.regId.hashCode();
 		hash = hash * prime + this.langCode.hashCode();
+		hash = hash * prime + this.process.hashCode();
+		hash = hash * prime + this.iteration.hashCode();
 
 		return hash;
 	}

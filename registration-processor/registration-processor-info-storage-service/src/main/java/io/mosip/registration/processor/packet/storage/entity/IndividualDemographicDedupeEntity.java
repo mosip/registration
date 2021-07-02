@@ -56,9 +56,6 @@ public class IndividualDemographicDedupeEntity extends BasePacketEntity<Individu
 
 	@Column(name = "del_dtimes")
 	private LocalDateTime delDtimes;
-	
-	@Column(name = "process")
-	private String process;
 
 	public IndividualDemographicDedupeEntity() {
 		super();
@@ -168,12 +165,6 @@ public class IndividualDemographicDedupeEntity extends BasePacketEntity<Individu
 		this.delDtimes = delDtimes;
 	}
 
-	public String getProcess() {
-		return process;
-	}
-
-	public void setProcess(String process) {
-		this.process = process;
-	}
+	
 
 }
