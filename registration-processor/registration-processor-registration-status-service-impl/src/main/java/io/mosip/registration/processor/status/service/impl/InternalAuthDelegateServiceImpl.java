@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.auth.dto.AuthRequestDTO;
+import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
 import io.mosip.registration.processor.core.auth.dto.IndividualIdDto;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
@@ -71,20 +72,21 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 	 *
 	 * @param authRequestDTO the auth request DTO
 	 * @param headers the headers
-	 * @return the object
+	 * @return the AuthResponseDTO
 	 * @throws Exception 
 	 */
 	@Override
-	public HttpEntity<Object> authenticate(AuthRequestDTO authRequestDTO, HttpHeaders headers) throws Exception {
-		
+	public AuthResponseDTO authenticate(AuthRequestDTO authRequestDTO, HttpHeaders headers) throws Exception {
+
 		// get individualId from userId
 		String individualId = getIndividualIdByUserId(authRequestDTO.getIndividualId());
-		
+
 		authRequestDTO.setIndividualId(individualId);
-		
+
 		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(internalAuthUri);
 		HttpEntity<?> httpRequestEntity = new HttpEntity<Object>(authRequestDTO, headers);
-		return postApi(builder.toUriString(), MediaType.APPLICATION_JSON, httpRequestEntity, Object.class);
+		return postApi(builder.toUriString(), MediaType.APPLICATION_JSON, httpRequestEntity, AuthResponseDTO.class)
+				.getBody();
 	}
 
 	/**
@@ -127,8 +129,9 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 	 * @throws IOException
 	 */
 	private String getIndividualIdByUserId(String userid) throws ApisResourceAccessException, IOException {
-		
-		logger.debug("getIndividualIdByUserId called for userid {}", userid);
+
+		logger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), userid,
+				"InternalAuthDelegateServiceImpl::getIndividualIdByUserId()::entry");
 		List<String> pathSegments = new ArrayList<>();
 		pathSegments.add(APPID);
 		pathSegments.add(userid);
@@ -136,17 +139,18 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 		ResponseWrapper<?> response = null;
 		response = (ResponseWrapper<?>) restClientService.getApi(ApiName.GETINDIVIDUALIDFROMUSERID, pathSegments, "",
 				"", ResponseWrapper.class);
-		logger.debug(
+		logger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"getIndividualIdByUserId called for with GETINDIVIDUALIDFROMUSERID GET service call ended successfully");
 		if (response.getErrors() != null) {
 			throw new ApisResourceAccessException(
-					PlatformErrorMessages.LINK_FOR_USERID_INDIVIDUALID_FAILED_STATUS_EXCEPTION.toString());
+					PlatformErrorMessages.LINK_FOR_USERID_INDIVIDUALID_FAILED_STATUS_EXCEPTION.getMessage());
 		} else {
 			IndividualIdDto readValue = mapper.readValue(mapper.writeValueAsString(response.getResponse()),
 					IndividualIdDto.class);
 			individualId = readValue.getIndividualId();
 		}
-		logger.debug("getIndividualIdByUserId call ended for userid {}", userid);
+		logger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), userid,
+				"InternalAuthDelegateServiceImpl::getIndividualIdByUserId()::exit");
 		return individualId;
 	}
 
