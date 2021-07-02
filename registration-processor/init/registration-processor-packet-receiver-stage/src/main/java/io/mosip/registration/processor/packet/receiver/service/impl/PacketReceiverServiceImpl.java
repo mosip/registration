@@ -486,7 +486,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 		messageDTO.setReg_type(regEntity.getRegistrationType());
 		messageDTO.setIteration(dto.getIteration());
 		messageDTO.setSource(regEntity.getSource());
-		messageDTO.setWorkflowInstanceId(regEntity.getPacketId());
+		messageDTO.setWorkflowInstanceId(regEntity.getWorkflowInstanceId());
 		try (InputStream encryptedInputStream = FileUtils.newInputStream(file.getAbsolutePath())) {
 			final byte[] encryptedByteArray = IOUtils.toByteArray(encryptedInputStream);
 			scanningFlag = scanFile(encryptedByteArray, registrationExceptionMapperUtil,

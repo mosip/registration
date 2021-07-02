@@ -518,7 +518,7 @@ public class DemodedupeProcessor {
 				registrationStatusDto.setSubStatusCode(StatusUtil.POTENTIAL_MATCH_FOUND_IN_ABIS.getCode());
 				description.setCode(PlatformErrorMessages.RPR_DEMO_SENDING_FOR_MANUAL.getCode());
 				description.setMessage(PlatformErrorMessages.RPR_DEMO_SENDING_FOR_MANUAL.getMessage());
-				saveManualAdjudicationData(registrationStatusDto);
+				saveManualAdjudicationData(registrationStatusDto, object);
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
 						DemoDedupeConstants.SENDING_FOR_MANUAL);
@@ -596,7 +596,7 @@ public class DemodedupeProcessor {
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
 	 */
-	private void saveManualAdjudicationData(InternalRegistrationStatusDto registrationStatusDto)
+	private void saveManualAdjudicationData(InternalRegistrationStatusDto registrationStatusDto, MessageDTO messageDTO)
 			throws ApisResourceAccessException, IOException, JsonProcessingException, PacketManagerException {
 		Set<String> matchedRegIds = abisHandlerUtil.getUniqueRegIds(registrationStatusDto.getRegistrationId(),
 				registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(),
@@ -605,7 +605,7 @@ public class DemodedupeProcessor {
 		if (!matchedRegIds.isEmpty()) {
 			String moduleId = PlatformErrorMessages.RPR_DEMO_SENDING_FOR_MANUAL.getCode();
 			String moduleName = ModuleName.DEMO_DEDUPE.toString();
-			packetInfoManager.saveManualAdjudicationData(matchedRegIdsList, registrationStatusDto.getRegistrationId(),
+			packetInfoManager.saveManualAdjudicationData(matchedRegIdsList, messageDTO,
 					DedupeSourceName.DEMO, moduleId, moduleName,null,null);
 		} else {
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),

@@ -192,7 +192,7 @@ public class PacketValidateProcessor {
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.VALIDATE_PACKET.toString());
 			registrationStatusDto.setRegistrationStageName(stageName);
-			boolean isValidSupervisorStatus = isValidSupervisorStatus();
+			boolean isValidSupervisorStatus = isValidSupervisorStatus(object);
 			if (isValidSupervisorStatus) {
 				Boolean isValid = compositePacketValidator.validate(object.getRid(),
 						registrationStatusDto.getRegistrationType(), packetValidationDto);
@@ -278,7 +278,7 @@ public class PacketValidateProcessor {
 						description.getMessage());
 			}
 			registrationStatusDto.setUpdatedBy(USER);
-			SyncRegistrationEntity regEntity = syncRegistrationService.findByRegistrationIdAndProcessAndIteration(registrationId, object.getReg_type(), object.getIteration());
+			SyncRegistrationEntity regEntity = syncRegistrationService.findByWorkflowInstanceId(object.getWorkflowInstanceId());
 			sendNotification(regEntity, registrationStatusDto, packetValidationDto.isTransactionSuccessful());
 		} catch (PacketManagerException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -449,8 +449,8 @@ public class PacketValidateProcessor {
 
 	}
 
-	private boolean isValidSupervisorStatus() {
-		SyncRegistrationEntity regEntity = syncRegistrationService.findByRegistrationId(registrationId);
+	private boolean isValidSupervisorStatus(MessageDTO messageDTO) {
+		SyncRegistrationEntity regEntity = syncRegistrationService.findByWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
 		if (regEntity.getSupervisorStatus().equalsIgnoreCase(APPROVED)) {
 			return true;
 

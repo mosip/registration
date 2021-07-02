@@ -212,7 +212,7 @@ public class MessageSenderStageTest {
 		PowerMockito.mockStatic(JsonUtil.class);
 
 		regentity.setRegistrationType("NEW");
-		Mockito.when(syncRegistrationservice.findByRegistrationId(any())).thenReturn(regentity);
+		Mockito.when(syncRegistrationservice.findByWorkflowInstanceId(any())).thenReturn(regentity);
 	}
 
 	@Test

@@ -422,7 +422,7 @@ public class BioDedupeProcessor {
 			registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_POTENTIAL_MATCH.getCode());
 			registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
 			moduleId = PlatformSuccessMessages.RPR_BIO_METRIC_POTENTIAL_MATCH.getCode();
-			packetInfoManager.saveManualAdjudicationData(matchedRegIdsList, registrationStatusDto.getRegistrationId(),
+			packetInfoManager.saveManualAdjudicationData(matchedRegIdsList, object,
 					DedupeSourceName.BIO, moduleId, moduleName,null,null);
 			//send message to manual adjudication
 			object.setInternalError(Boolean.FALSE);
@@ -575,7 +575,7 @@ public class BioDedupeProcessor {
 						BioDedupeConstants.MULTIPLE_RID_FOUND);
 				moduleId = PlatformErrorMessages.RPR_BIO_LOST_PACKET_MULTIPLE_MATCH_FOUND.getCode();
 				packetInfoManager.saveManualAdjudicationData(matchedRegIdsList,
-						registrationStatusDto.getRegistrationId(), DedupeSourceName.BIO, moduleId, moduleName,null,null);
+						object, DedupeSourceName.BIO, moduleId, moduleName,null,null);
 			}
 		}
 	}

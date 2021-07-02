@@ -3,6 +3,7 @@ package io.mosip.registration.processor.core.spi.packetmanager;
 
 import java.util.List;
 
+import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.DedupeSourceName;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
@@ -70,7 +71,7 @@ public interface PacketInfoManager<T, /** D, M, */
 	 *            the source name
 	 */
 
-	public void saveManualAdjudicationData(List<String> uniqueMatchedRefIds, String registrationId,
+	public void saveManualAdjudicationData(List<String> uniqueMatchedRefIds, MessageDTO messageDTO,
 			DedupeSourceName sourceName, String moduleId, String moduleName,String transactionId, String requestId);
 
 	/**

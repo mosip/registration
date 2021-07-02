@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.packet.uploader.service;
 
+import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import org.springframework.stereotype.Service;
 
 /**
@@ -21,6 +22,6 @@ public interface PacketUploaderService<U> {
 	 * 		      The name of the current stage
 	 * @return the u
 	 */
-	public U validateAndUploadPacket(String regId, String process, int iteration, String stageName);
+	public U validateAndUploadPacket(MessageDTO messageDTO, String stageName);
 
 }

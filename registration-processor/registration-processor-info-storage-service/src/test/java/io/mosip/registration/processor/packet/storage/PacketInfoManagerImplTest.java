@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.io.IOUtils;
@@ -752,9 +753,11 @@ public class PacketInfoManagerImplTest {
 	@Test
 	public void testSaveManualAdjudicationDataSuccess() {
 		String registrationId = "1234";
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid(registrationId);
 		List<String> uniqueMatchedRefIds = Arrays.asList("123av", "124abc", "125abcd");
 
-		packetInfoManagerImpl.saveManualAdjudicationData(uniqueMatchedRefIds, registrationId, DedupeSourceName.DEMO, "",
+		packetInfoManagerImpl.saveManualAdjudicationData(uniqueMatchedRefIds, messageDTO, DedupeSourceName.DEMO, "",
 				"",null,null);
 
 	}
@@ -766,9 +769,11 @@ public class PacketInfoManagerImplTest {
 	public void testSaveManualAdjudicationDataException() {
 		Mockito.when(manualVerficationRepository.save(any())).thenThrow(exp);
 		String registrationId = "1234";
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid(registrationId);
 		List<String> uniqueMatchedRefIds = Arrays.asList("123av", "124abc", "125abcd");
 
-		packetInfoManagerImpl.saveManualAdjudicationData(uniqueMatchedRefIds, registrationId, DedupeSourceName.DEMO, "",
+		packetInfoManagerImpl.saveManualAdjudicationData(uniqueMatchedRefIds, messageDTO, DedupeSourceName.DEMO, "",
 				"",null,null);
 
 	}

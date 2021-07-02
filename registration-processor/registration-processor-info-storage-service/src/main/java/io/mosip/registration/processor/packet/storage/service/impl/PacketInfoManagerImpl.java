@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.StringUtils;
+import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.AuditLogConstant;
 import io.mosip.registration.processor.core.code.DedupeSourceName;
@@ -441,10 +442,11 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 * saveManualAdjudicationData(java.util.Set, java.lang.String)
 	 */
 	@Override
-	public void saveManualAdjudicationData(List<String> uniqueMatchedRefIds, String registrationId,
+	public void saveManualAdjudicationData(List<String> uniqueMatchedRefIds, MessageDTO messageDTO,
 			DedupeSourceName sourceName, String moduleId, String moduleName,String transactionId,String requestId) {
 		boolean isTransactionSuccessful = false;
 		LogDescription description = new LogDescription();
+		String registrationId = messageDTO.getRid();
 
 		try {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
@@ -455,6 +457,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 				manualVerificationPKEntity.setMatchedRefId(matchedRefId);
 				manualVerificationPKEntity.setMatchedRefType(MATCHED_REFERENCE_TYPE);
 				manualVerificationPKEntity.setRegId(registrationId);
+				manualVerificationPKEntity.setWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
 
 				manualVerificationEntity.setId(manualVerificationPKEntity);
 				manualVerificationEntity.setLangCode("eng");

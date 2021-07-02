@@ -341,7 +341,7 @@ public class SyncRegistrationServiceTest {
 		assertEquals("Verifing List returned", ((SyncResponseFailureDto) syncResponse.get(0)).getRegistrationId(),
 				syncRegistrationDto.getRegistrationId());
 
-		Mockito.when(syncRegistrationDao.findById(any())).thenReturn(syncRegistrationEntity);
+		Mockito.when(syncRegistrationDao.findByPacketId(any())).thenReturn(syncRegistrationEntity);
 		Mockito.when(syncRegistrationDao.update(any())).thenReturn(syncRegistrationEntity);
 		List<SyncResponseDto> syncResponseDto = syncRegistrationService.sync(entities, "", "");
 		assertEquals("Verifing if list is returned. Expected value should be 1002",
@@ -373,7 +373,7 @@ public class SyncRegistrationServiceTest {
 		assertEquals("Verifing List returned", ((SyncResponseFailureDto) syncResponse.get(0)).getRegistrationId(),
 				syncRegistrationDto.getRegistrationId());
 
-		Mockito.when(syncRegistrationDao.findById(any())).thenReturn(syncRegistrationEntity);
+		Mockito.when(syncRegistrationDao.findByPacketId(any())).thenReturn(syncRegistrationEntity);
 		Mockito.when(syncRegistrationDao.update(any())).thenReturn(syncRegistrationEntity);
 		List<SyncResponseDto> syncResponseDto = syncRegistrationService.sync(entities, "", "");
 		assertEquals("Verifing if list is returned. Expected value should be 1002",
@@ -433,7 +433,7 @@ public class SyncRegistrationServiceTest {
 	 */
 	@Test
 	public void testIsPresentSuccess() {
-		Mockito.when(syncRegistrationDao.findById(any())).thenReturn(syncRegistrationEntity);
+		Mockito.when(syncRegistrationDao.findByPacketId(any())).thenReturn(syncRegistrationEntity);
 		boolean result = syncRegistrationService.isPresent("1001");
 		assertEquals("Verifing if Registration Id is present in DB. Expected value is true", true, result);
 	}

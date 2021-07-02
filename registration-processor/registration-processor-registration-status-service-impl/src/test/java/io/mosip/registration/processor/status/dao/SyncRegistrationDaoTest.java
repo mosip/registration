@@ -93,7 +93,7 @@ public class SyncRegistrationDaoTest {
 	 */
 	@Test
 	public void findByIdSuccessTest() {
-		SyncRegistrationEntity syncRegistrationEntityResult = syncRegistrationDao.findById("1001");
+		SyncRegistrationEntity syncRegistrationEntityResult = syncRegistrationDao.findByPacketId("1001");
 		assertEquals("Check id Registration Id is present in DB, expected valie is 1001",
 				syncRegistrationEntity.getRegistrationId(), syncRegistrationEntityResult.getRegistrationId());
 	}
@@ -102,7 +102,7 @@ public class SyncRegistrationDaoTest {
 	public void findByIdFailureTest() {
 		syncRegistrationEntityList = new ArrayList<>();
 		Mockito.when(syncRegistrationRepository.createQuerySelect(any(), any())).thenReturn(syncRegistrationEntityList);
-		SyncRegistrationEntity syncRegistrationEntityResult = syncRegistrationDao.findById("1001");
+		SyncRegistrationEntity syncRegistrationEntityResult = syncRegistrationDao.findByPacketId("1001");
 		assertEquals("Check id Registration Id is present in DB, expected value is empty List", null,
 				syncRegistrationEntityResult);
 	}

@@ -333,7 +333,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		if (subWorkflowDtos != null && !subWorkflowDtos.isEmpty()) {
 			SubWorkflowDto subWorkflowDto = subWorkflowDtos.get(0);
 			InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(
-					subWorkflowDto.getRegId(), subWorkflowDto.getParentProcess(), subWorkflowDto.getParentIteration(), null);
+					subWorkflowDto.getRegId(), subWorkflowDto.getParentProcess(), subWorkflowDto.getParentIteration(), workflowInternalActionDTO.getWorkflowInstanceId());
 			List<InternalRegistrationStatusDto> internalRegistrationStatusDtos = new ArrayList<InternalRegistrationStatusDto>();
 			internalRegistrationStatusDtos.add(registrationStatusDto);
 			workflowActionService.processWorkflowAction(internalRegistrationStatusDtos,

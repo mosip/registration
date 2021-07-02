@@ -154,7 +154,7 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 		registrationStatusDto
 				.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.BIOMETRIC_AUTHENTICATION.toString());
 		registrationStatusDto.setRegistrationStageName(getStageName());
-		SyncRegistrationEntity regEntity = syncRegistrationservice.findByRegistrationId(registrationId);
+		SyncRegistrationEntity regEntity = syncRegistrationservice.findByWorkflowInstanceId(object.getWorkflowInstanceId());
 		String description = "";
 		String code = "";
 		boolean isTransactionSuccessful = false;

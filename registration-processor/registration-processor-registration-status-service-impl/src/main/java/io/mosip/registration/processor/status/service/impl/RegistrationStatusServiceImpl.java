@@ -482,6 +482,7 @@ public class RegistrationStatusServiceImpl
 		registrationStatusDto.setLastSuccessStageName(entity.getLastSuccessStageName());
 		registrationStatusDto.setSource(entity.getSource());
 		registrationStatusDto.setIteration(entity.getId().getIteration());
+		registrationStatusDto.setWorkflowInstanceId(entity.getId().getWorkflowInstanceId());
 		return registrationStatusDto;
 	}
 

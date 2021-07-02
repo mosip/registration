@@ -285,7 +285,7 @@ public class BiometricAuthenticationStageTest {
 		when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(21);
 
 		regentity.setRegistrationType("update");
-		when(syncRegistrationservice.findByRegistrationId(any())).thenReturn(regentity);
+		when(syncRegistrationservice.findByWorkflowInstanceId(any())).thenReturn(regentity);
 
 		AuthResponseDTO authResponseDTO = new AuthResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();

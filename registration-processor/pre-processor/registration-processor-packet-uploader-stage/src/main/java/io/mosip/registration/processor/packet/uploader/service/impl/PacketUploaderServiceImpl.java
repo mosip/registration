@@ -176,24 +176,22 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
      */
 
     @Override
-    public MessageDTO validateAndUploadPacket(String registrationId, String process, int iteration, String stageName) {
+    public MessageDTO validateAndUploadPacket(MessageDTO messageDTO, String stageName) {
 
         LogDescription description = new LogDescription();
         InternalRegistrationStatusDto dto = new InternalRegistrationStatusDto();
-        MessageDTO messageDTO = new MessageDTO();
         messageDTO.setInternalError(false);
         messageDTO.setIsValid(false);
         isTransactionSuccessful = false;
+        String registrationId = messageDTO.getRid();
         regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                 registrationId, "PacketUploaderServiceImpl::validateAndUploadPacket()::entry");
-        messageDTO.setRid(registrationId);
-        messageDTO.setIteration(iteration);
         SyncRegistrationEntity regEntity = null;
         
         try {
-        	regEntity = syncRegistrationService.findByRegistrationIdAndProcessAndIteration(registrationId, process, iteration);
-            messageDTO.setReg_type(regEntity.getRegistrationType());
-            dto = registrationStatusService.getRegistrationStatus(registrationId, process, iteration, regEntity.getWorkflowInstanceId());
+        	regEntity = syncRegistrationService.findByWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
+            dto = registrationStatusService.getRegistrationStatus(
+                    registrationId, messageDTO.getReg_type(), messageDTO.getIteration(), regEntity.getWorkflowInstanceId());
 
             dto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.UPLOAD_PACKET.toString());
             dto.setRegistrationStageName(stageName);
