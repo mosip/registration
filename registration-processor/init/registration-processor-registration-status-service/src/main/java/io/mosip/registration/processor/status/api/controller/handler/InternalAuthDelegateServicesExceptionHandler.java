@@ -39,10 +39,10 @@ public class InternalAuthDelegateServicesExceptionHandler {
 	public ResponseEntity<Object> ApisResourceAccessException(ApisResourceAccessException e) {
 		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 				e.getErrorCode(), e.getMessage());
-		return buildRegStatusExceptionResponse((Exception) e);
+		return buildInternalAuthDelegateServiceExceptionResponse((Exception) e);
 	}
 
-	private ResponseEntity<Object> buildRegStatusExceptionResponse(Exception ex) {
+	private ResponseEntity<Object> buildInternalAuthDelegateServiceExceptionResponse(Exception ex) {
 
 		AuthResponseDTO response = new AuthResponseDTO();
 		Throwable e = ex;
