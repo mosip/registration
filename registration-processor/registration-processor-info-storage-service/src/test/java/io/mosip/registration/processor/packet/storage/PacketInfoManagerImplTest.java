@@ -582,7 +582,8 @@ public class PacketInfoManagerImplTest {
 	@Test
 	public void saveDemographicInfoJsonTest() throws Exception {
 
-		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229", "", "", "",1);
+		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229",
+				"", "", "",1, "");
 		assertEquals("identity", utility.getGetRegProcessorDemographicIdentity());
 	}
 
@@ -596,7 +597,8 @@ public class PacketInfoManagerImplTest {
 
 		Mockito.when(demographicDedupeRepository.save(any())).thenThrow(exp);
 
-		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229", "", "", "",1);
+		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229",
+				"", "", "",1, "");
 	}
 
 	/**
@@ -607,7 +609,8 @@ public class PacketInfoManagerImplTest {
 	public void demographicDedupeUnableToInsertDataTest() throws Exception {
 
 		Mockito.when(demographicDedupeRepository.save(any())).thenThrow(exp);
-		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229", "", "", "",1);
+		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229",
+				"", "", "",1, "");
 
 	}
 
@@ -1016,10 +1019,11 @@ public class PacketInfoManagerImplTest {
 		entity.setDob("2019-03-02T06:29:41.011Z");
 		applicantDemographicEntities.add(entity);
 		PowerMockito.mockStatic(PacketInfoMapper.class);
-		Mockito.when(PacketInfoMapper.converDemographicDedupeDtoToEntity(Mockito.any(), Mockito.any(),Mockito.any(),Mockito.anyInt()))
+		Mockito.when(PacketInfoMapper.converDemographicDedupeDtoToEntity(Mockito.any(), Mockito.any(),Mockito.any(),Mockito.anyInt(), any()))
 				.thenReturn(applicantDemographicEntities);
 		Mockito.when(demographicDedupeRepository.save(any())).thenReturn(entity);
-		packetInfoManagerImpl.saveIndividualDemographicDedupeUpdatePacket(demographicData, "1001", "", "NEW","",1);
+		packetInfoManagerImpl.saveIndividualDemographicDedupeUpdatePacket(demographicData,
+				"1001", "", "NEW","",1, "");
 
 	}
 
@@ -1033,10 +1037,11 @@ public class PacketInfoManagerImplTest {
 		entity.setDob("2019-03-02T06:29:41.011Z");
 		applicantDemographicEntities.add(entity);
 		PowerMockito.mockStatic(PacketInfoMapper.class);
-		Mockito.when(PacketInfoMapper.converDemographicDedupeDtoToEntity(Mockito.any(), Mockito.any(),Mockito.any(),Mockito.anyInt()))
+		Mockito.when(PacketInfoMapper.converDemographicDedupeDtoToEntity(Mockito.any(), Mockito.any(),Mockito.any(),Mockito.anyInt(), any()))
 				.thenReturn(applicantDemographicEntities);
 		Mockito.when(demographicDedupeRepository.save(any())).thenThrow(exp);
-		packetInfoManagerImpl.saveIndividualDemographicDedupeUpdatePacket(demographicData, "1001", "","NEW", "",1);
+		packetInfoManagerImpl.saveIndividualDemographicDedupeUpdatePacket(demographicData,
+				"1001", "","NEW", "",1, "");
 
 	}
 
@@ -1097,7 +1102,7 @@ public class PacketInfoManagerImplTest {
 	@Test
 	public void saveRegLostUinDetTest() {
 
-		packetInfoManagerImpl.saveRegLostUinDet("123", "456", "", "");
+		packetInfoManagerImpl.saveRegLostUinDet("123", "", "456", "", "");
 	}
 
 	@Test(expected = UnableToInsertData.class)
@@ -1106,7 +1111,7 @@ public class PacketInfoManagerImplTest {
 		Mockito.when(regLostUinDetRepository.save(any()))
 				.thenThrow(new DataAccessLayerException("", "", new UnableToInsertData()));
 
-		packetInfoManagerImpl.saveRegLostUinDet("123", "456", "", "");
+		packetInfoManagerImpl.saveRegLostUinDet("123", "","456", "", "");
 
 	}
 

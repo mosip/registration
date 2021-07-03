@@ -530,7 +530,8 @@ public class BioDedupeProcessor {
 			registrationStatusDto.setStatusComment(StatusUtil.LOST_PACKET_UNIQUE_MATCH_FOUND.getMessage());
 			registrationStatusDto.setSubStatusCode(StatusUtil.LOST_PACKET_UNIQUE_MATCH_FOUND.getCode());
 			moduleId = PlatformSuccessMessages.RPR_BIO_LOST_PACKET_UNIQUE_MATCH_FOUND.getCode();
-			packetInfoManager.saveRegLostUinDet(registrationId, matchedRegIdsList.get(0), moduleId, moduleName);
+			packetInfoManager.saveRegLostUinDet(registrationId,
+					object.getWorkflowInstanceId(), matchedRegIdsList.get(0), moduleId, moduleName);
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationStatusDto.getRegistrationId(),
 					BioDedupeConstants.FOUND_UIN_IN_BIO_CHECK + registrationId);
@@ -558,7 +559,8 @@ public class BioDedupeProcessor {
 				registrationStatusDto.setStatusComment(StatusUtil.LOST_PACKET_UNIQUE_MATCH_FOUND.getMessage());
 				registrationStatusDto.setSubStatusCode(StatusUtil.LOST_PACKET_UNIQUE_MATCH_FOUND.getCode());
 				moduleId = PlatformSuccessMessages.RPR_BIO_LOST_PACKET_UNIQUE_MATCH_FOUND.getCode();
-				packetInfoManager.saveRegLostUinDet(registrationId, demoMatchedIds.get(0), moduleId, moduleName);
+				packetInfoManager.saveRegLostUinDet(registrationId,
+						object.getWorkflowInstanceId(), demoMatchedIds.get(0), moduleId, moduleName);
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
 						BioDedupeConstants.FOUND_UIN_IN_DEMO_CHECK + registrationId);

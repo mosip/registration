@@ -317,7 +317,7 @@ public class DemodedupeProcessor {
 				: demographicData.getEmail());
 
 		packetInfoManager.saveIndividualDemographicDedupeUpdatePacket(demoDedupeData, registrationStatusDto.getRegistrationId(), moduleId,
-				registrationStatusDto.getRegistrationType(),moduleName,registrationStatusDto.getIteration());
+				registrationStatusDto.getRegistrationType(),moduleName,registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId());
 		object.setIsValid(Boolean.TRUE);
 		registrationStatusDto
 				.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
@@ -338,7 +338,7 @@ public class DemodedupeProcessor {
 		String registrationId=registrationStatusDto.getRegistrationId();
 		if (packetStatus.equalsIgnoreCase(AbisConstant.PRE_ABIS_IDENTIFICATION)) {
 			packetInfoManager.saveIndividualDemographicDedupeUpdatePacket(demographicData, registrationId, moduleId,
-					registrationStatusDto.getRegistrationType(),moduleName,registrationStatusDto.getIteration());
+					registrationStatusDto.getRegistrationType(),moduleName,registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId());
 			int age = utility.getApplicantAge(registrationId, registrationStatusDto.getRegistrationType(), ProviderStageName.DEMO_DEDUPE);
 			int ageThreshold = Integer.parseInt(ageLimit);
 			if (age < ageThreshold) {

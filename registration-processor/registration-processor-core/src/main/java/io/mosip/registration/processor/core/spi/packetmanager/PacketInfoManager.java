@@ -40,7 +40,7 @@ public interface PacketInfoManager<T, /** D, M, */
 	 *            the meta moduleId
 	 */
 	public void saveDemographicInfoJson(String regId, String process, String moduleId,
-			String moduleName,Integer iteration) throws Exception;
+			String moduleName,Integer iteration, String workflowInstanceId) throws Exception;
 
 	/**
 	 * Gets the packetsfor QC user.
@@ -320,7 +320,7 @@ public interface PacketInfoManager<T, /** D, M, */
 	 * @param iteration 
 	 */
 	public void saveIndividualDemographicDedupeUpdatePacket(IndividualDemographicDedupe demoDedupeData, String regId,
-			String moduleId, String process,String moduleName, Integer iteration);
+			String moduleId, String process,String moduleName, Integer iteration, String workflowInstanceId);
 
 	/**
 	 * Gets the identity keys and fetch values from JSON.
@@ -355,7 +355,7 @@ public interface PacketInfoManager<T, /** D, M, */
 	public List<String> getAbisProcessedRequestsAppCodeByBioRefId(String bioRefId, String requestType,
 			String processed);
 
-	public void saveRegLostUinDet(String regId, String latestRegId, String moduleId, String moduleName);
+	public void saveRegLostUinDet(String regId, String workflowInstanceId, String latestRegId, String moduleId, String moduleName);
 
 
 }

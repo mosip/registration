@@ -14,12 +14,23 @@ public class RegLostUinDetPKEntity implements Serializable {
 	@Column(name = "reg_id")
 	private String regId;
 
+	@Column(name = "workflow_instance_id")
+	private String workflowInstanceId;
+
 	public String getRegId() {
 		return regId;
 	}
 
 	public void setRegId(String regId) {
 		this.regId = regId;
+	}
+
+	public String getWorkflowInstanceId() {
+		return workflowInstanceId;
+	}
+
+	public void setWorkflowInstanceId(String workflowInstanceId) {
+		this.workflowInstanceId = workflowInstanceId;
 	}
 
 	@Override

@@ -31,6 +31,9 @@ public class IndividualDemographicDedupePKEntity implements Serializable {
 	@Column(name = "iteration")
 	private Integer iteration;
 
+	@Column(name = "workflow_instance_id")
+	private String workflowInstanceId;
+
 	/**
 	 * Instantiates a new individual demographic dedupe PK entity.
 	 */
@@ -105,6 +108,14 @@ public class IndividualDemographicDedupePKEntity implements Serializable {
 		IndividualDemographicDedupePKEntity castOther = (IndividualDemographicDedupePKEntity) other;
 		return this.regId.equals(castOther.regId) && this.langCode.equals(castOther.langCode) &&
 				this.process.equals(castOther.process) && this.iteration.equals(castOther.iteration);
+	}
+
+	public String getWorkflowInstanceId() {
+		return workflowInstanceId;
+	}
+
+	public void setWorkflowInstanceId(String workflowInstanceId) {
+		this.workflowInstanceId = workflowInstanceId;
 	}
 
 	/* (non-Javadoc)

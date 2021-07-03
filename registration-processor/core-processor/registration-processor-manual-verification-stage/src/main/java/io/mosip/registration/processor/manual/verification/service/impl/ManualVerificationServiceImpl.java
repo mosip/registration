@@ -302,8 +302,8 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 			if (statusCode.equalsIgnoreCase(ManualVerificationStatus.APPROVED.name())) {
 				if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(RegistrationType.LOST.toString())) {
 					for(ManualVerificationEntity detail: entities) {
-						packetInfoManager.saveRegLostUinDet(regId, detail.getId().getMatchedRefId(),
-							PlatformSuccessMessages.RPR_MANUAL_VERIFICATION_APPROVED.getCode(),
+						packetInfoManager.saveRegLostUinDet(regId, registrationStatusDto.getWorkflowInstanceId(),
+								detail.getId().getMatchedRefId(), PlatformSuccessMessages.RPR_MANUAL_VERIFICATION_APPROVED.getCode(),
 							ModuleName.MANUAL_VERIFICATION.toString());
 					}
 				}
