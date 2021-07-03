@@ -273,6 +273,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 		dto.setIsDeleted(false);
 		dto.setSource(regEntity.getSource());
         dto.setIteration(getIterationFromPacketName(regEntity));
+        dto.setWorkflowInstanceId(regEntity.getWorkflowInstanceId());
 
 		/** Module-Id can be Both Success/Error code */
 		String moduleId = PlatformSuccessMessages.PACKET_RECEIVER_VALIDATION_SUCCESS.getCode();
