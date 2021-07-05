@@ -52,11 +52,11 @@ public interface ManualVerificationService {
 	 * This method updates the Manual Verification status of a regId according to
 	 * decision taken by manual verifier.
 	 *
-	 * @param manualVerificationDTO
+	 * @param resp
 	 *            {@link ManualVerificationDTO}
-	 * @return The updated {@link ManualVerificationDTO}
+	 * @return boolean {@link Boolean}
 	 */
-	public ManualAdjudicationResponseDTO updatePacketStatus(ManualAdjudicationResponseDTO resp, String stageName, MosipQueue queue);
+	public boolean updatePacketStatus(ManualAdjudicationResponseDTO resp, String stageName, MosipQueue queue);
 	
 	/**
 	 * This method receives response from the queue and saves to DB

@@ -53,7 +53,7 @@ import io.vertx.core.json.JsonObject;
  *
  */
 public class ReprocessorStage extends MosipVerticleAPIManager {
-	
+
 	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.reprocessor.";
 
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(ReprocessorStage.class);
@@ -108,7 +108,7 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 	 */
 	public void deployVerticle() {
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl);
-		deployScheduler(mosipEventBus.getEventbus());
+		deployScheduler(getVertx());
 
 	}
 
@@ -330,7 +330,7 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 
 		return object;
 	}
-	
+
 	@Override
 	protected String getPropertyPrefix() {
 		return STAGE_PROPERTY_PREFIX;

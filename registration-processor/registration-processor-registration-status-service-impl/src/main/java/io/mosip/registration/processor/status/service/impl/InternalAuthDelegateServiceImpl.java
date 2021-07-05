@@ -56,9 +56,6 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 	@Autowired
 	RegistrationProcessorRestClientService<Object> restClientService;
 	
-	@Autowired
-	ObjectMapper mapper;
-	
 	/** The internal auth uri. */
 	@Value("${ida-internal-auth-uri}")
 	private String internalAuthUri;
@@ -66,6 +63,9 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 	/** The get certificate uri. */
 	@Value("${ida-internal-get-certificate-uri}")
 	private String getCertificateUri;
+	
+	@Autowired
+	ObjectMapper mapper;
 	
 	/**
 	 * Authenticate.
@@ -116,6 +116,7 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					LoggerFileConstant.APPLICATIONID.toString(), e.getMessage() + ExceptionUtils.getStackTrace(e));
+			restApiClient.tokenExceptionHandler(e);
 			throw e;
 		}
 	}

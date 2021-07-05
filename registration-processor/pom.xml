@@ -79,7 +79,6 @@
 		<commons.io.version>2.6</commons.io.version>
 		<velocity.version>1.7</velocity.version>
 		<velocity.tools.version>2.0</velocity.tools.version>
-		<io.micrometer.prometheus.version>1.4.2</io.micrometer.prometheus.version>
 
 		<!-- Test & Logging -->
 		<junit.version>4.12</junit.version>
