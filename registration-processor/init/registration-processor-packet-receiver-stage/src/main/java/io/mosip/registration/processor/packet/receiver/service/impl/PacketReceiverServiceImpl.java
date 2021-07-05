@@ -141,7 +141,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 			regEntity = syncRegistrationService.findByPacketId(packetId);
 			String registrationId = regEntity.getRegistrationId();
 			messageDTO.setRid(registrationId);
-			messageDTO.setWorkflowInstanceId(regEntity.getPacketId());
+			messageDTO.setWorkflowInstanceId(regEntity.getWorkflowInstanceId());
 			try (InputStream encryptedInputStream = FileUtils.newInputStream(file.getAbsolutePath())) {
 				byte[] encryptedByteArray = IOUtils.toByteArray(encryptedInputStream);
 				validatePacketWithSync(regEntity, registrationId, description);
