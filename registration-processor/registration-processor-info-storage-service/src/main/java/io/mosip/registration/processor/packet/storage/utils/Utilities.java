@@ -565,10 +565,10 @@ public class Utilities {
 	 *            the registration id
 	 * @return the latest transaction id
 	 */
-	public String getLatestTransactionId(String registrationId, String process, int iteration) {
+	public String getLatestTransactionId(String registrationId, String process, int iteration, String workflowInstanceId) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Utilities::getLatestTransactionId()::entry");
-		RegistrationStatusEntity entity = registrationStatusDao.find(registrationId, process, iteration);
+		RegistrationStatusEntity entity = registrationStatusDao.find(registrationId, process, iteration, workflowInstanceId);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Utilities::getLatestTransactionId()::exit");
 		return entity != null ? entity.getLatestRegistrationTransactionId() : null;

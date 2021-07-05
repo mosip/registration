@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.StringUtils;
+import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.AuditLogConstant;
 import io.mosip.registration.processor.core.code.DedupeSourceName;
@@ -288,7 +289,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 * @param description
 	 */
 	private void saveIndividualDemographicDedupe(String regId, String process, LogDescription description,
-			String moduleId, String moduleName, Integer iteration) throws Exception {
+			String moduleId, String moduleName, Integer iteration, String workflowInstanceId) throws Exception {
 
 		boolean isTransactionSuccessful = false;
 
@@ -296,7 +297,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 
 		try {
 			List<IndividualDemographicDedupeEntity> applicantDemographicEntities = PacketInfoMapper
-					.converDemographicDedupeDtoToEntity(demographicData, regId,process,iteration);
+					.converDemographicDedupeDtoToEntity(demographicData, regId,process,iteration, workflowInstanceId);
 			for (IndividualDemographicDedupeEntity applicantDemographicEntity : applicantDemographicEntities) {
 				demographicDedupeRepository.save(applicantDemographicEntity);
 
@@ -334,7 +335,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 */
 	@Override
 	public void saveIndividualDemographicDedupeUpdatePacket(IndividualDemographicDedupe demographicData,
-			String registrationId, String moduleId,String process, String moduleName,Integer iteration) {
+			String registrationId, String moduleId,String process, String moduleName,Integer iteration, String workflowInstanceId) {
 		boolean isTransactionSuccessful = false;
 		LogDescription description = new LogDescription();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
@@ -342,7 +343,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 
 		try {
 			List<IndividualDemographicDedupeEntity> applicantDemographicEntities = PacketInfoMapper
-					.converDemographicDedupeDtoToEntity(demographicData, registrationId,process,iteration);
+					.converDemographicDedupeDtoToEntity(demographicData, registrationId,process,iteration, workflowInstanceId);
 			for (IndividualDemographicDedupeEntity applicantDemographicEntity : applicantDemographicEntities) {
 				demographicDedupeRepository.save(applicantDemographicEntity);
 
@@ -381,7 +382,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 */
 	@Override
 	public void saveDemographicInfoJson(String registrationId, String process, String moduleId,
-			String moduleName,Integer iteration) throws Exception {
+			String moduleName,Integer iteration, String workflowInstanceId) throws Exception {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"PacketInfoManagerImpl::saveDemographicInfoJson()::entry");
 		LogDescription description = new LogDescription();
@@ -391,7 +392,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 
 		try {
 
-			saveIndividualDemographicDedupe(registrationId, process, description, moduleId, moduleName, iteration);
+			saveIndividualDemographicDedupe(registrationId, process, description, moduleId, moduleName, iteration, workflowInstanceId);
 
 			isTransactionSuccessful = true;
 			description.setMessage("Demographic Json saved");
@@ -441,10 +442,11 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 * saveManualAdjudicationData(java.util.Set, java.lang.String)
 	 */
 	@Override
-	public void saveManualAdjudicationData(List<String> uniqueMatchedRefIds, String registrationId,
+	public void saveManualAdjudicationData(List<String> uniqueMatchedRefIds, MessageDTO messageDTO,
 			DedupeSourceName sourceName, String moduleId, String moduleName,String transactionId,String requestId) {
 		boolean isTransactionSuccessful = false;
 		LogDescription description = new LogDescription();
+		String registrationId = messageDTO.getRid();
 
 		try {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
@@ -455,6 +457,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 				manualVerificationPKEntity.setMatchedRefId(matchedRefId);
 				manualVerificationPKEntity.setMatchedRefType(MATCHED_REFERENCE_TYPE);
 				manualVerificationPKEntity.setRegId(registrationId);
+				manualVerificationPKEntity.setWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
 
 				manualVerificationEntity.setId(manualVerificationPKEntity);
 				manualVerificationEntity.setLangCode("eng");
@@ -958,7 +961,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	}
 
 	@Override
-	public void saveRegLostUinDet(String regId, String latestRegId, String moduleId, String moduleName) {
+	public void saveRegLostUinDet(String regId, String workflowInstanceId, String latestRegId, String moduleId, String moduleName) {
 		boolean isTransactionSuccessful = false;
 		LogDescription description = new LogDescription();
 
@@ -968,6 +971,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 			RegLostUinDetEntity regLostUinDetEntity = new RegLostUinDetEntity();
 			RegLostUinDetPKEntity regLostUinDetPKEntity = new RegLostUinDetPKEntity();
 			regLostUinDetPKEntity.setRegId(regId);
+			regLostUinDetPKEntity.setWorkflowInstanceId(workflowInstanceId);
 
 			regLostUinDetEntity.setId(regLostUinDetPKEntity);
 			regLostUinDetEntity.setLatestRegId(latestRegId);

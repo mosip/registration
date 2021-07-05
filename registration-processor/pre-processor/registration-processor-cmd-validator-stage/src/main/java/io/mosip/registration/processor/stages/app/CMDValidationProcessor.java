@@ -92,13 +92,13 @@ public class CMDValidationProcessor {
 
 	@Value("#{'${mosip.regproc.cmd-validator.center-validation.processes:NEW,UPDATE,LOST,BIOMETRIC_CORRECTION}'.split(',')}")
 	private List<String> centerValidationProcessList ;
-	
+
 	@Value("#{'${mosip.regproc.cmd-validator.machine-validation.processes:NEW,UPDATE,LOST,BIOMETRIC_CORRECTION}'.split(',')}")
 	private List<String> machineValidationProcessList ;
-	
+
 	@Value("#{'${mosip.regproc.cmd-validator.device-validation.processes:NEW,UPDATE,LOST,BIOMETRIC_CORRECTION}'.split(',')}")
 	private List<String> deviceValidationProcessList ;
-	
+
 	public MessageDTO process(MessageDTO object, String stageName) {
 
 		LogDescription description = new LogDescription();
@@ -112,7 +112,7 @@ public class CMDValidationProcessor {
 		registrationId = object.getRid();
 
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
-				.getRegistrationStatus(registrationId, object.getReg_type(), object.getIteration());
+				.getRegistrationStatus(registrationId, object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
 
 		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.CMD_VALIDATION.toString());
 		registrationStatusDto.setRegistrationStageName(stageName);

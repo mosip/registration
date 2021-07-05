@@ -215,9 +215,9 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 		String id = object.getRid();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
 				"MessageSenderStage::process()::entry");
-		SyncRegistrationEntity regEntity = syncRegistrationservice.findByRegistrationId(id);
+		SyncRegistrationEntity regEntity = syncRegistrationservice.findByWorkflowInstanceId(object.getWorkflowInstanceId());
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(
-				id, object.getReg_type(), object.getIteration());
+				id, object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
 		status = registrationStatusDto.getLatestTransactionTypeCode() + "_"
 				+ registrationStatusDto.getLatestTransactionStatusCode();
 

@@ -33,6 +33,9 @@ public class RegBioRefEntity extends BasePacketEntity<RegBioRefPKEntity> impleme
 	@Column(name = "upd_dtimes")
 	private LocalDateTime updDtimes;
 
+	@Column(name = "workflow_instance_id")
+	private String workflowInstanceId;
+
 	public RegBioRefEntity() {
 	}
 
@@ -92,4 +95,11 @@ public class RegBioRefEntity extends BasePacketEntity<RegBioRefPKEntity> impleme
 		this.updDtimes = updDtimes;
 	}
 
+	public String getWorkflowInstanceId() {
+		return workflowInstanceId;
+	}
+
+	public void setWorkflowInstanceId(String workflowInstanceId) {
+		this.workflowInstanceId = workflowInstanceId;
+	}
 }

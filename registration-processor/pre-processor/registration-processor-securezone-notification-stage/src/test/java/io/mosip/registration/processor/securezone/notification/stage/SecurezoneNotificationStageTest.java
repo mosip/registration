@@ -389,7 +389,7 @@ public class SecurezoneNotificationStageTest {
         messageDTO.setInternalError(Boolean.FALSE);
         messageDTO.setIsValid(Boolean.TRUE);
         messageDTO.setRid("2018701130000410092018110735");
-        Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any())).thenReturn(registrationStatusDto);
+        Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any())).thenReturn(registrationStatusDto);
         Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(),any(),any());
         Mockito.doReturn(responseWrapper).when(auditLogRequestBuilder).createAuditRequestBuilder(anyString(), anyString(), anyString(),
                 anyString(), anyString(), anyString(), anyString());
@@ -404,7 +404,7 @@ public class SecurezoneNotificationStageTest {
 
     @Test
     public void ridNotFoundTest() {
-        Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any())).thenReturn(null);
+        Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any())).thenReturn(null);
 
         notificationStage.processURL(ctx);
         assertTrue(responseObject);
@@ -430,7 +430,7 @@ public class SecurezoneNotificationStageTest {
 
     @Test
     public void dbExceptionTest() {
-        Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any())).thenThrow(new TablenotAccessibleException("exception"));
+        Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any())).thenThrow(new TablenotAccessibleException("exception"));
 
         notificationStage.processURL(ctx);
         assertNull(responseObject);

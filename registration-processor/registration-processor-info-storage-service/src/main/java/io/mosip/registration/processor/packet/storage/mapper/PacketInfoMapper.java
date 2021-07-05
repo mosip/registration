@@ -143,7 +143,7 @@ public class PacketInfoMapper {
 	 * @return the list
 	 */
 	public static List<IndividualDemographicDedupeEntity> converDemographicDedupeDtoToEntity(
-			IndividualDemographicDedupe demoDto, String regId,String process, int iteration) throws NoSuchAlgorithmException {
+			IndividualDemographicDedupe demoDto, String regId,String process, int iteration, String workflowInstanceId) throws NoSuchAlgorithmException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
 				"PacketInfoMapper::converDemographicDedupeDtoToEntity()::entry");
 		IndividualDemographicDedupeEntity entity;
@@ -163,6 +163,7 @@ public class PacketInfoMapper {
 			applicantDemographicPKEntity.setLangCode(languageArray[i]);
 			applicantDemographicPKEntity.setIteration(iteration);
 			applicantDemographicPKEntity.setProcess(process);
+			applicantDemographicPKEntity.setWorkflowInstanceId(workflowInstanceId);
 			entity.setCrDtimes(LocalDateTime.now(ZoneId.of("UTC")));
 			entity.setUpdDtimes(LocalDateTime.now(ZoneId.of("UTC")));
 			entity.setId(applicantDemographicPKEntity);

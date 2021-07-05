@@ -265,7 +265,7 @@ public class OperatorValidatorTest {
 		registrationStatusDto.setApplicantType("Child");
 		registrationStatusDto.setRegistrationType("New");
 
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any())).thenReturn(registrationStatusDto);
 
 		FieldValue officerBiofileName = new FieldValue();
 		officerBiofileName.setLabel(MappingJsonConstants.OFFICERBIOMETRICFILENAME);

@@ -576,5 +576,4 @@ public class RegistrationStatusEntity extends BaseRegistrationEntity<BaseRegistr
 	public void setLastSuccessStageName(String lastSuccessStageName) {
 		this.lastSuccessStageName = lastSuccessStageName;
 	}
-
 }

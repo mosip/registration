@@ -141,13 +141,13 @@ public class PacketValidateProcessorTest {
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("123456789");
 		
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(),any(),any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(),any(),any(),any())).thenReturn(registrationStatusDto);
 		Mockito.when(utility.getDefaultSource(any(), any())).thenReturn("reg-client");
 		
 		regEntity=new SyncRegistrationEntity();
 		regEntity.setSupervisorStatus("APPROVED");
 		regEntity.setOptionalValues("optionalvalues".getBytes());
-		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
+		Mockito.when(syncRegistrationService.findByWorkflowInstanceId(anyString())).thenReturn(regEntity);
 		
 		InputStream inputStream = IOUtils.toInputStream("optionalvalues", "UTF-8");
 		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(inputStream);
@@ -267,7 +267,7 @@ public class PacketValidateProcessorTest {
 	public void invalidSupervisorStatusTest() throws PacketValidatorException {
 		regEntity=new SyncRegistrationEntity();
 		regEntity.setSupervisorStatus("REJECTED");
-		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
+		Mockito.when(syncRegistrationService.findByWorkflowInstanceId(anyString())).thenReturn(regEntity);
 		assertFalse(packetValidateProcessor.process(messageDTO, stageName).getIsValid());
 	}
 	
@@ -341,7 +341,7 @@ public class PacketValidateProcessorTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void TableNotAccessibleExceptionest() throws Exception  {
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(),any(),any()))
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(),any(),any(),any()))
 				.thenThrow( TablenotAccessibleException.class);
 		
 		assertFalse(packetValidateProcessor.process(messageDTO, stageName).getIsValid());
@@ -350,7 +350,7 @@ public class PacketValidateProcessorTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void DataNotAccessibleExceptionest() throws Exception  {
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(),any(),any()))
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(),any(),any(),any()))
 				.thenThrow( BaseUncheckedException.class);
 		
 		assertFalse(packetValidateProcessor.process(messageDTO, stageName).getIsValid());
@@ -359,7 +359,7 @@ public class PacketValidateProcessorTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void BaseCheckedExceptionTest() throws Exception  {
-		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any()))
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(), any()))
 				.thenThrow(BaseUncheckedException.class);
 		
 		assertFalse(packetValidateProcessor.process(messageDTO, stageName).getIsValid());

@@ -23,7 +23,8 @@ public class SubWorkflowMappingServiceImpl implements SubWorkflowMappingService 
         List<SubWorkflowDto> subWorkflowDtos = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(subWorkflowMappingEntity))
             subWorkflowMappingEntity.forEach(m -> subWorkflowDtos.add(new SubWorkflowDto(m.getId().getRegId(),
-                    m.getId().getAdditionalInfoReqId(), m.getProcess(), m.getIteration(), m.getTimestamp(),m.getParentProcess(), m.getParentIteration())));
+                    m.getId().getAdditionalInfoReqId(), m.getProcess(), m.getIteration(),
+					m.getTimestamp(),m.getParentProcess(), m.getParentIteration())));
 
         return subWorkflowDtos;
     }

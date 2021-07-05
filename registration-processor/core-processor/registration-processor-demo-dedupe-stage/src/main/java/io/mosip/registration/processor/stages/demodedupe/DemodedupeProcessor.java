@@ -158,13 +158,13 @@ public class DemodedupeProcessor {
 		String moduleName = ModuleName.DEMO_DEDUPE.toString();
 		String moduleId = PlatformSuccessMessages.RPR_PKR_DEMO_DE_DUP.getCode();
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
-				.getRegistrationStatus(registrationId, object.getReg_type(), object.getIteration());
+				.getRegistrationStatus(registrationId, object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
 
 		try {
-			 
+
 			IndividualDemographicDedupe demographicData = packetInfoManager.
 					getIdentityKeysAndFetchValuesFromJSON(registrationId, registrationStatusDto.getRegistrationType(), ProviderStageName.DEMO_DEDUPE);
-			
+
 			JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 			String uinFieldCheck = utility.getUIn(registrationId, registrationStatusDto.getRegistrationType(), ProviderStageName.DEMO_DEDUPE);
 			JSONObject jsonObject = utility.retrieveIdrepoJson(uinFieldCheck);
@@ -174,7 +174,7 @@ public class DemodedupeProcessor {
 			}
 			 else {
 				 insertDemodedupDetails(demographicData,regProcessorIdentityJson,jsonObject,
-						 registrationStatusDto,object,moduleId,moduleName);	
+						 registrationStatusDto,object,moduleId,moduleName);
 			}
 
 			registrationStatusDto.setRegistrationStageName(stageName);
@@ -278,8 +278,8 @@ public class DemodedupeProcessor {
 	}
 
 
-	private void insertDemodedupDetails(IndividualDemographicDedupe demographicData, JSONObject regProcessorIdentityJson, 
-			JSONObject jsonObject, InternalRegistrationStatusDto registrationStatusDto, MessageDTO object, 
+	private void insertDemodedupDetails(IndividualDemographicDedupe demographicData, JSONObject regProcessorIdentityJson,
+			JSONObject jsonObject, InternalRegistrationStatusDto registrationStatusDto, MessageDTO object,
 			String moduleId, String moduleName) {
 		IndividualDemographicDedupe demoDedupeData = new IndividualDemographicDedupe();
 		List<JsonValue[]> jsonValueList = new ArrayList<>();
@@ -317,28 +317,28 @@ public class DemodedupeProcessor {
 				: demographicData.getEmail());
 
 		packetInfoManager.saveIndividualDemographicDedupeUpdatePacket(demoDedupeData, registrationStatusDto.getRegistrationId(), moduleId,
-				registrationStatusDto.getRegistrationType(),moduleName,registrationStatusDto.getIteration());
+				registrationStatusDto.getRegistrationType(),moduleName,registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId());
 		object.setIsValid(Boolean.TRUE);
 		registrationStatusDto
 				.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 		registrationStatusDto.setStatusComment(StatusUtil.DEMO_DEDUPE_SKIPPED.getMessage());
 		registrationStatusDto.setSubStatusCode(StatusUtil.DEMO_DEDUPE_SKIPPED.getCode());
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-		
+
 	}
 
 
 	private void insertDemodedupDetailsAndPerformDedup(IndividualDemographicDedupe demographicData,
 			InternalRegistrationStatusDto registrationStatusDto, List<DemographicInfoDto> duplicateDtos,
 			MessageDTO object, boolean isTransactionSuccessful, String moduleId, String moduleName,
-			boolean isDemoDedupeSkip, LogDescription description) throws ApisResourceAccessException, 
+			boolean isDemoDedupeSkip, LogDescription description) throws ApisResourceAccessException,
 	JsonProcessingException, PacketManagerException, IOException, PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException {
-		
+
 		String packetStatus = abisHandlerUtil.getPacketStatus(registrationStatusDto);
 		String registrationId=registrationStatusDto.getRegistrationId();
 		if (packetStatus.equalsIgnoreCase(AbisConstant.PRE_ABIS_IDENTIFICATION)) {
 			packetInfoManager.saveIndividualDemographicDedupeUpdatePacket(demographicData, registrationId, moduleId,
-					registrationStatusDto.getRegistrationType(),moduleName,registrationStatusDto.getIteration());
+					registrationStatusDto.getRegistrationType(),moduleName,registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId());
 			int age = utility.getApplicantAge(registrationId, registrationStatusDto.getRegistrationType(), ProviderStageName.DEMO_DEDUPE);
 			int ageThreshold = Integer.parseInt(ageLimit);
 			if (age < ageThreshold) {
@@ -379,11 +379,11 @@ public class DemodedupeProcessor {
 			isTransactionSuccessful = processDemoDedupeRequesthandler(registrationStatusDto, object,
 					description);
 		}
-		
+
 	}
 
 
-	
+
 
 	/**
 	 * Perform demo dedupe.
@@ -438,8 +438,8 @@ public class DemodedupeProcessor {
 	 *            the registration id
 	 * @return the latest transaction id
 	 */
-	private String getLatestTransactionId(String registrationId, String process, int iteration) {
-		RegistrationStatusEntity entity = registrationStatusDao.find(registrationId, process, iteration);
+	private String getLatestTransactionId(String registrationId, String process, int iteration, String workflowInstanceId) {
+		RegistrationStatusEntity entity = registrationStatusDao.find(registrationId, process, iteration, workflowInstanceId);
 		return entity != null ? entity.getLatestRegistrationTransactionId() : null;
 	}
 
@@ -466,7 +466,7 @@ public class DemodedupeProcessor {
 		List<String> responsIds = new ArrayList<>();
 
 		String latestTransactionId = getLatestTransactionId(registrationStatusDto.getRegistrationId(),
-				registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration());
+				registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId());
 
 		List<AbisResponseDto> abisResponseDto = packetInfoManager.getAbisResponseRecords(latestTransactionId,
 				DemoDedupeConstants.IDENTIFY);
@@ -518,7 +518,7 @@ public class DemodedupeProcessor {
 				registrationStatusDto.setSubStatusCode(StatusUtil.POTENTIAL_MATCH_FOUND_IN_ABIS.getCode());
 				description.setCode(PlatformErrorMessages.RPR_DEMO_SENDING_FOR_MANUAL.getCode());
 				description.setMessage(PlatformErrorMessages.RPR_DEMO_SENDING_FOR_MANUAL.getMessage());
-				saveManualAdjudicationData(registrationStatusDto);
+				saveManualAdjudicationData(registrationStatusDto, object);
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
 						DemoDedupeConstants.SENDING_FOR_MANUAL);
@@ -549,7 +549,7 @@ public class DemodedupeProcessor {
 		for (DemographicInfoDto demographicInfoDto : duplicateDtos) {
 			InternalRegistrationStatusDto potentialMatchRegistrationDto = registrationStatusService
 					.getRegistrationStatus(demographicInfoDto.getRegId(),
-							registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration());
+							registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId());
 			if (potentialMatchRegistrationDto.getLatestTransactionStatusCode()
 					.equalsIgnoreCase(RegistrationTransactionStatusCode.REPROCESS.toString())
 					|| potentialMatchRegistrationDto.getLatestTransactionStatusCode()
@@ -562,7 +562,7 @@ public class DemodedupeProcessor {
 					|| potentialMatchRegistrationDto.getLatestTransactionStatusCode()
 							.equalsIgnoreCase(RegistrationTransactionStatusCode.PROCESSED.toString())) {
 				String latestTransactionId = getLatestTransactionId(registrationStatusDto.getRegistrationId(),
-						registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration());
+						registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId());
 				RegDemoDedupeListDto regDemoDedupeListDto = new RegDemoDedupeListDto();
 				regDemoDedupeListDto.setRegId(registrationStatusDto.getRegistrationId());
 				regDemoDedupeListDto.setMatchedRegId(demographicInfoDto.getRegId());
@@ -596,15 +596,16 @@ public class DemodedupeProcessor {
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
 	 */
-	private void saveManualAdjudicationData(InternalRegistrationStatusDto registrationStatusDto)
+	private void saveManualAdjudicationData(InternalRegistrationStatusDto registrationStatusDto, MessageDTO messageDTO)
 			throws ApisResourceAccessException, IOException, JsonProcessingException, PacketManagerException {
 		Set<String> matchedRegIds = abisHandlerUtil.getUniqueRegIds(registrationStatusDto.getRegistrationId(),
-				registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(), ProviderStageName.DEMO_DEDUPE);
+				registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(),
+				registrationStatusDto.getWorkflowInstanceId(), ProviderStageName.DEMO_DEDUPE);
 		ArrayList<String> matchedRegIdsList = new ArrayList<String>(matchedRegIds);
 		if (!matchedRegIds.isEmpty()) {
 			String moduleId = PlatformErrorMessages.RPR_DEMO_SENDING_FOR_MANUAL.getCode();
 			String moduleName = ModuleName.DEMO_DEDUPE.toString();
-			packetInfoManager.saveManualAdjudicationData(matchedRegIdsList, registrationStatusDto.getRegistrationId(),
+			packetInfoManager.saveManualAdjudicationData(matchedRegIdsList, messageDTO,
 					DedupeSourceName.DEMO, moduleId, moduleName,null,null);
 		} else {
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),

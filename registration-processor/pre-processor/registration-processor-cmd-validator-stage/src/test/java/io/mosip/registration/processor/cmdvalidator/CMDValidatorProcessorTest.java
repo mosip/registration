@@ -157,7 +157,7 @@ public class CMDValidatorProcessorTest {
 		registrationStatusDto.setRegistrationId("123456789");
 		registrationStatusDto.setRegistrationId("reg1234");
 		registrationStatusDto.setRegistrationType("NEW");
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(),any(), any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(),any(), any(), any())).thenReturn(registrationStatusDto);
 	}
 
 	/**
@@ -175,14 +175,14 @@ public class CMDValidatorProcessorTest {
 		assertTrue(cmdValidationProcessor.process(dto, stageName).getIsValid());
 		assertFalse(cmdValidationProcessor.process(dto, stageName).getInternalError());
 	}
-	
+
 	@Test
 	public void testisValidCMDSuccesswithNullProperties() throws Exception {
 		ReflectionTestUtils.setField(cmdValidationProcessor, "deviceValidationProcessList", Arrays.asList(""));
 		ReflectionTestUtils.setField(cmdValidationProcessor, "machineValidationProcessList", null);
-		
+
 		Mockito.doNothing().when(centerValidator).validate(anyString(), any(), anyString());
-		
+
 
 		assertTrue(cmdValidationProcessor.process(dto, stageName).getIsValid());
 		assertFalse(cmdValidationProcessor.process(dto, stageName).getInternalError());

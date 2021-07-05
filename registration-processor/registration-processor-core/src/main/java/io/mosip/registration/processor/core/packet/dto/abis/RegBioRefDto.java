@@ -20,6 +20,8 @@ public class RegBioRefDto implements Serializable {
 	private String process;
 	
 	private int iteration;
+
+	private String workflowInstanceId;
 	
 	private String crBy ;
 

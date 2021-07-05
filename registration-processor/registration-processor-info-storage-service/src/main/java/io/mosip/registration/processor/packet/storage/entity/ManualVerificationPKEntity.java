@@ -29,6 +29,9 @@ public class ManualVerificationPKEntity implements Serializable {
 	@Column(name = "matched_ref_type")
 	private String matchedRefType;
 
+	@Column(name = "workflow_instance_id")
+	private String workflowInstanceId;
+
 	/**
 	 * Gets the reg id.
 	 *
@@ -81,6 +84,14 @@ public class ManualVerificationPKEntity implements Serializable {
 	 */
 	public void setMatchedRefType(String matchedRefType) {
 		this.matchedRefType = matchedRefType;
+	}
+
+	public String getWorkflowInstanceId() {
+		return workflowInstanceId;
+	}
+
+	public void setWorkflowInstanceId(String workflowInstanceId) {
+		this.workflowInstanceId = workflowInstanceId;
 	}
 
 	/**

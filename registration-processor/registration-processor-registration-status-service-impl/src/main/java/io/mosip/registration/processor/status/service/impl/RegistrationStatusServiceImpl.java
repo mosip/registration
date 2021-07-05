@@ -84,12 +84,12 @@ public class RegistrationStatusServiceImpl
 	 * getRegistrationStatus(java.lang.Object)
 	 */
 	@Override
-	public InternalRegistrationStatusDto getRegistrationStatus(String registrationId, String process, Integer iteration) {
+	public InternalRegistrationStatusDto getRegistrationStatus(String registrationId, String process, Integer iteration, String workflowInstanceId) {
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationId, "RegistrationStatusServiceImpl::getRegistrationStatus()::entry");
 		try {
-			RegistrationStatusEntity entity = registrationStatusDao.find(registrationId, process, iteration);
+			RegistrationStatusEntity entity = registrationStatusDao.find(registrationId, process, iteration, workflowInstanceId);
 
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 					registrationId, "RegistrationStatusServiceImpl::getRegistrationStatus()::exit");
@@ -267,7 +267,7 @@ public class RegistrationStatusServiceImpl
 		LogDescription description = new LogDescription();
 		String transactionId = generateId();
 		String latestTransactionId = getLatestTransactionId(registrationStatusDto.getRegistrationId(),
-				registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration());
+				registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId());
 		TransactionDto transactionDto = new TransactionDto(transactionId, registrationStatusDto.getRegistrationId(),
 				latestTransactionId, registrationStatusDto.getLatestTransactionTypeCode(),
 				"updated registration status record", registrationStatusDto.getLatestTransactionStatusCode(),
@@ -284,7 +284,7 @@ public class RegistrationStatusServiceImpl
 		registrationStatusDto.setLatestRegistrationTransactionId(transactionId);
 		try {
 			InternalRegistrationStatusDto dto = getRegistrationStatus(registrationStatusDto.getRegistrationId(),
-					registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration());
+					registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId());
 			if (dto != null) {
 				dto.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 				RegistrationStatusEntity entity = convertDtoToEntity(registrationStatusDto, 
@@ -482,6 +482,7 @@ public class RegistrationStatusServiceImpl
 		registrationStatusDto.setLastSuccessStageName(entity.getLastSuccessStageName());
 		registrationStatusDto.setSource(entity.getSource());
 		registrationStatusDto.setIteration(entity.getId().getIteration());
+		registrationStatusDto.setWorkflowInstanceId(entity.getId().getWorkflowInstanceId());
 		return registrationStatusDto;
 	}
 
@@ -497,6 +498,7 @@ public class RegistrationStatusServiceImpl
 		RegistrationStatusEntity registrationStatusEntity = new RegistrationStatusEntity();
 		BaseRegistrationPKEntity pk = new BaseRegistrationPKEntity();
 		pk.setId(dto.getRegistrationId());
+		pk.setWorkflowInstanceId(dto.getWorkflowInstanceId());
 		pk.setRegistrationType(dto.getRegistrationType());
 		pk.setIteration(dto.getIteration());
 		registrationStatusEntity.setId(pk);
@@ -549,8 +551,8 @@ public class RegistrationStatusServiceImpl
 	 *            the registration id
 	 * @return the latest transaction id
 	 */
-	private String getLatestTransactionId(String registrationId, String process, int iteration) {
-		RegistrationStatusEntity entity = registrationStatusDao.find(registrationId, process, iteration);
+	private String getLatestTransactionId(String registrationId, String process, int iteration, String workflowInstanceId) {
+		RegistrationStatusEntity entity = registrationStatusDao.find(registrationId, process, iteration, workflowInstanceId);
 		return entity != null ? entity.getLatestRegistrationTransactionId() : null;
 
 	}
@@ -715,7 +717,12 @@ public class RegistrationStatusServiceImpl
 	public SubWorkflowMappingEntity findWorkflowMappingByIdAndProcessAndIteration(String id, String process, int iteration) {
 		List<SubWorkflowMappingEntity> entities = subWorkflowRepository.workflowMappingByRegIdAndProcessAndIteration(id, process, iteration);
 		return (CollectionUtils.isNotEmpty(entities)) ? entities.get(0) : null;
+	}
 
+	@Override
+	public SubWorkflowMappingEntity findWorkflowMappingByAdditionalReqId(String additionalInfoReqId) {
+		List<SubWorkflowMappingEntity> entities = subWorkflowRepository.workflowMappingByAdditionalReqId(additionalInfoReqId);
+		return (CollectionUtils.isNotEmpty(entities)) ? entities.get(0) : null;
 	}
 
 	private RegistrationStatusEntity convertDtoToEntityForWorkFlow(InternalRegistrationStatusDto dto) {
@@ -770,7 +777,7 @@ public class RegistrationStatusServiceImpl
 
 		try {
 			InternalRegistrationStatusDto dto = getRegistrationStatus(registrationStatusDto.getRegistrationId(),
-					registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration());
+					registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId());
 			if (dto != null) {
 				RegistrationStatusEntity entity = convertDtoToEntityForWorkFlow(registrationStatusDto);
 				registrationStatusDao.save(entity);

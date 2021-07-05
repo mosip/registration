@@ -68,7 +68,7 @@ public class ABISHandlerUtilTest {
 	@Before
 	public void setup() throws Exception {
 		MockitoAnnotations.initMocks(this);
-		when(utilities.getLatestTransactionId(any(),any(),any())).thenReturn(latestTransactionId);
+		when(utilities.getLatestTransactionId(any(),any(),any(), any())).thenReturn(latestTransactionId);
 
 		List<String> regBioRefIds = new ArrayList<>();
 		regBioRefIds.add("cf1c941a-142c-44f1-9543-4606b4a7884e");
@@ -126,7 +126,7 @@ public class ABISHandlerUtilTest {
 	@Test
 	public void testProcesssedWithUniqueUin() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
 
-		Set<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType, 1, ProviderStageName.BIO_DEDUPE);
+		Set<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType, 1, "", ProviderStageName.BIO_DEDUPE);
 
 		assertEquals(matchedRids.size(), uniqueRids.size());
 	}
@@ -136,7 +136,7 @@ public class ABISHandlerUtilTest {
 
 		when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn("987654321");
 
-		Set<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType,1, ProviderStageName.BIO_DEDUPE);
+		Set<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType,1, "", ProviderStageName.BIO_DEDUPE);
 		// expected to pick only 1 rid from processedMatchedIds list. Total should be 3(inprogress) + 1(processed)
 		assertEquals(4, uniqueRids.size());
 	}
@@ -147,7 +147,7 @@ public class ABISHandlerUtilTest {
 		when(packetInfoDao.getWithoutStatusCodes(matchedRids, RegistrationTransactionStatusCode.REJECTED.toString(),
 				RegistrationTransactionStatusCode.PROCESSED.toString())).thenReturn(Lists.newArrayList());
 
-		Set<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType,1, ProviderStageName.BIO_DEDUPE);
+		Set<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType,1, "", ProviderStageName.BIO_DEDUPE);
 		// expected to pick only rocessedMatchedIds list i.e 2 records.
 		assertEquals(2, uniqueRids.size());
 	}
@@ -158,7 +158,7 @@ public class ABISHandlerUtilTest {
 		when(packetInfoDao.getProcessedOrProcessingRegIds(matchedRids,
 				RegistrationTransactionStatusCode.PROCESSED.toString())).thenReturn(Lists.newArrayList());
 
-		Set<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType,1, ProviderStageName.BIO_DEDUPE);
+		Set<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType,1, "", ProviderStageName.BIO_DEDUPE);
 		// expected not to pick rocessedMatchedIds list i.e 3 records.
 		assertEquals(3, uniqueRids.size());
 	}

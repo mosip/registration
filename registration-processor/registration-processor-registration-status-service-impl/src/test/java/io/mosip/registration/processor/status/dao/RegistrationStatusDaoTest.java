@@ -58,7 +58,7 @@ public class RegistrationStatusDaoTest {
 
 	@Test
 	public void findByIdTest() {
-		RegistrationStatusEntity rEntity = registrationStatusDao.find("1000.zip", "NEW", 1);
+		RegistrationStatusEntity rEntity = registrationStatusDao.find("1000.zip", "NEW", 1, "");
 		assertEquals(registrationStatusEntity, rEntity);
 
 	}

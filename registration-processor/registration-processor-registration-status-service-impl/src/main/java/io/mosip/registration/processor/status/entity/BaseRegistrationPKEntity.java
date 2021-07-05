@@ -24,6 +24,9 @@ public class BaseRegistrationPKEntity implements Serializable{
 
 	@Column
 	private Integer iteration=1;
+
+	@Column(name = "workflow_instance_id")
+	protected String workflowInstanceId;
 	
 	public  BaseRegistrationPKEntity() {
 		
@@ -70,6 +73,14 @@ public class BaseRegistrationPKEntity implements Serializable{
 	}
 	public void setIteration(Integer iteration) {
 		this.iteration = iteration;
+	}
+
+	public String getWorkflowInstanceId() {
+		return workflowInstanceId;
+	}
+
+	public void setWorkflowInstanceId(String workflowInstanceId) {
+		this.workflowInstanceId = workflowInstanceId;
 	}
 	
 	@Override
