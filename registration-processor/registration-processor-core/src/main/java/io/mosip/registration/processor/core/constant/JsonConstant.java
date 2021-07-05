@@ -249,4 +249,6 @@ public class JsonConstant {
 	public static final String PAUSE_FOR = "PAUSE_FOR";
 
 	public static final String ADDITIONAL_INFO_PROCESS = "ADDITIONAL_INFO_PROCESS";
+
+	public static final String WORKFLOW_INSTANCE_ID = "workflowInstanceId";
 }

@@ -91,6 +91,7 @@ public class WorkflowCommandPredicate implements Predicate {
 		workflowEventDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
 		workflowEventDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
 		workflowEventDTO.setSource(json.getString(JsonConstant.SOURCE));
+		workflowEventDTO.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
 	}
 
@@ -104,6 +105,7 @@ public class WorkflowCommandPredicate implements Predicate {
 		workflowEventDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
 		workflowEventDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
 		workflowEventDTO.setSource(json.getString(JsonConstant.SOURCE));
+		workflowEventDTO.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
 	}
 
@@ -117,6 +119,7 @@ public class WorkflowCommandPredicate implements Predicate {
 		workflowEventDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
 		workflowEventDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
 		workflowEventDTO.setSource(json.getString(JsonConstant.SOURCE));
+		workflowEventDTO.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
 	}
 
@@ -130,6 +133,7 @@ public class WorkflowCommandPredicate implements Predicate {
 		workflowEventDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
 		workflowEventDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
 		workflowEventDTO.setSource(json.getString(JsonConstant.SOURCE));
+		workflowEventDTO.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
 	}
 
@@ -143,6 +147,7 @@ public class WorkflowCommandPredicate implements Predicate {
 		workflowEventDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
 		workflowEventDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
 		workflowEventDTO.setSource(json.getString(JsonConstant.SOURCE));
+		workflowEventDTO.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
 	}
 
@@ -156,6 +161,7 @@ public class WorkflowCommandPredicate implements Predicate {
 		workflowEventDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
 		workflowEventDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
 		workflowEventDTO.setSource(json.getString(JsonConstant.SOURCE));
+		workflowEventDTO.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
 	}
 
@@ -175,6 +181,7 @@ public class WorkflowCommandPredicate implements Predicate {
 		workflowEventDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
 		workflowEventDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
 		workflowEventDTO.setSource(json.getString(JsonConstant.SOURCE));
+		workflowEventDTO.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
 	}
 }
