@@ -20,6 +20,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import io.mosip.registration.processor.core.constant.PolicyConstant;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -432,16 +435,6 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		messageDTO.setReg_type(RegistrationType.valueOf(registrationStatusDto.getRegistrationType()));
 
 		try {
-			entities.addAll(basePacketRepository.getAllAssignedRecord(
-					regId, ManualVerificationStatus.INQUEUE.name()));
-
-			if (entities.isEmpty()) {
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-						regId, "ManualVerificationServiceImpl::updatePacketStatus()"
-								+ PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getMessage());
-				throw new NoRecordAssignedException(PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getCode(),
-						PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getMessage());
-			}
 
 			List<ManualVerificationEntity> entities = retrieveInqueuedRecordsByRid(regId);
 
