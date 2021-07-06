@@ -1249,7 +1249,7 @@ public enum PlatformErrorMessages {
 			"AdditionalInfoProcess not found"),
 
 	RPR_WIA_ADDITIONALINFOPROCESS_CANNOT_REQUEST(PlatformConstants.RPR_WORKFLOW_INTERNAL_ACTION + "004",
-			"AdditionalInfoProcess cannot be  Paused for one more additional info so it is failed"),
+			"AdditionalInfoProcess cannot be paused for one more additional info so it is failed"),
 
 	RPR_WAA_MISSING_INPUT_PARAMETER(PlatformConstants.RPR_WORKFLOW_ACTION_API + "000",
 			"Missing Request Value - %s"),

@@ -84,104 +84,109 @@ public class WorkflowCommandPredicate implements Predicate {
 	private void processCompleteAsRejectedWithoutParentFlow(Exchange exchange) throws JsonProcessingException {
 		String message = (String) exchange.getMessage().getBody();
 		JsonObject json = new JsonObject(message);
-		WorkflowInternalActionDTO workflowEventDTO = new WorkflowInternalActionDTO();
-		workflowEventDTO.setRid(json.getString(JsonConstant.RID));
-		workflowEventDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_REJECTED_WITHOUT_PARENT_FLOW.toString());
-		workflowEventDTO
+		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
+		workflowInternalActionDTO.setRid(json.getString(JsonConstant.RID));
+		workflowInternalActionDTO
+				.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_REJECTED_WITHOUT_PARENT_FLOW.toString());
+		workflowInternalActionDTO
 				.setActionMessage(PlatformSuccessMessages.PACKET_COMPLETE_AS_REJECTED_WITHOUT_PARENT_FLOW.getMessage());
-		workflowEventDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
-		workflowEventDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
-		workflowEventDTO.setSource(json.getString(JsonConstant.SOURCE));
-		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
+		workflowInternalActionDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
+		workflowInternalActionDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
+		workflowInternalActionDTO.setSource(json.getString(JsonConstant.SOURCE));
+		workflowInternalActionDTO.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
+		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowInternalActionDTO));
 	}
 
 	private void processCompleteAsRejected(Exchange exchange) throws JsonProcessingException {
 		String message = (String) exchange.getMessage().getBody();
 		JsonObject json = new JsonObject(message);
-		WorkflowInternalActionDTO workflowEventDTO = new WorkflowInternalActionDTO();
-		workflowEventDTO.setRid(json.getString(JsonConstant.RID));
-		workflowEventDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_REJECTED.toString());
-		workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_COMPLETE_AS_REJECTED.getMessage());
-		workflowEventDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
-		workflowEventDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
-		workflowEventDTO.setSource(json.getString(JsonConstant.SOURCE));
-		workflowEventDTO.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
-		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
+		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
+		workflowInternalActionDTO.setRid(json.getString(JsonConstant.RID));
+		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_REJECTED.toString());
+		workflowInternalActionDTO.setActionMessage(PlatformSuccessMessages.PACKET_COMPLETE_AS_REJECTED.getMessage());
+		workflowInternalActionDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
+		workflowInternalActionDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
+		workflowInternalActionDTO.setSource(json.getString(JsonConstant.SOURCE));
+		workflowInternalActionDTO.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
+		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowInternalActionDTO));
 	}
 
 	private void processMarkAsReprocess(Exchange exchange) throws JsonProcessingException {
 		String message = (String) exchange.getMessage().getBody();
 		JsonObject json = new JsonObject(message);
-		WorkflowInternalActionDTO workflowEventDTO = new WorkflowInternalActionDTO();
-		workflowEventDTO.setRid(json.getString(JsonConstant.RID));
-		workflowEventDTO.setActionCode(WorkflowInternalActionCode.MARK_AS_REPROCESS.toString());
-		workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_MARK_AS_REPROCESS.getMessage());
-		workflowEventDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
-		workflowEventDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
-		workflowEventDTO.setSource(json.getString(JsonConstant.SOURCE));
-		workflowEventDTO.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
-		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
+		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
+		workflowInternalActionDTO.setRid(json.getString(JsonConstant.RID));
+		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.MARK_AS_REPROCESS.toString());
+		workflowInternalActionDTO.setActionMessage(PlatformSuccessMessages.PACKET_MARK_AS_REPROCESS.getMessage());
+		workflowInternalActionDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
+		workflowInternalActionDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
+		workflowInternalActionDTO.setSource(json.getString(JsonConstant.SOURCE));
+		workflowInternalActionDTO.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
+		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowInternalActionDTO));
 	}
 
 	private void processCompleteAsFailed(Exchange exchange) throws JsonProcessingException {
 		String message = (String) exchange.getMessage().getBody();
 		JsonObject json = new JsonObject(message);
-		WorkflowInternalActionDTO workflowEventDTO = new WorkflowInternalActionDTO();
-		workflowEventDTO.setRid(json.getString(JsonConstant.RID));
-		workflowEventDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_FAILED.toString());
-		workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_COMPLETE_AS_FAILED.getMessage());
-		workflowEventDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
-		workflowEventDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
-		workflowEventDTO.setSource(json.getString(JsonConstant.SOURCE));
-		workflowEventDTO.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
-		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
+		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
+		workflowInternalActionDTO.setRid(json.getString(JsonConstant.RID));
+		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_FAILED.toString());
+		workflowInternalActionDTO.setActionMessage(PlatformSuccessMessages.PACKET_COMPLETE_AS_FAILED.getMessage());
+		workflowInternalActionDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
+		workflowInternalActionDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
+		workflowInternalActionDTO.setSource(json.getString(JsonConstant.SOURCE));
+		workflowInternalActionDTO.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
+		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowInternalActionDTO));
 	}
 
 	private void processCompleteAsProcessed(Exchange exchange) throws JsonProcessingException {
 		String message = (String) exchange.getMessage().getBody();
 		JsonObject json = new JsonObject(message);
-		WorkflowInternalActionDTO workflowEventDTO = new WorkflowInternalActionDTO();
-		workflowEventDTO.setRid(json.getString(JsonConstant.RID));
-		workflowEventDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_PROCESSED.toString());
-		workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_COMPLETE_AS_PROCESSED.getMessage());
-		workflowEventDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
-		workflowEventDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
-		workflowEventDTO.setSource(json.getString(JsonConstant.SOURCE));
-		workflowEventDTO.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
-		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
+		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
+		workflowInternalActionDTO.setRid(json.getString(JsonConstant.RID));
+		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_PROCESSED.toString());
+		workflowInternalActionDTO.setActionMessage(PlatformSuccessMessages.PACKET_COMPLETE_AS_PROCESSED.getMessage());
+		workflowInternalActionDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
+		workflowInternalActionDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
+		workflowInternalActionDTO.setSource(json.getString(JsonConstant.SOURCE));
+		workflowInternalActionDTO.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
+		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowInternalActionDTO));
 	}
 
 	private void processRestartParentFlow(Exchange exchange) throws JsonProcessingException {
 		String message = (String) exchange.getMessage().getBody();
 		JsonObject json = new JsonObject(message);
-		WorkflowInternalActionDTO workflowEventDTO = new WorkflowInternalActionDTO();
-		workflowEventDTO.setRid(json.getString(JsonConstant.RID));
-		workflowEventDTO.setActionCode(WorkflowInternalActionCode.RESTART_PARENT_FLOW.toString());
-		workflowEventDTO.setActionMessage(PlatformSuccessMessages.PACKET_RESTART_PARENT_FLOW.getMessage());
-		workflowEventDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
-		workflowEventDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
-		workflowEventDTO.setSource(json.getString(JsonConstant.SOURCE));
-		workflowEventDTO.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
-		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
+		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
+		workflowInternalActionDTO.setRid(json.getString(JsonConstant.RID));
+		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.RESTART_PARENT_FLOW.toString());
+		workflowInternalActionDTO.setActionMessage(PlatformSuccessMessages.PACKET_RESTART_PARENT_FLOW.getMessage());
+		workflowInternalActionDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
+		workflowInternalActionDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
+		workflowInternalActionDTO.setSource(json.getString(JsonConstant.SOURCE));
+		workflowInternalActionDTO.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
+		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowInternalActionDTO));
 	}
 
 	private void processPauseAndRequestAdditionalInfo(Exchange exchange) throws JsonProcessingException {
 		String message = (String) exchange.getMessage().getBody();
 		JsonObject json = new JsonObject(message);
-		WorkflowInternalActionDTO workflowEventDTO = new WorkflowInternalActionDTO();
-		workflowEventDTO.setResumeTimestamp(DateUtils.formatToISOString(
+		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
+		workflowInternalActionDTO.setResumeTimestamp(DateUtils.formatToISOString(
 				DateUtils.getUTCCurrentDateTime()
 						.plusSeconds(Long.parseLong((String) exchange.getProperty(JsonConstant.PAUSE_FOR)))));
-		workflowEventDTO.setRid(json.getString(JsonConstant.RID));
-		workflowEventDTO.setDefaultResumeAction(WorkflowActionCode.STOP_PROCESSING.toString());
-		workflowEventDTO.setActionCode(WorkflowInternalActionCode.PAUSE_AND_REQUEST_ADDITIONAL_INFO.toString());
-		workflowEventDTO.setEventTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
-		workflowEventDTO.setActionMessage(PlatformSuccessMessages.PAUSE_AND_REQUEST_ADDITIONAL_INFO.getMessage());
-		workflowEventDTO.setAdditionalInfoProcess((String) exchange.getProperty(JsonConstant.ADDITIONAL_INFO_PROCESS));
-		workflowEventDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
-		workflowEventDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
-		workflowEventDTO.setSource(json.getString(JsonConstant.SOURCE));
-		workflowEventDTO.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
-		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
+		workflowInternalActionDTO.setRid(json.getString(JsonConstant.RID));
+		workflowInternalActionDTO.setDefaultResumeAction(WorkflowActionCode.STOP_PROCESSING.toString());
+		workflowInternalActionDTO
+				.setActionCode(WorkflowInternalActionCode.PAUSE_AND_REQUEST_ADDITIONAL_INFO.toString());
+		workflowInternalActionDTO.setEventTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+		workflowInternalActionDTO
+				.setActionMessage(PlatformSuccessMessages.PAUSE_AND_REQUEST_ADDITIONAL_INFO.getMessage());
+		workflowInternalActionDTO
+				.setAdditionalInfoProcess((String) exchange.getProperty(JsonConstant.ADDITIONAL_INFO_PROCESS));
+		workflowInternalActionDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
+		workflowInternalActionDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
+		workflowInternalActionDTO.setSource(json.getString(JsonConstant.SOURCE));
+		workflowInternalActionDTO.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
+		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowInternalActionDTO));
 	}
 }
