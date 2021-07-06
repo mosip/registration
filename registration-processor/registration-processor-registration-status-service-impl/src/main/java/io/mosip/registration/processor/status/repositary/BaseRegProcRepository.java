@@ -16,10 +16,10 @@ public interface BaseRegProcRepository<T extends BasePacketEntity, E> extends Ba
     @Query("SELECT additionalInfoRequest FROM AdditionalInfoRequestEntity additionalInfoRequest WHERE additionalInfoRequest.id.additionalInfoReqId =:additionalInfoReqId")
     public List<AdditionalInfoRequestEntity> getAdditionalInfoRequestByReqId(@Param("additionalInfoReqId") String additionalInfoReqId);
 
-    @Query("SELECT additionalInfoRequest FROM AdditionalInfoRequestEntity additionalInfoRequest WHERE additionalInfoRequest.id.regId =:regId AND additionalInfoRequest.additionalInfoProcess =:additionalInfoProcess AND additionalInfoRequest.additionalInfoIteration=:additionalInfoIteration")
+    @Query("SELECT additionalInfoRequest FROM AdditionalInfoRequestEntity additionalInfoRequest WHERE additionalInfoRequest.regId =:regId AND additionalInfoRequest.additionalInfoProcess =:additionalInfoProcess AND additionalInfoRequest.additionalInfoIteration=:additionalInfoIteration")
     public List<AdditionalInfoRequestEntity> getAdditionalInfoRequestByRegIdAndProcessAndIteration(@Param("regId") String regId, @Param("additionalInfoProcess") String additionalInfoProcess, @Param("additionalInfoIteration")  int additionalInfoIteration);
 
-	@Query("SELECT additionalInfoRequest FROM AdditionalInfoRequestEntity additionalInfoRequest WHERE additionalInfoRequest.id.regId =:regId AND additionalInfoRequest.additionalInfoProcess =:additionalInfoProcess order by additionalInfoRequest.iteration desc")
+	@Query("SELECT additionalInfoRequest FROM AdditionalInfoRequestEntity additionalInfoRequest WHERE additionalInfoRequest.regId =:regId AND additionalInfoRequest.additionalInfoProcess =:additionalInfoProcess order by additionalInfoRequest.iteration desc")
 	public List<AdditionalInfoRequestEntity> getAdditionalInfoRequestByRegIdAndProcess(@Param("regId") String regId,
 			@Param("additionalInfoProcess") String additionalInfoProcess);
 }
