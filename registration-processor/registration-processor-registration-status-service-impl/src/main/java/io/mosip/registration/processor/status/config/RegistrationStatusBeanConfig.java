@@ -1,7 +1,7 @@
 package io.mosip.registration.processor.status.config;
 
-import io.mosip.registration.processor.status.service.SubWorkflowMappingService;
-import io.mosip.registration.processor.status.service.impl.SubWorkflowMappingServiceImpl;
+import io.mosip.registration.processor.status.service.AdditionalInfoRequestService;
+import io.mosip.registration.processor.status.service.impl.AdditionalInfoRequestServiceImpl;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -126,7 +126,7 @@ public class RegistrationStatusBeanConfig {
 	}
 
 	@Bean
-	public SubWorkflowMappingService subWorkflowMappingService() {
-		return new SubWorkflowMappingServiceImpl();
+	public AdditionalInfoRequestService additionalInfoRequestService() {
+		return new AdditionalInfoRequestServiceImpl();
 	}
 }

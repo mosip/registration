@@ -51,7 +51,6 @@ import io.mosip.registration.processor.status.dto.SyncResponseFailureDto;
 import io.mosip.registration.processor.status.dto.SyncResponseSuccessDto;
 import io.mosip.registration.processor.status.dto.SyncTypeDto;
 import io.mosip.registration.processor.status.encryptor.Encryptor;
-import io.mosip.registration.processor.status.entity.SubWorkflowMappingEntity;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.exception.EncryptionFailureException;
 import io.mosip.registration.processor.status.exception.PacketDecryptionFailureException;
@@ -85,9 +84,6 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	/** The sync registration dao. */
 	@Autowired
 	private SyncRegistrationDao syncRegistrationDao;
-
-	@Autowired
-	private BaseRegProcRepository<SubWorkflowMappingEntity, String> subWorkflowRepository;
 
 	/** The core audit request builder. */
 	@Autowired
@@ -539,21 +535,6 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		return syncRegistrationDao.findByWorkflowInstanceId(workflowInstanceId);
 	}
 	
-
-	@Override
-	public SyncRegistrationEntity findByRegistrationIdAndProcessAndIteration(String registrationId, String process,
-			int iteration) {
-		SyncRegistrationEntity syncRegistrationEntity = null;
-		 List<SubWorkflowMappingEntity> subWorkflowEntity = subWorkflowRepository.workflowMappingByRegIdAndProcessAndIteration(registrationId,process,iteration);
-   	     if (CollectionUtils.isNotEmpty(subWorkflowEntity)) {
-   	    	String additionalInfoReqId = subWorkflowEntity.get(0).getId().getAdditionalInfoReqId();
-   	    	syncRegistrationEntity = syncRegistrationDao.findByRegistrationIdIdAndAdditionalInfoReqId(registrationId,additionalInfoReqId);
-   	     }
-   	     else {
-   	    	 syncRegistrationEntity = syncRegistrationDao.findByRegistrationIdIdAndRegType(registrationId, process);
-   	     }
-   	    return syncRegistrationEntity;
-	}
 	 /**
 	   * Find by registration id and additional info req id.
 	   * @param registrationId
