@@ -375,10 +375,10 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 			object.setRid(registrationStatusDto.getRegistrationId());
 			registrationStatusDto.setRegistrationStageName(getStageName());
 			registrationStatusDto
-					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.QUALITY_CHECK.toString());
+					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.QUALITY_CLASSIFIER.toString());
 			String moduleId = isTransactionSuccessful ? PlatformSuccessMessages.RPR_QUALITY_CHECK_SUCCESS.getCode()
 					: description.getCode();
-			String moduleName = ModuleName.QUALITY_CHECK.toString();
+			String moduleName = ModuleName.QUALITY_CLASSIFIER.toString();
 			registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);
 			String eventId = isTransactionSuccessful ? EventId.RPR_402.toString() : EventId.RPR_405.toString();
 			String eventName = isTransactionSuccessful ? EventName.UPDATE.toString() : EventName.EXCEPTION.toString();
