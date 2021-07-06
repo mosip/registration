@@ -45,8 +45,8 @@ public enum RegistrationTransactionTypeCode {
 	/** The reprocess. */
 	PACKET_REPROCESS,
 
-	/** The Quality Check. */
-	QUALITY_CHECK,
+	/** The Quality Classifier. */
+	QUALITY_CLASSIFIER,
 
 	/** The biometric Authentication. */
 	BIOMETRIC_AUTHENTICATION,
