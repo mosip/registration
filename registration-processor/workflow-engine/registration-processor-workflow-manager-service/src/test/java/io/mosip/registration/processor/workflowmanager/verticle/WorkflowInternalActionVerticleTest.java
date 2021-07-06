@@ -7,6 +7,7 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +20,7 @@ import org.mockito.Mockito;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -27,12 +29,15 @@ import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
 import io.mosip.registration.processor.core.abstractverticle.WorkflowInternalActionDTO;
 import io.mosip.registration.processor.core.code.WorkflowActionCode;
 import io.mosip.registration.processor.core.code.WorkflowInternalActionCode;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.WorkflowActionException;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.packet.dto.SubWorkflowDto;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventDTO;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowPausedForAdditionalInfoEventDTO;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -70,6 +75,9 @@ public class WorkflowInternalActionVerticleTest {
 
 	@Mock
 	WorkflowActionService workflowActionService;
+
+	@Mock
+	private PacketManagerService packetManagerService;
 
 
 	@InjectMocks
@@ -356,39 +364,9 @@ public class WorkflowInternalActionVerticleTest {
 				argument2.getAllValues().get(0).getAdditionalInfoProcess());
 
 	}
-
 	@Test
-	public void testProcessSuccessForResumeParentFlow() throws WorkflowActionException {
-		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
-		workflowInternalActionDTO.setRid("10006100390000920200603070407");
-		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.RESUME_PARENT_FLOW.toString());
-		workflowInternalActionDTO.setActionMessage(PlatformSuccessMessages.PACKET_RESUME_PARENT_FLOW.getMessage());
-		workflowInternalActionDTO.setReg_type("CORRECTION");
-		workflowInternalActionDTO.setIteration(1);
-		SubWorkflowDto subWorkflowDto = new SubWorkflowDto();
-		subWorkflowDto.setRegId("10006100390000920200603070407");
-		subWorkflowDto.setIteration(1);
-		subWorkflowDto.setParentIteration(1);
-		subWorkflowDto.setParentProcess("NEW");
-		subWorkflowDto.setAdditionalInfoReqId("additionalRequestId");
-		List<SubWorkflowDto> subWorkflowDtos = new ArrayList<SubWorkflowDto>();
-		subWorkflowDtos.add(subWorkflowDto);
-		Mockito.when(
-				subWorkflowMappingService.getSubWorkflowMappingByRegIdAndProcessAndIteration(Mockito.anyString(),
-						Mockito.anyString(), Mockito.anyInt()))
-				.thenReturn(subWorkflowDtos);
-		registrationStatusDto = new InternalRegistrationStatusDto();
-		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
-		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
-				.thenReturn(null);
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any()))
-				.thenReturn(registrationStatusDto);
-		workflowInternalActionVerticle.process(workflowInternalActionDTO);
-		verify(workflowActionService, times(1)).processWorkflowAction(Mockito.any(), Mockito.anyString());
-	}
-
-	@Test
-	public void testProcessSuccessForRestartParentFlow() throws WorkflowActionException {
+	public void testProcessSuccessForRestartParentFlow() throws WorkflowActionException, ApisResourceAccessException,
+			PacketManagerException, JsonProcessingException, IOException {
 		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
 		workflowInternalActionDTO.setRid("10006100390000920200603070407");
 		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.RESTART_PARENT_FLOW.toString());
@@ -413,5 +391,183 @@ public class WorkflowInternalActionVerticleTest {
 				.thenReturn(registrationStatusDto);
 		workflowInternalActionVerticle.process(workflowInternalActionDTO);
 		verify(workflowActionService, times(1)).processWorkflowAction(Mockito.any(), Mockito.anyString());
+		verify(packetManagerService, times(1)).addOrUpdateTags(Mockito.anyString(), Mockito.any());
+	}
+
+	@Test
+	public void testProcessSuccessForCompleteAsProcessedForSubWorkflow()
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException,
+			WorkflowActionException {
+		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
+		workflowInternalActionDTO.setRid("10006100390000920200603070407");
+		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_PROCESSED.toString());
+		workflowInternalActionDTO.setActionMessage("packet is complete as processed");
+		workflowInternalActionDTO.setReg_type("CORRECTION");
+		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
+		registrationStatusDto = new InternalRegistrationStatusDto();
+		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
+		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(null);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any()))
+				.thenReturn(registrationStatusDto);
+		SubWorkflowDto subWorkflowDto = new SubWorkflowDto();
+		subWorkflowDto.setRegId("10006100390000920200603070407");
+		subWorkflowDto.setIteration(1);
+		subWorkflowDto.setParentIteration(1);
+		subWorkflowDto.setParentProcess("NEW");
+		subWorkflowDto.setAdditionalInfoReqId("additionalRequestId");
+		List<SubWorkflowDto> subWorkflowDtos = new ArrayList<SubWorkflowDto>();
+		subWorkflowDtos.add(subWorkflowDto);
+		Mockito.when(subWorkflowMappingService.getSubWorkflowMappingByRegIdAndProcessAndIteration(Mockito.anyString(),
+				Mockito.anyString(), Mockito.anyInt())).thenReturn(subWorkflowDtos);
+		workflowInternalActionVerticle.process(workflowInternalActionDTO);
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+
+		verify(registrationStatusService, atLeastOnce()).updateRegistrationStatus(argument.capture(), Mockito.any(),
+				Mockito.any());
+		assertEquals(RegistrationStatusCode.PROCESSED.toString(), argument.getAllValues().get(0).getStatusCode());
+		verify(workflowActionService, times(1)).processWorkflowAction(Mockito.any(), Mockito.anyString());
+		verify(packetManagerService, times(1)).addOrUpdateTags(Mockito.anyString(), Mockito.any());
+	}
+
+	@Test
+	public void testProcessSuccessForCompleteAsRejectedForSubWorkflow()
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException,
+			WorkflowActionException {
+		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
+		workflowInternalActionDTO.setRid("10006100390000920200603070407");
+		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_REJECTED.toString());
+		workflowInternalActionDTO.setActionMessage("packet is complete as rejected");
+		workflowInternalActionDTO.setReg_type("CORRECTION");
+		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
+		registrationStatusDto = new InternalRegistrationStatusDto();
+		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
+		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(null);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any()))
+				.thenReturn(registrationStatusDto);
+		SubWorkflowDto subWorkflowDto = new SubWorkflowDto();
+		subWorkflowDto.setRegId("10006100390000920200603070407");
+		subWorkflowDto.setIteration(1);
+		subWorkflowDto.setParentIteration(1);
+		subWorkflowDto.setParentProcess("NEW");
+		subWorkflowDto.setAdditionalInfoReqId("additionalRequestId");
+		List<SubWorkflowDto> subWorkflowDtos = new ArrayList<SubWorkflowDto>();
+		subWorkflowDtos.add(subWorkflowDto);
+		Mockito.when(subWorkflowMappingService.getSubWorkflowMappingByRegIdAndProcessAndIteration(Mockito.anyString(),
+				Mockito.anyString(), Mockito.anyInt())).thenReturn(subWorkflowDtos);
+		workflowInternalActionVerticle.process(workflowInternalActionDTO);
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+
+		verify(registrationStatusService, atLeastOnce()).updateRegistrationStatus(argument.capture(), Mockito.any(),
+				Mockito.any());
+		assertEquals(RegistrationStatusCode.REJECTED.toString(), argument.getAllValues().get(0).getStatusCode());
+		verify(workflowActionService, times(1)).processWorkflowAction(Mockito.any(), Mockito.anyString());
+		verify(packetManagerService, times(1)).addOrUpdateTags(Mockito.anyString(), Mockito.any());
+	}
+
+	@Test
+	public void testProcessSuccessForCompleteAsFailedForSubWorkflow()
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException,
+			WorkflowActionException {
+		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
+		workflowInternalActionDTO.setRid("10006100390000920200603070407");
+		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_FAILED.toString());
+		workflowInternalActionDTO.setActionMessage("packet is complete as failed");
+		workflowInternalActionDTO.setReg_type("CORRECTION");
+		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
+		registrationStatusDto = new InternalRegistrationStatusDto();
+		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
+		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(null);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any()))
+				.thenReturn(registrationStatusDto);
+		SubWorkflowDto subWorkflowDto = new SubWorkflowDto();
+		subWorkflowDto.setRegId("10006100390000920200603070407");
+		subWorkflowDto.setIteration(1);
+		subWorkflowDto.setParentIteration(1);
+		subWorkflowDto.setParentProcess("NEW");
+		subWorkflowDto.setAdditionalInfoReqId("additionalRequestId");
+		List<SubWorkflowDto> subWorkflowDtos = new ArrayList<SubWorkflowDto>();
+		subWorkflowDtos.add(subWorkflowDto);
+		Mockito.when(subWorkflowMappingService.getSubWorkflowMappingByRegIdAndProcessAndIteration(Mockito.anyString(),
+				Mockito.anyString(), Mockito.anyInt())).thenReturn(subWorkflowDtos);
+		workflowInternalActionVerticle.process(workflowInternalActionDTO);
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+
+		verify(registrationStatusService, atLeastOnce()).updateRegistrationStatus(argument.capture(), Mockito.any(),
+				Mockito.any());
+		assertEquals(RegistrationStatusCode.FAILED.toString(), argument.getAllValues().get(0).getStatusCode());
+		verify(workflowActionService, times(1)).processWorkflowAction(Mockito.any(), Mockito.anyString());
+		verify(packetManagerService, times(1)).addOrUpdateTags(Mockito.anyString(), Mockito.any());
+	}
+
+	@Test
+	public void testProcessSuccessForPauseAndRequestAdditionalInfoForSubWorkflow() throws WorkflowActionException,
+			ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
+		workflowInternalActionDTO.setRid("10006100390000920200603070407");
+		workflowInternalActionDTO
+				.setActionCode(WorkflowInternalActionCode.PAUSE_AND_REQUEST_ADDITIONAL_INFO.toString());
+		workflowInternalActionDTO.setActionMessage("packet is paused for Additional Info");
+		workflowInternalActionDTO.setResumeTimestamp("2021-03-02T08:24:29.526Z");
+		workflowInternalActionDTO.setDefaultResumeAction(WorkflowActionCode.STOP_PROCESSING.toString());
+		workflowInternalActionDTO.setIteration(1);
+		workflowInternalActionDTO.setReg_type("CORRECTION");
+		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
+		registrationStatusDto = new InternalRegistrationStatusDto();
+		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
+		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(null);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any()))
+				.thenReturn(registrationStatusDto);
+		SubWorkflowDto subWorkflowDto = new SubWorkflowDto();
+		subWorkflowDto.setRegId("10006100390000920200603070407");
+		subWorkflowDto.setIteration(1);
+		subWorkflowDto.setParentIteration(1);
+		subWorkflowDto.setParentProcess("NEW");
+		subWorkflowDto.setAdditionalInfoReqId("additionalRequestId");
+		List<SubWorkflowDto> subWorkflowDtos = new ArrayList<SubWorkflowDto>();
+		subWorkflowDtos.add(subWorkflowDto);
+		Mockito.when(subWorkflowMappingService.getSubWorkflowMappingByRegIdAndProcessAndIteration(Mockito.anyString(),
+				Mockito.anyString(), Mockito.anyInt())).thenReturn(subWorkflowDtos);
+		workflowInternalActionVerticle.process(workflowInternalActionDTO);
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+
+		verify(registrationStatusService, atLeastOnce()).updateRegistrationStatus(argument.capture(), Mockito.any(),
+				Mockito.any());
+		assertEquals(RegistrationStatusCode.FAILED.toString(),
+				argument.getAllValues().get(0).getStatusCode());
+		verify(workflowActionService, times(1)).processWorkflowAction(Mockito.any(), Mockito.anyString());
+		verify(packetManagerService, times(1)).addOrUpdateTags(Mockito.anyString(), Mockito.any());
+	}
+
+	@Test
+	public void testProcessSuccessForCompleteAsRejectedWithoutParentFlow() {
+		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
+		workflowInternalActionDTO.setRid("10006100390000920200603070407");
+		workflowInternalActionDTO
+				.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_REJECTED_WITHOUT_PARENT_FLOW.toString());
+		workflowInternalActionDTO
+				.setActionMessage("Packet processing completed with reject status without Parent flow");
+		workflowInternalActionDTO.setReg_type("CORRECTION");
+		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
+		registrationStatusDto = new InternalRegistrationStatusDto();
+		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
+		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(null);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any()))
+				.thenReturn(registrationStatusDto);
+		workflowInternalActionVerticle.process(workflowInternalActionDTO);
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+
+		verify(registrationStatusService, atLeastOnce()).updateRegistrationStatus(argument.capture(), Mockito.any(),
+				Mockito.any());
+		assertEquals(RegistrationStatusCode.REJECTED.toString(), argument.getAllValues().get(0).getStatusCode());
 	}
 }

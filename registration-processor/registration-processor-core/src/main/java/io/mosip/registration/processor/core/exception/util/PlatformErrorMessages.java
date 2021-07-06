@@ -1245,7 +1245,11 @@ public enum PlatformErrorMessages {
 
 	RPR_WIA_UNKNOWN_WORKFLOW_ACTION(PlatformConstants.RPR_WORKFLOW_INTERNAL_ACTION + "002", "Unknown Exception"),
 
-	RPR_WIA_SUBWORKFLOW_NOT_FOUND(PlatformConstants.RPR_WORKFLOW_INTERNAL_ACTION + "003", "SubWorkflow not found"),
+	RPR_WIA_ADDITIONALINFOPROCESS_NOT_FOUND(PlatformConstants.RPR_WORKFLOW_INTERNAL_ACTION + "003",
+			"AdditionalInfoProcess not found"),
+
+	RPR_WIA_ADDITIONALINFOPROCESS_CANNOT_REQUEST(PlatformConstants.RPR_WORKFLOW_INTERNAL_ACTION + "004",
+			"AdditionalInfoProcess cannot be paused for one more additional info so it is failed"),
 
 	RPR_WAA_MISSING_INPUT_PARAMETER(PlatformConstants.RPR_WORKFLOW_ACTION_API + "000",
 			"Missing Request Value - %s"),
