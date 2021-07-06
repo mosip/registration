@@ -24,6 +24,7 @@ import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
@@ -40,11 +41,10 @@ import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
 import io.mosip.registration.processor.status.dto.SyncResponseDto;
-import io.mosip.registration.processor.status.entity.SubWorkflowMappingEntity;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
-import io.mosip.registration.processor.status.service.SubWorkflowMappingService;
+import io.mosip.registration.processor.status.service.AdditionalInfoRequestService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 
 import org.apache.commons.io.IOUtils;
@@ -119,7 +119,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
     private RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 
     @Autowired
-    private SubWorkflowMappingService subWorkflowMappingService;
+    private AdditionalInfoRequestService additionalInfoRequestService;
 
     /**
      * The core audit request builder.
@@ -579,12 +579,12 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
             String source = tempKeys[0];
             String process = tempKeys[1];
             String objectName = tempKeys[2];
-            SubWorkflowMappingEntity workflowMappingEntity = registrationStatusService
-                    .findWorkflowMappingByIdAndProcessAndIteration(messageDTO.getRid(),
-                            messageDTO.getReg_type(), messageDTO.getIteration());
+            AdditionalInfoRequestDto additionalInfoRequestDto = additionalInfoRequestService
+                .getAdditionalInfoRequestByRegIdAndProcessAndIteration(messageDTO.getRid(),
+                        messageDTO.getReg_type(), messageDTO.getIteration());
 
-            if (workflowMappingEntity != null &&
-                    workflowMappingEntity.getId().getAdditionalInfoReqId().equals(regEntity.getAdditionalInfoReqId())) {
+            if (additionalInfoRequestDto != null &&
+                        additionalInfoRequestDto.getAdditionalInfoReqId().equals(regEntity.getAdditionalInfoReqId())) {
                 return source + FORWARD_SLASH + process + "-" + messageDTO.getIteration() + FORWARD_SLASH + objectName;
             } else
                 return packetKey;

@@ -3,6 +3,7 @@ package io.mosip.registration.processor.stages.packetclassifier;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 
 import java.io.IOException;
@@ -140,7 +141,7 @@ public class PacketClassificationProcessorTest {
 		Map<String, String> tags = new HashMap<>();
 		tags.put("city", "1234");
 		tags.put("gender", "MALE");
-		Mockito.when(tagGenerator.generateTags(any(), any(), any(), any(), any())).thenReturn(tags);
+		Mockito.when(tagGenerator.generateTags(any(), any(), any(), any(), any(), anyInt())).thenReturn(tags);
 	}
 
 	@Test
@@ -165,7 +166,7 @@ public class PacketClassificationProcessorTest {
 
 	@Test
 	public void packetClassificationWithTagGeneratorGenerateTagsMethodReturnNull() throws Exception {
-		Mockito.when(tagGenerator.generateTags(any(), any(), any(), any(), any())).thenReturn(null);
+		Mockito.when(tagGenerator.generateTags(any(), any(), any(), any(), any(), anyInt())).thenReturn(null);
 		Whitebox.invokeMethod(packetClassificationProcessor, "collectRequiredIdObjectFieldNames");
 		assertTrue(packetClassificationProcessor.process(messageDTO, stageName).getIsValid());
 	}
@@ -174,7 +175,7 @@ public class PacketClassificationProcessorTest {
 	public void packetClassificationPacketManagerExceptionTest() throws Exception {
 		PacketManagerException exc = new PacketManagerException("", "");
 		Whitebox.invokeMethod(packetClassificationProcessor, "collectRequiredIdObjectFieldNames");
-		Mockito.when(tagGenerator.generateTags(any(), any(), any(), any(), any())).thenThrow(exc);
+		Mockito.when(tagGenerator.generateTags(any(), any(), any(), any(), any(), anyInt())).thenThrow(exc);
 		assertTrue(packetClassificationProcessor.process(messageDTO, stageName).getInternalError());
 	}
 
@@ -182,7 +183,7 @@ public class PacketClassificationProcessorTest {
 	public void packetClassificationIOExceptionTest() throws Exception {
 		BaseCheckedException exc = new BaseCheckedException("", "", new IOException(""));
 		Whitebox.invokeMethod(packetClassificationProcessor, "collectRequiredIdObjectFieldNames");
-		Mockito.when(tagGenerator.generateTags(any(), any(), any(), any(), any())).thenThrow(exc);
+		Mockito.when(tagGenerator.generateTags(any(), any(), any(), any(), any(), anyInt())).thenThrow(exc);
 		assertTrue(packetClassificationProcessor.process(messageDTO, stageName).getInternalError());
 	}
 
@@ -190,7 +191,7 @@ public class PacketClassificationProcessorTest {
 	public void packetClassificationParsingExceptionTest() throws Exception {
 		ParsingException exc = new ParsingException("", new Exception());
 		Whitebox.invokeMethod(packetClassificationProcessor, "collectRequiredIdObjectFieldNames");
-		Mockito.when(tagGenerator.generateTags(any(), any(), any(), any(), any())).thenThrow(exc);
+		Mockito.when(tagGenerator.generateTags(any(), any(), any(), any(), any(), anyInt())).thenThrow(exc);
 		assertTrue(packetClassificationProcessor.process(messageDTO, stageName).getInternalError());
 	}
 
@@ -198,7 +199,7 @@ public class PacketClassificationProcessorTest {
 	public void packetClassificationTablenotAccessibleExceptionTest() throws Exception {
 		TablenotAccessibleException exc = new TablenotAccessibleException("");
 		Whitebox.invokeMethod(packetClassificationProcessor, "collectRequiredIdObjectFieldNames");
-		Mockito.when(tagGenerator.generateTags(any(), any(), any(), any(), any())).thenThrow(exc);
+		Mockito.when(tagGenerator.generateTags(any(), any(), any(), any(), any(), anyInt())).thenThrow(exc);
 		assertTrue(packetClassificationProcessor.process(messageDTO, stageName).getInternalError());
 	}
 
@@ -206,7 +207,7 @@ public class PacketClassificationProcessorTest {
 	public void packetClassificationBaseUncheckedExceptionTest() throws Exception {
 		BaseUncheckedException exc = new BaseUncheckedException("", "");
 		Whitebox.invokeMethod(packetClassificationProcessor, "collectRequiredIdObjectFieldNames");
-		Mockito.when(tagGenerator.generateTags(any(), any(), any(), any(), any())).thenThrow(exc);
+		Mockito.when(tagGenerator.generateTags(any(), any(), any(), any(), any(), anyInt())).thenThrow(exc);
 		assertTrue(packetClassificationProcessor.process(messageDTO, stageName).getInternalError());
 	}
 
@@ -214,7 +215,7 @@ public class PacketClassificationProcessorTest {
 	public void packetClassificationBaseCheckedExceptionTest() throws Exception {
 		BaseCheckedException exc = new BaseCheckedException("", "");
 		Whitebox.invokeMethod(packetClassificationProcessor, "collectRequiredIdObjectFieldNames");
-		Mockito.when(tagGenerator.generateTags(any(), any(), any(), any(), any())).thenThrow(exc);
+		Mockito.when(tagGenerator.generateTags(any(), any(), any(), any(), any(), anyInt())).thenThrow(exc);
 		assertTrue(packetClassificationProcessor.process(messageDTO, stageName).getInternalError());
 	}
 }

@@ -33,6 +33,7 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -68,7 +69,7 @@ public class ABISHandlerUtilTest {
 	@Before
 	public void setup() throws Exception {
 		MockitoAnnotations.initMocks(this);
-		when(utilities.getLatestTransactionId(any(),any(),any(), any())).thenReturn(latestTransactionId);
+		when(utilities.getLatestTransactionId(any(),any(),anyInt(), any())).thenReturn(latestTransactionId);
 
 		List<String> regBioRefIds = new ArrayList<>();
 		regBioRefIds.add("cf1c941a-142c-44f1-9543-4606b4a7884e");
