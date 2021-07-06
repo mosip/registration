@@ -220,7 +220,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		UinGenResponseDto uinResponseDto = null;
 
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(
-				registrationId, object.getReg_type(), object.getIteration());
+				registrationId, object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
 		try {
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.UIN_GENERATOR.toString());

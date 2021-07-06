@@ -36,7 +36,7 @@ public interface RegistrationStatusService<T, U, D> {
 	 *            the enrolment id
 	 * @return the registration status
 	 */
-	public U getRegistrationStatus(String regid, String processs, Integer iteration);
+	public U getRegistrationStatus(String regid, String processs, Integer iteration, String workflowInstanceId);
 
 	public List<InternalRegistrationStatusDto> getAllRegistrationStatuses(String registrationId);
 
@@ -140,4 +140,6 @@ public interface RegistrationStatusService<T, U, D> {
 	public List<InternalRegistrationStatusDto> getResumablePackets(Integer fetchSize);
 
 	public SubWorkflowMappingEntity findWorkflowMappingByIdAndProcessAndIteration(String id, String process, int iteration);
+
+	public SubWorkflowMappingEntity findWorkflowMappingByAdditionalReqId(String additionalInfoReqId);
 }

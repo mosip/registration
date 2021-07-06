@@ -146,7 +146,7 @@ public class PacketUploaderStageTest {
 	public void testProcess() {
 		MessageDTO result = new MessageDTO();
 		result.setIsValid(true);
-		Mockito.when(packetUploaderService.validateAndUploadPacket(any(), any(), any(), any())).thenReturn(result);
+		Mockito.when(packetUploaderService.validateAndUploadPacket(any(), any())).thenReturn(result);
 		dto = packetValidatorStage.process(dto);
 		assertTrue(dto.getIsValid());
 

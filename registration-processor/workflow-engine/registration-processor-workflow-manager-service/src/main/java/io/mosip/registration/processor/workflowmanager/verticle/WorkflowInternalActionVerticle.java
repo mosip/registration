@@ -235,8 +235,8 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
 	private void processMarkAsReprocess(WorkflowInternalActionDTO workflowInternalActionDTO) {
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
-				.getRegistrationStatus(workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getReg_type(),
-						workflowInternalActionDTO.getIteration());
+			.getRegistrationStatus(workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getReg_type(),
+				workflowInternalActionDTO.getIteration(), workflowInternalActionDTO.getWorkflowInstanceId());
 		registrationStatusDto.setStatusComment(workflowInternalActionDTO.getActionMessage());
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.REPROCESS.toString());
 		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
@@ -250,10 +250,10 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		List<SubWorkflowDto> subWorkflowDtos = subWorkflowMappingService
 				.getSubWorkflowMappingByRegIdAndProcessAndIteration(workflowInternalActionDTO.getRid(),
 						workflowInternalActionDTO.getReg_type(), workflowInternalActionDTO.getIteration());
-		
+
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
-				.getRegistrationStatus(workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getReg_type(),
-						workflowInternalActionDTO.getIteration());
+			.getRegistrationStatus(workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getReg_type(),
+				workflowInternalActionDTO.getIteration(), workflowInternalActionDTO.getWorkflowInstanceId());
 		registrationStatusDto.setStatusComment(workflowInternalActionDTO.getActionMessage());
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
@@ -288,8 +288,8 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 				.getSubWorkflowMappingByRegIdAndProcessAndIteration(workflowInternalActionDTO.getRid(),
 						workflowInternalActionDTO.getReg_type(), workflowInternalActionDTO.getIteration());
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
-				.getRegistrationStatus(workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getReg_type(),
-						workflowInternalActionDTO.getIteration());
+			.getRegistrationStatus(workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getReg_type(),
+						workflowInternalActionDTO.getIteration(), workflowInternalActionDTO.getWorkflowInstanceId());
 		registrationStatusDto.setStatusComment(workflowInternalActionDTO.getActionMessage());
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
 		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
@@ -324,8 +324,8 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 				.getSubWorkflowMappingByRegIdAndProcessAndIteration(workflowInternalActionDTO.getRid(),
 						workflowInternalActionDTO.getReg_type(), workflowInternalActionDTO.getIteration());
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
-				.getRegistrationStatus(workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getReg_type(),
-						workflowInternalActionDTO.getIteration());
+			.getRegistrationStatus(workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getReg_type(),
+				workflowInternalActionDTO.getIteration(), workflowInternalActionDTO.getWorkflowInstanceId());
 		registrationStatusDto.setStatusComment(workflowInternalActionDTO.getActionMessage());
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSED.toString());
 		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
@@ -354,8 +354,8 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
 	private void processPacketForPaused(WorkflowInternalActionDTO workflowInternalActionDTO) {
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
-				.getRegistrationStatus(workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getReg_type(),
-						workflowInternalActionDTO.getIteration());
+			.getRegistrationStatus(workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getReg_type(),
+				workflowInternalActionDTO.getIteration(), workflowInternalActionDTO.getWorkflowInstanceId());
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.PAUSED.toString());
 		registrationStatusDto.setStatusComment(workflowInternalActionDTO.getActionMessage());
 		registrationStatusDto.setDefaultResumeAction(workflowInternalActionDTO.getDefaultResumeAction());
@@ -439,9 +439,11 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 					RegistrationStatusCode.PROCESSED.toString());
 			packetManagerService.addOrUpdateTags(workflowInternalActionDTO.getRid(), tags);
 			SubWorkflowDto subWorkflowDto = subWorkflowDtos.get(0);
-			InternalRegistrationStatusDto mainFlowregistrationStatusDto = registrationStatusService
-					.getRegistrationStatus(
-					subWorkflowDto.getRegId(), subWorkflowDto.getParentProcess(), subWorkflowDto.getParentIteration());
+			// TODO : Parent workflow instance id should be stored in sub workflow mapping table and same to
+			// be used for below call
+			InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(
+					subWorkflowDto.getRegId(), subWorkflowDto.getParentProcess(),
+					subWorkflowDto.getParentIteration(), null);
 			List<InternalRegistrationStatusDto> internalRegistrationStatusDtos = new ArrayList<InternalRegistrationStatusDto>();
 			internalRegistrationStatusDtos.add(mainFlowregistrationStatusDto);
 			workflowActionService.processWorkflowAction(internalRegistrationStatusDtos,
@@ -460,17 +462,13 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		List<SubWorkflowDto> subWorkflowDtos = subWorkflowMappingService
 				.getSubWorkflowMappingByRegIdAndProcessAndIteration(workflowInternalActionDTO.getRid(),
 						workflowInternalActionDTO.getReg_type(), workflowInternalActionDTO.getIteration());
-		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(
-				workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getReg_type(),
-				workflowInternalActionDTO.getIteration());
 		if (subWorkflowDtos != null && !subWorkflowDtos.isEmpty()) {
-			regProcLogger.warn(
-					"Info in WorkflowEventUpdateVerticle:processRestartParentFlow for registration id {} {}",
-					workflowInternalActionDTO.getRid(),
-					PlatformErrorMessages.RPR_WIA_ADDITIONALINFOPROCESS_CANNOT_REQUEST.getMessage());
-			registrationStatusDto
-					.setStatusComment(PlatformErrorMessages.RPR_WIA_ADDITIONALINFOPROCESS_CANNOT_REQUEST.getMessage());
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+			SubWorkflowDto subWorkflowDto = subWorkflowDtos.get(0);
+			// TODO : Parent workflow instance id should be stored in sub workflow mapping table and same to
+			// be used for below call
+			InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(
+					subWorkflowDto.getRegId(), subWorkflowDto.getParentProcess(),
+					subWorkflowDto.getParentIteration(), null);
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
 			registrationStatusDto.setSubStatusCode(StatusUtil.WORKFLOW_INTERNAL_ACTION_SUCCESS.getCode());
@@ -491,6 +489,18 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 					WorkflowActionCode.RESUME_PROCESSING.toString());
 
 		} else {
+			regProcLogger.error(
+					"Error in  WorkflowEventUpdateVerticle:processRestartParentFlow for registration id {} {}",
+					workflowInternalActionDTO.getRid(),
+					PlatformErrorMessages.RPR_WIA_SUBWORKFLOW_NOT_FOUND.getMessage());
+		}
+	}
+
+	private void processPauseAndRequestAdditionalInfo(WorkflowInternalActionDTO workflowInternalActionDTO) {
+		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(
+				workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getReg_type(),
+				workflowInternalActionDTO.getIteration(), workflowInternalActionDTO.getWorkflowInstanceId());
+
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.PAUSED_FOR_ADDITIONAL_INFO.toString());
 		registrationStatusDto.setStatusComment(workflowInternalActionDTO.getActionMessage());
 		registrationStatusDto.setDefaultResumeAction(workflowInternalActionDTO.getDefaultResumeAction());

@@ -72,11 +72,11 @@ public class ABISHandlerUtil {
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 */
 	public Set<String> getUniqueRegIds(String registrationId, String registrationType, 
-										int iteration, ProviderStageName stageName) throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException {
+										int iteration, String workflowInstanceId, ProviderStageName stageName) throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationId, "ABISHandlerUtil::getUniqueRegIds()::entry");
 		
-		String latestTransactionId = utilities.getLatestTransactionId(registrationId, registrationType, iteration);
+		String latestTransactionId = utilities.getLatestTransactionId(registrationId, registrationType, iteration, workflowInstanceId);
 
 		List<String> regBioRefIds = packetInfoDao.getAbisRefMatchedRefIdByRid(registrationId);
 
@@ -122,7 +122,8 @@ public class ABISHandlerUtil {
 	 * @return the packet status
 	 */
 	public String getPacketStatus(InternalRegistrationStatusDto registrationStatusDto) {
-		if (getMatchedRegIds(registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration()).isEmpty()) {
+		if (getMatchedRegIds(registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType(),
+				registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId()).isEmpty()) {
 			return AbisConstant.PRE_ABIS_IDENTIFICATION;
 		}
 		return AbisConstant.POST_ABIS_IDENTIFICATION;
@@ -135,8 +136,8 @@ public class ABISHandlerUtil {
 	 *            the registration id
 	 * @return the matched reg ids
 	 */
-	private List<AbisRequestDto> getMatchedRegIds(String registrationId, String process, int iteration) {
-		String latestTransactionId = utilities.getLatestTransactionId(registrationId, process, iteration);
+	private List<AbisRequestDto> getMatchedRegIds(String registrationId, String process, int iteration, String workflowInstanceId) {
+		String latestTransactionId = utilities.getLatestTransactionId(registrationId, process, iteration, workflowInstanceId);
 
 		List<String> regBioRefIds = packetInfoDao.getAbisRefMatchedRefIdByRid(registrationId);
 

@@ -1345,6 +1345,9 @@ public enum PlatformErrorMessages {
 	RPR_SECUREZONE_FAILURE(PlatformConstants.RPR_SECUREZONE_NOTIFICATION_MODULE + "001",
 			"Exception occured in securezone notification stage. Check logs for more info"),
 
+	RPR_SECUREZONE_DUPLICATE_PACKET(PlatformConstants.RPR_SECUREZONE_NOTIFICATION_MODULE + "002",
+			"Duplicate Packet against same additional info request Id."),
+
 	RPR_AUTH_SYSTEM_EXCEPTION(PlatformConstants.RPR_AUTHENTICATION + "03", "Request could not be processed. Please try again"),
 
 	/** The queue json validation failed. */

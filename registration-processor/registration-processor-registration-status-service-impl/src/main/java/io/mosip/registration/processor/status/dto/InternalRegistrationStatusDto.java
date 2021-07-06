@@ -94,6 +94,8 @@ public class InternalRegistrationStatusDto implements Serializable {
 
 	private int iteration;
 
+	private String workflowInstanceId;
+
 	/**
 	 * Gets the ref id.
 	 *
@@ -611,6 +613,14 @@ public class InternalRegistrationStatusDto implements Serializable {
 
 	public void setIteration(int iteration) {
 		this.iteration = iteration;
+	}
+
+	public String getWorkflowInstanceId() {
+		return workflowInstanceId;
+	}
+
+	public void setWorkflowInstanceId(String workflowInstanceId) {
+		this.workflowInstanceId = workflowInstanceId;
 	}
 
 	@Override

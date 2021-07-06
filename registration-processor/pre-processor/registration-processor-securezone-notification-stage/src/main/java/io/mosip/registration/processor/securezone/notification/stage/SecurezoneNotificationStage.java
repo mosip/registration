@@ -26,16 +26,25 @@ import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequest
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
+import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
+import io.mosip.registration.processor.status.dto.SyncResponseDto;
+import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @Configuration
@@ -89,6 +98,9 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
     /** The registration status service. */
     @Autowired
     private RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
+
+    @Autowired
+    private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationService;
 
     /** The core audit request builder. */
     @Autowired
@@ -153,14 +165,15 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
             messageDTO.setIsValid(obj.getBoolean("isValid"));
             messageDTO.setSource(obj.getString("source"));
             messageDTO.setIteration(obj.getInteger("iteration"));
+            messageDTO.setWorkflowInstanceId(obj.getString("workflowInstanceId"));
+
 
             registrationStatusDto = registrationStatusService.getRegistrationStatus(
-                    messageDTO.getRid(), messageDTO.getReg_type(), messageDTO.getIteration());
+                    messageDTO.getRid(), messageDTO.getReg_type(), messageDTO.getIteration(), messageDTO.getWorkflowInstanceId());
 
-            if (registrationStatusDto != null && messageDTO.getRid().equalsIgnoreCase(registrationStatusDto.getRegistrationId())) {
-                registrationStatusDto
-                        .setLatestTransactionTypeCode(RegistrationTransactionTypeCode.SECUREZONE_NOTIFICATION.toString());
-                registrationStatusDto.setRegistrationStageName(getStageName());
+            boolean isDuplicatePacket = isDuplicatePacketForSameReqId(messageDTO);
+
+            if (!isDuplicatePacket && registrationStatusDto != null && messageDTO.getRid().equalsIgnoreCase(registrationStatusDto.getRegistrationId())) {
 
 
                 registrationStatusDto
@@ -178,6 +191,18 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
                 regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
                         LoggerFileConstant.REGISTRATIONID.toString(), messageDTO.getRid(),
                         description.getCode() + description.getMessage());
+            } else if (isDuplicatePacket) {
+                isTransactionSuccessful = false;
+                messageDTO.setIsValid(Boolean.FALSE);
+                registrationStatusDto.setSubStatusCode(StatusUtil.NOTIFICATION_RECEIVED_TO_SECUREZONE.getCode());
+                description.setMessage(PlatformErrorMessages.RPR_SECUREZONE_DUPLICATE_PACKET.getMessage());
+                description.setCode(PlatformErrorMessages.RPR_SECUREZONE_DUPLICATE_PACKET.getCode());
+                registrationStatusDto.setStatusComment(PlatformErrorMessages.RPR_SECUREZONE_DUPLICATE_PACKET.getMessage());
+                registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.name());
+                registrationStatusDto.setLatestTransactionStatusCode(RegistrationStatusCode.REJECTED.name());
+                regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+                        LoggerFileConstant.REGISTRATIONID.toString(), messageDTO.getRid(),
+                        PlatformErrorMessages.RPR_SECUREZONE_DUPLICATE_PACKET.getMessage());
             } else {
                 isTransactionSuccessful = false;
                 messageDTO.setIsValid(Boolean.FALSE);
@@ -230,6 +255,9 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
             description.setMessage(PlatformErrorMessages.RPR_SECUREZONE_FAILURE.getMessage());
             ctx.fail(e);
         } finally {
+            registrationStatusDto
+                    .setLatestTransactionTypeCode(RegistrationTransactionTypeCode.SECUREZONE_NOTIFICATION.toString());
+            registrationStatusDto.setRegistrationStageName(getStageName());
             if (messageDTO.getInternalError()) {
                 registrationStatusDto.setUpdatedBy(USER);
                 int retryCount = registrationStatusDto.getRetryCount() != null
@@ -278,5 +306,38 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
     @Override
     public MessageDTO process(MessageDTO object) {
         return null;
+    }
+
+    private boolean isDuplicatePacketForSameReqId(MessageDTO messageDTO) {
+        // Validate if duplicate packet received against same additional_info_req_id
+        SyncRegistrationEntity entity = syncRegistrationService.findByWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
+        // find all records for same additionalInfoReqId.
+        List<SyncRegistrationEntity> entities = syncRegistrationService.findByAdditionalInfoReqId(entity.getAdditionalInfoReqId());
+        // if multiple records are present for same additionalInfoReqId then check in registration table how many packets are received
+        if (!CollectionUtils.isEmpty(entities) && entities.size() > 1) {
+            List<String> workflowInstanceIds = entities.stream().map(e -> e.getWorkflowInstanceId()).collect(Collectors.toList());
+            List<InternalRegistrationStatusDto> dtos = new ArrayList<>();
+            for (String w : workflowInstanceIds) {
+                InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus(
+                        messageDTO.getRid(), messageDTO.getReg_type(), messageDTO.getIteration(), w);
+                if (dto != null )
+                    dtos.add(dto);
+            }
+            InternalRegistrationStatusDto latestPacket = dtos.stream().filter(d -> d.getWorkflowInstanceId() != null &&
+                    d.getWorkflowInstanceId().equalsIgnoreCase(messageDTO.getWorkflowInstanceId())).findAny().get();
+
+            dtos.remove(latestPacket);
+
+            for (InternalRegistrationStatusDto previousPacket : dtos) {
+                if (previousPacket.getCreateDateTime().isBefore(latestPacket.getCreateDateTime())) {
+                    messageDTO.setIsValid(Boolean.FALSE);
+                    regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+                            LoggerFileConstant.REGISTRATIONID.toString(), messageDTO.getRid(),
+                            "Packet already received for same additionalInfoReqId.");
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

@@ -473,13 +473,12 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationDto.getRegistrationId(), "SyncRegistrationServiceImpl::validateRegId()::entry");
 		SyncResponseSuccessDto syncResponseDto = new SyncResponseSuccessDto();
-		SyncRegistrationEntity existingSyncRegistration = findByRegistrationId(
-				registrationDto.getRegistrationId().trim());
+		SyncRegistrationEntity existingSyncRegistration = findByPacketId(registrationDto.getPacketId());
 		SyncRegistrationEntity syncRegistration;
 		if (existingSyncRegistration != null) {
 			// update sync registration record
 			syncRegistration = convertDtoToEntity(registrationDto, referenceId, timeStamp);
-			syncRegistration.setId(existingSyncRegistration.getId());
+			syncRegistration.setWorkflowInstanceId(existingSyncRegistration.getWorkflowInstanceId());
 			syncRegistration.setCreateDateTime(existingSyncRegistration.getCreateDateTime());
 			syncRegistrationDao.update(syncRegistration);
 			syncResponseDto.setRegistrationId(registrationDto.getRegistrationId());
@@ -490,12 +489,21 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 
 			syncRegistration = convertDtoToEntity(registrationDto, referenceId, timeStamp);
 			syncRegistration.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
-			syncRegistration.setId(RegistrationUtility.generateId());
+			syncRegistration.setWorkflowInstanceId(RegistrationUtility.generateId());
 			syncRegistrationDao.save(syncRegistration);
 			syncResponseDto.setRegistrationId(registrationDto.getRegistrationId());
 
 			eventId = EventId.RPR_407.toString();
 		}
+
+		syncRegistration = convertDtoToEntity(registrationDto, referenceId, timeStamp);
+		syncRegistration.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+		syncRegistration.setWorkflowInstanceId(RegistrationUtility.generateId());
+		syncRegistrationDao.save(syncRegistration);
+		syncResponseDto.setRegistrationId(registrationDto.getRegistrationId());
+
+		eventId = EventId.RPR_407.toString();
+
 		syncResponseDto.setStatus(ResponseStatusCode.SUCCESS.toString());
 		syncResponseList.add(syncResponseDto);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
@@ -522,8 +530,13 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	 * @return the sync registration entity
 	 */
 	@Override
-	public SyncRegistrationEntity findByRegistrationId(String registrationId) {
+	public List<SyncRegistrationEntity> findByRegistrationId(String registrationId) {
 		return syncRegistrationDao.findById(registrationId);
+	}
+
+	@Override
+	public SyncRegistrationEntity findByWorkflowInstanceId(String workflowInstanceId) {
+		return syncRegistrationDao.findByWorkflowInstanceId(workflowInstanceId);
 	}
 	
 
@@ -557,6 +570,11 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	@Override
 	public SyncRegistrationEntity findByPacketId(String packetId) {
 		return syncRegistrationDao.findByPacketId(packetId);
+	}
+
+	@Override
+	public List<SyncRegistrationEntity> findByAdditionalInfoReqId(String additionalInfoReqId) {
+		return syncRegistrationDao.findByAdditionalInfoReqId(additionalInfoReqId);
 	}
 
 	/**

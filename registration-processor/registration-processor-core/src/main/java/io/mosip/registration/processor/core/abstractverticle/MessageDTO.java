@@ -3,8 +3,6 @@ package io.mosip.registration.processor.core.abstractverticle;
 import java.io.Serializable;
 import java.util.Map;
 
-import io.mosip.registration.processor.core.constant.RegistrationType;
-
 /**
  * This class contains parameters for communication between MOSIP stages.
  *
@@ -41,6 +39,8 @@ public class MessageDTO implements Serializable {
 	private String source;
 
 	private int iteration;
+
+	private String workflowInstanceId;
 
 	/**
 	 * Instantiates a new message DTO.
@@ -205,6 +205,14 @@ public class MessageDTO implements Serializable {
 
 	public void setIteration(int iteration) {
 		this.iteration = iteration;
+	}
+
+	public String getWorkflowInstanceId() {
+		return workflowInstanceId;
+	}
+
+	public void setWorkflowInstanceId(String workflowInstanceId) {
+		this.workflowInstanceId = workflowInstanceId;
 	}
 
 	@Override

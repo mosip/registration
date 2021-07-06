@@ -48,7 +48,9 @@ public interface SyncRegistrationService<T, U> {
 	 *            the resgistration id
 	 * @return the sync registration entity
 	 */
-	public SyncRegistrationEntity findByRegistrationId(String resgistrationId);
+	public List<SyncRegistrationEntity> findByRegistrationId(String resgistrationId);
+
+	public SyncRegistrationEntity findByWorkflowInstanceId(String workflowInstanceId);
 	
 	
 	 public SyncRegistrationEntity findByRegistrationIdAndProcessAndIteration(String registrationId,String process,int iteration);
@@ -61,6 +63,8 @@ public interface SyncRegistrationService<T, U> {
 	 * @return sync registration entity
 	 */
 	public SyncRegistrationEntity findByRegistrationIdAndAdditionalInfoReqId(String registrationId, String additionalInfoReqId);
+
+	public List<SyncRegistrationEntity> findByAdditionalInfoReqId(String additionalInfoReqId);
 
 	public SyncRegistrationEntity findByPacketId(String packetId);
 

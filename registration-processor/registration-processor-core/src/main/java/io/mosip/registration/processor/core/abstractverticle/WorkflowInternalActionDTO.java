@@ -38,6 +38,10 @@ public class WorkflowInternalActionDTO extends MessageDTO implements Serializabl
 
 	/** The additional info process. */
 	private String additionalInfoProcess;
+
+	/** The workflow instance id */
+	private String workflowInstanceId;
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -183,6 +187,24 @@ public class WorkflowInternalActionDTO extends MessageDTO implements Serializabl
 	 */
 	public void setAdditionalInfoProcess(String additionalInfoProcess) {
 		this.additionalInfoProcess = additionalInfoProcess;
+	}
+
+	/**
+	 * Gets the workflow instance id.
+	 *
+	 * @return the workflow instance id
+	 */
+	public String getWorkflowInstanceId() {
+		return workflowInstanceId;
+	}
+
+	/**
+	 * Sets the workflow instance id.
+	 *
+	 * @param workflowInstanceId the workflow instance id.
+	 */
+	public void setWorkflowInstanceId(String workflowInstanceId) {
+		this.workflowInstanceId = workflowInstanceId;
 	}
 
 

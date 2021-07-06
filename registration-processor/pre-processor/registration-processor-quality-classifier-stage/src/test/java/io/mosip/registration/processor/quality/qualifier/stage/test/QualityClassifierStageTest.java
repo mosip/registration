@@ -195,7 +195,7 @@ public class QualityClassifierStageTest {
 
 		ReflectionTestUtils.setField(qualityClassifierStage, "parsedQualityRangeMap", parsedMap);
 
-		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
 		String idJsonString = "{\n" + "  \"identity\" : {\n" + "    \"fullName\" : [ {\n"
 				+ "      \"language\" : \"eng\",\n" + "      \"value\" : \"Ragavendran V\"\n" + "    }, {\n"
@@ -506,7 +506,7 @@ public class QualityClassifierStageTest {
 	@Test
 	public void testFileMissing()
 			throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
-		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
 		when(basedPacketManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
 				.thenReturn(null);
 

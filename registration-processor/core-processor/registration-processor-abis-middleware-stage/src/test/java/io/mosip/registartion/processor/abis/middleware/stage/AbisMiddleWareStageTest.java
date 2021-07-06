@@ -161,12 +161,12 @@ public class AbisMiddleWareStageTest {
 		InternalRegistrationStatusDto internalRegStatusDto = new InternalRegistrationStatusDto();
 		internalRegStatusDto.setRegistrationId("");
 		internalRegStatusDto.setLatestTransactionStatusCode("Demodedupe");
-		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.anyString(),any(),any()))
+		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.anyString(),any(),any(), any()))
 				.thenReturn(internalRegStatusDto);
 
 		regStatusEntity = new RegistrationStatusEntity();
 		regStatusEntity.setLatestRegistrationTransactionId("1234");
-		Mockito.when(registrationStatusDao.find(Mockito.anyString(), Mockito.anyString(), Mockito.anyInt())).thenReturn(regStatusEntity);
+		Mockito.when(registrationStatusDao.find(Mockito.anyString(), Mockito.anyString(), Mockito.anyInt(), Mockito.anyString())).thenReturn(regStatusEntity);
 
 		abisRefList = new ArrayList<>();
 		abisRefList.add("88");
@@ -341,13 +341,13 @@ public class AbisMiddleWareStageTest {
 		assertFalse(dto.getIsValid());
 
 		// test for null transactionId
-		Mockito.when(registrationStatusDao.find(Mockito.anyString(),Mockito.anyString(),Mockito.anyInt())).thenReturn(null);
+		Mockito.when(registrationStatusDao.find(Mockito.anyString(),Mockito.anyString(),Mockito.anyInt(), Mockito.anyString())).thenReturn(null);
 		Mockito.when(packetInfoManager.getReferenceIdByRid(Mockito.anyString())).thenReturn(abisRefList);
 		stage.process(dto);
 		assertFalse(dto.getIsValid());
 
 		// test for empty insertidentify request List
-		Mockito.when(registrationStatusDao.find(Mockito.anyString(), Mockito.anyString(), Mockito.anyInt())).thenReturn(regStatusEntity);
+		Mockito.when(registrationStatusDao.find(Mockito.anyString(), Mockito.anyString(), Mockito.anyInt(), Mockito.anyString())).thenReturn(regStatusEntity);
 		Mockito.when(packetInfoManager.getInsertOrIdentifyRequest(Mockito.anyString(), Mockito.anyString()))
 				.thenReturn(new ArrayList<AbisRequestDto>());
 		Mockito.when(packetInfoManager.getReferenceIdByRid(Mockito.anyString())).thenReturn(abisRefList);
@@ -355,7 +355,7 @@ public class AbisMiddleWareStageTest {
 		assertFalse(dto.getIsValid());
 
 		// test for send to queue failed
-		Mockito.when(registrationStatusDao.find(Mockito.anyString(), Mockito.anyString(), Mockito.anyInt())).thenReturn(regStatusEntity);
+		Mockito.when(registrationStatusDao.find(Mockito.anyString(), Mockito.anyString(), Mockito.anyInt(), Mockito.anyString())).thenReturn(regStatusEntity);
 		Mockito.when(packetInfoManager.getInsertOrIdentifyRequest(Mockito.anyString(), Mockito.anyString()))
 				.thenReturn(abisInsertIdentifyList);
 		Mockito.when(packetInfoManager.getReferenceIdByRid(Mockito.anyString())).thenReturn(abisRefList);
@@ -363,7 +363,7 @@ public class AbisMiddleWareStageTest {
 		stage.process(dto);
 
 		// test for exception while sending to queue
-		Mockito.when(registrationStatusDao.find(Mockito.anyString(), Mockito.anyString(), Mockito.anyInt())).thenReturn(regStatusEntity);
+		Mockito.when(registrationStatusDao.find(Mockito.anyString(), Mockito.anyString(), Mockito.anyInt(), Mockito.anyString())).thenReturn(regStatusEntity);
 		Mockito.when(packetInfoManager.getInsertOrIdentifyRequest(Mockito.anyString(), Mockito.anyString()))
 				.thenReturn(abisInsertIdentifyList);
 		Mockito.when(packetInfoManager.getReferenceIdByRid(Mockito.anyString())).thenReturn(abisRefList);

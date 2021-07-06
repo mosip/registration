@@ -27,17 +27,17 @@ public abstract class BaseSyncRegistrationEntity {
 	}
 
 	/** The id. */
-	@Column(name = "id", nullable = false)
+	@Column(name = "workflow_instance_id", nullable = false)
 	@Id
-	protected String id;
+	protected String workflowInstanceId;
 
 	/**
 	 * Gets the id.
 	 *
 	 * @return the id
 	 */
-	public String getId() {
-		return id;
+	public String getWorkflowInstanceId() {
+		return workflowInstanceId;
 	}
 
 	/**
@@ -45,8 +45,8 @@ public abstract class BaseSyncRegistrationEntity {
 	 *
 	 * @param baseId the new id
 	 */
-	public void setId(String baseId) {
-		this.id = baseId;
+	public void setWorkflowInstanceId(String baseId) {
+		this.workflowInstanceId = baseId;
 	}
 
 }
