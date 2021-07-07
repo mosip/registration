@@ -16,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.gson.Gson;
@@ -56,7 +55,6 @@ import io.swagger.annotations.ApiResponses;
 @RefreshScope
 @RestController
 @Api(tags = "Registration Status")
-@RequestMapping("/v1/registrationstatus")
 public class RegistrationStatusController {
 
 	/** The registration status service. */
@@ -189,7 +187,7 @@ public class RegistrationStatusController {
 
 	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_OFFICER', 'REGISTRATION_SUPERVISOR','RESIDENT')")
 	@PostMapping(path = "/packetStatus", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@ApiOperation(value = "Get the registration entity", response = RegistrationExternalStatusCode.class)
+	@ApiOperation(value = "Get the Packet status", response = RegistrationExternalStatusCode.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Packet status successfully fetched"),
 			@ApiResponse(code = 400, message = "Unable to fetch the Packet status") })
 	public ResponseEntity<Object> packetStatus(
