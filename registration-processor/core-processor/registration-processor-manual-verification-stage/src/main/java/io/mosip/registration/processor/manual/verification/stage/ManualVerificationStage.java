@@ -160,9 +160,9 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 	private static final String APPLICATION_JSON = "application/json";
 
 	/**
-	 * Deploy stage.
+	 * Deploy verticle.
 	 */
-	public void deployStage() {
+	public void deployVerticle() {
 		this.mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.MANUAL_VERIFICATION_BUS_IN, 
 			MessageBusAddress.MANUAL_VERIFICATION_BUS_OUT, messageExpiryTimeLimit);

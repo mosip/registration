@@ -1614,25 +1614,6 @@ public class WorkflowCommandPredicateTest {
 		assertEquals(WorkflowInternalActionCode.PAUSE_AND_REQUEST_ADDITIONAL_INFO.toString(),
 				workflowInternalActionDTO.getActionCode());
 	}
-
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testRoutePredicatePositiveForResumeParentFlow() throws Exception {
-		MessageDTO messageDTO = new MessageDTO();
-		messageDTO.setRid("10002100741000120201231071308");
-		messageDTO.setReg_type("CORRECTION");
-		messageDTO.setIteration(1);
-		messageDTO.setSource("REGISTRATION_CLIENT");
-		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
-		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT,
-				"workflow-cmd://resume-parent-flow");
-		assertTrue(workflowCommandPredicate.matches(exchange));
-		WorkflowInternalActionDTO workflowInternalActionDTO = objectMapper
-				.readValue(exchange.getMessage().getBody().toString(), WorkflowInternalActionDTO.class);
-		assertEquals(WorkflowInternalActionCode.RESUME_PARENT_FLOW.toString(),
-				workflowInternalActionDTO.getActionCode());
-	}
-
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testRoutePredicatePositiveForRestartParentFlow() throws Exception {
@@ -1649,4 +1630,23 @@ public class WorkflowCommandPredicateTest {
 		assertEquals(WorkflowInternalActionCode.RESTART_PARENT_FLOW.toString(),
 				workflowInternalActionDTO.getActionCode());
 	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testRoutePredicatePositiveForCompleteAsRejectedWithoutParentFlow() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("10002100741000120201231071308");
+		messageDTO.setReg_type("CORRECTION");
+		messageDTO.setIteration(1);
+		messageDTO.setSource("REGISTRATION_CLIENT");
+		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
+		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT,
+				("workflow-cmd://complete-as-rejected-without-parent-flow"));
+		assertTrue(workflowCommandPredicate.matches(exchange));
+		WorkflowInternalActionDTO workflowInternalActionDTO = objectMapper
+				.readValue(exchange.getMessage().getBody().toString(), WorkflowInternalActionDTO.class);
+		assertEquals(WorkflowInternalActionCode.COMPLETE_AS_REJECTED_WITHOUT_PARENT_FLOW.toString(),
+				workflowInternalActionDTO.getActionCode());
+	}
+
 }

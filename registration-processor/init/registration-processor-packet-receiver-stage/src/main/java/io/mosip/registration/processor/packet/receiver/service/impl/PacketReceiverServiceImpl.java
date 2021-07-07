@@ -59,6 +59,7 @@ import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDt
 import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
 import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
+import io.mosip.registration.processor.status.service.AdditionalInfoRequestService;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 
@@ -99,6 +100,9 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	/** The core audit request builder. */
 	@Autowired
 	private AuditLogRequestBuilder auditLogRequestBuilder;
+
+	@Autowired
+	private AdditionalInfoRequestService additionalInfoRequestService;
 
 	/** The packet receiver stage. */
 
@@ -141,7 +145,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 			regEntity = syncRegistrationService.findByPacketId(packetId);
 			String registrationId = regEntity.getRegistrationId();
 			messageDTO.setRid(registrationId);
-			messageDTO.setWorkflowInstanceId(regEntity.getPacketId());
+			messageDTO.setWorkflowInstanceId(regEntity.getWorkflowInstanceId());
 			try (InputStream encryptedInputStream = FileUtils.newInputStream(file.getAbsolutePath())) {
 				byte[] encryptedByteArray = IOUtils.toByteArray(encryptedInputStream);
 				validatePacketWithSync(regEntity, registrationId, description);
@@ -552,8 +556,8 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	private int getIterationFromPacketName(SyncRegistrationEntity regEntity) {
 		return (mainProcess.contains(regEntity.getRegistrationType())) ? 1
 				:
-            registrationStatusService.findWorkflowMappingByAdditionalReqId(
-            		regEntity.getAdditionalInfoReqId()).getIteration();
+				additionalInfoRequestService.getAdditionalInfoRequestByReqId(
+            		regEntity.getAdditionalInfoReqId()).getAdditionalInfoIteration();
     }
 
 }

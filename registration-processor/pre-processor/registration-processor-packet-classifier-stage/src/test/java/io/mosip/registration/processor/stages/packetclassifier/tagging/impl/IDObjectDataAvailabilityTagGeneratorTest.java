@@ -127,7 +127,7 @@ public class IDObjectDataAvailabilityTagGeneratorTest {
 	@Test
 	public void testGenerateTagsForAllFieldTypesAndDifferntExpressions() throws BaseCheckedException {
 		idObjectDataAvailabilityTagGenerator.getRequiredIdObjectFieldNames();
-		Map<String, String> tags = idObjectDataAvailabilityTagGenerator.generateTags("1234", "NEW", 
+		Map<String, String> tags = idObjectDataAvailabilityTagGenerator.generateTags("12345", "1234", "NEW", 
 			idObjectFieldDTOMap, null, 0);
 		for(Map.Entry<String, String> entry : tagValueMap.entrySet()) {
 			assertEquals(entry.getValue(), tags.get(entry.getKey()));
@@ -138,7 +138,7 @@ public class IDObjectDataAvailabilityTagGeneratorTest {
 	public void testGenerateTagsForFieldNotAvailableInFieldDTOMap() throws BaseCheckedException {
 		idObjectDataAvailabilityTagGenerator.getRequiredIdObjectFieldNames();
 		idObjectFieldDTOMap.remove("dateOfBirth");
-		Map<String, String> tags = idObjectDataAvailabilityTagGenerator.generateTags("1234", "NEW", idObjectFieldDTOMap, null, 0);
+		Map<String, String> tags = idObjectDataAvailabilityTagGenerator.generateTags("12345", "1234", "NEW", idObjectFieldDTOMap, null, 0);
 		for(Map.Entry<String, String> entry : tagValueMap.entrySet()) {
 			assertEquals("false", tags.get(entry.getKey()));
 		}
@@ -149,7 +149,7 @@ public class IDObjectDataAvailabilityTagGeneratorTest {
 		idObjectDataAvailabilityTagGenerator.getRequiredIdObjectFieldNames();
 		FieldDTO fieldDTO = idObjectFieldDTOMap.get("IDSchemaVersion");
 		fieldDTO.setType("notavailabletype");
-		idObjectDataAvailabilityTagGenerator.generateTags("1234", "NEW", idObjectFieldDTOMap, null, 0);
+		idObjectDataAvailabilityTagGenerator.generateTags("12345", "1234", "NEW", idObjectFieldDTOMap, null, 0);
 	}
 
 	@Test(expected = ParsingException.class)
@@ -157,7 +157,7 @@ public class IDObjectDataAvailabilityTagGeneratorTest {
 		idObjectDataAvailabilityTagGenerator.getRequiredIdObjectFieldNames();
 		idObjectFieldDTOMap.put("gender", 
 			new FieldDTO("simpleType", "[ {\n  \"language\" : \"eng\",\n  \"value\" : \"MALE\"\n} "));
-		idObjectDataAvailabilityTagGenerator.generateTags("1234", "NEW", idObjectFieldDTOMap, null, 0);
+		idObjectDataAvailabilityTagGenerator.generateTags("12345", "1234", "NEW", idObjectFieldDTOMap, null, 0);
 	}
 	
 }

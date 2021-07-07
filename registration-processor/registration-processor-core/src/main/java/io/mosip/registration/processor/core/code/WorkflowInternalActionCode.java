@@ -1,6 +1,5 @@
 package io.mosip.registration.processor.core.code;
 
-
 /**
  * The Enum WorkflowInternalActionCode.
  */
@@ -24,10 +23,10 @@ public enum WorkflowInternalActionCode {
 	/** The paused and request additional info. */
 	PAUSE_AND_REQUEST_ADDITIONAL_INFO,
 
-	/** The resume parent flow. */
-	RESUME_PARENT_FLOW,
-
 	/** The restart parent flow. */
 	RESTART_PARENT_FLOW,
+	
+	/** The complete as rejected without parent flow. */
+	COMPLETE_AS_REJECTED_WITHOUT_PARENT_FLOW,
 
 }
