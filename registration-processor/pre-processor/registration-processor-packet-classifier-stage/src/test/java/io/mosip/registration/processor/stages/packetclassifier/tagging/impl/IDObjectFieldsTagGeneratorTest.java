@@ -124,7 +124,7 @@ public class IDObjectFieldsTagGeneratorTest {
 	@Test
 	public void testGenerateTagsForAllFieldTypes() throws BaseCheckedException {
 		idObjectFieldsTagGenerator.getRequiredIdObjectFieldNames();
-		Map<String, String> tags = idObjectFieldsTagGenerator.generateTags("1234", "NEW", 
+		Map<String, String> tags = idObjectFieldsTagGenerator.generateTags("12345", "1234", "NEW", 
 			idObjectFieldDTOMap, null, 0);
 		for(int i=0; i < mappingFieldNames.size(); i++) {
 			String mappingFieldName = mappingFieldNames.get(i);
@@ -136,7 +136,7 @@ public class IDObjectFieldsTagGeneratorTest {
 	public void testGenerateTagsForFieldNotAvailableInFieldDTOMap() throws BaseCheckedException {
 		idObjectFieldsTagGenerator.getRequiredIdObjectFieldNames();
 		idObjectFieldDTOMap.remove(actualFieldNames.get(0));
-		Map<String, String> tags = idObjectFieldsTagGenerator.generateTags("1234", "NEW", idObjectFieldDTOMap, null, 0);
+		Map<String, String> tags = idObjectFieldsTagGenerator.generateTags("12345", "1234", "NEW", idObjectFieldDTOMap, null, 0);
 		assertEquals(tags.get(tagNamePrefix + mappingFieldNames.get(0)), notAvailableTagValue);
 	}
 
@@ -145,7 +145,7 @@ public class IDObjectFieldsTagGeneratorTest {
 		idObjectFieldsTagGenerator.getRequiredIdObjectFieldNames();
 		FieldDTO fieldDTO = idObjectFieldDTOMap.get(actualFieldNames.get(0));
 		fieldDTO.setType("notavailabletype");
-		idObjectFieldsTagGenerator.generateTags("1234", "NEW", idObjectFieldDTOMap, null, 0);
+		idObjectFieldsTagGenerator.generateTags("12345", "1234", "NEW", idObjectFieldDTOMap, null, 0);
 	}
 
 	@Test(expected = ParsingException.class)
@@ -153,7 +153,7 @@ public class IDObjectFieldsTagGeneratorTest {
 		idObjectFieldsTagGenerator.getRequiredIdObjectFieldNames();
 		idObjectFieldDTOMap.put(actualFieldNames.get(2), 
 			new FieldDTO("simpleType", "[ {\n  \"language\" : \"eng\",\n  \"value\" : \"MALE\"\n} "));
-		idObjectFieldsTagGenerator.generateTags("1234", "NEW", idObjectFieldDTOMap, null, 0);
+		idObjectFieldsTagGenerator.generateTags("12345", "1234", "NEW", idObjectFieldDTOMap, null, 0);
 	}
 	
 }

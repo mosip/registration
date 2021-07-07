@@ -51,10 +51,6 @@ public interface SyncRegistrationService<T, U> {
 	public List<SyncRegistrationEntity> findByRegistrationId(String resgistrationId);
 
 	public SyncRegistrationEntity findByWorkflowInstanceId(String workflowInstanceId);
-	
-	
-	 public SyncRegistrationEntity findByRegistrationIdAndProcessAndIteration(String registrationId,String process,int iteration);
-
 
 	/**
 	 * Find by registration id and additional info req id. 

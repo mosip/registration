@@ -42,11 +42,11 @@ public class SupervisorApprovalStatusTagGenerator implements TagGenerator {
      * {@inheritDoc}
      */
     @Override
-    public Map<String, String> generateTags(String registrationId, String process,
-            Map<String, FieldDTO> identityFieldMap,
+    public Map<String, String> generateTags(String workflowInstanceId, String registrationId, 
+            String process, Map<String, FieldDTO> identityFieldMap,
             Map<String, String> metaInfoMap, int iteration) throws BaseCheckedException {
         Map<String, String> tags = new HashMap<String, String>();
-        SyncRegistrationEntity regEntity = syncRegistrationService.findByRegistrationIdAndProcessAndIteration(registrationId, process, iteration);
+        SyncRegistrationEntity regEntity = syncRegistrationService.findByWorkflowInstanceId(workflowInstanceId);
         if(regEntity == null)
             throw new BaseCheckedException(
                 PlatformErrorMessages.RPR_PCM_SYNC_REGISTRATION_ENTITY_NOT_AVAILABLE.getCode(), 
