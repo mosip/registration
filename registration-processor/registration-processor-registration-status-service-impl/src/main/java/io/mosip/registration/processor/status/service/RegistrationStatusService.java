@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 
 import io.mosip.registration.processor.core.workflow.dto.SearchInfo;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
+import io.mosip.registration.processor.status.dto.PacketStatusDTO;
+import io.mosip.registration.processor.status.dto.PacketStatusSubRequestDTO;
 import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDto;
 
 // TODO: Auto-generated Javadoc
@@ -137,5 +139,7 @@ public interface RegistrationStatusService<T, U, D> {
 	public void updateRegistrationStatusForWorkflow(U registrationStatusDto, String moduleId, String moduleName);
 
 	public List<InternalRegistrationStatusDto> getResumablePackets(Integer fetchSize);
+
+	public List<PacketStatusDTO> getByPacketIds(List<PacketStatusSubRequestDTO> packetIds);
 
 }

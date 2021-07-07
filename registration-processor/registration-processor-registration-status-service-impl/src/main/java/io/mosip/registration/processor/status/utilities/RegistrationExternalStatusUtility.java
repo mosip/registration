@@ -64,11 +64,12 @@ public class RegistrationExternalStatusUtility {
 		} else if (status.equalsIgnoreCase(RegistrationStatusCode.PROCESSING.toString())
 				|| status.equalsIgnoreCase(RegistrationStatusCode.PAUSED.toString())
 				|| status.equalsIgnoreCase(RegistrationStatusCode.RESUMABLE.toString())
-				|| status.equalsIgnoreCase(RegistrationStatusCode.REPROCESS.toString())
-				|| status.equalsIgnoreCase(RegistrationStatusCode.PAUSED_FOR_ADDITIONAL_INFO.toString())) {
+				|| status.equalsIgnoreCase(RegistrationStatusCode.REPROCESS.toString())) {
 			mappedValue = checkStatusforPacketReceiver(entity);
 		} else if (status.equalsIgnoreCase(RegistrationStatusCode.FAILED.toString())) {
 			mappedValue = checkStatusforPacketUploader(entity);
+		} else if (status.equalsIgnoreCase(RegistrationStatusCode.PAUSED_FOR_ADDITIONAL_INFO.toString())) {
+			mappedValue = RegistrationExternalStatusCode.AWAITING_INFORMATION;
 		} else {
 			mappedValue = RegistrationExternalStatusCode.REJECTED;
 		}

@@ -8,7 +8,6 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -40,6 +39,8 @@ import io.mosip.registration.processor.status.code.RegistrationExternalStatusCod
 import io.mosip.registration.processor.status.code.SupervisorStatus;
 import io.mosip.registration.processor.status.dao.SyncRegistrationDao;
 import io.mosip.registration.processor.status.decryptor.Decryptor;
+import io.mosip.registration.processor.status.dto.PacketStatusDTO;
+import io.mosip.registration.processor.status.dto.PacketStatusSubRequestDTO;
 import io.mosip.registration.processor.status.dto.RegistrationAdditionalInfoDTO;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDto;
@@ -55,7 +56,6 @@ import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.exception.EncryptionFailureException;
 import io.mosip.registration.processor.status.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
-import io.mosip.registration.processor.status.repositary.BaseRegProcRepository;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.mosip.registration.processor.status.utilities.RegistrationUtility;
 
@@ -741,5 +741,81 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	@Override
 	public boolean deleteAdditionalInfo(SyncRegistrationEntity syncEntity) {
 		return syncRegistrationDao.deleteAdditionalInfo(syncEntity);
+	}
+
+	@Override
+	public List<PacketStatusDTO> getByPacketIdsWithStatus(List<PacketStatusSubRequestDTO> packetIdsRequested) {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				"SyncRegistrationServiceImpl::getByPacketIdsWithStatus()::entry");
+
+		try {
+			List<String> packetIds = new ArrayList<>();
+
+			for (PacketStatusSubRequestDTO packetStatusSubRequestDTO : packetIdsRequested) {
+				packetIds.add(packetStatusSubRequestDTO.getPacketId());
+			}
+			if (!packetIds.isEmpty()) {
+				List<SyncRegistrationEntity> syncRegistrationEntityList = syncRegistrationDao
+						.getByPacketIds(packetIds);
+
+				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+						"SyncRegistrationServiceImpl::getByPacketIdsWithStatus()::exit");
+				return convertEntityListToDtoListAndGetExternalStatusForPacket(syncRegistrationEntityList);
+			}
+			return null;
+		} catch (DataAccessLayerException e) {
+
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
+			throw new TablenotAccessibleException(
+					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
+		}
+	}
+
+	private List<PacketStatusDTO> convertEntityListToDtoListAndGetExternalStatusForPacket(
+			List<SyncRegistrationEntity> syncRegistrationEntityList) {
+		List<PacketStatusDTO> list = new ArrayList<>();
+		if (syncRegistrationEntityList != null) {
+			for (SyncRegistrationEntity entity : syncRegistrationEntityList) {
+				list.add(convertEntityToDtoAndGetExternalStatusForPacket(entity));
+			}
+
+		}
+		return list;
+	}
+
+	private PacketStatusDTO convertEntityToDtoAndGetExternalStatusForPacket(SyncRegistrationEntity entity) {
+		PacketStatusDTO packetStatusDTO = new PacketStatusDTO();
+		packetStatusDTO.setPacketId(entity.getPacketId());
+		packetStatusDTO.setStatusCode(RegistrationExternalStatusCode.UPLOAD_PENDING.toString());
+		return packetStatusDTO;
+	}
+
+	@Override
+	public List<SyncRegistrationEntity> getByPacketIds(List<PacketStatusSubRequestDTO> packetIdsRequested) {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				"SyncRegistrationServiceImpl::getByPacketIds()::entry");
+
+		try {
+			List<String> packetIds = new ArrayList<>();
+
+			for (PacketStatusSubRequestDTO packetStatusSubRequestDTO : packetIdsRequested) {
+				packetIds.add(packetStatusSubRequestDTO.getPacketId());
+			}
+			if (!packetIds.isEmpty()) {
+				List<SyncRegistrationEntity> syncRegistrationEntityList = syncRegistrationDao.getByPacketIds(packetIds);
+
+				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+						"SyncRegistrationServiceImpl::getByPacketIds()::exit");
+				return syncRegistrationEntityList;
+			}
+			return null;
+		} catch (DataAccessLayerException e) {
+
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
+			throw new TablenotAccessibleException(
+					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
+		}
 	}
 }

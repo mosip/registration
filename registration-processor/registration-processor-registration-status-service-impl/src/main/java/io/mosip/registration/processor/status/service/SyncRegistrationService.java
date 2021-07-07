@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import io.mosip.registration.processor.status.dto.PacketStatusDTO;
+import io.mosip.registration.processor.status.dto.PacketStatusSubRequestDTO;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.RegistrationSyncRequestDTO;
@@ -99,5 +101,9 @@ public interface SyncRegistrationService<T, U> {
 	public boolean deleteAdditionalInfo(SyncRegistrationEntity syncEntity);
 
 	public List<SyncResponseDto> sync2(List<SyncRegistrationDto> request, String referenceId, String timeStamp);
+
+	public List<PacketStatusDTO> getByPacketIdsWithStatus(List<PacketStatusSubRequestDTO> packetIds);
+
+	public List<SyncRegistrationEntity> getByPacketIds(List<PacketStatusSubRequestDTO> packetIds);
 
 }

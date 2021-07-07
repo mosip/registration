@@ -233,4 +233,18 @@ public class SyncRegistrationDao {
 
 		return syncRegistrationEntityList;
 	}
+
+	public List<SyncRegistrationEntity> getByPacketIds(List<String> packetIds) {
+		Map<String, Object> params = new HashMap<>();
+		String className = SyncRegistrationEntity.class.getSimpleName();
+
+		String alias = SyncRegistrationEntity.class.getName().toLowerCase().substring(0, 1);
+
+		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
+				+ ".packetId IN :packetIds" + EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
+
+		params.put("packetIds", packetIds);
+		params.put(ISDELETED, Boolean.FALSE);
+		return syncRegistrationRepository.createQuerySelect(queryStr, params);
+	}
 }

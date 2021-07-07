@@ -28,6 +28,10 @@ import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
 import io.mosip.registration.processor.status.code.RegistrationExternalStatusCode;
 import io.mosip.registration.processor.status.dto.ErrorDTO;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
+import io.mosip.registration.processor.status.dto.PacketStatusDTO;
+import io.mosip.registration.processor.status.dto.PacketStatusErrorDTO;
+import io.mosip.registration.processor.status.dto.PacketStatusRequestDTO;
+import io.mosip.registration.processor.status.dto.PacketStatusSubRequestDTO;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusErrorDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusRequestDTO;
@@ -37,7 +41,9 @@ import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.exception.RegStatusAppException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
+import io.mosip.registration.processor.status.sync.response.dto.PacketStatusResponseDTO;
 import io.mosip.registration.processor.status.sync.response.dto.RegStatusResponseDTO;
+import io.mosip.registration.processor.status.validator.PacketStatusRequestValidator;
 import io.mosip.registration.processor.status.validator.RegistrationStatusRequestValidator;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -65,12 +71,17 @@ public class RegistrationStatusController {
 	@Autowired
 	RegistrationStatusRequestValidator registrationStatusRequestValidator;
 
+	@Autowired
+	PacketStatusRequestValidator packetStatusRequestValidator;
+
 
 
 	private static final String REG_STATUS_SERVICE_ID = "mosip.registration.processor.registration.status.id";
 	private static final String REG_STATUS_APPLICATION_VERSION = "mosip.registration.processor.registration.status.version";
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
 	private static final String RESPONSE_SIGNATURE = "Response-Signature";
+	private static final String PACKET_STATUS_SERVICE_ID = "mosip.registration.processor.packet.status.id";
+	private static final String PACKET_STATUS_APPLICATION_VERSION = "mosip.registration.processor.packet.status.version";
 
 	@Autowired
 	private Environment env;
@@ -176,4 +187,84 @@ public class RegistrationStatusController {
 		}
 	}
 
+	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_OFFICER', 'REGISTRATION_SUPERVISOR','RESIDENT')")
+	@PostMapping(path = "/packetStatus", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@ApiOperation(value = "Get the registration entity", response = RegistrationExternalStatusCode.class)
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "Packet status successfully fetched"),
+			@ApiResponse(code = 400, message = "Unable to fetch the Packet status") })
+	public ResponseEntity<Object> packetStatus(
+			@RequestBody(required = true) PacketStatusRequestDTO packetStatusRequestDTO) throws RegStatusAppException {
+
+		try {
+			packetStatusRequestValidator.validate(packetStatusRequestDTO,
+					env.getProperty(PACKET_STATUS_SERVICE_ID));
+			List<PacketStatusDTO> packetStatus = registrationStatusService
+					.getByPacketIds(packetStatusRequestDTO.getRequest());
+
+			List<PacketStatusSubRequestDTO> packetIdsNotAvailable = packetStatusRequestDTO.getRequest()
+					.stream()
+					.filter(request -> packetStatus.stream()
+							.noneMatch(packet -> packet.getPacketId().equals(request.getPacketId())))
+					.collect(Collectors.toList());
+			List<PacketStatusDTO> packetIdList = syncRegistrationService
+					.getByPacketIdsWithStatus(packetIdsNotAvailable);
+			if (packetIdList != null && !packetIdList.isEmpty()) {
+				packetStatus.addAll(syncRegistrationService.getByPacketIdsWithStatus(packetIdsNotAvailable));
+			}
+
+			updatedConditionalStatusToProcessedForPacketIds(packetStatus);
+
+			if (isEnabled) {
+				PacketStatusResponseDTO response = buildPacketStatusResponse(packetStatus,
+						packetStatusRequestDTO.getRequest());
+				Gson gson = new GsonBuilder().serializeNulls().create();
+				HttpHeaders headers = new HttpHeaders();
+				headers.add(RESPONSE_SIGNATURE, digitalSignatureUtility.getDigitalSignature(gson.toJson(response)));
+				return ResponseEntity.status(HttpStatus.OK).headers(headers).body(gson.toJson(response));
+			}
+			return ResponseEntity.status(HttpStatus.OK)
+					.body(buildPacketStatusResponse(packetStatus, packetStatusRequestDTO.getRequest()));
+		} catch (RegStatusAppException e) {
+			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_DATA_VALIDATION_FAILED, e);
+		} catch (Exception e) {
+			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_UNKNOWN_EXCEPTION, e);
+		}
+	}
+
+	public PacketStatusResponseDTO buildPacketStatusResponse(List<PacketStatusDTO> packetStatus,
+			List<PacketStatusSubRequestDTO> requestIds) {
+
+		PacketStatusResponseDTO response = new PacketStatusResponseDTO();
+		if (Objects.isNull(response.getId())) {
+			response.setId(env.getProperty(PACKET_STATUS_SERVICE_ID));
+		}
+		response.setResponsetime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
+		response.setVersion(env.getProperty(PACKET_STATUS_APPLICATION_VERSION));
+		response.setResponse(packetStatus);
+		List<PacketStatusSubRequestDTO> packetIdsNotAvailable = requestIds.stream()
+				.filter(request -> packetStatus.stream()
+						.noneMatch(packet -> packet.getPacketId().equals(request.getPacketId())))
+				.collect(Collectors.toList());
+		List<ErrorDTO> errors = new ArrayList<ErrorDTO>();
+		if (!packetIdsNotAvailable.isEmpty()) {
+
+			for (PacketStatusSubRequestDTO packetStatusSubRequestDTO : packetIdsNotAvailable) {
+				PacketStatusErrorDTO errorDto = new PacketStatusErrorDTO(
+						PlatformErrorMessages.RPR_RGS_PACKETID_NOT_FOUND.getCode(),
+						PlatformErrorMessages.RPR_RGS_PACKETID_NOT_FOUND.getMessage());
+
+				errorDto.setPacketId(packetStatusSubRequestDTO.getPacketId());
+				errors.add(errorDto);
+			}
+		}
+		response.setErrors(errors);
+		return response;
+	}
+
+	private void updatedConditionalStatusToProcessedForPacketIds(List<PacketStatusDTO> packets) {
+		for (PacketStatusDTO packetStatusDTO : packets) {
+			if (externalStatusesConsideredProcessed.contains(packetStatusDTO.getStatusCode()))
+				packetStatusDTO.setStatusCode(RegistrationExternalStatusCode.PROCESSED.toString());
+		}
+	}
 }

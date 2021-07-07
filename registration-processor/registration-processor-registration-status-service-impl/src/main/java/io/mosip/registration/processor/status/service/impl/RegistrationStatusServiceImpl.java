@@ -3,11 +3,13 @@ package io.mosip.registration.processor.status.service.impl;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import io.mosip.registration.processor.status.repositary.BaseRegProcRepository;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,13 +35,19 @@ import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequest
 import io.mosip.registration.processor.status.code.RegistrationExternalStatusCode;
 import io.mosip.registration.processor.status.dao.RegistrationStatusDao;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
+import io.mosip.registration.processor.status.dto.PacketStatusDTO;
+import io.mosip.registration.processor.status.dto.PacketStatusSubRequestDTO;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDto;
+import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
+import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.dto.TransactionDto;
 import io.mosip.registration.processor.status.entity.BaseRegistrationPKEntity;
 import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
+import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.mosip.registration.processor.status.service.TransactionService;
 import io.mosip.registration.processor.status.utilities.RegistrationExternalStatusUtility;
 
@@ -71,6 +79,10 @@ public class RegistrationStatusServiceImpl
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(RegistrationStatusServiceImpl.class);
+
+	/** The sync registration service. */
+	@Autowired
+	SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationService;
 
 	/*
 	 * (non-Javadoc)
@@ -791,6 +803,67 @@ public class RegistrationStatusServiceImpl
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationStatusDto.getRegistrationId(),
 				"RegistrationStatusServiceImpl::updateRegistrationStatusForWorkFlow()::exit");
+
+	}
+
+	@Override
+	public List<PacketStatusDTO> getByPacketIds(List<PacketStatusSubRequestDTO> packetIds) {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				"RegistrationStatusServiceImpl::getByPacketIds()::entry");
+
+		try {
+			List<SyncRegistrationEntity> syncRegistrationEntityList = syncRegistrationService.getByPacketIds(packetIds);
+			Map<String, RegistrationStatusEntity> packetIdWithRegistrationStatus = new HashMap<String, RegistrationStatusEntity>();
+			if(syncRegistrationEntityList!=null) {
+				for (SyncRegistrationEntity syncRegistrationEntity : syncRegistrationEntityList) {
+					RegistrationStatusEntity registrationStatusEntity = registrationStatusDao.find(null, null, null,
+							syncRegistrationEntity.getWorkflowInstanceId());
+					if(registrationStatusEntity!=null) {
+						packetIdWithRegistrationStatus.put(syncRegistrationEntity.getPacketId(), registrationStatusEntity);
+					}
+				}
+			}
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+					"RegistrationStatusServiceImpl::getByPacketIds()::exit");
+			return convertEntityListToDtoListAndGetExternalStatusForPacket(packetIdWithRegistrationStatus);
+
+		} catch (DataAccessLayerException e) {
+
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
+			throw new TablenotAccessibleException(
+					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
+		}
+	}
+
+	private List<PacketStatusDTO> convertEntityListToDtoListAndGetExternalStatusForPacket(
+			Map<String, RegistrationStatusEntity> packetIdWithRegistrationStatus) {
+		List<PacketStatusDTO> list = new ArrayList<>();
+		for (Entry<String, RegistrationStatusEntity> packetIdWithRegistrationStatusEntity : packetIdWithRegistrationStatus
+				.entrySet()) {
+			PacketStatusDTO packetStatusDTO = convertEntityToDtoAndGetExternalStatusForPacket(
+					packetIdWithRegistrationStatusEntity.getValue());
+			packetStatusDTO.setPacketId(packetIdWithRegistrationStatusEntity.getKey());
+			list.add(packetStatusDTO);
+			}
+		return list;
+	}
+
+	private PacketStatusDTO convertEntityToDtoAndGetExternalStatusForPacket(RegistrationStatusEntity entity) {
+		PacketStatusDTO packetStatusDTO = new PacketStatusDTO();
+		if (entity.getStatusCode() != null) {
+			RegistrationExternalStatusCode registrationExternalStatusCode = regexternalstatusUtil
+					.getExternalStatus(entity);
+
+			String mappedValue = registrationExternalStatusCode.toString();
+
+			packetStatusDTO.setStatusCode(mappedValue);
+		} else {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					entity.getReferenceRegistrationId(),
+					PlatformErrorMessages.RPR_RGS_REGISTRATION_STATUS_NOT_EXIST.getMessage());
+		}
+		return packetStatusDTO;
 
 	}
 }
