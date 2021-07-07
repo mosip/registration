@@ -680,12 +680,12 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		req.setVersion(ManualVerificationConstants.VERSION);
 		req.setRequestId(mve.get(0).getRequestId());
 		req.setRequesttime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
-		req.setReferenceId(mve.get(0).getId().getRegId());
+		req.setReferenceId(mve.get(0).getRegId());
 		InternalRegistrationStatusDto registrationStatusDto = null;
-		registrationStatusDto = registrationStatusService.getRegStatusForMainProcess(mve.get(0).getId().getRegId());
+		registrationStatusDto = registrationStatusService.getRegStatusForMainProcess(mve.get(0).getRegId());
 		try {
 			req.setReferenceURL(
-					getDataShareUrl(mve.get(0).getId().getRegId(), registrationStatusDto.getRegistrationType()));
+					getDataShareUrl(mve.get(0).getRegId(), registrationStatusDto.getRegistrationType()));
 
 		} catch (PacketManagerException | ApisResourceAccessException ex) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -796,14 +796,14 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	private void updateManualVerificationEntityRID(List<ManualVerificationEntity> mves, String requestId) {
 		mves.stream().forEach(mve -> {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					mve.getId().getRegId(), "ManualVerificationServiceImpl::updateManualVerificationEntityRID()::entry");
+					mve.getRegId(), "ManualVerificationServiceImpl::updateManualVerificationEntityRID()::entry");
 			mve.setStatusCode(ManualVerificationStatus.INQUEUE.name());
 			mve.setStatusComment("Sent to manual adjudication queue");
 			mve.setUpdDtimes(Timestamp.valueOf(LocalDateTime.now(ZoneId.of("UTC"))));
 			mve.setRequestId(requestId);
 			basePacketRepository.update(mve);
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					mve.getId().getRegId(), "ManualVerificationServiceImpl::updateManualVerificationEntityRID()::exit");
+					mve.getRegId(), "ManualVerificationServiceImpl::updateManualVerificationEntityRID()::exit");
 		});
 	}
 

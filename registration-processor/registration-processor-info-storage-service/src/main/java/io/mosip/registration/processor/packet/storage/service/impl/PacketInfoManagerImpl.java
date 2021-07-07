@@ -455,9 +455,9 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 				ManualVerificationPKEntity manualVerificationPKEntity = new ManualVerificationPKEntity();
 				manualVerificationPKEntity.setMatchedRefId(matchedRefId);
 				manualVerificationPKEntity.setMatchedRefType(MATCHED_REFERENCE_TYPE);
-				manualVerificationPKEntity.setRegId(registrationId);
 				manualVerificationPKEntity.setWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
 
+				manualVerificationEntity.setRegId(registrationId);
 				manualVerificationEntity.setId(manualVerificationPKEntity);
 				manualVerificationEntity.setLangCode("eng");
 				manualVerificationEntity.setRequestId(UUID.randomUUID().toString());
@@ -969,9 +969,9 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 					"PacketInfoManagerImpl::saveRegLostUinDetData()::entry");
 			RegLostUinDetEntity regLostUinDetEntity = new RegLostUinDetEntity();
 			RegLostUinDetPKEntity regLostUinDetPKEntity = new RegLostUinDetPKEntity();
-			regLostUinDetPKEntity.setRegId(regId);
 			regLostUinDetPKEntity.setWorkflowInstanceId(workflowInstanceId);
 
+			regLostUinDetEntity.setRegId(regId);
 			regLostUinDetEntity.setId(regLostUinDetPKEntity);
 			regLostUinDetEntity.setLatestRegId(latestRegId);
 			regLostUinDetEntity.setCrBy("SYSTEM");
