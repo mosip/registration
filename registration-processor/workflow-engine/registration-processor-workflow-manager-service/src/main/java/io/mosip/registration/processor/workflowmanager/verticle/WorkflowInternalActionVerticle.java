@@ -51,8 +51,8 @@ import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
-import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.AdditionalInfoRequestService;
+import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.workflowmanager.service.WorkflowActionService;
 import io.mosip.registration.processor.workflowmanager.util.WebSubUtil;
 import io.vertx.core.json.JsonObject;
@@ -177,9 +177,6 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 				break;
 			case RESTART_PARENT_FLOW:
 				processRestartParentFlow(workflowInternalActionDTO);
-				break;
-			case COMPLETE_AS_REJECTED_WITHOUT_PARENT_FLOW:
-				processCompleteAsRejectedWithoutParentFlow(workflowInternalActionDTO);
 				break;
 			case COMPLETE_AS_REJECTED_WITHOUT_PARENT_FLOW:
 				processCompleteAsRejectedWithoutParentFlow(workflowInternalActionDTO);
