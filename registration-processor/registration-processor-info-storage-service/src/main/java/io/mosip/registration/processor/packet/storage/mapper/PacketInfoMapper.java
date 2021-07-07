@@ -159,14 +159,14 @@ public class PacketInfoMapper {
 			entity = new IndividualDemographicDedupeEntity();
 			applicantDemographicPKEntity = new IndividualDemographicDedupePKEntity();
 
-			applicantDemographicPKEntity.setRegId(regId);
 			applicantDemographicPKEntity.setLangCode(languageArray[i]);
-			applicantDemographicPKEntity.setIteration(iteration);
-			applicantDemographicPKEntity.setProcess(process);
 			applicantDemographicPKEntity.setWorkflowInstanceId(workflowInstanceId);
 			entity.setCrDtimes(LocalDateTime.now(ZoneId.of("UTC")));
 			entity.setUpdDtimes(LocalDateTime.now(ZoneId.of("UTC")));
 			entity.setId(applicantDemographicPKEntity);
+			entity.setRegId(regId);
+			entity.setProcess(process);
+			entity.setIteration(iteration);
 			entity.setIsActive(true);
 			entity.setIsDeleted(false);
 			StringBuilder applicantFullName = new StringBuilder();
@@ -258,30 +258,31 @@ public class PacketInfoMapper {
 
 	public static RegBioRefDto convertBioRefEntityToDto(RegBioRefEntity regBioRefEntity) {
 		RegBioRefDto bioRefDto = new RegBioRefDto();
-		bioRefDto.setBioRefId(regBioRefEntity.getBioRefId());
+		bioRefDto.setBioRefId(regBioRefEntity.getId().getBioRefId());
 		bioRefDto.setCrBy(regBioRefEntity.getCrBy());
 		bioRefDto.setIsActive(regBioRefEntity.getIsActive());
 		bioRefDto.setIsDeleted(regBioRefEntity.getIsDeleted());
-		bioRefDto.setRegId(regBioRefEntity.getId().getRegId());
+		bioRefDto.setRegId(regBioRefEntity.getRegId());
 		bioRefDto.setUpdBy(regBioRefEntity.getUpdBy());
-		bioRefDto.setProcess(regBioRefEntity.getId().getProcess());
-		bioRefDto.setIteration(regBioRefEntity.getId().getIteration());
+		bioRefDto.setProcess(regBioRefEntity.getProcess());
+		bioRefDto.setIteration(regBioRefEntity.getIteration());
 		return bioRefDto;
 	}
 
 	public static RegBioRefEntity convertBioRefDtoToEntity(RegBioRefDto regBioRefDto) {
+		RegBioRefPKEntity refPKEntity = new RegBioRefPKEntity();
+		refPKEntity.setBioRefId(regBioRefDto.getBioRefId());
+		refPKEntity.setWorkflowInstanceId(regBioRefDto.getWorkflowInstanceId());
 		RegBioRefEntity entity = new RegBioRefEntity();
-		entity.setBioRefId(regBioRefDto.getBioRefId());
+		entity.setId(refPKEntity);
 		entity.setCrBy(regBioRefDto.getCrBy());
 		entity.setIsActive(regBioRefDto.getIsActive());
 		entity.setUpdBy(regBioRefDto.getUpdBy());
 		entity.setUpdDtimes(DateUtils.getUTCCurrentDateTime());
-		RegBioRefPKEntity refPKEntity = new RegBioRefPKEntity();
-		refPKEntity.setRegId(regBioRefDto.getRegId());
-		refPKEntity.setCrDtimes(DateUtils.getUTCCurrentDateTime());
-		refPKEntity.setProcess(regBioRefDto.getProcess());
-		refPKEntity.setIteration(regBioRefDto.getIteration());
-		entity.setId(refPKEntity);
+		entity.setRegId(regBioRefDto.getRegId());
+		entity.setCrDtimes(DateUtils.getUTCCurrentDateTime());
+		entity.setProcess(regBioRefDto.getProcess());
+		entity.setIteration(regBioRefDto.getIteration());
 		return entity;
 	}
 

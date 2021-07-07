@@ -390,7 +390,8 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 	
 			List<RegBioRefDto> regBioRefist = packetInfoManager.getRegBioRefDataByBioRefIds(bioRefId);
 			RegBioRefDto regBioRefDto = regBioRefist.get(0);
-			registrationId = packetInfoDao.getRegIdByRefIdAndProcessAndIteration(regBioRefDto.getBioRefId(),regBioRefDto.getProcess(),regBioRefDto.getIteration());
+			registrationId = packetInfoDao.getRegIdByRefIdAndProcessAndIteration(
+					regBioRefDto.getBioRefId(), regBioRefDto.getWorkflowInstanceId());
 			internalRegStatusDto = registrationStatusService.getRegistrationStatus(registrationId,
 					regBioRefDto.getProcess(), regBioRefDto.getIteration(), regBioRefDto.getWorkflowInstanceId());
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",

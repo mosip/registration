@@ -165,8 +165,8 @@ public class ManualVerificationServiceTest {
 		PKId.setMatchedRefId("RefID");
 		PKId.setMatchedRefType("Type");
 		PKId.setWorkflowInstanceId("WorkflowInstanceId");
-		PKId.setRegId("RegID");
 		dto.setUserId("mvusr22");
+		manualVerificationEntity.setRegId("RegID");
 		manualVerificationEntity.setCrBy("regprc");
 		manualVerificationEntity.setMvUsrId("test");
 		manualVerificationEntity.setIsActive(true);

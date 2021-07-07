@@ -449,16 +449,16 @@ public class PacketValidateProcessor {
 
 	}
 
-	private boolean isValidSupervisorStatus(MessageDTO messageDTO) {
-		SyncRegistrationEntity regEntity = syncRegistrationService.findByWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
-		if (regEntity.getSupervisorStatus().equalsIgnoreCase(APPROVED)) {
-			return true;
+		private boolean isValidSupervisorStatus(MessageDTO messageDTO) {
+			SyncRegistrationEntity regEntity = syncRegistrationService.findByWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
+			if (regEntity.getSupervisorStatus().equalsIgnoreCase(APPROVED)) {
+				return true;
 
-		} else if (regEntity.getSupervisorStatus().equalsIgnoreCase(REJECTED)) {
+			} else if (regEntity.getSupervisorStatus().equalsIgnoreCase(REJECTED)) {
+				return false;
+			}
 			return false;
 		}
-		return false;
-	}
 
 	private void reverseDataSync(String id, String process, LogDescription description,
 			PacketValidationDto packetValidationDto) throws IOException, ApisResourceAccessException,

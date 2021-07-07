@@ -2,6 +2,7 @@ package io.mosip.registration.processor.status.entity;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.Embedded;
@@ -16,22 +17,20 @@ import javax.persistence.Table;
 @Table(name = "registration", schema = "regprc")
 public class RegistrationStatusEntity extends BaseRegistrationEntity<BaseRegistrationPKEntity> implements Serializable {
 
-/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
 	@Embedded
 	BaseRegistrationPKEntity id;
-	
-	public BaseRegistrationPKEntity getId() {
-		return id;
-	}
 
+	@Column(name = "reg_id")
+	private String regId;
 
-	public void setId(BaseRegistrationPKEntity id) {
-		this.id = id;
-	}
+	/** The registration type. */
+	@Column(name="reg_type")
+	private String registrationType;
+
+	@Column
+	private Integer iteration=1;
 
 	/** The reference registration id. */
 	@Column(name = "ref_reg_id")
@@ -136,6 +135,39 @@ public class RegistrationStatusEntity extends BaseRegistrationEntity<BaseRegistr
 	public RegistrationStatusEntity() {
 		super();
 
+	}
+
+	public BaseRegistrationPKEntity getId() {
+		return id;
+	}
+
+
+	public void setId(BaseRegistrationPKEntity id) {
+		this.id = id;
+	}
+
+	public String getRegId() {
+		return regId;
+	}
+
+	public void setRegId(String regId) {
+		this.regId = regId;
+	}
+
+	public String getRegistrationType() {
+		return registrationType;
+	}
+
+	public void setRegistrationType(String registrationType) {
+		this.registrationType = registrationType;
+	}
+
+	public Integer getIteration() {
+		return iteration;
+	}
+
+	public void setIteration(Integer iteration) {
+		this.iteration = iteration;
 	}
 
 	/**
@@ -575,5 +607,45 @@ public class RegistrationStatusEntity extends BaseRegistrationEntity<BaseRegistr
 	 */
 	public void setLastSuccessStageName(String lastSuccessStageName) {
 		this.lastSuccessStageName = lastSuccessStageName;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		RegistrationStatusEntity that = (RegistrationStatusEntity) o;
+		return Objects.equals(id, that.id) &&
+				Objects.equals(regId, that.regId) &&
+				Objects.equals(registrationType, that.registrationType) &&
+				Objects.equals(iteration, that.iteration) &&
+				Objects.equals(referenceRegistrationId, that.referenceRegistrationId) &&
+				Objects.equals(source, that.source) &&
+				Objects.equals(statusCode, that.statusCode) &&
+				Objects.equals(langCode, that.langCode) &&
+				Objects.equals(statusComment, that.statusComment) &&
+				Objects.equals(latestRegistrationTransactionId, that.latestRegistrationTransactionId) &&
+				Objects.equals(isActive, that.isActive) &&
+				Objects.equals(createdBy, that.createdBy) &&
+				Objects.equals(createDateTime, that.createDateTime) &&
+				Objects.equals(updatedBy, that.updatedBy) &&
+				Objects.equals(updateDateTime, that.updateDateTime) &&
+				Objects.equals(isDeleted, that.isDeleted) &&
+				Objects.equals(deletedDateTime, that.deletedDateTime) &&
+				Objects.equals(retryCount, that.retryCount) &&
+				Objects.equals(applicantType, that.applicantType) &&
+				Objects.equals(latestTransactionTypeCode, that.latestTransactionTypeCode) &&
+				Objects.equals(latestTransactionStatusCode, that.latestTransactionStatusCode) &&
+				Objects.equals(latestTransactionTimes, that.latestTransactionTimes) &&
+				Objects.equals(registrationStageName, that.registrationStageName) &&
+				Objects.equals(regProcessRetryCount, that.regProcessRetryCount) &&
+				Objects.equals(resumeTimeStamp, that.resumeTimeStamp) &&
+				Objects.equals(defaultResumeAction, that.defaultResumeAction) &&
+				Objects.equals(resumeRemoveTags, that.resumeRemoveTags) &&
+				Objects.equals(lastSuccessStageName, that.lastSuccessStageName);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, regId, registrationType, iteration, referenceRegistrationId, source, statusCode, langCode, statusComment, latestRegistrationTransactionId, isActive, createdBy, createDateTime, updatedBy, updateDateTime, isDeleted, deletedDateTime, retryCount, applicantType, latestTransactionTypeCode, latestTransactionStatusCode, latestTransactionTimes, registrationStageName, regProcessRetryCount, resumeTimeStamp, defaultResumeAction, resumeRemoveTags, lastSuccessStageName);
 	}
 }

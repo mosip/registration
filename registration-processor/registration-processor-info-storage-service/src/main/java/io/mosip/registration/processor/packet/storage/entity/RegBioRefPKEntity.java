@@ -9,50 +9,28 @@ import javax.persistence.Embeddable;
 @Embeddable
 public class RegBioRefPKEntity implements Serializable {
 
-	@Column(name = "reg_id")
-	private String regId;
+	@Column(name = "workflow_instance_id")
+	private String workflowInstanceId;
 
-	@Column(name = "cr_dtimes", updatable = false)
-	private LocalDateTime crDtimes;
+	@Column(name = "bio_ref_id")
+	private String bioRefId;
 
-	@Column(name = "process")
-	private String process;
-	
-	@Column(name = "iteration")
-	private int iteration;
-	
-	public String getRegId() {
-		return regId;
+	public String getWorkflowInstanceId() {
+		return workflowInstanceId;
 	}
 
-	public void setRegId(String regId) {
-		this.regId = regId;
+	public void setWorkflowInstanceId(String workflowInstanceId) {
+		this.workflowInstanceId = workflowInstanceId;
 	}
 
-	public LocalDateTime getCrDtimes() {
-		return this.crDtimes;
+	public String getBioRefId() {
+		return this.bioRefId;
 	}
 
-	public void setCrDtimes(LocalDateTime crDtimes) {
-		this.crDtimes = crDtimes;
+	public void setBioRefId(String bioRefId) {
+		this.bioRefId = bioRefId;
 	}
 
-	public String getProcess() {
-		return process;
-	}
-
-	public void setProcess(String process) {
-		this.process = process;
-	}
-
-	public int getIteration() {
-		return iteration;
-	}
-
-	public void setIteration(int iteration) {
-		this.iteration = iteration;
-	}
-	
 	@Override
 	public int hashCode() {
 		return super.hashCode();
