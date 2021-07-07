@@ -34,7 +34,7 @@ public class ManualVerificationApplication {
 		configApplicationContext.refresh();
 		ManualVerificationStage manualVerificationStage = configApplicationContext
 				.getBean(ManualVerificationStage.class);
-		manualVerificationStage.deployStage();
+		manualVerificationStage.deployVerticle();
 
 	}
 }
