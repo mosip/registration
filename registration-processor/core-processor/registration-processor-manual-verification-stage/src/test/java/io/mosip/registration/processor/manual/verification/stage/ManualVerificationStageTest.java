@@ -144,7 +144,7 @@ public class ManualVerificationStageTest{
 	@Test
 	public void testDeployeVerticle()
 	{
-		manualverificationstage.deployStage();
+		manualverificationstage.deployVerticle();
 	}
 	@Test
 	public void testStart()

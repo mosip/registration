@@ -490,14 +490,6 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			eventId = EventId.RPR_407.toString();
 		}
 
-		syncRegistration = convertDtoToEntity(registrationDto, referenceId, timeStamp);
-		syncRegistration.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
-		syncRegistration.setWorkflowInstanceId(RegistrationUtility.generateId());
-		syncRegistrationDao.save(syncRegistration);
-		syncResponseDto.setRegistrationId(registrationDto.getRegistrationId());
-
-		eventId = EventId.RPR_407.toString();
-
 		syncResponseDto.setStatus(ResponseStatusCode.SUCCESS.toString());
 		syncResponseList.add(syncResponseDto);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),

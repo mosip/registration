@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.packet.storage.entity;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
@@ -17,19 +18,9 @@ public class IndividualDemographicDedupePKEntity implements Serializable {
 	// default serial version id, required for serializable classes.
 	private static final long serialVersionUID = 1L;
 
-	/** The reg id. */
-	@Column(name = "reg_id", nullable = false)
-	private String regId;
-
 	/** The lang code. */
 	@Column(name = "lang_code", nullable = false)
 	private String langCode;
-	
-	@Column(name = "process")
-	private String process;
-	
-	@Column(name = "iteration")
-	private Integer iteration;
 
 	@Column(name = "workflow_instance_id")
 	private String workflowInstanceId;
@@ -39,24 +30,6 @@ public class IndividualDemographicDedupePKEntity implements Serializable {
 	 */
 	public IndividualDemographicDedupePKEntity() {
 		super();
-	}
-
-	/**
-	 * Gets the reg id.
-	 *
-	 * @return the reg id
-	 */
-	public String getRegId() {
-		return this.regId;
-	}
-
-	/**
-	 * Sets the reg id.
-	 *
-	 * @param regId the new reg id
-	 */
-	public void setRegId(String regId) {
-		this.regId = regId;
 	}
 
 	/**
@@ -76,39 +49,6 @@ public class IndividualDemographicDedupePKEntity implements Serializable {
 	public void setLangCode(String langCode) {
 		this.langCode = langCode;
 	}
-	
-
-	public String getProcess() {
-		return process;
-	}
-
-	public void setProcess(String process) {
-		this.process = process;
-	}
-
-	public Integer getIteration() {
-		return iteration;
-	}
-
-	public void setIteration(Integer iteration) {
-		this.iteration = iteration;
-	}
-
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object other) {
-		if (this == other) {
-			return true;
-		}
-		if (!(other instanceof IndividualDemographicDedupePKEntity)) {
-			return false;
-		}
-		IndividualDemographicDedupePKEntity castOther = (IndividualDemographicDedupePKEntity) other;
-		return this.regId.equals(castOther.regId) && this.langCode.equals(castOther.langCode) &&
-				this.process.equals(castOther.process) && this.iteration.equals(castOther.iteration);
-	}
 
 	public String getWorkflowInstanceId() {
 		return workflowInstanceId;
@@ -118,18 +58,17 @@ public class IndividualDemographicDedupePKEntity implements Serializable {
 		this.workflowInstanceId = workflowInstanceId;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		IndividualDemographicDedupePKEntity that = (IndividualDemographicDedupePKEntity) o;
+		return Objects.equals(langCode, that.langCode) &&
+				Objects.equals(workflowInstanceId, that.workflowInstanceId);
+	}
+
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int hash = 17;
-		hash = hash * prime + this.regId.hashCode();
-		hash = hash * prime + this.langCode.hashCode();
-		hash = hash * prime + this.process.hashCode();
-		hash = hash * prime + this.iteration.hashCode();
-
-		return hash;
+		return Objects.hash(langCode, workflowInstanceId);
 	}
 }

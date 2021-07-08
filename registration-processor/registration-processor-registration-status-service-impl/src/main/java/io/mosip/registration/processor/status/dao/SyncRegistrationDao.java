@@ -186,7 +186,7 @@ public class SyncRegistrationDao {
 	/**
 	 * Delete additionalInfo from table based on ID.
 	 *
-	 * @param syncEntity the registration id
+	 * @param syncEntity the sync registration entity from registration_list table.
 	 * @return the sync registration entity
 	 */
 	public boolean deleteAdditionalInfo(SyncRegistrationEntity syncEntity) {

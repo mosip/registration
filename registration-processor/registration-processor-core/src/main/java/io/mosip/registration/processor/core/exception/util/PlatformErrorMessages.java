@@ -61,6 +61,9 @@ public enum PlatformErrorMessages {
 	/** The rpr pkr invalid packet size synced. */
 	RPR_PKR_DECRYPTION_FAILED(PlatformConstants.RPR_PACKET_RECEIVER_MODULE + "015", "Packet Decryption Failed"),
 
+	/** The rpr pkr invalid packet size synced. */
+	RPR_PKR_ADDITIONAL_INFOID_NOT_FOUND(PlatformConstants.RPR_PACKET_RECEIVER_MODULE + "016", "Additional info request id not found"),
+
 	/** The rpr rgs registration table not accessible. */
 	// Registration Status Exception error code and message
 	RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "001",

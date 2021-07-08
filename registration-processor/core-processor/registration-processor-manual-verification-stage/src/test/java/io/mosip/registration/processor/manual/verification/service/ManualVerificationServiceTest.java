@@ -165,8 +165,8 @@ public class ManualVerificationServiceTest {
 		PKId.setMatchedRefId("RefID");
 		PKId.setMatchedRefType("Type");
 		PKId.setWorkflowInstanceId("WorkflowInstanceId");
-		PKId.setRegId("RegID");
 		dto.setUserId("mvusr22");
+		manualVerificationEntity.setRegId("RegID");
 		manualVerificationEntity.setCrBy("regprc");
 		manualVerificationEntity.setMvUsrId("test");
 		manualVerificationEntity.setIsActive(true);
@@ -224,7 +224,7 @@ public class ManualVerificationServiceTest {
 	public void TablenotAccessibleExceptionTest() throws Exception {
 		Mockito.when(basePacketRepository.getAllAssignedRecord(any(), any())).thenReturn(entities);
 
-		Mockito.when(registrationStatusService.getRegStatusForMainProcess(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(),any())).thenReturn(registrationStatusDto);
 		Mockito.when(basePacketRepository.update(any(ManualVerificationEntity.class)))
 				.thenThrow(new TablenotAccessibleException(""));
 		manualAdjudicationService.updatePacketStatus(manualAdjudicationResponseDTO, stageName,queue);

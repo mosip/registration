@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.packet.storage.entity;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
@@ -11,19 +12,9 @@ public class RegLostUinDetPKEntity implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	@Column(name = "reg_id")
-	private String regId;
 
 	@Column(name = "workflow_instance_id")
 	private String workflowInstanceId;
-
-	public String getRegId() {
-		return regId;
-	}
-
-	public void setRegId(String regId) {
-		this.regId = regId;
-	}
 
 	public String getWorkflowInstanceId() {
 		return workflowInstanceId;
@@ -34,28 +25,15 @@ public class RegLostUinDetPKEntity implements Serializable {
 	}
 
 	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((regId == null) ? 0 : regId.hashCode());
-		return result;
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		RegLostUinDetPKEntity that = (RegLostUinDetPKEntity) o;
+		return Objects.equals(workflowInstanceId, that.workflowInstanceId);
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		RegLostUinDetPKEntity other = (RegLostUinDetPKEntity) obj;
-		if (regId == null) {
-			if (other.regId != null)
-				return false;
-		} else if (!regId.equals(other.regId))
-			return false;
-		return true;
+	public int hashCode() {
+		return Objects.hash(workflowInstanceId);
 	}
-
 }

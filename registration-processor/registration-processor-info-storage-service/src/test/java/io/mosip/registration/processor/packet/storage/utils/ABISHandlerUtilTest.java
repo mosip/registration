@@ -74,7 +74,7 @@ public class ABISHandlerUtilTest {
 		List<String> regBioRefIds = new ArrayList<>();
 		regBioRefIds.add("cf1c941a-142c-44f1-9543-4606b4a7884e");
 
-		when(packetInfoDao.getAbisRefMatchedRefIdByRid(registrationId)).thenReturn(regBioRefIds);
+		when(packetInfoDao.getAbisRefIdByWorkflowInstanceId(any())).thenReturn(regBioRefIds);
 		when(utilities.getGetRegProcessorDemographicIdentity()).thenReturn(new String());
 
 		List<String> inprogressMatchedIds = new ArrayList<>();

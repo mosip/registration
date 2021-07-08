@@ -46,7 +46,7 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	 *            the reg id
 	 * @return the list
 	 */
-	@Query("SELECT demo FROM IndividualDemographicDedupeEntity demo WHERE demo.id.regId=:regId")
+	@Query("SELECT demo FROM IndividualDemographicDedupeEntity demo WHERE demo.regId=:regId")
 	public List<E> findDemoById(@Param("regId") String regId);
 
 	/**
@@ -90,7 +90,7 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	 *            the status code
 	 * @return {@link ManualVerificationEntity}
 	 */
-	@Query("SELECT mve FROM ManualVerificationEntity mve where mve.id.regId=:regId and mve.mvUsrId=:mvUserId and mve.id.matchedRefId=:refId and mve.statusCode=:statusCode")
+	@Query("SELECT mve FROM ManualVerificationEntity mve where mve.regId=:regId and mve.mvUsrId=:mvUserId and mve.id.matchedRefId=:refId and mve.statusCode=:statusCode")
 	public List<E> getSingleAssignedRecord(@Param("regId") String regId, @Param("refId") String refId,
 			@Param("mvUserId") String mvUserId, @Param("statusCode") String statusCode);
 
@@ -106,7 +106,7 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	 *            the status code
 	 * @return {@link ManualVerificationEntity}
 	 */
-	@Query("SELECT mve FROM ManualVerificationEntity mve where mve.id.regId=:regId and  mve.statusCode=:statusCode")
+	@Query("SELECT mve FROM ManualVerificationEntity mve where mve.regId=:regId and  mve.statusCode=:statusCode")
 	public List<E> getAllAssignedRecord(@Param("regId") String regId, @Param("statusCode") String statusCode);
 
 	/**
@@ -129,7 +129,7 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	 *            the reference id
 	 * @return the List of ManualVerificationEntity records
 	 */
-	@Query("SELECT mve FROM ManualVerificationEntity mve where mve.id.regId =:regId and status_code =:status_code")
+	@Query("SELECT mve FROM ManualVerificationEntity mve where mve.regId =:regId and status_code =:status_code")
 	public List<ManualVerificationEntity> getMatchedIds(@Param("regId") String regId, @Param("status_code") String status_code);
 	
 	
@@ -168,7 +168,7 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	 */
 	@Modifying
 	@Transactional
-	@Query("UPDATE  IndividualDemographicDedupeEntity demo SET  demo.isActive = FALSE WHERE demo.id.regId =:regId")
+	@Query("UPDATE  IndividualDemographicDedupeEntity demo SET  demo.isActive = FALSE WHERE demo.regId =:regId")
 	public void updateIsActiveIfDuplicateFound(@Param("regId") String regId);
 
 	/**
@@ -345,25 +345,24 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	 *            the bio ref id
 	 * @return the bio ref ids
 	 */
-	@Query("SELECT regBioRef.id.regId FROM RegBioRefEntity regBioRef WHERE regBioRef.bioRefId in :bioRefIds")
+	@Query("SELECT regBioRef.regId FROM RegBioRefEntity regBioRef WHERE regBioRef.id.bioRefId in :bioRefIds")
 	public List<String> getAbisRefRegIdsByMatchedRefIds(@Param("bioRefIds") List<String> bioRefId);
 
 	/**
 	 * Gets the RegId by bioRefId,process & iteration.
 	 * @param bioRefId
-	 * @param process
-	 * @param iteration
+	 * @param workflowInstanceId
 	 * @return regId
 	 */
-	@Query("SELECT regBioRef.id.regId FROM RegBioRefEntity regBioRef WHERE regBioRef.bioRefId=:bioRefId and regBioRef.id.process=:process and regBioRef.id.iteration=:iteration")
-	public String getRegIdByRefIdAndProcessAndIteration(@Param("bioRefId") String bioRefId, @Param("process") String process, @Param("iteration") int iteration);
+	@Query("SELECT regBioRef.regId FROM RegBioRefEntity regBioRef WHERE regBioRef.id.bioRefId=:bioRefId and regBioRef.id.workflowInstanceId=:workflowInstanceId")
+	public String getRegIdByRefIdAndWorkflowInstanceId(@Param("bioRefId") String bioRefId, @Param("workflowInstanceId") String workflowInstanceId);
 
 	/**
 	 * Gets the bio Ref entity list by bioRefId.
 	 * @param bioRefIds
 	 * @return RegBioRef Entities
 	 */
-	@Query("SELECT regBioRef FROM RegBioRefEntity regBioRef WHERE regBioRef.bioRefId in :bioRefIds")
+	@Query("SELECT regBioRef FROM RegBioRefEntity regBioRef WHERE regBioRef.id.bioRefId in :bioRefIds")
 	public List<RegBioRefEntity> getBioRefIdsByRefIds(@Param("bioRefIds") List<String> bioRefId);
 
 	/**
@@ -386,7 +385,7 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	 *            the reg id
 	 * @return the bio ref id by reg id
 	 */
-	@Query("SELECT bioRef.bioRefId FROM RegBioRefEntity bioRef WHERE bioRef.id.regId =:regId")
+	@Query("SELECT bioRef.id.bioRefId FROM RegBioRefEntity bioRef WHERE bioRef.regId =:regId")
 	public List<String> getBioRefIdByRegIds(@Param("regId") String regId);
 
 	/**
@@ -396,7 +395,7 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	 *            the bio ref id
 	 * @return the reg id by bio ref id
 	 */
-	@Query("SELECT bioRef.id.regId FROM RegBioRefEntity bioRef WHERE LOWER(bioRef.bioRefId) =:bioRefId")
+	@Query("SELECT bioRef.regId FROM RegBioRefEntity bioRef WHERE LOWER(bioRef.id.bioRefId) =:bioRefId")
 	public String getRegIdByBioRefId(@Param("bioRefId") String bioRefId);
 
 	/**
@@ -406,7 +405,7 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	 *            the reg id
 	 * @return the bio ref id by reg id
 	 */
-	@Query("SELECT bioRef FROM RegBioRefEntity bioRef WHERE bioRef.id.regId =:regId")
+	@Query("SELECT bioRef FROM RegBioRefEntity bioRef WHERE bioRef.regId =:regId")
 	public List<RegBioRefEntity> getBioRefIdByRegId(@Param("regId") String regId);
 
 	/**
@@ -426,8 +425,11 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	 *            the reg id
 	 * @return the abis ref matched ref id by rid
 	 */
-	@Query("SELECT regBioRef.bioRefId FROM RegBioRefEntity regBioRef WHERE regBioRef.id.regId =:regId order by regBioRef.id.crDtimes desc")
+	@Query("SELECT regBioRef.id.bioRefId FROM RegBioRefEntity regBioRef WHERE regBioRef.regId =:regId order by regBioRef.crDtimes desc")
 	public List<String> getAbisRefMatchedRefIdByRid(@Param("regId") String regId);
+
+	@Query("SELECT regBioRef.id.bioRefId FROM RegBioRefEntity regBioRef WHERE regBioRef.id.workflowInstanceId =:workflowInstanceId order by regBioRef.crDtimes desc")
+	public List<String> getAbisRefIdByWorkflowInstanceId(@Param("workflowInstanceId") String workflowInstanceId);
 
 	/**
 	 * Gets the abis requests by bio ref id.
@@ -457,8 +459,11 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	public List<String> getAbisProcessedRequestsAppCodeByBioRefId(@Param("bioRefId") String bioRefId,
 			@Param("requestType") String requestType, @Param("statusCode") String statusCode);
 	
-	@Query("SELECT latestRegId FROM RegLostUinDetEntity lostUin WHERE lostUin.id.regId =:regId")
+	@Query("SELECT latestRegId FROM RegLostUinDetEntity lostUin WHERE lostUin.regId =:regId")
 	public String getLostUinMatchedRegId(@Param("regId") String regId);
+
+	@Query("SELECT latestRegId FROM RegLostUinDetEntity lostUin WHERE lostUin.id.workflowInstanceId =:workflowInstanceId")
+	public String getLostUinMatchedRegIdByWorkflowId(@Param("workflowInstanceId") String workflowInstanceId);
 
 	@Query(value ="SELECT m.reg_id FROM reg_manual_verification m WHERE m.request_id =:requestId",nativeQuery=true)
 	public List<String> getRegistrationIdbyRequestId(@Param("requestId") String requestId);

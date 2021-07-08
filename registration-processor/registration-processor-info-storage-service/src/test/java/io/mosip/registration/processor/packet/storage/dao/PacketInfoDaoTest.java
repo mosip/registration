@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import io.mosip.registration.processor.packet.storage.entity.RegBioRefPKEntity;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -69,7 +70,8 @@ public class PacketInfoDaoTest {
 		dedupePKEntity = new IndividualDemographicDedupePKEntity();
 		Date date = new Date(1995, 04, 16);
 		dedupePKEntity.setLangCode("fr");
-		dedupePKEntity.setRegId("2018782130000224092018121229");
+		dedupePKEntity.setWorkflowInstanceId("workflowInstacnceId");
+		dedupeEntity.setRegId("2018782130000224092018121229");
 		dedupeEntity.setId(dedupePKEntity);
 		dedupeEntity.setDob(date.toString());
 		dedupeEntity.setName("Ibrahim");
@@ -172,11 +174,13 @@ public class PacketInfoDaoTest {
 	public void testgetBioRefIdByRegId() {
 		List<RegBioRefEntity> regBioRefEntityList = new ArrayList<>();
 		RegBioRefEntity entity = new RegBioRefEntity();
-		entity.setBioRefId("abc-efg");
+		RegBioRefPKEntity pkEntity = new RegBioRefPKEntity();
+		pkEntity.setBioRefId("abc-efg");
+		entity.setId(pkEntity);
 		regBioRefEntityList.add(entity);
 		Mockito.when(abisRequestRepository.getBioRefIdByRegId(any())).thenReturn(regBioRefEntityList);
 		List<RegBioRefEntity> result = packetInfodao.getBioRefIdByRegId("1234567890");
-		assertEquals("abc-efg", result.get(0).getBioRefId());
+		assertEquals("abc-efg", result.get(0).getId().getBioRefId());
 	}
 
 	@Test

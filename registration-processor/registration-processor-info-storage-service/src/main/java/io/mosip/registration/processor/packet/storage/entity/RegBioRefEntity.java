@@ -12,9 +12,6 @@ import javax.persistence.Table;
 public class RegBioRefEntity extends BasePacketEntity<RegBioRefPKEntity> implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	@Column(name = "bio_ref_id")
-	private String bioRefId;
-
 	@Column(name = "cr_by", nullable = false)
 	private String crBy = "SYSTEM";
 
@@ -33,18 +30,51 @@ public class RegBioRefEntity extends BasePacketEntity<RegBioRefPKEntity> impleme
 	@Column(name = "upd_dtimes")
 	private LocalDateTime updDtimes;
 
-	@Column(name = "workflow_instance_id")
-	private String workflowInstanceId;
+	@Column(name = "reg_id")
+	private String regId;
+
+	@Column(name = "cr_dtimes", updatable = false)
+	private LocalDateTime crDtimes;
+
+	@Column(name = "process")
+	private String process;
+
+	@Column(name = "iteration")
+	private int iteration;
+
+	public String getRegId() {
+		return regId;
+	}
+
+	public void setRegId(String regId) {
+		this.regId = regId;
+	}
+
+	public LocalDateTime getCrDtimes() {
+		return this.crDtimes;
+	}
+
+	public void setCrDtimes(LocalDateTime crDtimes) {
+		this.crDtimes = crDtimes;
+	}
+
+	public String getProcess() {
+		return process;
+	}
+
+	public void setProcess(String process) {
+		this.process = process;
+	}
+
+	public int getIteration() {
+		return iteration;
+	}
+
+	public void setIteration(int iteration) {
+		this.iteration = iteration;
+	}
 
 	public RegBioRefEntity() {
-	}
-
-	public String getBioRefId() {
-		return this.bioRefId;
-	}
-
-	public void setBioRefId(String bioRefId) {
-		this.bioRefId = bioRefId;
 	}
 
 	public String getCrBy() {
@@ -93,13 +123,5 @@ public class RegBioRefEntity extends BasePacketEntity<RegBioRefPKEntity> impleme
 
 	public void setUpdDtimes(LocalDateTime updDtimes) {
 		this.updDtimes = updDtimes;
-	}
-
-	public String getWorkflowInstanceId() {
-		return workflowInstanceId;
-	}
-
-	public void setWorkflowInstanceId(String workflowInstanceId) {
-		this.workflowInstanceId = workflowInstanceId;
 	}
 }

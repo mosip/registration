@@ -469,8 +469,8 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	/*
 	 * Get matched ref id for given RID and form request ,push to queue
 	 */
-	private void pushRequestToQueue(String refId, MosipQueue queue) throws Exception {
-
+	private void pushRequestToQueue(MessageDTO messageDTO, MosipQueue queue) throws Exception {
+		String refId = messageDTO.getRid();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				refId, "ManualVerificationServiceImpl::pushRequestToQueue()::entry");
 		List<ManualVerificationEntity> mves = getMatchingEntitiesforRefId(refId);
@@ -479,7 +479,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 					PlatformErrorMessages.RPR_MVS_NO_MATCHEDRID_FOUND_FOR_GIVEN_RID.getCode(),
 					PlatformErrorMessages.RPR_MVS_NO_MATCHEDRID_FOUND_FOR_GIVEN_RID.getMessage());
 
-		ManualAdjudicationRequestDTO mar = prepareManualAdjudicationRequest(mves);
+		ManualAdjudicationRequestDTO mar = prepareManualAdjudicationRequest(messageDTO, mves);
 		String requestId = UUID.randomUUID().toString();
 		mar.setRequestId(requestId);
 		regProcLogger.info("Request : " + JsonUtils.javaObjectToJsonString(mar));
@@ -671,7 +671,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	/*
 	 * Form manual adjudication request
 	 */
-	private ManualAdjudicationRequestDTO prepareManualAdjudicationRequest(List<ManualVerificationEntity> mve) throws Exception {
+	private ManualAdjudicationRequestDTO prepareManualAdjudicationRequest(MessageDTO messageDTO, List<ManualVerificationEntity> mve) throws Exception {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ManualVerificationServiceImpl::formAdjudicationRequest()::entry");
 
@@ -680,12 +680,13 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		req.setVersion(ManualVerificationConstants.VERSION);
 		req.setRequestId(mve.get(0).getRequestId());
 		req.setRequesttime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
-		req.setReferenceId(mve.get(0).getId().getRegId());
+		req.setReferenceId(mve.get(0).getRegId());
 		InternalRegistrationStatusDto registrationStatusDto = null;
-		registrationStatusDto = registrationStatusService.getRegStatusForMainProcess(mve.get(0).getId().getRegId());
+		registrationStatusDto = registrationStatusService.getRegistrationStatus(
+				mve.get(0).getRegId(), messageDTO.getReg_type(), messageDTO.getIteration(), mve.get(0).getId().getWorkflowInstanceId());
 		try {
 			req.setReferenceURL(
-					getDataShareUrl(mve.get(0).getId().getRegId(), registrationStatusDto.getRegistrationType()));
+					getDataShareUrl(mve.get(0).getRegId(), registrationStatusDto.getRegistrationType()));
 
 		} catch (PacketManagerException | ApisResourceAccessException ex) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -697,7 +698,8 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		mve.forEach(e -> {
 			ReferenceIds r = new ReferenceIds();
 			InternalRegistrationStatusDto registrationStatusDto1 = null;
-			registrationStatusDto1 = registrationStatusService.getRegStatusForMainProcess(e.getId().getMatchedRefId());
+			registrationStatusDto1 = registrationStatusService.getRegistrationStatus(
+					e.getId().getMatchedRefId(),messageDTO.getReg_type(), messageDTO.getIteration(), e.getId().getWorkflowInstanceId());
 
 			try {
 				r.setReferenceId(e.getId().getMatchedRefId());
@@ -762,7 +764,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 						PlatformErrorMessages.RPR_MVS_NO_RID_SHOULD_NOT_EMPTY_OR_NULL.getMessage());
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					object.getRid(), "ManualVerificationServiceImpl::process()::entry");
-			pushRequestToQueue(object.getRid(), queue);
+			pushRequestToQueue(object, queue);
 
 		} catch (DataShareException de) {
 			object.setInternalError(true);
@@ -796,14 +798,14 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	private void updateManualVerificationEntityRID(List<ManualVerificationEntity> mves, String requestId) {
 		mves.stream().forEach(mve -> {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					mve.getId().getRegId(), "ManualVerificationServiceImpl::updateManualVerificationEntityRID()::entry");
+					mve.getRegId(), "ManualVerificationServiceImpl::updateManualVerificationEntityRID()::entry");
 			mve.setStatusCode(ManualVerificationStatus.INQUEUE.name());
 			mve.setStatusComment("Sent to manual adjudication queue");
 			mve.setUpdDtimes(Timestamp.valueOf(LocalDateTime.now(ZoneId.of("UTC"))));
 			mve.setRequestId(requestId);
 			basePacketRepository.update(mve);
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					mve.getId().getRegId(), "ManualVerificationServiceImpl::updateManualVerificationEntityRID()::exit");
+					mve.getRegId(), "ManualVerificationServiceImpl::updateManualVerificationEntityRID()::exit");
 		});
 	}
 

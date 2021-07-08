@@ -173,7 +173,7 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
 
             boolean isDuplicatePacket = isDuplicatePacketForSameReqId(messageDTO);
 
-            if (!isDuplicatePacket && registrationStatusDto != null && messageDTO.getRid().equalsIgnoreCase(registrationStatusDto.getRegistrationId())) {
+            if (!isDuplicatePacket && registrationStatusDto != null && messageDTO.getRid().equalsIgnoreCase(registrationStatusDto.  getRegistrationId())) {
 
 
                 registrationStatusDto
@@ -317,19 +317,20 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
         if (!CollectionUtils.isEmpty(entities) && entities.size() > 1) {
             List<String> workflowInstanceIds = entities.stream().map(e -> e.getWorkflowInstanceId()).collect(Collectors.toList());
             List<InternalRegistrationStatusDto> dtos = new ArrayList<>();
-            for (String w : workflowInstanceIds) {
+            for (String workflowInstanceId : workflowInstanceIds) {
                 InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus(
-                        messageDTO.getRid(), messageDTO.getReg_type(), messageDTO.getIteration(), w);
+                        messageDTO.getRid(), messageDTO.getReg_type(), messageDTO.getIteration(), workflowInstanceId);
                 if (dto != null )
                     dtos.add(dto);
             }
-            InternalRegistrationStatusDto latestPacket = dtos.stream().filter(d -> d.getWorkflowInstanceId() != null &&
+            InternalRegistrationStatusDto currentPacket = dtos.stream().filter(d -> d.getWorkflowInstanceId() != null &&
                     d.getWorkflowInstanceId().equalsIgnoreCase(messageDTO.getWorkflowInstanceId())).findAny().get();
 
-            dtos.remove(latestPacket);
+            // remove current packet from list so that it contains only other packets received for same additionalInfoReqId
+            dtos.remove(currentPacket);
 
-            for (InternalRegistrationStatusDto previousPacket : dtos) {
-                if (previousPacket.getCreateDateTime().isBefore(latestPacket.getCreateDateTime())) {
+            for (InternalRegistrationStatusDto otherPacket : dtos) {
+                if (otherPacket.getCreateDateTime().isBefore(currentPacket.getCreateDateTime())) {
                     messageDTO.setIsValid(Boolean.FALSE);
                     regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
                             LoggerFileConstant.REGISTRATIONID.toString(), messageDTO.getRid(),
