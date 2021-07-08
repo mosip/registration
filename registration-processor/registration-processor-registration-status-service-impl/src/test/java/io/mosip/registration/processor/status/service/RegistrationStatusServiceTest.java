@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Before;
@@ -20,6 +21,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.dataaccess.hibernate.constant.HibernateErrorCode;
@@ -73,6 +75,8 @@ public class RegistrationStatusServiceTest {
 	@Before
 	public void setup()
 			throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+		
+		ReflectionTestUtils.setField(registrationStatusService, "mainProcess", Arrays.asList("NEW", "UPDATE", "LOST"));
 		
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setIsActive(true);

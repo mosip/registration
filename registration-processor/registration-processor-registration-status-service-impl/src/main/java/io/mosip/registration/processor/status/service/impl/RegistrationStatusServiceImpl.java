@@ -3,11 +3,12 @@ package io.mosip.registration.processor.status.service.impl;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import io.mosip.registration.processor.status.repositary.BaseRegProcRepository;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,6 +32,7 @@ import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.workflow.dto.SearchInfo;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationExternalStatusCode;
+import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dao.RegistrationStatusDao;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
@@ -65,9 +67,9 @@ public class RegistrationStatusServiceImpl
 	/** The regexternalstatus util. */
 	@Autowired
 	private RegistrationExternalStatusUtility regexternalstatusUtil;
-
-	@Value("${registration.processor.main-process}")
-	private String mainProcess;
+	
+	@Value("#{'${registration.processor.main-process}'.split(',')}")
+	private List<String> mainProcess;
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(RegistrationStatusServiceImpl.class);
@@ -390,9 +392,14 @@ public class RegistrationStatusServiceImpl
 			List<RegistrationStatusEntity> entities) {
 		List<RegistrationStatusDto> list = new ArrayList<>();
 		if (entities != null) {
-			for (RegistrationStatusEntity entity : entities) {
-				list.add(convertEntityToDtoAndGetExternalStatus(entity));
-			}
+			List<String> registrationIds = entities.stream().map(e -> e.getId().getId()).distinct()
+					.collect(Collectors.toList());
+
+			registrationIds.forEach(registrationId -> {
+				List<RegistrationStatusEntity> registrationStatusEntities = entities.stream()
+						.filter(r -> registrationId.equals(r.getId().getId())).collect(Collectors.toList());
+				list.add(convertEntityToDtoAndGetExternalStatus(registrationStatusEntities));
+			});
 
 		}
 		return list;
@@ -401,27 +408,63 @@ public class RegistrationStatusServiceImpl
 	/**
 	 * Convert entity to dto and get external status.
 	 *
-	 * @param entity
-	 *            the entity
+	 * @param entities
+	 *            the entities
 	 * @return the registration status dto
 	 */
-	private RegistrationStatusDto convertEntityToDtoAndGetExternalStatus(RegistrationStatusEntity entity) {
+	private RegistrationStatusDto convertEntityToDtoAndGetExternalStatus(List<RegistrationStatusEntity> entities) {
 		RegistrationStatusDto registrationStatusDto = new RegistrationStatusDto();
-		registrationStatusDto.setRegistrationId(entity.getId().getId());
-		if (entity.getStatusCode() != null) {
-			RegistrationExternalStatusCode registrationExternalStatusCode = regexternalstatusUtil
-					.getExternalStatus(entity);
 
-			String mappedValue = registrationExternalStatusCode.toString();
+		Optional<RegistrationStatusEntity> parentEntity = entities.stream()
+				.filter(e -> mainProcess.stream().anyMatch(name -> name.equals(e.getId().getRegistrationType())))
+				.findFirst();
 
-			registrationStatusDto.setStatusCode(mappedValue);
+		if (parentEntity.isPresent() && parentEntity.get().getStatusCode() != null) {
+			if (parentEntity.get().getStatusCode()
+					.equals(RegistrationStatusCode.PAUSED_FOR_ADDITIONAL_INFO.toString())) {
+				registrationStatusDto = getRegistrationStatusForSubProcess(entities);
+			} else {
+				RegistrationExternalStatusCode registrationExternalStatusCode = regexternalstatusUtil
+						.getExternalStatus(parentEntity.get());
+
+				String mappedValue = registrationExternalStatusCode.toString();
+				registrationStatusDto.setStatusCode(mappedValue);
+
+			}
+			registrationStatusDto.setRegistrationId(parentEntity.get().getId().getId());
 		} else {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					entity.getReferenceRegistrationId(),
+					parentEntity.get().getReferenceRegistrationId(),
 					PlatformErrorMessages.RPR_RGS_REGISTRATION_STATUS_NOT_EXIST.getMessage());
 		}
-		return registrationStatusDto;
 
+		return registrationStatusDto;
+	}
+
+	private RegistrationStatusDto getRegistrationStatusForSubProcess(List<RegistrationStatusEntity> entities) {
+
+		RegistrationStatusDto registrationStatusDto = new RegistrationStatusDto();
+
+		RegistrationStatusEntity subProcessEntity = entities.stream().filter(e -> e.getCreateDateTime() != null)
+				.max(Comparator.comparing(RegistrationStatusEntity::getCreateDateTime)).orElse(null);
+
+		if (subProcessEntity != null) {
+			if (subProcessEntity.getStatusCode().equals(RegistrationStatusCode.PROCESSING.toString())
+					|| subProcessEntity.getStatusCode().equals(RegistrationStatusCode.FAILED.toString())
+					|| subProcessEntity.getStatusCode().equals(RegistrationStatusCode.REJECTED.toString())) {
+				registrationStatusDto.setStatusCode(RegistrationExternalStatusCode.PROCESSING.toString());
+			} else {
+				RegistrationExternalStatusCode registrationExternalStatusCode = regexternalstatusUtil
+						.getExternalStatus(subProcessEntity);
+
+				String mappedValue = registrationExternalStatusCode.toString();
+				registrationStatusDto.setStatusCode(mappedValue);
+			}
+
+		} else {
+			registrationStatusDto.setStatusCode(RegistrationExternalStatusCode.AWAITING_INFORMATION.toString());
+		}
+		return registrationStatusDto;
 	}
 
 	/**

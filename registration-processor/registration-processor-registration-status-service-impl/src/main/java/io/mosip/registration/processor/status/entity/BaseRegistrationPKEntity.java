@@ -15,7 +15,7 @@ public class BaseRegistrationPKEntity implements Serializable{
 	private static final long serialVersionUID = 1L;
 
 	/** The id. */
-	@Column
+	@Column(name="reg_id")
 	private String id;
 	
 	/** The registration type. */
