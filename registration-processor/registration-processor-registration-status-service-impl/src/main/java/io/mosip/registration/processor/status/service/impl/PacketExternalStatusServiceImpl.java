@@ -42,8 +42,8 @@ public class PacketExternalStatusServiceImpl implements PacketExternalStatusServ
 	@Value("#{'${mosip.registration.processor.packet.status.transactiontypecodes-before-uploading-to-objectstore:PACKET_RECEIVER,SECUREZONE_NOTIFICATION}'.split(',')}")
 	private List<String> transactionTypeCodesBeforeUploadingToObjectStore;
 
-	@Value("#{'${mosip.registration.processor.packet.status.transactiontypecodes-uploading-to-objectstore:UPLOAD_PACKET}'.split(',')}")
-	private List<String> transactionTypeCodesUploadingToObjectStore;
+	@Value("${mosip.registration.processor.packet.status.transactiontypecodes-uploading-to-objectstore:UPLOAD_PACKET}")
+	private String transactionTypeCodesUploadingToObjectStore;
 
 	@Value("#{'${mosip.registration.processor.packet.status.transactiontypecodes-time-based-resend-required:PACKET_RECEIVER}'.split(',')}")
 	private List<String> transactionTypeCodeTimeBasesResendRequired;

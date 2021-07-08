@@ -38,7 +38,7 @@ import io.mosip.registration.processor.status.exception.TablenotAccessibleExcept
 import io.mosip.registration.processor.status.sync.response.dto.RegStatusResponseDTO;
 
 @RestControllerAdvice(assignableTypes = PacketExternalStatusController.class)
-public class PacketStatusExceptionHandler {
+public class PacketExternalStatusExceptionHandler {
 
 	private static final String PACKET_EXTERNAL_STATUS_SERVICE_ID = "mosip.registration.processor.packet.external.status.id";
 	private static final String PACKET_EXTERNAL_STATUS_APPLICATION_VERSION = "mosip.registration.processor.packet.external.status.version";

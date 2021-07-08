@@ -22,7 +22,7 @@ import io.mosip.registration.processor.status.exception.RegStatusAppException;
 import io.mosip.registration.processor.status.exception.RegStatusValidationException;
 
 @Component
-public class PacketStatusRequestValidator {
+public class PacketExternalStatusRequestValidator {
 
 	/** The Constant DATETIME_TIMEZONE. */
 	private static final String DATETIME_TIMEZONE = "mosip.registration.processor.timezone";
@@ -31,13 +31,13 @@ public class PacketStatusRequestValidator {
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
 
 	/** The mosip logger. */
-	Logger regProcLogger = RegProcessorLogger.getLogger(PacketStatusRequestValidator.class);
+	Logger regProcLogger = RegProcessorLogger.getLogger(PacketExternalStatusRequestValidator.class);
 
 	/** The Constant REG_STATUS_SERVICE. */
 	private static final String REG_STATUS_SERVICE = "RegStatusService";
 
-	/** The Constant REG_STATUS_APPLICATION_VERSION. */
-	private static final String PACKET_STATUS_APPLICATION_VERSION = "mosip.registration.processor.packet.status.version";
+	/** The Constant PACKET_STATUS_APPLICATION_VERSION. */
+	private static final String PACKET_STATUS_APPLICATION_VERSION = "mosip.registration.processor.packet.external.status.version";
 
 	/** The env. */
 	@Autowired
@@ -60,7 +60,7 @@ public class PacketStatusRequestValidator {
 	public void validate(PacketExternalStatusRequestDTO packetStatusRequestDTO, String serviceId)
 			throws RegStatusAppException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-				"PacketStatusRequestValidator::validate()::entry");
+				"PacketExternalStatusRequestValidator::validate()::entry");
 
 		id.put("status", serviceId);
 		validateId(packetStatusRequestDTO.getId());
@@ -68,7 +68,7 @@ public class PacketStatusRequestValidator {
 		validateReqTime(packetStatusRequestDTO.getRequesttime());
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-				"PacketStatusRequestValidator::validate()::exit");
+				"PacketExternalStatusRequestValidator::validate()::exit");
 
 	}
 
@@ -131,7 +131,8 @@ public class PacketStatusRequestValidator {
 							.isAfter(new DateTime().minusSeconds(gracePeriod))
 							&& DateTime.parse(timestamp, timestampFormat.createDateTimeFormatter())
 									.isBefore(new DateTime().plusSeconds(gracePeriod)))) {
-						regProcLogger.error(REG_STATUS_SERVICE, "PacketStatusRequestValidator", "validateReqTime",
+						regProcLogger.error(REG_STATUS_SERVICE, "PacketExternalStatusRequestValidator",
+								"validateReqTime",
 								"\n" + PlatformErrorMessages.RPR_RGS_INVALID_INPUT_PARAMETER_TIMESTAMP.getMessage());
 
 						throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_INVALID_INPUT_PARAMETER_TIMESTAMP,
@@ -140,7 +141,7 @@ public class PacketStatusRequestValidator {
 
 				}
 			} catch (IllegalArgumentException e) {
-				regProcLogger.error(REG_STATUS_SERVICE, "PacketStatusRequestValidator", "validateReqTime",
+				regProcLogger.error(REG_STATUS_SERVICE, "PacketExternalStatusRequestValidator", "validateReqTime",
 						"\n" + ExceptionUtils.getStackTrace(e));
 				throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_INVALID_INPUT_PARAMETER_TIMESTAMP,
 						exception);

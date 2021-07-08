@@ -33,7 +33,7 @@ import io.mosip.registration.processor.status.dto.PacketStatusErrorDTO;
 import io.mosip.registration.processor.status.exception.RegStatusAppException;
 import io.mosip.registration.processor.status.service.PacketExternalStatusService;
 import io.mosip.registration.processor.status.sync.response.dto.PacketExternalStatusResponseDTO;
-import io.mosip.registration.processor.status.validator.PacketStatusRequestValidator;
+import io.mosip.registration.processor.status.validator.PacketExternalStatusRequestValidator;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -55,7 +55,7 @@ public class PacketExternalStatusController {
 
 	/** The packet status request validator. */
 	@Autowired
-	PacketStatusRequestValidator packetStatusRequestValidator;
+	PacketExternalStatusRequestValidator packetExternalStatusRequestValidator;
 
 	/** The env. */
 	@Autowired
@@ -75,11 +75,9 @@ public class PacketExternalStatusController {
 	/** The Constant RESPONSE_SIGNATURE. */
 	private static final String RESPONSE_SIGNATURE = "Response-Signature";
 
-	/** The Constant PACKET_STATUS_SERVICE_ID. */
-	private static final String PACKET_STATUS_SERVICE_ID = "mosip.registration.processor.packet.status.id";
+	private static final String PACKET_EXTERNAL_STATUS_SERVICE_ID = "mosip.registration.processor.packet.external.status.id";
 
-	/** The Constant PACKET_STATUS_APPLICATION_VERSION. */
-	private static final String PACKET_STATUS_APPLICATION_VERSION = "mosip.registration.processor.packet.status.version";
+	private static final String PACKET_EXTERNAL_STATUS_APPLICATION_VERSION = "mosip.registration.processor.packet.external.status.version";
 
 	/**
 	 * Packet external status.
@@ -98,8 +96,8 @@ public class PacketExternalStatusController {
 			throws RegStatusAppException {
 
 		try {
-			packetStatusRequestValidator.validate(packetExternalStatusRequestDTO,
-					env.getProperty(PACKET_STATUS_SERVICE_ID));
+			packetExternalStatusRequestValidator.validate(packetExternalStatusRequestDTO,
+					env.getProperty(PACKET_EXTERNAL_STATUS_SERVICE_ID));
 			List<String> packetIdList = new ArrayList<>();
 
 			for (PacketExternalStatusSubRequestDTO packetExternalStatusSubRequestDTO : packetExternalStatusRequestDTO
@@ -129,7 +127,7 @@ public class PacketExternalStatusController {
 	}
 
 	/**
-	 * Builds the packet status response.
+	 * Builds the packet external status response.
 	 *
 	 * @param packetStatus the packet status
 	 * @param packetIds    the packet ids
@@ -140,10 +138,10 @@ public class PacketExternalStatusController {
 
 		PacketExternalStatusResponseDTO response = new PacketExternalStatusResponseDTO();
 		if (Objects.isNull(response.getId())) {
-			response.setId(env.getProperty(PACKET_STATUS_SERVICE_ID));
+			response.setId(env.getProperty(PACKET_EXTERNAL_STATUS_SERVICE_ID));
 		}
 		response.setResponsetime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
-		response.setVersion(env.getProperty(PACKET_STATUS_APPLICATION_VERSION));
+		response.setVersion(env.getProperty(PACKET_EXTERNAL_STATUS_APPLICATION_VERSION));
 		response.setResponse(packetStatus);
 		List<PacketExternalStatusSubRequestDTO> packetIdsNotAvailable = packetIds.stream()
 				.filter(request -> packetStatus.stream()
