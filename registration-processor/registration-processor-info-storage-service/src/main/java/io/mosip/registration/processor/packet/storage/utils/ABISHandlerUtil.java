@@ -78,7 +78,7 @@ public class ABISHandlerUtil {
 		
 		String latestTransactionId = utilities.getLatestTransactionId(registrationId, registrationType, iteration, workflowInstanceId);
 
-		List<String> regBioRefIds = packetInfoDao.getAbisRefIdByWorkflowInstanceId(registrationId);
+		List<String> regBioRefIds = packetInfoDao.getAbisRefIdByWorkflowInstanceId(workflowInstanceId);
 
 		List<String> machedRefIds = new ArrayList<>();
 		Set<String> uniqueRIDs = new HashSet<>();

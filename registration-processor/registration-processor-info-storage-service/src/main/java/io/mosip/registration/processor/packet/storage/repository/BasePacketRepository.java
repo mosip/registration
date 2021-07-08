@@ -351,12 +351,11 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	/**
 	 * Gets the RegId by bioRefId,process & iteration.
 	 * @param bioRefId
-	 * @param process
-	 * @param iteration
+	 * @param workflowInstanceId
 	 * @return regId
 	 */
 	@Query("SELECT regBioRef.regId FROM RegBioRefEntity regBioRef WHERE regBioRef.id.bioRefId=:bioRefId and regBioRef.id.workflowInstanceId=:workflowInstanceId")
-	public String getRegIdByWorkflowInstanceId(@Param("bioRefId") String bioRefId, @Param("workflowInstanceId") String workflowInstanceId);
+	public String getRegIdByRefIdAndWorkflowInstanceId(@Param("bioRefId") String bioRefId, @Param("workflowInstanceId") String workflowInstanceId);
 
 	/**
 	 * Gets the bio Ref entity list by bioRefId.

@@ -468,8 +468,8 @@ public class PacketInfoDao {
 	 * @param workflowInstanceId
 	 * @return regId
 	 */
-	public String getRegIdByRefIdByWorkflowInstanceId(String matchRefId, String workflowInstanceId) {
-		return regBioRefRepository.getRegIdByWorkflowInstanceId(matchRefId, workflowInstanceId);
+	public String getRegIdByRefIdAndWorkflowInstanceId(String matchRefId, String workflowInstanceId) {
+		return regBioRefRepository.getRegIdByRefIdAndWorkflowInstanceId(matchRefId, workflowInstanceId);
 	}
 	
 	/**
