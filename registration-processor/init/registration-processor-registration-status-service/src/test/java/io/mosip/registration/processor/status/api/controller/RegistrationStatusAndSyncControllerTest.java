@@ -53,7 +53,6 @@ import io.mosip.registration.processor.status.dto.SyncResponseSuccessDto;
 import io.mosip.registration.processor.status.exception.RegStatusAppException;
 import io.mosip.registration.processor.status.service.impl.RegistrationStatusServiceImpl;
 import io.mosip.registration.processor.status.service.impl.SyncRegistrationServiceImpl;
-import io.mosip.registration.processor.status.validator.PacketExternalStatusRequestValidator;
 import io.mosip.registration.processor.status.validator.RegistrationStatusRequestValidator;
 import io.mosip.registration.processor.status.validator.RegistrationSyncRequestValidator;
 
@@ -121,8 +120,6 @@ public class RegistrationStatusAndSyncControllerTest {
 	@MockBean
 	private RegistrationSyncRequestValidator syncrequestvalidator;
 
-	@MockBean
-	PacketExternalStatusRequestValidator packetStatusRequestValidator;
 
 	Gson gson = new GsonBuilder().serializeNulls().create();
 	private List<SyncResponseDto> syncResponseDtoList;
