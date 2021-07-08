@@ -429,6 +429,9 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	@Query("SELECT regBioRef.id.bioRefId FROM RegBioRefEntity regBioRef WHERE regBioRef.regId =:regId order by regBioRef.crDtimes desc")
 	public List<String> getAbisRefMatchedRefIdByRid(@Param("regId") String regId);
 
+	@Query("SELECT regBioRef.id.bioRefId FROM RegBioRefEntity regBioRef WHERE regBioRef.id.workflowInstanceId =:workflowInstanceId order by regBioRef.crDtimes desc")
+	public List<String> getAbisRefIdByWorkflowInstanceId(@Param("workflowInstanceId") String workflowInstanceId);
+
 	/**
 	 * Gets the abis requests by bio ref id.
 	 *

@@ -480,8 +480,8 @@ public class PacketInfoDao {
 	 *            the registration id
 	 * @return the abis ref matched ref id by rid
 	 */
-	public List<String> getAbisRefMatchedRefIdByRid(String registrationId) {
-		return regBioRefRepository.getAbisRefMatchedRefIdByRid(registrationId);
+	public List<String> getAbisRefIdByWorkflowInstanceId(String workflowInstanceId) {
+		return regBioRefRepository.getAbisRefIdByWorkflowInstanceId(workflowInstanceId);
 
 	}
 

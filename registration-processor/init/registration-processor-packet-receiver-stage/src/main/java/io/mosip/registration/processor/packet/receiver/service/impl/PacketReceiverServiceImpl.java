@@ -252,8 +252,9 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	private boolean storePacket(String stageName, SyncRegistrationEntity regEntity, InternalRegistrationStatusDto dto,
 			LogDescription description) {
 		Boolean storageFlag = false;
+		int iteration = getIterationForSyncRecord(regEntity);
 		dto = registrationStatusService.getRegistrationStatus(regEntity.getRegistrationId(),
-				regEntity.getRegistrationType(), getIterationForSyncRecord(regEntity), regEntity.getWorkflowInstanceId());
+				regEntity.getRegistrationType(), iteration, regEntity.getWorkflowInstanceId());
 		if (dto == null) {
 			dto = new InternalRegistrationStatusDto();
 			dto.setRetryCount(0);
@@ -278,7 +279,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 		dto.setCreatedBy(USER);
 		dto.setIsDeleted(false);
 		dto.setSource(regEntity.getSource());
-        dto.setIteration(getIterationForSyncRecord(regEntity));
+        dto.setIteration(iteration);
         dto.setWorkflowInstanceId(regEntity.getWorkflowInstanceId());
 
 		/** Module-Id can be Both Success/Error code */
