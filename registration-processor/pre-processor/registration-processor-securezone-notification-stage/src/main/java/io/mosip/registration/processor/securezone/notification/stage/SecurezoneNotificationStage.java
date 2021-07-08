@@ -163,7 +163,6 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
             messageDTO.setRid(obj.getString("rid"));
             messageDTO.setReg_type(obj.getString("reg_type"));
             messageDTO.setIsValid(obj.getBoolean("isValid"));
-            messageDTO.setSource(obj.getString("source"));
             messageDTO.setIteration(obj.getInteger("iteration"));
             messageDTO.setWorkflowInstanceId(obj.getString("workflowInstanceId"));
 

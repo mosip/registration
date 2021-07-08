@@ -92,7 +92,6 @@ public class WorkflowCommandPredicate implements Predicate {
 				.setActionMessage(PlatformSuccessMessages.PACKET_COMPLETE_AS_REJECTED_WITHOUT_PARENT_FLOW.getMessage());
 		workflowInternalActionDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
 		workflowInternalActionDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
-		workflowInternalActionDTO.setSource(json.getString(JsonConstant.SOURCE));
 		workflowInternalActionDTO.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowInternalActionDTO));
 	}
@@ -106,7 +105,6 @@ public class WorkflowCommandPredicate implements Predicate {
 		workflowInternalActionDTO.setActionMessage(PlatformSuccessMessages.PACKET_COMPLETE_AS_REJECTED.getMessage());
 		workflowInternalActionDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
 		workflowInternalActionDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
-		workflowInternalActionDTO.setSource(json.getString(JsonConstant.SOURCE));
 		workflowInternalActionDTO.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowInternalActionDTO));
 	}
@@ -120,7 +118,6 @@ public class WorkflowCommandPredicate implements Predicate {
 		workflowInternalActionDTO.setActionMessage(PlatformSuccessMessages.PACKET_MARK_AS_REPROCESS.getMessage());
 		workflowInternalActionDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
 		workflowInternalActionDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
-		workflowInternalActionDTO.setSource(json.getString(JsonConstant.SOURCE));
 		workflowInternalActionDTO.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowInternalActionDTO));
 	}
@@ -134,7 +131,6 @@ public class WorkflowCommandPredicate implements Predicate {
 		workflowInternalActionDTO.setActionMessage(PlatformSuccessMessages.PACKET_COMPLETE_AS_FAILED.getMessage());
 		workflowInternalActionDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
 		workflowInternalActionDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
-		workflowInternalActionDTO.setSource(json.getString(JsonConstant.SOURCE));
 		workflowInternalActionDTO.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowInternalActionDTO));
 	}
@@ -148,7 +144,6 @@ public class WorkflowCommandPredicate implements Predicate {
 		workflowInternalActionDTO.setActionMessage(PlatformSuccessMessages.PACKET_COMPLETE_AS_PROCESSED.getMessage());
 		workflowInternalActionDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
 		workflowInternalActionDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
-		workflowInternalActionDTO.setSource(json.getString(JsonConstant.SOURCE));
 		workflowInternalActionDTO.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowInternalActionDTO));
 	}
@@ -162,7 +157,6 @@ public class WorkflowCommandPredicate implements Predicate {
 		workflowInternalActionDTO.setActionMessage(PlatformSuccessMessages.PACKET_RESTART_PARENT_FLOW.getMessage());
 		workflowInternalActionDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
 		workflowInternalActionDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
-		workflowInternalActionDTO.setSource(json.getString(JsonConstant.SOURCE));
 		workflowInternalActionDTO.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowInternalActionDTO));
 	}
@@ -185,7 +179,6 @@ public class WorkflowCommandPredicate implements Predicate {
 				.setAdditionalInfoProcess((String) exchange.getProperty(JsonConstant.ADDITIONAL_INFO_PROCESS));
 		workflowInternalActionDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
 		workflowInternalActionDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
-		workflowInternalActionDTO.setSource(json.getString(JsonConstant.SOURCE));
 		workflowInternalActionDTO.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowInternalActionDTO));
 	}

@@ -1506,7 +1506,6 @@ public class WorkflowCommandPredicateTest {
 		messageDTO.setRid("10002100741000120201231071308");
 		messageDTO.setReg_type("NEW");
 		messageDTO.setIteration(1);
-		messageDTO.setSource("REGISTRATION_CLIENT");
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
 		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT, "workflow-cmd://complete-as-processed");
 		assertTrue(workflowCommandPredicate.matches(exchange));
@@ -1524,7 +1523,6 @@ public class WorkflowCommandPredicateTest {
 		messageDTO.setRid("10002100741000120201231071308");
 		messageDTO.setReg_type("NEW");
 		messageDTO.setIteration(1);
-		messageDTO.setSource("REGISTRATION_CLIENT");
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
 		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT, ("workflow-cmd://complete-as-rejected"));
 		assertTrue(workflowCommandPredicate.matches(exchange));
@@ -1541,7 +1539,6 @@ public class WorkflowCommandPredicateTest {
 		messageDTO.setRid("10002100741000120201231071308");
 		messageDTO.setReg_type("NEW");
 		messageDTO.setIteration(1);
-		messageDTO.setSource("REGISTRATION_CLIENT");
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
 		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT, "workflow-cmd://mark-as-reprocess");
 		assertTrue(workflowCommandPredicate.matches(exchange));
@@ -1558,7 +1555,6 @@ public class WorkflowCommandPredicateTest {
 		messageDTO.setRid("10002100741000120201231071308");
 		messageDTO.setReg_type("NEW");
 		messageDTO.setIteration(1);
-		messageDTO.setSource("REGISTRATION_CLIENT");
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
 		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT, "workflow-cmd://complete-as-failed");
 		assertTrue(workflowCommandPredicate.matches(exchange));
@@ -1575,7 +1571,6 @@ public class WorkflowCommandPredicateTest {
 		messageDTO.setRid("10002100741000120201231071308");
 		messageDTO.setReg_type("NEW");
 		messageDTO.setIteration(1);
-		messageDTO.setSource("REGISTRATION_CLIENT");
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
 		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT, null);
 		workflowCommandPredicate.matches(exchange);
@@ -1588,7 +1583,6 @@ public class WorkflowCommandPredicateTest {
 		messageDTO.setRid("10002100741000120201231071308");
 		messageDTO.setReg_type("NEW");
 		messageDTO.setIteration(1);
-		messageDTO.setSource("REGISTRATION_CLIENT");
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
 		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT, "workflow-cmd://complete-as-faled");
 		workflowCommandPredicate.matches(exchange);
@@ -1602,7 +1596,6 @@ public class WorkflowCommandPredicateTest {
 		messageDTO.setRid("10002100741000120201231071308");
 		messageDTO.setReg_type("NEW");
 		messageDTO.setIteration(1);
-		messageDTO.setSource("REGISTRATION_CLIENT");
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
 		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT,
 				"workflow-cmd://pause-and-request-additional-info");
@@ -1621,7 +1614,6 @@ public class WorkflowCommandPredicateTest {
 		messageDTO.setRid("10002100741000120201231071308");
 		messageDTO.setReg_type("CORRECTION");
 		messageDTO.setIteration(1);
-		messageDTO.setSource("REGISTRATION_CLIENT");
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
 		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT, "workflow-cmd://restart-parent-flow");
 		assertTrue(workflowCommandPredicate.matches(exchange));
@@ -1638,7 +1630,6 @@ public class WorkflowCommandPredicateTest {
 		messageDTO.setRid("10002100741000120201231071308");
 		messageDTO.setReg_type("CORRECTION");
 		messageDTO.setIteration(1);
-		messageDTO.setSource("REGISTRATION_CLIENT");
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
 		exchange.getMessage().setHeader(Exchange.INTERCEPTED_ENDPOINT,
 				("workflow-cmd://complete-as-rejected-without-parent-flow"));

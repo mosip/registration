@@ -208,7 +208,6 @@ public class RegistrationStatusServiceImpl
 			String transactionId = generateId();
 			registrationStatusDto.setLatestRegistrationTransactionId(transactionId);
 			registrationStatusDto.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
-			registrationStatusDto.setSource("REGISTRATION_CLIENT");
 			RegistrationStatusEntity entity = convertDtoToEntity(registrationStatusDto, null);
 			registrationStatusDao.save(entity);
 			isTransactionSuccessful = true;

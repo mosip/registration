@@ -36,8 +36,6 @@ public class MessageDTO implements Serializable {
 	/** The timestamp when last stage hop was completed */
 	private String lastHopTimestamp;
 
-	private String source;
-
 	private int iteration;
 
 	private String workflowInstanceId;
@@ -189,14 +187,6 @@ public class MessageDTO implements Serializable {
 	 */
 	public void setLastHopTimestamp(String lastHopTimestamp) {
 		this.lastHopTimestamp = lastHopTimestamp;
-	}
-
-	public String getSource() {
-		return source;
-	}
-
-	public void setSource(String source) {
-		this.source = source;
 	}
 
 	public int getIteration() {

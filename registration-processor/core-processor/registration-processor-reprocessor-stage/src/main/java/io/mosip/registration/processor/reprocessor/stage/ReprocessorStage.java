@@ -235,7 +235,6 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 					MessageDTO messageDTO = new MessageDTO();
 					messageDTO.setRid(registrationId);
 					messageDTO.setReg_type(dto.getRegistrationType());
-					messageDTO.setSource(dto.getSource());
 					messageDTO.setIteration(dto.getIteration());
 					messageDTO.setWorkflowInstanceId(dto.getWorkflowInstanceId());
 					if (reprocessCount.equals(dto.getReProcessRetryCount())) {

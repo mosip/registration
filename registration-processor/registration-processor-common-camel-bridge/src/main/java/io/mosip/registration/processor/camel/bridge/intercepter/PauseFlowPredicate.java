@@ -79,7 +79,6 @@ public class PauseFlowPredicate implements Predicate {
 					workflowInternalActionDTO.setResumeRemoveTags(setting.getResumeRemoveTags());
 					workflowInternalActionDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
 					workflowInternalActionDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
-					workflowInternalActionDTO.setSource(json.getString(JsonConstant.SOURCE));
 					workflowInternalActionDTO
 							.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
 					exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowInternalActionDTO));
