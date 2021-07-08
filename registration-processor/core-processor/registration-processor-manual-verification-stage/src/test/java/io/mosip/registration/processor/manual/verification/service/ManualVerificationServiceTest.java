@@ -224,7 +224,7 @@ public class ManualVerificationServiceTest {
 	public void TablenotAccessibleExceptionTest() throws Exception {
 		Mockito.when(basePacketRepository.getAllAssignedRecord(any(), any())).thenReturn(entities);
 
-		Mockito.when(registrationStatusService.getRegStatusForMainProcess(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(),any())).thenReturn(registrationStatusDto);
 		Mockito.when(basePacketRepository.update(any(ManualVerificationEntity.class)))
 				.thenThrow(new TablenotAccessibleException(""));
 		manualAdjudicationService.updatePacketStatus(manualAdjudicationResponseDTO, stageName,queue);
