@@ -78,7 +78,7 @@ public class ABISHandlerUtil {
 		
 		String latestTransactionId = utilities.getLatestTransactionId(registrationId, registrationType, iteration, workflowInstanceId);
 
-		List<String> regBioRefIds = packetInfoDao.getAbisRefMatchedRefIdByRid(registrationId);
+		List<String> regBioRefIds = packetInfoDao.getAbisRefIdByWorkflowInstanceId(workflowInstanceId);
 
 		List<String> machedRefIds = new ArrayList<>();
 		Set<String> uniqueRIDs = new HashSet<>();
@@ -139,7 +139,7 @@ public class ABISHandlerUtil {
 	private List<AbisRequestDto> getMatchedRegIds(String registrationId, String process, int iteration, String workflowInstanceId) {
 		String latestTransactionId = utilities.getLatestTransactionId(registrationId, process, iteration, workflowInstanceId);
 
-		List<String> regBioRefIds = packetInfoDao.getAbisRefMatchedRefIdByRid(registrationId);
+		List<String> regBioRefIds = packetInfoDao.getAbisRefIdByWorkflowInstanceId(workflowInstanceId);
 
 		List<AbisRequestDto> abisRequestDtoList = new ArrayList<>();
 

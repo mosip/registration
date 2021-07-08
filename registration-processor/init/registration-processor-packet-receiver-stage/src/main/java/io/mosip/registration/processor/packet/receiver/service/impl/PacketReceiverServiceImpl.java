@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.registration.processor.core.exception.AdditionalInfoIdNotFoundException;
+import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
 import org.apache.commons.io.IOUtils;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.StringUtils;
@@ -250,8 +252,9 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	private boolean storePacket(String stageName, SyncRegistrationEntity regEntity, InternalRegistrationStatusDto dto,
 			LogDescription description) {
 		Boolean storageFlag = false;
+		int iteration = getIterationForSyncRecord(regEntity);
 		dto = registrationStatusService.getRegistrationStatus(regEntity.getRegistrationId(),
-				regEntity.getRegistrationType(), 1, regEntity.getWorkflowInstanceId());
+				regEntity.getRegistrationType(), iteration, regEntity.getWorkflowInstanceId());
 		if (dto == null) {
 			dto = new InternalRegistrationStatusDto();
 			dto.setRetryCount(0);
@@ -276,7 +279,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 		dto.setCreatedBy(USER);
 		dto.setIsDeleted(false);
 		dto.setSource(regEntity.getSource());
-        dto.setIteration(getIterationFromPacketName(regEntity));
+        dto.setIteration(iteration);
         dto.setWorkflowInstanceId(regEntity.getWorkflowInstanceId());
 
 		/** Module-Id can be Both Success/Error code */
@@ -383,7 +386,8 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 		return StringUtils.isNullOrEmpty(syncRegistrationEntity.getAdditionalInfoReqId())
 				&& mainProcess.contains(syncRegistrationEntity.getRegistrationType())
 				&& registrationStatusService.getRegistrationStatus(registrationId,
-				syncRegistrationEntity.getRegistrationType(), 1, syncRegistrationEntity.getWorkflowInstanceId()) != null;
+				syncRegistrationEntity.getRegistrationType(),
+				getIterationForSyncRecord(syncRegistrationEntity), syncRegistrationEntity.getWorkflowInstanceId()) != null;
 	}
 
 	/**
@@ -483,7 +487,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 		String registrationId = regEntity.getRegistrationId();
 
 		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus(registrationId,
-				regEntity.getRegistrationType(), getIterationFromPacketName(regEntity), regEntity.getWorkflowInstanceId());
+				regEntity.getRegistrationType(), getIterationForSyncRecord(regEntity), regEntity.getWorkflowInstanceId());
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "PacketReceiverServiceImpl::processPacket()::entry");
 		messageDTO.setRid(registrationId);
@@ -553,11 +557,16 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 		return messageDTO;
 	}
 
-	private int getIterationFromPacketName(SyncRegistrationEntity regEntity) {
-		return (mainProcess.contains(regEntity.getRegistrationType())) ? 1
-				:
-				additionalInfoRequestService.getAdditionalInfoRequestByReqId(
-            		regEntity.getAdditionalInfoReqId()).getAdditionalInfoIteration();
+	private int getIterationForSyncRecord(SyncRegistrationEntity regEntity) {
+		if (mainProcess.contains(regEntity.getRegistrationType()))
+			return 1;
+
+		AdditionalInfoRequestDto additionalInfoRequestDto = additionalInfoRequestService
+				.getAdditionalInfoRequestByReqId(regEntity.getAdditionalInfoReqId());
+		if (additionalInfoRequestDto == null)
+			throw new AdditionalInfoIdNotFoundException();
+
+		return additionalInfoRequestDto.getAdditionalInfoIteration();
     }
 
 }

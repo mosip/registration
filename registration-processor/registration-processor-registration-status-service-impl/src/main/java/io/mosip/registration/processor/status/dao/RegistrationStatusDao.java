@@ -108,43 +108,16 @@ public class RegistrationStatusDao {
 
 		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
 		String queryStr = null;
-		// TODO : need to verify this logic
 		if (workflowInstanceId != null) {
 			queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
 					+ ".id.workflowInstanceId=:workflowInstanceId"
 					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE
 					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
 			params.put("workflowInstanceId", workflowInstanceId);
-		}
-		else if (workflowInstanceId == null && process != null && iteration != null) {
-			params.put("registrationId", rid);
-			params.put("registrationType", process);
-			params.put("iteration", iteration);
-			queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
-					+ ".id.id=:registrationId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ".id.registrationType=:registrationType"
-					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ".id.iteration=:iteration"
-					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE
-					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
-		}
-		else if (process != null) {
-			params.put("registrationId", rid);
-			params.put("registrationType", process);
-			queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
-					+ ".id.id=:registrationId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ".id.registrationType=:registrationType"
-					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE
-					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
-		}
-		else if (iteration != null) {
-			params.put("registrationId", rid);
-			params.put("iteration", iteration);
-			queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
-					+ ".id.id=:registrationId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ".id.iteration=:iteration"
-					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE
-					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
 		} else {
 			params.put("registrationId", rid);
 			queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
-					+ ".id.id=:registrationId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE
+					+ ".regId=:registrationId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE
 					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
 		}
 
@@ -164,7 +137,7 @@ public class RegistrationStatusDao {
 		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
 
 		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
-				+ ".id.id=:registrationId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE
+				+ ".regId=:registrationId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE
 				+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
 
 		params.put("registrationId", rid);
@@ -330,7 +303,7 @@ public class RegistrationStatusDao {
 		String className = RegistrationStatusEntity.class.getSimpleName();
 		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
 
-		String queryStr = SELECT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias + ".id.id = :rid " + AND
+		String queryStr = SELECT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias + ".regId = :rid " + AND
 				+ " " + alias + ".statusCode = :status_Code";
 		params.put("rid", rid);
 		params.put("status_Code", "PROCESSED");

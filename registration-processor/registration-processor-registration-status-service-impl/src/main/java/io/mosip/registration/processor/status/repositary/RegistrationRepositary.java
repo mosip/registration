@@ -24,11 +24,11 @@ import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 @Repository
 public interface RegistrationRepositary<T extends BaseRegistrationEntity, E> extends BaseRepository<T, E> {
 	
-	@Query("SELECT registration.id.id FROM RegistrationStatusEntity registration WHERE registration.id.id in :regIds and registration.latestTransactionStatusCode =:statusCode")
+	@Query("SELECT registration.regId FROM RegistrationStatusEntity registration WHERE registration.regId in :regIds and registration.latestTransactionStatusCode =:statusCode")
 	public List<String> getProcessedOrProcessingRegIds(@Param("regIds") List<String> regIds,
 			@Param("statusCode") String statusCode);
 
-	@Query("SELECT registration.id.id FROM RegistrationStatusEntity registration WHERE registration.id.id in :regIds and registration.statusCode !=:statusCode1 and registration.statusCode !=:statusCode2")
+	@Query("SELECT registration.regId FROM RegistrationStatusEntity registration WHERE registration.regId in :regIds and registration.statusCode !=:statusCode1 and registration.statusCode !=:statusCode2")
 	public List<String> getWithoutStatusCodes(@Param("regIds") List<String> regIds,
 													   @Param("statusCode1") String statusCode1, @Param("statusCode2") String statusCode2);
 	
