@@ -36,7 +36,6 @@ import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
-import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorUnCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -390,7 +389,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 	
 			List<RegBioRefDto> regBioRefist = packetInfoManager.getRegBioRefDataByBioRefIds(bioRefId);
 			RegBioRefDto regBioRefDto = regBioRefist.get(0);
-			registrationId = packetInfoDao.getRegIdByRefIdAndProcessAndIteration(
+			registrationId = packetInfoDao.getRegIdByRefIdByWorkflowInstanceId(
 					regBioRefDto.getBioRefId(), regBioRefDto.getWorkflowInstanceId());
 			internalRegStatusDto = registrationStatusService.getRegistrationStatus(registrationId,
 					regBioRefDto.getProcess(), regBioRefDto.getIteration(), regBioRefDto.getWorkflowInstanceId());

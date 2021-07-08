@@ -465,11 +465,10 @@ public class PacketInfoDao {
 	/**
 	 * Gets the RegId by bioRefId,process & iteration.
 	 * @param matchRefId
-	 * @param process
-	 * @param iteration
+	 * @param workflowInstanceId
 	 * @return regId
 	 */
-	public String getRegIdByRefIdAndProcessAndIteration(String matchRefId, String workflowInstanceId) {
+	public String getRegIdByRefIdByWorkflowInstanceId(String matchRefId, String workflowInstanceId) {
 		return regBioRefRepository.getRegIdByWorkflowInstanceId(matchRefId, workflowInstanceId);
 	}
 	
