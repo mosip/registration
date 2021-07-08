@@ -27,6 +27,14 @@ mosip.kernel.device.validate.history.id=""
 mosip.registration.processor.validate-machine=true
 mosip.registration.processor.validate-device=true
 mosip.registration.processor.validate-center=true
+
+# To enable/disable trust validation of a digital id signature of a device
+mosip.regproc.cmd-validator.device.disable-trust-validation=false
+# Maximum duration in minutes permissible betwwen digital id timestamp and packet creation time
+mosip.regproc.cmd-validator.device.allowed-digital-id-timestamp-variation=525600
+# Timestamp format followed in digital id and biometrics payload
+mosip.regproc.cmd-validator.device.digital-id-timestamp-format=yyyy-MM-dd'T'HH:mm:ss'Z'
+
 ```
 ## Validations done by the stage
 1. User, Centre and Machine Validation :  Validation against the Master-data

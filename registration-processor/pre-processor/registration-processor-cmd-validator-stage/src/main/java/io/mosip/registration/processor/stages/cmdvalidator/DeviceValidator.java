@@ -71,6 +71,9 @@ public class DeviceValidator {
 	@Value("${mosip.regproc.cmd-validator.device.allowed-digital-id-timestamp-variation:5}")
 	private int allowedDigitalIdTimestampVariation;
 
+	@Value("${mosip.regproc.cmd-validator.device.digital-id-timestamp-format:yyyy-MM-dd'T'HH:mm:ss'Z'}")
+	private String digitalIdTimestampFormat;
+
 	/**
 	 * Checks if is device active.
 	 *
@@ -115,7 +118,7 @@ public class DeviceValidator {
 					signatures.add(digitalIdString);
 				}
 				signatures.add(digitalIdString);
-				validateTimestamp (payload,regOsi.getPacketCreationDate(),newDigitalId.getDateTime()) ;
+				validateTimestamp(payload,regOsi.getPacketCreationDate(),newDigitalId.getDateTime()) ;
 				validateTimestamp(payload,regOsi.getPacketCreationDate(),payload.getString("timestamp"));
 				if(!deviceCodeTimestamps.contains(payload.getString("deviceCode")+newDigitalId.getDateTime())) {
 					validateDeviceForHotlist(payload.getString("deviceCode"),newDigitalId.getDateTime());
@@ -162,8 +165,9 @@ public class DeviceValidator {
 		}
 	}
 
-	private void validateTimestamp (JSONObject payload, String packetCreationDate,String dateTime) throws JSONException, BaseCheckedException, JsonParseException, JsonMappingException, IOException {
-		DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+	private void validateTimestamp(JSONObject payload, String packetCreationDate,String dateTime) 
+			throws JSONException, BaseCheckedException, JsonParseException, JsonMappingException, IOException {
+		DateTimeFormatter format = DateTimeFormatter.ofPattern(digitalIdTimestampFormat);
 		LocalDateTime packetCreationDateTime = LocalDateTime
 				.parse(packetCreationDate, format);
 		LocalDateTime timestamp = LocalDateTime
