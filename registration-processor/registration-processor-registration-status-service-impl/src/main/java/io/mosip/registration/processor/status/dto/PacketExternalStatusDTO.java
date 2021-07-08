@@ -4,12 +4,11 @@ import java.io.Serializable;
 
 import lombok.Data;
 
-
 /**
- * Instantiates a new packet status DTO.
+ * Instantiates a new packet external status DTO.
  */
 @Data
-public class PacketStatusDTO  implements Serializable {
+public class PacketExternalStatusDTO  implements Serializable {
 /** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 7190330336993883907L;
 

@@ -17,7 +17,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.status.dto.PacketStatusRequestDTO;
+import io.mosip.registration.processor.status.dto.PacketExternalStatusRequestDTO;
 import io.mosip.registration.processor.status.exception.RegStatusAppException;
 import io.mosip.registration.processor.status.exception.RegStatusValidationException;
 
@@ -57,7 +57,7 @@ public class PacketStatusRequestValidator {
 	 * @param serviceId              the service id
 	 * @throws RegStatusAppException the reg status app exception
 	 */
-	public void validate(PacketStatusRequestDTO packetStatusRequestDTO, String serviceId)
+	public void validate(PacketExternalStatusRequestDTO packetStatusRequestDTO, String serviceId)
 			throws RegStatusAppException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"PacketStatusRequestValidator::validate()::entry");

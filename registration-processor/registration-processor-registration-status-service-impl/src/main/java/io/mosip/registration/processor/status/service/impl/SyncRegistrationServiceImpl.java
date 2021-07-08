@@ -39,8 +39,6 @@ import io.mosip.registration.processor.status.code.RegistrationExternalStatusCod
 import io.mosip.registration.processor.status.code.SupervisorStatus;
 import io.mosip.registration.processor.status.dao.SyncRegistrationDao;
 import io.mosip.registration.processor.status.decryptor.Decryptor;
-import io.mosip.registration.processor.status.dto.PacketStatusDTO;
-import io.mosip.registration.processor.status.dto.PacketStatusSubRequestDTO;
 import io.mosip.registration.processor.status.dto.RegistrationAdditionalInfoDTO;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDto;
@@ -744,66 +742,13 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	}
 
 	@Override
-	public List<PacketStatusDTO> getByPacketIdsWithStatus(List<PacketStatusSubRequestDTO> packetIdsRequested) {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-				"SyncRegistrationServiceImpl::getByPacketIdsWithStatus()::entry");
-
-		try {
-			List<String> packetIds = new ArrayList<>();
-
-			for (PacketStatusSubRequestDTO packetStatusSubRequestDTO : packetIdsRequested) {
-				packetIds.add(packetStatusSubRequestDTO.getPacketId());
-			}
-			if (!packetIds.isEmpty()) {
-				List<SyncRegistrationEntity> syncRegistrationEntityList = syncRegistrationDao
-						.getByPacketIds(packetIds);
-
-				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-						"SyncRegistrationServiceImpl::getByPacketIdsWithStatus()::exit");
-				return convertEntityListToDtoListAndGetExternalStatusForPacket(syncRegistrationEntityList);
-			}
-			return null;
-		} catch (DataAccessLayerException e) {
-
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
-			throw new TablenotAccessibleException(
-					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
-		}
-	}
-
-	private List<PacketStatusDTO> convertEntityListToDtoListAndGetExternalStatusForPacket(
-			List<SyncRegistrationEntity> syncRegistrationEntityList) {
-		List<PacketStatusDTO> list = new ArrayList<>();
-		if (syncRegistrationEntityList != null) {
-			for (SyncRegistrationEntity entity : syncRegistrationEntityList) {
-				list.add(convertEntityToDtoAndGetExternalStatusForPacket(entity));
-			}
-
-		}
-		return list;
-	}
-
-	private PacketStatusDTO convertEntityToDtoAndGetExternalStatusForPacket(SyncRegistrationEntity entity) {
-		PacketStatusDTO packetStatusDTO = new PacketStatusDTO();
-		packetStatusDTO.setPacketId(entity.getPacketId());
-		packetStatusDTO.setStatusCode(RegistrationExternalStatusCode.UPLOAD_PENDING.toString());
-		return packetStatusDTO;
-	}
-
-	@Override
-	public List<SyncRegistrationEntity> getByPacketIds(List<PacketStatusSubRequestDTO> packetIdsRequested) {
+	public List<SyncRegistrationEntity> getByPacketIds(List<String> packetIdList) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"SyncRegistrationServiceImpl::getByPacketIds()::entry");
-
 		try {
-			List<String> packetIds = new ArrayList<>();
-
-			for (PacketStatusSubRequestDTO packetStatusSubRequestDTO : packetIdsRequested) {
-				packetIds.add(packetStatusSubRequestDTO.getPacketId());
-			}
-			if (!packetIds.isEmpty()) {
-				List<SyncRegistrationEntity> syncRegistrationEntityList = syncRegistrationDao.getByPacketIds(packetIds);
+			if (!packetIdList.isEmpty()) {
+				List<SyncRegistrationEntity> syncRegistrationEntityList = syncRegistrationDao
+						.getByPacketIds(packetIdList);
 
 				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 						"SyncRegistrationServiceImpl::getByPacketIds()::exit");
