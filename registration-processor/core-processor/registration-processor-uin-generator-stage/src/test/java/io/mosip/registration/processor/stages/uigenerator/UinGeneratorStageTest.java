@@ -289,7 +289,7 @@ public class UinGeneratorStageTest {
 		when(env.getProperty("mosip.registration.processor.datetime.pattern"))
 				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		when(env.getProperty("registration.processor.id.repo.vidVersion")).thenReturn("v1");
-		when(regLostUinDetRepository.getLostUinMatchedRegId(anyString()))
+		when(regLostUinDetRepository.getLostUinMatchedRegIdByWorkflowId(anyString()))
 				.thenReturn("27847657360002520181210094052");
 		demographicIdentity.put("UIN", Long.parseLong("9403107397"));
 
@@ -1661,7 +1661,7 @@ public class UinGeneratorStageTest {
 		when(
 				registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any(Class.class)))
 				.thenReturn(idResponseDTO);
-		when(regLostUinDetEntity.getLostUinMatchedRegId(any())).thenReturn("27847657360002520181210094052");
+		when(regLostUinDetEntity.getLostUinMatchedRegIdByWorkflowId(any())).thenReturn("27847657360002520181210094052");
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getInternalError());
 
@@ -1803,7 +1803,7 @@ public class UinGeneratorStageTest {
 		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
 		String response = "{\"timestamp\":1553771083721,\"status\":404,\"errors\":[{\"errorCode\":\"KER-UIG-004\",\"errorMessage\":\"Given UIN is not in ISSUED status\"}]}";
 		when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn(null);
-		when(regLostUinDetEntity.getLostUinMatchedRegId(any())).thenReturn("27847657360002520181210094052");
+		when(regLostUinDetEntity.getLostUinMatchedRegIdByWorkflowId(any())).thenReturn("27847657360002520181210094052");
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
 		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(response);
@@ -1841,7 +1841,7 @@ public class UinGeneratorStageTest {
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
 		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(response);
-		when(regLostUinDetEntity.getLostUinMatchedRegId(any())).thenReturn("27847657360002520181210094052");
+		when(regLostUinDetEntity.getLostUinMatchedRegIdByWorkflowId(any())).thenReturn("27847657360002520181210094052");
 
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();

@@ -392,12 +392,12 @@ public class RegistrationStatusServiceImpl
 			List<RegistrationStatusEntity> entities) {
 		List<RegistrationStatusDto> list = new ArrayList<>();
 		if (entities != null) {
-			List<String> registrationIds = entities.stream().map(e -> e.getId().getId()).distinct()
+			List<String> registrationIds = entities.stream().map(e -> e.getRegId()).distinct()
 					.collect(Collectors.toList());
 
 			registrationIds.forEach(registrationId -> {
 				List<RegistrationStatusEntity> registrationStatusEntities = entities.stream()
-						.filter(r -> registrationId.equals(r.getId().getId())).collect(Collectors.toList());
+						.filter(r -> registrationId.equals(r.getRegId())).collect(Collectors.toList());
 				list.add(convertEntityToDtoAndGetExternalStatus(registrationStatusEntities));
 			});
 
@@ -416,7 +416,7 @@ public class RegistrationStatusServiceImpl
 		RegistrationStatusDto registrationStatusDto = new RegistrationStatusDto();
 
 		Optional<RegistrationStatusEntity> parentEntity = entities.stream()
-				.filter(e -> mainProcess.stream().anyMatch(name -> name.equals(e.getId().getRegistrationType())))
+				.filter(e -> mainProcess.stream().anyMatch(name -> name.equals(e.getRegistrationType())))
 				.findFirst();
 
 		if (parentEntity.isPresent() && parentEntity.get().getStatusCode() != null) {
@@ -431,7 +431,7 @@ public class RegistrationStatusServiceImpl
 				registrationStatusDto.setStatusCode(mappedValue);
 
 			}
-			registrationStatusDto.setRegistrationId(parentEntity.get().getId().getId());
+			registrationStatusDto.setRegistrationId(parentEntity.get().getRegId());
 		} else {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					parentEntity.get().getReferenceRegistrationId(),
@@ -494,8 +494,8 @@ public class RegistrationStatusServiceImpl
 	 */
 	private InternalRegistrationStatusDto convertEntityToDto(RegistrationStatusEntity entity) {
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
-		registrationStatusDto.setRegistrationId(entity.getId().getId());
-		registrationStatusDto.setRegistrationType(entity.getId().getRegistrationType());
+		registrationStatusDto.setRegistrationId(entity.getRegId());
+		registrationStatusDto.setRegistrationType(entity.getRegistrationType());
 		registrationStatusDto.setReferenceRegistrationId(entity.getReferenceRegistrationId());
 		registrationStatusDto.setStatusCode(entity.getStatusCode());
 		registrationStatusDto.setLangCode(entity.getLangCode());
@@ -520,7 +520,7 @@ public class RegistrationStatusServiceImpl
 		registrationStatusDto.setResumeRemoveTags(entity.getResumeRemoveTags());
 		registrationStatusDto.setLastSuccessStageName(entity.getLastSuccessStageName());
 		registrationStatusDto.setSource(entity.getSource());
-		registrationStatusDto.setIteration(entity.getId().getIteration());
+		registrationStatusDto.setIteration(entity.getIteration());
 		registrationStatusDto.setWorkflowInstanceId(entity.getId().getWorkflowInstanceId());
 		return registrationStatusDto;
 	}
@@ -534,14 +534,15 @@ public class RegistrationStatusServiceImpl
 	 */
 	private RegistrationStatusEntity convertDtoToEntity(InternalRegistrationStatusDto dto, 
 			String existingLastSuccessStageName) {
-		RegistrationStatusEntity registrationStatusEntity = new RegistrationStatusEntity();
 		BaseRegistrationPKEntity pk = new BaseRegistrationPKEntity();
-		pk.setId(dto.getRegistrationId());
 		pk.setWorkflowInstanceId(dto.getWorkflowInstanceId());
-		pk.setRegistrationType(dto.getRegistrationType());
-		pk.setIteration(dto.getIteration());
+
+		RegistrationStatusEntity registrationStatusEntity = new RegistrationStatusEntity();
 		registrationStatusEntity.setId(pk);
+		registrationStatusEntity.setRegId(dto.getRegistrationId());
+		registrationStatusEntity.setIteration(dto.getIteration());
 		registrationStatusEntity.setReferenceRegistrationId(dto.getReferenceRegistrationId());
+		registrationStatusEntity.setRegistrationType(dto.getRegistrationType());
 		registrationStatusEntity.setStatusCode(dto.getStatusCode());
 		registrationStatusEntity.setSource(dto.getSource());
 		registrationStatusEntity.setLangCode(dto.getLangCode());
@@ -753,12 +754,14 @@ public class RegistrationStatusServiceImpl
 	}
 
 	private RegistrationStatusEntity convertDtoToEntityForWorkFlow(InternalRegistrationStatusDto dto) {
-		RegistrationStatusEntity registrationStatusEntity = new RegistrationStatusEntity();
 		BaseRegistrationPKEntity pk = new BaseRegistrationPKEntity();
-		pk.setId(dto.getRegistrationId());
-		pk.setRegistrationType(dto.getRegistrationType());
-		pk.setIteration(dto.getIteration());
+		pk.setWorkflowInstanceId(dto.getWorkflowInstanceId());
+
+		RegistrationStatusEntity registrationStatusEntity = new RegistrationStatusEntity();
 		registrationStatusEntity.setId(pk);
+		registrationStatusEntity.setRegId(dto.getRegistrationId());
+		registrationStatusEntity.setRegistrationType(dto.getRegistrationType());
+		registrationStatusEntity.setIteration(dto.getIteration());
 		registrationStatusEntity.setReferenceRegistrationId(dto.getReferenceRegistrationId());
 		registrationStatusEntity.setStatusCode(dto.getStatusCode());
 		registrationStatusEntity.setLangCode(dto.getLangCode());

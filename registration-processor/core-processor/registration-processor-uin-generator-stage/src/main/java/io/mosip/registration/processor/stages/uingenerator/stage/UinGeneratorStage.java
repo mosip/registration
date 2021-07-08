@@ -228,7 +228,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 			if ((RegistrationType.LOST.toString()).equalsIgnoreCase(object.getReg_type())) {
 				String lostPacketRegId = object.getRid();
-				String matchedRegId = regLostUinDetEntity.getLostUinMatchedRegId(lostPacketRegId);
+				String matchedRegId = regLostUinDetEntity.getLostUinMatchedRegIdByWorkflowId(object.getWorkflowInstanceId());
 				if (matchedRegId != null) {
 					linkRegIdWrtUin(lostPacketRegId, matchedRegId, registrationStatusDto.getRegistrationType(), object, description);
 				}

@@ -917,9 +917,10 @@ public class PacketInfoManagerImplTest {
 	public void testGetBioRefIdByRegId() {
 		List<RegBioRefEntity> regBioRefEntityList = new ArrayList<>();
 		RegBioRefEntity regBioRefEntity = new RegBioRefEntity();
-		regBioRefEntity.setBioRefId("abc-efg");
+		regBioRefEntity.setRegId("12345678");
 		RegBioRefPKEntity pkEntity = new RegBioRefPKEntity();
-		pkEntity.setRegId("12345678");
+		pkEntity.setBioRefId("abc-efg");
+		pkEntity.setWorkflowInstanceId("workflowInstanceId");
 		regBioRefEntity.setId(pkEntity);
 		regBioRefEntityList.add(regBioRefEntity);
 

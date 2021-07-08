@@ -88,9 +88,10 @@ public class RegistrationStatusServiceTest {
 		registrationStatusEntity = new RegistrationStatusEntity();
 		registrationStatusEntity.setIsActive(true);
 		BaseRegistrationPKEntity pk = new BaseRegistrationPKEntity();
-		pk.setId("1000");
-		pk.setIteration(1);
-		pk.setRegistrationType("NEW");
+		pk.setWorkflowInstanceId("WorkflowInstanceId");
+		registrationStatusEntity.setRegId("1000");
+		registrationStatusEntity.setIteration(1);
+		registrationStatusEntity.setRegistrationType("NEW");
 		registrationStatusEntity.setId(pk);
 		registrationStatusEntity.setStatusCode("PACKET_UPLOADED_TO_LANDING_ZONE");
 		registrationStatusEntity.setRetryCount(2);
