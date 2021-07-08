@@ -173,8 +173,8 @@ public class TokenValidator {
 				if (role.contains(assignedRole))
 					return true;
 			}
-		} else if (url.contains("packetStatus")) {
-			for (String assignedRole : APIAuthorityList.PACKETSTATUS.getList()) {
+		} else if (url.contains("packetexternalstatus")) {
+			for (String assignedRole : APIAuthorityList.PACKETEXTERNALSTATUS.getList()) {
 				if (role.contains(assignedRole))
 					return true;
 			}
