@@ -102,6 +102,9 @@ public class PacketExternalStatusServiceImpl implements PacketExternalStatusServ
 			packetStatusDTO.setStatusCode(mappedValue);
 		} else {
 			packetStatusDTO.setStatusCode(PacketExternalStatusCode.RECEIVED.toString());
+			regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					internalRegistrationStatusDto.getRegistrationId(),
+					PlatformErrorMessages.RPR_RGS_REGISTRATION_STATUS_NOT_EXIST.getMessage());
 		}
 		return packetStatusDTO;
 	}
