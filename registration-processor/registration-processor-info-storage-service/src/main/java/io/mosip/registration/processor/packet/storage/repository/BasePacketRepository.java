@@ -178,8 +178,11 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	 *            the rid
 	 * @return the reference id by rid
 	 */
-	@Query("SELECT abis.abisRefId FROM RegAbisRefEntity abis WHERE abis.id.regId =:rid order by crDtimes desc")
+	@Query("SELECT abis.id.bioRefId FROM RegBioRefEntity abis WHERE abis.regId =:rid order by crDtimes desc")
 	public List<String> getReferenceIdByRid(@Param("rid") String rid);
+
+	@Query("SELECT abis.id.bioRefId FROM RegBioRefEntity abis WHERE abis.id.workflowInstanceId =:workflowInstanceId order by crDtimes desc")
+	public List<String> getRefIdByWorkflowInstanceId(@Param("workflowInstanceId") String workflowInstanceId);
 
 	/**
 	 * Gets the rid by reference id.
@@ -188,7 +191,7 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	 *            the ref id
 	 * @return the rid by reference id
 	 */
-	@Query("SELECT abis.id.regId FROM RegAbisRefEntity abis WHERE abis.abisRefId =:refId")
+	@Query("SELECT abis.regId FROM RegBioRefEntity abis WHERE abis.id.bioRefId =:refId")
 	public List<String> getRidByReferenceId(@Param("refId") String refId);
 
 	/**

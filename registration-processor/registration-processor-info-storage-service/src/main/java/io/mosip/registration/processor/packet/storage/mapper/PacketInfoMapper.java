@@ -35,8 +35,6 @@ import io.mosip.registration.processor.packet.storage.entity.AbisResponseEntity;
 import io.mosip.registration.processor.packet.storage.entity.AbisResponsePKEntity;
 import io.mosip.registration.processor.packet.storage.entity.IndividualDemographicDedupeEntity;
 import io.mosip.registration.processor.packet.storage.entity.IndividualDemographicDedupePKEntity;
-import io.mosip.registration.processor.packet.storage.entity.RegAbisRefEntity;
-import io.mosip.registration.processor.packet.storage.entity.RegAbisRefPkEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegBioRefEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegBioRefPKEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegDemoDedupeListEntity;
@@ -62,33 +60,6 @@ public class PacketInfoMapper {
 	 */
 	private PacketInfoMapper() {
 		super();
-	}
-
-	/**
-	 * Convert reg abis ref to entity.
-	 *
-	 * @param regAbisRefDto
-	 *            the reg abis ref dto
-	 * @return the reg abis ref entity
-	 */
-	public static RegAbisRefEntity convertRegAbisRefToEntity(RegAbisRefDto regAbisRefDto) {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-				regAbisRefDto.getReg_id(), "PacketInfoMapper::convertRegAbisRefToEntity()::entry");
-
-		RegAbisRefEntity regAbisRefEntity = new RegAbisRefEntity();
-
-		RegAbisRefPkEntity regAbisRefPkEntity = new RegAbisRefPkEntity();
-
-		regAbisRefPkEntity.setRegId(regAbisRefDto.getReg_id());
-		regAbisRefEntity.setAbisRefId(regAbisRefDto.getAbis_ref_id());
-		regAbisRefEntity.setId(regAbisRefPkEntity);
-		regAbisRefEntity.setIsActive(true);
-		regAbisRefEntity.setCrDtimes(LocalDateTime.now(ZoneId.of("UTC")));
-		regAbisRefEntity.setUpdateDtimes(LocalDateTime.now(ZoneId.of("UTC")));
-
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-				regAbisRefDto.getReg_id(), "PacketInfoMapper::convertRegAbisRefToEntity()::exit");
-		return regAbisRefEntity;
 	}
 
 	/**
@@ -258,6 +229,7 @@ public class PacketInfoMapper {
 
 	public static RegBioRefDto convertBioRefEntityToDto(RegBioRefEntity regBioRefEntity) {
 		RegBioRefDto bioRefDto = new RegBioRefDto();
+		bioRefDto.setWorkflowInstanceId(regBioRefEntity.getId().getWorkflowInstanceId());
 		bioRefDto.setBioRefId(regBioRefEntity.getId().getBioRefId());
 		bioRefDto.setCrBy(regBioRefEntity.getCrBy());
 		bioRefDto.setIsActive(regBioRefEntity.getIsActive());
