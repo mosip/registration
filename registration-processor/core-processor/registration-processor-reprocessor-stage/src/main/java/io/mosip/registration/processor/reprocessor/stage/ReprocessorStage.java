@@ -91,9 +91,6 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 	@Autowired
 	AuditLogRequestBuilder auditLogRequestBuilder;
 
-	/** The registration id. */
-	private String registrationId = "";
-
 	/** Mosip router for APIs */
 	@Autowired
 	MosipRouter router;
@@ -215,6 +212,8 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 		statusList.add(RegistrationTransactionStatusCode.IN_PROGRESS.toString());
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ReprocessorStage::process()::entry");
+
+		String registrationId = null;
 		try {
 			dtolist = registrationStatusService.getUnProcessedPackets(fetchSize, elapseTime, reprocessCount,
 					statusList);
@@ -223,8 +222,8 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 				regProcLogger.info("======================>" + "Total packets count = " + dtolist.size(), "", "", "");
 				List<String> ridList = dtolist.stream().map(dto -> dto.getRegistrationId()).collect(Collectors.toList());
 				regProcLogger.info("======================>" + "rids = " + ridList.toString(), "", "", "");
-				dtolist.forEach(dto -> {
-					this.registrationId = dto.getRegistrationId();
+				for (InternalRegistrationStatusDto dto : dtolist) {
+					registrationId = dto.getRegistrationId();
 					if (reprocessCount.equals(dto.getReProcessRetryCount())) {
 						dto.setLatestTransactionStatusCode(
 								RegistrationTransactionStatusCode.REPROCESS_FAILED.toString());
@@ -279,7 +278,7 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 
 					auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName,
 							eventType, moduleId, moduleName, registrationId);
-				});
+				}
 			}
 
 		} catch (TablenotAccessibleException e) {
