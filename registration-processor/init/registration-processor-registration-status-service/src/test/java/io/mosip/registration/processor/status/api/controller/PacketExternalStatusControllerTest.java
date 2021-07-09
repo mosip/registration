@@ -1,6 +1,8 @@
 package io.mosip.registration.processor.status.api.controller;
 
 import static org.mockito.Mockito.when;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -9,6 +11,9 @@ import java.util.List;
 
 import javax.servlet.http.Cookie;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -25,11 +30,13 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.web.util.NestedServletException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.gson.Gson;
@@ -41,6 +48,7 @@ import io.mosip.registration.processor.status.api.config.RegistrationStatusConfi
 import io.mosip.registration.processor.status.dto.PacketExternalStatusDTO;
 import io.mosip.registration.processor.status.dto.PacketExternalStatusRequestDTO;
 import io.mosip.registration.processor.status.dto.PacketExternalStatusSubRequestDTO;
+import io.mosip.registration.processor.status.exception.RegStatusAppException;
 import io.mosip.registration.processor.status.service.PacketExternalStatusService;
 import io.mosip.registration.processor.status.validator.PacketExternalStatusRequestValidator;
 
@@ -66,9 +74,11 @@ public class PacketExternalStatusControllerTest {
 	@Mock
 	private Environment env;
 
-	private String regStatusToJson;
+	private String packetExternalStatusRequestToJson;
 
 	Gson gson = new GsonBuilder().serializeNulls().create();
+	
+	PacketExternalStatusRequestDTO packetExternalStatusRequestDTO;
 
 	@Before
 	public void setUp() throws JsonProcessingException, ApisResourceAccessException {
@@ -86,12 +96,13 @@ public class PacketExternalStatusControllerTest {
 		List<PacketExternalStatusSubRequestDTO> requestList = new ArrayList<>();
 		requestList.add(packetExternalStatusSubRequestDTO);
 		requestList.add(packetExternalStatusSubRequestDTO1);
-		PacketExternalStatusRequestDTO packetExternalStatusRequestDTO = new PacketExternalStatusRequestDTO();
+		 packetExternalStatusRequestDTO = new PacketExternalStatusRequestDTO();
 		packetExternalStatusRequestDTO.setId("mosip.registration.packet.external.status");
 		packetExternalStatusRequestDTO.setVersion("1.0");
 		packetExternalStatusRequestDTO
 				.setRequesttime(DateUtils.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
-		regStatusToJson = gson.toJson(packetExternalStatusRequestDTO);
+		packetExternalStatusRequestDTO.setRequest(requestList);
+		packetExternalStatusRequestToJson = gson.toJson(packetExternalStatusRequestDTO);
 		PacketExternalStatusDTO packetExternalStatusDTO = new PacketExternalStatusDTO();
 		packetExternalStatusDTO.setPacketId("test1");
 		packetExternalStatusDTO.setStatusCode("PROCESSED");
@@ -101,13 +112,18 @@ public class PacketExternalStatusControllerTest {
 				.getByPacketIds(ArgumentMatchers.any());
 	}
 	@Test
-	@Ignore
 	public void packetExternalStatusSuccessTest() throws Exception {
-		// doNothing().when(registrationStatusRequestValidator).validate((registrationStatusRequestDTO),
-		// "mosip.registration.status");
+		 doNothing().when(packetStatusRequestValidator).validate((packetExternalStatusRequestDTO),
+		 "mosip.registration.packet.external.status");
 		MvcResult result = this.mockMvc.perform(post("/packetexternalstatus").accept(MediaType.APPLICATION_JSON_VALUE)
-				.cookie(new Cookie("Authorization", regStatusToJson)).contentType(MediaType.APPLICATION_JSON_VALUE)
-				.content(regStatusToJson.getBytes()).header("timestamp", "2019-05-07T05:13:55.704Z"))
+				.cookie(new Cookie("Authorization", packetExternalStatusRequestToJson)).contentType(MediaType.APPLICATION_JSON_VALUE)
+				.content(packetExternalStatusRequestToJson.getBytes()).header("timestamp", "2019-05-07T05:13:55.704Z"))
 				.andExpect(status().isOk()).andReturn();
+		String resultContent = result.getResponse().getContentAsString();
+		JSONObject object = (JSONObject) new JSONParser().parse(resultContent);
+		JSONArray responseObject = (JSONArray) object.get("response");
+		JSONObject packetExternalStatusDTO = (JSONObject) responseObject.get(0);
+		assertEquals(packetExternalStatusDTO.get("packetId").toString(), "test1");
+		assertEquals(packetExternalStatusDTO.get("statusCode").toString(), "PROCESSED");
 	}
 }
