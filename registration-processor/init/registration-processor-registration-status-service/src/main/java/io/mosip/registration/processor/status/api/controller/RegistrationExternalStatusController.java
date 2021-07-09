@@ -28,6 +28,7 @@ import io.mosip.registration.processor.status.code.RegistrationExternalStatusCod
 import io.mosip.registration.processor.status.dto.ErrorDTO;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationExternalStatusRequestDTO;
+import io.mosip.registration.processor.status.dto.RegistrationExternalStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusErrorDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDto;
@@ -93,14 +94,15 @@ public class RegistrationExternalStatusController {
 			registrationExternalStatusRequestValidator.validate(registrationExternalStatusRequestDTO,
 					env.getProperty(REG_EXTERNAL_STATUS_SERVICE_ID));
 			List<RegistrationStatusDto> registrations = registrationStatusService
-					.getByIds(registrationExternalStatusRequestDTO.getRequest());
+					.getExternalStatusByIds(registrationExternalStatusRequestDTO.getRequest());
 			
-			List<RegistrationStatusSubRequestDto> requestIdsNotAvailable = registrationExternalStatusRequestDTO.getRequest()
-					.stream()
+			List<RegistrationExternalStatusSubRequestDto> requestIdsNotAvailable = registrationExternalStatusRequestDTO
+					.getRequest().stream()
 					.filter(request -> registrations.stream().noneMatch(
 							registration -> registration.getRegistrationId().equals(request.getRegistrationId())))
 					.collect(Collectors.toList());
-			List<RegistrationStatusDto> registrationsList = syncRegistrationService.getByIds(requestIdsNotAvailable);
+			List<RegistrationStatusDto> registrationsList = syncRegistrationService
+					.getExternalStatusByIds(requestIdsNotAvailable);
 			if (registrationsList != null && !registrationsList.isEmpty()) {
 				registrations.addAll(registrationsList);
 			}
@@ -123,7 +125,7 @@ public class RegistrationExternalStatusController {
 	}
 	
 	public RegExternalStatusResponseDTO buildRegistrationStatusResponse(List<RegistrationStatusDto> registrations,
-			List<RegistrationStatusSubRequestDto> requestIds) {
+			List<RegistrationExternalStatusSubRequestDto> requestIds) {
 
 		RegExternalStatusResponseDTO response = new RegExternalStatusResponseDTO();
 		if (Objects.isNull(response.getId())) {
@@ -132,14 +134,14 @@ public class RegistrationExternalStatusController {
 		response.setResponsetime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		response.setVersion(env.getProperty(REG_EXTERNAL_STATUS_APPLICATION_VERSION));
 		response.setResponse(registrations);
-		List<RegistrationStatusSubRequestDto> requestIdsNotAvailable = requestIds.stream()
+		List<RegistrationExternalStatusSubRequestDto> requestIdsNotAvailable = requestIds.stream()
 				.filter(request -> registrations.stream().noneMatch(
 						registration -> registration.getRegistrationId().equals(request.getRegistrationId())))
 				.collect(Collectors.toList());
 		List<ErrorDTO> errors = new ArrayList<ErrorDTO>();
 		if (!requestIdsNotAvailable.isEmpty()) {
 
-			for (RegistrationStatusSubRequestDto requestDto : requestIdsNotAvailable) {
+			for (RegistrationExternalStatusSubRequestDto requestDto : requestIdsNotAvailable) {
 				RegistrationStatusErrorDto errorDto = new RegistrationStatusErrorDto(
 						PlatformErrorMessages.RPR_RGS_RID_NOT_FOUND.getCode(),
 						PlatformErrorMessages.RPR_RGS_RID_NOT_FOUND.getMessage());

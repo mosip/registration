@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import io.mosip.registration.processor.core.workflow.dto.SearchInfo;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
+import io.mosip.registration.processor.status.dto.RegistrationExternalStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDto;
 
 // TODO: Auto-generated Javadoc
@@ -82,6 +83,15 @@ public interface RegistrationStatusService<T, U, D> {
 	 * @return the list of Registrations for the given ids.
 	 */
 	public List<D> getByIds(List<RegistrationStatusSubRequestDto> requestIds);
+	
+	/**
+	 * Gets the by ids.
+	 *
+	 * @param requestIds
+	 *            the request ids
+	 * @return the list of Registrations for the given ids.
+	 */
+	public List<D> getExternalStatusByIds(List<RegistrationExternalStatusSubRequestDto> requestIds);
 
 	/**
 	 * Gets the un processed packets.

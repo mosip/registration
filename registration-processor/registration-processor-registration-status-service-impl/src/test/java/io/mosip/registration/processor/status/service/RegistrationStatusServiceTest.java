@@ -31,6 +31,7 @@ import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequest
 import io.mosip.registration.processor.status.code.RegistrationExternalStatusCode;
 import io.mosip.registration.processor.status.dao.RegistrationStatusDao;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
+import io.mosip.registration.processor.status.dto.RegistrationExternalStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.TransactionDto;
@@ -49,7 +50,10 @@ public class RegistrationStatusServiceTest {
 
 	private InternalRegistrationStatusDto registrationStatusDto;
 	private RegistrationStatusEntity registrationStatusEntity;
+	private RegistrationStatusEntity registrationExternalStatusEntity1;
+	private RegistrationStatusEntity registrationExternalStatusEntity2;
 	private List<RegistrationStatusEntity> entities;
+	private List<RegistrationStatusEntity> externalEntities;
 
 	@InjectMocks
 	private RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService = new RegistrationStatusServiceImpl();
@@ -100,7 +104,37 @@ public class RegistrationStatusServiceTest {
 		registrationStatusEntity.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
 		entities = new ArrayList<>();
 		entities.add(registrationStatusEntity);
+		
+		registrationExternalStatusEntity1 = new RegistrationStatusEntity();
+		registrationExternalStatusEntity1.setIsActive(true);
+		registrationExternalStatusEntity1.setRegId("1000");
+		registrationExternalStatusEntity1.setIteration(1);
+		registrationExternalStatusEntity1.setRegistrationType("NEW");
+		registrationExternalStatusEntity1.setId(pk);
+		registrationExternalStatusEntity1.setStatusCode("PAUSED_FOR_ADDITIONAL_INFO");
+		registrationExternalStatusEntity1.setCreateDateTime(LocalDateTime.now());
+		registrationExternalStatusEntity1.setRetryCount(2);
+		registrationExternalStatusEntity1.setRegistrationStageName("PacketValidatorStage");
 
+		registrationExternalStatusEntity1.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+		
+		registrationExternalStatusEntity2 = new RegistrationStatusEntity();
+		registrationExternalStatusEntity2.setIsActive(true);
+		registrationExternalStatusEntity2.setRegId("1000");
+		registrationExternalStatusEntity2.setIteration(1);
+		registrationExternalStatusEntity2.setRegistrationType("CORRECTION");
+		registrationExternalStatusEntity2.setId(pk);
+		registrationExternalStatusEntity2.setStatusCode("FAILED");
+		registrationExternalStatusEntity2.setCreateDateTime(LocalDateTime.now().plusDays(1));
+		registrationExternalStatusEntity2.setRetryCount(2);
+		registrationExternalStatusEntity2.setRegistrationStageName("PacketValidatorStage");
+
+		registrationExternalStatusEntity2.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+
+		externalEntities = new ArrayList<>();
+		externalEntities.add(registrationExternalStatusEntity1);
+		externalEntities.add(registrationExternalStatusEntity2);
+		
 		Mockito.when(registrationStatusDao.find(any(),any(),any(),any())).thenReturn(registrationStatusEntity);
 
 		TransactionEntity transactionEntity = new TransactionEntity();
@@ -192,6 +226,18 @@ public class RegistrationStatusServiceTest {
 		List<RegistrationStatusDto> list = registrationStatusService.getByIds(registrationIds);
 		assertEquals("PROCESSED", list.get(0).getStatusCode());
 	}
+	
+	@Test
+	public void testGetExternalStatusByIdsSuccess() {
+
+		Mockito.when(registrationStatusDao.getByIds(any())).thenReturn(externalEntities);
+		RegistrationExternalStatusSubRequestDto registrationId = new RegistrationExternalStatusSubRequestDto();
+		registrationId.setRegistrationId("1001");
+		List<RegistrationExternalStatusSubRequestDto> registrationIds = new ArrayList<>();
+		registrationIds.add(registrationId);
+		List<RegistrationStatusDto> list = registrationStatusService.getExternalStatusByIds(registrationIds);
+		assertEquals("AWAITING_INFORMATION", list.get(0).getStatusCode());
+	}
 
 	@Test(expected = TablenotAccessibleException.class)
 	public void getByIdsFailureTest() {
@@ -205,6 +251,21 @@ public class RegistrationStatusServiceTest {
 		Mockito.when(registrationStatusDao.getByIds(any())).thenThrow(exp);
 
 		registrationStatusService.getByIds(registrationIds);
+
+	}
+	
+	@Test(expected = TablenotAccessibleException.class)
+	public void getExternalStatusByIdsFailureTest() {
+		RegistrationExternalStatusSubRequestDto registrationId = new RegistrationExternalStatusSubRequestDto();
+		registrationId.setRegistrationId("1001");
+		List<RegistrationExternalStatusSubRequestDto> registrationIds = new ArrayList<>();
+		registrationIds.add(registrationId);
+
+		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
+				"errorMessage", new Exception());
+		Mockito.when(registrationStatusDao.getByIds(any())).thenThrow(exp);
+
+		registrationStatusService.getExternalStatusByIds(registrationIds);
 
 	}
 
