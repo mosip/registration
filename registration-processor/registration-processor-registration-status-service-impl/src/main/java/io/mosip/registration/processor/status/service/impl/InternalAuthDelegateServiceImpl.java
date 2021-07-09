@@ -82,6 +82,7 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 		String individualId = getIndividualIdByUserId(authRequestDTO.getIndividualId());
 
 		authRequestDTO.setIndividualId(individualId);
+		authRequestDTO.setIndividualIdType(null);
 
 		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(internalAuthUri);
 		HttpEntity<?> httpRequestEntity = new HttpEntity<Object>(authRequestDTO, headers);
