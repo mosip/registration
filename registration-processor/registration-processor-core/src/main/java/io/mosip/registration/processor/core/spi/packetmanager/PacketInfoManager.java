@@ -80,16 +80,16 @@ public interface PacketInfoManager<T, /** D, M, */
 	 * @param regAbisRefDto
 	 *            the reg abis ref dto
 	 */
-	public void saveAbisRef(RegAbisRefDto regAbisRefDto, String moduleId, String moduleName);
+	public void saveAbisRef(RegBioRefDto regAbisRefDto, String moduleId, String moduleName);
 
 	/**
 	 * Gets the reference id by rid.
 	 *
-	 * @param rid
-	 *            the rid
+	 * @param workflowInstanceId
+	 *            the workflowInstanceId
 	 * @return the reference id by rid
 	 */
-	public List<String> getReferenceIdByRid(String rid);
+	public List<String> getReferenceIdByWorkflowInstanceId(String workflowInstanceId);
 
 	/**
 	 * Gets the rid by reference id.
