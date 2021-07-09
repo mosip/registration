@@ -2,6 +2,7 @@ package io.mosip.registration.processor.reprocessor.stage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,9 +90,6 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 	/** The core audit request builder. */
 	@Autowired
 	AuditLogRequestBuilder auditLogRequestBuilder;
-
-	/** The registration id. */
-	private String registrationId = "";
 
 	/** Mosip router for APIs */
 	@Autowired
@@ -214,13 +212,18 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 		statusList.add(RegistrationTransactionStatusCode.IN_PROGRESS.toString());
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ReprocessorStage::process()::entry");
+
+		String registrationId = null;
 		try {
 			dtolist = registrationStatusService.getUnProcessedPackets(fetchSize, elapseTime, reprocessCount,
 					statusList);
 
 			if (!CollectionUtils.isEmpty(dtolist)) {
-				dtolist.forEach(dto -> {
-					this.registrationId = dto.getRegistrationId();
+				regProcLogger.info("======================>" + "Total packets count = " + dtolist.size(), "", "", "");
+				List<String> ridList = dtolist.stream().map(dto -> dto.getRegistrationId()).collect(Collectors.toList());
+				regProcLogger.info("======================>" + "rids = " + ridList.toString(), "", "", "");
+				for (InternalRegistrationStatusDto dto : dtolist) {
+					registrationId = dto.getRegistrationId();
 					if (reprocessCount.equals(dto.getReProcessRetryCount())) {
 						dto.setLatestTransactionStatusCode(
 								RegistrationTransactionStatusCode.REPROCESS_FAILED.toString());
@@ -275,7 +278,7 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 
 					auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName,
 							eventType, moduleId, moduleName, registrationId);
-				});
+				}
 			}
 
 		} catch (TablenotAccessibleException e) {

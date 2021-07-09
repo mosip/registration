@@ -154,8 +154,6 @@ public class PacketValidateProcessor {
 	private static final String PRE_REG_ID = "mosip.pre-registration.datasync.store";
 	private static final String VERSION = "1.0";
 
-	String registrationId = null;
-
 	@Autowired
 	RegistrationExceptionMapperUtil registrationStatusMapperUtil;
 
@@ -174,6 +172,9 @@ public class PacketValidateProcessor {
 		PacketValidationDto packetValidationDto = new PacketValidationDto();
 
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
+
+		String registrationId = object.getRid();
+
 		try {
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PRINT_SERVICE.toString());
@@ -183,7 +184,7 @@ public class PacketValidateProcessor {
 			object.setInternalError(Boolean.FALSE);
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", "PacketValidateProcessor::process()::entry");
-			registrationId = object.getRid();
+
 			packetValidationDto.setTransactionSuccessful(false);
 
 			registrationStatusDto = registrationStatusService.getRegistrationStatus(registrationId);
@@ -191,7 +192,7 @@ public class PacketValidateProcessor {
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.VALIDATE_PACKET.toString());
 			registrationStatusDto.setRegistrationStageName(stageName);
-			boolean isValidSupervisorStatus = isValidSupervisorStatus();
+			boolean isValidSupervisorStatus = isValidSupervisorStatus(registrationId);
 			if (isValidSupervisorStatus) {
 				Boolean isValid = compositePacketValidator.validate(object.getRid(),
 						registrationStatusDto.getRegistrationType(), packetValidationDto);
@@ -448,7 +449,7 @@ public class PacketValidateProcessor {
 
 	}
 
-	private boolean isValidSupervisorStatus() {
+	private boolean isValidSupervisorStatus(String registrationId) {
 		SyncRegistrationEntity regEntity = syncRegistrationService.findByRegistrationId(registrationId);
 		if (regEntity.getSupervisorStatus().equalsIgnoreCase(APPROVED)) {
 			return true;
@@ -481,13 +482,13 @@ public class PacketValidateProcessor {
 				}
 			}
 			if (preRegId == null || preRegId.trim().isEmpty()) {
-				regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+				regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), id,
 						"Pre-registration id not present.",
 						"Reverse datasync is not applicable for the registration id");
 				return;
 			}
 			try {
-				if (registrationId != null) {
+				if (id != null) {
 					packetValidationDto.setTransactionSuccessful(false);
 					MainResponseDTO<ReverseDatasyncReponseDTO> mainResponseDto = null;
 					if (preRegId != null && !preRegId.trim().isEmpty()) {
@@ -499,14 +500,14 @@ public class PacketValidateProcessor {
 						reverseDataSyncRequestDto.setPreRegistrationIds(Arrays.asList(preRegId));
 						mainRequestDto.setRequest(reverseDataSyncRequestDto);
 						regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-								LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+								LoggerFileConstant.REGISTRATIONID.toString(), id,
 								"PacketValidateProcessor::reverseDataSync()::ReverseDataSync Api call started with request data :"
 										+ JsonUtil.objectMapperObjectToJson(mainRequestDto));
 						mainResponseDto = (MainResponseDTO) restClientService.postApi(ApiName.REVERSEDATASYNC, "", "",
 								mainRequestDto, MainResponseDTO.class);
 
 						regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-								LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+								LoggerFileConstant.REGISTRATIONID.toString(), id,
 								"\"PacketValidateProcessor::reverseDataSync()::ReverseDataSync Api call ended with response data : "
 										+ JsonUtil.objectMapperObjectToJson(mainResponseDto));
 						packetValidationDto.setTransactionSuccessful(true);
@@ -514,7 +515,7 @@ public class PacketValidateProcessor {
 					}
 					if (mainResponseDto != null && mainResponseDto.getErrors() != null
 							&& mainResponseDto.getErrors().size() > 0) {
-						regProcLogger.error(LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+						regProcLogger.error(LoggerFileConstant.REGISTRATIONID.toString(), id,
 								PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getMessage(),
 								mainResponseDto.getErrors().toString());
 						packetValidationDto.setTransactionSuccessful(false);
@@ -526,7 +527,7 @@ public class PacketValidateProcessor {
 								+ " null response from rest client ");
 					} else {
 						packetValidationDto.setTransactionSuccessful(true);
-						regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+						regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), id,
 								PlatformErrorMessages.REVERSE_DATA_SYNC_SUCCESS.getMessage(), "");
 					}
 
@@ -536,20 +537,20 @@ public class PacketValidateProcessor {
 
 				if (e.getCause() instanceof HttpClientErrorException) {
 					HttpClientErrorException httpClientException = (HttpClientErrorException) e.getCause();
-					regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+					regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), id,
 							PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getMessage(),
 							httpClientException.getResponseBodyAsString() + ExceptionUtils.getStackTrace(e));
 					description.setMessage(PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getMessage());
 					description.setCode(PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getCode());
 				} else if (e.getCause() instanceof HttpServerErrorException) {
 					HttpServerErrorException httpServerException = (HttpServerErrorException) e.getCause();
-					regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+					regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), id,
 							PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getMessage(),
 							httpServerException.getResponseBodyAsString() + ExceptionUtils.getStackTrace(e));
 					description.setMessage(PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getMessage());
 					description.setCode(PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getCode());
 				} else {
-					regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+					regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), id,
 							PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getMessage(), e.getMessage());
 					description.setMessage(PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getMessage());
 					description.setCode(PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getCode());
@@ -571,7 +572,7 @@ public class PacketValidateProcessor {
 						: description.getCode();
 				String moduleName = ModuleName.PACKET_VALIDATOR.toString();
 				auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName,
-						eventType, moduleId, moduleName, registrationId);
+						eventType, moduleId, moduleName, id);
 			}
 		}
 
@@ -580,6 +581,7 @@ public class PacketValidateProcessor {
 	private void sendNotification(SyncRegistrationEntity regEntity,
 								  InternalRegistrationStatusDto registrationStatusDto, boolean isTransactionSuccessful) {
 		try {
+			String registrationId = registrationStatusDto.getRegistrationId();
 			if (regEntity.getOptionalValues() != null) {
 				String[] allNotificationTypes = notificationTypes.split("\\|");
 				boolean isProcessingSuccess;
