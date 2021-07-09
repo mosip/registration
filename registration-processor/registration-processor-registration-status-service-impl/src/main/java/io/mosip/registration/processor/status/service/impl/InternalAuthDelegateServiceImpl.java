@@ -48,6 +48,8 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 	private static final String APPLICATION_ID = "applicationId";
 	
 	private static final String APPID = "regproc";
+	
+	private static final String UIN = "UIN";
 
 	/** The rest api client. */
 	@Autowired
@@ -82,6 +84,7 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 		String individualId = getIndividualIdByUserId(authRequestDTO.getIndividualId());
 
 		authRequestDTO.setIndividualId(individualId);
+		authRequestDTO.setIndividualIdType(UIN);
 
 		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(internalAuthUri);
 		HttpEntity<?> httpRequestEntity = new HttpEntity<Object>(authRequestDTO, headers);
