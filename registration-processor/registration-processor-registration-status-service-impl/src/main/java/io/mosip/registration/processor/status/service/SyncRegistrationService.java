@@ -91,7 +91,7 @@ public interface SyncRegistrationService<T, U> {
 	public List<RegistrationStatusDto> getByIds(List<RegistrationStatusSubRequestDto> requestIds);
 	
 	/**
-	 * Gets the by ids.
+	 * Gets the external status by ids.
 	 *
 	 * @param requestIds
 	 *            the request ids
@@ -109,5 +109,7 @@ public interface SyncRegistrationService<T, U> {
 	public boolean deleteAdditionalInfo(SyncRegistrationEntity syncEntity);
 
 	public List<SyncResponseDto> sync2(List<SyncRegistrationDto> request, String referenceId, String timeStamp);
+
+	public List<SyncRegistrationEntity> getByPacketIds(List<String> packetIdList);
 
 }

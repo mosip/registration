@@ -85,7 +85,7 @@ public interface RegistrationStatusService<T, U, D> {
 	public List<D> getByIds(List<RegistrationStatusSubRequestDto> requestIds);
 	
 	/**
-	 * Gets the by ids.
+	 * Gets the external status by ids.
 	 *
 	 * @param requestIds
 	 *            the request ids

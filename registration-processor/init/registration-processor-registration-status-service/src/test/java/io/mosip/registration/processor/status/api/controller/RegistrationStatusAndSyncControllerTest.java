@@ -111,16 +111,16 @@ public class RegistrationStatusAndSyncControllerTest {
 
 	@Mock
 	private Environment env;
-
-
-
-	@MockBean
+	
+	
+	
+    @MockBean
 	RegistrationStatusRequestValidator registrationStatusRequestValidator;
 
 	@MockBean
 	private RegistrationSyncRequestValidator syncrequestvalidator;
 
-	Gson gson = new GsonBuilder().serializeNulls().create();
+    Gson gson = new GsonBuilder().serializeNulls().create();
 	private List<SyncResponseDto> syncResponseDtoList;
 	private List<SyncRegistrationDto> list;
 	SyncResponseFailureDto syncResponseFailureDto = new SyncResponseFailureDto();

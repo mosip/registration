@@ -74,7 +74,7 @@ public class RegistrationStatusServiceImpl
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(RegistrationStatusServiceImpl.class);
-
+	
 	/*
 	 * (non-Javadoc)
 	 *
