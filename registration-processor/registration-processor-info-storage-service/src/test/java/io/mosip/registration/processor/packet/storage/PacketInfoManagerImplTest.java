@@ -24,7 +24,6 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
-import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
@@ -54,7 +53,6 @@ import io.mosip.registration.processor.core.packet.dto.FieldValueArray;
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.packet.dto.Introducer;
 import io.mosip.registration.processor.core.packet.dto.Photograph;
-import io.mosip.registration.processor.core.packet.dto.RegAbisRefDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisApplicationDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisRequestDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisResponseDetDto;
@@ -73,7 +71,6 @@ import io.mosip.registration.processor.packet.storage.entity.AbisRequestEntity;
 import io.mosip.registration.processor.packet.storage.entity.AbisRequestPKEntity;
 import io.mosip.registration.processor.packet.storage.entity.IndividualDemographicDedupeEntity;
 import io.mosip.registration.processor.packet.storage.entity.ManualVerificationEntity;
-import io.mosip.registration.processor.packet.storage.entity.RegAbisRefEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegBioRefEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegBioRefPKEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegDemoDedupeListEntity;
@@ -121,11 +118,11 @@ public class PacketInfoManagerImplTest {
 
 	/** The reg abis ref repository. */
 	@Mock
-	private BasePacketRepository<RegAbisRefEntity, String> regAbisRefRepository;
+	private BasePacketRepository<RegBioRefEntity, String> regAbisRefRepository;
 
 	/** The reg abis ref entity. */
 	@Mock
-	private RegAbisRefEntity regAbisRefEntity;
+	private RegBioRefEntity regAbisRefEntity;
 
 	/** The manual verfication repository. */
 	@Mock
@@ -700,43 +697,6 @@ public class PacketInfoManagerImplTest {
 	}
 
 	/**
-	 * Gets the applicant finger print image name by id test.
-	 *
-	 * @return the applicant finger print image name by id test
-	 */
-	/*
-	 * @Test public void getApplicantFingerPrintImageNameByIdTest() { List<String>
-	 * applicantFingerPrintImages = new ArrayList<>();
-	 * applicantFingerPrintImages.add("LeftThumb");
-	 * applicantFingerPrintImages.add("RightThumb");
-	 *
-	 * Mockito.when(packetInfoDao.getApplicantFingerPrintImageNameById(anyString()))
-	 * .thenReturn(applicantFingerPrintImages);
-	 *
-	 * List<String> resultList = packetInfoManagerImpl
-	 * .getApplicantFingerPrintImageNameById("2018782130000103122018100224");
-	 * assertEquals(
-	 * "Fetching applicant finger print images from db. verifing image name of first record, expected value is LeftThumb"
-	 * , "LeftThumb", resultList.get(0));
-	 *
-	 * }
-	 */
-
-	/**
-	 * Test get reference id by rid.
-	 */
-	@Test
-	public void testGetReferenceIdByRid() {
-		String rid = "27847657360002520181208094056";
-		List<String> referenceIdList = new ArrayList<>();
-		referenceIdList.add("01234567-89AB-CDEF-0123-456789ABCDEF");
-		Mockito.when(packetInfoManagerImpl.getReferenceIdByRid(rid)).thenReturn(referenceIdList);
-
-		List<String> resultList = packetInfoManagerImpl.getReferenceIdByRid(rid);
-		assertEquals("01234567-89AB-CDEF-0123-456789ABCDEF", resultList.get(0));
-	}
-
-	/**
 	 * Test get rid by reference id.
 	 */
 	@Test
@@ -787,11 +747,11 @@ public class PacketInfoManagerImplTest {
 	@Test
 	public void testSaveAbisRefSuccess() {
 
-		RegAbisRefDto regAbisRefDto = new RegAbisRefDto();
-		regAbisRefDto.setAbis_ref_id("ref1234");
-		regAbisRefDto.setReg_id("1234");
+		RegBioRefDto RegBioRefDto = new RegBioRefDto();
+		RegBioRefDto.setBioRefId("ref1234");
+		RegBioRefDto.setRegId("1234");
 		Mockito.when(regAbisRefRepository.save(any())).thenReturn(regAbisRefEntity);
-		packetInfoManagerImpl.saveAbisRef(regAbisRefDto, "", "");
+		packetInfoManagerImpl.saveAbisRef(RegBioRefDto, "", "");
 
 	}
 
@@ -801,10 +761,10 @@ public class PacketInfoManagerImplTest {
 	@Test(expected = UnableToInsertData.class)
 	public void saveAbisRefTestException() {
 		Mockito.when(regAbisRefRepository.save(any())).thenThrow(exp);
-		RegAbisRefDto regAbisRefDto = new RegAbisRefDto();
-		regAbisRefDto.setAbis_ref_id("ref1234");
-		regAbisRefDto.setReg_id("1234");
-		packetInfoManagerImpl.saveAbisRef(regAbisRefDto, "", "");
+		RegBioRefDto RegBioRefDto = new RegBioRefDto();
+		RegBioRefDto.setBioRefId("ref1234");
+		RegBioRefDto.setRegId("1234");
+		packetInfoManagerImpl.saveAbisRef(RegBioRefDto, "", "");
 	}
 
 	/**

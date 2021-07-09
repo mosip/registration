@@ -225,7 +225,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 		InternalRegistrationStatusDto internalRegDto = registrationStatusService.getRegistrationStatus(
 					registrationId, object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
 		try {
-			List<String> abisRefList = packetInfoManager.getReferenceIdByRid(registrationId);
+			List<String> abisRefList = packetInfoManager.getReferenceIdByWorkflowInstanceId(object.getWorkflowInstanceId());
 			validateNullCheck(abisRefList, "ABIS_REFERENCE_ID_NOT_FOUND");
 
 			String refRegtrnId = internalRegDto.getLatestRegistrationTransactionId();
@@ -389,8 +389,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 	
 			List<RegBioRefDto> regBioRefist = packetInfoManager.getRegBioRefDataByBioRefIds(bioRefId);
 			RegBioRefDto regBioRefDto = regBioRefist.get(0);
-			registrationId = packetInfoDao.getRegIdByRefIdAndWorkflowInstanceId(
-					regBioRefDto.getBioRefId(), regBioRefDto.getWorkflowInstanceId());
+			registrationId = regBioRefDto.getRegId();
 			internalRegStatusDto = registrationStatusService.getRegistrationStatus(registrationId,
 					regBioRefDto.getProcess(), regBioRefDto.getIteration(), regBioRefDto.getWorkflowInstanceId());
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",

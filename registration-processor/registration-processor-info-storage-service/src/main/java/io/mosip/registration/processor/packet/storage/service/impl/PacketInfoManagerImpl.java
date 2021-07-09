@@ -38,7 +38,6 @@ import io.mosip.registration.processor.packet.storage.entity.AbisRequestEntity;
 import io.mosip.registration.processor.packet.storage.entity.IndividualDemographicDedupeEntity;
 import io.mosip.registration.processor.packet.storage.entity.ManualVerificationEntity;
 import io.mosip.registration.processor.packet.storage.entity.ManualVerificationPKEntity;
-import io.mosip.registration.processor.packet.storage.entity.RegAbisRefEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegBioRefEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegDemoDedupeListEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegLostUinDetEntity;
@@ -91,10 +90,6 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	/** The Constant DEMOGRAPHIC_APPLICANT. */
 	public static final String DEMOGRAPHIC_APPLICANT = PacketFiles.DEMOGRAPHIC.name() + FILE_SEPARATOR
 			+ PacketFiles.APPLICANT.name() + FILE_SEPARATOR;
-
-	/** The Reg abis ref repository. */
-	@Autowired
-	private BasePacketRepository<RegAbisRefEntity, String> regAbisRefRepository;
 
 	/** The reg bio ref repository. */
 	@Autowired
@@ -519,8 +514,8 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 * getReferenceIdByRid(java.lang.String)
 	 */
 	@Override
-	public List<String> getReferenceIdByRid(String rid) {
-		return regAbisRefRepository.getReferenceIdByRid(rid);
+	public List<String> getReferenceIdByWorkflowInstanceId(String workflowInstanceId) {
+		return regBioRefRepository.getRefIdByWorkflowInstanceId(workflowInstanceId);
 	}
 
 	/*
@@ -532,7 +527,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 */
 	@Override
 	public List<String> getRidByReferenceId(String refId) {
-		return regAbisRefRepository.getRidByReferenceId(refId);
+		return regBioRefRepository.getRidByReferenceId(refId);
 	}
 
 	/*
@@ -543,19 +538,17 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 * saveAbisRef(io.mosip.registration.processor.core.packet.dto.RegAbisRefDto)
 	 */
 	@Override
-	public void saveAbisRef(RegAbisRefDto regAbisRefDto, String moduleId, String moduleName) {
+	public void saveAbisRef(RegBioRefDto regBioRefDto, String moduleId, String moduleName) {
 		boolean isTransactionSuccessful = false;
 		LogDescription description = new LogDescription();
-		String regisId = "";
+		String regId = regBioRefDto.getRegId();
 		try {
-
-			if (regAbisRefDto != null) {
-				regisId = regAbisRefDto.getReg_id();
+			if (regBioRefDto != null) {
 				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-						regisId, "PacketInfoManagerImpl::saveAbisRef()::entry");
+						regId, "PacketInfoManagerImpl::saveAbisRef()::entry");
 
-				RegAbisRefEntity regAbisRefEntity = PacketInfoMapper.convertRegAbisRefToEntity(regAbisRefDto);
-				regAbisRefRepository.save(regAbisRefEntity);
+				RegBioRefEntity regBioRefEntity = PacketInfoMapper.convertBioRefDtoToEntity(regBioRefDto);
+				regBioRefRepository.save(regBioRefEntity);
 				isTransactionSuccessful = true;
 				description.setMessage("ABIS data saved successfully");
 			}
@@ -563,7 +556,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 			description.setMessage("DataAccessLayerException while saving the ABIS data" + "::" + e.getMessage());
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
-			throw new UnableToInsertData(PlatformErrorMessages.RPR_PIS_UNABLE_TO_INSERT_DATA.getMessage() + regisId, e);
+			throw new UnableToInsertData(PlatformErrorMessages.RPR_PIS_UNABLE_TO_INSERT_DATA.getMessage() + regId, e);
 		} finally {
 
 			String eventId = isTransactionSuccessful ? EventId.RPR_407.toString() : EventId.RPR_405.toString();
@@ -577,7 +570,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 
 		}
 
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regisId,
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
 				"PacketInfoManagerImpl::saveAbisRef()::exit");
 
 	}

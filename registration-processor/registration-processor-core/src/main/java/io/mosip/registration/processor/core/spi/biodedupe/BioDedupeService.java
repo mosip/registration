@@ -23,18 +23,6 @@ public interface BioDedupeService {
 	public String insertBiometrics(String registrationId) throws ApisResourceAccessException, IOException;
 
 	/**
-	 * Perform dedupe.
-	 *
-	 * @param registrationId
-	 *            the registration id
-	 * @return the list
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws IOException 
-	 */
-	public List<String> performDedupe(String registrationId) throws ApisResourceAccessException, IOException;
-
-	/**
 	 * Gets the file.
 	 *
 	 * @param abisRefId
