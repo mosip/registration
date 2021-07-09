@@ -111,7 +111,6 @@ public class RegistrationStatusAndSyncControllerTest {
 
 	@Mock
 	private Environment env;
-
     @MockBean
 	RegistrationStatusRequestValidator registrationStatusRequestValidator;
 
