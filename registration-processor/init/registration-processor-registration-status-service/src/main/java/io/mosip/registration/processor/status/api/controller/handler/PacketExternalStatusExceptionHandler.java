@@ -54,7 +54,7 @@ public class PacketExternalStatusExceptionHandler {
 
 	private static final String RESPONSE_SIGNATURE = "Response-Signature";
 
-	private static Logger regProcLogger = RegProcessorLogger.getLogger(RegistrationStatusExceptionHandler.class);
+	private static Logger regProcLogger = RegProcessorLogger.getLogger(PacketExternalStatusExceptionHandler.class);
 
 	@ExceptionHandler(AccessDeniedException.class)
 	public ResponseEntity<Object> accessDenied(AccessDeniedException e) {

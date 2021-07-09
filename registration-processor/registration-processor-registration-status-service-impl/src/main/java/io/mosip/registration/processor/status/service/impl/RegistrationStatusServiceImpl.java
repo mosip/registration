@@ -73,11 +73,7 @@ public class RegistrationStatusServiceImpl
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(RegistrationStatusServiceImpl.class);
-
-	/** The sync registration service. */
-	@Autowired
-	SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationService;
-
+	
 	/*
 	 * (non-Javadoc)
 	 *

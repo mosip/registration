@@ -43,10 +43,10 @@ public class PacketExternalStatusServiceImpl implements PacketExternalStatusServ
 	private List<String> transactionTypeCodesBeforeUploadingToObjectStore;
 
 	@Value("${mosip.registration.processor.packet.status.transactiontypecodes-uploading-to-objectstore:UPLOAD_PACKET}")
-	private String transactionTypeCodesUploadingToObjectStore;
+	private String transactionTypeCodeUploadingToObjectStore;
 
 	@Value("#{'${mosip.registration.processor.packet.status.transactiontypecodes-time-based-resend-required:PACKET_RECEIVER}'.split(',')}")
-	private List<String> transactionTypeCodeTimeBasesResendRequired;
+	private List<String> transactionTypeCodesTimeBasedResendRequired;
 
 	/** The elapsed time. */
 	@Value("${registration.processor.reprocess.elapse.time}")
@@ -82,7 +82,7 @@ public class PacketExternalStatusServiceImpl implements PacketExternalStatusServ
 											.equals(syncRegistrationEntity.getPacketId())))
 					.collect(Collectors.toList());
 			packetExternalStatusDTOList.addAll(
-					convertEntityListToDtoListAndGetExternalStatusForPacket(packetIdsNotAvailableInRegistration));
+					convertEntityListToDtoListAndUpdateAsPendingStatus(packetIdsNotAvailableInRegistration));
 		}
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
@@ -101,9 +101,7 @@ public class PacketExternalStatusServiceImpl implements PacketExternalStatusServ
 
 			packetStatusDTO.setStatusCode(mappedValue);
 		} else {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					internalRegistrationStatusDto.getReferenceRegistrationId(),
-					PlatformErrorMessages.RPR_RGS_REGISTRATION_STATUS_NOT_EXIST.getMessage());
+			packetStatusDTO.setStatusCode(PacketExternalStatusCode.RECEIVED.toString());
 		}
 		return packetStatusDTO;
 	}
@@ -114,58 +112,58 @@ public class PacketExternalStatusServiceImpl implements PacketExternalStatusServ
 		String status = internalRegistrationStatusDto.getStatusCode();
 		if (transactionTypeCodesBeforeUploadingToObjectStore
 				.contains(internalRegistrationStatusDto.getLatestTransactionTypeCode())
-				|| transactionTypeCodesUploadingToObjectStore
-						.contains(internalRegistrationStatusDto.getLatestTransactionTypeCode())) {
+				|| transactionTypeCodeUploadingToObjectStore
+						.equals(internalRegistrationStatusDto.getLatestTransactionTypeCode())) {
 			if (status.equalsIgnoreCase(RegistrationStatusCode.PROCESSING.toString())
 					|| status.equalsIgnoreCase(RegistrationStatusCode.REPROCESS.toString())
 					|| status.equalsIgnoreCase(RegistrationStatusCode.RESUMABLE.toString())) {
-				if (transactionTypeCodeTimeBasesResendRequired
+				if (transactionTypeCodesTimeBasedResendRequired
 						.contains(internalRegistrationStatusDto.getLatestTransactionTypeCode())) {
-					long timeElapsedinPacketreceiver = checkElapsedTime(internalRegistrationStatusDto);
-					if (timeElapsedinPacketreceiver > elapsedTime) {
+					long timeElapsedInCurrentStage = checkElapsedTime(internalRegistrationStatusDto);
+					if (timeElapsedInCurrentStage > elapsedTime) {
 						if ((internalRegistrationStatusDto.getRetryCount() < maxRetryCount)) {
 							mappedValue = PacketExternalStatusCode.RESEND;
 						} else {
-							mappedValue = PacketExternalStatusCode.PROCESSED;// REJECTED?
+							mappedValue = PacketExternalStatusCode.REJECTED;
 						}
 					} else {
-						mappedValue = PacketExternalStatusCode.PROCESSING;
+						mappedValue = PacketExternalStatusCode.RECEIVED;
 					}
 				}else {
-					mappedValue = PacketExternalStatusCode.PROCESSING;
+					mappedValue = PacketExternalStatusCode.RECEIVED;
 				}
            
 			} else if (status.equalsIgnoreCase(RegistrationStatusCode.FAILED.toString())) {
 				if ((internalRegistrationStatusDto.getRetryCount() < maxRetryCount)) {
 					mappedValue = PacketExternalStatusCode.RESEND;
 				} else {
-					mappedValue = PacketExternalStatusCode.PROCESSED;
+					mappedValue = PacketExternalStatusCode.REJECTED;
 				}
 			}
-			else if (!transactionTypeCodesUploadingToObjectStore
-					.contains(internalRegistrationStatusDto.getLatestTransactionTypeCode())) {
-				mappedValue = PacketExternalStatusCode.PROCESSING;
+			else if (!transactionTypeCodeUploadingToObjectStore
+					.equals(internalRegistrationStatusDto.getLatestTransactionTypeCode())) {
+				mappedValue = PacketExternalStatusCode.RECEIVED;
 			} else {
-				mappedValue = PacketExternalStatusCode.PROCESSED;
+				mappedValue = PacketExternalStatusCode.ACCEPTED;
 			}
 		} else {
-			mappedValue = PacketExternalStatusCode.PROCESSED;
+			mappedValue = PacketExternalStatusCode.ACCEPTED;
 		}
 		return mappedValue;
 	}
 
-	private List<PacketExternalStatusDTO> convertEntityListToDtoListAndGetExternalStatusForPacket(
+	private List<PacketExternalStatusDTO>  convertEntityListToDtoListAndUpdateAsPendingStatus(
 			List<SyncRegistrationEntity> syncRegistrationEntityList) {
 		List<PacketExternalStatusDTO> list = new ArrayList<>();
 		if (syncRegistrationEntityList != null) {
 			for (SyncRegistrationEntity entity : syncRegistrationEntityList) {
-				list.add(convertEntityToDtoAndGetExternalStatusForPacket(entity));
+				list.add(convertEntityToDtoAndUpdateAsPendingStatus(entity));
 			}
 		}
 		return list;
 	}
 
-	private PacketExternalStatusDTO convertEntityToDtoAndGetExternalStatusForPacket(SyncRegistrationEntity entity) {
+	private PacketExternalStatusDTO convertEntityToDtoAndUpdateAsPendingStatus(SyncRegistrationEntity entity) {
 		PacketExternalStatusDTO packetStatusDTO = new PacketExternalStatusDTO();
 		packetStatusDTO.setPacketId(entity.getPacketId());
 		packetStatusDTO.setStatusCode(PacketExternalStatusCode.UPLOAD_PENDING.toString());
