@@ -100,4 +100,6 @@ public interface SyncRegistrationService<T, U> {
 
 	public List<SyncResponseDto> sync2(List<SyncRegistrationDto> request, String referenceId, String timeStamp);
 
+	public List<SyncRegistrationEntity> getByPacketIds(List<String> packetIdList);
+
 }

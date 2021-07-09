@@ -319,6 +319,7 @@ public class SyncRegistrationServiceTest {
 		syncRegistrationEntity.setUpdateDateTime(LocalDateTime.now());
 		syncRegistrationEntity.setCreatedBy("MOSIP");
 		syncRegistrationEntity.setUpdatedBy("MOSIP");
+		syncRegistrationEntity.setPacketId("test1");
 		syncRegistrationEntities.add(syncRegistrationEntity);
 		Mockito.when(ridValidator.validateId(any())).thenReturn(true);
 
@@ -621,5 +622,23 @@ public class SyncRegistrationServiceTest {
 		syncRegistrationService.getByIds(registrationIds);
 
 	}
+	@Test
+	public void testGetByPacketIdsSuccess() {
 
+		Mockito.when(syncRegistrationDao.getByPacketIds(any())).thenReturn(syncRegistrationEntities);
+		List<String> packetIdList = new ArrayList<>();
+		packetIdList.add("test1");
+		List<SyncRegistrationEntity> syncRegistrationEntityList = syncRegistrationService.getByPacketIds(packetIdList);
+		assertEquals("test1", syncRegistrationEntityList.get(0).getPacketId());
+	}
+	@Test(expected = TablenotAccessibleException.class)
+	public void testGetByPacketIdsFailure() {
+		List<String> packetIdList = new ArrayList<>();
+		packetIdList.add("test1");
+         DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
+				"errorMessage", new Exception());
+		Mockito.when(syncRegistrationDao.getByPacketIds(any())).thenThrow(exp);
+        syncRegistrationService.getByPacketIds(packetIdList);
+
+	}
 }
