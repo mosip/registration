@@ -16,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.gson.Gson;
@@ -50,7 +49,6 @@ import io.swagger.annotations.ApiResponses;
 @RefreshScope
 @RestController
 @Api(tags = "Registration Status")
-@RequestMapping("/v1/registrationstatus")
 public class RegistrationStatusController {
 
 	/** The registration status service. */
@@ -64,8 +62,6 @@ public class RegistrationStatusController {
 	/** The validator. */
 	@Autowired
 	RegistrationStatusRequestValidator registrationStatusRequestValidator;
-
-
 
 	private static final String REG_STATUS_SERVICE_ID = "mosip.registration.processor.registration.status.id";
 	private static final String REG_STATUS_APPLICATION_VERSION = "mosip.registration.processor.registration.status.version";
@@ -175,5 +171,4 @@ public class RegistrationStatusController {
 				registrationStatusDto.setStatusCode(RegistrationExternalStatusCode.PROCESSED.toString());
 		}
 	}
-
 }

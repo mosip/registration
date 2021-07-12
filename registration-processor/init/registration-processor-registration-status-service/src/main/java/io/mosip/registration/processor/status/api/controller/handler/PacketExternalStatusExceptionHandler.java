@@ -31,17 +31,17 @@ import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.token.validation.exception.AccessDeniedException;
 import io.mosip.registration.processor.core.token.validation.exception.InvalidTokenException;
 import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
-import io.mosip.registration.processor.status.api.controller.RegistrationStatusController;
+import io.mosip.registration.processor.status.api.controller.PacketExternalStatusController;
 import io.mosip.registration.processor.status.dto.ErrorDTO;
 import io.mosip.registration.processor.status.exception.RegStatusAppException;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.sync.response.dto.RegStatusResponseDTO;
 
-@RestControllerAdvice(assignableTypes = RegistrationStatusController.class)
-public class RegistrationStatusExceptionHandler {
+@RestControllerAdvice(assignableTypes = PacketExternalStatusController.class)
+public class PacketExternalStatusExceptionHandler {
 
-	private static final String REG_STATUS_SERVICE_ID = "mosip.registration.processor.registration.status.id";
-	private static final String REG_STATUS_APPLICATION_VERSION = "mosip.registration.processor.application.version";
+	private static final String PACKET_EXTERNAL_STATUS_SERVICE_ID = "mosip.registration.processor.packet.external.status.id";
+	private static final String PACKET_EXTERNAL_STATUS_APPLICATION_VERSION = "mosip.registration.processor.packet.external.status.version";
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
 	@Autowired
 	private Environment env;
@@ -54,7 +54,7 @@ public class RegistrationStatusExceptionHandler {
 
 	private static final String RESPONSE_SIGNATURE = "Response-Signature";
 
-	private static Logger regProcLogger = RegProcessorLogger.getLogger(RegistrationStatusExceptionHandler.class);
+	private static Logger regProcLogger = RegProcessorLogger.getLogger(PacketExternalStatusExceptionHandler.class);
 
 	@ExceptionHandler(AccessDeniedException.class)
 	public ResponseEntity<Object> accessDenied(AccessDeniedException e) {
@@ -123,7 +123,7 @@ public class RegistrationStatusExceptionHandler {
 		Throwable e = ex;
 
 		if (Objects.isNull(response.getId())) {
-			response.setId(env.getProperty(REG_STATUS_SERVICE_ID));
+			response.setId(env.getProperty(PACKET_EXTERNAL_STATUS_SERVICE_ID));
 		}
 		if (e instanceof BaseCheckedException)
 
@@ -149,7 +149,7 @@ public class RegistrationStatusExceptionHandler {
 		}
 
 		response.setResponsetime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
-		response.setVersion(env.getProperty(REG_STATUS_APPLICATION_VERSION));
+		response.setVersion(env.getProperty(PACKET_EXTERNAL_STATUS_APPLICATION_VERSION));
 		response.setResponse(null);
 		Gson gson = new GsonBuilder().serializeNulls().create();
 
@@ -161,5 +161,4 @@ public class RegistrationStatusExceptionHandler {
 		return ResponseEntity.status(HttpStatus.OK).body(response);
 
 	}
-
 }

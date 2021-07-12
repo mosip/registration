@@ -122,4 +122,11 @@ public class SyncRegistrationDaoTest {
 		assertEquals("Check id Registration Id is present in DB, expected valie is 1001",
 				syncRegistrationEntity.getRegistrationId(), syncRegistrationEntityResult.getRegistrationId());
 	}
+	@Test
+	public void getByPacketIdsTest() {
+		List<String> packetIdList = new ArrayList<>();
+		packetIdList.add("test1");
+		List<SyncRegistrationEntity> rEntityList = syncRegistrationDao.getByPacketIds(packetIdList);
+		assertEquals(syncRegistrationEntityList, rEntityList);
+	}
 }

@@ -8,7 +8,6 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -56,7 +55,6 @@ import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.exception.EncryptionFailureException;
 import io.mosip.registration.processor.status.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
-import io.mosip.registration.processor.status.repositary.BaseRegProcRepository;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.mosip.registration.processor.status.utilities.RegistrationUtility;
 
@@ -730,5 +728,28 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	@Override
 	public boolean deleteAdditionalInfo(SyncRegistrationEntity syncEntity) {
 		return syncRegistrationDao.deleteAdditionalInfo(syncEntity);
+	}
+
+	@Override
+	public List<SyncRegistrationEntity> getByPacketIds(List<String> packetIdList) {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				"SyncRegistrationServiceImpl::getByPacketIds()::entry");
+		try {
+			if (!packetIdList.isEmpty()) {
+				List<SyncRegistrationEntity> syncRegistrationEntityList = syncRegistrationDao
+						.getByPacketIds(packetIdList);
+
+				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+						"SyncRegistrationServiceImpl::getByPacketIds()::exit");
+				return syncRegistrationEntityList;
+			}
+			return null;
+		} catch (DataAccessLayerException e) {
+
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
+			throw new TablenotAccessibleException(
+					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
+		}
 	}
 }
