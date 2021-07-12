@@ -167,11 +167,12 @@ public class DeviceValidator {
 
 	private void validateTimestamp(JSONObject payload, String packetCreationDate,String dateTime) 
 			throws JSONException, BaseCheckedException, JsonParseException, JsonMappingException, IOException {
-		DateTimeFormatter format = DateTimeFormatter.ofPattern(digitalIdTimestampFormat);
+		DateTimeFormatter packetCreationTimestampFormat = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));	
+		DateTimeFormatter digitalIdTimeStampFormat = DateTimeFormatter.ofPattern(digitalIdTimestampFormat);
 		LocalDateTime packetCreationDateTime = LocalDateTime
-				.parse(packetCreationDate, format);
+				.parse(packetCreationDate, packetCreationTimestampFormat);
 		LocalDateTime timestamp = LocalDateTime
-				.parse(dateTime, format);
+				.parse(dateTime, digitalIdTimeStampFormat);
 		
 			if (timestamp.isAfter(packetCreationDateTime)|| timestamp.isBefore(
 							packetCreationDateTime.minus(allowedDigitalIdTimestampVariation, ChronoUnit.MINUTES))) {
