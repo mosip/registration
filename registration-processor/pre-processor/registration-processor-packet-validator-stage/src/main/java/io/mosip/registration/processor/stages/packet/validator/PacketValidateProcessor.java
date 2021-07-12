@@ -152,8 +152,6 @@ public class PacketValidateProcessor {
 	private static final String PRE_REG_ID = "mosip.pre-registration.datasync.store";
 	private static final String VERSION = "1.0";
 
-	String registrationId = null;
-
 	@Autowired
 	RegistrationExceptionMapperUtil registrationStatusMapperUtil;
 
@@ -172,6 +170,9 @@ public class PacketValidateProcessor {
 		PacketValidationDto packetValidationDto = new PacketValidationDto();
 
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
+
+		String registrationId = object.getRid();
+
 		try {
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PRINT_SERVICE.toString());
@@ -181,7 +182,7 @@ public class PacketValidateProcessor {
 			object.setInternalError(Boolean.FALSE);
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", "PacketValidateProcessor::process()::entry");
-			registrationId = object.getRid();
+
 			packetValidationDto.setTransactionSuccessful(false);
 
 			registrationStatusDto = registrationStatusService.getRegistrationStatus(registrationId);
@@ -189,7 +190,7 @@ public class PacketValidateProcessor {
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.VALIDATE_PACKET.toString());
 			registrationStatusDto.setRegistrationStageName(stageName);
-			boolean isValidSupervisorStatus = isValidSupervisorStatus();
+			boolean isValidSupervisorStatus = isValidSupervisorStatus(registrationId);
 			if (isValidSupervisorStatus) {
 				Boolean isValid = compositePacketValidator.validate(object.getRid(),
 						registrationStatusDto.getRegistrationType(), packetValidationDto);
@@ -446,7 +447,7 @@ public class PacketValidateProcessor {
 
 	}
 
-	private boolean isValidSupervisorStatus() {
+	private boolean isValidSupervisorStatus(String registrationId) {
 		SyncRegistrationEntity regEntity = syncRegistrationService.findByRegistrationId(registrationId);
 		if (regEntity.getSupervisorStatus().equalsIgnoreCase(APPROVED)) {
 			return true;
@@ -457,11 +458,11 @@ public class PacketValidateProcessor {
 		return false;
 	}
 
-	private void reverseDataSync(String id, String process, LogDescription description,
+	private void reverseDataSync(String registrationId, String process, LogDescription description,
 			PacketValidationDto packetValidationDto) throws IOException, ApisResourceAccessException,
 			PacketManagerException, JsonProcessingException, JSONException {
 
-		Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(id, process);
+		Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(registrationId, process);
 		String metadata = metaInfoMap.get(JsonConstant.METADATA);
 		if (StringUtils.isNotEmpty(metadata)) {
 			JSONArray jsonArray = new JSONArray(metadata);
@@ -578,6 +579,7 @@ public class PacketValidateProcessor {
 	private void sendNotification(SyncRegistrationEntity regEntity,
 								  InternalRegistrationStatusDto registrationStatusDto, boolean isTransactionSuccessful) {
 		try {
+			String registrationId = registrationStatusDto.getRegistrationId();
 			if (regEntity.getOptionalValues() != null) {
 				String[] allNotificationTypes = notificationTypes.split("\\|");
 				boolean isProcessingSuccess;

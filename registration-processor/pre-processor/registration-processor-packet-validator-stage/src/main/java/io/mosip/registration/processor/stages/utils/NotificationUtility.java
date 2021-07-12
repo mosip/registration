@@ -70,8 +70,6 @@ public class NotificationUtility {
 	@Autowired
 	private RegistrationProcessorRestClientService<Object> restClientService;
 
-	String registrationId = null;
-
 	/** The re-register subject. */
 	@Value("${registration.processor.reregister.subject}")
 	private String reregisterSubject;
@@ -109,7 +107,7 @@ public class NotificationUtility {
 			InternalRegistrationStatusDto registrationStatusDto, SyncRegistrationEntity regEntity,
 			String[] allNotificationTypes, boolean isProcessingSuccess)
 			throws ApisResourceAccessException, IOException {
-		registrationId = regEntity.getRegistrationId();
+		String registrationId = registrationStatusDto.getRegistrationId();
 		LogDescription description = new LogDescription();
 		String regType = regEntity.getRegistrationType();
 		MessageSenderDTO messageSenderDTO = new MessageSenderDTO();
@@ -136,19 +134,20 @@ public class NotificationUtility {
 				if (notificationType.equalsIgnoreCase("EMAIL")
 						&& (registrationAdditionalInfoDTO.getEmail() != null
 						&& !registrationAdditionalInfoDTO.getEmail().isEmpty())) {
-					sendEmailNotification(registrationAdditionalInfoDTO, messageSenderDTO, attributes, description);
+					sendEmailNotification(registrationId, registrationAdditionalInfoDTO, messageSenderDTO, attributes, description);
 				} else if (notificationType.equalsIgnoreCase("SMS") && (registrationAdditionalInfoDTO.getPhone() != null
 						&& !registrationAdditionalInfoDTO.getPhone().isEmpty())) {
-					sendSMSNotification(registrationAdditionalInfoDTO, messageSenderDTO, attributes, description);
+					sendSMSNotification(registrationStatusDto.getRegistrationId(),
+							registrationAdditionalInfoDTO, messageSenderDTO, attributes, description);
 				}
 			}
 		}
 	}
 
-	private void sendSMSNotification(RegistrationAdditionalInfoDTO registrationAdditionalInfoDTO,
+	private void sendSMSNotification(String registrationId, RegistrationAdditionalInfoDTO registrationAdditionalInfoDTO,
 			MessageSenderDTO messageSenderDTO, Map<String, Object> attributes, LogDescription description) {
 		try {
-			SmsResponseDto smsResponse = sendSMS(registrationAdditionalInfoDTO,
+			SmsResponseDto smsResponse = sendSMS(registrationId, registrationAdditionalInfoDTO,
 					messageSenderDTO.getSmsTemplateCode().name(), attributes);
 
 			if (smsResponse.getStatus().equals("success")) {
@@ -172,8 +171,8 @@ public class NotificationUtility {
 		}
 	}
 
-	private SmsResponseDto sendSMS(RegistrationAdditionalInfoDTO registrationAdditionalInfoDTO, String templateTypeCode,
-			Map<String, Object> attributes) throws ApisResourceAccessException, IOException, JSONException {
+	private SmsResponseDto sendSMS(String registrationId, RegistrationAdditionalInfoDTO registrationAdditionalInfoDTO,
+								   String templateTypeCode, Map<String, Object> attributes) throws ApisResourceAccessException, IOException, JSONException {
 		SmsResponseDto response;
 		SmsRequestDto smsDto = new SmsRequestDto();
 		RequestWrapper<SmsRequestDto> requestWrapper = new RequestWrapper<>();
@@ -220,7 +219,7 @@ public class NotificationUtility {
 		return response;
 	}
 
-	private void sendEmailNotification(RegistrationAdditionalInfoDTO registrationAdditionalInfoDTO,
+	private void sendEmailNotification(String registrationId, RegistrationAdditionalInfoDTO registrationAdditionalInfoDTO,
 			MessageSenderDTO messageSenderDTO, Map<String, Object> attributes, LogDescription description) {
 		try {
 			String subjectTemplateCode;
@@ -230,7 +229,7 @@ public class NotificationUtility {
 			} else {
 				subjectTemplateCode = messageSenderDTO.getSubjectTemplateCode().name();
 			}
-			ResponseDto emailResponse = sendEmail(registrationAdditionalInfoDTO,
+			ResponseDto emailResponse = sendEmail(registrationId, registrationAdditionalInfoDTO,
 					messageSenderDTO.getEmailTemplateCode().name(), subjectTemplateCode, attributes);
 			if (emailResponse.getStatus().equals("success")) {
 				description.setCode(PlatformSuccessMessages.RPR_MESSAGE_SENDER_STAGE_SUCCESS.getCode());
@@ -253,7 +252,7 @@ public class NotificationUtility {
 		}
 	}
 
-	private ResponseDto sendEmail(RegistrationAdditionalInfoDTO registrationAdditionalInfoDTO, String templateTypeCode,
+	private ResponseDto sendEmail(String registrationId, RegistrationAdditionalInfoDTO registrationAdditionalInfoDTO, String templateTypeCode,
 			String subjectTypeCode, Map<String, Object> attributes) throws Exception {
 		ResponseDto response = null;
 
