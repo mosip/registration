@@ -5,11 +5,18 @@ import java.util.Map;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotNull;
+
 @Data
 public class CandidateList {
 
+	@NotNull
 	private Integer count;
-	private Map<String,String> analytics;
+	/**
+	 * Analytics will be dumped in the manual verification table hence its expected as
+	 * key value pair of String and Object.
+	 */
+	private Map<String, Object> analytics;
 	private List<Candidate> candidates;
 	
 	

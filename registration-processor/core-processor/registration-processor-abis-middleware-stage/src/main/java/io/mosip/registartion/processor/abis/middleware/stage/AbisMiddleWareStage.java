@@ -260,7 +260,6 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 					registrationId, "AbisMiddlewareStage::process()::Abis insertRequests sucessfully sent to Queue");
 		} catch (RegistrationProcessorCheckedException e) {
 			object.setInternalError(true);
-			object.setIsValid(false);
 			description.setMessage(PlatformErrorMessages.UNKNOWN_EXCEPTION_OCCURED.getMessage());
 			description.setCode(PlatformErrorMessages.UNKNOWN_EXCEPTION_OCCURED.getCode());
 			internalRegDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
@@ -271,7 +270,6 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 					registrationId, ExceptionUtils.getStackTrace(e));
 		} catch (Exception e) {
 			object.setInternalError(true);
-			object.setIsValid(false);
 			description.setMessage(PlatformErrorMessages.UNKNOWN_EXCEPTION_OCCURED.getMessage());
 			description.setCode(PlatformErrorMessages.UNKNOWN_EXCEPTION_OCCURED.getCode());
 			internalRegDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
@@ -288,6 +286,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 				} else if (transactionTypeCode.equalsIgnoreCase(BIOGRAPHIC_VERIFICATION)) {
 					internalRegDto.setRegistrationStageName("BioDedupeStage");
 				}
+				updateErrorFlags(internalRegDto, object);
 				String moduleId = description.getCode();
 				String moduleName = ModuleName.ABIS_MIDDLEWARE.toString();
 				registrationStatusService.updateRegistrationStatus(internalRegDto, moduleId, moduleName);
@@ -751,6 +750,16 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 	private void saveCandiateDtos(CandidatesDto[] candidatesDtos, AbisResponseDto abisResponseDto, String bioRefId) {
 		for (CandidatesDto candidatesDto : candidatesDtos) {
 			updateAbisResponseDetail(candidatesDto, abisResponseDto, bioRefId);
+		}
+	}
+	
+	private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
+		object.setInternalError(true);
+		if (registrationStatusDto.getLatestTransactionStatusCode()
+				.equalsIgnoreCase(RegistrationTransactionStatusCode.REPROCESS.toString())) {
+			object.setIsValid(true);
+		} else {
+			object.setIsValid(false);
 		}
 	}
 

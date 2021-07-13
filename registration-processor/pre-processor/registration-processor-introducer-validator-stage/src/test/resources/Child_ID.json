@@ -121,9 +121,9 @@
 			"version": 1.0,
 			"value": "applicant_bio_CBEFF"
 		},
-		"parentOrGuardianName": "guardianTest",
-		"parentOrGuardianRID": "212124324784912",
-		"parentOrGuardianBiometrics": {
+		"introducerName": "guardianTest",
+		"introducerRID": "212124324784912",
+		"introducerBiometrics": {
 			"format": "cbeff",
 			"version": 1.0,
 			"value": "applicant_bio_CBEFF"

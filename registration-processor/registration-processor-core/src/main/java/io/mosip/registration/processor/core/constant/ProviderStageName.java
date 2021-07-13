@@ -13,7 +13,7 @@ public enum  ProviderStageName {
     INTRODUCER_VALIDATOR("introducervalidator"),
     DEMO_DEDUPE("demodedupe"),
     CLASSIFICATION("classification"),
-    BIO_DEDUPE("classifier"),
+    BIO_DEDUPE("biodedupe"),
     BIO_AUTH("bioauth"),
     MANUAL_VERIFICATION("manualverification"),
     UIN_GENERATOR("uingenerator"),

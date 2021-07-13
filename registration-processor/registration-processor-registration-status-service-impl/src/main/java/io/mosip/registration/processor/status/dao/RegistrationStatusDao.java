@@ -159,18 +159,20 @@ public class RegistrationStatusDao {
 		StringBuilder sb = new StringBuilder(queryStr);
 		if (!filters.isEmpty()) {
 			Iterator<FilterInfo> searchIterator = filters.iterator();
-		while (searchIterator.hasNext()) {
-			FilterInfo filterInfo = searchIterator.next();
-			sb.append(EMPTY_STRING + AND + EMPTY_STRING + alias + "." + filterInfo.getColumnName() + "=:"
-					+ filterInfo.getColumnName());
-			params.put(filterInfo.getColumnName(), filterInfo.getValue());
+			while (searchIterator.hasNext()) {
+				FilterInfo filterInfo = searchIterator.next();
+				sb.append(EMPTY_STRING + AND + EMPTY_STRING + alias + "." + filterInfo.getColumnName() + "=:"
+						+ filterInfo.getColumnName());
+				params.put(filterInfo.getColumnName(), filterInfo.getValue());
 
+			}
 		}
-	}
-
-	sb.append(EMPTY_STRING + ORDER_BY + sort.getSortField() + EMPTY_STRING + sort.getSortType());
+		if (sort != null) {
+			sb.append(EMPTY_STRING + ORDER_BY + sort.getSortField() + EMPTY_STRING + sort.getSortType());
+		}
 		List<RegistrationStatusEntity> result = registrationStatusRepositary.createQuerySelect(sb.toString(), params,
 			pagination.getPageFetch());
+
 		rows = registrationStatusRepositary.count();
 		return new PageImpl<>(result,
 				PageRequest.of(pagination.getPageStart(), pagination.getPageFetch()),
@@ -223,6 +225,7 @@ public class RegistrationStatusDao {
 		LocalDateTime timeDifference = LocalDateTime.now().minusSeconds(elapseTime);
 		List<String> statusCodes=new ArrayList<>();
 		statusCodes.add(RegistrationStatusCode.PAUSED.toString());
+		statusCodes.add(RegistrationStatusCode.RESUMABLE.toString());
 		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
 				+ ".latestTransactionStatusCode IN :status" + EMPTY_STRING + AND + EMPTY_STRING + alias
 				+ ".regProcessRetryCount<=" + ":reprocessCount" + EMPTY_STRING + AND + EMPTY_STRING + alias
@@ -305,19 +308,33 @@ public class RegistrationStatusDao {
 		return registrationStatusRepositary.createQuerySelect(queryStr, params);
 	}
 
-	public List<RegistrationStatusEntity> getResumablePackets(Integer fetchSize) {
+	public List<RegistrationStatusEntity> getActionablePausedPackets(Integer fetchSize) {
 		Map<String, Object> params = new HashMap<>();
 		String className = RegistrationStatusEntity.class.getSimpleName();
 		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
 		
 
 		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
-				+ ".statusCode =:status" +  EMPTY_STRING + AND + EMPTY_STRING + alias
+				+ ".statusCode IN :statusCodes" + EMPTY_STRING + AND + EMPTY_STRING + alias
 				+ ".resumeTimeStamp < now()" + EMPTY_STRING + AND + EMPTY_STRING + alias
 				+ ".defaultResumeAction is not null" + EMPTY_STRING + ORDER_BY + EMPTY_STRING + UPDATED_DATE_TIME;
+		List<String> statusCodes = new ArrayList<String>();
+		statusCodes.add(RegistrationStatusCode.PAUSED.toString());
+		params.put("statusCodes", statusCodes);
 
-		params.put("status", RegistrationStatusCode.PAUSED.toString());
-		
+		return registrationStatusRepositary.createQuerySelect(queryStr, params, fetchSize);
+	}
+
+	public List<RegistrationStatusEntity> getResumablePackets(Integer fetchSize) {
+		Map<String, Object> params = new HashMap<>();
+		String className = RegistrationStatusEntity.class.getSimpleName();
+		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
+
+		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
+				+ ".statusCode =:status" + EMPTY_STRING
+				+ ORDER_BY + EMPTY_STRING + UPDATED_DATE_TIME;
+
+		params.put("status", RegistrationStatusCode.RESUMABLE.toString());
 
 		return registrationStatusRepositary.createQuerySelect(queryStr, params, fetchSize);
 	}

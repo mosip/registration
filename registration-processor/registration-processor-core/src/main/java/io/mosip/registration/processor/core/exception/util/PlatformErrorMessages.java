@@ -175,9 +175,19 @@ public enum PlatformErrorMessages {
 	/** The rpr rgs data access exception. */
 	RPR_RGS_DATA_ACCESS_EXCEPTION(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "030",
 			"DataAccessLayerException while syncing Registartion Id's"),
-
 	/** The rpr rgs rid not found. */
 	RPR_RGS_RID_NOT_FOUND(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "031", "RID Not Found"),
+
+	RPR_RGS_INVALID_SEARCH(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "032", "plz narrow down your search"),
+
+	RPR_RGS_SORTING_VALIDATION_FAILED(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "033",
+			"sorting not supported for more than 1 field - %s"),
+
+	RPR_RGS_DATE_VALIDATION_FAILED(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "034",
+			"searching between date should be less then 30 days - %s"),
+	
+	LINK_FOR_USERID_INDIVIDUALID_FAILED_STATUS_EXCEPTION(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "035",
+			"Unable to get the IndividualId for UserId"),
 
 	/** The rpr pis registration table not accessible. */
 	// Packet Info Storage Exception error code and message
@@ -272,6 +282,10 @@ public enum PlatformErrorMessages {
 
 	/** The rpr cmb unknown host exception. */
 	RPR_CMB_UNKNOWN_HOST_EXCEPTION(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "005", "Unknown Host Exception"),
+
+
+	RPR_CMB_WORKFLOW_COMMAND_NOT_SUPPORTED(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "006",
+			"Workflow command not supported"),
 
 	/** The rpr qcr registration table not accessible. */
 	// Quality Checker Exception error code and message
@@ -446,8 +460,12 @@ public enum PlatformErrorMessages {
 			"Age Group Range Map configuration does not contain age group for given age"),
 
 	/** The rpr pcm Captured Registered Devices entry not avaiable in metainfo map. */
-	RPR_PCM_CAPTURED_REGISTERED_DEVICES_ENTRY_NOT_AVAILABLE(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "016",
+	RPR_PCM_CAPTURED_REGISTERED_DEVICES_ENTRY_NOT_AVAILABLE(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "017",
 			"Captured registered devices entry not avaiable in metainfo map"),
+
+	/** The rpr pcm exception biometrics entry not avaiable in metainfo map. */
+	RPR_PCM_EXCEPTION_BIOMETRICS_APPLICANT_ENTRY_NOT_AVAILABLE(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "018",
+			"ExceptionBiometrics applicant entry not available in metainfo map"),
 
 	/** The unsupported encoding. */
 	// UIN check - JSON file encoding failed.
@@ -735,6 +753,10 @@ public enum PlatformErrorMessages {
 	/** The rpr manual verification rejected. */
 	RPR_MANUAL_VERIFICATION_REJECTED(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "021",
 			"Manual verification rejected"),
+
+	/** The rpr manual verification rejected. */
+	RPR_MANUAL_VERIFICATION_RESEND(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "025",
+			"Manual verification resend to queue."),
 
 	/** The rpr table not accessible. */
 	RPR_TABLE_NOT_ACCESSIBLE(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "022",
@@ -1227,11 +1249,13 @@ public enum PlatformErrorMessages {
 	/** Reprocessor Stage Failed. */
 	REPROCESSOR_STAGE_FAILED("", "Reprocessor Stage Failed"),
 
-	RPR_WFE_DATE_TIME_EXCEPTION(PlatformConstants.RPR_WORKFLOW_EVENT_UPDATE + "000",
+	RPR_WIA_DATE_TIME_EXCEPTION(PlatformConstants.RPR_WORKFLOW_INTERNAL_ACTION + "000",
 			"Error while parsing event or resume timestamp"),
 
-	RPR_WORKFLOW_EVENT_UPDATE_FAILED(PlatformConstants.RPR_WORKFLOW_EVENT_UPDATE + "001",
-			"Work flow event update failed"),
+	RPR_WORKFLOW_INTERNAL_ACTION_FAILED(PlatformConstants.RPR_WORKFLOW_INTERNAL_ACTION + "001",
+			"Work flow internal action failed"),
+
+	RPR_WIA_UNKNOWN_WORKFLOW_ACTION(PlatformConstants.RPR_WORKFLOW_INTERNAL_ACTION + "002", "Unknown Exception"),
 
 	RPR_WAA_MISSING_INPUT_PARAMETER(PlatformConstants.RPR_WORKFLOW_ACTION_API + "000",
 			"Missing Request Value - %s"),
@@ -1259,6 +1283,8 @@ public enum PlatformErrorMessages {
 			"Workflow id  %s is not PAUSED"),
 
 	RPR_WAA_VALIDATION_SUCCESS(PlatformConstants.RPR_WORKFLOW_ACTION_API + "005", "Workflow id validated successfully"),
+
+	RPR_WORKFLOW_ACTION_JOB_FAILED(PlatformConstants.RPR_WORKFLOW_ACTION_JOB, "Workflow action job  failed"),
 
 	/** The external stage failed. */
 	EXTERNAL_STAGE_FAILED("", "External Stage Failed"),

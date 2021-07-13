@@ -27,6 +27,9 @@ import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
 import io.mosip.registration.processor.status.code.RegistrationExternalStatusCode;
 import io.mosip.registration.processor.status.dto.ErrorDTO;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
+import io.mosip.registration.processor.status.dto.LostRidDto;
+import io.mosip.registration.processor.status.dto.LostRidRequestDto;
+import io.mosip.registration.processor.status.dto.LostRidResponseDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusErrorDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusRequestDTO;
@@ -37,6 +40,7 @@ import io.mosip.registration.processor.status.exception.RegStatusAppException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.mosip.registration.processor.status.sync.response.dto.RegStatusResponseDTO;
+import io.mosip.registration.processor.status.validator.LostRidRequestValidator;
 import io.mosip.registration.processor.status.validator.RegistrationStatusRequestValidator;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -63,10 +67,13 @@ public class RegistrationStatusController {
 	@Autowired
 	RegistrationStatusRequestValidator registrationStatusRequestValidator;
 
-
+	@Autowired
+	LostRidRequestValidator lostRidRequestValidator;
 
 	private static final String REG_STATUS_SERVICE_ID = "mosip.registration.processor.registration.status.id";
+	private static final String REG_LOSTRID_SERVICE_ID = "mosip.registration.processor.lostrid.id";
 	private static final String REG_STATUS_APPLICATION_VERSION = "mosip.registration.processor.registration.status.version";
+	private static final String REG_LOSTRID_APPLICATION_VERSION = "mosip.registration.processor.lostrid.version";
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
 	private static final String RESPONSE_SIGNATURE = "Response-Signature";
 
@@ -137,6 +144,34 @@ public class RegistrationStatusController {
 		}
 	}
 
+	/**
+	 * Search
+	 * 
+	 * @param lostRidRequestDto
+	 * @return
+	 * @throws RegStatusAppException
+	 */
+	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_OFFICER', 'ZONAL_ADMIN','GLOBAL_ADMIN')")
+	@PostMapping(path = "/lostridsearch", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@ApiOperation(value = "Get the lost registration id", response = RegistrationExternalStatusCode.class)
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "Registration id successfully fetched"),
+			@ApiResponse(code = 400, message = "Unable to fetch the Registration id") })
+	public ResponseEntity<Object> searchLostRid(
+			@RequestBody(required = true) LostRidRequestDto lostRidRequestDto)
+			throws RegStatusAppException {
+
+		try {
+			lostRidRequestValidator.validate(lostRidRequestDto);
+			List<LostRidDto> lostRidDtos = syncRegistrationService.searchLostRid(lostRidRequestDto.getRequest());
+			return ResponseEntity.status(HttpStatus.OK)
+					.body(buildLostRidResponse(lostRidDtos));
+		} catch (RegStatusAppException e) {
+			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_DATA_VALIDATION_FAILED, e);
+		} catch (Exception e) {
+			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_INVALID_SEARCH, e);
+		}
+	}
+
 	public RegStatusResponseDTO buildRegistrationStatusResponse(List<RegistrationStatusDto> registrations,
 			List<RegistrationStatusSubRequestDto> requestIds) {
 
@@ -172,6 +207,26 @@ public class RegistrationStatusController {
 			if(externalStatusesConsideredProcessed.contains(registrationStatusDto.getStatusCode()))
 				registrationStatusDto.setStatusCode(RegistrationExternalStatusCode.PROCESSED.toString());
 		}
+	}
+
+	public LostRidResponseDto buildLostRidResponse(List<LostRidDto> lostRidDtos) {
+
+		LostRidResponseDto response = new LostRidResponseDto();
+		if (Objects.isNull(response.getId())) {
+			response.setId(env.getProperty(REG_LOSTRID_SERVICE_ID));
+		}
+		response.setResponsetime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
+		response.setVersion(env.getProperty(REG_LOSTRID_APPLICATION_VERSION));
+		response.setResponse(lostRidDtos);
+		List<ErrorDTO> errors = new ArrayList<ErrorDTO>();
+		if (lostRidDtos.isEmpty()) {
+			RegistrationStatusErrorDto errorDto = new RegistrationStatusErrorDto(
+					PlatformErrorMessages.RPR_RGS_RID_NOT_FOUND.getCode(),
+					PlatformErrorMessages.RPR_RGS_RID_NOT_FOUND.getMessage());
+			errors.add(errorDto);
+		}
+		response.setErrors(errors);
+		return response;
 	}
 
 }

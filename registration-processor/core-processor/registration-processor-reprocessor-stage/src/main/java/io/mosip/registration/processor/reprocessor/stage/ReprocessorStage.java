@@ -1,11 +1,7 @@
 package io.mosip.registration.processor.reprocessor.stage;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,14 +23,12 @@ import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCo
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.RegistrationType;
-import io.mosip.registration.processor.core.exception.WorkflowActionException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.util.MessageBusUtil;
-import io.mosip.registration.processor.reprocessor.service.WorkflowActionService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.retry.verticle.constants.ReprocessorConstants;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -59,7 +53,7 @@ import io.vertx.core.json.JsonObject;
  *
  */
 public class ReprocessorStage extends MosipVerticleAPIManager {
-	
+
 	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.reprocessor.";
 
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(ReprocessorStage.class);
@@ -71,9 +65,6 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 	/** The environment. */
 	@Autowired
 	Environment environment;
-
-	@Autowired
-	WorkflowActionService workflowActionService;
 
 	/** The mosip event bus. */
 	MosipEventBus mosipEventBus = null;
@@ -117,7 +108,7 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 	 */
 	public void deployVerticle() {
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl);
-		deployScheduler(mosipEventBus.getEventbus());
+		deployScheduler(getVertx());
 
 	}
 
@@ -133,12 +124,10 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 
 	public void schedulerResult(AsyncResult<String> res) {
 		if (res.succeeded()) {
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					"", "ReprocessorStage::schedular()::deployed");
+			regProcLogger.info("ReprocessorStage::schedular()::deployed");
 			cronScheduling(vertx);
 		} else {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					"", "ReprocessorStage::schedular()::deploymemnt failure " + res.cause());
+			regProcLogger.error("ReprocessorStage::schedular()::deployment failure");
 		}
 	}
 
@@ -226,10 +215,20 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ReprocessorStage::process()::entry");
 		try {
-			 processResumablePackets();
+			reprocessorDtoList = registrationStatusService.getResumablePackets(fetchSize);
+			if (!CollectionUtils.isEmpty(reprocessorDtoList)) {
+				if (reprocessorDtoList.size() < fetchSize) {
+					List<InternalRegistrationStatusDto>  reprocessorPacketList = registrationStatusService.getUnProcessedPackets(fetchSize - reprocessorDtoList.size(), elapseTime,
+							reprocessCount, statusList);
+					if (!CollectionUtils.isEmpty(reprocessorPacketList)) {
+						reprocessorDtoList.addAll(reprocessorPacketList);
+					}
+				}
+			} else {
+				reprocessorDtoList = registrationStatusService.getUnProcessedPackets(fetchSize, elapseTime,
+						reprocessCount, statusList);
+			}
 
-			reprocessorDtoList = registrationStatusService.getUnProcessedPackets(fetchSize, elapseTime, reprocessCount,
-					statusList);
 
 			if (!CollectionUtils.isEmpty(reprocessorDtoList)) {
 				reprocessorDtoList.forEach(dto -> {
@@ -301,14 +300,6 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 					description.getCode() + " -- " + registrationId,
 					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e.toString());
 
-		} catch (WorkflowActionException e) {
-			isTransactionSuccessful = false;
-			object.setInternalError(Boolean.TRUE);
-			description.setMessage(e.getMessage());
-			description.setCode(e.getErrorCode());
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-					description.getCode() + " -- " + registrationId,
-					e.getMessage(), e.toString());
 		}catch (Exception ex) {
 			isTransactionSuccessful = false;
 			description.setMessage(PlatformErrorMessages.REPROCESSOR_STAGE_FAILED.getMessage());
@@ -340,28 +331,6 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 		return object;
 	}
 
-	public void processResumablePackets() throws WorkflowActionException {
-		List<InternalRegistrationStatusDto> resumableDtoList = registrationStatusService.getResumablePackets(fetchSize);
-		Map<String, List<InternalRegistrationStatusDto>> defaultResumeActionPacketIdsMap = new HashMap<>();
-		for(InternalRegistrationStatusDto dto:resumableDtoList) {
-				if(defaultResumeActionPacketIdsMap.containsKey(dto.getDefaultResumeAction())) {
-				List<InternalRegistrationStatusDto> internalRegistrationStatusDtos = defaultResumeActionPacketIdsMap
-						.get(dto.getDefaultResumeAction());
-				internalRegistrationStatusDtos.add(dto);
-				defaultResumeActionPacketIdsMap.put(dto.getDefaultResumeAction(), internalRegistrationStatusDtos);
-				}
-				else  {
-				defaultResumeActionPacketIdsMap.put(dto.getDefaultResumeAction(), Arrays.asList(dto));
-				}
-		}
-		for (Entry<String, List<InternalRegistrationStatusDto>> entry : defaultResumeActionPacketIdsMap.entrySet()) {
-
-			workflowActionService.processWorkflowAction(entry.getValue(), entry.getKey());
-
-		}
-
-	}
-	
 	@Override
 	protected String getPropertyPrefix() {
 		return STAGE_PROPERTY_PREFIX;

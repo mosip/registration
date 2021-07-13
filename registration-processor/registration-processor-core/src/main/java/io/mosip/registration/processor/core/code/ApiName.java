@@ -150,8 +150,8 @@ public enum ApiName {
 	/** The proofofdateofbirth. */
 	PROOFOFDATEOFBIRTH,
 
-	/** The parentorguardianbiometrics. */
-	PARENTORGUARDIANBIOMETRICS,
+	/** The introducerbiometrics. */
+	INTRODUCERBIOMETRICS,
 
 	/** The idschemaversion. */
 	IDSCHEMAVERSION,
@@ -231,7 +231,9 @@ public enum ApiName {
 	DATASHARECREATEURL,
 	PMS,
 	DATASHAREGETEURL,
-	CREDENTIALREQUEST, GETVIDSBYUIN;
+	CREDENTIALREQUEST, GETVIDSBYUIN,
+	JWTVERIFY,
+	DEVICEHOTLIST;
 
 }
 

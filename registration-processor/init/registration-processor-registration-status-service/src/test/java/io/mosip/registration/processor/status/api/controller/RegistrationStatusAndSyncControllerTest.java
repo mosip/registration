@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,11 +41,15 @@ import io.mosip.registration.processor.core.digital.signature.dto.SignResponseDt
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
+import io.mosip.registration.processor.core.workflow.dto.SortInfo;
 import io.mosip.registration.processor.status.api.config.RegistrationStatusConfigTest;
+import io.mosip.registration.processor.status.dto.FilterInfo;
+import io.mosip.registration.processor.status.dto.LostRidRequestDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusRequestDTO;
 import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.RegistrationSyncRequestDTO;
+import io.mosip.registration.processor.status.dto.SearchInfo;
 import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
 import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.dto.SyncResponseFailDto;
@@ -53,6 +58,7 @@ import io.mosip.registration.processor.status.dto.SyncResponseSuccessDto;
 import io.mosip.registration.processor.status.exception.RegStatusAppException;
 import io.mosip.registration.processor.status.service.impl.RegistrationStatusServiceImpl;
 import io.mosip.registration.processor.status.service.impl.SyncRegistrationServiceImpl;
+import io.mosip.registration.processor.status.validator.LostRidRequestValidator;
 import io.mosip.registration.processor.status.validator.RegistrationStatusRequestValidator;
 import io.mosip.registration.processor.status.validator.RegistrationSyncRequestValidator;
 
@@ -101,6 +107,9 @@ public class RegistrationStatusAndSyncControllerTest {
 
 	/** The array to json. */
 	private String regStatusToJson;
+
+	private String lostRidReqToJson;
+
 	@MockBean
 	private RegistrationProcessorRestClientService<Object> reprcrestclient;
 
@@ -112,10 +121,14 @@ public class RegistrationStatusAndSyncControllerTest {
 	@Mock
 	private Environment env;
 
+	LostRidRequestDto lostRidRequestDto;
 
 
 	@MockBean
 	RegistrationStatusRequestValidator registrationStatusRequestValidator;
+
+	@MockBean
+	LostRidRequestValidator lostRidRequestValidator;
 
 	@MockBean
 	private RegistrationSyncRequestValidator syncrequestvalidator;
@@ -144,6 +157,8 @@ public class RegistrationStatusAndSyncControllerTest {
 		// MockMvcBuilders.webAppContextSetup(context).addFilters(springSecurityFilterChain).build();
 		when(env.getProperty("mosip.registration.processor.registration.status.id"))
 				.thenReturn("mosip.registration.status");
+		when(env.getProperty("mosip.registration.processor.lostrid.id")).thenReturn("mosip.registration.lostrid");
+		when(env.getProperty("mosip.registration.processor.lostrid.version")).thenReturn("1.0");
 		when(env.getProperty("mosip.registration.processor.datetime.pattern"))
 				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		when(env.getProperty("mosip.registration.processor.application.version")).thenReturn("1.0");
@@ -200,6 +215,24 @@ public class RegistrationStatusAndSyncControllerTest {
 		registrationSyncRequestDTO.setVersion("1.0");
 		registrationSyncRequestDTO
 				.setRequesttime(DateUtils.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
+		lostRidRequestDto = new LostRidRequestDto();
+		lostRidRequestDto.setId("mosip.registration.lostrid");
+		lostRidRequestDto.setVersion("1.0");
+		lostRidRequestDto.setRequesttime(LocalDateTime.now().toString());
+		SearchInfo searchInfo = new SearchInfo();
+		List<FilterInfo> filterinfos = new ArrayList<FilterInfo>();
+		List<SortInfo> sortInfos = new ArrayList<SortInfo>();
+		FilterInfo filterInfo = new FilterInfo();
+		filterInfo.setColumnName("name");
+		filterInfo.setValue("mosip");
+		filterinfos.add(filterInfo);
+		SortInfo sortInfo = new SortInfo();
+		sortInfo.setSortField("createDateTime");
+		sortInfo.setSortType("desc");
+		sortInfos.add(sortInfo);
+		searchInfo.setFilters(filterinfos);
+		searchInfo.setSort(sortInfos);
+		lostRidReqToJson = gson.toJson(lostRidRequestDto);
 
 		Mockito.doReturn(registrationDtoList).when(registrationStatusService).getByIds(ArgumentMatchers.any());
 		Mockito.doReturn(registrationDtoList1).when(syncRegistrationService).getByIds(ArgumentMatchers.any());
@@ -280,5 +313,25 @@ public class RegistrationStatusAndSyncControllerTest {
 		syncResponseDtoList.add(syncResponseFailDto);
 		registrationSyncController.buildRegistrationSyncResponse(syncResponseDtoList);
 
+	}
+
+	@Test
+	public void lostRidSuccessTest() throws Exception {
+		doNothing().when(lostRidRequestValidator).validate((lostRidRequestDto));
+
+		this.mockMvc.perform(post("/lost").accept(MediaType.APPLICATION_JSON_VALUE)
+				.cookie(new Cookie("Authorization", lostRidReqToJson)).contentType(MediaType.APPLICATION_JSON_VALUE)
+				.content(lostRidReqToJson.getBytes()).header("timestamp", "2019-05-07T05:13:55.704Z"))
+				.andExpect(status().isOk());
+	}
+
+	@Test
+	public void lostRidRegstatusException() throws Exception {
+
+		Mockito.doThrow(new RegStatusAppException()).when(lostRidRequestValidator).validate(ArgumentMatchers.any());
+		this.mockMvc.perform(post("/lost").accept(MediaType.APPLICATION_JSON_VALUE)
+				.cookie(new Cookie("Authorization", lostRidReqToJson)).contentType(MediaType.APPLICATION_JSON_VALUE)
+				.content(lostRidReqToJson.getBytes()).header("timestamp", "2019-05-07T05:13:55.704Z"))
+				.andExpect(status().isOk());
 	}
 }

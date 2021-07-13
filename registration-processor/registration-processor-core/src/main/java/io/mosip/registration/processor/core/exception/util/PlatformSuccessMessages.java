@@ -74,8 +74,8 @@ public enum PlatformSuccessMessages {
 
 	RPR_SENT_TO_REPROCESS_SUCCESS(PlatformConstants.RPR_REPROCESSOR_STAGE + "001", "sent to reprocess Success"),
 
-	RPR_WORKFLOW_EVENT_UPDATE_SUCCESS(PlatformConstants.RPR_WORKFLOW_EVENT_UPDATE + "000",
-			"Update Work Flow action"),
+	RPR_WORKFLOW_INTERNAL_ACTION_SUCCESS(PlatformConstants.RPR_WORKFLOW_INTERNAL_ACTION + "000",
+			"Workflow internal action completed successfully"),
 
 	RPR_WORKFLOW_ACTION_SERVICE_SUCCESS(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "000",
 			"Processed the workflow action - %s"),
@@ -84,7 +84,7 @@ public enum PlatformSuccessMessages {
 			"Process the workflow action success"),
 	RPR_WORKFLOW_SEARCH_API_SUCCESS(PlatformConstants.RPR_WORKFLOW_SEARCH_API + "000",
 			"Process the workflow search success"),
-
+	RPR_WORKFLOW_ACTION_JOB_SUCCESS(PlatformConstants.RPR_WORKFLOW_ACTION_JOB + "000", "Workflow action job success"),
 
 	RPR_EXTERNAL_STAGE_SUCCESS(PlatformConstants.RPR_EXTERNAL_STAGE + "000", "External stage  Success"),
 
@@ -116,6 +116,9 @@ public enum PlatformSuccessMessages {
 	RPR_MANUAL_VERIFICATION_APPROVED(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "000",
 			"Manual verification approved"),
 
+	RPR_MANUAL_VERIFICATION_RESEND(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "002",
+			"Manual verification resend"),
+
 	RPR_MANUAL_VERIFICATION_SENT(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "001",
 			"Manual verification Sent to queue"),
 
@@ -130,7 +133,15 @@ public enum PlatformSuccessMessages {
 	RPR_REQUEST_HANDLER_LOST_PACKET_SUCCESS(PlatformConstants.RPR_PACKET_REQUEST_HANDLER_MODULE + "000",
 			"Lost packet id value fetched successfully"),
 
-	PACKET_PAUSED_HOTLISTED("","packet paused  because of hotlisting");
+	PACKET_MARK_AS_PAUSED(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "000",
+			"Packet paused because of pause settings match"),
+	PACKET_COMPLETE_AS_PROCESSED(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "001",
+			"Packet processing completed with processed status"),
+	PACKET_COMPLETE_AS_REJECTED(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "002",
+			"Packet processing completed with reject status"),
+	PACKET_COMPLETE_AS_FAILED(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "003",
+			"Packet processing completed with failed status"),
+	PACKET_MARK_AS_REPROCESS(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "004", "Packet marked for reprocessing");
 
 	/** The success message. */
 	private final String successMessage;

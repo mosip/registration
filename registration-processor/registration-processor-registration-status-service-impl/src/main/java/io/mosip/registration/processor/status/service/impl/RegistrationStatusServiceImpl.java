@@ -151,7 +151,8 @@ public class RegistrationStatusServiceImpl
 			String transactionId = generateId();
 			registrationStatusDto.setLatestRegistrationTransactionId(transactionId);
 			registrationStatusDto.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
-			RegistrationStatusEntity entity = convertDtoToEntity(registrationStatusDto, null);
+			RegistrationStatusEntity entity = convertDtoToEntity(registrationStatusDto, null, false);
+			entity.setStatusCode(RegistrationTransactionStatusCode.PROCESSING.toString());
 			registrationStatusDao.save(entity);
 			isTransactionSuccessful = true;
 			description.setMessage("Registration status added successfully");
@@ -198,6 +199,17 @@ public class RegistrationStatusServiceImpl
 	@Override
 	public void updateRegistrationStatus(InternalRegistrationStatusDto registrationStatusDto, String moduleId,
 			String moduleName) {
+		updateRegistrationStatus(registrationStatusDto, moduleId, moduleName, false);
+	}
+	
+	@Override
+	public void updateRegistrationStatusForWorkflowEngine(InternalRegistrationStatusDto registrationStatusDto, String moduleId,
+			String moduleName) {
+		updateRegistrationStatus(registrationStatusDto, moduleId, moduleName, true);
+	}
+
+	private void updateRegistrationStatus(InternalRegistrationStatusDto registrationStatusDto, String moduleId,
+			String moduleName, boolean updateStatusCode) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationStatusDto.getRegistrationId(),
 				"RegistrationStatusServiceImpl::updateRegistrationStatus()::entry");
@@ -223,8 +235,11 @@ public class RegistrationStatusServiceImpl
 			InternalRegistrationStatusDto dto = getRegistrationStatus(registrationStatusDto.getRegistrationId());
 			if (dto != null) {
 				dto.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
-				RegistrationStatusEntity entity = convertDtoToEntity(registrationStatusDto, 
-					dto.getLastSuccessStageName());
+				RegistrationStatusEntity entity = convertDtoToEntity(registrationStatusDto,
+						dto.getLastSuccessStageName(), updateStatusCode);
+				if (entity.getStatusCode() == null) {
+					entity.setStatusCode(dto.getStatusCode());
+				}
 				registrationStatusDao.save(entity);
 				isTransactionSuccessful = true;
 				description.setMessage("Updated registration status successfully");
@@ -427,12 +442,14 @@ public class RegistrationStatusServiceImpl
 	 * @return the registration status entity
 	 */
 	private RegistrationStatusEntity convertDtoToEntity(InternalRegistrationStatusDto dto, 
-			String existingLastSuccessStageName) {
+			String existingLastSuccessStageName, boolean updateStatusCode) {
 		RegistrationStatusEntity registrationStatusEntity = new RegistrationStatusEntity();
 		registrationStatusEntity.setId(dto.getRegistrationId());
 		registrationStatusEntity.setRegistrationType(dto.getRegistrationType());
 		registrationStatusEntity.setReferenceRegistrationId(dto.getReferenceRegistrationId());
-		registrationStatusEntity.setStatusCode(dto.getStatusCode());
+		if (updateStatusCode) {
+			registrationStatusEntity.setStatusCode(dto.getStatusCode());
+		}
 		registrationStatusEntity.setLangCode(dto.getLangCode());
 		registrationStatusEntity.setStatusComment(dto.getStatusComment());
 		registrationStatusEntity.setLatestRegistrationTransactionId(dto.getLatestRegistrationTransactionId());
@@ -561,14 +578,14 @@ public class RegistrationStatusServiceImpl
 
 	
 	@Override
-	public List<InternalRegistrationStatusDto> getResumablePackets(Integer fetchSize) {
+	public List<InternalRegistrationStatusDto> getActionablePausedPackets(Integer fetchSize) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-				"RegistrationStatusServiceImpl::getResumablePackets()::entry");
+				"RegistrationStatusServiceImpl::getActionablePausedPackets()::entry");
 		try {
-			List<RegistrationStatusEntity> entityList = registrationStatusDao.getResumablePackets( fetchSize);
+			List<RegistrationStatusEntity> entityList = registrationStatusDao.getActionablePausedPackets( fetchSize);
 
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-					"RegistrationStatusServiceImpl::getResumablePackets()::exit");
+					"RegistrationStatusServiceImpl::getActionablePausedPackets()::exit");
 
 			return convertEntityListToDtoList(entityList);
 
@@ -620,4 +637,24 @@ public class RegistrationStatusServiceImpl
 		}
 	}
 
+	@Override
+	public List<InternalRegistrationStatusDto> getResumablePackets(Integer fetchSize) {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				"RegistrationStatusServiceImpl::getResumablePackets()::entry");
+		try {
+			List<RegistrationStatusEntity> entityList = registrationStatusDao.getResumablePackets(fetchSize);
+
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+					"RegistrationStatusServiceImpl::getResumablePackets()::exit");
+
+			return convertEntityListToDtoList(entityList);
+
+		} catch (DataAccessException | DataAccessLayerException e) {
+
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
+			throw new TablenotAccessibleException(
+					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
+		}
+	}
 }

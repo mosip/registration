@@ -152,7 +152,7 @@ public class PacketValidatorImpl implements PacketValidator {
 			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException,
 			RegistrationProcessorCheckedException {
 		List<String> fields = Arrays.asList(MappingJsonConstants.INDIVIDUAL_BIOMETRICS,
-				MappingJsonConstants.AUTHENTICATION_BIOMETRICS, MappingJsonConstants.PARENT_OR_GUARDIAN_BIO,
+				MappingJsonConstants.AUTHENTICATION_BIOMETRICS, MappingJsonConstants.INTRODUCER_BIO,
 				MappingJsonConstants.OFFICERBIOMETRICFILENAME, MappingJsonConstants.SUPERVISORBIOMETRICFILENAME);
 		for (String field : fields) {
 			String value = packetManagerService.getField(id, field, process, ProviderStageName.PACKET_VALIDATOR);

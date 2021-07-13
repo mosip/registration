@@ -38,22 +38,22 @@
 				"source:RESIDENT,process:ACTIVATED|DEACTIVATED|RES_UPDATE|RES_REPRINT"
 			]
 		},
-		"parentOrGuardianRID":{
-			"value":"parentOrGuardianRID",
+		"introducerRID":{
+			"value":"introducerRID",
 			"provider":[
 				"source:REGISTRATION_CLIENT,process:NEW|UPDATE|LOST",
 				"source:RESIDENT,process:ACTIVATED|DEACTIVATED|RES_UPDATE|RES_REPRINT"
 			]
 		},
-		"parentOrGuardianUIN":{
-			"value":"parentOrGuardianUIN",
+		"introducerUIN":{
+			"value":"introducerUIN",
 			"provider":[
 				"source:REGISTRATION_CLIENT,process:NEW|UPDATE|LOST",
 				"source:RESIDENT,process:ACTIVATED|DEACTIVATED|RES_UPDATE|RES_REPRINT"
 			]
 		},
-		"parentOrGuardianName":{
-			"value":"parentOrGuardianName",
+		"introducerName":{
+			"value":"introducerName",
 			"provider":[
 				"source:REGISTRATION_CLIENT,process:NEW|UPDATE|LOST",
 				"source:RESIDENT,process:ACTIVATED|DEACTIVATED|RES_UPDATE|RES_REPRINT"
@@ -124,8 +124,8 @@
 				"source:RESIDENT,process:ACTIVATED|DEACTIVATED|RES_UPDATE|RES_REPRINT"
 			]
 		},
-		"parentOrGuardianBiometrics":{
-			"value":"parentOrGuardianBiometrics",
+		"introducerBiometrics":{
+			"value":"introducerBiometrics",
 			"provider":[
 				"source:REGISTRATION_CLIENT,process:NEW|UPDATE|LOST",
 				"source:RESIDENT,process:ACTIVATED|DEACTIVATED|RES_UPDATE|RES_REPRINT"

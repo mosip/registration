@@ -1,0 +1,87 @@
+{
+  "id": "mosip.manual.adjudication.adjudicate",
+  "requestId": "1961e3ba-614b-4dd1-b5ca-848555a15225",
+  "returnValue": "1",
+  "responsetime": "2021-06-24T10:04:44.515Z",
+  "candidateList": {
+    "count": "1",
+    "candidates": [
+      {
+        "referenceId": "10002100880000920210628085718",
+        "analytics": {
+          "internalScore": "100.00",
+          "rank": "1",
+          "adjudicationDetails": [
+            {
+              "decision": "HIT",
+              "biometricDetails": [
+                {
+                  "biometricType": "FACE",
+                  "operatorComment": "Face of the probe and candidate were found to be same  - [operator]"
+                },
+                {
+                  "biometricType": "IRIS",
+                  "operatorComment": "IRIS of the probe and candidate were found to be same  - [operator]"
+                }
+              ],
+              "biographicComment": "Demographic Data of the probe and candidate were found to be different  - [supervisor]",
+              "operator": "supervisor"
+            }
+          ]
+        },
+        "modalities": [
+          {
+            "biometricType": "IIR",
+            "analytics": {
+              "internalScore": "100.00"
+            }
+          },
+          {
+            "biometricType": "FMR",
+            "analytics": {
+              "internalScore": "83.02"
+            }
+          }
+        ]
+      },
+      {
+        "referenceId": "10002100880001420210629050908",
+        "analytics": {
+          "internalScore": "100.00",
+          "rank": "1",
+          "adjudicationDetails": [
+            {
+              "decision": "HIT",
+              "biometricDetails": [
+                {
+                  "biometricType": "FACE",
+                  "operatorComment": "Face of the probe and candidate were found to be same  - [operator]"
+                },
+                {
+                  "biometricType": "IRIS",
+                  "operatorComment": "IRIS of the probe and candidate were found to be same  - [operator]"
+                }
+              ],
+              "biographicComment": "Demographic Data of the probe and candidate were found to be different  - [supervisor]",
+              "operator": "supervisor"
+            }
+          ]
+        },
+        "modalities": [
+          {
+            "biometricType": "IIR",
+            "analytics": {
+              "internalScore": "100.00"
+            }
+          },
+          {
+            "biometricType": "FMR",
+            "analytics": {
+              "internalScore": "83.02"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

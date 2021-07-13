@@ -1,8 +1,10 @@
 package io.mosip.registration.processor.stages.packetclassifier.tagging.impl;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
+import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.stages.packetclassifier.dto.FieldDTO;
 import io.mosip.registration.processor.stages.packetclassifier.tagging.TagGenerator;
@@ -30,6 +32,13 @@ public class ExceptionBiometricsTagGenerator implements TagGenerator {
     @Value("#{${mosip.regproc.packet.classifier.tagging.exceptionbiometrics.bio-value-mapping:{'leftLittle':'LL','leftRing':'LR','leftMiddle':'LM','leftIndex':'LI','leftThumb':'LT','rightLittle':'RL','rightRing':'RR','rightMiddle':'RM','rightIndex':'RI','rightThumb':'RT','leftEye':'LE','rightEye':'RE'}}}")
     private Map<String,String> bioValueMapping;
 
+    /** The tag value that will be used by default when the packet does not have value for the tag field */
+    @Value("${mosip.regproc.packet.classifier.tagging.not-available-tag-value}")
+    private String notAvailableTagValue;
+
+    /** The reg proc logger. */
+	private static Logger regProcLogger = RegProcessorLogger.getLogger(AgeGroupTagGenerator.class);
+
     private static String BIOMETRICS_DELIMITER = ",";
 
     /**
@@ -50,12 +59,20 @@ public class ExceptionBiometricsTagGenerator implements TagGenerator {
             Map<String, String> tags = new HashMap<String, String>(1);
             String exceptionBiometricsString = metaInfoMap.get(JsonConstant.EXCEPTIONBIOMETRICS);
             if(exceptionBiometricsString == null) {
-                tags.put(tagName, "");
+                regProcLogger.warn("{} --> {}, setting tag value as {}", 
+                    PlatformErrorMessages.RPR_PCM_EXCEPTION_BIOMETRICS_ENTRY_NOT_AVAILABLE.getCode(), 
+                    PlatformErrorMessages.RPR_PCM_EXCEPTION_BIOMETRICS_ENTRY_NOT_AVAILABLE.getMessage(),
+                    notAvailableTagValue);
+                tags.put(tagName, notAvailableTagValue);
                 return tags;
             }
             JSONObject exceptionBiometricsJsonObject = new JSONObject(exceptionBiometricsString);
             if(!exceptionBiometricsJsonObject.has(JsonConstant.EXCEPTIONBIOMETRICSAPPLICANT)) {
-                tags.put(tagName, "");
+                regProcLogger.warn("{} --> {}, setting tag value as {}", 
+                    PlatformErrorMessages.RPR_PCM_EXCEPTION_BIOMETRICS_APPLICANT_ENTRY_NOT_AVAILABLE.getCode(), 
+                    PlatformErrorMessages.RPR_PCM_EXCEPTION_BIOMETRICS_APPLICANT_ENTRY_NOT_AVAILABLE.getMessage(),
+                    notAvailableTagValue);
+                tags.put(tagName, notAvailableTagValue);
                 return tags;
             }
             JSONObject applicantJsonObject = exceptionBiometricsJsonObject.getJSONObject(

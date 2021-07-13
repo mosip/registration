@@ -60,6 +60,18 @@ public interface RegistrationStatusService<T, U, D> {
 	 *            the module name
 	 */
 	public void updateRegistrationStatus(U registrationStatusDto, String moduleId, String moduleName);
+	
+	/**
+	 * Update registration status for workflow Engine.
+	 *
+	 * @param registrationStatusDto
+	 *            the registration status dto
+	 * @param moduleId
+	 *            the module id
+	 * @param moduleName
+	 *            the module name
+	 */
+	public void updateRegistrationStatusForWorkflowEngine(U registrationStatusDto, String moduleId, String moduleName);
 
 	/**
 	 * Gets the by status.
@@ -126,7 +138,9 @@ public interface RegistrationStatusService<T, U, D> {
 	 */
 	public List<U> getByIdsAndTimestamp(List<String> ids);
 
-	public List<InternalRegistrationStatusDto> getResumablePackets(Integer fetchSize);
+	public List<InternalRegistrationStatusDto> getActionablePausedPackets(Integer fetchSize);
 
 	public Page<InternalRegistrationStatusDto> searchRegistrationDetails(SearchInfo searchInfo);
+
+	public List<InternalRegistrationStatusDto> getResumablePackets(Integer fetchSize);
 }
