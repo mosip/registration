@@ -167,7 +167,7 @@ public class BioDedupeProcessor {
 		LogDescription description = new LogDescription();
 		object.setMessageBusAddress(MessageBusAddress.BIO_DEDUPE_BUS_IN);
 		object.setInternalError(Boolean.FALSE);
-		object.setIsValid(Boolean.FALSE);
+		object.setIsValid(Boolean.TRUE);
 
 		boolean isTransactionSuccessful = false;
 
