@@ -48,7 +48,8 @@ public class InternalAuthDelegateServicesController {
 	 * @return the AuthResponseDTO
 	 * @throws Exception 
 	 */
-	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN','REGISTRATION_OFFICER','REGISTRATION_SUPERVISOR')")
+	//@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN','REGISTRATION_OFFICER','REGISTRATION_SUPERVISOR')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostauth())")
 	@PostMapping(path = "/auth", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiOperation(value = "Authenticate Internal Request")
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Request authenticated successfully") })
@@ -66,8 +67,9 @@ public class InternalAuthDelegateServicesController {
 	 * @return the certificate
 	 * @throws Exception 
 	 */
-	@PreAuthorize("hasAnyRole('INDIVIDUAL','REGISTRATION_PROCESSOR','REGISTRATION_ADMIN','REGISTRATION_SUPERVISOR','REGISTRATION_OFFICER','PRE_REGISTRATION_ADMIN')")
+	//@PreAuthorize("hasAnyRole('INDIVIDUAL','REGISTRATION_PROCESSOR','REGISTRATION_ADMIN','REGISTRATION_SUPERVISOR','REGISTRATION_OFFICER','PRE_REGISTRATION_ADMIN')")
 	@ResponseFilter
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetgetcertificate())")
 	@GetMapping(value = "/getCertificate")
 	public Object getCertificate(@ApiParam("Id of application") @RequestParam("applicationId") String applicationId,
 			@ApiParam("Refrence Id as metadata") @RequestParam("referenceId") Optional<String> referenceId, @RequestHeader HttpHeaders headers) throws Exception {
