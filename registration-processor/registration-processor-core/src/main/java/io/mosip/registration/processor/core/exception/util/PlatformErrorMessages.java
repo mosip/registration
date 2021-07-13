@@ -178,13 +178,23 @@ public enum PlatformErrorMessages {
 	/** The rpr rgs data access exception. */
 	RPR_RGS_DATA_ACCESS_EXCEPTION(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "030",
 			"DataAccessLayerException while syncing Registartion Id's"),
-
 	/** The rpr rgs rid not found. */
 	RPR_RGS_RID_NOT_FOUND(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "031", "RID Not Found"),
 	
 	RPR_RGS_INVALID_ADDITIONAL_INFORMATION(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "032", "additionalInfoReqId is invalid"),
 
 	RPR_RGS_PACKETID_NOT_FOUND(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "033", "PacketId Not Found"),
+
+	RPR_RGS_INVALID_SEARCH(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "032", "plz narrow down your search"),
+
+	RPR_RGS_SORTING_VALIDATION_FAILED(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "033",
+			"sorting not supported for more than 1 field - %s"),
+
+	RPR_RGS_DATE_VALIDATION_FAILED(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "034",
+			"searching between date should be less then 30 days - %s"),
+	
+	LINK_FOR_USERID_INDIVIDUALID_FAILED_STATUS_EXCEPTION(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "035",
+			"Unable to get the IndividualId for UserId"),
 
 	/** The rpr pis registration table not accessible. */
 	// Packet Info Storage Exception error code and message
@@ -750,6 +760,10 @@ public enum PlatformErrorMessages {
 	/** The rpr manual verification rejected. */
 	RPR_MANUAL_VERIFICATION_REJECTED(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "021",
 			"Manual verification rejected"),
+
+	/** The rpr manual verification rejected. */
+	RPR_MANUAL_VERIFICATION_RESEND(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "025",
+			"Manual verification resend to queue."),
 
 	/** The rpr table not accessible. */
 	RPR_TABLE_NOT_ACCESSIBLE(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "022",

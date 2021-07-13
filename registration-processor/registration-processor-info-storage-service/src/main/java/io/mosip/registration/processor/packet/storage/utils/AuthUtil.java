@@ -105,6 +105,9 @@ public class AuthUtil {
 
 	@Value("${mosip.identity.auth.internal.requestid}")
 	private String authRequestId;
+	
+	@Value("${mosip.identity.auth.internal.env}")
+	private String authEnv;
 
 	@Value("${registration.processor.application.id}")
 	private String applicationId;
@@ -141,7 +144,7 @@ public class AuthUtil {
 				.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
 		authRequestDTO.setRequestTime(DateUtils.formatToISOString(localdatetime));
 		authRequestDTO.setTransactionID(DUMMY_TRANSACTION_ID);
-		authRequestDTO.setEnv(domainUrl);
+		authRequestDTO.setEnv(authEnv);
 		authRequestDTO.setDomainUri(domainUrl);
 
 		String thumbprint = CryptoUtil.encodeBase64(getCertificateThumbprint(getCertificate(PARTNER_ID)));
@@ -232,7 +235,7 @@ public class AuthUtil {
 			for (io.mosip.kernel.biometrics.entities.BIR bir : list) {
 				BioInfo bioInfo = new BioInfo();
 				DataInfoDTO dataInfoDTO = new DataInfoDTO();
-				dataInfoDTO.setEnv(domainUrl);
+				dataInfoDTO.setEnv(authEnv);
 				dataInfoDTO.setDomainUri(domainUrl);
 				dataInfoDTO.setTransactionId(DUMMY_TRANSACTION_ID);
 				List<BIR> birList = List.of(bir);

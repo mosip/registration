@@ -78,6 +78,11 @@ public class DemoDedupeStageTest {
 		}
 		
 		@Override
+		public Router postUrl(Vertx vertx, MessageBusAddress consumeAddress, MessageBusAddress sendAddress) {
+			return null;
+		}
+		
+		@Override
 		public Integer getPort() {
 			return 8080;
 		}
@@ -109,8 +114,8 @@ public class DemoDedupeStageTest {
 		ReflectionTestUtils.setField(demoDedupeStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(demoDedupeStage, "clusterManagerUrl", "/dummyPath");
 		
-		Mockito.when(environment.getProperty("mosip.kernel.virus-scanner.port")).thenReturn("8000");
-		Mockito.when(environment.getProperty("server.servlet.path")).thenReturn("/test");
+		//Mockito.when(environment.getProperty("mosip.kernel.virus-scanner.port")).thenReturn("8000");
+		//Mockito.when(environment.getProperty("server.servlet.path")).thenReturn("/test");
 		
 		demoDedupeStage.deployVerticle();
 		Mockito.doNothing().when(router).setRoute(any());

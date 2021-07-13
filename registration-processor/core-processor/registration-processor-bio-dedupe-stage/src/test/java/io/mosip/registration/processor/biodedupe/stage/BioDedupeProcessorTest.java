@@ -46,6 +46,7 @@ import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
+import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.constant.AbisConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
@@ -248,6 +249,7 @@ public class BioDedupeProcessorTest {
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
 		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 
 	}
 
@@ -262,8 +264,11 @@ public class BioDedupeProcessorTest {
 		Mockito.when(bioDedupeService.getFileByRegId(anyString(),anyString())).thenReturn(null);
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(null);
 		Mockito.when(utility.getApplicantAge(any(),any(),any())).thenReturn(12);
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.CBEFF_NOT_PRESENT_EXCEPTION)).thenReturn("FAILED");
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getInternalError());
+		assertFalse(messageDto.getIsValid());
 	}
 
 	/**
@@ -281,6 +286,7 @@ public class BioDedupeProcessorTest {
 		Mockito.when(utility.getApplicantAge(any(),any(),any())).thenReturn(12);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getInternalError());
+		assertFalse(messageDto.getIsValid());
 	}
 
 	/**
@@ -294,8 +300,11 @@ public class BioDedupeProcessorTest {
 		Mockito.when(bioDedupeService.getFileByRegId(anyString(),anyString())).thenReturn(null);
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(null);
 		Mockito.when(utility.getApplicantAge(any(),any(),any())).thenThrow(new IOException("IOException"));
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.IOEXCEPTION)).thenReturn("ERROR");
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getInternalError());
+		assertFalse(messageDto.getIsValid());
 	}
 
 	/**
@@ -307,8 +316,11 @@ public class BioDedupeProcessorTest {
 				.thenThrow(new DataAccessException("DataAccessException") {
 					private static final long serialVersionUID = 1L;
 				});
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.DATA_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getInternalError());
+		assertTrue(messageDto.getIsValid());
 	}
 
 	/**
@@ -323,7 +335,7 @@ public class BioDedupeProcessorTest {
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
 		assertTrue(messageDto.getIsValid());
-
+		assertFalse(messageDto.getInternalError());
 	}
 
 	/**
@@ -343,6 +355,7 @@ public class BioDedupeProcessorTest {
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
 		assertFalse(messageDto.getIsValid());
+		assertTrue(messageDto.getInternalError());
 
 	}
 
@@ -389,6 +402,7 @@ public class BioDedupeProcessorTest {
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
 		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 	}
 
 	/**
@@ -415,6 +429,7 @@ public class BioDedupeProcessorTest {
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any(),any())).thenReturn(matchedRidList);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 	}
 
 	/**
@@ -441,7 +456,8 @@ public class BioDedupeProcessorTest {
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any(),any())).thenReturn(matchedRidList);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
-		assertFalse(messageDto.getIsValid());
+		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 	}
 
 	/**
@@ -467,6 +483,7 @@ public class BioDedupeProcessorTest {
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertFalse(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 	}
 
 	/**
@@ -493,6 +510,7 @@ public class BioDedupeProcessorTest {
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 	}
 
 	/**
@@ -526,6 +544,7 @@ public class BioDedupeProcessorTest {
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
 		assertFalse(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 	}
 
 	/**
@@ -557,6 +576,7 @@ public class BioDedupeProcessorTest {
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
 		assertFalse(messageDto.getInternalError());
+		assertFalse(messageDto.getIsValid());
 	}
 	
 	@Test
@@ -582,6 +602,7 @@ public class BioDedupeProcessorTest {
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
 		assertFalse(messageDto.getInternalError());
+		assertFalse(messageDto.getIsValid());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -609,6 +630,7 @@ public class BioDedupeProcessorTest {
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
 		assertFalse(messageDto.getInternalError());
+		assertFalse(messageDto.getIsValid());
 	}
 
 	@Test
@@ -622,6 +644,7 @@ public class BioDedupeProcessorTest {
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(null);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getInternalError());
+		assertFalse(messageDto.getIsValid());
 	}
 
 	@Test
@@ -643,9 +666,11 @@ public class BioDedupeProcessorTest {
 	
 		
 		Mockito.doThrow(e).when(utility).getApplicantAge(any(),any(),any());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
-		assertFalse(messageDto.getIsValid());
-
+		assertTrue(messageDto.getIsValid());
+		assertTrue(messageDto.getInternalError());
 	}
 }

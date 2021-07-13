@@ -1,7 +1,6 @@
 package io.mosip.registration.processor.status.code;
 
 
-
 /**
  * The Enum RegistrationType.
  */

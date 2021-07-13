@@ -92,24 +92,24 @@ public class RegistrationExternalStatusController {
 		try {
 			registrationExternalStatusRequestValidator.validate(registrationExternalStatusRequestDTO,
 					env.getProperty(REG_EXTERNAL_STATUS_SERVICE_ID));
-			
+
 			List<String> registrationIds = registrationExternalStatusRequestDTO.getRequest().stream()
 					.map(RegistrationExternalStatusSubRequestDto::getRegistrationId).collect(Collectors.toList());
-			
+
 			List<RegistrationStatusDto> registrations = registrationStatusService
 					.getExternalStatusByIds(registrationIds);
-			
+
 			List<RegistrationExternalStatusSubRequestDto> requestIdsNotAvailable = registrationExternalStatusRequestDTO
 					.getRequest().stream()
 					.filter(request -> registrations.stream().noneMatch(
 							registration -> registration.getRegistrationId().equals(request.getRegistrationId())))
 					.collect(Collectors.toList());
-			
+
 			List<String> registrationIdsNotAvailable = requestIdsNotAvailable.stream()
 					.map(RegistrationExternalStatusSubRequestDto::getRegistrationId).collect(Collectors.toList());
 			List<RegistrationStatusDto> registrationsList = syncRegistrationService
 					.getExternalStatusByIds(registrationIdsNotAvailable);
-			
+
 			if (registrationsList != null && !registrationsList.isEmpty()) {
 				registrations.addAll(registrationsList);
 			}

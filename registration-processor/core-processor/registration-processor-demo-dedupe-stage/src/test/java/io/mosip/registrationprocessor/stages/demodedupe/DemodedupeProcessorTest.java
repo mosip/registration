@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
@@ -22,7 +23,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import io.mosip.registration.processor.core.exception.PacketManagerException;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -52,10 +52,12 @@ import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
+import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.constant.AbisConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
@@ -76,7 +78,6 @@ import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.entity.IndividualDemographicDedupeEntity;
 import io.mosip.registration.processor.packet.storage.entity.ManualVerificationEntity;
-import io.mosip.registration.processor.packet.storage.exception.IdRepoAppException;
 import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
@@ -333,6 +334,7 @@ public class DemodedupeProcessorTest {
 
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 
 	}
 
@@ -368,6 +370,7 @@ public class DemodedupeProcessorTest {
 		Mockito.when(packetInfoManager.getIdentityKeysAndFetchValuesFromJSON(any(),any(),any())).thenReturn(individualDemoDedupe);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 	}
 	
 	@Test
@@ -396,6 +399,7 @@ public class DemodedupeProcessorTest {
 		Mockito.when(packetInfoManager.getIdentityKeysAndFetchValuesFromJSON(any(),any(),any())).thenReturn(individualDemoDedupe);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertFalse(messageDto.getIsValid());
+		assertTrue(messageDto.getInternalError());
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -444,9 +448,9 @@ public class DemodedupeProcessorTest {
 		Mockito.when(packetInfoManager.getIdentityKeysAndFetchValuesFromJSON(any(),any(), any())).thenReturn(demographicData);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testDemoDedupeSuccessNotDuplicateAfterAuth() throws Exception {
 
@@ -464,6 +468,7 @@ public class DemodedupeProcessorTest {
 		Mockito.when(registrationStatusDao.find(any(),any(),any(),any())).thenReturn(entity);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertFalse(messageDto.getIsValid());
+		assertTrue(messageDto.getInternalError());
 
 	}
 
@@ -472,7 +477,6 @@ public class DemodedupeProcessorTest {
 	 *
 	 * @throws Exception
 	 */
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testDemoDedupePotentialMatchSuccess() throws Exception {
 		List<AbisResponseDto> abisResponseDtos = new ArrayList<>();
@@ -499,12 +503,11 @@ public class DemodedupeProcessorTest {
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 
 		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
-	@Ignore
 	public void testDemoDedupePotentialMatchWithEmpty() throws Exception {
 		List<AbisResponseDto> abisResponseDtos = new ArrayList<>();
 		List<AbisResponseDetDto> abisResponseDetDtos = new ArrayList<>();
@@ -514,10 +517,6 @@ public class DemodedupeProcessorTest {
 		abisResponseDto.setStatusCode(AbisStatusCode.SUCCESS.toString());
 		abisResponseDto.setLangCode("eng");
 		abisResponseDtos.add(abisResponseDto);
-
-		AbisResponseDetDto abisResponseDetDto = new AbisResponseDetDto();
-		abisResponseDetDto.setAbiRespId("100");
-		abisResponseDetDtos.add(abisResponseDetDto);
 
 		matchedRegIds.add("2018701130000410092018110735");
 		byte[] b = "sds".getBytes();
@@ -535,16 +534,15 @@ public class DemodedupeProcessorTest {
 		Mockito.when(packetInfoManager.getAbisResponseRecords(anyString(), anyString())).thenReturn(abisResponseDtos);
 		Mockito.when(packetInfoManager.getAbisResponseDetRecordsList(any())).thenReturn(abisResponseDetDtos);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(),any(), any())).thenReturn(matchedRegIds);
-		doNothing().when(packetInfoManager).saveManualAdjudicationData(anyList(), any(), any(), any(), any(),null,null);
+		doNothing().when(packetInfoManager).saveManualAdjudicationData(anySet(), any(), any(), any(), any(),any(),any());
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 
-		assertFalse(messageDto.getIsValid());
-
+		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 	}
 	
 	@Test
-	@Ignore
 	public void testDemoDedupeEmptyMatch() throws Exception {
 		List<AbisResponseDto> abisResponseDtos = new ArrayList<>();
 		List<AbisResponseDetDto> abisResponseDetDtos = new ArrayList<>();
@@ -554,10 +552,6 @@ public class DemodedupeProcessorTest {
 		abisResponseDto.setStatusCode(AbisStatusCode.SUCCESS.toString());
 		abisResponseDto.setLangCode("eng");
 		abisResponseDtos.add(abisResponseDto);
-
-		AbisResponseDetDto abisResponseDetDto = new AbisResponseDetDto();
-		abisResponseDetDto.setAbiRespId("100");
-		abisResponseDetDtos.add(abisResponseDetDto);
 		
 		byte[] b = "sds".getBytes();
 
@@ -574,15 +568,14 @@ public class DemodedupeProcessorTest {
 		Mockito.when(packetInfoManager.getAbisResponseRecords(anyString(), anyString())).thenReturn(abisResponseDtos);
 		Mockito.when(packetInfoManager.getAbisResponseDetRecordsList(any())).thenReturn(abisResponseDetDtos);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), any(), any())).thenReturn(matchedRegIds);
-		doNothing().when(packetInfoManager).saveManualAdjudicationData(anyList(), any(), any(), any(), any(),null,null);
+		doNothing().when(packetInfoManager).saveManualAdjudicationData(anySet(), any(), any(), any(), any(),any(),any());
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 
-		assertFalse(messageDto.getIsValid());
-
+		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testDemoDedupePotentialMatchAbisResponseNotProcessed() throws Exception {
 		List<AbisResponseDto> abisResponseDtos = new ArrayList<>();
@@ -608,8 +601,8 @@ public class DemodedupeProcessorTest {
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 
-		assertFalse(messageDto.getIsValid());
-
+		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 	}
 
 	/**
@@ -627,7 +620,6 @@ public class DemodedupeProcessorTest {
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws RegistrationProcessorCheckedException
 	 */
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testDemoDedupeFailure() throws ApisResourceAccessException, IOException, JsonProcessingException, PacketManagerException, PacketManagerException {
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
@@ -656,7 +648,6 @@ public class DemodedupeProcessorTest {
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws RegistrationProcessorCheckedException
 	 */
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testResourceException() throws ApisResourceAccessException, IOException, JsonProcessingException, PacketManagerException {
 		when(env.getProperty(DEMODEDUPEENABLE)).thenReturn("true");
@@ -667,6 +658,8 @@ public class DemodedupeProcessorTest {
 
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.PRE_ABIS_IDENTIFICATION);
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 		Mockito.when(demoDedupe.performDedupe(anyString())).thenReturn(emptyDuplicateDtoSet);
 		when(utility.getDefaultSource(any(), any())).thenReturn(source);
 		ApisResourceAccessException exp = new ApisResourceAccessException("errorMessage");
@@ -675,6 +668,7 @@ public class DemodedupeProcessorTest {
 
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertEquals(true, messageDto.getInternalError());
+		assertTrue(messageDto.getIsValid());
 	}
 
 	@Test
@@ -686,9 +680,12 @@ public class DemodedupeProcessorTest {
 		Mockito.doThrow(exp).when(abisHandlerUtil).getPacketStatus(any());
 		registrationStatusDto.setRegistrationType(RegistrationType.NEW.toString());
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(), any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.OBJECT_STORE_EXCEPTION)).thenReturn("REPROCESS");
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertEquals(true, messageDto.getInternalError());
+		assertTrue(messageDto.getIsValid());
 	}
 
 	@Test
@@ -698,9 +695,12 @@ public class DemodedupeProcessorTest {
 		Mockito.doThrow(exp).when(abisHandlerUtil).getPacketStatus(any());
 		registrationStatusDto.setRegistrationType(RegistrationType.NEW.toString());
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(), any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.ILLEGAL_ARGUMENT_EXCEPTION)).thenReturn("ERROR");
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertEquals(true, messageDto.getInternalError());
+		assertFalse(messageDto.getIsValid());
 	}
 
 	/**
@@ -724,6 +724,7 @@ public class DemodedupeProcessorTest {
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 
 	}
 	/**
@@ -747,8 +748,8 @@ public class DemodedupeProcessorTest {
 		Mockito.when(demoDedupe.performDedupe(anyString())).thenReturn(duplicateDtos);
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
-		assertFalse(messageDto.getIsValid());
-
+		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 	}
 	/**
 	 * Test demo dedupe success.
@@ -773,7 +774,8 @@ public class DemodedupeProcessorTest {
 		Mockito.doThrow(exp).when(packetInfoManager).saveDemoDedupePotentialData(any(),anyString(),anyString());
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
-		assertFalse(messageDto.getIsValid());
+		assertTrue(messageDto.getIsValid());
+		assertTrue(messageDto.getInternalError());
 
 	}
 
@@ -794,6 +796,7 @@ public class DemodedupeProcessorTest {
 
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 
 	}
 	
@@ -814,6 +817,7 @@ public class DemodedupeProcessorTest {
 
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 
 	}
 	
@@ -834,6 +838,7 @@ public class DemodedupeProcessorTest {
 
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 
 	}
 
