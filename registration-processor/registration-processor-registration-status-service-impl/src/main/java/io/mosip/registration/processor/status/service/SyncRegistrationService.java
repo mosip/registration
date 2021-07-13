@@ -90,6 +90,15 @@ public interface SyncRegistrationService<T, U> {
 	public List<RegistrationStatusDto> getByIds(List<RegistrationStatusSubRequestDto> requestIds);
 	
 	/**
+	 * Gets the external status by ids.
+	 *
+	 * @param requestIds
+	 *            the request ids
+	 * @return the by ids
+	 */
+	public List<RegistrationStatusDto> getExternalStatusByIds(List<String> requestIds);
+	
+	/**
 	 * Delete additional info by registration id.
 	 *
 	 * @param resgistrationId

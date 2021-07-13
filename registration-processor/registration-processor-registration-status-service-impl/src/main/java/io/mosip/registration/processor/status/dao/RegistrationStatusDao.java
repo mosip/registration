@@ -222,7 +222,7 @@ public class RegistrationStatusDao {
 
 		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
 		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
-				+ ".id IN :ids" + EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE + EMPTY_STRING
+				+ ".regId IN :ids" + EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE + EMPTY_STRING
 				+ AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
 		params.put("ids", ids);
 		params.put(ISACTIVE, Boolean.TRUE);
