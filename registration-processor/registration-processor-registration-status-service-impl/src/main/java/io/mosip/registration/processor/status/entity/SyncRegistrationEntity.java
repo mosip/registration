@@ -34,7 +34,7 @@ public class SyncRegistrationEntity extends BaseSyncRegistrationEntity {
 	private String packetId;
 	
 	/** The registration type. */
-	@Column(name = "reg_type")
+	@Column(name = "process")
 	private String registrationType;
 	
 	@Column(name = "source")

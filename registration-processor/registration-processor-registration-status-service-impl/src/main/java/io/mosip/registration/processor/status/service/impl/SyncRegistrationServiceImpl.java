@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
@@ -104,6 +105,12 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	/** The encryptor. */
 	@Autowired
 	private Encryptor encryptor;
+	
+	@Value("#{'${registration.processor.main-process}'.split(',')}")
+	private List<String> mainProcesses;
+	
+	@Value("#{'${registration.processor.sub-process}'.split(',')}")
+	private List<String> subProcesses;
 
 	/**
 	 * Instantiates a new sync registration service impl.
@@ -358,23 +365,13 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	 */
 	private boolean validateRegistrationType(SyncRegistrationDto registrationDto,
 			List<SyncResponseDto> syncResponseList) {
-
+		List<String> processes=new ArrayList<>();
+		processes.addAll(mainProcesses);
+		processes.addAll(subProcesses);
 		String value = registrationDto.getRegistrationType();
-		if (SyncTypeDto.NEW.getValue().equals(value)) {
-			return true;
-		} else if (SyncTypeDto.UPDATE.getValue().equals(value)) {
-			return true;
-		} else if (SyncTypeDto.LOST.getValue().equals(value)) {
-			return true;
-		} else if (SyncTypeDto.ACTIVATED.getValue().equals(value)) {
-			return true;
-		} else if (SyncTypeDto.DEACTIVATED.getValue().equals(value)) {
-			return true;
-		} else if (SyncTypeDto.RES_UPDATE.getValue().equals(value)) {
-			return true;
-		} else if (SyncTypeDto.RES_REPRINT.getValue().equals(value)) {
-			return true;
-		} else {
+		if(processes.contains(value)) {
+			return true;	
+		}else {
 			SyncResponseFailureDto syncResponseFailureDto = new SyncResponseFailureDto();
 			syncResponseFailureDto.setRegistrationId(registrationDto.getRegistrationId());
 
