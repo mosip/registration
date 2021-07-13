@@ -696,18 +696,13 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	}
 
 	@Override
-	public List<RegistrationStatusDto> getExternalStatusByIds(List<RegistrationExternalStatusSubRequestDto> requestIds) {
+	public List<RegistrationStatusDto> getExternalStatusByIds(List<String> requestIds) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"SyncRegistrationServiceImpl::getExternalStatusByIds()::entry");
 
 		try {
-			List<String> registrationIds = new ArrayList<>();
-
-			for (RegistrationExternalStatusSubRequestDto registrationExternalStatusSubRequestDto : requestIds) {
-				registrationIds.add(registrationExternalStatusSubRequestDto.getRegistrationId());
-			}
-			if (!registrationIds.isEmpty()) {
-				List<SyncRegistrationEntity> syncRegistrationEntityList = syncRegistrationDao.getByIds(registrationIds);
+			if (!requestIds.isEmpty()) {
+				List<SyncRegistrationEntity> syncRegistrationEntityList = syncRegistrationDao.getByIds(requestIds);
 
 				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 						"SyncRegistrationServiceImpl::getExternalStatusByIds()::exit");

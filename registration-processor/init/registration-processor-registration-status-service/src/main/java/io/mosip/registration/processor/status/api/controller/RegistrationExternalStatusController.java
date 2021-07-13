@@ -31,7 +31,6 @@ import io.mosip.registration.processor.status.dto.RegistrationExternalStatusRequ
 import io.mosip.registration.processor.status.dto.RegistrationExternalStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusErrorDto;
-import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
 import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.exception.RegStatusAppException;
@@ -93,16 +92,24 @@ public class RegistrationExternalStatusController {
 		try {
 			registrationExternalStatusRequestValidator.validate(registrationExternalStatusRequestDTO,
 					env.getProperty(REG_EXTERNAL_STATUS_SERVICE_ID));
+			
+			List<String> registrationIds = registrationExternalStatusRequestDTO.getRequest().stream()
+					.map(RegistrationExternalStatusSubRequestDto::getRegistrationId).collect(Collectors.toList());
+			
 			List<RegistrationStatusDto> registrations = registrationStatusService
-					.getExternalStatusByIds(registrationExternalStatusRequestDTO.getRequest());
+					.getExternalStatusByIds(registrationIds);
 			
 			List<RegistrationExternalStatusSubRequestDto> requestIdsNotAvailable = registrationExternalStatusRequestDTO
 					.getRequest().stream()
 					.filter(request -> registrations.stream().noneMatch(
 							registration -> registration.getRegistrationId().equals(request.getRegistrationId())))
 					.collect(Collectors.toList());
+			
+			List<String> registrationIdsNotAvailable = requestIdsNotAvailable.stream()
+					.map(RegistrationExternalStatusSubRequestDto::getRegistrationId).collect(Collectors.toList());
 			List<RegistrationStatusDto> registrationsList = syncRegistrationService
-					.getExternalStatusByIds(requestIdsNotAvailable);
+					.getExternalStatusByIds(registrationIdsNotAvailable);
+			
 			if (registrationsList != null && !registrationsList.isEmpty()) {
 				registrations.addAll(registrationsList);
 			}

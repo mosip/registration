@@ -52,8 +52,11 @@ public class RegistrationStatusServiceTest {
 	private RegistrationStatusEntity registrationStatusEntity;
 	private RegistrationStatusEntity registrationExternalStatusEntity1;
 	private RegistrationStatusEntity registrationExternalStatusEntity2;
+	private RegistrationStatusEntity registrationExternalStatusEntity3;
 	private List<RegistrationStatusEntity> entities;
 	private List<RegistrationStatusEntity> externalEntities;
+	private List<RegistrationStatusEntity> externalEntities1;
+	private List<RegistrationStatusEntity> externalEntities2;
 
 	@InjectMocks
 	private RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService = new RegistrationStatusServiceImpl();
@@ -131,9 +134,28 @@ public class RegistrationStatusServiceTest {
 
 		registrationExternalStatusEntity2.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
 
+		registrationExternalStatusEntity3 = new RegistrationStatusEntity();
+		registrationExternalStatusEntity3.setIsActive(true);
+		registrationExternalStatusEntity3.setRegId("1000");
+		registrationExternalStatusEntity3.setIteration(1);
+		registrationExternalStatusEntity3.setRegistrationType("NEW");
+		registrationExternalStatusEntity3.setId(pk);
+		registrationExternalStatusEntity3.setStatusCode("PROCESSED");
+		registrationExternalStatusEntity3.setCreateDateTime(LocalDateTime.now());
+		registrationExternalStatusEntity3.setRetryCount(2);
+		registrationExternalStatusEntity3.setRegistrationStageName("PacketValidatorStage");
+
+		registrationExternalStatusEntity3.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.PROCESSED.toString());
+		
 		externalEntities = new ArrayList<>();
 		externalEntities.add(registrationExternalStatusEntity1);
 		externalEntities.add(registrationExternalStatusEntity2);
+		
+		externalEntities1 = new ArrayList<>();
+		externalEntities1.add(registrationExternalStatusEntity3);
+		
+		externalEntities2 = new ArrayList<>();
+		externalEntities2.add(registrationExternalStatusEntity1);
 		
 		Mockito.when(registrationStatusDao.find(any(),any(),any(),any())).thenReturn(registrationStatusEntity);
 
@@ -228,13 +250,34 @@ public class RegistrationStatusServiceTest {
 	}
 	
 	@Test
-	public void testGetExternalStatusByIdsSuccess() {
+	public void testGetExternalStatusByIdsAwaitingInfoSuccess() {
 
 		Mockito.when(registrationStatusDao.getByIds(any())).thenReturn(externalEntities);
-		RegistrationExternalStatusSubRequestDto registrationId = new RegistrationExternalStatusSubRequestDto();
-		registrationId.setRegistrationId("1001");
-		List<RegistrationExternalStatusSubRequestDto> registrationIds = new ArrayList<>();
-		registrationIds.add(registrationId);
+		String registartionId="1001";
+		List<String> registrationIds = new ArrayList<>();
+		registrationIds.add(registartionId);
+		List<RegistrationStatusDto> list = registrationStatusService.getExternalStatusByIds(registrationIds);
+		assertEquals("AWAITING_INFORMATION", list.get(0).getStatusCode());
+	}
+	
+	@Test
+	public void testGetExternalStatusByIdsProcessedSuccess() {
+
+		Mockito.when(registrationStatusDao.getByIds(any())).thenReturn(externalEntities1);
+		String registartionId="1001";
+		List<String> registrationIds = new ArrayList<>();
+		registrationIds.add(registartionId);
+		List<RegistrationStatusDto> list = registrationStatusService.getExternalStatusByIds(registrationIds);
+		assertEquals("UIN_GENERATED", list.get(0).getStatusCode());
+	}
+	
+	@Test
+	public void testGetExternalStatusByIdsChildNotPresentSuccess() {
+
+		Mockito.when(registrationStatusDao.getByIds(any())).thenReturn(externalEntities2);
+		String registartionId="1001";
+		List<String> registrationIds = new ArrayList<>();
+		registrationIds.add(registartionId);
 		List<RegistrationStatusDto> list = registrationStatusService.getExternalStatusByIds(registrationIds);
 		assertEquals("AWAITING_INFORMATION", list.get(0).getStatusCode());
 	}
@@ -256,10 +299,9 @@ public class RegistrationStatusServiceTest {
 	
 	@Test(expected = TablenotAccessibleException.class)
 	public void getExternalStatusByIdsFailureTest() {
-		RegistrationExternalStatusSubRequestDto registrationId = new RegistrationExternalStatusSubRequestDto();
-		registrationId.setRegistrationId("1001");
-		List<RegistrationExternalStatusSubRequestDto> registrationIds = new ArrayList<>();
-		registrationIds.add(registrationId);
+		String registartionId="1001";
+		List<String> registrationIds = new ArrayList<>();
+		registrationIds.add(registartionId);
 
 		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
 				"errorMessage", new Exception());

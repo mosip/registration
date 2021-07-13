@@ -35,7 +35,6 @@ import io.mosip.registration.processor.status.code.RegistrationExternalStatusCod
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dao.RegistrationStatusDao;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
-import io.mosip.registration.processor.status.dto.RegistrationExternalStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.TransactionDto;
@@ -429,19 +428,14 @@ public class RegistrationStatusServiceImpl
 	
 	@Override
 	public List<RegistrationStatusDto> getExternalStatusByIds(
-			List<RegistrationExternalStatusSubRequestDto> requestIds) {
+			List<String> requestIds) {
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"RegistrationStatusServiceImpl::getExternalStatusByIds()::entry");
 
 		try {
-			List<String> registrationIds = new ArrayList<>();
-
-			for (RegistrationExternalStatusSubRequestDto registrationExternalStatusSubRequestDto : requestIds) {
-				registrationIds.add(registrationExternalStatusSubRequestDto.getRegistrationId());
-			}
 			List<RegistrationStatusEntity> registrationStatusEntityList = registrationStatusDao
-					.getByIds(registrationIds);
+					.getByIds(requestIds);
 
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 					"RegistrationStatusServiceImpl::getExternalStatusByIds()::exit");
@@ -516,6 +510,12 @@ public class RegistrationStatusServiceImpl
 
 		RegistrationStatusEntity subProcessEntity = entities.stream().filter(e -> e.getCreateDateTime() != null)
 				.max(Comparator.comparing(RegistrationStatusEntity::getCreateDateTime)).orElse(null);
+		
+		// when child status not present
+		if(entities.size() == 1) {
+			registrationStatusDto.setStatusCode(RegistrationExternalStatusCode.AWAITING_INFORMATION.toString());
+			return registrationStatusDto;
+		}
 
 		if (subProcessEntity != null) {
 			if (subProcessEntity.getStatusCode().equals(RegistrationStatusCode.PROCESSING.toString())

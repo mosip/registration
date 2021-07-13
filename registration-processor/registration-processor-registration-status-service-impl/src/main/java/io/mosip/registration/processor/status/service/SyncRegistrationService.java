@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import io.mosip.registration.processor.status.dto.RegistrationExternalStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.RegistrationSyncRequestDTO;
@@ -97,7 +96,7 @@ public interface SyncRegistrationService<T, U> {
 	 *            the request ids
 	 * @return the by ids
 	 */
-	public List<RegistrationStatusDto> getExternalStatusByIds(List<RegistrationExternalStatusSubRequestDto> requestIds);
+	public List<RegistrationStatusDto> getExternalStatusByIds(List<String> requestIds);
 	
 	/**
 	 * Delete additional info by registration id.
