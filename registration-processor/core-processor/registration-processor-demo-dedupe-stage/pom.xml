@@ -5,10 +5,10 @@
 	<parent>
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>core-processor</artifactId>
-		<version>1.2.0-SNAPSHOT</version>
+		<version>MOSIP-11739-1</version>
 	</parent>
 	<artifactId>registration-processor-demo-dedupe-stage</artifactId>
-    <version>1.2.0-SNAPSHOT</version>
+    <version>MOSIP-11739-1</version>
     <packaging>jar</packaging>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
