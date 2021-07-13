@@ -26,7 +26,7 @@ public class RegistrationStatusEntity extends BaseRegistrationEntity<BaseRegistr
 	private String regId;
 
 	/** The registration type. */
-	@Column(name="reg_type")
+	@Column(name="process")
 	private String registrationType;
 
 	@Column
