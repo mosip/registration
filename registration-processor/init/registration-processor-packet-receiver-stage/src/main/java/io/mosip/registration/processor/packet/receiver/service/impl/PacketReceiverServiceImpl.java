@@ -115,7 +115,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	@Value("${registration.processor.max.file.size}")
 	private String fileSize;
 
-	@Value("${registration.processor.main-process}")
+	@Value("${registration.processor.main-processes}")
 	private String mainProcess;
 
 	/** The virus scanner service. */

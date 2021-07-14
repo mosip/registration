@@ -119,16 +119,11 @@ public class PacketValidatorImplTest {
 
 	public static final String APPROVED = "APPROVED";
 	public static final String REJECTED = "REJECTED";
-	private static final String VALIDATESCHEMA = "registration.processor.validateSchema";
-	private static final String VALIDATEFILE = "registration.processor.validateFile";
-	private static final String VALIDATECHECKSUM = "registration.processor.validateChecksum";
-	private static final String VALIDATEAPPLICANTDOCUMENT = "registration.processor.validateApplicantDocument";
+	private static final String VALIDATEAPPLICANTDOCUMENT = "mosip.regproc.packet.validator.validate-applicant-document";
 
 	private static final String PRIMARY_LANGUAGE = "mosip.primary-language";
 
 	private static final String SECONDARY_LANGUAGE = "mosip.secondary-language";
-
-	private static final String ATTRIBUTES = "registration.processor.masterdata.validation.attributes";
 
 	@Before
 	public void setup() throws Exception {
@@ -214,10 +209,6 @@ public class PacketValidatorImplTest {
 		when(env.getProperty(anyString())).thenReturn("gender");
 		when(env.getProperty(PRIMARY_LANGUAGE)).thenReturn("eng");
 		when(env.getProperty(SECONDARY_LANGUAGE)).thenReturn("ara");
-		when(env.getProperty(ATTRIBUTES)).thenReturn("gender,region,province,city");
-		when(env.getProperty(VALIDATESCHEMA)).thenReturn("true");
-		when(env.getProperty(VALIDATEFILE)).thenReturn("true");
-		when(env.getProperty(VALIDATECHECKSUM)).thenReturn("true");
 		when(env.getProperty(VALIDATEAPPLICANTDOCUMENT)).thenReturn("true");
 		JSONObject jsonObject = Mockito.mock(JSONObject.class);
 		Mockito.when(idObjectValidator.validateIdObject(any(), any(), any())).thenReturn(true);
@@ -266,9 +257,6 @@ public class PacketValidatorImplTest {
 	@Test
 	public void testValidationConfigSuccess() throws PacketValidatorException, ApisResourceAccessException,
 			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException {
-		when(env.getProperty(VALIDATESCHEMA)).thenReturn("false");
-		when(env.getProperty(VALIDATEFILE)).thenReturn("false");
-		when(env.getProperty(VALIDATECHECKSUM)).thenReturn("false");
 		when(env.getProperty(VALIDATEAPPLICANTDOCUMENT)).thenReturn("false");
 		assertTrue(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}

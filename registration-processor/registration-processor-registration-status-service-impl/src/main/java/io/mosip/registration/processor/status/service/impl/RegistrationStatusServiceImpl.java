@@ -68,7 +68,7 @@ public class RegistrationStatusServiceImpl
 	@Autowired
 	private RegistrationExternalStatusUtility regexternalstatusUtil;
 	
-	@Value("#{'${registration.processor.main-process}'.split(',')}")
+	@Value("#{'${registration.processor.main-processes}'.split(',')}")
 	private List<String> mainProcess;
 
 	/** The reg proc logger. */

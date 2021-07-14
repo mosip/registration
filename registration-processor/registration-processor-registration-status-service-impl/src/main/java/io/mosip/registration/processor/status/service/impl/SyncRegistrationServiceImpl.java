@@ -107,10 +107,10 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	@Autowired
 	private Encryptor encryptor;
 	
-	@Value("#{'${registration.processor.main-process}'.split(',')}")
+	@Value("#{'${registration.processor.main-processes}'.split(',')}")
 	private List<String> mainProcesses;
 	
-	@Value("#{'${registration.processor.sub-process}'.split(',')}")
+	@Value("#{'${registration.processor.sub-processes}'.split(',')}")
 	private List<String> subProcesses;
 
 	/**
