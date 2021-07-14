@@ -84,8 +84,8 @@ public class BioDedupeProcessor {
 	@Autowired
 	private IdRepoService idRepoService;
 
-	@Value("${registration.processor.sub-process}")
-	private String subProcess;
+	@Value("#{'${registration.processor.sub-processes}'.split(',')}")
+	private List<String> subProcesses;
 
 
 	@Autowired
@@ -166,7 +166,7 @@ public class BioDedupeProcessor {
 					registrationId, object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
 			String registrationType = registrationStatusDto.getRegistrationType();
 			if (registrationType.equalsIgnoreCase(SyncTypeDto.NEW.toString())
-			|| (subProcess != null && subProcess.contains(registrationType))) {
+			|| (subProcesses != null && subProcesses.contains(registrationType))) {
 				String packetStatus = abisHandlerUtil.getPacketStatus(registrationStatusDto);
 				if (packetStatus.equalsIgnoreCase(AbisConstant.PRE_ABIS_IDENTIFICATION)) {
 					newPacketPreAbisIdentification(registrationStatusDto, object);
