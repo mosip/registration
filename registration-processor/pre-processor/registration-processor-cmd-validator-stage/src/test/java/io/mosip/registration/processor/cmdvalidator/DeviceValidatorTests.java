@@ -59,6 +59,8 @@ public class DeviceValidatorTests {
 		regOsi.setPacketCreationDate("2021-06-04T07:31:59.831Z");
 		ReflectionTestUtils.setField(deviceValidator, "allowedDigitalIdTimestampVariation", 30);
 		ReflectionTestUtils.setField(deviceValidator, "disableTrustValidation", true);
+		ReflectionTestUtils.setField(deviceValidator, "digitalIdTimestampFormat", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+
 		
 		BiometricRecord biometricRecord = new BiometricRecord();
 		BIR bir=new BIR();

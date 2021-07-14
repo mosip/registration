@@ -137,7 +137,7 @@ public class DeviceValidator {
 		if(responseWrapper.getResponse() !=null) {
 			HotlistRequestResponseDTO hotListResponse=mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
 					HotlistRequestResponseDTO.class);
-		DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+		DateTimeFormatter format = DateTimeFormatter.ofPattern(digitalIdTimestampFormat);
 		
 		LocalDateTime payloadTime = LocalDateTime.parse(digitalIdTimestamp, format);
 		if(hotListResponse.getExpiryTimestamp()!=null) {
