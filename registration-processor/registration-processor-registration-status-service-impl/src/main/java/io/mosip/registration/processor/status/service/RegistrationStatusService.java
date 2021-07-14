@@ -82,6 +82,15 @@ public interface RegistrationStatusService<T, U, D> {
 	 * @return the list of Registrations for the given ids.
 	 */
 	public List<D> getByIds(List<RegistrationStatusSubRequestDto> requestIds);
+	
+	/**
+	 * Gets the external status by ids.
+	 *
+	 * @param requestIds
+	 *            the request ids
+	 * @return the list of Registrations for the given ids.
+	 */
+	public List<D> getExternalStatusByIds(List<String> requestIds);
 
 	/**
 	 * Gets the un processed packets.
