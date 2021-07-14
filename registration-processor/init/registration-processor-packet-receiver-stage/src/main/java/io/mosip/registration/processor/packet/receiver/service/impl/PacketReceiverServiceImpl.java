@@ -115,8 +115,8 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	@Value("${registration.processor.max.file.size}")
 	private String fileSize;
 
-	@Value("${registration.processor.main-process}")
-	private String mainProcess;
+	@Value("#{'${registration.processor.main-processes}'.split(',')}")
+    private List<String> mainProcesses;
 
 	/** The virus scanner service. */
 	@Autowired
@@ -384,7 +384,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	 */
 	private Boolean isDuplicatePacket(String registrationId, SyncRegistrationEntity syncRegistrationEntity) {
 		return StringUtils.isNullOrEmpty(syncRegistrationEntity.getAdditionalInfoReqId())
-				&& mainProcess.contains(syncRegistrationEntity.getRegistrationType())
+				&& mainProcesses.contains(syncRegistrationEntity.getRegistrationType())
 				&& registrationStatusService.getRegistrationStatus(registrationId,
 				syncRegistrationEntity.getRegistrationType(),
 				getIterationForSyncRecord(syncRegistrationEntity), syncRegistrationEntity.getWorkflowInstanceId()) != null;
@@ -558,7 +558,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	}
 
 	private int getIterationForSyncRecord(SyncRegistrationEntity regEntity) {
-		if (mainProcess.contains(regEntity.getRegistrationType()))
+		if (mainProcesses.contains(regEntity.getRegistrationType()))
 			return 1;
 
 		AdditionalInfoRequestDto additionalInfoRequestDto = additionalInfoRequestService

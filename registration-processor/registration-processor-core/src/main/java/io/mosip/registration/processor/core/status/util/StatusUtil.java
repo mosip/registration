@@ -70,7 +70,9 @@ public enum StatusUtil {
 	FAILED_TO_GET_CENTER_DETAIL(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "013", "Failed to Get center id details "),
 	VALIDATION_FAILED_EXCEPTION(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "014", "Exception occured due to validation failure."),
 	MACHINE_ID_NOT_FOUND_MASTER_DB(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "015", "MachineId not found in master db - "),
-	
+	TIMESTAMP_NOT_VALID(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "016"  ,"digital id timestamp is not within acctable time range of packet creation time"),
+	DEVICE_HOTLISTED(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "017"  ,"Device has been hot listed"),
+	DEVICE_SIGNATURE_VALIDATION_FAILED(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "018", "DigitalId signature Validation Failed"),
 	// Operator Validator stage
 	OPERATOR_VALIDATION_SUCCESS(StatusConstants.OVM_VALIDAOR_MODULE_SUCCESS + "001", "OPERATOR Validation is Successful"),
 	OFFICER_NOT_ACTIVE(StatusConstants.OVM_VALIDAOR_MODULE_FAILED + "001","OfficerId is inActive"),
@@ -145,7 +147,8 @@ public enum StatusUtil {
 	
 	// Manual verification stage
 	MANUAL_VERIFIER_APPROVED_PACKET(StatusConstants.MANUAL_VERIFICATION_MODULE_SUCCESS + "001", "Match Not Found by Manual Verifier"), 
-	MANUAL_VERIFIER_REJECTED_PACKET(StatusConstants.MANUAL_VERIFICATION_MODULE_FAILED + "001", "Match Found by Manual Verifier"),
+	MANUAL_VERIFIER_REJECTED_PACKET(StatusConstants.MANUAL_VERIFICATION_MODULE_FAILED + "002", "Match Found by Manual Verifier"),
+	RPR_MANUAL_VERIFICATION_RESEND(StatusConstants.MANUAL_VERIFICATION_MODULE_FAILED + "003", "Error in manual verification"),
 
 	// Uin generator stage
 	UIN_GENERATED_SUCCESS(StatusConstants.UIN_GENERATOR_MODULE_SUCCESS + "001","UIN Generated Successfully"), 

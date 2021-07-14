@@ -66,6 +66,18 @@ public interface RegistrationStatusService<T, U, D> {
 	public void updateRegistrationStatus(U registrationStatusDto, String moduleId, String moduleName);
 
 	/**
+	 * Update registration status for workflow Engine.
+	 *
+	 * @param registrationStatusDto
+	 *            the registration status dto
+	 * @param moduleId
+	 *            the module id
+	 * @param moduleName
+	 *            the module name
+	 */
+	public void updateRegistrationStatusForWorkflowEngine(U registrationStatusDto, String moduleId, String moduleName);
+
+	/**
 	 * Gets the by status.
 	 *
 	 * @param status
@@ -82,7 +94,7 @@ public interface RegistrationStatusService<T, U, D> {
 	 * @return the list of Registrations for the given ids.
 	 */
 	public List<D> getByIds(List<RegistrationStatusSubRequestDto> requestIds);
-	
+
 	/**
 	 * Gets the external status by ids.
 	 *

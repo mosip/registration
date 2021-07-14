@@ -18,6 +18,16 @@ mosip.registration.leftslap_fingerprint_threshold=80
 mosip.registration.rightslap_fingerprint_threshold=80
 mosip.registration.thumbs_fingerprint_threshold=80
 mosip.registration.facequalitythreshold=25
+
+## Quality Tag Prefix
+mosip.regproc.quality.classifier.tagging.quality.prefix=Biometric_Quality-
+## The tag value that will be used by default when the packet does not have biometrics
+mosip.regproc.quality.classifier.tagging.quality.biometric-not-available-tag-value=--Biometrics-Not-Available--
+## modality arrays that needs to be tagged
+mosip.regproc.quality.classifier.tagging.quality.modalities=Iris,Finger,Face
+## Below quality ranges map should contain proper quality group name and quality range, any overlap of the quality 
+## range will result in a random behaviour of tagging. In range, upper and lower values are inclusive.
+mosip.regproc.quality.classifier.tagging.quality.ranges={'Poor':'0-29','Average':'30-69','Good':'70-100'}
 ```
 ## Validations in Quality Checker Stage
 1. Validation of all the quality values of biometric types of applicant cbeff with the values from config server. Passing the stage if 

@@ -20,6 +20,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.core.env.Environment;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.exception.IOException;
@@ -32,12 +33,16 @@ import io.mosip.kernel.dataaccess.hibernate.constant.HibernateErrorCode;
 import io.mosip.kernel.idvalidator.rid.constant.RidExceptionProperty;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.logger.LogDescription;
+import io.mosip.registration.processor.core.workflow.dto.SortInfo;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.dao.SyncRegistrationDao;
 import io.mosip.registration.processor.status.decryptor.Decryptor;
+import io.mosip.registration.processor.status.dto.FilterInfo;
+import io.mosip.registration.processor.status.dto.LostRidDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.RegistrationSyncRequestDTO;
+import io.mosip.registration.processor.status.dto.SearchInfo;
 import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
 import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.dto.SyncResponseFailDto;
@@ -144,6 +149,9 @@ public class SyncRegistrationServiceTest {
 		syncRegistrationDto.setPacketHashValue("ab123");
 		syncRegistrationDto.setSupervisorStatus("APPROVED");
 		syncRegistrationDto.setSyncType(SyncTypeDto.NEW.getValue());
+		syncRegistrationDto.setName("mosip");
+		syncRegistrationDto.setPhone("1234567890");
+		syncRegistrationDto.setEmail("mosip1@gmail.com");
 
 		syncRegistrationDto1 = new SyncRegistrationDto();
 
@@ -152,6 +160,9 @@ public class SyncRegistrationServiceTest {
 
 		syncRegistrationDto1.setIsActive(true);
 		syncRegistrationDto1.setIsDeleted(false);
+		syncRegistrationDto1.setName("mosip");
+		syncRegistrationDto1.setPhone("1234567890");
+		syncRegistrationDto1.setEmail("mosip1@gmail.com");
 
 		syncRegistrationDto1.setSyncType("NEW_REGISTRATION");
 		syncRegistrationDto1.setPacketHashValue("ab123");
@@ -163,7 +174,9 @@ public class SyncRegistrationServiceTest {
 		syncRegistrationDto2.setLangCode("eng");
 		syncRegistrationDto2.setIsActive(true);
 		syncRegistrationDto2.setIsDeleted(false);
-
+		syncRegistrationDto1.setName("mosip");
+		syncRegistrationDto1.setPhone("1234567890");
+		syncRegistrationDto1.setEmail("mosip1@gmail.com");
 		syncRegistrationDto2.setSyncType(SyncTypeDto.UPDATE.getValue());
 		syncRegistrationDto2.setPacketHashValue("ab123");
 		syncRegistrationDto2.setSupervisorStatus("APPROVED");
@@ -322,6 +335,13 @@ public class SyncRegistrationServiceTest {
 		syncRegistrationEntity.setPacketId("test1");
 		syncRegistrationEntities.add(syncRegistrationEntity);
 		Mockito.when(ridValidator.validateId(any())).thenReturn(true);
+		List<String> mainprocessList=new ArrayList<>();
+		mainprocessList.add("NEW");
+		mainprocessList.add("UPDATE");
+		ReflectionTestUtils.setField(syncRegistrationService, "mainProcesses", mainprocessList);
+		List<String> subprocessList=new ArrayList<>();
+		subprocessList.add("BIOMETRIC_CORRECTION");
+		ReflectionTestUtils.setField(syncRegistrationService, "subProcesses", subprocessList);
 
 	}
 
@@ -349,7 +369,7 @@ public class SyncRegistrationServiceTest {
 				syncRegistrationDto.getRegistrationId(),
 				((SyncResponseFailureDto) syncResponse.get(0)).getRegistrationId());
 	}
-	
+
 	@Test
 	public void testGetSyncRegistrationStatusV2Success() throws EncryptionFailureException, ApisResourceAccessException {
 		byte[] encryptedInfo = "encryptedInfo".getBytes();
@@ -381,7 +401,7 @@ public class SyncRegistrationServiceTest {
 				syncRegistrationDto.getRegistrationId(),
 				((SyncResponseFailureDto) syncResponse.get(0)).getRegistrationId());
 	}
-	
+
 	@Test
 	public void testGetSyncRegistrationStatusV2Failure() throws EncryptionFailureException, ApisResourceAccessException {
 		byte[] encryptedInfo = "encryptedInfo".getBytes();
@@ -405,7 +425,7 @@ public class SyncRegistrationServiceTest {
 
 		assertEquals("Missing Request Value - additionalInfoReqId", ((SyncResponseFailDto) syncResponse.get(0)).getMessage());
 
-		
+
 	}
 
 	/**
@@ -618,7 +638,6 @@ public class SyncRegistrationServiceTest {
 		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
 				"errorMessage", new Exception());
 		Mockito.when(syncRegistrationDao.getByIds(any())).thenThrow(exp);
-
 		syncRegistrationService.getByIds(registrationIds);
 
 	}
@@ -641,4 +660,31 @@ public class SyncRegistrationServiceTest {
         syncRegistrationService.getByPacketIds(packetIdList);
 
 	}
+	@Test(expected = TablenotAccessibleException.class)
+	public void searchLostRid() {
+		SearchInfo searchInfo = new SearchInfo();
+		List<FilterInfo> filterInfos = new ArrayList<FilterInfo>();
+		List<SortInfo> sortInfos = new ArrayList<SortInfo>();
+		List<String> testIdList = new ArrayList<String>();
+		FilterInfo filterInfo = new FilterInfo();
+		filterInfo.setColumnName("name");
+		filterInfo.setValue("mosip");
+		filterInfo.setType("equals");
+		FilterInfo filterInfo1 = new FilterInfo();
+		filterInfo1.setColumnName("email");
+		filterInfo1.setValue("mosip1@gmail.com");
+		filterInfo1.setType("equals");
+		SortInfo sortInfo = new SortInfo();
+		sortInfo.setSortField("createDateTime");
+		sortInfo.setSortType("desc");
+		filterInfos.add(filterInfo);
+		filterInfos.add(filterInfo1);
+		sortInfos.add(sortInfo);
+		testIdList.add("1001");
+		searchInfo.setFilters(filterInfos);
+		searchInfo.setSort(sortInfos);
+		List<LostRidDto> lostRidDtos = syncRegistrationService.searchLostRid(searchInfo);
+		assertEquals(lostRidDtos.get(0).getRegistrationId(), testIdList.get(0));
+	}
+
 }

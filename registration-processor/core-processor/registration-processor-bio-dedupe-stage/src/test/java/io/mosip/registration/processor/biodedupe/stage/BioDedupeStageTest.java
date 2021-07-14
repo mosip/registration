@@ -86,6 +86,11 @@ public class BioDedupeStageTest {
 		}
 		
 		@Override
+		public Router postUrl(Vertx vertx, MessageBusAddress consumeAddress, MessageBusAddress sendAddress) {
+			return null;
+		}
+		
+		@Override
 		public Integer getPort() {
 			return 8080;
 		}
@@ -118,8 +123,8 @@ public class BioDedupeStageTest {
 		ReflectionTestUtils.setField(bioDedupeStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(bioDedupeStage, "clusterManagerUrl", "/dummyPath");
 		
-		Mockito.when(environment.getProperty("mosip.kernel.virus-scanner.port")).thenReturn("8000");
-		Mockito.when(environment.getProperty("server.servlet.path")).thenReturn("/test");
+		//Mockito.when(environment.getProperty("mosip.kernel.virus-scanner.port")).thenReturn("8000");
+		//Mockito.when(environment.getProperty("server.servlet.path")).thenReturn("/test");
 		bioDedupeStage.deployVerticle();
 		Mockito.doNothing().when(router).setRoute(any());
 		Router r = new RouterImpl(Vertx.vertx());

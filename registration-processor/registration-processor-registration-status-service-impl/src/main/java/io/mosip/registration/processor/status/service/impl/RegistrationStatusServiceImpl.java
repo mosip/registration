@@ -68,12 +68,12 @@ public class RegistrationStatusServiceImpl
 	@Autowired
 	private RegistrationExternalStatusUtility regexternalstatusUtil;
 	
-	@Value("#{'${registration.processor.main-process}'.split(',')}")
+	@Value("#{'${registration.processor.main-processes}'.split(',')}")
 	private List<String> mainProcess;
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(RegistrationStatusServiceImpl.class);
-	
+
 	/*
 	 * (non-Javadoc)
 	 *
@@ -210,8 +210,8 @@ public class RegistrationStatusServiceImpl
 			String transactionId = generateId();
 			registrationStatusDto.setLatestRegistrationTransactionId(transactionId);
 			registrationStatusDto.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
-			registrationStatusDto.setSource("REGISTRATION_CLIENT");
-			RegistrationStatusEntity entity = convertDtoToEntity(registrationStatusDto, null);
+			RegistrationStatusEntity entity = convertDtoToEntity(registrationStatusDto, null, false);
+			entity.setStatusCode(RegistrationTransactionStatusCode.PROCESSING.toString());
 			registrationStatusDao.save(entity);
 			isTransactionSuccessful = true;
 			description.setMessage("Registration status added successfully");
@@ -258,6 +258,17 @@ public class RegistrationStatusServiceImpl
 	@Override
 	public void updateRegistrationStatus(InternalRegistrationStatusDto registrationStatusDto, String moduleId,
 			String moduleName) {
+		updateRegistrationStatus(registrationStatusDto, moduleId, moduleName, false);
+	}
+
+	@Override
+	public void updateRegistrationStatusForWorkflowEngine(InternalRegistrationStatusDto registrationStatusDto, String moduleId,
+			String moduleName) {
+		updateRegistrationStatus(registrationStatusDto, moduleId, moduleName, true);
+	}
+
+	private void updateRegistrationStatus(InternalRegistrationStatusDto registrationStatusDto, String moduleId,
+			String moduleName, boolean updateStatusCode) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationStatusDto.getRegistrationId(),
 				"RegistrationStatusServiceImpl::updateRegistrationStatus()::entry");
@@ -285,8 +296,11 @@ public class RegistrationStatusServiceImpl
 					registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId());
 			if (dto != null) {
 				dto.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
-				RegistrationStatusEntity entity = convertDtoToEntity(registrationStatusDto, 
-					dto.getLastSuccessStageName());
+				RegistrationStatusEntity entity = convertDtoToEntity(registrationStatusDto,
+						dto.getLastSuccessStageName(), updateStatusCode);
+				if (entity.getStatusCode() == null) {
+					entity.setStatusCode(dto.getStatusCode());
+				}
 				registrationStatusDao.save(entity);
 				isTransactionSuccessful = true;
 				description.setMessage("Updated registration status successfully");
@@ -380,7 +394,7 @@ public class RegistrationStatusServiceImpl
 					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
 		}
 	}
-	
+
 	/**
 	 * Convert entity list to dto list and get external status.
 	 *
@@ -399,7 +413,7 @@ public class RegistrationStatusServiceImpl
 		}
 		return list;
 	}
-	
+
 	/**
 	 * Convert entity to dto and get external status.
 	 *
@@ -425,7 +439,7 @@ public class RegistrationStatusServiceImpl
 		return registrationStatusDto;
 
 	}
-	
+
 	@Override
 	public List<RegistrationStatusDto> getExternalStatusByIds(
 			List<String> requestIds) {
@@ -510,7 +524,7 @@ public class RegistrationStatusServiceImpl
 
 		RegistrationStatusEntity subProcessEntity = entities.stream().filter(e -> e.getCreateDateTime() != null)
 				.max(Comparator.comparing(RegistrationStatusEntity::getCreateDateTime)).orElse(null);
-		
+
 		// when child status not present
 		if(entities.size() == 1) {
 			registrationStatusDto.setStatusCode(RegistrationExternalStatusCode.AWAITING_INFORMATION.toString());
@@ -523,7 +537,7 @@ public class RegistrationStatusServiceImpl
 					|| subProcessEntity.getStatusCode().equals(RegistrationStatusCode.RESUMABLE.toString())
 					|| subProcessEntity.getStatusCode().equals(RegistrationStatusCode.REPROCESS.toString())) {
 				registrationStatusDto.setStatusCode(RegistrationExternalStatusCode.PROCESSING.toString());
-				
+
 			} else if (subProcessEntity.getStatusCode().equals(RegistrationStatusCode.PROCESSED.toString())
 					|| subProcessEntity.getStatusCode().equals(RegistrationStatusCode.FAILED.toString())
 					|| subProcessEntity.getStatusCode().equals(RegistrationStatusCode.REPROCESS_FAILED.toString())
@@ -537,7 +551,7 @@ public class RegistrationStatusServiceImpl
 		}
 		return registrationStatusDto;
 	}
-	
+
 	private RegistrationStatusDto getRegistrationStatusForMainProcess(RegistrationStatusEntity entity) {
 
 		RegistrationStatusDto registrationStatusDto = new RegistrationStatusDto();
@@ -555,7 +569,7 @@ public class RegistrationStatusServiceImpl
 		} else {
 			registrationStatusDto.setStatusCode(RegistrationExternalStatusCode.REJECTED.toString());
 		}
-		
+
 		return registrationStatusDto;
 	}
 
@@ -626,7 +640,7 @@ public class RegistrationStatusServiceImpl
 	 * @return the registration status entity
 	 */
 	private RegistrationStatusEntity convertDtoToEntity(InternalRegistrationStatusDto dto, 
-			String existingLastSuccessStageName) {
+			String existingLastSuccessStageName, boolean updateStatusCode) {
 		BaseRegistrationPKEntity pk = new BaseRegistrationPKEntity();
 		pk.setWorkflowInstanceId(dto.getWorkflowInstanceId());
 
@@ -635,8 +649,10 @@ public class RegistrationStatusServiceImpl
 		registrationStatusEntity.setRegId(dto.getRegistrationId());
 		registrationStatusEntity.setIteration(dto.getIteration());
 		registrationStatusEntity.setReferenceRegistrationId(dto.getReferenceRegistrationId());
+		if (updateStatusCode) {
+			registrationStatusEntity.setStatusCode(dto.getStatusCode());
+		}
 		registrationStatusEntity.setRegistrationType(dto.getRegistrationType());
-		registrationStatusEntity.setStatusCode(dto.getStatusCode());
 		registrationStatusEntity.setSource(dto.getSource());
 		registrationStatusEntity.setLangCode(dto.getLangCode());
 		registrationStatusEntity.setStatusComment(dto.getStatusComment());

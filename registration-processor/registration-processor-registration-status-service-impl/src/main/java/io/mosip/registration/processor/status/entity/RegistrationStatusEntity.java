@@ -39,7 +39,6 @@ public class RegistrationStatusEntity extends BaseRegistrationEntity<BaseRegistr
 	@Column(name = "source")
 	private String source;
 
-	
 	/** The status code. */
 	@Column(name = "status_code", nullable = false)
 	private String statusCode;

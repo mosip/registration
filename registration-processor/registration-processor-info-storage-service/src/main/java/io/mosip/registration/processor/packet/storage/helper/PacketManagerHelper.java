@@ -73,7 +73,7 @@ public class PacketManagerHelper {
                         // String processStr = str[1].substring(processInitial.length());
 
                         Optional<ContainerInfoDto> isSourcePresent = infoResponseDto.getInfo().stream().filter(info -> info.getSource().equalsIgnoreCase(sourceStr) ?
-                                info.getBiometrics().stream().filter(bio -> (
+                                info.getBiometrics() != null && info.getBiometrics().stream().filter(bio -> (
                                         StringUtils.isNotEmpty(bio.getType()) && bio.getType().equalsIgnoreCase(finalTypeSubtype)) ||
                                         (!CollectionUtils.isEmpty(bio.getSubtypes()) && bio.getSubtypes().contains(finalTypeSubtype))).findAny().isPresent() : false).findAny();
                         // if source is present then get from that source or else continue searching
