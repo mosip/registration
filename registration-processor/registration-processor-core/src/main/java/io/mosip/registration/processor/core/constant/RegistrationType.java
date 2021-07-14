@@ -30,9 +30,7 @@ public enum RegistrationType {
 	/** The lost */
 	LOST("lost"),
 
-	RES_REPRINT("res_reprint"),
-
-	BIOMETRIC_CORRECTION("biometric_correction");
+	RES_REPRINT("res_reprint");
 
 	public String regType;
 

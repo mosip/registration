@@ -41,7 +41,7 @@ public class RegistrationExceptionMapperUtil {
 				RegistrationTransactionStatusCode.FAILED);
 
 		statusMap.put(RegistrationExceptionTypeCode.IOEXCEPTION, RegistrationTransactionStatusCode.ERROR);
-		statusMap.put(RegistrationExceptionTypeCode.VALIDATION_FAILED_EXCEPTION, RegistrationTransactionStatusCode.ERROR);
+		statusMap.put(RegistrationExceptionTypeCode.VALIDATION_FAILED_EXCEPTION, RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.VIRUS_SCAN_FAILED_EXCEPTION,
 				RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.VIRUS_SCANNER_SERVICE_FAILED,

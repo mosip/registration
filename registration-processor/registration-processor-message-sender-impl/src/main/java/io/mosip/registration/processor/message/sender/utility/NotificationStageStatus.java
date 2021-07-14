@@ -2,7 +2,13 @@ package io.mosip.registration.processor.message.sender.utility;
 
 public enum NotificationStageStatus {
 	
-	OSI_VALIDATE_FAILED,
+	CMD_VALIDATION_FAILED,
+	
+	OPERATOR_VALIDATION_FAILED,
+	
+	SUPERVISOR_VALIDATION_FAILED,
+	
+	INTRODUCER_VALIDATION_FAILED,
 	
 	VALIDATE_PACKET_FAILED,
 	

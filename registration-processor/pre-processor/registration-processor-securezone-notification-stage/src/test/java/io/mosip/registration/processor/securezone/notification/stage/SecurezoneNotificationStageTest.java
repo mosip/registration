@@ -24,6 +24,7 @@ import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
+import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
@@ -431,7 +432,8 @@ public class SecurezoneNotificationStageTest {
     @Test
     public void dbExceptionTest() {
         Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any())).thenThrow(new TablenotAccessibleException("exception"));
-
+        Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.DATA_ACCESS_EXCEPTION))
+		.thenReturn("REPROCESS");
         notificationStage.processURL(ctx);
         assertNull(responseObject);
     }

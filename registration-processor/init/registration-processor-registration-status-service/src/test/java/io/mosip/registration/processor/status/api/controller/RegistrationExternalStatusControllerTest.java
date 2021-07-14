@@ -43,13 +43,19 @@ import com.google.gson.GsonBuilder;
 
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.status.api.config.RegistrationStatusConfigTest;
 import io.mosip.registration.processor.status.dto.RegistrationExternalStatusRequestDTO;
 import io.mosip.registration.processor.status.dto.RegistrationExternalStatusSubRequestDto;
+import io.mosip.registration.processor.core.workflow.dto.SortInfo;
+import io.mosip.registration.processor.status.api.config.RegistrationStatusConfigTest;
+import io.mosip.registration.processor.status.dto.FilterInfo;
+import io.mosip.registration.processor.status.dto.RegistrationExternalStatusRequestDTO;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
+import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDto;
+import io.mosip.registration.processor.status.dto.SearchInfo;
 import io.mosip.registration.processor.status.exception.RegStatusAppException;
 import io.mosip.registration.processor.status.service.impl.RegistrationStatusServiceImpl;
 import io.mosip.registration.processor.status.service.impl.SyncRegistrationServiceImpl;
+import io.mosip.registration.processor.status.validator.LostRidRequestValidator;
 import io.mosip.registration.processor.status.validator.RegistrationExternalStatusRequestValidator;
 import io.mosip.registration.processor.status.validator.RegistrationStatusRequestValidator;
 import io.mosip.registration.processor.status.validator.RegistrationSyncRequestValidator;
@@ -80,6 +86,9 @@ public class RegistrationExternalStatusControllerTest {
 
 	@MockBean
 	SyncRegistrationServiceImpl syncRegistrationService;
+
+	@MockBean
+	LostRidRequestValidator lostRidRequestValidator;
 
 	@MockBean
 	private RegistrationSyncRequestValidator syncrequestvalidator;
@@ -142,6 +151,22 @@ public class RegistrationExternalStatusControllerTest {
 
 		Mockito.doReturn(registrationDtoList).when(registrationStatusService).getExternalStatusByIds(ArgumentMatchers.any());
 		Mockito.doReturn(registrationDtoList1).when(syncRegistrationService).getExternalStatusByIds(ArgumentMatchers.any());
+		SearchInfo searchInfo = new SearchInfo();
+		List<FilterInfo> filterinfos = new ArrayList<FilterInfo>();
+		List<SortInfo> sortInfos = new ArrayList<SortInfo>();
+		FilterInfo filterInfo = new FilterInfo();
+		filterInfo.setColumnName("name");
+		filterInfo.setValue("mosip");
+		filterinfos.add(filterInfo);
+		SortInfo sortInfo = new SortInfo();
+		sortInfo.setSortField("createDateTime");
+		sortInfo.setSortType("desc");
+		sortInfos.add(sortInfo);
+		searchInfo.setFilters(filterinfos);
+		searchInfo.setSort(sortInfos);
+
+		Mockito.doReturn(registrationDtoList).when(registrationStatusService).getByIds(ArgumentMatchers.any());
+		Mockito.doReturn(registrationDtoList1).when(syncRegistrationService).getByIds(ArgumentMatchers.any());
 
 	}
 
@@ -182,7 +207,7 @@ public class RegistrationExternalStatusControllerTest {
 		this.mockMvc.perform(post("/externalstatus/search").accept(MediaType.APPLICATION_JSON_VALUE)
 				.cookie(new Cookie("Authorization", regStatusToJson)).contentType(MediaType.APPLICATION_JSON_VALUE)
 				.content(regStatusToJson.getBytes()).header("timestamp", "2019-05-07T05:13:55.704Z"))
-				.andExpect(status().isOk());
+				.andExpect(status().isInternalServerError());
 	}
 
 }

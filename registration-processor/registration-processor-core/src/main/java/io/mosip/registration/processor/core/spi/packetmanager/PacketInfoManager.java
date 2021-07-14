@@ -2,6 +2,7 @@
 package io.mosip.registration.processor.core.spi.packetmanager;
 
 import java.util.List;
+import java.util.Set;
 
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.DedupeSourceName;
@@ -71,8 +72,8 @@ public interface PacketInfoManager<T, /** D, M, */
 	 *            the source name
 	 */
 
-	public void saveManualAdjudicationData(List<String> uniqueMatchedRefIds, MessageDTO messageDTO,
-			DedupeSourceName sourceName, String moduleId, String moduleName,String transactionId, String requestId);
+	public void saveManualAdjudicationData(Set<String> uniqueMatchedRefIds, MessageDTO messageDTO,
+										   DedupeSourceName sourceName, String moduleId, String moduleName, String transactionId, String requestId);
 
 	/**
 	 * Save abis ref.

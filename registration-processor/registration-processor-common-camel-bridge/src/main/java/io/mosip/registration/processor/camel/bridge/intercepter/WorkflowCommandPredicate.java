@@ -29,8 +29,10 @@ public class WorkflowCommandPredicate implements Predicate {
 	@Override
 	public boolean matches(Exchange exchange) {
 		boolean matches = false;
+
 		try {
 			String toaddress = (String) exchange.getMessage().getHeader(Exchange.INTERCEPTED_ENDPOINT);
+
 			switch (toaddress) {
 			case "workflow-cmd://complete-as-processed":
 				processCompleteAsProcessed(exchange);
@@ -70,6 +72,7 @@ public class WorkflowCommandPredicate implements Predicate {
 							PlatformErrorMessages.RPR_CMB_WORKFLOW_COMMAND_NOT_SUPPORTED.getMessage());
 				}
 				break;
+
 			}
 		} catch (JsonProcessingException e) {
 			LOGGER.error("Error in  RoutePredicate::matches {}", e.getMessage());

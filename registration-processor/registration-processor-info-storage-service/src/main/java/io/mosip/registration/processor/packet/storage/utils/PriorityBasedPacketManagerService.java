@@ -277,9 +277,9 @@ public class PriorityBasedPacketManagerService {
         }
 
         for (ContainerInfoDto containerInfoDto : containers) {
-            modalities = CollectionUtils.isEmpty(modalities) ? PacketManagerHelper.getTypeSubtypeModalities(containerInfoDto) : modalities;
+            List<String> containerModalities = CollectionUtils.isEmpty(modalities) ? PacketManagerHelper.getTypeSubtypeModalities(containerInfoDto) : modalities;
             BiometricRecord record = packetManagerService.getBiometrics(
-                    id, person, modalities, containerInfoDto.getSource(), containerInfoDto.getProcess());
+                    id, person, containerModalities, containerInfoDto.getSource(), containerInfoDto.getProcess());
 
             if (biometricRecord == null)
                 biometricRecord = new BiometricRecord();

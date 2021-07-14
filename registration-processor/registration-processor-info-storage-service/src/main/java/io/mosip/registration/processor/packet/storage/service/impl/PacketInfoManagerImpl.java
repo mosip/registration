@@ -67,6 +67,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -436,8 +437,8 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 * saveManualAdjudicationData(java.util.Set, java.lang.String)
 	 */
 	@Override
-	public void saveManualAdjudicationData(List<String> uniqueMatchedRefIds, MessageDTO messageDTO,
-			DedupeSourceName sourceName, String moduleId, String moduleName,String transactionId,String requestId) {
+	public void saveManualAdjudicationData(Set<String> uniqueMatchedRefIds, MessageDTO messageDTO,
+										   DedupeSourceName sourceName, String moduleId, String moduleName, String transactionId, String requestId) {
 		boolean isTransactionSuccessful = false;
 		LogDescription description = new LogDescription();
 		String registrationId = messageDTO.getRid();

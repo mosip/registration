@@ -23,6 +23,7 @@ import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
@@ -52,6 +53,7 @@ import io.mosip.registration.processor.core.idrepo.dto.VidsInfosDTO;
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
+import io.mosip.registration.processor.core.util.PropertiesUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.print.stage.PrintingStage;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
@@ -79,11 +81,12 @@ public class PrintingStageTest {
 	MosipRouter router;
 
 	@Mock
-	private ObjectMapper objectMapper;
-
+	protected PropertiesUtil propertiesUtil;
 
 	@Mock
-	private InternalRegistrationStatusDto registrationStatusDto;
+	private ObjectMapper objectMapper;
+
+	private InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 
 	@Mock
 	private RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
@@ -173,18 +176,19 @@ public class PrintingStageTest {
 		ReflectionTestUtils.setField(stage, "clusterManagerUrl", "/dummyPath");
 		System.setProperty("server.port", "8099");
 
-		ReflectionTestUtils.setField(stage, "port", "8080");
+		//ReflectionTestUtils.setField(stage, "port", "8080");
 		ReflectionTestUtils.setField(stage, "encrypt", false);
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(String.class), any(), any(), any())).thenReturn(registrationStatusDto);
+		Mockito.when(propertiesUtil.getIntegerProperty(any(), any())).thenReturn(8080);
 
 
 
-		Mockito.doNothing().when(registrationStatusDto).setStatusCode(any());
-		Mockito.doNothing().when(registrationStatusDto).setStatusComment(any());
+		//Mockito.doNothing().when(registrationStatusDto).setStatusCode(any());
+		//Mockito.doNothing().when(registrationStatusDto).setStatusComment(any());
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
-		Mockito.doNothing().when(registrationStatusDto).setLatestTransactionTypeCode(any());
-		Mockito.doNothing().when(registrationStatusDto).setRegistrationStageName(any());
-		Mockito.doNothing().when(registrationStatusDto).setLatestTransactionStatusCode(any());
+		//Mockito.doNothing().when(registrationStatusDto).setLatestTransactionTypeCode(any());
+		//Mockito.doNothing().when(registrationStatusDto).setRegistrationStageName(any());
+		//Mockito.doNothing().when(registrationStatusDto).setLatestTransactionStatusCode(any());
 		Mockito.when(router.post(any())).thenReturn(null);
 		Mockito.when(router.get(any())).thenReturn(null);
 
@@ -259,6 +263,7 @@ public class PrintingStageTest {
 
 		MessageDTO result = stage.process(dto);
 		assertTrue(result.getIsValid());
+		assertFalse(result.getInternalError());
 	}
 	
 
@@ -283,6 +288,7 @@ public class PrintingStageTest {
 
 		MessageDTO result = stage.process(dto);
 		assertFalse(result.getIsValid());
+		assertFalse(result.getInternalError());
 	}
 
 
@@ -303,6 +309,7 @@ public class PrintingStageTest {
 				.thenReturn(null);
 		MessageDTO result = stage.process(dto);
 		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 	@Test
@@ -323,6 +330,7 @@ public class PrintingStageTest {
 				.thenReturn(responseWrapper);
 		MessageDTO result = stage.process(dto);
 		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 	@Test
@@ -342,6 +350,7 @@ public class PrintingStageTest {
 				.thenThrow(new ApisResourceAccessException());
 		MessageDTO result = stage.process(dto);
 		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 	@Test
@@ -366,6 +375,7 @@ public class PrintingStageTest {
 		MessageDTO result = stage.process(dto);
 		
 		assertFalse(result.getIsValid());
+		assertFalse(result.getInternalError());
 	}
 
 	@Test
@@ -394,6 +404,7 @@ public class PrintingStageTest {
 		MessageDTO result = stage.process(dto);
 		
 		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 }

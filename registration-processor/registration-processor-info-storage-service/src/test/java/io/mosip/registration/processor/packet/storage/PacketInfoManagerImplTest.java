@@ -21,8 +21,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Sets;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.io.IOUtils;
@@ -718,7 +720,7 @@ public class PacketInfoManagerImplTest {
 		String registrationId = "1234";
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid(registrationId);
-		List<String> uniqueMatchedRefIds = Arrays.asList("123av", "124abc", "125abcd");
+		Set<String> uniqueMatchedRefIds = Sets.newHashSet("123av", "124abc", "125abcd");
 
 		packetInfoManagerImpl.saveManualAdjudicationData(uniqueMatchedRefIds, messageDTO, DedupeSourceName.DEMO, "",
 				"",null,null);
@@ -734,7 +736,7 @@ public class PacketInfoManagerImplTest {
 		String registrationId = "1234";
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid(registrationId);
-		List<String> uniqueMatchedRefIds = Arrays.asList("123av", "124abc", "125abcd");
+		Set<String> uniqueMatchedRefIds = Sets.newHashSet("123av", "124abc", "125abcd");
 
 		packetInfoManagerImpl.saveManualAdjudicationData(uniqueMatchedRefIds, messageDTO, DedupeSourceName.DEMO, "",
 				"",null,null);
