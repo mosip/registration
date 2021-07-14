@@ -235,14 +235,12 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
             registrationStatusDto.setSubStatusCode(StatusUtil.DB_NOT_ACCESSIBLE.getCode());
             registrationStatusDto.setLatestTransactionStatusCode(
                     registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.DATA_ACCESS_EXCEPTION));
-            isTransactionSuccessful = false;
             description.setMessage(PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage());
             description.setCode(PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getCode());
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                     description.getCode() + " -- " + messageDTO.getRid(),
                     PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage() + e.getMessage()
                             + ExceptionUtils.getStackTrace(e));
-            messageDTO.setIsValid(Boolean.FALSE);
             messageDTO.setInternalError(Boolean.TRUE);
             messageDTO.setRid(registrationStatusDto.getRegistrationId());
             ctx.fail(e);
@@ -250,7 +248,6 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
                     ctx.getBodyAsString(), ExceptionUtils.getStackTrace(e));
             messageDTO.setIsValid(Boolean.FALSE);
-            isTransactionSuccessful = false;
             description.setCode(PlatformErrorMessages.RPR_SECUREZONE_FAILURE.getCode());
             description.setMessage(PlatformErrorMessages.RPR_SECUREZONE_FAILURE.getMessage());
             ctx.fail(e);
@@ -264,6 +261,7 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
                         ? registrationStatusDto.getRetryCount() + 1
                         : 1;
                 registrationStatusDto.setRetryCount(retryCount);
+                updateErrorFlags(registrationStatusDto, messageDTO);
             }
             /** Module-Id can be Both Success/Error code */
             String moduleId = isTransactionSuccessful
@@ -341,4 +339,14 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
         }
         return false;
     }
+
+    private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
+		object.setInternalError(true);
+		if (registrationStatusDto.getLatestTransactionStatusCode()
+				.equalsIgnoreCase(RegistrationTransactionStatusCode.REPROCESS.toString())) {
+			object.setIsValid(true);
+		} else {
+			object.setIsValid(false);
+		}
+	}
 }

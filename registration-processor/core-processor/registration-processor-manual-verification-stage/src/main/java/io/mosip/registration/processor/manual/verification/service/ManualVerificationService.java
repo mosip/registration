@@ -32,7 +32,7 @@ public interface ManualVerificationService {
 	 *            {@link ManualAdjudicationResponseDTO}
 	 * @return The updated {@link ManualAdjudicationResponseDTO}
 	 */
-	public ManualAdjudicationResponseDTO updatePacketStatus(ManualAdjudicationResponseDTO resp, String stageName, MosipQueue queue);
+	public boolean updatePacketStatus(ManualAdjudicationResponseDTO resp, String stageName, MosipQueue queue);
 	
 	/**
 	 * This method receives response from the queue and saves to DB

@@ -52,7 +52,7 @@ import io.vertx.core.json.JsonObject;
  *
  */
 public class ReprocessorStage extends MosipVerticleAPIManager {
-	
+
 	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.reprocessor.";
 
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(ReprocessorStage.class);
@@ -91,9 +91,6 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 	@Autowired
 	AuditLogRequestBuilder auditLogRequestBuilder;
 
-	/** The registration id. */
-	private String registrationId = "";
-
 	/** Mosip router for APIs */
 	@Autowired
 	MosipRouter router;
@@ -107,7 +104,7 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 	 */
 	public void deployVerticle() {
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl);
-		deployScheduler(mosipEventBus.getEventbus());
+		deployScheduler(getVertx());
 
 	}
 
@@ -231,7 +228,7 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 
 			if (!CollectionUtils.isEmpty(reprocessorDtoList)) {
 				reprocessorDtoList.forEach(dto -> {
-					this.registrationId = dto.getRegistrationId();
+					String registrationId = dto.getRegistrationId();
 					MessageDTO messageDTO = new MessageDTO();
 					messageDTO.setRid(registrationId);
 					messageDTO.setReg_type(dto.getRegistrationType());
@@ -297,7 +294,7 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 			description.setMessage(PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getCode());
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-					description.getCode() + " -- " + registrationId,
+					description.getCode() + " -- ",
 					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e.toString());
 
 		}catch (Exception ex) {
@@ -305,14 +302,14 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 			description.setMessage(PlatformErrorMessages.REPROCESSOR_STAGE_FAILED.getMessage());
 			description.setCode(PlatformErrorMessages.REPROCESSOR_STAGE_FAILED.getCode());
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					description.getCode() + " -- " + registrationId,
-					PlatformErrorMessages.STRUCTURAL_VALIDATION_FAILED.getMessage() + ex.getMessage()
+					description.getCode() + " -- ",
+					PlatformErrorMessages.UNKNOWN_EXCEPTION.getMessage() + ex.getMessage()
 							+ ExceptionUtils.getStackTrace(ex));
 			object.setInternalError(Boolean.TRUE);
 
 		} finally {
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, description.getMessage());
+					null, description.getMessage());
 			if (isTransactionSuccessful)
 				description.setMessage(PlatformSuccessMessages.RPR_RE_PROCESS_SUCCESS.getMessage());
 
@@ -325,12 +322,12 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 					: description.getCode();
 			String moduleName = ModuleName.RE_PROCESSOR.toString();
 			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
-					moduleId, moduleName, registrationId);
+					moduleId, moduleName, "");
 		}
 
 		return object;
 	}
-	
+
 	@Override
 	protected String getPropertyPrefix() {
 		return STAGE_PROPERTY_PREFIX;

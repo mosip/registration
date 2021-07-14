@@ -468,6 +468,6 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	@Query("SELECT latestRegId FROM RegLostUinDetEntity lostUin WHERE lostUin.id.workflowInstanceId =:workflowInstanceId")
 	public String getLostUinMatchedRegIdByWorkflowId(@Param("workflowInstanceId") String workflowInstanceId);
 
-	@Query(value ="SELECT m.reg_id FROM reg_manual_verification m WHERE m.request_id =:requestId",nativeQuery=true)
-	public List<String> getRegistrationIdbyRequestId(@Param("requestId") String requestId);
+	@Query(value ="SELECT m FROM ManualVerificationEntity m WHERE m.requestId =:requestId")
+	public List<ManualVerificationEntity> getRegistrationIdbyRequestId(@Param("requestId") String requestId);
 }

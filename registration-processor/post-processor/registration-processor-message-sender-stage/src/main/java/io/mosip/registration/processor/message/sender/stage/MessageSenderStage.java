@@ -209,6 +209,7 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 		TrimExceptionMessage trimExceptionMessage = new TrimExceptionMessage();
 		object.setMessageBusAddress(MessageBusAddress.MESSAGE_SENDER_BUS);
 		boolean isTransactionSuccessful = false;
+		object.setInternalError(Boolean.FALSE);
 		LogDescription description = new LogDescription();
 		String status;
 		MessageSenderDto messageSenderDto = new MessageSenderDto();
@@ -334,6 +335,9 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 
 		} finally {
 			object.setIsValid(isTransactionSuccessful);
+			if (object.getInternalError()) {
+				updateErrorFlags(registrationStatusDto, object);
+			}
 			registrationStatusDto.setStatusComment(description.getStatusComment());
 			registrationStatusDto.setSubStatusCode(description.getSubStatusCode());
 			TransactionDto transactionDto = new TransactionDto(UUID.randomUUID().toString(),
@@ -634,6 +638,16 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 			});
 		}
 		return messageSenderDto.isTemplateAvailable();
+	}
+	
+	private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
+		object.setInternalError(true);
+		if (registrationStatusDto.getLatestTransactionStatusCode()
+				.equalsIgnoreCase(RegistrationTransactionStatusCode.REPROCESS.toString())) {
+			object.setIsValid(true);
+		} else {
+			object.setIsValid(false);
+		}
 	}
 
 }

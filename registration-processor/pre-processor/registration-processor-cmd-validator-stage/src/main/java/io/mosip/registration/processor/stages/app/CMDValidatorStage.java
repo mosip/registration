@@ -15,8 +15,8 @@ import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIMan
 @Service
 @Configuration
 @ComponentScan(basePackages = { "io.mosip.registration.processor.core.config",
-		"io.mosip.registration.processor.status.config", "io.mosip.registration.processor.rest.client.config",
-		"io.mosip.registration.processor.packet.storage.config",
+		"io.mosip.registration.processor.stages.config", "io.mosip.registration.processor.status.config",
+		"io.mosip.registration.processor.rest.client.config", "io.mosip.registration.processor.packet.storage.config",
 		"io.mosip.registration.processor.packet.manager.config", "io.mosip.registration.processor.core.kernel.beans" })
 public class CMDValidatorStage extends MosipVerticleAPIManager {
 
