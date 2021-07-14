@@ -20,6 +20,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.core.env.Environment;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.exception.IOException;
@@ -334,6 +335,13 @@ public class SyncRegistrationServiceTest {
 		syncRegistrationEntity.setPacketId("test1");
 		syncRegistrationEntities.add(syncRegistrationEntity);
 		Mockito.when(ridValidator.validateId(any())).thenReturn(true);
+		List<String> mainprocessList=new ArrayList<>();
+		mainprocessList.add("NEW");
+		mainprocessList.add("UPDATE");
+		ReflectionTestUtils.setField(syncRegistrationService, "mainProcesses", mainprocessList);
+		List<String> subprocessList=new ArrayList<>();
+		subprocessList.add("BIOMETRIC_CORRECTION");
+		ReflectionTestUtils.setField(syncRegistrationService, "subProcesses", subprocessList);
 
 	}
 

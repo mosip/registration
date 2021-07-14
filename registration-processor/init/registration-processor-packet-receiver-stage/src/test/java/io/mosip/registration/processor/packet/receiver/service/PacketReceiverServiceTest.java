@@ -130,6 +130,10 @@ public class PacketReceiverServiceTest {
 
 	@Before
 	public void setup() throws Exception {
+		List<String> mainprocessList=new ArrayList<>();
+		mainprocessList.add("NEW");
+		mainprocessList.add("UPDATE");
+		ReflectionTestUtils.setField(packetReceiverService, "mainProcesses", mainprocessList);
 		ReflectionTestUtils.setField(packetReceiverService, "extention", ".zip");
 		ReflectionTestUtils.setField(packetReceiverService, "fileSize", "5");
 
@@ -204,6 +208,7 @@ public class PacketReceiverServiceTest {
 
 		mockDto = new InternalRegistrationStatusDto();
 		mockDto.setRetryCount(3);
+		mockDto.setIteration(1);
 		Mockito.when(syncRegistrationService.findByPacketId(anyString())).thenReturn(regEntity);
 		Mockito.doReturn(mockDto).when(registrationStatusService).getRegistrationStatus("0000", "NEW", 1, "");
 		Mockito.doNothing().when(fileManager).put(anyString(), any(InputStream.class), any(DirectoryPathDto.class));
@@ -222,6 +227,7 @@ public class PacketReceiverServiceTest {
 
 		mockDto = new InternalRegistrationStatusDto();
 		mockDto.setRetryCount(null);
+		mockDto.setIteration(1);
 		Mockito.when(syncRegistrationService.findByPacketId(anyString())).thenReturn(regEntity);
 		Mockito.doReturn(mockDto).when(registrationStatusService).getRegistrationStatus("0000", "NEW", 1, "");
 
@@ -391,6 +397,7 @@ public class PacketReceiverServiceTest {
 			throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, io.mosip.registration.processor.core.exception.PacketDecryptionFailureException {
 		Mockito.when(syncRegistrationService.findByPacketId(anyString())).thenReturn(regEntity);
 		Mockito.doReturn(mockDto).when(registrationStatusService).getRegistrationStatus("0000", "NEW", 1, "");
+		mockDto.setIteration(1);
 		Mockito.doNothing().when(fileManager).put(anyString(), any(InputStream.class), any(DirectoryPathDto.class));
 		Mockito.when(virusScannerService.scanFile(any(InputStream.class))).thenReturn(Boolean.TRUE);
 		MessageDTO successResult = packetReceiverService.processPacket(mockMultipartFile);
