@@ -71,7 +71,7 @@ public class WorkflowActionServiceTest {
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.PAUSED.name());
 		registrationStatusDto.setResumeRemoveTags("testhotlisted,test1hotlisted");
 		ReflectionTestUtils.setField(workflowActionService, "resumeFromBeginningStage", "SecurezoneNotificationStage");
-		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(),
+		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatusForWorkflowEngine(any(), any(),
 				Mockito.any());
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(null);
@@ -91,7 +91,7 @@ public class WorkflowActionServiceTest {
 		TablenotAccessibleException tablenotAccessibleException = new TablenotAccessibleException(
 				PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage());
 		Mockito.doThrow(tablenotAccessibleException).when(registrationStatusService)
-				.updateRegistrationStatus(any(),
+				.updateRegistrationStatusForWorkflowEngine(any(),
 				anyString(), anyString());
 		List<InternalRegistrationStatusDto> internalRegistrationStatusDtos = new ArrayList<InternalRegistrationStatusDto>();
 		internalRegistrationStatusDtos.add(registrationStatusDto);
@@ -114,7 +114,7 @@ public class WorkflowActionServiceTest {
 		TablenotAccessibleException tablenotAccessibleException = new TablenotAccessibleException(
 				PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage());
 		Mockito.doThrow(tablenotAccessibleException).when(registrationStatusService)
-				.updateRegistrationStatus(any(),
+				.updateRegistrationStatusForWorkflowEngine(any(),
 				anyString(), anyString());
 		List<InternalRegistrationStatusDto> internalRegistrationStatusDtos = new ArrayList<InternalRegistrationStatusDto>();
 		internalRegistrationStatusDtos.add(registrationStatusDto);
@@ -138,7 +138,7 @@ public class WorkflowActionServiceTest {
 		TablenotAccessibleException tablenotAccessibleException = new TablenotAccessibleException(
 				PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage());
 		Mockito.doThrow(tablenotAccessibleException).when(registrationStatusService)
-				.updateRegistrationStatus(any(),
+				.updateRegistrationStatusForWorkflowEngine(any(),
 				anyString(), anyString());
 		List<InternalRegistrationStatusDto> internalRegistrationStatusDtos = new ArrayList<InternalRegistrationStatusDto>();
 		internalRegistrationStatusDtos.add(registrationStatusDto);
