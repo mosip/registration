@@ -381,7 +381,7 @@ public class WorkflowActionService {
 		registrationStatusDto.setUpdatedBy(USER);
 		registrationStatusDto.setDefaultResumeAction(null);
 		registrationStatusDto.setResumeTimeStamp(null);
-		registrationStatusService.updateRegistrationStatus(registrationStatusDto, MODULE_ID, MODULE_NAME);
+		registrationStatusService.updateRegistrationStatusForWorkflowEngine(registrationStatusDto, MODULE_ID, MODULE_NAME);
 		return registrationStatusDto;
 	}
 

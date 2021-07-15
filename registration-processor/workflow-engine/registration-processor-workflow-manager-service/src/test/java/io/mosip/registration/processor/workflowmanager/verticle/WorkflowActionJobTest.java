@@ -101,7 +101,6 @@ public class WorkflowActionJobTest {
 	public void setup() throws Exception {
 
 		ReflectionTestUtils.setField(workflowActionJob, "fetchSize", 2);
-		ReflectionTestUtils.setField(workflowActionJob, "elapseTime", 21600);
 		Field auditLog = AuditLogRequestBuilder.class.getDeclaredField("registrationProcessorRestService");
 		auditLog.setAccessible(true);
 		@SuppressWarnings("unchecked")
