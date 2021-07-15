@@ -83,6 +83,12 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 
 	/** The Constant VALUE. */
 	public static final String VALUE = "value";
+	
+	/** The Constant TRUE. */
+	public static final String TRUE = "true";
+	
+	/** The Constant EXCEPTION. */
+	public static final String EXCEPTION = "EXCEPTION";
 
 	private TrimExceptionMessage trimExceptionMsg = new TrimExceptionMessage();
 
@@ -414,6 +420,24 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 
 		// get individual biometrics file name from id.json
 		for (BIR bir : birs) {
+			
+			if (bir.getOthers() != null) {
+				List<io.mosip.kernel.biometrics.entities.Entry> othersInfo = bir.getOthers();
+				boolean exceptionValue = false;
+				for (io.mosip.kernel.biometrics.entities.Entry other : othersInfo) {
+					if (other.getKey().equals(EXCEPTION)) {
+						if (other.getValue().equals(TRUE)) {
+							exceptionValue = true;
+						}
+						break;
+					}
+				}
+
+				if (exceptionValue) {
+					continue;
+				}
+			}
+			
 			BiometricType biometricType = bir.getBdbInfo().getType().get(0);
 			BIR[] birArray = new BIR[1];
 			birArray[0] = bir;
