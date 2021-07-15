@@ -20,6 +20,7 @@ import io.vertx.core.json.Json;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.micrometer.PrometheusScrapingHandler;
 
 /**
  * @author Mukul Puspam
@@ -41,6 +42,8 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 	
 	@Autowired
 	private Environment environment;
+	
+	private static final String PROMETHEUS_ENDPOINT = "/actuator/prometheus";
 
 	/**
 	 * This method creates a body handler for the routes
@@ -60,6 +63,7 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 
 		router.route().handler(BodyHandler.create());
 		String servletPath = getServletPath();
+		router.get(servletPath + PROMETHEUS_ENDPOINT).handler(PrometheusScrapingHandler.create());
 		if (consumeAddress == null && sendAddress == null)
 			configureHealthCheckEndpoint(vertx, router, servletPath, null,
 					null);

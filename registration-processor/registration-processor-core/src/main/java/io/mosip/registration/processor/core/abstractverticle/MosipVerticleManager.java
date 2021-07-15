@@ -83,8 +83,6 @@ public abstract class MosipVerticleManager extends AbstractVerticle
     @Autowired
     private ObjectMapper objectMapper;
 
-	private static final String PROMETHEUS_ENDPOINT = "/actuator/prometheus";
-
 	@Value("${mosip.regproc.eventbus.type:vertx}")
 	private String eventBusType;
 
@@ -133,9 +131,6 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 
 		MicrometerMetricsOptions micrometerMetricsOptions = new MicrometerMetricsOptions()
 				.setPrometheusOptions(new VertxPrometheusOptions()
-						.setStartEmbeddedServer(true)
-						.setEmbeddedServerOptions(new HttpServerOptions().setPort(getPort()))
-						.setEmbeddedServerEndpoint(getServletPath() + PROMETHEUS_ENDPOINT)
 						.setEnabled(true))
 				.setEnabled(true);
 
