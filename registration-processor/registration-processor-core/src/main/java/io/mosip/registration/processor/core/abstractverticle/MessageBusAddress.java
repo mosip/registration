@@ -41,7 +41,7 @@ public class MessageBusAddress implements Serializable {
 
 		ArrayList<String> modifiableArrayList = new ArrayList<String>(addressList);
 
-		modifiableArrayList.add(addressList.size() - 2, regType);
+		modifiableArrayList.add(addressList.size() - 2, regType.toLowerCase());
 		String modifiedAddress = null;
 
 		if(messageBusAddress.getAddress().contains(BUS_OUT)) {
