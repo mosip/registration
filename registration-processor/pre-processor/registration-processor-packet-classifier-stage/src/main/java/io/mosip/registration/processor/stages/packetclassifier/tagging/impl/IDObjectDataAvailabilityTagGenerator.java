@@ -10,6 +10,7 @@ import io.mosip.registration.processor.packet.storage.exception.ParsingException
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.stages.packetclassifier.dto.FieldDTO;
 import io.mosip.registration.processor.stages.packetclassifier.tagging.TagGenerator;
+import io.mosip.registration.processor.stages.packetclassifier.utility.PacketClassifierUtility;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -40,10 +41,6 @@ public class IDObjectDataAvailabilityTagGenerator implements TagGenerator {
     @Value("#{${mosip.regproc.packet.classifier.tagging.idobject-data-availability.availability-expression-map:{}}}")
     private Map<String,String> availabilityExpressionMap;
 
-    /** The language that should be used when dealing with field type that has values in multiple languages */
-    @Value("${mosip.primary-language}")
-    private String tagLanguage;
-
     /** The tag value that will be used by default when the packet does not have value for the tag field */
     @Value("${mosip.regproc.packet.classifier.tagging.not-available-tag-value}")
     private String notAvailableTagValue;
@@ -61,6 +58,9 @@ public class IDObjectDataAvailabilityTagGenerator implements TagGenerator {
     /** Frequently used util methods are available in this bean */
     @Autowired
     private Utilities utility;
+    
+    @Autowired
+    private PacketClassifierUtility classifierUtility;
     
     /** 
      * This map will hold the actual field names after resolving, using mapping JSON as keys and 
@@ -141,6 +141,8 @@ public class IDObjectDataAvailabilityTagGenerator implements TagGenerator {
         }
         String type = fieldDTO.getType();
         String value = fieldDTO.getValue();
+        
+        String tagLanguage = classifierUtility.getTagLanguageBasedOnFieldDTO(value);
         switch (type) {
             case "simpleType":
                 JSONArray jsonArray = new JSONArray(value);

@@ -27,6 +27,7 @@ import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.stages.packetclassifier.dto.FieldDTO;
+import io.mosip.registration.processor.stages.packetclassifier.utility.PacketClassifierUtility;
 
 /**
  * The Class PacketValidatorStageTest.
@@ -44,6 +45,9 @@ public class IDObjectFieldsTagGeneratorTest {
 
 	@Mock
 	private Utilities utility;
+	
+	@Mock
+    private PacketClassifierUtility classifierUtility;
 
 	private static String tagNamePrefix = "ID_OBJECT-";
 	private static String tagLanguage= "eng";
@@ -79,7 +83,6 @@ public class IDObjectFieldsTagGeneratorTest {
 
 		Whitebox.setInternalState(idObjectFieldsTagGenerator, "tagNamePrefix", tagNamePrefix);
 		Whitebox.setInternalState(idObjectFieldsTagGenerator, "mappingFieldNames", mappingFieldNames);
-		Whitebox.setInternalState(idObjectFieldsTagGenerator, "tagLanguage", tagLanguage);
 		Whitebox.setInternalState(idObjectFieldsTagGenerator, "notAvailableTagValue", notAvailableTagValue);
 
 		JSONObject mappingJSON = new JSONObject();
@@ -90,6 +93,7 @@ public class IDObjectFieldsTagGeneratorTest {
 			mappingJSON.put(mappingFieldName, internalJSON);
 		}
 		Mockito.when(utility.getRegistrationProcessorMappingJson(anyString())).thenReturn(mappingJSON);
+		Mockito.when(classifierUtility.getTagLanguageBasedOnFieldDTO(anyString())).thenReturn(tagLanguage);
 	}
 
 	@Test

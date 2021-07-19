@@ -466,6 +466,10 @@ public enum PlatformErrorMessages {
 	/** The rpr pcm exception biometrics entry not avaiable in metainfo map. */
 	RPR_PCM_EXCEPTION_BIOMETRICS_APPLICANT_ENTRY_NOT_AVAILABLE(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "018",
 			"ExceptionBiometrics applicant entry not available in metainfo map"),
+	
+	/** The rpr pcm mandatory or optional language not available in field DTO. */
+	RPR_PCM_MANDATORY_OR_OPTIONAL_LANGUAGE_NOT_AVAILABLE(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "019",
+			"mandatory or optional language not available in field DTO"),
 
 	/** The unsupported encoding. */
 	// UIN check - JSON file encoding failed.

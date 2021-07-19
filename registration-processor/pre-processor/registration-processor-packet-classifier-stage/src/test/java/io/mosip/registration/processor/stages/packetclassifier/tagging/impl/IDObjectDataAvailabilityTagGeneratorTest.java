@@ -5,7 +5,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -27,6 +26,7 @@ import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.stages.packetclassifier.dto.FieldDTO;
+import io.mosip.registration.processor.stages.packetclassifier.utility.PacketClassifierUtility;
 
 /**
  * The Class IDObjectDataAvailabilityTagGeneratorTest.
@@ -44,6 +44,9 @@ public class IDObjectDataAvailabilityTagGeneratorTest {
 
 	@Mock
 	private Utilities utility;
+	
+	@Mock
+    private PacketClassifierUtility classifierUtility;
 	
 	private static String tagLanguage= "eng";
 	private static String notAvailableTagValue = "--TAG_VALUE_NOT_AVAILABLE--";
@@ -77,7 +80,6 @@ public class IDObjectDataAvailabilityTagGeneratorTest {
 
 
 		Whitebox.setInternalState(idObjectDataAvailabilityTagGenerator, "availabilityExpressionMap", availabilityExpressionMap);
-		Whitebox.setInternalState(idObjectDataAvailabilityTagGenerator, "tagLanguage", tagLanguage);
 		Whitebox.setInternalState(idObjectDataAvailabilityTagGenerator, "notAvailableTagValue", notAvailableTagValue);
 
 		actualFieldNamesMap = new HashMap<>();
@@ -93,6 +95,7 @@ public class IDObjectDataAvailabilityTagGeneratorTest {
 			mappingJSON.put(mappingFieldName, internalJSON);
 		}
 		Mockito.when(utility.getRegistrationProcessorMappingJson(anyString())).thenReturn(mappingJSON);
+		Mockito.when(classifierUtility.getTagLanguageBasedOnFieldDTO(anyString())).thenReturn(tagLanguage);
 	}
 
 	@Test
