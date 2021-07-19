@@ -31,15 +31,20 @@ public class PacketClassifierUtility {
 	/** The constant for language label in JSON parsing */
 	private static final String LANGUAGE_LABEL = "language";
 
-	public String getTagLanguageBasedOnFieldDTO(String value) throws JSONException, BaseCheckedException {
-		if (!mandatoryLanguages.isEmpty()) {
-			for (String language : mandatoryLanguages) {
-				JSONArray jsonArray = new JSONArray(value);
-				for (int i = 0; i < jsonArray.length(); i++) {
-					JSONObject jsonObject = jsonArray.getJSONObject(i);
-					if (jsonObject.getString(LANGUAGE_LABEL).equals(language)) {
-						return jsonObject.getString(LANGUAGE_LABEL);
-					}
+	/** The constant for value label in JSON parsing */
+	private static final String VALUE_LABEL = "value";
+
+	public String getLanguageBasedValueForSimpleType(String value) throws JSONException, BaseCheckedException {
+
+		String mandatoryLanguage = mandatoryLanguages.get(0);
+		if (!mandatoryLanguage.isEmpty()) {
+			JSONArray jsonArray = new JSONArray(value);
+			for (int i = 0; i < jsonArray.length(); i++) {
+				JSONObject jsonObject = jsonArray.getJSONObject(i);
+				if (jsonObject.getString(LANGUAGE_LABEL).equals(mandatoryLanguage)) {
+					if (jsonObject.isNull(VALUE_LABEL))
+						return null;
+					return jsonObject.getString(VALUE_LABEL);
 				}
 			}
 		} else {
@@ -48,13 +53,15 @@ public class PacketClassifierUtility {
 				for (int i = 0; i < jsonArray.length(); i++) {
 					JSONObject jsonObject = jsonArray.getJSONObject(i);
 					if (jsonObject.getString(LANGUAGE_LABEL).equals(language)) {
-						return jsonObject.getString(LANGUAGE_LABEL);
+						if (jsonObject.isNull(VALUE_LABEL))
+							return null;
+						return jsonObject.getString(VALUE_LABEL);
 					}
 				}
 			}
 		}
 		throw new BaseCheckedException(
-				PlatformErrorMessages.RPR_PCM_MANDATORY_OR_OPTIONAL_LANGUAGE_NOT_AVAILABLE.getCode(),
-				PlatformErrorMessages.RPR_PCM_MANDATORY_OR_OPTIONAL_LANGUAGE_NOT_AVAILABLE.getMessage());
+				PlatformErrorMessages.RPR_PCM_VALUE_NOT_AVAILABLE_IN_CONFIGURED_LANGUAGE.getCode(),
+				PlatformErrorMessages.RPR_PCM_VALUE_NOT_AVAILABLE_IN_CONFIGURED_LANGUAGE.getMessage());
 	}
 }

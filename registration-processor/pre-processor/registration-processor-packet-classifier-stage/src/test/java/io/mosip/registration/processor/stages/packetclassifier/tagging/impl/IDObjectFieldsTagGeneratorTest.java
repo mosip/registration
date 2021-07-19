@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,7 +25,6 @@ import org.powermock.reflect.Whitebox;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
-import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.stages.packetclassifier.dto.FieldDTO;
 import io.mosip.registration.processor.stages.packetclassifier.utility.PacketClassifierUtility;
@@ -50,7 +50,6 @@ public class IDObjectFieldsTagGeneratorTest {
     private PacketClassifierUtility classifierUtility;
 
 	private static String tagNamePrefix = "ID_OBJECT-";
-	private static String tagLanguage= "eng";
 	private static String notAvailableTagValue = "--TAG_VALUE_NOT_AVAILABLE--";
 
 	private static List<String> mappingFieldNames;
@@ -93,7 +92,6 @@ public class IDObjectFieldsTagGeneratorTest {
 			mappingJSON.put(mappingFieldName, internalJSON);
 		}
 		Mockito.when(utility.getRegistrationProcessorMappingJson(anyString())).thenReturn(mappingJSON);
-		Mockito.when(classifierUtility.getTagLanguageBasedOnFieldDTO(anyString())).thenReturn(tagLanguage);
 	}
 
 	@Test
@@ -126,8 +124,9 @@ public class IDObjectFieldsTagGeneratorTest {
 	}
 
 	@Test
-	public void testGenerateTagsForAllFieldTypes() throws BaseCheckedException {
+	public void testGenerateTagsForAllFieldTypes() throws BaseCheckedException, JSONException {
 		idObjectFieldsTagGenerator.getRequiredIdObjectFieldNames();
+		Mockito.when(classifierUtility.getLanguageBasedValueForSimpleType(anyString())).thenReturn("MALE");
 		Map<String, String> tags = idObjectFieldsTagGenerator.generateTags("1234", "NEW", 
 			idObjectFieldDTOMap, null);
 		for(int i=0; i < mappingFieldNames.size(); i++) {
@@ -149,14 +148,6 @@ public class IDObjectFieldsTagGeneratorTest {
 		idObjectFieldsTagGenerator.getRequiredIdObjectFieldNames();
 		FieldDTO fieldDTO = idObjectFieldDTOMap.get(actualFieldNames.get(0));
 		fieldDTO.setType("notavailabletype");
-		idObjectFieldsTagGenerator.generateTags("1234", "NEW", idObjectFieldDTOMap, null);
-	}
-
-	@Test(expected = ParsingException.class)
-	public void testGenerateTagsForInvalidJSONStringInFieldValue() throws BaseCheckedException {
-		idObjectFieldsTagGenerator.getRequiredIdObjectFieldNames();
-		idObjectFieldDTOMap.put(actualFieldNames.get(2), 
-			new FieldDTO("simpleType", "[ {\n  \"language\" : \"eng\",\n  \"value\" : \"MALE\"\n} "));
 		idObjectFieldsTagGenerator.generateTags("1234", "NEW", idObjectFieldDTOMap, null);
 	}
 	
