@@ -80,7 +80,7 @@ public class WorkflowInternalActionVerticleTest {
 
 	@Mock
 	private PacketManagerService packetManagerService;
-	
+
 	@Mock
 	private Environment env;
 
@@ -600,7 +600,7 @@ public class WorkflowInternalActionVerticleTest {
 		ArgumentCaptor<WorkflowCompletedEventDTO> argument1 = ArgumentCaptor.forClass(WorkflowCompletedEventDTO.class);
 		verify(webSubUtil, atLeastOnce()).publishEvent(argument1.capture());
 		assertEquals(RegistrationStatusCode.REJECTED.toString(), argument1.getAllValues().get(0).getResultCode());
-		
+
 
 
 	}
