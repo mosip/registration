@@ -278,7 +278,7 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 					/** Module-Id can be Both Success/Error code */
 					String moduleId = PlatformSuccessMessages.RPR_SENT_TO_REPROCESS_SUCCESS.getCode();
 					String moduleName = ModuleName.RE_PROCESSOR.toString();
-					registrationStatusService.updateRegistrationStatus(dto, moduleId, moduleName);
+					registrationStatusService.updateRegistrationStatusForWorkflowEngine(dto, moduleId, moduleName);
 					String eventId = EventId.RPR_402.toString();
 					String eventName = EventName.UPDATE.toString();
 					String eventType = EventType.BUSINESS.toString();
