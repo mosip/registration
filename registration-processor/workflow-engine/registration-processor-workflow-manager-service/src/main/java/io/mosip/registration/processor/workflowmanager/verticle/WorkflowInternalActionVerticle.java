@@ -89,8 +89,8 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.workflow-manager.internal.action.eventbus.port}")
 	private String eventBusPort;
 	
-    @Value("${mosip.regproc.workflow-manager.internal.action.max.allowed.iteration}")
-    private int maxAllowedIteration;
+    @Value("${mosip.regproc.workflow-manager.internal.action.max-allowed-iteration}")
+    private int defaultMaxAllowedIteration;
 
 	@Autowired
 	MosipRouter router;
@@ -487,14 +487,14 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 			List<AdditionalInfoRequestDto> additionalInfoRequestDtos = additionalInfoRequestService.
 					getAdditionalInfoRequestByRegIdAndProcess(
 						workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getAdditionalInfoProcess());
-			String iteration=env.getProperty("mosip.regproc.workflow-manager.internal.action.max.allowed.iteration." + workflowInternalActionDTO.getAdditionalInfoProcess());
-			int maxAllowedIterationPerForAdditionalInfoProcess;
+			String iteration=env.getProperty("mosip.regproc.workflow-manager.internal.action.max-allowed-iteration." + workflowInternalActionDTO.getAdditionalInfoProcess());
+			int maxAllowedIteration;
 			if(iteration!=null) {
-				maxAllowedIterationPerForAdditionalInfoProcess=Integer.parseInt(iteration);
+				maxAllowedIteration=Integer.parseInt(iteration);
 			}else {
-				maxAllowedIterationPerForAdditionalInfoProcess=maxAllowedIteration;
+				maxAllowedIteration=defaultMaxAllowedIteration;
 			}
-			if (additionalInfoRequestDtos != null && !additionalInfoRequestDtos.isEmpty() && additionalInfoRequestDtos.get(0).getAdditionalInfoIteration()>=maxAllowedIterationPerForAdditionalInfoProcess) {
+			if (additionalInfoRequestDtos != null && !additionalInfoRequestDtos.isEmpty() && additionalInfoRequestDtos.get(0).getAdditionalInfoIteration()>=maxAllowedIteration) {
 				processCompleteAsRejected(workflowInternalActionDTO);
 			}else {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PAUSED_FOR_ADDITIONAL_INFO.toString());

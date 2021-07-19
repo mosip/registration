@@ -139,7 +139,7 @@ public class WorkflowInternalActionVerticleTest {
 
 		ReflectionTestUtils.setField(workflowInternalActionVerticle, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(workflowInternalActionVerticle, "clusterManagerUrl", "/dummyPath");
-		ReflectionTestUtils.setField(workflowInternalActionVerticle, "maxAllowedIteration", 5);
+		ReflectionTestUtils.setField(workflowInternalActionVerticle, "defaultMaxAllowedIteration", 5);
 		workflowInternalActionVerticle.deployVerticle();
 	}
 
