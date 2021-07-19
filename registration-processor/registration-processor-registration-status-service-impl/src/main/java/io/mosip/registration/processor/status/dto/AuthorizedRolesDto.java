@@ -1,4 +1,4 @@
-package io.mosip.registration.core.common.dto;
+package io.mosip.registration.processor.status.dto;
 
 import java.util.List;
 
@@ -33,10 +33,5 @@ public class AuthorizedRolesDto {
   //Registration Sync controller
 
   private List<String> Postsync;
-
-  //Registration Transaction controller
-
-  private List<String> Postsearchlangcoderid;
-
 
 }
