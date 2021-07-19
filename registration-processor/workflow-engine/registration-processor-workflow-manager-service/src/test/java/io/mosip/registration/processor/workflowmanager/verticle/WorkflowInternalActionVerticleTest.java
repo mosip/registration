@@ -17,6 +17,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -79,6 +81,9 @@ public class WorkflowInternalActionVerticleTest {
 	@Mock
 	private PacketManagerService packetManagerService;
 
+	@Mock
+	private Environment env;
+
 
 	@InjectMocks
 	private WorkflowInternalActionVerticle workflowInternalActionVerticle = new WorkflowInternalActionVerticle() {
@@ -134,6 +139,7 @@ public class WorkflowInternalActionVerticleTest {
 
 		ReflectionTestUtils.setField(workflowInternalActionVerticle, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(workflowInternalActionVerticle, "clusterManagerUrl", "/dummyPath");
+		ReflectionTestUtils.setField(workflowInternalActionVerticle, "defaultMaxAllowedIteration", 5);
 		workflowInternalActionVerticle.deployVerticle();
 	}
 
@@ -333,7 +339,7 @@ public class WorkflowInternalActionVerticleTest {
 		workflowInternalActionDTO.setIteration(1);
 		workflowInternalActionDTO.setReg_type("NEW");
 		workflowInternalActionDTO.setAdditionalInfoProcess("CORRECTION");
-		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
+		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatusForWorkflowEngine(any(), any(), any());
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
@@ -347,7 +353,7 @@ public class WorkflowInternalActionVerticleTest {
 		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
 				.forClass(InternalRegistrationStatusDto.class);
 
-		verify(registrationStatusService, atLeastOnce()).updateRegistrationStatus(argument.capture(), Mockito.any(),
+		verify(registrationStatusService, atLeastOnce()).updateRegistrationStatusForWorkflowEngine(argument.capture(), Mockito.any(),
 				Mockito.any());
 		assertEquals(RegistrationStatusCode.PAUSED_FOR_ADDITIONAL_INFO.toString(),
 				argument.getAllValues().get(0).getStatusCode());
@@ -400,7 +406,7 @@ public class WorkflowInternalActionVerticleTest {
 		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_PROCESSED.toString());
 		workflowInternalActionDTO.setActionMessage("packet is complete as processed");
 		workflowInternalActionDTO.setReg_type("CORRECTION");
-		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
+		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatusForWorkflowEngine(any(), any(), any());
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
@@ -434,7 +440,7 @@ public class WorkflowInternalActionVerticleTest {
 		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_REJECTED.toString());
 		workflowInternalActionDTO.setActionMessage("packet is complete as rejected");
 		workflowInternalActionDTO.setReg_type("CORRECTION");
-		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
+		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatusForWorkflowEngine(any(), any(), any());
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
@@ -468,7 +474,7 @@ public class WorkflowInternalActionVerticleTest {
 		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_FAILED.toString());
 		workflowInternalActionDTO.setActionMessage("packet is complete as failed");
 		workflowInternalActionDTO.setReg_type("CORRECTION");
-		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
+		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatusForWorkflowEngine(any(), any(), any());
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
@@ -506,7 +512,7 @@ public class WorkflowInternalActionVerticleTest {
 		workflowInternalActionDTO.setDefaultResumeAction(WorkflowActionCode.STOP_PROCESSING.toString());
 		workflowInternalActionDTO.setIteration(1);
 		workflowInternalActionDTO.setReg_type("CORRECTION");
-		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
+		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatusForWorkflowEngine(any(), any(), any());
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
@@ -524,7 +530,7 @@ public class WorkflowInternalActionVerticleTest {
 		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
 				.forClass(InternalRegistrationStatusDto.class);
 
-		verify(registrationStatusService, atLeastOnce()).updateRegistrationStatus(argument.capture(), Mockito.any(),
+		verify(registrationStatusService, atLeastOnce()).updateRegistrationStatusForWorkflowEngine(argument.capture(), Mockito.any(),
 				Mockito.any());
 		assertEquals(RegistrationStatusCode.FAILED.toString(),
 				argument.getAllValues().get(0).getStatusCode());
@@ -555,5 +561,47 @@ public class WorkflowInternalActionVerticleTest {
 		verify(registrationStatusService, atLeastOnce()).updateRegistrationStatusForWorkflowEngine(argument.capture(), Mockito.any(),
 				Mockito.any());
 		assertEquals(RegistrationStatusCode.REJECTED.toString(), argument.getAllValues().get(0).getStatusCode());
+	}
+	@Test
+	public void testProcessSuccessForPauseAndRequestAdditionalInfoWithMaxAllowedIterationExceed() {
+		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
+		workflowInternalActionDTO.setRid("10006100390000920200603070407");
+		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.PAUSE_AND_REQUEST_ADDITIONAL_INFO.toString());
+		workflowInternalActionDTO.setActionMessage("packet is paused for Additional Info");
+		workflowInternalActionDTO.setResumeTimestamp("2021-03-02T08:24:29.526Z");
+		workflowInternalActionDTO.setDefaultResumeAction(WorkflowActionCode.STOP_PROCESSING.toString());
+		workflowInternalActionDTO.setIteration(6);
+		workflowInternalActionDTO.setReg_type("NEW");
+		workflowInternalActionDTO.setAdditionalInfoProcess("CORRECTION");
+		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatusForWorkflowEngine(any(), any(), any());
+		registrationStatusDto = new InternalRegistrationStatusDto();
+		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
+		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(null);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
+				.thenReturn(registrationStatusDto);
+		AdditionalInfoRequestDto additionalInfoRequestDto = new AdditionalInfoRequestDto();
+		additionalInfoRequestDto.setRegId("10006100390000920200603070407");
+		additionalInfoRequestDto.setAdditionalInfoIteration(5);
+		additionalInfoRequestDto.setWorkflowInstanceId("Workflow123");
+		additionalInfoRequestDto.setAdditionalInfoReqId("additionalRequestId");
+		List<AdditionalInfoRequestDto> additionalInfoRequestDtoList=new ArrayList<AdditionalInfoRequestDto>();
+		additionalInfoRequestDtoList.add(additionalInfoRequestDto);
+		Mockito.when(
+				additionalInfoRequestService.getAdditionalInfoRequestByRegIdAndProcess(anyString(), anyString()))
+				.thenReturn(additionalInfoRequestDtoList);
+		workflowInternalActionVerticle.process(workflowInternalActionDTO);
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+
+		verify(registrationStatusService, atLeastOnce()).updateRegistrationStatusForWorkflowEngine(argument.capture(), Mockito.any(),
+				Mockito.any());
+		assertEquals(RegistrationStatusCode.REJECTED.toString(), argument.getAllValues().get(0).getStatusCode());
+		ArgumentCaptor<WorkflowCompletedEventDTO> argument1 = ArgumentCaptor.forClass(WorkflowCompletedEventDTO.class);
+		verify(webSubUtil, atLeastOnce()).publishEvent(argument1.capture());
+		assertEquals(RegistrationStatusCode.REJECTED.toString(), argument1.getAllValues().get(0).getResultCode());
+
+
+
 	}
 }
