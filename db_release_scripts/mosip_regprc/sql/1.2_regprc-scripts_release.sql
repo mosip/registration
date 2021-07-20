@@ -53,9 +53,6 @@ UPDATE regprc.reg_manual_verification a SET workflow_instance_id = b.workflow_in
 UPDATE regprc.reg_lost_uin_det a SET workflow_instance_id = b.workflow_instance_id FROM regprc.registration_list b WHERE a.reg_id = b.reg_id;
 UPDATE regprc.reg_bio_ref a SET workflow_instance_id = b.workflow_instance_id FROM regprc.registration_list b WHERE a.reg_id = b.reg_id;
 
-create index idx_rgstrnlst_pcktid on regprc.registration_list (packet_id);
-create index idx_rgstrnlst_aireqid on regprc.registration_list (additional_info_req_id);
-
 create index idx_rbioref_crdtimes on regprc.reg_bio_ref (cr_dtimes);
 
 DROP INDEX idx_idemogd_namedobgender;
