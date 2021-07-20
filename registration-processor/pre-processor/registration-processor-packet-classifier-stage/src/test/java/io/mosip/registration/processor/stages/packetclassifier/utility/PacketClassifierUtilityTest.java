@@ -64,7 +64,6 @@ public class PacketClassifierUtilityTest {
 	public void getLanguageBasedValueForSimpleTypeOptionalFirstLangAvailable() throws Exception {
 
 		mandatoryLanguages = new ArrayList<String>();
-		mandatoryLanguages.add("");
 		
 		optionalLanguages = new ArrayList<String>();
 		optionalLanguages.add("eng");
@@ -79,7 +78,6 @@ public class PacketClassifierUtilityTest {
 	public void getLanguageBasedValueForSimpleTypeOptionalSecondLangAvailable() throws Exception {
 
 		mandatoryLanguages = new ArrayList<String>();
-		mandatoryLanguages.add("");
 		
 		optionalLanguages = new ArrayList<String>();
 		optionalLanguages.add("eng");
@@ -95,10 +93,8 @@ public class PacketClassifierUtilityTest {
 	public void getLanguageBasedValueForSimpleTypeEmptyLangForBoth() throws Exception {
 
 		mandatoryLanguages = new ArrayList<String>();
-		mandatoryLanguages.add("");
 		
 		optionalLanguages = new ArrayList<String>();
-		optionalLanguages.add("");
 		Whitebox.setInternalState(packetClassifierUtility, "mandatoryLanguages", mandatoryLanguages);
 		Whitebox.setInternalState(packetClassifierUtility, "optionalLanguages", optionalLanguages);
 		
