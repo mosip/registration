@@ -68,21 +68,27 @@ create index idx_rgstrnlst_pcktid on regprc.registration_list (packet_id);
 create index idx_rgstrnlst_aireqid on regprc.registration_list (additional_info_req_id);
 
 ALTER TABLE regprc.individual_demographic_dedup DROP CONSTRAINT pk_idemogd_id;
+ALTER TABLE regprc.individual_demographic_dedup ALTER COLUMN workflow_instance_id SET NOT NULL;
 ALTER TABLE regprc.individual_demographic_dedup ADD CONSTRAINT pk_idemogd_id PRIMARY KEY (workflow_instance_id,lang_code);
 
 ALTER TABLE regprc.reg_bio_ref DROP CONSTRAINT pk_regbref_id;
+ALTER TABLE regprc.reg_bio_ref ALTER COLUMN workflow_instance_id SET NOT NULL;
 ALTER TABLE regprc.reg_bio_ref ADD CONSTRAINT pk_regbref_id PRIMARY KEY (bio_ref_id,workflow_instance_id);
 
 ALTER TABLE regprc.reg_lost_uin_det DROP CONSTRAINT pk_rlostd;
+ALTER TABLE regprc.reg_lost_uin_det ALTER COLUMN workflow_instance_id SET NOT NULL;
 ALTER TABLE regprc.reg_lost_uin_det ADD CONSTRAINT pk_rlostd PRIMARY KEY (workflow_instance_id);
 
 ALTER TABLE regprc.reg_manual_verification DROP CONSTRAINT pk_rmnlver_id;
+ALTER TABLE regprc.reg_manual_verification ALTER COLUMN workflow_instance_id SET NOT NULL;
 ALTER TABLE regprc.reg_manual_verification ADD CONSTRAINT pk_rmnlver_id PRIMARY KEY (workflow_instance_id,matched_ref_id,matched_ref_type);
 
 ALTER TABLE regprc.registration DROP CONSTRAINT pk_reg_id;
+ALTER TABLE regprc.registration ALTER COLUMN workflow_instance_id SET NOT NULL;
 ALTER TABLE regprc.registration ADD CONSTRAINT pk_reg_id PRIMARY KEY (workflow_instance_id);
 
 ALTER TABLE regprc.registration_list DROP CONSTRAINT pk_reglist_id;
+ALTER TABLE regprc.registration_list ALTER COLUMN workflow_instance_id SET NOT NULL;
 ALTER TABLE regprc.registration_list ADD CONSTRAINT pk_reglist_id PRIMARY KEY (workflow_instance_id);
 
 -----------------------------------------------------------------------------------------------------------------------------------------
