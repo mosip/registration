@@ -18,14 +18,14 @@ public class PacketClassifierUtility {
 	 * The mandatory languages that should be used when dealing with field type that
 	 * has values in multiple languages
 	 */
-	@Value("#{'${mosip.mandatory-languages}'.split(',')}")
+	@Value("#{T(java.util.Arrays).asList('${mosip.mandatory-languages:}')}")
 	private List<String> mandatoryLanguages;
 
 	/**
 	 * The optional languages that should be used when dealing with field type that
 	 * has values in multiple languages
 	 */
-	@Value("#{'${mosip.optional-languages}'.split(',')}")
+	@Value("#{T(java.util.Arrays).asList('${mosip.optional-languages:}')}")
 	private List<String> optionalLanguages;
 
 	/** The constant for language label in JSON parsing */
@@ -36,12 +36,11 @@ public class PacketClassifierUtility {
 
 	public String getLanguageBasedValueForSimpleType(String value) throws JSONException, BaseCheckedException {
 
-		String mandatoryLanguage = mandatoryLanguages.get(0);
-		if (!mandatoryLanguage.isEmpty()) {
+		if (!mandatoryLanguages.isEmpty()) {
 			JSONArray jsonArray = new JSONArray(value);
 			for (int i = 0; i < jsonArray.length(); i++) {
 				JSONObject jsonObject = jsonArray.getJSONObject(i);
-				if (jsonObject.getString(LANGUAGE_LABEL).equals(mandatoryLanguage)) {
+				if (jsonObject.getString(LANGUAGE_LABEL).equals(mandatoryLanguages.get(0))) {
 					if (jsonObject.isNull(VALUE_LABEL))
 						return null;
 					return jsonObject.getString(VALUE_LABEL);
