@@ -13,8 +13,10 @@ public class WorkflowManagerApplication
 		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
 		ctx.scan("io.mosip.registration.processor.core.config",
 				"io.mosip.registration.processor.workflowmanager.config",
-				"io.mosip.registration.processor.status.config", "io.mosip.registration.processor.core.kernel.beans",
-				"io.mosip.registration.processor.packet.storage.config");
+				"io.mosip.registration.processor.status.config", 
+				"io.mosip.registration.processor.core.kernel.beans",
+				"io.mosip.registration.processor.packet.storage.config",
+				"io.mosip.kernel.websub.api.config.publisher");
 		ctx.refresh();
 		WorkflowInternalActionVerticle workflowInternalActionVerticle = ctx
 				.getBean(WorkflowInternalActionVerticle.class);
