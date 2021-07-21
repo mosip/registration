@@ -19,6 +19,12 @@
 \c mosip_regprc sysadmin
 
 ----------------------------------------------Multiple table level changes on regprc db-------------------------------------------------------
+
+ALTER TABLE regprc.individual_demographic_dedup DROP CONSTRAINT IF EXISTS fk_idemogd_reg CASCADE;
+ALTER TABLE regprc.reg_manual_verification DROP CONSTRAINT IF EXISTS fk_rmnlver_reg CASCADE;
+ALTER TABLE regprc.reg_bio_ref DROP CONSTRAINT IF EXISTS fk_regref_reg CASCADE;
+ALTER TABLE regprc.reg_lost_uin_det DROP CONSTRAINT IF EXISTS fk_rlostd_reg CASCADE;
+
 \ir ../ddl/regprc-additional_info_request.sql
 
 ALTER TABLE regprc.registration_list RENAME COLUMN id TO workflow_instance_id;
@@ -90,6 +96,23 @@ ALTER TABLE regprc.registration ADD CONSTRAINT pk_reg_id PRIMARY KEY (workflow_i
 ALTER TABLE regprc.registration_list DROP CONSTRAINT pk_reglist_id;
 ALTER TABLE regprc.registration_list ALTER COLUMN workflow_instance_id SET NOT NULL;
 ALTER TABLE regprc.registration_list ADD CONSTRAINT pk_reglist_id PRIMARY KEY (workflow_instance_id);
+
+
+ALTER TABLE regprc.individual_demographic_dedup ADD CONSTRAINT fk_idemogd_reg FOREIGN KEY (workflow_instance_id)
+REFERENCES regprc.registration (workflow_instance_id) MATCH SIMPLE
+ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+ALTER TABLE regprc.reg_manual_verification ADD CONSTRAINT fk_rmnlver_reg FOREIGN KEY (workflow_instance_id)
+REFERENCES regprc.registration (workflow_instance_id) MATCH SIMPLE
+ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+ALTER TABLE regprc.reg_bio_ref ADD CONSTRAINT fk_regbrf_reg FOREIGN KEY (workflow_instance_id)
+REFERENCES regprc.registration (workflow_instance_id) MATCH SIMPLE
+ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+ALTER TABLE regprc.reg_lost_uin_det ADD CONSTRAINT fk_rlostd_reg FOREIGN KEY (workflow_instance_id)
+REFERENCES regprc.registration (workflow_instance_id) MATCH SIMPLE
+ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 ALTER TABLE regprc.registration ADD COLUMN resume_timestamp timestamp;
