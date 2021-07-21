@@ -74,7 +74,8 @@ public class RegistrationTransactionController {
 	 * @return list of RegTransactionResponseDTOs 
 	 * @throws Exception
 	 */
-	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR','REGISTRATION_ADMIN')")
+	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR','REGISTRATION_ADMIN')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostsearchlangcoderid())")
 	@GetMapping(path = "/search/{langCode}/{rid}")
 	@ApiOperation(value = "Get the transaction entity/entities")
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Transaction Entity/Entities successfully fetched"),
