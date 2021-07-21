@@ -24,6 +24,7 @@ ALTER TABLE regprc.individual_demographic_dedup DROP CONSTRAINT IF EXISTS fk_ide
 ALTER TABLE regprc.reg_manual_verification DROP CONSTRAINT IF EXISTS fk_rmnlver_reg CASCADE;
 ALTER TABLE regprc.reg_bio_ref DROP CONSTRAINT IF EXISTS fk_regref_reg CASCADE;
 ALTER TABLE regprc.reg_lost_uin_det DROP CONSTRAINT IF EXISTS fk_rlostd_reg CASCADE;
+ALTER TABLE regprc.registration_transaction DROP CONSTRAINT IF EXISTS fk_regtrn_reg CASCADE;
 
 \ir ../ddl/regprc-additional_info_request.sql
 

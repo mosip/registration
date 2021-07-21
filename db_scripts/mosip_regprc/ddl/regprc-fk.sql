@@ -15,9 +15,9 @@
 
 -- object: fk_regtrn_reg | type: CONSTRAINT --
 -- ALTER TABLE regprc.registration_transaction DROP CONSTRAINT IF EXISTS fk_regtrn_reg CASCADE;
-ALTER TABLE regprc.registration_transaction ADD CONSTRAINT fk_regtrn_reg FOREIGN KEY (reg_id)
-REFERENCES regprc.registration (id) MATCH SIMPLE
-ON DELETE NO ACTION ON UPDATE NO ACTION;
+--ALTER TABLE regprc.registration_transaction ADD CONSTRAINT fk_regtrn_reg FOREIGN KEY (reg_id)
+--REFERENCES regprc.registration (id) MATCH SIMPLE
+--ON DELETE NO ACTION ON UPDATE NO ACTION;
 -- ddl-end --
 
 -- object: fk_regtrn_trntyp | type: CONSTRAINT --
