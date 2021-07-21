@@ -9,8 +9,9 @@
 -- Modified Date        Modified By         Comments / Remarks
 -- ------------------------------------------------------------------------------------------
 -- 11-Nov-2019           Sadanandegowda DM   Added columns for lost UIN requirements 
--- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
+-- Jan-2021	        Ram Bhatt	    Set is_deleted flag to not null and default false
 -- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes for 1.1.5
+-- Jul-2021		Ram Bhatt	    PK constraint change and added new column
 -- ------------------------------------------------------------------------------------------
 
 -- object: regprc.individual_demographic_dedup | type: TABLE --
@@ -31,12 +32,15 @@ CREATE TABLE regprc.individual_demographic_dedup(
 	upd_dtimes timestamp,
 	is_deleted boolean DEFAULT FALSE,
 	del_dtimes timestamp,
-	CONSTRAINT pk_idemogd_id PRIMARY KEY (reg_id,lang_code)
+	workflow_instance_id character varying(36),
+	process character varying(36),
+	iteration iteration integer DEFAULT 1,
+	CONSTRAINT pk_idemogd_id PRIMARY KEY (workflow_instance_id,lang_code)
 
 );
 
 -- indexes section -------------------------------------------------
-create index idx_idemogd_namedob on regprc.individual_demographic_dedup (name, dob);
+create index idx_idemogd_namedobgender on regprc.individual_demographic_dedup (name, dob,gender);
 
 -- ddl-end --
 COMMENT ON TABLE regprc.individual_demographic_dedup IS 'Individual Demographic Dedupe: Table stores applicant demographic details for deduplication, Only required information for dedupe is stored. ';
