@@ -107,7 +107,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
     @Value("${packet.manager.account.name}")
     private String packetManagerAccount;
 
-    @Value("${packet.manager.iteration.addition.enabled:false}")
+    @Value("${packet.manager.iteration.addition.enabled:true}")
     private boolean isIterationAdditionEnabled;
 
     /**
