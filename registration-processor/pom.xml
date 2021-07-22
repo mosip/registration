@@ -122,7 +122,6 @@
 		<kernel.templatemanager.velocity.version>1.2.0-SNAPSHOT</kernel.templatemanager.velocity.version>
 		<kernel.idvalidator.uin.version>1.2.0-SNAPSHOT</kernel.idvalidator.uin.version>
 		<kernel.idvalidator.rid.version>1.2.0-SNAPSHOT</kernel.idvalidator.rid.version>
-		<kernel.clamav.version>1.2.0-SNAPSHOT</kernel.clamav.version>
 		<kernel.cbeffutil.version>1.2.0-SNAPSHOT</kernel.cbeffutil.version>
         <kernel.bioapi.provider.version>1.2.0-SNAPSHOT</kernel.bioapi.provider.version>
         <kernel.auth.adapter.version>1.2.0-SNAPSHOT</kernel.auth.adapter.version>
