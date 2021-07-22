@@ -92,11 +92,6 @@
 			<version>${registration.processor.core.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-virusscanner-clamav</artifactId>
-			<version>${kernel.clamav.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 		</dependency>
