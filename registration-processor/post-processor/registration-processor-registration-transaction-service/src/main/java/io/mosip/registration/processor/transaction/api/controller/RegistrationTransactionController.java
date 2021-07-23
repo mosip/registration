@@ -1,25 +1,7 @@
 package io.mosip.registration.processor.transaction.api.controller;
 
-import java.util.List;
-import java.util.Objects;
-
-import javax.servlet.http.HttpServletRequest;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.core.env.Environment;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.token.validation.exception.AccessDeniedException;
@@ -32,10 +14,25 @@ import io.mosip.registration.processor.status.exception.TransactionTableNotAcces
 import io.mosip.registration.processor.status.exception.TransactionsUnavailableException;
 import io.mosip.registration.processor.status.service.TransactionService;
 import io.mosip.registration.processor.status.sync.response.dto.RegTransactionResponseDTO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.core.env.Environment;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * RegistrationTransactionController class to retreive transaction details
@@ -44,7 +41,7 @@ import io.swagger.annotations.ApiResponses;
  */
 @RefreshScope
 @RestController
-@Api(tags = "Registration Status")
+@Tag(name = "Registration Status", description = "the Registration Status API")
 public class RegistrationTransactionController {
 	
 	@Autowired
@@ -76,9 +73,10 @@ public class RegistrationTransactionController {
 	 */
 	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR','REGISTRATION_ADMIN')")
 	@GetMapping(path = "/search/{langCode}/{rid}")
-	@ApiOperation(value = "Get the transaction entity/entities")
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Transaction Entity/Entities successfully fetched"),
-			@ApiResponse(code = 400, message = "Unable to fetch Transaction Entity/Entities") })
+	@Operation(summary = "Get the transaction entity/entities", description = "Get the transaction entity/entities", tags = { "Registration Status" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Transaction Entity/Entities successfully fetched"),
+			@ApiResponse(responseCode = "400", description = "Unable to fetch Transaction Entity/Entities") })
 	public ResponseEntity<RegTransactionResponseDTO> getTransactionsbyRid(@PathVariable("rid") String rid,
 			@PathVariable("langCode") String langCode,HttpServletRequest request)
 			throws Exception {
