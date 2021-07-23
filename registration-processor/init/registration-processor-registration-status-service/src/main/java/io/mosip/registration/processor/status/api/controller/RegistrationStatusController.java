@@ -13,9 +13,11 @@ import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.mosip.registration.processor.status.sync.response.dto.RegStatusResponseDTO;
 import io.mosip.registration.processor.status.validator.LostRidRequestValidator;
 import io.mosip.registration.processor.status.validator.RegistrationStatusRequestValidator;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
 
 /**
  * The Class RegistrationStatusController.
@@ -90,9 +93,11 @@ public class RegistrationStatusController {
 	 */
 	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_OFFICER', 'REGISTRATION_SUPERVISOR','RESIDENT')")
 	@PostMapping(path = "/search", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Get the registration entity", description = "registration entity", tags = { "Registration Status" })
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Registration Entity successfully fetched"),
-			@ApiResponse(code = 400, message = "Unable to fetch the Registration Entity") })
+	@Operation(summary = "Get the registration entity", description = "Get the registration entity", tags = { "Registration Status" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Registration Entity successfully fetched",
+					content = @Content(schema = @Schema(implementation = RegistrationExternalStatusCode.class))),
+			@ApiResponse(responseCode = "400", description = "Unable to fetch the Registration Entity") })
 	public ResponseEntity<Object> search(
 			@RequestBody(required = true) RegistrationStatusRequestDTO registrationStatusRequestDTO)
 			throws RegStatusAppException {
@@ -141,9 +146,13 @@ public class RegistrationStatusController {
 	 */
 	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_OFFICER', 'ZONAL_ADMIN','GLOBAL_ADMIN')")
 	@PostMapping(path = "/lostridsearch", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Get the lost registration id", description = "lost registration id", tags = { "Registration Status" })
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Registration id successfully fetched"),
-			@ApiResponse(code = 400, message = "Unable to fetch the Registration id") })
+	@Operation(summary = "Get the lost registration id", description = "Get the lost registration id", tags = { "Registration Status" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Registration id successfully fetched",
+					content = @Content(schema = @Schema(implementation = RegistrationExternalStatusCode.class))),
+			@ApiResponse(responseCode = "400", description = "Unable to fetch the Registration Entity") })
+//	@ApiResponses(value = { @ApiResponse(code = 200, message = "Registration id successfully fetched"),
+//			@ApiResponse(code = 400, message = "Unable to fetch the Registration id") })
 	public ResponseEntity<Object> searchLostRid(
 			@RequestBody(required = true) LostRidRequestDto lostRidRequestDto)
 			throws RegStatusAppException {

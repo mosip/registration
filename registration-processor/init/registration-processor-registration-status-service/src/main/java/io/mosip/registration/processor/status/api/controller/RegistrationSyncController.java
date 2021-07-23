@@ -6,15 +6,18 @@ import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.constant.ResponseStatusCode;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
+import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.*;
 import io.mosip.registration.processor.status.exception.RegStatusAppException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.mosip.registration.processor.status.sync.response.dto.RegSyncResponseDTO;
 import io.mosip.registration.processor.status.validator.RegistrationSyncRequestValidator;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -79,15 +82,15 @@ public class RegistrationSyncController {
 	 */
 	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_PROCESSOR', 'REGISTRATION_OFFICER','REGISTRATION_SUPERVISOR', 'RESIDENT' )")
 	@PostMapping(path = "/sync", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Get the synchronizing registration entity", description = "synchronizing registration entity", tags = { "Registration Status" })
+	@Operation(summary = "Get the synchronizing registration entity", description = "Get the synchronizing registration entity", tags = { "Registration Status" })
 	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Synchronizing Registration Entity successfully fetched") })
+			@ApiResponse(responseCode = "200", description = "Synchronizing Registration Entity successfully fetched",
+					content = @Content(schema = @Schema(implementation = RegistrationStatusCode.class))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized") })
 	public ResponseEntity<Object> syncRegistrationController(
 			@RequestHeader(name = "Center-Machine-RefId", required = true) String referenceId,
 			@RequestHeader(name = "timestamp", required = true) String timeStamp,
 			@RequestBody(required = true) Object encryptedSyncMetaInfo) throws RegStatusAppException {
-
-
 		try {
 			List<SyncResponseDto> syncResponseList = new ArrayList<>();
 			RegistrationSyncRequestDTO registrationSyncRequestDTO = syncRegistrationService

@@ -4,10 +4,10 @@ import io.mosip.kernel.core.http.ResponseFilter;
 import io.mosip.registration.processor.core.auth.dto.AuthRequestDTO;
 import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
 import io.mosip.registration.processor.status.service.InternalAuthDelegateService;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -45,7 +45,9 @@ public class InternalAuthDelegateServicesController {
 	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN','REGISTRATION_OFFICER','REGISTRATION_SUPERVISOR')")
 	@PostMapping(path = "/auth", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Authenticate Internal Request", description = "Authenticate Internal Request", tags = { "Internal Auth Delegate Services" })
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Request authenticated successfully") })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Request authenticated successfully"),
+			@ApiResponse(responseCode = "401", description = "Unauthorized") })
 	public ResponseEntity<AuthResponseDTO> authenticate(@Validated @RequestBody AuthRequestDTO authRequestDTO,
 			@RequestHeader HttpHeaders headers) throws Exception {
 		return ResponseEntity.status(HttpStatus.OK)

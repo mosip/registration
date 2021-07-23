@@ -19,8 +19,8 @@ public class RegistrationStatusConfig {
 	public OpenAPI customOpenAPI() {
 		return new OpenAPI()
 				.components(new Components())
-				.info(new Info().title("Registration status API").description(
-						"This is a registration status service using springdoc-openapi and OpenAPI 3.").version("3.0.1"));
+				.info(new Info().title("Registration Status Service API documentation").description(
+						"Registration status service contains the APIs used by registration client and resident services to sync packets and check the status the packets").version("3.0.1"));
 	}
 }
 
