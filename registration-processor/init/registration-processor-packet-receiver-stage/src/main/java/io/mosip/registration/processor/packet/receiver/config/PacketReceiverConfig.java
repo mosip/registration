@@ -1,13 +1,11 @@
 package io.mosip.registration.processor.packet.receiver.config;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
@@ -34,7 +32,6 @@ import io.mosip.registration.processor.packet.receiver.builder.PacketReceiverRes
 import io.mosip.registration.processor.packet.receiver.exception.handler.PacketReceiverExceptionHandler;
 import io.mosip.registration.processor.packet.receiver.service.PacketReceiverService;
 import io.mosip.registration.processor.packet.receiver.service.impl.PacketReceiverServiceImpl;
-import org.springframework.core.env.Environment;
 
 /**
  * The Class PacketReceiverConfig.
@@ -47,12 +44,10 @@ import org.springframework.core.env.Environment;
 @EnableAspectJAutoProxy
 public class PacketReceiverConfig {
 
-	public static final String VIRUS_SCANNER_PROVIDER = "mosip.regproc.virusscanner.provider";
-
 	private static Logger logger = RegProcessorLogger.getLogger(PacketReceiverConfig.class);
 
-	@Autowired
-	private Environment env;
+	@Value("${mosip.regproc.virusscanner.provider}")
+	private String virusScannerProviderName;
 
 	/**
 	 * PacketReceiverService bean.
@@ -92,41 +87,20 @@ public class PacketReceiverConfig {
 	@Bean
 	@Lazy
 	public VirusScanner<Boolean, InputStream> virusScannerService() throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-		if (StringUtils.isNotBlank(env.getProperty(VIRUS_SCANNER_PROVIDER))) {
-			logger.debug("mosip.regproc.virusscanner.provider is set as ", env.getProperty(VIRUS_SCANNER_PROVIDER),
-					"loading VirusScanner", "");
-			return (VirusScanner) Class.forName(env.getProperty(VIRUS_SCANNER_PROVIDER)).newInstance();
-		} else {
-			logger.debug("Property 'mosip.regproc.virusscanner.provider' is not set with correct VirusScanner instance",
-					env.getProperty(VIRUS_SCANNER_PROVIDER),
-					"loading dummy VirusScanner.", "This will by default fail virus scanning");
-			return new VirusScanner<Boolean, InputStream>() {
-				@Override
-				public Boolean scanFile(String s) {
-					return Boolean.FALSE;
-				}
+		logger.info("mosip.regproc.virusscanner.provider is set as ", virusScannerProviderName,
+				"Validating if the implementation is present in classpath", "");
+		VirusScanner virusScanner = null;
+		try {
+			virusScanner = (VirusScanner) Class.forName(virusScannerProviderName).newInstance();
 
-				@Override
-				public Boolean scanFile(InputStream inputStream) {
-					return Boolean.FALSE;
-				}
-
-				@Override
-				public Boolean scanFolder(String s) {
-					return Boolean.FALSE;
-				}
-
-				@Override
-				public Boolean scanDocument(byte[] bytes) throws IOException {
-					return Boolean.FALSE;
-				}
-
-				@Override
-				public Boolean scanDocument(File file) throws IOException {
-					return Boolean.FALSE;
-				}
-			};
+		} catch (ClassNotFoundException | ClassCastException e) {
+			logger.error("Exception occurred validating - " + virusScannerProviderName +
+					". Please make sure implementation is available in classpath", e);
+			throw e;
 		}
+		logger.info("Successfully validated : " + virusScannerProviderName);
+
+		return virusScanner;
 	}
 	
 	@Bean
