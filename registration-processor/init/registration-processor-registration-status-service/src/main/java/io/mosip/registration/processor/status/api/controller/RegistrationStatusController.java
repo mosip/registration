@@ -1,10 +1,24 @@
 package io.mosip.registration.processor.status.api.controller;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
+import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
+import io.mosip.registration.processor.status.code.RegistrationExternalStatusCode;
+import io.mosip.registration.processor.status.dto.*;
+import io.mosip.registration.processor.status.exception.RegStatusAppException;
+import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import io.mosip.registration.processor.status.service.SyncRegistrationService;
+import io.mosip.registration.processor.status.sync.response.dto.RegStatusResponseDTO;
+import io.mosip.registration.processor.status.validator.LostRidRequestValidator;
+import io.mosip.registration.processor.status.validator.RegistrationStatusRequestValidator;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -18,41 +32,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
-import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
-import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
-import io.mosip.registration.processor.status.code.RegistrationExternalStatusCode;
-import io.mosip.registration.processor.status.dto.ErrorDTO;
-import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
-import io.mosip.registration.processor.status.dto.LostRidDto;
-import io.mosip.registration.processor.status.dto.LostRidRequestDto;
-import io.mosip.registration.processor.status.dto.LostRidResponseDto;
-import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
-import io.mosip.registration.processor.status.dto.RegistrationStatusErrorDto;
-import io.mosip.registration.processor.status.dto.RegistrationStatusRequestDTO;
-import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDto;
-import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
-import io.mosip.registration.processor.status.dto.SyncResponseDto;
-import io.mosip.registration.processor.status.exception.RegStatusAppException;
-import io.mosip.registration.processor.status.service.RegistrationStatusService;
-import io.mosip.registration.processor.status.service.SyncRegistrationService;
-import io.mosip.registration.processor.status.sync.response.dto.RegStatusResponseDTO;
-import io.mosip.registration.processor.status.validator.LostRidRequestValidator;
-import io.mosip.registration.processor.status.validator.RegistrationStatusRequestValidator;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
 
 /**
  * The Class RegistrationStatusController.
  */
 @RefreshScope
 @RestController
-@Api(tags = "Registration Status")
+@Tag(name = "Registration Status", description = "the Registration Status API")
 public class RegistrationStatusController {
 
 	/** The registration status service. */
@@ -102,9 +93,11 @@ public class RegistrationStatusController {
 	 */
 	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_OFFICER', 'REGISTRATION_SUPERVISOR','RESIDENT')")
 	@PostMapping(path = "/search", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@ApiOperation(value = "Get the registration entity", response = RegistrationExternalStatusCode.class)
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Registration Entity successfully fetched"),
-			@ApiResponse(code = 400, message = "Unable to fetch the Registration Entity") })
+	@Operation(summary = "Get the registration entity", description = "Get the registration entity", tags = { "Registration Status" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Registration Entity successfully fetched",
+					content = @Content(schema = @Schema(implementation = RegistrationExternalStatusCode.class))),
+			@ApiResponse(responseCode = "400", description = "Unable to fetch the Registration Entity") })
 	public ResponseEntity<Object> search(
 			@RequestBody(required = true) RegistrationStatusRequestDTO registrationStatusRequestDTO)
 			throws RegStatusAppException {
@@ -153,9 +146,13 @@ public class RegistrationStatusController {
 	 */
 	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_OFFICER', 'ZONAL_ADMIN','GLOBAL_ADMIN')")
 	@PostMapping(path = "/lostridsearch", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@ApiOperation(value = "Get the lost registration id", response = RegistrationExternalStatusCode.class)
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Registration id successfully fetched"),
-			@ApiResponse(code = 400, message = "Unable to fetch the Registration id") })
+	@Operation(summary = "Get the lost registration id", description = "Get the lost registration id", tags = { "Registration Status" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Registration id successfully fetched",
+					content = @Content(schema = @Schema(implementation = RegistrationExternalStatusCode.class))),
+			@ApiResponse(responseCode = "400", description = "Unable to fetch the Registration Entity") })
+//	@ApiResponses(value = { @ApiResponse(code = 200, message = "Registration id successfully fetched"),
+//			@ApiResponse(code = 400, message = "Unable to fetch the Registration id") })
 	public ResponseEntity<Object> searchLostRid(
 			@RequestBody(required = true) LostRidRequestDto lostRidRequestDto)
 			throws RegStatusAppException {
