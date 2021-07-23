@@ -594,7 +594,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		syncRegistrationEntity.setSupervisorComment(dto.getSupervisorComment());
 		syncRegistrationEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 		syncRegistrationEntity.setAdditionalInfoReqId(dto.getAdditionalInfoReqId());
-		syncRegistrationEntity.setPacketId(dto.getPacketId());
+		syncRegistrationEntity.setPacketId(dto.getPacketId() != null ? dto.getPacketId() : dto.getRegistrationId());
 
 		try {
 			RegistrationAdditionalInfoDTO regAdditionalInfo = new RegistrationAdditionalInfoDTO();
@@ -606,11 +606,12 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			byte[] encryptedInfo = encryptor.encrypt(additionalInfo, referenceId, timeStamp);
 			syncRegistrationEntity.setOptionalValues(encryptedInfo);
 			if (dto.getName() != null) {
-				syncRegistrationEntity.setName(getHashCode(dto.getName().replaceAll("\\s", "").toLowerCase()));
+				syncRegistrationEntity.setName(dto.getName() != null ?
+						getHashCode(dto.getName().replaceAll("\\s", "").toLowerCase()) : null);
 			}
-			syncRegistrationEntity.setEmail(getHashCode(dto.getEmail()));
+			syncRegistrationEntity.setEmail(dto.getEmail() != null ? getHashCode(dto.getEmail()) : null);
 			syncRegistrationEntity.setCenterId(getHashCode(referenceId.split("_")[0]));
-			syncRegistrationEntity.setPhone(getHashCode(dto.getPhone()));
+			syncRegistrationEntity.setPhone(dto.getPhone() != null ? getHashCode(dto.getPhone()) : null);
 			syncRegistrationEntity
 					.setPostalCode(getHashCode(getPostalCode(referenceId.split("_")[0], dto.getLangCode())));
 			if (dto.getCreateDateTime() != null) {
@@ -851,8 +852,8 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		try {
 			String response = restApiClient.getApi(requestUri, String.class);
 			JSONObject jsonObjects = new JSONObject(response);
-			postalCode = ((JSONObject) jsonObjects.getJSONObject("response").getJSONArray("registrationCenters").get(0))
-					.getString("locationCode");
+			postalCode = jsonObjects.getJSONObject("response") != null ? ((JSONObject) jsonObjects.getJSONObject("response").getJSONArray("registrationCenters").get(0))
+					.getString("locationCode") : null;
 		} catch (Exception e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
