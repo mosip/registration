@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -38,14 +39,13 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.mosip.registration.processor.status.sync.response.dto.RegExternalStatusResponseDTO;
 import io.mosip.registration.processor.status.validator.RegistrationExternalStatusRequestValidator;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RefreshScope
 @RestController
-@Api(tags = "External Registration Status")
+@Tag(name = "External Registration Status", description = "External Registration Status")
 public class RegistrationExternalStatusController {
 	
 	/** The registration status service. */
@@ -82,9 +82,9 @@ public class RegistrationExternalStatusController {
 	 */
 	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_OFFICER', 'REGISTRATION_SUPERVISOR','RESIDENT')")
 	@PostMapping(path = "/externalstatus/search", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@ApiOperation(value = "Get the registration external status", response = RegistrationExternalStatusCode.class)
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Registration external status successfully fetched"),
-			@ApiResponse(code = 400, message = "Unable to fetch the registration external status") })
+	@Operation(summary = "Get the registration external status", description = "Get the registration external status")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Registration external status successfully fetched"),
+			@ApiResponse(responseCode = "400", description = "Unable to fetch the registration external status") })
 	public ResponseEntity<Object> search(
 			@RequestBody(required = true) RegistrationExternalStatusRequestDTO registrationExternalStatusRequestDTO)
 			throws RegStatusAppException {

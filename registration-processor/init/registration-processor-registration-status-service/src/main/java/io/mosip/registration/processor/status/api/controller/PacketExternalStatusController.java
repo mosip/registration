@@ -24,7 +24,6 @@ import com.google.gson.GsonBuilder;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
-import io.mosip.registration.processor.status.code.RegistrationExternalStatusCode;
 import io.mosip.registration.processor.status.dto.ErrorDTO;
 import io.mosip.registration.processor.status.dto.PacketExternalStatusDTO;
 import io.mosip.registration.processor.status.dto.PacketExternalStatusRequestDTO;
@@ -34,10 +33,10 @@ import io.mosip.registration.processor.status.exception.RegStatusAppException;
 import io.mosip.registration.processor.status.service.PacketExternalStatusService;
 import io.mosip.registration.processor.status.sync.response.dto.PacketExternalStatusResponseDTO;
 import io.mosip.registration.processor.status.validator.PacketExternalStatusRequestValidator;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 
 /**
@@ -45,7 +44,7 @@ import io.swagger.annotations.ApiResponses;
  */
 @RefreshScope
 @RestController
-@Api(tags = "Packet Status")
+@Tag(name = "Packet Status", description = "the Packet Status API")
 public class PacketExternalStatusController {
 
 
@@ -88,9 +87,9 @@ public class PacketExternalStatusController {
 	 */
 	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_OFFICER', 'REGISTRATION_SUPERVISOR','RESIDENT')")
 	@PostMapping(path = "/packetexternalstatus", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@ApiOperation(value = "Get the Packet external status", response = RegistrationExternalStatusCode.class)
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Packet external status successfully fetched"),
-			@ApiResponse(code = 400, message = "Unable to fetch the Packet external status") })
+	@Operation(summary = "Get the Packet external status", description = "Get the Packet external status")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Packet external status successfully fetched"),
+			@ApiResponse(responseCode = "400", description = "Unable to fetch the Packet external status") })
 	public ResponseEntity<Object> packetExternalStatus(
 			@RequestBody(required = true) PacketExternalStatusRequestDTO packetExternalStatusRequestDTO)
 			throws RegStatusAppException {
