@@ -273,8 +273,10 @@ public class MessageNotificationServiceImpl
 		return response;
 	}
 	
-	private List<String> getPreferredLanguages(String id, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
-		String preferredLang=packetManagerService.getField(id, MappingJsonConstants.PREFERRED_LANGUAGE, process, ProviderStageName.MESSAGE_SENDER);
+	private List<String> getPreferredLanguages(String id, String process) throws ApisResourceAccessException, 
+	PacketManagerException, JsonProcessingException, IOException {
+		String preferredLang=packetManagerService.getField(id, MappingJsonConstants.PREFERRED_LANGUAGE, process, 
+				ProviderStageName.MESSAGE_SENDER);
 		if(preferredLang!=null && !preferredLang.isBlank()) {
 			return List.of(preferredLang.split(","));
 		}else {
@@ -284,7 +286,8 @@ public class MessageNotificationServiceImpl
 				List<Field> fields=List.of(MappingJsonConstants.class.getDeclaredFields());
 				List<String> jsonFields =new ArrayList<>();
 				fields.forEach(x ->jsonFields.add(x.getName()));
-				Map<String, String> idObjectMap=packetManagerService.getFields(id, jsonFields, process, ProviderStageName.MESSAGE_SENDER);
+				Map<String, String> idObjectMap=packetManagerService.getFields(id, jsonFields, process,
+						ProviderStageName.MESSAGE_SENDER);
 				Set<String> langSet=new HashSet<>();
 				for(Entry<String, String> entry:idObjectMap.entrySet()) {
 					if(entry.getValue()!=null&& !entry.getValue().isBlank()  ) {

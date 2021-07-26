@@ -162,8 +162,10 @@ public class NotificationUtility {
 		}
 	}
 
-	private List<String> getPreferredLanguages(InternalRegistrationStatusDto registrationStatusDto) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException, JSONException {
-		String preferredLang=packetManagerService.getField(registrationStatusDto.getRegistrationId(), MappingJsonConstants.PREFERRED_LANGUAGE, registrationStatusDto.getRegistrationType(), ProviderStageName.PACKET_VALIDATOR);
+	private List<String> getPreferredLanguages(InternalRegistrationStatusDto registrationStatusDto) throws ApisResourceAccessException, 
+	PacketManagerException, JsonProcessingException, IOException, JSONException {
+		String preferredLang=packetManagerService.getField(registrationStatusDto.getRegistrationId(), MappingJsonConstants.PREFERRED_LANGUAGE,
+				registrationStatusDto.getRegistrationType(), ProviderStageName.PACKET_VALIDATOR);
 		if(preferredLang!=null && !preferredLang.isBlank()) {
 			return List.of(preferredLang.split(","));
 		}else {
@@ -173,7 +175,8 @@ public class NotificationUtility {
 				List<Field> fields=List.of(MappingJsonConstants.class.getDeclaredFields());
 				List<String> jsonFields =new ArrayList<>();
 				fields.forEach(x ->jsonFields.add(x.getName()));
-				Map<String, String> idObjectMap=packetManagerService.getFields(registrationStatusDto.getRegistrationId(), jsonFields, registrationStatusDto.getRegistrationType(), ProviderStageName.valueOf(registrationStatusDto.getRegistrationStageName()));
+				Map<String, String> idObjectMap=packetManagerService.getFields(registrationStatusDto.getRegistrationId(), jsonFields, 
+						registrationStatusDto.getRegistrationType(), ProviderStageName.PACKET_VALIDATOR);
 				Set<String> langSet=new HashSet<>();
 				for(Entry<String, String> entry:idObjectMap.entrySet()) {
 					if(entry.getValue()!=null&& !entry.getValue().isBlank()  ) {
