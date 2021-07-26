@@ -10,6 +10,7 @@
 -- ------------------------------------------------------------------------------------------
 -- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
 -- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes for 1.1.5
+-- Jul-2021		Ram Bhatt	    Column name change and added new column
 -- ------------------------------------------------------------------------------------------
 
 -- object: regprc.reg_lost_uin_det | type: TABLE --
@@ -23,7 +24,8 @@ CREATE TABLE regprc.reg_lost_uin_det(
 	upd_dtimes timestamp,
 	is_deleted boolean DEFAULT FALSE,
 	del_dtimes timestamp,
-	CONSTRAINT pk_rlostd PRIMARY KEY (reg_id)
+	workflow_instance_id character varying(36) NOT NULL,
+	CONSTRAINT pk_rlostd PRIMARY KEY (workflow_instance_id)
 
 );
 -- ddl-end --

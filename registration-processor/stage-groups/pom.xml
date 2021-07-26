@@ -7,9 +7,9 @@
 	<parent>
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>registration-processor</artifactId>
-		<version>MOSIP-11739-1</version>
+		<version>1.2.0-SNAPSHOT</version>
 	</parent>
-	<version>MOSIP-11739-1</version>
+	<version>1.2.0-SNAPSHOT</version>
 	<artifactId>stage-groups</artifactId>
 	<name>stage-groups</name>
 	<properties>

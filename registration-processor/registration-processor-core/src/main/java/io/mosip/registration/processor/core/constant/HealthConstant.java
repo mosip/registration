@@ -23,8 +23,8 @@ public class HealthConstant {
 	public static final String HEALTH_ENDPOINT = "/actuator/health";
 	public static final String SERVLET_PATH = "server.servlet.path";
 	public static final String CONTENT_TYPE = "application/json";
-	public static final String CLAMAV_HOST = "mosip.kernel.virus-scanner.host";
-	public static final String CLAMAV_PORT = "mosip.kernel.virus-scanner.port";
+	public static final String VIRUS_SCANNER_HOST = "mosip.kernel.virus-scanner.host";
+	public static final String VIRUS_SCANNER_PORT = "mosip.kernel.virus-scanner.port";
 	public static final String QUEUE_ADDRESS = "health-check-address";
 	public static final String QUEUE_USERNAME = "registration.processor.queue.username";
 	public static final String QUEUE_PASSWORD = "registration.processor.queue.password";

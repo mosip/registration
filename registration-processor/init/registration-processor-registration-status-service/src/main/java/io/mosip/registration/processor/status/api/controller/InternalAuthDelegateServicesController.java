@@ -1,7 +1,14 @@
 package io.mosip.registration.processor.status.api.controller;
 
-import java.util.Optional;
-
+import io.mosip.kernel.core.http.ResponseFilter;
+import io.mosip.registration.processor.core.auth.dto.AuthRequestDTO;
+import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
+import io.mosip.registration.processor.status.service.InternalAuthDelegateService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.HttpHeaders;
@@ -10,23 +17,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import io.mosip.kernel.core.http.ResponseFilter;
-import io.mosip.registration.processor.core.auth.dto.AuthRequestDTO;
-import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
-import io.mosip.registration.processor.status.service.InternalAuthDelegateService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import java.util.Optional;
 
 /**
  * The Class InternalAuthDelegateServicesController - The controller exposing
@@ -35,7 +28,7 @@ import io.swagger.annotations.ApiResponses;
  */
 @RefreshScope
 @RestController
-@Api(tags = "Internal Auth Delegate Services")
+@Tag(name = "Internal Auth Delegate Services", description = "Internal Auth Delegate Services")
 public class InternalAuthDelegateServicesController {
 
 	/** The internal auth delegate service. */
@@ -51,8 +44,10 @@ public class InternalAuthDelegateServicesController {
 	 */
 	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN','REGISTRATION_OFFICER','REGISTRATION_SUPERVISOR')")
 	@PostMapping(path = "/auth", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@ApiOperation(value = "Authenticate Internal Request")
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Request authenticated successfully") })
+	@Operation(summary = "Authenticate Internal Request", description = "Authenticate Internal Request", tags = { "Internal Auth Delegate Services" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Request authenticated successfully"),
+			@ApiResponse(responseCode = "401", description = "Unauthorized") })
 	public ResponseEntity<AuthResponseDTO> authenticate(@Validated @RequestBody AuthRequestDTO authRequestDTO,
 			@RequestHeader HttpHeaders headers) throws Exception {
 		return ResponseEntity.status(HttpStatus.OK)
@@ -70,8 +65,9 @@ public class InternalAuthDelegateServicesController {
 	@PreAuthorize("hasAnyRole('INDIVIDUAL','REGISTRATION_PROCESSOR','REGISTRATION_ADMIN','REGISTRATION_SUPERVISOR','REGISTRATION_OFFICER','PRE_REGISTRATION_ADMIN')")
 	@ResponseFilter
 	@GetMapping(value = "/getCertificate")
-	public Object getCertificate(@ApiParam("Id of application") @RequestParam("applicationId") String applicationId,
-			@ApiParam("Refrence Id as metadata") @RequestParam("referenceId") Optional<String> referenceId, @RequestHeader HttpHeaders headers) throws Exception {
+	@Operation(summary = "getCertificate", description = "getCertificate", tags = { "Internal Auth Delegate Services" })
+	public Object getCertificate(@Parameter(description = "Id of application") @RequestParam("applicationId") String applicationId,
+								 @Parameter(description="Reference Id as metadata") @RequestParam("referenceId") Optional<String> referenceId, @RequestHeader HttpHeaders headers) throws Exception {
 		return internalAuthDelegateService.getCertificate(applicationId, referenceId, headers);
 	}
 

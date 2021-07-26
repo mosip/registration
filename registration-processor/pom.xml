@@ -5,12 +5,12 @@
 	<parent>
 		<groupId>io.mosip</groupId>
 		<artifactId>registration</artifactId>
-		<version>MOSIP-11739-1</version>
+		<version>1.2.0-SNAPSHOT</version>
 	</parent>
 
 	<groupId>io.mosip.registrationprocessor</groupId>
 	<artifactId>registration-processor</artifactId>
-	<version>MOSIP-11739-1</version>
+	<version>1.2.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>registration-processor</name>
@@ -51,7 +51,7 @@
 		<apache.httpcomponents.version>4.5.6</apache.httpcomponents.version>
 
 		<!-- Swagger -->
-		<swagger.version>2.9.2</swagger.version>
+		<swagger.version>3.0.0</swagger.version>
 
 		<!-- Data Access -->
 		<eclipselink.version>2.5.0</eclipselink.version>
@@ -108,13 +108,13 @@
 		<jsch.version>0.1.55</jsch.version>
 
 		<!-- local -->
-		<registration.status.service.version>MOSIP-11739-1</registration.status.service.version>
-		<registration.processor.core.version>MOSIP-11739-1</registration.processor.core.version>
-		<packet.manager.version>MOSIP-11739-1</packet.manager.version>
-		<registration.processor.rest.client.version>MOSIP-11739-1</registration.processor.rest.client.version>
-		<packet.info.storage.service.version>MOSIP-11739-1</packet.info.storage.service.version>
-		<packet.bio.dedupe.service.impl.version>MOSIP-11739-1</packet.bio.dedupe.service.impl.version>
-		<registration.processor.message.sender.version>MOSIP-11739-1</registration.processor.message.sender.version>
+		<registration.status.service.version>1.2.0-SNAPSHOT</registration.status.service.version>
+		<registration.processor.core.version>1.2.0-SNAPSHOT</registration.processor.core.version>
+		<packet.manager.version>1.2.0-SNAPSHOT</packet.manager.version>
+		<registration.processor.rest.client.version>1.2.0-SNAPSHOT</registration.processor.rest.client.version>
+		<packet.info.storage.service.version>1.2.0-SNAPSHOT</packet.info.storage.service.version>
+		<packet.bio.dedupe.service.impl.version>1.2.0-SNAPSHOT</packet.bio.dedupe.service.impl.version>
+		<registration.processor.message.sender.version>1.2.0-SNAPSHOT</registration.processor.message.sender.version>
 
 		<!-- Kernel -->
 		<kernel.core.version>1.2.0-SNAPSHOT</kernel.core.version>
@@ -122,7 +122,6 @@
 		<kernel.templatemanager.velocity.version>1.2.0-SNAPSHOT</kernel.templatemanager.velocity.version>
 		<kernel.idvalidator.uin.version>1.2.0-SNAPSHOT</kernel.idvalidator.uin.version>
 		<kernel.idvalidator.rid.version>1.2.0-SNAPSHOT</kernel.idvalidator.rid.version>
-		<kernel.clamav.version>1.2.0-SNAPSHOT</kernel.clamav.version>
 		<kernel.cbeffutil.version>1.2.0-SNAPSHOT</kernel.cbeffutil.version>
         <kernel.bioapi.provider.version>1.2.0-SNAPSHOT</kernel.bioapi.provider.version>
         <kernel.auth.adapter.version>1.2.0-SNAPSHOT</kernel.auth.adapter.version>

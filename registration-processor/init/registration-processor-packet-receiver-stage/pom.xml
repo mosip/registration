@@ -7,11 +7,11 @@
 	<parent>
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>init</artifactId>
-		<version>MOSIP-11739-1</version>
+		<version>1.2.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>registration-processor-packet-receiver-stage</artifactId>
-	<version>MOSIP-11739-1</version>
+	<version>1.2.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>registration-processor-packet-receiver-stage</name>
 
@@ -120,11 +120,6 @@
 			<groupId>javax.inject</groupId>
 			<artifactId>javax.inject</artifactId>
 			<version>1</version>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-virusscanner-clamav</artifactId>
-			<version>${kernel.clamav.version}</version>
 		</dependency>
 	</dependencies>
 	<dependencyManagement>

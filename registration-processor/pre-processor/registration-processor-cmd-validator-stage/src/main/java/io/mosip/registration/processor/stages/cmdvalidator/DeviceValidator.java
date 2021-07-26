@@ -99,7 +99,7 @@ public class DeviceValidator {
 			if(bir.getOthers()!=null) {
 			for(Entry entry: bir.getOthers()) {
 				if(entry.getKey().equals("PAYLOAD")) {
-					payloads.add(new JSONObject(entry.getValue()));				
+					payloads.add(new JSONObject(entry.getValue()));
 				}
 			}
 			}
@@ -124,7 +124,7 @@ public class DeviceValidator {
 					validateDeviceForHotlist(payload.getString("deviceCode"),newDigitalId.getDateTime());
 					deviceCodeTimestamps.add(payload.getString("deviceCode")+newDigitalId.getDateTime());
 				}
-				
+
 		}
 	}
 
@@ -137,11 +137,11 @@ public class DeviceValidator {
 		if(responseWrapper.getResponse() !=null) {
 			HotlistRequestResponseDTO hotListResponse=mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
 					HotlistRequestResponseDTO.class);
-		DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
-		
+		DateTimeFormatter format = DateTimeFormatter.ofPattern(digitalIdTimestampFormat);
+
 		LocalDateTime payloadTime = LocalDateTime.parse(digitalIdTimestamp, format);
 		if(hotListResponse.getExpiryTimestamp()!=null) {
-		
+
 		if(hotListResponse.getStatus().equalsIgnoreCase("BLOCKED") &&
 				payloadTime.isBefore(hotListResponse.getExpiryTimestamp())) {
 			throw new BaseCheckedException(
@@ -156,7 +156,7 @@ public class DeviceValidator {
 						StatusUtil.DEVICE_HOTLISTED.getMessage());
 			}
 		}
-		 
+
 		}
 		else {
 			throw new BaseCheckedException(
@@ -205,7 +205,7 @@ public class DeviceValidator {
 		if(responseWrapper.getResponse() !=null) {
 		JWTSignatureVerifyResponseDto jwtResponse = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
 				JWTSignatureVerifyResponseDto.class);
-				
+
 		if( !jwtResponse.isSignatureValid()) {
 			throw new BaseCheckedException(
 					StatusUtil.DEVICE_SIGNATURE_VALIDATION_FAILED.getCode(),StatusUtil.DEVICE_SIGNATURE_VALIDATION_FAILED.getMessage());
@@ -222,7 +222,7 @@ public class DeviceValidator {
 					responseWrapper.getErrors().get(0).getErrorCode(),
 					responseWrapper.getErrors().get(0).getMessage());
 		}
-		
+
 	}
 
 	

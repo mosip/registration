@@ -13,12 +13,112 @@
 -- Jun-2021		Ram Bhatt	   Added rows to transaction_type.csv
 -- Jun-2021		Ram Bhatt	   Added columns to registration list table
 -- Jun-2021 		Ram Bhatt	   Create crypto salt table.
--- July-2021		Ram Bhatt	   Added rows to transaction_type.csv
+-- Jul-2021		Ram Bhatt	   Added rows to transaction_type.csv
+-- Jul-2021		Ram Bhatt	   Multiple table changes on regprc db
 ----------------------------------------------------------------------------------------------------
 \c mosip_regprc sysadmin
 
+----------------------------------------------Multiple table level changes on regprc db-------------------------------------------------------
+
+ALTER TABLE regprc.individual_demographic_dedup DROP CONSTRAINT IF EXISTS fk_idemogd_reg CASCADE;
+ALTER TABLE regprc.reg_manual_verification DROP CONSTRAINT IF EXISTS fk_rmnlver_reg CASCADE;
+ALTER TABLE regprc.reg_bio_ref DROP CONSTRAINT IF EXISTS fk_regref_reg CASCADE;
+ALTER TABLE regprc.reg_lost_uin_det DROP CONSTRAINT IF EXISTS fk_rlostd_reg CASCADE;
+ALTER TABLE regprc.registration_transaction DROP CONSTRAINT IF EXISTS fk_regtrn_reg CASCADE;
+
+\ir ../ddl/regprc-additional_info_request.sql
+
+ALTER TABLE regprc.registration_list RENAME COLUMN id TO workflow_instance_id;
+ALTER TABLE regprc.registration_list RENAME COLUMN reg_type TO process;
+ALTER TABLE regprc.registration_list ADD COLUMN additional_info_req_id character varying(256);
+ALTER TABLE regprc.registration_list ADD COLUMN packet_id character varying;
+ALTER TABLE regprc.registration_list ADD COLUMN source character varying;
+
+ALTER TABLE regprc.registration RENAME COLUMN id TO reg_id;
+ALTER TABLE regprc.registration RENAME COLUMN reg_type TO process;
+ALTER TABLE regprc.registration ADD COLUMN workflow_instance_id character varying(36);
+ALTER TABLE regprc.registration ADD COLUMN source character varying;
+ALTER TABLE regprc.registration ADD COLUMN iteration integer DEFAULT 1;
+
+ALTER TABLE regprc.individual_demographic_dedup ADD COLUMN workflow_instance_id character varying(36);
+ALTER TABLE regprc.individual_demographic_dedup ADD COLUMN process character varying(36);
+ALTER TABLE regprc.individual_demographic_dedup ADD COLUMN iteration integer DEFAULT 1;
+
+
+ALTER TABLE regprc.reg_manual_verification ADD COLUMN workflow_instance_id character varying(36);
+
+ALTER TABLE regprc.reg_lost_uin_det ADD COLUMN workflow_instance_id character varying(36);
+
+ALTER TABLE regprc.reg_bio_ref ADD COLUMN workflow_instance_id character varying(36);
+ALTER TABLE regprc.reg_bio_ref ADD COLUMN process character varying(36);
+ALTER TABLE regprc.reg_bio_ref ADD COLUMN iteration integer DEFAULT 1;
+
+
+UPDATE regprc.registration a SET workflow_instance_id = b.workflow_instance_id FROM regprc.registration_list b WHERE a.reg_id = b.reg_id;
+UPDATE regprc.individual_demographic_dedup a SET workflow_instance_id = b.workflow_instance_id FROM regprc.registration_list b WHERE a.reg_id = b.reg_id;
+UPDATE regprc.reg_manual_verification a SET workflow_instance_id = b.workflow_instance_id FROM regprc.registration_list b WHERE a.reg_id = b.reg_id;
+UPDATE regprc.reg_lost_uin_det a SET workflow_instance_id = b.workflow_instance_id FROM regprc.registration_list b WHERE a.reg_id = b.reg_id;
+UPDATE regprc.reg_bio_ref a SET workflow_instance_id = b.workflow_instance_id FROM regprc.registration_list b WHERE a.reg_id = b.reg_id;
+
+create index idx_rbioref_crdtimes on regprc.reg_bio_ref (cr_dtimes);
+
+DROP INDEX idx_idemogd_namedobgender;
+create index idx_idemogd_namedobgender on regprc.individual_demographic_dedup (name, dob,gender);
+
+create index idx_rbioref_crdtimes on regprc.reg_bio_ref (cr_dtimes);
+
+create index idx_rmanvrn_reqid on regprc.reg_manual_verification (request_id);
+
+create index idx_rgstrn_ltstrbcode_ltststscode on regprc.registration (latest_trn_dtimes, latest_trn_status_code);
+
+create index idx_rgstrnlst_pcktid on regprc.registration_list (packet_id);
+create index idx_rgstrnlst_aireqid on regprc.registration_list (additional_info_req_id);
+
+ALTER TABLE regprc.individual_demographic_dedup DROP CONSTRAINT pk_idemogd_id;
+ALTER TABLE regprc.individual_demographic_dedup ALTER COLUMN workflow_instance_id SET NOT NULL;
+ALTER TABLE regprc.individual_demographic_dedup ADD CONSTRAINT pk_idemogd_id PRIMARY KEY (workflow_instance_id,lang_code);
+
+ALTER TABLE regprc.reg_bio_ref DROP CONSTRAINT pk_regbref_id;
+ALTER TABLE regprc.reg_bio_ref ALTER COLUMN workflow_instance_id SET NOT NULL;
+ALTER TABLE regprc.reg_bio_ref ADD CONSTRAINT pk_regbref_id PRIMARY KEY (bio_ref_id,workflow_instance_id);
+
+ALTER TABLE regprc.reg_lost_uin_det DROP CONSTRAINT pk_rlostd;
+ALTER TABLE regprc.reg_lost_uin_det ALTER COLUMN workflow_instance_id SET NOT NULL;
+ALTER TABLE regprc.reg_lost_uin_det ADD CONSTRAINT pk_rlostd PRIMARY KEY (workflow_instance_id);
+
+ALTER TABLE regprc.reg_manual_verification DROP CONSTRAINT pk_rmnlver_id;
+ALTER TABLE regprc.reg_manual_verification ALTER COLUMN workflow_instance_id SET NOT NULL;
+ALTER TABLE regprc.reg_manual_verification ADD CONSTRAINT pk_rmnlver_id PRIMARY KEY (workflow_instance_id,matched_ref_id,matched_ref_type);
+
+ALTER TABLE regprc.registration DROP CONSTRAINT pk_reg_id;
+ALTER TABLE regprc.registration ALTER COLUMN workflow_instance_id SET NOT NULL;
+ALTER TABLE regprc.registration ADD CONSTRAINT pk_reg_id PRIMARY KEY (workflow_instance_id);
+
+ALTER TABLE regprc.registration_list DROP CONSTRAINT pk_reglist_id;
+ALTER TABLE regprc.registration_list ALTER COLUMN workflow_instance_id SET NOT NULL;
+ALTER TABLE regprc.registration_list ADD CONSTRAINT pk_reglist_id PRIMARY KEY (workflow_instance_id);
+
+
+ALTER TABLE regprc.individual_demographic_dedup ADD CONSTRAINT fk_idemogd_reg FOREIGN KEY (workflow_instance_id)
+REFERENCES regprc.registration (workflow_instance_id) MATCH SIMPLE
+ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+ALTER TABLE regprc.reg_manual_verification ADD CONSTRAINT fk_rmnlver_reg FOREIGN KEY (workflow_instance_id)
+REFERENCES regprc.registration (workflow_instance_id) MATCH SIMPLE
+ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+ALTER TABLE regprc.reg_bio_ref ADD CONSTRAINT fk_regbrf_reg FOREIGN KEY (workflow_instance_id)
+REFERENCES regprc.registration (workflow_instance_id) MATCH SIMPLE
+ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+ALTER TABLE regprc.reg_lost_uin_det ADD CONSTRAINT fk_rlostd_reg FOREIGN KEY (workflow_instance_id)
+REFERENCES regprc.registration (workflow_instance_id) MATCH SIMPLE
+ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-----------------------------------------------------------------------------------------------------------------------------------------
 ALTER TABLE regprc.registration ADD COLUMN resume_timestamp timestamp;
 ALTER TABLE regprc.registration ADD COLUMN default_resume_action character varying(50);
+
 
 ---------------------------------------------------------------------------------------------------
 

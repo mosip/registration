@@ -83,6 +83,8 @@ public abstract class MosipVerticleManager extends AbstractVerticle
     @Autowired
     private ObjectMapper objectMapper;
 
+	private static final String PROMETHEUS_ENDPOINT = "/actuator/prometheus";
+
 	@Value("${mosip.regproc.eventbus.type:vertx}")
 	private String eventBusType;
 

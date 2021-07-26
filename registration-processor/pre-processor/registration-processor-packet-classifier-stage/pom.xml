@@ -7,10 +7,10 @@
 	<parent>
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>pre-processor</artifactId>
-		<version>MOSIP-11739-1</version>
+		<version>1.2.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>registration-processor-packet-classifier-stage</artifactId>
-	 	<version>MOSIP-11739-1</version>
+	 	<version>1.2.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
