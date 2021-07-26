@@ -51,7 +51,7 @@
 		<apache.httpcomponents.version>4.5.6</apache.httpcomponents.version>
 
 		<!-- Swagger -->
-		<swagger.version>3.0.0</swagger.version>
+		<swagger.version>2.9.2</swagger.version>
 
 		<!-- Data Access -->
 		<eclipselink.version>2.5.0</eclipselink.version>
