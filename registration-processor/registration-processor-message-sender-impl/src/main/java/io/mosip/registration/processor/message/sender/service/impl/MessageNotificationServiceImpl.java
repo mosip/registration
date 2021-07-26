@@ -166,9 +166,9 @@ public class MessageNotificationServiceImpl
 				"MessageNotificationServiceImpl::sendSmsNotification()::entry");
 		try {
 			setAttributes(id, process, idType, attributes, regType, phoneNumber, emailId);
-			List<String> preferedLanguages= getPreferedLanguage(id,process);
+			List<String> preferredLanguages= getPreferredLanguages(id,process);
 			String artifact="";
-			for(String lang: preferedLanguages) {
+			for(String lang: preferredLanguages) {
 				InputStream stream = templateGenerator.getTemplate(templateTypeCode, attributes, lang);
 				if(artifact.isBlank()) {
 				 artifact = IOUtils.toString(stream, ENCODING);
@@ -237,9 +237,9 @@ public class MessageNotificationServiceImpl
 				"MessageNotificationServiceImpl::sendEmailNotification()::entry");
 		try {
 			setAttributes(id, process, idType, attributes, regType, phoneNumber, emailId);
-			List<String> preferedLanguages= getPreferedLanguage(id,process);
+			List<String> preferredLanguages= getPreferredLanguages(id,process);
 			String artifact="";
-			for(String lang: preferedLanguages) {
+			for(String lang: preferredLanguages) {
 				InputStream stream = templateGenerator.getTemplate(templateTypeCode, attributes, lang);
 				if(artifact.isBlank()) {
 				 artifact = IOUtils.toString(stream, ENCODING);
@@ -273,7 +273,7 @@ public class MessageNotificationServiceImpl
 		return response;
 	}
 	
-	private List<String> getPreferedLanguage(String id, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+	private List<String> getPreferredLanguages(String id, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
 		String preferredLang=packetManagerService.getField(id, MappingJsonConstants.PREFERRED_LANGUAGE, process, ProviderStageName.MESSAGE_SENDER);
 		if(preferredLang!=null && !preferredLang.isBlank()) {
 			return List.of(preferredLang.split(","));

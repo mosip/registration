@@ -130,12 +130,12 @@ public class NotificationUtility {
 		NotificationTemplateType type = null;
 		Map<String, Object> attributes = new HashMap<>();
 		attributes.put("RID", registrationId);
-		List<String> preferedLanguages=getPreferedLanguage(registrationStatusDto);
-		for(String preferedLanguage:preferedLanguages) {
+		List<String> preferredLanguages=getPreferredLanguages(registrationStatusDto);
+		for(String preferredLanguage:preferredLanguages) {
 		if (registrationAdditionalInfoDTO.getName() != null) {
-			attributes.put("name_" + preferedLanguage, registrationAdditionalInfoDTO.getName());
+			attributes.put("name_" + preferredLanguage, registrationAdditionalInfoDTO.getName());
 		} else {
-			attributes.put("name_" + preferedLanguage, "");
+			attributes.put("name_" + preferredLanguage, "");
 		}
 		
 		if (isProcessingSuccess) {
@@ -152,17 +152,17 @@ public class NotificationUtility {
 				if (notificationType.equalsIgnoreCase("EMAIL")
 						&& (registrationAdditionalInfoDTO.getEmail() != null
 						&& !registrationAdditionalInfoDTO.getEmail().isEmpty())) {
-					sendEmailNotification(registrationAdditionalInfoDTO, messageSenderDTO, attributes, description,preferedLanguage);
+					sendEmailNotification(registrationAdditionalInfoDTO, messageSenderDTO, attributes, description,preferredLanguage);
 				} else if (notificationType.equalsIgnoreCase("SMS") && (registrationAdditionalInfoDTO.getPhone() != null
 						&& !registrationAdditionalInfoDTO.getPhone().isEmpty())) {
-					sendSMSNotification(registrationAdditionalInfoDTO, messageSenderDTO, attributes, description,preferedLanguage);
+					sendSMSNotification(registrationAdditionalInfoDTO, messageSenderDTO, attributes, description,preferredLanguage);
 				}
 			}
 		}
 		}
 	}
 
-	private List<String> getPreferedLanguage(InternalRegistrationStatusDto registrationStatusDto) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException, JSONException {
+	private List<String> getPreferredLanguages(InternalRegistrationStatusDto registrationStatusDto) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException, JSONException {
 		String preferredLang=packetManagerService.getField(registrationStatusDto.getRegistrationId(), MappingJsonConstants.PREFERRED_LANGUAGE, registrationStatusDto.getRegistrationType(), ProviderStageName.valueOf(registrationStatusDto.getRegistrationStageName()));
 		if(preferredLang!=null && !preferredLang.isBlank()) {
 			return List.of(preferredLang.split(","));
