@@ -3,14 +3,23 @@ package io.mosip.registration.processor.stages.utils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.assertj.core.util.Arrays;
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -23,9 +32,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.TemplateProcessingFailureException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
@@ -42,6 +55,7 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.message.sender.exception.TemplateGenerationFailedException;
 import io.mosip.registration.processor.message.sender.exception.TemplateNotFoundException;
 import io.mosip.registration.processor.message.sender.template.TemplateGenerator;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 import io.mosip.registration.processor.stages.dto.MessageSenderDTO;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -77,11 +91,8 @@ public class NotificationUtility {
 	private String reregisterSubject;
 
 	/** The primary language. */
-	@Value("${mosip.primary-language}")
-	private String primaryLang;
-
-	@Value("${mosip.secondary-language}")
-	private String secondaryLang;
+	@Value("#{'${mosip.default.template-languages}'.split(',')}")
+	private List<String> defaultTemplateLanguages;
 
 	@Value("${mosip.notification.language-type}")
 	private String languageType;
@@ -97,6 +108,9 @@ public class NotificationUtility {
 	/** The resclient. */
 	@Autowired
 	private RestApiClient resclient;
+	
+	@Autowired
+	private PriorityBasedPacketManagerService packetManagerService;
 
 	private static final String SMS_SERVICE_ID = "mosip.registration.processor.sms.id";
 	private static final String REG_PROC_APPLICATION_VERSION = "mosip.registration.processor.application.version";
@@ -108,7 +122,7 @@ public class NotificationUtility {
 	public void sendNotification(RegistrationAdditionalInfoDTO registrationAdditionalInfoDTO,
 			InternalRegistrationStatusDto registrationStatusDto, SyncRegistrationEntity regEntity,
 			String[] allNotificationTypes, boolean isProcessingSuccess)
-			throws ApisResourceAccessException, IOException {
+			throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException, JSONException {
 		registrationId = regEntity.getRegistrationId();
 		LogDescription description = new LogDescription();
 		String regType = regEntity.getRegistrationType();
@@ -116,10 +130,12 @@ public class NotificationUtility {
 		NotificationTemplateType type = null;
 		Map<String, Object> attributes = new HashMap<>();
 		attributes.put("RID", registrationId);
+		List<String> preferedLanguages=getPreferedLanguage(registrationStatusDto);
+		for(String preferedLanguage:preferedLanguages) {
 		if (registrationAdditionalInfoDTO.getName() != null) {
-			attributes.put("name_" + primaryLang, registrationAdditionalInfoDTO.getName());
+			attributes.put("name_" + preferedLanguage, registrationAdditionalInfoDTO.getName());
 		} else {
-			attributes.put("name_" + primaryLang, "");
+			attributes.put("name_" + preferedLanguage, "");
 		}
 		
 		if (isProcessingSuccess) {
@@ -136,20 +152,61 @@ public class NotificationUtility {
 				if (notificationType.equalsIgnoreCase("EMAIL")
 						&& (registrationAdditionalInfoDTO.getEmail() != null
 						&& !registrationAdditionalInfoDTO.getEmail().isEmpty())) {
-					sendEmailNotification(registrationAdditionalInfoDTO, messageSenderDTO, attributes, description);
+					sendEmailNotification(registrationAdditionalInfoDTO, messageSenderDTO, attributes, description,preferedLanguage);
 				} else if (notificationType.equalsIgnoreCase("SMS") && (registrationAdditionalInfoDTO.getPhone() != null
 						&& !registrationAdditionalInfoDTO.getPhone().isEmpty())) {
-					sendSMSNotification(registrationAdditionalInfoDTO, messageSenderDTO, attributes, description);
+					sendSMSNotification(registrationAdditionalInfoDTO, messageSenderDTO, attributes, description,preferedLanguage);
 				}
 			}
 		}
+		}
+	}
+
+	private List<String> getPreferedLanguage(InternalRegistrationStatusDto registrationStatusDto) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException, JSONException {
+		String preferredLang=packetManagerService.getField(registrationStatusDto.getRegistrationId(), MappingJsonConstants.PREFERRED_LANGUAGE, registrationStatusDto.getRegistrationType(), ProviderStageName.valueOf(registrationStatusDto.getRegistrationStageName()));
+		if(preferredLang!=null && !preferredLang.isBlank()) {
+			return List.of(preferredLang.split(","));
+		}else {
+			if(defaultTemplateLanguages!=null && !defaultTemplateLanguages.isEmpty()) {
+				return defaultTemplateLanguages;
+			}else {
+				List<Field> fields=List.of(MappingJsonConstants.class.getDeclaredFields());
+				List<String> jsonFields =new ArrayList<>();
+				fields.forEach(x ->jsonFields.add(x.getName()));
+				Map<String, String> idObjectMap=packetManagerService.getFields(registrationStatusDto.getRegistrationId(), jsonFields, registrationStatusDto.getRegistrationType(), ProviderStageName.valueOf(registrationStatusDto.getRegistrationStageName()));
+				Set<String> langSet=new HashSet<>();
+				for(Entry<String, String> entry:idObjectMap.entrySet()) {
+					if(entry.getValue()!=null&& !entry.getValue().isBlank()  ) {
+					if(isJSONArrayValid(entry.getValue())) {
+					ObjectMapper mapper=new ObjectMapper();
+					org.json.simple.JSONArray array=mapper.readValue(entry.getValue(), org.json.simple.JSONArray.class);
+					for(Object obj:array) {	
+						org.json.simple.JSONObject json= new org.json.simple.JSONObject((Map) obj);
+						langSet.add( (String) json.get("language"));
+						
+					}
+					}
+					}
+				}
+				return new ArrayList<>(langSet);
+			}
+		}		
+	}
+	
+	public boolean isJSONArrayValid(String test) {
+	        try {
+	            new JSONArray(test);
+	        } catch (JSONException ex1) {
+	            return false;
+	        }
+	    return true;
 	}
 
 	private void sendSMSNotification(RegistrationAdditionalInfoDTO registrationAdditionalInfoDTO,
-			MessageSenderDTO messageSenderDTO, Map<String, Object> attributes, LogDescription description) {
+			MessageSenderDTO messageSenderDTO, Map<String, Object> attributes, LogDescription description,String preferedLanguage) {
 		try {
 			SmsResponseDto smsResponse = sendSMS(registrationAdditionalInfoDTO,
-					messageSenderDTO.getSmsTemplateCode().name(), attributes);
+					messageSenderDTO.getSmsTemplateCode().name(), attributes,preferedLanguage);
 
 			if (smsResponse.getStatus().equals("success")) {
 				description.setCode(PlatformSuccessMessages.RPR_MESSAGE_SENDER_STAGE_SUCCESS.getCode());
@@ -173,7 +230,7 @@ public class NotificationUtility {
 	}
 
 	private SmsResponseDto sendSMS(RegistrationAdditionalInfoDTO registrationAdditionalInfoDTO, String templateTypeCode,
-			Map<String, Object> attributes) throws ApisResourceAccessException, IOException, JSONException {
+			Map<String, Object> attributes,String preferedLanguage) throws ApisResourceAccessException, IOException, JSONException {
 		SmsResponseDto response;
 		SmsRequestDto smsDto = new SmsRequestDto();
 		RequestWrapper<SmsRequestDto> requestWrapper = new RequestWrapper<>();
@@ -182,7 +239,7 @@ public class NotificationUtility {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationId, "NotificationUtility::sendSms()::entry");
 		try {
-			InputStream in = templateGenerator.getTemplate(templateTypeCode, attributes, primaryLang);
+			InputStream in = templateGenerator.getTemplate(templateTypeCode, attributes, preferedLanguage);
 			String artifact = IOUtils.toString(in, ENCODING);
 
 			smsDto.setNumber(registrationAdditionalInfoDTO.getPhone());
@@ -221,7 +278,7 @@ public class NotificationUtility {
 	}
 
 	private void sendEmailNotification(RegistrationAdditionalInfoDTO registrationAdditionalInfoDTO,
-			MessageSenderDTO messageSenderDTO, Map<String, Object> attributes, LogDescription description) {
+			MessageSenderDTO messageSenderDTO, Map<String, Object> attributes, LogDescription description,String preferedLanguage) {
 		try {
 			String subjectTemplateCode;
 			if (messageSenderDTO.getSmsTemplateCode().name()
@@ -231,7 +288,7 @@ public class NotificationUtility {
 				subjectTemplateCode = messageSenderDTO.getSubjectTemplateCode().name();
 			}
 			ResponseDto emailResponse = sendEmail(registrationAdditionalInfoDTO,
-					messageSenderDTO.getEmailTemplateCode().name(), subjectTemplateCode, attributes);
+					messageSenderDTO.getEmailTemplateCode().name(), subjectTemplateCode, attributes,preferedLanguage);
 			if (emailResponse.getStatus().equals("success")) {
 				description.setCode(PlatformSuccessMessages.RPR_MESSAGE_SENDER_STAGE_SUCCESS.getCode());
 				description.setMessage(StatusUtil.MESSAGE_SENDER_EMAIL_SUCCESS.getMessage());
@@ -254,16 +311,16 @@ public class NotificationUtility {
 	}
 
 	private ResponseDto sendEmail(RegistrationAdditionalInfoDTO registrationAdditionalInfoDTO, String templateTypeCode,
-			String subjectTypeCode, Map<String, Object> attributes) throws Exception {
+			String subjectTypeCode, Map<String, Object> attributes,String preferedLanguage) throws Exception {
 		ResponseDto response = null;
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationId, "NotificationUtility::sendEmail()::entry");
 		try {
-			InputStream in = templateGenerator.getTemplate(templateTypeCode, attributes, primaryLang);
+			InputStream in = templateGenerator.getTemplate(templateTypeCode, attributes, preferedLanguage);
 			String artifact = IOUtils.toString(in, ENCODING);
 
-			InputStream subjectInputStream = templateGenerator.getTemplate(subjectTypeCode, attributes, primaryLang);
+			InputStream subjectInputStream = templateGenerator.getTemplate(subjectTypeCode, attributes, preferedLanguage);
 			String subjectArtifact = IOUtils.toString(subjectInputStream, ENCODING);
 
 			String mailTo = registrationAdditionalInfoDTO.getEmail();

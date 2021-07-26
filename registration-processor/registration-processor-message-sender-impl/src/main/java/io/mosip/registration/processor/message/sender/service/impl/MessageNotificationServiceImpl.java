@@ -3,13 +3,17 @@ package io.mosip.registration.processor.message.sender.service.impl;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.Map.Entry;
 
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
@@ -19,6 +23,7 @@ import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketM
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.h2.util.New;
 import org.json.JSONException;
 import org.json.JSONTokener;
 import org.json.simple.JSONArray;
@@ -65,6 +70,7 @@ import io.mosip.registration.processor.packet.storage.exception.IdRepoAppExcepti
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 import io.mosip.registration.processor.status.code.RegistrationType;
+import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 
 /**
  * ServiceImpl class for sending notification.
@@ -99,13 +105,6 @@ public class MessageNotificationServiceImpl
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(MessageNotificationServiceImpl.class);
 
-	/** The primary language. */
-	@Value("${mosip.primary-language}")
-	private String primaryLang;
-
-	@Value("${mosip.secondary-language}")
-	private String secondaryLang;
-
 	@Value("${mosip.notification.language-type}")
 	private String languageType;
 
@@ -128,6 +127,9 @@ public class MessageNotificationServiceImpl
 	/** The rest client service. */
 	@Autowired
 	private RegistrationProcessorRestClientService<Object> restClientService;
+	
+	@Value("#{'${mosip.default.template-languages}'.split(',')}")
+	private List<String> defaultTemplateLanguages;
 
 	/** The resclient. */
 	@Autowired
@@ -164,13 +166,17 @@ public class MessageNotificationServiceImpl
 				"MessageNotificationServiceImpl::sendSmsNotification()::entry");
 		try {
 			setAttributes(id, process, idType, attributes, regType, phoneNumber, emailId);
-			InputStream in = templateGenerator.getTemplate(templateTypeCode, attributes, primaryLang);
-			String artifact = IOUtils.toString(in, ENCODING);
-			if(languageType.equalsIgnoreCase(BOTH)){
-				InputStream secondaryStream = templateGenerator.getTemplate(templateTypeCode, attributes, secondaryLang);
-				String secondaryArtifact = IOUtils.toString(secondaryStream, ENCODING);
-				artifact = artifact + LINE_SEPARATOR + secondaryArtifact;
+			List<String> preferedLanguages= getPreferedLanguage(id,process);
+			String artifact="";
+			for(String lang: preferedLanguages) {
+				InputStream stream = templateGenerator.getTemplate(templateTypeCode, attributes, lang);
+				if(artifact.isBlank()) {
+				 artifact = IOUtils.toString(stream, ENCODING);
+				}else {
+				artifact = artifact + LINE_SEPARATOR + IOUtils.toString(stream, ENCODING);;
+				}
 			}
+			
 
 			if (phoneNumber == null || phoneNumber.length() == 0) {
 				throw new PhoneNumberNotFoundException(PlatformErrorMessages.RPR_SMS_PHONE_NUMBER_NOT_FOUND.getCode());
@@ -231,13 +237,15 @@ public class MessageNotificationServiceImpl
 				"MessageNotificationServiceImpl::sendEmailNotification()::entry");
 		try {
 			setAttributes(id, process, idType, attributes, regType, phoneNumber, emailId);
-
-			InputStream in = templateGenerator.getTemplate(templateTypeCode, attributes, primaryLang);
-			String artifact = IOUtils.toString(in, ENCODING);
-			if(languageType.equalsIgnoreCase(BOTH)){
-				InputStream secondaryStream = templateGenerator.getTemplate(templateTypeCode, attributes, secondaryLang);
-				String secondaryArtifact = IOUtils.toString(secondaryStream, ENCODING);
-				artifact = artifact + LINE_SEPARATOR + secondaryArtifact;
+			List<String> preferedLanguages= getPreferedLanguage(id,process);
+			String artifact="";
+			for(String lang: preferedLanguages) {
+				InputStream stream = templateGenerator.getTemplate(templateTypeCode, attributes, lang);
+				if(artifact.isBlank()) {
+				 artifact = IOUtils.toString(stream, ENCODING);
+				}else {
+				artifact = artifact + LINE_SEPARATOR + IOUtils.toString(stream, ENCODING);;
+				}
 			}
 
 			if (emailId == null || emailId.length() == 0) {
@@ -263,6 +271,46 @@ public class MessageNotificationServiceImpl
 				"MessageNotificationServiceImpl::sendEmailNotification()::exit");
 
 		return response;
+	}
+	
+	private List<String> getPreferedLanguage(String id, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+		String preferredLang=packetManagerService.getField(id, MappingJsonConstants.PREFERRED_LANGUAGE, process, ProviderStageName.MESSAGE_SENDER);
+		if(preferredLang!=null && !preferredLang.isBlank()) {
+			return List.of(preferredLang.split(","));
+		}else {
+			if(defaultTemplateLanguages!=null && !defaultTemplateLanguages.isEmpty()) {
+				return defaultTemplateLanguages;
+			}else {
+				List<Field> fields=List.of(MappingJsonConstants.class.getDeclaredFields());
+				List<String> jsonFields =new ArrayList<>();
+				fields.forEach(x ->jsonFields.add(x.getName()));
+				Map<String, String> idObjectMap=packetManagerService.getFields(id, jsonFields, process, ProviderStageName.MESSAGE_SENDER);
+				Set<String> langSet=new HashSet<>();
+				for(Entry<String, String> entry:idObjectMap.entrySet()) {
+					if(entry.getValue()!=null&& !entry.getValue().isBlank()  ) {
+					if(isJSONArrayValid(entry.getValue())) {
+					ObjectMapper mapper=new ObjectMapper();
+					JSONArray array=mapper.readValue(entry.getValue(), JSONArray.class);
+					for(Object obj:array) {	
+						JSONObject json= new JSONObject( (Map) obj);
+						langSet.add( (String) json.get("language"));
+						
+					}
+					}
+					}
+				}
+				return new ArrayList<>(langSet);
+			}
+		}		
+	}
+	
+	public boolean isJSONArrayValid(String test) {
+	        try {
+	            new org.json.JSONArray(test);
+	        } catch (JSONException ex1) {
+	            return false;
+	        }
+	    return true;
 	}
 
 	/**
