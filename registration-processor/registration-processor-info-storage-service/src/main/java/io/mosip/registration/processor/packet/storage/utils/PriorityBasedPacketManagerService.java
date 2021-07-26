@@ -1,8 +1,25 @@
 package io.mosip.registration.processor.packet.storage.utils;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.assertj.core.util.Lists;
+import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.util.JsonUtil;
@@ -10,25 +27,8 @@ import io.mosip.registration.processor.packet.storage.dto.ContainerInfoDto;
 import io.mosip.registration.processor.packet.storage.dto.Document;
 import io.mosip.registration.processor.packet.storage.dto.FieldResponseDto;
 import io.mosip.registration.processor.packet.storage.dto.InfoResponseDto;
-import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.packet.storage.dto.ValidatePacketResponse;
 import io.mosip.registration.processor.packet.storage.helper.PacketManagerHelper;
-import org.assertj.core.util.Lists;
-import org.json.simple.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Component
 public class PriorityBasedPacketManagerService {
