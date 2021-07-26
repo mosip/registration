@@ -182,19 +182,23 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 	 * Deploy verticle.
 	 */
 	public void deployVerticle() {
-		MosipEventBus mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
-		this.consume(mosipEventBus, MessageBusAddress.MESSAGE_SENDER_BUS, messageExpiryTimeLimit);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see io.vertx.core.AbstractVerticle#start()
-	 */
-	@Override
-	public void start() {
-		router.setRoute(this.postUrl(vertx, MessageBusAddress.MESSAGE_SENDER_BUS, null));
-		this.createServer(router.getRouter(), getPort());
+		MessageDTO dto=new MessageDTO();
+		dto.setRid("10003100241000420210722143543");
+		dto.setReg_type(io.mosip.registration.processor.core.constant.RegistrationType.NEW);
+		process(dto);
+//		MosipEventBus mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
+//		this.consume(mosipEventBus, MessageBusAddress.MESSAGE_SENDER_BUS, messageExpiryTimeLimit);
+//	}
+//
+//	/*
+//	 * (non-Javadoc)
+//	 *
+//	 * @see io.vertx.core.AbstractVerticle#start()
+//	 */
+//	@Override
+//	public void start() {
+//		router.setRoute(this.postUrl(vertx, MessageBusAddress.MESSAGE_SENDER_BUS, null));
+//		this.createServer(router.getRouter(), getPort());
 	}
 
 	/*
