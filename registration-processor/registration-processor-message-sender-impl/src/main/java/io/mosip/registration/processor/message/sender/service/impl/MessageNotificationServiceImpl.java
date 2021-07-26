@@ -304,10 +304,10 @@ public class MessageNotificationServiceImpl
 		}		
 	}
 	
-	public boolean isJSONArrayValid(String test) {
+	public boolean isJSONArrayValid(String jsonArrayString) {
 	        try {
-	            new org.json.JSONArray(test);
-	        } catch (JSONException ex1) {
+	            new org.json.JSONArray(jsonArrayString);
+	        } catch (JSONException ex) {
 	            return false;
 	        }
 	    return true;

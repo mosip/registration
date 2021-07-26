@@ -193,10 +193,10 @@ public class NotificationUtility {
 		}		
 	}
 	
-	public boolean isJSONArrayValid(String test) {
+	public boolean isJSONArrayValid(String jsonArrayString) {
 	        try {
-	            new JSONArray(test);
-	        } catch (JSONException ex1) {
+	            new JSONArray(jsonArrayString);
+	        } catch (JSONException ex) {
 	            return false;
 	        }
 	    return true;
