@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -67,6 +68,19 @@ public class PriorityBasedPacketManagerService {
                 MappingJsonConstants.VALUE);
 
         return getField(id, field, process, stageName);
+    }
+    
+    public Map<String, String> getAllFieldsByMappingJsonKeys(String id, String process, ProviderStageName stageName) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+        JSONObject regProcessorIdentityJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
+        List<String> fields=new ArrayList<>();
+        for(Object key:regProcessorIdentityJson.keySet()) {
+        String field = JsonUtil.getJSONValue(
+                JsonUtil.getJSONObject(regProcessorIdentityJson, key),
+                MappingJsonConstants.VALUE);
+        fields.addAll(List.of(field.split(",")));
+        }
+        Map<String, String> idValuesMap=getFields(id,fields,process,stageName);
+        return idValuesMap;
     }
 
     /**

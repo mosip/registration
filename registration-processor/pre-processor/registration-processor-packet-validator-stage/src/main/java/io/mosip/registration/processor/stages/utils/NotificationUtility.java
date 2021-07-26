@@ -91,8 +91,8 @@ public class NotificationUtility {
 	private String reregisterSubject;
 
 	/** The primary language. */
-	@Value("#{'${mosip.default.template-languages}'.split(',')}")
-	private List<String> defaultTemplateLanguages;
+	@Value("${mosip.default.template-languages}")
+	private String defaultTemplateLanguages;
 
 	@Value("${mosip.notification.language-type}")
 	private String languageType;
@@ -164,25 +164,28 @@ public class NotificationUtility {
 
 	private List<String> getPreferredLanguages(InternalRegistrationStatusDto registrationStatusDto) throws ApisResourceAccessException, 
 	PacketManagerException, JsonProcessingException, IOException, JSONException {
-		String preferredLang=packetManagerService.getField(registrationStatusDto.getRegistrationId(), MappingJsonConstants.PREFERRED_LANGUAGE,
+		String preferredLang=packetManagerService.getFieldByMappingJsonKey(registrationStatusDto.getRegistrationId(), MappingJsonConstants.PREFERRED_LANGUAGE,
 				registrationStatusDto.getRegistrationType(), ProviderStageName.PACKET_VALIDATOR);
 		if(preferredLang!=null && !preferredLang.isBlank()) {
 			return List.of(preferredLang.split(","));
 		}else {
-			if(defaultTemplateLanguages!=null && !defaultTemplateLanguages.isEmpty()) {
-				return defaultTemplateLanguages;
+			if(defaultTemplateLanguages!=null && !defaultTemplateLanguages.isBlank()) {
+				return List.of(defaultTemplateLanguages.split(","));
 			}else {
-				List<Field> fields=List.of(MappingJsonConstants.class.getDeclaredFields());
-				List<String> jsonFields =new ArrayList<>();
-				fields.forEach(x ->jsonFields.add(x.getName()));
-				Map<String, String> idObjectMap=packetManagerService.getFields(registrationStatusDto.getRegistrationId(), jsonFields, 
+				Map<String,String> idValuesMap=packetManagerService.getAllFieldsByMappingJsonKeys(registrationStatusDto.getRegistrationId(), 
 						registrationStatusDto.getRegistrationType(), ProviderStageName.PACKET_VALIDATOR);
+				List<String> idValues=new ArrayList<>();
+		        for(Entry<String, String> entry: idValuesMap.entrySet()) {
+		        	if(entry.getValue()!=null && !entry.getValue().isBlank()) {
+		        		idValues.add(entry.getValue());
+		        	}
+		        }
 				Set<String> langSet=new HashSet<>();
-				for(Entry<String, String> entry:idObjectMap.entrySet()) {
-					if(entry.getValue()!=null&& !entry.getValue().isBlank()  ) {
-					if(isJSONArrayValid(entry.getValue())) {
+				for( String idValue:idValues) {
+					if(idValue!=null&& !idValue.isBlank()  ) {
+					if(isJSONArrayValid(idValue)) {
 					ObjectMapper mapper=new ObjectMapper();
-					org.json.simple.JSONArray array=mapper.readValue(entry.getValue(), org.json.simple.JSONArray.class);
+					org.json.simple.JSONArray array=mapper.readValue(idValue, org.json.simple.JSONArray.class);
 					for(Object obj:array) {	
 						org.json.simple.JSONObject json= new org.json.simple.JSONObject((Map) obj);
 						langSet.add( (String) json.get("language"));

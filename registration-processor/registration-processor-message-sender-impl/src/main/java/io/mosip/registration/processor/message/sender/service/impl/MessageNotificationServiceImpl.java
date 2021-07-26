@@ -23,7 +23,6 @@ import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketM
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.h2.util.New;
 import org.json.JSONException;
 import org.json.JSONTokener;
 import org.json.simple.JSONArray;
@@ -128,8 +127,8 @@ public class MessageNotificationServiceImpl
 	@Autowired
 	private RegistrationProcessorRestClientService<Object> restClientService;
 	
-	@Value("#{'${mosip.default.template-languages}'.split(',')}")
-	private List<String> defaultTemplateLanguages;
+	@Value("${mosip.default.template-languages}")
+	private String defaultTemplateLanguages;
 
 	/** The resclient. */
 	@Autowired
@@ -275,25 +274,28 @@ public class MessageNotificationServiceImpl
 	
 	private List<String> getPreferredLanguages(String id, String process) throws ApisResourceAccessException, 
 	PacketManagerException, JsonProcessingException, IOException {
-		String preferredLang=packetManagerService.getField(id, MappingJsonConstants.PREFERRED_LANGUAGE, process, 
+		String preferredLang=packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.PREFERRED_LANGUAGE, process, 
 				ProviderStageName.MESSAGE_SENDER);
 		if(preferredLang!=null && !preferredLang.isBlank()) {
 			return List.of(preferredLang.split(","));
 		}else {
-			if(defaultTemplateLanguages!=null && !defaultTemplateLanguages.isEmpty()) {
-				return defaultTemplateLanguages;
+			if(defaultTemplateLanguages!=null && !defaultTemplateLanguages.isBlank()) {
+				return List.of(defaultTemplateLanguages.split(","));
 			}else {
-				List<Field> fields=List.of(MappingJsonConstants.class.getDeclaredFields());
-				List<String> jsonFields =new ArrayList<>();
-				fields.forEach(x ->jsonFields.add(x.getName()));
-				Map<String, String> idObjectMap=packetManagerService.getFields(id, jsonFields, process,
+				Map<String,String> idValuesMap=packetManagerService.getAllFieldsByMappingJsonKeys(id, process, 
 						ProviderStageName.MESSAGE_SENDER);
+				List<String> idValues=new ArrayList<>();
+		        for(Entry<String, String> entry: idValuesMap.entrySet()) {
+		        	if(entry.getValue()!=null && !entry.getValue().isBlank()) {
+		        		idValues.add(entry.getValue());
+		        	}
+		        }
 				Set<String> langSet=new HashSet<>();
-				for(Entry<String, String> entry:idObjectMap.entrySet()) {
-					if(entry.getValue()!=null&& !entry.getValue().isBlank()  ) {
-					if(isJSONArrayValid(entry.getValue())) {
+				for( String idValue:idValues) {
+					if(idValue!=null&& !idValue.isBlank()  ) {
+					if(isJSONArrayValid(idValue)) {
 					ObjectMapper mapper=new ObjectMapper();
-					JSONArray array=mapper.readValue(entry.getValue(), JSONArray.class);
+					JSONArray array=mapper.readValue(idValue, JSONArray.class);
 					for(Object obj:array) {	
 						JSONObject json= new JSONObject( (Map) obj);
 						langSet.add( (String) json.get("language"));
