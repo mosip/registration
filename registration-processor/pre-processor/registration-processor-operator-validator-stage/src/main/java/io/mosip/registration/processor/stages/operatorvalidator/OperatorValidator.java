@@ -362,9 +362,9 @@ public class OperatorValidator {
 		regProcLogger.debug("validateMapping call ended for registrationId {} with response data {}",
 				registrationStatusDto.getRegistrationId(), JsonUtil.objectMapperObjectToJson(userDto));
 		if (userDto != null) {
-			if (responseWrapper.getErrors() == null) {
-				isValidUser = userDto.getRegistrationCenters().get(0).getIsActive();
-			} else {
+			isValidUser = userDto.getRegistrationCenters().get(0).getIsActive();
+		} else {
+			if (responseWrapper.getErrors() != null) {
 				List<ErrorDTO> error = responseWrapper.getErrors();
 				regProcLogger.debug("validateMapping call ended for registrationId {} with error data {}",
 						registrationStatusDto.getRegistrationId(), error.get(0).getMessage());
