@@ -170,11 +170,6 @@ public class MessageSenderStageTest {
 		ReflectionTestUtils.setField(stage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(stage, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(stage, "notificationTypes", "SMS|EMAIL");
-		ReflectionTestUtils.setField(stage, "uinGeneratedSubjectCode", "UIN generated");
-		ReflectionTestUtils.setField(stage, "uinActivateSubjectCode", "UIN activated");
-		ReflectionTestUtils.setField(stage, "uinDeactivateSubjectCode", "UIN deactivated");
-		ReflectionTestUtils.setField(stage, "duplicateUinSubjectCode", "duplicate uin");
-		ReflectionTestUtils.setField(stage, "reregisterSubjectCode", "re register");
 		ReflectionTestUtils.setField(stage, "notificationEmails", "abc@gmail.com");
 
 		Mockito.doNothing().when(registrationStatusDto).setStatusCode(any());
