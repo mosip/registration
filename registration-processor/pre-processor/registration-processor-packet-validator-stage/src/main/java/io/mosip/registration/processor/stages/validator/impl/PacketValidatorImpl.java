@@ -3,18 +3,30 @@ package io.mosip.registration.processor.stages.validator.impl;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.mosip.kernel.biometrics.commons.BiometricsSignatureValidator;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.cbeffutil.exception.CbeffException;
+import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
@@ -24,6 +36,7 @@ import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.core.packet.dto.packetvalidator.PacketValidationDto;
 import io.mosip.registration.processor.core.spi.packet.validator.PacketValidator;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
@@ -57,12 +70,25 @@ public class PacketValidatorImpl implements PacketValidator {
 
 	@Autowired
 	private Environment env;
+	
+	@Autowired
+	private ObjectMapper objectMapper;
 
 	@Autowired
 	private BiometricsXSDValidator biometricsXSDValidator;
+	
+	@Autowired
+	private BiometricsSignatureValidator biometricsSignatureValidator;
 
 	@Autowired
 	private ApplicantDocumentValidation applicantDocumentValidation;
+	
+	/**
+	 * The pre LTS reg-client version numbers that should be used when dealing with
+	 * biometric signature validation
+	 */
+	@Value("#{T(java.util.Arrays).asList('${mosip.regproc.common.before-cbeff-others-attibute.reg-client-versions:}')}")
+	private List<String> regClientPreLTSVersions;
 
 	@Override
 	public boolean validate(String id, String process, PacketValidationDto packetValidationDto)
@@ -161,6 +187,7 @@ public class PacketValidatorImpl implements PacketValidator {
 					BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(id, field,
 							process, ProviderStageName.PACKET_VALIDATOR);
 					biometricsXSDValidator.validateXSD(biometricRecord);
+					biometricsSignatureValidation(id, process, biometricRecord);
 				} catch (Exception e) {
 					if (e instanceof CbeffException) {
 						packetValidationDto.setPacketValidaionFailureMessage(
@@ -176,6 +203,34 @@ public class PacketValidatorImpl implements PacketValidator {
 			}
 		}
 		return true;
+	}
+	
+	private void biometricsSignatureValidation(String id, String process, BiometricRecord biometricRecord)
+			throws JSONException, JsonParseException, JsonMappingException,
+			com.fasterxml.jackson.core.JsonProcessingException, IOException, BaseCheckedException {
+		// backward compatibility check
+		Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(id, process,
+				ProviderStageName.PACKET_VALIDATOR);
+		String metadata = metaInfoMap.get(JsonConstant.METADATA);
+		String version = null;
+		if (StringUtils.isNotEmpty(metadata)) {
+			JSONArray jsonArray = new JSONArray(metadata);
+
+			for (int i = 0; i < jsonArray.length(); i++) {
+				if (!jsonArray.isNull(i)) {
+				org.json.JSONObject jsonObject = (org.json.JSONObject) jsonArray.get(i);
+					FieldValue fieldValue = objectMapper.readValue(jsonObject.toString(), FieldValue.class);
+					if (fieldValue.getLabel().equalsIgnoreCase(JsonConstant.REGCLIENT_VERSION)) {
+						version = fieldValue.getValue();
+						break;
+					}
+				}
+			}
+		}
+
+		if (!regClientPreLTSVersions.contains(version)) {
+			biometricsSignatureValidator.validateSignature(biometricRecord);
+		}
 	}
 
 	private boolean uinPresentInIdRepo(String uin) throws ApisResourceAccessException, IOException {

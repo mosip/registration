@@ -237,4 +237,6 @@ public class JsonConstant {
 	public static final String DIGITALIDSERIALNO = "serialNo";
 
 	public static final String EXCEPTIONBIOMETRICSAPPLICANT = "applicant";
+	
+	public static final String REGCLIENT_VERSION = "Registration Client Version Number";
 }
