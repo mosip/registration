@@ -220,7 +220,7 @@ public class PacketValidatorImpl implements PacketValidator {
 				if (!jsonArray.isNull(i)) {
 				org.json.JSONObject jsonObject = (org.json.JSONObject) jsonArray.get(i);
 					FieldValue fieldValue = objectMapper.readValue(jsonObject.toString(), FieldValue.class);
-					if (fieldValue.getLabel().equalsIgnoreCase(JsonConstant.REGCLIENT_VERSION)) {
+					if (fieldValue.getLabel().equalsIgnoreCase(JsonConstant.REGCLIENTVERSION)) {
 						version = fieldValue.getValue();
 						break;
 					}
