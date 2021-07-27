@@ -170,11 +170,6 @@ public class MessageSenderStageTest {
 		ReflectionTestUtils.setField(stage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(stage, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(stage, "notificationTypes", "SMS|EMAIL");
-		ReflectionTestUtils.setField(stage, "uinGeneratedSubject", "UIN generated");
-		ReflectionTestUtils.setField(stage, "uinActivateSubject", "UIN activated");
-		ReflectionTestUtils.setField(stage, "uinDeactivateSubject", "UIN deactivated");
-		ReflectionTestUtils.setField(stage, "duplicateUinSubject", "duplicate uin");
-		ReflectionTestUtils.setField(stage, "reregisterSubject", "re register");
 		ReflectionTestUtils.setField(stage, "notificationEmails", "abc@gmail.com");
 
 		Mockito.doNothing().when(registrationStatusDto).setStatusCode(any());
@@ -190,7 +185,7 @@ public class MessageSenderStageTest {
 		Mockito.doNothing().when(messageSenderDto).setEmailTemplateCode(any());
 		Mockito.doNothing().when(messageSenderDto).setSmsTemplateCode(any());
 		Mockito.doNothing().when(messageSenderDto).setIdType(any());
-		Mockito.doNothing().when(messageSenderDto).setSubject(any());
+		Mockito.doNothing().when(messageSenderDto).setSubjectCode(any());
 		Mockito.doNothing().when(messageSenderDto).setTemplateAvailable(any(Boolean.class));
 
 		Mockito.when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponseDto);
@@ -231,7 +226,7 @@ public class MessageSenderStageTest {
 		Mockito.doReturn(NotificationTemplateCode.RPR_UIN_GEN_EMAIL).when(messageSenderDto).getEmailTemplateCode();
 		Mockito.doReturn(NotificationTemplateCode.RPR_UIN_GEN_SMS).when(messageSenderDto).getSmsTemplateCode();
 		Mockito.when(messageSenderDto.getIdType()).thenReturn(IdType.UIN);
-		Mockito.when(messageSenderDto.getSubject()).thenReturn("");
+		Mockito.when(messageSenderDto.getSubjectCode()).thenReturn(NotificationTemplateCode.RPR_UIN_GEN_EMAIL_SUB);
 		Mockito.when(messageSenderDto.isTemplateAvailable()).thenReturn(Boolean.TRUE);
 		templateDto.setTemplateTypeCode("RPR_UIN_GEN_SMS");
 		List<TemplateDto> list = new ArrayList<TemplateDto>();
@@ -271,7 +266,7 @@ public class MessageSenderStageTest {
 		Mockito.doReturn(NotificationTemplateCode.RPR_UIN_UPD_EMAIL).when(messageSenderDto).getEmailTemplateCode();
 		Mockito.doReturn(NotificationTemplateCode.RPR_UIN_UPD_SMS).when(messageSenderDto).getSmsTemplateCode();
 		Mockito.when(messageSenderDto.getIdType()).thenReturn(IdType.UIN);
-		Mockito.when(messageSenderDto.getSubject()).thenReturn("");
+		Mockito.when(messageSenderDto.getSubjectCode()).thenReturn(NotificationTemplateCode.RPR_UIN_UPD_EMAIL_SUB);
 		Mockito.when(messageSenderDto.isTemplateAvailable()).thenReturn(Boolean.TRUE);
 		templateDto.setTemplateTypeCode("RPR_UIN_UPD_SMS");
 		List<TemplateDto> list = new ArrayList<TemplateDto>();
@@ -315,7 +310,7 @@ public class MessageSenderStageTest {
 		Mockito.doReturn(NotificationTemplateCode.RPR_UIN_REAC_EMAIL).when(messageSenderDto).getEmailTemplateCode();
 		Mockito.doReturn(NotificationTemplateCode.RPR_UIN_REAC_SMS).when(messageSenderDto).getSmsTemplateCode();
 		Mockito.when(messageSenderDto.getIdType()).thenReturn(IdType.UIN);
-		Mockito.when(messageSenderDto.getSubject()).thenReturn("");
+		Mockito.when(messageSenderDto.getSubjectCode()).thenReturn(NotificationTemplateCode.RPR_UIN_REAC_EMAIL_SUB);
 		Mockito.when(messageSenderDto.isTemplateAvailable()).thenReturn(Boolean.TRUE);
 		templateDto.setTemplateTypeCode("RPR_UIN_REAC_SMS");
 		List<TemplateDto> list = new ArrayList<TemplateDto>();
@@ -369,7 +364,7 @@ public class MessageSenderStageTest {
 		Mockito.doReturn(NotificationTemplateCode.RPR_UIN_DEAC_EMAIL).when(messageSenderDto).getEmailTemplateCode();
 		Mockito.doReturn(NotificationTemplateCode.RPR_UIN_DEAC_SMS).when(messageSenderDto).getSmsTemplateCode();
 		Mockito.when(messageSenderDto.getIdType()).thenReturn(IdType.UIN);
-		Mockito.when(messageSenderDto.getSubject()).thenReturn("");
+		Mockito.when(messageSenderDto.getSubjectCode()).thenReturn(NotificationTemplateCode.RPR_UIN_DEAC_EMAIL_SUB);
 		Mockito.when(messageSenderDto.isTemplateAvailable()).thenReturn(Boolean.TRUE);
 		templateDto.setTemplateTypeCode("RPR_UIN_DEAC_SMS");
 		List<TemplateDto> list = new ArrayList<TemplateDto>();
@@ -425,7 +420,7 @@ public class MessageSenderStageTest {
 		Mockito.doReturn(NotificationTemplateCode.RPR_DUP_UIN_EMAIL).when(messageSenderDto).getEmailTemplateCode();
 		Mockito.doReturn(NotificationTemplateCode.RPR_DUP_UIN_SMS).when(messageSenderDto).getSmsTemplateCode();
 		Mockito.when(messageSenderDto.getIdType()).thenReturn(IdType.UIN);
-		Mockito.when(messageSenderDto.getSubject()).thenReturn("");
+		Mockito.when(messageSenderDto.getSubjectCode()).thenReturn(NotificationTemplateCode.RPR_DUP_UIN_EMAIL_SUB);
 		Mockito.when(messageSenderDto.isTemplateAvailable()).thenReturn(Boolean.TRUE);
 		templateDto.setTemplateTypeCode("RPR_DUP_UIN_SMS");
 		List<TemplateDto> list = new ArrayList<TemplateDto>();
@@ -465,7 +460,7 @@ public class MessageSenderStageTest {
 		Mockito.doReturn(NotificationTemplateCode.RPR_TEC_ISSUE_EMAIL).when(messageSenderDto).getEmailTemplateCode();
 		Mockito.doReturn(NotificationTemplateCode.RPR_TEC_ISSUE_SMS).when(messageSenderDto).getSmsTemplateCode();
 		Mockito.when(messageSenderDto.getIdType()).thenReturn(IdType.UIN);
-		Mockito.when(messageSenderDto.getSubject()).thenReturn("");
+		Mockito.when(messageSenderDto.getSubjectCode()).thenReturn(NotificationTemplateCode.RPR_TEC_ISSUE_EMAIL_SUB);
 		Mockito.when(messageSenderDto.isTemplateAvailable()).thenReturn(Boolean.TRUE);
 		templateDto.setTemplateTypeCode("RPR_TEC_ISSUE_SMS");
 		List<TemplateDto> list = new ArrayList<TemplateDto>();
@@ -584,7 +579,7 @@ public class MessageSenderStageTest {
 		Mockito.doReturn(NotificationTemplateCode.RPR_LOST_UIN_EMAIL).when(messageSenderDto).getEmailTemplateCode();
 		Mockito.doReturn(NotificationTemplateCode.RPR_LOST_UIN_SMS).when(messageSenderDto).getSmsTemplateCode();
 		Mockito.when(messageSenderDto.getIdType()).thenReturn(IdType.UIN);
-		Mockito.when(messageSenderDto.getSubject()).thenReturn("");
+		Mockito.when(messageSenderDto.getSubjectCode()).thenReturn(NotificationTemplateCode.RPR_UIN_GEN_EMAIL_SUB);
 		Mockito.when(messageSenderDto.isTemplateAvailable()).thenReturn(Boolean.TRUE);
 		templateDto.setTemplateTypeCode("RPR_LOST_UIN_SMS");
 		List<TemplateDto> list = new ArrayList<TemplateDto>();
@@ -626,7 +621,7 @@ public class MessageSenderStageTest {
 		Mockito.doReturn(NotificationTemplateCode.RPR_LOST_UIN_EMAIL).when(messageSenderDto).getEmailTemplateCode();
 		Mockito.doReturn(NotificationTemplateCode.RPR_LOST_UIN_SMS).when(messageSenderDto).getSmsTemplateCode();
 		Mockito.when(messageSenderDto.getIdType()).thenReturn(IdType.UIN);
-		Mockito.when(messageSenderDto.getSubject()).thenReturn("");
+		Mockito.when(messageSenderDto.getSubjectCode()).thenReturn(NotificationTemplateCode.RPR_UIN_GEN_EMAIL_SUB);
 		Mockito.when(messageSenderDto.isTemplateAvailable()).thenReturn(Boolean.TRUE);
 		templateDto.setTemplateTypeCode("RPR_LOST_UIN_SMS");
 		List<TemplateDto> list = new ArrayList<TemplateDto>();
@@ -670,7 +665,7 @@ public class MessageSenderStageTest {
 		Mockito.doReturn(NotificationTemplateCode.RPR_UIN_REAC_EMAIL).when(messageSenderDto).getEmailTemplateCode();
 		Mockito.doReturn(NotificationTemplateCode.RPR_UIN_REAC_SMS).when(messageSenderDto).getSmsTemplateCode();
 		Mockito.when(messageSenderDto.getIdType()).thenReturn(IdType.UIN);
-		Mockito.when(messageSenderDto.getSubject()).thenReturn("");
+		Mockito.when(messageSenderDto.getSubjectCode()).thenReturn(NotificationTemplateCode.RPR_UIN_REAC_EMAIL_SUB);
 		Mockito.when(messageSenderDto.isTemplateAvailable()).thenReturn(Boolean.TRUE);
 		templateDto.setTemplateTypeCode("RPR_UIN_REAC_SMS");
 		List<TemplateDto> list = new ArrayList<TemplateDto>();
@@ -725,7 +720,7 @@ public class MessageSenderStageTest {
 		Mockito.doReturn(NotificationTemplateCode.RPR_UIN_REAC_EMAIL).when(messageSenderDto).getEmailTemplateCode();
 		Mockito.doReturn(NotificationTemplateCode.RPR_UIN_REAC_SMS).when(messageSenderDto).getSmsTemplateCode();
 		Mockito.when(messageSenderDto.getIdType()).thenReturn(IdType.UIN);
-		Mockito.when(messageSenderDto.getSubject()).thenReturn("");
+		Mockito.when(messageSenderDto.getSubjectCode()).thenReturn(NotificationTemplateCode.RPR_UIN_REAC_EMAIL_SUB);
 		Mockito.when(messageSenderDto.isTemplateAvailable()).thenReturn(Boolean.TRUE);
 		templateDto.setTemplateTypeCode("RPR_UIN_REAC_SMS");
 		List<TemplateDto> list = new ArrayList<TemplateDto>();
@@ -781,7 +776,7 @@ public class MessageSenderStageTest {
 		Mockito.doReturn(NotificationTemplateCode.RPR_UIN_REAC_EMAIL).when(messageSenderDto).getEmailTemplateCode();
 		Mockito.doReturn(NotificationTemplateCode.RPR_UIN_REAC_SMS).when(messageSenderDto).getSmsTemplateCode();
 		Mockito.when(messageSenderDto.getIdType()).thenReturn(IdType.UIN);
-		Mockito.when(messageSenderDto.getSubject()).thenReturn("");
+		Mockito.when(messageSenderDto.getSubjectCode()).thenReturn(NotificationTemplateCode.RPR_UIN_REAC_EMAIL_SUB);
 		Mockito.when(messageSenderDto.isTemplateAvailable()).thenReturn(Boolean.TRUE);
 		templateDto.setTemplateTypeCode("RPR_UIN_REAC_SMS");
 		List<TemplateDto> list = new ArrayList<TemplateDto>();
@@ -838,7 +833,7 @@ public class MessageSenderStageTest {
 		Mockito.doReturn(NotificationTemplateCode.RPR_UIN_REAC_EMAIL).when(messageSenderDto).getEmailTemplateCode();
 		Mockito.doReturn(NotificationTemplateCode.RPR_UIN_REAC_SMS).when(messageSenderDto).getSmsTemplateCode();
 		Mockito.when(messageSenderDto.getIdType()).thenReturn(IdType.UIN);
-		Mockito.when(messageSenderDto.getSubject()).thenReturn("");
+		Mockito.when(messageSenderDto.getSubjectCode()).thenReturn(NotificationTemplateCode.RPR_UIN_REAC_EMAIL_SUB);
 		Mockito.when(messageSenderDto.isTemplateAvailable()).thenReturn(Boolean.TRUE);
 		templateDto.setTemplateTypeCode("RPR_UIN_REAC_SMS");
 		List<TemplateDto> list = new ArrayList<TemplateDto>();
@@ -890,7 +885,7 @@ public class MessageSenderStageTest {
 		Mockito.doReturn(NotificationTemplateCode.RPR_LOST_UIN_EMAIL).when(messageSenderDto).getEmailTemplateCode();
 		Mockito.doReturn(NotificationTemplateCode.RPR_LOST_UIN_SMS).when(messageSenderDto).getSmsTemplateCode();
 		Mockito.when(messageSenderDto.getIdType()).thenReturn(IdType.UIN);
-		Mockito.when(messageSenderDto.getSubject()).thenReturn("");
+		Mockito.when(messageSenderDto.getSubjectCode()).thenReturn(NotificationTemplateCode.RPR_UIN_GEN_EMAIL_SUB);
 		Mockito.when(messageSenderDto.isTemplateAvailable()).thenReturn(Boolean.TRUE);
 		templateDto.setTemplateTypeCode("RPR_LOST_UIN_SMS");
 		List<TemplateDto> list = new ArrayList<TemplateDto>();
@@ -933,7 +928,7 @@ public class MessageSenderStageTest {
 		Mockito.doReturn(NotificationTemplateCode.RPR_LOST_UIN_EMAIL).when(messageSenderDto).getEmailTemplateCode();
 		Mockito.doReturn(NotificationTemplateCode.RPR_LOST_UIN_SMS).when(messageSenderDto).getSmsTemplateCode();
 		Mockito.when(messageSenderDto.getIdType()).thenReturn(IdType.UIN);
-		Mockito.when(messageSenderDto.getSubject()).thenReturn("");
+		Mockito.when(messageSenderDto.getSubjectCode()).thenReturn(NotificationTemplateCode.RPR_UIN_GEN_EMAIL_SUB);
 		Mockito.when(messageSenderDto.isTemplateAvailable()).thenReturn(Boolean.TRUE);
 		templateDto.setTemplateTypeCode("RPR_LOST_UIN_SMS");
 		List<TemplateDto> list = new ArrayList<TemplateDto>();
