@@ -94,6 +94,8 @@ public class NotificationUtility {
 	@Value("${mosip.notification.language-type}")
 	private String languageType;
 
+	@Value("${mosip.default.user-preferred-language-attribute}")
+	private String userPreferredLanguageAttribute;
 	/** The env. */
 	@Autowired
 	private Environment env;
@@ -161,39 +163,38 @@ public class NotificationUtility {
 
 	private List<String> getPreferredLanguages(InternalRegistrationStatusDto registrationStatusDto) throws ApisResourceAccessException, 
 	PacketManagerException, JsonProcessingException, IOException, JSONException {
-		String preferredLang=packetManagerService.getFieldByMappingJsonKey(registrationStatusDto.getRegistrationId(), MappingJsonConstants.PREFERRED_LANGUAGE,
+		if(userPreferredLanguageAttribute!=null && !userPreferredLanguageAttribute.isBlank()) {
+			String preferredLang=packetManagerService.getFieldByMappingJsonKey(registrationStatusDto.getRegistrationId(), MappingJsonConstants.PREFERRED_LANGUAGE,
 				registrationStatusDto.getRegistrationType(), ProviderStageName.PACKET_VALIDATOR);
-		if(preferredLang!=null && !preferredLang.isBlank()) {
-			return List.of(preferredLang.split(","));
-		}else {
-			if(defaultTemplateLanguages!=null && !defaultTemplateLanguages.isBlank()) {
-				return List.of(defaultTemplateLanguages.split(","));
-			}else {
-				Map<String,String> idValuesMap=packetManagerService.getAllFieldsByMappingJsonKeys(registrationStatusDto.getRegistrationId(), 
-						registrationStatusDto.getRegistrationType(), ProviderStageName.PACKET_VALIDATOR);
-				List<String> idValues=new ArrayList<>();
-		        for(Entry<String, String> entry: idValuesMap.entrySet()) {
-		        	if(entry.getValue()!=null && !entry.getValue().isBlank()) {
-		        		idValues.add(entry.getValue());
-		        	}
+			if(preferredLang!=null && !preferredLang.isBlank()) {
+				return List.of(preferredLang.split(","));
+			}
+		}
+		if(defaultTemplateLanguages!=null && !defaultTemplateLanguages.isBlank()) {
+			return List.of(defaultTemplateLanguages.split(","));
+		}
+		Map<String,String> idValuesMap=packetManagerService.getAllFieldsByMappingJsonKeys(registrationStatusDto.getRegistrationId(), 
+				registrationStatusDto.getRegistrationType(), ProviderStageName.PACKET_VALIDATOR);
+		List<String> idValues=new ArrayList<>();
+		for(Entry<String, String> entry: idValuesMap.entrySet()) {
+		      	if(entry.getValue()!=null && !entry.getValue().isBlank()) {
+		        	idValues.add(entry.getValue());
 		        }
-				Set<String> langSet=new HashSet<>();
-				for( String idValue:idValues) {
-					if(idValue!=null&& !idValue.isBlank()  ) {
-					if(isJSONArrayValid(idValue)) {
+		}
+		Set<String> langSet=new HashSet<>();
+		for( String idValue:idValues) {
+			if(idValue!=null&& !idValue.isBlank()  ) {
+				if(isJSONArrayValid(idValue)) {
 					ObjectMapper mapper=new ObjectMapper();
 					org.json.simple.JSONArray array=mapper.readValue(idValue, org.json.simple.JSONArray.class);
 					for(Object obj:array) {	
 						org.json.simple.JSONObject json= new org.json.simple.JSONObject((Map) obj);
-						langSet.add( (String) json.get("language"));
-						
-					}
-					}
+						langSet.add( (String) json.get("language"));	
 					}
 				}
-				return new ArrayList<>(langSet);
 			}
-		}		
+		}
+		return new ArrayList<>(langSet);
 	}
 	
 	public boolean isJSONArrayValid(String jsonArrayString) {

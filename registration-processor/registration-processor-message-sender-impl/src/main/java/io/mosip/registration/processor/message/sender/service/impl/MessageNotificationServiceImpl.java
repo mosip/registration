@@ -127,6 +127,9 @@ public class MessageNotificationServiceImpl
 	
 	@Value("${mosip.default.template-languages}")
 	private String defaultTemplateLanguages;
+	
+	@Value("${mosip.default.user-preferred-language-attribute}")
+	private String userPreferredLanguageAttribute;
 
 	/** The resclient. */
 	@Autowired
@@ -225,7 +228,7 @@ public class MessageNotificationServiceImpl
 	 */
 	@Override
 	public ResponseDto sendEmailNotification(String templateTypeCode, String id, String process, IdType idType,
-			Map<String, Object> attributes, String[] mailCc, String subject, MultipartFile[] attachment, String regType)
+			Map<String, Object> attributes, String[] mailCc, String subjectCode, MultipartFile[] attachment, String regType)
 			throws Exception {
 		ResponseDto response = null;
 		StringBuilder emailId = new StringBuilder();
@@ -236,12 +239,19 @@ public class MessageNotificationServiceImpl
 			setAttributes(id, process, idType, attributes, regType, phoneNumber, emailId);
 			List<String> preferredLanguages= getPreferredLanguages(id,process);
 			String artifact="";
+			String subject="";
 			for(String lang: preferredLanguages) {
 				InputStream stream = templateGenerator.getTemplate(templateTypeCode, attributes, lang);
+				InputStream subStream = templateGenerator.getTemplate(subjectCode, attributes, lang);
 				if(artifact.isBlank()) {
 				 artifact = IOUtils.toString(stream, ENCODING);
 				}else {
-				artifact = artifact + LINE_SEPARATOR + IOUtils.toString(stream, ENCODING);;
+				artifact = artifact + LINE_SEPARATOR + IOUtils.toString(stream, ENCODING);
+				}
+				if(subject.isBlank()) {
+					subject=IOUtils.toString(subStream, ENCODING);
+				}else {
+					subject = subject + "_" + IOUtils.toString(subStream, ENCODING);
 				}
 			}
 
@@ -250,7 +260,7 @@ public class MessageNotificationServiceImpl
 			}
 			String[] mailTo = { emailId.toString() };
 
-			response = sendEmail(mailTo, mailCc, subject, artifact, attachment);
+			response = sendEmail(mailTo, mailCc, subjectCode, artifact, attachment);
 
 		} catch (TemplateNotFoundException | TemplateProcessingFailureException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -272,40 +282,41 @@ public class MessageNotificationServiceImpl
 	
 	private List<String> getPreferredLanguages(String id, String process) throws ApisResourceAccessException, 
 	PacketManagerException, JsonProcessingException, IOException {
-		String preferredLang=packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.PREFERRED_LANGUAGE, process, 
-				ProviderStageName.MESSAGE_SENDER);
-		if(preferredLang!=null && !preferredLang.isBlank()) {
-			return List.of(preferredLang.split(","));
-		}else {
-			if(defaultTemplateLanguages!=null && !defaultTemplateLanguages.isBlank()) {
-				return List.of(defaultTemplateLanguages.split(","));
-			}else {
-				Map<String,String> idValuesMap=packetManagerService.getAllFieldsByMappingJsonKeys(id, process, 
+		if(userPreferredLanguageAttribute!=null && !userPreferredLanguageAttribute.isBlank()) {
+			String preferredLang=packetManagerService.getField(id, userPreferredLanguageAttribute, process, 
+					ProviderStageName.MESSAGE_SENDER);
+			if(preferredLang!=null && !preferredLang.isBlank()) {
+				return List.of(preferredLang.split(","));
+			}
+		}
+		if(defaultTemplateLanguages!=null && !defaultTemplateLanguages.isBlank()) {
+			return List.of(defaultTemplateLanguages.split(","));
+		}
+		Map<String,String> idValuesMap=packetManagerService.getAllFieldsByMappingJsonKeys(id, process, 
 						ProviderStageName.MESSAGE_SENDER);
-				List<String> idValues=new ArrayList<>();
-		        for(Entry<String, String> entry: idValuesMap.entrySet()) {
-		        	if(entry.getValue()!=null && !entry.getValue().isBlank()) {
-		        		idValues.add(entry.getValue());
-		        	}
-		        }
-				Set<String> langSet=new HashSet<>();
-				for( String idValue:idValues) {
-					if(idValue!=null&& !idValue.isBlank()  ) {
-					if(isJSONArrayValid(idValue)) {
+		List<String> idValues=new ArrayList<>();
+		for(Entry<String, String> entry: idValuesMap.entrySet()) {
+		    if(entry.getValue()!=null && !entry.getValue().isBlank()) {
+		       	idValues.add(entry.getValue());
+		    }
+		}
+		Set<String> langSet=new HashSet<>();
+		for( String idValue:idValues) {
+			if(idValue!=null&& !idValue.isBlank()  ) {
+				if(isJSONArrayValid(idValue)) {
 					ObjectMapper mapper=new ObjectMapper();
 					JSONArray array=mapper.readValue(idValue, JSONArray.class);
 					for(Object obj:array) {	
 						JSONObject json= new JSONObject( (Map) obj);
-						langSet.add( (String) json.get("language"));
-						
-					}
-					}
+						langSet.add( (String) json.get("language"));			
 					}
 				}
-				return new ArrayList<>(langSet);
 			}
-		}		
+		}
+		return new ArrayList<>(langSet);
 	}
+				
+	
 	
 	public boolean isJSONArrayValid(String jsonArrayString) {
 	        try {
