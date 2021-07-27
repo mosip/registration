@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -74,6 +75,9 @@ public class DeviceValidator {
 	@Value("${mosip.regproc.cmd-validator.device.digital-id-timestamp-format:yyyy-MM-dd'T'HH:mm:ss'Z'}")
 	private String digitalIdTimestampFormat;
 
+	@Value("#{T(java.util.Arrays).asList('${mosip.regproc.common.before-cbeff-others-attibute.reg-client-versions:}')}")
+	private List<String> regClientVersionsBeforeCbeffOthersAttritube;
+
 	/**
 	 * Checks if is device active.
 	 *
@@ -88,42 +92,73 @@ public class DeviceValidator {
 	 */
 
 	public void validate(RegOsiDto regOsi,String process, String registrationId)
-			throws JsonProcessingException, IOException, BaseCheckedException, ApisResourceAccessException, JSONException {
+			throws JsonProcessingException, IOException, BaseCheckedException, 
+				ApisResourceAccessException, JSONException {
+		List<String> fields = Arrays.asList(MappingJsonConstants.INDIVIDUAL_BIOMETRICS,
+				MappingJsonConstants.AUTHENTICATION_BIOMETRICS, 
+				MappingJsonConstants.INTRODUCER_BIO,
+				MappingJsonConstants.OFFICERBIOMETRICFILENAME, 
+				MappingJsonConstants.SUPERVISORBIOMETRICFILENAME);
+		for (String field : fields) {
+			String value = packetManagerService.getField(registrationId, field, process, 
+				ProviderStageName.PACKET_VALIDATOR);
+			if (value != null && !value.isEmpty()) {
+				BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(
+						registrationId, field, process,ProviderStageName.CMD_VALIDATOR);
+				if(biometricRecord == null)
+					throw new BaseCheckedException(
+						StatusUtil.DEVICE_VALIDATION_FAILED.getCode(),
+						StatusUtil.DEVICE_VALIDATION_FAILED.getMessage() + 
+							" --> Biometrics not found for field " + field);
+				validateDevicesInBiometricRecord(biometricRecord, regOsi);
+			}
+		}
+	}
 
-		BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(registrationId,
-				MappingJsonConstants.INDIVIDUAL_BIOMETRICS, process,
-				ProviderStageName.CMD_VALIDATOR);
-		List<BIR> birs=biometricRecord.getSegments();
-		List<JSONObject> payloads=new ArrayList<>();
-		for(BIR bir: birs) {
-			if(bir.getOthers()!=null) {
-			for(Entry entry: bir.getOthers()) {
-				if(entry.getKey().equals("PAYLOAD")) {
-					payloads.add(new JSONObject(entry.getValue()));				
+	private void validateDevicesInBiometricRecord(BiometricRecord biometricRecord, RegOsiDto regOsi) 
+			throws JsonProcessingException, IOException, BaseCheckedException, 
+				ApisResourceAccessException, JSONException {
+		List<BIR> birs = biometricRecord.getSegments();
+		List<JSONObject> payloads = new ArrayList<>();
+		for(BIR bir : birs) {
+			if(bir.getOthers() != null) {
+				boolean exception = false;
+				String payload = "";
+				for(Entry entry: bir.getOthers()) {
+					if(entry.getKey().equals("EXCEPTION") && entry.getValue().equals("true") ) {
+						exception = true;
+						break;
+					}
+					if(entry.getKey().equals("PAYLOAD")) {
+						payload = entry.getValue();				
+					}
 				}
-			}
+				if(!exception)
+					payloads.add(new JSONObject(payload));
+			} else if(!regClientVersionsBeforeCbeffOthersAttritube.contains(regOsi.getRegClientVersion())) {
+				throw new BaseCheckedException(
+					StatusUtil.DEVICE_VALIDATION_FAILED.getCode(),
+					StatusUtil.DEVICE_VALIDATION_FAILED.getMessage() + 
+						"-->Others info is not prsent in packet");
 			}
 		}
-		if(payloads==null || payloads.isEmpty()) {
-			throw new BaseCheckedException(
-					StatusUtil.DEVICE_VALIDATION_FAILED.getCode(),StatusUtil.DEVICE_VALIDATION_FAILED.getMessage()+"-->Others info is not prsent in packet");
-		}
-		Set<String> signatures=new HashSet<>();
-		Set<String> deviceCodeTimestamps=new HashSet<>();
-		for(JSONObject payload :payloads) {
-				String digitalIdString=new String(CryptoUtil.decodeBase64(payload.getString("digitalId").split("\\.")[1]));
-				NewDigitalId newDigitalId=mapper.readValue(digitalIdString, NewDigitalId.class);
-				if(!signatures.contains(digitalIdString)) {
-					validateDigitalId(payload) ;
-					signatures.add(digitalIdString);
-				}
+		Set<String> signatures = new HashSet<>();
+		Set<String> deviceCodeTimestamps = new HashSet<>();
+		for(JSONObject payload : payloads) {
+			String digitalIdString = new String(CryptoUtil.decodeBase64(
+						payload.getString("digitalId").split("\\.")[1]));
+			NewDigitalId newDigitalId = mapper.readValue(digitalIdString, NewDigitalId.class);
+			if(!signatures.contains(digitalIdString)) {
+				validateDigitalId(payload);
 				signatures.add(digitalIdString);
-				validateTimestamp(payload,regOsi.getPacketCreationDate(),newDigitalId.getDateTime()) ;
-				validateTimestamp(payload,regOsi.getPacketCreationDate(),payload.getString("timestamp"));
-				if(!deviceCodeTimestamps.contains(payload.getString("deviceCode")+newDigitalId.getDateTime())) {
-					validateDeviceForHotlist(payload.getString("deviceCode"),newDigitalId.getDateTime());
-					deviceCodeTimestamps.add(payload.getString("deviceCode")+newDigitalId.getDateTime());
-				}
+			}
+			signatures.add(digitalIdString);
+			validateTimestamp(payload, regOsi.getPacketCreationDate(), newDigitalId.getDateTime());
+			validateTimestamp(payload, regOsi.getPacketCreationDate(), payload.getString("timestamp"));
+			if(!deviceCodeTimestamps.contains(payload.getString("deviceCode") + newDigitalId.getDateTime())) {
+				validateDeviceForHotlist(payload.getString("deviceCode"), newDigitalId.getDateTime());
+				deviceCodeTimestamps.add(payload.getString("deviceCode") + newDigitalId.getDateTime());
+			}
 				
 		}
 	}

@@ -1,24 +1,9 @@
 package io.mosip.registration.processor.status.api.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.registration.processor.core.constant.ResponseStatusCode;
-import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
-import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
-import io.mosip.registration.processor.status.code.RegistrationStatusCode;
-import io.mosip.registration.processor.status.dto.*;
-import io.mosip.registration.processor.status.exception.RegStatusAppException;
-import io.mosip.registration.processor.status.service.RegistrationStatusService;
-import io.mosip.registration.processor.status.service.SyncRegistrationService;
-import io.mosip.registration.processor.status.sync.response.dto.RegSyncResponseDTO;
-import io.mosip.registration.processor.status.validator.RegistrationSyncRequestValidator;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -32,16 +17,39 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.registration.processor.core.constant.ResponseStatusCode;
+import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
+import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
+import io.mosip.registration.processor.status.code.RegistrationStatusCode;
+import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
+import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
+import io.mosip.registration.processor.status.dto.RegistrationSyncRequestDTO;
+import io.mosip.registration.processor.status.dto.SyncErrDTO;
+import io.mosip.registration.processor.status.dto.SyncErrorDTO;
+import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
+import io.mosip.registration.processor.status.dto.SyncResponseDto;
+import io.mosip.registration.processor.status.dto.SyncResponseFailDto;
+import io.mosip.registration.processor.status.dto.SyncResponseFailureDto;
+import io.mosip.registration.processor.status.exception.RegStatusAppException;
+import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import io.mosip.registration.processor.status.service.SyncRegistrationService;
+import io.mosip.registration.processor.status.sync.response.dto.RegSyncResponseDTO;
+import io.mosip.registration.processor.status.validator.RegistrationSyncRequestValidator;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 /**
  * The Class RegistrationStatusController.
  */
 @RefreshScope
 @RestController
-@Tag(name = "Registration Status", description = "the Registration Status API")
+@Api(tags = "Registration Status")
 public class RegistrationSyncController {
 
 	/** The registration status service. */
@@ -82,15 +90,15 @@ public class RegistrationSyncController {
 	 */
 	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_PROCESSOR', 'REGISTRATION_OFFICER','REGISTRATION_SUPERVISOR', 'RESIDENT' )")
 	@PostMapping(path = "/sync", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Get the synchronizing registration entity", description = "Get the synchronizing registration entity", tags = { "Registration Status" })
+	@ApiOperation(value = "Get the synchronizing registration entity", response = RegistrationStatusCode.class)
 	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "Synchronizing Registration Entity successfully fetched",
-					content = @Content(schema = @Schema(implementation = RegistrationStatusCode.class))),
-			@ApiResponse(responseCode = "401", description = "Unauthorized") })
+			@ApiResponse(code = 200, message = "Synchronizing Registration Entity successfully fetched") })
 	public ResponseEntity<Object> syncRegistrationController(
 			@RequestHeader(name = "Center-Machine-RefId", required = true) String referenceId,
 			@RequestHeader(name = "timestamp", required = true) String timeStamp,
 			@RequestBody(required = true) Object encryptedSyncMetaInfo) throws RegStatusAppException {
+
+
 		try {
 			List<SyncResponseDto> syncResponseList = new ArrayList<>();
 			RegistrationSyncRequestDTO registrationSyncRequestDTO = syncRegistrationService
