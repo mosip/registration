@@ -230,8 +230,8 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
                  dto.setLatestTransactionStatusCode(registrationStatusMapperUtil
                          .getStatusCode(RegistrationExceptionTypeCode.PACKET_NOT_FOUND_EXCEPTION));
                  dto.setStatusCode(RegistrationExceptionTypeCode.PACKET_NOT_FOUND_EXCEPTION.toString());
-                 dto.setStatusComment(StatusUtil.PACKET_NOT_FOUND_LANDING_ZIONE.getMessage());
-                 dto.setSubStatusCode(StatusUtil.PACKET_NOT_FOUND_LANDING_ZIONE.getCode());
+                 dto.setStatusComment(StatusUtil.PACKET_NOT_FOUND_LANDING_ZONE.getMessage());
+                 dto.setSubStatusCode(StatusUtil.PACKET_NOT_FOUND_LANDING_ZONE.getCode());
                  dto.setUpdatedBy(USER);
                  description.setMessage(PlatformErrorMessages.RPR_PUM_PACKET_NOT_FOUND_EXCEPTION.getMessage());
                  description.setCode(PlatformErrorMessages.RPR_PUM_PACKET_NOT_FOUND_EXCEPTION.getCode());
@@ -256,8 +256,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
         	messageDTO.setInternalError(Boolean.TRUE);
             dto.setLatestTransactionStatusCode(registrationStatusMapperUtil
                     .getStatusCode(RegistrationExceptionTypeCode.PACKET_NOT_FOUND_EXCEPTION));
-            dto.setStatusComment(trimExpMessage
-                    .trimExceptionMessage(ex.getMessage()));
+            dto.setStatusComment(RegistrationExceptionTypeCode.PACKET_NOT_FOUND_EXCEPTION.toString());
             dto.setSubStatusCode(StatusUtil.PACKET_NOT_FOUND_PACKET_STORE.getCode());
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                     registrationId,
@@ -403,8 +402,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
 			description.setMessage(PlatformErrorMessages.RPR_PUM_PACKET_VIRUS_SCANNER_SERVICE_FAILED.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_PUM_PACKET_VIRUS_SCANNER_SERVICE_FAILED.getCode());
 			dto.setStatusCode(RegistrationExceptionTypeCode.VIRUS_SCANNER_SERVICE_FAILED.toString());
-			dto.setStatusComment(trimExpMessage.trimExceptionMessage(
-					StatusUtil.VIRUS_SCANNER_SERVICE_NOT_ACCESSIBLE.getMessage() + e.getMessage()));
+			dto.setStatusComment(RegistrationExceptionTypeCode.VIRUS_SCANNER_SERVICE_FAILED.toString());
 			dto.setSubStatusCode(StatusUtil.VIRUS_SCANNER_SERVICE_NOT_ACCESSIBLE.getCode());
 			dto.setLatestTransactionStatusCode(registrationStatusMapperUtil
 					.getStatusCode(RegistrationExceptionTypeCode.VIRUS_SCANNER_SERVICE_FAILED));
