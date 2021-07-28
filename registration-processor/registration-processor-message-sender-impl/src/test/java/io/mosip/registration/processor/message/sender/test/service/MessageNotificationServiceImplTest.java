@@ -164,8 +164,8 @@ public class MessageNotificationServiceImplTest {
 	@SuppressWarnings("unchecked")
 	@Before
 	public void setup() throws Exception {
-		ReflectionTestUtils.setField(messageNotificationServiceImpl, "primaryLang", "eng");
-		ReflectionTestUtils.setField(messageNotificationServiceImpl, "secondaryLang", "eng");
+		ReflectionTestUtils.setField(messageNotificationServiceImpl, "userPreferredLanguageAttribute", "preferredLang");
+		ReflectionTestUtils.setField(messageNotificationServiceImpl, "defaultTemplateLanguages", "eng,ara");
 		ReflectionTestUtils.setField(messageNotificationServiceImpl, "languageType", "both");
 		Mockito.when(env.getProperty(ApiName.EMAILNOTIFIER.name())).thenReturn("https://mosip.com");
 
@@ -227,6 +227,7 @@ public class MessageNotificationServiceImplTest {
 
 		idResponse.setResponse(response);
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(idResponse);
+		Mockito.when(packetManagerService.getField(any(), any(), anyString(), any())).thenReturn(null);
 
 		Mockito.when(env.getProperty("mosip.registration.processor.sms.id")).thenReturn("id");
 		Mockito.when(env.getProperty("mosip.registration.processor.application.version")).thenReturn("v1.0");
