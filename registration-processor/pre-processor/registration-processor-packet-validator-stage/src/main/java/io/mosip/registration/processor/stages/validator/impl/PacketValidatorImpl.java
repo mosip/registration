@@ -83,12 +83,8 @@ public class PacketValidatorImpl implements PacketValidator {
 	@Autowired
 	private ApplicantDocumentValidation applicantDocumentValidation;
 	
-	/**
-	 * The pre LTS reg-client version numbers that should be used when dealing with
-	 * biometric signature validation
-	 */
 	@Value("#{T(java.util.Arrays).asList('${mosip.regproc.common.before-cbeff-others-attibute.reg-client-versions:}')}")
-	private List<String> regClientPreLTSVersions;
+	private List<String> regClientVersionsBeforeCbeffOthersAttritube;
 
 	@Override
 	public boolean validate(String id, String process, PacketValidationDto packetValidationDto)
@@ -228,7 +224,7 @@ public class PacketValidatorImpl implements PacketValidator {
 			}
 		}
 
-		if (!regClientPreLTSVersions.contains(version)) {
+		if (!regClientVersionsBeforeCbeffOthersAttritube.contains(version)) {
 			biometricsSignatureValidator.validateSignature(biometricRecord);
 		}
 	}
