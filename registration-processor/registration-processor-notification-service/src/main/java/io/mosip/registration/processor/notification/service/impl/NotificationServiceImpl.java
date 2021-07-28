@@ -18,6 +18,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -115,8 +117,8 @@ public class NotificationServiceImpl implements NotificationService {
 	private SubscriptionClient<SubscriptionChangeRequest,UnsubscriptionRequest, SubscriptionChangeResponse> sb; 
 	
 	// sends init subscribe req to hub
-	@PostConstruct
-	private void init() {
+	@EventListener(ApplicationReadyEvent.class)
+	protected void init() {
 		SubscriptionChangeRequest subscriptionRequest = new SubscriptionChangeRequest();
 		subscriptionRequest.setCallbackURL(callbackURL);
 		subscriptionRequest.setHubURL(hubURL);
