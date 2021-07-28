@@ -12,7 +12,9 @@ import org.json.JSONException;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -115,8 +117,8 @@ public class NotificationServiceImpl implements NotificationService {
 	private SubscriptionClient<SubscriptionChangeRequest,UnsubscriptionRequest, SubscriptionChangeResponse> sb; 
 	
 	// sends init subscribe req to hub
-	@PostConstruct
-	private void init() {
+	@EventListener(ApplicationReadyEvent.class)
+	protected void init() {
 		SubscriptionChangeRequest subscriptionRequest = new SubscriptionChangeRequest();
 		subscriptionRequest.setCallbackURL(callbackURL);
 		subscriptionRequest.setHubURL(hubURL);
