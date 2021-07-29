@@ -10,6 +10,9 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.packet.dto.packetmanager.TagRequestDto;
+import io.mosip.registration.processor.core.packet.dto.packetmanager.TagResponseDto;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.MDC;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -317,24 +320,28 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 
 	private Map<String, String> getTagsFromPacket(String id) throws ApisResourceAccessException,
 			PacketManagerException, JsonProcessingException, IOException {
-        InfoRequestDto infoRequestDto = new InfoRequestDto(id);
+		TagRequestDto tagRequestDto = new TagRequestDto(id, null);
+		RequestWrapper<TagRequestDto> request = new RequestWrapper<>();
+		request.setId(ID);
+		request.setVersion(VERSION);
+		request.setRequesttime(DateUtils.getUTCCurrentDateTime());
+		request.setRequest(tagRequestDto);
+		ResponseWrapper<TagResponseDto> response = (ResponseWrapper<TagResponseDto>) restApi
+				.postApi(ApiName.PACKETMANAGER_GET_TAGS, "", "",
+						request, ResponseWrapper.class);
 
-        RequestWrapper<InfoRequestDto> request = new RequestWrapper<>();
-        request.setId(ID);
-        request.setVersion(VERSION);
-        request.setRequesttime(DateUtils.getUTCCurrentDateTime());
-        request.setRequest(infoRequestDto);
-        ResponseWrapper<InfoResponseDto> response = (ResponseWrapper) restApi.postApi(
-			ApiName.PACKETMANAGER_INFO, EMPTY_STRING, EMPTY_STRING, request, ResponseWrapper.class);
-
-        if (response.getErrors() != null && response.getErrors().size() > 0) {
+		if (response.getErrors() != null && response.getErrors().size() > 0) {
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					id, JsonUtils.javaObjectToJsonString(response));
 			throw new PacketManagerException(response.getErrors().get(0).getErrorCode(),
-				response.getErrors().get(0).getMessage());
-        }
+					response.getErrors().get(0).getMessage());
+		}
 
-        InfoResponseDto infoResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(
-			response.getResponse()), InfoResponseDto.class);
-		return infoResponseDto.getTags();
+		TagResponseDto tagResponseDto = null;
+		if (response.getResponse() != null)
+			tagResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), TagResponseDto.class);
+
+		return tagResponseDto != null ? tagResponseDto.getTags() : null;
 	}
 
 	private boolean isMessageExpired(MessageDTO messageDTO, long messageExpiryTimeLimit) {
