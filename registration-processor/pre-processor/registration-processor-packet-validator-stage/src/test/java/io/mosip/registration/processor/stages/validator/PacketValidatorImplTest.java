@@ -44,6 +44,7 @@ import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.cbeffutil.exception.CbeffException;
 import io.mosip.kernel.core.exception.BaseCheckedException;
+import io.mosip.kernel.core.exception.BiometricSignatureValidationException;
 import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
@@ -311,9 +312,9 @@ public class PacketValidatorImplTest {
 		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
 	
-	@Test(expected = BaseCheckedException.class)
+	@Test
 	public void testBiometricsSignatureValidatonFailure() throws Exception {
-		doThrow(new BaseCheckedException("JWT signature Validation Failed")).when(biometricsSignatureValidator).validateSignature(any());
+		doThrow(new BiometricSignatureValidationException("JWT signature Validation Failed")).when(biometricsSignatureValidator).validateSignature(any());
 		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
 

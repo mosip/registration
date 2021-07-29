@@ -23,6 +23,7 @@ import io.mosip.kernel.biometrics.commons.BiometricsSignatureValidator;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.cbeffutil.exception.CbeffException;
 import io.mosip.kernel.core.exception.BaseCheckedException;
+import io.mosip.kernel.core.exception.BiometricSignatureValidationException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
@@ -155,9 +156,6 @@ public class PacketValidatorImpl implements PacketValidator {
 			}
 
 			if (!biometricsXSDValidation(id, process, packetValidationDto)) {
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString(), id,
-						"ERROR =======> " + StatusUtil.XSD_VALIDATION_EXCEPTION.getMessage());
 				return false;
 			}
 		} catch (PacketManagerException e) {
@@ -183,12 +181,25 @@ public class PacketValidatorImpl implements PacketValidator {
 					BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(id, field,
 							process, ProviderStageName.PACKET_VALIDATOR);
 					biometricsXSDValidator.validateXSD(biometricRecord);
-					biometricsSignatureValidation(id, process, biometricRecord);
+					validateBiometricSignatures(id, process, biometricRecord);
 				} catch (Exception e) {
 					if (e instanceof CbeffException) {
+						regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+								LoggerFileConstant.REGISTRATIONID.toString(), id,
+								"ERROR =======> " + StatusUtil.XSD_VALIDATION_EXCEPTION.getMessage());
 						packetValidationDto.setPacketValidaionFailureMessage(
 								StatusUtil.XSD_VALIDATION_EXCEPTION.getMessage() + e.getMessage());
 						packetValidationDto.setPacketValidatonStatusCode(StatusUtil.XSD_VALIDATION_EXCEPTION.getCode());
+						return false;
+					} else if (e instanceof BiometricSignatureValidationException) {
+						regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+								LoggerFileConstant.REGISTRATIONID.toString(), id,
+								"ERROR =======> " + StatusUtil.BIOMETRICS_SIGNATURE_VALIDATION_FAILURE.getMessage());
+						packetValidationDto.setPacketValidaionFailureMessage(
+								StatusUtil.BIOMETRICS_SIGNATURE_VALIDATION_FAILURE.getMessage() + "--> "
+										+ e.getMessage());
+						packetValidationDto.setPacketValidatonStatusCode(
+								StatusUtil.BIOMETRICS_SIGNATURE_VALIDATION_FAILURE.getCode());
 						return false;
 					} else {
 						throw new RegistrationProcessorCheckedException(
@@ -201,10 +212,20 @@ public class PacketValidatorImpl implements PacketValidator {
 		return true;
 	}
 	
-	private void biometricsSignatureValidation(String id, String process, BiometricRecord biometricRecord)
+	private void validateBiometricSignatures(String id, String process, BiometricRecord biometricRecord)
 			throws JSONException, JsonParseException, JsonMappingException,
 			com.fasterxml.jackson.core.JsonProcessingException, IOException, BaseCheckedException {
 		// backward compatibility check
+		String version = getRegClientVersionFromMetaInfo(id, process);
+
+		if (!regClientVersionsBeforeCbeffOthersAttritube.contains(version)) {
+			biometricsSignatureValidator.validateSignature(biometricRecord);
+		}
+	}
+
+	private String getRegClientVersionFromMetaInfo(String id, String process)
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException,
+			JSONException, JsonParseException, JsonMappingException {
 		Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(id, process,
 				ProviderStageName.PACKET_VALIDATOR);
 		String metadata = metaInfoMap.get(JsonConstant.METADATA);
@@ -214,7 +235,7 @@ public class PacketValidatorImpl implements PacketValidator {
 
 			for (int i = 0; i < jsonArray.length(); i++) {
 				if (!jsonArray.isNull(i)) {
-				org.json.JSONObject jsonObject = (org.json.JSONObject) jsonArray.get(i);
+					org.json.JSONObject jsonObject = (org.json.JSONObject) jsonArray.get(i);
 					FieldValue fieldValue = objectMapper.readValue(jsonObject.toString(), FieldValue.class);
 					if (fieldValue.getLabel().equalsIgnoreCase(JsonConstant.REGCLIENTVERSION)) {
 						version = fieldValue.getValue();
@@ -223,10 +244,7 @@ public class PacketValidatorImpl implements PacketValidator {
 				}
 			}
 		}
-
-		if (!regClientVersionsBeforeCbeffOthersAttritube.contains(version)) {
-			biometricsSignatureValidator.validateSignature(biometricRecord);
-		}
+		return version;
 	}
 
 	private boolean uinPresentInIdRepo(String uin) throws ApisResourceAccessException, IOException {
