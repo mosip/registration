@@ -300,7 +300,7 @@ public class NotificationUtility {
 		try {
 			String subjectTemplateCode;
 			if (messageSenderDTO.getSmsTemplateCode()
-					.equalsIgnoreCase(NotificationTemplateTypeCode.RPR_TEC_ISSUE_SMS.name())) {
+					.equalsIgnoreCase(env.getProperty(TECHNICAL_ISSUE+SMS))) {
 				subjectTemplateCode = reregisterSubject;
 			} else {
 				subjectTemplateCode = messageSenderDTO.getSubjectTemplateCode();

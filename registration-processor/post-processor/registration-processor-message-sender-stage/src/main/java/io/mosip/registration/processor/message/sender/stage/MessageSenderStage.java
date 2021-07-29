@@ -63,7 +63,6 @@ import io.mosip.registration.processor.message.sender.exception.TemplateGenerati
 import io.mosip.registration.processor.message.sender.exception.TemplateNotFoundException;
 import io.mosip.registration.processor.message.sender.util.StatusNotificationTypeMapUtil;
 import io.mosip.registration.processor.message.sender.utility.MessageSenderStatusMessage;
-import io.mosip.registration.processor.message.sender.utility.NotificationTemplateCode;
 import io.mosip.registration.processor.message.sender.utility.NotificationTemplateType;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -176,7 +175,7 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 	/**
 	 * Deploy verticle.
 	 */
-	public void deployVerticle() {		
+	public void deployVerticle() {	
 		MosipEventBus mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
 		this.consume(mosipEventBus, MessageBusAddress.MESSAGE_SENDER_BUS, messageExpiryTimeLimit);
 	}

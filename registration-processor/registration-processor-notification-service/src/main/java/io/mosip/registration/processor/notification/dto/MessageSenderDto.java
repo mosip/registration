@@ -1,7 +1,6 @@
 package io.mosip.registration.processor.notification.dto;
 
 import io.mosip.registration.processor.core.constant.IdType;
-import io.mosip.registration.processor.message.sender.utility.NotificationTemplateCode;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;

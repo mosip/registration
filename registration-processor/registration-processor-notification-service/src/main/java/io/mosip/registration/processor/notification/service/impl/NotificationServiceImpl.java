@@ -6,21 +6,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
-
 import org.json.JSONException;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -59,7 +57,6 @@ import io.mosip.registration.processor.message.sender.exception.PhoneNumberNotFo
 import io.mosip.registration.processor.message.sender.exception.TemplateGenerationFailedException;
 import io.mosip.registration.processor.message.sender.exception.TemplateNotFoundException;
 import io.mosip.registration.processor.message.sender.utility.MessageSenderStatusMessage;
-import io.mosip.registration.processor.message.sender.utility.NotificationTemplateCode;
 import io.mosip.registration.processor.message.sender.utility.NotificationTemplateType;
 import io.mosip.registration.processor.notification.constants.NotificationTypeEnum;
 import io.mosip.registration.processor.notification.constants.ResultCode;
