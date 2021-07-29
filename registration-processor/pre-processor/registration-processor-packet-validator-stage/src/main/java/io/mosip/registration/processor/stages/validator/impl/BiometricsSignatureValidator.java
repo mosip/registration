@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -25,7 +26,6 @@ import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
-import io.mosip.kernel.signature.constant.SignatureConstant;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
@@ -107,8 +107,7 @@ public class BiometricsSignatureValidator {
 		jwtSignatureVerifyRequestDto.setJwtSignatureData(token);
 		jwtSignatureVerifyRequestDto.setActualData(token.split("\\.")[1]);
 
-		// in packet validator stage we are checking only the structural part of the
-		// packet so setting validTrust to false
+		// in packet validator stage we are checking only the structural part of the packet so setting validTrust to false
 		jwtSignatureVerifyRequestDto.setValidateTrust(false);
 		jwtSignatureVerifyRequestDto.setDomain("Device");
 		RequestWrapper<JWTSignatureVerifyRequestDto> request = new RequestWrapper<>();
@@ -127,14 +126,8 @@ public class BiometricsSignatureValidator {
 					mapper.writeValueAsString(responseWrapper.getResponse()), JWTSignatureVerifyResponseDto.class);
 
 			if (!jwtResponse.isSignatureValid()) {
-				throw new BiometricSignatureValidationException(StatusUtil.DEVICE_SIGNATURE_VALIDATION_FAILED.getCode(),
-						StatusUtil.DEVICE_SIGNATURE_VALIDATION_FAILED.getMessage());
-			} else {
-				if (!jwtResponse.getTrustValid().contentEquals(SignatureConstant.TRUST_VALID)) {
-					throw new BiometricSignatureValidationException(
-							StatusUtil.DEVICE_SIGNATURE_VALIDATION_FAILED.getCode(),
-							StatusUtil.DEVICE_SIGNATURE_VALIDATION_FAILED.getMessage() + jwtResponse.getTrustValid());
-				}
+				throw new BiometricSignatureValidationException(StatusUtil.BIOMETRICS_SIGNATURE_VALIDATION_FAILURE.getCode(),
+						StatusUtil.BIOMETRICS_SIGNATURE_VALIDATION_FAILURE.getMessage());
 			}
 		} else {
 			throw new BiometricSignatureValidationException(responseWrapper.getErrors().get(0).getErrorCode(),

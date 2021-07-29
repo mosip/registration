@@ -14,10 +14,7 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
 import org.json.JSONException;
@@ -35,8 +32,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.util.ReflectionTestUtils;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.biometrics.entities.BIR;
@@ -47,7 +42,6 @@ import io.mosip.kernel.core.exception.BiometricSignatureValidationException;
 import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
-import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
@@ -148,7 +142,6 @@ public class PacketValidatorImplTest {
 	@Before
 	public void setup() throws Exception {
 		
-		ReflectionTestUtils.setField(PacketValidator, "regClientVersionsBeforeCbeffOthersAttritube", Arrays.asList("1.2.0-SNAPSHOT"));
 		packetValidationDto = new PacketValidationDto();
 
 		Identity identity = new Identity();
@@ -259,16 +252,6 @@ public class PacketValidatorImplTest {
 		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
 				.thenReturn(biometricRecord);
 		when(applicantDocumentValidation.validateDocument(any(), any())).thenReturn(true);
-		
-		Map<String, String> metamap = new HashMap<>();
-		org.json.JSONArray jsonArray = new org.json.JSONArray();
-		org.json.JSONObject jsonObject1 = new org.json.JSONObject();
-		jsonObject1.put("Registration Client Version Number", "1.2.0");
-		jsonArray.put(0, jsonObject1);
-		metamap.put(JsonConstant.METADATA, jsonArray.toString());
-		Mockito.when(packetManagerService.getMetaInfo(anyString(), any(), any())).thenReturn(metamap);
-		Mockito.when(objectMapper.readValue(anyString(), any(Class.class)))
-				.thenReturn(new FieldValue("Registration Client Version Number", "1.2.0"));
 	}
 
 	@Test

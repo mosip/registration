@@ -10,7 +10,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -21,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.cbeffutil.exception.CbeffException;
-import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.BiometricSignatureValidationException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.StringUtils;
@@ -70,6 +68,9 @@ public class PacketValidatorImpl implements PacketValidator {
 
 	@Autowired
 	private Environment env;
+	
+	@Autowired
+	ObjectMapper mapper;
 
 	@Autowired
 	private BiometricsXSDValidator biometricsXSDValidator;
@@ -155,6 +156,12 @@ public class PacketValidatorImpl implements PacketValidator {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					id, RegistrationStatusCode.FAILED.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));
 			throw e;
+		} catch (JSONException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					id, RegistrationStatusCode.FAILED.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));
+			packetValidationDto.setPacketValidaionFailureMessage(
+					StatusUtil.JSON_PARSING_EXCEPTION.getMessage() + e.getMessage());
+			packetValidationDto.setPacketValidatonStatusCode(StatusUtil.JSON_PARSING_EXCEPTION.getCode());
 		}
 
 		packetValidationDto.setValid(true);
@@ -163,12 +170,18 @@ public class PacketValidatorImpl implements PacketValidator {
 
 	private boolean biometricsXSDValidation(String id, String process, PacketValidationDto packetValidationDto)
 			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException,
-			RegistrationProcessorCheckedException {
+			RegistrationProcessorCheckedException, JSONException {
 		List<String> fields = Arrays.asList(MappingJsonConstants.INDIVIDUAL_BIOMETRICS,
 				MappingJsonConstants.AUTHENTICATION_BIOMETRICS, MappingJsonConstants.INTRODUCER_BIO,
 				MappingJsonConstants.OFFICERBIOMETRICFILENAME, MappingJsonConstants.SUPERVISORBIOMETRICFILENAME);
 		for (String field : fields) {
-			String value = packetManagerService.getField(id, field, process, ProviderStageName.PACKET_VALIDATOR);
+			String value = null;
+			if (field.equals(MappingJsonConstants.OFFICERBIOMETRICFILENAME)
+					|| field.equals(MappingJsonConstants.SUPERVISORBIOMETRICFILENAME)) {
+				value = getOperationsDataFromMetaInfo(id, process, field);
+			} else {
+				value = packetManagerService.getField(id, field, process, ProviderStageName.PACKET_VALIDATOR);
+			}
 			if (value != null && !value.isEmpty()) {
 				try {
 					BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(id, field,
@@ -204,6 +217,31 @@ public class PacketValidatorImpl implements PacketValidator {
 		}
 		return true;
 	}
+	
+	private String getOperationsDataFromMetaInfo(String id, String process, String fileName)
+			throws ApisResourceAccessException, PacketManagerException, IOException, JSONException, JsonParseException,
+			JsonMappingException, JsonProcessingException, io.mosip.kernel.core.util.exception.JsonProcessingException {
+		Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(id, process,
+				ProviderStageName.PACKET_VALIDATOR);
+		String metadata = metaInfoMap.get(JsonConstant.OPERATIONSDATA);
+		String value = null;
+		if (StringUtils.isNotEmpty(metadata)) {
+			JSONArray jsonArray = new JSONArray(metadata);
+
+			for (int i = 0; i < jsonArray.length(); i++) {
+				if (!jsonArray.isNull(i)) {
+					org.json.JSONObject jsonObject = (org.json.JSONObject) jsonArray.get(i);
+					FieldValue fieldValue = mapper.readValue(jsonObject.toString(), FieldValue.class);
+					if (fieldValue.getLabel().equalsIgnoreCase(fileName)) {
+						value = fieldValue.getValue();
+						break;
+					}
+				}
+			}
+		}
+		return value;
+	}
+
 
 	private boolean uinPresentInIdRepo(String uin) throws ApisResourceAccessException, IOException {
 		return idRepoService.findUinFromIdrepo(uin, utility.getGetRegProcessorDemographicIdentity()) != null;
