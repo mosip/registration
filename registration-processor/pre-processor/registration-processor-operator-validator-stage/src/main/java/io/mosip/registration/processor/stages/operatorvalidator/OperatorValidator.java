@@ -273,7 +273,8 @@ public class OperatorValidator {
 			}
 		} else {
 			List<io.mosip.registration.processor.core.auth.dto.ErrorDTO> errors = authResponseDTO.getErrors();
-			if (errors.stream().anyMatch(error -> error.getErrorCode().equalsIgnoreCase("IDA-MLC-007"))) {
+			if (errors.stream().anyMatch(error -> (error.getErrorCode().equalsIgnoreCase("IDA-MLC-007")
+					|| error.getErrorCode().equalsIgnoreCase("IDA-MLC-018")))) {
 				throw new AuthSystemException(PlatformErrorMessages.RPR_AUTH_SYSTEM_EXCEPTION.getMessage());
 			} else {
 				registrationStatusDto.setLatestTransactionStatusCode(
