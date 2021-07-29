@@ -218,18 +218,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		try {
 			for (SyncRegistrationDto registrationDto : resgistrationDtos) {
 				if(registrationDto.getPacketId()!=null && !registrationDto.getPacketId().isBlank()){
-					if(registrationDto.getAdditionalInfoReqId()!=null && !registrationDto.getAdditionalInfoReqId().isBlank()
-							&& !registrationDto.getAdditionalInfoReqId().contains(registrationDto.getRegistrationType())) {
-						SyncResponseFailureDto syncResponseFailureDto = new SyncResponseFailureDto();
-						syncResponseFailureDto.setRegistrationId(registrationDto.getRegistrationId());
-						syncResponseFailureDto.setStatus(ResponseStatusCode.FAILURE.toString());
-						syncResponseFailureDto.setMessage(PlatformErrorMessages.RPR_RGS_INVALID_ADDITIONAL_INFORMATION.getMessage());
-						syncResponseFailureDto.setErrorCode(PlatformErrorMessages.RPR_RGS_INVALID_ADDITIONAL_INFORMATION.getCode());
-						syncResponseList.add(syncResponseFailureDto);
-					}
-					else{
 					syncResponseList = validateSync(registrationDto, syncResponseList, referenceId, timeStamp);
-					}
 				}
 				else {
 					SyncResponseFailDto syncResponseFailureDto = new SyncResponseFailDto();
