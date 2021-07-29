@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -56,6 +57,7 @@ import io.mosip.registration.processor.core.auth.dto.DataInfoDTO;
 import io.mosip.registration.processor.core.auth.dto.RequestDTO;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.BioType;
+import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.BioTypeException;
@@ -233,6 +235,8 @@ public class AuthUtil {
 		List<BioInfo> biometrics = new ArrayList<>();
 		try {
 			for (io.mosip.kernel.biometrics.entities.BIR bir : list) {
+				if(isExceptionBIR(bir))
+					continue;
 				BioInfo bioInfo = new BioInfo();
 				DataInfoDTO dataInfoDTO = new DataInfoDTO();
 				dataInfoDTO.setEnv(authEnv);
@@ -282,6 +286,16 @@ public class AuthUtil {
 					PlatformErrorMessages.OSI_VALIDATION_BIO_TYPE_EXCEPTION.getMessage() + "-" + e.getMessage());
 
 		}
+	}
+
+	private boolean isExceptionBIR(io.mosip.kernel.biometrics.entities.BIR bir) {
+		if(bir.getOthers() != null) {
+			Optional<io.mosip.kernel.biometrics.entities.Entry> entry = bir.getOthers().stream().filter(
+				it -> it.getKey().equals(JsonConstant.BIOMETRICRECORDEXCEPTION)).findAny();
+			if(entry.isPresent() && entry.get().getValue().equals("true"))
+				return true;
+		}
+		return false;
 	}
 
 	public static class SplittedEncryptedData {

@@ -240,4 +240,7 @@ public class JsonConstant {
 
 	/** The Constant for registration client version label. */
 	public static final String REGCLIENTVERSION = "Registration Client Version Number";
+
+	/** The Constant for exception key in others attribute of biometric xml files. */
+	public static final String BIOMETRICRECORDEXCEPTION = "EXCEPTION";
 }
