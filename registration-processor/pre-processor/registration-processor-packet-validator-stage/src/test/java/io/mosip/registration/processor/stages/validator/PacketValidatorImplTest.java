@@ -39,7 +39,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.mosip.kernel.biometrics.commons.BiometricsSignatureValidator;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.cbeffutil.exception.CbeffException;
@@ -71,6 +70,7 @@ import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketM
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.stages.utils.ApplicantDocumentValidation;
 import io.mosip.registration.processor.stages.utils.BiometricsXSDValidator;
+import io.mosip.registration.processor.stages.validator.impl.BiometricsSignatureValidator;
 import io.mosip.registration.processor.stages.validator.impl.PacketValidatorImpl;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
@@ -273,13 +273,13 @@ public class PacketValidatorImplTest {
 
 	@Test
 	public void testValidationSuccess() throws IOException, JSONException, BaseCheckedException {
-		Mockito.doNothing().when(biometricsSignatureValidator).validateSignature(any());
+		Mockito.doNothing().when(biometricsSignatureValidator).validateSignature(anyString(), anyString(), any());
 		assertTrue(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
 
 	@Test
 	public void testUpdateValidationSuccess() throws IOException, JSONException, BaseCheckedException {
-		Mockito.doNothing().when(biometricsSignatureValidator).validateSignature(any());
+		Mockito.doNothing().when(biometricsSignatureValidator).validateSignature(anyString(), anyString(), any());
 		assertTrue(PacketValidator.validate("123456789", "UPDATE", packetValidationDto));
 	}
 
@@ -296,7 +296,7 @@ public class PacketValidatorImplTest {
 		when(env.getProperty(VALIDATEFILE)).thenReturn("false");
 		when(env.getProperty(VALIDATECHECKSUM)).thenReturn("false");
 		when(env.getProperty(VALIDATEAPPLICANTDOCUMENT)).thenReturn("false");
-		Mockito.doNothing().when(biometricsSignatureValidator).validateSignature(any());
+		Mockito.doNothing().when(biometricsSignatureValidator).validateSignature(anyString(), anyString(), any());
 		assertTrue(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
 
@@ -314,7 +314,8 @@ public class PacketValidatorImplTest {
 	
 	@Test
 	public void testBiometricsSignatureValidatonFailure() throws Exception {
-		doThrow(new BiometricSignatureValidationException("JWT signature Validation Failed")).when(biometricsSignatureValidator).validateSignature(any());
+		doThrow(new BiometricSignatureValidationException("JWT signature Validation Failed"))
+				.when(biometricsSignatureValidator).validateSignature(anyString(), anyString(), any());
 		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
 

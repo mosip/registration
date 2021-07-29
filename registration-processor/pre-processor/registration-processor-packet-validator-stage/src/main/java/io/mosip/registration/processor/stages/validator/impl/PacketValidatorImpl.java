@@ -19,7 +19,6 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.mosip.kernel.biometrics.commons.BiometricsSignatureValidator;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.cbeffutil.exception.CbeffException;
 import io.mosip.kernel.core.exception.BaseCheckedException;
@@ -71,9 +70,6 @@ public class PacketValidatorImpl implements PacketValidator {
 
 	@Autowired
 	private Environment env;
-	
-	@Autowired
-	private ObjectMapper objectMapper;
 
 	@Autowired
 	private BiometricsXSDValidator biometricsXSDValidator;
@@ -83,9 +79,6 @@ public class PacketValidatorImpl implements PacketValidator {
 
 	@Autowired
 	private ApplicantDocumentValidation applicantDocumentValidation;
-	
-	@Value("#{T(java.util.Arrays).asList('${mosip.regproc.common.before-cbeff-others-attibute.reg-client-versions:}')}")
-	private List<String> regClientVersionsBeforeCbeffOthersAttritube;
 
 	@Override
 	public boolean validate(String id, String process, PacketValidationDto packetValidationDto)
@@ -181,7 +174,7 @@ public class PacketValidatorImpl implements PacketValidator {
 					BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(id, field,
 							process, ProviderStageName.PACKET_VALIDATOR);
 					biometricsXSDValidator.validateXSD(biometricRecord);
-					validateBiometricSignatures(id, process, biometricRecord);
+					biometricsSignatureValidator.validateSignature(id, process, biometricRecord);
 				} catch (Exception e) {
 					if (e instanceof CbeffException) {
 						regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
@@ -210,41 +203,6 @@ public class PacketValidatorImpl implements PacketValidator {
 			}
 		}
 		return true;
-	}
-	
-	private void validateBiometricSignatures(String id, String process, BiometricRecord biometricRecord)
-			throws JSONException, JsonParseException, JsonMappingException,
-			com.fasterxml.jackson.core.JsonProcessingException, IOException, BaseCheckedException {
-		// backward compatibility check
-		String version = getRegClientVersionFromMetaInfo(id, process);
-
-		if (!regClientVersionsBeforeCbeffOthersAttritube.contains(version)) {
-			biometricsSignatureValidator.validateSignature(biometricRecord);
-		}
-	}
-
-	private String getRegClientVersionFromMetaInfo(String id, String process)
-			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException,
-			JSONException, JsonParseException, JsonMappingException {
-		Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(id, process,
-				ProviderStageName.PACKET_VALIDATOR);
-		String metadata = metaInfoMap.get(JsonConstant.METADATA);
-		String version = null;
-		if (StringUtils.isNotEmpty(metadata)) {
-			JSONArray jsonArray = new JSONArray(metadata);
-
-			for (int i = 0; i < jsonArray.length(); i++) {
-				if (!jsonArray.isNull(i)) {
-					org.json.JSONObject jsonObject = (org.json.JSONObject) jsonArray.get(i);
-					FieldValue fieldValue = objectMapper.readValue(jsonObject.toString(), FieldValue.class);
-					if (fieldValue.getLabel().equalsIgnoreCase(JsonConstant.REGCLIENTVERSION)) {
-						version = fieldValue.getValue();
-						break;
-					}
-				}
-			}
-		}
-		return version;
 	}
 
 	private boolean uinPresentInIdRepo(String uin) throws ApisResourceAccessException, IOException {
