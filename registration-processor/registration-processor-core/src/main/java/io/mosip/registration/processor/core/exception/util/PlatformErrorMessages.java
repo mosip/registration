@@ -335,7 +335,7 @@ public enum PlatformErrorMessages {
 
 	/** The structural validation failed. */
 	// Stages - Packet validator Exception error code and message
-	STRUCTURAL_VALIDATION_FAILED("", "Structural Validation Failed"),
+	STRUCTURAL_VALIDATION_FAILED(PlatformConstants.RPR_PACKET_VALIDATOR_MODULE + "015", "Structural Validation Failed"),
 
 	/** The rpr pvm data not available. */
 	RPR_PVM_DATA_NOT_AVAILABLE(PlatformConstants.RPR_PACKET_VALIDATOR_MODULE + "002",
@@ -393,7 +393,7 @@ public enum PlatformErrorMessages {
 			"Rejected by Supervisor"),
 
 	/** The packet classification failed. */
-	PACKET_CLASSIFICATION_FAILED("", "Packet Classification failed"),
+	PACKET_CLASSIFICATION_FAILED(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "000", "Packet Classification failed"),
 
 	/** The rpr pcm base unchecked exception. */
 	RPR_PCM_BASE_UNCHECKED_EXCEPTION(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "001",
@@ -469,13 +469,13 @@ public enum PlatformErrorMessages {
 
 	/** The unsupported encoding. */
 	// UIN check - JSON file encoding failed.
-	UNSUPPORTED_ENCODING("", "Json Object Parsing Failed"),
+	UNSUPPORTED_ENCODING(PlatformConstants.RPR_BIO_DEDUPE_SERVICE_MODULE + "005", "Json Object Parsing Failed"),
 	
 	OSI_VALIDATION_BIO_TYPE_EXCEPTION(PlatformConstants.RPR_CMD_VALIDATOR_MODULE + "007", "Bio Type Exception"),
 
 	/** The cmd validation failed. */
 	// Stages - CMD Exception error code and message
-	CMD_VALIDATION_FAILED("", "CMD Validation Failed"),
+	CMD_VALIDATION_FAILED(PlatformConstants.RPR_CMD_VALIDATOR_MODULE + "000", "CMD Validation Failed"),
 
 	/** The cmd base unchecked exception. */
 	CMD_BASE_UNCHECKED_EXCEPTION(PlatformConstants.RPR_CMD_VALIDATOR_MODULE + "001",
@@ -494,7 +494,7 @@ public enum PlatformErrorMessages {
 			"operator Validation Failed"),
 	
 	/** The Operator validation failed. */
-	OPERATOR_VALIDATION_FAILED("", "Operator Validation Failed"),
+	OPERATOR_VALIDATION_FAILED(PlatformConstants.RPR_OVM_VALIDATOR_MODULE + "000", "Operator Validation Failed"),
 	
 	LINK_FOR_USERID_INDIVIDUALID_FAILED_OVM_EXCEPTION(PlatformConstants.RPR_OVM_VALIDATOR_MODULE + "003",
 			"Unable to get the IndividualId for UserId"),
@@ -508,7 +508,7 @@ public enum PlatformErrorMessages {
 			"Supervisor Validation Failed"),
 	
 	/** The Supervisor validation failed. */
-	SUPERVISOR_VALIDATION_FAILED("", "Supervisor Validation Failed"),
+	SUPERVISOR_VALIDATION_FAILED(PlatformConstants.RPR_SVM_VALIDATOR_MODULE + "000", "Supervisor Validation Failed"),
 	
 	LINK_FOR_USERID_INDIVIDUALID_FAILED_SVM_EXCEPTION(PlatformConstants.RPR_SVM_VALIDATOR_MODULE + "003",
 			"Unable to get the IndividualId for UserId"),
@@ -522,14 +522,14 @@ public enum PlatformErrorMessages {
 			"INTRODUCER Validation Failed"),
 	
 	/** The INTRODUCER validation failed. */
-	INTRODUCER_VALIDATION_FAILED("", "INTRODUCER Validation Failed"),
+	INTRODUCER_VALIDATION_FAILED(PlatformConstants.RPR_IVM_VALIDATOR_MODULE + "000", "INTRODUCER Validation Failed"),
 
 	/** The packet demo dedupe failed. */
 	// Stages - Demo-Dedupe error code and message
-	PACKET_DEMO_DEDUPE_FAILED("", "Demo Dedupe Failed"),
+	PACKET_DEMO_DEDUPE_FAILED(PlatformConstants.RPR_DEMO_DEDUPE_MODULE+"000", "Demo Dedupe Failed"),
 
 	/** The packet demo packet store not accessible. */
-	PACKET_DEMO_PACKET_STORE_NOT_ACCESSIBLE("", "Unable to Access Packet Store"),
+	PACKET_DEMO_PACKET_STORE_NOT_ACCESSIBLE(PlatformConstants.RPR_DEMO_DEDUPE_MODULE+"003", "Unable to Access Packet Store"),
 
 	/** The packet bio dedupe cbeff not present. */
 	PACKET_BIO_DEDUPE_CBEFF_NOT_PRESENT(PlatformConstants.RPR_BIO_DEDUPE_STAGE_MODULE + "001",
@@ -598,10 +598,10 @@ public enum PlatformErrorMessages {
 
 	/** The reverse data sync failed. */
 	// Stages - Packet-Validator error message
-	REVERSE_DATA_SYNC_FAILED("", "Reverse Data Sync Failed"),
+	REVERSE_DATA_SYNC_FAILED(PlatformConstants.RPR_PACKET_VALIDATOR_MODULE + "016", "Reverse Data Sync Failed"),
 
 	/** The reverse data sync success. */
-	REVERSE_DATA_SYNC_SUCCESS("", "Reverse Data Sync Success"),
+	REVERSE_DATA_SYNC_SUCCESS(PlatformConstants.RPR_PACKET_VALIDATOR_MODULE + "017", "Reverse Data Sync Success"),
 
 	/** The Biometric-Authentication stage failed. */
 	// stages - Biometric-Authentication stage error code and message
@@ -1247,7 +1247,7 @@ public enum PlatformErrorMessages {
 	RPR_AUT_ACCESS_DENIED(PlatformConstants.RPR_AUTHENTICATION + "02", "Access Denied For Role - %s"),
 
 	/** Reprocessor Stage Failed. */
-	REPROCESSOR_STAGE_FAILED("", "Reprocessor Stage Failed"),
+	REPROCESSOR_STAGE_FAILED(PlatformConstants.RPR_REPROCESSOR_STAGE + "000", "Reprocessor Stage Failed"),
 
 	RPR_WIA_DATE_TIME_EXCEPTION(PlatformConstants.RPR_WORKFLOW_INTERNAL_ACTION + "000",
 			"Error while parsing event or resume timestamp"),
