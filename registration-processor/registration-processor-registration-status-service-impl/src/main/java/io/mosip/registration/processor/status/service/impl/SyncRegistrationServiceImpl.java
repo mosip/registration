@@ -217,22 +217,24 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		boolean isTransactionSuccessful = false;
 		try {
 			for (SyncRegistrationDto registrationDto : resgistrationDtos) {
-				if(registrationDto.getAdditionalInfoReqId()!=null && registrationDto.getPacketId()!=null
-					&& !registrationDto.getAdditionalInfoReqId().isBlank() && !registrationDto.getPacketId().isBlank()
-					&& validateAdditionalInformation(registrationDto, syncResponseList)) {
+				if(registrationDto.getPacketId()!=null && !registrationDto.getPacketId().isBlank()){
+					if(registrationDto.getAdditionalInfoReqId()!=null && !registrationDto.getAdditionalInfoReqId().isBlank()
+							&& !registrationDto.getAdditionalInfoReqId().contains(registrationDto.getRegistrationType())) {
+						SyncResponseFailureDto syncResponseFailureDto = new SyncResponseFailureDto();
+						syncResponseFailureDto.setRegistrationId(registrationDto.getRegistrationId());
+						syncResponseFailureDto.setStatus(ResponseStatusCode.FAILURE.toString());
+						syncResponseFailureDto.setMessage(PlatformErrorMessages.RPR_RGS_INVALID_ADDITIONAL_INFORMATION.getMessage());
+						syncResponseFailureDto.setErrorCode(PlatformErrorMessages.RPR_RGS_INVALID_ADDITIONAL_INFORMATION.getCode());
+						syncResponseList.add(syncResponseFailureDto);
+					}
+					else{
 					syncResponseList = validateSync(registrationDto, syncResponseList, referenceId, timeStamp);
+					}
 				}
 				else {
 					SyncResponseFailDto syncResponseFailureDto = new SyncResponseFailDto();
-
 					syncResponseFailureDto.setStatus(ResponseStatusCode.FAILURE.toString());
-					if(registrationDto.getAdditionalInfoReqId()==null || registrationDto.getAdditionalInfoReqId().isBlank()) {
-						syncResponseFailureDto.setMessage("Missing Request Value - additionalInfoReqId");
-					}
-
-					if(registrationDto.getPacketId()==null || registrationDto.getPacketId().isBlank()) {
-						syncResponseFailureDto.setMessage("Missing Request Value -  packetId");
-					}
+					syncResponseFailureDto.setMessage("Missing Request Value -  packetId");
 					syncResponseFailureDto.setErrorCode(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER.getCode());
 					syncResponseList.add(syncResponseFailureDto);
 				}
@@ -435,23 +437,6 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			syncResponseList.add(syncResponseFailureDto);
 			return false;
 		}
-	}
-
-	private boolean validateAdditionalInformation(SyncRegistrationDto registrationDto, List<SyncResponseDto> syncResponseList) {
-			String additionalInfoReqId=registrationDto.getAdditionalInfoReqId();
-			String process=registrationDto.getRegistrationType();
-
-			if(additionalInfoReqId!=null &&!additionalInfoReqId.isEmpty()&&additionalInfoReqId.contains(process)) {
-				return true;
-			}
-
-			SyncResponseFailureDto syncResponseFailureDto = new SyncResponseFailureDto();
-			syncResponseFailureDto.setRegistrationId(registrationDto.getRegistrationId());
-			syncResponseFailureDto.setStatus(ResponseStatusCode.FAILURE.toString());
-			syncResponseFailureDto.setMessage(PlatformErrorMessages.RPR_RGS_INVALID_ADDITIONAL_INFORMATION.getMessage());
-			syncResponseFailureDto.setErrorCode(PlatformErrorMessages.RPR_RGS_INVALID_ADDITIONAL_INFORMATION.getCode());
-			syncResponseList.add(syncResponseFailureDto);
-		return false;
 	}
 
 
