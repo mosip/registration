@@ -402,7 +402,8 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
 			description.setMessage(PlatformErrorMessages.RPR_PUM_PACKET_VIRUS_SCANNER_SERVICE_FAILED.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_PUM_PACKET_VIRUS_SCANNER_SERVICE_FAILED.getCode());
 			dto.setStatusCode(RegistrationExceptionTypeCode.VIRUS_SCANNER_SERVICE_FAILED.toString());
-			dto.setStatusComment(RegistrationExceptionTypeCode.VIRUS_SCANNER_SERVICE_FAILED.toString());
+			dto.setStatusComment(trimExpMessage.trimExceptionMessage(
+					StatusUtil.VIRUS_SCANNER_SERVICE_NOT_ACCESSIBLE.getMessage() + " " + e.getMessage()));
 			dto.setSubStatusCode(StatusUtil.VIRUS_SCANNER_SERVICE_NOT_ACCESSIBLE.getCode());
 			dto.setLatestTransactionStatusCode(registrationStatusMapperUtil
 					.getStatusCode(RegistrationExceptionTypeCode.VIRUS_SCANNER_SERVICE_FAILED));
