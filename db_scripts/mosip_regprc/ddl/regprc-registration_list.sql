@@ -11,17 +11,14 @@
 -- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
 -- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes for 1.1.5
 -- Jun-2021		Ram Bhatt	    Added additional columns to table
--- Jul-2021		Ram Bhatt	    id renamed to → workflow_instance_id
--- Jul-2021		Ram Bhatt	    reg_type renamed to → process
--- Jul-2021		Ram Bhatt	    Added 3 additional columns , pk constraint changes
 -- ------------------------------------------------------------------------------------------
 
 -- object: regprc.registration_list | type: TABLE --
 -- DROP TABLE IF EXISTS regprc.registration_list CASCADE;
 CREATE TABLE regprc.registration_list(
-	workflow_instance_id character varying(36) NOT NULL,
+	id character varying(36) NOT NULL,
 	reg_id character varying(39) NOT NULL,
-	process character varying(64),
+	reg_type character varying(64),
 	packet_checksum character varying(128) NOT NULL DEFAULT '0',
 	packet_size bigint NOT NULL DEFAULT 0,
 	client_status_code character varying(36),
@@ -42,15 +39,9 @@ CREATE TABLE regprc.registration_list(
 	center_id character varying,
 	registration_date date,
 	postal_code character varying,
-	additional_info_req_id character varying(256),
-	packet_id character varying,
-	source	character varying,
-	CONSTRAINT pk_reglist_id PRIMARY KEY (workflow_instance_id)
+	CONSTRAINT pk_reglist_id PRIMARY KEY (id)
 
 );
--- indexes section -------------------------------------------------
-create index idx_rgstrnlst_pcktid on regprc.registration_list (packet_id);
-create index idx_rgstrnlst_aireqid on regprc.registration_list (additional_info_req_id);
 -- ddl-end --
 COMMENT ON TABLE regprc.registration_list IS 'Registration Lists: List of Registration packets details received (to be received) from registration client applications. These details are used to validate the actuall packets received for processing.';
 -- ddl-end --

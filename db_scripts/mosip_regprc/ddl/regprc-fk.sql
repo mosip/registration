@@ -15,9 +15,9 @@
 
 -- object: fk_regtrn_reg | type: CONSTRAINT --
 -- ALTER TABLE regprc.registration_transaction DROP CONSTRAINT IF EXISTS fk_regtrn_reg CASCADE;
---ALTER TABLE regprc.registration_transaction ADD CONSTRAINT fk_regtrn_reg FOREIGN KEY (reg_id)
---REFERENCES regprc.registration (id) MATCH SIMPLE
---ON DELETE NO ACTION ON UPDATE NO ACTION;
+ALTER TABLE regprc.registration_transaction ADD CONSTRAINT fk_regtrn_reg FOREIGN KEY (reg_id)
+REFERENCES regprc.registration (id) MATCH SIMPLE
+ON DELETE NO ACTION ON UPDATE NO ACTION;
 -- ddl-end --
 
 -- object: fk_regtrn_trntyp | type: CONSTRAINT --
@@ -29,15 +29,15 @@ ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- object: fk_idemogd_reg | type: CONSTRAINT --
 -- ALTER TABLE regprc.individual_demographic_dedup DROP CONSTRAINT IF EXISTS fk_idemogd_reg CASCADE;
-ALTER TABLE regprc.individual_demographic_dedup ADD CONSTRAINT fk_idemogd_reg FOREIGN KEY (workflow_instance_id)
-REFERENCES regprc.registration (workflow_instance_id) MATCH SIMPLE
+ALTER TABLE regprc.individual_demographic_dedup ADD CONSTRAINT fk_idemogd_reg FOREIGN KEY (reg_id)
+REFERENCES regprc.registration (id) MATCH SIMPLE
 ON DELETE NO ACTION ON UPDATE NO ACTION;
 -- ddl-end --
 
 -- object: fk_rmnlver_reg | type: CONSTRAINT --
 -- ALTER TABLE regprc.reg_manual_verification DROP CONSTRAINT IF EXISTS fk_rmnlver_reg CASCADE;
-ALTER TABLE regprc.reg_manual_verification ADD CONSTRAINT fk_rmnlver_reg FOREIGN KEY (workflow_instance_id)
-REFERENCES regprc.registration (workflow_instance_id) MATCH SIMPLE
+ALTER TABLE regprc.reg_manual_verification ADD CONSTRAINT fk_rmnlver_reg FOREIGN KEY (reg_id)
+REFERENCES regprc.registration (id) MATCH SIMPLE
 ON DELETE NO ACTION ON UPDATE NO ACTION;
 -- ddl-end --
 
@@ -59,8 +59,8 @@ ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- object: fk_regref_reg | type: CONSTRAINT --
 -- ALTER TABLE regprc.reg_bio_ref DROP CONSTRAINT IF EXISTS fk_regref_reg CASCADE;
-ALTER TABLE regprc.reg_bio_ref ADD CONSTRAINT fk_regbrf_reg FOREIGN KEY (workflow_instance_id)
-REFERENCES regprc.registration (workflow_instance_id) MATCH SIMPLE
+ALTER TABLE regprc.reg_bio_ref ADD CONSTRAINT fk_regbrf_reg FOREIGN KEY (reg_id)
+REFERENCES regprc.registration (id) MATCH SIMPLE
 ON DELETE NO ACTION ON UPDATE NO ACTION;
 -- ddl-end --
 
@@ -83,7 +83,7 @@ ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- object: fk_rlostd_reg | type: CONSTRAINT --
 -- ALTER TABLE regprc.reg_lost_uin_det DROP CONSTRAINT IF EXISTS fk_rlostd_reg CASCADE;
-ALTER TABLE regprc.reg_lost_uin_det ADD CONSTRAINT fk_rlostd_reg FOREIGN KEY (workflow_instance_id)
-REFERENCES regprc.registration (workflow_instance_id) MATCH SIMPLE
+ALTER TABLE regprc.reg_lost_uin_det ADD CONSTRAINT fk_rlostd_reg FOREIGN KEY (reg_id)
+REFERENCES regprc.registration (id) MATCH SIMPLE
 ON DELETE NO ACTION ON UPDATE NO ACTION;
 
