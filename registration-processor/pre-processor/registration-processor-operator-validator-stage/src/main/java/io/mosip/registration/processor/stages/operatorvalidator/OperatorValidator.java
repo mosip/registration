@@ -371,8 +371,8 @@ public class OperatorValidator {
 		} else if (userDto != null) {
 			isValidUser = userDto.getRegistrationCenters().get(0).getIsActive();
 		} else {
-			regProcLogger
-					.debug("validateMapping call ended for registrationId with error not there and userDTO is empty");
+			regProcLogger.debug(
+					"validateMapping call ended with no erros and userDTO as null so considering as mapping not valid");
 			isValidUser = false;
 		}
 
