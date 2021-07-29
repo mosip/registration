@@ -22,7 +22,7 @@ public class MessageSenderDto {
 	private NotificationTemplateCode emailTemplateCode = null;
 
 	/** The subject. */
-	private String subject = "";
+	private NotificationTemplateCode subjectCode = null;
 
 	/** The id type. */
 	private IdType idType = null;

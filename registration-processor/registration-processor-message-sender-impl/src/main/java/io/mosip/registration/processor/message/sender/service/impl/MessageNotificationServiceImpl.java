@@ -241,26 +241,22 @@ public class MessageNotificationServiceImpl
 			String artifact="";
 			String subject="";
 			for(String lang: preferredLanguages) {
-				InputStream stream = templateGenerator.getTemplate(templateTypeCode, attributes, lang);
+				InputStream stream = templateGenerator.getTemplate(templateTypeCode, attributes, lang);	
+				
+				artifact = IOUtils.toString(stream, ENCODING);
+				
 				InputStream subStream = templateGenerator.getTemplate(subjectCode, attributes, lang);
-				if(artifact.isBlank()) {
-				 artifact = IOUtils.toString(stream, ENCODING);
-				}else {
-				artifact = artifact + LINE_SEPARATOR + IOUtils.toString(stream, ENCODING);
+				
+				subject=IOUtils.toString(subStream, ENCODING);
+				if (emailId == null || emailId.length() == 0) {
+					throw new EmailIdNotFoundException(PlatformErrorMessages.RPR_EML_EMAILID_NOT_FOUND.getCode());
 				}
-				if(subject.isBlank()) {
-					subject=IOUtils.toString(subStream, ENCODING);
-				}else {
-					subject = subject + "_" + IOUtils.toString(subStream, ENCODING);
-				}
+				String[] mailTo = { emailId.toString() };
+
+				response = sendEmail(mailTo, mailCc, subject, artifact, attachment);
 			}
 
-			if (emailId == null || emailId.length() == 0) {
-				throw new EmailIdNotFoundException(PlatformErrorMessages.RPR_EML_EMAILID_NOT_FOUND.getCode());
-			}
-			String[] mailTo = { emailId.toString() };
-
-			response = sendEmail(mailTo, mailCc, subjectCode, artifact, attachment);
+			
 
 		} catch (TemplateNotFoundException | TemplateProcessingFailureException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
