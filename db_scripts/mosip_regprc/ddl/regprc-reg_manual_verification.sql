@@ -10,7 +10,6 @@
 -- ------------------------------------------------------------------------------------------
 -- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
 -- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes for 1.1.5
--- Jul-2021		Ram Bhatt	    Index Creation, pk constraint change and added new column
 -- ------------------------------------------------------------------------------------------
 
 -- object: regprc.reg_manual_verification | type: TABLE --
@@ -35,13 +34,9 @@ CREATE TABLE regprc.reg_manual_verification(
 	upd_dtimes timestamp,
 	is_deleted boolean DEFAULT FALSE,
 	del_dtimes timestamp,
-	workflow_instance_id character varying(36) NOT NULL,
-	CONSTRAINT pk_rmnlver_id PRIMARY KEY (workflow_instance_id,matched_ref_id,matched_ref_type)
+	CONSTRAINT pk_rmnlver_id PRIMARY KEY (reg_id,matched_ref_id,matched_ref_type)
 
 );
--- indexes section -------------------------------------------------
-create index idx_rmanvrn_reqid on regprc.reg_manual_verification (request_id);
-
 -- ddl-end --
 COMMENT ON TABLE regprc.reg_manual_verification IS 'Manual Verification: Stores all the registration request which goes through manual verification process, registration can be assinged to single/multiple manual verifier as part of the verification process';
 -- ddl-end --
