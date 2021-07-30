@@ -277,6 +277,10 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
 
 	}
 
+    public Map<String, String> getAllTags(String id) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+        return getTags(id, null);
+    }
+
     public Map<String, String> getTags(String id, List<String> tagNames) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         TagRequestDto tagRequestDto = new TagRequestDto(id, tagNames);
         RequestWrapper<TagRequestDto> request = new RequestWrapper<>();

@@ -331,8 +331,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 						request, ResponseWrapper.class);
 
 		if (response.getErrors() != null && response.getErrors().size() > 0) {
-			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					id, JsonUtils.javaObjectToJsonString(response));
+            logger.error("Registration Id : {} response: {}", id, JsonUtils.javaObjectToJsonString(response));
 			throw new PacketManagerException(response.getErrors().get(0).getErrorCode(),
 					response.getErrors().get(0).getMessage());
 		}

@@ -53,9 +53,6 @@ public class PacketValidatorImpl implements PacketValidator {
 	private Utilities utility;
 
 	@Autowired
-	private IdRepoService idRepoService;
-
-	@Autowired
 	private Environment env;
 
 	@Autowired
@@ -122,7 +119,7 @@ public class PacketValidatorImpl implements PacketValidator {
 			if (RegistrationType.UPDATE.name().equalsIgnoreCase(process)
 					|| RegistrationType.RES_UPDATE.name().equalsIgnoreCase(process)) {
 
-				if (!uinPresentInIdRepo(String.valueOf(uin))) {
+				if (!utility.uinPresentInIdRepo(String.valueOf(uin))) {
 					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.REGISTRATIONID.toString(), id,
 							"ERROR =======>" + StatusUtil.UIN_NOT_FOUND_IDREPO.getMessage());
@@ -176,11 +173,6 @@ public class PacketValidatorImpl implements PacketValidator {
 			}
 		}
 		return true;
-	}
-
-	private boolean uinPresentInIdRepo(String uin) throws ApisResourceAccessException, IOException {
-		return idRepoService.findUinFromIdrepo(uin, utility.getGetRegProcessorDemographicIdentity()) != null;
-
 	}
 
 	private boolean applicantDocumentValidation(String registrationId, String process,
