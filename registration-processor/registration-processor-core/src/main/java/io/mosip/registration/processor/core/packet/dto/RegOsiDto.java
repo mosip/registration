@@ -69,5 +69,6 @@ public class RegOsiDto {
 
 	private List<NewRegisteredDevice> capturedRegisteredDevices;
 	
+	private String regClientVersion;
 
 }

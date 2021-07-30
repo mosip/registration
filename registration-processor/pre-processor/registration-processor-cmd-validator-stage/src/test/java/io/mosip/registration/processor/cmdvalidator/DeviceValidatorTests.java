@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.json.JSONException;
@@ -49,18 +50,21 @@ public class DeviceValidatorTests {
 	
 	@Mock
 	private PriorityBasedPacketManagerService packetManagerService;
-	RegOsiDto regOsi;String process; String registrationId;
+	RegOsiDto regOsi;String process; String registrationId; String regClientVersion;
 	
 	@Before
 	public void setUp() throws Exception {
 		process="NEW";
 		registrationId="1234567890";
+		regClientVersion = "1.2.0";
 		regOsi=new RegOsiDto();
 		regOsi.setPacketCreationDate("2021-06-04T07:31:59.831Z");
+		regOsi.setRegClientVersion(regClientVersion);
 		ReflectionTestUtils.setField(deviceValidator, "allowedDigitalIdTimestampVariation", 30);
 		ReflectionTestUtils.setField(deviceValidator, "disableTrustValidation", true);
 		ReflectionTestUtils.setField(deviceValidator, "digitalIdTimestampFormat", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-
+		ReflectionTestUtils.setField(deviceValidator, "regClientVersionsBeforeCbeffOthersAttritube", 
+			new ArrayList<String>());
 		
 		BiometricRecord biometricRecord = new BiometricRecord();
 		BIR bir=new BIR();
@@ -72,6 +76,8 @@ public class DeviceValidatorTests {
 		
 		Mockito.when(packetManagerService.getBiometricsByMappingJsonKey(any(),
 				any(), any(),any())).thenReturn(biometricRecord);
+		Mockito.when(packetManagerService.getField(any(),
+				any(), any(),any())).thenReturn("individualBiometrics_bio_CBEFF");
 		HotlistRequestResponseDTO hotlistRequestResponseDTO=new HotlistRequestResponseDTO();
 		hotlistRequestResponseDTO.setExpiryTimestamp(null);
 		hotlistRequestResponseDTO.setId("b692b595-3523-iris-99fc-bd76e35f190f");
@@ -95,7 +101,7 @@ public class DeviceValidatorTests {
 	}
 	
 	@Test(expected=BaseCheckedException.class)
-	public void deviceValidationPayloadNullTest() throws JsonProcessingException, ApisResourceAccessException, IOException, BaseCheckedException, JSONException {
+	public void deviceValidationOthersNullTest() throws JsonProcessingException, ApisResourceAccessException, IOException, BaseCheckedException, JSONException {
 		BiometricRecord biometricRecord = new BiometricRecord();
 		BIR bir=new BIR();
 		biometricRecord.setSegments(Arrays.asList(bir));
@@ -166,6 +172,49 @@ public class DeviceValidatorTests {
 		ResponseWrapper.setResponse(hotlistRequestResponseDTO);
 		Mockito.when(registrationProcessorRestService.getApi(any(), any(), anyString(), any(), any())).thenReturn(ResponseWrapper);
 		
+		deviceValidator.validate(regOsi, process, registrationId);
+	}
+
+	// For backward compatibility of pre LTS reg client cbeff files
+	@Test
+	public void deviceValidationOthersNullButRegClientVersionBeforeCbeffOthersTest() 
+			throws JsonProcessingException, ApisResourceAccessException, IOException, 
+				BaseCheckedException, JSONException {
+		BiometricRecord biometricRecord = new BiometricRecord();
+		BIR bir=new BIR();
+		biometricRecord.setSegments(Arrays.asList(bir));
+		
+		Mockito.when(packetManagerService.getBiometricsByMappingJsonKey(any(),
+				any(), any(),any())).thenReturn(biometricRecord);
+
+		ReflectionTestUtils.setField(deviceValidator, "regClientVersionsBeforeCbeffOthersAttritube", 
+			Arrays.asList(regClientVersion));
+		deviceValidator.validate(regOsi, process, registrationId);
+	}
+
+	@Test
+	public void deviceValidationAllSegmentAsException() 
+			throws JsonProcessingException, ApisResourceAccessException, IOException, 
+				BaseCheckedException, JSONException {
+		BiometricRecord biometricRecord = new BiometricRecord();
+		BIR bir1 = new BIR();
+		bir1.setOthers(Arrays.asList(new Entry("EXCEPTION", "true")));
+		BIR bir2 = new BIR();
+		bir2.setOthers(Arrays.asList(new Entry("EXCEPTION", "true")));
+		biometricRecord.setSegments(Arrays.asList(bir1,bir2));
+		
+		Mockito.when(packetManagerService.getBiometricsByMappingJsonKey(any(),
+				any(), any(),any())).thenReturn(biometricRecord);
+
+		deviceValidator.validate(regOsi, process, registrationId);
+	}
+
+	@Test
+	public void deviceValidationNoBiometricsInPacket() 
+			throws JsonProcessingException, ApisResourceAccessException, IOException, 
+				BaseCheckedException, JSONException {
+		Mockito.when(packetManagerService.getField(any(),
+				any(), any(),any())).thenReturn(null);
 		deviceValidator.validate(regOsi, process, registrationId);
 	}
 }

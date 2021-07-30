@@ -18,6 +18,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -88,29 +90,8 @@ public class NotificationServiceImpl implements NotificationService {
 	@Value("${registration.processor.notification.emails}")
 	private String notificationEmails;
 
-	/** The uin generated subject. */
-	@Value("${registration.processor.uin.generated.subject}")
-	private String uinGeneratedSubject;
-
-	@Value("${registration.processor.uin.activated.subject}")
-	private String uinActivateSubject;
-
-	@Value("${registration.processor.uin.deactivated.subject}")
-	private String uinDeactivateSubject;
-
-	/** The duplicate uin subject. */
-	@Value("${registration.processor.duplicate.uin.subject}")
-	private String duplicateUinSubject;
-
-	/** The reregister subject. */
-	@Value("${registration.processor.reregister.subject}")
-	private String reregisterSubject;
-
 	@Value("${mosip.notificationtype}")
 	private String notificationTypes;
-
-	@Value("${registration.processor.updated.subject}")
-	private String uinUpdatedSubject;
 	
 	@Value("${websub.hub.url}")
 	private String hubURL;
@@ -136,8 +117,8 @@ public class NotificationServiceImpl implements NotificationService {
 	private SubscriptionClient<SubscriptionChangeRequest,UnsubscriptionRequest, SubscriptionChangeResponse> sb; 
 	
 	// sends init subscribe req to hub
-	@PostConstruct
-	private void init() {
+	@EventListener(ApplicationReadyEvent.class)
+	protected void init() {
 		SubscriptionChangeRequest subscriptionRequest = new SubscriptionChangeRequest();
 		subscriptionRequest.setCallbackURL(callbackURL);
 		subscriptionRequest.setHubURL(hubURL);
@@ -360,7 +341,7 @@ public class NotificationServiceImpl implements NotificationService {
 		boolean isEmailSuccess = false;
 		try {
 			ResponseDto emailResponse = service.sendEmailNotification(messageSenderDto.getEmailTemplateCode().name(),
-					id, process, messageSenderDto.getIdType(), attributes, ccEMailList, messageSenderDto.getSubject(),
+					id, process, messageSenderDto.getIdType(), attributes, ccEMailList, messageSenderDto.getSubjectCode().name(),
 					null, regType);
 			if (emailResponse.getStatus().equals("success")) {
 				isEmailSuccess = true;
@@ -440,49 +421,49 @@ public class NotificationServiceImpl implements NotificationService {
 			messageSenderDto.setSmsTemplateCode(NotificationTemplateCode.RPR_LOST_UIN_SMS);
 			messageSenderDto.setEmailTemplateCode(NotificationTemplateCode.RPR_LOST_UIN_EMAIL);
 			messageSenderDto.setIdType(IdType.UIN);
-			messageSenderDto.setSubject(uinGeneratedSubject);
+			messageSenderDto.setSubjectCode(NotificationTemplateCode.RPR_UIN_GEN_EMAIL_SUB);
 			break;
 		case UIN_CREATED:
 			messageSenderDto.setSmsTemplateCode(NotificationTemplateCode.RPR_UIN_GEN_SMS);
 			messageSenderDto.setEmailTemplateCode(NotificationTemplateCode.RPR_UIN_GEN_EMAIL);
 			messageSenderDto.setIdType(IdType.UIN);
-			messageSenderDto.setSubject(uinGeneratedSubject);
+			messageSenderDto.setSubjectCode(NotificationTemplateCode.RPR_UIN_GEN_EMAIL_SUB);
 			break;
 		case UIN_UPDATE:
 			if (regType.equalsIgnoreCase(RegistrationType.NEW.name())) {
 				messageSenderDto.setSmsTemplateCode(NotificationTemplateCode.RPR_UIN_UPD_SMS);
 				messageSenderDto.setEmailTemplateCode(NotificationTemplateCode.RPR_UIN_UPD_EMAIL);
 				messageSenderDto.setIdType(IdType.UIN);
-				messageSenderDto.setSubject(uinGeneratedSubject);
+				messageSenderDto.setSubjectCode(NotificationTemplateCode.RPR_UIN_GEN_EMAIL_SUB);
 			} else if (regType.equalsIgnoreCase(RegistrationType.ACTIVATED.name())) {
 				messageSenderDto.setSmsTemplateCode(NotificationTemplateCode.RPR_UIN_REAC_SMS);
 				messageSenderDto.setEmailTemplateCode(NotificationTemplateCode.RPR_UIN_REAC_EMAIL);
 				messageSenderDto.setIdType(IdType.UIN);
-				messageSenderDto.setSubject(uinActivateSubject);
+				messageSenderDto.setSubjectCode(NotificationTemplateCode.RPR_UIN_REAC_EMAIL_SUB);
 			} else if (regType.equalsIgnoreCase(RegistrationType.DEACTIVATED.name())) {
 				messageSenderDto.setSmsTemplateCode(NotificationTemplateCode.RPR_UIN_DEAC_SMS);
 				messageSenderDto.setEmailTemplateCode(NotificationTemplateCode.RPR_UIN_DEAC_EMAIL);
 				messageSenderDto.setIdType(IdType.UIN);
-				messageSenderDto.setSubject(uinDeactivateSubject);
+				messageSenderDto.setSubjectCode(NotificationTemplateCode.RPR_UIN_DEAC_EMAIL_SUB);
 			} else if (regType.equalsIgnoreCase(RegistrationType.UPDATE.name())
 					|| regType.equalsIgnoreCase(RegistrationType.RES_UPDATE.name())) {
 				messageSenderDto.setSmsTemplateCode(NotificationTemplateCode.RPR_UIN_UPD_SMS);
 				messageSenderDto.setEmailTemplateCode(NotificationTemplateCode.RPR_UIN_UPD_EMAIL);
 				messageSenderDto.setIdType(IdType.UIN);
-				messageSenderDto.setSubject(uinUpdatedSubject);
+				messageSenderDto.setSubjectCode(NotificationTemplateCode.RPR_UIN_UPD_EMAIL_SUB);
 			}
 			break;
 		case DUPLICATE_UIN:
 			messageSenderDto.setSmsTemplateCode(NotificationTemplateCode.RPR_DUP_UIN_SMS);
 			messageSenderDto.setEmailTemplateCode(NotificationTemplateCode.RPR_DUP_UIN_EMAIL);
 			messageSenderDto.setIdType(IdType.RID);
-			messageSenderDto.setSubject(duplicateUinSubject);
+			messageSenderDto.setSubjectCode(NotificationTemplateCode.RPR_DUP_UIN_EMAIL_SUB);
 			break;
 		case TECHNICAL_ISSUE:
 			messageSenderDto.setSmsTemplateCode(NotificationTemplateCode.RPR_TEC_ISSUE_SMS);
 			messageSenderDto.setEmailTemplateCode(NotificationTemplateCode.RPR_TEC_ISSUE_EMAIL);
 			messageSenderDto.setIdType(IdType.RID);
-			messageSenderDto.setSubject(reregisterSubject);
+			messageSenderDto.setSubjectCode(NotificationTemplateCode.RPR_TEC_ISSUE_EMAIL_SUB);
 			break;
 		default:
 			break;
