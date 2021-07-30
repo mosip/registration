@@ -175,17 +175,24 @@ public class PacketValidatorImpl implements PacketValidator {
 				MappingJsonConstants.AUTHENTICATION_BIOMETRICS, MappingJsonConstants.INTRODUCER_BIO,
 				MappingJsonConstants.OFFICERBIOMETRICFILENAME, MappingJsonConstants.SUPERVISORBIOMETRICFILENAME);
 		for (String field : fields) {
-			String value = null;
+			BiometricRecord biometricRecord = null;
 			if (field.equals(MappingJsonConstants.OFFICERBIOMETRICFILENAME)
 					|| field.equals(MappingJsonConstants.SUPERVISORBIOMETRICFILENAME)) {
-				value = getOperationsDataFromMetaInfo(id, process, field);
+				String value = getOperationsDataFromMetaInfo(id, process, field);
+				if (value != null && !value.isEmpty()) {
+					biometricRecord = packetManagerService.getBiometrics(id, field, process,
+							ProviderStageName.PACKET_VALIDATOR);
+				}
 			} else {
-				value = packetManagerService.getField(id, field, process, ProviderStageName.PACKET_VALIDATOR);
+				String value = packetManagerService.getField(id, field, process, ProviderStageName.PACKET_VALIDATOR);
+				if (value != null && !value.isEmpty()) {
+					biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(id, field, process,
+							ProviderStageName.PACKET_VALIDATOR);
+				}
 			}
-			if (value != null && !value.isEmpty()) {
+
+			if (biometricRecord != null) {
 				try {
-					BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(id, field,
-							process, ProviderStageName.PACKET_VALIDATOR);
 					biometricsXSDValidator.validateXSD(biometricRecord);
 					biometricsSignatureValidator.validateSignature(id, process, biometricRecord);
 				} catch (Exception e) {

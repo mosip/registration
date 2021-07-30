@@ -8,8 +8,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,14 +31,18 @@ import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.signature.constant.SignatureConstant;
 import io.mosip.registration.processor.core.code.ApiName;
+import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.http.RequestWrapper;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.core.packet.dto.HotlistRequestResponseDTO;
 import io.mosip.registration.processor.core.packet.dto.JWTSignatureVerifyRequestDto;
 import io.mosip.registration.processor.core.packet.dto.JWTSignatureVerifyResponseDto;
@@ -90,29 +96,63 @@ public class DeviceValidator {
 	 * @throws com.fasterxml.jackson.databind.JsonMappingException
 	 * @throws com.fasterxml.jackson.core.JsonParseException
 	 */
-
-	public void validate(RegOsiDto regOsi,String process, String registrationId)
-			throws JsonProcessingException, IOException, BaseCheckedException, 
-				ApisResourceAccessException, JSONException {
+	public void validate(RegOsiDto regOsi, String process, String registrationId) throws JsonProcessingException,
+			IOException, BaseCheckedException, ApisResourceAccessException, JSONException {
 		List<String> fields = Arrays.asList(MappingJsonConstants.INDIVIDUAL_BIOMETRICS,
-				MappingJsonConstants.AUTHENTICATION_BIOMETRICS, 
-				MappingJsonConstants.INTRODUCER_BIO,
-				MappingJsonConstants.OFFICERBIOMETRICFILENAME, 
-				MappingJsonConstants.SUPERVISORBIOMETRICFILENAME);
+				MappingJsonConstants.AUTHENTICATION_BIOMETRICS, MappingJsonConstants.INTRODUCER_BIO,
+				MappingJsonConstants.OFFICERBIOMETRICFILENAME, MappingJsonConstants.SUPERVISORBIOMETRICFILENAME);
 		for (String field : fields) {
-			String value = packetManagerService.getField(registrationId, field, process, 
+			if (field.equals(MappingJsonConstants.OFFICERBIOMETRICFILENAME)
+					|| field.equals(MappingJsonConstants.SUPERVISORBIOMETRICFILENAME)) {
+				String value = getOperationsDataFromMetaInfo(registrationId, process, field);
+				if (value != null && !value.isEmpty()) {
+					BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId, field, process,
+							ProviderStageName.PACKET_VALIDATOR);
+					if (biometricRecord == null)
+						throw new BaseCheckedException(StatusUtil.DEVICE_VALIDATION_FAILED.getCode(),
+								StatusUtil.DEVICE_VALIDATION_FAILED.getMessage()
+										+ " --> Biometrics not found for field " + field);
+					validateDevicesInBiometricRecord(biometricRecord, regOsi);
+				}
+			} else {
+				String value = packetManagerService.getField(registrationId, field, process,
+						ProviderStageName.PACKET_VALIDATOR);
+				if (value != null && !value.isEmpty()) {
+					BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(registrationId,
+							field, process, ProviderStageName.PACKET_VALIDATOR);
+					if (biometricRecord == null)
+						throw new BaseCheckedException(StatusUtil.DEVICE_VALIDATION_FAILED.getCode(),
+								StatusUtil.DEVICE_VALIDATION_FAILED.getMessage()
+										+ " --> Biometrics not found for field " + field);
+					validateDevicesInBiometricRecord(biometricRecord, regOsi);
+				}
+			}
+
+		}
+	}
+	
+	private String getOperationsDataFromMetaInfo(String id, String process, String fileName)
+			throws ApisResourceAccessException, PacketManagerException, IOException, JSONException, JsonParseException,
+			JsonMappingException, JsonProcessingException, io.mosip.kernel.core.util.exception.JsonProcessingException {
+		Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(id, process,
 				ProviderStageName.PACKET_VALIDATOR);
-			if (value != null && !value.isEmpty()) {
-				BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(
-						registrationId, field, process,ProviderStageName.CMD_VALIDATOR);
-				if(biometricRecord == null)
-					throw new BaseCheckedException(
-						StatusUtil.DEVICE_VALIDATION_FAILED.getCode(),
-						StatusUtil.DEVICE_VALIDATION_FAILED.getMessage() + 
-							" --> Biometrics not found for field " + field);
-				validateDevicesInBiometricRecord(biometricRecord, regOsi);
+		String metadata = metaInfoMap.get(JsonConstant.OPERATIONSDATA);
+		String value = null;
+		if (StringUtils.isNotEmpty(metadata)) {
+			JSONArray jsonArray = new JSONArray(metadata);
+
+			for (int i = 0; i < jsonArray.length(); i++) {
+				if (!jsonArray.isNull(i)) {
+					org.json.JSONObject jsonObject = (org.json.JSONObject) jsonArray.get(i);
+					FieldValue fieldValue = mapper.readValue(jsonObject.toString(), FieldValue.class);
+					if (fieldValue.getLabel().equalsIgnoreCase(fileName)) {
+						value = fieldValue.getValue();
+						break;
+					}
+				}
 			}
 		}
+		return value;
 	}
 
 	private void validateDevicesInBiometricRecord(BiometricRecord biometricRecord, RegOsiDto regOsi) 

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.biometrics.commons.BiometricsSignatureHelper;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.biometrics.entities.Entry;
 import io.mosip.kernel.core.exception.BiometricSignatureValidationException;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.http.ResponseWrapper;
@@ -42,6 +43,12 @@ import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketM
 public class BiometricsSignatureValidator {
 
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
+	
+	/** The Constant TRUE. */
+	private static final String TRUE = "true";
+	
+	/** The Constant EXCEPTION. */
+	private static final String EXCEPTION = "EXCEPTION";
 
 	@Autowired
 	private PriorityBasedPacketManagerService packetManagerService;
@@ -68,6 +75,25 @@ public class BiometricsSignatureValidator {
 		if (!regClientVersionsBeforeCbeffOthersAttritube.contains(version)) {
 			List<BIR> birs = biometricRecord.getSegments();
 			for (BIR bir : birs) {
+				List<Entry> othersInfo = bir.getOthers();
+				if (othersInfo == null) {
+					throw new BiometricSignatureValidationException("Others value is null inside BIR");
+				}
+
+				boolean exceptionValue = false;
+				for (Entry other : othersInfo) {
+					if (other.getKey().equals(EXCEPTION)) {
+						if (other.getValue().equals(TRUE)) {
+							exceptionValue = true;
+						}
+						break;
+					}
+				}
+
+				if (exceptionValue) {
+					continue;
+				}
+
 				String token = BiometricsSignatureHelper.extractJWTToken(bir);
 				validateJWTToken(token);
 			}
