@@ -19,4 +19,5 @@
 
 \ir ddl/regprc-crypto_salt.sql
 
+\ir ddl/regprc-additional_info_request.sql
 \ir ddl/regprc-fk.sql
