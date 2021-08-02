@@ -428,8 +428,8 @@ public class Utilities {
 			} catch (IOException | ApisResourceAccessException exception) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 						ExceptionUtils.getStackTrace(exception));
-				// in case of exception return false so that the request is marked for reprocess
-				return false;
+				// in case of exception return true so that the request is marked for reprocess
+				return true;
 			}
 		}
 		return false;
