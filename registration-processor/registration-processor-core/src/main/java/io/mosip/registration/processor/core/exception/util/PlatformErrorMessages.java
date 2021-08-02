@@ -327,7 +327,7 @@ public enum PlatformErrorMessages {
 
 	/** The rpr qcr biometric exception. */
 	INDIVIDUAL_BIOMETRIC_NOT_FOUND(PlatformConstants.RPR_QUALITY_CHECKER_MODULE + "009",
-			"Individual Biometric Parameter Not Found in ID JSON"),
+			"Individual Biometric Parameter Not Found in ID JSON so skipping biometric classification"),
 
 	/** The rpr qcr biometric exception. */
 	BIOMETRIC_QUALITY_CHECK_FAILED(PlatformConstants.RPR_QUALITY_CHECKER_MODULE + "010",
