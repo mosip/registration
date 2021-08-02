@@ -389,7 +389,7 @@ public class SyncRegistrationServiceTest {
 		request.add(syncRegistrationDto16);
 		Mockito.when(encryptor.encrypt(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyString())).thenReturn(encryptedInfo);
 		Mockito.when(syncRegistrationDao.save(any())).thenReturn(syncRegistrationEntity);
-		List<SyncResponseDto> syncResponse = syncRegistrationService.sync2(request, "", "");
+		List<SyncResponseDto> syncResponse = syncRegistrationService.syncV2(request, "", "");
 
 		assertEquals("Verifing List returned", ((SyncResponseFailureDto) syncResponse.get(0)).getRegistrationId(),
 				syncRegistrationDto.getRegistrationId());
@@ -421,7 +421,7 @@ public class SyncRegistrationServiceTest {
 		request.add(syncRegistrationDto16);
 		Mockito.when(encryptor.encrypt(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyString())).thenReturn(encryptedInfo);
 		Mockito.when(syncRegistrationDao.save(any())).thenReturn(syncRegistrationEntity);
-		List<SyncResponseDto> syncResponse = syncRegistrationService.sync2(request, "", "");
+		List<SyncResponseDto> syncResponse = syncRegistrationService.syncV2(request, "", "");
 
 		assertEquals("Missing Request Value - additionalInfoReqId", ((SyncResponseFailDto) syncResponse.get(0)).getMessage());
 

@@ -103,13 +103,13 @@ public interface SyncRegistrationService<T, U> {
 	/**
 	 * Delete additional info by registration id.
 	 *
-	 * @param resgistrationId
-	 *            the resgistration id
+	 * @param syncEntity
+	 *            the sync Entity
 	 * @return true / false
 	 */
 	public boolean deleteAdditionalInfo(SyncRegistrationEntity syncEntity);
 
-	public List<SyncResponseDto> sync2(List<SyncRegistrationDto> request, String referenceId, String timeStamp);
+	public List<SyncResponseDto> syncV2(List<SyncRegistrationDto> request, String referenceId, String timeStamp);
 
 	public List<SyncRegistrationEntity> getByPacketIds(List<String> packetIdList);
 

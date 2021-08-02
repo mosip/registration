@@ -150,7 +150,7 @@ public class RegistrationSyncController {
 
 			if (registrationSyncRequestDTO != null && validator.validate(registrationSyncRequestDTO,
 					env.getProperty(REG_SYNC_SERVICE_ID), syncResponseList)) {
-				syncResponseList = syncRegistrationService.sync2(registrationSyncRequestDTO.getRequest(), referenceId, timeStamp);
+				syncResponseList = syncRegistrationService.syncV2(registrationSyncRequestDTO.getRequest(), referenceId, timeStamp);
 			}
 			if (isEnabled) {
 				RegSyncResponseDTO responseDto = buildRegistrationSyncResponse(syncResponseList);

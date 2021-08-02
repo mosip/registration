@@ -463,7 +463,7 @@ public class PacketInfoDao {
 	}
 
 	/**
-	 * Gets the RegId by bioRefId,process & iteration.
+	 * Gets the RegId by bioRefId and workflow instance id
 	 * @param matchRefId
 	 * @param workflowInstanceId
 	 * @return regId

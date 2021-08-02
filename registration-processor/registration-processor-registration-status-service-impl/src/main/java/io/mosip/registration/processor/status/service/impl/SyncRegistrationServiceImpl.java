@@ -207,8 +207,8 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 
 	}
 
-	public List<SyncResponseDto> sync2(List<SyncRegistrationDto> resgistrationDtos, String referenceId,
-			String timeStamp) {
+	public List<SyncResponseDto> syncV2(List<SyncRegistrationDto> resgistrationDtos, String referenceId,
+										String timeStamp) {
 		List<SyncResponseDto> syncResponseList = new ArrayList<>();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"SyncRegistrationServiceImpl::sync()::entry");
