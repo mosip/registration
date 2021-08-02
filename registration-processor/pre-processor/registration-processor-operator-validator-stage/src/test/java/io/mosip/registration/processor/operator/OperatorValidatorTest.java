@@ -201,6 +201,7 @@ public class OperatorValidatorTest {
 		PowerMockito.mockStatic(Utilities.class);
 		PowerMockito.when(Utilities.class, "getJson", anyString(), anyString()).thenReturn(mappingJson);
 		Mockito.doNothing().when(description).setMessage(any());
+		Mockito.when(utility.isUinMissingFromIdAuth(any(),any(),any())).thenReturn(false);
 		Mockito.when(registrationExceptionMapperUtil.getStatusCode(any())).thenReturn("ERROR");
 		regOsiDto.setOfficerId("O1234");
 		regOsiDto.setOfficerHashedPin("officerHashedPin");

@@ -15,6 +15,7 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
 import org.json.JSONException;
@@ -32,12 +33,10 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.TestPropertySource;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.cbeffutil.exception.CbeffException;
-import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.BiometricSignatureValidationException;
 import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.kernel.core.util.HMACUtils2;
@@ -86,12 +85,12 @@ public class PacketValidatorImplTest {
 
 	@Mock
 	private BiometricsXSDValidator biometricsXSDValidator;
+	
+	@Mock
+	private BiometricsSignatureValidator biometricsSignatureValidator;
 
 	@Mock
 	private Environment env;
-	
-	@Mock
-	private ObjectMapper objectMapper;
 
 	@Mock
 	ApplicantTypeDocument applicantTypeDocument;
@@ -107,9 +106,6 @@ public class PacketValidatorImplTest {
 
 	@Mock
 	private RegistrationProcessorRestClientService<Object> registrationProcessorRestService;
-	
-	@Mock
-	private BiometricsSignatureValidator biometricsSignatureValidator;
 
 	@Mock
 	private RegistrationExceptionMapperUtil registrationStatusMapperUtil;
@@ -141,7 +137,6 @@ public class PacketValidatorImplTest {
 
 	@Before
 	public void setup() throws Exception {
-		
 		packetValidationDto = new PacketValidationDto();
 
 		Identity identity = new Identity();
@@ -240,6 +235,7 @@ public class PacketValidatorImplTest {
 		Mockito.when(utility.retrieveIdrepoJsonStatus(any())).thenReturn("ACTIVE");
 		when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
 		when(utility.getMappingJsonValue(anyString(), any())).thenReturn("value");
+		Mockito.when(utility.uinPresentInIdRepo(any())).thenReturn(true);
 		Mockito.when(idRepoService.findUinFromIdrepo(anyString(), any())).thenReturn("123456781");
 		ValidatePacketResponse validatePacketResponse = new ValidatePacketResponse();
 		validatePacketResponse.setValid(true);
@@ -255,13 +251,17 @@ public class PacketValidatorImplTest {
 	}
 
 	@Test
-	public void testValidationSuccess() throws IOException, JSONException, BaseCheckedException {
+	public void testValidationSuccess() throws PacketValidatorException, ApisResourceAccessException,
+			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException,
+			BiometricSignatureValidationException, JSONException {
 		Mockito.doNothing().when(biometricsSignatureValidator).validateSignature(anyString(), anyString(), any());
 		assertTrue(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
 
 	@Test
-	public void testUpdateValidationSuccess() throws IOException, JSONException, BaseCheckedException {
+	public void testUpdateValidationSuccess() throws PacketValidatorException, ApisResourceAccessException,
+			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException,
+			BiometricSignatureValidationException, JSONException {
 		Mockito.doNothing().when(biometricsSignatureValidator).validateSignature(anyString(), anyString(), any());
 		assertTrue(PacketValidator.validate("123456789", "UPDATE", packetValidationDto));
 	}
@@ -269,12 +269,15 @@ public class PacketValidatorImplTest {
 	@Test
 	public void testUINNotPresentinIDrepo() throws PacketValidatorException, ApisResourceAccessException, IOException,
 			RegistrationProcessorCheckedException, JsonProcessingException, PacketManagerException {
+		Mockito.when(utility.uinPresentInIdRepo(any())).thenReturn(false);
 		Mockito.when(idRepoService.findUinFromIdrepo(anyString(), any())).thenReturn(null);
 		assertFalse(PacketValidator.validate("123456789", "UPDATE", packetValidationDto));
 	}
 
 	@Test
-	public void testValidationConfigSuccess() throws IOException, JSONException, BaseCheckedException {
+	public void testValidationConfigSuccess() throws PacketValidatorException, ApisResourceAccessException,
+			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException,
+			BiometricSignatureValidationException, JSONException {
 		when(env.getProperty(VALIDATESCHEMA)).thenReturn("false");
 		when(env.getProperty(VALIDATEFILE)).thenReturn("false");
 		when(env.getProperty(VALIDATECHECKSUM)).thenReturn("false");
