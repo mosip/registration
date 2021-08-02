@@ -14,8 +14,6 @@ import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
@@ -38,7 +36,6 @@ import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.core.packet.dto.packetvalidator.PacketValidationDto;
 import io.mosip.registration.processor.core.spi.packet.validator.PacketValidator;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
-import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.dto.ValidatePacketResponse;
 import io.mosip.registration.processor.packet.storage.exception.IdRepoAppException;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
@@ -171,11 +168,15 @@ public class PacketValidatorImpl implements PacketValidator {
 		List<String> fields = Arrays.asList(MappingJsonConstants.INDIVIDUAL_BIOMETRICS,
 				MappingJsonConstants.AUTHENTICATION_BIOMETRICS, MappingJsonConstants.INTRODUCER_BIO,
 				MappingJsonConstants.OFFICERBIOMETRICFILENAME, MappingJsonConstants.SUPERVISORBIOMETRICFILENAME);
+		
+		Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(id, process,
+				ProviderStageName.PACKET_VALIDATOR);
+		
 		for (String field : fields) {
 			BiometricRecord biometricRecord = null;
 			if (field.equals(MappingJsonConstants.OFFICERBIOMETRICFILENAME)
 					|| field.equals(MappingJsonConstants.SUPERVISORBIOMETRICFILENAME)) {
-				String value = getOperationsDataFromMetaInfo(id, process, field);
+				String value = getOperationsDataFromMetaInfo(id, process, field, metaInfoMap);
 				if (value != null && !value.isEmpty()) {
 					biometricRecord = packetManagerService.getBiometrics(id, field, process,
 							ProviderStageName.PACKET_VALIDATOR);
@@ -191,7 +192,7 @@ public class PacketValidatorImpl implements PacketValidator {
 			if (biometricRecord != null) {
 				try {
 					biometricsXSDValidator.validateXSD(biometricRecord);
-					biometricsSignatureValidator.validateSignature(id, process, biometricRecord);
+					biometricsSignatureValidator.validateSignature(id, process, biometricRecord, metaInfoMap);
 				} catch (Exception e) {
 					if (e instanceof CbeffException) {
 						regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
@@ -222,11 +223,9 @@ public class PacketValidatorImpl implements PacketValidator {
 		return true;
 	}
 	
-	private String getOperationsDataFromMetaInfo(String id, String process, String fileName)
-			throws ApisResourceAccessException, PacketManagerException, IOException, JSONException, JsonParseException,
-			JsonMappingException, JsonProcessingException, io.mosip.kernel.core.util.exception.JsonProcessingException {
-		Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(id, process,
-				ProviderStageName.PACKET_VALIDATOR);
+	private String getOperationsDataFromMetaInfo(String id, String process, String fileName,
+			Map<String, String> metaInfoMap)
+			throws ApisResourceAccessException, PacketManagerException, IOException, JSONException {
 		String metadata = metaInfoMap.get(JsonConstant.OPERATIONSDATA);
 		String value = null;
 		if (StringUtils.isNotEmpty(metadata)) {

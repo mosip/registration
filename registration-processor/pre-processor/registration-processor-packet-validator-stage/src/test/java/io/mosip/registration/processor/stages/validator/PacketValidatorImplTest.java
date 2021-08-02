@@ -85,7 +85,7 @@ public class PacketValidatorImplTest {
 
 	@Mock
 	private BiometricsXSDValidator biometricsXSDValidator;
-	
+
 	@Mock
 	private BiometricsSignatureValidator biometricsSignatureValidator;
 
@@ -254,7 +254,8 @@ public class PacketValidatorImplTest {
 	public void testValidationSuccess() throws PacketValidatorException, ApisResourceAccessException,
 			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException,
 			BiometricSignatureValidationException, JSONException {
-		Mockito.doNothing().when(biometricsSignatureValidator).validateSignature(anyString(), anyString(), any());
+		Mockito.doNothing().when(biometricsSignatureValidator).validateSignature(anyString(), anyString(), any(),
+				any());
 		assertTrue(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
 
@@ -262,7 +263,8 @@ public class PacketValidatorImplTest {
 	public void testUpdateValidationSuccess() throws PacketValidatorException, ApisResourceAccessException,
 			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException,
 			BiometricSignatureValidationException, JSONException {
-		Mockito.doNothing().when(biometricsSignatureValidator).validateSignature(anyString(), anyString(), any());
+		Mockito.doNothing().when(biometricsSignatureValidator).validateSignature(anyString(), anyString(), any(),
+				any());
 		assertTrue(PacketValidator.validate("123456789", "UPDATE", packetValidationDto));
 	}
 
@@ -282,7 +284,8 @@ public class PacketValidatorImplTest {
 		when(env.getProperty(VALIDATEFILE)).thenReturn("false");
 		when(env.getProperty(VALIDATECHECKSUM)).thenReturn("false");
 		when(env.getProperty(VALIDATEAPPLICANTDOCUMENT)).thenReturn("false");
-		Mockito.doNothing().when(biometricsSignatureValidator).validateSignature(anyString(), anyString(), any());
+		Mockito.doNothing().when(biometricsSignatureValidator).validateSignature(anyString(), anyString(), any(),
+				any());
 		assertTrue(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
 
@@ -297,11 +300,11 @@ public class PacketValidatorImplTest {
 		doThrow(new CbeffException("CbeffException occurred")).when(biometricsXSDValidator).validateXSD(any());
 		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
-	
+
 	@Test
 	public void testBiometricsSignatureValidatonFailure() throws Exception {
 		doThrow(new BiometricSignatureValidationException("JWT signature Validation Failed"))
-				.when(biometricsSignatureValidator).validateSignature(anyString(), anyString(), any());
+				.when(biometricsSignatureValidator).validateSignature(anyString(), anyString(), any(), any());
 		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
 

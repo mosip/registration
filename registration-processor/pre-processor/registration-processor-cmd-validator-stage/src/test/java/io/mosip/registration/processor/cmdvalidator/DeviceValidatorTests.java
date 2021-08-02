@@ -229,7 +229,7 @@ public class DeviceValidatorTests {
 		Map<String, String> metamap = new HashMap<>();
 		JSONArray jsonArray = new JSONArray();
 		JSONObject jsonObject1 = new JSONObject();
-		jsonObject1.put("officerBiometricFileName", "null");
+		jsonObject1.put("officerBiometricFileName", JSONObject.NULL);
 		metamap.put(JsonConstant.OPERATIONSDATA, jsonArray.toString());
 		Mockito.when(packetManagerService.getMetaInfo(anyString(), anyString(), any())).thenReturn(metamap);
 		deviceValidator.validate(regOsi, process, registrationId);

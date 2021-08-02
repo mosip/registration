@@ -29,7 +29,6 @@ import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.constant.JsonConstant;
-import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.packet.dto.FieldValue;
@@ -37,21 +36,14 @@ import io.mosip.registration.processor.core.packet.dto.JWTSignatureVerifyRequest
 import io.mosip.registration.processor.core.packet.dto.JWTSignatureVerifyResponseDto;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
-import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 
 @Component
 public class BiometricsSignatureValidator {
 
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
-	
+
 	/** The Constant TRUE. */
 	private static final String TRUE = "true";
-	
-	/** The Constant EXCEPTION. */
-	private static final String EXCEPTION = "EXCEPTION";
-
-	@Autowired
-	private PriorityBasedPacketManagerService packetManagerService;
 
 	@Autowired
 	private RegistrationProcessorRestClientService<Object> registrationProcessorRestService;
@@ -65,46 +57,45 @@ public class BiometricsSignatureValidator {
 	@Value("#{T(java.util.Arrays).asList('${mosip.regproc.common.before-cbeff-others-attibute.reg-client-versions:}')}")
 	private List<String> regClientVersionsBeforeCbeffOthersAttritube;
 
-	public void validateSignature(String id, String process, BiometricRecord biometricRecord)
-			throws JSONException, JsonParseException, JsonMappingException, JsonProcessingException, IOException,
-			BiometricSignatureValidationException, ApisResourceAccessException, PacketManagerException,
-			io.mosip.kernel.core.util.exception.JsonProcessingException {
+	public void validateSignature(String id, String process, BiometricRecord biometricRecord,
+			Map<String, String> metaInfoMap) throws JSONException, BiometricSignatureValidationException,
+			ApisResourceAccessException, PacketManagerException, IOException {
 
 		// backward compatibility check
-		String version = getRegClientVersionFromMetaInfo(id, process);
-		if (!regClientVersionsBeforeCbeffOthersAttritube.contains(version)) {
-			List<BIR> birs = biometricRecord.getSegments();
-			for (BIR bir : birs) {
-				List<Entry> othersInfo = bir.getOthers();
-				if (othersInfo == null) {
-					throw new BiometricSignatureValidationException("Others value is null inside BIR");
-				}
-
-				boolean exceptionValue = false;
-				for (Entry other : othersInfo) {
-					if (other.getKey().equals(EXCEPTION)) {
-						if (other.getValue().equals(TRUE)) {
-							exceptionValue = true;
-						}
-						break;
-					}
-				}
-
-				if (exceptionValue) {
-					continue;
-				}
-
-				String token = BiometricsSignatureHelper.extractJWTToken(bir);
-				validateJWTToken(token);
-			}
+		String version = getRegClientVersionFromMetaInfo(id, process, metaInfoMap);
+		if (regClientVersionsBeforeCbeffOthersAttritube.contains(version)) {
+			return;
 		}
+
+		List<BIR> birs = biometricRecord.getSegments();
+		for (BIR bir : birs) {
+			List<Entry> othersInfo = bir.getOthers();
+			if (othersInfo == null) {
+				throw new BiometricSignatureValidationException("Others value is null inside BIR");
+			}
+
+			boolean exceptionValue = false;
+			for (Entry other : othersInfo) {
+				if (other.getKey().equals(JsonConstant.BIOMETRICRECORDEXCEPTION)) {
+					if (other.getValue().equals(TRUE)) {
+						exceptionValue = true;
+					}
+					break;
+				}
+			}
+
+			if (exceptionValue) {
+				continue;
+			}
+
+			String token = BiometricsSignatureHelper.extractJWTToken(bir);
+			validateJWTToken(token);
+		}
+
 	}
 
-	private String getRegClientVersionFromMetaInfo(String id, String process)
-			throws ApisResourceAccessException, PacketManagerException, IOException, JSONException, JsonParseException,
-			JsonMappingException, JsonProcessingException, io.mosip.kernel.core.util.exception.JsonProcessingException {
-		Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(id, process,
-				ProviderStageName.PACKET_VALIDATOR);
+	private String getRegClientVersionFromMetaInfo(String id, String process, Map<String, String> metaInfoMap)
+			throws ApisResourceAccessException, PacketManagerException, IOException, JSONException {
 		String metadata = metaInfoMap.get(JsonConstant.METADATA);
 		String version = null;
 		if (StringUtils.isNotEmpty(metadata)) {
@@ -133,7 +124,8 @@ public class BiometricsSignatureValidator {
 		jwtSignatureVerifyRequestDto.setJwtSignatureData(token);
 		jwtSignatureVerifyRequestDto.setActualData(token.split("\\.")[1]);
 
-		// in packet validator stage we are checking only the structural part of the packet so setting validTrust to false
+		// in packet validator stage we are checking only the structural part of the
+		// packet so setting validTrust to false
 		jwtSignatureVerifyRequestDto.setValidateTrust(false);
 		jwtSignatureVerifyRequestDto.setDomain("Device");
 		RequestWrapper<JWTSignatureVerifyRequestDto> request = new RequestWrapper<>();
@@ -152,7 +144,8 @@ public class BiometricsSignatureValidator {
 					mapper.writeValueAsString(responseWrapper.getResponse()), JWTSignatureVerifyResponseDto.class);
 
 			if (!jwtResponse.isSignatureValid()) {
-				throw new BiometricSignatureValidationException(StatusUtil.BIOMETRICS_SIGNATURE_VALIDATION_FAILURE.getCode(),
+				throw new BiometricSignatureValidationException(
+						StatusUtil.BIOMETRICS_SIGNATURE_VALIDATION_FAILURE.getCode(),
 						StatusUtil.BIOMETRICS_SIGNATURE_VALIDATION_FAILURE.getMessage());
 			}
 		} else {
