@@ -319,7 +319,6 @@ public class AbisHandlerStageTest {
 	public void testDemoToAbisHandlerTOMiddlewareSuccess() {
 		registrationStatusDto.setLatestTransactionTypeCode("DEMOGRAPHIC_VERIFICATION");
 		registrationStatusDto.setLatestRegistrationTransactionId("dd7b7d20-910a-4b84-be21-c9f211318563");
-
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(packetInfoManager.getIdentifyByTransactionId(any(), any())).thenReturn(Boolean.FALSE);
 		Mockito.when(packetInfoManager.getAllAbisDetails()).thenReturn(abisApplicationDtos);
@@ -345,7 +344,6 @@ public class AbisHandlerStageTest {
 	public void testBioToAbisHandlerToMiddlewareSuccess() {
 		registrationStatusDto.setLatestTransactionTypeCode("DEMOGRAPHIC_VERIFICATION");
 		registrationStatusDto.setLatestRegistrationTransactionId("dd7b7d20-910a-4b84-be21-c9f211318563");
-
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(packetInfoManager.getIdentifyByTransactionId(any(), any())).thenReturn(Boolean.FALSE);
 		Mockito.when(packetInfoManager.getAllAbisDetails()).thenReturn(abisApplicationDtos);
@@ -374,7 +372,6 @@ public class AbisHandlerStageTest {
 	public void testMiddlewareToAbisHandlerToDemoSuccess() {
 		registrationStatusDto.setLatestTransactionTypeCode("DEMOGRAPHIC_VERIFICATION");
 		registrationStatusDto.setLatestRegistrationTransactionId("dd7b7d20-910a-4b84-be21-c9f211318563");
-
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(packetInfoManager.getIdentifyByTransactionId(any(), any())).thenReturn(Boolean.TRUE);
 
@@ -389,7 +386,6 @@ public class AbisHandlerStageTest {
 	public void testMiddlewareToAbisHandlerToBioSuccess() {
 		registrationStatusDto.setLatestTransactionTypeCode("BIOGRAPHIC_VERIFICATION");
 		registrationStatusDto.setLatestRegistrationTransactionId("dd7b7d20-910a-4b84-be21-c9f211318563");
-
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(packetInfoManager.getIdentifyByTransactionId(any(), any())).thenReturn(Boolean.TRUE);
 
@@ -427,7 +423,6 @@ public class AbisHandlerStageTest {
 	public void testReprocessInsert() {
 		registrationStatusDto.setLatestTransactionTypeCode("BIOGRAPHIC_VERIFICATION");
 		registrationStatusDto.setLatestRegistrationTransactionId("dd7b7d20-910a-4b84-be21-c9f211318563");
-
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(packetInfoManager.getIdentifyByTransactionId(any(), any())).thenReturn(Boolean.FALSE);
 		List<String> appCodeList = new ArrayList<>();
@@ -464,7 +459,6 @@ public class AbisHandlerStageTest {
 	public void testAbisDetailsNotFound() throws RegistrationProcessorCheckedException {
 		registrationStatusDto.setLatestTransactionTypeCode("BIOGRAPHIC_VERIFICATION");
 		registrationStatusDto.setLatestRegistrationTransactionId("dd7b7d20-910a-4b84-be21-c9f211318563");
-
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(packetInfoManager.getIdentifyByTransactionId(any(), any())).thenReturn(Boolean.FALSE);
 
@@ -482,7 +476,6 @@ public class AbisHandlerStageTest {
 	public void testCreateRequestException() throws JsonProcessingException {
 		registrationStatusDto.setLatestTransactionTypeCode("BIOGRAPHIC_VERIFICATION");
 		registrationStatusDto.setLatestRegistrationTransactionId("dd7b7d20-910a-4b84-be21-c9f211318563");
-
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(packetInfoManager.getIdentifyByTransactionId(any(), any())).thenReturn(Boolean.FALSE);
 
@@ -520,7 +513,6 @@ public class AbisHandlerStageTest {
 	public void testIdentifyRequestException() throws JsonProcessingException {
 		registrationStatusDto.setLatestTransactionTypeCode("BIOGRAPHIC_VERIFICATION");
 		registrationStatusDto.setLatestRegistrationTransactionId("dd7b7d20-910a-4b84-be21-c9f211318563");
-
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(packetInfoManager.getIdentifyByTransactionId(any(), any())).thenReturn(Boolean.FALSE);
 
@@ -658,7 +650,6 @@ public class AbisHandlerStageTest {
 	private void defaultMockToProcess() {
 		registrationStatusDto.setLatestTransactionTypeCode("DEMOGRAPHIC_VERIFICATION");
 		registrationStatusDto.setLatestRegistrationTransactionId("dd7b7d20-910a-4b84-be21-c9f211318563");
-
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(packetInfoManager.getIdentifyByTransactionId(any(), any())).thenReturn(Boolean.FALSE);
 		Mockito.when(packetInfoManager.getAllAbisDetails()).thenReturn(abisApplicationDtos);

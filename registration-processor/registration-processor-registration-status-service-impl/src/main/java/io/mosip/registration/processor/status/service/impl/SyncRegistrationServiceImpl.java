@@ -52,7 +52,6 @@ import io.mosip.registration.processor.status.decryptor.Decryptor;
 import io.mosip.registration.processor.status.dto.FilterInfo;
 import io.mosip.registration.processor.status.dto.LostRidDto;
 import io.mosip.registration.processor.status.dto.RegistrationAdditionalInfoDTO;
-import io.mosip.registration.processor.status.dto.RegistrationExternalStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.RegistrationSyncRequestDTO;
@@ -132,10 +131,10 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	/** The encryptor. */
 	@Autowired
 	private Encryptor encryptor;
-	
+
 	@Value("#{'${registration.processor.main-processes}'.split(',')}")
 	private List<String> mainProcesses;
-	
+
 	@Value("#{'${registration.processor.sub-processes}'.split(',')}")
 	private List<String> subProcesses;
 
@@ -427,7 +426,6 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			return false;
 		}
 	}
-
 
 	/**
 	 * Validate registration ID.
@@ -728,6 +726,30 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		}
 	}
 
+	@Override
+	public List<RegistrationStatusDto> getExternalStatusByIds(List<String> requestIds) {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				"SyncRegistrationServiceImpl::getExternalStatusByIds()::entry");
+
+		try {
+			if (!requestIds.isEmpty()) {
+				List<SyncRegistrationEntity> syncRegistrationEntityList = syncRegistrationDao.getByIds(requestIds);
+
+				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+						"SyncRegistrationServiceImpl::getExternalStatusByIds()::exit");
+				return convertEntityListToDtoListAndGetExternalStatus(syncRegistrationEntityList);
+			}
+			return null;
+		} catch (DataAccessLayerException e) {
+
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
+			throw new TablenotAccessibleException(
+					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
+		}
+
+	}
+
 	private List<LostRidDto> entityToDtoMapper(List<SyncRegistrationEntity> syncRegistrationEntities) {
 		List<LostRidDto> lostRidDtos = new ArrayList<LostRidDto>();
 		syncRegistrationEntities.forEach(syncEntity -> {
@@ -759,30 +781,6 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 				filterInfo.setValue(getHashCode(filterInfo.getValue().replaceAll("\\s", "").toLowerCase()));
 			}
 		}
-	}
-
-	@Override
-	public List<RegistrationStatusDto> getExternalStatusByIds(List<String> requestIds) {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-				"SyncRegistrationServiceImpl::getExternalStatusByIds()::entry");
-
-		try {
-			if (!requestIds.isEmpty()) {
-				List<SyncRegistrationEntity> syncRegistrationEntityList = syncRegistrationDao.getByIds(requestIds);
-
-				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-						"SyncRegistrationServiceImpl::getExternalStatusByIds()::exit");
-				return convertEntityListToDtoListAndGetExternalStatus(syncRegistrationEntityList);
-			}
-			return null;
-		} catch (DataAccessLayerException e) {
-
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
-			throw new TablenotAccessibleException(
-					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
-		}
-
 	}
 
 	/**

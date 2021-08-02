@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,9 +25,9 @@ import org.powermock.reflect.Whitebox;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
-import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.stages.packetclassifier.dto.FieldDTO;
+import io.mosip.registration.processor.stages.packetclassifier.utility.PacketClassifierUtility;
 
 /**
  * The Class PacketValidatorStageTest.
@@ -45,8 +46,10 @@ public class IDObjectFieldsTagGeneratorTest {
 	@Mock
 	private Utilities utility;
 
+	@Mock
+    private PacketClassifierUtility classifierUtility;
+
 	private static String tagNamePrefix = "ID_OBJECT-";
-	private static String tagLanguage= "eng";
 	private static String notAvailableTagValue = "--TAG_VALUE_NOT_AVAILABLE--";
 
 	private static List<String> mappingFieldNames;
@@ -79,7 +82,6 @@ public class IDObjectFieldsTagGeneratorTest {
 
 		Whitebox.setInternalState(idObjectFieldsTagGenerator, "tagNamePrefix", tagNamePrefix);
 		Whitebox.setInternalState(idObjectFieldsTagGenerator, "mappingFieldNames", mappingFieldNames);
-		Whitebox.setInternalState(idObjectFieldsTagGenerator, "tagLanguage", tagLanguage);
 		Whitebox.setInternalState(idObjectFieldsTagGenerator, "notAvailableTagValue", notAvailableTagValue);
 
 		JSONObject mappingJSON = new JSONObject();
@@ -122,9 +124,10 @@ public class IDObjectFieldsTagGeneratorTest {
 	}
 
 	@Test
-	public void testGenerateTagsForAllFieldTypes() throws BaseCheckedException {
+	public void testGenerateTagsForAllFieldTypes() throws BaseCheckedException, JSONException {
 		idObjectFieldsTagGenerator.getRequiredIdObjectFieldNames();
-		Map<String, String> tags = idObjectFieldsTagGenerator.generateTags("12345", "1234", "NEW", 
+		Mockito.when(classifierUtility.getLanguageBasedValueForSimpleType(anyString())).thenReturn("MALE");
+		Map<String, String> tags = idObjectFieldsTagGenerator.generateTags("12345", "1234", "NEW",
 			idObjectFieldDTOMap, null, 0);
 		for(int i=0; i < mappingFieldNames.size(); i++) {
 			String mappingFieldName = mappingFieldNames.get(i);
@@ -145,14 +148,6 @@ public class IDObjectFieldsTagGeneratorTest {
 		idObjectFieldsTagGenerator.getRequiredIdObjectFieldNames();
 		FieldDTO fieldDTO = idObjectFieldDTOMap.get(actualFieldNames.get(0));
 		fieldDTO.setType("notavailabletype");
-		idObjectFieldsTagGenerator.generateTags("12345", "1234", "NEW", idObjectFieldDTOMap, null, 0);
-	}
-
-	@Test(expected = ParsingException.class)
-	public void testGenerateTagsForInvalidJSONStringInFieldValue() throws BaseCheckedException {
-		idObjectFieldsTagGenerator.getRequiredIdObjectFieldNames();
-		idObjectFieldDTOMap.put(actualFieldNames.get(2), 
-			new FieldDTO("simpleType", "[ {\n  \"language\" : \"eng\",\n  \"value\" : \"MALE\"\n} "));
 		idObjectFieldsTagGenerator.generateTags("12345", "1234", "NEW", idObjectFieldDTOMap, null, 0);
 	}
 	

@@ -16,13 +16,13 @@ public class MessageSenderDto {
 	private boolean isTemplateAvailable = false;
 
 	/** The sms template code. */
-	private String smsTemplateCode = null;
+	private NotificationTemplateCode smsTemplateCode = null;
 
 	/** The email template code. */
-	private String emailTemplateCode = null;
+	private NotificationTemplateCode emailTemplateCode = null;
 
 	/** The subject. */
-	private String subject = "";
+	private NotificationTemplateCode subjectCode = null;
 
 	/** The id type. */
 	private IdType idType = null;

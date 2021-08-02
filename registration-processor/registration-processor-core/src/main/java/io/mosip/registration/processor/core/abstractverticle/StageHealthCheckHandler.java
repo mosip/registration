@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.PrivilegedExceptionAction;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -22,14 +21,12 @@ import javax.jms.MessageProducer;
 import javax.jms.Queue;
 import javax.jms.Session;
 
+import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.SystemUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.security.SaslRpcServer.AuthMethod;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +42,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.registration.processor.core.constant.HealthConstant;
 import io.netty.handler.codec.http.HttpResponse;
 import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 //import io.vertx.core.Promise;
@@ -61,9 +57,6 @@ import io.vertx.ext.healthchecks.HealthChecks;
 import io.vertx.ext.healthchecks.Status;
 import io.vertx.ext.healthchecks.impl.HealthChecksImpl;
 import io.vertx.ext.web.RoutingContext;
-import xyz.capybara.clamav.ClamavClient;
-import xyz.capybara.clamav.commands.scan.result.ScanResult;
-import xyz.capybara.clamav.exceptions.ClamavException;
 
 /**
  * @author Mukul Puspam
@@ -77,7 +70,7 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	private String url;
 	private String username;
 	private String password;
-	private String clamavHost;
+	private String virusScannerHost;
 	private String nameNodeUrl;
 	private String kdcDomain;
 	private String keytabPath;
@@ -85,9 +78,9 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	private String queuePassword;
 	private String queueBrokerUrl;
 	private Boolean isAuthEnable;
-	private int clamavPort;
+	private int virusScannerPort;
 	private File currentWorkingDirPath;
-	private ClamavClient clamavClient;
+	private VirusScanner<Boolean, InputStream> virusScanner;
 	private FileSystem configuredFileSystem;
 	private Path hadoopLibPath;
 	private static final String HADOOP_HOME = "hadoop-lib";
@@ -111,7 +104,7 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	 * @param objectMapper
 	 * @param environment
 	 */
-	public StageHealthCheckHandler(Vertx vertx, AuthProvider provider, ObjectMapper objectMapper,
+	public StageHealthCheckHandler(Vertx vertx, AuthProvider provider, ObjectMapper objectMapper, VirusScanner virusScanner,
 			Environment environment) {
 		this.healthChecks = new HealthChecksImpl(vertx);
 		this.authProvider = provider;
@@ -120,13 +113,12 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 		this.url = environment.getProperty(HealthConstant.URL);
 		this.username = environment.getProperty(HealthConstant.USER);
 		this.password = environment.getProperty(HealthConstant.PASSWORD);
-		this.clamavHost = environment.getProperty(HealthConstant.CLAMAV_HOST);
-		this.clamavPort = Integer.parseInt(environment.getProperty(HealthConstant.CLAMAV_PORT));
 		this.queueUsername = environment.getProperty(HealthConstant.QUEUE_USERNAME);
 		this.queuePassword = environment.getProperty(HealthConstant.QUEUE_PASSWORD);
 		this.queueBrokerUrl = environment.getProperty(HealthConstant.QUEUE_BROKER_URL);
 		this.currentWorkingDirPath = new File(System.getProperty(HealthConstant.CURRENT_WORKING_DIRECTORY));
 		this.resultBuilder = new StageHealthCheckHandler.JSONResultBuilder();
+		this.virusScanner = virusScanner;
 	}
 
 	@Override
@@ -209,19 +201,16 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	 */
 	public void virusScanHealthChecker(Promise<Status> promise) {
 		try {
-			this.clamavClient = new ClamavClient(clamavHost, clamavPort);
-			ScanResult scanResult;
-
 			File file = new File("virus_scan_test.txt");
 			String fileData = "virus scan test";
 			Files.write(Paths.get("virus_scan_test.txt"), fileData.getBytes());
-			scanResult = this.clamavClient.scan(new FileInputStream(file));
+			boolean scanResult = this.virusScanner.scanFile(new FileInputStream(file));
 
-			final JsonObject result = resultBuilder.create().add(HealthConstant.RESPONSE, scanResult.getStatus().name())
+			final JsonObject result = resultBuilder.create().add(HealthConstant.RESPONSE, scanResult)
 					.build();
 			promise.complete(Status.OK(result));
 
-		} catch (ClamavException | IOException e) {
+		} catch (IOException e) {
 			final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, e.getMessage()).build();
 			promise.complete(Status.KO(result));
 		}

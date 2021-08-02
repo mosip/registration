@@ -175,6 +175,7 @@ public class IntroducerValidatorTest {
 		File idJson = new File(classLoader.getResource("ID.json").getFile());
 		InputStream ip = new FileInputStream(idJson);
 
+		Mockito.when(utility.isUinMissingFromIdAuth(any(),any(),any())).thenReturn(false);
 		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
 		File file = new File(classLoader.getResource("RegistrationProcessorIdentity.json").getFile());
 		InputStream inputStream = new FileInputStream(file);
@@ -319,7 +320,7 @@ public class IntroducerValidatorTest {
 		registrationStatusDto.setStatusCode("FAILED");
 		List<InternalRegistrationStatusDto> internalRegistrationStatusDtoList=new ArrayList<InternalRegistrationStatusDto>();
 		internalRegistrationStatusDtoList.add(registrationStatusDto);
-		
+
 		Mockito.when(registrationStatusService.getAllRegistrationStatuses(anyString())).thenReturn(internalRegistrationStatusDtoList);
 		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "introducerUIN", "New",
 				ProviderStageName.INTRODUCER_VALIDATOR)).thenReturn(null);
@@ -336,7 +337,7 @@ public class IntroducerValidatorTest {
 		List<InternalRegistrationStatusDto> internalRegistrationStatusDtoList=new ArrayList<InternalRegistrationStatusDto>();
 		internalRegistrationStatusDtoList.add(registrationStatusDto);
 		Mockito.when(registrationStatusService.getAllRegistrationStatuses(anyString())).thenReturn(internalRegistrationStatusDtoList);
-		
+
 		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "introducerUIN", "New",
 				ProviderStageName.INTRODUCER_VALIDATOR)).thenReturn(null);
 		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "introducerRID", "New",
@@ -365,7 +366,7 @@ public class IntroducerValidatorTest {
 				ProviderStageName.INTRODUCER_VALIDATOR)).thenReturn(null);
 		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "introducerRID", "New",
 				ProviderStageName.INTRODUCER_VALIDATOR)).thenReturn("field");
-		
+
 		Mockito.when(registrationStatusService.getAllRegistrationStatuses(anyString())).thenReturn(null);
 		introducerValidator.validate("reg1234", registrationStatusDto);
 	}

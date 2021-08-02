@@ -13,7 +13,7 @@
 -- Jun-2021		Ram Bhatt	   Added rows to transaction_type.csv
 -- Jun-2021		Ram Bhatt	   Added columns to registration list table
 -- Jun-2021 		Ram Bhatt	   Create crypto salt table.
--- Jul-2021		Ram Bhatt	   Added rows to transaction_type.csv
+-- July-2021		Ram Bhatt	   Added rows to transaction_type.csv
 -- Jul-2021		Ram Bhatt	   Multiple table changes on regprc db
 ----------------------------------------------------------------------------------------------------
 \c mosip_regprc sysadmin

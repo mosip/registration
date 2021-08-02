@@ -1,5 +1,18 @@
 package io.mosip.registration.processor.stages.packetclassifier.tagging.impl;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.stereotype.Component;
+
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
@@ -10,20 +23,7 @@ import io.mosip.registration.processor.packet.storage.exception.ParsingException
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.stages.packetclassifier.dto.FieldDTO;
 import io.mosip.registration.processor.stages.packetclassifier.tagging.TagGenerator;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.stereotype.Component;
+import io.mosip.registration.processor.stages.packetclassifier.utility.PacketClassifierUtility;
 
 @Component
 @ConditionalOnExpression(value = "'${mosip.regproc.packet.classifier.tag-generators}'.contains('MosipIDObjectFields')")
@@ -40,10 +40,6 @@ public class IDObjectFieldsTagGenerator implements TagGenerator {
     @Value("${mosip.regproc.packet.classifier.tagging.idobjectfields.tag-name-prefix:ID_OBJECT-}")
     private String tagNamePrefix;
 
-    /** The language that should be used when dealing with field type that has values in multiple languages */
-    @Value("${mosip.primary-language}")
-    private String tagLanguage;
-
     /** The tag value that will be used by default when the packet does not have value for the tag field */
     @Value("${mosip.regproc.packet.classifier.tagging.not-available-tag-value}")
     private String notAvailableTagValue;
@@ -51,15 +47,15 @@ public class IDObjectFieldsTagGenerator implements TagGenerator {
     /** The constant for value label in JSON parsing */
     private static final String VALUE_LABEL = "value";
 
-    /** The constant for language label in JSON parsing */
-    private static final String LANGUAGE_LABEL = "language";
-
     /** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(IDObjectFieldsTagGenerator.class);
 
     /** Frequently used util methods are available in this bean */
     @Autowired
     private Utilities utility;
+    
+    @Autowired
+    private PacketClassifierUtility classifierUtility;
     
     /** 
      * This map will hold the actual field names after resolving, using mapping JSON as keys and 
@@ -123,21 +119,10 @@ public class IDObjectFieldsTagGenerator implements TagGenerator {
         }
         String type = fieldDTO.getType();
         String value = fieldDTO.getValue();
+        
         switch (type) {
             case "simpleType":
-                JSONArray jsonArray = new JSONArray(value);
-                for(int i=0; i < jsonArray.length(); i++) {
-                    JSONObject jsonObject = jsonArray.getJSONObject(i);
-                    if(jsonObject.getString(LANGUAGE_LABEL).equals(tagLanguage)) {
-                        if(jsonObject.isNull(VALUE_LABEL))
-                            return null;
-                        return jsonObject.getString(VALUE_LABEL);
-                    }
-                }
-                throw new BaseCheckedException(
-                    PlatformErrorMessages.RPR_PCM_VALUE_NOT_AVAILABLE_IN_CONFIGURED_LANGUAGE.getCode(), 
-                    PlatformErrorMessages.RPR_PCM_VALUE_NOT_AVAILABLE_IN_CONFIGURED_LANGUAGE.getMessage() +
-                        " Field name: " + fieldName + " language: " + tagLanguage);
+            	return classifierUtility.getLanguageBasedValueForSimpleType(value);
             case "string":
                 return value;
             case "number":
@@ -159,5 +144,4 @@ public class IDObjectFieldsTagGenerator implements TagGenerator {
                     " Field name: " + fieldName + " type: " + type);
         }
     }
-    
 }

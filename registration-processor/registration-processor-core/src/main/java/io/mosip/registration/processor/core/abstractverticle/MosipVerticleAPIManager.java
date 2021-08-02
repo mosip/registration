@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.core.abstractverticle;
 
+import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -42,7 +43,10 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 	
 	@Autowired
 	private Environment environment;
-	
+
+	@Autowired(required = false)
+    private VirusScanner virusScanner;
+
 	private static final String PROMETHEUS_ENDPOINT = "/actuator/prometheus";
 
 	/**
@@ -82,7 +86,7 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 	public void configureHealthCheckEndpoint(Vertx vertx, Router router, final String servletPath,
 			String consumeAddress, String sendAddress) {
 		StageHealthCheckHandler healthCheckHandler = new StageHealthCheckHandler(vertx, null, objectMapper,
-				environment);
+                virusScanner, environment);
 		router.get(servletPath + HealthConstant.HEALTH_ENDPOINT).handler(healthCheckHandler);
 		if (servletPath.contains("packetreceiver") || servletPath.contains("uploader")) {
 			healthCheckHandler.register("virusscanner", healthCheckHandler::virusScanHealthChecker);

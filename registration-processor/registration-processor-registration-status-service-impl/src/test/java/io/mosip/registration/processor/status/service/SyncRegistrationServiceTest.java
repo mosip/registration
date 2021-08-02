@@ -660,6 +660,7 @@ public class SyncRegistrationServiceTest {
         syncRegistrationService.getByPacketIds(packetIdList);
 
 	}
+
 	@Test(expected = TablenotAccessibleException.class)
 	public void searchLostRid() {
 		SearchInfo searchInfo = new SearchInfo();

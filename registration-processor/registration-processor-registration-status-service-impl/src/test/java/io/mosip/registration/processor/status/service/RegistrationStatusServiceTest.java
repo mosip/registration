@@ -182,8 +182,8 @@ public class RegistrationStatusServiceTest {
 	public void getRegistrationStatusFailureTest() throws TablenotAccessibleException {
 		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
 				"errorMessage", new Exception());
-			Mockito.when(registrationStatusDao.find(any(),any(),any(), any())).thenThrow(exp);
-			registrationStatusService.getRegistrationStatus("1001", "NEW", 1, "");
+		Mockito.when(registrationStatusDao.find(any(),any(),any(), any())).thenThrow(exp);
+		registrationStatusService.getRegistrationStatus("1001", "NEW", 1, "");
 	}
 
 	@Test

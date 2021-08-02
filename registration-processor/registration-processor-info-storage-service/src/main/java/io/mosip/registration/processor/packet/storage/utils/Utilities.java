@@ -12,6 +12,7 @@ import java.util.*;
 
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.dto.ConfigEnum;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import org.apache.commons.lang.StringUtils;
@@ -107,6 +108,9 @@ public class Utilities {
 
 	@Autowired
 	private ObjectMapper objMapper;
+
+	@Autowired
+	private IdRepoService idRepoService;
 
 
 	/** The rest client service. */
@@ -403,6 +407,39 @@ public class Utilities {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 				"Utilities::retrieveIdrepoJson()::exit UIN is null");
 		return null;
+	}
+
+	/**
+	 * Check if uin is present in  idrepo
+	 * @param uin
+	 * @return
+	 * @throws ApisResourceAccessException
+	 * @throws IOException
+	 */
+	public boolean uinPresentInIdRepo(String uin) throws ApisResourceAccessException, IOException {
+		return idRepoService.findUinFromIdrepo(uin, getGetRegProcessorDemographicIdentity()) != null;
+	}
+
+	/**
+	 * Check if uin is missing from Id
+	 * @param errorCode
+	 * @param id
+	 * @param idType
+	 * @return
+	 */
+	public boolean isUinMissingFromIdAuth(String errorCode, String id, String idType) {
+		if (errorCode.equalsIgnoreCase("IDA-MLC-018") &&
+				idType != null && idType.equalsIgnoreCase("UIN")) {
+			try {
+				return uinPresentInIdRepo(id);
+			} catch (IOException | ApisResourceAccessException exception) {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
+						ExceptionUtils.getStackTrace(exception));
+				// in case of exception return true so that the request is marked for reprocess
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

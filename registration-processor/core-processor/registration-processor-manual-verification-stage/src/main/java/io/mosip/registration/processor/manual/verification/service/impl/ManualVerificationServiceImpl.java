@@ -778,91 +778,6 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		});
 	}
 
-	private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
-		object.setInternalError(true);
-		if (registrationStatusDto.getLatestTransactionStatusCode()
-				.equalsIgnoreCase(RegistrationTransactionStatusCode.REPROCESS.toString())) {
-			object.setIsValid(true);
-		} else {
-			object.setIsValid(false);
-		}
-	}
-
-	/**
-	 * Validate the response received from manual verification system.
-	 *
-	 * @param regId
-	 * @param manualVerificationDTO
-	 * @param entities
-	 * @return boolean
-	 * @throws JsonProcessingException
-	 */
-	private boolean isResponseValidationSuccess(String regId, ManualAdjudicationResponseDTO manualVerificationDTO, List<ManualVerificationEntity> entities) throws JsonProcessingException {
-		boolean isValidationSuccess = true;
-		// if candidate count is a positive number
-		if (manualVerificationDTO.getReturnValue() == 1
-				&& manualVerificationDTO.getCandidateList() != null
-				&& manualVerificationDTO.getCandidateList().getCount() > 0) {
-
-			// get the reference ids from response candidates.
-			List<String> refIdsFromResponse = !CollectionUtils.isEmpty(manualVerificationDTO.getCandidateList().getCandidates()) ?
-					manualVerificationDTO.getCandidateList().getCandidates().stream().map(c -> c.getReferenceId()).collect(Collectors.toList())
-					: Collections.emptyList();
-
-			// get the reference ids from manual verification table entities.
-			List<String> refIdsFromEntities = entities.stream().map(e -> e.getId().getMatchedRefId()).collect(Collectors.toList());
-
-			if (!manualVerificationDTO.getCandidateList().getCount().equals(refIdsFromResponse.size())) {
-				String errorMessage = "Validation error - Candidate count does not match reference ids count.";
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-						regId, errorMessage);
-				auditLogRequestBuilder.createAuditRequestBuilder(
-						errorMessage + " Response received : "
-								+JsonUtils.javaObjectToJsonString(manualVerificationDTO), EventId.RPR_405.toString(),
-						EventName.EXCEPTION.name(), EventType.BUSINESS.name(),
-						PlatformSuccessMessages.RPR_MANUAL_VERIFICATION_RESEND.getCode(), ModuleName.MANUAL_VERIFICATION.toString(), regId);
-				isValidationSuccess = false;
-
-			} else if (!refIdsFromEntities.containsAll(refIdsFromResponse)) {
-				String errorMessage = "Validation error - Received ReferenceIds does not match reference ids in manual verification table.";
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-						regId, errorMessage);
-				auditLogRequestBuilder.createAuditRequestBuilder(
-						errorMessage + " Response received : "
-								+JsonUtils.javaObjectToJsonString(manualVerificationDTO), EventId.RPR_405.toString(),
-						EventName.EXCEPTION.name(), EventType.BUSINESS.name(),
-						PlatformSuccessMessages.RPR_MANUAL_VERIFICATION_RESEND.getCode(), ModuleName.MANUAL_VERIFICATION.toString(), regId);
-				isValidationSuccess = false;
-			}
-		}
-		return isValidationSuccess;
-	}
-
-	/**
-	 * This method would validate response and on failure it will mark the response for reprocessing.
-	 *
-	 * @param regId
-	 * @param manualVerificationDTO
-	 * @param entities
-	 * @return boolean
-	 * @throws JsonProcessingException
-	 */
-	public boolean isResendFlow(String regId, ManualAdjudicationResponseDTO manualVerificationDTO, List<ManualVerificationEntity> entities) throws JsonProcessingException {
-		boolean isResendFlow = false;
-		if(manualVerificationDTO.getReturnValue() == 2 || !isResponseValidationSuccess(regId, manualVerificationDTO, entities)) {
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					regId, "Received resend request from manual verification application. This will be marked for reprocessing.");
-
-			// updating status code to pending so that it can be marked for manual verification again
-			entities.forEach(e -> {
-				e.setStatusCode(ManualVerificationStatus.PENDING.name());
-				basePacketRepository.update(e);
-			});
-			isResendFlow = true;
-		}
-		return isResendFlow;
-	}
-
 	/**
 	 * Process response for success flow.
 	 *
@@ -952,5 +867,91 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 		return isTransactionSuccessful;
 	}
+
+	private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
+		object.setInternalError(true);
+		if (registrationStatusDto.getLatestTransactionStatusCode()
+				.equalsIgnoreCase(RegistrationTransactionStatusCode.REPROCESS.toString())) {
+			object.setIsValid(true);
+		} else {
+			object.setIsValid(false);
+		}
+	}
+
+	/**
+	 * Validate the response received from manual verification system.
+	 *
+	 * @param regId
+	 * @param manualVerificationDTO
+	 * @param entities
+	 * @return boolean
+	 * @throws JsonProcessingException
+	 */
+	private boolean isResponseValidationSuccess(String regId, ManualAdjudicationResponseDTO manualVerificationDTO, List<ManualVerificationEntity> entities) throws JsonProcessingException {
+		boolean isValidationSuccess = true;
+		// if candidate count is a positive number
+		if (manualVerificationDTO.getReturnValue() == 1
+				&& manualVerificationDTO.getCandidateList() != null
+				&& manualVerificationDTO.getCandidateList().getCount() > 0) {
+
+			// get the reference ids from response candidates.
+			List<String> refIdsFromResponse = !CollectionUtils.isEmpty(manualVerificationDTO.getCandidateList().getCandidates()) ?
+					manualVerificationDTO.getCandidateList().getCandidates().stream().map(c -> c.getReferenceId()).collect(Collectors.toList())
+					: Collections.emptyList();
+
+			// get the reference ids from manual verification table entities.
+			List<String> refIdsFromEntities = entities.stream().map(e -> e.getId().getMatchedRefId()).collect(Collectors.toList());
+
+			if (!manualVerificationDTO.getCandidateList().getCount().equals(refIdsFromResponse.size())) {
+				String errorMessage = "Validation error - Candidate count does not match reference ids count.";
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						regId, errorMessage);
+				auditLogRequestBuilder.createAuditRequestBuilder(
+						errorMessage + " Response received : "
+								+JsonUtils.javaObjectToJsonString(manualVerificationDTO), EventId.RPR_405.toString(),
+						EventName.EXCEPTION.name(), EventType.BUSINESS.name(),
+						PlatformSuccessMessages.RPR_MANUAL_VERIFICATION_RESEND.getCode(), ModuleName.MANUAL_VERIFICATION.toString(), regId);
+				isValidationSuccess = false;
+
+			} else if (!refIdsFromEntities.containsAll(refIdsFromResponse)) {
+				String errorMessage = "Validation error - Received ReferenceIds does not match reference ids in manual verification table.";
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						regId, errorMessage);
+				auditLogRequestBuilder.createAuditRequestBuilder(
+						errorMessage + " Response received : "
+								+JsonUtils.javaObjectToJsonString(manualVerificationDTO), EventId.RPR_405.toString(),
+						EventName.EXCEPTION.name(), EventType.BUSINESS.name(),
+						PlatformSuccessMessages.RPR_MANUAL_VERIFICATION_RESEND.getCode(), ModuleName.MANUAL_VERIFICATION.toString(), regId);
+				isValidationSuccess = false;
+			}
+		}
+		return isValidationSuccess;
+	}
+
+	/**
+	 * This method would validate response and on failure it will mark the response for reprocessing.
+	 *
+	 * @param regId
+	 * @param manualVerificationDTO
+	 * @param entities
+	 * @return boolean
+	 * @throws JsonProcessingException
+	 */
+	public boolean isResendFlow(String regId, ManualAdjudicationResponseDTO manualVerificationDTO, List<ManualVerificationEntity> entities) throws JsonProcessingException {
+		boolean isResendFlow = false;
+		if(manualVerificationDTO.getReturnValue() == 2 || !isResponseValidationSuccess(regId, manualVerificationDTO, entities)) {
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId, "Received resend request from manual verification application. This will be marked for reprocessing.");
+
+			// updating status code to pending so that it can be marked for manual verification again
+			entities.forEach(e -> {
+				e.setStatusCode(ManualVerificationStatus.PENDING.name());
+				basePacketRepository.update(e);
+			});
+			isResendFlow = true;
+		}
+		return isResendFlow;
+	}
+
 
 }

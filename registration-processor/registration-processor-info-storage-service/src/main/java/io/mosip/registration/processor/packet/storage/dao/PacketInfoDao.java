@@ -475,8 +475,8 @@ public class PacketInfoDao {
 	/**
 	 * Gets the abis ref matched ref id by rid.
 	 *
-	 * @param registrationId
-	 *            the registration id
+	 * @param workflowInstanceId
+	 *            the workflow Instance Id
 	 * @return the abis ref matched ref id by rid
 	 */
 	public List<String> getAbisRefIdByWorkflowInstanceId(String workflowInstanceId) {
