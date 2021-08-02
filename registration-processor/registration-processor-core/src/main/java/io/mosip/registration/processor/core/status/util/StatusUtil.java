@@ -24,7 +24,7 @@ public enum StatusUtil {
 	PACKET_RETRY_CNT_EXCEEDED(StatusConstants.PACKET_UPLOADER_MODULE_FAILED + "008", "Retry count has exceeded the maximum limit specified"),
 	
 	// Quality checker stage
-	INDIVIDUAL_BIOMETRIC_NOT_FOUND(StatusConstants.QUALITY_CHECKER_MODULE_SUCCESS + "001","Individual Biometric Parameter Not Found in ID JSON"), 
+	INDIVIDUAL_BIOMETRIC_NOT_FOUND(StatusConstants.QUALITY_CHECKER_MODULE_SUCCESS + "001","Individual Biometric Parameter Not Found in ID JSON so skipping biometric classification"), 
 	BIOMETRIC_QUALITY_CHECK_SUCCESS(StatusConstants.QUALITY_CHECKER_MODULE_SUCCESS + "002","Biometric Quality Check is Successful"),
 	BIOMETRIC_QUALITY_CHECK_FAILED(StatusConstants.QUALITY_CHECKER_MODULE_FAILED + "001","Quality Score of Biometrics Captured is Below the Threshold"),
 
