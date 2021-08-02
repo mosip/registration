@@ -49,18 +49,18 @@ public class SupervisorApprovalStatusTagGeneratorTest {
 		String supervisorStatus = "APPROVED";
 		SyncRegistrationEntity syncRegistrationEntity = new SyncRegistrationEntity();
 		syncRegistrationEntity.setSupervisorStatus(supervisorStatus);
-		Mockito.when(syncRegistrationService.findByRegistrationId(anyString()))
+		Mockito.when(syncRegistrationService.findByWorkflowInstanceId(anyString()))
 			.thenReturn(syncRegistrationEntity);
 		Map<String, String> tags = 
-			supervisorApprovalStatusTagGenerator.generateTags("1234", "NEW", null, null);
+			supervisorApprovalStatusTagGenerator.generateTags("12345", "1234", "NEW", null, null, 0);
 		assertEquals(supervisorStatus, tags.get(tagName));
 	}
 
 	@Test(expected = BaseCheckedException.class)
 	public void testGenerateTagsForSyncRegistrationStatusNotAvailable() throws BaseCheckedException {
-		Mockito.when(syncRegistrationService.findByRegistrationId(anyString()))
+		Mockito.when(syncRegistrationService.findByWorkflowInstanceId(anyString()))
 			.thenReturn(null);
-		supervisorApprovalStatusTagGenerator.generateTags("1234", "NEW", null, null);
+		supervisorApprovalStatusTagGenerator.generateTags("12345", "1234", "NEW", null, null, 0);
 	}
 	
 }

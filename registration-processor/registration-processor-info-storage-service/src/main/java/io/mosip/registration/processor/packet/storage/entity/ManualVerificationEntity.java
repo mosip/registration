@@ -23,6 +23,10 @@ public class ManualVerificationEntity extends BasePacketEntity<ManualVerificatio
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 
+	/** The reg id. */
+	@Column(name = "reg_id")
+	private String regId;
+
 	/** The cr by. */
 	@Column(name = "cr_by")
 	private String crBy;
@@ -90,6 +94,24 @@ public class ManualVerificationEntity extends BasePacketEntity<ManualVerificatio
 
 	@Column(name="res_text",nullable = true)
 	private byte[] reponseText;
+
+	/**
+	 * Gets the reg id.
+	 *
+	 * @return the regId
+	 */
+	public String getRegId() {
+		return regId;
+	}
+
+	/**
+	 * Sets the reg id.
+	 *
+	 * @param regId            the regId to set
+	 */
+	public void setRegId(String regId) {
+		this.regId = regId;
+	}
 
 	/**
 	 * Gets the source name.

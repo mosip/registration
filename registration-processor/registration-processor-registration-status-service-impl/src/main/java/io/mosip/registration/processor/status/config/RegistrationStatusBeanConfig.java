@@ -1,5 +1,7 @@
 package io.mosip.registration.processor.status.config;
 
+import io.mosip.registration.processor.status.service.AdditionalInfoRequestService;
+import io.mosip.registration.processor.status.service.impl.AdditionalInfoRequestServiceImpl;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +24,8 @@ import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.dto.TransactionDto;
 import io.mosip.registration.processor.status.encryptor.Encryptor;
 import io.mosip.registration.processor.status.entity.BaseRegistrationEntity;
+import io.mosip.registration.processor.status.entity.BaseRegistrationPKEntity;
+import io.mosip.registration.processor.status.entity.BaseSyncRegistrationEntity;
 import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
@@ -96,12 +100,12 @@ public class RegistrationStatusBeanConfig {
 	}
 
 	@Bean
-	public BaseRegistrationEntity baseRegistrationStatusEntity() {
+	public BaseRegistrationEntity<BaseRegistrationPKEntity> baseRegistrationStatusEntity() {
 		return new RegistrationStatusEntity();
 	}
 
 	@Bean
-	public BaseRegistrationEntity baseSyncRegistrationEntity() {
+	public BaseSyncRegistrationEntity baseSyncRegistrationEntity() {
 		return new SyncRegistrationEntity();
 	}
 
@@ -119,5 +123,10 @@ public class RegistrationStatusBeanConfig {
 	@Bean
 	public Encryptor encryptor() {
 		return new Encryptor();
+	}
+
+	@Bean
+	public AdditionalInfoRequestService additionalInfoRequestService() {
+		return new AdditionalInfoRequestServiceImpl();
 	}
 }

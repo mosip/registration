@@ -22,5 +22,6 @@ public class RegistrationStatusDto implements Serializable {
 	/** The status code. */
 	private String statusCode;
 
+	private String additionalInfoReqId ;
 
 }

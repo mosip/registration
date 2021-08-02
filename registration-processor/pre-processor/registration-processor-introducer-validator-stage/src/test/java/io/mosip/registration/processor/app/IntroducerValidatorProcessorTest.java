@@ -112,12 +112,12 @@ public class IntroducerValidatorProcessorTest {
 		dto.setRid("123456789");
 		dto.setInternalError(false);
 		dto.setIsValid(true);
-		dto.setReg_type(RegistrationType.NEW);
+		dto.setReg_type(RegistrationType.NEW.name());
 		stageName = "introducerValidatorStage";
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("123456789");
 		registrationStatusDto.setRegistrationId("reg1234");
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any())).thenReturn(registrationStatusDto);
 	}
 
 	/**

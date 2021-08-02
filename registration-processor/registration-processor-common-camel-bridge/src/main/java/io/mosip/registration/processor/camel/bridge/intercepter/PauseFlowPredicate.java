@@ -21,6 +21,7 @@ import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.camel.bridge.model.Setting;
 import io.mosip.registration.processor.core.abstractverticle.WorkflowInternalActionDTO;
 import io.mosip.registration.processor.core.code.WorkflowInternalActionCode;
+import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
@@ -68,7 +69,7 @@ public class PauseFlowPredicate implements Predicate {
 					WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
 					workflowInternalActionDTO.setResumeTimestamp(DateUtils
 						.formatToISOString(DateUtils.getUTCCurrentDateTime().plusSeconds(setting.getPauseFor())));
-					workflowInternalActionDTO.setRid(json.getString("rid"));
+					workflowInternalActionDTO.setRid(json.getString(JsonConstant.RID));
 					workflowInternalActionDTO.setDefaultResumeAction(setting.getDefaultResumeAction());
 					workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.MARK_AS_PAUSED.toString());
 					workflowInternalActionDTO
@@ -76,7 +77,11 @@ public class PauseFlowPredicate implements Predicate {
 					workflowInternalActionDTO
 							.setActionMessage(PlatformSuccessMessages.PACKET_MARK_AS_PAUSED.getMessage());
 					workflowInternalActionDTO.setResumeRemoveTags(setting.getResumeRemoveTags());
-		
+					workflowInternalActionDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
+					workflowInternalActionDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
+					workflowInternalActionDTO.setSource(json.getString(JsonConstant.SOURCE));
+					workflowInternalActionDTO
+							.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
 					exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowInternalActionDTO));
 					return true;
 				} 

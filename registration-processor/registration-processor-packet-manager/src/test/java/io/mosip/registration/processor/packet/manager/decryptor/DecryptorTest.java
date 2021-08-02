@@ -80,7 +80,7 @@ public class DecryptorTest {
 		CryptomanagerResponseDto cryptomanagerResponseDto = new CryptomanagerResponseDto();
 		cryptomanagerResponseDto.setResponse(new DecryptResponseDto(data));
 		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any())).thenReturn(cryptomanagerResponseDto);
-		InputStream decryptedStream = decryptor.decrypt(inputStream, "84071493960000320190110145452");
+		InputStream decryptedStream = decryptor.decrypt("84071493960000320190110145452", "refid", inputStream);
 		String decryptedString = IOUtils.toString(decryptedStream, "UTF-8");
 		assertEquals("mosip", decryptedString);
 
@@ -95,7 +95,7 @@ public class DecryptorTest {
 		Mockito.when(apisResourceAccessException.getCause()).thenReturn(httpClientErrorException);
 		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any()))
 				.thenThrow(apisResourceAccessException);
-		decryptor.decrypt(inputStream, "84071493960000320190110145452");
+		decryptor.decrypt("84071493960000320190110145452", "refid", inputStream);
 	}
 
 	@Test(expected = PacketDecryptionFailureException.class)
@@ -109,7 +109,7 @@ public class DecryptorTest {
 		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any()))
 				.thenThrow(apisResourceAccessException);
 
-		decryptor.decrypt(inputStream, "84071493960000320190110145452");
+		decryptor.decrypt("84071493960000320190110145452", "refid", inputStream);
 
 	}
 
@@ -121,20 +121,20 @@ public class DecryptorTest {
 				"Packet Decryption failure");
 		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any()))
 				.thenThrow(apisResourceAccessException);
-		decryptor.decrypt(inputStream, "84071493960000320190110145452");
+		decryptor.decrypt("84071493960000320190110145452", "refid", inputStream);
 
 	}
 
 	@Test(expected = PacketDecryptionFailureException.class)
 	public void invalidPacketFormatTest() throws PacketDecryptionFailureException, ApisResourceAccessException {
-		decryptor.decrypt(inputStream, "01901101456");
+		decryptor.decrypt("01901101456", "refid", inputStream);
 
 	}
 
 	@Test(expected = PacketDecryptionFailureException.class)
 	public void invalidPacketFormatParsingDateTimeTest()
 			throws PacketDecryptionFailureException, ApisResourceAccessException {
-		decryptor.decrypt(inputStream, "8407149396000032019T110145452");
+		decryptor.decrypt("84071493960000320190110145452", "refid", inputStream);
 
 	}
 
@@ -144,6 +144,6 @@ public class DecryptorTest {
 		CryptomanagerResponseDto cryptomanagerResponseDto = new CryptomanagerResponseDto();
 		cryptomanagerResponseDto.setErrors(Arrays.asList(new ServiceError("Error-001", "Error-Message-001")));
 		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any())).thenReturn(cryptomanagerResponseDto);
-		decryptor.decrypt(inputStream, "84071493960000320190110145452");
+		decryptor.decrypt("84071493960000320190110145452", "refid", inputStream);
 	}
 }

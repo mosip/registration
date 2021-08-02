@@ -25,6 +25,7 @@ import io.mosip.registration.processor.status.exception.RegTransactionAppExcepti
 import io.mosip.registration.processor.status.exception.TransactionTableNotAccessibleException;
 import io.mosip.registration.processor.status.exception.TransactionsUnavailableException;
 import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
+import io.mosip.registration.processor.status.repositary.TransactionRepository;
 import io.mosip.registration.processor.status.service.impl.TransactionServiceImpl;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -34,7 +35,7 @@ public class TransactionServiceTest {
 	private TransactionService<TransactionDto> transactionService = new TransactionServiceImpl();
 
 	@Mock
-	RegistrationRepositary<TransactionEntity, String> transactionRepositary;
+	TransactionRepository<TransactionEntity, String> transactionRepositary;
 	
 	@Mock
 	Environment environment;

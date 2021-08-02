@@ -20,7 +20,7 @@ import io.mosip.registration.processor.status.dto.FilterInfo;
 import io.mosip.registration.processor.status.dto.SyncStatusDto;
 import io.mosip.registration.processor.status.dto.SyncTypeDto;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
-import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
+import io.mosip.registration.processor.status.repositary.SyncRegistrationRepository;
 
 /**
  * The Class SyncRegistrationDaoTest.
@@ -36,7 +36,7 @@ public class SyncRegistrationDaoTest {
 
 	/** The sync registration repository. */
 	@Mock
-	RegistrationRepositary<SyncRegistrationEntity, String> syncRegistrationRepository;
+	SyncRegistrationRepository<SyncRegistrationEntity, String> syncRegistrationRepository;
 
 	/** The sync registration entity. */
 	private SyncRegistrationEntity syncRegistrationEntity;
@@ -52,7 +52,7 @@ public class SyncRegistrationDaoTest {
 		syncRegistrationEntityList = new ArrayList<>();
 
 		syncRegistrationEntity = new SyncRegistrationEntity();
-		syncRegistrationEntity.setId("0c326dc2-ac54-4c2a-98b4-b0c620f1661f");
+		syncRegistrationEntity.setWorkflowInstanceId("0c326dc2-ac54-4c2a-98b4-b0c620f1661f");
 		syncRegistrationEntity.setRegistrationId("1001");
 		syncRegistrationEntity.setRegistrationType(SyncTypeDto.NEW.getValue());
 
@@ -83,14 +83,14 @@ public class SyncRegistrationDaoTest {
 	public void saveTest() {
 		SyncRegistrationEntity syncRegistrationEntityResult = syncRegistrationDao.save(syncRegistrationEntity);
 		assertEquals("Verifing Registration Id after saving in DB. Expected value is 1001",
-				syncRegistrationEntity.getId(), syncRegistrationEntityResult.getId());
+				syncRegistrationEntity.getWorkflowInstanceId(), syncRegistrationEntityResult.getWorkflowInstanceId());
 	}
 
 	@Test
 	public void updateTest() {
 		SyncRegistrationEntity syncRegistrationEntityResult = syncRegistrationDao.update(syncRegistrationEntity);
 		assertEquals("Verifing Registration Id after Updating in DB. Expected value is 1001",
-				syncRegistrationEntity.getId(), syncRegistrationEntityResult.getId());
+				syncRegistrationEntity.getWorkflowInstanceId(), syncRegistrationEntityResult.getWorkflowInstanceId());
 	}
 
 	/**
@@ -98,7 +98,7 @@ public class SyncRegistrationDaoTest {
 	 */
 	@Test
 	public void findByIdSuccessTest() {
-		SyncRegistrationEntity syncRegistrationEntityResult = syncRegistrationDao.findById("1001");
+		SyncRegistrationEntity syncRegistrationEntityResult = syncRegistrationDao.findByPacketId("1001");
 		assertEquals("Check id Registration Id is present in DB, expected valie is 1001",
 				syncRegistrationEntity.getRegistrationId(), syncRegistrationEntityResult.getRegistrationId());
 	}
@@ -107,7 +107,7 @@ public class SyncRegistrationDaoTest {
 	public void findByIdFailureTest() {
 		syncRegistrationEntityList = new ArrayList<>();
 		Mockito.when(syncRegistrationRepository.createQuerySelect(any(), any())).thenReturn(syncRegistrationEntityList);
-		SyncRegistrationEntity syncRegistrationEntityResult = syncRegistrationDao.findById("1001");
+		SyncRegistrationEntity syncRegistrationEntityResult = syncRegistrationDao.findByPacketId("1001");
 		assertEquals("Check id Registration Id is present in DB, expected value is empty List", null,
 				syncRegistrationEntityResult);
 	}
@@ -120,6 +120,20 @@ public class SyncRegistrationDaoTest {
 		assertEquals(syncRegistrationEntityList, rEntityList);
 	}
 
+	@Test
+	public void findByRegistrationIdIdAndRegTypeTest() {
+		Mockito.when(syncRegistrationRepository.createQuerySelect(any(), any())).thenReturn(syncRegistrationEntityList);
+		SyncRegistrationEntity syncRegistrationEntityResult = syncRegistrationDao.findByRegistrationIdIdAndAdditionalInfoReqId("1000", "NEW");
+		assertEquals("Check id Registration Id is present in DB, expected valie is 1001",
+				syncRegistrationEntity.getRegistrationId(), syncRegistrationEntityResult.getRegistrationId());
+	}
+	@Test
+	public void getByPacketIdsTest() {
+		List<String> packetIdList = new ArrayList<>();
+		packetIdList.add("test1");
+		List<SyncRegistrationEntity> rEntityList = syncRegistrationDao.getByPacketIds(packetIdList);
+		assertEquals(syncRegistrationEntityList, rEntityList);
+	}
 	@Test
 	public void getSearchResults() {
 		List<FilterInfo> filterInfos = new ArrayList<FilterInfo>();

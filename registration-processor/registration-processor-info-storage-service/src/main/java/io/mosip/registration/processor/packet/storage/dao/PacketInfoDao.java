@@ -128,7 +128,7 @@ public class PacketInfoDao {
 	 */
 	private DemographicInfoDto convertEntityToDemographicDto(IndividualDemographicDedupeEntity object) {
 		DemographicInfoDto demo = new DemographicInfoDto();
-		demo.setRegId(object.getId().getRegId());
+		demo.setRegId(object.getRegId());
 		demo.setLangCode(object.getId().getLangCode());
 		demo.setName(object.getName());
 		demo.setGenderCode(object.getGender());
@@ -268,6 +268,15 @@ public class PacketInfoDao {
 		return abisRequestRepository.getReferenceIdByBatchId(batchId);
 
 	}
+	
+	/**
+	 * Gets the bio ref entity list by bioRefId.
+	 * @param bioRefId
+	 * @return RegBioRef Entities
+	 */
+	public List<RegBioRefEntity> getRegBioRefDataByBioRefIds(List<String> bioRefId) {
+		return regBioRefRepository.getBioRefIdsByRefIds(bioRefId);
+	}
 
 	/**
 	 * Gets the abis transaction id by request id.
@@ -375,9 +384,9 @@ public class PacketInfoDao {
 	/**
 	 * Gets the bio ref id by reg id.
 	 *
-	 * @param regId
-	 *            the reg id
-	 * @return the bio ref id by reg id
+	 * @param bioRefId
+	 *            the bioRefId
+	 * @return the regid id by bioRefId
 	 */
 	public String getRegIdByBioRefId(String bioRefId) {
 		return abisRequestRepository.getRegIdByBioRefId(bioRefId);
@@ -454,14 +463,24 @@ public class PacketInfoDao {
 	}
 
 	/**
+	 * Gets the RegId by bioRefId and workflow instance id
+	 * @param matchRefId
+	 * @param workflowInstanceId
+	 * @return regId
+	 */
+	public String getRegIdByRefIdAndWorkflowInstanceId(String matchRefId, String workflowInstanceId) {
+		return regBioRefRepository.getRegIdByRefIdAndWorkflowInstanceId(matchRefId, workflowInstanceId);
+	}
+	
+	/**
 	 * Gets the abis ref matched ref id by rid.
 	 *
-	 * @param registrationId
-	 *            the registration id
+	 * @param workflowInstanceId
+	 *            the workflow Instance Id
 	 * @return the abis ref matched ref id by rid
 	 */
-	public List<String> getAbisRefMatchedRefIdByRid(String registrationId) {
-		return regBioRefRepository.getAbisRefMatchedRefIdByRid(registrationId);
+	public List<String> getAbisRefIdByWorkflowInstanceId(String workflowInstanceId) {
+		return regBioRefRepository.getAbisRefIdByWorkflowInstanceId(workflowInstanceId);
 
 	}
 

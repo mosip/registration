@@ -10,6 +10,7 @@
 -- ------------------------------------------------------------------------------------------
 -- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
 -- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes for 1.1.5
+-- Jul-2021		Ram Bhatt	    Index Creation and added new column
 -- ------------------------------------------------------------------------------------------
 
 -- object: regprc.reg_bio_ref | type: TABLE --
@@ -24,10 +25,17 @@ CREATE TABLE regprc.reg_bio_ref(
 	upd_dtimes timestamp,
 	is_deleted boolean DEFAULT FALSE,
 	del_dtimes timestamp,
-	CONSTRAINT pk_regbref_id PRIMARY KEY (reg_id)
+	workflow_instance_id character varying(36) NOT NULL,
+	source character varying,
+	iteration integer DEFAULT 1,
+	CONSTRAINT pk_regbref_id PRIMARY KEY (bio_ref_id,workflow_instance_id)
 
 );
+-- indexes section -------------------------------------------------
+create index idx_rbioref_crdtimes on regprc.reg_bio_ref (cr_dtimes);
+
 -- ddl-end --
+
 COMMENT ON TABLE regprc.reg_bio_ref IS 'Registration Biometric Reference: Mapping table to store the bio reference id for an registration id';
 -- ddl-end --
 COMMENT ON COLUMN regprc.reg_bio_ref.reg_id IS 'Registration ID: ID of the registration request';

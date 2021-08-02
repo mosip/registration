@@ -60,5 +60,4 @@ public enum RegistrationTransactionTypeCode {
 
 	/** The workflow resume. */
 	WORKFLOW_RESUME;
-
 }

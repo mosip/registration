@@ -17,9 +17,6 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class RegExternalStatusResponseDTO extends BaseRestResponseDTO {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
 	/** The response. */
