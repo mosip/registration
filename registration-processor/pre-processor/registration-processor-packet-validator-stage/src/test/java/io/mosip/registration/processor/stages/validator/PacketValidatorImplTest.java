@@ -229,6 +229,7 @@ public class PacketValidatorImplTest {
 		Mockito.when(utility.retrieveIdrepoJsonStatus(any())).thenReturn("ACTIVE");
 		when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
 		when(utility.getMappingJsonValue(anyString(), any())).thenReturn("value");
+		Mockito.when(utility.uinPresentInIdRepo(any())).thenReturn(true);
 		Mockito.when(idRepoService.findUinFromIdrepo(anyString(), any())).thenReturn("123456781");
 		ValidatePacketResponse validatePacketResponse = new ValidatePacketResponse();
 		validatePacketResponse.setValid(true);
@@ -258,6 +259,7 @@ public class PacketValidatorImplTest {
 	@Test
 	public void testUINNotPresentinIDrepo() throws PacketValidatorException, ApisResourceAccessException, IOException,
 			RegistrationProcessorCheckedException, JsonProcessingException, PacketManagerException {
+		Mockito.when(utility.uinPresentInIdRepo(any())).thenReturn(false);
 		Mockito.when(idRepoService.findUinFromIdrepo(anyString(), any())).thenReturn(null);
 		assertFalse(PacketValidator.validate("123456789", "UPDATE", packetValidationDto));
 	}

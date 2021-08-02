@@ -175,6 +175,7 @@ public class IntroducerValidatorTest {
 		File idJson = new File(classLoader.getResource("ID.json").getFile());
 		InputStream ip = new FileInputStream(idJson);
 
+		Mockito.when(utility.isUinMissingFromIdAuth(any(),any(),any())).thenReturn(false);
 		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
 		File file = new File(classLoader.getResource("RegistrationProcessorIdentity.json").getFile());
 		InputStream inputStream = new FileInputStream(file);

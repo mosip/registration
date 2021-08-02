@@ -341,14 +341,15 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 
 		boolean idaAuth = false;
 		AuthResponseDTO authResponseDTO = authUtil.authByIdAuthentication(uin,
-				BiometricAuthenticationConstants.INDIVIDUAL_TYPE_USERID, segments);
+				BiometricAuthenticationConstants.INDIVIDUAL_TYPE_UIN, segments);
 		if ((authResponseDTO.getErrors() == null || authResponseDTO.getErrors().isEmpty())
 				&& authResponseDTO.getResponse().isAuthStatus()) {
 			idaAuth = true;
 		} else {
 			List<io.mosip.registration.processor.core.auth.dto.ErrorDTO> errors = authResponseDTO.getErrors();
 			if (errors != null) {
-			if (errors.stream().anyMatch(error -> error.getErrorCode().equalsIgnoreCase("IDA-MLC-007"))) {
+			if (errors.stream().anyMatch(error -> (error.getErrorCode().equalsIgnoreCase("IDA-MLC-007")
+					|| utility.isUinMissingFromIdAuth(error.getErrorCode(), uin, BiometricAuthenticationConstants.INDIVIDUAL_TYPE_UIN)))) {
 				throw new AuthSystemException(PlatformErrorMessages.RPR_AUTH_SYSTEM_EXCEPTION.getMessage());
 			} else {
 			String result = errors.stream().map(s -> s.getErrorMessage() + " ").collect(Collectors.joining());
