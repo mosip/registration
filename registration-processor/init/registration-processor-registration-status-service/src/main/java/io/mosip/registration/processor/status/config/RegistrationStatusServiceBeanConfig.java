@@ -21,6 +21,8 @@ import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.dto.TransactionDto;
 import io.mosip.registration.processor.status.encryptor.Encryptor;
 import io.mosip.registration.processor.status.entity.BaseRegistrationEntity;
+import io.mosip.registration.processor.status.entity.BaseRegistrationPKEntity;
+import io.mosip.registration.processor.status.entity.BaseSyncRegistrationEntity;
 import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
@@ -92,12 +94,12 @@ public class RegistrationStatusServiceBeanConfig {
 	}
 	
 	@Bean
-	public BaseRegistrationEntity baseRegistrationStatusEntity() {
+	public BaseRegistrationEntity<BaseRegistrationPKEntity> baseRegistrationStatusEntity() {
 		return new RegistrationStatusEntity();
 	}
 	
 	@Bean
-	public BaseRegistrationEntity baseSyncRegistrationEntity() {
+	public BaseSyncRegistrationEntity baseSyncRegistrationEntity() {
 		return new SyncRegistrationEntity();
 	}
 	

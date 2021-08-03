@@ -90,6 +90,12 @@ public class InternalRegistrationStatusDto implements Serializable {
 	/** The last success stage name. */
 	private String lastSuccessStageName;
 
+	private String source;
+
+	private int iteration;
+
+	private String workflowInstanceId;
+
 	/**
 	 * Gets the ref id.
 	 *
@@ -591,6 +597,30 @@ public class InternalRegistrationStatusDto implements Serializable {
 	 */
 	public void setLastSuccessStageName(String lastSuccessStageName) {
 		this.lastSuccessStageName = lastSuccessStageName;
+	}
+
+	public String getSource() {
+		return source;
+	}
+
+	public void setSource(String source) {
+		this.source = source;
+	}
+
+	public int getIteration() {
+		return iteration;
+	}
+
+	public void setIteration(int iteration) {
+		this.iteration = iteration;
+	}
+
+	public String getWorkflowInstanceId() {
+		return workflowInstanceId;
+	}
+
+	public void setWorkflowInstanceId(String workflowInstanceId) {
+		this.workflowInstanceId = workflowInstanceId;
 	}
 
 	@Override

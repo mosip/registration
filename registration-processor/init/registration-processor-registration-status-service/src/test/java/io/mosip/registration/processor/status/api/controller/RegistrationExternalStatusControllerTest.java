@@ -43,6 +43,8 @@ import com.google.gson.GsonBuilder;
 
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.status.dto.RegistrationExternalStatusRequestDTO;
+import io.mosip.registration.processor.status.dto.RegistrationExternalStatusSubRequestDto;
 import io.mosip.registration.processor.core.workflow.dto.SortInfo;
 import io.mosip.registration.processor.status.api.config.RegistrationStatusConfigTest;
 import io.mosip.registration.processor.status.dto.FilterInfo;
@@ -117,10 +119,10 @@ public class RegistrationExternalStatusControllerTest {
 		when(env.getProperty("mosip.registration.processor.datetime.pattern"))
 				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		when(env.getProperty("mosip.registration.processor.registration.external.status.version")).thenReturn("1.0");
-		List<RegistrationStatusSubRequestDto> request = new ArrayList<>();
-		RegistrationStatusSubRequestDto regitrationid1 = new RegistrationStatusSubRequestDto();
-		RegistrationStatusSubRequestDto regitrationid2 = new RegistrationStatusSubRequestDto();
-		RegistrationStatusSubRequestDto regitrationid3 = new RegistrationStatusSubRequestDto();
+		List<RegistrationExternalStatusSubRequestDto> request = new ArrayList<>();
+		RegistrationExternalStatusSubRequestDto regitrationid1 = new RegistrationExternalStatusSubRequestDto();
+		RegistrationExternalStatusSubRequestDto regitrationid2 = new RegistrationExternalStatusSubRequestDto();
+		RegistrationExternalStatusSubRequestDto regitrationid3 = new RegistrationExternalStatusSubRequestDto();
 		regitrationid1.setRegistrationId("1001");
 		regitrationid2.setRegistrationId("1002");
 		regitrationid3.setRegistrationId("1003");
@@ -147,6 +149,8 @@ public class RegistrationExternalStatusControllerTest {
 		registrationDtoList.add(registrationStatusDto1);
 		registrationDtoList1.add(registrationStatusDto2);
 
+		Mockito.doReturn(registrationDtoList).when(registrationStatusService).getExternalStatusByIds(ArgumentMatchers.any());
+		Mockito.doReturn(registrationDtoList1).when(syncRegistrationService).getExternalStatusByIds(ArgumentMatchers.any());
 		SearchInfo searchInfo = new SearchInfo();
 		List<FilterInfo> filterinfos = new ArrayList<FilterInfo>();
 		List<SortInfo> sortInfos = new ArrayList<SortInfo>();

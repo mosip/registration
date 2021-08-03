@@ -81,6 +81,7 @@ import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
 import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
+import io.mosip.registration.processor.status.repositary.SyncRegistrationRepository;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.vertx.core.AsyncResult;
@@ -199,7 +200,7 @@ public class BiometricAuthenticationStageTest {
 	ObjectMapper mapIdentityJsonStringToObject;
 
 	@Mock
-	private RegistrationRepositary<SyncRegistrationEntity, String> registrationRepositary;
+	private SyncRegistrationRepository<SyncRegistrationEntity, String> registrationRepositary;
 
 	StatusResponseDto statusResponseDto;
 
@@ -233,7 +234,7 @@ public class BiometricAuthenticationStageTest {
 		listAppender = new ListAppender<>();
 
 		dto.setRid("2018701130000410092018110735");
-		dto.setReg_type(RegistrationType.valueOf("UPDATE"));
+		dto.setReg_type("UPDATE");
 
 		MockitoAnnotations.initMocks(this);
 
@@ -253,7 +254,7 @@ public class BiometricAuthenticationStageTest {
 		listAppender.start();
 		list.add(registrationStatusDto);
 		when(registrationStatusService.getByStatus(anyString())).thenReturn(list);
-		when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
 
 		when(identityIteratorUtil.getFieldValue(any(), any())).thenReturn("UPDATE");
@@ -286,7 +287,7 @@ public class BiometricAuthenticationStageTest {
 		when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(21);
 
 		regentity.setRegistrationType("update");
-		when(syncRegistrationservice.findByRegistrationId(any())).thenReturn(regentity);
+		when(syncRegistrationservice.findByWorkflowInstanceId(any())).thenReturn(regentity);
 
 		AuthResponseDTO authResponseDTO = new AuthResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();

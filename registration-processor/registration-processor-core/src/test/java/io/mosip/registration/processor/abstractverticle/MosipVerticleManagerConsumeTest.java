@@ -44,7 +44,7 @@ public class MosipVerticleManagerConsumeTest {
 		this.messageDTO.setMessageBusAddress(MessageBusAddress.PACKET_VALIDATOR_BUS_IN);
 		this.messageDTO.setIsValid(true);
 		this.messageDTO.setInternalError(false);
-		this.messageDTO.setReg_type(RegistrationType.NEW);
+		this.messageDTO.setReg_type(RegistrationType.NEW.name());
 		vertx = Vertx.vertx();
 		vertx.deployVerticle(ConsumerVerticle.class.getName(), testContext.asyncAssertSuccess());
 	}

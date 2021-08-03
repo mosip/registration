@@ -8,40 +8,35 @@ import javax.persistence.Embeddable;
 @Embeddable
 public class RegBioRefPKEntity implements Serializable {
 
-	@Column(name = "reg_id")
-	private String regId;
+	@Column(name = "workflow_instance_id")
+	private String workflowInstanceId;
 
-	public String getRegId() {
-		return regId;
+	@Column(name = "bio_ref_id")
+	private String bioRefId;
+
+	public String getWorkflowInstanceId() {
+		return workflowInstanceId;
 	}
 
-	public void setRegId(String regId) {
-		this.regId = regId;
+	public void setWorkflowInstanceId(String workflowInstanceId) {
+		this.workflowInstanceId = workflowInstanceId;
+	}
+
+	public String getBioRefId() {
+		return this.bioRefId;
+	}
+
+	public void setBioRefId(String bioRefId) {
+		this.bioRefId = bioRefId;
 	}
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((regId == null) ? 0 : regId.hashCode());
-		return result;
+		return super.hashCode();
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		RegBioRefPKEntity other = (RegBioRefPKEntity) obj;
-		if (regId == null) {
-			if (other.regId != null)
-				return false;
-		} else if (!regId.equals(other.regId))
-			return false;
-		return true;
+		return super.equals(obj);
 	}
-
 }

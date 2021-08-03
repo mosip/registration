@@ -209,12 +209,14 @@ public class PacketClassificationProcessor {
 				"PacketClassificationProcessor::process()::entry");
 			registrationId = object.getRid();
 
-			registrationStatusDto = registrationStatusService.getRegistrationStatus(registrationId);
+			registrationStatusDto = registrationStatusService.getRegistrationStatus(
+					registrationId, object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
 			registrationStatusDto.setLatestTransactionTypeCode(
 						RegistrationTransactionTypeCode.PACKET_CLASSIFICATION.toString());
 			registrationStatusDto.setRegistrationStageName(stageName);
 
-			generateAndAddTags(registrationId, registrationStatusDto.getRegistrationType());
+			generateAndAddTags(registrationStatusDto.getWorkflowInstanceId(), registrationId, 
+				registrationStatusDto.getRegistrationType(), object.getIteration());
 			object.setTags(null);
 
 			registrationStatusDto.setLatestTransactionStatusCode(
@@ -317,7 +319,8 @@ public class PacketClassificationProcessor {
 			eventType, moduleId, moduleName, registrationId);
 	}
 
-	private void generateAndAddTags(String registrationId, String process)
+	private void generateAndAddTags(String workflowInstanceId, String registrationId, String process, 
+				int iteration)
 			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, 
 				IOException, BaseCheckedException, NumberFormatException, JSONException {
 		regProcLogger.debug("generateAndAddTags called for registration id {} {}", registrationId, 
@@ -330,8 +333,8 @@ public class PacketClassificationProcessor {
 		Map<String, String> metaInfoMap = priorityBasedPacketManagerService.getMetaInfo(registrationId, process, ProviderStageName.CLASSIFICATION);
 		Map<String, String> allTags = new HashMap<String, String>();
 		for(TagGenerator tagGenerator : tagGenerators) {
-			Map<String, String> tags = tagGenerator.generateTags(registrationId, process, 
-				idObjectFieldDTOMap, metaInfoMap);
+			Map<String, String> tags = tagGenerator.generateTags(workflowInstanceId, registrationId, process, 
+				idObjectFieldDTOMap, metaInfoMap, iteration);
 			if(tags != null && !tags.isEmpty())
 				allTags.putAll(tags);
 		}

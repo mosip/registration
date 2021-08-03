@@ -29,5 +29,9 @@ public enum RegistrationType {
 	
 	
 	/** The res reprint. */
-	RES_REPRINT;
+	RES_REPRINT,
+
+	/** The biometric correction. */
+	BIOMETRIC_CORRECTION;
+
 }

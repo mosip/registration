@@ -61,6 +61,9 @@ public enum PlatformErrorMessages {
 	/** The rpr pkr invalid packet size synced. */
 	RPR_PKR_DECRYPTION_FAILED(PlatformConstants.RPR_PACKET_RECEIVER_MODULE + "015", "Packet Decryption Failed"),
 
+	/** The rpr pkr invalid packet size synced. */
+	RPR_PKR_ADDITIONAL_INFOID_NOT_FOUND(PlatformConstants.RPR_PACKET_RECEIVER_MODULE + "016", "Additional info request id not found"),
+
 	/** The rpr rgs registration table not accessible. */
 	// Registration Status Exception error code and message
 	RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "001",
@@ -177,6 +180,10 @@ public enum PlatformErrorMessages {
 			"DataAccessLayerException while syncing Registartion Id's"),
 	/** The rpr rgs rid not found. */
 	RPR_RGS_RID_NOT_FOUND(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "031", "RID Not Found"),
+	
+	RPR_RGS_INVALID_ADDITIONAL_INFORMATION(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "036", "additionalInfoReqId is invalid"),
+
+	RPR_RGS_PACKETID_NOT_FOUND(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "037", "PacketId Not Found"),
 
 	RPR_RGS_INVALID_SEARCH(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "032", "plz narrow down your search"),
 
@@ -1257,6 +1264,12 @@ public enum PlatformErrorMessages {
 
 	RPR_WIA_UNKNOWN_WORKFLOW_ACTION(PlatformConstants.RPR_WORKFLOW_INTERNAL_ACTION + "002", "Unknown Exception"),
 
+	RPR_WIA_ADDITIONALINFOPROCESS_NOT_FOUND(PlatformConstants.RPR_WORKFLOW_INTERNAL_ACTION + "003",
+			"AdditionalInfoProcess not found"),
+
+	RPR_WIA_ADDITIONALINFOPROCESS_CANNOT_REQUEST(PlatformConstants.RPR_WORKFLOW_INTERNAL_ACTION + "004",
+			"AdditionalInfoProcess cannot be paused for one more additional info so it is failed"),
+
 	RPR_WAA_MISSING_INPUT_PARAMETER(PlatformConstants.RPR_WORKFLOW_ACTION_API + "000",
 			"Missing Request Value - %s"),
 
@@ -1350,6 +1363,9 @@ public enum PlatformErrorMessages {
 
 	RPR_SECUREZONE_FAILURE(PlatformConstants.RPR_SECUREZONE_NOTIFICATION_MODULE + "001",
 			"Exception occured in securezone notification stage. Check logs for more info"),
+
+	RPR_SECUREZONE_DUPLICATE_PACKET(PlatformConstants.RPR_SECUREZONE_NOTIFICATION_MODULE + "002",
+			"Duplicate Packet against same additional info request Id."),
 
 	RPR_AUTH_SYSTEM_EXCEPTION(PlatformConstants.RPR_AUTHENTICATION + "03", "Request could not be processed. Please try again"),
 

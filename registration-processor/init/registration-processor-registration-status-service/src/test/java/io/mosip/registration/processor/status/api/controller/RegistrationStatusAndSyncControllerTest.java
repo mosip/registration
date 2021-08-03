@@ -133,7 +133,7 @@ public class RegistrationStatusAndSyncControllerTest {
 	@MockBean
 	private RegistrationSyncRequestValidator syncrequestvalidator;
 
-	Gson gson = new GsonBuilder().serializeNulls().create();
+    Gson gson = new GsonBuilder().serializeNulls().create();
 	private List<SyncResponseDto> syncResponseDtoList;
 	private List<SyncRegistrationDto> list;
 	SyncResponseFailureDto syncResponseFailureDto = new SyncResponseFailureDto();

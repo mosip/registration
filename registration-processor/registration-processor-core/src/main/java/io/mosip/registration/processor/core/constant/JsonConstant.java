@@ -238,6 +238,20 @@ public class JsonConstant {
 
 	public static final String EXCEPTIONBIOMETRICSAPPLICANT = "applicant";
 
+	public static final String RID = "rid";
+
+	public static final String REGTYPE = "reg_type";
+
+	public static final String ITERATION = "iteration";
+
+	public static final String SOURCE = "source";
+	
+	public static final String PAUSE_FOR = "PAUSE_FOR";
+
+	public static final String ADDITIONAL_INFO_PROCESS = "ADDITIONAL_INFO_PROCESS";
+
+	public static final String WORKFLOW_INSTANCE_ID = "workflowInstanceId";
+
 	/** The Constant for registration client version label. */
 	public static final String REGCLIENTVERSION = "Registration Client Version Number";
 

@@ -68,13 +68,13 @@ public class DeviceValidator {
 
 	@Autowired
 	private Environment env;
-	
+
 	@Autowired
 	private PriorityBasedPacketManagerService packetManagerService;
 
 	@Value("${mosip.regproc.cmd-validator.device.disable-trust-validation:false}")
 	private Boolean disableTrustValidation;
-	
+
 	@Value("${mosip.regproc.cmd-validator.device.allowed-digital-id-timestamp-variation:5}")
 	private int allowedDigitalIdTimestampVariation;
 
@@ -92,7 +92,7 @@ public class DeviceValidator {
 	 * @throws IOException
 	 * @throws JsonProcessingException
 	 * @throws BaseCheckedException,                               ApisResourceAccessException
-	 * @throws JSONException 
+	 * @throws JSONException
 	 * @throws com.fasterxml.jackson.databind.JsonMappingException
 	 * @throws com.fasterxml.jackson.core.JsonParseException
 	 */
@@ -107,7 +107,7 @@ public class DeviceValidator {
 				String value = getOperationsDataFromMetaInfo(registrationId, process, field);
 				if (value != null && !value.isEmpty()) {
 					BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId, field, process,
-							ProviderStageName.PACKET_VALIDATOR);
+							ProviderStageName.CMD_VALIDATOR);
 					if (biometricRecord == null)
 						throw new BaseCheckedException(StatusUtil.DEVICE_VALIDATION_FAILED.getCode(),
 								StatusUtil.DEVICE_VALIDATION_FAILED.getMessage()
@@ -119,7 +119,7 @@ public class DeviceValidator {
 						ProviderStageName.PACKET_VALIDATOR);
 				if (value != null && !value.isEmpty()) {
 					BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(registrationId,
-							field, process, ProviderStageName.PACKET_VALIDATOR);
+							field, process, ProviderStageName.CMD_VALIDATOR);
 					if (biometricRecord == null)
 						throw new BaseCheckedException(StatusUtil.DEVICE_VALIDATION_FAILED.getCode(),
 								StatusUtil.DEVICE_VALIDATION_FAILED.getMessage()
@@ -127,10 +127,9 @@ public class DeviceValidator {
 					validateDevicesInBiometricRecord(biometricRecord, regOsi);
 				}
 			}
-
 		}
 	}
-	
+
 	private String getOperationsDataFromMetaInfo(String id, String process, String fileName)
 			throws ApisResourceAccessException, PacketManagerException, IOException, JSONException, JsonParseException,
 			JsonMappingException, JsonProcessingException, io.mosip.kernel.core.util.exception.JsonProcessingException {
@@ -155,8 +154,8 @@ public class DeviceValidator {
 		return value;
 	}
 
-	private void validateDevicesInBiometricRecord(BiometricRecord biometricRecord, RegOsiDto regOsi) 
-			throws JsonProcessingException, IOException, BaseCheckedException, 
+	private void validateDevicesInBiometricRecord(BiometricRecord biometricRecord, RegOsiDto regOsi)
+			throws JsonProcessingException, IOException, BaseCheckedException,
 				ApisResourceAccessException, JSONException {
 		List<BIR> birs = biometricRecord.getSegments();
 		List<JSONObject> payloads = new ArrayList<>();
@@ -170,7 +169,7 @@ public class DeviceValidator {
 						break;
 					}
 					if(entry.getKey().equals("PAYLOAD")) {
-						payload = entry.getValue();				
+						payload = entry.getValue();
 					}
 				}
 				if(!exception)
@@ -178,7 +177,7 @@ public class DeviceValidator {
 			} else if(!regClientVersionsBeforeCbeffOthersAttritube.contains(regOsi.getRegClientVersion())) {
 				throw new BaseCheckedException(
 					StatusUtil.DEVICE_VALIDATION_FAILED.getCode(),
-					StatusUtil.DEVICE_VALIDATION_FAILED.getMessage() + 
+					StatusUtil.DEVICE_VALIDATION_FAILED.getMessage() +
 						"-->Others info is not prsent in packet");
 			}
 		}
@@ -199,7 +198,7 @@ public class DeviceValidator {
 				validateDeviceForHotlist(payload.getString("deviceCode"), newDigitalId.getDateTime());
 				deviceCodeTimestamps.add(payload.getString("deviceCode") + newDigitalId.getDateTime());
 			}
-				
+
 		}
 	}
 
@@ -213,10 +212,10 @@ public class DeviceValidator {
 			HotlistRequestResponseDTO hotListResponse=mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
 					HotlistRequestResponseDTO.class);
 		DateTimeFormatter format = DateTimeFormatter.ofPattern(digitalIdTimestampFormat);
-		
+
 		LocalDateTime payloadTime = LocalDateTime.parse(digitalIdTimestamp, format);
 		if(hotListResponse.getExpiryTimestamp()!=null) {
-		
+
 		if(hotListResponse.getStatus().equalsIgnoreCase("BLOCKED") &&
 				payloadTime.isBefore(hotListResponse.getExpiryTimestamp())) {
 			throw new BaseCheckedException(
@@ -231,7 +230,7 @@ public class DeviceValidator {
 						StatusUtil.DEVICE_HOTLISTED.getMessage());
 			}
 		}
-		 
+
 		}
 		else {
 			throw new BaseCheckedException(
@@ -240,23 +239,23 @@ public class DeviceValidator {
 		}
 	}
 
-	private void validateTimestamp(JSONObject payload, String packetCreationDate,String dateTime) 
+	private void validateTimestamp(JSONObject payload, String packetCreationDate,String dateTime)
 			throws JSONException, BaseCheckedException, JsonParseException, JsonMappingException, IOException {
-		DateTimeFormatter packetCreationTimestampFormatter = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));	
+		DateTimeFormatter packetCreationTimestampFormatter = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 		DateTimeFormatter digitalIdTimestampFormatter = DateTimeFormatter.ofPattern(digitalIdTimestampFormat);
 		LocalDateTime packetCreationDateTime = LocalDateTime
 				.parse(packetCreationDate, packetCreationTimestampFormatter);
 		LocalDateTime timestamp = LocalDateTime
 				.parse(dateTime, digitalIdTimestampFormatter);
-		
+
 			if (timestamp.isAfter(packetCreationDateTime)|| timestamp.isBefore(
 							packetCreationDateTime.minus(allowedDigitalIdTimestampVariation, ChronoUnit.MINUTES))) {
 				throw new BaseCheckedException(
 						StatusUtil.TIMESTAMP_NOT_VALID.getCode(),
 						StatusUtil.TIMESTAMP_NOT_VALID.getMessage());
 			}
-		
-		
+
+
 	}
 
 	private void validateDigitalId(JSONObject payload) throws JsonParseException, JsonMappingException, JsonProcessingException, IOException, JSONException, BaseCheckedException {
@@ -280,7 +279,7 @@ public class DeviceValidator {
 		if(responseWrapper.getResponse() !=null) {
 		JWTSignatureVerifyResponseDto jwtResponse = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
 				JWTSignatureVerifyResponseDto.class);
-				
+
 		if( !jwtResponse.isSignatureValid()) {
 			throw new BaseCheckedException(
 					StatusUtil.DEVICE_SIGNATURE_VALIDATION_FAILED.getCode(),StatusUtil.DEVICE_SIGNATURE_VALIDATION_FAILED.getMessage());
@@ -297,9 +296,9 @@ public class DeviceValidator {
 					responseWrapper.getErrors().get(0).getErrorCode(),
 					responseWrapper.getErrors().get(0).getMessage());
 		}
-		
+
 	}
 
-	
+
 
 }

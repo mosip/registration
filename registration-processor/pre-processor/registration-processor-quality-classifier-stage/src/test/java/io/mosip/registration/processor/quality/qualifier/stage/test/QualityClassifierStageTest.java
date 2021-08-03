@@ -187,7 +187,7 @@ public class QualityClassifierStageTest {
 
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("123456789");
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
 		String idJsonString = "{\n" + "  \"identity\" : {\n" + "    \"fullName\" : [ {\n"
 				+ "      \"language\" : \"eng\",\n" + "      \"value\" : \"Ragavendran V\"\n" + "    }, {\n"
@@ -513,7 +513,7 @@ public class QualityClassifierStageTest {
 	@Test
 	public void testFileMissing()
 			throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
-		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
 		when(basedPacketManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
 				.thenReturn(null);
 		when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BIOMETRIC_EXCEPTION))
@@ -559,7 +559,7 @@ public class QualityClassifierStageTest {
 			throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
 		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(), any(), any(), any()))
 				.thenThrow(new JsonProcessingException("Json exception"));
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any())).thenReturn(registrationStatusDto);
 		when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.JSON_PROCESSING_EXCEPTION))
 		.thenReturn("ERROR");
 		MessageDTO dto = new MessageDTO();

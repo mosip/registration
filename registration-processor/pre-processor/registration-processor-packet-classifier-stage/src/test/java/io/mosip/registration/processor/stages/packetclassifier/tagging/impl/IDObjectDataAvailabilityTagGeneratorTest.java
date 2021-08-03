@@ -10,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -47,7 +48,7 @@ public class IDObjectDataAvailabilityTagGeneratorTest {
 	
 	@Mock
     private PacketClassifierUtility classifierUtility;
-	
+
 	private static String notAvailableTagValue = "--TAG_VALUE_NOT_AVAILABLE--";
 
 	private static Map<String, String> availabilityExpressionMap;
@@ -128,8 +129,8 @@ public class IDObjectDataAvailabilityTagGeneratorTest {
 	@Test
 	public void testGenerateTagsForAllFieldTypesAndDifferntExpressions() throws BaseCheckedException {
 		idObjectDataAvailabilityTagGenerator.getRequiredIdObjectFieldNames();
-		Map<String, String> tags = idObjectDataAvailabilityTagGenerator.generateTags("1234", "NEW", 
-			idObjectFieldDTOMap, null);
+		Map<String, String> tags = idObjectDataAvailabilityTagGenerator.generateTags("12345", "1234", "NEW",
+			idObjectFieldDTOMap, null, 0);
 		for(Map.Entry<String, String> entry : tagValueMap.entrySet()) {
 			assertEquals(entry.getValue(), tags.get(entry.getKey()));
 		}
@@ -140,7 +141,7 @@ public class IDObjectDataAvailabilityTagGeneratorTest {
 		idObjectDataAvailabilityTagGenerator.getRequiredIdObjectFieldNames();
 		idObjectFieldDTOMap.remove("dateOfBirth");
 		Mockito.when(classifierUtility.getLanguageBasedValueForSimpleType(anyString())).thenReturn(null);
-		Map<String, String> tags = idObjectDataAvailabilityTagGenerator.generateTags("1234", "NEW", idObjectFieldDTOMap, null);
+		Map<String, String> tags = idObjectDataAvailabilityTagGenerator.generateTags("12345", "1234", "NEW", idObjectFieldDTOMap, null, 0);
 		for(Map.Entry<String, String> entry : tagValueMap.entrySet()) {
 			assertEquals("false", tags.get(entry.getKey()));
 		}
@@ -151,7 +152,7 @@ public class IDObjectDataAvailabilityTagGeneratorTest {
 		idObjectDataAvailabilityTagGenerator.getRequiredIdObjectFieldNames();
 		FieldDTO fieldDTO = idObjectFieldDTOMap.get("IDSchemaVersion");
 		fieldDTO.setType("notavailabletype");
-		idObjectDataAvailabilityTagGenerator.generateTags("1234", "NEW", idObjectFieldDTOMap, null);
+		idObjectDataAvailabilityTagGenerator.generateTags("12345", "1234", "NEW", idObjectFieldDTOMap, null, 0);
 	}
 	
 }

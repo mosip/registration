@@ -79,7 +79,7 @@ public class PrintingStageTest {
 
 	@Mock
 	MosipRouter router;
-	
+
 	@Mock
 	protected PropertiesUtil propertiesUtil;
 
@@ -178,7 +178,7 @@ public class PrintingStageTest {
 
 		//ReflectionTestUtils.setField(stage, "port", "8080");
 		ReflectionTestUtils.setField(stage, "encrypt", false);
-		Mockito.when(registrationStatusService.getRegistrationStatus(any(String.class))).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(String.class), any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(propertiesUtil.getIntegerProperty(any(), any())).thenReturn(8080);
 
 
@@ -250,7 +250,7 @@ public class PrintingStageTest {
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890987654321");
 
-		dto.setReg_type(RegistrationType.NEW);
+		dto.setReg_type(RegistrationType.NEW.name());
 
 		ResponseWrapper<CredentialResponseDto> responseWrapper = new ResponseWrapper<>();
 		CredentialResponseDto credentialResponseDto = new CredentialResponseDto();
@@ -273,7 +273,7 @@ public class PrintingStageTest {
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890987654321");
 
-		dto.setReg_type(RegistrationType.NEW);
+		dto.setReg_type(RegistrationType.NEW.name());
 
 		ResponseWrapper<CredentialResponseDto> responseWrapper = new ResponseWrapper<>();
 		ErrorDTO error = new ErrorDTO();
@@ -298,7 +298,7 @@ public class PrintingStageTest {
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890987654321");
 
-		dto.setReg_type(RegistrationType.NEW);
+		dto.setReg_type(RegistrationType.NEW.name());
 
 		ResponseWrapper<CredentialResponseDto> responseWrapper = new ResponseWrapper<>();
 		CredentialResponseDto credentialResponseDto = new CredentialResponseDto();
@@ -318,7 +318,7 @@ public class PrintingStageTest {
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890987654321");
 
-		dto.setReg_type(RegistrationType.NEW);
+		dto.setReg_type(RegistrationType.NEW.name());
 
 		ResponseWrapper<CredentialResponseDto> responseWrapper = new ResponseWrapper<>();
 		CredentialResponseDto credentialResponseDto = new CredentialResponseDto();
@@ -339,7 +339,7 @@ public class PrintingStageTest {
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890987654321");
 
-		dto.setReg_type(RegistrationType.NEW);
+		dto.setReg_type(RegistrationType.NEW.name());
 
 		ResponseWrapper<CredentialResponseDto> responseWrapper = new ResponseWrapper<>();
 		CredentialResponseDto credentialResponseDto = new CredentialResponseDto();
@@ -359,7 +359,7 @@ public class PrintingStageTest {
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890987654321");
 
-		dto.setReg_type(RegistrationType.NEW);
+		dto.setReg_type(RegistrationType.NEW.name());
 
 		ResponseWrapper<CredentialResponseDto> responseWrapper = new ResponseWrapper<>();
 		CredentialResponseDto credentialResponseDto = new CredentialResponseDto();
@@ -384,7 +384,7 @@ public class PrintingStageTest {
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890987654321");
 
-		dto.setReg_type(RegistrationType.NEW);
+		dto.setReg_type(RegistrationType.NEW.name());
 
 		ResponseWrapper<CredentialResponseDto> responseWrapper = new ResponseWrapper<>();
 		CredentialResponseDto credentialResponseDto = new CredentialResponseDto();
