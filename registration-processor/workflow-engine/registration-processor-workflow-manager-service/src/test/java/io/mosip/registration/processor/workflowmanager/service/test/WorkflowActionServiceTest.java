@@ -69,7 +69,7 @@ public class WorkflowActionServiceTest {
 		registrationStatusDto.setRegistrationStageName("SecurezoneNotificationStage");
 		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.name());
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.PAUSED.name());
-		registrationStatusDto.setResumeRemoveTags("testhotlisted,test1hotlisted");
+		registrationStatusDto.setPauseRuleIds("testhotlisted,test1hotlisted");
 		ReflectionTestUtils.setField(workflowActionService, "resumeFromBeginningStage", "SecurezoneNotificationStage");
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatusForWorkflowEngine(any(), any(),
 				Mockito.any());

@@ -20,6 +20,7 @@ import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.code.ApiName;
+import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
@@ -38,6 +39,8 @@ import io.mosip.registration.processor.packet.storage.dto.FieldResponseDto;
 import io.mosip.registration.processor.packet.storage.dto.InfoDto;
 import io.mosip.registration.processor.packet.storage.dto.InfoRequestDto;
 import io.mosip.registration.processor.packet.storage.dto.InfoResponseDto;
+import io.mosip.registration.processor.packet.storage.dto.TagRequestDto;
+import io.mosip.registration.processor.packet.storage.dto.TagResponseDto;
 import io.mosip.registration.processor.packet.storage.dto.UpdateTagRequestDto;
 import io.mosip.registration.processor.packet.storage.dto.ValidatePacketResponse;
 
@@ -274,4 +277,26 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
 
 
 	}
+	
+	public Map<String, String> getTags(String id,List<String> tags) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+		TagRequestDto tagRequestDto = new TagRequestDto(id, tags);
+
+        RequestWrapper<TagRequestDto> request = new RequestWrapper<>();
+        request.setId(ID);
+        request.setVersion(VERSION);
+        request.setRequesttime(DateUtils.getUTCCurrentDateTime());
+        request.setRequest(tagRequestDto);
+        ResponseWrapper<TagResponseDto> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_GET_TAGS, "", "", request, ResponseWrapper.class);
+
+        if (response.getErrors() != null && response.getErrors().size() > 0) {
+        	ErrorDTO error=response.getErrors().get(0);
+        	regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
+        	if(error.getErrorCode().equalsIgnoreCase("KER-PUT-024")) 
+        		return null;         
+            throw new PacketManagerException(response.getErrors().get(0).getErrorCode(), response.getErrors().get(0).getMessage());
+        }else {
+        	 Map<String, String> tagsPresent=response.getResponse().getTags();
+        	 return tagsPresent;
+        }
+    }
 }

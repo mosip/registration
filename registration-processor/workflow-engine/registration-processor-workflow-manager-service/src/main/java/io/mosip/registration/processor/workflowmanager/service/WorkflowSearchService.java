@@ -106,7 +106,8 @@ public class WorkflowSearchService {
 		wfd.setCreatedBy(regSt.getCreatedBy());
 		wfd.setCurrentStageName(regSt.getRegistrationStageName());
 		wfd.setDefaultResumeAction(regSt.getDefaultResumeAction());
-		wfd.setResumeRemoveTags(regSt.getResumeRemoveTags());
+		wfd.setPauseRuleIds(regSt.getPauseRuleIds());
+		wfd.setLastSuccessStageName(regSt.getLastSuccessStageName());
 		wfd.setStatusComment(regSt.getStatusComment());
 		wfd.setStatusCode(regSt.getStatusCode());
 		if (regSt.getResumeTimeStamp() != null) {

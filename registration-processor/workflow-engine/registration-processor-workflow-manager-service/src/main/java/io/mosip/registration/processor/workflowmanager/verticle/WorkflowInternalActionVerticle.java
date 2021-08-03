@@ -242,7 +242,14 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 			registrationStatusDto.setResumeTimeStamp(resumeTimeStamp);
 		}
 		registrationStatusDto.setUpdatedBy(USER);
-		registrationStatusDto.setResumeRemoveTags(workflowInternalActionDTO.getResumeRemoveTags());
+		String pauseRuleIds="";
+		for(String matchedRuleId:workflowInternalActionDTO.getMatchedRuleIds()) {
+			if(pauseRuleIds.isEmpty())
+				pauseRuleIds=matchedRuleId;
+			else
+			pauseRuleIds=pauseRuleIds+","+matchedRuleId;
+		}
+		registrationStatusDto.setPauseRuleIds(pauseRuleIds);
 		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
 		registrationStatusDto.setSubStatusCode(StatusUtil.WORKFLOW_INTERNAL_ACTION_SUCCESS.getCode());
 		registrationStatusService.updateRegistrationStatusForWorkflowEngine(registrationStatusDto, MODULE_ID, MODULE_NAME);

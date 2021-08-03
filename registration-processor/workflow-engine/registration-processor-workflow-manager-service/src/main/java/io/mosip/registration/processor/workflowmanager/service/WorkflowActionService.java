@@ -1,7 +1,10 @@
 package io.mosip.registration.processor.workflowmanager.service;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -206,8 +209,8 @@ public class WorkflowActionService {
 		for (InternalRegistrationStatusDto internalRegistrationStatusDto : internalRegistrationStatusDtos) {
 			String rid = internalRegistrationStatusDto.getRegistrationId();
 				try {
-				removeHotlistedTag(internalRegistrationStatusDto);
-
+					addRuleIdsToTag(internalRegistrationStatusDto);
+					internalRegistrationStatusDto.setPauseRuleIds(null);
 					if (RegistrationTransactionStatusCode.REPROCESS_FAILED.name()
 						.equals(internalRegistrationStatusDto.getLatestTransactionStatusCode())) {
 					internalRegistrationStatusDto = updateRegistrationStatus(internalRegistrationStatusDto,
@@ -270,8 +273,8 @@ public class WorkflowActionService {
 		for (InternalRegistrationStatusDto internalRegistrationStatusDto : internalRegistrationStatusDtos) {
 			String rid = internalRegistrationStatusDto.getRegistrationId();
 				try {
-				removeHotlistedTag(internalRegistrationStatusDto);
-
+				addRuleIdsToTag(internalRegistrationStatusDto);
+				internalRegistrationStatusDto.setPauseRuleIds(null);
 				if (RegistrationTransactionStatusCode.REPROCESS_FAILED.name()
 								.equals(internalRegistrationStatusDto.getLatestTransactionStatusCode())) {
 							internalRegistrationStatusDto = updateRegistrationStatus(internalRegistrationStatusDto,
@@ -310,30 +313,39 @@ public class WorkflowActionService {
 
 	}
 
-	/**
-	 * Removes the hotlisted tag.
-	 *
-	 * @param internalRegistrationStatusDto the internal registration status dto
-	 * @throws ApisResourceAccessException the apis resource access exception
-	 * @throws JsonProcessingException     the json processing exception
-	 * @throws PacketManagerException      the packet manager exception
-	 */
-	private void removeHotlistedTag(InternalRegistrationStatusDto internalRegistrationStatusDto)
-			throws ApisResourceAccessException, JsonProcessingException, PacketManagerException
+	
+	private void addRuleIdsToTag(InternalRegistrationStatusDto internalRegistrationStatusDto)
+			throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException
 			{
-		String resumeRemoveTags = internalRegistrationStatusDto.getResumeRemoveTags();
-		if (StringUtils.isEmpty(resumeRemoveTags))
+		String pauseRuleIds = internalRegistrationStatusDto.getPauseRuleIds();
+		if (StringUtils.isEmpty(pauseRuleIds))
 			return;
-		List<String> deleteTags = new ArrayList<String>();
-		String[] resumeRemoveTagsArray = resumeRemoveTags.split(",");
-		if (resumeRemoveTagsArray.length > 0) {
-			for (int i = 0; i < resumeRemoveTagsArray.length; i++) {
-				deleteTags.add(resumeRemoveTagsArray[0].trim());
+		
+		List<String> tags = new ArrayList<String>();
+		tags.add("PAUSE_RULE_IMMUNITY");
+		Map<String, String> tagsPresent=packetManagerService.getTags(internalRegistrationStatusDto.getRegistrationId(), tags);
+        String pauseRuleImmunityTag="";
+		if(tagsPresent!=null) {
+			pauseRuleImmunityTag=tagsPresent.get("PAUSE_RULE_IMMUNITY");
+           }
+		String[] pauseRuleIdsArray = internalRegistrationStatusDto.getPauseRuleIds().split(",");
+		if (pauseRuleIdsArray.length > 0) {
+			for (int i = 0; i < pauseRuleIdsArray.length; i++) {
+				if(!pauseRuleImmunityTag.contains(pauseRuleIdsArray[i])) {
+					if(pauseRuleImmunityTag.isEmpty()) {
+						pauseRuleImmunityTag=pauseRuleIdsArray[i];
+					}else {
+						pauseRuleImmunityTag=pauseRuleImmunityTag+","+pauseRuleIdsArray[i];
+					}
+				}
 			}
 		}
-		regProcLogger.debug("removeHotlistedTag called for workflowId and hotListedTags {} {}",
-				internalRegistrationStatusDto.getRegistrationId(), deleteTags.toString());
-		packetManagerService.deleteTags(internalRegistrationStatusDto.getRegistrationId(), deleteTags);
+		Map<String,String> tagsToAdd=new HashMap<String,String>();
+		tagsToAdd.put("PAUSE_RULE_IMMUNITY", pauseRuleImmunityTag);
+		packetManagerService.addOrUpdateTags(internalRegistrationStatusDto.getRegistrationId(), tagsToAdd);
+		regProcLogger.debug("addRuleIdsToTag called for workflowId {}",
+				internalRegistrationStatusDto.getRegistrationId());
+		
 
 	}
 

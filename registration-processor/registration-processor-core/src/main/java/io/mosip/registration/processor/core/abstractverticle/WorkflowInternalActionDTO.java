@@ -1,9 +1,10 @@
 package io.mosip.registration.processor.core.abstractverticle;
 
 import java.io.Serializable;
+import java.util.List;
 
 
-
+// TODO: Auto-generated Javadoc
 /**
  * The Class WorkflowInternalActionDTO.
  */
@@ -40,8 +41,9 @@ public class WorkflowInternalActionDTO extends MessageDTO implements Serializabl
 	/** The event timestamp. */
 	private String eventTimestamp;
 
-	/** The resume remove tags. */
-	private String resumeRemoveTags;
+
+	/** The matched rule ids. */
+	private List<String> matchedRuleIds;
 
 
 
@@ -157,21 +159,23 @@ public class WorkflowInternalActionDTO extends MessageDTO implements Serializabl
 	}
 
 	/**
-	 * Gets the resume remove tags.
+	 * Gets the matched rule ids.
 	 *
-	 * @return the resume remove tags
+	 * @return the matched rule ids
 	 */
-	public String getResumeRemoveTags() {
-		return resumeRemoveTags;
+	public List<String> getMatchedRuleIds() {
+		return matchedRuleIds;
 	}
 
 	/**
-	 * Sets the resume remove tags.
+	 * Sets the matched rule ids.
 	 *
-	 * @param resumeRemoveTags the new resume remove tags
+	 * @param matchedRuleIds the new matched rule ids
 	 */
-	public void setResumeRemoveTags(String resumeRemoveTags) {
-		this.resumeRemoveTags = resumeRemoveTags;
+	public void setMatchedRuleIds(List<String> matchedRuleIds) {
+		this.matchedRuleIds = matchedRuleIds;
 	}
+
+	
 
 }

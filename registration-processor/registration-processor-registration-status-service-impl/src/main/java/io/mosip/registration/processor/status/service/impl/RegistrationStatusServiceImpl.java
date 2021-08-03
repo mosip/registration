@@ -429,7 +429,7 @@ public class RegistrationStatusServiceImpl
 		registrationStatusDto.setUpdateDateTime(entity.getUpdateDateTime());
 		registrationStatusDto.setResumeTimeStamp(entity.getResumeTimeStamp());
 		registrationStatusDto.setDefaultResumeAction(entity.getDefaultResumeAction());
-		registrationStatusDto.setResumeRemoveTags(entity.getResumeRemoveTags());
+		registrationStatusDto.setPauseRuleIds(entity.getPauseRuleIds());
 		registrationStatusDto.setLastSuccessStageName(entity.getLastSuccessStageName());
 		return registrationStatusDto;
 	}
@@ -479,7 +479,7 @@ public class RegistrationStatusServiceImpl
 		registrationStatusEntity.setLatestTransactionTimes(LocalDateTime.now(ZoneId.of("UTC")));
 		registrationStatusEntity.setResumeTimeStamp(dto.getResumeTimeStamp());
 		registrationStatusEntity.setDefaultResumeAction(dto.getDefaultResumeAction());
-		registrationStatusEntity.setResumeRemoveTags(dto.getResumeRemoveTags());
+		registrationStatusEntity.setPauseRuleIds(dto.getPauseRuleIds());
 		if(dto.getLatestTransactionStatusCode().equals(RegistrationTransactionStatusCode.SUCCESS.toString()) 
 			|| dto.getLatestTransactionStatusCode().equals(
 				RegistrationTransactionStatusCode.PROCESSED.toString()))

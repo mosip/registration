@@ -243,4 +243,6 @@ public class JsonConstant {
 
 	/** The Constant for exception key in others attribute of biometric xml files. */
 	public static final String BIOMETRICRECORDEXCEPTION = "EXCEPTION";
+	
+	public static final String PAUSERULEIMMUNITY = "PAUSE_RULE_IMMUNITY";
 }

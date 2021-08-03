@@ -6,7 +6,6 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
-
 /**
  * The Class RegistrationStatusEntity.
  */
@@ -103,9 +102,10 @@ public class RegistrationStatusEntity extends BaseRegistrationEntity {
 	@Column(name = "default_resume_action")
 	private String defaultResumeAction;
 
-	/** The comma separate tags that will be removed on resume. */
-	@Column(name = "resume_remove_tags")
-	private String resumeRemoveTags;
+
+	/** The pause rule ids. */
+	@Column(name = "pause_rule_ids")
+	private String pauseRuleIds;
 
 	/** The last success stage name. */
 	@Column(name = "last_success_stage_name")
@@ -535,22 +535,23 @@ public class RegistrationStatusEntity extends BaseRegistrationEntity {
 		this.defaultResumeAction = defaultResumeAction;
 	}
 
+	
 	/**
-	 * Gets the resume remove tags.
+	 * Gets the pause rule ids.
 	 *
-	 * @return the resume remove tags
+	 * @return the pause rule ids
 	 */
-	public String getResumeRemoveTags() {
-		return resumeRemoveTags;
+	public String getPauseRuleIds() {
+		return pauseRuleIds;
 	}
 
 	/**
-	 * Sets the resume remove tags.
+	 * Sets the pause rule ids.
 	 *
-	 * @param resumeRemoveTags the new resume remove tags
+	 * @param pauseRuleIds the new pause rule ids
 	 */
-	public void setResumeRemoveTags(String resumeRemoveTags) {
-		this.resumeRemoveTags = resumeRemoveTags;
+	public void setPauseRuleIds(String pauseRuleIds) {
+		this.pauseRuleIds = pauseRuleIds;
 	}
 
 	/**
