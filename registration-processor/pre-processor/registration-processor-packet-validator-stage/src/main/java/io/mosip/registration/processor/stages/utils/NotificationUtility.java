@@ -164,7 +164,7 @@ public class NotificationUtility {
 	private List<String> getPreferredLanguages(InternalRegistrationStatusDto registrationStatusDto) throws ApisResourceAccessException, 
 	PacketManagerException, JsonProcessingException, IOException, JSONException {
 		if(userPreferredLanguageAttribute!=null && !userPreferredLanguageAttribute.isBlank()) {
-			String preferredLang=packetManagerService.getFieldByMappingJsonKey(registrationStatusDto.getRegistrationId(), MappingJsonConstants.PREFERRED_LANGUAGE,
+			String preferredLang=packetManagerService.getField(registrationStatusDto.getRegistrationId(), userPreferredLanguageAttribute,
 				registrationStatusDto.getRegistrationType(), ProviderStageName.PACKET_VALIDATOR);
 			if(preferredLang!=null && !preferredLang.isBlank()) {
 				return List.of(preferredLang.split(","));
