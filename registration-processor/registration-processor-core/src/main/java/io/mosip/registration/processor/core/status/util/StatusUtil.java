@@ -73,6 +73,8 @@ public enum StatusUtil {
 	TIMESTAMP_NOT_VALID(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "016"  ,"digital id timestamp is not within acctable time range of packet creation time"),
 	DEVICE_HOTLISTED(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "017"  ,"Device has been hot listed"),
 	DEVICE_SIGNATURE_VALIDATION_FAILED(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "018", "DigitalId signature Validation Failed"),
+	CMD_LANGUAGE_NOT_SET(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "019", "Mandatory/Optional Language not set for CMD validation."),
+	
 	// Operator Validator stage
 	OPERATOR_VALIDATION_SUCCESS(StatusConstants.OVM_VALIDAOR_MODULE_SUCCESS + "001", "OPERATOR Validation is Successful"),
 	OFFICER_NOT_ACTIVE(StatusConstants.OVM_VALIDAOR_MODULE_FAILED + "001","OfficerId is inActive"),

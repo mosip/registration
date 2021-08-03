@@ -89,8 +89,11 @@ public class CMDValidationProcessor {
 	@Value("${mosip.registration.gps_device_enable_flag}")
 	private String gpsEnable;
 
-	@Value("${mosip.primary-language}")
-	private String primaryLanguagecode;
+	@Value("${mosip.mandatory-languages:#{null}}")
+	private String mandatoryLanguages;
+	
+	@Value("${mosip.optional-languages:#{null}}")
+	private String optionalLanguages;
 
 	@Value("${mosip.registration.processor.validate-center}")
 	private boolean validateCenter;
@@ -151,12 +154,26 @@ public class CMDValidationProcessor {
 			}
 
 			if (validateCenter) {
-				centerValidator.validate(primaryLanguagecode, regOsi, registrationStatusDto.getRegistrationId());
+				if(mandatoryLanguages!=null && !mandatoryLanguages.isBlank()) {
+				centerValidator.validate(mandatoryLanguages.split(",")[0], regOsi, registrationStatusDto.getRegistrationId());
+				}else if(optionalLanguages!=null && !optionalLanguages.isBlank()) {
+					centerValidator.validate(optionalLanguages.split(",")[0], regOsi, registrationStatusDto.getRegistrationId());
+				}
+				else {
+					throw new BaseCheckedException(StatusUtil.CMD_LANGUAGE_NOT_SET.getCode(),StatusUtil.CMD_LANGUAGE_NOT_SET.getMessage());
+				}
 			}
 
 			if (validateMachine) {
-				machineValidator.validate(regOsi.getMachineId(), primaryLanguagecode, regOsi.getPacketCreationDate(),
+				if(mandatoryLanguages!=null && !mandatoryLanguages.isBlank()) {
+				machineValidator.validate(regOsi.getMachineId(), mandatoryLanguages.split(",")[0], regOsi.getPacketCreationDate(),
 						registrationStatusDto.getRegistrationId());
+				}else if(optionalLanguages!=null && !optionalLanguages.isBlank()) {
+					machineValidator.validate(regOsi.getMachineId(), optionalLanguages.split(",")[0], regOsi.getPacketCreationDate(),
+							registrationStatusDto.getRegistrationId());
+				}else {
+					throw new BaseCheckedException(StatusUtil.CMD_LANGUAGE_NOT_SET.getCode(),StatusUtil.CMD_LANGUAGE_NOT_SET.getMessage());
+				}
 			}
 
 			if (validateDevice) {
