@@ -88,13 +88,13 @@ public class NotificationUtility {
 	private String reregisterSubject;
 
 	/** The primary language. */
-	@Value("${mosip.default.template-languages}")
+	@Value("${mosip.default.template-languages:#{null}}")
 	private String defaultTemplateLanguages;
 
 	@Value("${mosip.notification.language-type}")
 	private String languageType;
 
-	@Value("${mosip.default.user-preferred-language-attribute}")
+	@Value("${mosip.default.user-preferred-language-attribute:#{null}}")
 	private String userPreferredLanguageAttribute;
 	/** The env. */
 	@Autowired
