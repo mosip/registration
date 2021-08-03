@@ -134,7 +134,7 @@ public class CMDValidatorProcessorTest {
 		ReflectionTestUtils.setField(cmdValidationProcessor, "validateCenter", true);
 		ReflectionTestUtils.setField(cmdValidationProcessor, "validateMachine", true);
 		ReflectionTestUtils.setField(cmdValidationProcessor, "validateDevice", true);
-		ReflectionTestUtils.setField(cmdValidationProcessor, "primaryLanguagecode", "eng");
+		ReflectionTestUtils.setField(cmdValidationProcessor, "mandatoryLanguages", "eng");
 
 		@SuppressWarnings("unchecked")
 		RegistrationProcessorRestClientService<Object> mockObj = Mockito
