@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import io.mosip.registration.processor.core.packet.dto.abis.RegBioRefDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -121,9 +122,9 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 		abisInsertRequestDto.setReferenceId(referenceId);
 		abisInsertRequestDto.setReferenceURL("");
 		abisInsertRequestDto.setRequesttime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
-		RegAbisRefDto regAbisRefDto = new RegAbisRefDto();
-		regAbisRefDto.setAbis_ref_id(referenceId);
-		regAbisRefDto.setReg_id(registrationId);
+		RegBioRefDto regAbisRefDto = new RegBioRefDto();
+		regAbisRefDto.setBioRefId(referenceId);
+		regAbisRefDto.setRegId(registrationId);
 		String moduleId = PlatformSuccessMessages.RPR_BIO_DEDUPE_SUCCESS.getCode();
 		String moduleName = ModuleName.BIO_DEDUPE.toString();
 		packetInfoManager.saveAbisRef(regAbisRefDto, moduleId, moduleName);
@@ -178,63 +179,6 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 			throw new UnableToServeRequestABISException(
 					PlatformErrorMessages.RPR_BDD_UNABLE_TO_SERVE_REQUEST.getMessage() + referenceId + " " + requestId);
 
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see io.mosip.registration.processor.core.spi.biodedupe.BioDedupeService#
-	 * performDedupe(java.lang.String)
-	 */
-	@Override
-	public List<String> performDedupe(String registrationId) throws ApisResourceAccessException, IOException {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-				registrationId, "BioDedupeServiceImpl::performDedupe()::entry");
-		List<String> duplicates = new ArrayList<>();
-		List<String> abisResponseDuplicates = new ArrayList<>();
-
-		String requestId = uuidGenerator();
-
-		String referenceId = packetInfoManager.getReferenceIdByRid(registrationId).get(0);
-
-		AbisIdentifyRequestDto identifyRequestDto = new AbisIdentifyRequestDto();
-		Flag flag = new Flag();
-		identifyRequestDto.setId(ABIS_IDENTIFY);
-		identifyRequestDto.setVersion("1.0");
-		identifyRequestDto.setRequestId(requestId);
-		identifyRequestDto.setReferenceId(referenceId);
-		identifyRequestDto.setRequesttime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
-		flag.setMaxResults(maxResults);
-		flag.setTargetFPIR(targetFPIR);
-		identifyRequestDto.setFlags(flag);
-
-		// call Identify Api to get duplicate ids
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-				registrationId,
-				"BioDedupeServiceImpl::performDedupe():: BIODEDUPEPOTENTIAL POST SERVICE Start with request data :  "
-						+ JsonUtil.objectMapperObjectToJson(identifyRequestDto));
-
-		AbisIdentifyResponseDto responsedto = (AbisIdentifyResponseDto) restClientService
-				.postApi(ApiName.BIODEDUPEPOTENTIAL, "", "", identifyRequestDto, AbisIdentifyResponseDto.class);
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-				registrationId,
-				"BioDedupeServiceImpl::performDedupe():: BIODEDUPEPOTENTIAL POST SERVICE ended with response data : "
-						+ JsonUtil.objectMapperObjectToJson(responsedto));
-
-		if (responsedto != null) {
-
-			if (responsedto.getReturnValue().equalsIgnoreCase("2")) {
-				throwException(responsedto.getFailureReason(), referenceId, requestId);
-			}
-
-			if (responsedto.getCandidateList() != null) {
-				getDuplicateCandidates(duplicates, abisResponseDuplicates, responsedto);
-			}
-		}
-
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-				registrationId, "BioDedupeServiceImpl::performDedupe()::exit");
-		return duplicates;
 	}
 
 	/**

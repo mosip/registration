@@ -139,7 +139,6 @@ public class BioDedupeServiceImplTest {
 		String refId = "01234567-89AB-CDEF-0123-456789ABCDEF";
 		List<String> refIdList = new ArrayList<>();
 		refIdList.add(refId);
-		Mockito.when(packetInfoManager.getReferenceIdByRid(anyString())).thenReturn(refIdList);
 
 		CandidatesDto candidate1 = new CandidatesDto();
 		candidate1.setReferenceId("01234567-89AB-CDEF-0123-456789ABCDEG");
@@ -297,116 +296,6 @@ public class BioDedupeServiceImplTest {
 		String authResponse = bioDedupeService.insertBiometrics(registrationId);
 		assertTrue(authResponse.equals("2"));
 
-	}
-
-	/**
-	 * Test perform dedupe success.
-	 *
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws IOException
-	 */
-	@Test
-	public void testPerformDedupeSuccess() throws ApisResourceAccessException, IOException {
-
-		identifyResponse.setReturnValue("1");
-		Mockito.when(restClientService.postApi(any(), any(),any(), any(), any()))
-				.thenReturn(identifyResponse);
-		String rid = "27847657360002520181208094056";
-
-		List<String> list = new ArrayList<>();
-		list.add(rid);
-		Mockito.when(packetInfoManager.getRidByReferenceId(any())).thenReturn(list);
-
-		List<String> ridList = new ArrayList<>();
-		ridList.add(rid);
-		ridList.add(rid);
-
-		List<DemographicInfoDto> demoList = new ArrayList<>();
-		DemographicInfoDto demo1 = new DemographicInfoDto();
-		demoList.add(demo1);
-		Mockito.when(packetInfoManager.findDemoById(any())).thenReturn(demoList);
-		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
-		
-		List<String> duplicates = bioDedupeService.performDedupe(rid);
-
-		assertEquals(ridList, duplicates);
-	}
-
-	/**
-	 * Test perform dedupe failure.
-	 *
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws IOException
-	 */
-	@Test(expected = ABISInternalError.class)
-	public void testPerformDedupeFailure() throws ApisResourceAccessException, IOException {
-
-		Mockito.when(restClientService.postApi(any(), any(),any(), any(), any()))
-				.thenReturn(identifyResponse);
-		String rid = "27847657360002520181208094056";
-		identifyResponse.setReturnValue("2");
-		identifyResponse.setFailureReason("1");
-
-		bioDedupeService.performDedupe(rid);
-	}
-
-	/**
-	 * Test dedupe abis abort exception.
-	 *
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws IOException
-	 */
-	@Test(expected = ABISAbortException.class)
-	public void testDedupeAbisAbortException() throws ApisResourceAccessException, IOException {
-
-		Mockito.when(restClientService.postApi(any(), any(),any(), any(), any()))
-				.thenReturn(identifyResponse);
-		String rid = "27847657360002520181208094056";
-		identifyResponse.setReturnValue("2");
-		identifyResponse.setFailureReason("2");
-
-		bioDedupeService.performDedupe(rid);
-	}
-
-	/**
-	 * Test dedupe unexpected error.
-	 *
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws IOException
-	 */
-	@Test(expected = UnexceptedError.class)
-	public void testDedupeUnexpectedError() throws ApisResourceAccessException, IOException {
-
-		Mockito.when(restClientService.postApi(any(), any(),any(), any(), any()))
-				.thenReturn(identifyResponse);
-		String rid = "27847657360002520181208094056";
-		identifyResponse.setReturnValue("2");
-		identifyResponse.setFailureReason("3");
-
-		bioDedupeService.performDedupe(rid);
-	}
-
-	/**
-	 * Test dedupe unable to serve request ABIS exception.
-	 *
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws IOException
-	 */
-	@Test(expected = UnableToServeRequestABISException.class)
-	public void testDedupeUnableToServeRequestABISException() throws ApisResourceAccessException, IOException {
-
-		Mockito.when(restClientService.postApi(any(), any(),any(), any(), any()))
-				.thenReturn(identifyResponse);
-		String rid = "27847657360002520181208094056";
-		identifyResponse.setReturnValue("2");
-		identifyResponse.setFailureReason("4");
-
-		bioDedupeService.performDedupe(rid);
 	}
 
 	/**

@@ -33,8 +33,8 @@ public interface TagGenerator {
      * @throws BaseCheckedException All exception cases will the handled in tag generator implemetations and will be
      * wrapped in BaseCheckedException and thrown
      */
-    Map<String,String> generateTags(String registrationId, String process, 
-        Map<String, FieldDTO> idObjectFieldDTOMap, Map<String, String> metaInfoMap) 
+    Map<String,String> generateTags(String workflowInstanceId, String registrationId, String process, 
+        Map<String, FieldDTO> idObjectFieldDTOMap, Map<String, String> metaInfoMap, int iteration) 
             throws BaseCheckedException;
     
 }

@@ -12,8 +12,10 @@ import java.util.*;
 
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.dto.ConfigEnum;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
+import org.apache.commons.lang.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -98,8 +100,17 @@ public class Utilities {
 	@Value("${IDSchema.Version}")
 	private String idschemaVersion;
 
+	@Value("${mosip.kernel.machineid.length}")
+	private int machineIdLength;
+
+	@Value("${mosip.kernel.registrationcenterid.length}")
+	private int centerIdLength;
+
 	@Autowired
 	private ObjectMapper objMapper;
+
+	@Autowired
+	private IdRepoService idRepoService;
 
 
 	/** The rest client service. */
@@ -399,6 +410,39 @@ public class Utilities {
 	}
 
 	/**
+	 * Check if uin is present in  idrepo
+	 * @param uin
+	 * @return
+	 * @throws ApisResourceAccessException
+	 * @throws IOException
+	 */
+	public boolean uinPresentInIdRepo(String uin) throws ApisResourceAccessException, IOException {
+		return idRepoService.findUinFromIdrepo(uin, getGetRegProcessorDemographicIdentity()) != null;
+	}
+
+	/**
+	 * Check if uin is missing from Id
+	 * @param errorCode
+	 * @param id
+	 * @param idType
+	 * @return
+	 */
+	public boolean isUinMissingFromIdAuth(String errorCode, String id, String idType) {
+		if (errorCode.equalsIgnoreCase("IDA-MLC-018") &&
+				idType != null && idType.equalsIgnoreCase("UIN")) {
+			try {
+				return uinPresentInIdRepo(id);
+			} catch (IOException | ApisResourceAccessException exception) {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
+						ExceptionUtils.getStackTrace(exception));
+				// in case of exception return true so that the request is marked for reprocess
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Returns all the list of queue details(inbound/outbound address,name,url,pwd)
 	 * from abisJson Also validates the abis json fileds(null or not).
 	 *
@@ -558,10 +602,10 @@ public class Utilities {
 	 *            the registration id
 	 * @return the latest transaction id
 	 */
-	public String getLatestTransactionId(String registrationId) {
+	public String getLatestTransactionId(String registrationId, String process, int iteration, String workflowInstanceId) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Utilities::getLatestTransactionId()::entry");
-		RegistrationStatusEntity entity = registrationStatusDao.findById(registrationId);
+		RegistrationStatusEntity entity = registrationStatusDao.find(registrationId, process, iteration, workflowInstanceId);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Utilities::getLatestTransactionId()::exit");
 		return entity != null ? entity.getLatestRegistrationTransactionId() : null;
@@ -844,6 +888,15 @@ public class Utilities {
 
 		identityObject.put(schemaVersion, Float.valueOf(idschemaVersion));
 
+	}
+
+	public String getRefId(String id, String refId) {
+		if (StringUtils.isNotEmpty(refId))
+			return refId;
+
+		String centerId = id.substring(0, centerIdLength);
+		String machineId = id.substring(centerIdLength, centerIdLength + machineIdLength);
+		return centerId + "_" + machineId;
 	}
 
 }

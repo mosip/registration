@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
@@ -157,118 +158,23 @@ public class DemodedupeProcessor {
 		String moduleName = ModuleName.DEMO_DEDUPE.toString();
 		String moduleId = PlatformSuccessMessages.RPR_PKR_DEMO_DE_DUP.getCode();
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
-				.getRegistrationStatus(registrationId);
+				.getRegistrationStatus(registrationId, object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
 
 		try {
-			// Persist Demographic packet Data if packet Registration type is NEW
-			if (registrationStatusDto.getRegistrationType().equals(RegistrationType.NEW.name())) {
 
-				String packetStatus = abisHandlerUtil.getPacketStatus(registrationStatusDto);
+			IndividualDemographicDedupe demographicData = packetInfoManager.
+					getIdentityKeysAndFetchValuesFromJSON(registrationId, registrationStatusDto.getRegistrationType(), ProviderStageName.DEMO_DEDUPE);
 
-				if (packetStatus.equalsIgnoreCase(AbisConstant.PRE_ABIS_IDENTIFICATION)) {
-
-					packetInfoManager.saveDemographicInfoJson(registrationId,
-							registrationStatusDto.getRegistrationType(), moduleId, moduleName);
-					int age = utility.getApplicantAge(registrationId, registrationStatusDto.getRegistrationType(), ProviderStageName.DEMO_DEDUPE);
-					int ageThreshold = Integer.parseInt(ageLimit);
-					if (age < ageThreshold) {
-						if (infantDedupe.equalsIgnoreCase(GLOBAL_CONFIG_TRUE_VALUE)) {
-							isDemoDedupeSkip = false;
-							duplicateDtos = performDemoDedupe(registrationStatusDto, object, description);
-							if (duplicateDtos.isEmpty())
-								isTransactionSuccessful = true;
-						}
-					}
-					else {
-						if (env.getProperty(DEMODEDUPEENABLE).trim().equalsIgnoreCase(TRUE)) {
-							isDemoDedupeSkip = false;
-						duplicateDtos = performDemoDedupe(registrationStatusDto, object, description);
-						if (duplicateDtos.isEmpty())
-							isTransactionSuccessful = true;
-						}
-					}
-
-					if (isDemoDedupeSkip) {
-						object.setIsValid(Boolean.TRUE);
-						registrationStatusDto
-								.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
-						registrationStatusDto.setStatusComment(StatusUtil.DEMO_DEDUPE_SKIPPED.getMessage());
-						registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-						registrationStatusDto.setSubStatusCode(StatusUtil.DEMO_DEDUPE_SKIPPED.getCode());
-						description.setCode(PlatformSuccessMessages.RPR_PKR_DEMO_DE_DUP_SKIP.getCode());
-						description.setMessage(PlatformSuccessMessages.RPR_PKR_DEMO_DE_DUP_SKIP.getMessage() + " -- "
-								+ registrationId);
-						regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), description.getCode(),
-								registrationId, description.getMessage());
-						registrationStatusDto.setUpdatedBy(DemoDedupeConstants.USER);
-						regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-								LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
-								DemoDedupeConstants.DEMO_SKIP);
-					}
-				} else if (packetStatus.equalsIgnoreCase(AbisConstant.POST_ABIS_IDENTIFICATION)) {
-					isTransactionSuccessful = processDemoDedupeRequesthandler(registrationStatusDto, object,
-							description);
-				}
-
-			} else if (registrationStatusDto.getRegistrationType().equals(RegistrationType.UPDATE.name())
-					|| registrationStatusDto.getRegistrationType().equals(RegistrationType.RES_UPDATE.name())) {
-				IndividualDemographicDedupe demoDedupeData = new IndividualDemographicDedupe();
-
-
-				IndividualDemographicDedupe demographicData = packetInfoManager
-						.getIdentityKeysAndFetchValuesFromJSON(registrationId, registrationStatusDto.getRegistrationType(), ProviderStageName.DEMO_DEDUPE);
-				JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
-				String uinFieldCheck = utility.getUIn(registrationId, registrationStatusDto.getRegistrationType(), ProviderStageName.DEMO_DEDUPE);
-				JSONObject jsonObject = utility.retrieveIdrepoJson(uinFieldCheck);
-				if (jsonObject == null) {
-					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-							PlatformErrorMessages.RPR_PIS_IDENTITY_NOT_FOUND.getMessage());
-					throw new IdRepoAppException(PlatformErrorMessages.RPR_PIS_IDENTITY_NOT_FOUND.getMessage());
-				}
-				List<JsonValue[]> jsonValueList = new ArrayList<>();
-				if (demographicData.getName() == null || demographicData.getName().isEmpty()) {
-					String names = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.NAME), MappingJsonConstants.VALUE);
-					Arrays.stream(names.split(","))
-							.forEach(name -> {
-								JsonValue[] nameArray = JsonUtil.getJsonValues(jsonObject, name);
-								if (nameArray != null)
-									jsonValueList.add(nameArray);
-							});
-				}
-				if(demographicData.getName() == null || demographicData.getName().isEmpty())
-					demoDedupeData.setName(jsonValueList.isEmpty() ? null : jsonValueList);
-				else
-					demoDedupeData.setName(demographicData.getName());
-				demoDedupeData.setDateOfBirth(demographicData.getDateOfBirth() == null
-						? JsonUtil.getJSONValue(jsonObject, JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.DOB), MappingJsonConstants.VALUE))
-						: demographicData.getDateOfBirth());
-				demoDedupeData.setGender(demographicData.getGender() == null
-						? JsonUtil.getJsonValues(jsonObject,
-								JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.GENDER), MappingJsonConstants.VALUE))
-						: demographicData.getGender());
-				demoDedupeData.setPhone(demographicData.getPhone() == null
-						? JsonUtil
-								.getJSONValue(jsonObject,
-										JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson,
-												MappingJsonConstants.PHONE), MappingJsonConstants.VALUE))
-						: demographicData.getPhone());
-				demoDedupeData.setEmail(demographicData.getEmail() == null
-						? JsonUtil
-								.getJSONValue(jsonObject,
-										JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson,
-												MappingJsonConstants.EMAIL), MappingJsonConstants.VALUE))
-						: demographicData.getEmail());
-
-				packetInfoManager.saveIndividualDemographicDedupeUpdatePacket(demoDedupeData, registrationId, moduleId,
-						moduleName);
-				object.setIsValid(Boolean.TRUE);
-				registrationStatusDto
-						.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
-				registrationStatusDto.setStatusComment(StatusUtil.DEMO_DEDUPE_SKIPPED.getMessage());
-				registrationStatusDto.setSubStatusCode(StatusUtil.DEMO_DEDUPE_SKIPPED.getCode());
-				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-
+			JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
+			String uinFieldCheck = utility.getUIn(registrationId, registrationStatusDto.getRegistrationType(), ProviderStageName.DEMO_DEDUPE);
+			JSONObject jsonObject = utility.retrieveIdrepoJson(uinFieldCheck);
+			if(jsonObject == null) {
+				insertDemodedupDetailsAndPerformDedup (demographicData,registrationStatusDto,duplicateDtos,
+						object,isTransactionSuccessful,moduleId,moduleName,isDemoDedupeSkip,description);
+			}
+			 else {
+				 insertDemodedupDetails(demographicData,regProcessorIdentityJson,jsonObject,
+						 registrationStatusDto,object,moduleId,moduleName);
 			}
 
 			registrationStatusDto.setRegistrationStageName(stageName);
@@ -374,6 +280,113 @@ public class DemodedupeProcessor {
 	}
 
 
+	private void insertDemodedupDetails(IndividualDemographicDedupe demographicData, JSONObject regProcessorIdentityJson,
+			JSONObject jsonObject, InternalRegistrationStatusDto registrationStatusDto, MessageDTO object,
+			String moduleId, String moduleName) {
+		IndividualDemographicDedupe demoDedupeData = new IndividualDemographicDedupe();
+		List<JsonValue[]> jsonValueList = new ArrayList<>();
+		if (demographicData.getName() == null || demographicData.getName().isEmpty()) {
+			String names = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.NAME), MappingJsonConstants.VALUE);
+			Arrays.stream(names.split(","))
+					.forEach(name -> {
+						JsonValue[] nameArray = JsonUtil.getJsonValues(jsonObject, name);
+						if (nameArray != null)
+							jsonValueList.add(nameArray);
+					});
+		}
+		if(demographicData.getName() == null || demographicData.getName().isEmpty())
+			demoDedupeData.setName(jsonValueList.isEmpty() ? null : jsonValueList);
+		else
+			demoDedupeData.setName(demographicData.getName());
+		demoDedupeData.setDateOfBirth(demographicData.getDateOfBirth() == null
+				? JsonUtil.getJSONValue(jsonObject, JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.DOB), MappingJsonConstants.VALUE))
+				: demographicData.getDateOfBirth());
+		demoDedupeData.setGender(demographicData.getGender() == null
+				? JsonUtil.getJsonValues(jsonObject,
+						JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.GENDER), MappingJsonConstants.VALUE))
+				: demographicData.getGender());
+		demoDedupeData.setPhone(demographicData.getPhone() == null
+				? JsonUtil
+						.getJSONValue(jsonObject,
+								JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson,
+										MappingJsonConstants.PHONE), MappingJsonConstants.VALUE))
+				: demographicData.getPhone());
+		demoDedupeData.setEmail(demographicData.getEmail() == null
+				? JsonUtil
+						.getJSONValue(jsonObject,
+								JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson,
+										MappingJsonConstants.EMAIL), MappingJsonConstants.VALUE))
+				: demographicData.getEmail());
+
+		packetInfoManager.saveIndividualDemographicDedupeUpdatePacket(demoDedupeData, registrationStatusDto.getRegistrationId(), moduleId,
+				registrationStatusDto.getRegistrationType(),moduleName,registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId());
+		object.setIsValid(Boolean.TRUE);
+		registrationStatusDto
+				.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
+		registrationStatusDto.setStatusComment(StatusUtil.DEMO_DEDUPE_SKIPPED.getMessage());
+		registrationStatusDto.setSubStatusCode(StatusUtil.DEMO_DEDUPE_SKIPPED.getCode());
+		registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+
+	}
+
+
+	private void insertDemodedupDetailsAndPerformDedup(IndividualDemographicDedupe demographicData,
+			InternalRegistrationStatusDto registrationStatusDto, List<DemographicInfoDto> duplicateDtos,
+			MessageDTO object, boolean isTransactionSuccessful, String moduleId, String moduleName,
+			boolean isDemoDedupeSkip, LogDescription description) throws ApisResourceAccessException,
+	JsonProcessingException, PacketManagerException, IOException, PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException {
+
+		String packetStatus = abisHandlerUtil.getPacketStatus(registrationStatusDto);
+		String registrationId=registrationStatusDto.getRegistrationId();
+		if (packetStatus.equalsIgnoreCase(AbisConstant.PRE_ABIS_IDENTIFICATION)) {
+			packetInfoManager.saveIndividualDemographicDedupeUpdatePacket(demographicData, registrationId, moduleId,
+					registrationStatusDto.getRegistrationType(),moduleName,registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId());
+			int age = utility.getApplicantAge(registrationId, registrationStatusDto.getRegistrationType(), ProviderStageName.DEMO_DEDUPE);
+			int ageThreshold = Integer.parseInt(ageLimit);
+			if (age < ageThreshold) {
+				if (infantDedupe.equalsIgnoreCase(GLOBAL_CONFIG_TRUE_VALUE)) {
+					isDemoDedupeSkip = false;
+					duplicateDtos = performDemoDedupe(registrationStatusDto, object, description);
+					if (duplicateDtos.isEmpty())
+						isTransactionSuccessful = true;
+				}
+			}
+			else {
+				if (env.getProperty(DEMODEDUPEENABLE).trim().equalsIgnoreCase(TRUE)) {
+					isDemoDedupeSkip = false;
+				duplicateDtos = performDemoDedupe(registrationStatusDto, object, description);
+				if (duplicateDtos.isEmpty())
+					isTransactionSuccessful = true;
+				}
+			}
+
+			if (isDemoDedupeSkip) {
+				object.setIsValid(Boolean.TRUE);
+				registrationStatusDto
+						.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
+				registrationStatusDto.setStatusComment(StatusUtil.DEMO_DEDUPE_SKIPPED.getMessage());
+				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+				registrationStatusDto.setSubStatusCode(StatusUtil.DEMO_DEDUPE_SKIPPED.getCode());
+				description.setCode(PlatformSuccessMessages.RPR_PKR_DEMO_DE_DUP_SKIP.getCode());
+				description.setMessage(PlatformSuccessMessages.RPR_PKR_DEMO_DE_DUP_SKIP.getMessage() + " -- "
+						+ registrationId);
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), description.getCode(),
+						registrationId, description.getMessage());
+				registrationStatusDto.setUpdatedBy(DemoDedupeConstants.USER);
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
+						DemoDedupeConstants.DEMO_SKIP);
+			}
+		}else if (packetStatus.equalsIgnoreCase(AbisConstant.POST_ABIS_IDENTIFICATION)) {
+			isTransactionSuccessful = processDemoDedupeRequesthandler(registrationStatusDto, object,
+					description);
+		}
+
+	}
+
+
+
+
 	/**
 	 * Perform demo dedupe.
 	 *
@@ -389,7 +402,7 @@ public class DemodedupeProcessor {
 		String registrationId = registrationStatusDto.getRegistrationId();
 		// Potential Duplicate Ids after performing demo dedupe
 		List<DemographicInfoDto> duplicateDtos = demoDedupe.performDedupe(registrationStatusDto.getRegistrationId());
-
+		duplicateDtos.removeIf(dto -> dto.getRegId().equals(registrationStatusDto.getRegistrationId()));
 		if (!duplicateDtos.isEmpty()) {
 			isMatchFound = true;
 			registrationStatusDto
@@ -428,8 +441,8 @@ public class DemodedupeProcessor {
 	 *            the registration id
 	 * @return the latest transaction id
 	 */
-	private String getLatestTransactionId(String registrationId) {
-		RegistrationStatusEntity entity = registrationStatusDao.findById(registrationId);
+	private String getLatestTransactionId(String registrationId, String process, int iteration, String workflowInstanceId) {
+		RegistrationStatusEntity entity = registrationStatusDao.find(registrationId, process, iteration, workflowInstanceId);
 		return entity != null ? entity.getLatestRegistrationTransactionId() : null;
 	}
 
@@ -455,7 +468,8 @@ public class DemodedupeProcessor {
 		boolean isTransactionSuccessful = false;
 		List<String> responsIds = new ArrayList<>();
 
-		String latestTransactionId = getLatestTransactionId(registrationStatusDto.getRegistrationId());
+		String latestTransactionId = getLatestTransactionId(registrationStatusDto.getRegistrationId(),
+				registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId());
 
 		List<AbisResponseDto> abisResponseDto = packetInfoManager.getAbisResponseRecords(latestTransactionId,
 				DemoDedupeConstants.IDENTIFY);
@@ -507,7 +521,7 @@ public class DemodedupeProcessor {
 				registrationStatusDto.setSubStatusCode(StatusUtil.POTENTIAL_MATCH_FOUND_IN_ABIS.getCode());
 				description.setCode(PlatformErrorMessages.RPR_DEMO_SENDING_FOR_MANUAL.getCode());
 				description.setMessage(PlatformErrorMessages.RPR_DEMO_SENDING_FOR_MANUAL.getMessage());
-				saveManualAdjudicationData(registrationStatusDto);
+				saveManualAdjudicationData(registrationStatusDto, object);
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
 						DemoDedupeConstants.SENDING_FOR_MANUAL);
@@ -537,7 +551,8 @@ public class DemodedupeProcessor {
 		String moduleName = ModuleName.DEMO_DEDUPE.toString();
 		for (DemographicInfoDto demographicInfoDto : duplicateDtos) {
 			InternalRegistrationStatusDto potentialMatchRegistrationDto = registrationStatusService
-					.getRegistrationStatus(demographicInfoDto.getRegId());
+					.getRegistrationStatus(demographicInfoDto.getRegId(),
+							registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId());
 			if (potentialMatchRegistrationDto.getLatestTransactionStatusCode()
 					.equalsIgnoreCase(RegistrationTransactionStatusCode.REPROCESS.toString())
 					|| potentialMatchRegistrationDto.getLatestTransactionStatusCode()
@@ -549,7 +564,8 @@ public class DemodedupeProcessor {
 					.equalsIgnoreCase(RegistrationTransactionStatusCode.IN_PROGRESS.toString())
 					|| potentialMatchRegistrationDto.getLatestTransactionStatusCode()
 							.equalsIgnoreCase(RegistrationTransactionStatusCode.PROCESSED.toString())) {
-				String latestTransactionId = getLatestTransactionId(registrationStatusDto.getRegistrationId());
+				String latestTransactionId = getLatestTransactionId(registrationStatusDto.getRegistrationId(),
+						registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId());
 				RegDemoDedupeListDto regDemoDedupeListDto = new RegDemoDedupeListDto();
 				regDemoDedupeListDto.setRegId(registrationStatusDto.getRegistrationId());
 				regDemoDedupeListDto.setMatchedRegId(demographicInfoDto.getRegId());
@@ -583,14 +599,15 @@ public class DemodedupeProcessor {
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
 	 */
-	private void saveManualAdjudicationData(InternalRegistrationStatusDto registrationStatusDto)
+	private void saveManualAdjudicationData(InternalRegistrationStatusDto registrationStatusDto, MessageDTO messageDTO)
 			throws ApisResourceAccessException, IOException, JsonProcessingException, PacketManagerException {
-		List<String> matchedRegIds = abisHandlerUtil.getUniqueRegIds(registrationStatusDto.getRegistrationId(),
-				SyncTypeDto.NEW.toString(), ProviderStageName.DEMO_DEDUPE);
+		Set<String> matchedRegIds = abisHandlerUtil.getUniqueRegIds(registrationStatusDto.getRegistrationId(),
+				registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(),
+				registrationStatusDto.getWorkflowInstanceId(), ProviderStageName.DEMO_DEDUPE);
 		if (!matchedRegIds.isEmpty()) {
 			String moduleId = PlatformErrorMessages.RPR_DEMO_SENDING_FOR_MANUAL.getCode();
 			String moduleName = ModuleName.DEMO_DEDUPE.toString();
-			packetInfoManager.saveManualAdjudicationData(matchedRegIds, registrationStatusDto.getRegistrationId(),
+			packetInfoManager.saveManualAdjudicationData(matchedRegIds, messageDTO,
 					DedupeSourceName.DEMO, moduleId, moduleName,null,null);
 		} else {
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
