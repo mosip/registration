@@ -7,6 +7,8 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
+import io.mosip.registration.processor.core.packet.dto.packetmanager.TagRequestDto;
+import io.mosip.registration.processor.core.packet.dto.packetmanager.TagResponseDto;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -39,8 +41,6 @@ import io.mosip.registration.processor.packet.storage.dto.FieldResponseDto;
 import io.mosip.registration.processor.packet.storage.dto.InfoDto;
 import io.mosip.registration.processor.packet.storage.dto.InfoRequestDto;
 import io.mosip.registration.processor.packet.storage.dto.InfoResponseDto;
-import io.mosip.registration.processor.packet.storage.dto.TagRequestDto;
-import io.mosip.registration.processor.packet.storage.dto.TagResponseDto;
 import io.mosip.registration.processor.packet.storage.dto.UpdateTagRequestDto;
 import io.mosip.registration.processor.packet.storage.dto.ValidatePacketResponse;
 
@@ -277,26 +277,35 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
 
 
 	}
-	
-	public Map<String, String> getTags(String id,List<String> tags) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
-		TagRequestDto tagRequestDto = new TagRequestDto(id, tags);
 
+    public Map<String, String> getAllTags(String id) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+        return getTags(id, null);
+    }
+
+    public Map<String, String> getTags(String id, List<String> tagNames) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+        TagRequestDto tagRequestDto = new TagRequestDto(id, tagNames);
         RequestWrapper<TagRequestDto> request = new RequestWrapper<>();
         request.setId(ID);
         request.setVersion(VERSION);
         request.setRequesttime(DateUtils.getUTCCurrentDateTime());
         request.setRequest(tagRequestDto);
-        ResponseWrapper<TagResponseDto> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_GET_TAGS, "", "", request, ResponseWrapper.class);
+        ResponseWrapper<TagResponseDto> response = (ResponseWrapper<TagResponseDto>) restApi
+                .postApi(ApiName.PACKETMANAGER_GET_TAGS, "", "",
+                        request, ResponseWrapper.class);
 
         if (response.getErrors() != null && response.getErrors().size() > 0) {
-        	ErrorDTO error=response.getErrors().get(0);
-        	regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
-        	if(error.getErrorCode().equalsIgnoreCase("KER-PUT-024")) 
-        		return null;         
-            throw new PacketManagerException(response.getErrors().get(0).getErrorCode(), response.getErrors().get(0).getMessage());
-        }else {
-        	 Map<String, String> tagsPresent=response.getResponse().getTags();
-        	 return tagsPresent;
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                    id, JsonUtils.javaObjectToJsonString(response));
+            throw new PacketManagerException(response.getErrors().get(0).getErrorCode(),
+                    response.getErrors().get(0).getMessage());
         }
+
+        TagResponseDto tagResponseDto = null;
+        if (response.getResponse() != null) {
+            tagResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), TagResponseDto.class);
+
+        }
+
+        return tagResponseDto != null ? tagResponseDto.getTags() : null;
     }
 }

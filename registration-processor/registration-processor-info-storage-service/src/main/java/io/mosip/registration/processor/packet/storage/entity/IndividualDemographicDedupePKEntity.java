@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.packet.storage.entity;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
@@ -17,37 +18,18 @@ public class IndividualDemographicDedupePKEntity implements Serializable {
 	// default serial version id, required for serializable classes.
 	private static final long serialVersionUID = 1L;
 
-	/** The reg id. */
-	@Column(name = "reg_id", nullable = false)
-	private String regId;
-
 	/** The lang code. */
 	@Column(name = "lang_code", nullable = false)
 	private String langCode;
+
+	@Column(name = "workflow_instance_id")
+	private String workflowInstanceId;
 
 	/**
 	 * Instantiates a new individual demographic dedupe PK entity.
 	 */
 	public IndividualDemographicDedupePKEntity() {
 		super();
-	}
-
-	/**
-	 * Gets the reg id.
-	 *
-	 * @return the reg id
-	 */
-	public String getRegId() {
-		return this.regId;
-	}
-
-	/**
-	 * Sets the reg id.
-	 *
-	 * @param regId the new reg id
-	 */
-	public void setRegId(String regId) {
-		this.regId = regId;
 	}
 
 	/**
@@ -68,31 +50,25 @@ public class IndividualDemographicDedupePKEntity implements Serializable {
 		this.langCode = langCode;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object other) {
-		if (this == other) {
-			return true;
-		}
-		if (!(other instanceof IndividualDemographicDedupePKEntity)) {
-			return false;
-		}
-		IndividualDemographicDedupePKEntity castOther = (IndividualDemographicDedupePKEntity) other;
-		return this.regId.equals(castOther.regId) && this.langCode.equals(castOther.langCode);
+	public String getWorkflowInstanceId() {
+		return workflowInstanceId;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
+	public void setWorkflowInstanceId(String workflowInstanceId) {
+		this.workflowInstanceId = workflowInstanceId;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		IndividualDemographicDedupePKEntity that = (IndividualDemographicDedupePKEntity) o;
+		return Objects.equals(langCode, that.langCode) &&
+				Objects.equals(workflowInstanceId, that.workflowInstanceId);
+	}
+
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int hash = 17;
-		hash = hash * prime + this.regId.hashCode();
-		hash = hash * prime + this.langCode.hashCode();
-
-		return hash;
+		return Objects.hash(langCode, workflowInstanceId);
 	}
 }

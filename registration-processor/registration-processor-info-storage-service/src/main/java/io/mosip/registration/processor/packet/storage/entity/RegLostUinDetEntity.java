@@ -12,6 +12,9 @@ import javax.persistence.Table;
 public class RegLostUinDetEntity extends BasePacketEntity<RegLostUinDetPKEntity> implements Serializable {
 	private static final long serialVersionUID = 1L;
 
+	@Column(name = "reg_id")
+	private String regId;
+
 	@Column(name = "latest_reg_id")
 	private String latestRegId;
 
@@ -35,6 +38,14 @@ public class RegLostUinDetEntity extends BasePacketEntity<RegLostUinDetPKEntity>
 
 	public RegLostUinDetEntity() {
 
+	}
+
+	public String getRegId() {
+		return regId;
+	}
+
+	public void setRegId(String regId) {
+		this.regId = regId;
 	}
 
 	public String getLatestRegId() {

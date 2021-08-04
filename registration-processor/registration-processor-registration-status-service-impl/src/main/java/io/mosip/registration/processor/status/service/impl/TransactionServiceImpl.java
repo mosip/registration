@@ -27,6 +27,7 @@ import io.mosip.registration.processor.status.exception.RegTransactionAppExcepti
 import io.mosip.registration.processor.status.exception.TransactionTableNotAccessibleException;
 import io.mosip.registration.processor.status.exception.TransactionsUnavailableException;
 import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
+import io.mosip.registration.processor.status.repositary.TransactionRepository;
 import io.mosip.registration.processor.status.service.TransactionService;
 
 /**
@@ -40,7 +41,7 @@ public class TransactionServiceImpl implements TransactionService<TransactionDto
 
 	/** The transaction repositary. */
 	@Autowired
-	RegistrationRepositary<TransactionEntity, String> transactionRepositary;
+	TransactionRepository<TransactionEntity, String> transactionRepositary;
 
 	private static final String supportedLanguageKey = "mosip.supported-languages";
 

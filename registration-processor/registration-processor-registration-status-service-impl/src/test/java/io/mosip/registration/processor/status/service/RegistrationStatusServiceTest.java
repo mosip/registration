@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Before;
@@ -20,6 +21,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.dataaccess.hibernate.constant.HibernateErrorCode;
@@ -29,9 +31,11 @@ import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequest
 import io.mosip.registration.processor.status.code.RegistrationExternalStatusCode;
 import io.mosip.registration.processor.status.dao.RegistrationStatusDao;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
+import io.mosip.registration.processor.status.dto.RegistrationExternalStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.TransactionDto;
+import io.mosip.registration.processor.status.entity.BaseRegistrationPKEntity;
 import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 import io.mosip.registration.processor.status.entity.TransactionEntity;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
@@ -46,7 +50,13 @@ public class RegistrationStatusServiceTest {
 
 	private InternalRegistrationStatusDto registrationStatusDto;
 	private RegistrationStatusEntity registrationStatusEntity;
+	private RegistrationStatusEntity registrationExternalStatusEntity1;
+	private RegistrationStatusEntity registrationExternalStatusEntity2;
+	private RegistrationStatusEntity registrationExternalStatusEntity3;
 	private List<RegistrationStatusEntity> entities;
+	private List<RegistrationStatusEntity> externalEntities;
+	private List<RegistrationStatusEntity> externalEntities1;
+	private List<RegistrationStatusEntity> externalEntities2;
 
 	@InjectMocks
 	private RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService = new RegistrationStatusServiceImpl();
@@ -73,16 +83,23 @@ public class RegistrationStatusServiceTest {
 	public void setup()
 			throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
 		
+		ReflectionTestUtils.setField(registrationStatusService, "mainProcess", Arrays.asList("NEW", "UPDATE", "LOST"));
+		
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setIsActive(true);
 		registrationStatusDto.setStatusCode("PACKET_UPLOADED_TO_VIRUS_SCAN");
 		registrationStatusDto.setCreateDateTime(LocalDateTime.now());
-		registrationStatusDto.setRegistrationId("1000");
 		registrationStatusDto.setRegistrationStageName("PacketValidatorStage");
 		registrationStatusDto.setReProcessRetryCount(0);
 		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
 		registrationStatusEntity = new RegistrationStatusEntity();
 		registrationStatusEntity.setIsActive(true);
+		BaseRegistrationPKEntity pk = new BaseRegistrationPKEntity();
+		pk.setWorkflowInstanceId("WorkflowInstanceId");
+		registrationStatusEntity.setRegId("1000");
+		registrationStatusEntity.setIteration(1);
+		registrationStatusEntity.setRegistrationType("NEW");
+		registrationStatusEntity.setId(pk);
 		registrationStatusEntity.setStatusCode("PACKET_UPLOADED_TO_LANDING_ZONE");
 		registrationStatusEntity.setRetryCount(2);
 		registrationStatusEntity.setRegistrationStageName("PacketValidatorStage");
@@ -90,8 +107,57 @@ public class RegistrationStatusServiceTest {
 		registrationStatusEntity.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
 		entities = new ArrayList<>();
 		entities.add(registrationStatusEntity);
+		
+		registrationExternalStatusEntity1 = new RegistrationStatusEntity();
+		registrationExternalStatusEntity1.setIsActive(true);
+		registrationExternalStatusEntity1.setRegId("1000");
+		registrationExternalStatusEntity1.setIteration(1);
+		registrationExternalStatusEntity1.setRegistrationType("NEW");
+		registrationExternalStatusEntity1.setId(pk);
+		registrationExternalStatusEntity1.setStatusCode("PAUSED_FOR_ADDITIONAL_INFO");
+		registrationExternalStatusEntity1.setCreateDateTime(LocalDateTime.now());
+		registrationExternalStatusEntity1.setRetryCount(2);
+		registrationExternalStatusEntity1.setRegistrationStageName("PacketValidatorStage");
 
-		Mockito.when(registrationStatusDao.findById(any())).thenReturn(registrationStatusEntity);
+		registrationExternalStatusEntity1.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+		
+		registrationExternalStatusEntity2 = new RegistrationStatusEntity();
+		registrationExternalStatusEntity2.setIsActive(true);
+		registrationExternalStatusEntity2.setRegId("1000");
+		registrationExternalStatusEntity2.setIteration(1);
+		registrationExternalStatusEntity2.setRegistrationType("CORRECTION");
+		registrationExternalStatusEntity2.setId(pk);
+		registrationExternalStatusEntity2.setStatusCode("FAILED");
+		registrationExternalStatusEntity2.setCreateDateTime(LocalDateTime.now().plusDays(1));
+		registrationExternalStatusEntity2.setRetryCount(2);
+		registrationExternalStatusEntity2.setRegistrationStageName("PacketValidatorStage");
+
+		registrationExternalStatusEntity2.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+
+		registrationExternalStatusEntity3 = new RegistrationStatusEntity();
+		registrationExternalStatusEntity3.setIsActive(true);
+		registrationExternalStatusEntity3.setRegId("1000");
+		registrationExternalStatusEntity3.setIteration(1);
+		registrationExternalStatusEntity3.setRegistrationType("NEW");
+		registrationExternalStatusEntity3.setId(pk);
+		registrationExternalStatusEntity3.setStatusCode("PROCESSED");
+		registrationExternalStatusEntity3.setCreateDateTime(LocalDateTime.now());
+		registrationExternalStatusEntity3.setRetryCount(2);
+		registrationExternalStatusEntity3.setRegistrationStageName("PacketValidatorStage");
+
+		registrationExternalStatusEntity3.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.PROCESSED.toString());
+		
+		externalEntities = new ArrayList<>();
+		externalEntities.add(registrationExternalStatusEntity1);
+		externalEntities.add(registrationExternalStatusEntity2);
+		
+		externalEntities1 = new ArrayList<>();
+		externalEntities1.add(registrationExternalStatusEntity3);
+		
+		externalEntities2 = new ArrayList<>();
+		externalEntities2.add(registrationExternalStatusEntity1);
+		
+		Mockito.when(registrationStatusDao.find(any(),any(),any(),any())).thenReturn(registrationStatusEntity);
 
 		TransactionEntity transactionEntity = new TransactionEntity();
 		transactionEntity.setStatusCode("PROCESSING");
@@ -107,7 +173,7 @@ public class RegistrationStatusServiceTest {
 	@Test
 	public void testGetRegistrationStatusSuccess() {
 
-		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus("1001");
+		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus("1001", "NEW", 1, "");
 		assertEquals("PACKET_UPLOADED_TO_LANDING_ZONE", dto.getStatusCode());
 
 	}
@@ -116,15 +182,15 @@ public class RegistrationStatusServiceTest {
 	public void getRegistrationStatusFailureTest() throws TablenotAccessibleException {
 		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
 				"errorMessage", new Exception());
-		Mockito.when(registrationStatusDao.findById(any())).thenThrow(exp);
-		registrationStatusService.getRegistrationStatus("1001");
+		Mockito.when(registrationStatusDao.find(any(),any(),any(), any())).thenThrow(exp);
+		registrationStatusService.getRegistrationStatus("1001", "NEW", 1, "");
 	}
 
 	@Test
 	public void testAddRegistrationStatusSuccess() {
 
 		registrationStatusService.addRegistrationStatus(registrationStatusDto, "", "");
-		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus("1001");
+		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus("1001", "NEW", 1, "");
 		assertEquals("PACKET_UPLOADED_TO_LANDING_ZONE", dto.getStatusCode());
 	}
 
@@ -140,7 +206,7 @@ public class RegistrationStatusServiceTest {
 	public void testUpdateRegistrationStatusSuccess() {
 		registrationStatusService.updateRegistrationStatus(registrationStatusDto, "", "");
 
-		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus("1001");
+		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus("1001", "NEW", 1, "");
 		assertEquals("PACKET_UPLOADED_TO_LANDING_ZONE", dto.getStatusCode());
 	}
 
@@ -182,6 +248,39 @@ public class RegistrationStatusServiceTest {
 		List<RegistrationStatusDto> list = registrationStatusService.getByIds(registrationIds);
 		assertEquals("PROCESSED", list.get(0).getStatusCode());
 	}
+	
+	@Test
+	public void testGetExternalStatusByIdsAwaitingInfoSuccess() {
+
+		Mockito.when(registrationStatusDao.getByIds(any())).thenReturn(externalEntities);
+		String registartionId="1001";
+		List<String> registrationIds = new ArrayList<>();
+		registrationIds.add(registartionId);
+		List<RegistrationStatusDto> list = registrationStatusService.getExternalStatusByIds(registrationIds);
+		assertEquals("AWAITING_INFORMATION", list.get(0).getStatusCode());
+	}
+	
+	@Test
+	public void testGetExternalStatusByIdsProcessedSuccess() {
+
+		Mockito.when(registrationStatusDao.getByIds(any())).thenReturn(externalEntities1);
+		String registartionId="1001";
+		List<String> registrationIds = new ArrayList<>();
+		registrationIds.add(registartionId);
+		List<RegistrationStatusDto> list = registrationStatusService.getExternalStatusByIds(registrationIds);
+		assertEquals("UIN_GENERATED", list.get(0).getStatusCode());
+	}
+	
+	@Test
+	public void testGetExternalStatusByIdsChildNotPresentSuccess() {
+
+		Mockito.when(registrationStatusDao.getByIds(any())).thenReturn(externalEntities2);
+		String registartionId="1001";
+		List<String> registrationIds = new ArrayList<>();
+		registrationIds.add(registartionId);
+		List<RegistrationStatusDto> list = registrationStatusService.getExternalStatusByIds(registrationIds);
+		assertEquals("AWAITING_INFORMATION", list.get(0).getStatusCode());
+	}
 
 	@Test(expected = TablenotAccessibleException.class)
 	public void getByIdsFailureTest() {
@@ -195,6 +294,20 @@ public class RegistrationStatusServiceTest {
 		Mockito.when(registrationStatusDao.getByIds(any())).thenThrow(exp);
 
 		registrationStatusService.getByIds(registrationIds);
+
+	}
+	
+	@Test(expected = TablenotAccessibleException.class)
+	public void getExternalStatusByIdsFailureTest() {
+		String registartionId="1001";
+		List<String> registrationIds = new ArrayList<>();
+		registrationIds.add(registartionId);
+
+		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
+				"errorMessage", new Exception());
+		Mockito.when(registrationStatusDao.getByIds(any())).thenThrow(exp);
+
+		registrationStatusService.getExternalStatusByIds(registrationIds);
 
 	}
 
@@ -303,5 +416,22 @@ public class RegistrationStatusServiceTest {
 		Mockito.when(registrationStatusDao.getResumablePackets(anyInt())).thenThrow(exp);
 		registrationStatusService.getResumablePackets(1);
 
+	}
+
+	@Test
+	public void testUpdateRegistrationStatusForWorkFlowSuccess() {
+		registrationStatusService.updateRegistrationStatusForWorkflow(registrationStatusDto, "", "");
+
+		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus("1001", "NEW", 1, "");
+		assertEquals("PACKET_UPLOADED_TO_LANDING_ZONE", dto.getStatusCode());
+	}
+
+	@Test(expected = TablenotAccessibleException.class)
+	public void updateRegistrationStatusForWorkFlowFailureTest() {
+		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
+				"errorMessage", new Exception());
+
+		Mockito.when(registrationStatusDao.save(any())).thenThrow(exp);
+		registrationStatusService.updateRegistrationStatusForWorkflow(registrationStatusDto, "", "");
 	}
 }

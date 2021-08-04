@@ -75,7 +75,7 @@ public class PauseFlowPredicate implements Predicate {
 		Map<String,String> tags=messageDto.getTags();
 		for (Setting setting : settings) {
 			if(isRuleIdNotPresent(tags,setting.getRuleId())) {
-				
+
 			JSONArray jsonArray = JsonPath.read(message, setting.getMatchExpression());
 			if (Pattern.matches(setting.getFromAddress(), fromAddress)
 					&& !jsonArray.isEmpty()) {
@@ -89,11 +89,11 @@ public class PauseFlowPredicate implements Predicate {
 				    	 defaultResumeAction=setting.getDefaultResumeAction();
 				     }
 					isMatches=true;
-				} 
+				}
 			}
 		}
 		if(isMatches) {
-			workflowInternalActionDTO.setRid(json.getString("rid"));
+            workflowInternalActionDTO.setRid(json.getString(JsonConstant.RID));
 			workflowInternalActionDTO
 			.setEventTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 			workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.MARK_AS_PAUSED.toString());
@@ -103,6 +103,11 @@ public class PauseFlowPredicate implements Predicate {
 			workflowInternalActionDTO.setMatchedRuleIds(matchedRuleIds);
 			workflowInternalActionDTO
 			.setActionMessage(PlatformSuccessMessages.PACKET_MARK_AS_PAUSED.getMessage()+"("+ruleDescription+")");
+            workflowInternalActionDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
+            workflowInternalActionDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
+            workflowInternalActionDTO.setSource(json.getString(JsonConstant.SOURCE));
+            workflowInternalActionDTO
+                    .setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
 			exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowInternalActionDTO));
 		}
         }catch (JsonProcessingException e) {

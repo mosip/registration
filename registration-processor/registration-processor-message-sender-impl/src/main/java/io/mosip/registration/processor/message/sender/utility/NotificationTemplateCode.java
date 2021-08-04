@@ -59,6 +59,10 @@ public enum NotificationTemplateCode {
 	RPR_LOST_UIN_SMS,
 	
 	/** The rpr uin lost email. */
-	RPR_LOST_UIN_EMAIL
+	RPR_LOST_UIN_EMAIL,
+
+	RPR_PAUSED_FOR_ADDITIONAL_INFO_EMAIL,
+
+	RPR_PAUSED_FOR_ADDITIONAL_INFO_SMS
 
 }

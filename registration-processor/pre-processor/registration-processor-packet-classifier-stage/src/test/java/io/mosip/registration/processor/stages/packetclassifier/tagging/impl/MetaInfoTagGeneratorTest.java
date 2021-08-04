@@ -74,8 +74,8 @@ public class MetaInfoTagGeneratorTest {
 		metaInfoMap.put(JsonConstant.OPERATIONSDATA, "[ {\n  \"label\" : \"officerId\",\n  \"value\" : \"110119\"\n}]");
 		metaInfoMap.put(JsonConstant.METADATA, "[]");
 		metaInfoMap.put(JsonConstant.CAPTUREDREGISTEREDDEVICES, "[]");
-		Map<String, String> tags = metaInfoTagGenerator.generateTags("1234", "NEW", 
-			null, metaInfoMap);
+		Map<String, String> tags = metaInfoTagGenerator.generateTags("12345", "1234", "NEW", 
+			null, metaInfoMap, 0);
 		assertEquals(tags.get(operationsDataTagNamePrefix + "officerId"), "110119");
 	}
 	
@@ -91,8 +91,8 @@ public class MetaInfoTagGeneratorTest {
 		metaInfoMap.put(JsonConstant.OPERATIONSDATA, "[]");
 		metaInfoMap.put(JsonConstant.METADATA, "[{\n  \"label\" : \"centerId\",\n  \"value\" : \"11016\"\n}]");
 		metaInfoMap.put(JsonConstant.CAPTUREDREGISTEREDDEVICES, "[]");
-		Map<String, String> tags = metaInfoTagGenerator.generateTags("1234", "NEW", 
-			null, metaInfoMap);
+		Map<String, String> tags = metaInfoTagGenerator.generateTags("12345", "1234", "NEW", 
+			null, metaInfoMap, 0);
 		assertEquals("11016", tags.get(metaDataTagNamePrefix + "centerId"));
 	}
 
@@ -108,8 +108,8 @@ public class MetaInfoTagGeneratorTest {
 		metaInfoMap.put(JsonConstant.OPERATIONSDATA, "[]");
 		metaInfoMap.put(JsonConstant.METADATA, "[]");
 		metaInfoMap.put(JsonConstant.CAPTUREDREGISTEREDDEVICES, "[ {\n  \"deviceServiceVersion\" : \"0.9.5\",\n  \"digitalId\" : {\n    \"dateTime\" : \"2020-11-23T11:29:21.468+05:30\",\n    \"deviceSubType\" : \"Slap\",\n    \"model\" : \"SLAP01\",\n    \"type\" : \"Finger\",\n    \"make\" : \"MOSIP\",\n    \"serialNo\" : \"1234567890\",\n    \"deviceProviderId\" : \"MOSIP.PROXY.SBI\",\n    \"deviceProvider\" : \"MOSIP\"\n  },\n  \"deviceCode\" : \"b692b595-3523-slap-99fc-bd76e35f190f\"\n}]");
-		Map<String, String> tags = metaInfoTagGenerator.generateTags("1234", "NEW", 
-			null, metaInfoMap);
+		Map<String, String> tags = metaInfoTagGenerator.generateTags("12345", "1234", "NEW", 
+			null, metaInfoMap, 0);
 		assertEquals("MOSIP-SLAP01-1234567890", tags.get(capturedRegisteredDevicesTagNamePrefix + "Finger"));
 	}
 
@@ -123,7 +123,7 @@ public class MetaInfoTagGeneratorTest {
 		Map<String, String> metaInfoMap = new HashMap<>();
 		metaInfoMap.put(JsonConstant.OPERATIONSDATA, "[]");
 		metaInfoMap.put(JsonConstant.CAPTUREDREGISTEREDDEVICES, "[]");
-		metaInfoTagGenerator.generateTags("1234", "NEW", null, metaInfoMap);
+		metaInfoTagGenerator.generateTags("12345", "1234", "NEW", null, metaInfoMap, 0);
 	}
 
 	@Test(expected = BaseCheckedException.class)
@@ -136,7 +136,7 @@ public class MetaInfoTagGeneratorTest {
 		Map<String, String> metaInfoMap = new HashMap<>();
 		metaInfoMap.put(JsonConstant.OPERATIONSDATA, "[]");
 		metaInfoMap.put(JsonConstant.METADATA, "[]");
-		metaInfoTagGenerator.generateTags("1234", "NEW", null, metaInfoMap);
+		metaInfoTagGenerator.generateTags("12345", "1234", "NEW", null, metaInfoMap, 0);
 	}
 
 	@Test(expected = BaseCheckedException.class)
@@ -150,7 +150,7 @@ public class MetaInfoTagGeneratorTest {
 			Map<String, String> metaInfoMap = new HashMap<>();
 			metaInfoMap.put(JsonConstant.METADATA, "[]");
 			metaInfoMap.put(JsonConstant.CAPTUREDREGISTEREDDEVICES, "[]");
-			metaInfoTagGenerator.generateTags("1234", "NEW", null, metaInfoMap);
+			metaInfoTagGenerator.generateTags("12345", "1234", "NEW", null, metaInfoMap, 0);
 	}
 
 	@Test(expected = ParsingException.class)
@@ -165,7 +165,7 @@ public class MetaInfoTagGeneratorTest {
 		metaInfoMap.put(JsonConstant.OPERATIONSDATA, "[ {\n  \"label\" : \"officerId\",\n  \"value\" : \"110119\"\n}");
 		metaInfoMap.put(JsonConstant.METADATA, "[]");
 		metaInfoMap.put(JsonConstant.CAPTUREDREGISTEREDDEVICES, "[]");
-		metaInfoTagGenerator.generateTags("1234", "NEW", null, metaInfoMap);
+		metaInfoTagGenerator.generateTags("12345", "1234", "NEW", null, metaInfoMap, 0);
 	}
 
 	public void testGenerateTagsForOperationsDataLabelNotAvailable() throws BaseCheckedException {
@@ -179,8 +179,8 @@ public class MetaInfoTagGeneratorTest {
 		metaInfoMap.put(JsonConstant.OPERATIONSDATA, "[ {\n  \"label\" : \"officerId\",\n  \"value\" : \"110119\"\n}]");
 		metaInfoMap.put(JsonConstant.METADATA, "[]");
 		metaInfoMap.put(JsonConstant.CAPTUREDREGISTEREDDEVICES, "[]");
-		Map<String, String> tags = metaInfoTagGenerator.generateTags("1234", "NEW", 
-			null, metaInfoMap);
+		Map<String, String> tags = metaInfoTagGenerator.generateTags("12345", "1234", "NEW", 
+			null, metaInfoMap, 0);
 		assertEquals(tags.get(operationsDataTagNamePrefix + "supervisorId"), notAvailableTagValue);
 	}
 
@@ -196,8 +196,8 @@ public class MetaInfoTagGeneratorTest {
 		metaInfoMap.put(JsonConstant.OPERATIONSDATA, "[]");
 		metaInfoMap.put(JsonConstant.METADATA, "[{\n  \"label\" : \"centerId\",\n  \"value\" : \"11016\"\n}]");
 		metaInfoMap.put(JsonConstant.CAPTUREDREGISTEREDDEVICES, "[]");
-		Map<String, String> tags = metaInfoTagGenerator.generateTags("1234", "NEW", 
-			null, metaInfoMap);
+		Map<String, String> tags = metaInfoTagGenerator.generateTags("12345", "1234", "NEW", 
+			null, metaInfoMap, 0);
 		assertEquals(notAvailableTagValue, tags.get(metaDataTagNamePrefix + "machineId"));
 	}
 
@@ -213,8 +213,8 @@ public class MetaInfoTagGeneratorTest {
 		metaInfoMap.put(JsonConstant.OPERATIONSDATA, "[]");
 		metaInfoMap.put(JsonConstant.METADATA, "[]");
 		metaInfoMap.put(JsonConstant.CAPTUREDREGISTEREDDEVICES, "[ {\n  \"deviceServiceVersion\" : \"0.9.5\",\n  \"digitalId\" : {\n    \"dateTime\" : \"2020-11-23T11:29:21.468+05:30\",\n    \"deviceSubType\" : \"Slap\",\n    \"model\" : \"SLAP01\",\n    \"type\" : \"Finger\",\n    \"make\" : \"MOSIP\",\n    \"serialNo\" : \"1234567890\",\n    \"deviceProviderId\" : \"MOSIP.PROXY.SBI\",\n    \"deviceProvider\" : \"MOSIP\"\n  },\n  \"deviceCode\" : \"b692b595-3523-slap-99fc-bd76e35f190f\"\n}]");
-		Map<String, String> tags = metaInfoTagGenerator.generateTags("1234", "NEW", 
-			null, metaInfoMap);
+		Map<String, String> tags = metaInfoTagGenerator.generateTags("12345", "1234", "NEW", 
+			null, metaInfoMap, 0);
 		assertEquals(notAvailableTagValue, tags.get(capturedRegisteredDevicesTagNamePrefix + "Face"));
 	}
 

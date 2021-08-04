@@ -17,10 +17,6 @@ public class ManualVerificationPKEntity implements Serializable {
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 
-	/** The reg id. */
-	@Column(name = "reg_id")
-	private String regId;
-
 	/** The matched ref id. */
 	@Column(name = "matched_ref_id")
 	private String matchedRefId;
@@ -29,23 +25,8 @@ public class ManualVerificationPKEntity implements Serializable {
 	@Column(name = "matched_ref_type")
 	private String matchedRefType;
 
-	/**
-	 * Gets the reg id.
-	 *
-	 * @return the regId
-	 */
-	public String getRegId() {
-		return regId;
-	}
-
-	/**
-	 * Sets the reg id.
-	 *
-	 * @param regId            the regId to set
-	 */
-	public void setRegId(String regId) {
-		this.regId = regId;
-	}
+	@Column(name = "workflow_instance_id")
+	private String workflowInstanceId;
 
 	/**
 	 * Gets the matched ref id.
@@ -81,6 +62,14 @@ public class ManualVerificationPKEntity implements Serializable {
 	 */
 	public void setMatchedRefType(String matchedRefType) {
 		this.matchedRefType = matchedRefType;
+	}
+
+	public String getWorkflowInstanceId() {
+		return workflowInstanceId;
+	}
+
+	public void setWorkflowInstanceId(String workflowInstanceId) {
+		this.workflowInstanceId = workflowInstanceId;
 	}
 
 	/**

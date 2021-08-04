@@ -12,7 +12,6 @@ import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.DemographicInfoDto;
 import io.mosip.registration.processor.packet.storage.dao.PacketInfoDao;
-import io.mosip.registration.processor.stages.app.constants.DemoDedupeConstants;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 
 /**
@@ -46,7 +45,7 @@ public class DemoDedupe {
 	 * @return the list
 	 */
 	public List<DemographicInfoDto> performDedupe(String refId) {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REFFERENCEID.toString(), refId,
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REFERENCEID.toString(), refId,
 				"DemoDedupe::performDedupe()::entry");
 
 		List<DemographicInfoDto> applicantDemoDto = packetInfoDao.findDemoById(refId);
@@ -57,7 +56,7 @@ public class DemoDedupe {
 					demoDto.getDob(), demoDto.getLangCode()));
 		}
 		demographicInfoDtos = getAllDemographicInfoDtosWithUin(infoDtos);
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REFFERENCEID.toString(), refId,
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REFERENCEID.toString(), refId,
 				"DemoDedupe::performDedupe()::exit");
 		return demographicInfoDtos;
 	}

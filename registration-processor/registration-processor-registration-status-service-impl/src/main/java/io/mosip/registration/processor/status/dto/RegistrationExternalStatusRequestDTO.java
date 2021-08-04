@@ -18,10 +18,10 @@ import lombok.EqualsAndHashCode;
 public class RegistrationExternalStatusRequestDTO extends BaseRestRequestDTO {
 	
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = -2987693214912415439L;
 	/** The request. */
-	private List<RegistrationStatusSubRequestDto> request;
+	private List<RegistrationExternalStatusSubRequestDto> request;
 		
 }

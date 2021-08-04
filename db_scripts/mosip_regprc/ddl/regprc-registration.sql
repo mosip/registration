@@ -12,13 +12,14 @@
 -- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes for 1.1.5
 -- Apr-2021		Ram Bhatt	    Added resume_remove_tags column
 -- May-2021		Ram Bhatt	    Added new column last_success_stage_name
+-- Jul-2021		Ram Bhatt	    Index Creation, pk constraint change and added new column
 -- ------------------------------------------------------------------------------------------
 
 -- object: regprc.registration | type: TABLE --
 -- DROP TABLE IF EXISTS regprc.registration CASCADE;
 CREATE TABLE regprc.registration(
-	id character varying(39) NOT NULL,
-	reg_type character varying(36) NOT NULL,
+	reg_id character varying(39) NOT NULL,
+	process character varying(36) NOT NULL,
 	ref_reg_id character varying(39),
 	applicant_type character varying(36),
 	status_code character varying(36) NOT NULL,
@@ -43,9 +44,15 @@ CREATE TABLE regprc.registration(
 	default_resume_action character varying(50),
 	resume_remove_tags character varying(256),
 	last_success_stage_name character varying(50),
-	CONSTRAINT pk_reg_id PRIMARY KEY (id)
+	workflow_instance_id character varying(36) NOT NULL,
+	source character varying,
+	iteration integer DEFAULT 1,
+	CONSTRAINT pk_reg_id PRIMARY KEY (workflow_instance_id)
 
 );
+-- indexes section -------------------------------------------------
+create index idx_rgstrn_ltstrbcode_ltststscode on regprc.registration (latest_trn_dtimes, latest_trn_status_code);
+
 -- ddl-end --
 COMMENT ON TABLE regprc.registration IS 'Registration: Registration Processor table is to store registration requests that are being processed, Also maintains packet id details and status of the registration requests.';
 -- ddl-end --

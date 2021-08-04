@@ -45,7 +45,7 @@ public class IDObjectFieldsTagGeneratorTest {
 
 	@Mock
 	private Utilities utility;
-	
+
 	@Mock
     private PacketClassifierUtility classifierUtility;
 
@@ -127,8 +127,8 @@ public class IDObjectFieldsTagGeneratorTest {
 	public void testGenerateTagsForAllFieldTypes() throws BaseCheckedException, JSONException {
 		idObjectFieldsTagGenerator.getRequiredIdObjectFieldNames();
 		Mockito.when(classifierUtility.getLanguageBasedValueForSimpleType(anyString())).thenReturn("MALE");
-		Map<String, String> tags = idObjectFieldsTagGenerator.generateTags("1234", "NEW", 
-			idObjectFieldDTOMap, null);
+		Map<String, String> tags = idObjectFieldsTagGenerator.generateTags("12345", "1234", "NEW",
+			idObjectFieldDTOMap, null, 0);
 		for(int i=0; i < mappingFieldNames.size(); i++) {
 			String mappingFieldName = mappingFieldNames.get(i);
 			assertEquals(tags.get(tagNamePrefix + mappingFieldName), tagValues.get(i));
@@ -139,7 +139,7 @@ public class IDObjectFieldsTagGeneratorTest {
 	public void testGenerateTagsForFieldNotAvailableInFieldDTOMap() throws BaseCheckedException {
 		idObjectFieldsTagGenerator.getRequiredIdObjectFieldNames();
 		idObjectFieldDTOMap.remove(actualFieldNames.get(0));
-		Map<String, String> tags = idObjectFieldsTagGenerator.generateTags("1234", "NEW", idObjectFieldDTOMap, null);
+		Map<String, String> tags = idObjectFieldsTagGenerator.generateTags("12345", "1234", "NEW", idObjectFieldDTOMap, null, 0);
 		assertEquals(tags.get(tagNamePrefix + mappingFieldNames.get(0)), notAvailableTagValue);
 	}
 
@@ -148,7 +148,7 @@ public class IDObjectFieldsTagGeneratorTest {
 		idObjectFieldsTagGenerator.getRequiredIdObjectFieldNames();
 		FieldDTO fieldDTO = idObjectFieldDTOMap.get(actualFieldNames.get(0));
 		fieldDTO.setType("notavailabletype");
-		idObjectFieldsTagGenerator.generateTags("1234", "NEW", idObjectFieldDTOMap, null);
+		idObjectFieldsTagGenerator.generateTags("12345", "1234", "NEW", idObjectFieldDTOMap, null, 0);
 	}
 	
 }
