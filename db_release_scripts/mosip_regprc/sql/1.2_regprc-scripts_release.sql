@@ -53,7 +53,7 @@ ALTER TABLE regprc.reg_bio_ref ADD COLUMN workflow_instance_id character varying
 ALTER TABLE regprc.reg_bio_ref ADD COLUMN process character varying(36);
 ALTER TABLE regprc.reg_bio_ref ADD COLUMN iteration integer DEFAULT 1;
 
-
+UPDATE regprc.registration_list SET packet_id = reg_id;
 UPDATE regprc.registration a SET workflow_instance_id = b.workflow_instance_id FROM regprc.registration_list b WHERE a.reg_id = b.reg_id;
 UPDATE regprc.individual_demographic_dedup a SET workflow_instance_id = b.workflow_instance_id FROM regprc.registration_list b WHERE a.reg_id = b.reg_id;
 UPDATE regprc.reg_manual_verification a SET workflow_instance_id = b.workflow_instance_id FROM regprc.registration_list b WHERE a.reg_id = b.reg_id;
