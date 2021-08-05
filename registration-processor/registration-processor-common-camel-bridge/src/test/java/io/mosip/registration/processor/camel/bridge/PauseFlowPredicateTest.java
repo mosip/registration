@@ -63,7 +63,7 @@ public class PauseFlowPredicateTest {
 		Setting[] settings = null;
 		try {
 			settings = objectMapper.readValue(
-					"[{\"matchExpression\": \"$.tags[?(@['HOTLISTED'] == 'operator')]\",\"pauseFor\": 432000,\"defaultResumeAction\": \"STOP_PROCESSING\",\"fromAddress\": \"bio-debup-bus-out\",\"resumeRemoveTags\": \"HOTLISTED\"},{\"matchExpression\": \"$.tags[?(@['AGE_GROUP']== 'CHILD' && @['ID_OBJECT-residenceStatus'] == 'nonResident')]\",\"pauseFor\": 432000,\"defaultResumeAction\": \"STOP_PROCESSING\",\"fromAddress\": \"bio-debup-bus-out\",\"resumeRemoveTags\": \"\"}]",
+					"[{\"ruleId\" :\"HOTLISTED_OPERATOR\",\"matchExpression\": \"$.tags[?(@['HOTLISTED'] == 'operator')]\",\"pauseFor\": 432000,\"defaultResumeAction\": \"STOP_PROCESSING\",\"fromAddress\": \"bio-debup-bus-out\",\"ruleDescription\": \"HotListed paused\"},{\"ruleId\" :\"NON_RESIDENT_CHILD_APPLICANT\",\"matchExpression\": \"$.tags[?(@['AGE_GROUP']== 'CHILD' && @['ID_OBJECT-residenceStatus'] == 'nonResident')]\",\"pauseFor\": 432000,\"defaultResumeAction\": \"STOP_PROCESSING\",\"fromAddress\": \"bio-debup-bus-out\",\"ruleDescription\": \"Non resident child applicant paused\"}]",
 					Setting[].class);
 		} catch (IOException e) {
 			LOGGER.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",

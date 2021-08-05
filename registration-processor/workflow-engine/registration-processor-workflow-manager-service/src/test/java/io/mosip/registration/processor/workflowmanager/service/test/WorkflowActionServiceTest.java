@@ -4,7 +4,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -75,6 +77,9 @@ public class WorkflowActionServiceTest {
 				Mockito.any());
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(null);
+		Map<String,String> tags=null;
+		Mockito.when(packetManagerService.getTags(any(), any()))
+		.thenReturn(tags);
 
 	}
 

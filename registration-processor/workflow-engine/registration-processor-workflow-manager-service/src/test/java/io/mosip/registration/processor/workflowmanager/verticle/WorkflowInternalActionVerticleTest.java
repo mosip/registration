@@ -159,6 +159,9 @@ public class WorkflowInternalActionVerticleTest {
 		workflowInternalActionDTO.setResumeTimestamp("2021-03-02T08:24:29.526Z");
 		workflowInternalActionDTO.setEventTimestamp("2021-03-02T08:24:29.526Z");
 		workflowInternalActionDTO.setDefaultResumeAction("ResumeProcessing");
+		List<String> matchedRuleIds=new ArrayList<String>();
+		matchedRuleIds.add("NON_RESIDENT_CHILD_APPLICANT");
+		workflowInternalActionDTO.setMatchedRuleIds(matchedRuleIds);
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatusForWorkflowEngine(any(), any(), any());
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
