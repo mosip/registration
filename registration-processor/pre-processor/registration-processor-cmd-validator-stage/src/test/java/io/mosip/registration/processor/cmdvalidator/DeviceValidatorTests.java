@@ -4,11 +4,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,6 +30,7 @@ import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.entities.Entry;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
+import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.packet.dto.HotlistRequestResponseDTO;
@@ -215,6 +219,19 @@ public class DeviceValidatorTests {
 				BaseCheckedException, JSONException {
 		Mockito.when(packetManagerService.getField(any(),
 				any(), any(),any())).thenReturn(null);
+		deviceValidator.validate(regOsi, process, registrationId);
+	}
+	
+	@Test
+	public void deviceValidationNoOfficerBiometricsInPacket() 
+			throws JsonProcessingException, ApisResourceAccessException, IOException, 
+				BaseCheckedException, JSONException {
+		Map<String, String> metamap = new HashMap<>();
+		JSONArray jsonArray = new JSONArray();
+		JSONObject jsonObject1 = new JSONObject();
+		jsonObject1.put("officerBiometricFileName", JSONObject.NULL);
+		metamap.put(JsonConstant.OPERATIONSDATA, jsonArray.toString());
+		Mockito.when(packetManagerService.getMetaInfo(anyString(), anyString(), any())).thenReturn(metamap);
 		deviceValidator.validate(regOsi, process, registrationId);
 	}
 }
