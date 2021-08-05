@@ -33,7 +33,7 @@ public class IDObjectFieldsTagGenerator implements TagGenerator {
      * These field names should be as in keys of registraion-processor-identity.json file Identity segment
      * and should have proper default source configured
      */
-    @Value("#{'${mosip.regproc.packet.classifier.tagging.idobjectfields.mapping-field-names}'.split(',')}")
+    @Value("#{T(java.util.Arrays).asList('${mosip.regproc.packet.classifier.tagging.idobjectfields.mapping-field-names:}')}")
     private List<String> mappingFieldNames;
 
     /** The tag name that will be prefixed with every idobjectfield tags */
