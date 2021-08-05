@@ -14,6 +14,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
   	<modules>
-    <module>registration-processor-workflow-manager-service</module>
+      <module>registration-processor-workflow-manager-service</module>
+      <module>registration-processor-reprocessor</module>
   </modules>
 </project>

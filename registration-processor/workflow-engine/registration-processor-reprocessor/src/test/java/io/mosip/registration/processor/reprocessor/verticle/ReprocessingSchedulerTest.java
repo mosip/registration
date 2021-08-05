@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.workflowmanager.verticle;
+package io.mosip.registration.processor.reprocessor.verticle;
 
 import static org.junit.Assert.assertNotNull;
 
@@ -13,7 +13,6 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -24,7 +23,6 @@ import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
-import io.mosip.registration.processor.workflowmanager.verticle.WorkflowActionJob;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -36,8 +34,16 @@ import io.vertx.core.eventbus.MessageCodec;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.eventbus.MessageProducer;
 
+/**
+ * Test class for scheduler
+ * 
+ * @author Pranav Kumar
+ * @since 0.10.0
+ *
+ */
 @RunWith(MockitoJUnitRunner.class)
-public class WorkflowActionJobSchedularTest {
+public class ReprocessingSchedulerTest {
+
 	/**
 	 * Mocked Vertx instance
 	 */
@@ -65,20 +71,17 @@ public class WorkflowActionJobSchedularTest {
 	 */
 	@Before
 	public void setup() {
-		fooLogger = (Logger) LoggerFactory.getLogger(WorkflowActionJob.class);
+		fooLogger = (Logger) LoggerFactory.getLogger(ReprocessorVerticle.class);
 		listAppender = new ListAppender<>();
-		ReflectionTestUtils.setField(workflowActionJob, "clusterManagerUrl", "/dummyPath");
 	}
 
-
+	/**
+	 * Mocked instance of Reprocessor Verticle
+	 */
 	@InjectMocks
-	WorkflowActionJob workflowActionJob = new WorkflowActionJob() {
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see
-		 * io.mosip.registration.processor.core.abstractverticle.MosipVerticleManager#
-		 * getEventBus(java.lang.Object, java.lang.String)
+	ReprocessorVerticle reprocessorVerticle = new ReprocessorVerticle() {
+		/* (non-Javadoc)
+		 * @see io.mosip.registration.processor.core.abstractverticle.MosipVerticleManager#getEventBus(java.lang.Object, java.lang.String)
 		 */
 		@Override
 		public MosipEventBus getEventBus(Object verticleName, String clusterManagerUrl) {
@@ -116,8 +119,8 @@ public class WorkflowActionJobSchedularTest {
 	 */
 	@Test
 	public void testDeploySuccess() {
-		workflowActionJob.deployVerticle();
-		assertNotNull(workflowActionJob.mosipEventBus);
+		reprocessorVerticle.deployVerticle();
+		assertNotNull(reprocessorVerticle.mosipEventBus);
 	}
 
 	/**
@@ -129,10 +132,10 @@ public class WorkflowActionJobSchedularTest {
 		fooLogger.addAppender(listAppender);
 		Mockito.when(res.succeeded()).thenReturn(true);
 		Mockito.when(vertx.eventBus()).thenReturn(getMockEventBus());
-		workflowActionJob.schedulerResult(res);
+		reprocessorVerticle.schedulerResult(res);
 		Assertions.assertThat(listAppender.list).extracting(ILoggingEvent::getLevel, ILoggingEvent::getFormattedMessage)
 				.contains(Tuple.tuple(Level.INFO,
-						"WorkflowActionJob::schedular()::deployed"));
+						"ReprocessorVerticle::schedular()::deployed"));
 	}
 
 	/**
@@ -143,14 +146,14 @@ public class WorkflowActionJobSchedularTest {
 		listAppender.start();
 		fooLogger.addAppender(listAppender);
 		Mockito.when(res.succeeded()).thenReturn(false);
-		workflowActionJob.schedulerResult(res);
+		//Mockito.when(vertx.eventBus()).thenReturn(getMockEventBus());
+		reprocessorVerticle.schedulerResult(res);
 		Assertions.assertThat(listAppender.list).extracting(ILoggingEvent::getLevel, ILoggingEvent::getFormattedMessage)
-				.contains(Tuple.tuple(Level.ERROR, "WorkflowActionJob::schedular()::deployment failure"));
+				.contains(Tuple.tuple(Level.ERROR,
+						"ReprocessorVerticle::schedular()::deployment failure"));
 	}
-
 	/**
 	 * Returns dummy eventbus instance
-	 * 
 	 * @return Eventbus
 	 */
 	public EventBus getMockEventBus() {
@@ -197,7 +200,8 @@ public class WorkflowActionJobSchedularTest {
 			}
 
 			@Override
-			public <T> EventBus send(String address, Object message, Handler<AsyncResult<Message<T>>> replyHandler) {
+			public <T> EventBus send(String address, Object message, 
+				Handler<AsyncResult<Message<T>>> replyHandler) {
 				return null;
 			}
 

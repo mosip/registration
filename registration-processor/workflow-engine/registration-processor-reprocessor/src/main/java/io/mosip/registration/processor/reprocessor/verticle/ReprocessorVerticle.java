@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.reprocessor.stage;
+package io.mosip.registration.processor.reprocessor.verticle;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +41,7 @@ import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 
 /**
- * The Reprocessor Stage to deploy the scheduler and implement re-processing
+ * The Reprocessor Verticle to deploy the scheduler and implement re-processing
  * logic
  * 
  * @author Alok Ranjan
@@ -51,11 +51,11 @@ import io.vertx.core.json.JsonObject;
  * @since 0.10.0
  *
  */
-public class ReprocessorStage extends MosipVerticleAPIManager {
+public class ReprocessorVerticle extends MosipVerticleAPIManager {
 
-	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.reprocessor.";
+	private static final String VERTICLE_PROPERTY_PREFIX = "mosip.regproc.reprocessor.";
 
-	private static Logger regProcLogger = RegProcessorLogger.getLogger(ReprocessorStage.class);
+	private static Logger regProcLogger = RegProcessorLogger.getLogger(ReprocessorVerticle.class);
 
 	/** The cluster manager url. */
 	@Value("${vertx.cluster.configuration}")
@@ -120,10 +120,10 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 
 	public void schedulerResult(AsyncResult<String> res) {
 		if (res.succeeded()) {
-			regProcLogger.info("ReprocessorStage::schedular()::deployed");
+			regProcLogger.info("ReprocessorVerticle::schedular()::deployed");
 			cronScheduling(vertx);
 		} else {
-			regProcLogger.error("ReprocessorStage::schedular()::deployment failure");
+			regProcLogger.error("ReprocessorVerticle::schedular()::deployment failure");
 		}
 	}
 
@@ -164,11 +164,11 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 					if (ar.succeeded()) {
 						regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
 								LoggerFileConstant.REGISTRATIONID.toString(), "",
-								"ReprocessorStage::schedular()::started");
+								"ReprocessorVerticle::schedular()::started");
 					} else {
 						regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 								LoggerFileConstant.REGISTRATIONID.toString(), "",
-								"ReprocessorStage::schedular()::failed " + ar.cause());
+								"ReprocessorVerticle::schedular()::failed " + ar.cause());
 						vertx.close();
 					}
 				});
@@ -209,7 +209,7 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 		statusList.add(RegistrationTransactionStatusCode.REPROCESS.toString());
 		statusList.add(RegistrationTransactionStatusCode.IN_PROGRESS.toString());
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-				"ReprocessorStage::process()::entry");
+				"ReprocessorVerticle::process()::entry");
 		try {
 			reprocessorDtoList = registrationStatusService.getResumablePackets(fetchSize);
 			if (!CollectionUtils.isEmpty(reprocessorDtoList)) {
@@ -299,8 +299,8 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 
 		}catch (Exception ex) {
 			isTransactionSuccessful = false;
-			description.setMessage(PlatformErrorMessages.REPROCESSOR_STAGE_FAILED.getMessage());
-			description.setCode(PlatformErrorMessages.REPROCESSOR_STAGE_FAILED.getCode());
+			description.setMessage(PlatformErrorMessages.REPROCESSOR_VERTICLE_FAILED.getMessage());
+			description.setCode(PlatformErrorMessages.REPROCESSOR_VERTICLE_FAILED.getCode());
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					description.getCode() + " -- ",
 					PlatformErrorMessages.UNKNOWN_EXCEPTION.getMessage() + ex.getMessage()
@@ -330,6 +330,6 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 
 	@Override
 	protected String getPropertyPrefix() {
-		return STAGE_PROPERTY_PREFIX;
+		return VERTICLE_PROPERTY_PREFIX;
 	}
 }
