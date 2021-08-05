@@ -1,10 +1,10 @@
-# registration-processor-reprocessor-stage
+# registration-processor-reprocessor
 
-This stage reprocesses the packets which are stuck in Registration-processor due to failures.
+This verticle reprocesses the packets which are stuck in Registration-processor due to failures.
 
 ## Design
 
-[Design - Approach for Re-Processor Stage](https://github.com/mosip/registration/blob/master/design/registration-processor/Approach_for_reprocess.md)
+[Design - Approach for Re-Processor Verticle](https://github.com/mosip/registration/blob/master/design/registration-processor/Approach_for_reprocess.md)
 
 ## Port and Context-Path
 ```

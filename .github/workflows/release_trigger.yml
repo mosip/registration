@@ -434,14 +434,14 @@ jobs:
           docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
           docker push $IMAGE_ID:$VERSION
           
-  docker-registration-processor-reprocessor-stage:
+  docker-registration-processor-reprocessor:
     needs: build
 
     runs-on: ubuntu-latest
     env:
       NAMESPACE: mosipdev
-      SERVICE_NAME: registration-processor-reprocessor-stage
-      SERVICE_LOCATION: registration-processor/core-processor/registration-processor-reprocessor-stage
+      SERVICE_NAME: registration-processor-reprocessor
+      SERVICE_LOCATION: registration-processor/workflow-engine/registration-processor-reprocessor
 
     steps:
       - uses: actions/checkout@v2
