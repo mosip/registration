@@ -294,8 +294,11 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
                         request, ResponseWrapper.class);
 
         if (response.getErrors() != null && response.getErrors().size() > 0) {
+        	ErrorDTO error=response.getErrors().get(0);
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                     id, JsonUtils.javaObjectToJsonString(response));
+            if(error.getErrorCode().equalsIgnoreCase("KER-PUT-024")) 
+        		return null;
             throw new PacketManagerException(response.getErrors().get(0).getErrorCode(),
                     response.getErrors().get(0).getMessage());
         }

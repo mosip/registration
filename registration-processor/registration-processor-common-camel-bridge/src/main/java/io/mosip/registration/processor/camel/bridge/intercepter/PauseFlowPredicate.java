@@ -132,7 +132,7 @@ public class PauseFlowPredicate implements Predicate {
 		boolean isRuleIdNotPresent=true;
 		if(tags!=null) {
 			String pauseRuleImmunity=tags.get(JsonConstant.PAUSERULEIMMUNITY);
-            if(pauseRuleImmunity!=null & pauseRuleImmunity.contains(ruleId)) {
+            if(pauseRuleImmunity!=null && pauseRuleImmunity.contains(ruleId)) {
             	isRuleIdNotPresent=false;
            }
 		}
