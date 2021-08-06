@@ -1254,7 +1254,7 @@ public enum PlatformErrorMessages {
 	RPR_AUT_ACCESS_DENIED(PlatformConstants.RPR_AUTHENTICATION + "02", "Access Denied For Role - %s"),
 
 	/** Reprocessor Stage Failed. */
-	REPROCESSOR_STAGE_FAILED("", "Reprocessor Stage Failed"),
+	REPROCESSOR_VERTICLE_FAILED("", "Reprocessor Verticle Failed"),
 
 	RPR_WIA_DATE_TIME_EXCEPTION(PlatformConstants.RPR_WORKFLOW_INTERNAL_ACTION + "000",
 			"Error while parsing event or resume timestamp"),
