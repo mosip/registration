@@ -61,7 +61,6 @@ import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.dto.SyncResponseFailDto;
 import io.mosip.registration.processor.status.dto.SyncResponseFailureDto;
 import io.mosip.registration.processor.status.dto.SyncResponseSuccessDto;
-import io.mosip.registration.processor.status.dto.SyncTypeDto;
 import io.mosip.registration.processor.status.encryptor.Encryptor;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.exception.EncryptionFailureException;
@@ -217,7 +216,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		try {
 			for (SyncRegistrationDto registrationDto : resgistrationDtos) {
 				if(registrationDto.getPacketId()!=null && !registrationDto.getPacketId().isBlank()){
-					syncResponseList = validateSync(registrationDto, syncResponseList, referenceId, timeStamp);
+					syncResponseList = validateSyncV2(registrationDto, syncResponseList, referenceId, timeStamp);
 				}
 				else {
 					SyncResponseFailDto syncResponseFailureDto = new SyncResponseFailDto();
@@ -289,9 +288,48 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 				try {
 					if (ridValidator.validateId(registrationDto.getRegistrationId())) {
 
-						syncResponseList = validateRegId(registrationDto, syncResponseList, referenceId, timeStamp);
+						syncResponseList = syncRegistrationRecord(registrationDto, syncResponseList, referenceId, timeStamp);
 
 					}
+				} catch (InvalidIDException e) {
+					syncResponseFailureDto.setRegistrationId(registrationDto.getRegistrationId());
+
+					syncResponseFailureDto.setStatus(ResponseStatusCode.FAILURE.toString());
+					if (e.getErrorCode().equals(RidExceptionProperty.INVALID_RID_LENGTH.getErrorCode())) {
+						syncResponseFailureDto
+								.setMessage(PlatformErrorMessages.RPR_RGS_INVALID_REGISTRATIONID_LENGTH.getMessage());
+						syncResponseFailureDto
+								.setErrorCode(PlatformErrorMessages.RPR_RGS_INVALID_REGISTRATIONID_LENGTH.getCode());
+					} else if (e.getErrorCode().equals(RidExceptionProperty.INVALID_RID.getErrorCode())) {
+						syncResponseFailureDto
+								.setMessage(PlatformErrorMessages.RPR_RGS_INVALID_REGISTRATIONID.getMessage());
+						syncResponseFailureDto
+								.setErrorCode(PlatformErrorMessages.RPR_RGS_INVALID_REGISTRATIONID.getCode());
+					} else if (e.getErrorCode().equals(RidExceptionProperty.INVALID_RID_TIMESTAMP.getErrorCode())) {
+						syncResponseFailureDto.setMessage(
+								PlatformErrorMessages.RPR_RGS_INVALID_REGISTRATIONID_TIMESTAMP.getMessage());
+						syncResponseFailureDto
+								.setErrorCode(PlatformErrorMessages.RPR_RGS_INVALID_REGISTRATIONID_TIMESTAMP.getCode());
+					}
+					syncResponseList.add(syncResponseFailureDto);
+				}
+			}
+		}
+		return syncResponseList;
+	}
+
+
+	private List<SyncResponseDto> validateSyncV2(SyncRegistrationDto registrationDto,
+											   List<SyncResponseDto> syncResponseList, String referenceId,
+											   String timeStamp) {
+		if (validateLanguageCode(registrationDto, syncResponseList)
+				&& validateRegistrationType(registrationDto, syncResponseList)
+				&& validateHashValue(registrationDto, syncResponseList)
+				&& validateSupervisorStatus(registrationDto, syncResponseList)) {
+			if (validateRegistrationID(registrationDto, syncResponseList)) {
+				SyncResponseFailureDto syncResponseFailureDto = new SyncResponseFailureDto();
+				try {
+					syncResponseList = syncRegistrationRecord(registrationDto, syncResponseList, referenceId, timeStamp);
 				} catch (InvalidIDException e) {
 					syncResponseFailureDto.setRegistrationId(registrationDto.getRegistrationId());
 
@@ -460,9 +498,9 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	 *            the sync response list
 	 * @return the list
 	 */
-	public List<SyncResponseDto> validateRegId(SyncRegistrationDto registrationDto,
-			List<SyncResponseDto> syncResponseList, String referenceId,
-			String timeStamp) {
+	public List<SyncResponseDto> syncRegistrationRecord(SyncRegistrationDto registrationDto,
+														List<SyncResponseDto> syncResponseList, String referenceId,
+														String timeStamp) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationDto.getRegistrationId(), "SyncRegistrationServiceImpl::validateRegId()::entry");
 		SyncResponseSuccessDto syncResponseDto = new SyncResponseSuccessDto();
