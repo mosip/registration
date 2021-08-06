@@ -72,7 +72,7 @@ public class WorkflowSearchService {
 	private void buildSearchInfoDto(SearchInfo searchInfo) {
 		for (FilterInfo filterInfo : searchInfo.getFilters()) {
 			if (filterInfo.getColumnName().equals("workflowId")) {
-				filterInfo.setColumnName("id");
+				filterInfo.setColumnName("regId");
 			} else if (filterInfo.getColumnName().equals("workflowType")) {
 				filterInfo.setColumnName("registrationType");
 			}
