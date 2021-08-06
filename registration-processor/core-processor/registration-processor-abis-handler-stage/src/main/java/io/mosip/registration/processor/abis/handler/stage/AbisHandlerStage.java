@@ -198,16 +198,21 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	 * Deploy verticle.
 	 */
 	public void deployVerticle() {
-		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
-		this.consumeAndSend(mosipEventBus, MessageBusAddress.ABIS_HANDLER_BUS_IN,
-				MessageBusAddress.ABIS_HANDLER_BUS_OUT, messageExpiryTimeLimit);
-	}
-
-	@Override
-	public void start() {
-		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.ABIS_HANDLER_BUS_IN,
-				MessageBusAddress.ABIS_HANDLER_BUS_OUT));
-		this.createServer(router.getRouter(), getPort());
+		MessageDTO dto=new MessageDTO();
+		dto.setRid("10002100211000120210727151939");
+		dto.setReg_type("NEW");
+		dto.setIteration(1);
+		process(dto);
+//		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
+//		this.consumeAndSend(mosipEventBus, MessageBusAddress.ABIS_HANDLER_BUS_IN,
+//				MessageBusAddress.ABIS_HANDLER_BUS_OUT, messageExpiryTimeLimit);
+//	}
+//
+//	@Override
+//	public void start() {
+//		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.ABIS_HANDLER_BUS_IN,
+//				MessageBusAddress.ABIS_HANDLER_BUS_OUT));
+//		this.createServer(router.getRouter(), getPort());
 	}
 
 	@Override
@@ -647,13 +652,13 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 				} else {
 					String[] segmentArray = segment.split(" ");
 					optionalBIR = biometricRecord.getSegments().stream()
-							.filter(bir -> bir.getBdbInfo().getSubtype().size() == segmentArray.length
+							.filter(bir -> bir.getBdbInfo().getSubtype()!=null ? (bir.getBdbInfo().getSubtype().size() == segmentArray.length
 									? (bir.getBdbInfo().getSubtype().get(0).equalsIgnoreCase(segmentArray[0])
 											&& (segmentArray.length == 2
 													? bir.getBdbInfo().getSubtype().get(1)
 															.equalsIgnoreCase(segmentArray[1])
 													: true))
-									: false)
+									: false):false)
 							.findFirst();
 				}
 				if (optionalBIR != null && optionalBIR.isPresent()) {
