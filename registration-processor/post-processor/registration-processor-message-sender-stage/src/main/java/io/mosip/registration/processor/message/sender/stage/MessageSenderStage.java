@@ -592,6 +592,8 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 			messageSenderDto.setIdType(IdType.RID);
 			messageSenderDto.setSubjectCode(env.getProperty(TECHNICAL_ISSUE+SUB));
 			break;
+		default:
+			break;
 		}
 	}
 
