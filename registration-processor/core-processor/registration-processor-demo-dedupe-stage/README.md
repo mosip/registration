@@ -14,7 +14,6 @@ server.servlet.path=/registrationprocessor/v1/demodedupe
 ```
 ## Configurable Properties from Configuration Server
 ```
-application.id=REGISTRATION
 registration.processor.demodedupe.manualverification.status=REJECTED
 ```
 
