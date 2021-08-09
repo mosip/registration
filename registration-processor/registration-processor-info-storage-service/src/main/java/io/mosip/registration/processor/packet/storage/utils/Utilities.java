@@ -260,11 +260,6 @@ public class Utilities {
 			ApisResourceAccessException, JsonProcessingException, PacketManagerException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				id, "Utilities::getApplicantAge()::entry");
-
-		// return age as -1 in case of LOST packet
-		if (RegistrationType.LOST.name().equalsIgnoreCase(process)) {
-			return -1;
-		}
 		
 		String applicantDob = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.DOB, process, stageName);
 	    String applicantAge = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.AGE, process, stageName);
@@ -289,7 +284,7 @@ public class Utilities {
 			Integer idRepoApplicantAge = JsonUtil.getJSONValue(identityJSONOject, ageKey);
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 					id, "Utilities::getApplicantAge()::exit when ID REPO applicantAge is not null");
-			return idRepoApplicantAge != null ? idRepoApplicantAge : 0;
+			return idRepoApplicantAge != null ? idRepoApplicantAge : -1;
 
 		}
 
