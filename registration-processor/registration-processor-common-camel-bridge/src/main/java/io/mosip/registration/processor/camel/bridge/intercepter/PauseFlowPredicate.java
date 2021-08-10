@@ -58,21 +58,19 @@ public class PauseFlowPredicate implements Predicate {
 
 	@Override
 	public boolean matches(Exchange exchange) {
-        boolean isMatches=false;
         try {
 		String message = (String) exchange.getMessage().getBody();
-		JsonObject json = new JsonObject(message);
-        MessageDTO messageDto=objectMapper.readValue(message, MessageDTO.class);
+        MessageDTO messageDto = objectMapper.readValue(message, MessageDTO.class);
 		LOGGER.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"exchange.getFromEndpoint().toString() " + exchange.getFromEndpoint().toString());
 
 		String fromAddress = exchange.getFromEndpoint().toString();
 		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
-		List<String> matchedRuleIds=new ArrayList<String>();
-		String ruleDescription="";
-		long pauseFor=0;
+		List<String> matchedRuleIds = new ArrayList<String>();
+		String ruleDescription ="";
+		long pauseFor = 0;
 		String defaultResumeAction=null;
-		Map<String,String> tags=messageDto.getTags();
+		Map<String,String> tags = messageDto.getTags();
 		for (Setting setting : settings) {
 			if(isRuleIdNotPresent(tags,setting.getRuleId())) {
 
@@ -81,19 +79,18 @@ public class PauseFlowPredicate implements Predicate {
 					&& !jsonArray.isEmpty()) {
 				     matchedRuleIds.add(setting.getRuleId());
 				     if(ruleDescription.isBlank())
-				    	 ruleDescription=setting.getRuleDescription();
+				    	 ruleDescription = setting.getRuleDescription();
 				     else
 				    	 ruleDescription=ruleDescription+","+setting.getRuleDescription();
 				     if(setting.getPauseFor()>pauseFor) {
 				    	 pauseFor=setting.getPauseFor();
-				    	 defaultResumeAction=setting.getDefaultResumeAction();
+				    	 defaultResumeAction = setting.getDefaultResumeAction();
 				     }
-					isMatches=true;
 				}
 			}
 		}
-		if(isMatches) {
-            workflowInternalActionDTO.setRid(json.getString(JsonConstant.RID));
+		if(!matchedRuleIds.isEmpty()) {
+            workflowInternalActionDTO.setRid(messageDto.getRid());
 			workflowInternalActionDTO
 			.setEventTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 			workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.MARK_AS_PAUSED.toString());
@@ -103,12 +100,13 @@ public class PauseFlowPredicate implements Predicate {
 			workflowInternalActionDTO.setMatchedRuleIds(matchedRuleIds);
 			workflowInternalActionDTO
 			.setActionMessage(PlatformSuccessMessages.PACKET_MARK_AS_PAUSED.getMessage()+"("+ruleDescription+")");
-            workflowInternalActionDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
-            workflowInternalActionDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
-            workflowInternalActionDTO.setSource(json.getString(JsonConstant.SOURCE));
+            workflowInternalActionDTO.setReg_type(messageDto.getReg_type());
+            workflowInternalActionDTO.setIteration(messageDto.getIteration());
+            workflowInternalActionDTO.setSource(messageDto.getSource());
             workflowInternalActionDTO
-                    .setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
+                    .setWorkflowInstanceId(messageDto.getWorkflowInstanceId());
 			exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowInternalActionDTO));
+			return true;
 		}
         }catch (JsonProcessingException e) {
 			LOGGER.error("Error in  RoutePredicate::matches {}",
@@ -125,15 +123,15 @@ public class PauseFlowPredicate implements Predicate {
 					 e.getMessage());
 			throw new BaseUncheckedException(e.getMessage());
 		}
-		return isMatches;
+		return false;
 	}
 
 	private boolean isRuleIdNotPresent(Map<String, String> tags, String  ruleId) {
 		boolean isRuleIdNotPresent=true;
 		if(tags!=null) {
-			String pauseRuleImmunity=tags.get(JsonConstant.PAUSERULEIMMUNITY);
+			String pauseRuleImmunity = tags.get(JsonConstant.PAUSERULEIMMUNITYRULEIDS);
             if(pauseRuleImmunity!=null && pauseRuleImmunity.contains(ruleId)) {
-            	isRuleIdNotPresent=false;
+            	isRuleIdNotPresent = false;
            }
 		}
 		return isRuleIdNotPresent;

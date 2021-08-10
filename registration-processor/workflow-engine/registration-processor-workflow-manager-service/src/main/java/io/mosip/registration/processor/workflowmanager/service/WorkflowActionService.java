@@ -2,9 +2,12 @@ package io.mosip.registration.processor.workflowmanager.service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -322,26 +325,27 @@ public class WorkflowActionService {
 			return;
 		
 		List<String> tags = new ArrayList<String>();
-		tags.add("PAUSE_RULE_IMMUNITY");
+		tags.add("PAUSE_IMMUNITY_RULE_IDS");
 		Map<String, String> tagsPresent=packetManagerService.getTags(internalRegistrationStatusDto.getRegistrationId(), tags);
         String pauseRuleImmunityTag="";
+        Set<String> rulesSet=new HashSet<String>();
 		if(tagsPresent!=null) {
-			pauseRuleImmunityTag=tagsPresent.get("PAUSE_RULE_IMMUNITY");
+			pauseRuleImmunityTag=tagsPresent.get("PAUSE_IMMUNITY_RULE_IDS");
+			if(!pauseRuleImmunityTag.isEmpty()) {
+				rulesSet.addAll(Arrays.asList(pauseRuleImmunityTag.split(", ")));
+			}
            }
 		String[] pauseRuleIdsArray = internalRegistrationStatusDto.getPauseRuleIds().split(",");
 		if (pauseRuleIdsArray.length > 0) {
 			for (int i = 0; i < pauseRuleIdsArray.length; i++) {
-				if(!pauseRuleImmunityTag.contains(pauseRuleIdsArray[i])) {
-					if(pauseRuleImmunityTag.isEmpty()) {
-						pauseRuleImmunityTag=pauseRuleIdsArray[i];
-					}else {
-						pauseRuleImmunityTag=pauseRuleImmunityTag+","+pauseRuleIdsArray[i];
-					}
+				if(!rulesSet.contains(pauseRuleIdsArray[i])) {
+					rulesSet.add(pauseRuleIdsArray[i]);
 				}
 			}
 		}
+        String.join(", ", rulesSet);
 		Map<String,String> tagsToAdd=new HashMap<String,String>();
-		tagsToAdd.put("PAUSE_RULE_IMMUNITY", pauseRuleImmunityTag);
+		tagsToAdd.put("PAUSE_IMMUNITY_RULE_IDS", String.join(", ", rulesSet));
 		packetManagerService.addOrUpdateTags(internalRegistrationStatusDto.getRegistrationId(), tagsToAdd);
 		regProcLogger.debug("addRuleIdsToTag called for workflowId {}",
 				internalRegistrationStatusDto.getRegistrationId());

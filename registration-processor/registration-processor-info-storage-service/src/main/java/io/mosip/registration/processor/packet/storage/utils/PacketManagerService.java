@@ -297,6 +297,7 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
         	ErrorDTO error=response.getErrors().get(0);
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                     id, JsonUtils.javaObjectToJsonString(response));
+            //This error code will return if requested tag is not present ,so returning null for that
             if(error.getErrorCode().equalsIgnoreCase("KER-PUT-024")) 
         		return null;
             throw new PacketManagerException(response.getErrors().get(0).getErrorCode(),
