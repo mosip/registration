@@ -28,7 +28,7 @@ stage group 7:
     regproc-printing-stage
 ````
 
-The `regproc-reprocessor-stage` and `regproc-external-stage` are not grouped into any stage group.
+The `regproc-reprocessor` and `regproc-external-stage` are not grouped into any stage group.
 
 
 # Sample Command to build:

@@ -18,6 +18,7 @@ import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
+import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,6 +37,7 @@ import org.springframework.test.context.TestPropertySource;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.cbeffutil.exception.CbeffException;
+import io.mosip.kernel.core.exception.BiometricSignatureValidationException;
 import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
@@ -61,9 +63,9 @@ import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketM
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.stages.utils.ApplicantDocumentValidation;
 import io.mosip.registration.processor.stages.utils.BiometricsXSDValidator;
+import io.mosip.registration.processor.stages.validator.impl.BiometricsSignatureValidator;
 import io.mosip.registration.processor.stages.validator.impl.PacketValidatorImpl;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
-import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
 import io.mosip.registration.processor.status.repositary.SyncRegistrationRepository;
 
 @RunWith(PowerMockRunner.class)
@@ -83,6 +85,9 @@ public class PacketValidatorImplTest {
 
 	@Mock
 	private BiometricsXSDValidator biometricsXSDValidator;
+	
+	@Mock
+	private BiometricsSignatureValidator biometricsSignatureValidator;
 
 	@Mock
 	private Environment env;
@@ -238,13 +243,19 @@ public class PacketValidatorImplTest {
 
 	@Test
 	public void testValidationSuccess() throws PacketValidatorException, ApisResourceAccessException,
-			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException {
+			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException,
+			BiometricSignatureValidationException, JSONException {
+		Mockito.doNothing().when(biometricsSignatureValidator).validateSignature(anyString(), anyString(), any(),
+				any());
 		assertTrue(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
 
 	@Test
 	public void testUpdateValidationSuccess() throws PacketValidatorException, ApisResourceAccessException,
-			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException {
+			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException,
+			BiometricSignatureValidationException, JSONException {
+		Mockito.doNothing().when(biometricsSignatureValidator).validateSignature(anyString(), anyString(), any(),
+				any());
 		assertTrue(PacketValidator.validate("123456789", "UPDATE", packetValidationDto));
 	}
 
@@ -258,7 +269,10 @@ public class PacketValidatorImplTest {
 
 	@Test
 	public void testValidationConfigSuccess() throws PacketValidatorException, ApisResourceAccessException,
-			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException {
+			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException,
+			BiometricSignatureValidationException, JSONException {
+		Mockito.doNothing().when(biometricsSignatureValidator).validateSignature(anyString(), anyString(), any(),
+				any());
 		when(env.getProperty(VALIDATEAPPLICANTDOCUMENT)).thenReturn("false");
 		assertTrue(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
@@ -272,6 +286,13 @@ public class PacketValidatorImplTest {
 	@Test
 	public void testBiometricsXSDValidatonFailure() throws Exception {
 		doThrow(new CbeffException("CbeffException occurred")).when(biometricsXSDValidator).validateXSD(any());
+		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
+	}
+	
+	@Test
+	public void testBiometricsSignatureValidatonFailure() throws Exception {
+		doThrow(new BiometricSignatureValidationException("JWT signature Validation Failed"))
+				.when(biometricsSignatureValidator).validateSignature(anyString(), anyString(), any(), any());
 		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
 

@@ -6,12 +6,12 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>io.mosip.registrationprocessor</groupId>
-		<artifactId>core-processor</artifactId>
+		<artifactId>workflow-engine</artifactId>
 		<version>1.2.0-SNAPSHOT</version>
 	</parent>
-	<artifactId>registration-processor-reprocessor-stage</artifactId>
+	<artifactId>registration-processor-reprocessor</artifactId>
 	 <version>1.2.0-SNAPSHOT</version>
-	<name>registration-processor-reprocessor-stage</name>
+	<name>registration-processor-reprocessor</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>

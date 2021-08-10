@@ -647,7 +647,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 				} else {
 					String[] segmentArray = segment.split(" ");
 					optionalBIR = biometricRecord.getSegments().stream()
-							.filter(bir -> bir.getBdbInfo().getSubtype().size() == segmentArray.length
+							.filter(bir -> bir.getBdbInfo().getSubtype()!=null && bir.getBdbInfo().getSubtype().size() == segmentArray.length
 									? (bir.getBdbInfo().getSubtype().get(0).equalsIgnoreCase(segmentArray[0])
 											&& (segmentArray.length == 2
 													? bir.getBdbInfo().getSubtype().get(1)
