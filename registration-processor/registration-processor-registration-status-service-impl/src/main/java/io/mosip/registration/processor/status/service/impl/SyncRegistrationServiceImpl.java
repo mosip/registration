@@ -605,7 +605,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		syncRegistrationEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 		syncRegistrationEntity.setAdditionalInfoReqId(dto.getAdditionalInfoReqId());
 		syncRegistrationEntity.setPacketId(dto.getPacketId() != null ? dto.getPacketId() : dto.getRegistrationId());
-
+		syncRegistrationEntity.setReferenceId(referenceId);
 		try {
 			RegistrationAdditionalInfoDTO regAdditionalInfo = new RegistrationAdditionalInfoDTO();
 			regAdditionalInfo.setName(dto.getName());
