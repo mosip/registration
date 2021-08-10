@@ -35,7 +35,6 @@ public class MappingJsonConstants {
 	public static final String TYPE = "type";
 	public static final String FORMAT = "format";
 	public static final String AGE = "age";
-	public static final String ADDRESS = "address";
 	public static final String IDSCHEMA_VERSION = "IDSchemaVersion";
 	public static final String UIN = "uin";
 

@@ -300,8 +300,6 @@ public class RestApiClient {
 
 		Gson gson = new Gson();
 		HttpClient httpClient = HttpClientBuilder.create().build();
-		// HttpPost post = new
-		// HttpPost(environment.getProperty("PASSWORDBASEDTOKENAPI"));
 		HttpPost post = new HttpPost(environment.getProperty("KEYBASEDTOKENAPI"));
 		try {
 			StringEntity postingString = new StringEntity(gson.toJson(tokenRequestDTO));
@@ -331,15 +329,6 @@ public class RestApiClient {
 		request.setAppId(environment.getProperty("token.request.appid"));
 		request.setClientId(environment.getProperty("token.request.clientId"));
 		request.setSecretKey(environment.getProperty("token.request.secretKey"));
-		return request;
-	}
-
-	private PasswordRequest setPasswordRequestDTO() {
-
-		PasswordRequest request = new PasswordRequest();
-		request.setAppId(environment.getProperty("token.request.appid"));
-		request.setPassword(environment.getProperty("token.request.password"));
-		request.setUserName(environment.getProperty("token.request.username"));
 		return request;
 	}
 

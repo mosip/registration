@@ -41,35 +41,11 @@ public class Identity {
 	/** The gender. */
 	private List<ValuesDTO> gender;
 
-	/** The address line 1. */
-	private List<ValuesDTO> addressLine1;
-
-	/** The address line 2. */
-	private List<ValuesDTO> addressLine2;
-
-	/** The address line 3. */
-	private List<ValuesDTO> addressLine3;
-
-	/** The region. */
-	private List<ValuesDTO> region;
-
-	/** The province. */
-	private List<ValuesDTO> province;
-
-	/** The city. */
-	private List<ValuesDTO> city;
-
-	/** The postal code. */
-	private String postalCode;
-
 	/** The phone. */
 	private String phone;
 
 	/** The email. */
 	private String email;
-
-	/** The local administrative authority. */
-	private List<ValuesDTO> localAdministrativeAuthority;
 
 	/** The introducer RID or UIN. */
 	private BigInteger introducerRIDOrUIN;
@@ -98,11 +74,8 @@ public class Identity {
 	@Override
 	public String toString() {
 		return "Identity [idSchemaVersion=" + idSchemaVersion + ", uin=" + uin + ", fullName=" + fullName
-				+ ", dateOfBirth=" + dateOfBirth + ", age=" + age + ", gender=" + gender + ", addressLine1="
-				+ addressLine1 + ", addressLine2=" + addressLine2 + ", addressLine3=" + addressLine3 + ", region="
-				+ region + ", province=" + province + ", city=" + city + ", postalCode=" + postalCode + ", phone="
-				+ phone + ", email=" + email + ", localAdministrativeAuthority="
-				+ localAdministrativeAuthority + ", introducerRIDOrUIN=" + introducerRIDOrUIN
+				+ ", dateOfBirth=" + dateOfBirth + ", age=" + age + ", gender=" + gender + ", phone="
+				+ phone + ", email=" + email + ", introducerRIDOrUIN=" + introducerRIDOrUIN
 				+ ", introducerName=" + introducerName + ", proofOfAddress=" + proofOfAddress
 				+ ", proofOfIdentity=" + proofOfIdentity + ", proofOfRelationship=" + proofOfRelationship
 				+ ", proofOfDateOfBirth=" + proofOfDateOfBirth + ", individualBiometrics=" + individualBiometrics
