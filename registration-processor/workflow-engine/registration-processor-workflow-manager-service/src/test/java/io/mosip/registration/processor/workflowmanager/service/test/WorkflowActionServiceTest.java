@@ -4,7 +4,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -69,12 +71,15 @@ public class WorkflowActionServiceTest {
 		registrationStatusDto.setRegistrationStageName("SecurezoneNotificationStage");
 		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.name());
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.PAUSED.name());
-		registrationStatusDto.setResumeRemoveTags("testhotlisted,test1hotlisted");
+		registrationStatusDto.setPauseRuleIds("testhotlisted,test1hotlisted");
 		ReflectionTestUtils.setField(workflowActionService, "resumeFromBeginningStage", "SecurezoneNotificationStage");
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatusForWorkflowEngine(any(), any(),
 				Mockito.any());
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(null);
+		Map<String,String> tags=null;
+		Mockito.when(packetManagerService.getTags(any(), any()))
+		.thenReturn(tags);
 
 	}
 

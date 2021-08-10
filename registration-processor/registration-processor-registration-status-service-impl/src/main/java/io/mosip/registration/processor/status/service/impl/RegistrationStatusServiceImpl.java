@@ -67,7 +67,7 @@ public class RegistrationStatusServiceImpl
 	/** The regexternalstatus util. */
 	@Autowired
 	private RegistrationExternalStatusUtility regexternalstatusUtil;
-	
+
 	@Value("#{'${registration.processor.main-processes}'.split(',')}")
 	private List<String> mainProcess;
 
@@ -624,7 +624,7 @@ public class RegistrationStatusServiceImpl
 		registrationStatusDto.setUpdateDateTime(entity.getUpdateDateTime());
 		registrationStatusDto.setResumeTimeStamp(entity.getResumeTimeStamp());
 		registrationStatusDto.setDefaultResumeAction(entity.getDefaultResumeAction());
-		registrationStatusDto.setResumeRemoveTags(entity.getResumeRemoveTags());
+		registrationStatusDto.setPauseRuleIds(entity.getPauseRuleIds());
 		registrationStatusDto.setLastSuccessStageName(entity.getLastSuccessStageName());
 		registrationStatusDto.setSource(entity.getSource());
 		registrationStatusDto.setIteration(entity.getIteration());
@@ -683,7 +683,7 @@ public class RegistrationStatusServiceImpl
 		registrationStatusEntity.setLatestTransactionTimes(LocalDateTime.now(ZoneId.of("UTC")));
 		registrationStatusEntity.setResumeTimeStamp(dto.getResumeTimeStamp());
 		registrationStatusEntity.setDefaultResumeAction(dto.getDefaultResumeAction());
-		registrationStatusEntity.setResumeRemoveTags(dto.getResumeRemoveTags());
+		registrationStatusEntity.setPauseRuleIds(dto.getPauseRuleIds());
 		if(dto.getLatestTransactionStatusCode().equals(RegistrationTransactionStatusCode.SUCCESS.toString()) 
 			|| dto.getLatestTransactionStatusCode().equals(
 				RegistrationTransactionStatusCode.PROCESSED.toString()))

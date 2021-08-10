@@ -88,7 +88,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
 	@Value("${mosip.regproc.workflow-manager.internal.action.eventbus.port}")
 	private String eventBusPort;
-	
+
     @Value("${mosip.regproc.workflow-manager.internal.action.max-allowed-iteration}")
     private int defaultMaxAllowedIteration;
 
@@ -113,7 +113,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
 	@Autowired
 	private PacketManagerService packetManagerService;
-	
+
 	@Autowired
 	private Environment env;
 
@@ -362,7 +362,14 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 			registrationStatusDto.setResumeTimeStamp(resumeTimeStamp);
 		}
 		registrationStatusDto.setUpdatedBy(USER);
-		registrationStatusDto.setResumeRemoveTags(workflowInternalActionDTO.getResumeRemoveTags());
+		String pauseRuleIds="";
+		for(String matchedRuleId:workflowInternalActionDTO.getMatchedRuleIds()) {
+			if(pauseRuleIds.isEmpty())
+				pauseRuleIds=matchedRuleId;
+			else
+			pauseRuleIds=pauseRuleIds+","+matchedRuleId;
+		}
+		registrationStatusDto.setPauseRuleIds(pauseRuleIds);
 		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
 		registrationStatusDto.setSubStatusCode(StatusUtil.WORKFLOW_INTERNAL_ACTION_SUCCESS.getCode());
 		registrationStatusService.updateRegistrationStatusForWorkflowEngine(registrationStatusDto, MODULE_ID, MODULE_NAME);
@@ -506,7 +513,6 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 				registrationStatusDto.setResumeTimeStamp(resumeTimeStamp);
 			}
 			registrationStatusDto.setUpdatedBy(USER);
-			registrationStatusDto.setResumeRemoveTags(workflowInternalActionDTO.getResumeRemoveTags());
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
 			registrationStatusDto.setSubStatusCode(StatusUtil.WORKFLOW_INTERNAL_ACTION_SUCCESS.getCode());

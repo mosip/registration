@@ -11,9 +11,10 @@ import lombok.Setter;
 @AllArgsConstructor
 public class Setting {
 
+	private String ruleId;
 	private String matchExpression;
 	private long pauseFor;
 	private String defaultResumeAction;
 	private String fromAddress;
-	private String resumeRemoveTags;
+	private String ruleDescription;
 }
