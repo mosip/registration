@@ -108,7 +108,7 @@ public class PacketArchiverTest {
 		auditRequestDto.setSessionUserName(null);
 		jschConnectionDto = new SftpJschConnectionDto();
 		try {
-			auditResponseDto = (AuditResponseDto) registrationProcessorRestService.postApi(ApiName.DMZAUDIT, "", "",
+			auditResponseDto = (AuditResponseDto) registrationProcessorRestService.postApi(ApiName.AUDIT, "", "",
 					auditRequestDto, AuditResponseDto.class);
 		} catch (ApisResourceAccessException e) {
 			// TODO Auto-generated catch block
@@ -145,7 +145,7 @@ public class PacketArchiverTest {
 		AuditResponseDto auditResponseDto = new AuditResponseDto();
 		responseWrapper.setResponse(auditResponseDto);
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder("description", "eventId", "eventName",
-				"eventType", registrationId, ApiName.DMZAUDIT)).thenReturn(responseWrapper);
+				"eventType", registrationId, ApiName.AUDIT)).thenReturn(responseWrapper);
 		Mockito.doNothing().when(filemanager).put(any(), any(), any());
         Mockito.when(filemanager.copy(any(),any(),any(),any())).thenReturn(Boolean.TRUE);
        assertTrue(packetArchiver.archivePacket(registrationId,jschConnectionDto));
@@ -171,7 +171,7 @@ public class PacketArchiverTest {
 		AuditResponseDto auditResponseDto = new AuditResponseDto();
 		responseWrapper.setResponse(auditResponseDto);
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder("description", "eventId", "eventName",
-				"eventType", registrationId, ApiName.DMZAUDIT)).thenReturn(responseWrapper);
+				"eventType", registrationId, ApiName.AUDIT)).thenReturn(responseWrapper);
 		Mockito.doNothing().when(filemanager).put(any(), any(), any());
         Mockito.when(filemanager.copy(any(),any(),any(),any())).thenReturn(Boolean.FALSE);
         assertFalse(packetArchiver.archivePacket(registrationId,jschConnectionDto));
