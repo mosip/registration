@@ -142,7 +142,8 @@ public class WorkflowActionService {
 		for (InternalRegistrationStatusDto internalRegistrationStatusDto : internalRegistrationStatusDtos) {
 			String rid = internalRegistrationStatusDto.getRegistrationId();
                try {
-				internalRegistrationStatusDto = updateRegistrationStatus(internalRegistrationStatusDto,
+            		addRuleIdsToTag(internalRegistrationStatusDto);
+    				internalRegistrationStatusDto = updateRegistrationStatus(internalRegistrationStatusDto,
 							RegistrationStatusCode.REJECTED,
 							workflowActionCode);
 				sendWebSubEvent(internalRegistrationStatusDto);
@@ -213,7 +214,6 @@ public class WorkflowActionService {
 			String rid = internalRegistrationStatusDto.getRegistrationId();
 				try {
 					addRuleIdsToTag(internalRegistrationStatusDto);
-					internalRegistrationStatusDto.setPauseRuleIds(null);
 					if (RegistrationTransactionStatusCode.REPROCESS_FAILED.name()
 						.equals(internalRegistrationStatusDto.getLatestTransactionStatusCode())) {
 					internalRegistrationStatusDto = updateRegistrationStatus(internalRegistrationStatusDto,
@@ -277,7 +277,6 @@ public class WorkflowActionService {
 			String rid = internalRegistrationStatusDto.getRegistrationId();
 				try {
 				addRuleIdsToTag(internalRegistrationStatusDto);
-				internalRegistrationStatusDto.setPauseRuleIds(null);
 				if (RegistrationTransactionStatusCode.REPROCESS_FAILED.name()
 								.equals(internalRegistrationStatusDto.getLatestTransactionStatusCode())) {
 							internalRegistrationStatusDto = updateRegistrationStatus(internalRegistrationStatusDto,
@@ -397,6 +396,7 @@ public class WorkflowActionService {
 		registrationStatusDto.setUpdatedBy(USER);
 		registrationStatusDto.setDefaultResumeAction(null);
 		registrationStatusDto.setResumeTimeStamp(null);
+		registrationStatusDto.setPauseRuleIds(null);
 		registrationStatusService.updateRegistrationStatusForWorkflowEngine(registrationStatusDto, MODULE_ID, MODULE_NAME);
 		return registrationStatusDto;
 	}
