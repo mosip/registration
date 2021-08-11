@@ -142,7 +142,8 @@ public class WorkflowActionService {
 		for (InternalRegistrationStatusDto internalRegistrationStatusDto : internalRegistrationStatusDtos) {
 			String rid = internalRegistrationStatusDto.getRegistrationId();
                try {
-				internalRegistrationStatusDto = updateRegistrationStatus(internalRegistrationStatusDto,
+            		addRuleIdsToTag(internalRegistrationStatusDto);
+    				internalRegistrationStatusDto = updateRegistrationStatus(internalRegistrationStatusDto,
 							RegistrationStatusCode.REJECTED,
 							workflowActionCode);
 				sendWebSubEvent(internalRegistrationStatusDto);
@@ -213,7 +214,6 @@ public class WorkflowActionService {
 			String rid = internalRegistrationStatusDto.getRegistrationId();
 				try {
 					addRuleIdsToTag(internalRegistrationStatusDto);
-					internalRegistrationStatusDto.setPauseRuleIds(null);
 					if (RegistrationTransactionStatusCode.REPROCESS_FAILED.name()
 						.equals(internalRegistrationStatusDto.getLatestTransactionStatusCode())) {
 					internalRegistrationStatusDto = updateRegistrationStatus(internalRegistrationStatusDto,
@@ -277,7 +277,6 @@ public class WorkflowActionService {
 			String rid = internalRegistrationStatusDto.getRegistrationId();
 				try {
 				addRuleIdsToTag(internalRegistrationStatusDto);
-				internalRegistrationStatusDto.setPauseRuleIds(null);
 				if (RegistrationTransactionStatusCode.REPROCESS_FAILED.name()
 								.equals(internalRegistrationStatusDto.getLatestTransactionStatusCode())) {
 							internalRegistrationStatusDto = updateRegistrationStatus(internalRegistrationStatusDto,
@@ -316,14 +315,14 @@ public class WorkflowActionService {
 
 	}
 
-	
+
 	private void addRuleIdsToTag(InternalRegistrationStatusDto internalRegistrationStatusDto)
 			throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException
 			{
 		String pauseRuleIds = internalRegistrationStatusDto.getPauseRuleIds();
 		if (StringUtils.isEmpty(pauseRuleIds))
 			return;
-		
+
 		List<String> tags = new ArrayList<String>();
 		tags.add("PAUSE_IMMUNITY_RULE_IDS");
 		Map<String, String> tagsPresent=packetManagerService.getTags(internalRegistrationStatusDto.getRegistrationId(), tags);
@@ -349,7 +348,7 @@ public class WorkflowActionService {
 		packetManagerService.addOrUpdateTags(internalRegistrationStatusDto.getRegistrationId(), tagsToAdd);
 		regProcLogger.debug("addRuleIdsToTag called for workflowId {}",
 				internalRegistrationStatusDto.getRegistrationId());
-		
+
 
 	}
 
@@ -397,6 +396,7 @@ public class WorkflowActionService {
 		registrationStatusDto.setUpdatedBy(USER);
 		registrationStatusDto.setDefaultResumeAction(null);
 		registrationStatusDto.setResumeTimeStamp(null);
+		registrationStatusDto.setPauseRuleIds(null);
 		registrationStatusService.updateRegistrationStatusForWorkflowEngine(registrationStatusDto, MODULE_ID, MODULE_NAME);
 		return registrationStatusDto;
 	}
