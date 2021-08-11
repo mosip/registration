@@ -17,7 +17,7 @@ public class SyncResponseFailureDto extends SyncResponseDto {
 	private String message;
 
 	/** The registration id. */
-	private String registrationId;
+	private String packetId;
 
 	/**
 	 * Instantiates a new sync response failure dto.
@@ -58,8 +58,8 @@ public class SyncResponseFailureDto extends SyncResponseDto {
 	 *
 	 * @return the registration id
 	 */
-	public String getRegistrationId() {
-		return registrationId;
+	public String getPacketId() {
+		return packetId;
 	}
 
 	/**
@@ -68,8 +68,8 @@ public class SyncResponseFailureDto extends SyncResponseDto {
 	 * @param registrationId
 	 *            the new registration id
 	 */
-	public void setRegistrationId(String registrationId) {
-		this.registrationId = registrationId;
+	public void setPacketId(String packetId) {
+		this.packetId = packetId;
 	}
 
 }
