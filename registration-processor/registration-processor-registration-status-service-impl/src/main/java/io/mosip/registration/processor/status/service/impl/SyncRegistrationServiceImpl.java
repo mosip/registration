@@ -366,6 +366,9 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 				SyncResponseSuccessV2Dto v2Dto=new SyncResponseSuccessV2Dto((SyncResponseSuccessDto) dto,registrationDto.getPacketId());
 				syncResponseV2List.add(v2Dto);
 			}
+			if(dto instanceof SyncResponseFailDto) {
+				syncResponseV2List.add(dto);
+			}
 		}
 		
 		return syncResponseV2List;
