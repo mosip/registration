@@ -6,15 +6,15 @@ public class SyncResponseSuccessDto extends SyncResponseDto {
 	private static final long serialVersionUID = 4422198670538094471L;
 
 	/** The registration id. */
-	private String packetId;
+	private String registrationId;
 
 	/**
 	 * Gets the registration id.
 	 *
 	 * @return the registration id
 	 */
-	public String getPacketIdId() {
-		return packetId;
+	public String getRegistrationId() {
+		return registrationId;
 	}
 
 	/**
@@ -23,8 +23,8 @@ public class SyncResponseSuccessDto extends SyncResponseDto {
 	 * @param registrationId
 	 *            the new registration id
 	 */
-	public void setPacketId(String packetId) {
-		this.packetId = packetId;
+	public void setRegistrationId(String registrationId) {
+		this.registrationId = registrationId;
 	}
 
 }

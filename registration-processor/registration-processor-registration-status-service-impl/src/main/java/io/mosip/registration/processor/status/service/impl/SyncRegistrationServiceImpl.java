@@ -60,7 +60,9 @@ import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
 import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.dto.SyncResponseFailDto;
 import io.mosip.registration.processor.status.dto.SyncResponseFailureDto;
+import io.mosip.registration.processor.status.dto.SyncResponseFailureV2Dto;
 import io.mosip.registration.processor.status.dto.SyncResponseSuccessDto;
+import io.mosip.registration.processor.status.dto.SyncResponseSuccessV2Dto;
 import io.mosip.registration.processor.status.encryptor.Encryptor;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.exception.EncryptionFailureException;
@@ -332,7 +334,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 					syncResponseList = syncRegistrationRecord(registrationDto, syncResponseList, referenceId, timeStamp);
 				} catch (InvalidIDException e) {
 					syncResponseFailureDto.setRegistrationId(registrationDto.getRegistrationId());
-					syncResponseFailureDto.setPacketId(registrationDto.getPacketId());
+
 					syncResponseFailureDto.setStatus(ResponseStatusCode.FAILURE.toString());
 					if (e.getErrorCode().equals(RidExceptionProperty.INVALID_RID_LENGTH.getErrorCode())) {
 						syncResponseFailureDto
@@ -354,7 +356,19 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 				}
 			}
 		}
-		return syncResponseList;
+		List<SyncResponseDto> syncResponseV2List=new ArrayList<>();
+		for(SyncResponseDto dto:syncResponseList) {
+			if(dto instanceof SyncResponseFailureDto) {
+				SyncResponseFailureV2Dto v2Dto=new SyncResponseFailureV2Dto((SyncResponseFailureDto) dto,registrationDto.getPacketId());
+				syncResponseV2List.add(v2Dto);
+			}
+			if(dto instanceof SyncResponseSuccessDto) {
+				SyncResponseSuccessV2Dto v2Dto=new SyncResponseSuccessV2Dto((SyncResponseSuccessDto) dto,registrationDto.getPacketId());
+				syncResponseV2List.add(v2Dto);
+			}
+		}
+		
+		return syncResponseV2List;
 	}
 
 	/**
@@ -377,7 +391,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		} else {
 			SyncResponseFailureDto syncResponseFailureDto = new SyncResponseFailureDto();
 			syncResponseFailureDto.setRegistrationId(registrationDto.getRegistrationId());
-			syncResponseFailureDto.setPacketId(registrationDto.getPacketId());
+
 			syncResponseFailureDto.setStatus(ResponseStatusCode.FAILURE.toString());
 			syncResponseFailureDto.setMessage(PlatformErrorMessages.RPR_RGS_INVALID_SUPERVISOR_STATUS.getMessage());
 			syncResponseFailureDto.setErrorCode(PlatformErrorMessages.RPR_RGS_INVALID_SUPERVISOR_STATUS.getCode());
@@ -401,7 +415,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		if (registrationDto.getPacketHashValue() == null) {
 			SyncResponseFailureDto syncResponseFailureDto = new SyncResponseFailureDto();
 			syncResponseFailureDto.setRegistrationId(registrationDto.getRegistrationId());
-			syncResponseFailureDto.setPacketId(registrationDto.getPacketId());
+
 			syncResponseFailureDto.setStatus(ResponseStatusCode.FAILURE.toString());
 			syncResponseFailureDto.setMessage(PlatformErrorMessages.RPR_RGS_INVALID_HASHVALUE.getMessage());
 			syncResponseFailureDto.setErrorCode(PlatformErrorMessages.RPR_RGS_INVALID_HASHVALUE.getCode());
@@ -432,7 +446,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		}else {
 			SyncResponseFailureDto syncResponseFailureDto = new SyncResponseFailureDto();
 			syncResponseFailureDto.setRegistrationId(registrationDto.getRegistrationId());
-			syncResponseFailureDto.setPacketId(registrationDto.getPacketId());
+
 			syncResponseFailureDto.setStatus(ResponseStatusCode.FAILURE.toString());
 			syncResponseFailureDto.setMessage(PlatformErrorMessages.RPR_RGS_INVALID_SYNCTYPE.getMessage());
 			syncResponseFailureDto.setErrorCode(PlatformErrorMessages.RPR_RGS_INVALID_SYNCTYPE.getCode());
@@ -456,7 +470,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		} else {
 			SyncResponseFailureDto syncResponseFailureDto = new SyncResponseFailureDto();
 			syncResponseFailureDto.setRegistrationId(registrationDto.getRegistrationId());
-			syncResponseFailureDto.setPacketId(registrationDto.getPacketId());
+
 			syncResponseFailureDto.setStatus(ResponseStatusCode.FAILURE.toString());
 			syncResponseFailureDto.setMessage(PlatformErrorMessages.RPR_RGS_INVALID_LANGUAGECODE.getMessage());
 			syncResponseFailureDto.setErrorCode(PlatformErrorMessages.RPR_RGS_INVALID_LANGUAGECODE.getCode());
@@ -481,7 +495,6 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		} else {
 			SyncResponseFailureDto syncResponseFailureDto = new SyncResponseFailureDto();
 			syncResponseFailureDto.setRegistrationId(registrationDto.getRegistrationId());
-			syncResponseFailureDto.setPacketId(registrationDto.getPacketId());
 			syncResponseFailureDto.setStatus(ResponseStatusCode.FAILURE.toString());
 			syncResponseFailureDto.setErrorCode(PlatformErrorMessages.RPR_RGS_EMPTY_REGISTRATIONID.getCode());
 			syncResponseFailureDto.setMessage(PlatformErrorMessages.RPR_RGS_EMPTY_REGISTRATIONID.getMessage());
@@ -528,7 +541,6 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			eventId = EventId.RPR_407.toString();
 		}
 		syncResponseDto.setStatus(ResponseStatusCode.SUCCESS.toString());
-		syncResponseDto.setPacketId(registrationDto.getPacketId());
 		syncResponseList.add(syncResponseDto);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationDto.getRegistrationId(), "SyncRegistrationServiceImpl::validateRegId()::exit");
