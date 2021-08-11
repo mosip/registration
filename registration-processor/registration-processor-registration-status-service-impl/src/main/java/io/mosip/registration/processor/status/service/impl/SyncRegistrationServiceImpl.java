@@ -332,7 +332,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 					syncResponseList = syncRegistrationRecord(registrationDto, syncResponseList, referenceId, timeStamp);
 				} catch (InvalidIDException e) {
 					syncResponseFailureDto.setRegistrationId(registrationDto.getRegistrationId());
-					syncResponseFailureDto.setPacketId(registrationDto.getPacketId());
+					if(registrationDto.getPacketId()!=null && !registrationDto.getPacketId().isBlank())syncResponseFailureDto.setPacketId(registrationDto.getPacketId());
 					syncResponseFailureDto.setStatus(ResponseStatusCode.FAILURE.toString());
 					if (e.getErrorCode().equals(RidExceptionProperty.INVALID_RID_LENGTH.getErrorCode())) {
 						syncResponseFailureDto
