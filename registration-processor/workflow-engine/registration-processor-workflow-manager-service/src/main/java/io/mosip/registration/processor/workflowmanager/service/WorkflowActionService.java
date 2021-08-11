@@ -315,14 +315,14 @@ public class WorkflowActionService {
 
 	}
 
-	
+
 	private void addRuleIdsToTag(InternalRegistrationStatusDto internalRegistrationStatusDto)
 			throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException
 			{
 		String pauseRuleIds = internalRegistrationStatusDto.getPauseRuleIds();
 		if (StringUtils.isEmpty(pauseRuleIds))
 			return;
-		
+
 		List<String> tags = new ArrayList<String>();
 		tags.add("PAUSE_IMMUNITY_RULE_IDS");
 		Map<String, String> tagsPresent=packetManagerService.getTags(internalRegistrationStatusDto.getRegistrationId(), tags);
@@ -348,7 +348,7 @@ public class WorkflowActionService {
 		packetManagerService.addOrUpdateTags(internalRegistrationStatusDto.getRegistrationId(), tagsToAdd);
 		regProcLogger.debug("addRuleIdsToTag called for workflowId {}",
 				internalRegistrationStatusDto.getRegistrationId());
-		
+
 
 	}
 
