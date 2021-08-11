@@ -59,6 +59,7 @@ import io.mosip.registration.processor.status.dto.SearchInfo;
 import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
 import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.dto.SyncResponseFailDto;
+import io.mosip.registration.processor.status.dto.SyncResponseFailV2Dto;
 import io.mosip.registration.processor.status.dto.SyncResponseFailureDto;
 import io.mosip.registration.processor.status.dto.SyncResponseFailureV2Dto;
 import io.mosip.registration.processor.status.dto.SyncResponseSuccessDto;
@@ -367,7 +368,8 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 				syncResponseV2List.add(v2Dto);
 			}
 			if(dto instanceof SyncResponseFailDto) {
-				syncResponseV2List.add(dto);
+				SyncResponseFailV2Dto v2Dto=new SyncResponseFailV2Dto((SyncResponseFailDto) dto,registrationDto.getPacketId());
+				syncResponseV2List.add(v2Dto);
 			}
 		}
 		
