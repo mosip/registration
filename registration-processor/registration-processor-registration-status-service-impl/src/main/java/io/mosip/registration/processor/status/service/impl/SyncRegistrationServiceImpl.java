@@ -59,7 +59,6 @@ import io.mosip.registration.processor.status.dto.SearchInfo;
 import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
 import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.dto.SyncResponseFailDto;
-import io.mosip.registration.processor.status.dto.SyncResponseFailV2Dto;
 import io.mosip.registration.processor.status.dto.SyncResponseFailureDto;
 import io.mosip.registration.processor.status.dto.SyncResponseFailureV2Dto;
 import io.mosip.registration.processor.status.dto.SyncResponseSuccessDto;
@@ -360,15 +359,20 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		List<SyncResponseDto> syncResponseV2List=new ArrayList<>();
 		for(SyncResponseDto dto:syncResponseList) {
 			if(dto instanceof SyncResponseFailureDto) {
-				SyncResponseFailureV2Dto v2Dto=new SyncResponseFailureV2Dto((SyncResponseFailureDto) dto,registrationDto.getPacketId());
+				SyncResponseFailureV2Dto v2Dto=new SyncResponseFailureV2Dto(dto.getRegistrationId(),dto.getStatus(),
+						((SyncResponseFailureDto) dto).getErrorCode(),((SyncResponseFailureDto) dto).getMessage(),
+						registrationDto.getPacketId());
 				syncResponseV2List.add(v2Dto);
 			}
-			if(dto instanceof SyncResponseSuccessDto) {
-				SyncResponseSuccessV2Dto v2Dto=new SyncResponseSuccessV2Dto((SyncResponseSuccessDto) dto,registrationDto.getPacketId());
+			if(dto instanceof SyncResponseSuccessDto || dto instanceof SyncResponseDto) {
+				SyncResponseSuccessV2Dto v2Dto=new SyncResponseSuccessV2Dto(dto.getRegistrationId(),dto.getStatus(),
+						registrationDto.getPacketId());
 				syncResponseV2List.add(v2Dto);
 			}
 			if(dto instanceof SyncResponseFailDto) {
-				SyncResponseFailV2Dto v2Dto=new SyncResponseFailV2Dto((SyncResponseFailDto) dto,registrationDto.getPacketId());
+				SyncResponseFailureV2Dto v2Dto=new SyncResponseFailureV2Dto(dto.getRegistrationId(),dto.getStatus(),
+						((SyncResponseFailDto) dto).getErrorCode(),((SyncResponseFailDto) dto).getMessage(),
+						registrationDto.getPacketId());
 				syncResponseV2List.add(v2Dto);
 			}
 		}

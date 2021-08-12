@@ -1,6 +1,6 @@
 package io.mosip.registration.processor.status.dto;
 
-public class SyncResponseFailureV2Dto extends SyncResponseFailureDto {
+public class SyncResponseFailureV2Dto extends SyncResponseDto {
 
 	/**
 	 * 
@@ -8,14 +8,18 @@ public class SyncResponseFailureV2Dto extends SyncResponseFailureDto {
 	private static final long serialVersionUID = 5799573108161476883L;
 	/** The packet id. */
 	private String packetId;
+	/** The errror code. */
+	private String errorCode;
+	/** The message . */
+	private String message;
 	
 	
-	public SyncResponseFailureV2Dto(SyncResponseFailureDto syncResponseFailureDto,String packetId) {
-		this.packetId=packetId;
-		this.setRegistrationId(syncResponseFailureDto.getRegistrationId());
-		this.setStatus(syncResponseFailureDto.getStatus());
-		this.setErrorCode(syncResponseFailureDto.getErrorCode());
-		this.setMessage(syncResponseFailureDto.getMessage());
+	public SyncResponseFailureV2Dto(String registrationId,String status,String errorCode,String message,String packetId) {
+		this.setPacketId(packetId);
+		this.setRegistrationId(registrationId);
+		this.setStatus(status);
+		this.setErrorCode(errorCode);
+		this.setMessage(message);
 	}
 	public SyncResponseFailureV2Dto() {
 		super();
@@ -31,5 +35,29 @@ public class SyncResponseFailureV2Dto extends SyncResponseFailureDto {
 	 */
 	public void setPacketId(String packetId) {
 		this.packetId = packetId;
+	}
+	/**
+	 * @return the errorCode
+	 */
+	public String getErrorCode() {
+		return errorCode;
+	}
+	/**
+	 * @param errorCode the errorCode to set
+	 */
+	public void setErrorCode(String errorCode) {
+		this.errorCode = errorCode;
+	}
+	/**
+	 * @return the message
+	 */
+	public String getMessage() {
+		return message;
+	}
+	/**
+	 * @param message the message to set
+	 */
+	public void setMessage(String message) {
+		this.message = message;
 	}
 }

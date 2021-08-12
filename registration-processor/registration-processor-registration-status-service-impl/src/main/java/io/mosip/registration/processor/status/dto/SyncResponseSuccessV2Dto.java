@@ -1,6 +1,6 @@
 package io.mosip.registration.processor.status.dto;
 
-public class SyncResponseSuccessV2Dto extends SyncResponseSuccessDto {
+public class SyncResponseSuccessV2Dto extends SyncResponseDto {
 
 	/**
 	 * 
@@ -9,10 +9,10 @@ public class SyncResponseSuccessV2Dto extends SyncResponseSuccessDto {
 	/** The packet id. */
 	private String packetId;
 	
-	public SyncResponseSuccessV2Dto(SyncResponseSuccessDto syncResponseSuccessDto,String packetId) {
-		this.packetId=packetId;
-		this.setRegistrationId(syncResponseSuccessDto.getRegistrationId());
-		this.setStatus(syncResponseSuccessDto.getStatus());
+	public SyncResponseSuccessV2Dto(String registrationId,String status,String packetId) {
+		this.setPacketId(packetId);
+		this.setRegistrationId(registrationId);
+		this.setStatus(status);
 	}
 	public SyncResponseSuccessV2Dto() {
 		super();
