@@ -63,7 +63,7 @@ public class PauseFlowPredicateTest {
 		Setting[] settings = null;
 		try {
 			settings = objectMapper.readValue(
-					"[{\"matchExpression\": \"$.tags[?(@['HOTLISTED'] == 'operator')]\",\"pauseFor\": 432000,\"defaultResumeAction\": \"STOP_PROCESSING\",\"fromAddress\": \"bio-debup-bus-out\",\"resumeRemoveTags\": \"HOTLISTED\"},{\"matchExpression\": \"$.tags[?(@['AGE_GROUP']== 'CHILD' && @['ID_OBJECT-residenceStatus'] == 'nonResident')]\",\"pauseFor\": 432000,\"defaultResumeAction\": \"STOP_PROCESSING\",\"fromAddress\": \"bio-debup-bus-out\",\"resumeRemoveTags\": \"\"}]",
+					"[{\"ruleId\" :\"HOTLISTED_OPERATOR\",\"matchExpression\": \"$.tags[?(@['HOTLISTED'] == 'operator')]\",\"pauseFor\": 432000,\"defaultResumeAction\": \"STOP_PROCESSING\",\"fromAddress\": \"bio-debup-bus-out\",\"ruleDescription\": \"HotListed paused\"},{\"ruleId\" :\"NON_RESIDENT_CHILD_APPLICANT\",\"matchExpression\": \"$.tags[?(@['AGE_GROUP']== 'CHILD' && @['ID_OBJECT-residenceStatus'] == 'nonResident')]\",\"pauseFor\": 400,\"defaultResumeAction\": \"RESUME_PROCESSING\",\"fromAddress\": \"bio-debup-bus-out\",\"ruleDescription\": \"Non resident child applicant paused\"}]",
 					Setting[].class);
 		} catch (IOException e) {
 			LOGGER.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
@@ -109,6 +109,8 @@ public class PauseFlowPredicateTest {
 		messageDTO.setRid("10002100741000120201231071308");
 		Map<String, String> tags = new HashMap<>();
 		tags.put("HOTLISTED", "operator");
+		tags.put("AGE_GROUP", "CHILD");
+		tags.put("ID_OBJECT-residenceStatus", "nonResident");
 		messageDTO.setTags(tags);
 		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
 		LocalDateTime dateTimeBefore = DateUtils.getUTCCurrentDateTime().plusSeconds(432000);
@@ -121,6 +123,8 @@ public class PauseFlowPredicateTest {
 				.readValue(exchange.getMessage().getBody().toString(), WorkflowInternalActionDTO.class);
 		assertEquals(WorkflowInternalActionCode.MARK_AS_PAUSED.toString(),
 				workflowInternalActionDTO.getActionCode());
+		assertEquals(2,
+				workflowInternalActionDTO.getMatchedRuleIds().size());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -186,5 +190,29 @@ public class PauseFlowPredicateTest {
 		assertFalse(pauseFlowPredicate.matches(exchange));
 
 	}
-
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testRoutePredicatePositiveWithRuleIdsIgnore() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("10002100741000120201231071308");
+		Map<String, String> tags = new HashMap<>();
+		tags.put("HOTLISTED", "operator");
+		tags.put("AGE_GROUP", "CHILD");
+		tags.put("ID_OBJECT-residenceStatus", "nonResident");
+		tags.put("PAUSE_IMMUNITY_RULE_IDS", "NON_RESIDENT_CHILD_APPLICANT");
+		messageDTO.setTags(tags);
+		exchange.getMessage().setBody(objectMapper.writeValueAsString(messageDTO));
+		LocalDateTime dateTimeBefore = DateUtils.getUTCCurrentDateTime().plusSeconds(432000);
+		assertTrue(pauseFlowPredicate.matches(exchange));
+		LocalDateTime dateTimeAfter = DateUtils.getUTCCurrentDateTime().plusSeconds(432000);
+		JsonObject json = new JsonObject((String) exchange.getMessage().getBody());
+		assertEquals("STOP_PROCESSING", json.getString("defaultResumeAction"));
+		assertTrue(dateTimeBefore.isBefore(DateUtils.parseToLocalDateTime(json.getString("resumeTimestamp"))) && dateTimeAfter.isAfter(DateUtils.parseToLocalDateTime(json.getString("resumeTimestamp"))));
+		WorkflowInternalActionDTO workflowInternalActionDTO = objectMapper
+				.readValue(exchange.getMessage().getBody().toString(), WorkflowInternalActionDTO.class);
+		assertEquals(WorkflowInternalActionCode.MARK_AS_PAUSED.toString(),
+				workflowInternalActionDTO.getActionCode());
+		assertEquals(1,
+				workflowInternalActionDTO.getMatchedRuleIds().size());
+	}
 }

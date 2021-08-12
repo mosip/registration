@@ -99,9 +99,6 @@ public class Utilities {
 	/** The Constant NEW_PACKET. */
 	private static final String NEW_PACKET = "New-packet";
 
-	@Value("${IDSchema.Version}")
-	private String idschemaVersion;
-
 	@Value("${mosip.kernel.machineid.length}")
 	private int machineIdLength;
 
@@ -138,10 +135,6 @@ public class Utilities {
 	@Value("${registration.processor.demographic.identity}")
 	private String getRegProcessorDemographicIdentity;
 
-	/** The get reg processor document category. */
-	@Value("${registration.processor.document.category}")
-	private String getRegProcessorDocumentCategory;
-
 	/** The get reg processor applicant type. */
 	@Value("${registration.processor.applicant.type}")
 	private String getRegProcessorApplicantType;
@@ -157,10 +150,6 @@ public class Utilities {
 	/** The registration processor abis json. */
 	@Value("${registration.processor.abis.json}")
 	private String registrationProcessorAbisJson;
-	
-	/** The registration processor abis json. */
-	@Value("${registration.processor.print.textfile}")
-	private String registrationProcessorPrintTextFile;
 
 	/** The id repo update. */
 	@Value("${registration.processor.id.repo.update}")
@@ -781,64 +770,6 @@ public class Utilities {
 	}
 
 	/**
-	 * Link reg id wrt uin.
-	 *
-	 * @param registrationID
-	 *            the registration ID
-	 * @param uin
-	 *            the uin
-	 * @return true, if successful
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 */
-	@SuppressWarnings("unchecked")
-	public boolean linkRegIdWrtUin(String registrationID, String uin) throws ApisResourceAccessException, IOException {
-
-		IdResponseDTO idResponse = null;
-		RequestDto requestDto = new RequestDto();
-		if (uin != null) {
-
-			JSONObject identityObject = new JSONObject();
-			identityObject.put(UIN, uin);
-			addSchemaVersion(identityObject);
-
-			requestDto.setRegistrationId(registrationID);
-			requestDto.setIdentity(identityObject);
-
-			IdRequestDto idRequestDTO = new IdRequestDto();
-			idRequestDTO.setId(idRepoUpdate);
-			idRequestDTO.setRequest(requestDto);
-			idRequestDTO.setMetadata(null);
-			idRequestDTO.setRequesttime(DateUtils.getUTCCurrentDateTimeString());
-			idRequestDTO.setVersion(vidVersion);
-
-			idResponse = (IdResponseDTO) restClientService.patchApi(ApiName.IDREPOSITORY, null, "", "", idRequestDTO,
-					IdResponseDTO.class);
-
-			if (idResponse != null && idResponse.getResponse() != null) {
-
-				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString(), registrationID, " UIN Linked with the RegID");
-
-				return true;
-			} else {
-
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString(), registrationID,
-						" UIN not Linked with the RegID ");
-				return false;
-			}
-
-		} else {
-
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationID, " UIN is null ");
-		}
-
-		return false;
-	}
-
-	/**
 	 * Retrieve idrepo json status.
 	 *
 	 * @param uin
@@ -879,17 +810,6 @@ public class Utilities {
 		}
 
 		return response;
-	}
-
-	private void addSchemaVersion(JSONObject identityObject) throws IOException {
-
-		JSONObject regProcessorIdentityJson = getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
-		String schemaVersion = JsonUtil.getJSONValue(
-				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.IDSCHEMA_VERSION),
-				MappingJsonConstants.VALUE);
-
-		identityObject.put(schemaVersion, Float.valueOf(idschemaVersion));
-
 	}
 
 	public String getRefId(String id, String refId) {
