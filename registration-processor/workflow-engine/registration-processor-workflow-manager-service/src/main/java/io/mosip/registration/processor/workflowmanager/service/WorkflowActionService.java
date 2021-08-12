@@ -142,7 +142,8 @@ public class WorkflowActionService {
 		for (InternalRegistrationStatusDto internalRegistrationStatusDto : internalRegistrationStatusDtos) {
 			String rid = internalRegistrationStatusDto.getRegistrationId();
                try {
-            		addRuleIdsToTag(internalRegistrationStatusDto);
+            		//addRuleIdsToTag(internalRegistrationStatusDto);
+            	     //Pause and Immunity not added for STOP processing
     				internalRegistrationStatusDto = updateRegistrationStatus(internalRegistrationStatusDto,
 							RegistrationStatusCode.REJECTED,
 							workflowActionCode);
