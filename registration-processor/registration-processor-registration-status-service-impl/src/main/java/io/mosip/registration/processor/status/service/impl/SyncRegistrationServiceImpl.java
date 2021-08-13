@@ -60,7 +60,9 @@ import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
 import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.dto.SyncResponseFailDto;
 import io.mosip.registration.processor.status.dto.SyncResponseFailureDto;
+import io.mosip.registration.processor.status.dto.SyncResponseFailureV2Dto;
 import io.mosip.registration.processor.status.dto.SyncResponseSuccessDto;
+import io.mosip.registration.processor.status.dto.SyncResponseSuccessV2Dto;
 import io.mosip.registration.processor.status.encryptor.Encryptor;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.exception.EncryptionFailureException;
@@ -354,7 +356,28 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 				}
 			}
 		}
-		return syncResponseList;
+		List<SyncResponseDto> syncResponseV2List=new ArrayList<>();
+		for(SyncResponseDto dto:syncResponseList) {
+			if(dto instanceof SyncResponseFailureDto) {
+				SyncResponseFailureV2Dto v2Dto=new SyncResponseFailureV2Dto(dto.getRegistrationId(),dto.getStatus(),
+						((SyncResponseFailureDto) dto).getErrorCode(),((SyncResponseFailureDto) dto).getMessage(),
+						registrationDto.getPacketId());
+				syncResponseV2List.add(v2Dto);
+			}
+			if(dto instanceof SyncResponseSuccessDto || dto instanceof SyncResponseDto) {
+				SyncResponseSuccessV2Dto v2Dto=new SyncResponseSuccessV2Dto(dto.getRegistrationId(),dto.getStatus(),
+						registrationDto.getPacketId());
+				syncResponseV2List.add(v2Dto);
+			}
+			if(dto instanceof SyncResponseFailDto) {
+				SyncResponseFailureV2Dto v2Dto=new SyncResponseFailureV2Dto(dto.getRegistrationId(),dto.getStatus(),
+						((SyncResponseFailDto) dto).getErrorCode(),((SyncResponseFailDto) dto).getMessage(),
+						registrationDto.getPacketId());
+				syncResponseV2List.add(v2Dto);
+			}
+		}
+		
+		return syncResponseV2List;
 	}
 
 	/**
@@ -605,7 +628,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		syncRegistrationEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 		syncRegistrationEntity.setAdditionalInfoReqId(dto.getAdditionalInfoReqId());
 		syncRegistrationEntity.setPacketId(dto.getPacketId() != null ? dto.getPacketId() : dto.getRegistrationId());
-
+		syncRegistrationEntity.setReferenceId(referenceId);
 		try {
 			RegistrationAdditionalInfoDTO regAdditionalInfo = new RegistrationAdditionalInfoDTO();
 			regAdditionalInfo.setName(dto.getName());
