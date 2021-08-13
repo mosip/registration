@@ -526,7 +526,7 @@ public class PacketValidateProcessor {
 				} else {
 					packetValidationDto.setTransactionSuccessful(true);
 					regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-							PlatformErrorMessages.REVERSE_DATA_SYNC_SUCCESS.getMessage(), "");
+							PlatformSuccessMessages.REVERSE_DATA_SYNC_SUCCESS.getMessage(), "");
 				}
 
 			}
