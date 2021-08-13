@@ -125,10 +125,10 @@ public class MessageNotificationServiceImpl
 	@Autowired
 	private RegistrationProcessorRestClientService<Object> restClientService;
 	
-	@Value("${mosip.default.template-languages}")
+	@Value("${mosip.default.template-languages:#{null}}")
 	private String defaultTemplateLanguages;
 	
-	@Value("${mosip.default.user-preferred-language-attribute}")
+	@Value("${mosip.default.user-preferred-language-attribute:#{null}}")
 	private String userPreferredLanguageAttribute;
 
 	/** The resclient. */
