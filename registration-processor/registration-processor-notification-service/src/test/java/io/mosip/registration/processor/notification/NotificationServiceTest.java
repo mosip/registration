@@ -91,6 +91,7 @@ public class NotificationServiceTest {
 	
 	@Mock
 	private Environment env;
+	
 
 	@Before
 	public void setup() throws Exception {
@@ -105,7 +106,33 @@ public class NotificationServiceTest {
 				.thenReturn("RPR_PAUSED_FOR_ADDITIONAL_INFO_SMS");
 		when(env.getProperty("mosip.regproc.notification_service.correction.subject"))
 				.thenReturn("Requesting the additional details for progressing on the application of UIN");
-
+		when(env.getProperty("regproc.notification.template.code.lost.uin.email")).thenReturn("RPR_LOST_UIN_EMAIL");
+		when(env.getProperty("regproc.notification.template.code.lost.uin.sms")).thenReturn("RPR_LOST_UIN_SMS");
+		when(env.getProperty("regproc.notification.template.code.lost.uin.sub")).thenReturn("RPR_UIN_GEN_EMAIL_SUB");
+		when(env.getProperty("regproc.notification.template.code.uin.created.email")).thenReturn("RPR_UIN_GEN_EMAIL");
+		when(env.getProperty("regproc.notification.template.code.uin.created.sms")).thenReturn("RPR_UIN_GEN_SMS");
+		when(env.getProperty("regproc.notification.template.code.uin.created.sub")).thenReturn("RPR_UIN_GEN_EMAIL_SUB");
+		when(env.getProperty("regproc.notification.template.code.uin.new.email")).thenReturn("RPR_UIN_UPD_EMAIL");
+		when(env.getProperty("regproc.notification.template.code.uin.new.sms")).thenReturn("RPR_UIN_UPD_SMS");
+		when(env.getProperty("regproc.notification.template.code.uin.new.sub")).thenReturn("RPR_UIN_UPD_EMAIL_SUB");
+		when(env.getProperty("regproc.notification.template.code.uin.activate.email")).thenReturn("RPR_UIN_REAC_EMAIL");
+		when(env.getProperty("regproc.notification.template.code.uin.activate.sms")).thenReturn("RPR_UIN_REAC_SMS");
+		when(env.getProperty("regproc.notification.template.code.uin.activate.sub")).thenReturn("RPR_UIN_REAC_EMAIL_SUB");
+		when(env.getProperty("regproc.notification.template.code.uin.deactivate.email")).thenReturn("RPR_UIN_DEAC_EMAIL");
+		when(env.getProperty("regproc.notification.template.code.uin.deactivate.sms")).thenReturn("RPR_UIN_DEAC_SMS");
+		when(env.getProperty("regproc.notification.template.code.uin.deactivate.sub")).thenReturn("RPR_UIN_DEAC_EMAIL_SUB");
+		when(env.getProperty("regproc.notification.template.code.uin.update.email")).thenReturn("RPR_UIN_UPD_EMAIL");
+		when(env.getProperty("regproc.notification.template.code.uin.update.sms")).thenReturn("RPR_UIN_UPD_SMS");
+		when(env.getProperty("regproc.notification.template.code.uin.update.sub")).thenReturn("RPR_UIN_UPD_EMAIL_SUB");
+		when(env.getProperty("regproc.notification.template.code.duplicate.uin.email")).thenReturn("RPR_DUP_UIN_EMAIL");
+		when(env.getProperty("regproc.notification.template.code.duplicate.uin.sms")).thenReturn("RPR_DUP_UIN_SMS");
+		when(env.getProperty("regproc.notification.template.code.duplicate.uin.sub")).thenReturn("RPR_DUP_UIN_EMAIL_SUB");
+		when(env.getProperty("regproc.notification.template.code.technical.issue.email")).thenReturn("RPR_TEC_ISSUE_EMAIL");
+		when(env.getProperty("regproc.notification.template.code.technical.issue.sms")).thenReturn("RPR_TEC_ISSUE_SMS");
+		when(env.getProperty("regproc.notification.template.code.technical.issue.sub")).thenReturn("RPR_TEC_ISSUE_EMAIL_SUB");
+		when(env.getProperty("regproc.notification.template.code.paused.for.additional.info.email")).thenReturn("RPR_PAUSED_FOR_ADDITIONAL_INFO_EMAIL");
+		when(env.getProperty("regproc.notification.template.code.paused.for.additional.info.sms")).thenReturn("RPR_PAUSED_FOR_ADDITIONAL_INFO_SMS");
+		when(env.getProperty("regproc.notification.template.code.paused.for.additional.info.sub")).thenReturn("RPR_PAUSED_FOR_ADDITIONAL_INFO_EMAIL_SUB");
 	}
 
 
