@@ -83,10 +83,6 @@ public class NotificationUtility {
 
 	String registrationId = null;
 
-	/** The re-register subject. */
-	@Value("${registration.processor.reregister.subject}")
-	private String reregisterSubject;
-
 	/** The primary language. */
 	@Value("${mosip.default.template-languages}")
 	private String defaultTemplateLanguages;
@@ -297,13 +293,8 @@ public class NotificationUtility {
 	private void sendEmailNotification(RegistrationAdditionalInfoDTO registrationAdditionalInfoDTO,
 			MessageSenderDTO messageSenderDTO, Map<String, Object> attributes, LogDescription description,String preferedLanguage) {
 		try {
-			String subjectTemplateCode;
-			if (messageSenderDTO.getSmsTemplateCode()
-					.equalsIgnoreCase(env.getProperty(TECHNICAL_ISSUE+SMS))) {
-				subjectTemplateCode = reregisterSubject;
-			} else {
-				subjectTemplateCode = messageSenderDTO.getSubjectTemplateCode();
-			}
+			String subjectTemplateCode = messageSenderDTO.getSubjectTemplateCode();
+			
 			ResponseDto emailResponse = sendEmail(registrationAdditionalInfoDTO,
 					messageSenderDTO.getEmailTemplateCode(), subjectTemplateCode, attributes,preferedLanguage);
 			if (emailResponse.getStatus().equals("success")) {
@@ -450,6 +441,7 @@ public class NotificationUtility {
 		case TECHNICAL_ISSUE:
 			MessageSenderDTO.setSmsTemplateCode(env.getProperty(TECHNICAL_ISSUE+SMS));
 			MessageSenderDTO.setEmailTemplateCode(env.getProperty(TECHNICAL_ISSUE+EMAIL));
+			MessageSenderDTO.setSubjectTemplateCode(env.getProperty(TECHNICAL_ISSUE+SUB));
 			break;
 		default:
 			break;
