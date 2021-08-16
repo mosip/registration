@@ -123,14 +123,16 @@ public class ABISHandlerUtil {
 	public String getPacketStatus(InternalRegistrationStatusDto registrationStatusDto) {
 		// get all identify requests for latest transaction id
 		List<AbisRequestDto> identifyRequests = getAllIdentifyRequest(registrationStatusDto.getRegistrationId());
+
+		// if there are no identify requests present
+		if (CollectionUtils.isEmpty(identifyRequests))
+			return AbisConstant.PRE_ABIS_IDENTIFICATION;
 		// if there are unprocessed pending identify request for same transaction id then consider it as duplicate
-		if (isIdentifyRequestsPendingForLatestTransactionId(identifyRequests))
+		else if (isIdentifyRequestsPendingForLatestTransactionId(identifyRequests))
 			return AbisConstant.DUPLICATE_FOR_SAME_TRANSACTION_ID;
 		// else if all the identify requests processed for latest transaction id
-		else if (isAllIdentifyRequestProcessedForLatestTrnId(identifyRequests))
-			return AbisConstant.POST_ABIS_IDENTIFICATION;
 		else
-			return AbisConstant.PRE_ABIS_IDENTIFICATION;
+			return AbisConstant.POST_ABIS_IDENTIFICATION;
 	}
 
 	/**
@@ -157,47 +159,16 @@ public class ABISHandlerUtil {
 	}
 
 	/**
-	 * This method returns all processed identify requests
-	 *
-	 * @param identifyRequests
-	 * @return
-	 */
-	private boolean isAllIdentifyRequestProcessedForLatestTrnId(List<AbisRequestDto> identifyRequests) {
-		boolean isProcesed = false;
-		// check if all identify requests are processed
-		if (!CollectionUtils.isEmpty(identifyRequests)) {
-			for (AbisRequestDto identifyReq : identifyRequests) {
-				if (!identifyReq.getStatusCode().equalsIgnoreCase(AbisStatusCode.PROCESSED.toString())) {
-					isProcesed = false;
-					break;
-				}
-				else
-					isProcesed = true;
-			}
-		}
-		return isProcesed;
-	}
-
-	/**
 	 * This method returns all unprocessed identify requests
 	 *
 	 * @param identifyRequests
 	 * @return
 	 */
 	private boolean isIdentifyRequestsPendingForLatestTransactionId(List<AbisRequestDto> identifyRequests) {
-		boolean isPending = false;
-		// check if all identify requests are processed
-		if (!CollectionUtils.isEmpty(identifyRequests)) {
-			for (AbisRequestDto identifyReq : identifyRequests) {
-				if (identifyReq.getStatusCode().equalsIgnoreCase(AbisStatusCode.PROCESSED.toString())) {
-					isPending = false;
-					break;
-				}
-				else
-					isPending = true;
-			}
-		}
-		return isPending;
+		// check if any of the identify request is not processed for same transaction id
+		return identifyRequests.stream().filter(
+				identifyReq -> !identifyReq.getStatusCode().equalsIgnoreCase(AbisStatusCode.PROCESSED.toString()))
+				.findAny().isPresent();
 	}
 
 	/**
