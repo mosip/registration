@@ -7,7 +7,7 @@
 -- 
 -- Modified Date        Modified By         Comments / Remarks
 -- -------------------------------------------------------------------------------------------------
--- Apr-2021		Ram Bhatt	   Added resume_remove_tags column to registration table
+-- Apr-2021		Ram Bhatt	   Added pause_rule_ids column to registration table
 -- Apr-2021		Ram Bhatt	   Added rows to transaction_type.csv
 -- May-2021		Ram Bhatt	   Creation of last_success_stage_name in registration table
 -- Jun-2021		Ram Bhatt	   Added rows to transaction_type.csv
@@ -122,7 +122,7 @@ ALTER TABLE regprc.registration ADD COLUMN default_resume_action character varyi
 
 ---------------------------------------------------------------------------------------------------
 
-ALTER TABLE regprc.registration ADD COLUMN resume_remove_tags character varying(256);
+ALTER TABLE regprc.registration ADD COLUMN pause_rule_ids character varying(256);
 
 ----------------------------------------------------------------------------------------------------
 
