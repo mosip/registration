@@ -344,8 +344,8 @@ public class BioDedupeProcessor {
 		String bioField = priorityBasedPacketManagerService.getFieldByMappingJsonKey(registrationStatusDto.getRegistrationId(),
 				MappingJsonConstants.INDIVIDUAL_BIOMETRICS, registrationStatusDto.getRegistrationType(), ProviderStageName.BIO_DEDUPE);
 
-
-		if (StringUtils.isNotEmpty(bioField)) {
+		if (StringUtils.isNotEmpty(bioField) || isValidCbeff(registrationStatusDto.getRegistrationId(),
+				registrationStatusDto.getRegistrationType())) {
 			object.setIsValid(Boolean.TRUE);
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 			registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_INPROGRESS.getMessage());
