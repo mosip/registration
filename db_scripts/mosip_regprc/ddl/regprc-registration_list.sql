@@ -44,6 +44,7 @@ CREATE TABLE regprc.registration_list(
 	postal_code character varying,
 	additional_info_req_id character varying(256),
 	packet_id character varying,
+	ref_id character varying,
 	source	character varying,
 	CONSTRAINT pk_reglist_id PRIMARY KEY (workflow_instance_id)
 
