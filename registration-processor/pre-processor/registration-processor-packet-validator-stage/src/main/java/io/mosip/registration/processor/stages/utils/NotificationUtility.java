@@ -84,13 +84,13 @@ public class NotificationUtility {
 	String registrationId = null;
 
 	/** The primary language. */
-	@Value("${mosip.default.template-languages}")
+	@Value("${mosip.default.template-languages:#{null}}")
 	private String defaultTemplateLanguages;
 
 	@Value("${mosip.notification.language-type}")
 	private String languageType;
 
-	@Value("${mosip.default.user-preferred-language-attribute}")
+	@Value("${mosip.default.user-preferred-language-attribute:#{null}}")
 	private String userPreferredLanguageAttribute;
 	/** The env. */
 	@Autowired
@@ -173,7 +173,7 @@ public class NotificationUtility {
 	private List<String> getPreferredLanguages(InternalRegistrationStatusDto registrationStatusDto) throws ApisResourceAccessException, 
 	PacketManagerException, JsonProcessingException, IOException, JSONException {
 		if(userPreferredLanguageAttribute!=null && !userPreferredLanguageAttribute.isBlank()) {
-			String preferredLang=packetManagerService.getFieldByMappingJsonKey(registrationStatusDto.getRegistrationId(), MappingJsonConstants.PREFERRED_LANGUAGE,
+			String preferredLang=packetManagerService.getField(registrationStatusDto.getRegistrationId(), userPreferredLanguageAttribute,
 				registrationStatusDto.getRegistrationType(), ProviderStageName.PACKET_VALIDATOR);
 			if(preferredLang!=null && !preferredLang.isBlank()) {
 				return List.of(preferredLang.split(","));

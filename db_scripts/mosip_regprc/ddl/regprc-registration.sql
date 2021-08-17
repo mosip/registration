@@ -13,6 +13,7 @@
 -- Apr-2021		Ram Bhatt	    Added resume_remove_tags column
 -- May-2021		Ram Bhatt	    Added new column last_success_stage_name
 -- Jul-2021		Ram Bhatt	    Index Creation, pk constraint change and added new column
+-- Aug-2021		Ram Bhatt	    Add and remove columns
 -- ------------------------------------------------------------------------------------------
 
 -- object: regprc.registration | type: TABLE --
@@ -42,7 +43,7 @@ CREATE TABLE regprc.registration(
 	del_dtimes timestamp,
 	resume_timestamp timestamp,
 	default_resume_action character varying(50),
-	resume_remove_tags character varying(256),
+	pause_rule_ids character varying(256),
 	last_success_stage_name character varying(50),
 	workflow_instance_id character varying(36) NOT NULL,
 	source character varying,

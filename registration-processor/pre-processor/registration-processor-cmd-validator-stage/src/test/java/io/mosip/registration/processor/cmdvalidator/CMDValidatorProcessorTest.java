@@ -135,7 +135,7 @@ public class CMDValidatorProcessorTest {
 		ReflectionTestUtils.setField(cmdValidationProcessor, "centerValidationProcessList", Arrays.asList("NEW","UPDATE","LOST","BIOMETRIC_CORRECTION"));
 		ReflectionTestUtils.setField(cmdValidationProcessor, "machineValidationProcessList", Arrays.asList("NEW","UPDATE","LOST","BIOMETRIC_CORRECTION"));
 		ReflectionTestUtils.setField(cmdValidationProcessor, "deviceValidationProcessList", Arrays.asList("NEW","UPDATE","LOST","BIOMETRIC_CORRECTION"));
-		ReflectionTestUtils.setField(cmdValidationProcessor, "primaryLanguagecode", "eng");
+		ReflectionTestUtils.setField(cmdValidationProcessor, "mandatoryLanguages", "eng");
 
 		@SuppressWarnings("unchecked")
 		RegistrationProcessorRestClientService<Object> mockObj = Mockito
