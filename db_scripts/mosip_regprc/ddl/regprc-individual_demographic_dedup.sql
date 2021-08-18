@@ -34,7 +34,7 @@ CREATE TABLE regprc.individual_demographic_dedup(
 	del_dtimes timestamp,
 	workflow_instance_id character varying(36),
 	process character varying(36),
-	iteration iteration integer DEFAULT 1,
+	iteration integer DEFAULT 1,
 	CONSTRAINT pk_idemogd_id PRIMARY KEY (workflow_instance_id,lang_code)
 
 );
