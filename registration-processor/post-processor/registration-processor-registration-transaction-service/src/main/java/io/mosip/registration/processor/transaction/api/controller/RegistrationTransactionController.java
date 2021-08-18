@@ -85,7 +85,7 @@ public class RegistrationTransactionController {
 		List<RegistrationTransactionDto> dtoList;
 		HttpHeaders headers = new HttpHeaders();
 		try {
-			dtoList = transactionService.getTransactionByRegId(rid,langCode);
+			dtoList = transactionService.getTransactionByRegId(rid);
 			RegTransactionResponseDTO responseDTO=buildRegistrationTransactionResponse(dtoList);
 			if (isEnabled) {		 
 				headers.add(RESPONSE_SIGNATURE,
