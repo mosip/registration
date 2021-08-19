@@ -39,11 +39,11 @@ public class RegistrationStatusEntity extends BaseRegistrationEntity<BaseRegistr
 	private String source;
 
 	/** The status code. */
-	@Column(name = "status_code", nullable = false)
+	@Column(name = "status_code")
 	private String statusCode;
 
 	/** The lang code. */
-	@Column(name = "lang_code", nullable = false)
+	@Column(name = "lang_code")
 	private String langCode;
 
 	/** The status comment. */
@@ -55,7 +55,7 @@ public class RegistrationStatusEntity extends BaseRegistrationEntity<BaseRegistr
 	private String latestRegistrationTransactionId;
 
 	/** The is active. */
-	@Column(name = "is_active", nullable = false)
+	@Column(name = "is_active")
 	private Boolean isActive;
 
 	/** The created by. */
