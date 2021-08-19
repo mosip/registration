@@ -71,8 +71,8 @@ public class WorkflowSearchService {
 
 	private void buildSearchInfoDto(SearchInfo searchInfo) {
 		for (FilterInfo filterInfo : searchInfo.getFilters()) {
-			if (filterInfo.getColumnName().equals("workflowId")) {
-				filterInfo.setColumnName("id");
+			if (filterInfo.getColumnName().equals("id")) {
+				filterInfo.setColumnName("regId");
 			} else if (filterInfo.getColumnName().equals("workflowType")) {
 				filterInfo.setColumnName("registrationType");
 			}
@@ -106,7 +106,8 @@ public class WorkflowSearchService {
 		wfd.setCreatedBy(regSt.getCreatedBy());
 		wfd.setCurrentStageName(regSt.getRegistrationStageName());
 		wfd.setDefaultResumeAction(regSt.getDefaultResumeAction());
-		wfd.setResumeRemoveTags(regSt.getResumeRemoveTags());
+		wfd.setPauseRuleIds(regSt.getPauseRuleIds());
+		wfd.setLastSuccessStageName(regSt.getLastSuccessStageName());
 		wfd.setStatusComment(regSt.getStatusComment());
 		wfd.setStatusCode(regSt.getStatusCode());
 		if (regSt.getResumeTimeStamp() != null) {

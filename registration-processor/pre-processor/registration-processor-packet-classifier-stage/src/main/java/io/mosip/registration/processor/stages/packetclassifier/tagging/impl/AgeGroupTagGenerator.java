@@ -32,6 +32,10 @@ public class AgeGroupTagGenerator implements TagGenerator {
     @Value("#{${mosip.regproc.packet.classifier.tagging.agegroup.ranges:{'CHILD':'0-17','ADULT':'18-59','SENIOR_CITIZEN':'60-200'}}}")
     private Map<String,String> ageGroupRangeMap;
     
+    /** The tag value that will be used by default when the packet does not have value for the tag field */
+    @Value("${mosip.regproc.packet.classifier.tagging.not-available-tag-value}")
+    private String notAvailableTagValue;
+    
     /** Frequently used util methods are available in this bean */
     @Autowired
     private Utilities utility;
@@ -64,18 +68,23 @@ public class AgeGroupTagGenerator implements TagGenerator {
      * {@inheritDoc}
      */
     @Override
-    public Map<String, String> generateTags(String registrationId, String process, 
-            Map<String, FieldDTO> idObjectFieldDTOMap, Map<String, String> metaInfoMap) 
+    public Map<String, String> generateTags(String workflowInstanceId, String registrationId, String process, 
+            Map<String, FieldDTO> idObjectFieldDTOMap, Map<String, String> metaInfoMap, int iteration) 
                 throws BaseCheckedException {
         try {
             String ageGroup = "";
             int age = utility.getApplicantAge(registrationId, process, ProviderStageName.CLASSIFICATION);
-            for (Map.Entry<String,int[]> entry : parsedAgeGroupRangemap.entrySet()) {
-                if (age >= entry.getValue()[0] && age <= entry.getValue()[1]) {
-                    ageGroup = entry.getKey();
-                    break;
-                } 
-            }
+            
+			if (age == -1) {
+				ageGroup = notAvailableTagValue;
+			} else {
+				for (Map.Entry<String, int[]> entry : parsedAgeGroupRangemap.entrySet()) {
+					if (age >= entry.getValue()[0] && age <= entry.getValue()[1]) {
+						ageGroup = entry.getKey();
+						break;
+					}
+				}
+			}
 
             if(ageGroup == "")
                 throw new BaseCheckedException(

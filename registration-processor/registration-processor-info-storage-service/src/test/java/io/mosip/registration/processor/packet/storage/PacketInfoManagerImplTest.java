@@ -21,9 +21,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import com.google.common.collect.Sets;
+import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
@@ -53,7 +55,6 @@ import io.mosip.registration.processor.core.packet.dto.FieldValueArray;
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.packet.dto.Introducer;
 import io.mosip.registration.processor.core.packet.dto.Photograph;
-import io.mosip.registration.processor.core.packet.dto.RegAbisRefDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisApplicationDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisRequestDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisResponseDetDto;
@@ -72,7 +73,6 @@ import io.mosip.registration.processor.packet.storage.entity.AbisRequestEntity;
 import io.mosip.registration.processor.packet.storage.entity.AbisRequestPKEntity;
 import io.mosip.registration.processor.packet.storage.entity.IndividualDemographicDedupeEntity;
 import io.mosip.registration.processor.packet.storage.entity.ManualVerificationEntity;
-import io.mosip.registration.processor.packet.storage.entity.RegAbisRefEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegBioRefEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegBioRefPKEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegDemoDedupeListEntity;
@@ -120,11 +120,11 @@ public class PacketInfoManagerImplTest {
 
 	/** The reg abis ref repository. */
 	@Mock
-	private BasePacketRepository<RegAbisRefEntity, String> regAbisRefRepository;
+	private BasePacketRepository<RegBioRefEntity, String> regAbisRefRepository;
 
 	/** The reg abis ref entity. */
 	@Mock
-	private RegAbisRefEntity regAbisRefEntity;
+	private RegBioRefEntity regAbisRefEntity;
 
 	/** The manual verfication repository. */
 	@Mock
@@ -581,7 +581,8 @@ public class PacketInfoManagerImplTest {
 	@Test
 	public void saveDemographicInfoJsonTest() throws Exception {
 
-		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229", "", "", "");
+		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229",
+				"", "", "",1, "");
 		assertEquals("identity", utility.getGetRegProcessorDemographicIdentity());
 	}
 
@@ -595,7 +596,8 @@ public class PacketInfoManagerImplTest {
 
 		Mockito.when(demographicDedupeRepository.save(any())).thenThrow(exp);
 
-		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229", "", "", "");
+		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229",
+				"", "", "",1, "");
 	}
 
 	/**
@@ -606,7 +608,8 @@ public class PacketInfoManagerImplTest {
 	public void demographicDedupeUnableToInsertDataTest() throws Exception {
 
 		Mockito.when(demographicDedupeRepository.save(any())).thenThrow(exp);
-		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229", "", "", "");
+		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229",
+				"", "", "",1, "");
 
 	}
 
@@ -696,43 +699,6 @@ public class PacketInfoManagerImplTest {
 	}
 
 	/**
-	 * Gets the applicant finger print image name by id test.
-	 *
-	 * @return the applicant finger print image name by id test
-	 */
-	/*
-	 * @Test public void getApplicantFingerPrintImageNameByIdTest() { List<String>
-	 * applicantFingerPrintImages = new ArrayList<>();
-	 * applicantFingerPrintImages.add("LeftThumb");
-	 * applicantFingerPrintImages.add("RightThumb");
-	 *
-	 * Mockito.when(packetInfoDao.getApplicantFingerPrintImageNameById(anyString()))
-	 * .thenReturn(applicantFingerPrintImages);
-	 *
-	 * List<String> resultList = packetInfoManagerImpl
-	 * .getApplicantFingerPrintImageNameById("2018782130000103122018100224");
-	 * assertEquals(
-	 * "Fetching applicant finger print images from db. verifing image name of first record, expected value is LeftThumb"
-	 * , "LeftThumb", resultList.get(0));
-	 *
-	 * }
-	 */
-
-	/**
-	 * Test get reference id by rid.
-	 */
-	@Test
-	public void testGetReferenceIdByRid() {
-		String rid = "27847657360002520181208094056";
-		List<String> referenceIdList = new ArrayList<>();
-		referenceIdList.add("01234567-89AB-CDEF-0123-456789ABCDEF");
-		Mockito.when(packetInfoManagerImpl.getReferenceIdByRid(rid)).thenReturn(referenceIdList);
-
-		List<String> resultList = packetInfoManagerImpl.getReferenceIdByRid(rid);
-		assertEquals("01234567-89AB-CDEF-0123-456789ABCDEF", resultList.get(0));
-	}
-
-	/**
 	 * Test get rid by reference id.
 	 */
 	@Test
@@ -752,9 +718,11 @@ public class PacketInfoManagerImplTest {
 	@Test
 	public void testSaveManualAdjudicationDataSuccess() {
 		String registrationId = "1234";
-		List<String> uniqueMatchedRefIds = Arrays.asList("123av", "124abc", "125abcd");
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid(registrationId);
+		Set<String> uniqueMatchedRefIds = Sets.newHashSet("123av", "124abc", "125abcd");
 
-		packetInfoManagerImpl.saveManualAdjudicationData(uniqueMatchedRefIds, registrationId, DedupeSourceName.DEMO, "",
+		packetInfoManagerImpl.saveManualAdjudicationData(uniqueMatchedRefIds, messageDTO, DedupeSourceName.DEMO, "",
 				"",null,null);
 
 	}
@@ -766,9 +734,11 @@ public class PacketInfoManagerImplTest {
 	public void testSaveManualAdjudicationDataException() {
 		Mockito.when(manualVerficationRepository.save(any())).thenThrow(exp);
 		String registrationId = "1234";
-		List<String> uniqueMatchedRefIds = Arrays.asList("123av", "124abc", "125abcd");
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid(registrationId);
+		Set<String> uniqueMatchedRefIds = Sets.newHashSet("123av", "124abc", "125abcd");
 
-		packetInfoManagerImpl.saveManualAdjudicationData(uniqueMatchedRefIds, registrationId, DedupeSourceName.DEMO, "",
+		packetInfoManagerImpl.saveManualAdjudicationData(uniqueMatchedRefIds, messageDTO, DedupeSourceName.DEMO, "",
 				"",null,null);
 
 	}
@@ -779,11 +749,11 @@ public class PacketInfoManagerImplTest {
 	@Test
 	public void testSaveAbisRefSuccess() {
 
-		RegAbisRefDto regAbisRefDto = new RegAbisRefDto();
-		regAbisRefDto.setAbis_ref_id("ref1234");
-		regAbisRefDto.setReg_id("1234");
+		RegBioRefDto RegBioRefDto = new RegBioRefDto();
+		RegBioRefDto.setBioRefId("ref1234");
+		RegBioRefDto.setRegId("1234");
 		Mockito.when(regAbisRefRepository.save(any())).thenReturn(regAbisRefEntity);
-		packetInfoManagerImpl.saveAbisRef(regAbisRefDto, "", "");
+		packetInfoManagerImpl.saveAbisRef(RegBioRefDto, "", "");
 
 	}
 
@@ -793,10 +763,10 @@ public class PacketInfoManagerImplTest {
 	@Test(expected = UnableToInsertData.class)
 	public void saveAbisRefTestException() {
 		Mockito.when(regAbisRefRepository.save(any())).thenThrow(exp);
-		RegAbisRefDto regAbisRefDto = new RegAbisRefDto();
-		regAbisRefDto.setAbis_ref_id("ref1234");
-		regAbisRefDto.setReg_id("1234");
-		packetInfoManagerImpl.saveAbisRef(regAbisRefDto, "", "");
+		RegBioRefDto RegBioRefDto = new RegBioRefDto();
+		RegBioRefDto.setBioRefId("ref1234");
+		RegBioRefDto.setRegId("1234");
+		packetInfoManagerImpl.saveAbisRef(RegBioRefDto, "", "");
 	}
 
 	/**
@@ -909,9 +879,10 @@ public class PacketInfoManagerImplTest {
 	public void testGetBioRefIdByRegId() {
 		List<RegBioRefEntity> regBioRefEntityList = new ArrayList<>();
 		RegBioRefEntity regBioRefEntity = new RegBioRefEntity();
-		regBioRefEntity.setBioRefId("abc-efg");
+		regBioRefEntity.setRegId("12345678");
 		RegBioRefPKEntity pkEntity = new RegBioRefPKEntity();
-		pkEntity.setRegId("12345678");
+		pkEntity.setBioRefId("abc-efg");
+		pkEntity.setWorkflowInstanceId("workflowInstanceId");
 		regBioRefEntity.setId(pkEntity);
 		regBioRefEntityList.add(regBioRefEntity);
 
@@ -1011,10 +982,11 @@ public class PacketInfoManagerImplTest {
 		entity.setDob("2019-03-02T06:29:41.011Z");
 		applicantDemographicEntities.add(entity);
 		PowerMockito.mockStatic(PacketInfoMapper.class);
-		Mockito.when(PacketInfoMapper.converDemographicDedupeDtoToEntity(any(), any()))
+		Mockito.when(PacketInfoMapper.converDemographicDedupeDtoToEntity(Mockito.any(), Mockito.any(),Mockito.any(),Mockito.anyInt(), any()))
 				.thenReturn(applicantDemographicEntities);
 		Mockito.when(demographicDedupeRepository.save(any())).thenReturn(entity);
-		packetInfoManagerImpl.saveIndividualDemographicDedupeUpdatePacket(demographicData, "1001", "", "");
+		packetInfoManagerImpl.saveIndividualDemographicDedupeUpdatePacket(demographicData,
+				"1001", "", "NEW","",1, "");
 
 	}
 
@@ -1028,10 +1000,11 @@ public class PacketInfoManagerImplTest {
 		entity.setDob("2019-03-02T06:29:41.011Z");
 		applicantDemographicEntities.add(entity);
 		PowerMockito.mockStatic(PacketInfoMapper.class);
-		Mockito.when(PacketInfoMapper.converDemographicDedupeDtoToEntity(any(), any()))
+		Mockito.when(PacketInfoMapper.converDemographicDedupeDtoToEntity(Mockito.any(), Mockito.any(),Mockito.any(),Mockito.anyInt(), any()))
 				.thenReturn(applicantDemographicEntities);
 		Mockito.when(demographicDedupeRepository.save(any())).thenThrow(exp);
-		packetInfoManagerImpl.saveIndividualDemographicDedupeUpdatePacket(demographicData, "1001", "", "");
+		packetInfoManagerImpl.saveIndividualDemographicDedupeUpdatePacket(demographicData,
+				"1001", "","NEW", "",1, "");
 
 	}
 
@@ -1092,7 +1065,7 @@ public class PacketInfoManagerImplTest {
 	@Test
 	public void saveRegLostUinDetTest() {
 
-		packetInfoManagerImpl.saveRegLostUinDet("123", "456", "", "");
+		packetInfoManagerImpl.saveRegLostUinDet("123", "", "456", "", "");
 	}
 
 	@Test(expected = UnableToInsertData.class)
@@ -1101,7 +1074,7 @@ public class PacketInfoManagerImplTest {
 		Mockito.when(regLostUinDetRepository.save(any()))
 				.thenThrow(new DataAccessLayerException("", "", new UnableToInsertData()));
 
-		packetInfoManagerImpl.saveRegLostUinDet("123", "456", "", "");
+		packetInfoManagerImpl.saveRegLostUinDet("123", "","456", "", "");
 
 	}
 

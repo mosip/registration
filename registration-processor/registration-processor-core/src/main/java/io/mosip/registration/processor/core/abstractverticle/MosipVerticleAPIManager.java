@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.core.abstractverticle;
 
+import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -20,6 +21,7 @@ import io.vertx.core.json.Json;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.micrometer.PrometheusScrapingHandler;
 
 /**
  * @author Mukul Puspam
@@ -42,6 +44,11 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 	@Autowired
 	private Environment environment;
 
+	@Autowired(required = false)
+    private VirusScanner virusScanner;
+
+	private static final String PROMETHEUS_ENDPOINT = "/actuator/prometheus";
+
 	/**
 	 * This method creates a body handler for the routes
 	 *
@@ -60,6 +67,7 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 
 		router.route().handler(BodyHandler.create());
 		String servletPath = getServletPath();
+		router.get(servletPath + PROMETHEUS_ENDPOINT).handler(PrometheusScrapingHandler.create());
 		if (consumeAddress == null && sendAddress == null)
 			configureHealthCheckEndpoint(vertx, router, servletPath, null,
 					null);
@@ -78,7 +86,7 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 	public void configureHealthCheckEndpoint(Vertx vertx, Router router, final String servletPath,
 			String consumeAddress, String sendAddress) {
 		StageHealthCheckHandler healthCheckHandler = new StageHealthCheckHandler(vertx, null, objectMapper,
-				environment);
+                virusScanner, environment);
 		router.get(servletPath + HealthConstant.HEALTH_ENDPOINT).handler(healthCheckHandler);
 		if (servletPath.contains("packetreceiver") || servletPath.contains("uploader")) {
 			healthCheckHandler.register("virusscanner", healthCheckHandler::virusScanHealthChecker);

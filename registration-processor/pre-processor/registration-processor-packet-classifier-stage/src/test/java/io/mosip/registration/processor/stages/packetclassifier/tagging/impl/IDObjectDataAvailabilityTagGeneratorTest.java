@@ -5,12 +5,13 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.processor.packet.storage.exception.ParsingException;
+import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,9 +25,9 @@ import org.powermock.reflect.Whitebox;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
-import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.stages.packetclassifier.dto.FieldDTO;
+import io.mosip.registration.processor.stages.packetclassifier.utility.PacketClassifierUtility;
 
 /**
  * The Class IDObjectDataAvailabilityTagGeneratorTest.
@@ -45,7 +46,9 @@ public class IDObjectDataAvailabilityTagGeneratorTest {
 	@Mock
 	private Utilities utility;
 	
-	private static String tagLanguage= "eng";
+	@Mock
+    private PacketClassifierUtility classifierUtility;
+
 	private static String notAvailableTagValue = "--TAG_VALUE_NOT_AVAILABLE--";
 
 	private static Map<String, String> availabilityExpressionMap;
@@ -77,7 +80,6 @@ public class IDObjectDataAvailabilityTagGeneratorTest {
 
 
 		Whitebox.setInternalState(idObjectDataAvailabilityTagGenerator, "availabilityExpressionMap", availabilityExpressionMap);
-		Whitebox.setInternalState(idObjectDataAvailabilityTagGenerator, "tagLanguage", tagLanguage);
 		Whitebox.setInternalState(idObjectDataAvailabilityTagGenerator, "notAvailableTagValue", notAvailableTagValue);
 
 		actualFieldNamesMap = new HashMap<>();
@@ -127,18 +129,19 @@ public class IDObjectDataAvailabilityTagGeneratorTest {
 	@Test
 	public void testGenerateTagsForAllFieldTypesAndDifferntExpressions() throws BaseCheckedException {
 		idObjectDataAvailabilityTagGenerator.getRequiredIdObjectFieldNames();
-		Map<String, String> tags = idObjectDataAvailabilityTagGenerator.generateTags("1234", "NEW", 
-			idObjectFieldDTOMap, null);
+		Map<String, String> tags = idObjectDataAvailabilityTagGenerator.generateTags("12345", "1234", "NEW",
+			idObjectFieldDTOMap, null, 0);
 		for(Map.Entry<String, String> entry : tagValueMap.entrySet()) {
 			assertEquals(entry.getValue(), tags.get(entry.getKey()));
 		}
 	}
 
 	@Test
-	public void testGenerateTagsForFieldNotAvailableInFieldDTOMap() throws BaseCheckedException {
+	public void testGenerateTagsForFieldNotAvailableInFieldDTOMap() throws BaseCheckedException, JSONException {
 		idObjectDataAvailabilityTagGenerator.getRequiredIdObjectFieldNames();
 		idObjectFieldDTOMap.remove("dateOfBirth");
-		Map<String, String> tags = idObjectDataAvailabilityTagGenerator.generateTags("1234", "NEW", idObjectFieldDTOMap, null);
+		Mockito.when(classifierUtility.getLanguageBasedValueForSimpleType(anyString())).thenReturn(null);
+		Map<String, String> tags = idObjectDataAvailabilityTagGenerator.generateTags("12345", "1234", "NEW", idObjectFieldDTOMap, null, 0);
 		for(Map.Entry<String, String> entry : tagValueMap.entrySet()) {
 			assertEquals("false", tags.get(entry.getKey()));
 		}
@@ -149,15 +152,7 @@ public class IDObjectDataAvailabilityTagGeneratorTest {
 		idObjectDataAvailabilityTagGenerator.getRequiredIdObjectFieldNames();
 		FieldDTO fieldDTO = idObjectFieldDTOMap.get("IDSchemaVersion");
 		fieldDTO.setType("notavailabletype");
-		idObjectDataAvailabilityTagGenerator.generateTags("1234", "NEW", idObjectFieldDTOMap, null);
-	}
-
-	@Test(expected = ParsingException.class)
-	public void testGenerateTagsForInvalidJSONStringInFieldValue() throws BaseCheckedException {
-		idObjectDataAvailabilityTagGenerator.getRequiredIdObjectFieldNames();
-		idObjectFieldDTOMap.put("gender", 
-			new FieldDTO("simpleType", "[ {\n  \"language\" : \"eng\",\n  \"value\" : \"MALE\"\n} "));
-		idObjectDataAvailabilityTagGenerator.generateTags("1234", "NEW", idObjectFieldDTOMap, null);
+		idObjectDataAvailabilityTagGenerator.generateTags("12345", "1234", "NEW", idObjectFieldDTOMap, null, 0);
 	}
 	
 }

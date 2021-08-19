@@ -137,21 +137,21 @@ public class PacketValidateProcessorTest {
 		messageDTO.setRid("123456789");
 		messageDTO.setInternalError(false);
 		messageDTO.setIsValid(true);
-		messageDTO.setReg_type(RegistrationType.NEW);
+		messageDTO.setReg_type(RegistrationType.NEW.name());
 		stageName="PacketValidatorStage";
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("123456789");
 		
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(),any(),any(),any())).thenReturn(registrationStatusDto);
 		Mockito.when(utility.getDefaultSource(any(), any())).thenReturn("reg-client");
 		
 		regEntity=new SyncRegistrationEntity();
 		regEntity.setSupervisorStatus("APPROVED");
 		regEntity.setOptionalValues("optionalvalues".getBytes());
-		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
+		Mockito.when(syncRegistrationService.findByWorkflowInstanceId(anyString())).thenReturn(regEntity);
 		
 		InputStream inputStream = IOUtils.toInputStream("optionalvalues", "UTF-8");
-		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any())).thenReturn(inputStream);
+		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(inputStream);
 		
 		RegistrationAdditionalInfoDTO registrationAdditionalInfoDTO = new RegistrationAdditionalInfoDTO();
 		registrationAdditionalInfoDTO.setName("abc");
@@ -271,7 +271,7 @@ public class PacketValidateProcessorTest {
 	public void invalidSupervisorStatusTest() throws PacketValidatorException {
 		regEntity=new SyncRegistrationEntity();
 		regEntity.setSupervisorStatus("REJECTED");
-		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
+		Mockito.when(syncRegistrationService.findByWorkflowInstanceId(anyString())).thenReturn(regEntity);
 		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
 		assertFalse(object.getIsValid());
 		assertFalse(object.getInternalError());
@@ -374,7 +374,7 @@ public class PacketValidateProcessorTest {
 
 	@Test
 	public void TableNotAccessibleExceptionest() throws Exception  {
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(),any(),any(),any()))
 				.thenThrow( TablenotAccessibleException.class);
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.TABLE_NOT_ACCESSIBLE_EXCEPTION)).thenReturn("REPROCESS");
@@ -382,10 +382,10 @@ public class PacketValidateProcessorTest {
 		assertTrue(object.getIsValid());
 		assertTrue(object.getInternalError());
 	}
-	
+
 	@Test
 	public void DataNotAccessibleExceptionest() throws Exception  {
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(),any(),any(),any()))
 				.thenThrow( new DataAccessException("DataAccessException") {});
 		Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.DATA_ACCESS_EXCEPTION))
 				.thenReturn("REPROCESS");
@@ -393,10 +393,10 @@ public class PacketValidateProcessorTest {
 		assertTrue(object.getIsValid());
 		assertTrue(object.getInternalError());
 	}
-	
+
 	@Test
 	public void BaseUnCheckedExceptionTest() throws Exception  {
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any()))
 				.thenThrow(BaseUncheckedException.class);
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.BASE_UNCHECKED_EXCEPTION)).thenReturn("ERROR");

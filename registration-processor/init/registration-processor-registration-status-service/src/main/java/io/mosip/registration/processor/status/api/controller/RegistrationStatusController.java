@@ -147,7 +147,7 @@ public class RegistrationStatusController {
 
 	/**
 	 * Search
-	 * 
+	 *
 	 * @param lostRidRequestDto
 	 * @return
 	 * @throws RegStatusAppException

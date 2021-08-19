@@ -4,11 +4,13 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.xml.sax.SAXException;
@@ -24,6 +26,7 @@ import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
+import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.AuthSystemException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.IntroducerOnHoldException;
@@ -151,8 +154,11 @@ public class IntroducerValidator {
 	 */
 	private boolean isValidIntroducerRid(String introducerRid, String registrationId,
 			InternalRegistrationStatusDto registrationStatusDto) throws BaseCheckedException {
-		InternalRegistrationStatusDto introducerRegistrationStatusDto = registrationStatusService
-				.getRegistrationStatus(introducerRid);
+
+		List<InternalRegistrationStatusDto> internalRegistrationStatusDtoList= registrationStatusService.getAllRegistrationStatuses(introducerRid);
+			InternalRegistrationStatusDto introducerRegistrationStatusDto=CollectionUtils.isNotEmpty(internalRegistrationStatusDtoList) ?
+					internalRegistrationStatusDtoList.stream().filter(s -> RegistrationType.NEW.name().equalsIgnoreCase(s.getRegistrationType())).collect(Collectors.toList()).iterator().next()
+					: null;
 		if (introducerRegistrationStatusDto != null) {
 			if (introducerRegistrationStatusDto.getStatusCode().equals(RegistrationStatusCode.PROCESSING.toString())) {
 
@@ -195,8 +201,7 @@ public class IntroducerValidator {
 					StatusUtil.PACKET_ON_HOLD.getMessage());
 			throw new IntroducerOnHoldException(StatusUtil.PACKET_ON_HOLD.getCode(),
 					StatusUtil.PACKET_ON_HOLD.getMessage());
-		}
-
+		  }
 	}
 
 	private void validateIntroducerBiometric(String registrationId, InternalRegistrationStatusDto registrationStatusDto,
@@ -253,7 +258,8 @@ public class IntroducerValidator {
 
 		} else {
 			List<io.mosip.registration.processor.core.auth.dto.ErrorDTO> errors = authResponseDTO.getErrors();
-			if (errors.stream().anyMatch(error -> error.getErrorCode().equalsIgnoreCase("IDA-MLC-007"))) {
+			if (errors.stream().anyMatch(error -> (error.getErrorCode().equalsIgnoreCase("IDA-MLC-007")
+					|| utility.isUinMissingFromIdAuth(error.getErrorCode(), userId, individualType)))) {
 				throw new AuthSystemException(PlatformErrorMessages.RPR_AUTH_SYSTEM_EXCEPTION.getMessage());
 			} else {
 				registrationStatusDto.setLatestTransactionStatusCode(

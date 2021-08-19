@@ -49,6 +49,7 @@ public class AgeGroupTagGeneratorTest {
 		ageGroupRangeMap.put("SENIOR_CITIZEN", "60-200");
 
 		Whitebox.setInternalState(ageGroupTagGenerator, "tagName", tagName);
+		Whitebox.setInternalState(ageGroupTagGenerator, "notAvailableTagValue", "--TAG_VALUE_NOT_AVAILABLE--");
 		Whitebox.setInternalState(ageGroupTagGenerator, "ageGroupRangeMap", ageGroupRangeMap);
 
 		Whitebox.invokeMethod(ageGroupTagGenerator, "generateParsedAgeGroupRangeMap");
@@ -58,28 +59,35 @@ public class AgeGroupTagGeneratorTest {
 	@Test
 	public void testGenerateTagsForChildGroup() throws Exception {
 		Mockito.when(utility.getApplicantAge(anyString(), anyString(), any())).thenReturn(17);
-		Map<String, String> tags = ageGroupTagGenerator.generateTags("123", "NEW", null, null);
+		Map<String, String> tags = ageGroupTagGenerator.generateTags("1234", "123", "NEW", null, null, 0);
 		assertEquals(tags.get(tagName), "CHILD");
 	}
 
 	@Test
 	public void testGenerateTagsForAdultGroup() throws Exception {
 		Mockito.when(utility.getApplicantAge(anyString(), anyString(), any())).thenReturn(30);
-		Map<String, String> tags = ageGroupTagGenerator.generateTags("123", "NEW", null, null);
+		Map<String, String> tags = ageGroupTagGenerator.generateTags("1234", "123", "NEW", null, null, 0);
 		assertEquals(tags.get(tagName), "ADULT");
 	}
 
 	@Test
 	public void testGenerateTagsForSeniorCitizenGroup() throws Exception {
 		Mockito.when(utility.getApplicantAge(anyString(), anyString(), any())).thenReturn(65);
-		Map<String, String> tags = ageGroupTagGenerator.generateTags("123", "NEW", null, null);
+		Map<String, String> tags = ageGroupTagGenerator.generateTags("1234", "123", "NEW", null, null, 0);
 		assertEquals(tags.get(tagName), "SENIOR_CITIZEN");
+	}
+	
+	@Test
+	public void testGenerateTagsForLostPacket() throws Exception {
+		Mockito.when(utility.getApplicantAge(anyString(), anyString(), any())).thenReturn(-1);
+		Map<String, String> tags = ageGroupTagGenerator.generateTags("1234", "123", "LOST", null, null, 0);
+		assertEquals(tags.get(tagName), "--TAG_VALUE_NOT_AVAILABLE--");
 	}
 
 	@Test(expected = BaseCheckedException.class)
 	public void testGenerateTagsForUtilityThrowningIOException() throws Exception {
 		Mockito.when(utility.getApplicantAge(anyString(), anyString(), any())).thenThrow(new IOException());
-		ageGroupTagGenerator.generateTags("123", "NEW", null, null);
+		ageGroupTagGenerator.generateTags("1234", "123", "NEW", null, null, 0);
 	}
 	
 }

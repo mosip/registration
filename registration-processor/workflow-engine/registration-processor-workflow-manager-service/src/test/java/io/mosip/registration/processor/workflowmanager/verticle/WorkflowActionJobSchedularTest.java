@@ -112,7 +112,7 @@ public class WorkflowActionJobSchedularTest {
 	};
 
 	/**
-	 * Success Test for deployment of ReprocessorStage
+	 * Success Test for deployment of ReprocessorVerticle
 	 */
 	@Test
 	public void testDeploySuccess() {

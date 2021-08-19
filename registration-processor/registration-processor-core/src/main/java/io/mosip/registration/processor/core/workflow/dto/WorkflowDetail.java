@@ -39,6 +39,8 @@ public class WorkflowDetail {
 	/** The default resume action. */
 	private String defaultResumeAction;
 
-	private String resumeRemoveTags;
+	private String pauseRuleIds;
+	
+	private String lastSuccessStageName;
 
 }

@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.mosip.registration.processor.status.dto.RegistrationExternalStatusSubRequestDto;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,8 +31,8 @@ public class RegistrationExternalStatusRequestValidatorTest {
 	private Environment env;
 	
 	RegistrationExternalStatusRequestDTO registrationExternalStatusRequestDTO = new RegistrationExternalStatusRequestDTO();
-	List<RegistrationStatusSubRequestDto> request = new ArrayList<RegistrationStatusSubRequestDto>();
-	RegistrationStatusSubRequestDto dto = new RegistrationStatusSubRequestDto();
+	List<RegistrationExternalStatusSubRequestDto> request = new ArrayList<RegistrationExternalStatusSubRequestDto>();
+	RegistrationExternalStatusSubRequestDto dto = new RegistrationExternalStatusSubRequestDto();
 	
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
 	

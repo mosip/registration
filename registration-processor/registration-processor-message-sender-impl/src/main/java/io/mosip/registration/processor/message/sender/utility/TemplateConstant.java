@@ -31,27 +31,6 @@ public class TemplateConstant {
 	/** The Constant GENDER. */
 	public static final String GENDER = "gender";
 
-	/** The Constant ADDRESSLINE1. */
-	public static final String ADDRESSLINE1 = "addressLine1";
-
-	/** The Constant ADDRESSLINE2. */
-	public static final String ADDRESSLINE2 = "addressLine2";
-
-	/** The Constant ADDRESSLINE3. */
-	public static final String ADDRESSLINE3 = "addressLine3";
-
-	/** The Constant REGION. */
-	public static final String REGION = "region";
-
-	/** The Constant PROVINCE. */
-	public static final String PROVINCE = "province";
-
-	/** The Constant CITY. */
-	public static final String CITY = "city";
-
-	/** The Constant POSTALCODE. */
-	public static final String POSTALCODE = "postalCode";
-
 	/** The Constant PROOFOFADDRESS. */
 	public static final String PROOFOFADDRESS = "proofOfAddress";
 
@@ -66,9 +45,6 @@ public class TemplateConstant {
 
 	/** The Constant INDIVIDUALBIOMETRICS. */
 	public static final String INDIVIDUALBIOMETRICS = "individualBiometrics";
-
-	/** The Constant LOCALADMINISTRATIVEAUTHORITY. */
-	public static final String LOCALADMINISTRATIVEAUTHORITY = "localAdministrativeAuthority";
 
 	/** The Constant IDSCHEMAVERSION. */
 	public static final String IDSCHEMAVERSION = "idSchemaVersion";

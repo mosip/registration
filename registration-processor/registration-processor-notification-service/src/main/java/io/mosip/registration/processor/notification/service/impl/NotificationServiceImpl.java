@@ -6,13 +6,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
-
 import org.json.JSONException;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.context.event.EventListener;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -50,18 +51,18 @@ import io.mosip.registration.processor.core.spi.message.sender.MessageNotificati
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
+import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventDTO;
+import io.mosip.registration.processor.core.workflow.dto.WorkflowPausedForAdditionalInfoEventDTO;
 import io.mosip.registration.processor.message.sender.exception.ConfigurationNotFoundException;
 import io.mosip.registration.processor.message.sender.exception.EmailIdNotFoundException;
 import io.mosip.registration.processor.message.sender.exception.PhoneNumberNotFoundException;
 import io.mosip.registration.processor.message.sender.exception.TemplateGenerationFailedException;
 import io.mosip.registration.processor.message.sender.exception.TemplateNotFoundException;
 import io.mosip.registration.processor.message.sender.utility.MessageSenderStatusMessage;
-import io.mosip.registration.processor.message.sender.utility.NotificationTemplateCode;
 import io.mosip.registration.processor.message.sender.utility.NotificationTemplateType;
 import io.mosip.registration.processor.notification.constants.NotificationTypeEnum;
 import io.mosip.registration.processor.notification.constants.ResultCode;
 import io.mosip.registration.processor.notification.dto.MessageSenderDto;
-import io.mosip.registration.processor.notification.dto.WorkflowCompletedEventDTO;
 import io.mosip.registration.processor.notification.service.NotificationService;
 import io.mosip.registration.processor.notification.util.StatusNotificationTypeMapUtil;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
@@ -78,6 +79,19 @@ public class NotificationServiceImpl implements NotificationService {
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(NotificationServiceImpl.class);
+	private static final String NOTIFICATION_TEMPLATE_CODE="regproc.notification.template.code.";
+	private static final String EMAIL="email";
+	private static final String SMS="sms";
+	private static final String SUB="sub";
+	private static final String LOST_UIN=NOTIFICATION_TEMPLATE_CODE+"lost.uin.";
+	private static final String UIN_CREATED=NOTIFICATION_TEMPLATE_CODE+"uin.created.";
+	private static final String UIN_NEW=NOTIFICATION_TEMPLATE_CODE+"uin.new.";
+	private static final String UIN_ACTIVATE=NOTIFICATION_TEMPLATE_CODE+"uin.activate.";
+	private static final String UIN_DEACTIVATE=NOTIFICATION_TEMPLATE_CODE+"uin.deactivate.";
+	private static final String UIN_UPDATE=NOTIFICATION_TEMPLATE_CODE+"uin.update.";
+	private static final String DUPLICATE_UIN=NOTIFICATION_TEMPLATE_CODE+"duplicate.uin.";
+	private static final String TECHNICAL_ISSUE=NOTIFICATION_TEMPLATE_CODE+"technical.issue.";
+	private static final String PAUSED_FOR_ADDITIONAL_INFO=NOTIFICATION_TEMPLATE_CODE+"paused.for.additional.info.";
 
 
 	/** The core audit request builder. */
@@ -88,29 +102,8 @@ public class NotificationServiceImpl implements NotificationService {
 	@Value("${registration.processor.notification.emails}")
 	private String notificationEmails;
 
-	/** The uin generated subject. */
-	@Value("${registration.processor.uin.generated.subject}")
-	private String uinGeneratedSubject;
-
-	@Value("${registration.processor.uin.activated.subject}")
-	private String uinActivateSubject;
-
-	@Value("${registration.processor.uin.deactivated.subject}")
-	private String uinDeactivateSubject;
-
-	/** The duplicate uin subject. */
-	@Value("${registration.processor.duplicate.uin.subject}")
-	private String duplicateUinSubject;
-
-	/** The reregister subject. */
-	@Value("${registration.processor.reregister.subject}")
-	private String reregisterSubject;
-
 	@Value("${mosip.notificationtype}")
 	private String notificationTypes;
-
-	@Value("${registration.processor.updated.subject}")
-	private String uinUpdatedSubject;
 	
 	@Value("${websub.hub.url}")
 	private String hubURL;
@@ -124,6 +117,15 @@ public class NotificationServiceImpl implements NotificationService {
 	@Value("${registration.processor.notification_service_subscriber_callback_url}")
 	private String callbackURL;
 
+	@Value("${registration.processor.notification_service_pausedforadditonalinfo_subscriber_secret}")
+	private String pausedForAdditonalInfoSecret;
+
+	@Value("${mosip.regproc.workflow.pausedforadditionalinfo.topic}")
+	private String pausedForAdditonalInfoTopic;
+
+	@Value("${registration.processor.notification_service_pausedforadditonalinfo_subscriber_callback_url}")
+	private String pausedForAdditonalInfoCallbackURL;
+
 	/** The rest client service. */
 	@Autowired
 	private RegistrationProcessorRestClientService<Object> restClientService;
@@ -133,17 +135,26 @@ public class NotificationServiceImpl implements NotificationService {
 	private MessageNotificationService<SmsResponseDto, ResponseDto, MultipartFile[]> service;
 	
 	@Autowired
-	private SubscriptionClient<SubscriptionChangeRequest,UnsubscriptionRequest, SubscriptionChangeResponse> sb; 
-	
+	private SubscriptionClient<SubscriptionChangeRequest,UnsubscriptionRequest, SubscriptionChangeResponse> sb;
+
+	@Autowired
+	private Environment env;
+
 	// sends init subscribe req to hub
-	@PostConstruct
-	private void init() {
+	@EventListener(ApplicationReadyEvent.class)
+	protected void init() {
 		SubscriptionChangeRequest subscriptionRequest = new SubscriptionChangeRequest();
 		subscriptionRequest.setCallbackURL(callbackURL);
 		subscriptionRequest.setHubURL(hubURL);
 		subscriptionRequest.setSecret(secret);
 		subscriptionRequest.setTopic(topic);
 		sb.subscribe(subscriptionRequest);
+		SubscriptionChangeRequest subscriptionRequestPausedForAdditionalInfo = new SubscriptionChangeRequest();
+		subscriptionRequestPausedForAdditionalInfo.setCallbackURL(pausedForAdditonalInfoCallbackURL);
+		subscriptionRequestPausedForAdditionalInfo.setHubURL(hubURL);
+		subscriptionRequestPausedForAdditionalInfo.setSecret(pausedForAdditonalInfoSecret);
+		subscriptionRequestPausedForAdditionalInfo.setTopic(pausedForAdditonalInfoTopic);
+		sb.subscribe(subscriptionRequestPausedForAdditionalInfo);
 	}
 
 	@Override
@@ -359,8 +370,8 @@ public class NotificationServiceImpl implements NotificationService {
 			String regType, MessageSenderDto messageSenderDto, LogDescription description) throws Exception {
 		boolean isEmailSuccess = false;
 		try {
-			ResponseDto emailResponse = service.sendEmailNotification(messageSenderDto.getEmailTemplateCode().name(),
-					id, process, messageSenderDto.getIdType(), attributes, ccEMailList, messageSenderDto.getSubject(),
+			ResponseDto emailResponse = service.sendEmailNotification(messageSenderDto.getEmailTemplateCode(),
+					id, process, messageSenderDto.getIdType(), attributes, ccEMailList, messageSenderDto.getSubjectCode(),
 					null, regType);
 			if (emailResponse.getStatus().equals("success")) {
 				isEmailSuccess = true;
@@ -396,7 +407,7 @@ public class NotificationServiceImpl implements NotificationService {
 			io.mosip.registration.processor.core.exception.PacketDecryptionFailureException, JSONException {
 		boolean isSmsSuccess = false;
 		try {
-			SmsResponseDto smsResponse = service.sendSmsNotification(messageSenderDto.getSmsTemplateCode().name(), id,
+			SmsResponseDto smsResponse = service.sendSmsNotification(messageSenderDto.getSmsTemplateCode(), id,
 					process, messageSenderDto.getIdType(), attributes, regType);
 			if (smsResponse.getStatus().equals("success")) {
 				isSmsSuccess = true;
@@ -437,52 +448,52 @@ public class NotificationServiceImpl implements NotificationService {
 			MessageSenderDto messageSenderDto) {
 		switch (templatetype) {
 		case LOST_UIN:
-			messageSenderDto.setSmsTemplateCode(NotificationTemplateCode.RPR_LOST_UIN_SMS);
-			messageSenderDto.setEmailTemplateCode(NotificationTemplateCode.RPR_LOST_UIN_EMAIL);
+			messageSenderDto.setSmsTemplateCode(env.getProperty(LOST_UIN+SMS));
+			messageSenderDto.setEmailTemplateCode(env.getProperty(LOST_UIN+EMAIL));
 			messageSenderDto.setIdType(IdType.UIN);
-			messageSenderDto.setSubject(uinGeneratedSubject);
+			messageSenderDto.setSubjectCode(env.getProperty(LOST_UIN+SUB));
 			break;
 		case UIN_CREATED:
-			messageSenderDto.setSmsTemplateCode(NotificationTemplateCode.RPR_UIN_GEN_SMS);
-			messageSenderDto.setEmailTemplateCode(NotificationTemplateCode.RPR_UIN_GEN_EMAIL);
+			messageSenderDto.setSmsTemplateCode(env.getProperty(UIN_CREATED+SMS));
+			messageSenderDto.setEmailTemplateCode(env.getProperty(UIN_CREATED+EMAIL));
 			messageSenderDto.setIdType(IdType.UIN);
-			messageSenderDto.setSubject(uinGeneratedSubject);
+			messageSenderDto.setSubjectCode(env.getProperty(UIN_CREATED+SUB));
 			break;
 		case UIN_UPDATE:
 			if (regType.equalsIgnoreCase(RegistrationType.NEW.name())) {
-				messageSenderDto.setSmsTemplateCode(NotificationTemplateCode.RPR_UIN_UPD_SMS);
-				messageSenderDto.setEmailTemplateCode(NotificationTemplateCode.RPR_UIN_UPD_EMAIL);
+				messageSenderDto.setSmsTemplateCode(env.getProperty(UIN_NEW+SMS));
+				messageSenderDto.setEmailTemplateCode(env.getProperty(UIN_NEW+EMAIL));
 				messageSenderDto.setIdType(IdType.UIN);
-				messageSenderDto.setSubject(uinGeneratedSubject);
+				messageSenderDto.setSubjectCode(env.getProperty(UIN_NEW+SUB));
 			} else if (regType.equalsIgnoreCase(RegistrationType.ACTIVATED.name())) {
-				messageSenderDto.setSmsTemplateCode(NotificationTemplateCode.RPR_UIN_REAC_SMS);
-				messageSenderDto.setEmailTemplateCode(NotificationTemplateCode.RPR_UIN_REAC_EMAIL);
+				messageSenderDto.setSmsTemplateCode(env.getProperty(UIN_ACTIVATE+SMS));
+				messageSenderDto.setEmailTemplateCode(env.getProperty(UIN_ACTIVATE+EMAIL));
 				messageSenderDto.setIdType(IdType.UIN);
-				messageSenderDto.setSubject(uinActivateSubject);
+				messageSenderDto.setSubjectCode(env.getProperty(UIN_ACTIVATE+SUB));
 			} else if (regType.equalsIgnoreCase(RegistrationType.DEACTIVATED.name())) {
-				messageSenderDto.setSmsTemplateCode(NotificationTemplateCode.RPR_UIN_DEAC_SMS);
-				messageSenderDto.setEmailTemplateCode(NotificationTemplateCode.RPR_UIN_DEAC_EMAIL);
+				messageSenderDto.setSmsTemplateCode(env.getProperty(UIN_DEACTIVATE+SMS));
+				messageSenderDto.setEmailTemplateCode(env.getProperty(UIN_DEACTIVATE+EMAIL));
 				messageSenderDto.setIdType(IdType.UIN);
-				messageSenderDto.setSubject(uinDeactivateSubject);
+				messageSenderDto.setSubjectCode(env.getProperty(UIN_DEACTIVATE+SUB));
 			} else if (regType.equalsIgnoreCase(RegistrationType.UPDATE.name())
 					|| regType.equalsIgnoreCase(RegistrationType.RES_UPDATE.name())) {
-				messageSenderDto.setSmsTemplateCode(NotificationTemplateCode.RPR_UIN_UPD_SMS);
-				messageSenderDto.setEmailTemplateCode(NotificationTemplateCode.RPR_UIN_UPD_EMAIL);
+				messageSenderDto.setSmsTemplateCode(env.getProperty(UIN_UPDATE+SMS));
+				messageSenderDto.setEmailTemplateCode(env.getProperty(UIN_UPDATE+EMAIL));
 				messageSenderDto.setIdType(IdType.UIN);
-				messageSenderDto.setSubject(uinUpdatedSubject);
+				messageSenderDto.setSubjectCode(env.getProperty(UIN_UPDATE+SMS));
 			}
 			break;
 		case DUPLICATE_UIN:
-			messageSenderDto.setSmsTemplateCode(NotificationTemplateCode.RPR_DUP_UIN_SMS);
-			messageSenderDto.setEmailTemplateCode(NotificationTemplateCode.RPR_DUP_UIN_EMAIL);
+			messageSenderDto.setSmsTemplateCode(env.getProperty(DUPLICATE_UIN+SMS));
+			messageSenderDto.setEmailTemplateCode(env.getProperty(DUPLICATE_UIN+EMAIL));
 			messageSenderDto.setIdType(IdType.RID);
-			messageSenderDto.setSubject(duplicateUinSubject);
+			messageSenderDto.setSubjectCode(env.getProperty(DUPLICATE_UIN+SUB));
 			break;
 		case TECHNICAL_ISSUE:
-			messageSenderDto.setSmsTemplateCode(NotificationTemplateCode.RPR_TEC_ISSUE_SMS);
-			messageSenderDto.setEmailTemplateCode(NotificationTemplateCode.RPR_TEC_ISSUE_EMAIL);
+			messageSenderDto.setSmsTemplateCode(env.getProperty(TECHNICAL_ISSUE+SMS));
+			messageSenderDto.setEmailTemplateCode(env.getProperty(TECHNICAL_ISSUE+EMAIL));
 			messageSenderDto.setIdType(IdType.RID);
-			messageSenderDto.setSubject(reregisterSubject);
+			messageSenderDto.setSubjectCode(env.getProperty(TECHNICAL_ISSUE+SUB));
 			break;
 		default:
 			break;
@@ -516,12 +527,103 @@ public class NotificationServiceImpl implements NotificationService {
 
 		if (responseWrapper.getErrors() == null) {
 			templateResponseDto.getTemplates().forEach(dto -> {
-				if (dto.getTemplateTypeCode().equalsIgnoreCase(messageSenderDto.getSmsTemplateCode().name())) {
+				if (dto.getTemplateTypeCode().equalsIgnoreCase(messageSenderDto.getSmsTemplateCode())) {
 					messageSenderDto.setTemplateAvailable(true);
 				}
 			});
 		}
 		return messageSenderDto.isTemplateAvailable();
+	}
+
+	@Override
+	public ResponseEntity<Void> process(WorkflowPausedForAdditionalInfoEventDTO object) {
+		TrimExceptionMessage trimExceptionMessage = new TrimExceptionMessage();
+		ResponseEntity<Void> responseEntity = null;
+		boolean isTransactionSuccessful = false;
+		LogDescription description = new LogDescription();
+		MessageSenderDto messageSenderDto = new MessageSenderDto();
+		String id = object.getInstanceId();
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
+				"NotificationServiceImpl::process()::entry");
+
+		try {
+			String workflowType = object.getWorkflowType();
+			setTemplateAndSubjectForPausedForAdditionalInfo(messageSenderDto);
+			Map<String, Object> attributes = new HashMap<>();
+			attributes.put("additionalInfoRequestId", object.getAdditionalInfoRequestId());
+			attributes.put("additionalInfoProcess", object.getAdditionalInfoProcess());
+				String[] ccEMailList = null;
+
+				if (isNotificationTypesEmpty()) {
+					description.setStatusComment(StatusUtil.TEMPLATE_CONFIGURATION_NOT_FOUND.getMessage());
+					description.setSubStatusCode(StatusUtil.TEMPLATE_CONFIGURATION_NOT_FOUND.getCode());
+					description.setMessage(PlatformErrorMessages.RPR_TEMPLATE_CONFIGURATION_NOT_FOUND.getMessage());
+					description.setCode(PlatformErrorMessages.RPR_TEMPLATE_CONFIGURATION_NOT_FOUND.getCode());
+					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+							LoggerFileConstant.REGISTRATIONID.toString(), object.getInstanceId(),
+							PlatformErrorMessages.RPR_TEM_CONFIGURATION_NOT_FOUND.getMessage());
+					throw new ConfigurationNotFoundException(
+							PlatformErrorMessages.RPR_TEM_CONFIGURATION_NOT_FOUND.getCode());
+				}
+				String[] allNotificationTypes = notificationTypes.split("\\|");
+
+				if (isNotificationEmailsEmpty()) {
+					ccEMailList = notificationEmails.split("\\|");
+				}
+
+				isTransactionSuccessful = sendNotification(id, workflowType, attributes, ccEMailList,
+						allNotificationTypes, workflowType, messageSenderDto, description);
+
+
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					id, "NotificationServiceImpl::success");
+		} catch (TemplateNotFoundException tnf) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					id, tnf.getMessage() + ExceptionUtils.getStackTrace(tnf));
+			description.setStatusComment(trimExceptionMessage.trimExceptionMessage(
+					StatusUtil.EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getMessage() + tnf.getMessage()));
+			description.setSubStatusCode(StatusUtil.EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getCode());
+			description.setMessage(PlatformErrorMessages.RPR_EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getMessage());
+			description.setCode(PlatformErrorMessages.RPR_EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getCode());
+			responseEntity = new ResponseEntity<Void>(HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (Exception ex) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					id, ex.getMessage() + ExceptionUtils.getStackTrace(ex));
+			description.setStatusComment(trimExceptionMessage
+					.trimExceptionMessage(StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getMessage() + ex.getMessage()));
+			description.setSubStatusCode(StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getCode());
+			description.setMessage(PlatformErrorMessages.RPR_MESSAGE_SENDER_STAGE_FAILED.getMessage());
+			description.setCode(PlatformErrorMessages.RPR_MESSAGE_SENDER_STAGE_FAILED.getCode());
+			responseEntity = new ResponseEntity<Void>(HttpStatus.INTERNAL_SERVER_ERROR);
+		} finally {
+			responseEntity = isTransactionSuccessful ? new ResponseEntity<Void>(HttpStatus.OK)
+					: new ResponseEntity<Void>(HttpStatus.INTERNAL_SERVER_ERROR);
+			String eventId = isTransactionSuccessful ? EventId.RPR_402.toString() : EventId.RPR_405.toString();
+			String eventName = eventId.equalsIgnoreCase(EventId.RPR_402.toString()) ? EventName.UPDATE.toString()
+					: EventName.EXCEPTION.toString();
+			String eventType = eventId.equalsIgnoreCase(EventId.RPR_402.toString()) ? EventType.BUSINESS.toString()
+					: EventType.SYSTEM.toString();
+			/** Module-Id can be Both Success/Error code */
+			String moduleId = isTransactionSuccessful
+					? PlatformSuccessMessages.RPR_MESSAGE_SENDER_STAGE_SUCCESS.getCode()
+					: description.getCode();
+			String moduleName = ModuleName.MESSAGE_SENDER.toString();
+			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
+					moduleId, moduleName, id);
+		}
+
+		return responseEntity;
+	}
+
+	private void setTemplateAndSubjectForPausedForAdditionalInfo(MessageSenderDto messageSenderDto) {
+		messageSenderDto
+				.setSmsTemplateCode(env.getProperty(PAUSED_FOR_ADDITIONAL_INFO+SMS));
+		messageSenderDto
+				.setEmailTemplateCode(env.getProperty(PAUSED_FOR_ADDITIONAL_INFO+EMAIL));
+		messageSenderDto
+		.setSubjectCode(env.getProperty(PAUSED_FOR_ADDITIONAL_INFO+SUB));
+		messageSenderDto.setIdType(IdType.RID);
+
 	}
 
 }

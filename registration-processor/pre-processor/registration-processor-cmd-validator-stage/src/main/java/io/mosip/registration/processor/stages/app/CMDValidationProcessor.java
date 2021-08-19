@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.stages.app;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -89,17 +90,20 @@ public class CMDValidationProcessor {
 	@Value("${mosip.registration.gps_device_enable_flag}")
 	private String gpsEnable;
 
-	@Value("${mosip.primary-language}")
-	private String primaryLanguagecode;
+	@Value("${mosip.mandatory-languages:#{null}}")
+	private String mandatoryLanguages;
 
-	@Value("${mosip.registration.processor.validate-center}")
-	private boolean validateCenter;
+	@Value("${mosip.optional-languages:#{null}}")
+	private String optionalLanguages;
 
-	@Value("${mosip.registration.processor.validate-machine}")
-	private boolean validateMachine;
+	@Value("#{'${mosip.regproc.cmd-validator.center-validation.processes:NEW,UPDATE,LOST,BIOMETRIC_CORRECTION}'.split(',')}")
+	private List<String> centerValidationProcessList ;
 
-	@Value("${mosip.registration.processor.validate-device}")
-	private boolean validateDevice;
+	@Value("#{'${mosip.regproc.cmd-validator.machine-validation.processes:NEW,UPDATE,LOST,BIOMETRIC_CORRECTION}'.split(',')}")
+	private List<String> machineValidationProcessList ;
+
+	@Value("#{'${mosip.regproc.cmd-validator.device-validation.processes:NEW,UPDATE,LOST,BIOMETRIC_CORRECTION}'.split(',')}")
+	private List<String> deviceValidationProcessList ;
 
 	public MessageDTO process(MessageDTO object, String stageName) {
 
@@ -114,7 +118,7 @@ public class CMDValidationProcessor {
 		registrationId = object.getRid();
 
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
-				.getRegistrationStatus(registrationId);
+				.getRegistrationStatus(registrationId, object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
 
 		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.CMD_VALIDATION.toString());
 		registrationStatusDto.setRegistrationStageName(stageName);
@@ -150,16 +154,16 @@ public class CMDValidationProcessor {
 				return object;
 			}
 
-			if (validateCenter) {
-				centerValidator.validate(primaryLanguagecode, regOsi, registrationStatusDto.getRegistrationId());
+			if (centerValidationProcessList !=null && !centerValidationProcessList.isEmpty() && centerValidationProcessList.contains(registrationStatusDto.getRegistrationType())) {
+				centerValidator.validate(getLanguageCode(), regOsi, registrationStatusDto.getRegistrationId());
 			}
 
-			if (validateMachine) {
-				machineValidator.validate(regOsi.getMachineId(), primaryLanguagecode, regOsi.getPacketCreationDate(),
+			if (machineValidationProcessList !=null && ! machineValidationProcessList.isEmpty() && machineValidationProcessList.contains(registrationStatusDto.getRegistrationType())) {
+				machineValidator.validate(regOsi.getMachineId(), getLanguageCode(), regOsi.getPacketCreationDate(),
 						registrationStatusDto.getRegistrationId());
 			}
 
-			if (validateDevice) {
+			if (deviceValidationProcessList !=null && !deviceValidationProcessList.isEmpty() && deviceValidationProcessList.contains(registrationStatusDto.getRegistrationType())) {
 				deviceValidator.validate(regOsi,registrationStatusDto.getRegistrationType(), registrationStatusDto.getRegistrationId());
 			}
 
@@ -240,6 +244,18 @@ public class CMDValidationProcessor {
 		return object;
 	}
 
+	private String getLanguageCode() throws BaseCheckedException {
+		if(mandatoryLanguages!=null && !mandatoryLanguages.isBlank()) {
+			return mandatoryLanguages.split(",")[0];
+		}
+		else if(optionalLanguages!=null && !optionalLanguages.isBlank()) {
+			return optionalLanguages.split(",")[0];
+		}else {
+			throw new BaseCheckedException(StatusUtil.CMD_LANGUAGE_NOT_SET.getCode(),StatusUtil.CMD_LANGUAGE_NOT_SET.getMessage());
+		}
+
+	}
+
 	private void updateDTOsAndLogError(InternalRegistrationStatusDto registrationStatusDto,
 			RegistrationStatusCode registrationStatusCode, StatusUtil statusUtil,
 			RegistrationExceptionTypeCode registrationExceptionTypeCode, LogDescription description,
@@ -266,7 +282,7 @@ public class CMDValidationProcessor {
 		auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
 				moduleId, moduleName, registrationId);
 	}
-	
+
 	private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
 		object.setInternalError(true);
 		if (registrationStatusDto.getLatestTransactionStatusCode()

@@ -1,7 +1,6 @@
 package io.mosip.registration.processor.message.sender.dto;
 
 import io.mosip.registration.processor.core.constant.IdType;
-import io.mosip.registration.processor.message.sender.utility.NotificationTemplateCode;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,13 +18,13 @@ public class MessageSenderDto {
 	private boolean isTemplateAvailable = false;
 
 	/** The sms template code. */
-	private NotificationTemplateCode smsTemplateCode = null;
+	private String smsTemplateCode = "";
 
 	/** The email template code. */
-	private NotificationTemplateCode emailTemplateCode = null;
+	private String emailTemplateCode = "";
 
 	/** The subject. */
-	private String subject = "";
+	private String subjectCode = "";
 
 	/** The id type. */
 	private IdType idType = null;

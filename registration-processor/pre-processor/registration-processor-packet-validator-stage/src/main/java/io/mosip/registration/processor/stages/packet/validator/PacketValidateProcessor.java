@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
@@ -100,6 +101,9 @@ public class PacketValidateProcessor {
 	private PriorityBasedPacketManagerService packetManagerService;
 
 	@Autowired
+	private Utilities utility;
+
+	@Autowired
 	private ObjectMapper objectMapper;
 
 	/**
@@ -181,12 +185,13 @@ public class PacketValidateProcessor {
 			registrationId = object.getRid();
 			packetValidationDto.setTransactionSuccessful(false);
 
-			registrationStatusDto = registrationStatusService.getRegistrationStatus(registrationId);
+			registrationStatusDto = registrationStatusService.getRegistrationStatus(
+					registrationId, object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
 
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.VALIDATE_PACKET.toString());
 			registrationStatusDto.setRegistrationStageName(stageName);
-			boolean isValidSupervisorStatus = isValidSupervisorStatus();
+			boolean isValidSupervisorStatus = isValidSupervisorStatus(object);
 			if (isValidSupervisorStatus) {
 				Boolean isValid = compositePacketValidator.validate(object.getRid(),
 						registrationStatusDto.getRegistrationType(), packetValidationDto);
@@ -270,7 +275,7 @@ public class PacketValidateProcessor {
 			}
 			object.setInternalError(Boolean.FALSE);
 			registrationStatusDto.setUpdatedBy(USER);
-			SyncRegistrationEntity regEntity = syncRegistrationService.findByRegistrationId(registrationId);
+			SyncRegistrationEntity regEntity = syncRegistrationService.findByWorkflowInstanceId(object.getWorkflowInstanceId());
 			sendNotification(regEntity, registrationStatusDto, packetValidationDto.isTransactionSuccessful());
 		} catch (PacketManagerException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -441,16 +446,16 @@ public class PacketValidateProcessor {
 
 	}
 
-	private boolean isValidSupervisorStatus() {
-		SyncRegistrationEntity regEntity = syncRegistrationService.findByRegistrationId(registrationId);
-		if (regEntity.getSupervisorStatus().equalsIgnoreCase(APPROVED)) {
-			return true;
+		private boolean isValidSupervisorStatus(MessageDTO messageDTO) {
+			SyncRegistrationEntity regEntity = syncRegistrationService.findByWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
+			if (regEntity.getSupervisorStatus().equalsIgnoreCase(APPROVED)) {
+				return true;
 
-		} else if (regEntity.getSupervisorStatus().equalsIgnoreCase(REJECTED)) {
+			} else if (regEntity.getSupervisorStatus().equalsIgnoreCase(REJECTED)) {
+				return false;
+			}
 			return false;
 		}
-		return false;
-	}
 
 	@SuppressWarnings("unchecked")
 	private void reverseDataSync(String id, String process, LogDescription description,
@@ -521,14 +526,14 @@ public class PacketValidateProcessor {
 				} else {
 					packetValidationDto.setTransactionSuccessful(true);
 					regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-							PlatformErrorMessages.REVERSE_DATA_SYNC_SUCCESS.getMessage(), "");
+							PlatformSuccessMessages.REVERSE_DATA_SYNC_SUCCESS.getMessage(), "");
 				}
 
 			}
 		}
 
 	}
-	
+
 	private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
 		object.setInternalError(true);
 		if (registrationStatusDto.getLatestTransactionStatusCode()
@@ -546,7 +551,10 @@ public class PacketValidateProcessor {
 				String[] allNotificationTypes = notificationTypes.split("\\|");
 				boolean isProcessingSuccess;
 			    InputStream inputStream = new ByteArrayInputStream(regEntity.getOptionalValues());
-				InputStream decryptedInputStream = decryptor.decrypt(inputStream, registrationId);
+				InputStream decryptedInputStream = decryptor.decrypt(
+						registrationId,
+						utility.getRefId(registrationId, regEntity.getReferenceId()),
+						inputStream);
 				String decryptedData = IOUtils.toString(decryptedInputStream, "UTF-8");
 				RegistrationAdditionalInfoDTO registrationAdditionalInfoDTO = (RegistrationAdditionalInfoDTO) JsonUtils
 						.jsonStringToJavaObject(RegistrationAdditionalInfoDTO.class, decryptedData);

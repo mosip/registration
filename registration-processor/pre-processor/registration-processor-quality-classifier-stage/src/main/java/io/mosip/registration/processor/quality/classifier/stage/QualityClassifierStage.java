@@ -84,6 +84,12 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 	/** The Constant VALUE. */
 	public static final String VALUE = "value";
 
+	/** The Constant TRUE. */
+	public static final String TRUE = "true";
+
+	/** The Constant EXCEPTION. */
+	public static final String EXCEPTION = "EXCEPTION";
+
 	private TrimExceptionMessage trimExceptionMsg = new TrimExceptionMessage();
 
 	/** The cluster manager url. */
@@ -136,11 +142,11 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 	/** Quality Tag Prefix */
 	@Value("${mosip.regproc.quality.classifier.tagging.quality.prefix:Biometric_Quality-}")
 	private String qualityTagPrefix;
-	
+
     /** The tag value that will be used by default when the packet does not have value for the biometric tag field */
     @Value("${mosip.regproc.quality.classifier.tagging.quality.biometric-not-available-tag-value}")
     private String biometricNotAvailableTagValue;
-    
+
     /** modality arrays that needs to be tagged */
     @Value("#{'${mosip.regproc.quality.classifier.tagging.quality.modalities}'.split(',')}")
     private List<String> modalities;
@@ -217,7 +223,8 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
 				"QualityCheckerStage::process()::entry");
 
-		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(regId);
+		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(regId,
+				object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
 
 		try {
 			String individualBiometricsObject = basedPacketManagerService.getFieldByMappingJsonKey(regId,
@@ -401,7 +408,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 	private Map<String, String> getQualityTags(List<BIR> birs) throws BiometricException{
 		
 		Map<String, String> tags = new HashMap<String, String>();
-		
+
 		// setting biometricNotAvailableTagValue for each modality in case biometrics are not available
 		if (birs == null) {
 			modalities.forEach(modality -> {
@@ -409,11 +416,29 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 			});
 			return tags;
 		}
-		
+
 		HashMap<String, Float> bioTypeMinScoreMap = new HashMap<String, Float>();
 
 		// get individual biometrics file name from id.json
 		for (BIR bir : birs) {
+
+			if (bir.getOthers() != null) {
+				List<io.mosip.kernel.biometrics.entities.Entry> othersInfo = bir.getOthers();
+				boolean exceptionValue = false;
+				for (io.mosip.kernel.biometrics.entities.Entry other : othersInfo) {
+					if (other.getKey().equals(EXCEPTION)) {
+						if (other.getValue().equals(TRUE)) {
+							exceptionValue = true;
+						}
+						break;
+					}
+				}
+
+				if (exceptionValue) {
+					continue;
+				}
+			}
+
 			BiometricType biometricType = bir.getBdbInfo().getType().get(0);
 			BIR[] birArray = new BIR[1];
 			birArray[0] = bir;
@@ -450,10 +475,10 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 				tags.put(qualityTagPrefix.concat(modality), biometricNotAvailableTagValue);
 			}
 		});
-		
+
 		return tags;
 	}
-	
+
 	private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
 		object.setInternalError(true);
 		if (registrationStatusDto.getLatestTransactionStatusCode()

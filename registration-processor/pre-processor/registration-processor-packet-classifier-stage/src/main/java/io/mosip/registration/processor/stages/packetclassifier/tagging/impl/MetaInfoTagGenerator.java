@@ -44,15 +44,15 @@ public class MetaInfoTagGenerator implements TagGenerator {
     private String capturedRegisteredDevicesTagNamePrefix;
 
     /** The labels on metainfo.operationsData array that needs to be tagged */
-    @Value("#{'${mosip.regproc.packet.classifier.tagging.metainfo.operationsdata.tag-labels:}'.split(',')}")
+    @Value("#{T(java.util.Arrays).asList('${mosip.regproc.packet.classifier.tagging.metainfo.operationsdata.tag-labels:}')}")
     private List<String> operationsDataTagLabels;
 
     /** The labels on metainfo.metaData array that needs to be tagged */
-    @Value("#{'${mosip.regproc.packet.classifier.tagging.metainfo.metadata.tag-labels:}'.split(',')}")
+    @Value("#{T(java.util.Arrays).asList('${mosip.regproc.packet.classifier.tagging.metainfo.metadata.tag-labels:}')}")
     private List<String> metaDataTagLabels;
 
     /** The serial numbers of devices type on metainfo.capturedRegisteredDevices array that needs to be tagged */
-    @Value("#{'${mosip.regproc.packet.classifier.tagging.metainfo.capturedregistereddevices.device-types:}'.split(',')}")
+    @Value("#{T(java.util.Arrays).asList('${mosip.regproc.packet.classifier.tagging.metainfo.capturedregistereddevices.device-types:}')}")
     private List<String> capturedRegisteredDeviceTypes;
 
     /** The tag value that will be used by default when the packet does not have value for the tag field */
@@ -80,8 +80,8 @@ public class MetaInfoTagGenerator implements TagGenerator {
      * {@inheritDoc}
      */
     @Override
-    public Map<String, String> generateTags(String registrationId, String process, 
-    Map<String, FieldDTO> idObjectFieldDTOMap, Map<String, String> metaInfoMap) 
+    public Map<String, String> generateTags(String workflowInstanceId, String registrationId, String process, 
+    Map<String, FieldDTO> idObjectFieldDTOMap, Map<String, String> metaInfoMap, int iteration) 
                 throws BaseCheckedException {
         try {
             Map<String, String> operationsDataMap = generateTagsFromOpertationsData(metaInfoMap);

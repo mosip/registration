@@ -1,15 +1,13 @@
 package io.mosip.registration.processor.core.abstractverticle;
 
 import java.io.Serializable;
-
+import java.util.List;
 
 
 /**
  * The Class WorkflowInternalActionDTO.
  */
 public class WorkflowInternalActionDTO extends MessageDTO implements Serializable {
-
-
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 
@@ -23,10 +21,8 @@ public class WorkflowInternalActionDTO extends MessageDTO implements Serializabl
 	/** The rid. */
 	private String rid;
 
-
 	/** The action code. */
 	private String actionCode;
-
 
 	/** The action message. */
 	private String actionMessage;
@@ -40,10 +36,15 @@ public class WorkflowInternalActionDTO extends MessageDTO implements Serializabl
 	/** The event timestamp. */
 	private String eventTimestamp;
 
-	/** The resume remove tags. */
-	private String resumeRemoveTags;
 
+	/** The matched rule ids. */
+	private List<String> matchedRuleIds;
 
+	/** The additional info process. */
+	private String additionalInfoProcess;
+
+	/** The workflow instance id */
+	private String workflowInstanceId;
 
 	/*
 	 * (non-Javadoc)
@@ -157,21 +158,60 @@ public class WorkflowInternalActionDTO extends MessageDTO implements Serializabl
 	}
 
 	/**
-	 * Gets the resume remove tags.
+	 * Gets the matched rule ids.
 	 *
-	 * @return the resume remove tags
+	 * @return the matched rule ids
 	 */
-	public String getResumeRemoveTags() {
-		return resumeRemoveTags;
+	public List<String> getMatchedRuleIds() {
+		return matchedRuleIds;
 	}
 
 	/**
-	 * Sets the resume remove tags.
+	 * Sets the matched rule ids.
 	 *
-	 * @param resumeRemoveTags the new resume remove tags
+	 * @param matchedRuleIds the new matched rule ids
 	 */
-	public void setResumeRemoveTags(String resumeRemoveTags) {
-		this.resumeRemoveTags = resumeRemoveTags;
+	public void setMatchedRuleIds(List<String> matchedRuleIds) {
+		this.matchedRuleIds = matchedRuleIds;
 	}
+
+
+
+	/**
+	 * Gets the additional info process.
+	 *
+	 * @return the additional info process
+	 */
+	public String getAdditionalInfoProcess() {
+		return additionalInfoProcess;
+	}
+
+	/**
+	 * Sets the additional info process.
+	 *
+	 * @param additionalInfoProcess the new additional info process
+	 */
+	public void setAdditionalInfoProcess(String additionalInfoProcess) {
+		this.additionalInfoProcess = additionalInfoProcess;
+	}
+
+	/**
+	 * Gets the workflow instance id.
+	 *
+	 * @return the workflow instance id
+	 */
+	public String getWorkflowInstanceId() {
+		return workflowInstanceId;
+	}
+
+	/**
+	 * Sets the workflow instance id.
+	 *
+	 * @param workflowInstanceId the workflow instance id.
+	 */
+	public void setWorkflowInstanceId(String workflowInstanceId) {
+		this.workflowInstanceId = workflowInstanceId;
+	}
+
 
 }

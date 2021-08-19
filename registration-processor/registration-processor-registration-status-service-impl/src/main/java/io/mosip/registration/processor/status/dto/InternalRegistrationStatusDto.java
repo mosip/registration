@@ -84,11 +84,18 @@ public class InternalRegistrationStatusDto implements Serializable {
 	/** The default resume action. */
 	private String defaultResumeAction;
 
-	/** The comma separate tags that will be removed on resume. */
-	private String resumeRemoveTags;
+	/** The pause rule ids. */
+	private String pauseRuleIds;
+
 
 	/** The last success stage name. */
 	private String lastSuccessStageName;
+
+	private String source;
+
+	private int iteration;
+
+	private String workflowInstanceId;
 
 	/**
 	 * Gets the ref id.
@@ -567,12 +574,22 @@ public class InternalRegistrationStatusDto implements Serializable {
 	}
 
 
-	public String getResumeRemoveTags() {
-		return resumeRemoveTags;
+	/**
+	 * Gets the pause rule ids.
+	 *
+	 * @return the pause rule ids
+	 */
+	public String getPauseRuleIds() {
+		return pauseRuleIds;
 	}
 
-	public void setResumeRemoveTags(String resumeRemoveTags) {
-		this.resumeRemoveTags = resumeRemoveTags;
+	/**
+	 * Sets the pause rule ids.
+	 *
+	 * @param pauseRuleIds the new pause rule ids
+	 */
+	public void setPauseRuleIds(String pauseRuleIds) {
+		this.pauseRuleIds = pauseRuleIds;
 	}
 
 	/**
@@ -593,6 +610,30 @@ public class InternalRegistrationStatusDto implements Serializable {
 		this.lastSuccessStageName = lastSuccessStageName;
 	}
 
+	public String getSource() {
+		return source;
+	}
+
+	public void setSource(String source) {
+		this.source = source;
+	}
+
+	public int getIteration() {
+		return iteration;
+	}
+
+	public void setIteration(int iteration) {
+		this.iteration = iteration;
+	}
+
+	public String getWorkflowInstanceId() {
+		return workflowInstanceId;
+	}
+
+	public void setWorkflowInstanceId(String workflowInstanceId) {
+		this.workflowInstanceId = workflowInstanceId;
+	}
+
 	@Override
 	public String toString() {
 		return "InternalRegistrationStatusDto [registrationId=" + registrationId + ", registrationType="
@@ -606,7 +647,7 @@ public class InternalRegistrationStatusDto implements Serializable {
 				+ latestTransactionStatusCode + ", latestTransactionTimes=" + latestTransactionTimes
 				+ ", registrationStageName=" + registrationStageName + ", reProcessRetryCount=" + reProcessRetryCount
 				+ ", subStatusCode=" + subStatusCode + ", resumeTimeStamp=" + resumeTimeStamp + ", defaultResumeAction="
-				+ defaultResumeAction + ", resumeRemoveTags=" + resumeRemoveTags + ", refId=" + refId + "]";
+				+ defaultResumeAction + ", pauseRuleIds=" + pauseRuleIds + ", refId=" + refId + "]";
 	}
 
 	

@@ -28,7 +28,8 @@ public enum PlatformSuccessMessages {
 	// Packet Validator Success messages
 	/** The rpr pkr packet validate. */
 	RPR_PKR_PACKET_VALIDATE(PlatformConstants.RPR_PACKET_VALIDATOR_MODULE + "000", "Packet Validation Success"),
-	
+	/** The reverse data sync success. */
+	REVERSE_DATA_SYNC_SUCCESS(PlatformConstants.RPR_PACKET_VALIDATOR_MODULE + "017", "Reverse Data Sync Success"),
 	// Packet Classifier Success messages
 	/** The rpr pkr packet classifier. */
 	RPR_PKR_PACKET_CLASSIFIER(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "000", "Packet Classifier Success"),
@@ -68,11 +69,11 @@ public enum PlatformSuccessMessages {
 	RPR_BIO_LOST_PACKET_UNIQUE_MATCH_FOUND(PlatformConstants.RPR_BIO_DEDUPE_STAGE_MODULE + "001",
 			"Unique Match was Found for the Biometrics Received"),
 
-	RPR_RE_PROCESS_SUCCESS(PlatformConstants.RPR_REPROCESSOR_STAGE + "000", "Reprocessor Success"),
+	RPR_RE_PROCESS_SUCCESS(PlatformConstants.RPR_REPROCESSOR_VERTICLE + "000", "Reprocessor Success"),
 
-	RPR_RE_PROCESS_FAILED(PlatformConstants.RPR_REPROCESSOR_STAGE + "002", "Reprocessor FAILED"),
+	RPR_RE_PROCESS_FAILED(PlatformConstants.RPR_REPROCESSOR_VERTICLE + "002", "Reprocessor FAILED"),
 
-	RPR_SENT_TO_REPROCESS_SUCCESS(PlatformConstants.RPR_REPROCESSOR_STAGE + "001", "sent to reprocess Success"),
+	RPR_SENT_TO_REPROCESS_SUCCESS(PlatformConstants.RPR_REPROCESSOR_VERTICLE + "001", "sent to reprocess Success"),
 
 	RPR_WORKFLOW_INTERNAL_ACTION_SUCCESS(PlatformConstants.RPR_WORKFLOW_INTERNAL_ACTION + "000",
 			"Workflow internal action completed successfully"),
@@ -141,7 +142,16 @@ public enum PlatformSuccessMessages {
 			"Packet processing completed with reject status"),
 	PACKET_COMPLETE_AS_FAILED(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "003",
 			"Packet processing completed with failed status"),
-	PACKET_MARK_AS_REPROCESS(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "004", "Packet marked for reprocessing");
+	PACKET_MARK_AS_REPROCESS(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "004", "Packet marked for reprocessing"),
+
+	PAUSE_AND_REQUEST_ADDITIONAL_INFO(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "005",
+			"packet paused and request additional info"),
+
+	PACKET_RESTART_PARENT_FLOW(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "006",
+			"Packet parent flow restart initiated"),
+
+	PACKET_COMPLETE_AS_REJECTED_WITHOUT_PARENT_FLOW(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "007",
+			"Packet processing completed with reject status without Parent flow");
 
 	/** The success message. */
 	private final String successMessage;

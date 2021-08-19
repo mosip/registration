@@ -218,15 +218,16 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 				registrationId, "UinGeneratorStage::process()::entry");
 		UinGenResponseDto uinResponseDto = null;
 
-		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(registrationId);
+		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(
+				registrationId, object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
 		try {
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.UIN_GENERATOR.toString());
 			registrationStatusDto.setRegistrationStageName(getStageName());
 
-			if ((RegistrationType.LOST.toString()).equalsIgnoreCase(object.getReg_type().name())) {
+			if ((RegistrationType.LOST.toString()).equalsIgnoreCase(object.getReg_type())) {
 				String lostPacketRegId = object.getRid();
-				String matchedRegId = regLostUinDetEntity.getLostUinMatchedRegId(lostPacketRegId);
+				String matchedRegId = regLostUinDetEntity.getLostUinMatchedRegIdByWorkflowId(object.getWorkflowInstanceId());
 				if (matchedRegId != null) {
 					linkRegIdWrtUin(lostPacketRegId, matchedRegId, registrationStatusDto.getRegistrationType(), object, description);
 				}
@@ -1233,7 +1234,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 		return idResponse;
 	}
-	
+
 	private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
 		object.setInternalError(true);
 		if (registrationStatusDto.getLatestTransactionStatusCode()

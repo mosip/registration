@@ -24,23 +24,12 @@ import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 @Repository
 public interface RegistrationRepositary<T extends BaseRegistrationEntity, E> extends BaseRepository<T, E> {
 	
-	@Query("SELECT trn FROM TransactionEntity trn WHERE trn.registrationId=:regId")
-	public List<T> getTransactionByRegId(@Param("regId") String regId);
-
-	@Query("SELECT trn FROM TransactionEntity trn WHERE trn.registrationId=:regId and trn.statusCode=:statusCode")
-	public List<T> getTransactionByRegIdAndStatusCode(@Param("regId") String regId,
-			@Param("statusCode") String statusCode);
-	
-	@Query("SELECT registration.id FROM RegistrationStatusEntity registration WHERE registration.id in :regIds and registration.latestTransactionStatusCode =:statusCode")
+	@Query("SELECT registration.regId FROM RegistrationStatusEntity registration WHERE registration.regId in :regIds and registration.latestTransactionStatusCode =:statusCode")
 	public List<String> getProcessedOrProcessingRegIds(@Param("regIds") List<String> regIds,
 			@Param("statusCode") String statusCode);
 
-	@Query("SELECT registration.id FROM RegistrationStatusEntity registration WHERE registration.id in :regIds and registration.statusCode !=:statusCode1 and registration.statusCode !=:statusCode2")
+	@Query("SELECT registration.regId FROM RegistrationStatusEntity registration WHERE registration.regId in :regIds and registration.statusCode !=:statusCode1 and registration.statusCode !=:statusCode2")
 	public List<String> getWithoutStatusCodes(@Param("regIds") List<String> regIds,
 													   @Param("statusCode1") String statusCode1, @Param("statusCode2") String statusCode2);
 	
-	@Query("SELECT registrationList FROM SyncRegistrationEntity registrationList WHERE registrationList.registrationId =:regId and registrationList.registrationType =:regType")
-	public List<SyncRegistrationEntity> getSyncRecordsByRegIdAndRegType(@Param("regId") String regId,
-			@Param("regType") String regType);
-
 }
