@@ -271,7 +271,7 @@ public class Utilities {
 			Integer idRepoApplicantAge = JsonUtil.getJSONValue(identityJSONOject, ageKey);
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 					id, "Utilities::getApplicantAge()::exit when ID REPO applicantAge is not null");
-			return idRepoApplicantAge != null ? idRepoApplicantAge : 0;
+			return idRepoApplicantAge != null ? idRepoApplicantAge : -1;
 
 		}
 

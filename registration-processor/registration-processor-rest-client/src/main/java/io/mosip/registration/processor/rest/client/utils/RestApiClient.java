@@ -9,6 +9,7 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import javax.annotation.PostConstruct;
 import javax.net.ssl.SSLContext;
 
 import io.mosip.registration.processor.core.tracing.ContextualData;
@@ -74,6 +75,15 @@ public class RestApiClient {
 
 	private static final String AUTHORIZATION = "Authorization=";
 
+	RestTemplate localRestTemplate;
+
+	@PostConstruct
+	private void loadRestTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
+		localRestTemplate = getRestTemplate();
+		logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
+				LoggerFileConstant.APPLICATIONID.toString(), "loadRestTemplate completed successfully");
+	}
+
 
 	/**
 	 * Gets the api. *
@@ -86,11 +96,9 @@ public class RestApiClient {
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T getApi(URI uri, Class<?> responseType) throws Exception {
-		RestTemplate restTemplate;
 		T result = null;
 		try {
-			restTemplate = getRestTemplate();
-			result = (T) restTemplate.exchange(uri, HttpMethod.GET, setRequestHeader(null, null), responseType)
+			result = (T) localRestTemplate.exchange(uri, HttpMethod.GET, setRequestHeader(null, null), responseType)
 					.getBody();
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
@@ -117,13 +125,11 @@ public class RestApiClient {
 	@SuppressWarnings("unchecked")
 	public <T> T postApi(String uri, MediaType mediaType, Object requestType, Class<?> responseClass) throws Exception {
 
-		RestTemplate restTemplate;
 		T result = null;
 		try {
-			restTemplate = getRestTemplate();
 			logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					LoggerFileConstant.APPLICATIONID.toString(), uri);
-			result = (T) restTemplate.postForObject(uri, setRequestHeader(requestType, mediaType), responseClass);
+			result = (T) localRestTemplate.postForObject(uri, setRequestHeader(requestType, mediaType), responseClass);
 
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
@@ -151,13 +157,11 @@ public class RestApiClient {
 	public <T> T patchApi(String uri, MediaType mediaType, Object requestType, Class<?> responseClass)
 			throws Exception {
 
-		RestTemplate restTemplate;
 		T result = null;
 		try {
-			restTemplate = getRestTemplate();
 			logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					LoggerFileConstant.APPLICATIONID.toString(), uri);
-			result = (T) restTemplate.patchForObject(uri, setRequestHeader(requestType, mediaType), responseClass);
+			result = (T) localRestTemplate.patchForObject(uri, setRequestHeader(requestType, mediaType), responseClass);
 
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
@@ -191,15 +195,13 @@ public class RestApiClient {
 	@SuppressWarnings("unchecked")
 	public <T> T putApi(String uri, Object requestType, Class<?> responseClass, MediaType mediaType) throws Exception {
 
-		RestTemplate restTemplate;
 		T result = null;
 		ResponseEntity<T> response = null;
 		try {
-			restTemplate = getRestTemplate();
 			logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					LoggerFileConstant.APPLICATIONID.toString(), uri);
 
-			response = (ResponseEntity<T>) restTemplate.exchange(uri, HttpMethod.PUT,
+			response = (ResponseEntity<T>) localRestTemplate.exchange(uri, HttpMethod.PUT,
 					setRequestHeader(requestType.toString(), mediaType), responseClass);
 			result = response.getBody();
 		} catch (Exception e) {
@@ -212,6 +214,9 @@ public class RestApiClient {
 	}
 
 	public RestTemplate getRestTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
+		if(localRestTemplate != null)
+			return localRestTemplate;
+
 		logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 				LoggerFileConstant.APPLICATIONID.toString(), Arrays.asList(environment.getActiveProfiles()).toString());
 		if (Arrays.stream(environment.getActiveProfiles()).anyMatch("dev-k8"::equals)) {
