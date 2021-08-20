@@ -146,6 +146,7 @@ public class TransactionServiceTest {
 		List<RegistrationTransactionDto> dtolist = transactionService.getTransactionByRegId("1221");
 
 		assertEquals(dtolist.get(0).getStatusComment(), "Add Enrolment started");
+		assertEquals(dtolist.get(0).getSubStatusCode(), "RPR-PKR-SUCCESS-001");
 	}
 	
 	

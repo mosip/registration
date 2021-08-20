@@ -69,19 +69,17 @@ public class RegistrationTransactionController {
 	 * get transaction details for the given registration id
 	 * 
 	 * @param rid registration id
-	 * @param langCode language code
 	 * @param request servlet request
 	 * @return list of RegTransactionResponseDTOs 
 	 * @throws Exception
 	 */
 	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR','REGISTRATION_ADMIN')")
-	@GetMapping(path = "/search/{langCode}/{rid}")
+	@GetMapping(path = "/search/{rid}")
 	@ApiOperation(value = "Get the transaction entity/entities")
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Transaction Entity/Entities successfully fetched"),
 			@ApiResponse(code = 400, message = "Unable to fetch Transaction Entity/Entities") })
 	public ResponseEntity<RegTransactionResponseDTO> getTransactionsbyRid(@PathVariable("rid") String rid,
-			@PathVariable("langCode") String langCode,HttpServletRequest request)
-			throws Exception {
+			HttpServletRequest request) throws Exception {
 		List<RegistrationTransactionDto> dtoList;
 		HttpHeaders headers = new HttpHeaders();
 		try {

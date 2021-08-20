@@ -145,7 +145,7 @@ public class TransactionServiceImpl implements TransactionService<TransactionDto
 
 	private RegistrationTransactionDto convertEntityToRegistrationTransactionDto(TransactionEntity entity) {
 		return new RegistrationTransactionDto(entity.getId(), entity.getRegistrationId(), entity.getTrntypecode(),
-				entity.getParentid(), entity.getStatusCode(), entity.getStatusComment(), entity.getCreateDateTime());
-
+				entity.getParentid(), entity.getStatusCode(), entity.getSubStatusCode(), entity.getStatusComment(),
+				entity.getCreateDateTime());
 	}
 }

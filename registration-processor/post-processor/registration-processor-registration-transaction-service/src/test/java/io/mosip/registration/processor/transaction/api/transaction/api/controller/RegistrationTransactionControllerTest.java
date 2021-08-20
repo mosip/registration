@@ -74,10 +74,10 @@ public class RegistrationTransactionControllerTest {
 	public void testSyncController() throws Exception {
 		List<RegistrationTransactionDto> dtoList = new ArrayList<>();
 		dtoList.add(new RegistrationTransactionDto("id", "registrationId", "transactionTypeCode", "parentTransactionId",
-				"statusCode", "statusComment", null));
+				"statusCode", "subStatusCode", "statusComment", null));
 		Mockito.when(transactionService.getTransactionByRegId(ArgumentMatchers.any()))
 				.thenReturn(dtoList);
-		this.mockMvc.perform(get("/search/eng/27847657360002520190320095010").accept(MediaType.APPLICATION_JSON_VALUE))
+		this.mockMvc.perform(get("/search/27847657360002520190320095010").accept(MediaType.APPLICATION_JSON_VALUE))
 				.andExpect(status().isOk());
 	}
 
@@ -87,7 +87,7 @@ public class RegistrationTransactionControllerTest {
 
 		Mockito.doThrow(new TransactionsUnavailableException("", "")).when(transactionService)
 				.getTransactionByRegId(ArgumentMatchers.any());
-		this.mockMvc.perform(get("/search/eng/27847657360002520190320095010").accept(MediaType.APPLICATION_JSON_VALUE))
+		this.mockMvc.perform(get("/search/27847657360002520190320095010").accept(MediaType.APPLICATION_JSON_VALUE))
 				.andExpect(status().isOk());
 	}
 
@@ -97,7 +97,7 @@ public class RegistrationTransactionControllerTest {
 
 		Mockito.doThrow(new RegTransactionAppException("", "")).when(transactionService)
 				.getTransactionByRegId(ArgumentMatchers.any());
-		this.mockMvc.perform(get("/search/eng/27847657360002520190320095010").accept(MediaType.APPLICATION_JSON_VALUE))
+		this.mockMvc.perform(get("/search/27847657360002520190320095010").accept(MediaType.APPLICATION_JSON_VALUE))
 				.andExpect(status().isOk());
 	}
 
@@ -107,7 +107,7 @@ public class RegistrationTransactionControllerTest {
 
 		Mockito.doThrow(new NullPointerException()).when(transactionService)
 				.getTransactionByRegId(ArgumentMatchers.any());
-		this.mockMvc.perform(get("/search/eng/27847657360002520190320095010").accept(MediaType.APPLICATION_JSON_VALUE))
+		this.mockMvc.perform(get("/search/27847657360002520190320095010").accept(MediaType.APPLICATION_JSON_VALUE))
 				.andExpect(status().isOk()).andExpect(jsonPath("$.errors[0].errorCode", is("RPR-RTS-002")));
 	}
 	
