@@ -253,6 +253,9 @@ public class SecurezoneNotificationStageTest {
                 obj.put("isValid", true);
                 obj.put("internalError", false);
                 obj.put("reg_type", "NEW");
+                obj.put("source", "REGISTRATIONCLIENT");
+                obj.put("iteration", 1);
+                obj.put("workflowInstanceId", "78fc3d34-03f5-11ec-9a03-0242ac130003");
                 return obj;
             }
 
