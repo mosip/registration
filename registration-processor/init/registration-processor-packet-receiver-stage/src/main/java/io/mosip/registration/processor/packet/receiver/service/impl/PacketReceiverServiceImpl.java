@@ -141,20 +141,16 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 		boolean isTransactionSuccessful = false;
 		if (file.getName() != null && file.exists()) {
 			String fileOriginalName = file.getName();
-			String packetId = fileOriginalName.split("\\.")[0];
+			String registrationId = fileOriginalName.split("\\.")[0];
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					packetId, "PacketReceiverServiceImpl::validatePacket()::entry");
-			regEntity = syncRegistrationService.findByPacketId(packetId);
+					registrationId, "PacketReceiverServiceImpl::validatePacket()::entry");
+			regEntity = syncRegistrationService.findByPacketId(registrationId);
 
-			String registrationId = null;
-			if (regEntity != null) {
-				registrationId = regEntity.getRegistrationId();
-				messageDTO.setRid(registrationId);
-				messageDTO.setWorkflowInstanceId(regEntity.getWorkflowInstanceId());
-			}
+			validatePacketWithSync(regEntity, registrationId, description);
+			messageDTO.setRid(registrationId);
+			messageDTO.setWorkflowInstanceId(regEntity.getWorkflowInstanceId());
 			try (InputStream encryptedInputStream = FileUtils.newInputStream(file.getAbsolutePath())) {
 				byte[] encryptedByteArray = IOUtils.toByteArray(encryptedInputStream);
-				validatePacketWithSync(regEntity, registrationId, description);
 				messageDTO.setReg_type(regEntity.getRegistrationType());
 				validateHashCode(new ByteArrayInputStream(encryptedByteArray), regEntity, registrationId, description);
 				validatePacketFormat(fileOriginalName, registrationId, description);

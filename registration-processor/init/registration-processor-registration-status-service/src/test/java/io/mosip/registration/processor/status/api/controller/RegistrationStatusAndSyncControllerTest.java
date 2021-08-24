@@ -319,7 +319,7 @@ public class RegistrationStatusAndSyncControllerTest {
 	public void lostRidSuccessTest() throws Exception {
 		doNothing().when(lostRidRequestValidator).validate((lostRidRequestDto));
 
-		this.mockMvc.perform(post("/lost").accept(MediaType.APPLICATION_JSON_VALUE)
+		this.mockMvc.perform(post("/lostridsearch").accept(MediaType.APPLICATION_JSON_VALUE)
 				.cookie(new Cookie("Authorization", lostRidReqToJson)).contentType(MediaType.APPLICATION_JSON_VALUE)
 				.content(lostRidReqToJson.getBytes()).header("timestamp", "2019-05-07T05:13:55.704Z"))
 				.andExpect(status().isOk());
@@ -329,7 +329,7 @@ public class RegistrationStatusAndSyncControllerTest {
 	public void lostRidRegstatusException() throws Exception {
 
 		Mockito.doThrow(new RegStatusAppException()).when(lostRidRequestValidator).validate(ArgumentMatchers.any());
-		this.mockMvc.perform(post("/lost").accept(MediaType.APPLICATION_JSON_VALUE)
+		this.mockMvc.perform(post("/lostridsearch").accept(MediaType.APPLICATION_JSON_VALUE)
 				.cookie(new Cookie("Authorization", lostRidReqToJson)).contentType(MediaType.APPLICATION_JSON_VALUE)
 				.content(lostRidReqToJson.getBytes()).header("timestamp", "2019-05-07T05:13:55.704Z"))
 				.andExpect(status().isOk());
