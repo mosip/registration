@@ -35,13 +35,13 @@ public class MessageBusAddress implements Serializable {
 	 * @param messageBusAddress the message bus address
 	 * @param regType           the reg type
 	 */
-	public MessageBusAddress(MessageBusAddress messageBusAddress, RegistrationType regType) {
+	public MessageBusAddress(MessageBusAddress messageBusAddress, String regType) {
 
 		List<String> addressList = (List<String>)Arrays.asList(messageBusAddress.getAddress().split("-"));
 
 		ArrayList<String> modifiableArrayList = new ArrayList<String>(addressList);
 
-		modifiableArrayList.add(addressList.size() - 2, regType.toString());
+		modifiableArrayList.add(addressList.size() - 2, regType.toLowerCase());
 		String modifiedAddress = null;
 
 		if(messageBusAddress.getAddress().contains(BUS_OUT)) {
@@ -181,7 +181,10 @@ public class MessageBusAddress implements Serializable {
 			"registration-connector-bus-out");
 
 	/** The Constant PRINTING_BUS_IN. */
-	public static final MessageBusAddress PRINTING_BUS = new MessageBusAddress("printing-bus-in");
+	public static final MessageBusAddress PRINTING_BUS_IN = new MessageBusAddress("printing-bus-in");
+
+	/** The Constant PRINTING_BUS_OUT. */
+	public static final MessageBusAddress PRINTING_BUS_OUT = new MessageBusAddress("printing-bus-out");
 
 	/** The Constant PRINTING_BUS_RESEND. */
 	public static final MessageBusAddress PRINTING_BUS_RESEND = new MessageBusAddress("printing-bus-resend");
@@ -210,11 +213,11 @@ public class MessageBusAddress implements Serializable {
 	/** The Constant BIOMETRIC_AUTHENTICATION_BUS_OUT. */
 	public static final MessageBusAddress BIOMETRIC_AUTHENTICATION_BUS_OUT = new MessageBusAddress("biometric-authentication-bus-out");
 
-	/** The Constant QUALITY_CHECKER_BUS_IN. */
-	public static final MessageBusAddress QUALITY_CHECKER_BUS_IN = new MessageBusAddress("quality-checker-bus-in");
+	/** The Constant QUALITY_CLASSIFIER_BUS_IN. */
+	public static final MessageBusAddress QUALITY_CLASSIFIER_BUS_IN = new MessageBusAddress("quality-classifier-bus-in");
 
-	/** The Constant QUALITY_CHECKER_BUS_OUT. */
-	public static final MessageBusAddress QUALITY_CHECKER_BUS_OUT = new MessageBusAddress("quality-checker-bus-out");
+	/** The Constant QUALITY_CLASSIFIER_BUS_OUT. */
+	public static final MessageBusAddress QUALITY_CLASSIFIER_BUS_OUT = new MessageBusAddress("quality-classifier-bus-out");
 
 	/** The Constant SECUREZONE_NOTIFICATION_IN. */
 	public static final MessageBusAddress SECUREZONE_NOTIFICATION_IN = new MessageBusAddress("securezone-notification-bus-in");
@@ -227,10 +230,11 @@ public class MessageBusAddress implements Serializable {
 
 	/** The Constant STRUCTURE_BUS_OUT. */
 	public static final MessageBusAddress PACKET_CLASSIFIER_BUS_OUT = new MessageBusAddress("packet-classifier-bus-out");
-	
-	/** The Constant WORKFLOW_EVENTUPDATE_BUS_IN. */
-	public static final MessageBusAddress WORKFLOW_EVENT_UPDATE_ADDRESS = new MessageBusAddress(
-			"workflow-event-update");
+
+
+	/** The Constant WORKFLOW_INTERNAL_ACTION_ADDRESS. */
+	public static final MessageBusAddress WORKFLOW_INTERNAL_ACTION_ADDRESS = new MessageBusAddress(
+			"workflow-internal-action");
 	
 	/*
 	 * (non-Javadoc)

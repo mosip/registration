@@ -8,11 +8,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.status.code.RegistrationExternalStatusCode;
+import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 
 /**
@@ -59,13 +59,17 @@ public class RegistrationExternalStatusUtility {
 				"RegistrationStatusMapUtil::getExternalStatus()::entry");
 
 		String status = entity.getStatusCode();
-		if (status.equalsIgnoreCase(RegistrationTransactionStatusCode.PROCESSED.toString())) {
+		if (status.equalsIgnoreCase(RegistrationStatusCode.PROCESSED.toString())) {
 			mappedValue = RegistrationExternalStatusCode.UIN_GENERATED;
-		} else if (status.equalsIgnoreCase(RegistrationTransactionStatusCode.PROCESSING.toString())) {
+		} else if (status.equalsIgnoreCase(RegistrationStatusCode.PROCESSING.toString())
+				|| status.equalsIgnoreCase(RegistrationStatusCode.PAUSED.toString())
+				|| status.equalsIgnoreCase(RegistrationStatusCode.RESUMABLE.toString())
+				|| status.equalsIgnoreCase(RegistrationStatusCode.REPROCESS.toString()) 
+				|| status.equalsIgnoreCase(RegistrationStatusCode.PAUSED_FOR_ADDITIONAL_INFO.toString())) {
 			mappedValue = checkStatusforPacketReceiver(entity);
-		} else if (status.equalsIgnoreCase(RegistrationTransactionStatusCode.FAILED.toString())) {
+		} else if (status.equalsIgnoreCase(RegistrationStatusCode.FAILED.toString())) {
 			mappedValue = checkStatusforPacketUploader(entity);
-		} else {
+		}else {
 			mappedValue = RegistrationExternalStatusCode.REJECTED;
 		}
 

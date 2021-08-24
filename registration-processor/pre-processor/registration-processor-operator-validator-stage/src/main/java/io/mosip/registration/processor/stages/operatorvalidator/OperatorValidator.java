@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -75,7 +76,10 @@ public class OperatorValidator {
 	private AuthUtil authUtil;
 
 	@Autowired
-	ObjectMapper mapper;
+	private ObjectMapper mapper;
+
+	@Autowired
+	private Utilities utility;
 
 	/**
 	 * Checks if is valid Operator.
@@ -272,8 +276,12 @@ public class OperatorValidator {
 						StatusUtil.OFFICER_AUTHENTICATION_FAILED.getCode());
 			}
 		} else {
+			String finalUserId = userId;
+			String finalIndividualType = individualType;
+
 			List<io.mosip.registration.processor.core.auth.dto.ErrorDTO> errors = authResponseDTO.getErrors();
-			if (errors.stream().anyMatch(error -> error.getErrorCode().equalsIgnoreCase("IDA-MLC-007"))) {
+			if (errors.stream().anyMatch(error -> (error.getErrorCode().equalsIgnoreCase("IDA-MLC-007")
+					|| utility.isUinMissingFromIdAuth(error.getErrorCode(), finalUserId, finalIndividualType)))) {
 				throw new AuthSystemException(PlatformErrorMessages.RPR_AUTH_SYSTEM_EXCEPTION.getMessage());
 			} else {
 				registrationStatusDto.setLatestTransactionStatusCode(
@@ -361,16 +369,19 @@ public class OperatorValidator {
 				RegistrationCenterUserMachineMappingHistoryResponseDto.class);
 		regProcLogger.debug("validateMapping call ended for registrationId {} with response data {}",
 				registrationStatusDto.getRegistrationId(), JsonUtil.objectMapperObjectToJson(userDto));
-		if (userDto != null) {
-			if (responseWrapper.getErrors() == null) {
-				isValidUser = userDto.getRegistrationCenters().get(0).getIsActive();
-			} else {
-				List<ErrorDTO> error = responseWrapper.getErrors();
-				regProcLogger.debug("validateMapping call ended for registrationId {} with error data {}",
-						registrationStatusDto.getRegistrationId(), error.get(0).getMessage());
-				throw new BaseCheckedException(error.get(0).getMessage(),
-						StatusUtil.CENTER_DEVICE_MAPPING_NOT_FOUND.getCode());
-			}
+		
+		if (responseWrapper.getErrors() != null) {
+			List<ErrorDTO> error = responseWrapper.getErrors();
+			regProcLogger.debug("validateMapping call ended for registrationId {} with error data {}",
+					registrationStatusDto.getRegistrationId(), error.get(0).getMessage());
+			throw new BaseCheckedException(error.get(0).getMessage(),
+					StatusUtil.CENTER_DEVICE_MAPPING_NOT_FOUND.getCode());
+		} else if (userDto != null) {
+			isValidUser = userDto.getRegistrationCenters().get(0).getIsActive();
+		} else {
+			regProcLogger.debug(
+					"validateMapping call ended with no erros and userDTO as null so considering as mapping not valid");
+			isValidUser = false;
 		}
 
 		return isValidUser;

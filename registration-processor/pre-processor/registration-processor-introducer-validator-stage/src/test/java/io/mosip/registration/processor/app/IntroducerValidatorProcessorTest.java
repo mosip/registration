@@ -26,6 +26,7 @@ import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
+import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.AuthSystemException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
@@ -111,12 +112,12 @@ public class IntroducerValidatorProcessorTest {
 		dto.setRid("123456789");
 		dto.setInternalError(false);
 		dto.setIsValid(true);
-		dto.setReg_type(RegistrationType.NEW);
+		dto.setReg_type(RegistrationType.NEW.name());
 		stageName = "introducerValidatorStage";
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("123456789");
 		registrationStatusDto.setRegistrationId("reg1234");
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any())).thenReturn(registrationStatusDto);
 	}
 
 	/**
@@ -128,8 +129,9 @@ public class IntroducerValidatorProcessorTest {
 	public void testisValidIntroducerSuccess() throws Exception {
 
 		Mockito.doNothing().when(introducerValidator).validate(anyString(), any());
-		assertTrue(introducerValidationProcessor.process(dto, stageName).getIsValid());
-		assertFalse(introducerValidationProcessor.process(dto, stageName).getInternalError());
+		MessageDTO object = introducerValidationProcessor.process(dto, stageName);
+		assertTrue(object.getIsValid());
+		assertFalse(object.getInternalError());
 	}
 
 	/**
@@ -141,8 +143,11 @@ public class IntroducerValidatorProcessorTest {
 	public void IOExceptionTest() throws Exception {
 
 		Mockito.doThrow(new IOException()).when(introducerValidator).validate(anyString(), any());
-		assertEquals(false, introducerValidationProcessor.process(dto, stageName).getIsValid());
-		assertEquals(true, introducerValidationProcessor.process(dto, stageName).getInternalError());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.IOEXCEPTION)).thenReturn("ERROR");
+		MessageDTO object = introducerValidationProcessor.process(dto, stageName);
+		assertFalse(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 
 	@Test
@@ -151,16 +156,20 @@ public class IntroducerValidatorProcessorTest {
 		Mockito.doThrow(new ValidationFailedException("id", "message")).when(introducerValidator).validate(anyString(),
 				any());
 
-		assertEquals(false, introducerValidationProcessor.process(dto, stageName).getIsValid());
-		assertEquals(false, introducerValidationProcessor.process(dto, stageName).getInternalError());
+		MessageDTO object = introducerValidationProcessor.process(dto, stageName);
+		assertFalse(object.getIsValid());
+		assertFalse(object.getInternalError());
 	}
 
 	@Test
 	public void exceptionTest() throws Exception {
 
 		Mockito.doThrow(new NullPointerException("")).when(introducerValidator).validate(anyString(), any());
-		assertEquals(false, introducerValidationProcessor.process(dto, stageName).getIsValid());
-		assertEquals(true, introducerValidationProcessor.process(dto, stageName).getInternalError());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.EXCEPTION)).thenReturn("ERROR");
+		MessageDTO object = introducerValidationProcessor.process(dto, stageName);
+		assertFalse(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 
 	/**
@@ -173,8 +182,11 @@ public class IntroducerValidatorProcessorTest {
 
 		Mockito.doThrow(new DataAccessException("") {
 		}).when(introducerValidator).validate(anyString(), any());
-		assertEquals(false, introducerValidationProcessor.process(dto, stageName).getIsValid());
-		assertEquals(true, introducerValidationProcessor.process(dto, stageName).getInternalError());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.DATA_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
+		MessageDTO object = introducerValidationProcessor.process(dto, stageName);
+		assertTrue(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 
 	@Test
@@ -182,8 +194,11 @@ public class IntroducerValidatorProcessorTest {
 
 		Mockito.doThrow(new AuthSystemException(StatusUtil.AUTH_SYSTEM_EXCEPTION.getMessage()))
 				.when(introducerValidator).validate(anyString(), any());
-		assertEquals(false, introducerValidationProcessor.process(dto, stageName).getIsValid());
-		assertEquals(true, introducerValidationProcessor.process(dto, stageName).getInternalError());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.AUTH_SYSTEM_EXCEPTION)).thenReturn("REPROCESS");
+		MessageDTO object = introducerValidationProcessor.process(dto, stageName);
+		assertTrue(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 
 	@Test
@@ -191,7 +206,10 @@ public class IntroducerValidatorProcessorTest {
 
 		Mockito.doThrow(new PacketManagerException("id", "message")).when(introducerValidator).validate(anyString(),
 				any());
-		assertEquals(false, introducerValidationProcessor.process(dto, stageName).getIsValid());
-		assertEquals(true, introducerValidationProcessor.process(dto, stageName).getInternalError());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_EXCEPTION)).thenReturn("REPROCESS");
+		MessageDTO object = introducerValidationProcessor.process(dto, stageName);
+		assertTrue(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 }

@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import org.apache.commons.io.IOUtils;
@@ -31,6 +32,7 @@ import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
+import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.AuthSystemException;
@@ -130,10 +132,10 @@ public class CMDValidatorProcessorTest {
 		Mockito.when(packetManagerService.getMetaInfo(anyString(), anyString(), any())).thenReturn(new HashMap<>());
 
 		ReflectionTestUtils.setField(cmdValidationProcessor, "gpsEnable", "y");
-		ReflectionTestUtils.setField(cmdValidationProcessor, "validateCenter", true);
-		ReflectionTestUtils.setField(cmdValidationProcessor, "validateMachine", true);
-		ReflectionTestUtils.setField(cmdValidationProcessor, "validateDevice", true);
-		ReflectionTestUtils.setField(cmdValidationProcessor, "primaryLanguagecode", "eng");
+		ReflectionTestUtils.setField(cmdValidationProcessor, "centerValidationProcessList", Arrays.asList("NEW","UPDATE","LOST","BIOMETRIC_CORRECTION"));
+		ReflectionTestUtils.setField(cmdValidationProcessor, "machineValidationProcessList", Arrays.asList("NEW","UPDATE","LOST","BIOMETRIC_CORRECTION"));
+		ReflectionTestUtils.setField(cmdValidationProcessor, "deviceValidationProcessList", Arrays.asList("NEW","UPDATE","LOST","BIOMETRIC_CORRECTION"));
+		ReflectionTestUtils.setField(cmdValidationProcessor, "mandatoryLanguages", "eng");
 
 		@SuppressWarnings("unchecked")
 		RegistrationProcessorRestClientService<Object> mockObj = Mockito
@@ -150,12 +152,13 @@ public class CMDValidatorProcessorTest {
 		dto.setRid("123456789");
 		dto.setInternalError(false);
 		dto.setIsValid(true);
-		dto.setReg_type(RegistrationType.NEW);
+		dto.setReg_type(RegistrationType.NEW.name());
 		stageName = "cmdValidatorStage";
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("123456789");
 		registrationStatusDto.setRegistrationId("reg1234");
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		registrationStatusDto.setRegistrationType("NEW");
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(),any(), any(), any())).thenReturn(registrationStatusDto);
 	}
 
 	/**
@@ -167,8 +170,21 @@ public class CMDValidatorProcessorTest {
 	public void testisValidCMDSuccess() throws Exception {
 
 		Mockito.doNothing().when(centerValidator).validate(anyString(), any(), anyString());
-		Mockito.doNothing().when(deviceValidator).validate(any(), anyString());
+		Mockito.doNothing().when(deviceValidator).validate(any(), anyString(),anyString());
 		Mockito.doNothing().when(machineValidator).validate(anyString(), anyString(), anyString(), anyString());
+
+		MessageDTO object = cmdValidationProcessor.process(dto, stageName);
+		assertTrue(object.getIsValid());
+		assertFalse(object.getInternalError());
+	}
+
+	@Test
+	public void testisValidCMDSuccesswithNullProperties() throws Exception {
+		ReflectionTestUtils.setField(cmdValidationProcessor, "deviceValidationProcessList", Arrays.asList(""));
+		ReflectionTestUtils.setField(cmdValidationProcessor, "machineValidationProcessList", null);
+
+		Mockito.doNothing().when(centerValidator).validate(anyString(), any(), anyString());
+
 
 		assertTrue(cmdValidationProcessor.process(dto, stageName).getIsValid());
 		assertFalse(cmdValidationProcessor.process(dto, stageName).getInternalError());
@@ -183,48 +199,56 @@ public class CMDValidatorProcessorTest {
 	public void IOExceptionTest() throws Exception {
 
 		Mockito.doNothing().when(centerValidator).validate(anyString(), any(), anyString());
-		Mockito.doNothing().when(deviceValidator).validate(any(), anyString());
+		Mockito.doNothing().when(deviceValidator).validate(any(), anyString(),anyString());
 		Mockito.doThrow(new IOException()).when(machineValidator).validate(anyString(), anyString(), anyString(),
 				anyString());
 
-		assertEquals(false, cmdValidationProcessor.process(dto, stageName).getIsValid());
-		assertEquals(true, cmdValidationProcessor.process(dto, stageName).getInternalError());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.IOEXCEPTION)).thenReturn("ERROR");
+		MessageDTO object = cmdValidationProcessor.process(dto, stageName);
+		assertFalse(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 	
 	@Test
 	public void ValidationFailedExceptionTest() throws Exception {
 
 		Mockito.doNothing().when(centerValidator).validate(anyString(), any(), anyString());
-		Mockito.doNothing().when(deviceValidator).validate(any(), anyString());
+		Mockito.doNothing().when(deviceValidator).validate(any(), anyString(),anyString());
 		Mockito.doThrow(new ValidationFailedException("id", "message")).when(machineValidator).validate(anyString(),
 				anyString(), anyString(), anyString());
 
-		assertEquals(false, cmdValidationProcessor.process(dto, stageName).getIsValid());
-		assertEquals(false, cmdValidationProcessor.process(dto, stageName).getInternalError());
+		MessageDTO object = cmdValidationProcessor.process(dto, stageName);
+		assertFalse(object.getIsValid());
+		assertFalse(object.getInternalError());
 	}
 
 	@Test
 	public void apiResourceExceptionTest() throws Exception {
 
 		Mockito.doNothing().when(centerValidator).validate(anyString(), any(), anyString());
-		Mockito.doNothing().when(deviceValidator).validate(any(), anyString());
+		Mockito.doNothing().when(deviceValidator).validate(any(), anyString(),anyString());
 		Mockito.doThrow(new ApisResourceAccessException("")).when(machineValidator).validate(anyString(), anyString(),
 				anyString(), anyString());
-
-		assertEquals(false, cmdValidationProcessor.process(dto, stageName).getIsValid());
-		assertEquals(true, cmdValidationProcessor.process(dto, stageName).getInternalError());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
+		MessageDTO object = cmdValidationProcessor.process(dto, stageName);
+		assertTrue(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 
 	@Test
 	public void exceptionTest() throws Exception {
 
 		Mockito.doNothing().when(centerValidator).validate(anyString(), any(), anyString());
-		Mockito.doNothing().when(deviceValidator).validate(any(), anyString());
+		Mockito.doNothing().when(deviceValidator).validate(any(), anyString(),anyString());
 		Mockito.doThrow(new NullPointerException("")).when(machineValidator).validate(anyString(), anyString(),
 				anyString(), anyString());
-
-		assertEquals(false, cmdValidationProcessor.process(dto, stageName).getIsValid());
-		assertEquals(true, cmdValidationProcessor.process(dto, stageName).getInternalError());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.EXCEPTION)).thenReturn("ERROR");
+		MessageDTO object = cmdValidationProcessor.process(dto, stageName);
+		assertFalse(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 
 	@Test
@@ -235,11 +259,14 @@ public class CMDValidatorProcessorTest {
 		Mockito.when(apisResourceAccessException.getCause()).thenReturn(httpServerErrorException);
 
 		Mockito.doNothing().when(centerValidator).validate(anyString(), any(), anyString());
-		Mockito.doNothing().when(deviceValidator).validate(any(), anyString());
+		Mockito.doNothing().when(deviceValidator).validate(any(), anyString(),anyString());
 		Mockito.doThrow(apisResourceAccessException).when(machineValidator).validate(anyString(), anyString(),
 				anyString(), anyString());
-		assertEquals(false, cmdValidationProcessor.process(dto, stageName).getIsValid());
-		assertEquals(true, cmdValidationProcessor.process(dto, stageName).getInternalError());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
+		MessageDTO object = cmdValidationProcessor.process(dto, stageName);
+		assertTrue(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 
 	@Test
@@ -250,12 +277,15 @@ public class CMDValidatorProcessorTest {
 		Mockito.when(apisResourceAccessException.getCause()).thenReturn(httpClientErrorException);
 
 		Mockito.doNothing().when(centerValidator).validate(anyString(), any(), anyString());
-		Mockito.doNothing().when(deviceValidator).validate(any(), anyString());
+		Mockito.doNothing().when(deviceValidator).validate(any(), anyString(),anyString());
 		Mockito.doThrow(apisResourceAccessException).when(machineValidator).validate(anyString(), anyString(),
 				anyString(), anyString());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 
-		assertEquals(false, cmdValidationProcessor.process(dto, stageName).getIsValid());
-		assertEquals(true, cmdValidationProcessor.process(dto, stageName).getInternalError());
+		MessageDTO object = cmdValidationProcessor.process(dto, stageName);
+		assertTrue(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 
 	/**
@@ -266,13 +296,16 @@ public class CMDValidatorProcessorTest {
 	@Test
 	public void dataAccessExceptionTest() throws Exception {
 
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.DATA_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 		Mockito.doNothing().when(centerValidator).validate(anyString(), any(), anyString());
-		Mockito.doNothing().when(deviceValidator).validate(any(), anyString());
+		Mockito.doNothing().when(deviceValidator).validate(any(), anyString(),anyString());
 		Mockito.doThrow(new DataAccessException("") {
 		}).when(machineValidator).validate(anyString(), anyString(), anyString(), anyString());
 
-		assertEquals(false, cmdValidationProcessor.process(dto, stageName).getIsValid());
-		assertEquals(true, cmdValidationProcessor.process(dto, stageName).getInternalError());
+		MessageDTO object = cmdValidationProcessor.process(dto, stageName);
+		assertTrue(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 
 	/**
@@ -286,29 +319,38 @@ public class CMDValidatorProcessorTest {
 		registrationStatusDto.setRetryCount(1);
 		regOsi.setLatitude(null);
 
-		assertFalse(cmdValidationProcessor.process(dto, stageName).getIsValid());
-		assertTrue(cmdValidationProcessor.process(dto, stageName).getInternalError());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.PACKET_CMD_VALIDATION_FAILED)).thenReturn("ERROR");
+		MessageDTO object = cmdValidationProcessor.process(dto, stageName);
+		assertFalse(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 
 	@Test
 	public void testAuthSystemException() throws Exception {
 
 		Mockito.doNothing().when(centerValidator).validate(anyString(), any(), anyString());
-		Mockito.doNothing().when(deviceValidator).validate(any(), anyString());
+		Mockito.doNothing().when(deviceValidator).validate(any(), anyString(),anyString());
 		Mockito.doThrow(new AuthSystemException(StatusUtil.AUTH_SYSTEM_EXCEPTION.getMessage())).when(machineValidator)
 				.validate(anyString(), anyString(), anyString(), anyString());
-		assertEquals(false, cmdValidationProcessor.process(dto, stageName).getIsValid());
-		assertEquals(true, cmdValidationProcessor.process(dto, stageName).getInternalError());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.AUTH_SYSTEM_EXCEPTION)).thenReturn("REPROCESS");
+		MessageDTO object = cmdValidationProcessor.process(dto, stageName);
+		assertTrue(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 
 	@Test
 	public void packetManagerExceptionTest() throws Exception {
 
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_EXCEPTION)).thenReturn("REPROCESS");
 		Mockito.doNothing().when(centerValidator).validate(anyString(), any(), anyString());
-		Mockito.doNothing().when(deviceValidator).validate(any(), anyString());
+		Mockito.doNothing().when(deviceValidator).validate(any(), anyString(),anyString());
 		Mockito.doThrow(new PacketManagerException("id", "message")).when(machineValidator).validate(anyString(),
 				anyString(), anyString(), anyString());
-		assertEquals(false, cmdValidationProcessor.process(dto, stageName).getIsValid());
-		assertEquals(true, cmdValidationProcessor.process(dto, stageName).getInternalError());
+		MessageDTO object = cmdValidationProcessor.process(dto, stageName);
+		assertTrue(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 }

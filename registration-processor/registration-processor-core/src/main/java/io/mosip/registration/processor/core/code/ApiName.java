@@ -69,7 +69,7 @@ public enum ApiName {
 
 	/** The Cryptomaanger *. */
 	CRYPTOMANAGERDECRYPT,
-	
+
 	ENCRYPTURL,
 
 	IDAUTHENCRYPTION,
@@ -96,47 +96,14 @@ public enum ApiName {
 	/** The fullname. */
 	FULLNAME,
 
-	/** The dateofbirth. */
-	DATEOFBIRTH,
-
-	/** The age. */
-	AGE,
-
-	/** The gender. */
-	GENDER,
-
 	/** The residencestatus. */
 	RESIDENCESTATUS,
-
-	/** The addressline1. */
-	ADDRESSLINE1,
-
-	/** The addressline2. */
-	ADDRESSLINE2,
-
-	/** The addressline3. */
-	ADDRESSLINE3,
-
-	/** The region. */
-	REGION,
-
-	/** The city. */
-	CITY,
-
-	/** The postalcode. */
-	POSTALCODE,
-
-	/** The province. */
-	PROVINCE,
 
 	/** The phone. */
 	PHONE,
 
 	/** The email. */
 	EMAIL,
-
-	/** The localadministrativeauthority. */
-	LOCALADMINISTRATIVEAUTHORITY,
 
 	/** The proofofidentity. */
 	PROOFOFIDENTITY,
@@ -150,24 +117,14 @@ public enum ApiName {
 	/** The proofofdateofbirth. */
 	PROOFOFDATEOFBIRTH,
 
-	/** The parentorguardianbiometrics. */
-	PARENTORGUARDIANBIOMETRICS,
+	/** The introducerbiometrics. */
+	INTRODUCERBIOMETRICS,
 
 	/** The idschemaversion. */
 	IDSCHEMAVERSION,
 
-	/** The decryption api from DMZ *. */
-
-	SYNCSERVICE,
-
 	/** The encryptionservice. */
 	ENCRYPTIONSERVICE,
-
-	/** The packetreceiver. */
-	PACKETRECEIVER,
-
-	/** The AUDIT api from DMZ *. */
-	DMZAUDIT,
 
 	/** The centerdetails. */
 	CENTERDETAILS,
@@ -177,9 +134,6 @@ public enum ApiName {
 
 	/** The external service. */
 	EISERVICE,
-
-	/** The ridgeneration. */
-	RIDGENERATION,
 
 	/** The retrieveidentity. */
 	RETRIEVEIDENTITY,
@@ -198,7 +152,7 @@ public enum ApiName {
 
 	/** get operator rid from id. */
 	GETRIDFROMUSERID,
-	
+
 	/** get individualId from userid. */
 	GETINDIVIDUALIDFROMUSERID,
 
@@ -211,8 +165,6 @@ public enum ApiName {
 	GETUINBYVID,
 
 	DEVICEVALIDATEHISTORY,
-	
-	PDFSIGN,
 
 	NGINXDMZURL,
 
@@ -228,10 +180,13 @@ public enum ApiName {
 	PACKETMANAGER_SEARCH_AUDITS,
 	PACKETMANAGER_UPDATE_TAGS,
 	PACKETMANAGER_DELETE_TAGS,
+	PACKETMANAGER_GET_TAGS,
 	DATASHARECREATEURL,
 	PMS,
 	DATASHAREGETEURL,
-	CREDENTIALREQUEST, GETVIDSBYUIN;
+	CREDENTIALREQUEST, GETVIDSBYUIN,
+	JWTVERIFY,
+	DEVICEHOTLIST;
 
 }
 

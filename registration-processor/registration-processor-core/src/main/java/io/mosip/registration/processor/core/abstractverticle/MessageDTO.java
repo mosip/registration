@@ -3,8 +3,6 @@ package io.mosip.registration.processor.core.abstractverticle;
 import java.io.Serializable;
 import java.util.Map;
 
-import io.mosip.registration.processor.core.constant.RegistrationType;
-
 /**
  * This class contains parameters for communication between MOSIP stages.
  *
@@ -15,25 +13,8 @@ public class MessageDTO implements Serializable {
 
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
-
-	/**
-	 * Instantiates a new message DTO.
-	 */
-	public MessageDTO() {
-		super();
-	}
-
 	/** The registration type. */
-	private RegistrationType reg_type;
-
-	public RegistrationType getReg_type() {
-		return reg_type;
-	}
-
-	public void setReg_type(RegistrationType reg_type) {
-		this.reg_type = reg_type;
-	}
-
+	private String reg_type;
 	/** The rid. */
 	private String rid;
 
@@ -54,6 +35,29 @@ public class MessageDTO implements Serializable {
 
 	/** The timestamp when last stage hop was completed */
 	private String lastHopTimestamp;
+
+	private String source;
+
+	private int iteration;
+
+	private String workflowInstanceId;
+
+	/**
+	 * Instantiates a new message DTO.
+	 */
+	public MessageDTO() {
+		super();
+	}
+
+
+
+	public String getReg_type() {
+		return reg_type;
+	}
+
+	public void setReg_type(String reg_type) {
+		this.reg_type = reg_type;
+	}
 
 	/**
 	 * Gets the rid.
@@ -185,6 +189,30 @@ public class MessageDTO implements Serializable {
 	 */
 	public void setLastHopTimestamp(String lastHopTimestamp) {
 		this.lastHopTimestamp = lastHopTimestamp;
+	}
+
+	public String getSource() {
+		return source;
+	}
+
+	public void setSource(String source) {
+		this.source = source;
+	}
+
+	public int getIteration() {
+		return iteration;
+	}
+
+	public void setIteration(int iteration) {
+		this.iteration = iteration;
+	}
+
+	public String getWorkflowInstanceId() {
+		return workflowInstanceId;
+	}
+
+	public void setWorkflowInstanceId(String workflowInstanceId) {
+		this.workflowInstanceId = workflowInstanceId;
 	}
 
 	@Override

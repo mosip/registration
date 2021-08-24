@@ -41,6 +41,7 @@ public class RegistrationExceptionMapperUtil {
 				RegistrationTransactionStatusCode.FAILED);
 
 		statusMap.put(RegistrationExceptionTypeCode.IOEXCEPTION, RegistrationTransactionStatusCode.ERROR);
+		statusMap.put(RegistrationExceptionTypeCode.VALIDATION_FAILED_EXCEPTION, RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.VIRUS_SCAN_FAILED_EXCEPTION,
 				RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.VIRUS_SCANNER_SERVICE_FAILED,
@@ -135,12 +136,13 @@ public class RegistrationExceptionMapperUtil {
 				RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.DEMO_DEDUPE_ABIS_RESPONSE_ERROR,
 				RegistrationTransactionStatusCode.REPROCESS);
-		statusMap.put(RegistrationExceptionTypeCode.OSI_FAILED_ON_HOLD_PARENT_PACKET,
+		statusMap.put(RegistrationExceptionTypeCode.OSI_FAILED_ON_HOLD_INTRODUCER_PACKET,
 				RegistrationTransactionStatusCode.REPROCESS);
-		statusMap.put(RegistrationExceptionTypeCode.PARENT_UIN_AND_RID_NOT_IN_PACKET,
+		statusMap.put(RegistrationExceptionTypeCode.INTRODUCER_UIN_AND_RID_NOT_IN_PACKET,
 				RegistrationTransactionStatusCode.FAILED);
-		statusMap.put(RegistrationExceptionTypeCode.PARENT_UIN_NOT_AVAIALBLE, RegistrationTransactionStatusCode.FAILED);
-		statusMap.put(RegistrationExceptionTypeCode.OSI_FAILED_REJECTED_PARENT,
+		statusMap.put(RegistrationExceptionTypeCode.INTRODUCER_UIN_NOT_AVAIALBLE,
+				RegistrationTransactionStatusCode.FAILED);
+		statusMap.put(RegistrationExceptionTypeCode.OSI_FAILED_REJECTED_INTRODUCER,
 				RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.SUPERVISORID_AND_OFFICERID_NOT_PRESENT_IN_PACKET,
 				RegistrationTransactionStatusCode.FAILED);
@@ -156,7 +158,7 @@ public class RegistrationExceptionMapperUtil {
 				RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.OFFICER_WAS_INACTIVE, RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.SUPERVISOR_WAS_INACTIVE, RegistrationTransactionStatusCode.FAILED);
-		statusMap.put(RegistrationExceptionTypeCode.PARENT_BIOMETRIC_NOT_IN_PACKET,
+		statusMap.put(RegistrationExceptionTypeCode.INTRODUCER_BIOMETRIC_NOT_IN_PACKET,
 				RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.OFFICER_BIOMETRIC_NOT_IN_PACKET,
 				RegistrationTransactionStatusCode.FAILED);

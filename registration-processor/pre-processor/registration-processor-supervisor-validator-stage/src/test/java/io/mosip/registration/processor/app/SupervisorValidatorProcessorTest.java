@@ -30,6 +30,7 @@ import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
+import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.AuthSystemException;
@@ -134,12 +135,12 @@ public class SupervisorValidatorProcessorTest {
 		dto.setRid("123456789");
 		dto.setInternalError(false);
 		dto.setIsValid(true);
-		dto.setReg_type(RegistrationType.NEW);
+		dto.setReg_type(RegistrationType.NEW.name());
 		stageName = "supervisorValidatorStage";
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("123456789");
 		registrationStatusDto.setRegistrationId("reg1234");
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any())).thenReturn(registrationStatusDto);
 	}
 
 	/**
@@ -148,11 +149,12 @@ public class SupervisorValidatorProcessorTest {
 	 * @throws Exception the exception
 	 */
 	@Test
-	public void testisValidOperatorSuccess() throws Exception {
+	public void testisValidSupervisorSuccess() throws Exception {
 
 		Mockito.doNothing().when(supervisorValidator).validate(anyString(), any(), any());
-		assertTrue(supervisorValidationProcessor.process(dto, stageName).getIsValid());
-		assertFalse(supervisorValidationProcessor.process(dto, stageName).getInternalError());
+		MessageDTO object = supervisorValidationProcessor.process(dto, stageName);
+		assertTrue(object.getIsValid());
+		assertFalse(object.getInternalError());
 	}
 
 	/**
@@ -164,8 +166,11 @@ public class SupervisorValidatorProcessorTest {
 	public void IOExceptionTest() throws Exception {
 
 		Mockito.doThrow(new IOException()).when(supervisorValidator).validate(anyString(), any(), any());
-		assertEquals(false, supervisorValidationProcessor.process(dto, stageName).getIsValid());
-		assertEquals(true, supervisorValidationProcessor.process(dto, stageName).getInternalError());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.IOEXCEPTION)).thenReturn("ERROR");
+		MessageDTO object = supervisorValidationProcessor.process(dto, stageName);
+		assertFalse(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 
 	@Test
@@ -173,8 +178,9 @@ public class SupervisorValidatorProcessorTest {
 
 		Mockito.doThrow(new ValidationFailedException("id", "message")).when(supervisorValidator).validate(anyString(),
 				any(), any());
-		assertEquals(false, supervisorValidationProcessor.process(dto, stageName).getIsValid());
-		assertEquals(false, supervisorValidationProcessor.process(dto, stageName).getInternalError());
+		MessageDTO object = supervisorValidationProcessor.process(dto, stageName);
+		assertFalse(object.getIsValid());
+		assertFalse(object.getInternalError());
 	}
 
 	@Test
@@ -182,17 +188,22 @@ public class SupervisorValidatorProcessorTest {
 
 		Mockito.doThrow(new ApisResourceAccessException("")).when(supervisorValidator).validate(anyString(), any(),
 				any());
-
-		assertEquals(false, supervisorValidationProcessor.process(dto, stageName).getIsValid());
-		assertEquals(true, supervisorValidationProcessor.process(dto, stageName).getInternalError());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
+		MessageDTO object = supervisorValidationProcessor.process(dto, stageName);
+		assertTrue(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 
 	@Test
 	public void exceptionTest() throws Exception {
 
 		Mockito.doThrow(new NullPointerException("")).when(supervisorValidator).validate(anyString(), any(), any());
-		assertEquals(false, supervisorValidationProcessor.process(dto, stageName).getIsValid());
-		assertEquals(true, supervisorValidationProcessor.process(dto, stageName).getInternalError());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.EXCEPTION)).thenReturn("ERROR");
+		MessageDTO object = supervisorValidationProcessor.process(dto, stageName);
+		assertFalse(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 
 	@Test
@@ -201,10 +212,12 @@ public class SupervisorValidatorProcessorTest {
 		HttpServerErrorException httpServerErrorException = new HttpServerErrorException(
 				HttpStatus.INTERNAL_SERVER_ERROR, "KER-FSE-004:encrypted data is corrupted or not base64 encoded");
 		Mockito.when(apisResourceAccessException.getCause()).thenReturn(httpServerErrorException);
-
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 		Mockito.doThrow(apisResourceAccessException).when(supervisorValidator).validate(anyString(), any(), any());
-		assertEquals(false, supervisorValidationProcessor.process(dto, stageName).getIsValid());
-		assertEquals(true, supervisorValidationProcessor.process(dto, stageName).getInternalError());
+		MessageDTO object = supervisorValidationProcessor.process(dto, stageName);
+		assertTrue(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 
 	@Test
@@ -213,9 +226,12 @@ public class SupervisorValidatorProcessorTest {
 		HttpClientErrorException httpClientErrorException = new HttpClientErrorException(
 				HttpStatus.INTERNAL_SERVER_ERROR, "KER-FSE-004:encrypted data is corrupted or not base64 encoded");
 		Mockito.when(apisResourceAccessException.getCause()).thenReturn(httpClientErrorException);
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 		Mockito.doThrow(apisResourceAccessException).when(supervisorValidator).validate(anyString(), any(), any());
-		assertEquals(false, supervisorValidationProcessor.process(dto, stageName).getIsValid());
-		assertEquals(true, supervisorValidationProcessor.process(dto, stageName).getInternalError());
+		MessageDTO object = supervisorValidationProcessor.process(dto, stageName);
+		assertTrue(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 
 	/**
@@ -228,8 +244,11 @@ public class SupervisorValidatorProcessorTest {
 
 		Mockito.doThrow(new DataAccessException("") {
 		}).when(supervisorValidator).validate(anyString(), any(), any());
-		assertEquals(false, supervisorValidationProcessor.process(dto, stageName).getIsValid());
-		assertEquals(true, supervisorValidationProcessor.process(dto, stageName).getInternalError());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.DATA_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
+		MessageDTO object = supervisorValidationProcessor.process(dto, stageName);
+		assertTrue(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 
 	@Test
@@ -237,8 +256,11 @@ public class SupervisorValidatorProcessorTest {
 
 		Mockito.doThrow(new AuthSystemException(StatusUtil.AUTH_SYSTEM_EXCEPTION.getMessage()))
 				.when(supervisorValidator).validate(anyString(), any(), any());
-		assertEquals(false, supervisorValidationProcessor.process(dto, stageName).getIsValid());
-		assertEquals(true, supervisorValidationProcessor.process(dto, stageName).getInternalError());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.AUTH_SYSTEM_EXCEPTION)).thenReturn("REPROCESS");
+		MessageDTO object = supervisorValidationProcessor.process(dto, stageName);
+		assertTrue(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 
 	@Test
@@ -246,7 +268,10 @@ public class SupervisorValidatorProcessorTest {
 
 		Mockito.doThrow(new PacketManagerException("id", "message")).when(supervisorValidator).validate(anyString(),
 				any(), any());
-		assertEquals(false, supervisorValidationProcessor.process(dto, stageName).getIsValid());
-		assertEquals(true, supervisorValidationProcessor.process(dto, stageName).getInternalError());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_EXCEPTION)).thenReturn("REPROCESS");
+		MessageDTO object = supervisorValidationProcessor.process(dto, stageName);
+		assertTrue(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 }

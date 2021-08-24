@@ -1,30 +1,10 @@
 package io.mosip.registration.processor.packet.storage.service.impl;
 
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.mosip.kernel.core.util.StringUtils;
-import io.mosip.registration.processor.core.constant.MappingJsonConstants;
-import io.mosip.registration.processor.core.constant.ProviderStageName;
-import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.stereotype.Service;
-
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.StringUtils;
+import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.AuditLogConstant;
 import io.mosip.registration.processor.core.code.DedupeSourceName;
@@ -32,7 +12,9 @@ import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.PacketFiles;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
@@ -56,7 +38,6 @@ import io.mosip.registration.processor.packet.storage.entity.AbisRequestEntity;
 import io.mosip.registration.processor.packet.storage.entity.IndividualDemographicDedupeEntity;
 import io.mosip.registration.processor.packet.storage.entity.ManualVerificationEntity;
 import io.mosip.registration.processor.packet.storage.entity.ManualVerificationPKEntity;
-import io.mosip.registration.processor.packet.storage.entity.RegAbisRefEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegBioRefEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegDemoDedupeListEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegLostUinDetEntity;
@@ -67,8 +48,27 @@ import io.mosip.registration.processor.packet.storage.exception.TablenotAccessib
 import io.mosip.registration.processor.packet.storage.exception.UnableToInsertData;
 import io.mosip.registration.processor.packet.storage.mapper.PacketInfoMapper;
 import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * The Class PacketInfoManagerImpl.
@@ -91,10 +91,6 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	/** The Constant DEMOGRAPHIC_APPLICANT. */
 	public static final String DEMOGRAPHIC_APPLICANT = PacketFiles.DEMOGRAPHIC.name() + FILE_SEPARATOR
 			+ PacketFiles.APPLICANT.name() + FILE_SEPARATOR;
-
-	/** The Reg abis ref repository. */
-	@Autowired
-	private BasePacketRepository<RegAbisRefEntity, String> regAbisRefRepository;
 
 	/** The reg bio ref repository. */
 	@Autowired
@@ -288,7 +284,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 * @param description
 	 */
 	private void saveIndividualDemographicDedupe(String regId, String process, LogDescription description,
-			String moduleId, String moduleName) throws Exception {
+			String moduleId, String moduleName, Integer iteration, String workflowInstanceId) throws Exception {
 
 		boolean isTransactionSuccessful = false;
 
@@ -296,7 +292,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 
 		try {
 			List<IndividualDemographicDedupeEntity> applicantDemographicEntities = PacketInfoMapper
-					.converDemographicDedupeDtoToEntity(demographicData, regId);
+					.converDemographicDedupeDtoToEntity(demographicData, regId,process,iteration, workflowInstanceId);
 			for (IndividualDemographicDedupeEntity applicantDemographicEntity : applicantDemographicEntities) {
 				demographicDedupeRepository.save(applicantDemographicEntity);
 
@@ -334,7 +330,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 */
 	@Override
 	public void saveIndividualDemographicDedupeUpdatePacket(IndividualDemographicDedupe demographicData,
-			String registrationId, String moduleId, String moduleName) {
+			String registrationId, String moduleId,String process, String moduleName,Integer iteration, String workflowInstanceId) {
 		boolean isTransactionSuccessful = false;
 		LogDescription description = new LogDescription();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
@@ -342,7 +338,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 
 		try {
 			List<IndividualDemographicDedupeEntity> applicantDemographicEntities = PacketInfoMapper
-					.converDemographicDedupeDtoToEntity(demographicData, registrationId);
+					.converDemographicDedupeDtoToEntity(demographicData, registrationId,process,iteration, workflowInstanceId);
 			for (IndividualDemographicDedupeEntity applicantDemographicEntity : applicantDemographicEntities) {
 				demographicDedupeRepository.save(applicantDemographicEntity);
 
@@ -381,7 +377,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 */
 	@Override
 	public void saveDemographicInfoJson(String registrationId, String process, String moduleId,
-			String moduleName) throws Exception {
+			String moduleName,Integer iteration, String workflowInstanceId) throws Exception {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"PacketInfoManagerImpl::saveDemographicInfoJson()::entry");
 		LogDescription description = new LogDescription();
@@ -391,7 +387,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 
 		try {
 
-			saveIndividualDemographicDedupe(registrationId, process, description, moduleId, moduleName);
+			saveIndividualDemographicDedupe(registrationId, process, description, moduleId, moduleName, iteration, workflowInstanceId);
 
 			isTransactionSuccessful = true;
 			description.setMessage("Demographic Json saved");
@@ -441,10 +437,11 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 * saveManualAdjudicationData(java.util.Set, java.lang.String)
 	 */
 	@Override
-	public void saveManualAdjudicationData(List<String> uniqueMatchedRefIds, String registrationId,
-			DedupeSourceName sourceName, String moduleId, String moduleName,String transactionId,String requestId) {
+	public void saveManualAdjudicationData(Set<String> uniqueMatchedRefIds, MessageDTO messageDTO,
+										   DedupeSourceName sourceName, String moduleId, String moduleName, String transactionId, String requestId) {
 		boolean isTransactionSuccessful = false;
 		LogDescription description = new LogDescription();
+		String registrationId = messageDTO.getRid();
 
 		try {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
@@ -454,8 +451,9 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 				ManualVerificationPKEntity manualVerificationPKEntity = new ManualVerificationPKEntity();
 				manualVerificationPKEntity.setMatchedRefId(matchedRefId);
 				manualVerificationPKEntity.setMatchedRefType(MATCHED_REFERENCE_TYPE);
-				manualVerificationPKEntity.setRegId(registrationId);
+				manualVerificationPKEntity.setWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
 
+				manualVerificationEntity.setRegId(registrationId);
 				manualVerificationEntity.setId(manualVerificationPKEntity);
 				manualVerificationEntity.setLangCode("eng");
 				manualVerificationEntity.setRequestId(UUID.randomUUID().toString());
@@ -517,8 +515,8 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 * getReferenceIdByRid(java.lang.String)
 	 */
 	@Override
-	public List<String> getReferenceIdByRid(String rid) {
-		return regAbisRefRepository.getReferenceIdByRid(rid);
+	public List<String> getReferenceIdByWorkflowInstanceId(String workflowInstanceId) {
+		return regBioRefRepository.getRefIdByWorkflowInstanceId(workflowInstanceId);
 	}
 
 	/*
@@ -530,7 +528,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 */
 	@Override
 	public List<String> getRidByReferenceId(String refId) {
-		return regAbisRefRepository.getRidByReferenceId(refId);
+		return regBioRefRepository.getRidByReferenceId(refId);
 	}
 
 	/*
@@ -541,19 +539,17 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 * saveAbisRef(io.mosip.registration.processor.core.packet.dto.RegAbisRefDto)
 	 */
 	@Override
-	public void saveAbisRef(RegAbisRefDto regAbisRefDto, String moduleId, String moduleName) {
+	public void saveAbisRef(RegBioRefDto regBioRefDto, String moduleId, String moduleName) {
 		boolean isTransactionSuccessful = false;
 		LogDescription description = new LogDescription();
-		String regisId = "";
+		String regId = regBioRefDto.getRegId();
 		try {
-
-			if (regAbisRefDto != null) {
-				regisId = regAbisRefDto.getReg_id();
+			if (regBioRefDto != null) {
 				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-						regisId, "PacketInfoManagerImpl::saveAbisRef()::entry");
+						regId, "PacketInfoManagerImpl::saveAbisRef()::entry");
 
-				RegAbisRefEntity regAbisRefEntity = PacketInfoMapper.convertRegAbisRefToEntity(regAbisRefDto);
-				regAbisRefRepository.save(regAbisRefEntity);
+				RegBioRefEntity regBioRefEntity = PacketInfoMapper.convertBioRefDtoToEntity(regBioRefDto);
+				regBioRefRepository.save(regBioRefEntity);
 				isTransactionSuccessful = true;
 				description.setMessage("ABIS data saved successfully");
 			}
@@ -561,7 +557,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 			description.setMessage("DataAccessLayerException while saving the ABIS data" + "::" + e.getMessage());
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
-			throw new UnableToInsertData(PlatformErrorMessages.RPR_PIS_UNABLE_TO_INSERT_DATA.getMessage() + regisId, e);
+			throw new UnableToInsertData(PlatformErrorMessages.RPR_PIS_UNABLE_TO_INSERT_DATA.getMessage() + regId, e);
 		} finally {
 
 			String eventId = isTransactionSuccessful ? EventId.RPR_407.toString() : EventId.RPR_405.toString();
@@ -575,7 +571,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 
 		}
 
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regisId,
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
 				"PacketInfoManagerImpl::saveAbisRef()::exit");
 
 	}
@@ -958,7 +954,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	}
 
 	@Override
-	public void saveRegLostUinDet(String regId, String latestRegId, String moduleId, String moduleName) {
+	public void saveRegLostUinDet(String regId, String workflowInstanceId, String latestRegId, String moduleId, String moduleName) {
 		boolean isTransactionSuccessful = false;
 		LogDescription description = new LogDescription();
 
@@ -967,8 +963,9 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 					"PacketInfoManagerImpl::saveRegLostUinDetData()::entry");
 			RegLostUinDetEntity regLostUinDetEntity = new RegLostUinDetEntity();
 			RegLostUinDetPKEntity regLostUinDetPKEntity = new RegLostUinDetPKEntity();
-			regLostUinDetPKEntity.setRegId(regId);
+			regLostUinDetPKEntity.setWorkflowInstanceId(workflowInstanceId);
 
+			regLostUinDetEntity.setRegId(regId);
 			regLostUinDetEntity.setId(regLostUinDetPKEntity);
 			regLostUinDetEntity.setLatestRegId(latestRegId);
 			regLostUinDetEntity.setCrBy("SYSTEM");
@@ -1014,6 +1011,12 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 			}
 		}
 		return null;
+	}
+
+	@Override
+	public List<RegBioRefDto> getRegBioRefDataByBioRefIds(List<String> bioRefId) {
+		List<RegBioRefEntity> regBioRefList = packetInfoDao.getRegBioRefDataByBioRefIds(bioRefId);
+		return PacketInfoMapper.convertRegBioRefEntityListToDto(regBioRefList);
 	}
 
 }

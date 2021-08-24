@@ -30,6 +30,8 @@ public class ExceptionBiometricsTagGeneratorTest {
 
 	private static String tagName = "EXCEPTION_BIOMETRICS";
 
+	private static String notAvailableTagValue = "--TAG_VALUE_NOT_AVAILABLE--";
+
 	@InjectMocks
 	private ExceptionBiometricsTagGenerator exceptionBiometricsTagGenerator;
 
@@ -50,6 +52,8 @@ public class ExceptionBiometricsTagGeneratorTest {
 		bioValueMapping.put("leftEye", "LE");
 		bioValueMapping.put("rightEye", "RE");
 		Whitebox.setInternalState(exceptionBiometricsTagGenerator, "bioValueMapping", bioValueMapping);
+		Whitebox.setInternalState(exceptionBiometricsTagGenerator, "notAvailableTagValue", 
+			notAvailableTagValue);
 	}
 
 	@Test
@@ -58,7 +62,7 @@ public class ExceptionBiometricsTagGeneratorTest {
 		metaInfoMap.put(JsonConstant.EXCEPTIONBIOMETRICS, 
 			"{\"applicant\" : {\"leftEye\" : {\"type\" : \"iris\", \"missingBiometric\" : \"leftEye\",\"reason\" : \"Missing biometrics\",\"exceptionType\" : \"Permanent\",\"individualType\" : \"INDIVIDUAL\"}}}");
 		Map<String, String> tags = 
-			exceptionBiometricsTagGenerator.generateTags("1234", "NEW", null, metaInfoMap);
+			exceptionBiometricsTagGenerator.generateTags("12345", "1234", "NEW", null, metaInfoMap, 0);
 		assertEquals("LE", tags.get(tagName));
 	}
 
@@ -69,7 +73,7 @@ public class ExceptionBiometricsTagGeneratorTest {
 		metaInfoMap.put(JsonConstant.EXCEPTIONBIOMETRICS, 
 			"{\n  \"introducer\" : { },\n  \"applicant-auth\" : { },\n  \"applicant\" : {\n    \"leftEye\" : {\n      \"type\" : \"Iris\",\n      \"missingBiometric\" : \"leftEye\",\n      \"reason\" : \"Temporary\",\n      \"exceptionType\" : \"Temporary\",\n      \"individualType\" : \"applicant\"\n    },\n    \"rightEye\" : {\n      \"type\" : \"Iris\",\n      \"missingBiometric\" : \"rightEye\",\n      \"reason\" : \"Temporary\",\n      \"exceptionType\" : \"Temporary\",\n      \"individualType\" : \"applicant\"\n    },\n    \"rightIndex\" : {\n      \"type\" : \"Finger\",\n      \"missingBiometric\" : \"rightIndex\",\n      \"reason\" : \"Temporary\",\n      \"exceptionType\" : \"Temporary\",\n      \"individualType\" : \"applicant\"\n    },\n    \"rightLittle\" : {\n      \"type\" : \"Finger\",\n      \"missingBiometric\" : \"rightLittle\",\n      \"reason\" : \"Temporary\",\n      \"exceptionType\" : \"Temporary\",\n      \"individualType\" : \"applicant\"\n    },\n    \"rightRing\" : {\n      \"type\" : \"Finger\",\n      \"missingBiometric\" : \"rightRing\",\n      \"reason\" : \"Temporary\",\n      \"exceptionType\" : \"Temporary\",\n      \"individualType\" : \"applicant\"\n    },\n    \"rightMiddle\" : {\n      \"type\" : \"Finger\",\n      \"missingBiometric\" : \"rightMiddle\",\n      \"reason\" : \"Temporary\",\n      \"exceptionType\" : \"Temporary\",\n      \"individualType\" : \"applicant\"\n    },\n    \"leftIndex\" : {\n      \"type\" : \"Finger\",\n      \"missingBiometric\" : \"leftIndex\",\n      \"reason\" : \"Temporary\",\n      \"exceptionType\" : \"Temporary\",\n      \"individualType\" : \"applicant\"\n    },\n    \"leftLittle\" : {\n      \"type\" : \"Finger\",\n      \"missingBiometric\" : \"leftLittle\",\n      \"reason\" : \"Temporary\",\n      \"exceptionType\" : \"Temporary\",\n      \"individualType\" : \"applicant\"\n    },\n    \"leftRing\" : {\n      \"type\" : \"Finger\",\n      \"missingBiometric\" : \"leftRing\",\n      \"reason\" : \"Temporary\",\n      \"exceptionType\" : \"Temporary\",\n      \"individualType\" : \"applicant\"\n    },\n    \"leftMiddle\" : {\n      \"type\" : \"Finger\",\n      \"missingBiometric\" : \"leftMiddle\",\n      \"reason\" : \"Temporary\",\n      \"exceptionType\" : \"Temporary\",\n      \"individualType\" : \"applicant\"\n    },\n    \"leftThumb\" : {\n      \"type\" : \"Finger\",\n      \"missingBiometric\" : \"leftThumb\",\n      \"reason\" : \"Temporary\",\n      \"exceptionType\" : \"Temporary\",\n      \"individualType\" : \"applicant\"\n    },\n    \"rightThumb\" : {\n      \"type\" : \"Finger\",\n      \"missingBiometric\" : \"rightThumb\",\n      \"reason\" : \"Temporary\",\n      \"exceptionType\" : \"Temporary\",\n      \"individualType\" : \"applicant\"\n    }\n  }\n}");
 		Map<String, String> tags = 
-			exceptionBiometricsTagGenerator.generateTags("1234", "NEW", null, metaInfoMap);
+			exceptionBiometricsTagGenerator.generateTags("12345", "1234", "NEW", null, metaInfoMap, 0);
 		assertEquals("LL,LR,LM,LI,LT,RL,RR,RM,RI,RT,LE,RE", tags.get(tagName));
 	}
 
@@ -78,7 +82,7 @@ public class ExceptionBiometricsTagGeneratorTest {
 		Map<String, String> metaInfoMap = new HashMap<>();
 		metaInfoMap.put(JsonConstant.EXCEPTIONBIOMETRICS, "{\"applicant\" : {}}");
 		Map<String, String> tags = 
-			exceptionBiometricsTagGenerator.generateTags("1234", "NEW", null, metaInfoMap);
+			exceptionBiometricsTagGenerator.generateTags("12345", "1234", "NEW", null, metaInfoMap, 0);
 		assertEquals("", tags.get(tagName));
 	}
 
@@ -87,8 +91,8 @@ public class ExceptionBiometricsTagGeneratorTest {
 		Map<String, String> metaInfoMap = new HashMap<>();
 		metaInfoMap.put(JsonConstant.EXCEPTIONBIOMETRICS, "{}");
 		Map<String, String> tags = 
-			exceptionBiometricsTagGenerator.generateTags("1234", "NEW", null, metaInfoMap);
-		assertEquals("", tags.get(tagName));
+			exceptionBiometricsTagGenerator.generateTags("12345", "1234", "NEW", null, metaInfoMap, 0);
+		assertEquals(notAvailableTagValue, tags.get(tagName));
 	}
 
 	@Test(expected = ParsingException.class)
@@ -97,7 +101,7 @@ public class ExceptionBiometricsTagGeneratorTest {
 		Map<String, String> metaInfoMap = new HashMap<>();
 		metaInfoMap.put(JsonConstant.EXCEPTIONBIOMETRICS, 
 			"\"type\" : \"iris\", \"missingBiometric\" : \"leftEye\",\"reason\" : \"Missing biometrics\",\"exceptionType\" : \"Permanent\",\"individualType\" : \"INDIVIDUAL\"}]");
-		exceptionBiometricsTagGenerator.generateTags("1234", "NEW", null, metaInfoMap);
+		exceptionBiometricsTagGenerator.generateTags("12345", "1234", "NEW", null, metaInfoMap, 0);
 	}
 
 	@Test
@@ -105,8 +109,8 @@ public class ExceptionBiometricsTagGeneratorTest {
 		throws BaseCheckedException {
 		Map<String, String> metaInfoMap = new HashMap<>();
 		Map<String, String> tags = 
-			exceptionBiometricsTagGenerator.generateTags("1234", "NEW", null, metaInfoMap);
-		assertEquals("", tags.get(tagName));
+			exceptionBiometricsTagGenerator.generateTags("12345", "1234", "NEW", null, metaInfoMap, 0);
+		assertEquals(notAvailableTagValue, tags.get(tagName));
 	}
 	
 }

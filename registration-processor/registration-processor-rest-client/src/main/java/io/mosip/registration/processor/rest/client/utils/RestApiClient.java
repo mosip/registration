@@ -9,6 +9,7 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import javax.annotation.PostConstruct;
 import javax.net.ssl.SSLContext;
 
 import io.mosip.registration.processor.core.tracing.ContextualData;
@@ -37,6 +38,7 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 import com.google.gson.Gson;
@@ -73,6 +75,15 @@ public class RestApiClient {
 
 	private static final String AUTHORIZATION = "Authorization=";
 
+	RestTemplate localRestTemplate;
+
+	@PostConstruct
+	private void loadRestTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
+		localRestTemplate = getRestTemplate();
+		logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
+				LoggerFileConstant.APPLICATIONID.toString(), "loadRestTemplate completed successfully");
+	}
+
 
 	/**
 	 * Gets the api. *
@@ -85,15 +96,14 @@ public class RestApiClient {
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T getApi(URI uri, Class<?> responseType) throws Exception {
-		RestTemplate restTemplate;
 		T result = null;
 		try {
-			restTemplate = getRestTemplate();
-			result = (T) restTemplate.exchange(uri, HttpMethod.GET, setRequestHeader(null, null), responseType)
+			result = (T) localRestTemplate.exchange(uri, HttpMethod.GET, setRequestHeader(null, null), responseType)
 					.getBody();
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					LoggerFileConstant.APPLICATIONID.toString(), e.getMessage() + ExceptionUtils.getStackTrace(e));
+			tokenExceptionHandler(e);
 			throw e;
 		}
 		return result;
@@ -115,18 +125,16 @@ public class RestApiClient {
 	@SuppressWarnings("unchecked")
 	public <T> T postApi(String uri, MediaType mediaType, Object requestType, Class<?> responseClass) throws Exception {
 
-		RestTemplate restTemplate;
 		T result = null;
 		try {
-			restTemplate = getRestTemplate();
 			logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					LoggerFileConstant.APPLICATIONID.toString(), uri);
-			result = (T) restTemplate.postForObject(uri, setRequestHeader(requestType, mediaType), responseClass);
+			result = (T) localRestTemplate.postForObject(uri, setRequestHeader(requestType, mediaType), responseClass);
 
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					LoggerFileConstant.APPLICATIONID.toString(), e.getMessage() + ExceptionUtils.getStackTrace(e));
-
+			tokenExceptionHandler(e);
 			throw e;
 		}
 		return result;
@@ -149,19 +157,16 @@ public class RestApiClient {
 	public <T> T patchApi(String uri, MediaType mediaType, Object requestType, Class<?> responseClass)
 			throws Exception {
 
-		RestTemplate restTemplate;
 		T result = null;
 		try {
-			restTemplate = getRestTemplate();
 			logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					LoggerFileConstant.APPLICATIONID.toString(), uri);
-			result = (T) restTemplate.patchForObject(uri, setRequestHeader(requestType, mediaType), responseClass);
+			result = (T) localRestTemplate.patchForObject(uri, setRequestHeader(requestType, mediaType), responseClass);
 
 		} catch (Exception e) {
-
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					LoggerFileConstant.APPLICATIONID.toString(), e.getMessage() + ExceptionUtils.getStackTrace(e));
-
+			tokenExceptionHandler(e);
 			throw e;
 		}
 		return result;
@@ -190,28 +195,28 @@ public class RestApiClient {
 	@SuppressWarnings("unchecked")
 	public <T> T putApi(String uri, Object requestType, Class<?> responseClass, MediaType mediaType) throws Exception {
 
-		RestTemplate restTemplate;
 		T result = null;
 		ResponseEntity<T> response = null;
 		try {
-			restTemplate = getRestTemplate();
 			logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					LoggerFileConstant.APPLICATIONID.toString(), uri);
 
-			response = (ResponseEntity<T>) restTemplate.exchange(uri, HttpMethod.PUT,
+			response = (ResponseEntity<T>) localRestTemplate.exchange(uri, HttpMethod.PUT,
 					setRequestHeader(requestType.toString(), mediaType), responseClass);
 			result = response.getBody();
 		} catch (Exception e) {
-
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					LoggerFileConstant.APPLICATIONID.toString(), e.getMessage() + ExceptionUtils.getStackTrace(e));
-
+			tokenExceptionHandler(e);
 			throw e;
 		}
 		return result;
 	}
 
 	public RestTemplate getRestTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
+		if(localRestTemplate != null)
+			return localRestTemplate;
+
 		logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 				LoggerFileConstant.APPLICATIONID.toString(), Arrays.asList(environment.getActiveProfiles()).toString());
 		if (Arrays.stream(environment.getActiveProfiles()).anyMatch("dev-k8"::equals)) {
@@ -300,8 +305,6 @@ public class RestApiClient {
 
 		Gson gson = new Gson();
 		HttpClient httpClient = HttpClientBuilder.create().build();
-		// HttpPost post = new
-		// HttpPost(environment.getProperty("PASSWORDBASEDTOKENAPI"));
 		HttpPost post = new HttpPost(environment.getProperty("KEYBASEDTOKENAPI"));
 		try {
 			StringEntity postingString = new StringEntity(gson.toJson(tokenRequestDTO));
@@ -334,13 +337,15 @@ public class RestApiClient {
 		return request;
 	}
 
-	private PasswordRequest setPasswordRequestDTO() {
-
-		PasswordRequest request = new PasswordRequest();
-		request.setAppId(environment.getProperty("token.request.appid"));
-		request.setPassword(environment.getProperty("token.request.password"));
-		request.setUserName(environment.getProperty("token.request.username"));
-		return request;
+	public void tokenExceptionHandler(Exception e) {
+		if (e instanceof HttpStatusCodeException) {
+			HttpStatusCodeException ex = (HttpStatusCodeException) e;
+			if (ex.getRawStatusCode() == 401) {
+				logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
+						LoggerFileConstant.APPLICATIONID.toString(), "Authentication failed. Resetting auth token.");
+				System.setProperty("token", "");
+			}
+		}
 	}
 
 

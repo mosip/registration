@@ -17,14 +17,14 @@ public enum StatusUtil {
 	PACKET_CLEANUP_FAILED(StatusConstants.PACKET_UPLOADER_MODULE_FAILED + "001","Packet Clean Up Failed from Landing Zone"), 
 	PACKET_ARCHIVAL_FAILED(StatusConstants.PACKET_UPLOADER_MODULE_FAILED + "002","Packet Archival Failed"),
 	PACKET_UPLOAD_FAILED(StatusConstants.PACKET_UPLOADER_MODULE_FAILED + "003","Packet Upload Failed"),
-	PACKET_NOT_FOUND_LANDING_ZIONE(StatusConstants.PACKET_UPLOADER_MODULE_FAILED + "004","Packet Not Found in Landing Zone"),
+	PACKET_NOT_FOUND_LANDING_ZONE(StatusConstants.PACKET_UPLOADER_MODULE_FAILED + "004","Packet Not Found in Landing Zone"),
 	PACKET_HASHCODE_VALIDATION_FAILED(StatusConstants.PACKET_UPLOADER_MODULE_FAILED + "005","Packet Hash Code Validation Failed"),
 	VIRUS_SCANNER_FAILED_UPLOADER(StatusConstants.PACKET_UPLOADER_MODULE_FAILED + "006","Packet is Virus Infected"),
 	PACKET_UPLOAD_DECRYPTION_FAILED(StatusConstants.PACKET_UPLOADER_MODULE_FAILED + "007", "Packet Decryption Failed"),
 	PACKET_RETRY_CNT_EXCEEDED(StatusConstants.PACKET_UPLOADER_MODULE_FAILED + "008", "Retry count has exceeded the maximum limit specified"),
 	
 	// Quality checker stage
-	INDIVIDUAL_BIOMETRIC_NOT_FOUND(StatusConstants.QUALITY_CHECKER_MODULE_SUCCESS + "001","Individual Biometric Parameter Not Found in ID JSON"), 
+	INDIVIDUAL_BIOMETRIC_NOT_FOUND(StatusConstants.QUALITY_CHECKER_MODULE_SUCCESS + "001","Individual Biometric Parameter Not Found in ID JSON so skipping biometric classification"),
 	BIOMETRIC_QUALITY_CHECK_SUCCESS(StatusConstants.QUALITY_CHECKER_MODULE_SUCCESS + "002","Biometric Quality Check is Successful"),
 	BIOMETRIC_QUALITY_CHECK_FAILED(StatusConstants.QUALITY_CHECKER_MODULE_FAILED + "001","Quality Score of Biometrics Captured is Below the Threshold"),
 
@@ -45,6 +45,7 @@ public enum StatusUtil {
 	BIOMETRICS_VALIDATION_FAILURE(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "013", "Biometric file validation failed"),
 	PACKET_MANAGER_EXCEPTION(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "014", "Exception occured in packet manager."),
 	XSD_VALIDATION_EXCEPTION(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "015", "XSD validation failed."),
+	BIOMETRICS_SIGNATURE_VALIDATION_FAILURE(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "016", "Biometric Signature validation failed"),
 
 	// packet classifier stage
 	PACKET_CLASSIFICATION_SUCCESS(StatusConstants.PACKET_CLASSIFIER_MODULE_SUCCESS + "001","Packet Classification is Successful"),
@@ -70,7 +71,11 @@ public enum StatusUtil {
 	FAILED_TO_GET_CENTER_DETAIL(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "013", "Failed to Get center id details "),
 	VALIDATION_FAILED_EXCEPTION(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "014", "Exception occured due to validation failure."),
 	MACHINE_ID_NOT_FOUND_MASTER_DB(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "015", "MachineId not found in master db - "),
-	
+	TIMESTAMP_NOT_VALID(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "016"  ,"digital id timestamp is not within acctable time range of packet creation time"),
+	DEVICE_HOTLISTED(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "017"  ,"Device has been hot listed"),
+	DEVICE_SIGNATURE_VALIDATION_FAILED(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "018", "DigitalId signature Validation Failed"),
+	CMD_LANGUAGE_NOT_SET(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "019", "Mandatory/Optional Language not set for CMD validation."),
+
 	// Operator Validator stage
 	OPERATOR_VALIDATION_SUCCESS(StatusConstants.OVM_VALIDAOR_MODULE_SUCCESS + "001", "OPERATOR Validation is Successful"),
 	OFFICER_NOT_ACTIVE(StatusConstants.OVM_VALIDAOR_MODULE_FAILED + "001","OfficerId is inActive"),
@@ -91,9 +96,9 @@ public enum StatusUtil {
 	// Introducer Validator stage
 	INTRODUCER_VALIDATION_SUCCESS(StatusConstants.IVM_VALIDAOR_MODULE_SUCCESS + "001", "INTRODUCER Validation is Successful"),
 	INTRODUCER_AUTHENTICATION_FAILED(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "001","INTRODUCER Biometric Authentication Failed - "),
-	UIN_RID_NOT_FOUND(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "002", "UIN or RID of Parent Not Found in Packet"),
-	PARENT_UIN_NOT_FOUND(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "003", "Parent UIN not Found for the Given RID"),
-	PARENT_BIOMETRIC_FILE_NAME_NOT_FOUND(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "004", "Parent Biometric File Name Not Found"),
+	UIN_RID_NOT_FOUND(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "002", "UIN or RID of Introducer Not Found in Packet"),
+	INTRODUCER_UIN_NOT_FOUND(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "003", "Introducer UIN not Found for the Given RID"),
+	INTRODUCER_BIOMETRIC_FILE_NAME_NOT_FOUND(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "004", "Introducer Biometric File Name Not Found"),
 	PACKET_ON_HOLD(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "005", "Packet On-Hold as Parent RID Not Found"),
 	CHILD_PACKET_REJECTED(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "006", "Packet Rejected as Parent Packet is Rejected"),
 	PACKET_IS_ON_HOLD(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "007", "Packet is on Hold due to parent packet processing"),
@@ -145,7 +150,8 @@ public enum StatusUtil {
 	
 	// Manual verification stage
 	MANUAL_VERIFIER_APPROVED_PACKET(StatusConstants.MANUAL_VERIFICATION_MODULE_SUCCESS + "001", "Match Not Found by Manual Verifier"), 
-	MANUAL_VERIFIER_REJECTED_PACKET(StatusConstants.MANUAL_VERIFICATION_MODULE_FAILED + "001", "Match Found by Manual Verifier"),
+	MANUAL_VERIFIER_REJECTED_PACKET(StatusConstants.MANUAL_VERIFICATION_MODULE_FAILED + "002", "Match Found by Manual Verifier"),
+	RPR_MANUAL_VERIFICATION_RESEND(StatusConstants.MANUAL_VERIFICATION_MODULE_FAILED + "003", "Error in manual verification"),
 
 	// Uin generator stage
 	UIN_GENERATED_SUCCESS(StatusConstants.UIN_GENERATOR_MODULE_SUCCESS + "001","UIN Generated Successfully"), 
@@ -229,8 +235,8 @@ public enum StatusUtil {
     MESSAGE_SENDER_NOTIFICATION_FAILED(StatusConstants.MESSAGE_SENDER__FAILED_CODE + "006","Notification was not sent as the required mode of channel was not available"),
 	VID_CREATION_FAILED(StatusConstants.UIN_GENERATOR_MODULE_FAILED + "009", "VID creation failed -"),
 
-	WORKFLOW_EVENT_UPDATE_SUCCESS(StatusConstants.WORKFLOW_EVENT_UPDATE + "001",
-			"Packet workflow updated successfully"),
+	WORKFLOW_INTERNAL_ACTION_SUCCESS(StatusConstants.WORKFLOW_INTERNAL_ACTION + "001",
+			"Packet workflow internal action completed successfully"),
 	
 	WORKFLOW_ACTION_SERVICE_SUCCESS(StatusConstants.WORKFLOW_ACTION_SERVICE + "001",
 			"Packet workflow resume  successfully");

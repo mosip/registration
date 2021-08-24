@@ -45,8 +45,8 @@ public enum RegistrationTransactionTypeCode {
 	/** The reprocess. */
 	PACKET_REPROCESS,
 
-	/** The Quality Check. */
-	QUALITY_CHECK,
+	/** The Quality Classifier. */
+	QUALITY_CLASSIFIER,
 
 	/** The biometric Authentication. */
 	BIOMETRIC_AUTHENTICATION,
@@ -55,10 +55,9 @@ public enum RegistrationTransactionTypeCode {
 	SECUREZONE_NOTIFICATION,
 
 
-	/** The workflow pause. */
-	WORKFLOW_PAUSE,
+	/** The internal workflow action. */
+	INTERNAL_WORKFLOW_ACTION,
 
 	/** The workflow resume. */
 	WORKFLOW_RESUME;
-
 }

@@ -7,15 +7,13 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
-import io.mosip.kernel.core.util.exception.JsonProcessingException;
-import io.mosip.registration.processor.core.constant.ProviderStageName;
-import io.mosip.registration.processor.core.exception.PacketManagerException;
-import io.mosip.registration.processor.packet.storage.dto.ConfigEnum;
-import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -36,11 +34,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.constant.IdType;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.TemplateProcessingFailureException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -61,7 +62,9 @@ import io.mosip.registration.processor.message.sender.exception.PhoneNumberNotFo
 import io.mosip.registration.processor.message.sender.exception.TemplateGenerationFailedException;
 import io.mosip.registration.processor.message.sender.exception.TemplateNotFoundException;
 import io.mosip.registration.processor.message.sender.template.TemplateGenerator;
+import io.mosip.registration.processor.packet.storage.dto.ConfigEnum;
 import io.mosip.registration.processor.packet.storage.exception.IdRepoAppException;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 import io.mosip.registration.processor.status.code.RegistrationType;
@@ -99,13 +102,6 @@ public class MessageNotificationServiceImpl
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(MessageNotificationServiceImpl.class);
 
-	/** The primary language. */
-	@Value("${mosip.primary-language}")
-	private String primaryLang;
-
-	@Value("${mosip.secondary-language}")
-	private String secondaryLang;
-
 	@Value("${mosip.notification.language-type}")
 	private String languageType;
 
@@ -128,6 +124,12 @@ public class MessageNotificationServiceImpl
 	/** The rest client service. */
 	@Autowired
 	private RegistrationProcessorRestClientService<Object> restClientService;
+	
+	@Value("${mosip.default.template-languages:#{null}}")
+	private String defaultTemplateLanguages;
+	
+	@Value("${mosip.default.user-preferred-language-attribute:#{null}}")
+	private String userPreferredLanguageAttribute;
 
 	/** The resclient. */
 	@Autowired
@@ -164,13 +166,17 @@ public class MessageNotificationServiceImpl
 				"MessageNotificationServiceImpl::sendSmsNotification()::entry");
 		try {
 			setAttributes(id, process, idType, attributes, regType, phoneNumber, emailId);
-			InputStream in = templateGenerator.getTemplate(templateTypeCode, attributes, primaryLang);
-			String artifact = IOUtils.toString(in, ENCODING);
-			if(languageType.equalsIgnoreCase(BOTH)){
-				InputStream secondaryStream = templateGenerator.getTemplate(templateTypeCode, attributes, secondaryLang);
-				String secondaryArtifact = IOUtils.toString(secondaryStream, ENCODING);
-				artifact = artifact + LINE_SEPARATOR + secondaryArtifact;
+			List<String> preferredLanguages= getPreferredLanguages(id,process);
+			String artifact="";
+			for(String lang: preferredLanguages) {
+				InputStream stream = templateGenerator.getTemplate(templateTypeCode, attributes, lang);
+				if(artifact.isBlank()) {
+				 artifact = IOUtils.toString(stream, ENCODING);
+				}else {
+				artifact = artifact + LINE_SEPARATOR + IOUtils.toString(stream, ENCODING);;
+				}
 			}
+			
 
 			if (phoneNumber == null || phoneNumber.length() == 0) {
 				throw new PhoneNumberNotFoundException(PlatformErrorMessages.RPR_SMS_PHONE_NUMBER_NOT_FOUND.getCode());
@@ -222,7 +228,7 @@ public class MessageNotificationServiceImpl
 	 */
 	@Override
 	public ResponseDto sendEmailNotification(String templateTypeCode, String id, String process, IdType idType,
-			Map<String, Object> attributes, String[] mailCc, String subject, MultipartFile[] attachment, String regType)
+			Map<String, Object> attributes, String[] mailCc, String subjectCode, MultipartFile[] attachment, String regType)
 			throws Exception {
 		ResponseDto response = null;
 		StringBuilder emailId = new StringBuilder();
@@ -231,21 +237,26 @@ public class MessageNotificationServiceImpl
 				"MessageNotificationServiceImpl::sendEmailNotification()::entry");
 		try {
 			setAttributes(id, process, idType, attributes, regType, phoneNumber, emailId);
+			List<String> preferredLanguages= getPreferredLanguages(id,process);
+			String artifact="";
+			String subject="";
+			for(String lang: preferredLanguages) {
+				InputStream stream = templateGenerator.getTemplate(templateTypeCode, attributes, lang);	
+				
+				artifact = IOUtils.toString(stream, ENCODING);
+				
+				InputStream subStream = templateGenerator.getTemplate(subjectCode, attributes, lang);
+				
+				subject=IOUtils.toString(subStream, ENCODING);
+				if (emailId == null || emailId.length() == 0) {
+					throw new EmailIdNotFoundException(PlatformErrorMessages.RPR_EML_EMAILID_NOT_FOUND.getCode());
+				}
+				String[] mailTo = { emailId.toString() };
 
-			InputStream in = templateGenerator.getTemplate(templateTypeCode, attributes, primaryLang);
-			String artifact = IOUtils.toString(in, ENCODING);
-			if(languageType.equalsIgnoreCase(BOTH)){
-				InputStream secondaryStream = templateGenerator.getTemplate(templateTypeCode, attributes, secondaryLang);
-				String secondaryArtifact = IOUtils.toString(secondaryStream, ENCODING);
-				artifact = artifact + LINE_SEPARATOR + secondaryArtifact;
+				response = sendEmail(mailTo, mailCc, subject, artifact, attachment);
 			}
 
-			if (emailId == null || emailId.length() == 0) {
-				throw new EmailIdNotFoundException(PlatformErrorMessages.RPR_EML_EMAILID_NOT_FOUND.getCode());
-			}
-			String[] mailTo = { emailId.toString() };
-
-			response = sendEmail(mailTo, mailCc, subject, artifact, attachment);
+			
 
 		} catch (TemplateNotFoundException | TemplateProcessingFailureException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -263,6 +274,53 @@ public class MessageNotificationServiceImpl
 				"MessageNotificationServiceImpl::sendEmailNotification()::exit");
 
 		return response;
+	}
+	
+	private List<String> getPreferredLanguages(String id, String process) throws ApisResourceAccessException, 
+	PacketManagerException, JsonProcessingException, IOException {
+		if(userPreferredLanguageAttribute!=null && !userPreferredLanguageAttribute.isBlank()) {
+			String preferredLang=packetManagerService.getField(id, userPreferredLanguageAttribute, process, 
+					ProviderStageName.MESSAGE_SENDER);
+			if(preferredLang!=null && !preferredLang.isBlank()) {
+				return List.of(preferredLang.split(","));
+			}
+		}
+		if(defaultTemplateLanguages!=null && !defaultTemplateLanguages.isBlank()) {
+			return List.of(defaultTemplateLanguages.split(","));
+		}
+		Map<String,String> idValuesMap=packetManagerService.getAllFieldsByMappingJsonKeys(id, process, 
+						ProviderStageName.MESSAGE_SENDER);
+		List<String> idValues=new ArrayList<>();
+		for(Entry<String, String> entry: idValuesMap.entrySet()) {
+		    if(entry.getValue()!=null && !entry.getValue().isBlank()) {
+		       	idValues.add(entry.getValue());
+		    }
+		}
+		Set<String> langSet=new HashSet<>();
+		for( String idValue:idValues) {
+			if(idValue!=null&& !idValue.isBlank()  ) {
+				if(isJSONArrayValid(idValue)) {
+					ObjectMapper mapper=new ObjectMapper();
+					JSONArray array=mapper.readValue(idValue, JSONArray.class);
+					for(Object obj:array) {	
+						JSONObject json= new JSONObject( (Map) obj);
+						langSet.add( (String) json.get("language"));			
+					}
+				}
+			}
+		}
+		return new ArrayList<>(langSet);
+	}
+				
+	
+	
+	public boolean isJSONArrayValid(String jsonArrayString) {
+	        try {
+	            new org.json.JSONArray(jsonArrayString);
+	        } catch (JSONException ex) {
+	            return false;
+	        }
+	    return true;
 	}
 
 	/**

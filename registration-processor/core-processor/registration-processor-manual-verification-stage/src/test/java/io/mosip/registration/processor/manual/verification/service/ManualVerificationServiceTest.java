@@ -1,26 +1,36 @@
 package io.mosip.registration.processor.manual.verification.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Matchers.anyString;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 
-import org.assertj.core.util.Arrays;
+import org.apache.commons.io.IOUtils;
+import org.assertj.core.api.Assertions;
+import org.assertj.core.groups.Tuple;
 import org.assertj.core.util.Lists;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -42,7 +52,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.kernel.master.dto.UserResponseDTO;
 import io.mosip.registration.processor.core.kernel.master.dto.UserResponseDTOWrapper;
@@ -59,11 +68,6 @@ import io.mosip.registration.processor.manual.verification.dto.ManualVerificatio
 import io.mosip.registration.processor.manual.verification.dto.MatchDetail;
 import io.mosip.registration.processor.manual.verification.dto.UserDto;
 import io.mosip.registration.processor.manual.verification.exception.InvalidFileNameException;
-import io.mosip.registration.processor.manual.verification.exception.InvalidUpdateException;
-import io.mosip.registration.processor.manual.verification.exception.MatchTypeNotFoundException;
-import io.mosip.registration.processor.manual.verification.exception.NoRecordAssignedException;
-import io.mosip.registration.processor.manual.verification.exception.UserIDNotPresentException;
-import io.mosip.registration.processor.manual.verification.response.dto.AnalyticsDTO;
 import io.mosip.registration.processor.manual.verification.response.dto.Candidate;
 import io.mosip.registration.processor.manual.verification.response.dto.CandidateList;
 import io.mosip.registration.processor.manual.verification.response.dto.ManualAdjudicationResponseDTO;
@@ -78,6 +82,7 @@ import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import org.slf4j.LoggerFactory;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @RunWith(PowerMockRunner.class)
@@ -118,6 +123,9 @@ public class ManualVerificationServiceTest {
 	private ManualVerificationDTO manualVerificationDTO;
 	private MatchDetail matchDetail=new MatchDetail();
 	private ManualVerificationEntity manualVerificationEntity;
+	private ListAppender<ILoggingEvent> listAppender;
+	private Logger regprocLogger;
+	ClassLoader classLoader;
 
 	private String stageName = "ManualVerificationStage";
 
@@ -140,6 +148,7 @@ public class ManualVerificationServiceTest {
 
 	@Before
 	public void setup() throws SecurityException, IllegalArgumentException {
+
 		queue=new MosipQueue() {
 			
 			@Override
@@ -154,18 +163,27 @@ public class ManualVerificationServiceTest {
 				
 			}
 		};
+
+		regprocLogger = (Logger) LoggerFactory.getLogger(ManualVerificationServiceImpl.class);
+		listAppender = new ListAppender<>();
+		classLoader = getClass().getClassLoader();
+
 		ReflectionTestUtils.setField(manualAdjudicationService, "restClientService", restClientService);
-		manualVerificationEntity = new ManualVerificationEntity();
+
 		manualVerificationDTO = new ManualVerificationDTO();
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		dto = new UserDto();
+
+		PKId = new ManualVerificationPKEntity();
+		PKId.setMatchedRefId("10002100880000920210628085700");
+		PKId.setMatchedRefType("Type");
+		PKId.setWorkflowInstanceId("WorkflowInstanceId");
+		dto.setUserId("mvusr22");
+
 		entities = new ArrayList<ManualVerificationEntity>();
 		entitiesTemp = new ArrayList<ManualVerificationEntity>();
-		PKId = new ManualVerificationPKEntity();
-		PKId.setMatchedRefId("RefID");
-		PKId.setMatchedRefType("Type");
-		PKId.setRegId("RegID");
-		dto.setUserId("mvusr22");
+		manualVerificationEntity = new ManualVerificationEntity();
+		manualVerificationEntity.setRegId("10002100741000320210107125533");
 		manualVerificationEntity.setCrBy("regprc");
 		manualVerificationEntity.setMvUsrId("test");
 		manualVerificationEntity.setIsActive(true);
@@ -178,6 +196,8 @@ public class ManualVerificationServiceTest {
 		manualVerificationEntity.setIsActive(true);
 		manualVerificationEntity.setId(PKId);
 		manualVerificationEntity.setLangCode("eng");
+		entities.add(manualVerificationEntity);
+
 		matchDetail.setMatchedRefType("Type");
 		matchDetail.setMatchedRegId("RefID");
 		matchDetail.setReasonCode(null);
@@ -194,7 +214,7 @@ public class ManualVerificationServiceTest {
 		list.add(matchDetail);
 		manualVerificationDTO.setGallery(list);
 		manualVerificationDTO.setStatusCode("PENDING");
-		entities.add(manualVerificationEntity);
+
 		Mockito.when(basePacketRepository.getFirstApplicantDetails(ManualVerificationStatus.PENDING.name(), "DEMO"))
 				.thenReturn(entities);
 		Mockito.when(basePacketRepository.getAssignedApplicantDetails(any(), any())).thenReturn(entities);
@@ -215,201 +235,20 @@ public class ManualVerificationServiceTest {
 		CandidateList candidateList=new CandidateList();
 		candidateList.setCount(0);
 		manualAdjudicationResponseDTO.setCandidateList(candidateList);
-		Mockito.when(basePacketRepository.getRegistrationIdbyRequestId(anyString())).thenReturn(Lists.newArrayList(registrationStatusDto.getRegistrationId()));
+		Mockito.when(basePacketRepository.getRegistrationIdbyRequestId(anyString())).thenReturn(Lists.newArrayList(manualVerificationEntity));
 		
-	}
-
-//	@Test
-//	public void assignStatusMethodCheck() throws JsonParseException, JsonMappingException, java.io.IOException {
-//		Mockito.when(basePacketRepository.getAssignedApplicantDetails(any(), any())).thenReturn(entities);
-//		dto.setMatchType("DEMO");
-//		dto.setUserId("110003");
-//
-//		userResponseDTO.setStatusCode("ACT");
-//		userResponseDto.add(userResponseDTO);
-//		userResponseDTOWrapper.setUserResponseDto(userResponseDto);
-//		Mockito.when(mapper.readValue(anyString(),any(Class.class))).thenReturn(userResponseDTOWrapper);
-//		responseWrapper.setResponse(userResponseDTOWrapper);
-//		try {
-//			Mockito.doReturn(responseWrapper).when(restClientService).getApi(any(), any(), any(), any(), any());
-//		} catch (ApisResourceAccessException e) {
-//			e.printStackTrace();
-//		}
-//		ManualVerificationDTO manualVerificationDTO1 = manualAdjudicationService.assignApplicant(dto);
-//		assertEquals(manualVerificationDTO, manualVerificationDTO1);
-//
-//	}
-
-	public void assignStatusMethodNullIdCheck() throws JsonParseException, JsonMappingException, java.io.IOException {
-		Mockito.when(basePacketRepository.getAssignedApplicantDetails(anyString(), anyString()))
-				.thenReturn(entitiesTemp);
-		Mockito.when(basePacketRepository.update(manualVerificationEntity)).thenReturn(manualVerificationEntity);
-		dto.setMatchType("DEMO");
-		dto.setUserId(null);
-
-		userResponseDTO.setStatusCode("ACT");
-		userResponseDto.add(userResponseDTO);
-		userResponseDTOWrapper.setUserResponseDto(userResponseDto);
-		Mockito.when(mapper.readValue(anyString(),any(Class.class))).thenReturn(userResponseDTOWrapper);
-		responseWrapper.setResponse(userResponseDTOWrapper);
-		try {
-			Mockito.doReturn(responseWrapper).when(restClientService).getApi(any(), any(), anyString(), any(), any());
-		} catch (ApisResourceAccessException e) {
-			e.printStackTrace();
-		}
-
-		manualAdjudicationService.assignApplicant(dto);
-	}
-	
-	
-	
-//	@Test
-//	public void assignStatusMethodNullEntityCheck() throws JsonParseException, JsonMappingException, java.io.IOException {
-//		Mockito.when(basePacketRepository.getAssignedApplicantDetails(anyString(), anyString()))
-//				.thenReturn(entitiesTemp);
-//		Mockito.when(basePacketRepository.update(manualVerificationEntity)).thenReturn(manualVerificationEntity);
-//		dto.setMatchType("DEMO");
-//		dto.setUserId("110003");
-//
-//		userResponseDTO.setStatusCode("ACT");
-//		userResponseDto.add(userResponseDTO);
-//		userResponseDTOWrapper.setUserResponseDto(userResponseDto);
-//		responseWrapper.setResponse(userResponseDTOWrapper);
-//		Mockito.when(mapper.readValue(any(String.class),any(Class.class))).thenReturn(userResponseDTOWrapper);
-//		try {
-//			Mockito.doReturn(responseWrapper).when(restClientService).getApi(any(), any(), any(), any(), any());
-//		} catch (ApisResourceAccessException e) {
-//			e.printStackTrace();
-//		}
-//
-//		manualAdjudicationService.assignApplicant(dto);
-//	}
-
-//	@Test(expected = NoRecordAssignedException.class)
-//	public void noRecordAssignedExceptionAssignStatus() throws Exception {
-//		Mockito.when(basePacketRepository.getAssignedApplicantDetails(any(), any()))
-//				.thenReturn(entitiesTemp);
-//		Mockito.when(basePacketRepository.getFirstApplicantDetails(ManualVerificationStatus.PENDING.name(), "DEMO"))
-//				.thenReturn(entitiesTemp);
-//		dto.setMatchType("DEMO");
-//		dto.setUserId("110003");
-//
-//		userResponseDTO.setStatusCode("ACT");
-//		userResponseDto.add(userResponseDTO);
-//		userResponseDTOWrapper.setUserResponseDto(userResponseDto);
-//		Mockito.when(mapper.readValue(any(String.class),any(Class.class))).thenReturn(userResponseDTOWrapper);
-//
-//		JSONObject jsonObject = Mockito.mock(JSONObject.class);
-//		PowerMockito.mockStatic(JsonUtil.class);
-//		PowerMockito.when(JsonUtil.class, "getJSONObject", any(), any()).thenReturn(jsonObject);
-//		PowerMockito.when(JsonUtil.class, "objectMapperReadValue", any(), any()).thenReturn(jsonObject);
-//
-//		responseWrapper.setResponse(userResponseDTOWrapper);
-//		try {
-//			Mockito.doReturn(responseWrapper).when(restClientService).getApi(any(), any(), any(), any(), any());
-//		} catch (ApisResourceAccessException e) {
-//			e.printStackTrace();
-//		}
-//		manualAdjudicationService.assignApplicant(dto);
-//	}
-
-//	@Test(expected = MatchTypeNotFoundException.class)
-//	public void noMatchTypeNotFoundException() throws JsonParseException, JsonMappingException, java.io.IOException {
-//		dto.setMatchType("test");
-//		dto.setUserId("110003");
-//		userResponseDTO.setStatusCode("ACT");
-//		userResponseDto.add(userResponseDTO);
-//		userResponseDTOWrapper.setUserResponseDto(userResponseDto);
-//		Mockito.when(mapper.readValue(anyString(),any(Class.class))).thenReturn(userResponseDTOWrapper);
-//		responseWrapper.setResponse(userResponseDTOWrapper);
-//		try {
-//			Mockito.doReturn(responseWrapper).when(restClientService).getApi(any(), any(), any(), any(), any());
-//		} catch (ApisResourceAccessException e) {
-//			e.printStackTrace();
-//		}
-//		manualAdjudicationService.assignApplicant(dto);
-//	}
-
-	public void noUserIDNotPresentException() {
-		dto.setUserId("dummyID");
-		dto.setMatchType("DEMO");
-
-		responseWrapper.setResponse(null);
-		try {
-			Mockito.doReturn(responseWrapper).when(restClientService).getApi(any(), any(), anyString(), any(), any());
-		} catch (ApisResourceAccessException e) {
-			e.printStackTrace();
-		}
-		manualAdjudicationService.assignApplicant(dto);
-	}
-	
-	public void ApisResourceAccessExceptionTest() throws ApisResourceAccessException {
-		dto.setUserId("dummyID");
-		dto.setMatchType("DEMO");
-		Mockito.doThrow(ApisResourceAccessException.class).when(restClientService).getApi(any(), any(), anyString(), any(), any());
-
-		ManualVerificationDTO resp = manualAdjudicationService.assignApplicant(dto);
-		assertNull(resp.getRegId());
 	}
 
 	@Test
 	public void TablenotAccessibleExceptionTest() throws Exception {
 		Mockito.when(basePacketRepository.getAllAssignedRecord(any(), any())).thenReturn(entities);
 
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(),any())).thenReturn(registrationStatusDto);
 		Mockito.when(basePacketRepository.update(any(ManualVerificationEntity.class)))
 				.thenThrow(new TablenotAccessibleException(""));
 		manualAdjudicationService.updatePacketStatus(manualAdjudicationResponseDTO, stageName,queue);
 
 	}
-
-	@Test
-	@Ignore
-	public void getApplicantFileMethodCheck() throws Exception {
-		String regId = "Id";
-		String source = "id";
-		JSONObject jsonObject = Mockito.mock(JSONObject.class);
-
-		byte[] file = "Str".getBytes();
-		InputStream fileInStream = new ByteArrayInputStream(file);
-		PowerMockito.mockStatic(JsonUtil.class);
-		PowerMockito.when(JsonUtil.class, "getJSONObject", any(), any()).thenReturn(jsonObject);
-		PowerMockito.when(JsonUtil.class, "objectMapperReadValue", any(), any()).thenReturn(jsonObject);
-
-		//Mockito.when(idSchemaUtils.getSource(anyString(), anyDouble())).thenReturn(source);
-		Mockito.when(utilities.getRegistrationProcessorMappingJson(anyString())).thenReturn(jsonObject);
-		//Mockito.when(packetReaderService.getFile(anyString(), anyString(), anyString())).thenReturn(fileInStream);
-
-		String fileName = PacketFiles.BIOMETRIC.name();
-		byte[] biometricFile = manualAdjudicationService.getApplicantFile(regId, fileName, source);
-		fileName = PacketFiles.DEMOGRAPHIC.name();
-		byte[] demographicFile = manualAdjudicationService.getApplicantFile(regId, fileName, source);
-		fileName = PacketFiles.PACKET_META_INFO.name();
-		byte[] metainfoFile = manualAdjudicationService.getApplicantFile(regId, fileName, source);
-
-		assertNotNull(biometricFile);
-		assertNotNull(demographicFile);
-		assertNotNull(metainfoFile);
-
-	}
-
-	@Test(expected = InvalidFileNameException.class)
-	public void testExceptionIngetApplicantFile() throws Exception {
-		String regId = "Id";
-		String fileName = "";
-		String source = "id";
-		manualAdjudicationService.getApplicantFile(regId, fileName, source);
-	}
-
-	@Test(expected = InvalidFileNameException.class)
-	public void testExceptionIngetApplicantData() throws Exception {
-		String regId = "Id";
-		String fileName = "";
-		String source = "id";
-		manualAdjudicationService.getApplicantFile(regId, fileName, source);
-	}
-
-	
 
 	@Test
 	public void updatePacketStatusNoRecordAssignedExceptionCheck() {
@@ -418,25 +257,18 @@ public class ManualVerificationServiceTest {
 		
 		candidate.setReferenceId("1234567890987654321");
 		Map<String,String> analytics=new HashMap<>();
-		AnalyticsDTO analyticsDTO=new AnalyticsDTO();
-		analyticsDTO.setPrimaryOperatorID("110006");
-		analyticsDTO.setPrimaryOperatorComments("abcd");
-		analyticsDTO.setSecondaryOperatorComments("asbd");
-		analyticsDTO.setSecondaryOperatorID("110005");
-		analyticsDTO.setAnalytics(analytics);
-		candidate.setAnalytics(analyticsDTO);
 		candidates.add(candidate);
 		CandidateList candidateList=new CandidateList();
 		candidateList.setCandidates(candidates);
 		candidateList.setCount(1);// logic needs to be implemented.
-		Map<String,String> analytics1=new HashMap<>();
+		Map<String,Object> analytics1=new HashMap<>();
 		analytics.put("primaryOperatorID", "110006");//logic needs to be implemented
 		analytics.put("primaryOperatorComments", "abcd");
 		candidateList.setAnalytics(analytics1);
 		manualAdjudicationResponseDTO.setCandidateList(candidateList);
 		Mockito.when(basePacketRepository.getAllAssignedRecord( anyString(), anyString()))
 				.thenReturn(entitiesTemp);
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegStatusForMainProcess(anyString())).thenReturn(registrationStatusDto);
 		manualAdjudicationService.updatePacketStatus(manualAdjudicationResponseDTO, stageName,queue);
 
 	}
@@ -446,7 +278,7 @@ public class ManualVerificationServiceTest {
 	public void updatePacketStatusApprovalMethodCheck() {
 		Mockito.when(basePacketRepository.getAllAssignedRecord(anyString(),  anyString()))
 				.thenReturn(entities);
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegStatusForMainProcess(anyString())).thenReturn(registrationStatusDto);
 		Mockito.when(basePacketRepository.getAssignedApplicantDetails(anyString(), anyString())).thenReturn(null);
 		Mockito.when(basePacketRepository.update(any(ManualVerificationEntity.class)))
 				.thenReturn(manualVerificationEntity);
@@ -463,19 +295,13 @@ public class ManualVerificationServiceTest {
 		List<Candidate> candidates=new ArrayList<>();
 		
 		candidate.setReferenceId("1234567890987654321");
-		Map<String,String> analytics=new HashMap<>();
-		AnalyticsDTO analyticsDTO=new AnalyticsDTO();
-		analyticsDTO.setPrimaryOperatorID("110006");
-		analyticsDTO.setPrimaryOperatorComments("abcd");
-		analyticsDTO.setSecondaryOperatorComments("asbd");
-		analyticsDTO.setSecondaryOperatorID("110005");
-		analyticsDTO.setAnalytics(analytics);
-		candidate.setAnalytics(analyticsDTO);
+		JSONObject analytics=new JSONObject();
+		candidate.setAnalytics(analytics);
 		candidates.add(candidate);
 		CandidateList candidateList=new CandidateList();
 		candidateList.setCandidates(candidates);
 		candidateList.setCount(1);// logic needs to be implemented.
-		Map<String,String> analytics1=new HashMap<>();
+		Map<String,Object> analytics1=new HashMap<>();
 		analytics.put("primaryOperatorID", "110006");//logic needs to be implemented
 		analytics.put("primaryOperatorComments", "abcd");
 		candidateList.setAnalytics(analytics1);
@@ -484,7 +310,7 @@ public class ManualVerificationServiceTest {
 		;
 		Mockito.when(basePacketRepository.getAllAssignedRecord(anyString(),  anyString()))
 				.thenReturn(entities);
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegStatusForMainProcess(anyString())).thenReturn(registrationStatusDto);
 		Mockito.when(basePacketRepository.getAssignedApplicantDetails(anyString(), anyString())).thenReturn(null);
 		Mockito.when(basePacketRepository.update(any())).thenReturn(manualVerificationEntity);
 
@@ -493,5 +319,97 @@ public class ManualVerificationServiceTest {
 
 	}
 
-	
+	@Test
+	public void testManualVerificationResponse_CountMismatch() throws IOException {
+
+		listAppender.start();
+		regprocLogger.addAppender(listAppender);
+
+		File childFile = new File(classLoader.getResource("countMismatch.json").getFile());
+		InputStream is = new FileInputStream(childFile);
+		String responseString = IOUtils.toString(is, "UTF-8");
+		ManualAdjudicationResponseDTO responseDTO = JsonUtil.readValueWithUnknownProperties(
+														responseString, ManualAdjudicationResponseDTO.class);
+
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(),any())).thenReturn(registrationStatusDto);
+		Mockito.when(basePacketRepository.getAllAssignedRecord(any(), any())).thenReturn(entities);
+
+		boolean isValidResponse = manualAdjudicationService.updatePacketStatus(responseDTO, stageName,queue);
+
+		assertFalse("Should be false for response count mismatch", isValidResponse);
+		assertThat(listAppender.list).extracting(ILoggingEvent::getLevel, ILoggingEvent::getFormattedMessage).contains(
+				Tuple.tuple(Level.ERROR,
+				"SESSIONID - REGISTRATIONID - 10002100741000320210107125533 - Validation error - Candidate count does not match reference ids count."));
+	}
+
+	@Test
+	public void testManualVerificationResponse_RefIdMismatch() throws IOException {
+
+		listAppender.start();
+		regprocLogger.addAppender(listAppender);
+
+		File childFile = new File(classLoader.getResource("refIdMismatch.json").getFile());
+		InputStream is = new FileInputStream(childFile);
+		String responseString = IOUtils.toString(is, "UTF-8");
+		ManualAdjudicationResponseDTO responseDTO = JsonUtil.readValueWithUnknownProperties(
+				responseString, ManualAdjudicationResponseDTO.class);
+
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(),any(),any(),any())).thenReturn(registrationStatusDto);
+		Mockito.when(basePacketRepository.getAllAssignedRecord(any(), any())).thenReturn(entities);
+
+		boolean isValidResponse = manualAdjudicationService.updatePacketStatus(responseDTO, stageName,queue);
+
+		assertFalse("Should be false for response count mismatch", isValidResponse);
+		assertThat(listAppender.list).extracting(ILoggingEvent::getLevel, ILoggingEvent::getFormattedMessage).contains(
+				Tuple.tuple(Level.ERROR,
+						"SESSIONID - REGISTRATIONID - 10002100741000320210107125533 - Validation error - " +
+								"Received ReferenceIds does not match reference ids in manual verification table."));
+	}
+
+
+	@Test
+	public void testManualVerification_ResendFlow() throws IOException {
+
+		listAppender.start();
+		regprocLogger.addAppender(listAppender);
+
+		File childFile = new File(classLoader.getResource("resendFlow.json").getFile());
+		InputStream is = new FileInputStream(childFile);
+		String responseString = IOUtils.toString(is, "UTF-8");
+		ManualAdjudicationResponseDTO responseDTO = JsonUtil.readValueWithUnknownProperties(
+				responseString, ManualAdjudicationResponseDTO.class);
+
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(),any(),any(),any())).thenReturn(registrationStatusDto);
+		Mockito.when(basePacketRepository.getAllAssignedRecord(any(), any())).thenReturn(entities);
+
+		boolean isValidResponse = manualAdjudicationService.updatePacketStatus(responseDTO, stageName,queue);
+
+		assertFalse("Should be false", isValidResponse);
+		assertThat(listAppender.list).extracting(ILoggingEvent::getLevel, ILoggingEvent::getFormattedMessage).contains(
+				Tuple.tuple(Level.INFO,
+						"SESSIONID - REGISTRATIONID - 10002100741000320210107125533 - " +
+						"Received resend request from manual verification application. This will be marked for reprocessing."));
+	}
+
+	@Test
+	public void testManualVerification_SuccessFlow() throws IOException {
+
+		listAppender.start();
+		regprocLogger.addAppender(listAppender);
+
+		File childFile = new File(classLoader.getResource("successFlow.json").getFile());
+		InputStream is = new FileInputStream(childFile);
+		String responseString = IOUtils.toString(is, "UTF-8");
+		ManualAdjudicationResponseDTO responseDTO = JsonUtil.readValueWithUnknownProperties(
+				responseString, ManualAdjudicationResponseDTO.class);
+
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(),any(),any(),any())).thenReturn(registrationStatusDto);
+		Mockito.when(basePacketRepository.getAllAssignedRecord(any(), any())).thenReturn(entities);
+
+		boolean isValidResponse = manualAdjudicationService.updatePacketStatus(responseDTO, stageName,queue);
+
+		assertTrue("Should be Success", isValidResponse);
+	}
+
+
 }

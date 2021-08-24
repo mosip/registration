@@ -8,11 +8,13 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import io.mosip.registration.processor.packet.manager.utils.ZipUtils;
+import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.registration.processor.core.exception.AdditionalInfoIdNotFoundException;
+import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
 import org.apache.commons.io.IOUtils;
 import org.h2.store.fs.FileUtils;
+import org.h2.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -33,7 +35,6 @@ import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
-import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
@@ -60,6 +61,7 @@ import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDt
 import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
 import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
+import io.mosip.registration.processor.status.service.AdditionalInfoRequestService;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 
@@ -101,6 +103,9 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	@Autowired
 	private AuditLogRequestBuilder auditLogRequestBuilder;
 
+	@Autowired
+	private AdditionalInfoRequestService additionalInfoRequestService;
+
 	/** The packet receiver stage. */
 
 	@Value("${registration.processor.packet.ext}")
@@ -109,6 +114,9 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	/** The file size. */
 	@Value("${registration.processor.max.file.size}")
 	private String fileSize;
+
+	@Value("#{'${registration.processor.main-processes}'.split(',')}")
+    private List<String> mainProcesses;
 
 	/** The virus scanner service. */
 	@Autowired
@@ -130,23 +138,24 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 		messageDTO.setInternalError(false);
 		messageDTO.setIsValid(false);
 		SyncRegistrationEntity regEntity;
-		String registrationId = "";
 		boolean isTransactionSuccessful = false;
 		if (file.getName() != null && file.exists()) {
 			String fileOriginalName = file.getName();
-			registrationId = fileOriginalName.split("\\.")[0];
+			String packetId = fileOriginalName.split("\\.")[0];
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, "PacketReceiverServiceImpl::validatePacket()::entry");
+					packetId, "PacketReceiverServiceImpl::validatePacket()::entry");
+			regEntity = syncRegistrationService.findByPacketId(packetId);
+			String registrationId = regEntity.getRegistrationId();
 			messageDTO.setRid(registrationId);
-			regEntity = syncRegistrationService.findByRegistrationId(registrationId);
+			messageDTO.setWorkflowInstanceId(regEntity.getWorkflowInstanceId());
 			try (InputStream encryptedInputStream = FileUtils.newInputStream(file.getAbsolutePath())) {
 				byte[] encryptedByteArray = IOUtils.toByteArray(encryptedInputStream);
 				validatePacketWithSync(regEntity, registrationId, description);
-				messageDTO.setReg_type(RegistrationType.valueOf(regEntity.getRegistrationType()));
+				messageDTO.setReg_type(regEntity.getRegistrationType());
 				validateHashCode(new ByteArrayInputStream(encryptedByteArray), regEntity, registrationId, description);
 				validatePacketFormat(fileOriginalName, registrationId, description);
 				validatePacketSize(file.length(), regEntity, registrationId, description);
-				if (isDuplicatePacket(registrationId) && !isExternalStatusResend(registrationId)) {
+				if (isDuplicatePacket(registrationId, regEntity) && !isExternalStatusResend(registrationId)) {
 					description.setMessage(PlatformErrorMessages.RPR_PKR_DUPLICATE_PACKET_RECIEVED.getMessage());
 					description.setCode(PlatformErrorMessages.RPR_PKR_DUPLICATE_PACKET_RECIEVED.getCode());
 					throw new DuplicateUploadRequestException(
@@ -241,9 +250,11 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	 *             Signals that an I/O exception has occurred.
 	 */
 	private boolean storePacket(String stageName, SyncRegistrationEntity regEntity, InternalRegistrationStatusDto dto,
-			LogDescription description) throws IOException {
+			LogDescription description) {
 		Boolean storageFlag = false;
-		dto = registrationStatusService.getRegistrationStatus(dto.getRegistrationId());
+		int iteration = getIterationForSyncRecord(regEntity);
+		dto = registrationStatusService.getRegistrationStatus(regEntity.getRegistrationId(),
+				regEntity.getRegistrationType(), iteration, regEntity.getWorkflowInstanceId());
 		if (dto == null) {
 			dto = new InternalRegistrationStatusDto();
 			dto.setRetryCount(0);
@@ -254,6 +265,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 		}
 		dto.setRegistrationId(regEntity.getRegistrationId());
 		dto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PACKET_RECEIVER.toString());
+		dto.setLatestTransactionTimes(DateUtils.getUTCCurrentDateTime());
 		dto.setRegistrationStageName(stageName);
 		dto.setRegistrationType(regEntity.getRegistrationType());
 		dto.setReferenceRegistrationId(null);
@@ -266,6 +278,10 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 		dto.setIsActive(true);
 		dto.setCreatedBy(USER);
 		dto.setIsDeleted(false);
+		dto.setSource(regEntity.getSource());
+        dto.setIteration(iteration);
+        dto.setWorkflowInstanceId(regEntity.getWorkflowInstanceId());
+
 		/** Module-Id can be Both Success/Error code */
 		String moduleId = PlatformSuccessMessages.PACKET_RECEIVER_VALIDATION_SUCCESS.getCode();
 		String moduleName = ModuleName.PACKET_RECEIVER.toString();
@@ -366,8 +382,12 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	 *            the registration id
 	 * @return the boolean
 	 */
-	private Boolean isDuplicatePacket(String registrationId) {
-		return registrationStatusService.getRegistrationStatus(registrationId) != null;
+	private Boolean isDuplicatePacket(String registrationId, SyncRegistrationEntity syncRegistrationEntity) {
+		return StringUtils.isNullOrEmpty(syncRegistrationEntity.getAdditionalInfoReqId())
+				&& mainProcesses.contains(syncRegistrationEntity.getRegistrationType())
+				&& registrationStatusService.getRegistrationStatus(registrationId,
+				syncRegistrationEntity.getRegistrationType(),
+				getIterationForSyncRecord(syncRegistrationEntity), syncRegistrationEntity.getWorkflowInstanceId()) != null;
 	}
 
 	/**
@@ -460,22 +480,28 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 		messageDTO.setIsValid(false);
 		boolean scanningFlag;
 		boolean isTransactionSuccessful = false;
-		String registrationId = "";
-		SyncRegistrationEntity regEntity;
 		String fileOriginalName = file.getName();
-		registrationId = fileOriginalName.split("\\.")[0];
-		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus(registrationId);
+		String packetId = fileOriginalName.split("\\.")[0];
+
+		SyncRegistrationEntity regEntity = syncRegistrationService.findByPacketId(packetId);
+		String registrationId = regEntity.getRegistrationId();
+
+		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus(registrationId,
+				regEntity.getRegistrationType(), getIterationForSyncRecord(regEntity), regEntity.getWorkflowInstanceId());
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "PacketReceiverServiceImpl::processPacket()::entry");
 		messageDTO.setRid(registrationId);
-		regEntity = syncRegistrationService.findByRegistrationId(registrationId);
-		messageDTO.setReg_type(RegistrationType.valueOf(regEntity.getRegistrationType()));
+
+		messageDTO.setReg_type(regEntity.getRegistrationType());
+		messageDTO.setIteration(dto.getIteration());
+		messageDTO.setSource(regEntity.getSource());
+		messageDTO.setWorkflowInstanceId(regEntity.getWorkflowInstanceId());
 		try (InputStream encryptedInputStream = FileUtils.newInputStream(file.getAbsolutePath())) {
 			final byte[] encryptedByteArray = IOUtils.toByteArray(encryptedInputStream);
 			scanningFlag = scanFile(encryptedByteArray, registrationExceptionMapperUtil,
 					registrationId, dto, description);
 			if (scanningFlag) {
-				fileManager.put(registrationId, new ByteArrayInputStream(encryptedByteArray),
+				fileManager.put(packetId, new ByteArrayInputStream(encryptedByteArray),
 						DirectoryPathDto.LANDING_ZONE);
 				dto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 				dto.setStatusComment(StatusUtil.PACKET_UPLOADED_TO_LANDING_ZONE.getMessage());
@@ -530,5 +556,17 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 
 		return messageDTO;
 	}
+
+	private int getIterationForSyncRecord(SyncRegistrationEntity regEntity) {
+		if (mainProcesses.contains(regEntity.getRegistrationType()))
+			return 1;
+
+		AdditionalInfoRequestDto additionalInfoRequestDto = additionalInfoRequestService
+				.getAdditionalInfoRequestByReqId(regEntity.getAdditionalInfoReqId());
+		if (additionalInfoRequestDto == null)
+			throw new AdditionalInfoIdNotFoundException();
+
+		return additionalInfoRequestDto.getAdditionalInfoIteration();
+    }
 
 }

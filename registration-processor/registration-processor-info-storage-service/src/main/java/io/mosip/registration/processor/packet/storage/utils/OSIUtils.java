@@ -52,6 +52,7 @@ public class OSIUtils {
 		regOsi.setLongitude(allMap.get(JsonConstant.GEOLOCLONGITUDE));
 		regOsi.setPacketCreationDate(metaInfo.get(JsonConstant.CREATIONDATE));
 		regOsi.setCapturedRegisteredDevices(getCapturedRegisteredDevices(metaInfo));
+		regOsi.setRegClientVersion(allMap.get(JsonConstant.REGCLIENTVERSION));
 		
 		return regOsi;
 	}

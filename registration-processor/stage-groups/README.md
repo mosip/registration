@@ -4,7 +4,7 @@ stage group 1:
 	regproc-packet-receiver-stage
 stage group 2:
 	regproc-securezone-notification-stage
-	regproc-quality-checker-stage
+	regproc-quality-classifier-stage
 	regproc-message-sender-stage
 stage group 3:
 	regproc-bio-dedupe-stage
@@ -16,7 +16,10 @@ stage group 4:
 	regproc-demo-dedupe-stage
 stage group 5:
 	regproc-packet-validator-stage
-	regproc-osi-validator-stage
+	regproc-cmd-validator-stage
+	regproc-operator-validator-stage
+	regproc-supervisor-validator-stage
+	regproc-introducer-validator-stage
 stage group 6:
 	regproc-packet-uploader-stage
 	regproc-packet-classifier-stage
@@ -25,7 +28,7 @@ stage group 7:
     regproc-printing-stage
 ````
 
-The `regproc-reprocessor-stage` and `regproc-external-stage` are not grouped into any stage group.
+The `regproc-reprocessor` and `regproc-external-stage` are not grouped into any stage group.
 
 
 # Sample Command to build:

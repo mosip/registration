@@ -1,19 +1,17 @@
 package io.mosip.registration.processor.stages.dto;
 
-import io.mosip.registration.processor.stages.utils.NotificationSubjectCode;
-import io.mosip.registration.processor.stages.utils.NotificationTemplateTypeCode;
 import lombok.Data;
 
 @Data
 public class MessageSenderDTO {
 	
 	/** The sms template code. */
-	private NotificationTemplateTypeCode smsTemplateCode = null;
+	private String smsTemplateCode = "";
 
 	/** The email template code. */
-	private NotificationTemplateTypeCode emailTemplateCode = null;
+	private String emailTemplateCode = "";
 
 	/** The subject. */
-	private NotificationSubjectCode subjectTemplateCode = null;
+	private String subjectTemplateCode = "";
 
 }

@@ -104,7 +104,7 @@ public final class PlatformConstants {
 	/** The Constant RPR_BIOMETRIC_AUTHENTICATION_MODULE. */
 	public static final String RPR_BIOMETRIC_AUTHENTICATION_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "BAS-";
 
-	public static final String RPR_REPROCESSOR_STAGE = RPR_REGISTRATION_PROCESSOR_PREFIX + "RS-";
+	public static final String RPR_REPROCESSOR_VERTICLE = RPR_REGISTRATION_PROCESSOR_PREFIX + "RS-";
 
 	public static final String RPR_EXTERNAL_STAGE = RPR_REGISTRATION_PROCESSOR_PREFIX + "EX-";
 
@@ -120,7 +120,7 @@ public final class PlatformConstants {
 
 	public static final String RPR_MA_MIDDLEWARE = RPR_REGISTRATION_PROCESSOR_PREFIX + "MANUAL-ADJUDICATION-";
 
-	public static final String RPR_WORKFLOW_EVENT_UPDATE = RPR_REGISTRATION_PROCESSOR_PREFIX + "WE-";
+	public static final String RPR_WORKFLOW_INTERNAL_ACTION = RPR_REGISTRATION_PROCESSOR_PREFIX + "WIA-";
 
 	public static final String RPR_WORKFLOW_ACTION_API = RPR_REGISTRATION_PROCESSOR_PREFIX + "WAA-";
 	
@@ -128,6 +128,8 @@ public final class PlatformConstants {
 
 
 	public static final String RPR_WORKFLOW_ACTION_SERVICE = RPR_REGISTRATION_PROCESSOR_PREFIX + "WAS-";
+
+	public static final String RPR_WORKFLOW_ACTION_JOB = RPR_REGISTRATION_PROCESSOR_PREFIX + "WAJ-";
 
 	/**
 	 * Instantiates a new RPR platform error codes.

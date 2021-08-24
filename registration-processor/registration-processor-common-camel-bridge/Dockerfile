@@ -64,15 +64,19 @@ RUN apt-get -y update \
 
 # set working directory for the user
 WORKDIR /home/${container_user}
+
 ENV work_dir=/home/${container_user}
+
 ARG loader_path=${work_dir}/additional_jars/
+
 RUN mkdir -p ${loader_path}
+
 ENV loader_path_env=${loader_path}
 
 # copying shaded jar into docker image
-ADD ./target/*.jar /target/
-RUN find target/ -regextype posix-extended -regex '.*registration-processor-common-camel-bridge-[0-9\.]+[-A-Za-z0-9]*\.jar'  "-print0" | xargs "-0" cp -t / \
-  && rm -rf /target \
+ADD ./target/*.jar ./target/
+RUN find target/ -regextype posix-extended -regex '.*registration-processor-common-camel-bridge-[0-9\.]+[-A-Za-z0-9]*\.jar'  "-print0" | xargs "-0" cp -t ./ \
+  && rm -rf ./target \
   && rm -rf original*.jar \
   && rm -rf *-sources.jar \
   && rm -rf *-javadoc.jar \

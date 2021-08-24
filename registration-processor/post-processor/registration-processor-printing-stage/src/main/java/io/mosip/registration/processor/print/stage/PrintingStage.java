@@ -156,9 +156,8 @@ public class PrintingStage extends MosipVerticleAPIManager {
 	public void deployVerticle() {
 
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
-		this.consume(mosipEventBus, MessageBusAddress.PRINTING_BUS, messageExpiryTimeLimit);
-
-
+		this.consumeAndSend(mosipEventBus, MessageBusAddress.PRINTING_BUS_IN, MessageBusAddress.PRINTING_BUS_OUT,
+				messageExpiryTimeLimit);
 	}
 
 	/*
@@ -171,8 +170,9 @@ public class PrintingStage extends MosipVerticleAPIManager {
 	@Override
 	public MessageDTO process(MessageDTO object) {
 		TrimExceptionMessage trimeExpMessage = new TrimExceptionMessage();
-		object.setMessageBusAddress(MessageBusAddress.PRINTING_BUS);
+		object.setMessageBusAddress(MessageBusAddress.PRINTING_BUS_IN);
 		object.setInternalError(Boolean.FALSE);
+		object.setIsValid(Boolean.FALSE);
 		LogDescription description = new LogDescription();
 
 		boolean isTransactionSuccessful = false;
@@ -186,7 +186,8 @@ public class PrintingStage extends MosipVerticleAPIManager {
 		ResponseWrapper<?> responseWrapper;
 		CredentialResponseDto credentialResponseDto;
 		try {
-			registrationStatusDto = registrationStatusService.getRegistrationStatus(regId);
+			registrationStatusDto = registrationStatusService.getRegistrationStatus(
+					regId, object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PRINT_SERVICE.toString());
 			registrationStatusDto.setRegistrationStageName(getStageName());
@@ -307,6 +308,9 @@ public class PrintingStage extends MosipVerticleAPIManager {
 			object.setInternalError(Boolean.TRUE);
 		}
 		finally {
+			if (object.getInternalError()) {
+				updateErrorFlags(registrationStatusDto, object);
+			}
 			String eventId = "";
 			String eventName = "";
 			String eventType = "";
@@ -353,7 +357,8 @@ public class PrintingStage extends MosipVerticleAPIManager {
 	 */
 	@Override
 	public void start() {
-		router.setRoute(this.postUrl(vertx, MessageBusAddress.PRINTING_BUS, null));
+		router.setRoute(this.postUrl(getVertx(), 
+				MessageBusAddress.PRINTING_BUS_IN, MessageBusAddress.PRINTING_BUS_OUT));
 		this.createServer(router.getRouter(), getPort());
 	}
 
@@ -406,5 +411,15 @@ public class PrintingStage extends MosipVerticleAPIManager {
 		}
 
 		return vid;
+	}
+	
+	private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
+		object.setInternalError(true);
+		if (registrationStatusDto.getLatestTransactionStatusCode()
+				.equalsIgnoreCase(RegistrationTransactionStatusCode.REPROCESS.toString())) {
+			object.setIsValid(true);
+		} else {
+			object.setIsValid(false);
+		}
 	}
 }

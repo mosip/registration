@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 
 import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 import io.mosip.registration.processor.stages.packetclassifier.PacketClassificationProcessor;
+import io.mosip.registration.processor.stages.packetclassifier.utility.PacketClassifierUtility;
 
 /**
  * This Class is a configuration class which declares all the beans that is required by this stage
@@ -24,5 +25,10 @@ public class PacketClassifierConfig {
 	@Bean
 	public RestApiClient getRestApiClient() {
 		return new RestApiClient();
+	}
+	
+	@Bean
+	public PacketClassifierUtility getPacketClassifierUtility() {
+		return new PacketClassifierUtility();
 	}
 }

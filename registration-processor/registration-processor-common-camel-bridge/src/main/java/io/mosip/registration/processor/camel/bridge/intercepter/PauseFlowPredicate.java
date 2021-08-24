@@ -1,6 +1,9 @@
 package io.mosip.registration.processor.camel.bridge.intercepter;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import javax.annotation.PostConstruct;
@@ -19,11 +22,14 @@ import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.camel.bridge.model.Setting;
-import io.mosip.registration.processor.core.abstractverticle.WorkflowEventDTO;
+import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
+import io.mosip.registration.processor.core.abstractverticle.WorkflowInternalActionDTO;
+import io.mosip.registration.processor.core.code.WorkflowInternalActionCode;
+import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.status.code.RegistrationStatusCode;
+import io.mosip.registration.processor.core.util.JsonUtil;
 import io.vertx.core.json.JsonObject;
 import net.minidev.json.JSONArray;
 
@@ -52,50 +58,83 @@ public class PauseFlowPredicate implements Predicate {
 
 	@Override
 	public boolean matches(Exchange exchange) {
-
+        try {
 		String message = (String) exchange.getMessage().getBody();
-		JsonObject json = new JsonObject(message);
-
+        MessageDTO messageDto = objectMapper.readValue(message, MessageDTO.class);
 		LOGGER.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"exchange.getFromEndpoint().toString() " + exchange.getFromEndpoint().toString());
 
 		String fromAddress = exchange.getFromEndpoint().toString();
+		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
+		List<String> matchedRuleIds = new ArrayList<String>();
+		String ruleDescription ="";
+		long pauseFor = 0;
+		String defaultResumeAction=null;
+		Map<String,String> tags = messageDto.getTags();
 		for (Setting setting : settings) {
-			try {
+			if(isRuleIdNotPresent(tags,setting.getRuleId())) {
+
 			JSONArray jsonArray = JsonPath.read(message, setting.getMatchExpression());
 			if (Pattern.matches(setting.getFromAddress(), fromAddress)
 					&& !jsonArray.isEmpty()) {
-				WorkflowEventDTO workflowEventDTO = new WorkflowEventDTO();
-				workflowEventDTO.setResumeTimestamp(DateUtils
-						.formatToISOString(DateUtils.getUTCCurrentDateTime().plusSeconds(setting.getPauseFor())));
-				workflowEventDTO.setRid(json.getString("rid"));
-				workflowEventDTO.setDefaultResumeAction(setting.getDefaultResumeAction());
-				workflowEventDTO.setStatusCode(RegistrationStatusCode.PAUSED.toString());
-				workflowEventDTO.setEventTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
-				workflowEventDTO.setStatusComment(PlatformSuccessMessages.PACKET_PAUSED_HOTLISTED.getMessage());
-				workflowEventDTO.setResumeRemoveTags(setting.getResumeRemoveTags());
-		
-					exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowEventDTO));
-					return true;
-				} 
-			}catch (JsonProcessingException e) {
-				LOGGER.error("Error in  RoutePredicate::matches {}",
-						 e.getMessage());
-				throw new BaseUncheckedException(e.getMessage());
+				     matchedRuleIds.add(setting.getRuleId());
+				     if(ruleDescription.isBlank())
+				    	 ruleDescription = setting.getRuleDescription();
+				     else
+				    	 ruleDescription=ruleDescription+","+setting.getRuleDescription();
+				     if(setting.getPauseFor()>pauseFor) {
+				    	 pauseFor=setting.getPauseFor();
+				    	 defaultResumeAction = setting.getDefaultResumeAction();
+				     }
 				}
-				catch (InvalidPathException e) {
-				LOGGER.error("Error in  RoutePredicate::matches {}",
-							 e.getMessage());
-				throw new BaseUncheckedException(e.getMessage());
-				}
-			catch (Exception e) {
-				LOGGER.error("Error in  RoutePredicate::matches {}",
-						 e.getMessage());
-				throw new BaseUncheckedException(e.getMessage());
 			}
-				
+		}
+		if(!matchedRuleIds.isEmpty()) {
+            workflowInternalActionDTO.setRid(messageDto.getRid());
+			workflowInternalActionDTO
+			.setEventTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+			workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.MARK_AS_PAUSED.toString());
+			workflowInternalActionDTO.setDefaultResumeAction(defaultResumeAction);
+			 workflowInternalActionDTO.setResumeTimestamp(DateUtils
+						.formatToISOString(DateUtils.getUTCCurrentDateTime().plusSeconds(pauseFor)));
+			workflowInternalActionDTO.setMatchedRuleIds(matchedRuleIds);
+			workflowInternalActionDTO
+			.setActionMessage(PlatformSuccessMessages.PACKET_MARK_AS_PAUSED.getMessage()+"("+ruleDescription+")");
+            workflowInternalActionDTO.setReg_type(messageDto.getReg_type());
+            workflowInternalActionDTO.setIteration(messageDto.getIteration());
+            workflowInternalActionDTO.setSource(messageDto.getSource());
+            workflowInternalActionDTO
+                    .setWorkflowInstanceId(messageDto.getWorkflowInstanceId());
+			exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowInternalActionDTO));
+			return true;
+		}
+        }catch (JsonProcessingException e) {
+			LOGGER.error("Error in  RoutePredicate::matches {}",
+					 e.getMessage());
+			throw new BaseUncheckedException(e.getMessage());
+			}
+			catch (InvalidPathException e) {
+			LOGGER.error("Error in  RoutePredicate::matches {}",
+						 e.getMessage());
+			throw new BaseUncheckedException(e.getMessage());
+			}
+		catch (Exception e) {
+			LOGGER.error("Error in  RoutePredicate::matches {}",
+					 e.getMessage());
+			throw new BaseUncheckedException(e.getMessage());
 		}
 		return false;
+	}
+
+	private boolean isRuleIdNotPresent(Map<String, String> tags, String  ruleId) {
+		boolean isRuleIdNotPresent=true;
+		if(tags!=null) {
+			String pauseRuleImmunity = tags.get(JsonConstant.PAUSERULEIMMUNITYRULEIDS);
+            if(pauseRuleImmunity!=null && pauseRuleImmunity.contains(ruleId)) {
+            	isRuleIdNotPresent = false;
+           }
+		}
+		return isRuleIdNotPresent;
 	}
 
 }

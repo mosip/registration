@@ -121,7 +121,7 @@ public class ManualVerificationStageTest{
 	public void setUp() throws java.io.IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 		ReflectionTestUtils.setField(manualverificationstage, "mosipConnectionFactory", mosipConnectionFactory);
 		ReflectionTestUtils.setField(manualverificationstage, "mosipQueueManager", mosipQueueManager);
-		ReflectionTestUtils.setField(manualverificationstage, "contextPath", "/registrationprocessor/v1/manualverification");
+		//ReflectionTestUtils.setField(manualverificationstage, "contextPath", "/registrationprocessor/v1/manualverification");
 		ReflectionTestUtils.setField(manualverificationstage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(manualverificationstage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(manualverificationstage, "clusterManagerUrl", "/dummyPath");
@@ -134,7 +134,6 @@ public class ManualVerificationStageTest{
 		Mockito.doNothing().when(manualVerificationRequestValidator).validate(any(),any());
 		Mockito.when(signatureResponse.getData()).thenReturn("gdshgsahjhghgsad");
 		packetInfo="packetInfo".getBytes();
-		Mockito.when(manualAdjudicationService.getApplicantFile(any(),any(), any())).thenReturn(packetInfo);
 		//ClassLoader classLoader = getClass().getClassLoader();
 		file = new File("/src/test/resources/0000.zip");
 		//FileUtils.copyFile(file, new File(file.getParentFile().getPath() + "/" + id));
@@ -145,7 +144,7 @@ public class ManualVerificationStageTest{
 	@Test
 	public void testDeployeVerticle()
 	{
-		manualverificationstage.deployStage();
+		manualverificationstage.deployVerticle();
 	}
 	@Test
 	public void testStart()

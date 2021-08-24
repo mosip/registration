@@ -35,7 +35,11 @@ public interface RegistrationStatusService<T, U, D> {
 	 *            the enrolment id
 	 * @return the registration status
 	 */
-	public U getRegistrationStatus(T enrolmentId);
+	public U getRegistrationStatus(String regid, String processs, Integer iteration, String workflowInstanceId);
+
+	public List<InternalRegistrationStatusDto> getAllRegistrationStatuses(String registrationId);
+
+	public InternalRegistrationStatusDto getRegStatusForMainProcess(String registrationId);
 
 	/**
 	 * Adds the registration status.
@@ -62,6 +66,18 @@ public interface RegistrationStatusService<T, U, D> {
 	public void updateRegistrationStatus(U registrationStatusDto, String moduleId, String moduleName);
 
 	/**
+	 * Update registration status for workflow Engine.
+	 *
+	 * @param registrationStatusDto
+	 *            the registration status dto
+	 * @param moduleId
+	 *            the module id
+	 * @param moduleName
+	 *            the module name
+	 */
+	public void updateRegistrationStatusForWorkflowEngine(U registrationStatusDto, String moduleId, String moduleName);
+
+	/**
 	 * Gets the by status.
 	 *
 	 * @param status
@@ -78,6 +94,15 @@ public interface RegistrationStatusService<T, U, D> {
 	 * @return the list of Registrations for the given ids.
 	 */
 	public List<D> getByIds(List<RegistrationStatusSubRequestDto> requestIds);
+
+	/**
+	 * Gets the external status by ids.
+	 *
+	 * @param requestIds
+	 *            the request ids
+	 * @return the list of Registrations for the given ids.
+	 */
+	public List<D> getExternalStatusByIds(List<String> requestIds);
 
 	/**
 	 * Gets the un processed packets.
@@ -126,7 +151,12 @@ public interface RegistrationStatusService<T, U, D> {
 	 */
 	public List<U> getByIdsAndTimestamp(List<String> ids);
 
-	public List<InternalRegistrationStatusDto> getResumablePackets(Integer fetchSize);
+	public List<InternalRegistrationStatusDto> getActionablePausedPackets(Integer fetchSize);
 
 	public Page<InternalRegistrationStatusDto> searchRegistrationDetails(SearchInfo searchInfo);
+
+	public void updateRegistrationStatusForWorkflow(U registrationStatusDto, String moduleId, String moduleName);
+
+	public List<InternalRegistrationStatusDto> getResumablePackets(Integer fetchSize);
+
 }

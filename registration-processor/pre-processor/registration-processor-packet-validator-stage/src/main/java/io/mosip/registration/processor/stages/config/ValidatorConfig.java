@@ -34,6 +34,7 @@ import io.mosip.registration.processor.stages.utils.AuditUtility;
 import io.mosip.registration.processor.stages.utils.BiometricsXSDValidator;
 import io.mosip.registration.processor.stages.utils.NotificationUtility;
 import io.mosip.registration.processor.stages.utils.RestTemplateInterceptor;
+import io.mosip.registration.processor.stages.validator.impl.BiometricsSignatureValidator;
 import io.mosip.registration.processor.stages.validator.impl.CompositePacketValidator;
 import io.mosip.registration.processor.stages.validator.impl.PacketValidatorImpl;
 
@@ -53,6 +54,11 @@ public class ValidatorConfig {
 	@Bean
 	public BiometricsXSDValidator biometricsXSDValidator() {
 		return new BiometricsXSDValidator();
+	}
+	
+	@Bean
+	public BiometricsSignatureValidator biometricsSignatureValidator() {
+		return new BiometricsSignatureValidator();
 	}
 
 	@Bean

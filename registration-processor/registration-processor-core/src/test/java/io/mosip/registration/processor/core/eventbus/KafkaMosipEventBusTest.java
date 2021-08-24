@@ -101,7 +101,7 @@ public class KafkaMosipEventBusTest {
 
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("1001");
-		messageDTO.setReg_type(RegistrationType.NEW);
+		messageDTO.setReg_type(RegistrationType.NEW.name());
 		kafkaMosipEventBus.send(MessageBusAddress.PACKET_VALIDATOR_BUS_OUT, messageDTO);
 
 		verify(kafkaProducer, times(1)).write(any(KafkaProducerRecord.class),any(Handler.class));

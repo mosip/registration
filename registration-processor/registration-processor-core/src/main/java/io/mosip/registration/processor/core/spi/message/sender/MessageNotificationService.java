@@ -52,7 +52,7 @@ public interface MessageNotificationService<T, U, V> {
 	 * @throws ApisResourceAccessException
 	 */
 	public U sendEmailNotification(String templateTypeCode, String id, String process,
-			IdType idType, Map<String, Object> attributes, String[] mailCc, String subject,
+			IdType idType, Map<String, Object> attributes, String[] mailCc, String subjectCode,
 			V attachment, String regType) throws IOException, ApisResourceAccessException,Exception;
 	
 }

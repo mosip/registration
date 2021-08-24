@@ -36,7 +36,6 @@ import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
-import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorUnCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -50,6 +49,7 @@ import io.mosip.registration.processor.core.packet.dto.abis.AbisInsertResponseDt
 import io.mosip.registration.processor.core.packet.dto.abis.AbisRequestDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisResponseDto;
 import io.mosip.registration.processor.core.packet.dto.abis.CandidatesDto;
+import io.mosip.registration.processor.core.packet.dto.abis.RegBioRefDto;
 import io.mosip.registration.processor.core.queue.factory.MosipQueue;
 import io.mosip.registration.processor.core.queue.factory.QueueListener;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
@@ -222,12 +222,14 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 		String registrationId = object.getRid();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "AbisMiddlewareStage::process()::entry");
-		InternalRegistrationStatusDto internalRegDto = registrationStatusService.getRegistrationStatus(registrationId);
+		InternalRegistrationStatusDto internalRegDto = registrationStatusService.getRegistrationStatus(
+					registrationId, object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
 		try {
-			List<String> abisRefList = packetInfoManager.getReferenceIdByRid(registrationId);
+			List<String> abisRefList = packetInfoManager.getReferenceIdByWorkflowInstanceId(object.getWorkflowInstanceId());
 			validateNullCheck(abisRefList, "ABIS_REFERENCE_ID_NOT_FOUND");
 
-			String refRegtrnId = getLatestTransactionId(registrationId);
+			String refRegtrnId = getLatestTransactionId(registrationId,
+					object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
 			validateNullCheck(refRegtrnId, "LATEST_TRANSACTION_ID_NOT_FOUND");
 			String abisRefId = abisRefList.get(0);
 			List<AbisRequestDto> abisInsertIdentifyList = packetInfoManager.getInsertOrIdentifyRequest(abisRefId,
@@ -260,7 +262,6 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 					registrationId, "AbisMiddlewareStage::process()::Abis insertRequests sucessfully sent to Queue");
 		} catch (RegistrationProcessorCheckedException e) {
 			object.setInternalError(true);
-			object.setIsValid(false);
 			description.setMessage(PlatformErrorMessages.UNKNOWN_EXCEPTION_OCCURED.getMessage());
 			description.setCode(PlatformErrorMessages.UNKNOWN_EXCEPTION_OCCURED.getCode());
 			internalRegDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
@@ -271,7 +272,6 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 					registrationId, ExceptionUtils.getStackTrace(e));
 		} catch (Exception e) {
 			object.setInternalError(true);
-			object.setIsValid(false);
 			description.setMessage(PlatformErrorMessages.UNKNOWN_EXCEPTION_OCCURED.getMessage());
 			description.setCode(PlatformErrorMessages.UNKNOWN_EXCEPTION_OCCURED.getCode());
 			internalRegDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
@@ -288,6 +288,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 				} else if (transactionTypeCode.equalsIgnoreCase(BIOGRAPHIC_VERIFICATION)) {
 					internalRegDto.setRegistrationStageName("BioDedupeStage");
 				}
+				updateErrorFlags(internalRegDto, object);
 				String moduleId = description.getCode();
 				String moduleName = ModuleName.ABIS_MIDDLEWARE.toString();
 				registrationStatusService.updateRegistrationStatus(internalRegDto, moduleId, moduleName);
@@ -385,9 +386,12 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 			validateNullCheck(batchId, "ABIS_BATCH_ID_NOT_FOUND");
 			List<String> bioRefId = packetInfoManager.getReferenceIdByBatchId(batchId);
 			validateNullCheck(bioRefId, "ABIS_REFERENCE_ID_NOT_FOUND");
-			List<String> registrationIds = packetInfoDao.getAbisRefRegIdsByMatchedRefIds(bioRefId);
-			internalRegStatusDto = registrationStatusService.getRegistrationStatus(registrationIds.get(0));
-			registrationId = internalRegStatusDto.getRegistrationId();
+
+			List<RegBioRefDto> regBioRefist = packetInfoManager.getRegBioRefDataByBioRefIds(bioRefId);
+			RegBioRefDto regBioRefDto = regBioRefist.get(0);
+			registrationId = regBioRefDto.getRegId();
+			internalRegStatusDto = registrationStatusService.getRegistrationStatus(registrationId,
+					regBioRefDto.getProcess(), regBioRefDto.getIteration(), regBioRefDto.getWorkflowInstanceId());
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 					"AbisMiddlewareStage::consumerListener()::response from abis for requestId ::" + requestId);
 
@@ -473,8 +477,8 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 							"",
 							"AbisMiddlewareStage::consumerListener()::All identify are requests processed sending to Abis handler");
 
-					sendToAbisHandler(eventBus, bioRefId, registrationIds.get(0),
-							internalRegStatusDto.getRegistrationType());
+					sendToAbisHandler(eventBus, bioRefId, registrationId, internalRegStatusDto.getRegistrationType(),
+							internalRegStatusDto.getIteration(), internalRegStatusDto.getWorkflowInstanceId());
 
 					}
 				} else {
@@ -718,8 +722,8 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 
 	}
 
-	private String getLatestTransactionId(String registrationId) {
-		RegistrationStatusEntity entity = registrationStatusDao.findById(registrationId);
+	private String getLatestTransactionId(String registrationId, String process, int iteration, String workflowInstanceId) {
+		RegistrationStatusEntity entity = registrationStatusDao.find(registrationId, process, iteration, workflowInstanceId);
 		return entity != null ? entity.getLatestRegistrationTransactionId() : null;
 
 	}
@@ -734,11 +738,16 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 		return false;
 	}
 
-	private void sendToAbisHandler(MosipEventBus eventBus, List<String> bioRefId, String regId, String regType) {
+	private void sendToAbisHandler(MosipEventBus eventBus, List<String> bioRefId,
+								   String regId, String regType, int iteration, String workflowInstanceId) {
 		if (bioRefId != null) {
 			MessageDTO messageDto = new MessageDTO();
 			messageDto.setRid(regId);
-			messageDto.setReg_type(RegistrationType.valueOf(regType));
+			messageDto.setReg_type(regType);
+			messageDto.setIsValid(Boolean.TRUE);
+			messageDto.setInternalError(Boolean.FALSE);
+			messageDto.setIteration(iteration);
+			messageDto.setWorkflowInstanceId(workflowInstanceId);
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 					"AbisMiddlewareStage::consumerListener()::sending to Abis handler");
 			this.send(eventBus, MessageBusAddress.ABIS_MIDDLEWARE_BUS_OUT, messageDto);
@@ -751,6 +760,16 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 	private void saveCandiateDtos(CandidatesDto[] candidatesDtos, AbisResponseDto abisResponseDto, String bioRefId) {
 		for (CandidatesDto candidatesDto : candidatesDtos) {
 			updateAbisResponseDetail(candidatesDto, abisResponseDto, bioRefId);
+		}
+	}
+
+	private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
+		object.setInternalError(true);
+		if (registrationStatusDto.getLatestTransactionStatusCode()
+				.equalsIgnoreCase(RegistrationTransactionStatusCode.REPROCESS.toString())) {
+			object.setIsValid(true);
+		} else {
+			object.setIsValid(false);
 		}
 	}
 

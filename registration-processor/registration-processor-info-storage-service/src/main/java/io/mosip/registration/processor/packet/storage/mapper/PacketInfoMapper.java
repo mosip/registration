@@ -12,6 +12,7 @@ import java.util.List;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -34,8 +35,6 @@ import io.mosip.registration.processor.packet.storage.entity.AbisResponseEntity;
 import io.mosip.registration.processor.packet.storage.entity.AbisResponsePKEntity;
 import io.mosip.registration.processor.packet.storage.entity.IndividualDemographicDedupeEntity;
 import io.mosip.registration.processor.packet.storage.entity.IndividualDemographicDedupePKEntity;
-import io.mosip.registration.processor.packet.storage.entity.RegAbisRefEntity;
-import io.mosip.registration.processor.packet.storage.entity.RegAbisRefPkEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegBioRefEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegBioRefPKEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegDemoDedupeListEntity;
@@ -61,33 +60,6 @@ public class PacketInfoMapper {
 	 */
 	private PacketInfoMapper() {
 		super();
-	}
-
-	/**
-	 * Convert reg abis ref to entity.
-	 *
-	 * @param regAbisRefDto
-	 *            the reg abis ref dto
-	 * @return the reg abis ref entity
-	 */
-	public static RegAbisRefEntity convertRegAbisRefToEntity(RegAbisRefDto regAbisRefDto) {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-				regAbisRefDto.getReg_id(), "PacketInfoMapper::convertRegAbisRefToEntity()::entry");
-
-		RegAbisRefEntity regAbisRefEntity = new RegAbisRefEntity();
-
-		RegAbisRefPkEntity regAbisRefPkEntity = new RegAbisRefPkEntity();
-
-		regAbisRefPkEntity.setRegId(regAbisRefDto.getReg_id());
-		regAbisRefEntity.setAbisRefId(regAbisRefDto.getAbis_ref_id());
-		regAbisRefEntity.setId(regAbisRefPkEntity);
-		regAbisRefEntity.setIsActive(true);
-		regAbisRefEntity.setCrDtimes(LocalDateTime.now(ZoneId.of("UTC")));
-		regAbisRefEntity.setUpdateDtimes(LocalDateTime.now(ZoneId.of("UTC")));
-
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-				regAbisRefDto.getReg_id(), "PacketInfoMapper::convertRegAbisRefToEntity()::exit");
-		return regAbisRefEntity;
 	}
 
 	/**
@@ -138,10 +110,11 @@ public class PacketInfoMapper {
 	 *            the demo dto
 	 * @param regId
 	 *            the reg id
+	 * @param iteration 
 	 * @return the list
 	 */
 	public static List<IndividualDemographicDedupeEntity> converDemographicDedupeDtoToEntity(
-			IndividualDemographicDedupe demoDto, String regId) throws NoSuchAlgorithmException {
+			IndividualDemographicDedupe demoDto, String regId,String process, int iteration, String workflowInstanceId) throws NoSuchAlgorithmException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
 				"PacketInfoMapper::converDemographicDedupeDtoToEntity()::entry");
 		IndividualDemographicDedupeEntity entity;
@@ -157,11 +130,14 @@ public class PacketInfoMapper {
 			entity = new IndividualDemographicDedupeEntity();
 			applicantDemographicPKEntity = new IndividualDemographicDedupePKEntity();
 
-			applicantDemographicPKEntity.setRegId(regId);
 			applicantDemographicPKEntity.setLangCode(languageArray[i]);
+			applicantDemographicPKEntity.setWorkflowInstanceId(workflowInstanceId);
 			entity.setCrDtimes(LocalDateTime.now(ZoneId.of("UTC")));
 			entity.setUpdDtimes(LocalDateTime.now(ZoneId.of("UTC")));
 			entity.setId(applicantDemographicPKEntity);
+			entity.setRegId(regId);
+			entity.setProcess(process);
+			entity.setIteration(iteration);
 			entity.setIsActive(true);
 			entity.setIsDeleted(false);
 			StringBuilder applicantFullName = new StringBuilder();
@@ -253,27 +229,32 @@ public class PacketInfoMapper {
 
 	public static RegBioRefDto convertBioRefEntityToDto(RegBioRefEntity regBioRefEntity) {
 		RegBioRefDto bioRefDto = new RegBioRefDto();
-		bioRefDto.setBioRefId(regBioRefEntity.getBioRefId());
+		bioRefDto.setWorkflowInstanceId(regBioRefEntity.getId().getWorkflowInstanceId());
+		bioRefDto.setBioRefId(regBioRefEntity.getId().getBioRefId());
 		bioRefDto.setCrBy(regBioRefEntity.getCrBy());
 		bioRefDto.setIsActive(regBioRefEntity.getIsActive());
 		bioRefDto.setIsDeleted(regBioRefEntity.getIsDeleted());
-		bioRefDto.setRegId(regBioRefEntity.getId().getRegId());
+		bioRefDto.setRegId(regBioRefEntity.getRegId());
 		bioRefDto.setUpdBy(regBioRefEntity.getUpdBy());
+		bioRefDto.setProcess(regBioRefEntity.getProcess());
+		bioRefDto.setIteration(regBioRefEntity.getIteration());
 		return bioRefDto;
 	}
 
 	public static RegBioRefEntity convertBioRefDtoToEntity(RegBioRefDto regBioRefDto) {
+		RegBioRefPKEntity refPKEntity = new RegBioRefPKEntity();
+		refPKEntity.setBioRefId(regBioRefDto.getBioRefId());
+		refPKEntity.setWorkflowInstanceId(regBioRefDto.getWorkflowInstanceId());
 		RegBioRefEntity entity = new RegBioRefEntity();
-		entity.setBioRefId(regBioRefDto.getBioRefId());
+		entity.setId(refPKEntity);
 		entity.setCrBy(regBioRefDto.getCrBy());
 		entity.setIsActive(regBioRefDto.getIsActive());
 		entity.setUpdBy(regBioRefDto.getUpdBy());
-		entity.setCrDtimes(LocalDateTime.now(ZoneId.of("UTC")));
-		entity.setUpdDtimes(LocalDateTime.now(ZoneId.of("UTC")));
-		RegBioRefPKEntity refPKEntity = new RegBioRefPKEntity();
-		refPKEntity.setRegId(regBioRefDto.getRegId());
-		entity.setId(refPKEntity);
-
+		entity.setUpdDtimes(DateUtils.getUTCCurrentDateTime());
+		entity.setRegId(regBioRefDto.getRegId());
+		entity.setCrDtimes(DateUtils.getUTCCurrentDateTime());
+		entity.setProcess(regBioRefDto.getProcess());
+		entity.setIteration(regBioRefDto.getIteration());
 		return entity;
 	}
 

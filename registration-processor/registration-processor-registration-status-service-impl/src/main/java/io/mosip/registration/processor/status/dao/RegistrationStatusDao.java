@@ -98,21 +98,29 @@ public class RegistrationStatusDao {
 	/**
 	 * Find by id.
 	 *
-	 * @param enrolmentId
+	 * @param rid
 	 *            the enrolment id
 	 * @return the registration status entity
 	 */
-	public RegistrationStatusEntity findById(String enrolmentId) {
+	public RegistrationStatusEntity find(String rid, String process, Integer iteration, String workflowInstanceId) {
 		Map<String, Object> params = new HashMap<>();
 		String className = RegistrationStatusEntity.class.getSimpleName();
 
 		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
+		String queryStr = null;
+		if (workflowInstanceId != null) {
+			queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
+					+ ".id.workflowInstanceId=:workflowInstanceId"
+					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE
+					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
+			params.put("workflowInstanceId", workflowInstanceId);
+		} else {
+			params.put("registrationId", rid);
+			queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
+					+ ".regId=:registrationId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE
+					+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
+		}
 
-		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
-				+ ".id=:registrationId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE
-				+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
-
-		params.put("registrationId", enrolmentId);
 		params.put(ISACTIVE, Boolean.TRUE);
 		params.put(ISDELETED, Boolean.FALSE);
 
@@ -120,6 +128,26 @@ public class RegistrationStatusDao {
 				.createQuerySelect(queryStr, params);
 
 		return !registrationStatusEntityList.isEmpty() ? registrationStatusEntityList.get(0) : null;
+	}
+
+	public List<RegistrationStatusEntity> findAll(String rid) {
+		Map<String, Object> params = new HashMap<>();
+		String className = RegistrationStatusEntity.class.getSimpleName();
+
+		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
+
+		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
+				+ ".regId=:registrationId" + EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE
+				+ EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
+
+		params.put("registrationId", rid);
+		params.put(ISACTIVE, Boolean.TRUE);
+		params.put(ISDELETED, Boolean.FALSE);
+
+		List<RegistrationStatusEntity> registrationStatusEntityList = registrationStatusRepositary
+				.createQuerySelect(queryStr, params);
+
+		return registrationStatusEntityList;
 	}
 
 	/**
@@ -159,19 +187,21 @@ public class RegistrationStatusDao {
 		StringBuilder sb = new StringBuilder(queryStr);
 		if (!filters.isEmpty()) {
 			Iterator<FilterInfo> searchIterator = filters.iterator();
-		while (searchIterator.hasNext()) {
-			FilterInfo filterInfo = searchIterator.next();
-			sb.append(EMPTY_STRING + AND + EMPTY_STRING + alias + "." + filterInfo.getColumnName() + "=:"
-					+ filterInfo.getColumnName());
-			params.put(filterInfo.getColumnName(), filterInfo.getValue());
+			while (searchIterator.hasNext()) {
+				FilterInfo filterInfo = searchIterator.next();
+				sb.append(EMPTY_STRING + AND + EMPTY_STRING + alias + "." + filterInfo.getColumnName() + "=:"
+						+ filterInfo.getColumnName());
+				params.put(filterInfo.getColumnName(), filterInfo.getValue());
 
+			}
 		}
-	}
-
-	sb.append(EMPTY_STRING + ORDER_BY + sort.getSortField() + EMPTY_STRING + sort.getSortType());
+		if (sort != null) {
+			sb.append(EMPTY_STRING + ORDER_BY + sort.getSortField() + EMPTY_STRING + sort.getSortType());
+		}
 		List<RegistrationStatusEntity> result = registrationStatusRepositary.createQuerySelect(sb.toString(), params,
 			pagination.getPageFetch());
 		rows = registrationStatusRepositary.count();
+
 		return new PageImpl<>(result,
 				PageRequest.of(pagination.getPageStart(), pagination.getPageFetch()),
 				rows);
@@ -192,7 +222,7 @@ public class RegistrationStatusDao {
 
 		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
 		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
-				+ ".id IN :ids" + EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE + EMPTY_STRING
+				+ ".regId IN :ids" + EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE + EMPTY_STRING
 				+ AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
 		params.put("ids", ids);
 		params.put(ISACTIVE, Boolean.TRUE);
@@ -223,6 +253,11 @@ public class RegistrationStatusDao {
 		LocalDateTime timeDifference = LocalDateTime.now().minusSeconds(elapseTime);
 		List<String> statusCodes=new ArrayList<>();
 		statusCodes.add(RegistrationStatusCode.PAUSED.toString());
+		statusCodes.add(RegistrationStatusCode.RESUMABLE.toString());
+		statusCodes.add(RegistrationStatusCode.PAUSED_FOR_ADDITIONAL_INFO.toString());
+		statusCodes.add(RegistrationStatusCode.REJECTED.toString());
+		statusCodes.add(RegistrationStatusCode.FAILED.toString());
+		statusCodes.add(RegistrationStatusCode.PROCESSED.toString());
 		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
 				+ ".latestTransactionStatusCode IN :status" + EMPTY_STRING + AND + EMPTY_STRING + alias
 				+ ".regProcessRetryCount<=" + ":reprocessCount" + EMPTY_STRING + AND + EMPTY_STRING + alias
@@ -268,7 +303,7 @@ public class RegistrationStatusDao {
 		String className = RegistrationStatusEntity.class.getSimpleName();
 		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
 
-		String queryStr = SELECT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias + ".id = :rid " + AND
+		String queryStr = SELECT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias + ".regId = :rid " + AND
 				+ " " + alias + ".statusCode = :status_Code";
 		params.put("rid", rid);
 		params.put("status_Code", "PROCESSED");
@@ -295,7 +330,7 @@ public class RegistrationStatusDao {
 
 		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
 		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
-				+ ".id IN :ids" + EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE + EMPTY_STRING
+				+ ".regId IN :ids" + EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE + EMPTY_STRING
 				+ AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED + EMPTY_STRING + ORDER_BY + EMPTY_STRING
 				+ CREATED_DATE_TIME;
 		params.put("ids", ids);
@@ -305,19 +340,34 @@ public class RegistrationStatusDao {
 		return registrationStatusRepositary.createQuerySelect(queryStr, params);
 	}
 
-	public List<RegistrationStatusEntity> getResumablePackets(Integer fetchSize) {
+	public List<RegistrationStatusEntity> getActionablePausedPackets(Integer fetchSize) {
 		Map<String, Object> params = new HashMap<>();
 		String className = RegistrationStatusEntity.class.getSimpleName();
 		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
 		
 
 		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
-				+ ".statusCode =:status" +  EMPTY_STRING + AND + EMPTY_STRING + alias
+				+ ".statusCode IN :statusCodes" + EMPTY_STRING + AND + EMPTY_STRING + alias
 				+ ".resumeTimeStamp < now()" + EMPTY_STRING + AND + EMPTY_STRING + alias
 				+ ".defaultResumeAction is not null" + EMPTY_STRING + ORDER_BY + EMPTY_STRING + UPDATED_DATE_TIME;
+		List<String> statusCodes = new ArrayList<String>();
+		statusCodes.add(RegistrationStatusCode.PAUSED.toString());
+		statusCodes.add(RegistrationStatusCode.PAUSED_FOR_ADDITIONAL_INFO.toString());
+		params.put("statusCodes", statusCodes);
 
-		params.put("status", RegistrationStatusCode.PAUSED.toString());
-		
+		return registrationStatusRepositary.createQuerySelect(queryStr, params, fetchSize);
+	}
+
+	public List<RegistrationStatusEntity> getResumablePackets(Integer fetchSize) {
+		Map<String, Object> params = new HashMap<>();
+		String className = RegistrationStatusEntity.class.getSimpleName();
+		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
+
+		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
+				+ ".statusCode =:status" + EMPTY_STRING
+				+ ORDER_BY + EMPTY_STRING + UPDATED_DATE_TIME;
+
+		params.put("status", RegistrationStatusCode.RESUMABLE.toString());
 
 		return registrationStatusRepositary.createQuerySelect(queryStr, params, fetchSize);
 	}

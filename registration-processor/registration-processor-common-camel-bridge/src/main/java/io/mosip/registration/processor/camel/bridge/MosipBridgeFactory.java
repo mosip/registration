@@ -149,6 +149,7 @@ public class MosipBridgeFactory extends MosipVerticleAPIManager {
 			VertxComponent vertxComponent = new VertxComponent();
 			vertxComponent.setVertx(vertx);
 			camelContext.addComponent("eventbus", vertxComponent);
+			camelContext.addComponent("workflow-cmd", vertxComponent);
 		} else if(eventBusType.equals("kafka")) {
 			KafkaComponent kafkaComponent = new KafkaComponent();
 			KafkaConfiguration kafkaConfiguration = new KafkaConfiguration();
@@ -156,6 +157,7 @@ public class MosipBridgeFactory extends MosipVerticleAPIManager {
 			kafkaConfiguration.setBrokers(kafkaBootstrapServers);
 			kafkaComponent.setConfiguration(kafkaConfiguration);
 			camelContext.addComponent("eventbus", kafkaComponent);
+			camelContext.addComponent("workflow-cmd", kafkaComponent);
 			camelContext.setUseMDCLogging(true);
 			camelContext.setUnitOfWorkFactory(CustomMDCUnitOfWork::new);
 		} else
