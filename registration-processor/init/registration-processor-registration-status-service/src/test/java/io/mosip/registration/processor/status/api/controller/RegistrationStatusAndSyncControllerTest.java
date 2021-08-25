@@ -27,10 +27,13 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.gson.Gson;
@@ -98,6 +101,9 @@ public class RegistrationStatusAndSyncControllerTest {
 	/** The mock mvc. */
 	@Autowired
 	private MockMvc mockMvc;
+	
+	@Autowired
+	private WebApplicationContext webApplicationContext;
 
 	/** The registration dto list. */
 	private List<RegistrationStatusDto> registrationDtoList;
@@ -153,8 +159,7 @@ public class RegistrationStatusAndSyncControllerTest {
 	@Before
 	public void setUp() throws JsonProcessingException, ApisResourceAccessException {
 
-		// mockMvc =
-		// MockMvcBuilders.webAppContextSetup(context).addFilters(springSecurityFilterChain).build();
+		mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 		when(env.getProperty("mosip.registration.processor.registration.status.id"))
 				.thenReturn("mosip.registration.status");
 		when(env.getProperty("mosip.registration.processor.lostrid.id")).thenReturn("mosip.registration.lostrid");
@@ -316,6 +321,7 @@ public class RegistrationStatusAndSyncControllerTest {
 	}
 
 	@Test
+	@WithMockUser(value = "admin", roles = "REGISTRATION_ADMIN")
 	public void lostRidSuccessTest() throws Exception {
 		doNothing().when(lostRidRequestValidator).validate((lostRidRequestDto));
 
@@ -326,6 +332,7 @@ public class RegistrationStatusAndSyncControllerTest {
 	}
 
 	@Test
+	@WithMockUser(value = "admin", roles = "REGISTRATION_ADMIN")
 	public void lostRidRegstatusException() throws Exception {
 
 		Mockito.doThrow(new RegStatusAppException()).when(lostRidRequestValidator).validate(ArgumentMatchers.any());

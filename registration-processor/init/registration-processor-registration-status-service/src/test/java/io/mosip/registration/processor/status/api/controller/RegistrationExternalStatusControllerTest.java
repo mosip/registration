@@ -29,11 +29,14 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.util.NestedServletException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -43,14 +46,13 @@ import com.google.gson.GsonBuilder;
 
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
 import io.mosip.registration.processor.status.dto.RegistrationExternalStatusRequestDTO;
 import io.mosip.registration.processor.status.dto.RegistrationExternalStatusSubRequestDto;
 import io.mosip.registration.processor.core.workflow.dto.SortInfo;
 import io.mosip.registration.processor.status.api.config.RegistrationStatusConfigTest;
 import io.mosip.registration.processor.status.dto.FilterInfo;
-import io.mosip.registration.processor.status.dto.RegistrationExternalStatusRequestDTO;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
-import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.SearchInfo;
 import io.mosip.registration.processor.status.exception.RegStatusAppException;
 import io.mosip.registration.processor.status.service.impl.RegistrationStatusServiceImpl;
@@ -70,6 +72,9 @@ public class RegistrationExternalStatusControllerTest {
 
 	@Autowired
 	private MockMvc mockMvc;
+	
+	@Autowired
+	private WebApplicationContext webApplicationContext;
 
 	@InjectMocks
 	RegistrationExternalStatusController registrationExternalStatusController = new RegistrationExternalStatusController();
@@ -86,6 +91,9 @@ public class RegistrationExternalStatusControllerTest {
 
 	@MockBean
 	SyncRegistrationServiceImpl syncRegistrationService;
+	
+	@MockBean
+	DigitalSignatureUtility digitalSignatureUtility;
 
 	@MockBean
 	LostRidRequestValidator lostRidRequestValidator;
@@ -112,8 +120,7 @@ public class RegistrationExternalStatusControllerTest {
 	@Before
 	public void setUp() throws JsonProcessingException, ApisResourceAccessException {
 
-		// mockMvc =
-		// MockMvcBuilders.webAppContextSetup(context).addFilters(springSecurityFilterChain).build();
+		mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 		when(env.getProperty("mosip.registration.processor.registration.external.status.id"))
 				.thenReturn("mosip.registration.external.status");
 		when(env.getProperty("mosip.registration.processor.datetime.pattern"))
@@ -175,10 +182,12 @@ public class RegistrationExternalStatusControllerTest {
 	 *
 	 */
 	@Test
+	@WithMockUser(value = "resident", roles = "RESIDENT")
 	public void searchSuccessTest() throws Exception {
 		doNothing().when(registrationExternalStatusRequestValidator).validate((registrationExternalStatusRequestDTO),
 				"mosip.registration.external.status");
-
+		Mockito.doReturn("test").when(digitalSignatureUtility).getDigitalSignature(ArgumentMatchers.any());
+		
 		MvcResult result = this.mockMvc.perform(post("/externalstatus/search").accept(MediaType.APPLICATION_JSON_VALUE)
 				.cookie(new Cookie("Authorization", regStatusToJson)).contentType(MediaType.APPLICATION_JSON_VALUE)
 				.content(regStatusToJson.getBytes()).header("timestamp", "2019-05-07T05:13:55.704Z"))
@@ -200,6 +209,7 @@ public class RegistrationExternalStatusControllerTest {
 	}
 
 	@Test(expected = NestedServletException.class)
+	@WithMockUser(value = "resident", roles = "RESIDENT")
 	public void searchRegstatusException() throws Exception {
 
 		Mockito.doThrow(new RegStatusAppException()).when(registrationExternalStatusRequestValidator)
