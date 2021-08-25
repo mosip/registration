@@ -14,8 +14,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.core.env.Environment;
-
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.registration.processor.status.code.TransactionTypeCode;
 import io.mosip.registration.processor.status.dto.RegistrationTransactionDto;
@@ -24,7 +22,6 @@ import io.mosip.registration.processor.status.entity.TransactionEntity;
 import io.mosip.registration.processor.status.exception.RegTransactionAppException;
 import io.mosip.registration.processor.status.exception.TransactionTableNotAccessibleException;
 import io.mosip.registration.processor.status.exception.TransactionsUnavailableException;
-import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
 import io.mosip.registration.processor.status.repositary.TransactionRepository;
 import io.mosip.registration.processor.status.service.impl.TransactionServiceImpl;
 
@@ -36,9 +33,6 @@ public class TransactionServiceTest {
 
 	@Mock
 	TransactionRepository<TransactionEntity, String> transactionRepositary;
-	
-	@Mock
-	Environment environment;
 
 	private TransactionEntity transcationEntity;
 	private TransactionDto transactionDto;
@@ -110,13 +104,11 @@ public class TransactionServiceTest {
 		DataAccessLayerException exception = new DataAccessLayerException(
 				io.mosip.kernel.dataaccess.hibernate.constant.HibernateErrorCode.ERR_DATABASE.getErrorCode(),
 				"errorMessage", new Exception());
-		Mockito.when(environment.getProperty( any())).thenReturn("en").thenReturn("fr")
-		.thenReturn("ar");
 		Mockito.when(transactionRepositary.getTransactionByRegId(any()))
 		.thenThrow(exception);
 		
 		
-		 transactionService.getTransactionByRegId("1221", "en");
+		 transactionService.getTransactionByRegId("1221");
 
 		
 	}
@@ -124,13 +116,11 @@ public class TransactionServiceTest {
 	@Test(expected = TransactionsUnavailableException.class)
 	public void testgetTransactionByRegIdException() throws TransactionsUnavailableException, RegTransactionAppException {
 		List<TransactionEntity> entities = new ArrayList<TransactionEntity>();
-		Mockito.when(environment.getProperty( any())).thenReturn("en").thenReturn("fr")
-		.thenReturn("ar");
 		Mockito.when(transactionRepositary.getTransactionByRegId(any()))
 		.thenReturn(entities);
 		
 		
-		 transactionService.getTransactionByRegId("1221", "en");
+		 transactionService.getTransactionByRegId("1221");
 
 		
 	}
@@ -152,12 +142,11 @@ public class TransactionServiceTest {
 		entities.add(transcationEntity);
 		Mockito.when(transactionRepositary.getTransactionByRegId(any()))
 		.thenReturn(entities);
-		Mockito.when(environment.getProperty( any())).thenReturn("eng").thenReturn("fra")
-		.thenReturn("ara").thenReturn("globalMessages_eng.properties");
 		
-		List<RegistrationTransactionDto> dtolist = transactionService.getTransactionByRegId("1221", "eng");
+		List<RegistrationTransactionDto> dtolist = transactionService.getTransactionByRegId("1221");
 
-		assertEquals(dtolist.get(0).getStatusComment(), "Packet has reached Packet Receiver");
+		assertEquals(dtolist.get(0).getStatusComment(), "Add Enrolment started");
+		assertEquals(dtolist.get(0).getSubStatusCode(), "RPR-PKR-SUCCESS-001");
 	}
 	
 	
