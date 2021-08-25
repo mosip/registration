@@ -1,17 +1,11 @@
 package io.mosip.registration.processor.status.service.impl;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -26,7 +20,6 @@ import io.mosip.registration.processor.status.entity.TransactionEntity;
 import io.mosip.registration.processor.status.exception.RegTransactionAppException;
 import io.mosip.registration.processor.status.exception.TransactionTableNotAccessibleException;
 import io.mosip.registration.processor.status.exception.TransactionsUnavailableException;
-import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
 import io.mosip.registration.processor.status.repositary.TransactionRepository;
 import io.mosip.registration.processor.status.service.TransactionService;
 
@@ -42,11 +35,6 @@ public class TransactionServiceImpl implements TransactionService<TransactionDto
 	/** The transaction repositary. */
 	@Autowired
 	TransactionRepository<TransactionEntity, String> transactionRepositary;
-
-	private static final String supportedLanguageKey = "mosip.supported-languages";
-
-	@Autowired
-	Environment environment;
 
 	/*
 	 * (non-Javadoc)
@@ -117,16 +105,9 @@ public class TransactionServiceImpl implements TransactionService<TransactionDto
 	}
 
 	@Override
-	public List<RegistrationTransactionDto> getTransactionByRegId(String regId, String langCode)
+	public List<RegistrationTransactionDto> getTransactionByRegId(String regId)
 			throws TransactionsUnavailableException, RegTransactionAppException {
 
-		String supportedLanguage = environment.getProperty(supportedLanguageKey);
-		List<String> supportedLanguages = supportedLanguage != null ? Arrays.asList(supportedLanguage.split(","))
-				: new ArrayList<>();
-		if (!supportedLanguages.contains(langCode)) {
-			throw new RegTransactionAppException(PlatformErrorMessages.RPR_RTS_INVALID_REQUEST.getCode(),
-					PlatformErrorMessages.RPR_RTS_INVALID_REQUEST.getMessage() + " - langCode");
-		}
 		List<RegistrationTransactionDto> dtoList = new ArrayList<RegistrationTransactionDto>();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
 				"TransactionServiceImpl::getTransactionByRegId()::entry");
@@ -136,21 +117,12 @@ public class TransactionServiceImpl implements TransactionService<TransactionDto
 				throw new TransactionsUnavailableException(PlatformErrorMessages.TRANSACTIONS_NOT_AVAILABLE.getCode(),
 						PlatformErrorMessages.TRANSACTIONS_NOT_AVAILABLE.getMessage());
 			}
-			ClassLoader classLoader = getClass().getClassLoader();
-			String messagesPropertiesFileName = "globalMessages_" + langCode + ".properties";
-			InputStream inputStream = classLoader.getResourceAsStream(messagesPropertiesFileName);
-			Properties prop = new Properties();
-			InputStreamReader streamReader = new InputStreamReader(inputStream, "UTF-8");
-			prop.load(streamReader);
-			setStatusComment(transactionEntityList, dtoList, prop);
-			streamReader.close();
-			inputStream.close();
+			for (TransactionEntity transactionEntity : transactionEntityList) {
+				dtoList.add(convertEntityToRegistrationTransactionDto(transactionEntity));
+			}
 		} catch (DataAccessLayerException e) {
 			throw new TransactionTableNotAccessibleException(
 					PlatformErrorMessages.RPR_RGS_TRANSACTION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
-		} catch (IOException e) {
-			throw new RegTransactionAppException(PlatformErrorMessages.RPR_RTS_UNKNOWN_EXCEPTION.getCode(),
-					PlatformErrorMessages.RPR_RTS_UNKNOWN_EXCEPTION.getMessage() + " -->" + e.getMessage());
 		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
 				"TransactionServiceImpl::getTransactionByRegId()::exit");
@@ -173,23 +145,7 @@ public class TransactionServiceImpl implements TransactionService<TransactionDto
 
 	private RegistrationTransactionDto convertEntityToRegistrationTransactionDto(TransactionEntity entity) {
 		return new RegistrationTransactionDto(entity.getId(), entity.getRegistrationId(), entity.getTrntypecode(),
-				entity.getParentid(), entity.getStatusCode(), entity.getStatusComment(), entity.getCreateDateTime());
-
-	}
-
-	private void setStatusComment(List<TransactionEntity> transactionEntityList,
-			List<RegistrationTransactionDto> dtoList, Properties prop) {
-		for (TransactionEntity transactionEntity : transactionEntityList) {
-			if (transactionEntity.getSubStatusCode() != null && !transactionEntity.getSubStatusCode().isEmpty()) {
-				transactionEntity.setStatusComment(prop.getProperty(transactionEntity.getSubStatusCode()));
-			}
-			if (transactionEntity.getStatusCode() != null && !transactionEntity.getStatusCode().isEmpty()) {
-				transactionEntity.setStatusCode(prop.getProperty(transactionEntity.getStatusCode()));
-			}
-			if (transactionEntity.getTrntypecode() != null && !transactionEntity.getTrntypecode().isEmpty()) {
-				transactionEntity.setTrntypecode(prop.getProperty(transactionEntity.getTrntypecode()));
-			}
-			dtoList.add(convertEntityToRegistrationTransactionDto(transactionEntity));
-		}
+				entity.getParentid(), entity.getStatusCode(), entity.getSubStatusCode(), entity.getStatusComment(),
+				entity.getCreateDateTime());
 	}
 }

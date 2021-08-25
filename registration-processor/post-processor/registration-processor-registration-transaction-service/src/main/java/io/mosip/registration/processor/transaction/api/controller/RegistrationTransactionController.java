@@ -72,13 +72,12 @@ public class RegistrationTransactionController {
 	 * get transaction details for the given registration id
 	 * 
 	 * @param rid registration id
-	 * @param langCode language code
 	 * @param request servlet request
 	 * @return list of RegTransactionResponseDTOs 
 	 * @throws Exception
 	 */
 	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR','REGISTRATION_ADMIN')")
-	@GetMapping(path = "/search/{langCode}/{rid}")
+	@GetMapping(path = "/search/{rid}")
 	@Operation(summary = "Get the transaction entity/entities", description = "Get the transaction entity/entities", tags = { "Registration Status" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "Transaction Entity/Entities successfully fetched"),
@@ -87,12 +86,11 @@ public class RegistrationTransactionController {
 			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<RegTransactionResponseDTO> getTransactionsbyRid(@PathVariable("rid") String rid,
-			@PathVariable("langCode") String langCode,HttpServletRequest request)
-			throws Exception {
+			HttpServletRequest request) throws Exception {
 		List<RegistrationTransactionDto> dtoList;
 		HttpHeaders headers = new HttpHeaders();
 		try {
-			dtoList = transactionService.getTransactionByRegId(rid,langCode);
+			dtoList = transactionService.getTransactionByRegId(rid);
 			RegTransactionResponseDTO responseDTO=buildRegistrationTransactionResponse(dtoList);
 			if (isEnabled) {		 
 				headers.add(RESPONSE_SIGNATURE,
