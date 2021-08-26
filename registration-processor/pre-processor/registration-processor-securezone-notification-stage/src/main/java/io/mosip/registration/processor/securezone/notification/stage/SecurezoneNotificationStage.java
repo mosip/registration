@@ -176,6 +176,10 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
 						RegistrationTransactionTypeCode.SECUREZONE_NOTIFICATION.toString());
 				registrationStatusDto.setRegistrationStageName(getStageName());
 				isDuplicatePacket = isDuplicatePacketForSameReqId(messageDTO);
+			} else {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), messageDTO.getRid(),
+						"No records found in registration table for reg id - " + messageDTO.getRid());
 			}
 
 			if (!isDuplicatePacket && registrationStatusDto != null
