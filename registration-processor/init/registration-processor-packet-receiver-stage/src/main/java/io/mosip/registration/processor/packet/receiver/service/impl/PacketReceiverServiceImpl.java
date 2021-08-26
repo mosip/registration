@@ -141,12 +141,15 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 		boolean isTransactionSuccessful = false;
 		if (file.getName() != null && file.exists()) {
 			String fileOriginalName = file.getName();
-			String registrationId = fileOriginalName.split("\\.")[0];
+			String packetId = fileOriginalName.split("\\.")[0];
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, "PacketReceiverServiceImpl::validatePacket()::entry");
-			regEntity = syncRegistrationService.findByPacketId(registrationId);
-
+					packetId, "PacketReceiverServiceImpl::validatePacket()::entry");
+			regEntity = syncRegistrationService.findByPacketId(packetId);
+			
+			String registrationId = null;
 			validatePacketWithSync(regEntity, registrationId, description);
+			registrationId = regEntity.getRegistrationId();
+
 			messageDTO.setRid(registrationId);
 			messageDTO.setWorkflowInstanceId(regEntity.getWorkflowInstanceId());
 			try (InputStream encryptedInputStream = FileUtils.newInputStream(file.getAbsolutePath())) {
