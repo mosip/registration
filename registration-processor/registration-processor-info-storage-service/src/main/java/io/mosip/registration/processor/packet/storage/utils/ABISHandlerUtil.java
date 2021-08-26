@@ -5,9 +5,11 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
+import io.mosip.registration.processor.core.code.AbisStatusCode;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -119,31 +121,54 @@ public class ABISHandlerUtil {
 	 * @return the packet status
 	 */
 	public String getPacketStatus(InternalRegistrationStatusDto registrationStatusDto) {
-		if (getMatchedRegIds(registrationStatusDto.getRegistrationId()).isEmpty()) {
+		// get all identify requests for latest transaction id
+		List<AbisRequestDto> identifyRequests = getAllIdentifyRequest(registrationStatusDto.getRegistrationId());
+
+		// if there are no identify requests present
+		if (CollectionUtils.isEmpty(identifyRequests))
 			return AbisConstant.PRE_ABIS_IDENTIFICATION;
-		}
-		return AbisConstant.POST_ABIS_IDENTIFICATION;
+		// if there are unprocessed pending identify request for same transaction id then consider it as duplicate
+		else if (isIdentifyRequestsPendingForLatestTransactionId(identifyRequests))
+			return AbisConstant.DUPLICATE_FOR_SAME_TRANSACTION_ID;
+		// else if all the identify requests processed for latest transaction id
+		else
+			return AbisConstant.POST_ABIS_IDENTIFICATION;
 	}
 
 	/**
-	 * Gets the matched reg ids.
+	 * This method returns all identify requests
 	 *
 	 * @param registrationId
 	 *            the registration id
 	 * @return the matched reg ids
 	 */
-	private List<AbisRequestDto> getMatchedRegIds(String registrationId) {
+	private List<AbisRequestDto> getAllIdentifyRequest(String registrationId) {
 		String latestTransactionId = utilities.getLatestTransactionId(registrationId);
 
 		List<String> regBioRefIds = packetInfoDao.getAbisRefMatchedRefIdByRid(registrationId);
 
-		List<AbisRequestDto> abisRequestDtoList = new ArrayList<>();
-
 		if (!regBioRefIds.isEmpty()) {
-			abisRequestDtoList = packetInfoManager.getInsertOrIdentifyRequest(regBioRefIds.get(0), latestTransactionId);
+			List<AbisRequestDto> abisRequestDtoList = packetInfoManager.getInsertOrIdentifyRequest(regBioRefIds.get(0), latestTransactionId);
+			if (!CollectionUtils.isEmpty(abisRequestDtoList)) {
+				return abisRequestDtoList.stream().filter(reqDto ->
+						reqDto.getRequestType().equalsIgnoreCase(AbisStatusCode.IDENTIFY.toString())).collect(Collectors.toList());
+			}
 		}
 
-		return abisRequestDtoList;
+		return null;
+	}
+
+	/**
+	 * This method returns all unprocessed identify requests
+	 *
+	 * @param identifyRequests
+	 * @return
+	 */
+	private boolean isIdentifyRequestsPendingForLatestTransactionId(List<AbisRequestDto> identifyRequests) {
+		// check if any of the identify request is not processed for same transaction id
+		return identifyRequests.stream().filter(
+				identifyReq -> !identifyReq.getStatusCode().equalsIgnoreCase(AbisStatusCode.PROCESSED.toString()))
+				.findAny().isPresent();
 	}
 
 	/**
