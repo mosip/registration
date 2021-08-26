@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,8 +32,12 @@ import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequest
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
+import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
+import io.mosip.registration.processor.status.dto.SyncResponseDto;
+import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -63,6 +68,9 @@ public class SecurezoneNotificationStageTest {
 	/** The registration status service. */
 	@Mock
 	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
+	
+	@Mock
+    private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationService;
 
 	@Mock
 	private RegistrationExceptionMapperUtil registrationStatusMapperUtil;
@@ -253,6 +261,9 @@ public class SecurezoneNotificationStageTest {
                 obj.put("isValid", true);
                 obj.put("internalError", false);
                 obj.put("reg_type", "NEW");
+                obj.put("source", "REGISTRATIONCLIENT");
+                obj.put("iteration", 1);
+                obj.put("workflowInstanceId", "78fc3d34-03f5-11ec-9a03-0242ac130003");
                 return obj;
             }
 
@@ -377,6 +388,13 @@ public class SecurezoneNotificationStageTest {
         ResponseWrapper responseWrapper = new ResponseWrapper();
         AuditResponseDto auditResponseDto = new AuditResponseDto();
         responseWrapper.setResponse(auditResponseDto);
+        
+        List<SyncRegistrationEntity> entities = new ArrayList<SyncRegistrationEntity>();
+        SyncRegistrationEntity entity = new SyncRegistrationEntity();
+        entity.setAdditionalInfoReqId("abc");
+        entity.setPacketId("2018701130000410092018110735");
+        entity.setWorkflowInstanceId("78fc3d34-03f5-11ec-9a03-0242ac130003");
+        entities.add(entity);
 
         ctx = setContext();
         ReflectionTestUtils.setField(notificationStage, "workerPoolSize", 10);
@@ -392,6 +410,8 @@ public class SecurezoneNotificationStageTest {
         messageDTO.setRid("2018701130000410092018110735");
         Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any())).thenReturn(registrationStatusDto);
         Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(),any(),any());
+        Mockito.when(syncRegistrationService.findByWorkflowInstanceId(anyString())).thenReturn(entity);
+        Mockito.when(syncRegistrationService.findByAdditionalInfoReqId(anyString())).thenReturn(entities);
         Mockito.doReturn(responseWrapper).when(auditLogRequestBuilder).createAuditRequestBuilder(anyString(), anyString(), anyString(),
                 anyString(), anyString(), anyString(), anyString());
         Mockito.when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("Something");

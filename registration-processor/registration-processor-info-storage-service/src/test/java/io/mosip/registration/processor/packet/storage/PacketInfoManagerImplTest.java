@@ -752,7 +752,7 @@ public class PacketInfoManagerImplTest {
 		RegBioRefDto RegBioRefDto = new RegBioRefDto();
 		RegBioRefDto.setBioRefId("ref1234");
 		RegBioRefDto.setRegId("1234");
-		Mockito.when(regAbisRefRepository.save(any())).thenReturn(regAbisRefEntity);
+		Mockito.when(regBioRefRepository.save(any())).thenReturn(regAbisRefEntity);
 		packetInfoManagerImpl.saveAbisRef(RegBioRefDto, "", "");
 
 	}
@@ -762,7 +762,7 @@ public class PacketInfoManagerImplTest {
 	 */
 	@Test(expected = UnableToInsertData.class)
 	public void saveAbisRefTestException() {
-		Mockito.when(regAbisRefRepository.save(any())).thenThrow(exp);
+		Mockito.when(regBioRefRepository.save(any())).thenThrow(exp);
 		RegBioRefDto RegBioRefDto = new RegBioRefDto();
 		RegBioRefDto.setBioRefId("ref1234");
 		RegBioRefDto.setRegId("1234");

@@ -10,17 +10,16 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.MethodMode;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -39,7 +38,6 @@ import io.mosip.registration.processor.core.notification.template.generator.dto.
 import io.mosip.registration.processor.core.notification.template.generator.dto.TemplateDto;
 import io.mosip.registration.processor.core.notification.template.generator.dto.TemplateResponseDto;
 import io.mosip.registration.processor.core.packet.dto.Identity;
-import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
 import io.mosip.registration.processor.core.spi.message.sender.MessageNotificationService;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventDTO;
@@ -48,36 +46,34 @@ import io.mosip.registration.processor.message.sender.exception.EmailIdNotFoundE
 import io.mosip.registration.processor.message.sender.exception.PhoneNumberNotFoundException;
 import io.mosip.registration.processor.message.sender.exception.TemplateGenerationFailedException;
 import io.mosip.registration.processor.notification.service.NotificationService;
+import io.mosip.registration.processor.notification.service.impl.NotificationServiceImpl;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 
-@SpringBootTest(classes = { NotificationServiceTestApplication.class })
-@RunWith(SpringRunner.class)
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*","javax.management.*", "javax.net.ssl.*" })
 public class NotificationServiceTest {
 
-	@MockBean
+	@Mock
 	private MessageNotificationService<SmsResponseDto, ResponseDto, MultipartFile[]> service;
 
-	@MockBean
+	@Mock
 	private ObjectMapper mapper;
 
-	@MockBean
+	@Mock
 	private RegistrationProcessorRestClientService<Object> restClientService;
 
-    @MockBean
+	@Mock
     private AuthenticatedContentVerifier authenticatedContentVerifier;
 	
-	@MockBean
+	@Mock
 	private AuditLogRequestBuilder auditLogRequestBuilder;
 
-
-	/** The packet meta info. */
-	private PacketMetaInfo packetMetaInfo = new PacketMetaInfo();
 
 	/** The identity. */
 	Identity identity = new Identity();
 
-	@Autowired
-	private NotificationService notificationService;
+	@InjectMocks
+	private NotificationService notificationService = new NotificationServiceImpl();
 	
 	@Value("${websub.hub.url}")
 	private String hubURL;
@@ -86,7 +82,7 @@ public class NotificationServiceTest {
 	@Value("${mosip.regproc.workflow.complete.topic}")
 	private String topic;
 	
-	@MockBean
+	@Mock
 	private  SubscriptionClient<SubscriptionChangeRequest,UnsubscriptionRequest, SubscriptionChangeResponse> subs; 
 	
 	@Mock
@@ -98,45 +94,12 @@ public class NotificationServiceTest {
 		SubscriptionChangeResponse subscriptionChangeResponse = new SubscriptionChangeResponse();
 		subscriptionChangeResponse.setHubURL(hubURL);
 		subscriptionChangeResponse.setTopic(topic);
+		ReflectionTestUtils.setField(notificationService, "notificationTypes", "SMS|EMAIL");
+		ReflectionTestUtils.setField(notificationService, "notificationEmails", "abc@gmail.com");
 		when(subs.subscribe(Mockito.any())).thenReturn(subscriptionChangeResponse);
 		when(authenticatedContentVerifier.verifyAuthorizedContentVerified(any(), any())).thenReturn(true);
-		when(env.getProperty("mosip.regproc.notification_service.correction.email"))
-				.thenReturn("RPR_PAUSED_FOR_ADDITIONAL_INFO_EMAIL");
-		when(env.getProperty("mosip.regproc.notification_service.correction.sms"))
-				.thenReturn("RPR_PAUSED_FOR_ADDITIONAL_INFO_SMS");
-		when(env.getProperty("mosip.regproc.notification_service.correction.subject"))
-				.thenReturn("Requesting the additional details for progressing on the application of UIN");
-		when(env.getProperty("regproc.notification.template.code.lost.uin.email")).thenReturn("RPR_LOST_UIN_EMAIL");
-		when(env.getProperty("regproc.notification.template.code.lost.uin.sms")).thenReturn("RPR_LOST_UIN_SMS");
-		when(env.getProperty("regproc.notification.template.code.lost.uin.sub")).thenReturn("RPR_UIN_GEN_EMAIL_SUB");
-		when(env.getProperty("regproc.notification.template.code.uin.created.email")).thenReturn("RPR_UIN_GEN_EMAIL");
-		when(env.getProperty("regproc.notification.template.code.uin.created.sms")).thenReturn("RPR_UIN_GEN_SMS");
-		when(env.getProperty("regproc.notification.template.code.uin.created.sub")).thenReturn("RPR_UIN_GEN_EMAIL_SUB");
-		when(env.getProperty("regproc.notification.template.code.uin.new.email")).thenReturn("RPR_UIN_UPD_EMAIL");
-		when(env.getProperty("regproc.notification.template.code.uin.new.sms")).thenReturn("RPR_UIN_UPD_SMS");
-		when(env.getProperty("regproc.notification.template.code.uin.new.sub")).thenReturn("RPR_UIN_UPD_EMAIL_SUB");
-		when(env.getProperty("regproc.notification.template.code.uin.activate.email")).thenReturn("RPR_UIN_REAC_EMAIL");
-		when(env.getProperty("regproc.notification.template.code.uin.activate.sms")).thenReturn("RPR_UIN_REAC_SMS");
-		when(env.getProperty("regproc.notification.template.code.uin.activate.sub")).thenReturn("RPR_UIN_REAC_EMAIL_SUB");
-		when(env.getProperty("regproc.notification.template.code.uin.deactivate.email")).thenReturn("RPR_UIN_DEAC_EMAIL");
-		when(env.getProperty("regproc.notification.template.code.uin.deactivate.sms")).thenReturn("RPR_UIN_DEAC_SMS");
-		when(env.getProperty("regproc.notification.template.code.uin.deactivate.sub")).thenReturn("RPR_UIN_DEAC_EMAIL_SUB");
-		when(env.getProperty("regproc.notification.template.code.uin.update.email")).thenReturn("RPR_UIN_UPD_EMAIL");
-		when(env.getProperty("regproc.notification.template.code.uin.update.sms")).thenReturn("RPR_UIN_UPD_SMS");
-		when(env.getProperty("regproc.notification.template.code.uin.update.sub")).thenReturn("RPR_UIN_UPD_EMAIL_SUB");
-		when(env.getProperty("regproc.notification.template.code.duplicate.uin.email")).thenReturn("RPR_DUP_UIN_EMAIL");
-		when(env.getProperty("regproc.notification.template.code.duplicate.uin.sms")).thenReturn("RPR_DUP_UIN_SMS");
-		when(env.getProperty("regproc.notification.template.code.duplicate.uin.sub")).thenReturn("RPR_DUP_UIN_EMAIL_SUB");
-		when(env.getProperty("regproc.notification.template.code.technical.issue.email")).thenReturn("RPR_TEC_ISSUE_EMAIL");
-		when(env.getProperty("regproc.notification.template.code.technical.issue.sms")).thenReturn("RPR_TEC_ISSUE_SMS");
-		when(env.getProperty("regproc.notification.template.code.technical.issue.sub")).thenReturn("RPR_TEC_ISSUE_EMAIL_SUB");
-		when(env.getProperty("regproc.notification.template.code.paused.for.additional.info.email")).thenReturn("RPR_PAUSED_FOR_ADDITIONAL_INFO_EMAIL");
-		when(env.getProperty("regproc.notification.template.code.paused.for.additional.info.sms")).thenReturn("RPR_PAUSED_FOR_ADDITIONAL_INFO_SMS");
-		when(env.getProperty("regproc.notification.template.code.paused.for.additional.info.sub")).thenReturn("RPR_PAUSED_FOR_ADDITIONAL_INFO_EMAIL_SUB");
 	}
 
-
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testMessageSentUINGenerated() throws Exception {
 		List<TemplateDto> templates = new ArrayList<TemplateDto>();
@@ -155,6 +118,8 @@ public class NotificationServiceTest {
 		smsResponse.setStatus("success");
 		ResponseDto responseDto = new ResponseDto();
 		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_UIN_GEN_SMS").thenReturn("RPR_UIN_GEN_EMAIL")
+		.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
 		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
 		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(responseDto);
         when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
@@ -167,7 +132,6 @@ public class NotificationServiceTest {
 		assertEquals(200, res.getStatusCodeValue());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testMessageSentUINUpdate() throws Exception {
 		List<TemplateDto> templates = new ArrayList<TemplateDto>();
@@ -186,6 +150,8 @@ public class NotificationServiceTest {
 		smsResponse.setStatus("success");
 		ResponseDto responseDto = new ResponseDto();
 		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_UIN_UPD_SMS").thenReturn("RPR_UIN_UPD_EMAIL")
+		.thenReturn("RPR_UIN_UPD_EMAIL_SUB");
 		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
 		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(responseDto);
         when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
@@ -198,7 +164,6 @@ public class NotificationServiceTest {
 		assertEquals(200, res.getStatusCodeValue());
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testMessageSentUINActivate() throws Exception {
 		List<TemplateDto> templates = new ArrayList<TemplateDto>();
@@ -217,6 +182,8 @@ public class NotificationServiceTest {
 		smsResponse.setStatus("success");
 		ResponseDto responseDto = new ResponseDto();
 		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_UIN_REAC_SMS").thenReturn("RPR_UIN_REAC_EMAIL")
+		.thenReturn("RPR_UIN_REAC_EMAIL_SUB");
 		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
 		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(responseDto);
         when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
@@ -229,7 +196,6 @@ public class NotificationServiceTest {
 		assertEquals(200, res.getStatusCodeValue());
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testMessageSentUINDeactivate() throws Exception {
 		List<TemplateDto> templates = new ArrayList<TemplateDto>();
@@ -248,6 +214,8 @@ public class NotificationServiceTest {
 		smsResponse.setStatus("success");
 		ResponseDto responseDto = new ResponseDto();
 		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_UIN_DEAC_SMS").thenReturn("RPR_UIN_DEAC_EMAIL")
+		.thenReturn("RPR_UIN_DEAC_EMAIL_SUB");
 		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
 		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(responseDto);
         when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
@@ -260,7 +228,6 @@ public class NotificationServiceTest {
 		assertEquals(200, res.getStatusCodeValue());
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testMessageSentUINDuplicate() throws Exception {
 		List<TemplateDto> templates = new ArrayList<TemplateDto>();
@@ -279,6 +246,8 @@ public class NotificationServiceTest {
 		smsResponse.setStatus("success");
 		ResponseDto responseDto = new ResponseDto();
 		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_DUP_UIN_SMS").thenReturn("RPR_DUP_UIN_EMAIL")
+		.thenReturn("RPR_DUP_UIN_EMAIL_SUB");
 		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
 		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(responseDto);
         when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
@@ -292,7 +261,6 @@ public class NotificationServiceTest {
 		assertEquals(200, res.getStatusCodeValue());
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testMessageSentTechnicalIssue() throws Exception {
 		List<TemplateDto> templates = new ArrayList<TemplateDto>();
@@ -311,6 +279,8 @@ public class NotificationServiceTest {
 		smsResponse.setStatus("success");
 		ResponseDto responseDto = new ResponseDto();
 		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_TEC_ISSUE_SMS").thenReturn("RPR_TEC_ISSUE_EMAIL")
+		.thenReturn("RPR_TEC_ISSUE_EMAIL_SUB");
 		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
 		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(responseDto);
         when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
@@ -318,13 +288,12 @@ public class NotificationServiceTest {
 		completedEventDTO.setInstanceId("85425022110000120190117110505");
 		completedEventDTO.setResultCode("REJECTED");
 		completedEventDTO.setWorkflowType("DEACTIVATED");
-		completedEventDTO.setErrorCode("OSI_VALIDATE_FAILED");
+		completedEventDTO.setErrorCode("CMD_VALIDATION_FAILED");
 
 		ResponseEntity<Void> res=notificationService.process(completedEventDTO);
 		assertEquals(200, res.getStatusCodeValue());
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testMessageSentLostUIN() throws Exception {
 		List<TemplateDto> templates = new ArrayList<TemplateDto>();
@@ -343,6 +312,8 @@ public class NotificationServiceTest {
 		smsResponse.setStatus("success");
 		ResponseDto responseDto = new ResponseDto();
 		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_LOST_UIN_SMS").thenReturn("RPR_LOST_UIN_EMAIL")
+		.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
 		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
 		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(responseDto);
         when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
@@ -355,7 +326,6 @@ public class NotificationServiceTest {
 		assertEquals(200, res.getStatusCodeValue());
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testMessageSentLostANDDuplicateUIN() throws Exception {
 		
@@ -369,7 +339,6 @@ public class NotificationServiceTest {
 		assertEquals(500, res.getStatusCodeValue());
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Test
 	@DirtiesContext(methodMode = MethodMode.AFTER_METHOD)
 	public void testMessageConfigurationException() throws Exception {
@@ -390,6 +359,8 @@ public class NotificationServiceTest {
 		smsResponse.setStatus("success");
 		ResponseDto responseDto = new ResponseDto();
 		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_LOST_UIN_SMS").thenReturn("RPR_LOST_UIN_EMAIL")
+		.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
 		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
 		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(responseDto);
         when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
@@ -402,8 +373,6 @@ public class NotificationServiceTest {
 		assertEquals(500, res.getStatusCodeValue());
 	}
 	
-	
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testMessageTemplateException() throws Exception {
 		List<TemplateDto> templates = new ArrayList<TemplateDto>();
@@ -428,7 +397,6 @@ public class NotificationServiceTest {
 		assertEquals(500, res.getStatusCodeValue());
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testMessageSMSFAILED() throws Exception {
 		List<TemplateDto> templates = new ArrayList<TemplateDto>();
@@ -447,6 +415,8 @@ public class NotificationServiceTest {
 		smsResponse.setStatus("failed");
 		ResponseDto responseDto = new ResponseDto();
 		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_LOST_UIN_SMS").thenReturn("RPR_LOST_UIN_EMAIL")
+		.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
 		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
 		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(responseDto);
         when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
@@ -459,7 +429,6 @@ public class NotificationServiceTest {
 		assertEquals(500, res.getStatusCodeValue());
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testMessageEMAILFAILED() throws Exception {
 		List<TemplateDto> templates = new ArrayList<TemplateDto>();
@@ -478,6 +447,8 @@ public class NotificationServiceTest {
 		smsResponse.setStatus("success");
 		ResponseDto responseDto = new ResponseDto();
 		responseDto.setStatus("failed");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_LOST_UIN_SMS").thenReturn("RPR_LOST_UIN_EMAIL")
+		.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
 		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
 		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(responseDto);
         when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
@@ -508,6 +479,8 @@ public class NotificationServiceTest {
 		smsResponse.setStatus("success");
 		ResponseDto responseDto = new ResponseDto();
 		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_LOST_UIN_SMS").thenReturn("RPR_LOST_UIN_EMAIL")
+		.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
 		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
 		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenThrow(new EmailIdNotFoundException());
         when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
@@ -539,6 +512,8 @@ public class NotificationServiceTest {
 		smsResponse.setStatus("success");
 		ResponseDto responseDto = new ResponseDto();
 		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_LOST_UIN_SMS").thenReturn("RPR_LOST_UIN_EMAIL")
+		.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
 		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
 		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenThrow(new TemplateGenerationFailedException());
         when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
@@ -569,6 +544,8 @@ public class NotificationServiceTest {
 		smsResponse.setStatus("success");
 		ResponseDto responseDto = new ResponseDto();
 		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_LOST_UIN_SMS").thenReturn("RPR_LOST_UIN_EMAIL")
+		.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
 		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
 		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenThrow(new ApisResourceAccessException());
         when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
@@ -599,6 +576,8 @@ public class NotificationServiceTest {
 		smsResponse.setStatus("success");
 		ResponseDto responseDto = new ResponseDto();
 		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_LOST_UIN_SMS").thenReturn("RPR_LOST_UIN_EMAIL")
+		.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
 		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenThrow(new PhoneNumberNotFoundException());
 		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(responseDto);
         when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
@@ -630,6 +609,8 @@ public class NotificationServiceTest {
 		smsResponse.setStatus("success");
 		ResponseDto responseDto = new ResponseDto();
 		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_LOST_UIN_SMS").thenReturn("RPR_LOST_UIN_EMAIL")
+		.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
 		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenThrow(new TemplateGenerationFailedException());
 		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(responseDto);
         when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
@@ -660,6 +641,8 @@ public class NotificationServiceTest {
 		smsResponse.setStatus("success");
 		ResponseDto responseDto = new ResponseDto();
 		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_LOST_UIN_SMS").thenReturn("RPR_LOST_UIN_EMAIL")
+		.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
 		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenThrow(new ApisResourceAccessException());
 		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(responseDto);
         when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
@@ -690,6 +673,8 @@ public class NotificationServiceTest {
 		smsResponse.setStatus("failed");
 		ResponseDto responseDto = new ResponseDto();
 		responseDto.setStatus("failed");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_LOST_UIN_SMS").thenReturn("RPR_LOST_UIN_EMAIL")
+		.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
 		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
 		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(responseDto);
         when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
@@ -702,7 +687,6 @@ public class NotificationServiceTest {
 		assertEquals(500, res.getStatusCodeValue());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testMessageSentPausedForAdditionalRequest() throws Exception {
 		List<TemplateDto> templates = new ArrayList<TemplateDto>();
@@ -721,6 +705,8 @@ public class NotificationServiceTest {
 		smsResponse.setStatus("success");
 		ResponseDto responseDto = new ResponseDto();
 		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_PAUSED_FOR_ADDITIONAL_INFO_SMS")
+				.thenReturn("RPR_PAUSED_FOR_ADDITIONAL_INFO_EMAIL").thenReturn("RPR_PAUSED_FOR_ADDITIONAL_INFO_EMAIL_SUB");
 		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
 		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(responseDto);
@@ -734,7 +720,6 @@ public class NotificationServiceTest {
 		assertEquals(200, res.getStatusCodeValue());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testMessageTemplateExceptionForPausedForAdditionalRequest() throws Exception {
 		List<TemplateDto> templates = new ArrayList<TemplateDto>();
@@ -776,6 +761,8 @@ public class NotificationServiceTest {
 		smsResponse.setStatus("success");
 		ResponseDto responseDto = new ResponseDto();
 		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_PAUSED_FOR_ADDITIONAL_INFO_SMS")
+		.thenReturn("RPR_PAUSED_FOR_ADDITIONAL_INFO_EMAIL").thenReturn("RPR_PAUSED_FOR_ADDITIONAL_INFO_EMAIL_SUB");
 		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
 		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any()))
 				.thenThrow(new TemplateGenerationFailedException());
@@ -789,7 +776,6 @@ public class NotificationServiceTest {
 		assertEquals(500, res.getStatusCodeValue());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	@DirtiesContext(methodMode = MethodMode.AFTER_METHOD)
 	public void testMessageConfigurationExceptionForPausedForAdditionalRequest() throws Exception {
@@ -810,6 +796,8 @@ public class NotificationServiceTest {
 		smsResponse.setStatus("success");
 		ResponseDto responseDto = new ResponseDto();
 		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_PAUSED_FOR_ADDITIONAL_INFO_SMS")
+		.thenReturn("RPR_PAUSED_FOR_ADDITIONAL_INFO_EMAIL").thenReturn("RPR_PAUSED_FOR_ADDITIONAL_INFO_EMAIL_SUB");
 		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
 		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(responseDto);
