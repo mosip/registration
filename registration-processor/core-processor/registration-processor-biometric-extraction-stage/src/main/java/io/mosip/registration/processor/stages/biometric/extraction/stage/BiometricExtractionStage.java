@@ -132,14 +132,14 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 	public void deployVerticle() {
 		
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
-		this.consumeAndSend(mosipEventBus, MessageBusAddress.UIN_GENERATION_BUS_IN,
-				MessageBusAddress.UIN_GENERATION_BUS_OUT, messageExpiryTimeLimit);
+		this.consumeAndSend(mosipEventBus, MessageBusAddress.BIOMETRIC_EXTRACTION_BUS_IN,
+				MessageBusAddress.BIOMETRIC_EXTRACTION_BUS_OUT, messageExpiryTimeLimit);
 	}
 
 	@Override
 	public void start() {
-		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.UIN_GENERATION_BUS_IN,
-				MessageBusAddress.UIN_GENERATION_BUS_OUT));
+		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.BIOMETRIC_EXTRACTION_BUS_IN,
+				MessageBusAddress.BIOMETRIC_EXTRACTION_BUS_OUT));
 		this.createServer(router.getRouter(), getPort());
 
 	}
