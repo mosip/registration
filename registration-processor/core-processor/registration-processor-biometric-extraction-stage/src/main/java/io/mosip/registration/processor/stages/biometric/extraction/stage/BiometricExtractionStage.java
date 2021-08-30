@@ -155,7 +155,7 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 		boolean isTransactionSuccessful = Boolean.FALSE;
 		object.setMessageBusAddress(MessageBusAddress.BIOMETRIC_EXTRACTION_BUS_IN);
 		object.setInternalError(Boolean.FALSE);
-		object.setIsValid(Boolean.TRUE);
+		object.setIsValid(Boolean.FALSE);
 		LogDescription description = new LogDescription();
 		String registrationId = object.getRid();
 		InternalRegistrationStatusDto registrationStatusDto=null;
@@ -187,7 +187,6 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
 						StatusUtil.BIOMETRIC_EXTRACTION_DRAFT_REQUEST_UNAVAILABLE.getMessage());
-				object.setIsValid(Boolean.FALSE);
 			}
 			else {
 				List<ExtractorsDto> extractors=getExtractors(registrationStatusDto.getRegistrationId());
@@ -199,6 +198,7 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 				registrationStatusDto.setStatusComment(StatusUtil.BIOMETRIC_EXTRACTION_SUCCESS.getMessage());
 				registrationStatusDto.setSubStatusCode(StatusUtil.BIOMETRIC_EXTRACTION_SUCCESS.getCode());
 				isTransactionSuccessful = true;
+				object.setIsValid(Boolean.TRUE);
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 				description.setMessage(PlatformSuccessMessages.RPR_BIOMETRIC_EXTRACTION_SUCCESS.getMessage());
 				description.setCode(PlatformSuccessMessages.RPR_BIOMETRIC_EXTRACTION_SUCCESS.getCode());
@@ -246,6 +246,9 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BASE_CHECKED_EXCEPTION));
 			description.setMessage(e.getMessage());
 			description.setCode(e.getErrorCode());
+			object.setInternalError(Boolean.TRUE);
+			object.setRid(registrationStatusDto.getRegistrationId());
+			isTransactionSuccessful = false;
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					description.getCode() + " -- " + registrationId,
 					e.getErrorCode() + e.getMessage()
