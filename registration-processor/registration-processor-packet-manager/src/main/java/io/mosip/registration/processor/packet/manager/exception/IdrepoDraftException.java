@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.stages.uingenerator.exception;
+package io.mosip.registration.processor.packet.manager.exception;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
 
