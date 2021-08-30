@@ -238,7 +238,7 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 			object.setRid(registrationStatusDto.getRegistrationId());
 			e.printStackTrace();
 		}catch (RegistrationProcessorCheckedException e) {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.REPROCESS.toString());
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 			registrationStatusDto.setStatusComment(
 					trimExceptionMessage.trimExceptionMessage(StatusUtil.BASE_CHECKED_EXCEPTION.getMessage() + e.getMessage()));
 			registrationStatusDto.setSubStatusCode(StatusUtil.BASE_CHECKED_EXCEPTION.getCode());
