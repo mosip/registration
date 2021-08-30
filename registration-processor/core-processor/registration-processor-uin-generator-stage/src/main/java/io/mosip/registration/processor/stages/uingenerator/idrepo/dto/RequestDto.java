@@ -31,6 +31,10 @@ public class RequestDto {
 	
 	private String status;
 
-	/** The UIN */
+
 	private String biometricReferenceId;
+	/** The UIN */
+	private String uin;
+	/** The entity. */
+	private Object anonymousProfile;
 }

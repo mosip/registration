@@ -1155,6 +1155,9 @@ public enum PlatformErrorMessages {
 
 	VID_CREATION_FAILED(PlatformConstants.RPR_UIN_GENERATOR_STAGE + "014", "VID creation failed"),
 
+
+	DRAFT_CHECK_FAILED(PlatformConstants.RPR_UIN_GENERATOR_STAGE + "015", "Could not check if draft is present or not"),
+
 	/** The rpr pgs file not present. */
 	RPR_PGS_FILE_NOT_PRESENT(PlatformConstants.RPR_PACKET_GENERATOR_MODULE + "001",
 			"The Packet store set by the System is not accessible"),
@@ -1243,6 +1246,10 @@ public enum PlatformErrorMessages {
 	/** The rpr pis identity not found. */
 	RPR_PGS_IDENTITY_NOT_FOUND(PlatformConstants.RPR_PACKET_GENERATOR_MODULE + "025",
 			"Unable to Find Identity Field in ID JSON"),
+
+	/** Idrepo draft creation exception. */
+	IDREPO_DRAFT_EXCEPTION(PlatformConstants.RPR_PACKET_GENERATOR_MODULE + "026",
+			"Exception while updating idrepo draft"),
 
 	/** invalid token present in header. */
 	RPR_AUT_INVALID_TOKEN(PlatformConstants.RPR_AUTHENTICATION + "01", "Invalid Token Present"),
