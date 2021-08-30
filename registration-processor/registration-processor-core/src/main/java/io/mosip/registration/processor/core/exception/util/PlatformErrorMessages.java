@@ -1157,6 +1157,9 @@ public enum PlatformErrorMessages {
 
 	VID_CREATION_FAILED(PlatformConstants.RPR_UIN_GENERATOR_STAGE + "014", "VID creation failed"),
 
+
+	DRAFT_CHECK_FAILED(PlatformConstants.RPR_UIN_GENERATOR_STAGE + "015", "Could not check if draft is present or not"),
+
 	/** The rpr pgs file not present. */
 	RPR_PGS_FILE_NOT_PRESENT(PlatformConstants.RPR_PACKET_GENERATOR_MODULE + "001",
 			"The Packet store set by the System is not accessible"),
@@ -1245,6 +1248,10 @@ public enum PlatformErrorMessages {
 	/** The rpr pis identity not found. */
 	RPR_PGS_IDENTITY_NOT_FOUND(PlatformConstants.RPR_PACKET_GENERATOR_MODULE + "025",
 			"Unable to Find Identity Field in ID JSON"),
+
+	/** Idrepo draft creation exception. */
+	IDREPO_DRAFT_EXCEPTION(PlatformConstants.RPR_PACKET_GENERATOR_MODULE + "026",
+			"Exception while updating idrepo draft"),
 
 	/** invalid token present in header. */
 	RPR_AUT_INVALID_TOKEN(PlatformConstants.RPR_AUTHENTICATION + "01", "Invalid Token Present"),
@@ -1370,13 +1377,13 @@ public enum PlatformErrorMessages {
 
 	/** The queue json validation failed. */
 	QUEUE_JSON_VALIDATION_FAILED(PlatformConstants.RPR_MA_MIDDLEWARE + "004",
-			"Unable to find Connection Properties"), 
-	
+			"Unable to find Connection Properties"),
+
 	RPR_BIOMETRIC_EXTRACTION_FAILED(PlatformConstants.RPR_BIOMETRIC_EXTRACTION_STAGE + "000",
 			"biometric extraction failed"),
-	
+
 	RPR_BIOMETRIC_EXTRACTION_DRAFT_REQUEST_UNAVAILABLE(PlatformConstants.RPR_BIOMETRIC_EXTRACTION_STAGE + "001",
-			"Draft request is unavaialble in id-repo draft repository."), 
+			"Draft request is unavaialble in id-repo draft repository."),
 	/** The rpr ugs api resource exception. */
 	RPR_BIOMETRIC_EXTRACTION_API_RESOURCE_EXCEPTION(PlatformConstants.RPR_BIOMETRIC_EXTRACTION_STAGE + "002",
 			"Not able to access the API resource"),
@@ -1388,7 +1395,7 @@ public enum PlatformErrorMessages {
 	RPR_FINALIZATION_FAILED_NULL_RESPONSE(PlatformConstants.RPR_FINALIZATION_STAGE + "002",
 			"null response from idrepo "),
 	RPR_FINALIZATION_STAGE_DRAFT_REQUEST_UNAVAILABLE(PlatformConstants.RPR_FINALIZATION_STAGE + "003",
-			"Draft request is unavaialble in id-repo draft repository."), 
+			"Draft request is unavaialble in id-repo draft repository."),
 	RPR_FINALIZATION_STAGE_API_RESOURCE_EXCEPTION(PlatformConstants.RPR_FINALIZATION_STAGE + "004",
 			"Not able to access the API resource")
 	;

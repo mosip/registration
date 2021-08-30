@@ -57,10 +57,10 @@ public enum ApiName {
 
 	/** The idrepository. */
 	IDREPOSITORY,
-	
+
 	/** The idrepository draft. */
 	IDREPOSITORYDRAFT,
-	
+
 	/** publish idrepository draft. */
 	IDREPOSITORYDRAFTPUBLISH,
 
@@ -193,7 +193,11 @@ public enum ApiName {
 	DATASHAREGETEURL,
 	CREDENTIALREQUEST, GETVIDSBYUIN,
 	JWTVERIFY,
-	DEVICEHOTLIST;
+	DEVICEHOTLIST,
+	IDREPOHASDRAFT,
+	IDREPOGETDRAFT,
+	IDREPOCREATEDRAFT,
+	IDREPOUPDATEDRAFT;
 
 }
 

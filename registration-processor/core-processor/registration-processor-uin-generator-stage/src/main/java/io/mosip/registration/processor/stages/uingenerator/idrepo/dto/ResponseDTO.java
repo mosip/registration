@@ -14,13 +14,19 @@ import lombok.Data;
 public class ResponseDTO {
 	
 	/** The entity. */
-	private String entity;
-	
+	private Object anonymousProfile;
+
+	private String biometricReferenceId;
+
 	/** The identity. */
 	private Object identity;
-	
+
 	private List<Documents> documents;
-	
+
+	private String registrationId;
+
 	/** The status. */
 	private String status;
+
+	private String uin;
 }

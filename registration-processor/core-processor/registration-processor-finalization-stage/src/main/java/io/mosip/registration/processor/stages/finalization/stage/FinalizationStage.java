@@ -137,14 +137,14 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 	public void deployVerticle() {
 		
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
-		this.consumeAndSend(mosipEventBus, MessageBusAddress.UIN_GENERATION_BUS_IN,
-				MessageBusAddress.UIN_GENERATION_BUS_OUT, messageExpiryTimeLimit);
+		this.consumeAndSend(mosipEventBus, MessageBusAddress.FINALIZATION_BUS_IN,
+				MessageBusAddress.FINALIZATION_BUS_OUT, messageExpiryTimeLimit);
 	}
 
 	@Override
 	public void start() {
-		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.UIN_GENERATION_BUS_IN,
-				MessageBusAddress.UIN_GENERATION_BUS_OUT));
+		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.FINALIZATION_BUS_IN,
+				MessageBusAddress.FINALIZATION_BUS_OUT));
 		this.createServer(router.getRouter(), getPort());
 
 	}
@@ -158,9 +158,9 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 	@Override
 	public MessageDTO process(MessageDTO object) {
 		boolean isTransactionSuccessful = Boolean.FALSE;
-		object.setMessageBusAddress(MessageBusAddress.BIOMETRIC_EXTRACTION_BUS_IN);
+		object.setMessageBusAddress(MessageBusAddress.FINALIZATION_BUS_IN);
 		object.setInternalError(Boolean.FALSE);
-		object.setIsValid(Boolean.TRUE);
+		object.setIsValid(Boolean.FALSE);
 		LogDescription description = new LogDescription();
 		String registrationId = object.getRid();
 		InternalRegistrationStatusDto registrationStatusDto =null;
@@ -263,8 +263,8 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 		} catch (JsonParseException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId,
-					RegistrationStatusCode.PROCESSING.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+					RegistrationStatusCode.FAILED.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 			registrationStatusDto.setStatusComment(
 					trimExceptionMessage.trimExceptionMessage(StatusUtil.JSON_PARSING_EXCEPTION.getMessage() + e.getMessage()));
 			registrationStatusDto.setSubStatusCode(StatusUtil.JSON_PARSING_EXCEPTION.getCode());
@@ -277,18 +277,18 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 			object.setRid(registrationStatusDto.getRegistrationId());
 			e.printStackTrace();
 		}catch (Exception ex) {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
 			registrationStatusDto.setStatusComment(
 					trimExceptionMessage.trimExceptionMessage(StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getMessage()));
 			registrationStatusDto.setSubStatusCode(StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getCode());
 			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.FINALIZATION_REPROCESS));
+					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.EXCEPTION));
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId,
-					RegistrationStatusCode.PROCESSING.toString() + ex.getMessage() + ExceptionUtils.getStackTrace(ex));
+					RegistrationStatusCode.FAILED.toString() + ex.getMessage() + ExceptionUtils.getStackTrace(ex));
 			object.setInternalError(Boolean.TRUE);
-			description.setMessage(PlatformErrorMessages.RPR_BDD_UNKNOWN_EXCEPTION.getMessage());
-			description.setCode(PlatformErrorMessages.RPR_BDD_UNKNOWN_EXCEPTION.getCode());
+			description.setMessage(PlatformErrorMessages.RPR_SYS_UNEXCEPTED_EXCEPTION.getMessage());
+			description.setCode(PlatformErrorMessages.RPR_SYS_UNEXCEPTED_EXCEPTION.getCode());
 		}
 		finally {
 			if (description.getStatusComment() != null)
