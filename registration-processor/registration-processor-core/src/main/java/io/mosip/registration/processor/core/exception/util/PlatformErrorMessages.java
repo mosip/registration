@@ -1,5 +1,7 @@
 package io.mosip.registration.processor.core.exception.util;
 
+import io.mosip.registration.processor.core.status.util.StatusConstants;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Enum RPRPlatformErrorMessages.
@@ -1368,7 +1370,28 @@ public enum PlatformErrorMessages {
 
 	/** The queue json validation failed. */
 	QUEUE_JSON_VALIDATION_FAILED(PlatformConstants.RPR_MA_MIDDLEWARE + "004",
-			"Unable to find Connection Properties");
+			"Unable to find Connection Properties"), 
+	
+	RPR_BIOMETRIC_EXTRACTION_FAILED(PlatformConstants.RPR_BIOMETRIC_EXTRACTION_STAGE + "000",
+			"biometric extraction failed"),
+	
+	RPR_BIOMETRIC_EXTRACTION_DRAFT_REQUEST_UNAVAILABLE(PlatformConstants.RPR_BIOMETRIC_EXTRACTION_STAGE + "001",
+			"Draft request is unavaialble in id-repo draft repository."), 
+	/** The rpr ugs api resource exception. */
+	RPR_BIOMETRIC_EXTRACTION_API_RESOURCE_EXCEPTION(PlatformConstants.RPR_BIOMETRIC_EXTRACTION_STAGE + "002",
+			"Not able to access the API resource"),
+	RPR_BIOMETRIC_EXTRACTION_NULL_RESPONSE(PlatformConstants.RPR_BIOMETRIC_EXTRACTION_STAGE + "003",
+			"null response from idrepo "),
+	/** The rpr finalization exception. */
+	RPR_FINALIZATION_FAILED(PlatformConstants.RPR_FINALIZATION_STAGE + "001",
+			"finalization failed"),
+	RPR_FINALIZATION_FAILED_NULL_RESPONSE(PlatformConstants.RPR_FINALIZATION_STAGE + "002",
+			"null response from idrepo "),
+	RPR_FINALIZATION_STAGE_DRAFT_REQUEST_UNAVAILABLE(PlatformConstants.RPR_FINALIZATION_STAGE + "003",
+			"Draft request is unavaialble in id-repo draft repository."), 
+	RPR_FINALIZATION_STAGE_API_RESOURCE_EXCEPTION(PlatformConstants.RPR_FINALIZATION_STAGE + "004",
+			"Not able to access the API resource")
+	;
 
 	/** The error message. */
 	private final String errorMessage; 

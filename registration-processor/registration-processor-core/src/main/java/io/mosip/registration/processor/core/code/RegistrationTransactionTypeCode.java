@@ -34,6 +34,8 @@ public enum RegistrationTransactionTypeCode {
 	BIOGRAPHIC_VERIFICATION,
 	/** The uin generator. */
 	UIN_GENERATOR,
+	/** The biometric extraction. */
+	BIOMETRIC_EXTRACTION,
 	/** The notification. */
 	NOTIFICATION,
 	/** The print service. */
@@ -59,5 +61,7 @@ public enum RegistrationTransactionTypeCode {
 	INTERNAL_WORKFLOW_ACTION,
 
 	/** The workflow resume. */
-	WORKFLOW_RESUME;
+	WORKFLOW_RESUME,
+	/** The uin finalization  */
+	FINALIZATION;
 }

@@ -125,8 +125,12 @@ public class RegistrationExceptionMapperUtil {
 		statusMap.put(RegistrationExceptionTypeCode.PACKET_UPLOADER_FAILED, RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_FAILED,
 				RegistrationTransactionStatusCode.FAILED);
-		statusMap.put(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_RPROCESS,
+		statusMap.put(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_REPROCESS,
 				RegistrationTransactionStatusCode.REPROCESS);
+		statusMap.put(RegistrationExceptionTypeCode.BIOMETRIC_EXTRACTION_REPROCESS,
+				RegistrationTransactionStatusCode.REPROCESS);
+		statusMap.put(RegistrationExceptionTypeCode.DRAFT_REQUEST_UNAVAILABLE,
+				RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.BASE_UNCHECKED_EXCEPTION, RegistrationTransactionStatusCode.ERROR);
 		statusMap.put(RegistrationExceptionTypeCode.BASE_CHECKED_EXCEPTION, RegistrationTransactionStatusCode.ERROR);
 		statusMap.put(RegistrationExceptionTypeCode.EXTERNAL_INTEGRATION_FAILED,
@@ -164,6 +168,10 @@ public class RegistrationExceptionMapperUtil {
 				RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.SUPERVISOR_BIOMETRIC_NOT_IN_PACKET,
 				RegistrationTransactionStatusCode.FAILED);
+		statusMap.put(RegistrationExceptionTypeCode.FINALIZATION_FAILED,
+				RegistrationTransactionStatusCode.FAILED);
+		statusMap.put(RegistrationExceptionTypeCode.FINALIZATION_REPROCESS,
+				RegistrationTransactionStatusCode.REPROCESS);
 		statusMap.put(RegistrationExceptionTypeCode.AUTH_ERROR, RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.AUTH_FAILED, RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.IDA_AUTHENTICATION_FAILURE,
