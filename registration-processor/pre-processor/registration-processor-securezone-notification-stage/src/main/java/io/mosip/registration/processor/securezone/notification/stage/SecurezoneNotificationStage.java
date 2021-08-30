@@ -1,5 +1,17 @@
 package io.mosip.registration.processor.securezone.notification.stage;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
+
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -14,7 +26,6 @@ import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
-import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
@@ -34,17 +45,6 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 @Configuration
@@ -167,15 +167,23 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
             messageDTO.setIteration(obj.getInteger("iteration"));
             messageDTO.setWorkflowInstanceId(obj.getString("workflowInstanceId"));
 
-
             registrationStatusDto = registrationStatusService.getRegistrationStatus(
                     messageDTO.getRid(), messageDTO.getReg_type(), messageDTO.getIteration(), messageDTO.getWorkflowInstanceId());
 
-            boolean isDuplicatePacket = isDuplicatePacketForSameReqId(messageDTO);
+			boolean isDuplicatePacket = false;
+			if (registrationStatusDto != null) {
+				registrationStatusDto.setLatestTransactionTypeCode(
+						RegistrationTransactionTypeCode.SECUREZONE_NOTIFICATION.toString());
+				registrationStatusDto.setRegistrationStageName(getStageName());
+				isDuplicatePacket = isDuplicatePacketForSameReqId(messageDTO);
+			} else {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), messageDTO.getRid(),
+						"No records found in registration table for reg id - " + messageDTO.getRid());
+			}
 
-            if (!isDuplicatePacket && registrationStatusDto != null && messageDTO.getRid().equalsIgnoreCase(registrationStatusDto.  getRegistrationId())) {
-
-
+			if (!isDuplicatePacket && registrationStatusDto != null
+					&& messageDTO.getRid().equalsIgnoreCase(registrationStatusDto.getRegistrationId())) {
                 registrationStatusDto
                         .setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
                 messageDTO.setIsValid(Boolean.TRUE);
@@ -252,9 +260,6 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
             description.setMessage(PlatformErrorMessages.RPR_SECUREZONE_FAILURE.getMessage());
             ctx.fail(e);
         } finally {
-            registrationStatusDto
-                    .setLatestTransactionTypeCode(RegistrationTransactionTypeCode.SECUREZONE_NOTIFICATION.toString());
-            registrationStatusDto.setRegistrationStageName(getStageName());
             if (messageDTO.getInternalError()) {
                 registrationStatusDto.setUpdatedBy(USER);
                 int retryCount = registrationStatusDto.getRetryCount() != null

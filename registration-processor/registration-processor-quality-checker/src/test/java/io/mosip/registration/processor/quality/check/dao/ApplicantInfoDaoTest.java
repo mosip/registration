@@ -113,7 +113,7 @@ public class ApplicantInfoDaoTest {
 		IndividualDemographicDedupePKEntity dedupePKEntity = new IndividualDemographicDedupePKEntity();
 		Date date = new Date(1995, 04, 16);
 		dedupePKEntity.setLangCode("fr");
-		dedupePKEntity.setRegId("2018782130000224092018121229");
+		dedupeEntity.setRegId("2018782130000224092018121229");
 		dedupeEntity.setId(dedupePKEntity);
 		dedupeEntity.setDob(date.toString());
 		dedupeEntity.setName("Ibrahim");

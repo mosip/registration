@@ -476,10 +476,10 @@ public class UinGeneratorStageTest {
 
 //		Mockito.when(registrationProcessorRestClientService.postApi(any(), any(),  any(), any(), any()));
 		Mockito.when(registrationStatusMapperUtil
-				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_RPROCESS)).thenReturn("REPROCESS");
+				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_FAILED)).thenReturn("FAILED");
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getInternalError());
-		assertTrue(result.getIsValid());
+		assertFalse(result.getIsValid());
 	}
 
 	@Test
@@ -2225,10 +2225,10 @@ public class UinGeneratorStageTest {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
 		Mockito.when(registrationStatusMapperUtil
-				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_RPROCESS)).thenReturn("REPROCESS");
+				.getStatusCode(RegistrationExceptionTypeCode.JSON_PROCESSING_EXCEPTION)).thenReturn("ERROR");
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getInternalError());
-		assertTrue(result.getIsValid());
+		assertFalse(result.getIsValid());
 	}
 
 	@Test
