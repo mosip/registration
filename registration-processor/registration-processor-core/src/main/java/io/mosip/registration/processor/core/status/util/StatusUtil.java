@@ -155,7 +155,7 @@ public enum StatusUtil {
 
 	// Uin generator stage
 	UIN_GENERATED_SUCCESS(StatusConstants.UIN_GENERATOR_MODULE_SUCCESS + "001","UIN Generated Successfully"), 
-	UIN_DATA_UPDATION_SUCCESS(StatusConstants.UIN_GENERATOR_MODULE_SUCCESS + "002","UIN Data is Updated Successfully"),
+	UIN_DATA_UPDATION_SUCCESS(StatusConstants.UIN_GENERATOR_MODULE_SUCCESS + "002","UIN Data is drafted Successfully"),
 	UIN_ACTIVATED_SUCCESS(StatusConstants.UIN_GENERATOR_MODULE_SUCCESS + "003", "UIN is Activated"), 
 	UIN_DEACTIVATION_SUCCESS(StatusConstants.UIN_GENERATOR_MODULE_SUCCESS + "004", "UIN is Deactivated"),
 	LINK_RID_FOR_LOST_PACKET_SUCCESS(StatusConstants.UIN_GENERATOR_MODULE_SUCCESS + "005","RID linked Successfully for Lost UIN Packet"),
@@ -169,6 +169,7 @@ public enum StatusUtil {
 	UIN_REACTIVATION_FAILED(StatusConstants.UIN_GENERATOR_MODULE_FAILED + "006", "UIN Reactivation  failed - "),
 	UIN_DEACTIVATION_FAILED(StatusConstants.UIN_GENERATOR_MODULE_FAILED + "007", "UIN Deactivation  failed - "),
 	LINK_RID_FOR_LOST_PACKET_FAILED(StatusConstants.UIN_GENERATOR_MODULE_FAILED + "008","UIn not found the the matched RID"),
+	IDREPO_DRAFT_EXCEPTION(StatusConstants.UIN_GENERATOR_MODULE_FAILED + "008", "Exception occured updating idrepo draft."),
 	
 	//Request handler service
 	//1)Resident UIN update
