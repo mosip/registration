@@ -58,12 +58,6 @@ public enum ApiName {
 	/** The idrepository. */
 	IDREPOSITORY,
 
-	/** The idrepository draft. */
-	IDREPOSITORYDRAFT,
-
-	/** publish idrepository draft. */
-	IDREPOSITORYDRAFTPUBLISH,
-
 	/** The idrepository get id by uin. */
 	IDREPOGETIDBYUIN,
 
@@ -189,7 +183,7 @@ public enum ApiName {
 	PACKETMANAGER_GET_TAGS,
 	DATASHARECREATEURL,
 	PMS,
-	PARTNER,
+	PARTNERGETBIOEXTRACTOR,
 	DATASHAREGETEURL,
 	CREDENTIALREQUEST, GETVIDSBYUIN,
 	JWTVERIFY,
@@ -197,7 +191,8 @@ public enum ApiName {
 	IDREPOHASDRAFT,
 	IDREPOGETDRAFT,
 	IDREPOCREATEDRAFT,
-	IDREPOUPDATEDRAFT;
+	IDREPOUPDATEDRAFT,
+	IDREPOPUBLISHDRAFT;
 
 }
 

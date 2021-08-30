@@ -1,9 +1,6 @@
 package io.mosip.registration.processor.stages.biometric.extraction.stage;
 
 import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,16 +12,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestClientException;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -38,7 +30,6 @@ import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
-import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.EventId;
 import io.mosip.registration.processor.core.constant.EventName;
 import io.mosip.registration.processor.core.constant.EventType;
@@ -48,7 +39,6 @@ import io.mosip.registration.processor.core.exception.RegistrationProcessorCheck
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
-import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO2;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.pms.ExtractorDto;
@@ -57,8 +47,9 @@ import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessor
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
+import io.mosip.registration.processor.packet.manager.dto.IdResponseDTO;
+import io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
-import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
@@ -120,10 +111,7 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 	
 	/** The registration processor rest api client . */
 	@Autowired 
-	private RestApiClient restApiClient;
-	
-	@Autowired
-	private Environment env;
+	private IdrepoDraftService idrepoDraftService;
 	
 	@Autowired
 	private ObjectMapper mapper;
@@ -181,7 +169,7 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 		registrationStatusDto.setRegistrationStageName(getStageName());
 		
 		
-			if(!isDraftRequestAvailable(registrationStatusDto)) {
+			if(!idrepoDraftService.idrepoHasDraft(registrationStatusDto.getRegistrationId())) {
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 				registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
 						.getStatusCode(RegistrationExceptionTypeCode.DRAFT_REQUEST_UNAVAILABLE));
@@ -202,14 +190,14 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 				object.setIsValid(Boolean.FALSE);
 			}
 			else {
-				List<ExtractorsDto> extractors=getExtractors(registrationStatusDto);
+				List<ExtractorsDto> extractors=getExtractors(registrationStatusDto.getRegistrationId());
 				for(ExtractorsDto extractorsDto:extractors) {
 				for(ExtractorDto dto:extractorsDto.getExtractors()) {
-					IdResponseDTO2 idResponseDTO2=addBiometricExtractiontoIdRepository(dto,registrationStatusDto.getRegistrationId());
-					if(idResponseDTO2 == null || idResponseDTO2.getResponse() == null) {
+					IdResponseDTO idResponseDTO=addBiometricExtractiontoIdRepository(dto,registrationStatusDto.getRegistrationId());
+					if(idResponseDTO == null || idResponseDTO.getResponse() == null) {
 						throw new RegistrationProcessorCheckedException(PlatformErrorMessages.RPR_BIOMETRIC_EXTRACTION_NULL_RESPONSE.getCode(),
 								PlatformErrorMessages.RPR_BIOMETRIC_EXTRACTION_NULL_RESPONSE.getMessage()+"-->"+
-						idResponseDTO2.getErrors().get(0).getErrorCode()+"-"+idResponseDTO2.getErrors().get(0).getMessage());
+						idResponseDTO.getErrors().get(0).getErrorCode()+"-"+idResponseDTO.getErrors().get(0).getMessage());
 					}
 				}
 				}
@@ -238,11 +226,11 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 			description.setMessage(trimExceptionMessage
 					.trimExceptionMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage() + ex.getMessage()));
 			description.setCode(PlatformErrorMessages.RPR_BIOMETRIC_EXTRACTION_API_RESOURCE_EXCEPTION.getCode());
-		} catch (JSONException e) {
+		} catch (JSONException | JsonProcessingException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId,
-					RegistrationStatusCode.PROCESSING.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+					RegistrationStatusCode.FAILED.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 			registrationStatusDto.setStatusComment(
 					trimExceptionMessage.trimExceptionMessage(StatusUtil.JSON_PARSING_EXCEPTION.getMessage() + e.getMessage()));
 			registrationStatusDto.setSubStatusCode(StatusUtil.JSON_PARSING_EXCEPTION.getCode());
@@ -254,19 +242,6 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 			object.setInternalError(Boolean.TRUE);
 			object.setRid(registrationStatusDto.getRegistrationId());
 			e.printStackTrace();
-		}catch (RegistrationProcessorCheckedException e) {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.REPROCESS.toString());
-			registrationStatusDto.setStatusComment(
-					trimExceptionMessage.trimExceptionMessage(StatusUtil.BASE_CHECKED_EXCEPTION.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.BASE_CHECKED_EXCEPTION.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BASE_CHECKED_EXCEPTION));
-			description.setMessage(e.getMessage());
-			description.setCode(e.getErrorCode());
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					description.getCode() + " -- " + registrationId,
-					e.getErrorCode() + e.getMessage()
-							+ ExceptionUtils.getStackTrace(e));
 		}catch (Exception ex) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
 			registrationStatusDto.setStatusComment(
@@ -320,8 +295,8 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 	 * @throws ApisResourceAccessException
 	 * @throws RegistrationProcessorCheckedException 
 	 */
-	private IdResponseDTO2 addBiometricExtractiontoIdRepository(ExtractorDto dto,
-			String registrationId) throws ApisResourceAccessException, RegistrationProcessorCheckedException {
+	private IdResponseDTO addBiometricExtractiontoIdRepository(ExtractorDto dto,
+			String registrationId) throws ApisResourceAccessException {
 		String extractionFormat = "";
 		switch(dto.getBiometric()) {
 		case "iris":
@@ -338,7 +313,7 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 		pathValues.add("bio");
 		pathValues.add(dto.getAttributeName());
 		List<String> segments=List.of(registrationId);
-		return (IdResponseDTO2) registrationProcessorRestClientService.getApi(ApiName.RETRIEVEIDENTITYFROMRID, segments, pathParams, pathValues, IdResponseDTO2.class);
+		return (IdResponseDTO) registrationProcessorRestClientService.getApi(ApiName.RETRIEVEIDENTITYFROMRID, segments, pathParams, pathValues, IdResponseDTO.class);
 		
 	}
 	/**
@@ -348,56 +323,28 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 	 * @throws JSONException
 	 * @throws IOException
 	 * @throws ApisResourceAccessException
+	 * @throws JsonProcessingException 
+	 * @throws JsonMappingException 
+	 * @throws JsonParseException 
 	 */
-	private List<ExtractorsDto> getExtractors(InternalRegistrationStatusDto registrationStatusDto) throws JSONException, IOException, ApisResourceAccessException {
+	private List<ExtractorsDto> getExtractors(String id) throws JSONException, ApisResourceAccessException, JsonParseException, JsonMappingException, JsonProcessingException, IOException {
 		JSONArray jArray=new JSONArray(partnerPolicyIdsJson);
 		List<ExtractorsDto> extractors=new ArrayList<>();
 		for(int i=0;i<jArray.length();i++) {
-			jArray.getJSONObject(i);
-			String url = env.getProperty(ApiName.PARTNER.name())+"/"+jArray.getJSONObject(i).getString("partnerId")
-					+"/bioextractors/"+jArray.getJSONObject(i).getString("policyId");
-			MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
+			List<String> pathsegments=new ArrayList<>();
+			pathsegments.add(jArray.getJSONObject(i).getString("partnerId"));
+			pathsegments.add("bioextractors");
+			pathsegments.add(jArray.getJSONObject(i).getString("policyId"));
 			
-			headers.add("Cookie", restApiClient.getToken());
-			try {
-				ResponseWrapper<?> responseWrapper=restApiClient.getRestTemplate().exchange(url, HttpMethod.GET,  
-						new HttpEntity<Object>(headers), ResponseWrapper.class, "").getBody();
-				if(responseWrapper.getResponse() !=null) {
-					extractors.add(mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
-							ExtractorsDto.class));
-				}
-			} catch (RestClientException | KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-						LoggerFileConstant.APPLICATIONID.toString(), e.getMessage() + ExceptionUtils.getStackTrace(e));
-				restApiClient.tokenExceptionHandler(e);
-				throw new ApisResourceAccessException(PlatformErrorMessages.RPR_RCT_UNKNOWN_RESOURCE_EXCEPTION.getCode(), e);
+			ResponseWrapper<?> responseWrapper=(ResponseWrapper<?>) registrationProcessorRestClientService.
+					getApi(ApiName.PARTNERGETBIOEXTRACTOR, pathsegments, "", "", ResponseWrapper.class);
+			if(responseWrapper.getResponse() !=null) {
+				extractors.add(mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
+					ExtractorsDto.class));
 			}
+			
 		}
-		
-		
 		return extractors;
-	}
-	/**
-	 * check if draft is avaialble in idrepo
-	 * @param registrationStatusDto
-	 * @return
-	 * @throws ApisResourceAccessException
-	 */
-	@SuppressWarnings("rawtypes")
-	private boolean isDraftRequestAvailable(InternalRegistrationStatusDto registrationStatusDto) throws ApisResourceAccessException {
-		String url = env.getProperty(ApiName.IDREPOSITORYDRAFT.name())+"/"+registrationStatusDto.getRegistrationId();
-		MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
-		try {
-		headers.add("Cookie", restApiClient.getToken());
-		ResponseEntity responseEntity=restApiClient.getRestTemplate().exchange(url, HttpMethod.HEAD,  
-				new HttpEntity<Object>(headers), ResponseEntity.class, "");
-		return responseEntity.getStatusCode()==HttpStatus.valueOf(200);
-		}catch(Exception e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-					LoggerFileConstant.APPLICATIONID.toString(), e.getMessage() + ExceptionUtils.getStackTrace(e));
-			restApiClient.tokenExceptionHandler(e);
-			throw new ApisResourceAccessException(PlatformErrorMessages.RPR_RCT_UNKNOWN_RESOURCE_EXCEPTION.getCode(), e);
-		}
 	}
 	/**
 	 * update Error Flags
