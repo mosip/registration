@@ -24,7 +24,7 @@ import io.mosip.registration.processor.core.exception.RegistrationProcessorCheck
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {AbisMiddlewareAppConfigurationsValidatorTest.MyConfig.class})
+@ContextConfiguration(classes = { AbisMiddlewareAppConfigurationsValidatorTest.MyConfig.class })
 public class AbisMiddlewareAppConfigurationsValidatorTest {
 
 	@InjectMocks
@@ -40,10 +40,8 @@ public class AbisMiddlewareAppConfigurationsValidatorTest {
 
 	@Before
 	public void setup() throws Exception {
-		ReflectionTestUtils.setField(abisMiddlewareAppConfigurationsValidator,
-				"reprocessorElapseTime", 7200);
-		ReflectionTestUtils.setField(abisMiddlewareAppConfigurationsValidator,
-				"reprocessBufferTime", 900);
+		ReflectionTestUtils.setField(abisMiddlewareAppConfigurationsValidator, "reprocessorElapseTime", 7200);
+		ReflectionTestUtils.setField(abisMiddlewareAppConfigurationsValidator, "reprocessBufferTime", 900);
 	}
 
 	@Test
@@ -55,7 +53,7 @@ public class AbisMiddlewareAppConfigurationsValidatorTest {
 		Mockito.when(utility.getAbisQueueDetails()).thenReturn(abisQueueDetails);
 		abisMiddlewareAppConfigurationsValidator.validateConfigurations(listener.events.peek());
 	}
-	
+
 	@Test
 	public void validateConfigurationsFailureTest() throws RegistrationProcessorCheckedException {
 
