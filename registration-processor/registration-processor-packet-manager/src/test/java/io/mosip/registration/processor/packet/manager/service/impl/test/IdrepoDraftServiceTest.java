@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.stages.uigenerator.service;
+package io.mosip.registration.processor.packet.manager.service.impl.test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
@@ -8,13 +8,12 @@ import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
-import io.mosip.registration.processor.packet.storage.utils.Utilities;
-import io.mosip.registration.processor.stages.uingenerator.exception.IdrepoDraftException;
-import io.mosip.registration.processor.stages.uingenerator.idrepo.dto.IdRequestDto;
-import io.mosip.registration.processor.stages.uingenerator.idrepo.dto.IdResponseDTO;
-import io.mosip.registration.processor.stages.uingenerator.idrepo.dto.RequestDto;
-import io.mosip.registration.processor.stages.uingenerator.idrepo.dto.ResponseDTO;
-import io.mosip.registration.processor.stages.uingenerator.service.IdrepoDraftService;
+import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftException;
+import io.mosip.registration.processor.packet.manager.dto.IdRequestDto;
+import io.mosip.registration.processor.packet.manager.dto.IdResponseDTO;
+import io.mosip.registration.processor.packet.manager.dto.RequestDto;
+import io.mosip.registration.processor.packet.manager.dto.ResponseDTO;
+import io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
 import org.json.simple.JSONObject;
@@ -35,7 +34,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ IOUtils.class, HMACUtils2.class, Utilities.class, Gson.class })
+@PrepareForTest({ IOUtils.class, HMACUtils2.class, Gson.class })
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*", "javax.net.ssl.*" })
 public class IdrepoDraftServiceTest {
 

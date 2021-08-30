@@ -1,7 +1,7 @@
 /**
  * 
  */
-package io.mosip.registration.processor.stages.uingenerator.idrepo.dto;
+package io.mosip.registration.processor.packet.manager.dto;
 
 import java.util.List;
 
