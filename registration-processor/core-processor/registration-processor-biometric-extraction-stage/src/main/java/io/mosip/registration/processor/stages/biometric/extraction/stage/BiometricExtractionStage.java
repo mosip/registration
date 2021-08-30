@@ -155,7 +155,7 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 		boolean isTransactionSuccessful = Boolean.FALSE;
 		object.setMessageBusAddress(MessageBusAddress.BIOMETRIC_EXTRACTION_BUS_IN);
 		object.setInternalError(Boolean.FALSE);
-		object.setIsValid(Boolean.FALSE);
+		object.setIsValid(Boolean.TRUE);
 		LogDescription description = new LogDescription();
 		String registrationId = object.getRid();
 		InternalRegistrationStatusDto registrationStatusDto=null;

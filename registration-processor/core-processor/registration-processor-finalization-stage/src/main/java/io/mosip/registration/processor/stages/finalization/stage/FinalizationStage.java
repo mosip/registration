@@ -131,7 +131,7 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 		boolean isTransactionSuccessful = Boolean.FALSE;
 		object.setMessageBusAddress(MessageBusAddress.FINALIZATION_BUS_IN);
 		object.setInternalError(Boolean.FALSE);
-		object.setIsValid(Boolean.FALSE);
+		object.setIsValid(Boolean.TRUE);
 		LogDescription description = new LogDescription();
 		String registrationId = object.getRid();
 		InternalRegistrationStatusDto registrationStatusDto =null;
