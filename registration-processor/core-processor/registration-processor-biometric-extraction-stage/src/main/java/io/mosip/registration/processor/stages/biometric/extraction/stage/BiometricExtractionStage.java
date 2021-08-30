@@ -155,7 +155,7 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 		boolean isTransactionSuccessful = Boolean.FALSE;
 		object.setMessageBusAddress(MessageBusAddress.BIOMETRIC_EXTRACTION_BUS_IN);
 		object.setInternalError(Boolean.FALSE);
-		object.setIsValid(Boolean.TRUE);
+		object.setIsValid(Boolean.FALSE);
 		LogDescription description = new LogDescription();
 		String registrationId = object.getRid();
 		InternalRegistrationStatusDto registrationStatusDto=null;
@@ -251,15 +251,15 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 					e.getErrorCode() + e.getMessage()
 							+ ExceptionUtils.getStackTrace(e));
 		}catch (Exception ex) {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
 			registrationStatusDto.setStatusComment(
 					trimExceptionMessage.trimExceptionMessage(StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getMessage()));
 			registrationStatusDto.setSubStatusCode(StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getCode());
 			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BIOMETRIC_EXTRACTION_REPROCESS));
+					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BIOMETRIC_EXTRACTION_FAILED));
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId,
-					RegistrationStatusCode.PROCESSING.toString() + ex.getMessage() + ExceptionUtils.getStackTrace(ex));
+					RegistrationStatusCode.FAILED.toString() + ex.getMessage() + ExceptionUtils.getStackTrace(ex));
 			object.setInternalError(Boolean.TRUE);
 			description.setMessage(PlatformErrorMessages.RPR_BDD_UNKNOWN_EXCEPTION.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_BDD_UNKNOWN_EXCEPTION.getCode());
