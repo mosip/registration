@@ -1,6 +1,16 @@
 package io.mosip.registration.processor.packet.manager.idreposervice;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.assertj.core.util.Lists;
+import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
@@ -13,12 +23,6 @@ import io.mosip.registration.processor.packet.manager.dto.IdResponseDTO;
 import io.mosip.registration.processor.packet.manager.dto.RequestDto;
 import io.mosip.registration.processor.packet.manager.dto.ResponseDTO;
 import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftException;
-import org.assertj.core.util.Lists;
-import org.json.simple.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.io.IOException;
 
 @Service
 public class IdrepoDraftService {
@@ -104,4 +108,20 @@ public class IdrepoDraftService {
         regProcLogger.debug("idrepoUpdateDraft exit " + id);
         return response;
     }
+    
+    public IdResponseDTO idrepoPublishDraft(String id) throws ApisResourceAccessException, IdrepoDraftException {
+    	regProcLogger.debug("idrepoPublishDraft entry " + id);
+    	List<String> pathsegments=new ArrayList<String>();
+		pathsegments.add(id);
+		IdResponseDTO response =  (IdResponseDTO) registrationProcessorRestClientService.
+				getApi(ApiName.IDREPOPUBLISHDRAFT, pathsegments, "", "", IdResponseDTO.class);	
+		if (response.getErrors() != null && !response.getErrors().isEmpty()) {
+            regProcLogger.error("Error occured while updating draft for id : " + id, response.getErrors().iterator().next().toString());
+            throw new IdrepoDraftException(response.getErrors().iterator().next().getErrorCode(),
+                    response.getErrors().iterator().next().getMessage());
+        }
+
+        regProcLogger.debug("idrepoPublishDraft exit " + id);
+        return response;
+	}
 }
