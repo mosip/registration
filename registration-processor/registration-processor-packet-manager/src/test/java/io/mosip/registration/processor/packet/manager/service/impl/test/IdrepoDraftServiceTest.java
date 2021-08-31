@@ -1,19 +1,12 @@
 package io.mosip.registration.processor.packet.manager.service.impl.test;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
-import io.mosip.kernel.core.util.HMACUtils2;
-import io.mosip.registration.processor.core.code.ApiName;
-import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.http.ResponseWrapper;
-import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
-import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftException;
-import io.mosip.registration.processor.packet.manager.dto.IdRequestDto;
-import io.mosip.registration.processor.packet.manager.dto.IdResponseDTO;
-import io.mosip.registration.processor.packet.manager.dto.RequestDto;
-import io.mosip.registration.processor.packet.manager.dto.ResponseDTO;
-import io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
 import org.json.simple.JSONObject;
@@ -26,12 +19,21 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.IOException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import io.mosip.kernel.core.util.HMACUtils2;
+import io.mosip.registration.processor.core.code.ApiName;
+import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.http.ResponseWrapper;
+import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
+import io.mosip.registration.processor.packet.manager.dto.IdRequestDto;
+import io.mosip.registration.processor.packet.manager.dto.IdResponseDTO;
+import io.mosip.registration.processor.packet.manager.dto.RequestDto;
+import io.mosip.registration.processor.packet.manager.dto.ResponseDTO;
+import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftException;
+import io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ IOUtils.class, HMACUtils2.class, Gson.class })
@@ -112,6 +114,35 @@ public class IdrepoDraftServiceTest {
         ResponseDTO result = idrepoDraftService.idrepoGetDraft(ID);
 
         assertTrue(result.getRegistrationId().equals(ID));
+    }
+    
+    @Test
+    public void idrepoPublishDraftSuccessTest() throws ApisResourceAccessException, IdrepoDraftException {
+
+        when(registrationProcessorRestClientService.getApi(
+                ApiName.IDREPOPUBLISHDRAFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class)).thenReturn(idResponseDTO);
+
+        IdResponseDTO result = idrepoDraftService.idrepoPublishDraft(ID);
+
+        assertTrue(result.getResponse().getRegistrationId().equals(ID));
+    }
+    
+    @Test(expected = IdrepoDraftException.class)
+    public void idrepoPublishDraftExceptionTest() throws ApisResourceAccessException, IdrepoDraftException {
+    	RequestDto requestDto = new RequestDto();
+        requestDto.setIdentity(idResponseDTO.getResponse().getIdentity());
+        IdRequestDto idRequestDto = new IdRequestDto();
+        idRequestDto.setRequest(requestDto);
+
+        ErrorDTO errorDTO = new ErrorDTO();
+        errorDTO.setMessage("ERROR");
+        errorDTO.setErrorCode("ERROR");
+        IdResponseDTO idResponseDTO1 = new IdResponseDTO();
+        idResponseDTO1.setErrors(Lists.newArrayList(errorDTO));
+        when(registrationProcessorRestClientService.getApi(
+                ApiName.IDREPOPUBLISHDRAFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class)).thenReturn(idResponseDTO1);
+
+        idrepoDraftService.idrepoPublishDraft(ID);
     }
 
     @Test

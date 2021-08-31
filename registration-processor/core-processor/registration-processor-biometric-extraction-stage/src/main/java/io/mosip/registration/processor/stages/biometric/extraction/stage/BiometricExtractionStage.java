@@ -48,6 +48,7 @@ import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.manager.dto.IdResponseDTO;
+import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftException;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -253,6 +254,20 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 					description.getCode() + " -- " + registrationId,
 					e.getErrorCode() + e.getMessage()
 							+ ExceptionUtils.getStackTrace(e));
+		}catch (IdrepoDraftException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId,
+					RegistrationStatusCode.FAILED.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
+			registrationStatusDto.setStatusComment(
+					trimExceptionMessage.trimExceptionMessage(StatusUtil.IDREPO_DRAFT_EXCEPTION.getMessage() + e.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.IDREPO_DRAFT_EXCEPTION.getCode());
+			registrationStatusDto.setLatestTransactionStatusCode(
+					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.IDREPO_DRAFT_EXCEPTION));
+			description.setMessage(PlatformErrorMessages.IDREPO_DRAFT_EXCEPTION.getMessage());
+			description.setCode(PlatformErrorMessages.IDREPO_DRAFT_EXCEPTION.getCode());
+			object.setInternalError(Boolean.TRUE);
+			object.setRid(registrationStatusDto.getRegistrationId());
 		}catch (Exception ex) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
 			registrationStatusDto.setStatusComment(
@@ -334,7 +349,7 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 	}
 	/**
 	 * get the list of biometric extractors
-	 * @param registrationStatusDto
+	 * @param id
 	 * @return
 	 * @throws JSONException
 	 * @throws IOException
@@ -344,6 +359,7 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 	 * @throws JsonParseException 
 	 * @throws RegistrationProcessorCheckedException 
 	 */
+	@SuppressWarnings("unchecked")
 	private List<ExtractorsDto> getExtractors(String id) throws JSONException, ApisResourceAccessException, JsonParseException, JsonMappingException, JsonProcessingException, IOException, RegistrationProcessorCheckedException {
 		JSONArray jArray=new JSONArray(partnerPolicyIdsJson);
 		List<ExtractorsDto> extractors=new ArrayList<>();
