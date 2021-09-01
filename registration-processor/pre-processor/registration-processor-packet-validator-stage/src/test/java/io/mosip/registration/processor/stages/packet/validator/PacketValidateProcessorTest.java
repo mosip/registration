@@ -148,7 +148,7 @@ public class PacketValidateProcessorTest {
 		regEntity=new SyncRegistrationEntity();
 		regEntity.setSupervisorStatus("APPROVED");
 		regEntity.setOptionalValues("optionalvalues".getBytes());
-		Mockito.when(syncRegistrationService.findByWorkflowInstanceId(anyString())).thenReturn(regEntity);
+		Mockito.when(syncRegistrationService.findByWorkflowInstanceId(any())).thenReturn(regEntity);
 		
 		InputStream inputStream = IOUtils.toInputStream("optionalvalues", "UTF-8");
 		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(inputStream);
@@ -271,7 +271,7 @@ public class PacketValidateProcessorTest {
 	public void invalidSupervisorStatusTest() throws PacketValidatorException {
 		regEntity=new SyncRegistrationEntity();
 		regEntity.setSupervisorStatus("REJECTED");
-		Mockito.when(syncRegistrationService.findByWorkflowInstanceId(anyString())).thenReturn(regEntity);
+		Mockito.when(syncRegistrationService.findByWorkflowInstanceId(any())).thenReturn(regEntity);
 		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
 		assertFalse(object.getIsValid());
 		assertFalse(object.getInternalError());

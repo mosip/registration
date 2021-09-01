@@ -38,6 +38,6 @@ public interface TransactionService<U> {
 	 */
 	public TransactionDto getTransactionByRegIdAndStatusCode(String regId, String statusCode);
 	
-	public List<RegistrationTransactionDto> getTransactionByRegId(String regId,String langCode) throws TransactionsUnavailableException, RegTransactionAppException;
+	public List<RegistrationTransactionDto> getTransactionByRegId(String regId) throws TransactionsUnavailableException, RegTransactionAppException;
 
 }
