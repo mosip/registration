@@ -1,9 +1,9 @@
 package io.mosip.registration.processor.message.sender.test.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -16,10 +16,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.kernel.core.util.exception.JsonProcessingException;
-import io.mosip.registration.processor.core.exception.PacketManagerException;
-import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
-import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.json.simple.JSONArray;
@@ -42,11 +38,13 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.util.JsonUtils;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.constant.IdType;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO;
@@ -68,6 +66,7 @@ import io.mosip.registration.processor.message.sender.template.TemplateGenerator
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 import io.mosip.registration.processor.status.code.RegistrationType;
@@ -165,7 +164,7 @@ public class MessageNotificationServiceImplTest {
 	@Before
 	public void setup() throws Exception {
 		ReflectionTestUtils.setField(messageNotificationServiceImpl, "userPreferredLanguageAttribute", "preferredLang");
-		ReflectionTestUtils.setField(messageNotificationServiceImpl, "defaultTemplateLanguages", "eng,ara");
+		ReflectionTestUtils.setField(messageNotificationServiceImpl, "defaultTemplateLanguages", "");
 		ReflectionTestUtils.setField(messageNotificationServiceImpl, "languageType", "both");
 		Mockito.when(env.getProperty(ApiName.EMAILNOTIFIER.name())).thenReturn("https://mosip.com");
 
@@ -225,9 +224,13 @@ public class MessageNotificationServiceImplTest {
 		Object identity = identityMap;
 		response.setIdentity(identity);
 
+		Map<String,String> idValuesMap = new HashMap<String, String>();
+		String jsonArray= "[ {\"language\" : \"eng\", \"value\" : \"ghjghj\"}, { \"language\" : \"ara\", \"value\" : \"لع\"} ]";
+		idValuesMap.put("fullName", jsonArray);
 		idResponse.setResponse(response);
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(idResponse);
 		Mockito.when(packetManagerService.getField(any(), any(), anyString(), any())).thenReturn(null);
+		Mockito.when(packetManagerService.getAllFieldsByMappingJsonKeys(anyString(), anyString(), any())).thenReturn(idValuesMap);
 
 		Mockito.when(env.getProperty("mosip.registration.processor.sms.id")).thenReturn("id");
 		Mockito.when(env.getProperty("mosip.registration.processor.application.version")).thenReturn("v1.0");
@@ -389,7 +392,7 @@ public class MessageNotificationServiceImplTest {
 	 */
 	@Test(expected = TemplateGenerationFailedException.class)
 	public void testTemplateProcessingFailureException() throws Exception {
-		Mockito.when(templateGenerator.getTemplate("RPR_UIN_GEN_EMAIL", attributes, "eng"))
+		Mockito.when(templateGenerator.getTemplate("RPR_UIN_GEN_EMAIL", attributes, "ara"))
 				.thenThrow(new TemplateNotFoundException());
 
 		messageNotificationServiceImpl.sendEmailNotification("RPR_UIN_GEN_EMAIL", "12345", "NEW", IdType.RID, attributes,
