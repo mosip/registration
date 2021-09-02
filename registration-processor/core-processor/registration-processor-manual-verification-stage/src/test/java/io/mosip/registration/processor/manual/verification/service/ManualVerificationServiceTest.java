@@ -1,15 +1,11 @@
 package io.mosip.registration.processor.manual.verification.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -29,29 +25,22 @@ import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 
 import org.apache.commons.io.IOUtils;
-import org.assertj.core.api.Assertions;
 import org.assertj.core.groups.Tuple;
 import org.assertj.core.util.Lists;
 import org.json.simple.JSONObject;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
-import io.mosip.registration.processor.core.constant.PacketFiles;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.kernel.master.dto.UserResponseDTO;
 import io.mosip.registration.processor.core.kernel.master.dto.UserResponseDTOWrapper;
@@ -67,7 +56,6 @@ import io.mosip.registration.processor.manual.verification.dto.ManualVerificatio
 import io.mosip.registration.processor.manual.verification.dto.ManualVerificationStatus;
 import io.mosip.registration.processor.manual.verification.dto.MatchDetail;
 import io.mosip.registration.processor.manual.verification.dto.UserDto;
-import io.mosip.registration.processor.manual.verification.exception.InvalidFileNameException;
 import io.mosip.registration.processor.manual.verification.response.dto.Candidate;
 import io.mosip.registration.processor.manual.verification.response.dto.CandidateList;
 import io.mosip.registration.processor.manual.verification.response.dto.ManualAdjudicationResponseDTO;
@@ -268,7 +256,7 @@ public class ManualVerificationServiceTest {
 		manualAdjudicationResponseDTO.setCandidateList(candidateList);
 		Mockito.when(basePacketRepository.getAllAssignedRecord( anyString(), anyString()))
 				.thenReturn(entitiesTemp);
-		Mockito.when(registrationStatusService.getRegStatusForMainProcess(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(),any())).thenReturn(registrationStatusDto);
 		manualAdjudicationService.updatePacketStatus(manualAdjudicationResponseDTO, stageName,queue);
 
 	}
@@ -278,7 +266,7 @@ public class ManualVerificationServiceTest {
 	public void updatePacketStatusApprovalMethodCheck() {
 		Mockito.when(basePacketRepository.getAllAssignedRecord(anyString(),  anyString()))
 				.thenReturn(entities);
-		Mockito.when(registrationStatusService.getRegStatusForMainProcess(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(),any())).thenReturn(registrationStatusDto);
 		Mockito.when(basePacketRepository.getAssignedApplicantDetails(anyString(), anyString())).thenReturn(null);
 		Mockito.when(basePacketRepository.update(any(ManualVerificationEntity.class)))
 				.thenReturn(manualVerificationEntity);
@@ -310,7 +298,7 @@ public class ManualVerificationServiceTest {
 		;
 		Mockito.when(basePacketRepository.getAllAssignedRecord(anyString(),  anyString()))
 				.thenReturn(entities);
-		Mockito.when(registrationStatusService.getRegStatusForMainProcess(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(),any())).thenReturn(registrationStatusDto);
 		Mockito.when(basePacketRepository.getAssignedApplicantDetails(anyString(), anyString())).thenReturn(null);
 		Mockito.when(basePacketRepository.update(any())).thenReturn(manualVerificationEntity);
 

@@ -5,6 +5,8 @@ import java.util.Objects;
 
 import javax.servlet.http.HttpServletRequest;
 
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -32,10 +34,11 @@ import io.mosip.registration.processor.status.exception.TransactionTableNotAcces
 import io.mosip.registration.processor.status.exception.TransactionsUnavailableException;
 import io.mosip.registration.processor.status.service.TransactionService;
 import io.mosip.registration.processor.status.sync.response.dto.RegTransactionResponseDTO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * RegistrationTransactionController class to retreive transaction details
@@ -44,7 +47,7 @@ import io.swagger.annotations.ApiResponses;
  */
 @RefreshScope
 @RestController
-@Api(tags = "Registration Status")
+@Tag(name = "Registration Status", description = "Registration Transaction Controller")
 public class RegistrationTransactionController {
 	
 	@Autowired
@@ -69,23 +72,25 @@ public class RegistrationTransactionController {
 	 * get transaction details for the given registration id
 	 * 
 	 * @param rid registration id
-	 * @param langCode language code
 	 * @param request servlet request
 	 * @return list of RegTransactionResponseDTOs 
 	 * @throws Exception
 	 */
 	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR','REGISTRATION_ADMIN')")
-	@GetMapping(path = "/search/{langCode}/{rid}")
-	@ApiOperation(value = "Get the transaction entity/entities")
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Transaction Entity/Entities successfully fetched"),
-			@ApiResponse(code = 400, message = "Unable to fetch Transaction Entity/Entities") })
+	@GetMapping(path = "/search/{rid}")
+	@Operation(summary = "Get the transaction entity/entities", description = "Get the transaction entity/entities", tags = { "Registration Status" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Transaction Entity/Entities successfully fetched"),
+			@ApiResponse(responseCode = "400", description = "Unable to fetch Transaction Entity/Entities" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<RegTransactionResponseDTO> getTransactionsbyRid(@PathVariable("rid") String rid,
-			@PathVariable("langCode") String langCode,HttpServletRequest request)
-			throws Exception {
+			HttpServletRequest request) throws Exception {
 		List<RegistrationTransactionDto> dtoList;
 		HttpHeaders headers = new HttpHeaders();
 		try {
-			dtoList = transactionService.getTransactionByRegId(rid,langCode);
+			dtoList = transactionService.getTransactionByRegId(rid);
 			RegTransactionResponseDTO responseDTO=buildRegistrationTransactionResponse(dtoList);
 			if (isEnabled) {		 
 				headers.add(RESPONSE_SIGNATURE,

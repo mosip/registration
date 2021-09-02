@@ -145,12 +145,15 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					packetId, "PacketReceiverServiceImpl::validatePacket()::entry");
 			regEntity = syncRegistrationService.findByPacketId(packetId);
-			String registrationId = regEntity.getRegistrationId();
+			
+			String registrationId = null;
+			validatePacketWithSync(regEntity, registrationId, description);
+			registrationId = regEntity.getRegistrationId();
+
 			messageDTO.setRid(registrationId);
 			messageDTO.setWorkflowInstanceId(regEntity.getWorkflowInstanceId());
 			try (InputStream encryptedInputStream = FileUtils.newInputStream(file.getAbsolutePath())) {
 				byte[] encryptedByteArray = IOUtils.toByteArray(encryptedInputStream);
-				validatePacketWithSync(regEntity, registrationId, description);
 				messageDTO.setReg_type(regEntity.getRegistrationType());
 				validateHashCode(new ByteArrayInputStream(encryptedByteArray), regEntity, registrationId, description);
 				validatePacketFormat(fileOriginalName, registrationId, description);
@@ -493,7 +496,9 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 		messageDTO.setRid(registrationId);
 
 		messageDTO.setReg_type(regEntity.getRegistrationType());
-		messageDTO.setIteration(dto.getIteration());
+		if (dto != null) {
+			messageDTO.setIteration(dto.getIteration());
+		}
 		messageDTO.setSource(regEntity.getSource());
 		messageDTO.setWorkflowInstanceId(regEntity.getWorkflowInstanceId());
 		try (InputStream encryptedInputStream = FileUtils.newInputStream(file.getAbsolutePath())) {
