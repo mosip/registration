@@ -140,7 +140,7 @@ public class PacketUploaderServiceTest {
 
 	@Before
 	public void setUp() throws IOException, ApisResourceAccessException, JsonProcessingException, NoSuchAlgorithmException {
-
+		ReflectionTestUtils.setField(packetuploaderservice, "packetNames", "id,optional,evidence");
 		ReflectionTestUtils.setField(packetuploaderservice, "isIterationAdditionEnabled", true);
 		file = new File("src/test/resources/1001.zip");
 		dto.setRid("1001");
@@ -241,7 +241,7 @@ public class PacketUploaderServiceTest {
 
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any(),Mockito.any(),Mockito.any(), Mockito.any())).thenReturn(entry);
 		ReflectionTestUtils.setField(packetuploaderservice, "maxRetryCount", 3);
-		
+
 		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class))).thenReturn(Boolean.TRUE);
 		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any(),Mockito.any())).thenReturn(is);
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto, "PacketUploaderStage");
@@ -498,14 +498,14 @@ public class PacketUploaderServiceTest {
 
 	@Test
 	public void testPacketNotFoundInLandingZoneButAlreadyPresentInObjectStore() throws ApisResourceAccessException {
-		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
+		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any(),Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(entry);
 
 		Mockito.when(registrationProcessorRestService.getApi(
 				any(), anyList(), anyString(), any(), any())).thenThrow(
 				new ApisResourceAccessException("exception", new HttpClientErrorException(HttpStatus.NOT_FOUND)));
 		Mockito.when(objectStoreAdapter.exists(any(), any(), any(), any(), any())).thenReturn(true);
 
-		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
+		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto, "PacketUploaderStage");
 		assertTrue(result.getIsValid());
 	}
 

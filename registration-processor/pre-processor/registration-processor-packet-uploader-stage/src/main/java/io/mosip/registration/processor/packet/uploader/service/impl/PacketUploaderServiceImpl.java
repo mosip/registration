@@ -100,6 +100,9 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
     @Value("${registration.processor.packet.ext}")
     private String extention;
 
+    @Value("${mosip.commons.packetnames}")
+    private String packetNames;
+
     /**
      * The max retry count.
      */
@@ -621,7 +624,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
     public boolean isPacketAlreadyPresentInObjectStore(String id, String process) {
 
         for (String name : packetNames.split(",")) {
-            boolean isPresent = objectStoreAdapter.exists(packetManagerAccount, id, utilities.getDefaultSource(process, ConfigEnum.READER), process, id+ "_" + name);
+            boolean isPresent = objectStoreAdapter.exists(packetManagerAccount, id, utility.getDefaultSource(process, ConfigEnum.READER), process, id+ "_" + name);
             if (!isPresent) {
                 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                         id, name + " : packet not present in object store.");
