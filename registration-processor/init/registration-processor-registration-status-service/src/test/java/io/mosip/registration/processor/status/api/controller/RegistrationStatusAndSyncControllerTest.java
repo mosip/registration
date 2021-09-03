@@ -259,12 +259,11 @@ public class RegistrationStatusAndSyncControllerTest {
 	 * @throws Exception
 	 *             the exception
 	 */
-	@Ignore
 	@Test
+	@WithMockUser(value = "resident", roles = "RESIDENT")
 	public void searchSuccessTest() throws Exception {
 		doNothing().when(registrationStatusRequestValidator).validate((registrationStatusRequestDTO),
 				"mosip.registration.status");
-
 
 		this.mockMvc.perform(post("/search").accept(MediaType.APPLICATION_JSON_VALUE)
 				.cookie(new Cookie("Authorization", regStatusToJson)).contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -272,8 +271,8 @@ public class RegistrationStatusAndSyncControllerTest {
 				.andExpect(status().isOk());
 	}
 
-	@Ignore
 	@Test
+	@WithMockUser(value = "resident", roles = "RESIDENT")
 	public void searchRegstatusException() throws Exception {
 
 		Mockito.doThrow(new RegStatusAppException()).when(registrationStatusRequestValidator)
