@@ -50,6 +50,7 @@ import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.manager.decryptor.Decryptor;
 import io.mosip.registration.processor.packet.manager.utils.ZipUtils;
+import io.mosip.registration.processor.packet.storage.dto.ConfigEnum;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.packet.uploader.exception.PacketNotFoundException;
 import io.mosip.registration.processor.packet.uploader.service.PacketUploaderService;
@@ -267,16 +268,32 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
             description.setCode(PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getCode());
 
         } catch (PacketNotFoundException ex) {
-        	messageDTO.setInternalError(Boolean.TRUE);
-            dto.setLatestTransactionStatusCode(registrationStatusMapperUtil
-                    .getStatusCode(RegistrationExceptionTypeCode.PACKET_NOT_FOUND_EXCEPTION));
-            dto.setStatusComment(RegistrationExceptionTypeCode.PACKET_NOT_FOUND_EXCEPTION.toString());
-            dto.setSubStatusCode(StatusUtil.PACKET_NOT_FOUND_PACKET_STORE.getCode());
-            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-                    registrationId,
-                    PlatformErrorMessages.RPR_PUM_PACKET_NOT_FOUND_EXCEPTION.name() + ExceptionUtils.getStackTrace(ex));
-            description.setMessage(PlatformErrorMessages.RPR_PUM_PACKET_NOT_FOUND_EXCEPTION.getMessage());
-            description.setCode(PlatformErrorMessages.RPR_PUM_PACKET_NOT_FOUND_EXCEPTION.getCode());
+            if (!isPacketAlreadyPresentInObjectStore(messageDTO.getRid(), messageDTO.getReg_type())) {
+                messageDTO.setInternalError(Boolean.TRUE);
+                dto.setLatestTransactionStatusCode(registrationStatusMapperUtil
+                        .getStatusCode(RegistrationExceptionTypeCode.PACKET_NOT_FOUND_EXCEPTION));
+                dto.setStatusComment(RegistrationExceptionTypeCode.PACKET_NOT_FOUND_EXCEPTION.toString());
+                dto.setSubStatusCode(StatusUtil.PACKET_NOT_FOUND_PACKET_STORE.getCode());
+                regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                        registrationId,
+                        PlatformErrorMessages.RPR_PUM_PACKET_NOT_FOUND_EXCEPTION.name() + ExceptionUtils.getStackTrace(ex));
+                description.setMessage(PlatformErrorMessages.RPR_PUM_PACKET_NOT_FOUND_EXCEPTION.getMessage());
+                description.setCode(PlatformErrorMessages.RPR_PUM_PACKET_NOT_FOUND_EXCEPTION.getCode());
+            } else {
+                regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+                        LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+                        "Packet is not present in LANDING_ZONE but alrady present in object store. Hence this request will be marked as success.");
+                messageDTO.setInternalError(false);
+                messageDTO.setIsValid(true);
+                isTransactionSuccessful = true;
+                dto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+                dto.setStatusComment(StatusUtil.PACKET_ALREADY_UPLOADED.getMessage());
+                dto.setSubStatusCode(StatusUtil.PACKET_ALREADY_UPLOADED.getCode());
+                dto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
+                description.setMessage(PlatformSuccessMessages.RPR_PUM_PACKET_UPLOADER_ALREADY_UPLOADED.getMessage());
+                description.setCode(PlatformSuccessMessages.RPR_PUM_PACKET_UPLOADER_ALREADY_UPLOADED.getCode());
+            }
+
         } catch (ApisResourceAccessException e) {
         	messageDTO.setInternalError(Boolean.TRUE);
             dto.setLatestTransactionStatusCode(
@@ -599,5 +616,19 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
 			object.setIsValid(false);
 		}
 	}
+
+
+    public boolean isPacketAlreadyPresentInObjectStore(String id, String process) {
+
+        for (String name : packetNames.split(",")) {
+            boolean isPresent = objectStoreAdapter.exists(packetManagerAccount, id, utilities.getDefaultSource(process, ConfigEnum.READER), process, id+ "_" + name);
+            if (!isPresent) {
+                regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                        id, name + " : packet not present in object store.");
+                return false;
+            }
+        }
+        return true;
+    }
 
 }
