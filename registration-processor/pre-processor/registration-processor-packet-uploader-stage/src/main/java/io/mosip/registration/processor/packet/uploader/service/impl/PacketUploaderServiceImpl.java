@@ -572,8 +572,8 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
     public boolean isPacketAlreadyPresentInObjectStore(String id, String process) {
 
         for (String name : packetNames.split(",")) {
-            boolean isPresent = objectStoreAdapter.exists(packetManagerAccount, id, utilities.getDefaultSource(process, ConfigEnum.READER), process, id+ "_" + name);
-            if (!isPresent) {
+            InputStream is = objectStoreAdapter.getObject(packetManagerAccount, id, utilities.getDefaultSource(process, ConfigEnum.READER), process, id+ "_" + name);
+            if (is == null) {
                 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                         id, name + " : packet not present in object store.");
                 return false;
