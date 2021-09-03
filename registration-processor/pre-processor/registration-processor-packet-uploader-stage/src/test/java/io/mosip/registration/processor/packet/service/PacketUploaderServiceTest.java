@@ -27,6 +27,7 @@ import io.mosip.registration.processor.core.exception.ApisResourceAccessExceptio
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.packet.manager.decryptor.Decryptor;
 import io.mosip.registration.processor.packet.manager.utils.ZipUtils;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -103,6 +104,9 @@ public class PacketUploaderServiceTest {
 
 	@Mock
 	private ObjectStoreAdapter objectStoreAdapter;
+
+	@Mock
+	private Utilities utilities;
 	
 	/** The dto. */
 	MessageDTO dto = new MessageDTO();
@@ -144,6 +148,7 @@ public class PacketUploaderServiceTest {
 
 	@Before
 	public void setUp() throws IOException, ApisResourceAccessException, JsonProcessingException, NoSuchAlgorithmException {
+		ReflectionTestUtils.setField(packetuploaderservice, "packetNames", "id,optional,evidence");
 		file = new File("src/test/resources/1001.zip");
 		dto.setRid("1001");
 		entry.setRegistrationId("1001");
@@ -189,6 +194,8 @@ public class PacketUploaderServiceTest {
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(jsonObject);
 		PowerMockito.mockStatic(ZipUtils.class);
 		PowerMockito.when(ZipUtils.unzipAndGetFiles(any())).thenReturn(entryMap);
+		Mockito.when(objectStoreAdapter.exists(any(), any(), any(), any(), any())).thenReturn(false);
+		Mockito.when(utilities.getDefaultSource(any(), any())).thenReturn("REGISTRATION_CLIENT");
 
 	}
 
@@ -386,6 +393,19 @@ public class PacketUploaderServiceTest {
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
 		assertTrue(result.getInternalError());
 		assertFalse(result.getIsValid());
+	}
+
+	@Test
+	public void testPacketNotFoundInLandingZoneButAlreadyPresentInObjectStore() throws ApisResourceAccessException {
+		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
+
+		Mockito.when(registrationProcessorRestService.getApi(
+				any(), anyList(), anyString(), any(), any())).thenThrow(
+				new ApisResourceAccessException("exception", new HttpClientErrorException(HttpStatus.NOT_FOUND)));
+		Mockito.when(objectStoreAdapter.exists(any(), any(), any(), any(), any())).thenReturn(true);
+
+		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
+		assertTrue(result.getIsValid());
 	}
 
 }

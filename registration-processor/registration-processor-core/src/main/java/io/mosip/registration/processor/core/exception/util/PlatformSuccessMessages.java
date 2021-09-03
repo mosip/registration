@@ -25,6 +25,8 @@ public enum PlatformSuccessMessages {
 
 	RPR_PUM_PACKET_ARCHIVED(PlatformConstants.RPR_PACKET_UPLOADER_MODULE + "001", "Packet successfully archived"),
 
+	RPR_PUM_PACKET_UPLOADER_ALREADY_UPLOADED(PlatformConstants.RPR_PACKET_UPLOADER_MODULE + "002", "Packet already present in object store"),
+
 	// Packet Validator Success messages
 	/** The rpr pkr packet validate. */
 	RPR_PKR_PACKET_VALIDATE(PlatformConstants.RPR_PACKET_VALIDATOR_MODULE + "000", "Packet Validation Success"),
