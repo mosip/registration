@@ -15,7 +15,6 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.exception.WorkFlowSearchException;
 import io.mosip.registration.processor.core.exception.WorkflowActionException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
-import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.workflow.dto.FilterInfo;
 import io.mosip.registration.processor.core.workflow.dto.SearchInfo;
@@ -59,7 +58,7 @@ public class WorkflowSearchService {
 		} catch (DataAccessLayerException e) {
 			regProcLogger.error(e.getMessage() + ExceptionUtils.getStackTrace(e));
 			logAndThrowError(e, PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getCode(),
-					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), null);
+					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage());
 		}
 		return new PageImpl<>(workflowDetails,
 				PageRequest.of(searchInfo.getPagination().getPageStart(), searchInfo.getPagination().getPageFetch()),
@@ -86,16 +85,12 @@ public class WorkflowSearchService {
 	 * @param errorCode      the error code
 	 * @param errorMessage   the error message
 	 * @param registrationId the registration id
-	 * @param description    the description
 	 * @throws WorkFlowSearchException
 	 * @throws WorkflowActionException the workflow action exception
 	 */
-	private void logAndThrowError(Exception e, String errorCode, String errorMessage,
-			LogDescription description) throws WorkFlowSearchException {
-		description.setCode(errorCode);
-		description.setMessage(errorMessage);
-		regProcLogger.error("Error in  processWorkflowSearch",
-				errorMessage, e.getMessage(), ExceptionUtils.getStackTrace(e));
+	private void logAndThrowError(Exception e, String errorCode, String errorMessage) throws WorkFlowSearchException {
+		regProcLogger.error("Error in  processWorkflowSearch", errorMessage, e.getMessage(),
+				ExceptionUtils.getStackTrace(e));
 		throw new WorkFlowSearchException(errorCode, errorMessage);
 	}
 

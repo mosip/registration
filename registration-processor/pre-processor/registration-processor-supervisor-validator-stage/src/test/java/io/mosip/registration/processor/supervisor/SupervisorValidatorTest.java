@@ -3,6 +3,7 @@ package io.mosip.registration.processor.supervisor;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -41,6 +42,7 @@ import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
+import io.mosip.registration.processor.core.auth.dto.IndividualIdDto;
 import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.PacketFiles;
@@ -164,9 +166,13 @@ public class SupervisorValidatorTest {
 	private RIDResponseDto ridResponseDto1 = new RIDResponseDto();
 	private IdResponseDTO idResponseDTO = new IdResponseDTO();
 	private io.mosip.registration.processor.core.http.ResponseWrapper<RegistrationCenterUserMachineMappingHistoryResponseDto> centerResponse = new io.mosip.registration.processor.core.http.ResponseWrapper<RegistrationCenterUserMachineMappingHistoryResponseDto>();
+	private io.mosip.registration.processor.core.http.ResponseWrapper<IndividualIdDto> individualResponse = new io.mosip.registration.processor.core.http.ResponseWrapper<IndividualIdDto>();
 	private RegistrationCenterUserMachineMappingHistoryResponseDto centerMapping = new RegistrationCenterUserMachineMappingHistoryResponseDto();
 	private List<RegistrationCenterUserMachineMappingHistoryDto> registrationCenters = new ArrayList<RegistrationCenterUserMachineMappingHistoryDto>();
 	private RegistrationCenterUserMachineMappingHistoryDto center = new RegistrationCenterUserMachineMappingHistoryDto();
+	private IndividualIdDto individualIdDto = new IndividualIdDto();
+	
+	BiometricRecord biometricRecord = new BiometricRecord();
 	
 	@Mock
 	RegistrationExceptionMapperUtil registrationExceptionMapperUtil;
@@ -323,6 +329,8 @@ public class SupervisorValidatorTest {
 		idResponseDTO.setResponse(responseDTO1);
 		regOsiDto.setSupervisorHashedPwd("true");
 		regOsiDto.setOfficerHashedPwd("true");
+		regOsiDto.setSupervisorBiometricFileName("supervisorBiometrics");
+		
 		center.setCntrId("10001");
 		center.setIsActive(true);
 		registrationCenters.add(center);
@@ -330,8 +338,12 @@ public class SupervisorValidatorTest {
 		centerResponse.setErrors(null);
 		centerResponse.setResponse(centerMapping);
 		
+		individualIdDto.setIndividualId("6531762");
+		individualResponse.setResponse(individualIdDto);
+		individualResponse.setErrors(null);
 		//ObjectMapper mockObjectMapper = Mockito.mock(ObjectMapper.class);
-		Mockito.when(mapper.writeValueAsString(any())).thenReturn("");
+		Mockito.when(mapper.writeValueAsString(any())).thenReturn("Qiia8saij");
+		Mockito.when(mapper.readValue(anyString(), eq(IndividualIdDto.class))).thenReturn(individualIdDto);
 		Mockito.when(mapper.readValue(anyString(),
 				Mockito.eq(RegistrationCenterUserMachineMappingHistoryResponseDto.class))).thenReturn(centerMapping);
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any()))
@@ -361,10 +373,7 @@ public class SupervisorValidatorTest {
 		bdbInfoType4.setType(singleTypeList4);
 		birType4.setBdbInfo(bdbInfoType4);
 
-		BiometricRecord biometricRecord = new BiometricRecord();
 		biometricRecord.setSegments(Lists.newArrayList(birType3, birType4));
-		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
-				.thenReturn(biometricRecord);
 
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any()))
 				.thenReturn("field");
@@ -380,8 +389,40 @@ public class SupervisorValidatorTest {
 
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
+		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
+		.thenReturn(biometricRecord);
 		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
+	
+	@Test(expected = BaseCheckedException.class)
+	public void testisValidSupervisorCreatedDateNull() throws Exception {
+
+		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
+		regOsiDto.setPacketCreationDate(null);
+		registrationStatusDto.setRegistrationType("ACTIVATED");
+		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
+	}
+	
+	@Test(expected = ValidationFailedException.class)
+	public void testisValidSupervisorBiometricfileNull() throws Exception {
+
+		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
+		regOsiDto.setSupervisorBiometricFileName(null);
+		regOsiDto.setSupervisorHashedPwd(null);
+		registrationStatusDto.setRegistrationType("ACTIVATED");
+		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
+	}
+	
+	@Test(expected = ValidationFailedException.class)
+	public void testisValidSupervisorBiometricRecordNull() throws Exception {
+
+		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
+		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
+		.thenReturn(null);
+		registrationStatusDto.setRegistrationType("ACTIVATED");
+		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
+	}
+
 
 	@Test(expected = BaseCheckedException.class)
 	public void testoperatorPasswordNull() throws Exception {
@@ -492,6 +533,8 @@ public class SupervisorValidatorTest {
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn("");
 		Mockito.when(mapper.readValue(anyString(),
 				Mockito.eq(RegistrationCenterUserMachineMappingHistoryResponseDto.class))).thenReturn(centerMapping);
+		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
+		.thenReturn(biometricRecord);
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any()))
 		.thenReturn(userResponseDto).thenReturn(centerResponse);
 		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);

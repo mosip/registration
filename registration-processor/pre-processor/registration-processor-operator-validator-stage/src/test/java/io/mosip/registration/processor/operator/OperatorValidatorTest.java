@@ -3,6 +3,7 @@ package io.mosip.registration.processor.operator;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -27,7 +28,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
@@ -42,6 +42,7 @@ import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
+import io.mosip.registration.processor.core.auth.dto.IndividualIdDto;
 import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.PacketFiles;
@@ -165,9 +166,13 @@ public class OperatorValidatorTest {
 	private RIDResponseDto ridResponseDto1 = new RIDResponseDto();
 	private IdResponseDTO idResponseDTO = new IdResponseDTO();
 	private io.mosip.registration.processor.core.http.ResponseWrapper<RegistrationCenterUserMachineMappingHistoryResponseDto> centerResponse = new io.mosip.registration.processor.core.http.ResponseWrapper<RegistrationCenterUserMachineMappingHistoryResponseDto>();
+	private io.mosip.registration.processor.core.http.ResponseWrapper<IndividualIdDto> individualResponse = new io.mosip.registration.processor.core.http.ResponseWrapper<IndividualIdDto>();
 	private RegistrationCenterUserMachineMappingHistoryResponseDto centerMapping = new RegistrationCenterUserMachineMappingHistoryResponseDto();
 	private List<RegistrationCenterUserMachineMappingHistoryDto> registrationCenters = new ArrayList<RegistrationCenterUserMachineMappingHistoryDto>();
 	private RegistrationCenterUserMachineMappingHistoryDto center = new RegistrationCenterUserMachineMappingHistoryDto();
+	private IndividualIdDto individualIdDto = new IndividualIdDto();
+	
+	private BiometricRecord biometricRecord = new BiometricRecord();
 	
 	@Mock
 	RegistrationExceptionMapperUtil registrationExceptionMapperUtil;
@@ -325,6 +330,7 @@ public class OperatorValidatorTest {
 		idResponseDTO.setResponse(responseDTO1);
 		regOsiDto.setSupervisorHashedPwd("true");
 		regOsiDto.setOfficerHashedPwd("true");
+		regOsiDto.setOfficerBiometricFileName("officerBiometrics");
 		
 		center.setCntrId("10001");
 		center.setIsActive(true);
@@ -333,12 +339,16 @@ public class OperatorValidatorTest {
 		centerResponse.setErrors(null);
 		centerResponse.setResponse(centerMapping);
 		
+		individualIdDto.setIndividualId("6531762");
+		individualResponse.setResponse(individualIdDto);
+		individualResponse.setErrors(null);
 		//ObjectMapper mockObjectMapper = Mockito.mock(ObjectMapper.class);
-		Mockito.when(mapper.writeValueAsString(any())).thenReturn("");
-		Mockito.when(mapper.readValue(anyString(),
-				Mockito.eq(RegistrationCenterUserMachineMappingHistoryResponseDto.class))).thenReturn(centerMapping);
+		Mockito.when(mapper.writeValueAsString(any())).thenReturn("Qiia8saij");
+		Mockito.when(mapper.readValue(anyString(), eq(IndividualIdDto.class))).thenReturn(individualIdDto);
+		Mockito.when(mapper.readValue(anyString(), eq(RegistrationCenterUserMachineMappingHistoryResponseDto.class)))
+				.thenReturn(centerMapping);
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any()))
-				.thenReturn(userResponseDto).thenReturn(centerResponse);
+				.thenReturn(userResponseDto).thenReturn(individualResponse).thenReturn(centerResponse);
 		Mockito.when(osiUtils.getOSIDetailsFromMetaInfo(anyMap())).thenReturn(regOsiDto);
 		File cbeffFile = new File(classLoader.getResource("cbeff.xml").getFile());
 
@@ -364,10 +374,7 @@ public class OperatorValidatorTest {
 		bdbInfoType4.setType(singleTypeList4);
 		birType4.setBdbInfo(bdbInfoType4);
 
-		BiometricRecord biometricRecord = new BiometricRecord();
 		biometricRecord.setSegments(Lists.newArrayList(birType3, birType4));
-		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
-				.thenReturn(biometricRecord);
 
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any()))
 				.thenReturn("field");
@@ -382,6 +389,37 @@ public class OperatorValidatorTest {
 	public void testisValidOperatorSuccess() throws Exception {
 
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
+		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
+		.thenReturn(biometricRecord);
+		registrationStatusDto.setRegistrationType("ACTIVATED");
+		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
+	}
+	
+	@Test(expected = BaseCheckedException.class)
+	public void testisValidOperatorCreatedDateNull() throws Exception {
+
+		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
+		regOsiDto.setPacketCreationDate(null);
+		registrationStatusDto.setRegistrationType("ACTIVATED");
+		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
+	}
+	
+	@Test(expected = ValidationFailedException.class)
+	public void testisValidOperatorBiometricfileNull() throws Exception {
+
+		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
+		regOsiDto.setOfficerBiometricFileName(null);
+		regOsiDto.setOfficerHashedPwd(null);
+		registrationStatusDto.setRegistrationType("ACTIVATED");
+		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
+	}
+	
+	@Test(expected = ValidationFailedException.class)
+	public void testisValidOperatorBiometricRecordNull() throws Exception {
+
+		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
+		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
+		.thenReturn(null);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
 		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
@@ -492,9 +530,8 @@ public class OperatorValidatorTest {
 		centerMapping.setRegistrationCenters(registrationCenters);
 		centerResponse.setErrors(null);
 		centerResponse.setResponse(centerMapping);
-		Mockito.when(mapper.writeValueAsString(any())).thenReturn("");
-		Mockito.when(mapper.readValue(anyString(),
-				Mockito.eq(RegistrationCenterUserMachineMappingHistoryResponseDto.class))).thenReturn(centerMapping);
+		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
+		.thenReturn(biometricRecord);
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any()))
 		.thenReturn(userResponseDto).thenReturn(centerResponse);
 		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
