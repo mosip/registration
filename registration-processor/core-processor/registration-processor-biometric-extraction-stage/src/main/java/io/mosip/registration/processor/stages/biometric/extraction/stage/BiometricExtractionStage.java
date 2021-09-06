@@ -210,7 +210,7 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 				description.setMessage(PlatformSuccessMessages.RPR_BIOMETRIC_EXTRACTION_SUCCESS.getMessage());
 				description.setCode(PlatformSuccessMessages.RPR_BIOMETRIC_EXTRACTION_SUCCESS.getCode());
-				description.setTransactionStatusCode(RegistrationTransactionStatusCode.PROCESSING.toString());
+				description.setTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 			}
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId, description.getMessage());

@@ -261,7 +261,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 						registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 						description.setMessage(PlatformSuccessMessages.RPR_UIN_GENERATOR_STAGE_SUCCESS.getMessage());
 						description.setCode(PlatformSuccessMessages.RPR_UIN_GENERATOR_STAGE_SUCCESS.getCode());
-						description.setTransactionStatusCode(RegistrationTransactionStatusCode.PROCESSING.toString());
+						description.setTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 						
 					} else {
 						List<ErrorDTO> errors = idResponseDTO != null ? idResponseDTO.getErrors() : null;
