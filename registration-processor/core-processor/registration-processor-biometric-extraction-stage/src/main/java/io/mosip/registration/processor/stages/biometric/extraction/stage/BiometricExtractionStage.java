@@ -32,6 +32,7 @@ import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
+import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.EventId;
 import io.mosip.registration.processor.core.constant.EventName;
 import io.mosip.registration.processor.core.constant.EventType;
@@ -192,11 +193,15 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 						StatusUtil.BIOMETRIC_EXTRACTION_DRAFT_REQUEST_UNAVAILABLE.getMessage());
 			}
 			else {
-				List<ExtractorsDto> extractors=getExtractors(registrationStatusDto.getRegistrationId());
-				for(ExtractorsDto extractorsDto:extractors) {
+				ExtractorsDto extractorsDto=getExtractors(registrationStatusDto.getRegistrationId());
+				if(extractorsDto.getExtractors()!=null && !extractorsDto.getExtractors().isEmpty()) {
 				for(ExtractorDto dto:extractorsDto.getExtractors()) {
 					addBiometricExtractiontoIdRepository(dto,registrationStatusDto.getRegistrationId());	
 				}
+				}
+				else {
+					throw new RegistrationProcessorCheckedException(PlatformErrorMessages.RPR_PMS_BIOMETRIC_EXTRACTION_NULL_RESPONSE.getCode(),
+							PlatformErrorMessages.RPR_PMS_BIOMETRIC_EXTRACTION_NULL_RESPONSE.getMessage());
 				}
 				registrationStatusDto.setStatusComment(StatusUtil.BIOMETRIC_EXTRACTION_SUCCESS.getMessage());
 				registrationStatusDto.setSubStatusCode(StatusUtil.BIOMETRIC_EXTRACTION_SUCCESS.getCode());
@@ -326,12 +331,11 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 	private IdResponseDTO addBiometricExtractiontoIdRepository(ExtractorDto dto,
 			String registrationId) throws ApisResourceAccessException, RegistrationProcessorCheckedException {
 		String extractionFormat = "";
-		switch(dto.getBiometric()) {
-		case "iris":
+		if(dto.getBiometric().equals("iris")) {
 			extractionFormat="irisExtractionFormat";
-		case "face":
+		}if(dto.getBiometric().equals("face")) {
 			extractionFormat="faceExtractionFormat";
-		case "finger":
+		}if(dto.getBiometric().equals("finger")) {
 			extractionFormat="fingerExtractionFormat";
 		}
 		List<String> segments=List.of(registrationId);
@@ -356,9 +360,10 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 	 * @throws RegistrationProcessorCheckedException 
 	 */
 	@SuppressWarnings("unchecked")
-	private List<ExtractorsDto> getExtractors(String id) throws JSONException, ApisResourceAccessException, JsonParseException, JsonMappingException, JsonProcessingException, IOException, RegistrationProcessorCheckedException {
+	private ExtractorsDto getExtractors(String id) throws JSONException, ApisResourceAccessException, JsonParseException, JsonMappingException, JsonProcessingException, IOException, RegistrationProcessorCheckedException {
 		JSONArray jArray=new JSONArray(partnerPolicyIdsJson);
-		List<ExtractorsDto> extractors=new ArrayList<>();
+		ExtractorsDto extractorsDto=new ExtractorsDto();
+		 List<ErrorDTO> errors = new ArrayList<>();
 		for(int i=0;i<jArray.length();i++) {
 			List<String> pathsegments=new ArrayList<>();
 			pathsegments.add(jArray.getJSONObject(i).getString("partnerId"));
@@ -368,17 +373,24 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 			ResponseWrapper<?> responseWrapper=(ResponseWrapper<?>) registrationProcessorRestClientService.
 					getApi(ApiName.PARTNERGETBIOEXTRACTOR, pathsegments, "", "", ResponseWrapper.class);
 			if(responseWrapper.getResponse() !=null) {
-				extractors.add(mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
-					ExtractorsDto.class));
+				extractorsDto=mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
+					ExtractorsDto.class);
+				if(extractorsDto.getExtractors()!=null &&!extractorsDto.getExtractors().isEmpty()) {
+					return extractorsDto;
+				}
+				break;
 			}
-			if (responseWrapper.getErrors() != null && !responseWrapper.getErrors().isEmpty()) {
-	            regProcLogger.error("Error occured while updating draft for id : " + id, responseWrapper.getErrors().iterator().next().toString());
-	            throw new RegistrationProcessorCheckedException(responseWrapper.getErrors().iterator().next().getErrorCode(),
-	            		responseWrapper.getErrors().iterator().next().getMessage());
+			else if (responseWrapper.getErrors() != null && !responseWrapper.getErrors().isEmpty()) {
+	            regProcLogger.error("Error occured while getting  biometric extractors.", responseWrapper.getErrors().iterator().next().toString());
+	            errors.addAll(responseWrapper.getErrors());
 	        }
 			
 		}
-		return extractors;
+		if(errors!=null && !errors.isEmpty()) {
+			throw new RegistrationProcessorCheckedException(errors.iterator().next().getErrorCode(),
+					errors.iterator().next().getMessage());
+		}
+		return extractorsDto;
 	}
 	/**
 	 * update Error Flags
