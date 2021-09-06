@@ -359,7 +359,6 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 	 * @throws JsonParseException 
 	 * @throws RegistrationProcessorCheckedException 
 	 */
-	@SuppressWarnings("unchecked")
 	private ExtractorsDto getExtractors(String id) throws JSONException, ApisResourceAccessException, JsonParseException, JsonMappingException, JsonProcessingException, IOException, RegistrationProcessorCheckedException {
 		JSONArray jArray=new JSONArray(partnerPolicyIdsJson);
 		ExtractorsDto extractorsDto=new ExtractorsDto();
