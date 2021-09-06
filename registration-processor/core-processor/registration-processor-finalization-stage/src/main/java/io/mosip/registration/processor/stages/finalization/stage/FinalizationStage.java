@@ -171,7 +171,7 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 						registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 						description.setMessage(PlatformSuccessMessages.RPR_FINALIZATION_SUCCESS.getMessage());
 						description.setCode(PlatformSuccessMessages.RPR_FINALIZATION_SUCCESS.getCode());
-						description.setTransactionStatusCode(RegistrationTransactionStatusCode.PROCESSING.toString());
+						description.setTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 					}
 				}
 			
