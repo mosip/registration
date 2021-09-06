@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.core.MediaType;
+
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -332,14 +334,8 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 		case "finger":
 			extractionFormat="fingerExtractionFormat";
 		}
-		List<String> pathParams=new ArrayList<>();
-		pathParams.add("type");
-		pathParams.add(extractionFormat);
-		List<Object> pathValues=new ArrayList<>();
-		pathValues.add("bio");
-		pathValues.add(dto.getAttributeName());
 		List<String> segments=List.of(registrationId);
-		IdResponseDTO response= (IdResponseDTO) registrationProcessorRestClientService.getApi(ApiName.RETRIEVEIDENTITYFROMRID, segments, pathParams, pathValues, IdResponseDTO.class);
+		IdResponseDTO response= (IdResponseDTO) registrationProcessorRestClientService.putApi(ApiName.IDREPOEXTRACTBIOMETRICS, segments, extractionFormat, dto.getAttributeName(), null, IdResponseDTO.class, null);
 		if (response.getErrors() != null && !response.getErrors().isEmpty()) {
             regProcLogger.error("Error occured while updating draft for id : " + registrationId, response.getErrors().iterator().next().toString());
             throw new RegistrationProcessorCheckedException(response.getErrors().iterator().next().getErrorCode(),
