@@ -283,15 +283,65 @@ public class RegistrationStatusAndSyncControllerTest {
 				.andExpect(status().isOk());
 	}
 
-	@Ignore
 	@Test
+	@WithMockUser(value = "resident", roles = "RESIDENT")
 	public void testSyncController() throws Exception {
+
+		RegistrationSyncRequestDTO registrationSyncRequestDTO = new RegistrationSyncRequestDTO();
+		List<SyncRegistrationDto> request = new ArrayList<SyncRegistrationDto>();
+		SyncRegistrationDto syncRegistrationDto = new SyncRegistrationDto("45128164920495", "NEW", null, null, "eng");
+		request.add(syncRegistrationDto);
+		String requestJson = gson.toJson(request);
+
+		List<SyncResponseDto> syncResponseList = new ArrayList<>();
+		SyncResponseDto syncResponseDto = new SyncResponseDto();
+		syncResponseDto.setStatus("true");
+		syncResponseDto.setRegistrationId("45128164920495");
+		syncResponseList.add(syncResponseDto);
+
 		Mockito.when(syncRegistrationService.decryptAndGetSyncRequest(ArgumentMatchers.any(), ArgumentMatchers.any(),
 				ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(registrationSyncRequestDTO);
+		Mockito.when(
+				syncrequestvalidator.validate(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any()))
+				.thenReturn(true);
+		Mockito.when(
+				syncRegistrationService.sync(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any()))
+				.thenReturn(syncResponseList);
 		this.mockMvc.perform(
 				post("/sync").accept(MediaType.APPLICATION_JSON_VALUE).header("timestamp", "2019-05-07T05:13:55.704Z")
 						.header("Center-Machine-RefId", "abcd").contentType(MediaType.APPLICATION_JSON_VALUE)
-						.content(regStatusToJson.getBytes()).cookie(new Cookie("Authorization", regStatusToJson)))
+						.content(requestJson.getBytes()).cookie(new Cookie("Authorization", requestJson)))
+				.andExpect(status().isOk());
+	}
+	
+	@Test
+	@WithMockUser(value = "resident", roles = "RESIDENT")
+	public void testSyncV2Controller() throws Exception {
+
+		RegistrationSyncRequestDTO registrationSyncRequestDTO = new RegistrationSyncRequestDTO();
+		List<SyncRegistrationDto> request = new ArrayList<SyncRegistrationDto>();
+		SyncRegistrationDto syncRegistrationDto = new SyncRegistrationDto("45128164920495", "NEW", null, null, "eng");
+		request.add(syncRegistrationDto);
+		String requestJson = gson.toJson(request);
+
+		List<SyncResponseDto> syncResponseList = new ArrayList<>();
+		SyncResponseDto syncResponseDto = new SyncResponseDto();
+		syncResponseDto.setStatus("true");
+		syncResponseDto.setRegistrationId("45128164920495");
+		syncResponseList.add(syncResponseDto);
+
+		Mockito.when(syncRegistrationService.decryptAndGetSyncRequest(ArgumentMatchers.any(), ArgumentMatchers.any(),
+				ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(registrationSyncRequestDTO);
+		Mockito.when(
+				syncrequestvalidator.validate(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any()))
+				.thenReturn(true);
+		Mockito.when(
+				syncRegistrationService.syncV2(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any()))
+				.thenReturn(syncResponseList);
+		this.mockMvc.perform(
+				post("/syncV2").accept(MediaType.APPLICATION_JSON_VALUE).header("timestamp", "2019-05-07T05:13:55.704Z")
+						.header("Center-Machine-RefId", "abcd").contentType(MediaType.APPLICATION_JSON_VALUE)
+						.content(requestJson.getBytes()).cookie(new Cookie("Authorization", requestJson)))
 				.andExpect(status().isOk());
 	}
 
