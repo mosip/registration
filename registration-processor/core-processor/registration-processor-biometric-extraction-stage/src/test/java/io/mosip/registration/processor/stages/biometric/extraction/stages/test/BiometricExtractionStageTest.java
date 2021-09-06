@@ -195,7 +195,7 @@ public class BiometricExtractionStageTest {
 		idResponseDTO.setResponse(responseDTO);
 		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
 		idResponseDTO.setVersion("1.0");
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(List.class), any(List.class), any())).thenReturn(idResponseDTO);
+		when(registrationProcessorRestClientService.putApi(any(), any(),  anyString(), anyString(), any(),any(),any())).thenReturn(idResponseDTO);
 		when(mapper.readValue(anyString(),any(Class.class))).thenReturn(extractorsDto);
 		when(mapper.writeValueAsString(any())).thenReturn("aabb");
 	}
@@ -265,7 +265,8 @@ public class BiometricExtractionStageTest {
 		idResponseDTO.setErrors(errorList);
 		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
 		idResponseDTO.setVersion("1.0");
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(List.class), any(List.class), any())).thenReturn(idResponseDTO);
+		when(registrationProcessorRestClientService.putApi(any(), any(), anyString(), anyString(), any(), any(), any()))
+		.thenReturn(idResponseDTO);
 		
 
 		MessageDTO result = biometricExtractionStage.process(messageDTO);
@@ -280,7 +281,7 @@ public class BiometricExtractionStageTest {
 		messageDTO.setReg_type(RegistrationType.NEW.name());
 		messageDTO.setWorkflowInstanceId("123er");
 		messageDTO.setIteration(1);
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(List.class), any(List.class), any()))
+		when(registrationProcessorRestClientService.putApi(any(), any(), anyString(), anyString(), any(), any(), any()))
 		.thenThrow(ApisResourceAccessException.class);
 		
 
