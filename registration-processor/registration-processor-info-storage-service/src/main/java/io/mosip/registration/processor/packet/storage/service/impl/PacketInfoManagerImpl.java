@@ -702,6 +702,12 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 		return PacketInfoMapper.convertRegBioRefEntityListToDto(regBioRefEntityList);
 	}
 
+	@Override
+	public List<RegBioRefDto> getBioRefIdsByRegIds(List<String> regId) {
+		List<RegBioRefEntity> regBioRefEntityList = packetInfoDao.getBioRefIdsByRegIds(regId);
+		return PacketInfoMapper.convertRegBioRefEntityListToDto(regBioRefEntityList);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 *
