@@ -1,8 +1,16 @@
 package io.mosip.registration.processor.stages.demodedupe;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import io.mosip.registration.processor.core.packet.dto.Identity;
+import io.mosip.registration.processor.core.packet.dto.abis.RegBioRefDto;
+import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
+import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -38,6 +46,10 @@ public class DemoDedupe {
 	@Autowired
 	private PacketInfoDao packetInfoDao;
 
+	/** The packet info manager. */
+	@Autowired
+	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
+
 	/**
 	 * Perform dedupe.
 	 *
@@ -50,20 +62,23 @@ public class DemoDedupe {
 				"DemoDedupe::performDedupe()::entry");
 
 		List<DemographicInfoDto> applicantDemoDto = packetInfoDao.findDemoById(refId);
+		List<DemographicInfoDto> matchedIdsWithUin;
 		List<DemographicInfoDto> demographicInfoDtos;
-		List<DemographicInfoDto> infoDtos = new ArrayList<>();
+		Set<DemographicInfoDto> infoDtos = new HashSet<>();
 		for (DemographicInfoDto demoDto : applicantDemoDto) {
 			infoDtos.addAll(packetInfoDao.getAllDemographicInfoDtos(demoDto.getName(), demoDto.getGenderCode(),
 					demoDto.getDob(), demoDto.getLangCode()));
 		}
-		demographicInfoDtos = getAllDemographicInfoDtosWithUin(infoDtos);
+		matchedIdsWithUin = getAllDemographicInfoDtosWithUin(infoDtos);
+		demographicInfoDtos = filterByRefIdAvailability(matchedIdsWithUin);
+
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REFFERENCEID.toString(), refId,
 				"DemoDedupe::performDedupe()::exit");
 		return demographicInfoDtos;
 	}
 
 	private List<DemographicInfoDto> getAllDemographicInfoDtosWithUin(
-			List<DemographicInfoDto> duplicateDemographicDtos) {
+			Set<DemographicInfoDto> duplicateDemographicDtos) {
 		List<DemographicInfoDto> demographicInfoDtosWithUin = new ArrayList<>();
 		for (DemographicInfoDto demographicDto : duplicateDemographicDtos) {
 			if (registrationStatusService.checkUinAvailabilityForRid(demographicDto.getRegId())) {
@@ -72,6 +87,20 @@ public class DemoDedupe {
 
 		}
 		return demographicInfoDtosWithUin;
+	}
+
+	private List<DemographicInfoDto> filterByRefIdAvailability(List<DemographicInfoDto> duplicateDemographicDtos) {
+		List<DemographicInfoDto> demographicInfoDtosWithRefId = new ArrayList<>();
+		if (CollectionUtils.isNotEmpty(duplicateDemographicDtos)) {
+			List<String> regIds = duplicateDemographicDtos.stream().map(dto -> dto.getRegId()).collect(Collectors.toList());
+			List<RegBioRefDto> finalRegBioRefDtos = packetInfoManager.getBioRefIdsByRegIds(regIds);
+			if (CollectionUtils.isNotEmpty(finalRegBioRefDtos)) {
+				List<String> finalRegIds = finalRegBioRefDtos.stream().map(dto -> dto.getRegId()).collect(Collectors.toList());
+				demographicInfoDtosWithRefId.addAll(duplicateDemographicDtos.stream().filter(
+						dto -> finalRegIds.contains(dto.getRegId())).collect(Collectors.toList()));
+			}
+		}
+		return demographicInfoDtosWithRefId;
 	}
 
 

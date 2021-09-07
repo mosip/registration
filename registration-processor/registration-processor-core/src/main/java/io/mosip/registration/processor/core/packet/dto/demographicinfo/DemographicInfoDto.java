@@ -3,6 +3,7 @@ package io.mosip.registration.processor.core.packet.dto.demographicinfo;
 import java.io.Serializable;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * Instantiates a new demographic info dto.
@@ -12,6 +13,7 @@ import lombok.Data;
  * Instantiates a new demographic info dto.
  */
 @Data
+@EqualsAndHashCode
 public class DemographicInfoDto implements Serializable {
 
 	/** The Constant serialVersionUID. */

@@ -1,6 +1,7 @@
 package io.mosip.registrationprocessor.stages.demodedupe;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 
@@ -8,7 +9,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.mosip.registration.processor.core.packet.dto.abis.RegBioRefDto;
 import org.apache.commons.io.IOUtils;
+import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -124,14 +127,25 @@ public class DemoDedupeTest {
 		String regId = "1234567890";
 
 		DemographicInfoDto dto1 = new DemographicInfoDto();
+		dto1.setRegId("1234");
 		DemographicInfoDto dto2 = new DemographicInfoDto();
+		dto2.setRegId("5678");
 		List<DemographicInfoDto> Dtos = new ArrayList<>();
 		Dtos.add(dto1);
 		Dtos.add(dto2);
 
+		RegBioRefDto regBioRefDto1 = new RegBioRefDto();
+		regBioRefDto1.setRegId("1234");
+		RegBioRefDto regBioRefDto2 = new RegBioRefDto();
+		regBioRefDto2.setRegId("5678");
+		List<RegBioRefDto> regBioRefDtos = new ArrayList<>();
+		regBioRefDtos.add(regBioRefDto1);
+		regBioRefDtos.add(regBioRefDto2);
+
 		Mockito.when(packetInfoDao.findDemoById(regId)).thenReturn(Dtos);
 
 		Mockito.when(packetInfoDao.getAllDemographicInfoDtos(any(), any(), any(), any())).thenReturn(Dtos);
+		Mockito.when(packetInfoManager.getBioRefIdsByRegIds(anyList())).thenReturn(regBioRefDtos);
 
 		List<DemographicInfoDto> duplicates = demoDedupe.performDedupe(regId);
 		assertEquals("Test for Dedupe Duplicate found", false, duplicates.isEmpty());
@@ -150,6 +164,32 @@ public class DemoDedupeTest {
 
 		List<DemographicInfoDto> duplicates = demoDedupe.performDedupe(regId);
 		assertEquals("Test for Demo Dedupe Empty", true, duplicates.isEmpty());
+	}
+
+	@Test
+	public void testFilterByRefIds() {
+		String regId = "1234567890";
+
+		// 2 ids have uin
+		DemographicInfoDto dto1 = new DemographicInfoDto();
+		dto1.setRegId("1234");
+		DemographicInfoDto dto2 = new DemographicInfoDto();
+		dto2.setRegId("5678");
+		List<DemographicInfoDto> Dtos = Lists.newArrayList(dto1, dto2);
+
+		// only one id has ref id
+		RegBioRefDto regBioRefDto1 = new RegBioRefDto();
+		regBioRefDto1.setRegId("1234");
+		List<RegBioRefDto> regBioRefDtos = Lists.newArrayList(regBioRefDto1);
+
+		Mockito.when(packetInfoDao.findDemoById(regId)).thenReturn(Dtos);
+
+		Mockito.when(packetInfoDao.getAllDemographicInfoDtos(any(), any(), any(), any())).thenReturn(Dtos);
+		Mockito.when(packetInfoManager.getBioRefIdsByRegIds(anyList())).thenReturn(regBioRefDtos);
+
+		List<DemographicInfoDto> duplicates = demoDedupe.performDedupe(regId);
+		// expected to return only one id
+		assertEquals("Test for Dedupe Duplicate found", 1, duplicates.size());
 	}
 
 }
