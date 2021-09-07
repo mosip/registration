@@ -1,17 +1,9 @@
 package io.mosip.registration.processor.manual.verification.service;
 
-import java.io.IOException;
-
 import io.mosip.registration.processor.core.queue.factory.MosipQueue;
 import org.springframework.stereotype.Service;
 
-import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketManagerException;
-import io.mosip.registration.processor.manual.verification.dto.ManualVerificationDTO;
-import io.mosip.registration.processor.manual.verification.dto.ManualVerificationDecisionDto;
-import io.mosip.registration.processor.manual.verification.dto.UserDto;
 import io.mosip.registration.processor.manual.verification.response.dto.ManualAdjudicationResponseDTO;
 
 /**

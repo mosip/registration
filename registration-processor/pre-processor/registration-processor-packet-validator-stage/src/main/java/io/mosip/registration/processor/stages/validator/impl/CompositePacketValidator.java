@@ -1,19 +1,19 @@
 package io.mosip.registration.processor.stages.validator.impl;
 
-import io.mosip.kernel.core.util.exception.JsonProcessingException;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketManagerException;
-import io.mosip.registration.processor.core.exception.PacketValidatorException;
-import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
-import io.mosip.registration.processor.core.packet.dto.packetvalidator.PacketValidationDto;
-import io.mosip.registration.processor.core.spi.packet.validator.PacketValidator;
+import java.io.IOException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
+import io.mosip.registration.processor.core.packet.dto.packetvalidator.PacketValidationDto;
+import io.mosip.registration.processor.core.spi.packet.validator.PacketValidator;
 
 @Component
 @Primary

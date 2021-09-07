@@ -15,9 +15,19 @@ public enum FailureReason {
 	ABORTED("2","Aborted"),
 	UNEXPECTED_ERROR("3","Unexpected error - Unable to access biometric data"),
 	UNABLE_TO_SERVE("4","Unable to serve the request"),
-	INVALID_REQUEST("5","Invalid request / Missing mandatory fields"),
-	UNAUTHORIZED_ACCESS("6","Unauthorized Access"),
-	UNABLE_TO_FETCH("7","Unable to fetch biometric details");
+	MISSING_REFERENCEID("5","missing referenceId (in request body)"),
+	MISSING_REQUESTID("6","missing requestId (in request body)"),
+	UNABLE_TO_FETCH("7","unable to fetch biometric details (using referenceURL)"),
+	MISSING_REFERENCEURL("8","missing reference URL (in request body)"),
+	MISSING_REQUESTTIME("9","missing requesttime (in request body)"),
+	REFID_ALREADY_EXISTS("10","referenceId already exists (in ABIS)"),
+	EMPTY_CBEFF("11","CBEFF has no data"),
+	REFID_NOT_FOUND("12","referenceId not found (in ABIS)"),
+	INVALID_VERSION("13","invalid version"),
+	INVALID_ID("14","invalid id"),
+	INVALID_REQ_FORMAT("15","invalid requesttime format"),
+	INVALID_CBEFF("16","invalid CBEFF format"),
+	DATASHARE_EXPIRED("17","data share URL has expired");
 
 	private String key;
 	private String value;
