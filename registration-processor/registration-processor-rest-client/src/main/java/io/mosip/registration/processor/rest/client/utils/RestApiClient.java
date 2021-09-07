@@ -32,6 +32,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -50,7 +51,6 @@ import io.mosip.kernel.core.util.TokenHandlerUtil;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.rest.client.audit.dto.Metadata;
-import io.mosip.registration.processor.rest.client.audit.dto.PasswordRequest;
 import io.mosip.registration.processor.rest.client.audit.dto.SecretKeyRequest;
 import io.mosip.registration.processor.rest.client.audit.dto.TokenRequestDTO;
 import io.mosip.registration.processor.rest.client.exception.TokenGenerationFailedException;
@@ -202,7 +202,7 @@ public class RestApiClient {
 					LoggerFileConstant.APPLICATIONID.toString(), uri);
 
 			response = (ResponseEntity<T>) localRestTemplate.exchange(uri, HttpMethod.PUT,
-					setRequestHeader(requestType.toString(), mediaType), responseClass);
+					setRequestHeader(requestType, mediaType), responseClass);
 			result = response.getBody();
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
@@ -211,6 +211,19 @@ public class RestApiClient {
 			throw e;
 		}
 		return result;
+	}
+
+	public int headApi(URI uri) throws Exception {
+		try {
+			HttpStatus httpStatus = localRestTemplate.exchange(uri, HttpMethod.HEAD, setRequestHeader(
+					null, null), Object.class).getStatusCode();
+			return httpStatus.value();
+		} catch (Exception e) {
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
+					LoggerFileConstant.APPLICATIONID.toString(), e.getMessage() + ExceptionUtils.getStackTrace(e));
+			tokenExceptionHandler(e);
+			throw e;
+		}
 	}
 
 	public RestTemplate getRestTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
