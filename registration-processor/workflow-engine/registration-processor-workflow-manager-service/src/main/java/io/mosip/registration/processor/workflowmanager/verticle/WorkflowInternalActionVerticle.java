@@ -177,7 +177,6 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		WorkflowInternalActionCode workflowInternalActionCode = null;
 		try {
 			workflowInternalActionCode = WorkflowInternalActionCode.valueOf(workflowInternalActionDTO.getActionCode());
-			workflowInternalActionCode = WorkflowInternalActionCode.ANONYMOUS_PROFILE;
 			switch (workflowInternalActionCode) {
 			case MARK_AS_PAUSED:
 				processPacketForPaused(workflowInternalActionDTO);
