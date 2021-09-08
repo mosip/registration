@@ -15,7 +15,7 @@ import io.mosip.registration.processor.core.exception.ApisResourceAccessExceptio
  * @param <T>
  *            the generic type
  */
-public interface RegistrationProcessorRestClientService<T> {
+	public interface RegistrationProcessorRestClientService<T> {
 
 	/**
 	 * Gets the api.
@@ -185,4 +185,6 @@ public interface RegistrationProcessorRestClientService<T> {
 	 */
 	public T postApi(String url, MediaType mediaType, List<String> pathsegments, List<String> queryParam, List<Object> queryParamValue,
 			 T requestedData, Class<?> responseType) throws ApisResourceAccessException;
+
+	public Integer headApi(ApiName apiName, List<String> pathsegments, List<String> queryParamName, List<Object> queryParamValue) throws ApisResourceAccessException;
 }
