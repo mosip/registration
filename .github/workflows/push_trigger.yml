@@ -63,15 +63,7 @@ jobs:
       with:
         name: release
         path: ./release.zip
-
-    - name: Analyze with SonarCloud
-      run: |
-        cd registration-processor
-        mvn -B -Dgpg.skip -DskipTests -Dmaven.javadoc.skip=true verify sonar:sonar -Dsonar.projectKey=mosip_${{ github.event.repository.name }} -Dsonar.organization=${{ secrets.ORG_KEY }} -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        
+       
     - name: Get current date
       id: date
       run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
@@ -783,11 +775,11 @@ jobs:
           sudo apt-get install libxml2-utils
       - name: Build with Maven
         run: |
-          cd registration
+          cd registration-processor
           mvn -B package --file pom.xml -s $GITHUB_WORKSPACE/settings.xml
       - name: Analyze with SonarCloud
         run: |
-          cd registration
+          cd registration-processor
           mvn -B -Dgpg.skip verify sonar:sonar -Dsonar.projectKey=mosip_${{ github.event.repository.name }} -Dsonar.organization=${{ secrets.ORG_KEY }} -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
