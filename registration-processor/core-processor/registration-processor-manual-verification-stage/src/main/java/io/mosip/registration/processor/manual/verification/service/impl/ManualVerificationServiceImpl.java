@@ -171,10 +171,6 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	@Autowired
 	private PriorityBasedPacketManagerService packetManagerService;
 
-	/** The utilities. */
-	@Autowired
-	private Utilities utilities;
-
 	/** The audit log request builder. */
 	@Autowired
 	private AuditLogRequestBuilder auditLogRequestBuilder;
@@ -375,7 +371,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	}
 
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "unused" })
 	private void checkUserIDExistsInMasterList(UserDto dto) {
 		ResponseWrapper<UserResponseDTOWrapper> responseWrapper;
 		UserResponseDTOWrapper userResponseDTOWrapper;
