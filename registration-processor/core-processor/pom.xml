@@ -22,5 +22,7 @@
         <module>registration-processor-abis-handler-stage</module>
         <module>registration-processor-abis-middleware-stage</module>
     	<module>registration-processor-biometric-authentication-stage</module>
+    	<module>registration-processor-biometric-extraction-stage</module>
+    	<module>registration-processor-finalization-stage</module>
   </modules>
 </project>

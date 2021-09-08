@@ -1,7 +1,7 @@
 /**
  * 
  */
-package io.mosip.registration.processor.stages.uingenerator.idrepo.dto;
+package io.mosip.registration.processor.packet.manager.dto;
 
 import java.util.List;
 
@@ -31,6 +31,10 @@ public class RequestDto {
 	
 	private String status;
 
-	/** The UIN */
+
 	private String biometricReferenceId;
+	/** The UIN */
+	private String uin;
+	/** The entity. */
+	private Object anonymousProfile;
 }
