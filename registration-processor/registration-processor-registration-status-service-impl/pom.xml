@@ -85,7 +85,11 @@
 			<artifactId>kernel-dataaccess-hibernate</artifactId>
 			<version>${kernel.dataaccess.hibernate.version}</version>
 		</dependency>
-
+		<dependency>
+			<groupId>io.mosip.registrationprocessor</groupId>
+			<artifactId>registration-processor-info-storage-service</artifactId>
+			<version>${packet.info.storage.service.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>io.mosip.registrationprocessor</groupId>
 			<artifactId>registration-processor-core</artifactId>

@@ -1,6 +1,26 @@
 package io.mosip.registration.processor.packet.storage.service.impl;
 
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.stereotype.Service;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.StringUtils;
@@ -19,7 +39,6 @@ import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.Identity;
-import io.mosip.registration.processor.core.packet.dto.RegAbisRefDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisApplicationDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisRequestDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisResponseDetDto;
@@ -35,6 +54,8 @@ import io.mosip.registration.processor.packet.storage.dao.PacketInfoDao;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.entity.AbisApplicationEntity;
 import io.mosip.registration.processor.packet.storage.entity.AbisRequestEntity;
+import io.mosip.registration.processor.packet.storage.entity.AnonymousProfileEntity;
+import io.mosip.registration.processor.packet.storage.entity.AnonymousProfilePKEntity;
 import io.mosip.registration.processor.packet.storage.entity.IndividualDemographicDedupeEntity;
 import io.mosip.registration.processor.packet.storage.entity.ManualVerificationEntity;
 import io.mosip.registration.processor.packet.storage.entity.ManualVerificationPKEntity;
@@ -51,24 +72,6 @@ import io.mosip.registration.processor.packet.storage.repository.BasePacketRepos
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
 
 /**
  * The Class PacketInfoManagerImpl.
@@ -95,6 +98,10 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	/** The reg bio ref repository. */
 	@Autowired
 	private BasePacketRepository<RegBioRefEntity, String> regBioRefRepository;
+	
+	/** The Anonymus Profile repository. */
+	@Autowired
+	private BasePacketRepository<AnonymousProfileEntity, String> anonymousProfileRepository;
 
 	/** The reg abis request repository. */
 	@Autowired
@@ -1017,6 +1024,34 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	public List<RegBioRefDto> getRegBioRefDataByBioRefIds(List<String> bioRefId) {
 		List<RegBioRefEntity> regBioRefList = packetInfoDao.getRegBioRefDataByBioRefIds(bioRefId);
 		return PacketInfoMapper.convertRegBioRefEntityListToDto(regBioRefList);
+	}
+
+	@Override
+	public void saveAnonymousProfile(String regId, String processStage, String profileJson) {
+		try {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
+				"PacketInfoManagerImpl::saveAnonymousProfile()::entry");
+		AnonymousProfileEntity anonymousProfileEntity=new AnonymousProfileEntity();
+		AnonymousProfilePKEntity anonymousProfilePKEntity=new AnonymousProfilePKEntity();
+		anonymousProfilePKEntity.setId(regId);
+		anonymousProfileEntity.setId(anonymousProfilePKEntity);
+		anonymousProfileEntity.setProfile(profileJson);
+		anonymousProfileEntity.setProcessStage(processStage);
+		anonymousProfileEntity.setCreatedBy("SYSTEM");
+		anonymousProfileEntity.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+		anonymousProfileEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+		anonymousProfileEntity.setIsDeleted(false);
+		
+		anonymousProfileRepository.save(anonymousProfileEntity);
+		} catch (DataAccessLayerException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
+
+			throw new UnableToInsertData(PlatformErrorMessages.RPR_PIS_UNABLE_TO_INSERT_DATA.getMessage() + regId, e);
+		} 
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
+				"PacketInfoManagerImpl::saveRegLostUinDetData()::exit");
+		
 	}
 
 }
