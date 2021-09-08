@@ -1,6 +1,8 @@
 package io.mosip.registration.processor.workflowmanager.verticle;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
@@ -10,12 +12,14 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.json.JSONException;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
@@ -25,6 +29,7 @@ import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
 import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
 import io.mosip.registration.processor.core.abstractverticle.WorkflowInternalActionDTO;
+import io.mosip.registration.processor.core.anonymous.service.AnonymousProfileService;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
@@ -34,6 +39,8 @@ import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCo
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.code.WorkflowActionCode;
 import io.mosip.registration.processor.core.code.WorkflowInternalActionCode;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.WorkflowActionException;
@@ -46,6 +53,7 @@ import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventDTO;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowPausedForAdditionalInfoEventDTO;
+import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -100,6 +108,9 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
 	@Autowired
 	private WorkflowActionService workflowActionService;
+	
+	@Autowired
+	private AnonymousProfileService anonymousProfileService;
 
 	private MosipEventBus mosipEventBus = null;
 	
@@ -110,6 +121,9 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 	/** The web sub util. */
 	@Autowired
 	WebSubUtil webSubUtil;
+	
+	@Autowired
+	private IdSchemaUtil idSchemaUtil;
 
 	@Autowired
 	private PacketManagerService packetManagerService;
@@ -163,6 +177,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		WorkflowInternalActionCode workflowInternalActionCode = null;
 		try {
 			workflowInternalActionCode = WorkflowInternalActionCode.valueOf(workflowInternalActionDTO.getActionCode());
+			workflowInternalActionCode = WorkflowInternalActionCode.ANONYMOUS_PROFILE;
 			switch (workflowInternalActionCode) {
 			case MARK_AS_PAUSED:
 				processPacketForPaused(workflowInternalActionDTO);
@@ -187,6 +202,9 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 				break;
 			case COMPLETE_AS_REJECTED_WITHOUT_PARENT_FLOW:
 				processCompleteAsRejectedWithoutParentFlow(workflowInternalActionDTO);
+				break;
+			case ANONYMOUS_PROFILE:
+				processAnonymousProfile(workflowInternalActionDTO);
 				break;
 			default:
 				throw new WorkflowInternalActionException(
@@ -226,6 +244,31 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		}
 		return object;
 
+	}
+
+	private void processAnonymousProfile(WorkflowInternalActionDTO workflowInternalActionDTO)
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException,
+			JSONException {
+
+		String json = null;
+		String registrationId = workflowInternalActionDTO.getRid();
+		String registrationType = workflowInternalActionDTO.getReg_type();
+
+		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(
+				registrationId, registrationType, workflowInternalActionDTO.getIteration(),
+				workflowInternalActionDTO.getWorkflowInstanceId());
+		String schemaVersion = packetManagerService.getFieldByMappingJsonKey(registrationId,
+				MappingJsonConstants.IDSCHEMA_VERSION, registrationType, ProviderStageName.WORKFLOW_MANAGER);
+		Map<String, String> fieldMap = packetManagerService.getFields(registrationId,
+				idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion)), registrationType,
+				ProviderStageName.WORKFLOW_MANAGER);
+		Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(registrationId, registrationType,
+				ProviderStageName.WORKFLOW_MANAGER);
+		BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId,
+				MappingJsonConstants.INDIVIDUAL_BIOMETRICS, registrationType, ProviderStageName.WORKFLOW_MANAGER);
+		json = anonymousProfileService.buildJsonStringFromPacketInfo(biometricRecord, fieldMap, metaInfoMap,
+				registrationStatusDto.getStatusCode(), registrationStatusDto.getRegistrationStageName());
+		Files.writeString(Paths.get("D:\\test.txt"), json);
 	}
 
 	private void processCompleteAsRejectedWithoutParentFlow(WorkflowInternalActionDTO workflowInternalActionDTO) {
