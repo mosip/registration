@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.packet.storage.entity;
+package io.mosip.registration.processor.status.entity;
 
 import java.io.Serializable;
 
@@ -10,7 +10,6 @@ public class AnonymousProfilePKEntity implements Serializable{
 	//default serial version id, required for serializable classes.
 	private static final long serialVersionUID = 1L;
 	
-	@Id
 	@Column(name = "id")
 	String id;
 

@@ -19,6 +19,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.core.env.Environment;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -99,6 +100,9 @@ public class SyncRegistrationServiceTest {
 	/** The sync response dto. */
 	@Mock
 	private SyncResponseSuccessDto syncResponseDto;
+	/** The anonymousProfileService */
+	@Mock
+	private AnonymousProfileService anonymousProfileService;
 
 	/** The ridValidator. */
 	@Mock
@@ -383,6 +387,7 @@ public class SyncRegistrationServiceTest {
 		assertEquals("Verifing if list is returned. Expected value should be 1002",
 				syncRegistrationDto.getRegistrationId(),
 				(syncResponseDto.get(0)).getRegistrationId());
+		Mockito.doNothing().when(anonymousProfileService).saveAnonymousProfile(anyString(), anyString(), anyString());
 	}
 
 	@Test

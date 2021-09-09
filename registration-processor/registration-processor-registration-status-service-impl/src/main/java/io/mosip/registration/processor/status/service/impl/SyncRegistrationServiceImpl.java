@@ -5,6 +5,7 @@ package io.mosip.registration.processor.status.service.impl;
 
 import java.net.URI;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ import io.mosip.kernel.core.util.exception.JsonMappingException;
 import io.mosip.kernel.core.util.exception.JsonParseException;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.kernel.idvalidator.rid.constant.RidExceptionProperty;
+import io.mosip.registration.processor.core.anonymous.dto.AnonymousProfileDTO;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
@@ -43,6 +45,7 @@ import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 import io.mosip.registration.processor.status.code.RegistrationExternalStatusCode;
@@ -70,6 +73,7 @@ import io.mosip.registration.processor.status.exception.LostRidValidationExcepti
 import io.mosip.registration.processor.status.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.status.exception.RegStatusAppException;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
+import io.mosip.registration.processor.status.service.AnonymousProfileService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.mosip.registration.processor.status.utilities.RegistrationUtility;
 
@@ -107,6 +111,9 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	/** The sync registration dao. */
 	@Autowired
 	private SyncRegistrationDao syncRegistrationDao;
+	/** The sync AnonymousProfileService . */
+	@Autowired
+	private AnonymousProfileService anonymousProfileService;
 
 	/** The core audit request builder. */
 	@Autowired
@@ -520,14 +527,34 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			syncRegistration.setWorkflowInstanceId(RegistrationUtility.generateId());
 			syncRegistrationDao.save(syncRegistration);
 			syncResponseDto.setRegistrationId(registrationDto.getRegistrationId());
-
+			
 			eventId = EventId.RPR_407.toString();
 		}
 		syncResponseDto.setStatus(ResponseStatusCode.SUCCESS.toString());
 		syncResponseList.add(syncResponseDto);
+		saveAnonymousProfile( registrationDto,  referenceId,  timeStamp);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationDto.getRegistrationId(), "SyncRegistrationServiceImpl::validateRegId()::exit");
 		return syncResponseList;
+	}
+
+	private void saveAnonymousProfile(SyncRegistrationDto registrationDto, String referenceId, String timeStamp)  {
+		AnonymousProfileDTO dto=new AnonymousProfileDTO();
+		try{
+			dto.setProcessName(registrationDto.getRegistrationType());
+			dto.setStatus("REGISTERED");
+			dto.setStartDateTime(timeStamp);
+			dto.setDate(LocalDate.now(ZoneId.of("UTC")).toString());
+			dto.setProcessStage("SYNC");
+			dto.setEmail(dto.getEmail() != null ? getHashCode(dto.getEmail()) : null);
+			dto.setEnrollmentCenterId(referenceId.split("_")[0]);
+			dto.setPhone(dto.getPhone() != null ? getHashCode(dto.getPhone()) : null);
+			anonymousProfileService.saveAnonymousProfile(registrationDto.getRegistrationId(),
+					"SYNC", JsonUtil.objectMapperObjectToJson(dto));
+			} catch (RegStatusAppException | java.io.IOException exception) {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				"", exception.getMessage() + ExceptionUtils.getStackTrace(exception));
+			}
 	}
 
 	/*
