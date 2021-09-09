@@ -1,8 +1,6 @@
 package io.mosip.registration.processor.workflowmanager.verticle;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
@@ -50,9 +48,12 @@ import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessag
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
+import io.mosip.registration.processor.core.packet.dto.Identity;
+import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventDTO;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowPausedForAdditionalInfoEventDTO;
+import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
@@ -99,6 +100,9 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
     @Value("${mosip.regproc.workflow-manager.internal.action.max-allowed-iteration}")
     private int defaultMaxAllowedIteration;
+    
+    @Value("${mosip.anonymous.profile.eventbus.address}")
+	private String anonymousProfileBusAddress;
 
 	@Autowired
 	MosipRouter router;
@@ -111,6 +115,10 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 	
 	@Autowired
 	private AnonymousProfileService anonymousProfileService;
+	
+	/** The packet info manager. */
+	@Autowired
+	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
 
 	private MosipEventBus mosipEventBus = null;
 	
@@ -267,7 +275,9 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 				MappingJsonConstants.INDIVIDUAL_BIOMETRICS, registrationType, ProviderStageName.WORKFLOW_MANAGER);
 		json = anonymousProfileService.buildJsonStringFromPacketInfo(biometricRecord, fieldMap, metaInfoMap,
 				registrationStatusDto.getStatusCode(), registrationStatusDto.getRegistrationStageName());
-		Files.writeString(Paths.get("D:\\test.txt"), json);
+		packetInfoManager.saveAnonymousProfile(registrationId, registrationStatusDto.getRegistrationStageName(), json);
+		
+		this.send(this.mosipEventBus, new MessageBusAddress(anonymousProfileBusAddress), workflowInternalActionDTO);
 	}
 
 	private void processCompleteAsRejectedWithoutParentFlow(WorkflowInternalActionDTO workflowInternalActionDTO) {
