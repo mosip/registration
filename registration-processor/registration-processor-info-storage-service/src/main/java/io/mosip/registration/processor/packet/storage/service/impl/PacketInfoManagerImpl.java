@@ -54,8 +54,6 @@ import io.mosip.registration.processor.packet.storage.dao.PacketInfoDao;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.entity.AbisApplicationEntity;
 import io.mosip.registration.processor.packet.storage.entity.AbisRequestEntity;
-import io.mosip.registration.processor.packet.storage.entity.AnonymousProfileEntity;
-import io.mosip.registration.processor.packet.storage.entity.AnonymousProfilePKEntity;
 import io.mosip.registration.processor.packet.storage.entity.IndividualDemographicDedupeEntity;
 import io.mosip.registration.processor.packet.storage.entity.ManualVerificationEntity;
 import io.mosip.registration.processor.packet.storage.entity.ManualVerificationPKEntity;
@@ -99,10 +97,6 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	@Autowired
 	private BasePacketRepository<RegBioRefEntity, String> regBioRefRepository;
 	
-	/** The Anonymus Profile repository. */
-	@Autowired
-	private BasePacketRepository<AnonymousProfileEntity, String> anonymousProfileRepository;
-
 	/** The reg abis request repository. */
 	@Autowired
 	private BasePacketRepository<AbisRequestEntity, String> regAbisRequestRepository;
@@ -1026,32 +1020,5 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 		return PacketInfoMapper.convertRegBioRefEntityListToDto(regBioRefList);
 	}
 
-	@Override
-	public void saveAnonymousProfile(String regId, String processStage, String profileJson) {
-		try {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
-				"PacketInfoManagerImpl::saveAnonymousProfile()::entry");
-		AnonymousProfileEntity anonymousProfileEntity=new AnonymousProfileEntity();
-		AnonymousProfilePKEntity anonymousProfilePKEntity=new AnonymousProfilePKEntity();
-		anonymousProfilePKEntity.setId(regId);
-		anonymousProfileEntity.setId(anonymousProfilePKEntity);
-		anonymousProfileEntity.setProfile(profileJson);
-		anonymousProfileEntity.setProcessStage(processStage);
-		anonymousProfileEntity.setCreatedBy("SYSTEM");
-		anonymousProfileEntity.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
-		anonymousProfileEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
-		anonymousProfileEntity.setIsDeleted(false);
-		
-		anonymousProfileRepository.save(anonymousProfileEntity);
-		} catch (DataAccessLayerException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
-
-			throw new UnableToInsertData(PlatformErrorMessages.RPR_PIS_UNABLE_TO_INSERT_DATA.getMessage() + regId, e);
-		} 
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
-				"PacketInfoManagerImpl::saveRegLostUinDetData()::exit");
-		
-	}
 
 }

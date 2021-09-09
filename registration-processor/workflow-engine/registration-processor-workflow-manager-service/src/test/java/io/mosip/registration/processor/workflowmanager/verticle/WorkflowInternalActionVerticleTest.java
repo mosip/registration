@@ -37,7 +37,6 @@ import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
 import io.mosip.registration.processor.core.abstractverticle.WorkflowInternalActionDTO;
-import io.mosip.registration.processor.core.anonymous.service.AnonymousProfileService;
 import io.mosip.registration.processor.core.code.WorkflowActionCode;
 import io.mosip.registration.processor.core.code.WorkflowInternalActionCode;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
@@ -45,12 +44,9 @@ import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.WorkflowActionException;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
-import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
-import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventDTO;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowPausedForAdditionalInfoEventDTO;
-import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
@@ -59,6 +55,7 @@ import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.AdditionalInfoRequestService;
+import io.mosip.registration.processor.status.service.AnonymousProfileService;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.workflowmanager.service.WorkflowActionService;
 import io.mosip.registration.processor.workflowmanager.util.WebSubUtil;
@@ -99,9 +96,6 @@ public class WorkflowInternalActionVerticleTest {
 	
 	@Mock
 	private IdSchemaUtil idSchemaUtil;
-	
-	@Mock
-	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
 
 	@Mock
 	private Environment env;
@@ -685,7 +679,7 @@ public class WorkflowInternalActionVerticleTest {
 		Mockito.when(
 				anonymousProfileService.buildJsonStringFromPacketInfo(any(), any(), any(), anyString(), anyString()))
 				.thenReturn("jsonProfile");
-		Mockito.doNothing().when(packetInfoManager).saveAnonymousProfile(anyString(), anyString(), anyString());
+		Mockito.doNothing().when(anonymousProfileService).saveAnonymousProfile(anyString(), anyString(), anyString());
 		MessageDTO object = workflowInternalActionVerticle.process(workflowInternalActionDTO);
 		assertEquals(true, object.getIsValid());
 	}

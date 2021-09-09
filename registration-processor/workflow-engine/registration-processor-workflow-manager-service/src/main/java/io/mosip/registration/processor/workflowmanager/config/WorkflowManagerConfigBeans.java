@@ -8,12 +8,13 @@ import org.springframework.web.client.RestTemplate;
 
 import io.mosip.kernel.core.websub.spi.PublisherClient;
 import io.mosip.kernel.websub.api.client.PublisherClientImpl;
-import io.mosip.registration.processor.core.anonymous.service.AnonymousProfileService;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventDTO;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowPausedForAdditionalInfoEventDTO;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.rest.client.service.impl.RegistrationProcessorRestClientServiceImpl;
+import io.mosip.registration.processor.status.service.AnonymousProfileService;
+import io.mosip.registration.processor.status.service.impl.AnonymousProfileServiceImpl;
 import io.mosip.registration.processor.workflowmanager.service.WorkflowActionService;
 import io.mosip.registration.processor.workflowmanager.service.WorkflowSearchService;
 import io.mosip.registration.processor.workflowmanager.util.WebSubUtil;
@@ -84,7 +85,7 @@ public class WorkflowManagerConfigBeans {
 	
 	@Bean
 	public AnonymousProfileService getAnonymousProfileService() {
-		return new AnonymousProfileService();
+		return new AnonymousProfileServiceImpl();
 	}
 
 	@Bean
