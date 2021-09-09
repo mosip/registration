@@ -159,6 +159,8 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	@Autowired
 	RestApiClient restApiClient;
 
+	@Autowired 
+	RestTemplate restTemplate;
 	/**
 	 * Instantiates a new sync registration service impl.
 	 */
@@ -556,8 +558,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			dto.setStartDateTime(timeStamp);
 			dto.setDate(LocalDate.now(ZoneId.of("UTC")).toString());
 			dto.setProcessStage("SYNC");
-			List<String> channel=new ArrayList<>();
-			RestTemplate restTemplate = new RestTemplate();  
+			List<String> channel=new ArrayList<>(); 
 			String mappingJsonString = restTemplate.getForObject(configServerFileStorageURL + getRegProcessorIdentityJson, String.class);
 			org.json.simple.JSONObject mappingJsonObject = objectMapper.readValue(mappingJsonString, org.json.simple.JSONObject.class);
 			org.json.simple.JSONObject regProcessorIdentityJson =JsonUtil.getJSONObject(mappingJsonObject, MappingJsonConstants.IDENTITY);
