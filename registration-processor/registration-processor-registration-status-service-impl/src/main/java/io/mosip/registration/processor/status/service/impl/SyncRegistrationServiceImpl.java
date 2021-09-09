@@ -16,6 +16,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -39,6 +40,7 @@ import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.constant.AuditLogConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ResponseStatusCode;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -145,6 +147,14 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 
 	@Value("#{'${registration.processor.sub-processes}'.split(',')}")
 	private List<String> subProcesses;
+	
+	/** The config server file storage URL. */
+	@Value("${config.server.file.storage.uri}")
+	private String configServerFileStorageURL;
+	
+	/** The get reg processor identity json. */
+	@Value("${registration.processor.identityjson}")
+	private String getRegProcessorIdentityJson;
 
 	@Autowired
 	RestApiClient restApiClient;
@@ -546,12 +556,23 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			dto.setStartDateTime(timeStamp);
 			dto.setDate(LocalDate.now(ZoneId.of("UTC")).toString());
 			dto.setProcessStage("SYNC");
-			dto.setEmail(dto.getEmail() != null ? getHashCode(dto.getEmail()) : null);
+			List<String> channel=new ArrayList<>();
+			RestTemplate restTemplate = new RestTemplate();  
+			String mappingJsonString = restTemplate.getForObject(configServerFileStorageURL + getRegProcessorIdentityJson, String.class);
+			org.json.simple.JSONObject mappingJsonObject = objectMapper.readValue(mappingJsonString, org.json.simple.JSONObject.class);
+			org.json.simple.JSONObject regProcessorIdentityJson =JsonUtil.getJSONObject(mappingJsonObject, MappingJsonConstants.IDENTITY);
+			
+			channel.add( registrationDto.getEmail() != null ? JsonUtil.getJSONValue(
+	                JsonUtil.getJSONObject(regProcessorIdentityJson, "email"),
+	                MappingJsonConstants.VALUE) : null);
+			channel.add( registrationDto.getPhone() != null ? JsonUtil.getJSONValue(
+	                JsonUtil.getJSONObject(regProcessorIdentityJson, "phone"),
+	                MappingJsonConstants.VALUE) : null);
+			dto.setChannel(channel);
 			dto.setEnrollmentCenterId(referenceId.split("_")[0]);
-			dto.setPhone(dto.getPhone() != null ? getHashCode(dto.getPhone()) : null);
 			anonymousProfileService.saveAnonymousProfile(registrationDto.getRegistrationId(),
 					"SYNC", JsonUtil.objectMapperObjectToJson(dto));
-			} catch (RegStatusAppException | java.io.IOException exception) {
+			} catch (java.io.IOException exception) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				"", exception.getMessage() + ExceptionUtils.getStackTrace(exception));
 			}
