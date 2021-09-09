@@ -356,14 +356,6 @@ public interface PacketInfoManager<T, /** D, M, */
 	public List<String> getAbisProcessedRequestsAppCodeByBioRefId(String bioRefId, String requestType,
 			String processed);
 	
-	/**
-	 * save anonymous profile
-	 * @param id
-	 * @param processStage
-	 * @param profileJson
-	 */
-	public void saveAnonymousProfile(String regId, String processStage,String profileJson); 
-	
 	public void saveRegLostUinDet(String regId, String workflowInstanceId, String latestRegId, String moduleId, String moduleName);
 
 

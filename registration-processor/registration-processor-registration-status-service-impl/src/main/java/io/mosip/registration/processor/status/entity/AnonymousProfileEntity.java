@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.packet.storage.entity;
+package io.mosip.registration.processor.status.entity;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;

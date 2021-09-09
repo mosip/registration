@@ -16,8 +16,7 @@ public class AnonymousProfileDTO {
 	private String gender;
 	private List<String> location;
 	private List<String> preferredLanguages;
-	private String phone;
-	private String email;
+	private List<String> channel;
 	private List<Object> exceptions;
 	private List<String> verified;
 	private List<Object> biometricInfo;
