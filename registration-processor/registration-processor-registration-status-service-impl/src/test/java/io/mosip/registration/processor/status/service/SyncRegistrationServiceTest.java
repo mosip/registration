@@ -19,10 +19,12 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.core.env.Environment;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.client.RestTemplate;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.exception.IOException;
@@ -96,6 +98,8 @@ public class SyncRegistrationServiceTest {
 	/** The sync registration dao. */
 	@Mock
 	private SyncRegistrationDao syncRegistrationDao;
+	@Mock
+	ObjectMapper objectMapper;
 
 	/** The sync response dto. */
 	@Mock
@@ -132,11 +136,15 @@ public class SyncRegistrationServiceTest {
 	
 	@Mock
 	RestApiClient restApiClient;
+	
+	@Mock 
+	RestTemplate restTemplate;
 
 	/**
 	 * Setup.
 	 * @throws Exception 
 	 */
+	@SuppressWarnings("unchecked")
 	@Before
 	public void setup() throws Exception {
 		registrationSyncRequestDTO = new RegistrationSyncRequestDTO();
@@ -359,7 +367,9 @@ public class SyncRegistrationServiceTest {
 		List<String> subprocessList=new ArrayList<>();
 		subprocessList.add("BIOMETRIC_CORRECTION");
 		ReflectionTestUtils.setField(syncRegistrationService, "subProcesses", subprocessList);
-
+		
+		Mockito.when(objectMapper.readValue(anyString(), any(Class.class))).thenReturn( JsonUtils.jsonStringToJavaObject(org.json.simple.JSONObject.class, "{ \"identity\":{ \"IDSchemaVersion\":{ \"value\":\"IDSchemaVersion\" }, \"name\":{ \"value\":\"fullName\" }, \"gender\":{ \"value\":\"gender\" }, \"dob\":{ \"value\":\"dateOfBirth\" }, \"age\":{ \"value\":\"age\" }, \"introducerRID\":{ \"value\":\"introducerRID\" }, \"introducerUIN\":{ \"value\":\"introducerUIN\" }, \"introducerVID\":{ \"value\":\"introducerVID\" }, \"introducerName\":{ \"value\":\"introducerName\" }, \"phone\":{ \"value\":\"phone\" }, \"email\":{ \"value\":\"email\" }, \"uin\":{ \"value\":\"UIN\" }, \"individualBiometrics\":{ \"value\":\"individualBiometrics\" }, \"introducerBiometrics\":{ \"value\":\"introducerBiometrics\" }, \"individualAuthBiometrics\":{ \"value\":\"individualAuthBiometrics\" }, \"officerBiometricFileName\":{ \"value\":\"officerBiometricFileName\" }, \"supervisorBiometricFileName\":{ \"value\":\"supervisorBiometricFileName\" }, \"residenceStatus\":{ \"value\":\"residenceStatus\" } }, \"metaInfo\":{ \"value\":\"metaInfo\" }, \"audits\":{ \"value\":\"audits\" }, \"documents\":{ \"poa\":{ \"value\":\"proofOfAddress\" }, \"poi\":{ \"value\":\"proofOfIdentity\" }, \"por\":{ \"value\":\"proofOfRelationship\" }, \"pob\":{ \"value\":\"proofOfDateOfBirth\" }, \"poe\":{ \"value\":\"proofOfException\" } } }"));
+		Mockito.when(restTemplate.getForObject(anyString(), any(Class.class))).thenReturn("{ \"identity\":{ \"IDSchemaVersion\":{ \"value\":\"IDSchemaVersion\" }, \"name\":{ \"value\":\"fullName\" }, \"gender\":{ \"value\":\"gender\" }, \"dob\":{ \"value\":\"dateOfBirth\" }, \"age\":{ \"value\":\"age\" }, \"introducerRID\":{ \"value\":\"introducerRID\" }, \"introducerUIN\":{ \"value\":\"introducerUIN\" }, \"introducerVID\":{ \"value\":\"introducerVID\" }, \"introducerName\":{ \"value\":\"introducerName\" }, \"phone\":{ \"value\":\"phone\" }, \"email\":{ \"value\":\"email\" }, \"uin\":{ \"value\":\"UIN\" }, \"individualBiometrics\":{ \"value\":\"individualBiometrics\" }, \"introducerBiometrics\":{ \"value\":\"introducerBiometrics\" }, \"individualAuthBiometrics\":{ \"value\":\"individualAuthBiometrics\" }, \"officerBiometricFileName\":{ \"value\":\"officerBiometricFileName\" }, \"supervisorBiometricFileName\":{ \"value\":\"supervisorBiometricFileName\" }, \"residenceStatus\":{ \"value\":\"residenceStatus\" } }, \"metaInfo\":{ \"value\":\"metaInfo\" }, \"audits\":{ \"value\":\"audits\" }, \"documents\":{ \"poa\":{ \"value\":\"proofOfAddress\" }, \"poi\":{ \"value\":\"proofOfIdentity\" }, \"por\":{ \"value\":\"proofOfRelationship\" }, \"pob\":{ \"value\":\"proofOfDateOfBirth\" }, \"poe\":{ \"value\":\"proofOfException\" } } }");
 	}
 
 	/**
