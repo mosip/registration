@@ -28,9 +28,10 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 
 	@Override
 	public void saveAnonymousProfile(String regId, String processStage, String profileJson) {
-		try {
+		
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
 					"PacketInfoManagerImpl::saveAnonymousProfile()::entry");
+			try {
 			AnonymousProfileEntity anonymousProfileEntity=new AnonymousProfileEntity();
 			AnonymousProfilePKEntity anonymousProfilePKEntity=new AnonymousProfilePKEntity();
 			anonymousProfilePKEntity.setId(regId);
