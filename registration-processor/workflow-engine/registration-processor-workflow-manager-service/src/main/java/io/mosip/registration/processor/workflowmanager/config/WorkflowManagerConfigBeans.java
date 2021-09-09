@@ -12,8 +12,6 @@ import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventD
 import io.mosip.registration.processor.core.workflow.dto.WorkflowPausedForAdditionalInfoEventDTO;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.rest.client.service.impl.RegistrationProcessorRestClientServiceImpl;
-import io.mosip.registration.processor.status.service.AnonymousProfileService;
-import io.mosip.registration.processor.status.service.impl.AnonymousProfileServiceImpl;
 import io.mosip.registration.processor.workflowmanager.service.WorkflowActionService;
 import io.mosip.registration.processor.workflowmanager.service.WorkflowSearchService;
 import io.mosip.registration.processor.workflowmanager.util.WebSubUtil;
@@ -75,11 +73,6 @@ public class WorkflowManagerConfigBeans {
 	@Bean
 	public PublisherClient<String, WorkflowCompletedEventDTO, HttpHeaders> getWebPublisherClientForWorkflowCompletedEvent() {
 		return new PublisherClientImpl<WorkflowCompletedEventDTO>();
-	}
-	
-	@Bean
-	public AnonymousProfileService getAnonymousProfileService() {
-		return new AnonymousProfileServiceImpl();
 	}
 
 	@Bean
