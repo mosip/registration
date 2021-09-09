@@ -563,10 +563,10 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			org.json.simple.JSONObject regProcessorIdentityJson =JsonUtil.getJSONObject(mappingJsonObject, MappingJsonConstants.IDENTITY);
 			
 			channel.add( registrationDto.getEmail() != null ? JsonUtil.getJSONValue(
-	                JsonUtil.getJSONObject(regProcessorIdentityJson, "email"),
+	                JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.EMAIL),
 	                MappingJsonConstants.VALUE) : null);
 			channel.add( registrationDto.getPhone() != null ? JsonUtil.getJSONValue(
-	                JsonUtil.getJSONObject(regProcessorIdentityJson, "phone"),
+	                JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.PHONE),
 	                MappingJsonConstants.VALUE) : null);
 			dto.setChannel(channel);
 			dto.setEnrollmentCenterId(referenceId.split("_")[0]);
