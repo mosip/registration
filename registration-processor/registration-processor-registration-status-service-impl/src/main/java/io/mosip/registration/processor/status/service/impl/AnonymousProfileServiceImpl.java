@@ -17,6 +17,7 @@ import io.mosip.registration.processor.status.entity.AnonymousProfilePKEntity;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.repositary.BaseRegProcRepository;
 import io.mosip.registration.processor.status.service.AnonymousProfileService;
+import io.mosip.registration.processor.status.utilities.RegistrationUtility;
 @Component
 public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 	/** The reg proc logger. */
@@ -30,11 +31,11 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 	public void saveAnonymousProfile(String regId, String processStage, String profileJson) {
 		
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
-					"PacketInfoManagerImpl::saveAnonymousProfile()::entry");
+					"AnonymousProfileServiceImpl::saveAnonymousProfile()::entry");
 			try {
 			AnonymousProfileEntity anonymousProfileEntity=new AnonymousProfileEntity();
 			AnonymousProfilePKEntity anonymousProfilePKEntity=new AnonymousProfilePKEntity();
-			anonymousProfilePKEntity.setId(regId);
+			anonymousProfilePKEntity.setId(RegistrationUtility.generateId());
 			anonymousProfileEntity.setId(anonymousProfilePKEntity);
 			anonymousProfileEntity.setProfile(profileJson);
 			anonymousProfileEntity.setProcessStage(processStage);
@@ -52,7 +53,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 						PlatformErrorMessages.RPR_RGS_ANONYMOUS_PROFILE_TABLE_NOT_ACCESSIBLE.getMessage(), e);
 			} 
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
-					"PacketInfoManagerImpl::saveRegLostUinDetData()::exit");
+					"AnonymousProfileServiceImpl::saveAnonymousProfile()::exit");
 
 	}
 
