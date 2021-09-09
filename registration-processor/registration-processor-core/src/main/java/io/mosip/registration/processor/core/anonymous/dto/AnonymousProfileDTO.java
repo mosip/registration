@@ -12,7 +12,7 @@ public class AnonymousProfileDTO {
 	private String date;
 	private String startDateTime;
 	private String endDateTime;
-	private String yearOfBirth;
+	private int yearOfBirth;
 	private String gender;
 	private List<String> location;
 	private List<String> preferredLanguages;

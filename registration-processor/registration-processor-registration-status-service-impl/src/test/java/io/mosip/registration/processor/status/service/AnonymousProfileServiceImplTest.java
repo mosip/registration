@@ -3,13 +3,16 @@ package io.mosip.registration.processor.status.service;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.apache.commons.collections.map.HashedMap;
 import org.json.JSONException;
+import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,6 +23,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -52,6 +56,9 @@ public class AnonymousProfileServiceImplTest {
 	
 	@Mock
 	ObjectMapper mapper;
+	
+	@Mock 
+	RestTemplate restTemplate;
 
 	Map<String, String> fieldMap = new HashedMap();
 	Map<String, String> metaInfoMap = new HashedMap();
@@ -60,6 +67,8 @@ public class AnonymousProfileServiceImplTest {
 	@Before
 	public void setup() {
 		ReflectionTestUtils.setField(AnonymousProfileService, "mandatoryLanguages", Arrays.asList("eng"));
+		ReflectionTestUtils.setField(AnonymousProfileService, "configServerFileStorageURL", "http://dev.mosip.net/");
+		ReflectionTestUtils.setField(AnonymousProfileService, "getRegProcessorIdentityJson", "registration-processor-identity.json");
 
 		fieldMap.put("postalCode", "14022");
 		fieldMap.put("dateOfBirth", "1998/01/01");
@@ -121,19 +130,40 @@ public class AnonymousProfileServiceImplTest {
 		AnonymousProfileService.saveAnonymousProfile("123", "SYNC", "aa");
 	}
 	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void buildJsonStringFromPacketInfoTest()
 			throws ApisResourceAccessException, PacketManagerException, JSONException, IOException {
 
-		String json = "{\"processName\":\"NEW\",\"processStage\":\"packetValidatorStage\",\"date\":\"2021-09-01\",\"startDateTime\":null,\"endDateTime\":null,\"yearOfBirth\":\"1998\",\"gender\":\"Female\",\"location\":[\"Ben Mansour\",\"14022\"],\"preferredLanguages\":[\"English\"],\"channel\":[\"phone\"],\"exceptions\":[],\"verified\":null,\"biometricInfo\":[{\"type\":\"FINGER\",\"subType\":\"Left RingFinger\",\"qualityScore\":80,\"attempts\":\"1\",\"digitalId\":\"eyJ4NWMiOlsiTUlJRjZqQ0NBOUtnQXdJQkFnSUJCVEFOQmdrcWhraUc5dzBC\"}],\"device\":null,\"documents\":[\"CIN\",\"RNC\"],\"assisted\":[\"110024\"],\"enrollmentCenterId\":\"1003\",\"status\":\"PROCESSED\"}";
+		String json = "{\"processName\":\"NEW\",\"processStage\":\"packetValidatorStage\",\"date\":\"2021-09-01\",\"startDateTime\":null,\"endDateTime\":null,\"yearOfBirth\":1998,\"gender\":\"Female\",\"location\":[\"permanentZone\",\"permanentPostalcode\"],\"preferredLanguages\":[\"English\"],\"channel\":[\"email\",\"phone\"],\"exceptions\":[],\"verified\":null,\"biometricInfo\":[{\"type\":\"FINGER\",\"subType\":\"Left RingFinger\",\"qualityScore\":80,\"attempts\":\"1\",\"digitalId\":\"eyJ4NWMiOlsiTUlJRjZqQ0NBOUtnQXdJQkFnSUJCVEFOQmdrcWhraUc5dzBC\"}],\"device\":null,\"documents\":[\"CIN\",\"RNC\"],\"assisted\":[\"110024\"],\"enrollmentCenterId\":\"1003\",\"status\":\"PROCESSED\"}";
 		Document doc1 = new Document();
 		doc1.setDocumentType("CIN");
 		Document doc2 = new Document();
 		doc2.setDocumentType("RNC");
 
+		org.json.simple.JSONObject mappingJsonObject = new JSONObject();
+		LinkedHashMap identity = new LinkedHashMap();
+		LinkedHashMap IDSchemaVersion = new LinkedHashMap();
+		IDSchemaVersion.put("value", "IDSchemaVersion");
+		LinkedHashMap address = new LinkedHashMap();
+		address.put("value",
+				"permanentAddressLine1,permanentAddressLine2,permanentAddressLine3,permanentRegion,permanentProvince,permanentCity,permanentZone,permanentPostalcode");
+		LinkedHashMap phone = new LinkedHashMap();
+		phone.put("value", "phone");
+		LinkedHashMap email = new LinkedHashMap();
+		email.put("value", "email");
+		identity.put("IDSchemaVersion", IDSchemaVersion);
+		identity.put("address", address);
+		identity.put("phone", phone);
+		identity.put("email", email);
+		mappingJsonObject.put("identity", identity);
+
+		String mappingJsonString = "{\"identity\":{\"IDSchemaVersion\":{\"value\":\"IDSchemaVersion\"},\"address\":{\"value\":\"permanentAddressLine1,permanentAddressLine2,permanentAddressLine3,permanentRegion,permanentProvince,permanentCity,permanentZone,permanentPostalcode\"},\"phone\":{\"value\":\"phone\"},\"email\":{\"value\":\"email\"}}}";
+		Mockito.when(restTemplate.getForObject(anyString(), eq(String.class))).thenReturn(mappingJsonString);
 		Mockito.when(mapper.readValue(anyString(), any(Class.class)))
-				.thenReturn(new FieldValue("registrationType", "NEW")).thenReturn(doc1).thenReturn(doc2)
-				.thenReturn(new FieldValue("centerId", "1003")).thenReturn(new FieldValue("officerId", "110024"));
+				.thenReturn(new FieldValue("registrationType", "NEW")).thenReturn(mappingJsonObject).thenReturn(doc1)
+				.thenReturn(doc2).thenReturn(new FieldValue("centerId", "1003"))
+				.thenReturn(new FieldValue("officerId", "110024"));
 		assertEquals(json, AnonymousProfileService.buildJsonStringFromPacketInfo(biometricRecord, fieldMap, metaInfoMap,
 				"PROCESSED", "packetValidatorStage"));
 	}

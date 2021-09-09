@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -15,6 +16,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -54,6 +56,17 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 	
 	@Autowired
 	ObjectMapper mapper;
+	
+	@Autowired 
+	RestTemplate restTemplate;
+	
+	/** The config server file storage URL. */
+	@Value("${config.server.file.storage.uri}")
+	private String configServerFileStorageURL;
+	
+	/** The get reg processor identity json. */
+	@Value("${registration.processor.identityjson}")
+	private String getRegProcessorIdentityJson;
 	
 	/**
 	 * The mandatory languages that should be used when dealing with field type that
@@ -102,7 +115,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 					"AnonymousProfileServiceImpl::saveAnonymousProfile()::exit");
 
 	}
-	
+
 	@Override
 	public String buildJsonStringFromPacketInfo(BiometricRecord biometricRecord, Map<String, String> fieldMap,
 			Map<String, String> metaInfoMap, String statusCode, String processStage)
@@ -117,22 +130,33 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 		anonymousProfileDTO.setDate(DateUtils.getTimeFromDate(
 				DateUtils.parseToDate(date, ANONYMOUS_PROFILE_DATETIME_PATTERN), ANONYMOUS_PROFILE_DATETIME_PATTERN));
 
-		String dateArr[] = fieldMap.get("dateOfBirth").split("/");
-		anonymousProfileDTO.setYearOfBirth(dateArr[0]);
+		Date dob = DateUtils.parseToDate(fieldMap.get("dateOfBirth"), "yyyy/MM/dd");
+		anonymousProfileDTO.setYearOfBirth(DateUtils.parseDateToLocalDateTime(dob).getYear());
 		anonymousProfileDTO.setGender(getLanguageBasedValueForSimpleType(fieldMap.get(MappingJsonConstants.GENDER)));
 
-		String zone = getLanguageBasedValueForSimpleType(fieldMap.get("zone"));
-		String postalCode = fieldMap.get("postalCode");
-		anonymousProfileDTO.setLocation(Arrays.asList(zone, postalCode));
 		anonymousProfileDTO.setPreferredLanguages(Arrays.asList(fieldMap.get(MappingJsonConstants.PREFERRED_LANGUAGE)));
 		List<String> channels = new ArrayList<String>();
-		if (fieldMap.containsKey(MappingJsonConstants.PHONE) && fieldMap.get(MappingJsonConstants.PHONE) != null) {
-			channels.add(MappingJsonConstants.PHONE);
-		}
-		if (fieldMap.containsKey(MappingJsonConstants.EMAIL) && fieldMap.get(MappingJsonConstants.EMAIL) != null) {
-			channels.add(MappingJsonConstants.EMAIL);
-		}
+
+		String mappingJsonString = restTemplate.getForObject(configServerFileStorageURL + getRegProcessorIdentityJson,
+				String.class);
+		org.json.simple.JSONObject mappingJsonObject = mapper.readValue(mappingJsonString,
+				org.json.simple.JSONObject.class);
+		org.json.simple.JSONObject regProcessorIdentityJson = JsonUtil.getJSONObject(mappingJsonObject,
+				MappingJsonConstants.IDENTITY);
+
+		channels.add(JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.EMAIL),
+				MappingJsonConstants.VALUE));
+		channels.add(JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.PHONE),
+				MappingJsonConstants.VALUE));
 		anonymousProfileDTO.setChannel(channels);
+		
+		String location = JsonUtil.getJSONValue(
+				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.ADDRESS),
+				MappingJsonConstants.VALUE);
+		List<String> locationList = Arrays.asList(location.split("\\s*,\\s*"));
+		anonymousProfileDTO.setLocation(
+				Arrays.asList(locationList.get(locationList.size() - 2), locationList.get(locationList.size() - 1)));
+		
 		anonymousProfileDTO.setDocuments(getDocumentsDataFromMetaInfo(metaInfoMap));
 		anonymousProfileDTO.setEnrollmentCenterId(
 				getFieldValueFromMetaInfo(metaInfoMap, JsonConstant.METADATA, JsonConstant.CENTERID));
