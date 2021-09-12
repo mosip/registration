@@ -2,6 +2,7 @@ package io.mosip.registration.processor.workflowmanager.verticle;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.times;
@@ -9,19 +10,26 @@ import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.commons.collections.map.HashedMap;
+import org.json.JSONException;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import io.mosip.kernel.biometrics.entities.BIR;
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.biometrics.entities.Entry;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
@@ -39,14 +47,16 @@ import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventDTO;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowPausedForAdditionalInfoEventDTO;
+import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
-import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.AdditionalInfoRequestService;
+import io.mosip.registration.processor.status.service.AnonymousProfileService;
+import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.workflowmanager.service.WorkflowActionService;
 import io.mosip.registration.processor.workflowmanager.util.WebSubUtil;
 import io.vertx.core.AsyncResult;
@@ -80,6 +90,12 @@ public class WorkflowInternalActionVerticleTest {
 
 	@Mock
 	private PacketManagerService packetManagerService;
+	
+	@Mock
+	private AnonymousProfileService anonymousProfileService;
+	
+	@Mock
+	private IdSchemaUtil idSchemaUtil;
 
 	@Mock
 	private Environment env;
@@ -132,8 +148,17 @@ public class WorkflowInternalActionVerticleTest {
 		public void createServer(Router router, int port) {
 
 		}
+		
+		public void send(MosipEventBus mosipEventBus, MessageBusAddress toAddress, MessageDTO message) {
+			
+		};
 	};
 
+	@Before
+	public void setUp() throws Exception {
+		ReflectionTestUtils.setField(workflowInternalActionVerticle, "anonymousProfileBusAddress", "anonymous-profile-bus-in");
+	}
+	
 	@Test
 	public void testDeployVerticle() {
 
@@ -603,8 +628,59 @@ public class WorkflowInternalActionVerticleTest {
 		ArgumentCaptor<WorkflowCompletedEventDTO> argument1 = ArgumentCaptor.forClass(WorkflowCompletedEventDTO.class);
 		verify(webSubUtil, atLeastOnce()).publishEvent(argument1.capture());
 		assertEquals(RegistrationStatusCode.REJECTED.toString(), argument1.getAllValues().get(0).getResultCode());
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testProcessSuccessForAnonymousProfile() throws ApisResourceAccessException, PacketManagerException,
+			JsonProcessingException, IOException, JSONException {
+		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
+		workflowInternalActionDTO.setRid("10006100390000920200603070407");
+		workflowInternalActionDTO.setReg_type("NEW");
+		workflowInternalActionDTO.setIsValid(true);
+		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.ANONYMOUS_PROFILE.toString());
+		workflowInternalActionDTO.setActionMessage("anonymous profile event");
 
+		Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any()))
+				.thenReturn("1.0");
+		Mockito.when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(Arrays.asList(""));
+		Map<String, String> fieldMap = new HashedMap();
+		fieldMap.put("postalCode", "14022");
+		fieldMap.put("dateOfBirth", "1998/01/01");
+		fieldMap.put("phone", "6666666666");
+		Mockito.when(packetManagerService.getFields(anyString(), any(), anyString(), any())).thenReturn(fieldMap);
 
+		Map<String, String> metaInfoMap = new HashedMap();
+		metaInfoMap.put("documents", "[{\"documentType\" : \"CIN\"},{\"documentType\" : \"RNC\"})]");
+		metaInfoMap.put("operationsData",
+				"[{\"label\" : \"officerId\",\"value\" : \"110024\"},{\"label\" : \"officerBiometricFileName\",\"value\" : \"null\"})]");
+		metaInfoMap.put("creationDate", "2021-09-01T03:48:49.193Z");
+		Mockito.when(packetManagerService.getMetaInfo(anyString(), anyString(), any())).thenReturn(metaInfoMap);
 
+		BiometricRecord biometricRecord = new BiometricRecord();
+		BIR bir = new BIR();
+		Entry entry = new Entry();
+		bir.setSb("eyJ4NWMiOlsiTUlJRGtEQ0NBbmlnQXdJQkFnSUVwNzo".getBytes());
+		bir.setBdb("SUlSADAyMAAAACc6AAEAAQAAJyoH5AoJECYh//8Bc18wBgAAAQIDCgABlwExCA".getBytes());
+		entry.setKey("PAYLOAD");
+		entry.setValue(
+				"{\"deviceServiceVersion\":\"0.9.5\",\"bioValue\":\"<bioValue>\",\"qualityScore\":\"80\",\"bioType\":\"Iris\"}");
+		bir.setOthers(Arrays.asList(entry));
+		biometricRecord.setSegments(Arrays.asList(bir));
+		Mockito.when(packetManagerService.getBiometrics(anyString(), anyString(), anyString(), any()))
+				.thenReturn(biometricRecord);
+
+		registrationStatusDto = new InternalRegistrationStatusDto();
+		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
+				.thenReturn(registrationStatusDto);
+		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(null);
+		Mockito.when(
+				anonymousProfileService.buildJsonStringFromPacketInfo(any(), any(), any(), anyString(), anyString()))
+				.thenReturn("jsonProfile");
+		Mockito.doNothing().when(anonymousProfileService).saveAnonymousProfile(anyString(), anyString(), anyString());
+		MessageDTO object = workflowInternalActionVerticle.process(workflowInternalActionDTO);
+		assertEquals(true, object.getIsValid());
 	}
 }
