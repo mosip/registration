@@ -16,7 +16,6 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -128,6 +127,9 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	@Autowired
 	ObjectMapper objectMapper;
 
+	@Autowired
+	private RegistrationUtility registrationUtility;
+
 	/** The lancode length. */
 	private int LANCODE_LENGTH = 3;
 
@@ -158,9 +160,6 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 
 	@Autowired
 	RestApiClient restApiClient;
-
-	@Autowired 
-	RestTemplate restTemplate;
 	/**
 	 * Instantiates a new sync registration service impl.
 	 */
@@ -559,7 +558,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			dto.setDate(LocalDate.now(ZoneId.of("UTC")).toString());
 			dto.setProcessStage("SYNC");
 			List<String> channel=new ArrayList<>(); 
-			String mappingJsonString = restTemplate.getForObject(configServerFileStorageURL + getRegProcessorIdentityJson, String.class);
+			String mappingJsonString = registrationUtility.getMappingJson();
 			org.json.simple.JSONObject mappingJsonObject = objectMapper.readValue(mappingJsonString, org.json.simple.JSONObject.class);
 			org.json.simple.JSONObject regProcessorIdentityJson =JsonUtil.getJSONObject(mappingJsonObject, MappingJsonConstants.IDENTITY);
 			
