@@ -115,6 +115,8 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 			Map<String, String> metaInfoMap, String statusCode, String processStage)
 			throws JSONException, ApisResourceAccessException, PacketManagerException, IOException {
 
+		regProcLogger.info("buildJsonStringFromPacketInfo method called");
+		
 		AnonymousProfileDTO anonymousProfileDTO = new AnonymousProfileDTO();
 		anonymousProfileDTO.setProcessName(
 				getFieldValueFromMetaInfo(metaInfoMap, JsonConstant.METADATA, JsonConstant.REGISTRATIONTYPE));
@@ -180,6 +182,8 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 		anonymousProfileDTO.setAssisted(Arrays
 				.asList(getFieldValueFromMetaInfo(metaInfoMap, JsonConstant.OPERATIONSDATA, JsonConstant.OFFICERID)));
 		getExceptionAndBiometricInfo(biometricRecord, anonymousProfileDTO);
+		
+		regProcLogger.info("buildJsonStringFromPacketInfo method call ended");
 		return JsonUtil.objectMapperObjectToJson(anonymousProfileDTO);
 	}
 
