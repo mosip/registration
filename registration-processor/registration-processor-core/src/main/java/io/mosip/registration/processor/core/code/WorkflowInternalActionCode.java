@@ -28,5 +28,8 @@ public enum WorkflowInternalActionCode {
 	
 	/** The complete as rejected without parent flow. */
 	COMPLETE_AS_REJECTED_WITHOUT_PARENT_FLOW,
+	
+	/** The anonymous profile flow. */
+	ANONYMOUS_PROFILE,
 
 }

@@ -5,6 +5,7 @@ package io.mosip.registration.processor.status.service.impl;
 
 import java.net.URI;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -31,18 +33,21 @@ import io.mosip.kernel.core.util.exception.JsonMappingException;
 import io.mosip.kernel.core.util.exception.JsonParseException;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.kernel.idvalidator.rid.constant.RidExceptionProperty;
+import io.mosip.registration.processor.core.anonymous.dto.AnonymousProfileDTO;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.constant.AuditLogConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ResponseStatusCode;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 import io.mosip.registration.processor.status.code.RegistrationExternalStatusCode;
@@ -70,6 +75,7 @@ import io.mosip.registration.processor.status.exception.LostRidValidationExcepti
 import io.mosip.registration.processor.status.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.status.exception.RegStatusAppException;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
+import io.mosip.registration.processor.status.service.AnonymousProfileService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.mosip.registration.processor.status.utilities.RegistrationUtility;
 
@@ -107,6 +113,9 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	/** The sync registration dao. */
 	@Autowired
 	private SyncRegistrationDao syncRegistrationDao;
+	/** The sync AnonymousProfileService . */
+	@Autowired
+	private AnonymousProfileService anonymousProfileService;
 
 	/** The core audit request builder. */
 	@Autowired
@@ -138,10 +147,20 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 
 	@Value("#{'${registration.processor.sub-processes}'.split(',')}")
 	private List<String> subProcesses;
+	
+	/** The config server file storage URL. */
+	@Value("${config.server.file.storage.uri}")
+	private String configServerFileStorageURL;
+	
+	/** The get reg processor identity json. */
+	@Value("${registration.processor.identityjson}")
+	private String getRegProcessorIdentityJson;
 
 	@Autowired
 	RestApiClient restApiClient;
 
+	@Autowired 
+	RestTemplate restTemplate;
 	/**
 	 * Instantiates a new sync registration service impl.
 	 */
@@ -546,14 +565,44 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			syncRegistration.setWorkflowInstanceId(RegistrationUtility.generateId());
 			syncRegistrationDao.save(syncRegistration);
 			syncResponseDto.setRegistrationId(registrationDto.getRegistrationId());
-
+			
 			eventId = EventId.RPR_407.toString();
 		}
 		syncResponseDto.setStatus(ResponseStatusCode.SUCCESS.toString());
 		syncResponseList.add(syncResponseDto);
+		saveAnonymousProfile( registrationDto,  referenceId,  timeStamp);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationDto.getRegistrationId(), "SyncRegistrationServiceImpl::validateRegId()::exit");
 		return syncResponseList;
+	}
+
+	private void saveAnonymousProfile(SyncRegistrationDto registrationDto, String referenceId, String timeStamp)  {
+		AnonymousProfileDTO dto=new AnonymousProfileDTO();
+		try{
+			dto.setProcessName(registrationDto.getRegistrationType());
+			dto.setStatus("REGISTERED");
+			dto.setStartDateTime(timeStamp);
+			dto.setDate(LocalDate.now(ZoneId.of("UTC")).toString());
+			dto.setProcessStage("SYNC");
+			List<String> channel=new ArrayList<>(); 
+			String mappingJsonString = restTemplate.getForObject(configServerFileStorageURL + getRegProcessorIdentityJson, String.class);
+			org.json.simple.JSONObject mappingJsonObject = objectMapper.readValue(mappingJsonString, org.json.simple.JSONObject.class);
+			org.json.simple.JSONObject regProcessorIdentityJson =JsonUtil.getJSONObject(mappingJsonObject, MappingJsonConstants.IDENTITY);
+			
+			channel.add( registrationDto.getEmail() != null ? JsonUtil.getJSONValue(
+	                JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.EMAIL),
+	                MappingJsonConstants.VALUE) : null);
+			channel.add( registrationDto.getPhone() != null ? JsonUtil.getJSONValue(
+	                JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.PHONE),
+	                MappingJsonConstants.VALUE) : null);
+			dto.setChannel(channel);
+			dto.setEnrollmentCenterId(referenceId.split("_")[0]);
+			anonymousProfileService.saveAnonymousProfile(registrationDto.getRegistrationId(),
+					"SYNC", JsonUtil.objectMapperObjectToJson(dto));
+			} catch (java.io.IOException exception) {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				"", exception.getMessage() + ExceptionUtils.getStackTrace(exception));
+			}
 	}
 
 	/*

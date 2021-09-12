@@ -74,6 +74,10 @@ public enum PlatformErrorMessages {
 	/** The rpr rgs transaction table not accessible. */
 	RPR_RGS_TRANSACTION_TABLE_NOT_ACCESSIBLE(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "002",
 			"Unable to Access Registration Transaction Table"),
+	
+	/** The rpr rgs anonymous profile table not accessible. */
+	RPR_RGS_ANONYMOUS_PROFILE_TABLE_NOT_ACCESSIBLE(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "038",
+			"Unable to anonymous profile  Table"),
 
 	/** The rpr rgs invalid synctype. */
 	RPR_RGS_INVALID_SYNCTYPE(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "003", "Invalid Sync Type"),
