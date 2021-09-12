@@ -50,15 +50,13 @@ import io.mosip.registration.processor.status.utilities.RegistrationUtility;
 public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(AnonymousProfileServiceImpl.class);
+	private String mappingJson = null;
 	/** The Anonymus Profile repository. */
 	@Autowired
 	private BaseRegProcRepository<AnonymousProfileEntity, String> anonymousProfileRepository;
 	
 	@Autowired
 	ObjectMapper mapper;
-	
-	@Autowired 
-	RestTemplate restTemplate;
 	
 	/** The config server file storage URL. */
 	@Value("${config.server.file.storage.uri}")
@@ -131,8 +129,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 
 		List<String> channels = new ArrayList<String>();
 
-		String mappingJsonString = restTemplate.getForObject(configServerFileStorageURL + getRegProcessorIdentityJson,
-				String.class);
+		String mappingJsonString = getMappingJson();
 		org.json.simple.JSONObject mappingJsonObject = mapper.readValue(mappingJsonString,
 				org.json.simple.JSONObject.class);
 		org.json.simple.JSONObject regProcessorIdentityJson = JsonUtil.getJSONObject(mappingJsonObject,
@@ -294,6 +291,15 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 		}
 		anonymousProfileDTO.setBiometricInfo(biometrics);
 		anonymousProfileDTO.setExceptions(exceptions);
+	}
+
+	private String getMappingJson() {
+		if (mappingJson == null) {
+			RestTemplate restTemplate = new RestTemplate();
+			mappingJson =restTemplate.getForObject(configServerFileStorageURL + getRegProcessorIdentityJson,
+					String.class);
+		}
+		return mappingJson;
 	}
 
 
