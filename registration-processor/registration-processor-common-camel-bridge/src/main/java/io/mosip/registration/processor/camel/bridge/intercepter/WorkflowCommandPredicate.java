@@ -62,6 +62,10 @@ public class WorkflowCommandPredicate implements Predicate {
 				processCompleteAsRejectedWithoutParentFlow(exchange);
 				matches = true;
 				break;
+			case "workflow-cmd://anonymous-profile":
+				processAnonymousProfile(exchange);
+				matches = true;
+				break;
 			default:
 				if (toaddress.startsWith("workflow-cmd://")) {
 					matches = true;
@@ -135,6 +139,20 @@ public class WorkflowCommandPredicate implements Predicate {
 		workflowInternalActionDTO.setRid(json.getString(JsonConstant.RID));
 		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_FAILED.toString());
 		workflowInternalActionDTO.setActionMessage(PlatformSuccessMessages.PACKET_COMPLETE_AS_FAILED.getMessage());
+		workflowInternalActionDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
+		workflowInternalActionDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
+		workflowInternalActionDTO.setSource(json.getString(JsonConstant.SOURCE));
+		workflowInternalActionDTO.setWorkflowInstanceId(json.getString(JsonConstant.WORKFLOW_INSTANCE_ID));
+		exchange.getMessage().setBody(objectMapper.writeValueAsString(workflowInternalActionDTO));
+	}
+	
+	private void processAnonymousProfile(Exchange exchange) throws JsonProcessingException {
+		String message = (String) exchange.getMessage().getBody();
+		JsonObject json = new JsonObject(message);
+		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
+		workflowInternalActionDTO.setRid(json.getString(JsonConstant.RID));
+		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.ANONYMOUS_PROFILE.toString());
+		workflowInternalActionDTO.setActionMessage(PlatformSuccessMessages.PACKET_ANONYMOUS_PROFILE.getMessage());
 		workflowInternalActionDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
 		workflowInternalActionDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
 		workflowInternalActionDTO.setSource(json.getString(JsonConstant.SOURCE));
