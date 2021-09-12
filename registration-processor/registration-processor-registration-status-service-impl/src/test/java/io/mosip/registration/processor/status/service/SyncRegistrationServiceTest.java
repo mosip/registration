@@ -3,12 +3,18 @@ package io.mosip.registration.processor.status.service;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mosip.registration.processor.core.packet.dto.FieldValue;
+import io.mosip.registration.processor.status.entity.AnonymousProfileEntity;
+import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,6 +64,7 @@ import io.mosip.registration.processor.status.exception.EncryptionFailureExcepti
 import io.mosip.registration.processor.status.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.impl.SyncRegistrationServiceImpl;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * The Class SyncRegistrationServiceTest.
@@ -132,6 +139,12 @@ public class SyncRegistrationServiceTest {
 	
 	@Mock
 	RestApiClient restApiClient;
+
+	@Mock
+	RestTemplate restTemplate;
+
+	@Mock
+	ObjectMapper mapper;
 
 	/**
 	 * Setup.
@@ -360,6 +373,40 @@ public class SyncRegistrationServiceTest {
 		subprocessList.add("BIOMETRIC_CORRECTION");
 		ReflectionTestUtils.setField(syncRegistrationService, "subProcesses", subprocessList);
 
+		String mappingJsonString = "{\"identity\":{\"IDSchemaVersion\":{\"value\":\"IDSchemaVersion\"},\"address\":{\"value\":\"permanentAddressLine1,permanentAddressLine2,permanentAddressLine3,permanentRegion,permanentProvince,permanentCity,permanentZone,permanentPostalcode\"},\"phone\":{\"value\":\"phone\"},\"email\":{\"value\":\"email\"}}}";
+
+		org.json.simple.JSONObject mappingJsonObject = new JSONObject();
+		LinkedHashMap identity = new LinkedHashMap();
+		LinkedHashMap IDSchemaVersion = new LinkedHashMap();
+		IDSchemaVersion.put("value", "IDSchemaVersion");
+		LinkedHashMap address = new LinkedHashMap();
+		address.put("value",
+				"permanentAddressLine1,permanentAddressLine2,permanentAddressLine3,permanentRegion,permanentProvince,permanentCity,permanentZone,permanentPostalcode");
+		LinkedHashMap phone = new LinkedHashMap();
+		phone.put("value", "phone");
+		LinkedHashMap email = new LinkedHashMap();
+		email.put("value", "email");
+		LinkedHashMap dateOfBirth = new LinkedHashMap();
+		dateOfBirth.put("value", "dateOfBirth");
+		LinkedHashMap gender = new LinkedHashMap();
+		gender.put("value", "gender");
+		LinkedHashMap locationHierarchyForProfiling = new LinkedHashMap();
+		locationHierarchyForProfiling.put("value", "zone,postalCode");
+		LinkedHashMap preferredLang = new LinkedHashMap();
+		preferredLang.put("value", "preferredLang");
+
+		identity.put("IDSchemaVersion", IDSchemaVersion);
+		identity.put("address", address);
+		identity.put("phone", phone);
+		identity.put("email", email);
+		identity.put("dob", dateOfBirth);
+		identity.put("gender", gender);
+		identity.put("locationHierarchyForProfiling", locationHierarchyForProfiling);
+		mappingJsonObject.put("identity", identity);
+
+		Mockito.when(restTemplate.getForObject(anyString(), eq(String.class))).thenReturn(mappingJsonString);
+		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(mappingJsonObject);
+
 	}
 
 	/**
@@ -377,6 +424,7 @@ public class SyncRegistrationServiceTest {
 		Mockito.when(encryptor.encrypt(anyString(), anyString(), anyString())).thenReturn(encryptedInfo);
 		Mockito.when(syncRegistrationDao.save(any())).thenReturn(syncRegistrationEntity);
 		List<SyncResponseDto> syncResponse = syncRegistrationService.sync(request, "", "");
+		Mockito.doNothing().when(anonymousProfileService).saveAnonymousProfile(any(), any(), any());
 
 		assertEquals("Verifing List returned", (syncResponse.get(0)).getRegistrationId(),
 				syncRegistrationDto.getRegistrationId());
@@ -387,7 +435,6 @@ public class SyncRegistrationServiceTest {
 		assertEquals("Verifing if list is returned. Expected value should be 1002",
 				syncRegistrationDto.getRegistrationId(),
 				(syncResponseDto.get(0)).getRegistrationId());
-		Mockito.doNothing().when(anonymousProfileService).saveAnonymousProfile(anyString(), anyString(), anyString());
 	}
 
 	@Test
@@ -409,6 +456,8 @@ public class SyncRegistrationServiceTest {
 		request.add(syncRegistrationDto16);
 		Mockito.when(encryptor.encrypt(anyString(), anyString(), anyString())).thenReturn(encryptedInfo);
 		Mockito.when(syncRegistrationDao.save(any())).thenReturn(syncRegistrationEntity);
+		Mockito.doNothing().when(anonymousProfileService).saveAnonymousProfile(any(), any(), any());
+
 		List<SyncResponseDto> syncResponse = syncRegistrationService.syncV2(request, "", "");
 
 		assertEquals("Verifing List returned", (syncResponse.get(0)).getRegistrationId(),

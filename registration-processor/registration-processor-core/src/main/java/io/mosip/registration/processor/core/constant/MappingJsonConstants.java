@@ -17,7 +17,7 @@ public class MappingJsonConstants {
 	public static final String VALIDATE = "validate";
 	public static final String DOCUMENT = "documents";
 	public static final String BIOMETRICS = "biometrics";
-	public static final String PREFERRED_LANGUAGE = "preferredLang";
+	public static final String PREFERRED_LANGUAGE = "preferredLanguage";
 
 	public static final String INTRODUCER_BIO = "introducerBiometrics";
 	/** The Constant OFFICERBIOMETRICFILENAME. */
@@ -38,6 +38,7 @@ public class MappingJsonConstants {
 	public static final String AGE = "age";
 	public static final String IDSCHEMA_VERSION = "IDSchemaVersion";
 	public static final String UIN = "uin";
+	public static final String LOCATION_HIERARCHY_FOR_PROFILING = "locationHierarchyForProfiling";
 
 	
 

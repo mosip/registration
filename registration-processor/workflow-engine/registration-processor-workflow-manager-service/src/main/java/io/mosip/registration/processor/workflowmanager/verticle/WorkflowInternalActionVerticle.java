@@ -9,8 +9,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.processor.core.util.JsonUtil;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONException;
+import org.json.simple.JSONObject;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -121,7 +124,10 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
 	/** The web sub util. */
 	@Autowired
-	WebSubUtil webSubUtil;
+	private WebSubUtil webSubUtil;
+
+	@Autowired
+	private Utilities utility;
 	
 	@Autowired
 	private IdSchemaUtil idSchemaUtil;
@@ -257,8 +263,10 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(
 				registrationId, registrationType, workflowInternalActionDTO.getIteration(),
 				workflowInternalActionDTO.getWorkflowInstanceId());
+		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
+		String idSchemaVersionValue = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.IDSCHEMA_VERSION), MappingJsonConstants.VALUE);
 		String schemaVersion = packetManagerService.getFieldByMappingJsonKey(registrationId,
-				MappingJsonConstants.IDSCHEMA_VERSION, registrationType, ProviderStageName.WORKFLOW_MANAGER);
+				idSchemaVersionValue, registrationType, ProviderStageName.WORKFLOW_MANAGER);
 		Map<String, String> fieldMap = packetManagerService.getFields(registrationId,
 				idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion)), registrationType,
 				ProviderStageName.WORKFLOW_MANAGER);

@@ -75,6 +75,9 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 	@Value("#{T(java.util.Arrays).asList('${mosip.mandatory-languages:}')}")
 	private List<String> mandatoryLanguages;
 
+	@Value("${registration.processor.applicant.dob.format:yyyy/MM/dd}")
+	private String dobFormat;
+
 	/** The constant for language label in JSON parsing */
 	private static final String LANGUAGE_LABEL = "language";
 
@@ -83,8 +86,6 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 
 	/** The Constant TRUE. */
 	private static final String TRUE = "true";
-
-	private static final String ANONYMOUS_PROFILE_DATETIME_PATTERN = "yyyy-MM-dd";
 
 	@Override
 	public void saveAnonymousProfile(String regId, String processStage, String profileJson) {
@@ -126,15 +127,8 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 				getFieldValueFromMetaInfo(metaInfoMap, JsonConstant.METADATA, JsonConstant.REGISTRATIONTYPE));
 		anonymousProfileDTO.setProcessStage(processStage);
 		anonymousProfileDTO.setStatus(statusCode);
-		String date = metaInfoMap.get(JsonConstant.CREATIONDATE);
-		anonymousProfileDTO.setDate(DateUtils.getTimeFromDate(
-				DateUtils.parseToDate(date, ANONYMOUS_PROFILE_DATETIME_PATTERN), ANONYMOUS_PROFILE_DATETIME_PATTERN));
+		anonymousProfileDTO.setDate(DateUtils.getUTCCurrentDateTimeString());
 
-		Date dob = DateUtils.parseToDate(fieldMap.get("dateOfBirth"), "yyyy/MM/dd");
-		anonymousProfileDTO.setYearOfBirth(DateUtils.parseDateToLocalDateTime(dob).getYear());
-		anonymousProfileDTO.setGender(getLanguageBasedValueForSimpleType(fieldMap.get(MappingJsonConstants.GENDER)));
-
-		anonymousProfileDTO.setPreferredLanguages(Arrays.asList(fieldMap.get(MappingJsonConstants.PREFERRED_LANGUAGE)));
 		List<String> channels = new ArrayList<String>();
 
 		String mappingJsonString = restTemplate.getForObject(configServerFileStorageURL + getRegProcessorIdentityJson,
@@ -143,19 +137,50 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 				org.json.simple.JSONObject.class);
 		org.json.simple.JSONObject regProcessorIdentityJson = JsonUtil.getJSONObject(mappingJsonObject,
 				MappingJsonConstants.IDENTITY);
-
-		channels.add(JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.EMAIL),
-				MappingJsonConstants.VALUE));
-		channels.add(JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.PHONE),
-				MappingJsonConstants.VALUE));
-		anonymousProfileDTO.setChannel(channels);
-		
-		String location = JsonUtil.getJSONValue(
-				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.ADDRESS),
+		// set birth year
+		String dobValue = JsonUtil.getJSONValue(
+				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.DOB),
 				MappingJsonConstants.VALUE);
-		List<String> locationList = Arrays.asList(location.split("\\s*,\\s*"));
-		anonymousProfileDTO.setLocation(
-				Arrays.asList(locationList.get(locationList.size() - 2), locationList.get(locationList.size() - 1)));
+		Date dob = DateUtils.parseToDate(fieldMap.get(dobValue), dobFormat);
+		anonymousProfileDTO.setYearOfBirth(DateUtils.parseDateToLocalDateTime(dob).getYear());
+
+		// set gender
+		String genderValue = JsonUtil.getJSONValue(
+				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.GENDER),
+				MappingJsonConstants.VALUE);
+		anonymousProfileDTO.setGender(getLanguageBasedValueForSimpleType(fieldMap.get(genderValue)));
+
+		// preferred Lang Value
+		String preferredaLangValue = JsonUtil.getJSONValue(
+				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.PREFERRED_LANGUAGE),
+				MappingJsonConstants.VALUE);
+		anonymousProfileDTO.setPreferredLanguages(fieldMap.get(preferredaLangValue) != null ?
+				Arrays.asList(fieldMap.get(preferredaLangValue)) : null);
+
+		// set email and phone
+		String emailValue = JsonUtil.getJSONValue(
+				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.EMAIL),
+				MappingJsonConstants.VALUE);
+		String phoneValue = JsonUtil.getJSONValue(
+				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.PHONE),
+				MappingJsonConstants.VALUE);
+		if (fieldMap.get(emailValue) != null)
+			channels.add(emailValue);
+		if (fieldMap.get(phoneValue) != null)
+			channels.add(phoneValue);
+		anonymousProfileDTO.setChannel(channels);
+
+		// set location hierarchy
+		String location = JsonUtil.getJSONValue(
+				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.LOCATION_HIERARCHY_FOR_PROFILING),
+				MappingJsonConstants.VALUE);
+		List<String> locationList = Arrays.asList(location.split(","));
+		List<String> locationValues = new ArrayList<>();
+		for (String locationHirerchy : locationList)
+			if (fieldMap.get(locationHirerchy) != null)
+				locationValues.add(locationHirerchy);
+
+		anonymousProfileDTO.setLocation(locationValues);
 		
 		anonymousProfileDTO.setDocuments(getDocumentsDataFromMetaInfo(metaInfoMap));
 		anonymousProfileDTO.setEnrollmentCenterId(
