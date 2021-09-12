@@ -157,7 +157,10 @@ public enum PlatformSuccessMessages {
 			"Packet parent flow restart initiated"),
 
 	PACKET_COMPLETE_AS_REJECTED_WITHOUT_PARENT_FLOW(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "007",
-			"Packet processing completed with reject status without Parent flow");
+			"Packet processing completed with reject status without Parent flow"),
+	
+	PACKET_ANONYMOUS_PROFILE(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "008",
+			"Packet anonymous profile flow initiated");
 
 	/** The success message. */
 	private final String successMessage;
