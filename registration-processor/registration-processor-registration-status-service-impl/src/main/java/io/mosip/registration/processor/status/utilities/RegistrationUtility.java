@@ -25,13 +25,6 @@ public class RegistrationUtility {
 	private String getRegProcessorIdentityJson;
 
 	/**
-	 * Utility class.
-	 */
-	private RegistrationUtility() {
-		super();
-	}
-
-	/**
 	 * Generate id.
 	 *
 	 * @return the string
