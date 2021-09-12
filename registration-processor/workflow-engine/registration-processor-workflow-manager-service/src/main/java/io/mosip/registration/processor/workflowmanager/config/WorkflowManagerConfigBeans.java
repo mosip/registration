@@ -4,7 +4,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.web.client.RestTemplate;
 
 import io.mosip.kernel.core.websub.spi.PublisherClient;
 import io.mosip.kernel.websub.api.client.PublisherClientImpl;
@@ -74,11 +73,6 @@ public class WorkflowManagerConfigBeans {
 	@Bean
 	public PublisherClient<String, WorkflowCompletedEventDTO, HttpHeaders> getWebPublisherClientForWorkflowCompletedEvent() {
 		return new PublisherClientImpl<WorkflowCompletedEventDTO>();
-	}
-
-	@Bean
-	public RestTemplate getRestTemplate() {
-		return new RestTemplate();
 	}
 
 	@Bean
