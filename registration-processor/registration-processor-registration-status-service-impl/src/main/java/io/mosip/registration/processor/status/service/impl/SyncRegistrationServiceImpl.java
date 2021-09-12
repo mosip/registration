@@ -16,7 +16,6 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -161,9 +160,6 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 
 	@Autowired
 	RestApiClient restApiClient;
-
-	@Autowired 
-	RestTemplate restTemplate;
 	/**
 	 * Instantiates a new sync registration service impl.
 	 */
