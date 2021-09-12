@@ -255,11 +255,13 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 	private void processAnonymousProfile(WorkflowInternalActionDTO workflowInternalActionDTO)
 			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException,
 			JSONException {
-
+		
 		String json = null;
 		String registrationId = workflowInternalActionDTO.getRid();
 		String registrationType = workflowInternalActionDTO.getReg_type();
 
+		regProcLogger.debug("processAnonymousProfile called for registration id {}", registrationId);
+		
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(
 				registrationId, registrationType, workflowInternalActionDTO.getIteration(),
 				workflowInternalActionDTO.getWorkflowInstanceId());
@@ -279,6 +281,8 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		anonymousProfileService.saveAnonymousProfile(registrationId, registrationStatusDto.getRegistrationStageName(), json);
 		
 		this.send(this.mosipEventBus, new MessageBusAddress(anonymousProfileBusAddress), workflowInternalActionDTO);
+		
+		regProcLogger.debug("processAnonymousProfile ended for registration id {}", registrationId);
 	}
 
 	private void processCompleteAsRejectedWithoutParentFlow(WorkflowInternalActionDTO workflowInternalActionDTO) {
