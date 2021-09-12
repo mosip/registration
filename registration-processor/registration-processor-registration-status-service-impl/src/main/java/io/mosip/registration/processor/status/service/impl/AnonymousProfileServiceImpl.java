@@ -50,21 +50,16 @@ import io.mosip.registration.processor.status.utilities.RegistrationUtility;
 public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(AnonymousProfileServiceImpl.class);
-	private String mappingJson = null;
+
 	/** The Anonymus Profile repository. */
 	@Autowired
 	private BaseRegProcRepository<AnonymousProfileEntity, String> anonymousProfileRepository;
 	
 	@Autowired
 	ObjectMapper mapper;
-	
-	/** The config server file storage URL. */
-	@Value("${config.server.file.storage.uri}")
-	private String configServerFileStorageURL;
-	
-	/** The get reg processor identity json. */
-	@Value("${registration.processor.identityjson}")
-	private String getRegProcessorIdentityJson;
+
+	@Autowired
+	private RegistrationUtility registrationUtility;
 	
 	/**
 	 * The mandatory languages that should be used when dealing with field type that
@@ -129,7 +124,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 
 		List<String> channels = new ArrayList<String>();
 
-		String mappingJsonString = getMappingJson();
+		String mappingJsonString = registrationUtility.getMappingJson();
 		org.json.simple.JSONObject mappingJsonObject = mapper.readValue(mappingJsonString,
 				org.json.simple.JSONObject.class);
 		org.json.simple.JSONObject regProcessorIdentityJson = JsonUtil.getJSONObject(mappingJsonObject,
@@ -291,15 +286,6 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 		}
 		anonymousProfileDTO.setBiometricInfo(biometrics);
 		anonymousProfileDTO.setExceptions(exceptions);
-	}
-
-	private String getMappingJson() {
-		if (mappingJson == null) {
-			RestTemplate restTemplate = new RestTemplate();
-			mappingJson =restTemplate.getForObject(configServerFileStorageURL + getRegProcessorIdentityJson,
-					String.class);
-		}
-		return mappingJson;
 	}
 
 
