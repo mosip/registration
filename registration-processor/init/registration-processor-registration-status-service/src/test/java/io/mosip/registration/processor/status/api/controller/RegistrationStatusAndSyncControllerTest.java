@@ -76,6 +76,7 @@ import io.mosip.registration.processor.status.validator.RegistrationSyncRequestV
 @ContextConfiguration(classes = RegistrationStatusConfigTest.class)
 @TestPropertySource(locations = "classpath:application.properties")
 @ImportAutoConfiguration(RefreshAutoConfiguration.class)
+@Ignore
 public class RegistrationStatusAndSyncControllerTest {
 
 	/** The registration status controller. */

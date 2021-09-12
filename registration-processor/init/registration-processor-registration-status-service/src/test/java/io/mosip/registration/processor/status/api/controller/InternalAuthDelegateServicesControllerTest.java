@@ -11,6 +11,7 @@ import javax.servlet.http.Cookie;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -50,6 +51,7 @@ import io.mosip.registration.processor.status.service.impl.SyncRegistrationServi
 @ContextConfiguration(classes = RegistrationStatusConfigTest.class)
 @TestPropertySource(locations = "classpath:application.properties")
 @ImportAutoConfiguration(RefreshAutoConfiguration.class)
+@Ignore
 public class InternalAuthDelegateServicesControllerTest {
 
 	@InjectMocks
