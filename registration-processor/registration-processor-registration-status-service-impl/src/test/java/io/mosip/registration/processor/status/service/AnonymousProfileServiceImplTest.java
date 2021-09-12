@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -19,6 +20,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -34,7 +36,10 @@ import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.entities.Entry;
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
+import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
+import io.mosip.kernel.core.util.exception.JsonMappingException;
+import io.mosip.kernel.core.util.exception.JsonParseException;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.packet.dto.Document;
@@ -45,14 +50,14 @@ import io.mosip.registration.processor.status.repositary.BaseRegProcRepository;
 import io.mosip.registration.processor.status.service.impl.AnonymousProfileServiceImpl;
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
-@PrepareForTest(JsonUtils.class)
+@PrepareForTest({JsonUtils.class, DateUtils.class})
 public class AnonymousProfileServiceImplTest {
 
 	@Mock
 	private BaseRegProcRepository<AnonymousProfileEntity, String> anonymousProfileRepository;
 	
 	@InjectMocks
-	private AnonymousProfileService AnonymousProfileService=new AnonymousProfileServiceImpl();
+	private AnonymousProfileService anonymousProfileService =new AnonymousProfileServiceImpl();
 	
 	@Mock
 	ObjectMapper mapper;
@@ -66,9 +71,14 @@ public class AnonymousProfileServiceImplTest {
 	
 	@Before
 	public void setup() {
-		ReflectionTestUtils.setField(AnonymousProfileService, "mandatoryLanguages", Arrays.asList("eng"));
-		ReflectionTestUtils.setField(AnonymousProfileService, "configServerFileStorageURL", "http://dev.mosip.net/");
-		ReflectionTestUtils.setField(AnonymousProfileService, "getRegProcessorIdentityJson", "registration-processor-identity.json");
+		ReflectionTestUtils.setField(anonymousProfileService, "mandatoryLanguages", Arrays.asList("eng"));
+		ReflectionTestUtils.setField(anonymousProfileService, "configServerFileStorageURL", "http://dev.mosip.net/");
+		ReflectionTestUtils.setField(anonymousProfileService, "getRegProcessorIdentityJson", "registration-processor-identity.json");
+		ReflectionTestUtils.setField(anonymousProfileService, "dobFormat", "yyyy/MM/dd");
+
+		PowerMockito.mockStatic(DateUtils.class);
+		PowerMockito.when(DateUtils.getUTCCurrentDateTimeString()).thenReturn("2021-09-12T06:50:19.517872400Z");
+		PowerMockito.when(DateUtils.parseDateToLocalDateTime(any())).thenReturn(LocalDateTime.of(1998, 01,01, 01, 01));
 
 		fieldMap.put("postalCode", "14022");
 		fieldMap.put("dateOfBirth", "1998/01/01");
@@ -115,10 +125,11 @@ public class AnonymousProfileServiceImplTest {
 
 		Mockito.when(anonymousProfileRepository.save(Mockito.any(AnonymousProfileEntity.class))).thenReturn(new AnonymousProfileEntity());
 	}
+
 	@Test
 	public void saveAnonymousProfileTest() {
 
-		AnonymousProfileService.saveAnonymousProfile("123", "SYNC", "aa");
+		anonymousProfileService.saveAnonymousProfile("123", "SYNC", "aa");
 	}
 
 	@Test(expected = TablenotAccessibleException.class)
@@ -127,15 +138,15 @@ public class AnonymousProfileServiceImplTest {
 		Mockito.when(anonymousProfileRepository.save(Mockito.any()))
 				.thenThrow(new DataAccessLayerException("", "", new TablenotAccessibleException()));
 
-		AnonymousProfileService.saveAnonymousProfile("123", "SYNC", "aa");
+		anonymousProfileService.saveAnonymousProfile("123", "SYNC", "aa");
 	}
-	
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void buildJsonStringFromPacketInfoTest()
-			throws ApisResourceAccessException, PacketManagerException, JSONException, IOException {
+			throws ApisResourceAccessException, PacketManagerException, JSONException, IOException, JsonParseException, io.mosip.kernel.core.exception.IOException, JsonMappingException {
 
-		String json = "{\"processName\":\"NEW\",\"processStage\":\"packetValidatorStage\",\"date\":\"2021-09-01\",\"startDateTime\":null,\"endDateTime\":null,\"yearOfBirth\":1998,\"gender\":\"Female\",\"location\":[\"permanentZone\",\"permanentPostalcode\"],\"preferredLanguages\":[\"English\"],\"channel\":[\"email\",\"phone\"],\"exceptions\":[],\"verified\":null,\"biometricInfo\":[{\"type\":\"FINGER\",\"subType\":\"Left RingFinger\",\"qualityScore\":80,\"attempts\":\"1\",\"digitalId\":\"eyJ4NWMiOlsiTUlJRjZqQ0NBOUtnQXdJQkFnSUJCVEFOQmdrcWhraUc5dzBC\"}],\"device\":null,\"documents\":[\"CIN\",\"RNC\"],\"assisted\":[\"110024\"],\"enrollmentCenterId\":\"1003\",\"status\":\"PROCESSED\"}";
+		String json = "{\"processName\":\"NEW\",\"processStage\":\"packetValidatorStage\",\"date\":\"2021-09-12T06:50:19.517872400Z\",\"startDateTime\":null,\"endDateTime\":null,\"yearOfBirth\":1998,\"gender\":\"Female\",\"location\":[\"zone\",\"postalCode\"],\"preferredLanguages\":null,\"channel\":[\"phone\"],\"exceptions\":[],\"verified\":null,\"biometricInfo\":[{\"type\":\"FINGER\",\"subType\":\"Left RingFinger\",\"qualityScore\":80,\"attempts\":\"1\",\"digitalId\":\"eyJ4NWMiOlsiTUlJRjZqQ0NBOUtnQXdJQkFnSUJCVEFOQmdrcWhraUc5dzBC\"}],\"device\":null,\"documents\":[\"CIN\",\"RNC\"],\"assisted\":[\"110024\"],\"enrollmentCenterId\":\"1003\",\"status\":\"PROCESSED\"}";
 		Document doc1 = new Document();
 		doc1.setDocumentType("CIN");
 		Document doc2 = new Document();
@@ -152,19 +163,32 @@ public class AnonymousProfileServiceImplTest {
 		phone.put("value", "phone");
 		LinkedHashMap email = new LinkedHashMap();
 		email.put("value", "email");
+		LinkedHashMap dateOfBirth = new LinkedHashMap();
+		dateOfBirth.put("value", "dateOfBirth");
+		LinkedHashMap gender = new LinkedHashMap();
+		gender.put("value", "gender");
+		LinkedHashMap locationHierarchyForProfiling = new LinkedHashMap();
+		locationHierarchyForProfiling.put("value", "zone,postalCode");
+		LinkedHashMap preferredLang = new LinkedHashMap();
+		preferredLang.put("value", "preferredLang");
+
 		identity.put("IDSchemaVersion", IDSchemaVersion);
 		identity.put("address", address);
 		identity.put("phone", phone);
 		identity.put("email", email);
+		identity.put("dob", dateOfBirth);
+		identity.put("gender", gender);
+		identity.put("locationHierarchyForProfiling", locationHierarchyForProfiling);
 		mappingJsonObject.put("identity", identity);
-
 		String mappingJsonString = "{\"identity\":{\"IDSchemaVersion\":{\"value\":\"IDSchemaVersion\"},\"address\":{\"value\":\"permanentAddressLine1,permanentAddressLine2,permanentAddressLine3,permanentRegion,permanentProvince,permanentCity,permanentZone,permanentPostalcode\"},\"phone\":{\"value\":\"phone\"},\"email\":{\"value\":\"email\"}}}";
+
+		Mockito.when(anonymousProfileRepository.save(Mockito.any(AnonymousProfileEntity.class))).thenReturn(new AnonymousProfileEntity());
 		Mockito.when(restTemplate.getForObject(anyString(), eq(String.class))).thenReturn(mappingJsonString);
 		Mockito.when(mapper.readValue(anyString(), any(Class.class)))
 				.thenReturn(new FieldValue("registrationType", "NEW")).thenReturn(mappingJsonObject).thenReturn(doc1)
 				.thenReturn(doc2).thenReturn(new FieldValue("centerId", "1003"))
 				.thenReturn(new FieldValue("officerId", "110024"));
-		assertEquals(json, AnonymousProfileService.buildJsonStringFromPacketInfo(biometricRecord, fieldMap, metaInfoMap,
+		assertEquals(json, anonymousProfileService.buildJsonStringFromPacketInfo(biometricRecord, fieldMap, metaInfoMap,
 				"PROCESSED", "packetValidatorStage"));
 	}
 
