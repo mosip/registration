@@ -260,7 +260,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		String registrationId = workflowInternalActionDTO.getRid();
 		String registrationType = workflowInternalActionDTO.getReg_type();
 
-		regProcLogger.debug("processAnonymousProfile called for registration id {}", registrationId);
+		regProcLogger.info("processAnonymousProfile called for registration id {}", registrationId);
 		
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(
 				registrationId, registrationType, workflowInternalActionDTO.getIteration(),
@@ -282,7 +282,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		
 		this.send(this.mosipEventBus, new MessageBusAddress(anonymousProfileBusAddress), workflowInternalActionDTO);
 		
-		regProcLogger.debug("processAnonymousProfile ended for registration id {}", registrationId);
+		regProcLogger.info("processAnonymousProfile ended for registration id {}", registrationId);
 	}
 
 	private void processCompleteAsRejectedWithoutParentFlow(WorkflowInternalActionDTO workflowInternalActionDTO) {
