@@ -179,8 +179,9 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 		anonymousProfileDTO.setDocuments(getDocumentsDataFromMetaInfo(metaInfoMap));
 		anonymousProfileDTO.setEnrollmentCenterId(
 				getFieldValueFromMetaInfo(metaInfoMap, JsonConstant.METADATA, JsonConstant.CENTERID));
-		anonymousProfileDTO.setAssisted(Arrays
-				.asList(getFieldValueFromMetaInfo(metaInfoMap, JsonConstant.OPERATIONSDATA, JsonConstant.OFFICERID)));
+		anonymousProfileDTO.setAssisted(Arrays.asList(
+				getFieldValueFromMetaInfo(metaInfoMap, JsonConstant.OPERATIONSDATA, JsonConstant.OFFICERID),
+				getFieldValueFromMetaInfo(metaInfoMap, JsonConstant.OPERATIONSDATA, JsonConstant.SUPERVISORID)));
 		getExceptionAndBiometricInfo(biometricRecord, anonymousProfileDTO);
 		
 		regProcLogger.info("buildJsonStringFromPacketInfo method call ended");

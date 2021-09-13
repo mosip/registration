@@ -73,6 +73,7 @@ public class AnonymousProfileServiceImplTest {
 	Map<String, String> metaInfoMap = new HashedMap();
 	BiometricRecord biometricRecord = new BiometricRecord();
 	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Before
 	public void setup() throws com.fasterxml.jackson.core.JsonParseException, com.fasterxml.jackson.databind.JsonMappingException, IOException {
 		ReflectionTestUtils.setField(anonymousProfileService, "mandatoryLanguages", Arrays.asList("eng"));
@@ -182,7 +183,7 @@ public class AnonymousProfileServiceImplTest {
 	public void buildJsonStringFromPacketInfoTest()
 			throws ApisResourceAccessException, PacketManagerException, JSONException, IOException, JsonParseException, io.mosip.kernel.core.exception.IOException, JsonMappingException {
 
-		String json = "{\"processName\":\"NEW\",\"processStage\":\"packetValidatorStage\",\"date\":\"2021-09-12T06:50:19.517872400Z\",\"startDateTime\":null,\"endDateTime\":null,\"yearOfBirth\":1998,\"gender\":\"Female\",\"location\":[\"zone\",\"postalCode\"],\"preferredLanguages\":null,\"channel\":[\"phone\"],\"exceptions\":[],\"verified\":null,\"biometricInfo\":[{\"type\":\"FINGER\",\"subType\":\"Left RingFinger\",\"qualityScore\":80,\"attempts\":\"1\",\"digitalId\":\"9KgAwIBAgIBBT\"}],\"device\":null,\"documents\":[\"CIN\",\"RNC\"],\"assisted\":[\"110024\"],\"enrollmentCenterId\":\"1003\",\"status\":\"PROCESSED\"}";
+		String json = "{\"processName\":\"NEW\",\"processStage\":\"packetValidatorStage\",\"date\":\"2021-09-12T06:50:19.517872400Z\",\"startDateTime\":null,\"endDateTime\":null,\"yearOfBirth\":1998,\"gender\":\"Female\",\"location\":[\"zone\",\"postalCode\"],\"preferredLanguages\":null,\"channel\":[\"phone\"],\"exceptions\":[],\"verified\":null,\"biometricInfo\":[{\"type\":\"FINGER\",\"subType\":\"Left RingFinger\",\"qualityScore\":80,\"attempts\":\"1\",\"digitalId\":\"9KgAwIBAgIBBT\"}],\"device\":null,\"documents\":[\"CIN\",\"RNC\"],\"assisted\":[\"110024\",null],\"enrollmentCenterId\":\"1003\",\"status\":\"PROCESSED\"}";
 		Document doc1 = new Document();
 		doc1.setDocumentType("CIN");
 		Document doc2 = new Document();
