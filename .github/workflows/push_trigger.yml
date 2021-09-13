@@ -52,7 +52,7 @@ jobs:
     - name: Build with Maven
       run: |
         cd registration-processor
-        mvn -B package -s $GITHUB_WORKSPACE/settings.xml -DskipTests --file pom.xml
+        mvn -B package -s $GITHUB_WORKSPACE/settings.xml --file pom.xml
 
     - name: Ready the springboot artifacts
       run: find -name '*.jar' -executable -type f  -exec zip release.zip {} +
@@ -63,13 +63,17 @@ jobs:
       with:
         name: release
         path: ./release.zip
-       
-    - name: Get current date
-      id: date
-      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-      
+
+    - name: Analyze with SonarCloud
+      run: |
+        cd registration-processor
+        mvn -B -Dgpg.skip -Dmaven.javadoc.skip=true verify sonar:sonar -Dsonar.projectKey=mosip_${{ github.event.repository.name }} -Dsonar.organization=${{ secrets.ORG_KEY }} -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
     - name: Build registration-processor-stage-group-1 image
-    
+
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
           cd "./$SERVICE_LOCATION"
@@ -95,11 +99,11 @@ jobs:
         NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
         SERVICE_NAME: registration-processor-stage-group-1
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-1
-    
+
     - name: Get current date
       id: date
       run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-      
+
     - name: Build registration-processor-stage-group-2 image
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
@@ -126,11 +130,11 @@ jobs:
         NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
         SERVICE_NAME: registration-processor-stage-group-2
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-2
-    
+
     - name: Get current date
       id: date
       run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-        
+
     - name: Build registration-processor-stage-group-3 image
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
@@ -157,11 +161,11 @@ jobs:
         NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
         SERVICE_NAME: registration-processor-stage-group-3
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-3
-    
+
     - name: Get current date
       id: date
       run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-      
+
     - name: Build registration-processor-stage-group-4 image
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
@@ -188,11 +192,11 @@ jobs:
         NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
         SERVICE_NAME: registration-processor-stage-group-4
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-4
-        
+
     - name: Get current date
       id: date
       run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-      
+
     - name: Build registration-processor-stage-group-5 image
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
@@ -219,11 +223,11 @@ jobs:
         NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
         SERVICE_NAME: registration-processor-stage-group-5
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-5
-    
+
     - name: Get current date
       id: date
       run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-        
+
     - name: Build registration-processor-stage-group-6 image
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
@@ -254,7 +258,7 @@ jobs:
     - name: Get current date
       id: date
       run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-      
+
     - name: Build registration-processor-stage-group-7 image
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
@@ -356,7 +360,7 @@ jobs:
 
     - name: Publish the maven package
       run: |
-        mvn deploy -DskipTests -DaltDeploymentRepository=ossrh::default::${{ secrets.RELEASE_URL }} -s $GITHUB_WORKSPACE/settings.xml -f pom.xml
+        mvn deploy -DaltDeploymentRepository=ossrh::default::${{ secrets.RELEASE_URL }} -s $GITHUB_WORKSPACE/settings.xml -f pom.xml
       env:
         GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         GPG_TTY: $(tty)
@@ -391,11 +395,11 @@ jobs:
       
       - name: Unzip and extract the ${{ env.SERVICE_NAME }}
         run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-        
+
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-        
+
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
@@ -446,11 +450,11 @@ jobs:
       
       - name: Unzip and extract the ${{ env.SERVICE_NAME }}
         run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-        
+
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-        
+
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
@@ -504,7 +508,7 @@ jobs:
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-        
+
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
@@ -548,11 +552,11 @@ jobs:
         with:
           xml-file: ./${{ env.SERVICE_LOCATION }}/version.xml
           xpath: version
-          
+
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-        
+
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
@@ -607,7 +611,7 @@ jobs:
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-        
+
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
@@ -658,11 +662,11 @@ jobs:
 
       - name: Unzip and extract the ${{ env.SERVICE_NAME }}
         run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-       
+
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-        
+
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
@@ -713,11 +717,11 @@ jobs:
 
       - name: Unzip and extract the ${{ env.SERVICE_NAME }}
         run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-      
+
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-        
+
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
