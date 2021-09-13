@@ -57,6 +57,7 @@ import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.stages.app.constants.DemoDedupeConstants;
+import io.mosip.registration.processor.stages.dto.DemoDedupeStatusDTO;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dao.RegistrationStatusDao;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -166,8 +167,10 @@ public class DemodedupeProcessor {
 			String uinFieldCheck = utility.getUIn(registrationId, registrationStatusDto.getRegistrationType(), ProviderStageName.DEMO_DEDUPE);
 			JSONObject jsonObject = utility.retrieveIdrepoJson(uinFieldCheck);
 			if (jsonObject == null) {
-				isTransactionSuccessful = insertDemodedupDetailsAndPerformDedup(demographicData, registrationStatusDto,
+				DemoDedupeStatusDTO demoDedupeStatusDTO = insertDemodedupDetailsAndPerformDedup(demographicData, registrationStatusDto,
 						duplicateDtos, object, moduleId, moduleName, isDemoDedupeSkip, description);
+				isTransactionSuccessful=demoDedupeStatusDTO.isTransactionSuccessful();
+				duplicateDtos=demoDedupeStatusDTO.getDuplicateDtos();
 			} else {
 				insertDemodedupDetails(demographicData, regProcessorIdentityJson, jsonObject, registrationStatusDto,
 						object, moduleId, moduleName);
@@ -326,12 +329,12 @@ public class DemodedupeProcessor {
 	}
 
 
-	private boolean insertDemodedupDetailsAndPerformDedup(IndividualDemographicDedupe demographicData,
+	private DemoDedupeStatusDTO insertDemodedupDetailsAndPerformDedup(IndividualDemographicDedupe demographicData,
 			InternalRegistrationStatusDto registrationStatusDto, List<DemographicInfoDto> duplicateDtos,
 			MessageDTO object, String moduleId, String moduleName, boolean isDemoDedupeSkip, LogDescription description)
 			throws ApisResourceAccessException,
 	JsonProcessingException, PacketManagerException, IOException, PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException {
-
+		DemoDedupeStatusDTO demoDedupeStatusDTO=new DemoDedupeStatusDTO();
 		boolean isTransactionSuccessful = false;
 		String packetStatus = abisHandlerUtil.getPacketStatus(registrationStatusDto);
 		String registrationId=registrationStatusDto.getRegistrationId();
@@ -378,7 +381,9 @@ public class DemodedupeProcessor {
 			isTransactionSuccessful = processDemoDedupeRequesthandler(registrationStatusDto, object,
 					description);
 		}
-		return isTransactionSuccessful;
+		demoDedupeStatusDTO.setTransactionSuccessful(isTransactionSuccessful);
+		demoDedupeStatusDTO.setDuplicateDtos(duplicateDtos);
+		return demoDedupeStatusDTO;
 
 	}
 

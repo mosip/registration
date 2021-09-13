@@ -17,6 +17,7 @@ public enum  ProviderStageName {
     BIO_AUTH("bioauth"),
     MANUAL_VERIFICATION("manualverification"),
     UIN_GENERATOR("uingenerator"),
+    WORKFLOW_MANAGER("workflowmanager"),
     MESSAGE_SENDER("messagesender");
 
     private String value;
