@@ -257,6 +257,12 @@ public class JsonConstant {
 
 	/** The Constant for exception key in others attribute of biometric xml files. */
 	public static final String BIOMETRICRECORDEXCEPTION = "EXCEPTION";
+	
+	/** The Constant for RETRIES key in others attribute of biometric xml files. */
+	public static final String RETRY_COUNT = "RETRIES";
+	
+	/** The Constant for PAYLOAD key in others attribute of biometric xml files. */
+	public static final String PAYLOAD = "PAYLOAD";
 
 	public static final String PAUSERULEIMMUNITYRULEIDS = "PAUSE_IMMUNITY_RULE_IDS";
 }

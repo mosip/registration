@@ -90,6 +90,12 @@ public enum PlatformSuccessMessages {
 	RPR_EXTERNAL_STAGE_SUCCESS(PlatformConstants.RPR_EXTERNAL_STAGE + "000", "External stage  Success"),
 
 	RPR_UIN_GENERATOR_STAGE_SUCCESS(PlatformConstants.RPR_UIN_GENERATOR_STAGE + "000", "UIN Generator  Success"),
+	
+	RPR_BIOMETRIC_EXTRACTION_SUCCESS(PlatformConstants.RPR_BIOMETRIC_EXTRACTION_STAGE + "000",
+			"biometric extraction success"),
+	
+	RPR_FINALIZATION_SUCCESS(PlatformConstants.RPR_FINALIZATION_STAGE + "000",
+			"Finalization success"),
 
 	RPR_UIN_DATA_UPDATION_SUCCESS(PlatformConstants.RPR_UIN_GENERATOR_STAGE + "001", "UIN Generator  Success"),
 
@@ -151,7 +157,10 @@ public enum PlatformSuccessMessages {
 			"Packet parent flow restart initiated"),
 
 	PACKET_COMPLETE_AS_REJECTED_WITHOUT_PARENT_FLOW(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "007",
-			"Packet processing completed with reject status without Parent flow");
+			"Packet processing completed with reject status without Parent flow"),
+	
+	PACKET_ANONYMOUS_PROFILE(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "008",
+			"Packet anonymous profile flow initiated");
 
 	/** The success message. */
 	private final String successMessage;

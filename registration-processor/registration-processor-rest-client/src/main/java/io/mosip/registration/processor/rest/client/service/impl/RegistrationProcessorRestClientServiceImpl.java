@@ -474,4 +474,54 @@ public class RegistrationProcessorRestClientServiceImpl implements RegistrationP
 		return obj;
 	}
 
+	@Override
+	public Integer headApi(ApiName apiName, List<String> pathsegments, List<String> queryParamName, List<Object> queryParamValue) throws ApisResourceAccessException {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				"RegistrationProcessorRestClientServiceImpl::headApi()::entry");
+		Integer obj = null;
+		String apiHostIpPort = env.getProperty(apiName.name());
+
+		UriComponentsBuilder builder = null;
+		UriComponents uriComponents = null;
+		if (apiHostIpPort != null) {
+
+			builder = UriComponentsBuilder.fromUriString(apiHostIpPort);
+			if (!((pathsegments == null) || (pathsegments.isEmpty()))) {
+				for (String segment : pathsegments) {
+					if (!((segment == null) || (("").equals(segment)))) {
+						builder.pathSegment(segment);
+					}
+				}
+
+			}
+
+			if (((queryParamName != null) && (!queryParamName.isEmpty()))) {
+				for (int i = 0; i < queryParamName.size(); i++) {
+					builder.queryParam(queryParamName.get(i), queryParamValue.get(i));
+				}
+
+			}
+
+			try {
+
+				uriComponents = builder.build(false).encode();
+				regProcLogger.debug(uriComponents.toUri().toString(), "URI", "", "");
+				obj = restApiClient.headApi(uriComponents.toUri());
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), "",
+						e.getMessage() + ExceptionUtils.getStackTrace(e));
+
+				throw new ApisResourceAccessException(
+						PlatformErrorMessages.RPR_RCT_UNKNOWN_RESOURCE_EXCEPTION.getCode(), e);
+
+			}
+		}
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				"RegistrationProcessorRestClientServiceImpl::getApi()::exit");
+		return obj;
+	}
+
 }
