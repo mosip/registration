@@ -777,7 +777,7 @@ public class DemodedupeProcessorTest {
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
-		assertFalse(messageDto.getInternalError());
+		assertTrue(messageDto.getInternalError());
 
 	}
 
