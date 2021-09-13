@@ -11,9 +11,6 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.mosip.registration.processor.core.packet.dto.FieldValue;
-import io.mosip.registration.processor.status.entity.AnonymousProfileEntity;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,10 +22,12 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.core.env.Environment;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.client.RestTemplate;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.exception.IOException;
@@ -64,7 +63,7 @@ import io.mosip.registration.processor.status.exception.EncryptionFailureExcepti
 import io.mosip.registration.processor.status.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.impl.SyncRegistrationServiceImpl;
-import org.springframework.web.client.RestTemplate;
+import io.mosip.registration.processor.status.utilities.RegistrationUtility;
 
 /**
  * The Class SyncRegistrationServiceTest.
@@ -110,6 +109,9 @@ public class SyncRegistrationServiceTest {
 	/** The anonymousProfileService */
 	@Mock
 	private AnonymousProfileService anonymousProfileService;
+	
+	@Mock
+	private RegistrationUtility registrationUtility;
 
 	/** The ridValidator. */
 	@Mock
@@ -404,7 +406,7 @@ public class SyncRegistrationServiceTest {
 		identity.put("locationHierarchyForProfiling", locationHierarchyForProfiling);
 		mappingJsonObject.put("identity", identity);
 
-		Mockito.when(restTemplate.getForObject(anyString(), eq(String.class))).thenReturn(mappingJsonString);
+		Mockito.when(registrationUtility.getMappingJson()).thenReturn(mappingJsonString);
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(mappingJsonObject);
 
 	}
