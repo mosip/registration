@@ -264,8 +264,6 @@ public class SupervisorValidatorTest {
 		Mockito.when(restClientService.postApi(any(), anyString(), anyString(), anyString(), any()))
 				.thenReturn(authResponseDTO);
 
-		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
-
 		registrationStatusDto.setRegistrationId("reg1234");
 		registrationStatusDto.setApplicantType("Child");
 		registrationStatusDto.setRegistrationType("New");
@@ -391,6 +389,7 @@ public class SupervisorValidatorTest {
 		registrationStatusDto.setRegistrationType("ACTIVATED");
 		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
 		.thenReturn(biometricRecord);
+		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
 		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
 	
@@ -422,7 +421,38 @@ public class SupervisorValidatorTest {
 		registrationStatusDto.setRegistrationType("ACTIVATED");
 		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
+	
+	@Test(expected = ValidationFailedException.class)
+	public void testAuthByIdAuthenticationStatusInActive() throws Exception {
 
+		io.mosip.registration.processor.core.auth.dto.ResponseDTO responseDTO = new io.mosip.registration.processor.core.auth.dto.ResponseDTO();
+		responseDTO.setAuthStatus(false);
+		authResponseDTO.setResponse(responseDTO);
+		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
+		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
+		.thenReturn(biometricRecord);
+		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
+		registrationStatusDto.setRegistrationType("ACTIVATED");
+		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
+	}
+	
+	@Test(expected = ValidationFailedException.class)
+	public void testAuthByIdAuthenticationStatusFailed() throws Exception {
+
+		io.mosip.registration.processor.core.auth.dto.ResponseDTO responseDTO = new io.mosip.registration.processor.core.auth.dto.ResponseDTO();
+		io.mosip.registration.processor.core.auth.dto.ErrorDTO errorDTO = new io.mosip.registration.processor.core.auth.dto.ErrorDTO();
+		responseDTO.setAuthStatus(false);
+		errorDTO.setErrorCode("ERR-001");
+		errorDTO.setErrorMessage("error occured");
+		authResponseDTO.setResponse(responseDTO);
+		authResponseDTO.setErrors(Arrays.asList(errorDTO));
+		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
+		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
+		.thenReturn(biometricRecord);
+		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
+		registrationStatusDto.setRegistrationType("ACTIVATED");
+		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
+	}
 
 	@Test(expected = BaseCheckedException.class)
 	public void testoperatorPasswordNull() throws Exception {
@@ -537,6 +567,7 @@ public class SupervisorValidatorTest {
 		.thenReturn(biometricRecord);
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any()))
 		.thenReturn(userResponseDto).thenReturn(centerResponse);
+		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
 		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
 

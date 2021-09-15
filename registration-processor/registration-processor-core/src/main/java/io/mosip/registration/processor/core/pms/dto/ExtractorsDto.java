@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.core.pms;
+package io.mosip.registration.processor.core.pms.dto;
 
 import java.util.List;
 

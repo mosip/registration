@@ -24,6 +24,7 @@ import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessor
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.manager.decryptor.Decryptor;
+import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
@@ -275,6 +276,30 @@ public class PacketValidateProcessorTest {
 		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
 		assertFalse(object.getIsValid());
 		assertFalse(object.getInternalError());
+	}
+	
+	@Test
+	public void PacketValidationPacketManagerFailedTest()
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+		Mockito.when(packetManagerService.getMetaInfo(anyString(), any(), any()))
+				.thenThrow(PacketManagerException.class);
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_EXCEPTION)).thenReturn("REPROCESS");
+		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
+		assertTrue(object.getIsValid());
+		assertTrue(object.getInternalError());
+	}
+	
+	@Test
+	public void PacketValidationParsingFailedTest()
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+		Mockito.when(packetManagerService.getMetaInfo(anyString(), any(), any()))
+				.thenThrow(ParsingException.class);
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.PARSE_EXCEPTION)).thenReturn("ERROR");
+		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
+		assertFalse(object.getIsValid());
+		assertTrue(object.getInternalError());
 	}
 	
 	@Test

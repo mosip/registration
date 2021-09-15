@@ -239,5 +239,26 @@ public class RegistrationProcessorRestClientServiceTest {
 		registrationProcessorRestClientService.postApi("AUDIT", null, pathSegments, Arrays.asList("query1"),
 				Arrays.asList("12345"), auditRequestDto, AuditResponseDto.class);
 	}
+	
+	@Test
+	public void headObjectSuccessTest() throws Exception {
+		Mockito.when(env.getProperty(ArgumentMatchers.any())).thenReturn("AUDIT");
+		Mockito.when(restApiClient.headApi(ArgumentMatchers.any()))
+				.thenReturn(1);
+		List<String> pathSegments = new ArrayList<>();
+		pathSegments.add("test");
+		Object result = registrationProcessorRestClientService.headApi(ApiName.AUDIT, pathSegments, Arrays.asList("query1"), Arrays.asList("12345"));
+		assertEquals(1, result);
+	}
+	
+	@Test(expected = ApisResourceAccessException.class)
+	public void headObjectTestFailureTest() throws Exception {
+		Mockito.when(env.getProperty(ArgumentMatchers.any())).thenReturn("AUDIT");
+		ResourceAccessException exp = new ResourceAccessException("errorMessage");
+		List<String> pathSegments = new ArrayList<>();
+		pathSegments.add("test");
+		Mockito.when(restApiClient.headApi(ArgumentMatchers.any())).thenThrow(exp);
+		registrationProcessorRestClientService.headApi(ApiName.AUDIT, pathSegments, Arrays.asList("query1"), Arrays.asList("12345"));
+	}
 
 }
