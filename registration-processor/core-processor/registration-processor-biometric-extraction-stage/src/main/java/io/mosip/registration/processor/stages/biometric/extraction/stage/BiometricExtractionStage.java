@@ -44,8 +44,8 @@ import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessag
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.pms.ExtractorDto;
-import io.mosip.registration.processor.core.pms.ExtractorsDto;
+import io.mosip.registration.processor.core.pms.dto.ExtractorDto;
+import io.mosip.registration.processor.core.pms.dto.ExtractorsDto;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;

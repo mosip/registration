@@ -15,7 +15,6 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
@@ -48,16 +47,17 @@ import com.google.gson.GsonBuilder;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
-import io.mosip.registration.processor.status.dto.RegistrationExternalStatusRequestDTO;
-import io.mosip.registration.processor.status.dto.RegistrationExternalStatusSubRequestDto;
 import io.mosip.registration.processor.core.workflow.dto.SortInfo;
 import io.mosip.registration.processor.status.api.config.RegistrationStatusConfigTest;
 import io.mosip.registration.processor.status.dto.FilterInfo;
+import io.mosip.registration.processor.status.dto.RegistrationExternalStatusRequestDTO;
+import io.mosip.registration.processor.status.dto.RegistrationExternalStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.SearchInfo;
 import io.mosip.registration.processor.status.exception.RegStatusAppException;
 import io.mosip.registration.processor.status.service.impl.RegistrationStatusServiceImpl;
 import io.mosip.registration.processor.status.service.impl.SyncRegistrationServiceImpl;
+import io.mosip.registration.processor.status.utilities.RegistrationUtility;
 import io.mosip.registration.processor.status.validator.LostRidRequestValidator;
 import io.mosip.registration.processor.status.validator.RegistrationExternalStatusRequestValidator;
 import io.mosip.registration.processor.status.validator.RegistrationStatusRequestValidator;
@@ -69,7 +69,6 @@ import io.mosip.registration.processor.status.validator.RegistrationSyncRequestV
 @ContextConfiguration(classes = RegistrationStatusConfigTest.class)
 @TestPropertySource(locations = "classpath:application.properties")
 @ImportAutoConfiguration(RefreshAutoConfiguration.class)
-@Ignore
 public class RegistrationExternalStatusControllerTest {
 
 	@Autowired
@@ -99,6 +98,9 @@ public class RegistrationExternalStatusControllerTest {
 
 	@MockBean
 	LostRidRequestValidator lostRidRequestValidator;
+	
+	@MockBean
+	RegistrationUtility registrationUtility;
 
 	@MockBean
 	private RegistrationSyncRequestValidator syncrequestvalidator;

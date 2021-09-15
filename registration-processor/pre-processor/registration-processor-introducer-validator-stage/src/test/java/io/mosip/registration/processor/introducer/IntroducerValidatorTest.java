@@ -14,14 +14,9 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 import javax.xml.parsers.ParserConfigurationException;
 
-import io.mosip.kernel.biometrics.constant.BiometricType;
-import io.mosip.kernel.biometrics.constant.QualityType;
-import io.mosip.kernel.biometrics.entities.BDBInfo;
-import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.mosip.kernel.biometrics.entities.BIR;
-import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
 import org.json.JSONException;
@@ -38,9 +33,13 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.core.env.Environment;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.xml.sax.SAXException;
 
+import io.mosip.kernel.biometrics.constant.BiometricType;
+import io.mosip.kernel.biometrics.constant.QualityType;
+import io.mosip.kernel.biometrics.entities.BDBInfo;
+import io.mosip.kernel.biometrics.entities.BIR;
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.bioapi.exception.BiometricException;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
@@ -69,6 +68,7 @@ import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.stages.introducervalidator.IntroducerValidator;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -318,6 +318,32 @@ public class IntroducerValidatorTest {
 	@Test(expected = BaseCheckedException.class)
 	public void testIntroducerRIDFailedOnHold() throws ApisResourceAccessException, IOException, Exception {
 		registrationStatusDto.setStatusCode("FAILED");
+		List<InternalRegistrationStatusDto> internalRegistrationStatusDtoList=new ArrayList<InternalRegistrationStatusDto>();
+		internalRegistrationStatusDtoList.add(registrationStatusDto);
+
+		Mockito.when(registrationStatusService.getAllRegistrationStatuses(anyString())).thenReturn(internalRegistrationStatusDtoList);
+		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "introducerUIN", "New",
+				ProviderStageName.INTRODUCER_VALIDATOR)).thenReturn(null);
+		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "introducerRID", "New",
+				ProviderStageName.INTRODUCER_VALIDATOR)).thenReturn("field");
+		introducerValidator.validate("reg1234", registrationStatusDto);
+	}
+	
+	@Test(expected = BaseCheckedException.class)
+	public void testIntroducerBiometricValidationFailed() throws ApisResourceAccessException, IOException, Exception {
+
+		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "introducerUIN", "New",
+				ProviderStageName.INTRODUCER_VALIDATOR)).thenReturn("2832677");
+		when(packetManagerService.getFieldByMappingJsonKey("reg1234", "introducerRID", "New",
+				ProviderStageName.INTRODUCER_VALIDATOR)).thenReturn("field");
+		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
+		.thenReturn(null);
+		introducerValidator.validate("reg1234", registrationStatusDto);
+	}
+	
+	@Test(expected = BaseCheckedException.class)
+	public void testIntroducerRIDUINNotFound() throws ApisResourceAccessException, IOException, Exception {
+		registrationStatusDto.setStatusCode("PROCESSED");
 		List<InternalRegistrationStatusDto> internalRegistrationStatusDtoList=new ArrayList<InternalRegistrationStatusDto>();
 		internalRegistrationStatusDtoList.add(registrationStatusDto);
 

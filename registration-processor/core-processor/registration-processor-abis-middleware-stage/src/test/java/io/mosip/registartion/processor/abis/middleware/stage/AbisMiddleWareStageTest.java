@@ -314,6 +314,7 @@ public class AbisMiddleWareStageTest {
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("10003100030001520190422074511");
 		dto.setWorkflowInstanceId("workflowInstanceId");
+		dto.setReg_type("NEW");
 
 		stage.deployVerticle();
 		stage.process(dto);
