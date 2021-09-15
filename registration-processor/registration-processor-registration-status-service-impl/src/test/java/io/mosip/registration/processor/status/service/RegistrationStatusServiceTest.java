@@ -38,13 +38,11 @@ import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequest
 import io.mosip.registration.processor.status.code.RegistrationExternalStatusCode;
 import io.mosip.registration.processor.status.dao.RegistrationStatusDao;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
-import io.mosip.registration.processor.status.dto.RegistrationExternalStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.TransactionDto;
 import io.mosip.registration.processor.status.entity.BaseRegistrationPKEntity;
 import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
-import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.entity.TransactionEntity;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.impl.RegistrationStatusServiceImpl;
@@ -513,5 +511,22 @@ public class RegistrationStatusServiceTest {
 
 		Mockito.when(registrationStatusDao.save(any())).thenThrow(exp);
 		registrationStatusService.updateRegistrationStatusForWorkflow(registrationStatusDto, "", "");
+	}
+	
+	@Test
+	public void getRegStatusForMainProcessSuccessTest() {
+
+		Mockito.when(registrationStatusDao.findAll(any())).thenReturn(entities);
+		String registartionId="1000";
+		InternalRegistrationStatusDto dto = registrationStatusService.getRegStatusForMainProcess(registartionId);
+		assertEquals("1000", dto.getRegistrationId());
+	}
+	
+	@Test(expected = TablenotAccessibleException.class)
+	public void getRegStatusForMainProcessFailureTest() {
+		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
+				"errorMessage", new Exception());
+		Mockito.when(registrationStatusDao.findAll(anyString())).thenThrow(exp);
+		registrationStatusService.getRegStatusForMainProcess("1001");
 	}
 }
