@@ -1013,7 +1013,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		return STAGE_PROPERTY_PREFIX;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "unused" })
 	private void generateVid(String registrationId, String UIN, boolean isUinAlreadyPresent)
 			throws ApisResourceAccessException, IOException, VidCreationException {
 		VidRequestDto vidRequestDto = new VidRequestDto();

@@ -12,7 +12,6 @@ import java.util.List;
 import javax.servlet.http.Cookie;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
@@ -61,6 +60,7 @@ import io.mosip.registration.processor.status.dto.SyncResponseSuccessDto;
 import io.mosip.registration.processor.status.exception.RegStatusAppException;
 import io.mosip.registration.processor.status.service.impl.RegistrationStatusServiceImpl;
 import io.mosip.registration.processor.status.service.impl.SyncRegistrationServiceImpl;
+import io.mosip.registration.processor.status.utilities.RegistrationUtility;
 import io.mosip.registration.processor.status.validator.LostRidRequestValidator;
 import io.mosip.registration.processor.status.validator.RegistrationStatusRequestValidator;
 import io.mosip.registration.processor.status.validator.RegistrationSyncRequestValidator;
@@ -118,6 +118,9 @@ public class RegistrationStatusAndSyncControllerTest {
 
 	@MockBean
 	private RegistrationProcessorRestClientService<Object> reprcrestclient;
+	
+	@MockBean
+	RegistrationUtility registrationUtility;
 
 	private ResponseWrapper dto = new ResponseWrapper();
 

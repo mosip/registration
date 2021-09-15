@@ -11,11 +11,13 @@ import static org.mockito.Mockito.verify;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.map.HashedMap;
 import org.json.JSONException;
+import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,6 +25,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -49,6 +52,7 @@ import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventD
 import io.mosip.registration.processor.core.workflow.dto.WorkflowPausedForAdditionalInfoEventDTO;
 import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -96,6 +100,9 @@ public class WorkflowInternalActionVerticleTest {
 	
 	@Mock
 	private IdSchemaUtil idSchemaUtil;
+	
+	@Mock
+	private Utilities utility;
 
 	@Mock
 	private Environment env;
@@ -669,11 +676,18 @@ public class WorkflowInternalActionVerticleTest {
 		biometricRecord.setSegments(Arrays.asList(bir));
 		Mockito.when(packetManagerService.getBiometrics(anyString(), anyString(), anyString(), any()))
 				.thenReturn(biometricRecord);
-
+		
+		org.json.simple.JSONObject identity = new org.json.simple.JSONObject();
+		LinkedHashMap IDSchemaVersion = new LinkedHashMap();
+		IDSchemaVersion.put("value", "1.0");
+		identity.put("IDSchemaVersion", IDSchemaVersion);
+		
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
 				.thenReturn(registrationStatusDto);
+		Mockito.when(utility.getRegistrationProcessorMappingJson(any()))
+		.thenReturn(identity);
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(null);
 		Mockito.when(

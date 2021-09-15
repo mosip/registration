@@ -88,6 +88,20 @@ public class PacketExternalStatusServiceTest {
 		assertEquals("RECEIVED", packetExternalStatusDTOList.get(0).getStatusCode());
 
 	}
+	
+	@Test
+	public void testGetByPacketIdsPacketReceiverSuccess() {
+		internalRegistrationStatusDto.setLatestTransactionTimes(LocalDateTime.now().minusSeconds(100));
+		internalRegistrationStatusDto
+				.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PACKET_RECEIVER.toString());
+		List<String> packetIdList = new ArrayList<>();
+		packetIdList.add("packetId1");
+		List<PacketExternalStatusDTO> packetExternalStatusDTOList = packetExternalStatusService
+				.getByPacketIds(packetIdList);
+
+		assertEquals("RESEND", packetExternalStatusDTOList.get(0).getStatusCode());
+	}
+	
 	@Test
 	public void testGetByPacketIdsWithResend() {
 		internalRegistrationStatusDto.setStatusCode("FAILED");
