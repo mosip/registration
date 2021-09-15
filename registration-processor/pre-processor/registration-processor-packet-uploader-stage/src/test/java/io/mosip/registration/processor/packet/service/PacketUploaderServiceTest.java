@@ -134,6 +134,8 @@ public class PacketUploaderServiceTest {
 
 	@Before
 	public void setUp() throws IOException, ApisResourceAccessException, JsonProcessingException, NoSuchAlgorithmException {
+		
+		ReflectionTestUtils.setField(packetuploaderservice, "isIterationAdditionEnabled", true);
 		file = new File("src/test/resources/1001.zip");
 		dto.setRid("1001");
 		dto.setReg_type("NEW");
@@ -217,6 +219,20 @@ public class PacketUploaderServiceTest {
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto, "PacketUploaderStage");
 		assertTrue(result.getIsValid());
 		assertTrue(result.getInternalError());
+	}
+	
+	@Test
+	public void testvalidateHashCodeFailed() throws Exception {
+		PowerMockito.mockStatic(HMACUtils2.class);
+		PowerMockito.when(HMACUtils2.digestAsPlainText(any())).thenReturn("abcd123");
+		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any(),Mockito.any(),Mockito.any(), Mockito.any())).thenReturn(entry);
+		ReflectionTestUtils.setField(packetuploaderservice, "maxRetryCount", 3);
+		
+		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class))).thenReturn(Boolean.TRUE);
+		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any(),Mockito.any())).thenReturn(is);
+		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto, "PacketUploaderStage");
+		assertFalse(result.getIsValid());
+		assertFalse(result.getInternalError());
 	}
 
 	@Test

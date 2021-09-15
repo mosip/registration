@@ -194,6 +194,14 @@ public class ReprocessorVerticleTest {
 		assertEquals(null, dto.getIsValid());
 
 	}
+	
+	@Test
+	public void nullPointerExceptionTest() throws Exception {
+		Mockito.when(registrationStatusService.getResumablePackets(anyInt()))
+				.thenThrow(NullPointerException.class);
+		dto = reprocessorVerticle.process(dto);
+		assertEquals(null, dto.getIsValid());
+	}
 
 	@Test
 	public void TablenotAccessibleExceptionTest() throws Exception {

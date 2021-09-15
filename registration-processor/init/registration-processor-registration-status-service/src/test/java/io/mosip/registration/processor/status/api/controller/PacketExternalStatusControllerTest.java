@@ -1,8 +1,8 @@
 package io.mosip.registration.processor.status.api.controller;
 
-import static org.mockito.Mockito.when;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -15,7 +15,6 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
@@ -38,6 +37,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -52,6 +52,7 @@ import io.mosip.registration.processor.status.dto.PacketExternalStatusSubRequest
 import io.mosip.registration.processor.status.service.PacketExternalStatusService;
 import io.mosip.registration.processor.status.service.impl.RegistrationStatusServiceImpl;
 import io.mosip.registration.processor.status.service.impl.SyncRegistrationServiceImpl;
+import io.mosip.registration.processor.status.utilities.RegistrationUtility;
 import io.mosip.registration.processor.status.validator.PacketExternalStatusRequestValidator;
 
 @RunWith(SpringRunner.class)
@@ -60,7 +61,6 @@ import io.mosip.registration.processor.status.validator.PacketExternalStatusRequ
 @ContextConfiguration(classes = RegistrationStatusConfigTest.class)
 @TestPropertySource(locations = "classpath:application.properties")
 @ImportAutoConfiguration(RefreshAutoConfiguration.class)
-@Ignore
 public class PacketExternalStatusControllerTest {
 	@InjectMocks
 	PacketExternalStatusController packetExternalStatusController = new PacketExternalStatusController();
@@ -85,6 +85,9 @@ public class PacketExternalStatusControllerTest {
 	
 	@MockBean
 	DigitalSignatureUtility digitalSignatureUtility;
+	
+	@MockBean
+	RegistrationUtility registrationUtility;
 
 	@Mock
 	private Environment env;

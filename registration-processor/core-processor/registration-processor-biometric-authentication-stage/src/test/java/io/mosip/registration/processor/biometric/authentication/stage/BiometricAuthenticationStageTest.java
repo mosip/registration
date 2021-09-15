@@ -55,7 +55,6 @@ import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
-import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.BioTypeException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
@@ -80,7 +79,6 @@ import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
 import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
-import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
 import io.mosip.registration.processor.status.repositary.SyncRegistrationRepository;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
@@ -352,6 +350,22 @@ public class BiometricAuthenticationStageTest {
 
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
+	}
+	
+	@Test
+	public void biometricAuthenticationBiometricNullTest() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
+		when(regentity.getRegistrationType()).thenReturn("UPDATE");
+
+		String individualBiometrics="{\"format\" : \"cbeff\",\"version\" : 1.0,\"value\" : \"individualBiometrics_bio_CBEFF\"}";
+		when(packetManagerService.getFieldByMappingJsonKey(any(),
+				any(), any(),any())).thenReturn(individualBiometrics);
+		
+		when(packetManagerService.getBiometricsByMappingJsonKey(any(),
+				any(), any(),any())).thenReturn(null);
+
+		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
+		assertFalse(messageDto.getIsValid());
 		assertFalse(messageDto.getInternalError());
 	}
 
