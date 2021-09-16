@@ -30,6 +30,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -48,6 +50,8 @@ import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages
 import io.mosip.registration.processor.core.http.RequestWrapper;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO;
+import io.mosip.registration.processor.core.kernel.master.dto.LanguageDto;
+import io.mosip.registration.processor.core.kernel.master.dto.LanguageResponseDto;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.notification.template.generator.dto.ResponseDto;
 import io.mosip.registration.processor.core.notification.template.generator.dto.SmsRequestDto;
@@ -130,7 +134,7 @@ public class MessageNotificationServiceImpl
 	
 	@Value("${mosip.default.user-preferred-language-attribute:#{null}}")
 	private String userPreferredLanguageAttribute;
-
+	
 	/** The resclient. */
 	@Autowired
 	private RestApiClient resclient;
@@ -276,14 +280,14 @@ public class MessageNotificationServiceImpl
 		return response;
 	}
 	
+	@SuppressWarnings("unchecked")
 	private List<String> getPreferredLanguages(String id, String process) throws ApisResourceAccessException, 
 	PacketManagerException, JsonProcessingException, IOException {
 		if(userPreferredLanguageAttribute!=null && !userPreferredLanguageAttribute.isBlank()) {
 			String preferredLang=packetManagerService.getField(id, userPreferredLanguageAttribute, process, 
 					ProviderStageName.MESSAGE_SENDER);
-			if(preferredLang!=null && !preferredLang.isBlank()) {
-				return List.of(preferredLang.split(","));
-			}
+			List<String> languages=getLangCodes(preferredLang);
+			if(languages!=null || !languages.isEmpty()) return languages;
 		}
 		if(defaultTemplateLanguages!=null && !defaultTemplateLanguages.isBlank()) {
 			return List.of(defaultTemplateLanguages.split(","));
@@ -314,6 +318,25 @@ public class MessageNotificationServiceImpl
 				
 	
 	
+	private List<String> getLangCodes(String preferredLang) throws JsonParseException, JsonMappingException, com.fasterxml.jackson.core.JsonProcessingException, IOException, ApisResourceAccessException {
+		
+		ResponseWrapper<?> wrapper= (ResponseWrapper<?>) restClientService.getApi(ApiName.LANGUAGES, null, "", "", ResponseWrapper.class);
+		List<String> languages=new ArrayList<>();
+		LanguageResponseDto languageResponseDto=mapper.readValue(mapper.writeValueAsString(wrapper.getResponse()), LanguageResponseDto.class);
+		if(preferredLang!=null && !preferredLang.isBlank()) {
+			for(String pl:List.of(preferredLang.split(","))){
+				for(LanguageDto dto:languageResponseDto.getLanguages()) {
+					if(dto.getCode().equalsIgnoreCase(pl)
+						|| dto.getName().equalsIgnoreCase(pl)
+						|| dto.getNativeName().equalsIgnoreCase(pl)) {
+						languages.add(dto.getCode());
+					}
+				}
+			}
+		}
+		return languages;
+	}
+
 	public boolean isJSONArrayValid(String jsonArrayString) {
 	        try {
 	            new org.json.JSONArray(jsonArrayString);
