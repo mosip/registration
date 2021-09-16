@@ -25,8 +25,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -43,8 +41,6 @@ import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.http.RequestWrapper;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
-import io.mosip.registration.processor.core.kernel.master.dto.LanguageDto;
-import io.mosip.registration.processor.core.kernel.master.dto.LanguageResponseDto;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.notification.template.generator.dto.ResponseDto;
@@ -96,7 +92,6 @@ public class NotificationUtility {
 
 	@Value("${mosip.default.user-preferred-language-attribute:#{null}}")
 	private String userPreferredLanguageAttribute;
-	
 	/** The env. */
 	@Autowired
 	private Environment env;
@@ -180,8 +175,9 @@ public class NotificationUtility {
 		if(userPreferredLanguageAttribute!=null && !userPreferredLanguageAttribute.isBlank()) {
 			String preferredLang=packetManagerService.getField(registrationStatusDto.getRegistrationId(), userPreferredLanguageAttribute,
 				registrationStatusDto.getRegistrationType(), ProviderStageName.PACKET_VALIDATOR);
-			List<String> languages=getLangCodes(preferredLang);
-			if(languages!=null || !languages.isEmpty()) return languages;
+			if(preferredLang!=null && !preferredLang.isBlank()) {
+				return List.of(preferredLang.split(","));
+			}
 		}
 		if(defaultTemplateLanguages!=null && !defaultTemplateLanguages.isBlank()) {
 			return List.of(defaultTemplateLanguages.split(","));
@@ -208,25 +204,6 @@ public class NotificationUtility {
 			}
 		}
 		return new ArrayList<>(langSet);
-	}
-	
-	private List<String> getLangCodes(String preferredLang) throws JsonParseException, JsonMappingException, com.fasterxml.jackson.core.JsonProcessingException, IOException, ApisResourceAccessException {
-		
-		ResponseWrapper<?> wrapper= (ResponseWrapper<?>) restClientService.getApi(ApiName.LANGUAGES, null, "", "", ResponseWrapper.class);
-		List<String> languages=new ArrayList<>();
-		LanguageResponseDto languageResponseDto=mapper.readValue(mapper.writeValueAsString(wrapper.getResponse()), LanguageResponseDto.class);
-		if(preferredLang!=null && !preferredLang.isBlank()) {
-			for(String pl:List.of(preferredLang.split(","))){
-				for(LanguageDto dto:languageResponseDto.getLanguages()) {
-					if(dto.getCode().equalsIgnoreCase(pl)
-						|| dto.getName().equalsIgnoreCase(pl)
-						|| dto.getNativeName().equalsIgnoreCase(pl)) {
-						languages.add(dto.getCode());
-					}
-				}
-			}
-		}
-		return languages;
 	}
 	
 	public boolean isJSONArrayValid(String jsonArrayString) {
