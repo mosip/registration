@@ -17,6 +17,7 @@
 -- Jul-2021		Ram Bhatt	   Multiple table changes on regprc db
 -- Aug-2021		Ram Bhatt	   Remove resume_remove_tags column from registration table
 -- Aug-2021		Ram Bhatt	   Added pause_rule_ids column to registration table
+-- Sep-2021		Ram Bhatt	   Anonymous profile table creation
 ----------------------------------------------------------------------------------------------------
 \c mosip_regprc sysadmin
 
@@ -29,6 +30,8 @@ ALTER TABLE regprc.reg_lost_uin_det DROP CONSTRAINT IF EXISTS fk_rlostd_reg CASC
 ALTER TABLE regprc.registration_transaction DROP CONSTRAINT IF EXISTS fk_regtrn_reg CASCADE;
 
 \ir ../ddl/regprc-additional_info_request.sql
+
+\ir ../ddl/regprc-anonymous_profile.sql
 
 ALTER TABLE regprc.registration_list RENAME COLUMN id TO workflow_instance_id;
 ALTER TABLE regprc.registration_list RENAME COLUMN reg_type TO process;
