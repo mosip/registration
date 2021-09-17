@@ -129,7 +129,7 @@
 		<kernel.qrcodegenerator.zxing.version>1.1.5</kernel.qrcodegenerator.zxing.version>
 		<kernel.logger.logback.version>1.1.5</kernel.logger.logback.version>
 		<kernel.idvalidator.vid.version>1.1.5</kernel.idvalidator.vid.version>
-		<object.store.khazana.version>1.1.5</object.store.khazana.version>
+		<object.store.khazana.version>1.1.5.5-SNAPSHOT</object.store.khazana.version>
 		<kernel.biometrics.api.version>1.1.5</kernel.biometrics.api.version>
 		<kernel-keymanager-service.version>1.1.5</kernel-keymanager-service.version>
 			<sonar.coverage.exclusions>**/dto/**,
