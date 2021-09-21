@@ -657,11 +657,11 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 			exceptionList = metaInfoExceptionBiometrics.get("applicant").keySet();
 		}
 		boolean isBioFound = false;
-		for (String modality : modalities) {
-			if (!biometricModalitySegmentsMap.containsKey(modality)) {
-				throw new DataShareException("Biometrics Segments Not Configured for modality : " + modality);
+		for (String biometricSegment : biometricModalitySegmentsMap.keySet()) {
+			if (!modalities.contains(biometricSegment)) {
+				throw new DataShareException("Biometrics Segments Not Configured for modality : " + biometricSegment);
 			}
-			for (String segment : biometricModalitySegmentsMap.get(modality)) {
+			for (String segment : biometricModalitySegmentsMap.get(biometricSegment)) {
 				Optional<BIR> optionalBIR = null;
 				if (segment.equalsIgnoreCase("Face")) {
 					optionalBIR = biometricRecord.getSegments().stream()
