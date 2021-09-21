@@ -172,11 +172,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 		List<String> locationValues = new ArrayList<>();
 		for (String locationHirerchy : locationList) {
 			if (fieldMap.get(locationHirerchy) != null) {
-				if (locationHirerchy.equalsIgnoreCase(MappingJsonConstants.POSTAL_CODE)) {
-					locationValues.add(fieldMap.get(locationHirerchy));
-				} else {
-					locationValues.add(getLanguageBasedValueForSimpleType(fieldMap.get(locationHirerchy)));
-				}
+				locationValues.add(fieldMap.get(locationHirerchy));
 			}
 		}
 		anonymousProfileDTO.setLocation(locationValues);
