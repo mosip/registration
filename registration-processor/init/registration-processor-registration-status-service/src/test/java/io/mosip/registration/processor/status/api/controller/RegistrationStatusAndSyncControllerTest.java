@@ -11,6 +11,7 @@ import java.util.List;
 
 import javax.servlet.http.Cookie;
 
+import io.mosip.registration.processor.status.api.dto.AuthorizedRolesDto;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -73,7 +74,7 @@ import io.mosip.registration.processor.status.validator.RegistrationSyncRequestV
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
-@ContextConfiguration(classes = RegistrationStatusConfigTest.class)
+@ContextConfiguration(classes =  {AuthorizedRolesDto.class, RegistrationStatusConfigTest.class})
 @TestPropertySource(locations = "classpath:application.properties")
 @ImportAutoConfiguration(RefreshAutoConfiguration.class)
 public class RegistrationStatusAndSyncControllerTest {
@@ -129,6 +130,9 @@ public class RegistrationStatusAndSyncControllerTest {
 
 	@Mock
 	private Environment env;
+
+	@Autowired
+	private AuthorizedRolesDto authorizedRolesDto;
 
 	LostRidRequestDto lostRidRequestDto;
 

@@ -11,6 +11,7 @@ import java.util.List;
 
 import javax.servlet.http.Cookie;
 
+import io.mosip.registration.processor.status.api.dto.AuthorizedRolesDto;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -66,7 +67,7 @@ import io.mosip.registration.processor.status.validator.RegistrationSyncRequestV
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
-@ContextConfiguration(classes = RegistrationStatusConfigTest.class)
+@ContextConfiguration(classes =  {AuthorizedRolesDto.class, RegistrationStatusConfigTest.class})
 @TestPropertySource(locations = "classpath:application.properties")
 @ImportAutoConfiguration(RefreshAutoConfiguration.class)
 public class RegistrationExternalStatusControllerTest {
@@ -110,6 +111,9 @@ public class RegistrationExternalStatusControllerTest {
 
 	@Autowired
 	public ObjectMapper objectMapper;
+
+	@Autowired
+	private AuthorizedRolesDto authorizedRolesDto;
 
 	/** The registration dto list. */
 	private List<RegistrationStatusDto> registrationDtoList;

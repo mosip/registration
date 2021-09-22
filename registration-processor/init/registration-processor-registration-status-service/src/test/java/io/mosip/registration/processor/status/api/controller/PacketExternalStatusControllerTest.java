@@ -11,6 +11,7 @@ import java.util.List;
 
 import javax.servlet.http.Cookie;
 
+import io.mosip.registration.processor.status.api.dto.AuthorizedRolesDto;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -58,7 +59,7 @@ import io.mosip.registration.processor.status.validator.PacketExternalStatusRequ
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
-@ContextConfiguration(classes = RegistrationStatusConfigTest.class)
+@ContextConfiguration(classes =  {AuthorizedRolesDto.class, RegistrationStatusConfigTest.class})
 @TestPropertySource(locations = "classpath:application.properties")
 @ImportAutoConfiguration(RefreshAutoConfiguration.class)
 public class PacketExternalStatusControllerTest {
@@ -91,6 +92,9 @@ public class PacketExternalStatusControllerTest {
 
 	@Mock
 	private Environment env;
+
+	@Autowired
+	private AuthorizedRolesDto authorizedRolesDto;
 
 	private String packetExternalStatusRequestToJson;
 

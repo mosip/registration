@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import javax.servlet.http.Cookie;
 
+import io.mosip.registration.processor.status.api.dto.AuthorizedRolesDto;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.Before;
@@ -49,7 +50,7 @@ import io.mosip.registration.processor.status.utilities.RegistrationUtility;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
-@ContextConfiguration(classes = RegistrationStatusConfigTest.class)
+@ContextConfiguration(classes = {AuthorizedRolesDto.class, RegistrationStatusConfigTest.class})
 @TestPropertySource(locations = "classpath:application.properties")
 @ImportAutoConfiguration(RefreshAutoConfiguration.class)
 public class InternalAuthDelegateServicesControllerTest {
@@ -80,6 +81,9 @@ public class InternalAuthDelegateServicesControllerTest {
 	AuthRequestDTO authRequestDTO = new AuthRequestDTO();
 	AuthResponseDTO authResponse = new AuthResponseDTO();
 	ResponseDTO responseDto = new ResponseDTO();
+
+	@Autowired
+	private AuthorizedRolesDto authorizedRolesDto;
 
 	@Before
 	public void setUp() throws JsonProcessingException, ApisResourceAccessException {
