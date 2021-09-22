@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 
 import javax.xml.XMLConstants;
@@ -23,7 +22,6 @@ import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.cbeffutil.impl.CbeffImpl;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
@@ -296,8 +294,7 @@ public class CbeffToBiometricUtil {
 	 *             the exception
 	 */
 	public List<BIR> getBIRTypeList(String cbeffFileString) throws Exception {
-		String cbeffEncodedString = new String(Base64.getEncoder().encode(cbeffFileString.getBytes()));
-		return cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(cbeffEncodedString));
+		return cbeffutil.getBIRDataFromXML(cbeffFileString.getBytes());
 	}
 	/**
 	 * Gets the BIR type list.
