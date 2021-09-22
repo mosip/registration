@@ -193,7 +193,11 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 				getFieldValueFromMetaInfo(metaInfoMap, JsonConstant.METADATA, JsonConstant.CENTERID));
 		
 		List<String> assisted = new ArrayList<>();
-		assisted.add(getFieldValueFromMetaInfo(metaInfoMap, JsonConstant.OPERATIONSDATA, JsonConstant.OFFICERID));
+		String officerId = getFieldValueFromMetaInfo(metaInfoMap, JsonConstant.OPERATIONSDATA, JsonConstant.OFFICERID);
+		if (officerId != null) {
+			assisted.add(officerId);
+		}
+
 		String supervisorId = getFieldValueFromMetaInfo(metaInfoMap, JsonConstant.OPERATIONSDATA,
 				JsonConstant.SUPERVISORID);
 		if (supervisorId != null) {
