@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import io.mosip.kernel.core.util.CryptoUtil;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -72,7 +73,7 @@ import io.mosip.registration.processor.status.utilities.RegistrationUtility;
 @RefreshScope
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
-@PrepareForTest(JsonUtils.class)
+@PrepareForTest({JsonUtils.class, CryptoUtil.class})
 public class SyncRegistrationServiceTest {
 
 	/** The sync registration dto. */
@@ -153,6 +154,8 @@ public class SyncRegistrationServiceTest {
 	 */
 	@Before
 	public void setup() throws Exception {
+		PowerMockito.mockStatic(CryptoUtil.class);
+		PowerMockito.when(CryptoUtil.decodeBase64(anyString())).thenReturn("mosip".getBytes());
 		registrationSyncRequestDTO = new RegistrationSyncRequestDTO();
 		entities = new ArrayList<>();
 		syncRegistrationEntities = new ArrayList<>();
