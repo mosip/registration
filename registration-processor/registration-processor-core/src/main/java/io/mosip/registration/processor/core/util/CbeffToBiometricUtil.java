@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 import javax.xml.XMLConstants;
@@ -295,7 +296,8 @@ public class CbeffToBiometricUtil {
 	 *             the exception
 	 */
 	public List<BIR> getBIRTypeList(String cbeffFileString) throws Exception {
-		return cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(cbeffFileString));
+		String cbeffEncodedString = new String(Base64.getEncoder().encode(cbeffFileString.getBytes()));
+		return cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(cbeffEncodedString));
 	}
 	/**
 	 * Gets the BIR type list.
