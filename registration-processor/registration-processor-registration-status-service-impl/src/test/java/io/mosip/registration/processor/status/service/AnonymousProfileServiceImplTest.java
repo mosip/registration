@@ -36,12 +36,9 @@ import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.entities.Entry;
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
+import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
-import io.mosip.kernel.core.util.exception.JsonMappingException;
-import io.mosip.kernel.core.util.exception.JsonParseException;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.packet.dto.Document;
 import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.status.entity.AnonymousProfileEntity;
@@ -69,6 +66,7 @@ public class AnonymousProfileServiceImplTest {
 	@Mock
 	private RegistrationUtility registrationUtility;
 
+	Map<String, String> fieldTypeMap = new HashedMap();
 	Map<String, String> fieldMap = new HashedMap();
 	Map<String, String> metaInfoMap = new HashedMap();
 	BiometricRecord biometricRecord = new BiometricRecord();
@@ -83,6 +81,9 @@ public class AnonymousProfileServiceImplTest {
 		PowerMockito.when(DateUtils.getUTCCurrentDateTimeString()).thenReturn("2021-09-12T06:50:19.517872400Z");
 		PowerMockito.when(DateUtils.parseDateToLocalDateTime(any())).thenReturn(LocalDateTime.of(1998, 01,01, 01, 01));
 
+		fieldTypeMap.put("postalCode", "string");
+		fieldTypeMap.put("zone", "simpleType");
+		
 		fieldMap.put("postalCode", "14022");
 		fieldMap.put("dateOfBirth", "1998/01/01");
 		fieldMap.put("preferredLang", "English");
@@ -180,10 +181,9 @@ public class AnonymousProfileServiceImplTest {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
-	public void buildJsonStringFromPacketInfoTest()
-			throws ApisResourceAccessException, PacketManagerException, JSONException, IOException, JsonParseException, io.mosip.kernel.core.exception.IOException, JsonMappingException {
+	public void buildJsonStringFromPacketInfoTest() throws JSONException, IOException, BaseCheckedException {
 
-		String json = "{\"processName\":\"NEW\",\"processStage\":\"packetValidatorStage\",\"date\":\"2021-09-12T06:50:19.517872400Z\",\"startDateTime\":null,\"endDateTime\":null,\"yearOfBirth\":1998,\"gender\":\"Female\",\"location\":[\"zone\",\"postalCode\"],\"preferredLanguages\":null,\"channel\":[\"phone\"],\"exceptions\":[],\"verified\":null,\"biometricInfo\":[{\"type\":\"FINGER\",\"subType\":\"Left RingFinger\",\"qualityScore\":80,\"attempts\":\"1\",\"digitalId\":\"9KgAwIBAgIBBT\"}],\"device\":null,\"documents\":[\"CIN\",\"RNC\"],\"assisted\":[\"110024\",null],\"enrollmentCenterId\":\"1003\",\"status\":\"PROCESSED\"}";
+		String json = "{\"processName\":\"NEW\",\"processStage\":\"packetValidatorStage\",\"date\":\"2021-09-12T06:50:19.517872400Z\",\"startDateTime\":\"2021-09-12T06:50:19.517872400Z\",\"endDateTime\":\"2021-09-12T06:50:19.517872400Z\",\"yearOfBirth\":1998,\"gender\":\"Female\",\"location\":[\"Ben Mansour\",\"14022\"],\"preferredLanguages\":null,\"channel\":[\"phone\"],\"exceptions\":[],\"verified\":null,\"biometricInfo\":[{\"type\":\"FINGER\",\"subType\":\"Left RingFinger\",\"qualityScore\":80,\"attempts\":\"1\",\"digitalId\":\"9KgAwIBAgIBBT\"}],\"device\":null,\"documents\":[\"CIN\",\"RNC\"],\"assisted\":[\"110024\"],\"enrollmentCenterId\":\"1003\",\"status\":\"PROCESSED\"}";
 		Document doc1 = new Document();
 		doc1.setDocumentType("CIN");
 		Document doc2 = new Document();
@@ -225,8 +225,8 @@ public class AnonymousProfileServiceImplTest {
 				.thenReturn(new FieldValue("registrationType", "NEW")).thenReturn(mappingJsonObject).thenReturn(doc1)
 				.thenReturn(doc2).thenReturn(new FieldValue("centerId", "1003"))
 				.thenReturn(new FieldValue("officerId", "110024"));
-		assertEquals(json, anonymousProfileService.buildJsonStringFromPacketInfo(biometricRecord, fieldMap, metaInfoMap,
-				"PROCESSED", "packetValidatorStage"));
+		assertEquals(json, anonymousProfileService.buildJsonStringFromPacketInfo(biometricRecord, fieldMap,
+				fieldTypeMap, metaInfoMap, "PROCESSED", "packetValidatorStage"));
 	}
 
 }
