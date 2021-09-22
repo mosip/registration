@@ -72,7 +72,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 	@Value("${registration.processor.applicant.dob.format:yyyy/MM/dd}")
 	private String dobFormat;
 	
-	@Value("${mosip.preferred-language.enabled}")
+	@Value("${mosip.preferred-language.enabled:false}")
 	private boolean isPreferredLangEnabled;
 
 	/** The constant for language label in JSON parsing */
