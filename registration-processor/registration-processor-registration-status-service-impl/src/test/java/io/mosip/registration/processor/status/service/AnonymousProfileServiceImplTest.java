@@ -76,6 +76,7 @@ public class AnonymousProfileServiceImplTest {
 	public void setup() throws com.fasterxml.jackson.core.JsonParseException, com.fasterxml.jackson.databind.JsonMappingException, IOException {
 		ReflectionTestUtils.setField(anonymousProfileService, "mandatoryLanguages", Arrays.asList("eng"));
 		ReflectionTestUtils.setField(anonymousProfileService, "dobFormat", "yyyy/MM/dd");
+		ReflectionTestUtils.setField(anonymousProfileService, "isPreferredLangEnabled", false);
 
 		PowerMockito.mockStatic(DateUtils.class);
 		PowerMockito.when(DateUtils.getUTCCurrentDateTimeString()).thenReturn("2021-09-12T06:50:19.517872400Z");

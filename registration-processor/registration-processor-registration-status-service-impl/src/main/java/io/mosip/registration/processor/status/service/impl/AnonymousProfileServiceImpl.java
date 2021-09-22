@@ -71,6 +71,9 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 
 	@Value("${registration.processor.applicant.dob.format:yyyy/MM/dd}")
 	private String dobFormat;
+	
+	@Value("${mosip.preferred-language.enabled}")
+	private boolean isPreferredLangEnabled;
 
 	/** The constant for language label in JSON parsing */
 	private static final String LANGUAGE_LABEL = "language";
@@ -149,7 +152,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 				Arrays.asList(fieldMap.get(preferredaLangValue)) : null);
 		
 		String language = null;
-		if (fieldMap.get(preferredaLangValue) != null) {
+		if (fieldMap.get(preferredaLangValue) != null && isPreferredLangEnabled) {
 			language = fieldMap.get(preferredaLangValue);
 		} else {
 			language = mandatoryLanguages.get(0);
