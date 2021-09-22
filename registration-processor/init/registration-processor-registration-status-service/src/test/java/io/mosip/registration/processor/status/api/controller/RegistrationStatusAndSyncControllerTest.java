@@ -12,7 +12,6 @@ import java.util.List;
 import javax.servlet.http.Cookie;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
@@ -27,10 +26,13 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.gson.Gson;
@@ -58,6 +60,7 @@ import io.mosip.registration.processor.status.dto.SyncResponseSuccessDto;
 import io.mosip.registration.processor.status.exception.RegStatusAppException;
 import io.mosip.registration.processor.status.service.impl.RegistrationStatusServiceImpl;
 import io.mosip.registration.processor.status.service.impl.SyncRegistrationServiceImpl;
+import io.mosip.registration.processor.status.utilities.RegistrationUtility;
 import io.mosip.registration.processor.status.validator.LostRidRequestValidator;
 import io.mosip.registration.processor.status.validator.RegistrationStatusRequestValidator;
 import io.mosip.registration.processor.status.validator.RegistrationSyncRequestValidator;
@@ -98,6 +101,9 @@ public class RegistrationStatusAndSyncControllerTest {
 	/** The mock mvc. */
 	@Autowired
 	private MockMvc mockMvc;
+	
+	@Autowired
+	private WebApplicationContext webApplicationContext;
 
 	/** The registration dto list. */
 	private List<RegistrationStatusDto> registrationDtoList;
@@ -112,6 +118,9 @@ public class RegistrationStatusAndSyncControllerTest {
 
 	@MockBean
 	private RegistrationProcessorRestClientService<Object> reprcrestclient;
+	
+	@MockBean
+	RegistrationUtility registrationUtility;
 
 	private ResponseWrapper dto = new ResponseWrapper();
 
@@ -153,8 +162,7 @@ public class RegistrationStatusAndSyncControllerTest {
 	@Before
 	public void setUp() throws JsonProcessingException, ApisResourceAccessException {
 
-		// mockMvc =
-		// MockMvcBuilders.webAppContextSetup(context).addFilters(springSecurityFilterChain).build();
+		mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 		when(env.getProperty("mosip.registration.processor.registration.status.id"))
 				.thenReturn("mosip.registration.status");
 		when(env.getProperty("mosip.registration.processor.lostrid.id")).thenReturn("mosip.registration.lostrid");
@@ -254,12 +262,11 @@ public class RegistrationStatusAndSyncControllerTest {
 	 * @throws Exception
 	 *             the exception
 	 */
-	@Ignore
 	@Test
+	@WithMockUser(value = "resident", roles = "RESIDENT")
 	public void searchSuccessTest() throws Exception {
 		doNothing().when(registrationStatusRequestValidator).validate((registrationStatusRequestDTO),
 				"mosip.registration.status");
-
 
 		this.mockMvc.perform(post("/search").accept(MediaType.APPLICATION_JSON_VALUE)
 				.cookie(new Cookie("Authorization", regStatusToJson)).contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -267,8 +274,8 @@ public class RegistrationStatusAndSyncControllerTest {
 				.andExpect(status().isOk());
 	}
 
-	@Ignore
 	@Test
+	@WithMockUser(value = "resident", roles = "RESIDENT")
 	public void searchRegstatusException() throws Exception {
 
 		Mockito.doThrow(new RegStatusAppException()).when(registrationStatusRequestValidator)
@@ -279,15 +286,65 @@ public class RegistrationStatusAndSyncControllerTest {
 				.andExpect(status().isOk());
 	}
 
-	@Ignore
 	@Test
+	@WithMockUser(value = "resident", roles = "RESIDENT")
 	public void testSyncController() throws Exception {
+
+		RegistrationSyncRequestDTO registrationSyncRequestDTO = new RegistrationSyncRequestDTO();
+		List<SyncRegistrationDto> request = new ArrayList<SyncRegistrationDto>();
+		SyncRegistrationDto syncRegistrationDto = new SyncRegistrationDto("45128164920495", "NEW", null, null, "eng");
+		request.add(syncRegistrationDto);
+		String requestJson = gson.toJson(request);
+
+		List<SyncResponseDto> syncResponseList = new ArrayList<>();
+		SyncResponseDto syncResponseDto = new SyncResponseDto();
+		syncResponseDto.setStatus("true");
+		syncResponseDto.setRegistrationId("45128164920495");
+		syncResponseList.add(syncResponseDto);
+
 		Mockito.when(syncRegistrationService.decryptAndGetSyncRequest(ArgumentMatchers.any(), ArgumentMatchers.any(),
 				ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(registrationSyncRequestDTO);
+		Mockito.when(
+				syncrequestvalidator.validate(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any()))
+				.thenReturn(true);
+		Mockito.when(
+				syncRegistrationService.sync(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any()))
+				.thenReturn(syncResponseList);
 		this.mockMvc.perform(
 				post("/sync").accept(MediaType.APPLICATION_JSON_VALUE).header("timestamp", "2019-05-07T05:13:55.704Z")
 						.header("Center-Machine-RefId", "abcd").contentType(MediaType.APPLICATION_JSON_VALUE)
-						.content(regStatusToJson.getBytes()).cookie(new Cookie("Authorization", regStatusToJson)))
+						.content(requestJson.getBytes()).cookie(new Cookie("Authorization", requestJson)))
+				.andExpect(status().isOk());
+	}
+	
+	@Test
+	@WithMockUser(value = "resident", roles = "RESIDENT")
+	public void testSyncV2Controller() throws Exception {
+
+		RegistrationSyncRequestDTO registrationSyncRequestDTO = new RegistrationSyncRequestDTO();
+		List<SyncRegistrationDto> request = new ArrayList<SyncRegistrationDto>();
+		SyncRegistrationDto syncRegistrationDto = new SyncRegistrationDto("45128164920495", "NEW", null, null, "eng");
+		request.add(syncRegistrationDto);
+		String requestJson = gson.toJson(request);
+
+		List<SyncResponseDto> syncResponseList = new ArrayList<>();
+		SyncResponseDto syncResponseDto = new SyncResponseDto();
+		syncResponseDto.setStatus("true");
+		syncResponseDto.setRegistrationId("45128164920495");
+		syncResponseList.add(syncResponseDto);
+
+		Mockito.when(syncRegistrationService.decryptAndGetSyncRequest(ArgumentMatchers.any(), ArgumentMatchers.any(),
+				ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(registrationSyncRequestDTO);
+		Mockito.when(
+				syncrequestvalidator.validate(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any()))
+				.thenReturn(true);
+		Mockito.when(
+				syncRegistrationService.syncV2(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any()))
+				.thenReturn(syncResponseList);
+		this.mockMvc.perform(
+				post("/syncV2").accept(MediaType.APPLICATION_JSON_VALUE).header("timestamp", "2019-05-07T05:13:55.704Z")
+						.header("Center-Machine-RefId", "abcd").contentType(MediaType.APPLICATION_JSON_VALUE)
+						.content(requestJson.getBytes()).cookie(new Cookie("Authorization", requestJson)))
 				.andExpect(status().isOk());
 	}
 
@@ -316,20 +373,22 @@ public class RegistrationStatusAndSyncControllerTest {
 	}
 
 	@Test
+	@WithMockUser(value = "admin", roles = "REGISTRATION_ADMIN")
 	public void lostRidSuccessTest() throws Exception {
 		doNothing().when(lostRidRequestValidator).validate((lostRidRequestDto));
 
-		this.mockMvc.perform(post("/lost").accept(MediaType.APPLICATION_JSON_VALUE)
+		this.mockMvc.perform(post("/lostridsearch").accept(MediaType.APPLICATION_JSON_VALUE)
 				.cookie(new Cookie("Authorization", lostRidReqToJson)).contentType(MediaType.APPLICATION_JSON_VALUE)
 				.content(lostRidReqToJson.getBytes()).header("timestamp", "2019-05-07T05:13:55.704Z"))
 				.andExpect(status().isOk());
 	}
 
 	@Test
+	@WithMockUser(value = "admin", roles = "REGISTRATION_ADMIN")
 	public void lostRidRegstatusException() throws Exception {
 
 		Mockito.doThrow(new RegStatusAppException()).when(lostRidRequestValidator).validate(ArgumentMatchers.any());
-		this.mockMvc.perform(post("/lost").accept(MediaType.APPLICATION_JSON_VALUE)
+		this.mockMvc.perform(post("/lostridsearch").accept(MediaType.APPLICATION_JSON_VALUE)
 				.cookie(new Cookie("Authorization", lostRidReqToJson)).contentType(MediaType.APPLICATION_JSON_VALUE)
 				.content(lostRidReqToJson.getBytes()).header("timestamp", "2019-05-07T05:13:55.704Z"))
 				.andExpect(status().isOk());

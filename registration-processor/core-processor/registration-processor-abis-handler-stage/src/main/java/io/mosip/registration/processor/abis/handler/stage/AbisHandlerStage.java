@@ -86,6 +86,7 @@ import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
@@ -144,8 +145,14 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.data.share.internal.domain.name}")
 	private String internalDomainName;
 
-	@Value("#{${mosip.regproc.abis.handler.biometric-modalities-segments-mapping}}")
-	private Map<String, List<String>> biometricModalitySegmentsMap;
+	@Value("#{${mosip.regproc.abis.handler.biometric-modalities-segments-mapping.INFANT}}")
+	private Map<String, List<String>> biometricModalitySegmentsMapInfant;
+	
+	@Value("#{${mosip.regproc.abis.handler.biometric-modalities-segments-mapping.MINOR}}")
+	private Map<String, List<String>> biometricModalitySegmentsMapMinor;
+	
+	@Value("#{${mosip.regproc.abis.handler.biometric-modalities-segments-mapping.ADULT}}")
+	private Map<String, List<String>> biometricModalitySegmentsMapAdult;
 
 	@Value("#{${mosip.regproc.abis.handler.biometric-segments-exceptions-mapping}}")
 	private Map<String, String> exceptionSegmentsMap;
@@ -167,6 +174,9 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	/** The packet info manager. */
 	@Autowired
 	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
+	
+	@Autowired
+	private PacketManagerService packetManagerService;
 
 	@Autowired
 	private Utilities utility;
@@ -571,8 +581,22 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		BiometricRecord biometricRecord = priorityBasedPacketManagerService.getBiometrics(id, individualBiometricsLabel,
 				modalities, process, ProviderStageName.BIO_DEDUPE);
 
-		validateBiometricRecord(biometricRecord, modalities,
-				priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE));
+		Map<String, String> tags = packetManagerService.getAllTags(id);
+		String ageGroup = tags.get("AGE_GROUP");
+		
+		if (ageGroup.equalsIgnoreCase("INFANT")) {
+			validateBiometricRecord(biometricRecord, modalities, biometricModalitySegmentsMapInfant,
+					priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE));
+		} else if (ageGroup.equalsIgnoreCase("MINOR")) {
+			validateBiometricRecord(biometricRecord, modalities, biometricModalitySegmentsMapMinor,
+					priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE));
+		} else if (ageGroup.equalsIgnoreCase("ADULT")) {
+			validateBiometricRecord(biometricRecord, modalities, biometricModalitySegmentsMapAdult,
+					priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE));
+		} else {
+			validateBiometricRecord(biometricRecord, modalities, biometricModalitySegmentsMapAdult,
+					priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE));
+		}
 
 		byte[] content = cbeffutil.createXML(biometricRecord.getSegments());
 
@@ -613,7 +637,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 	@SuppressWarnings("deprecation")
 	private void validateBiometricRecord(BiometricRecord biometricRecord, List<String> modalities,
-			Map<String, String> metaInfoMap)
+			Map<String, List<String>> biometricModalitySegmentsMap, Map<String, String> metaInfoMap)
 			throws DataShareException, JsonParseException, JsonMappingException, IOException {
 		if (modalities == null || modalities.isEmpty()) {
 			throw new DataShareException("Data Share Policy Modalities were Empty");
@@ -633,11 +657,11 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 			exceptionList = metaInfoExceptionBiometrics.get("applicant").keySet();
 		}
 		boolean isBioFound = false;
-		for (String modality : modalities) {
-			if (!biometricModalitySegmentsMap.containsKey(modality)) {
-				throw new DataShareException("Biometrics Segments Not Configured for modality : " + modality);
+		for (String biometricSegment : biometricModalitySegmentsMap.keySet()) {
+			if (!modalities.contains(biometricSegment)) {
+				throw new DataShareException("Biometrics Segments Not Configured for modality : " + biometricSegment);
 			}
-			for (String segment : biometricModalitySegmentsMap.get(modality)) {
+			for (String segment : biometricModalitySegmentsMap.get(biometricSegment)) {
 				Optional<BIR> optionalBIR = null;
 				if (segment.equalsIgnoreCase("Face")) {
 					optionalBIR = biometricRecord.getSegments().stream()

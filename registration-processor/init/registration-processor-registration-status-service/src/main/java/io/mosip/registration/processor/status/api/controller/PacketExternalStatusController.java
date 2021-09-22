@@ -34,10 +34,12 @@ import io.mosip.registration.processor.status.exception.RegStatusAppException;
 import io.mosip.registration.processor.status.service.PacketExternalStatusService;
 import io.mosip.registration.processor.status.sync.response.dto.PacketExternalStatusResponseDTO;
 import io.mosip.registration.processor.status.validator.PacketExternalStatusRequestValidator;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 
 /**
@@ -45,7 +47,7 @@ import io.swagger.annotations.ApiResponses;
  */
 @RefreshScope
 @RestController
-@Api(tags = "Packet Status")
+@Tag(name = "Packet Status", description = "Packet External Status Controller")
 public class PacketExternalStatusController {
 
 
@@ -86,11 +88,18 @@ public class PacketExternalStatusController {
 	 * @return the response entity
 	 * @throws RegStatusAppException the reg status app exception
 	 */
-	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_OFFICER', 'REGISTRATION_SUPERVISOR','RESIDENT')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostpacketexternalstatus())")
+	//@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_OFFICER', 'REGISTRATION_SUPERVISOR','RESIDENT')")
 	@PostMapping(path = "/packetexternalstatus", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@ApiOperation(value = "Get the Packet external status", response = RegistrationExternalStatusCode.class)
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Packet external status successfully fetched"),
-			@ApiResponse(code = 400, message = "Unable to fetch the Packet external status") })
+	@Operation(summary = "Get the Packet external status", description = "Get the Packet external status", tags = { "Packet Status" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Packet external status successfully fetched",
+					content = @Content(schema = @Schema(implementation = RegistrationExternalStatusCode.class))),
+			@ApiResponse(responseCode = "201", description = "Created" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "400", description = "Unable to fetch the Packet external status" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<Object> packetExternalStatus(
 			@RequestBody(required = true) PacketExternalStatusRequestDTO packetExternalStatusRequestDTO)
 			throws RegStatusAppException {

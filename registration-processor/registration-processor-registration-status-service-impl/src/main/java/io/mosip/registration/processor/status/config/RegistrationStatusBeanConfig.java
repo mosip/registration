@@ -1,7 +1,11 @@
 package io.mosip.registration.processor.status.config;
 
 import io.mosip.registration.processor.status.service.AdditionalInfoRequestService;
+import io.mosip.registration.processor.status.service.AnonymousProfileService;
 import io.mosip.registration.processor.status.service.impl.AdditionalInfoRequestServiceImpl;
+import io.mosip.registration.processor.status.service.impl.AnonymousProfileServiceImpl;
+
+import io.mosip.registration.processor.status.utilities.RegistrationUtility;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -128,5 +132,15 @@ public class RegistrationStatusBeanConfig {
 	@Bean
 	public AdditionalInfoRequestService additionalInfoRequestService() {
 		return new AdditionalInfoRequestServiceImpl();
+	}
+	
+	@Bean
+	public AnonymousProfileService anonymousProfileService() {
+		return new AnonymousProfileServiceImpl();
+	}
+
+	@Bean
+	public RegistrationUtility registrationUtility() {
+		return new RegistrationUtility();
 	}
 }

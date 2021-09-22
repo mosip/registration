@@ -16,7 +16,7 @@ import lombok.Setter;
 public class AuthorizedRolesDto {
   //Registration Transaction controller
 
-  private List<String> Postsearchlangcoderid;
+  private List<String> getsearchrid;
 
 
 }

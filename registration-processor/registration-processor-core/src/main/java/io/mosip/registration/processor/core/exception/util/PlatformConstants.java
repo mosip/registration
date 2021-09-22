@@ -97,6 +97,9 @@ public final class PlatformConstants {
 
 	/** The Constant RPR_UIN_GENERATOR_STAGE. */
 	public static final String RPR_UIN_GENERATOR_STAGE = RPR_REGISTRATION_PROCESSOR_PREFIX + "UGS-";
+	
+	/** The Constant RPR_BIOMETRIC_EXTRACTION_STAGE. */
+	public static final String RPR_BIOMETRIC_EXTRACTION_STAGE = RPR_REGISTRATION_PROCESSOR_PREFIX + "BEN-";
 
 	/** The Constant RPR_UIN_GENERATOR_STAGE. */
 	public static final String RPR_AUTHENTICATION = RPR_REGISTRATION_PROCESSOR_PREFIX + "AUT-";
@@ -130,6 +133,8 @@ public final class PlatformConstants {
 	public static final String RPR_WORKFLOW_ACTION_SERVICE = RPR_REGISTRATION_PROCESSOR_PREFIX + "WAS-";
 
 	public static final String RPR_WORKFLOW_ACTION_JOB = RPR_REGISTRATION_PROCESSOR_PREFIX + "WAJ-";
+
+	public static final String RPR_FINALIZATION_STAGE = RPR_REGISTRATION_PROCESSOR_PREFIX + "FIN-";
 
 	/**
 	 * Instantiates a new RPR platform error codes.

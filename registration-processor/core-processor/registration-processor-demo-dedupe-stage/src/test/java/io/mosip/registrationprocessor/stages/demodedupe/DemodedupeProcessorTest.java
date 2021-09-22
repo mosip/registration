@@ -190,8 +190,10 @@ public class DemodedupeProcessorTest {
 		MockitoAnnotations.initMocks(this);
 
 		DemographicInfoDto dto1 = new DemographicInfoDto();
+		dto1.setRegId("2018701130000413092018110263");
 		DemographicInfoDto dto2 = new DemographicInfoDto();
-
+		dto2.setRegId("2018701130000418092018110863");
+		
 		duplicateDtos.add(dto1);
 		duplicateDtos.add(dto2);
 
