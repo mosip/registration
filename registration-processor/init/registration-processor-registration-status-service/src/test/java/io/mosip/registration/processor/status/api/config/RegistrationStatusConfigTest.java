@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.status.api.config;
 
+import io.mosip.registration.processor.status.dto.AuthorizedRolesDto;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
@@ -15,7 +16,7 @@ import io.mosip.registration.processor.status.config.RegistrationStatusServiceBe
 @ComponentScan(basePackages = {
 		"io.mosip.registration.processor.status.*" }, excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = {
 				RegistrationStatusServiceBeanConfig.class, RegistrationStatusBeanConfig.class, RestConfigBean.class,
-				CoreConfigBean.class }))
+				CoreConfigBean.class, AuthorizedRolesDto.class}))
 public class RegistrationStatusConfigTest {
 
 }
