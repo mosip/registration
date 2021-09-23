@@ -290,7 +290,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 				if (other.getKey().equals(JsonConstant.RETRY_COUNT)) {
 					retries = other.getValue();
 				}
-				if (other.getKey().equals(JsonConstant.PAYLOAD)) {
+				if (other.getKey().equals(JsonConstant.PAYLOAD) && StringUtils.isNotEmpty(other.getValue())) {
 					JSONObject jsonObject = new JSONObject(other.getValue());
 					digitalID = jsonObject.getString(JsonConstant.DIGITALID);
 				}
