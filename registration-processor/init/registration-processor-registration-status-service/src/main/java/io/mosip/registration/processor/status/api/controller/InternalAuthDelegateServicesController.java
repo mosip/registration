@@ -2,7 +2,6 @@ package io.mosip.registration.processor.status.api.controller;
 
 import java.util.Optional;
 
-import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.HttpHeaders;
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,8 +21,8 @@ import io.mosip.kernel.core.http.ResponseFilter;
 import io.mosip.registration.processor.core.auth.dto.AuthRequestDTO;
 import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
 import io.mosip.registration.processor.status.service.InternalAuthDelegateService;
-
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -52,7 +50,8 @@ public class InternalAuthDelegateServicesController {
 	 * @return the AuthResponseDTO
 	 * @throws Exception 
 	 */
-	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN','REGISTRATION_OFFICER','REGISTRATION_SUPERVISOR')")
+	//@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN','REGISTRATION_OFFICER','REGISTRATION_SUPERVISOR')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostauth())")
 	@PostMapping(path = "/auth", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Authenticate Internal Request", description = "Authenticate Internal Request", tags = { "Internal Auth Delegate Services" })
 	@ApiResponses(value = {
@@ -75,7 +74,8 @@ public class InternalAuthDelegateServicesController {
 	 * @return the certificate
 	 * @throws Exception 
 	 */
-	@PreAuthorize("hasAnyRole('INDIVIDUAL','REGISTRATION_PROCESSOR','REGISTRATION_ADMIN','REGISTRATION_SUPERVISOR','REGISTRATION_OFFICER','PRE_REGISTRATION_ADMIN')")
+	//@PreAuthorize("hasAnyRole('INDIVIDUAL','REGISTRATION_PROCESSOR','REGISTRATION_ADMIN','REGISTRATION_SUPERVISOR','REGISTRATION_OFFICER','PRE_REGISTRATION_ADMIN')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetgetcertificate())")
 	@ResponseFilter
 	@GetMapping(value = "/getCertificate")
 	@Operation(summary = "getCertificate", description = "getCertificate", tags = { "Internal Auth Delegate Services" })

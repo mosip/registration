@@ -13,7 +13,11 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.data.domain.Page;
 
+import io.mosip.registration.processor.core.workflow.dto.FilterInfo;
+import io.mosip.registration.processor.core.workflow.dto.PaginationInfo;
+import io.mosip.registration.processor.core.workflow.dto.SortInfo;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
@@ -60,6 +64,20 @@ public class RegistrationStatusDaoTest {
 	public void findByIdTest() {
 		RegistrationStatusEntity rEntity = registrationStatusDao.find("1000.zip", "NEW", 1, "");
 		assertEquals(registrationStatusEntity, rEntity);
+
+	}
+
+	@Test
+	public void findByIdworkFlowNullTest() {
+		RegistrationStatusEntity rEntity = registrationStatusDao.find("1000.zip", "NEW", 1, null);
+		assertEquals(registrationStatusEntity, rEntity);
+
+	}
+
+	@Test
+	public void findAllTest() {
+		List<RegistrationStatusEntity> rEntity = registrationStatusDao.findAll("1000.zip");
+		assertEquals(list, rEntity);
 
 	}
 
@@ -125,5 +143,25 @@ public class RegistrationStatusDaoTest {
 				Matchers.anyInt())).thenReturn(list);
 		List<RegistrationStatusEntity> rEntityList = registrationStatusDao.getResumablePackets(2);
 		assertEquals(list, rEntityList);
+	}
+
+	@Test
+	public void getPagedSearchResultsTest() {
+		List<FilterInfo> filters = new ArrayList<FilterInfo>();
+		FilterInfo filterInfo = new FilterInfo("rid", "1000");
+		filters.add(filterInfo);
+		SortInfo sort = new SortInfo("rid", "desc");
+		PaginationInfo pagination = new PaginationInfo(1, 5);
+		Mockito.when(registrationStatusRepositary.createQuerySelect(Matchers.anyString(), Matchers.anyMap(),
+				Matchers.anyInt())).thenReturn(list);
+		Page<RegistrationStatusEntity> rEntityList = registrationStatusDao.getPagedSearchResults(filters,sort,pagination);
+		assertEquals(registrationStatusEntity, rEntityList.getContent().get(0));
+	}
+
+	@Test
+	public void checkUinAvailabilityForRidTest() {
+		Mockito.when(registrationStatusRepositary.createQuerySelect(Matchers.anyString(), Matchers.anyMap())).thenReturn(list);
+		Boolean status = registrationStatusDao.checkUinAvailabilityForRid("1000");
+		assertEquals(true, status);
 	}
 }

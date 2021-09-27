@@ -158,6 +158,7 @@
 			**/registration/processor/stages/*.java,
 			**/registration/processor/retry/verticle/*.java,
 			**/registration/processor/retry/verticle/stages/*.java,
+			**/registration/processor/retry/verticle/constants/*.java,
 			**/registration/processor/packet/decrypter/job/stage/*.java,
 			**/registration/processor/packet/decryptor/job/exception/constant/*.java,
 
@@ -165,6 +166,7 @@
 
 
 			**/registration/processor/stages/app/*.java,
+			**/registration/processor/stages/executor/*.java,
 			**/registration/processor/camel/bridge/processor/*.java,
 			**/registration/processor/core/constant/*.java,
 			**/registration/processor/core/packet/dto/demographicinfo/*.java,
@@ -221,9 +223,11 @@
 			**/registration/processor/core/config/CoreConfigBean.java,
 			**/registration/processor/core/kernel/beans/KernelConfig.java,
 			**/registration/processor/core/abstractverticle/MosipVerticleAPIManager.java,
+			**/registration/processor/core/abstractverticle/WorkflowInternalActionDTO.java,
 			**/registration/processor/core/http/*.java,
 			**/registration/processor/core/queue/factory/*.java,
 			**/registration/processor/core/queue/impl/*.java,
+			**/registration/processor/core/tracing/*.java,
 			**/registration/processor/message/sender/config/MsgNotificationBeanCofig.java,
 			**/registration/processor/print/exception/QueueConnectionNotFound.java,
 			**/registration/processor/stages/demodedupe/StatusMessage.java,

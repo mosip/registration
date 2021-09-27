@@ -307,9 +307,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 				SyncResponseFailureDto syncResponseFailureDto = new SyncResponseFailureDto();
 				try {
 					if (ridValidator.validateId(registrationDto.getRegistrationId())) {
-
 						syncResponseList = syncRegistrationRecord(registrationDto, syncResponseList, referenceId, timeStamp);
-
 					}
 				} catch (InvalidIDException e) {
 					syncResponseFailureDto.setRegistrationId(registrationDto.getRegistrationId());
@@ -347,31 +345,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 				&& validateHashValue(registrationDto, syncResponseList)
 				&& validateSupervisorStatus(registrationDto, syncResponseList)) {
 			if (validateRegistrationID(registrationDto, syncResponseList)) {
-				SyncResponseFailureDto syncResponseFailureDto = new SyncResponseFailureDto();
-				try {
-					syncResponseList = syncRegistrationRecord(registrationDto, syncResponseList, referenceId, timeStamp);
-				} catch (InvalidIDException e) {
-					syncResponseFailureDto.setRegistrationId(registrationDto.getRegistrationId());
-
-					syncResponseFailureDto.setStatus(ResponseStatusCode.FAILURE.toString());
-					if (e.getErrorCode().equals(RidExceptionProperty.INVALID_RID_LENGTH.getErrorCode())) {
-						syncResponseFailureDto
-								.setMessage(PlatformErrorMessages.RPR_RGS_INVALID_REGISTRATIONID_LENGTH.getMessage());
-						syncResponseFailureDto
-								.setErrorCode(PlatformErrorMessages.RPR_RGS_INVALID_REGISTRATIONID_LENGTH.getCode());
-					} else if (e.getErrorCode().equals(RidExceptionProperty.INVALID_RID.getErrorCode())) {
-						syncResponseFailureDto
-								.setMessage(PlatformErrorMessages.RPR_RGS_INVALID_REGISTRATIONID.getMessage());
-						syncResponseFailureDto
-								.setErrorCode(PlatformErrorMessages.RPR_RGS_INVALID_REGISTRATIONID.getCode());
-					} else if (e.getErrorCode().equals(RidExceptionProperty.INVALID_RID_TIMESTAMP.getErrorCode())) {
-						syncResponseFailureDto.setMessage(
-								PlatformErrorMessages.RPR_RGS_INVALID_REGISTRATIONID_TIMESTAMP.getMessage());
-						syncResponseFailureDto
-								.setErrorCode(PlatformErrorMessages.RPR_RGS_INVALID_REGISTRATIONID_TIMESTAMP.getCode());
-					}
-					syncResponseList.add(syncResponseFailureDto);
-				}
+				syncResponseList = syncRegistrationRecord(registrationDto, syncResponseList, referenceId, timeStamp);
 			}
 		}
 		List<SyncResponseDto> syncResponseV2List=new ArrayList<>();

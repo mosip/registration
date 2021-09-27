@@ -58,6 +58,7 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.dto.ValidatePacketResponse;
+import io.mosip.registration.processor.packet.storage.exception.IdRepoAppException;
 import io.mosip.registration.processor.packet.storage.exception.IdentityNotFoundException;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
@@ -129,6 +130,8 @@ public class PacketValidatorImplTest {
 	private static final String PRIMARY_LANGUAGE = "mosip.primary-language";
 
 	private static final String SECONDARY_LANGUAGE = "mosip.secondary-language";
+
+	JSONObject jsonObject = Mockito.mock(JSONObject.class);
 
 	@Before
 	public void setup() throws Exception {
@@ -215,15 +218,11 @@ public class PacketValidatorImplTest {
 		when(env.getProperty(PRIMARY_LANGUAGE)).thenReturn("eng");
 		when(env.getProperty(SECONDARY_LANGUAGE)).thenReturn("ara");
 		when(env.getProperty(VALIDATEAPPLICANTDOCUMENT)).thenReturn("true");
-		JSONObject jsonObject = Mockito.mock(JSONObject.class);
 		Mockito.when(idObjectValidator.validateIdObject(any(), any(), any())).thenReturn(true);
 
 		PowerMockito.when(JsonUtil.getJSONObject(jsonObject, "individualBiometrics")).thenReturn(jsonObject);
 		Mockito.when(jsonObject.get("value")).thenReturn("applicantCBEF");
 
-		Mockito.when(utility.getUIn(anyString(), anyString(), any())).thenReturn("12345678l");
-		Mockito.when(utility.retrieveIdrepoJson(any())).thenReturn(jsonObject);
-		Mockito.when(utility.retrieveIdrepoJsonStatus(any())).thenReturn("ACTIVE");
 		when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
 		when(utility.getMappingJsonValue(anyString(), any())).thenReturn("value");
 		Mockito.when(utility.uinPresentInIdRepo(any())).thenReturn(true);
@@ -254,6 +253,9 @@ public class PacketValidatorImplTest {
 	public void testUpdateValidationSuccess() throws PacketValidatorException, ApisResourceAccessException,
 			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException,
 			BiometricSignatureValidationException, JSONException {
+		Mockito.when(utility.getUIn(anyString(), anyString(), any())).thenReturn("12345678l");
+		Mockito.when(utility.retrieveIdrepoJson(any())).thenReturn(jsonObject);
+		Mockito.when(utility.retrieveIdrepoJsonStatus(any())).thenReturn("ACTIVE");
 		Mockito.doNothing().when(biometricsSignatureValidator).validateSignature(anyString(), anyString(), any(),
 				any());
 		assertTrue(PacketValidator.validate("123456789", "UPDATE", packetValidationDto));
@@ -263,8 +265,44 @@ public class PacketValidatorImplTest {
 	public void testUINNotPresentinIDrepo() throws PacketValidatorException, ApisResourceAccessException, IOException,
 			RegistrationProcessorCheckedException, JsonProcessingException, PacketManagerException {
 		Mockito.when(utility.uinPresentInIdRepo(any())).thenReturn(false);
+		Mockito.when(utility.getUIn(anyString(), anyString(), any())).thenReturn("12345678l");
+		Mockito.when(utility.retrieveIdrepoJson(any())).thenReturn(jsonObject);
+		Mockito.when(utility.retrieveIdrepoJsonStatus(any())).thenReturn("ACTIVE");
 		Mockito.when(idRepoService.findUinFromIdrepo(anyString(), any())).thenReturn(null);
 		assertFalse(PacketValidator.validate("123456789", "UPDATE", packetValidationDto));
+	}
+
+	@Test(expected = IdRepoAppException.class)
+	public void testValidationUINNull() throws PacketValidatorException, ApisResourceAccessException,
+			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException,
+			BiometricSignatureValidationException, JSONException {
+		Mockito.when(utility.getUIn(anyString(), anyString(), any())).thenReturn(null);
+		Mockito.doNothing().when(biometricsSignatureValidator).validateSignature(anyString(), anyString(), any(),
+				any());
+		PacketValidator.validate("123456789", "UPDATE", packetValidationDto);
+	}
+
+	@Test(expected = IdRepoAppException.class)
+	public void testValidationJsonNull() throws PacketValidatorException, ApisResourceAccessException,
+			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException,
+			BiometricSignatureValidationException, JSONException {
+		Mockito.when(utility.getUIn(anyString(), anyString(), any())).thenReturn("12345678l");
+		Mockito.when(utility.retrieveIdrepoJson(any())).thenReturn(null);
+		Mockito.doNothing().when(biometricsSignatureValidator).validateSignature(anyString(), anyString(), any(),
+				any());
+		PacketValidator.validate("123456789", "UPDATE", packetValidationDto);
+	}
+
+	@Test(expected = RegistrationProcessorCheckedException.class)
+	public void testValidationStatusDeactived() throws PacketValidatorException, ApisResourceAccessException,
+			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException,
+			BiometricSignatureValidationException, JSONException {
+		Mockito.when(utility.getUIn(anyString(), anyString(), any())).thenReturn("12345678l");
+		Mockito.when(utility.retrieveIdrepoJson(any())).thenReturn(jsonObject);
+		Mockito.when(utility.retrieveIdrepoJsonStatus(any())).thenReturn("deactivated");
+		Mockito.doNothing().when(biometricsSignatureValidator).validateSignature(anyString(), anyString(), any(),
+				any());
+		PacketValidator.validate("123456789", "UPDATE", packetValidationDto);
 	}
 
 	@Test
