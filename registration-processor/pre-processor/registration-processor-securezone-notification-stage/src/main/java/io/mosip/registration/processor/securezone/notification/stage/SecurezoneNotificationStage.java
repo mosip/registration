@@ -86,6 +86,9 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
     @Value("${mosip.regproc.securezone.notification.message.expiry-time-limit}")
     private Long messageExpiryTimeLimit;
 
+    @Value("#{T(java.util.Arrays).asList('${registration.processor.main-processes:}')}")
+	private List<String> mainProcesses;
+
     /** The Constant USER. */
     private static final String USER = "MOSIP_SYSTEM";
 
@@ -312,38 +315,56 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
     }
 
     private boolean isDuplicatePacketForSameReqId(MessageDTO messageDTO) {
-        // Validate if duplicate packet received against same additional_info_req_id
-        SyncRegistrationEntity entity = syncRegistrationService.findByWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
-        // find all records for same additionalInfoReqId.
-        List<SyncRegistrationEntity> entities = syncRegistrationService.findByAdditionalInfoReqId(entity.getAdditionalInfoReqId());
-        // if multiple records are present for same additionalInfoReqId then check in registration table how many packets are received
-        if (!CollectionUtils.isEmpty(entities) && entities.size() > 1) {
-            List<String> workflowInstanceIds = entities.stream().map(e -> e.getWorkflowInstanceId()).collect(Collectors.toList());
-            List<InternalRegistrationStatusDto> dtos = new ArrayList<>();
-            for (String workflowInstanceId : workflowInstanceIds) {
-                InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus(
-                        messageDTO.getRid(), messageDTO.getReg_type(), messageDTO.getIteration(), workflowInstanceId);
-                if (dto != null )
-                    dtos.add(dto);
-            }
-            InternalRegistrationStatusDto currentPacket = dtos.stream().filter(d -> d.getWorkflowInstanceId() != null &&
-                    d.getWorkflowInstanceId().equalsIgnoreCase(messageDTO.getWorkflowInstanceId())).findAny().get();
+    	boolean isDuplicate = false;
+		SyncRegistrationEntity entity = syncRegistrationService
+				.findByWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
 
-            // remove current packet from list so that it contains only other packets received for same additionalInfoReqId
-            dtos.remove(currentPacket);
+		if (entity.getAdditionalInfoReqId() == null && mainProcesses.contains(entity.getRegistrationType())) {
+			// find all main process records for same registrationId.
+			List<SyncRegistrationEntity> entities = syncRegistrationService.findByRegistrationId(entity.getRegistrationId());
+			List<SyncRegistrationEntity> mainProcessEntities = entities.stream()
+					.filter(e -> e.getAdditionalInfoReqId() == null).collect(Collectors.toList());
+			isDuplicate = checkDuplicates(messageDTO, mainProcessEntities);
+		} else {
+			// find all records for same additionalInfoReqId.
+			List<SyncRegistrationEntity> entities = syncRegistrationService.findByAdditionalInfoReqId(entity.getAdditionalInfoReqId());
+			// if multiple records are present for same additionalInfoReqId then check in registration table how many packets are received
+			isDuplicate = checkDuplicates(messageDTO, entities);
+		}
+		return isDuplicate;
+	}
 
-            for (InternalRegistrationStatusDto otherPacket : dtos) {
-                if (otherPacket.getCreateDateTime().isBefore(currentPacket.getCreateDateTime())) {
-                    messageDTO.setIsValid(Boolean.FALSE);
-                    regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-                            LoggerFileConstant.REGISTRATIONID.toString(), messageDTO.getRid(),
-                            "Packet already received for same additionalInfoReqId.");
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
+	private boolean checkDuplicates(MessageDTO messageDTO, List<SyncRegistrationEntity> entities) {
+		if (!CollectionUtils.isEmpty(entities) && entities.size() > 1) {
+			List<String> workflowInstanceIds = entities.stream().map(e -> e.getWorkflowInstanceId())
+					.collect(Collectors.toList());
+			List<InternalRegistrationStatusDto> dtos = new ArrayList<>();
+			for (String workflowInstanceId : workflowInstanceIds) {
+				InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus(messageDTO.getRid(),
+						messageDTO.getReg_type(), messageDTO.getIteration(), workflowInstanceId);
+				if (dto != null)
+					dtos.add(dto);
+			}
+			InternalRegistrationStatusDto currentPacket = dtos.stream()
+					.filter(d -> d.getWorkflowInstanceId() != null
+							&& d.getWorkflowInstanceId().equalsIgnoreCase(messageDTO.getWorkflowInstanceId()))
+					.findAny().get();
+
+			// remove current packet from list so that it contains only other packets received for same additionalInfoReqId
+			dtos.remove(currentPacket);
+
+			for (InternalRegistrationStatusDto otherPacket : dtos) {
+				if (otherPacket.getCreateDateTime().isBefore(currentPacket.getCreateDateTime())) {
+					messageDTO.setIsValid(Boolean.FALSE);
+					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+							LoggerFileConstant.REGISTRATIONID.toString(), messageDTO.getRid(),
+							"Packet already received for same registrationId.");
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 
     private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
 		object.setInternalError(true);

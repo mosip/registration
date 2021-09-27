@@ -88,7 +88,8 @@ public class PacketExternalStatusController {
 	 * @return the response entity
 	 * @throws RegStatusAppException the reg status app exception
 	 */
-	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_OFFICER', 'REGISTRATION_SUPERVISOR','RESIDENT')")
+	//@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_OFFICER', 'REGISTRATION_SUPERVISOR','RESIDENT')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostpacketexternalstatus())")
 	@PostMapping(path = "/packetexternalstatus", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Get the Packet external status", description = "Get the Packet external status", tags = { "Packet Status" })
 	@ApiResponses(value = {

@@ -2,6 +2,7 @@ package io.mosip.registration.processor.status.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -20,6 +21,8 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -27,11 +30,14 @@ import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.dataaccess.hibernate.constant.HibernateErrorCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.logger.LogDescription;
+import io.mosip.registration.processor.core.workflow.dto.FilterInfo;
+import io.mosip.registration.processor.core.workflow.dto.PaginationInfo;
+import io.mosip.registration.processor.core.workflow.dto.SearchInfo;
+import io.mosip.registration.processor.core.workflow.dto.SortInfo;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationExternalStatusCode;
 import io.mosip.registration.processor.status.dao.RegistrationStatusDao;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
-import io.mosip.registration.processor.status.dto.RegistrationExternalStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.TransactionDto;
@@ -175,7 +181,36 @@ public class RegistrationStatusServiceTest {
 
 		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus("1001", "NEW", 1, "");
 		assertEquals("PACKET_UPLOADED_TO_LANDING_ZONE", dto.getStatusCode());
+	}
 
+	@Test
+	public void testGetAllRegistrationStatusesSuccess() {
+		Mockito.when(registrationStatusDao.findAll(anyString())).thenReturn(entities);
+		List<InternalRegistrationStatusDto> dto = registrationStatusService.getAllRegistrationStatuses("1001");
+		assertEquals(1, dto.size());
+	}
+
+	@Test(expected = TablenotAccessibleException.class)
+	public void testGetAllRegistrationStatusesFailure() {
+		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
+				"errorMessage", new Exception());
+		Mockito.when(registrationStatusDao.findAll(anyString())).thenThrow(exp);
+		registrationStatusService.getAllRegistrationStatuses("1001");
+	}
+
+	@Test
+	public void testGetRegStatusForMainProcessSuccess() {
+		Mockito.when(registrationStatusDao.findAll(anyString())).thenReturn(entities);
+		List<InternalRegistrationStatusDto> dto = registrationStatusService.getAllRegistrationStatuses("1001");
+		assertEquals(1, dto.size());
+	}
+
+	@Test(expected = TablenotAccessibleException.class)
+	public void testGetRegStatusForMainProcessFailure() {
+		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
+				"errorMessage", new Exception());
+		Mockito.when(registrationStatusDao.findAll(anyString())).thenThrow(exp);
+		registrationStatusService.getAllRegistrationStatuses("1001");
 	}
 
 	@Test(expected = TablenotAccessibleException.class)
@@ -200,6 +235,49 @@ public class RegistrationStatusServiceTest {
 				"errorMessage", new Exception());
 		Mockito.when(registrationStatusDao.save(any())).thenThrow(exp);
 		registrationStatusService.addRegistrationStatus(registrationStatusDto, "", "");
+	}
+
+	@Test
+	public void testSearchRegistrationDetailsSuccess() {
+		SearchInfo searchInfo = new SearchInfo();
+		List<FilterInfo> filterInfos = new ArrayList<FilterInfo>();
+		FilterInfo filterInfo=new FilterInfo();
+		filterInfo.setColumnName("name");
+		filterInfo.setValue("mosip");
+		SortInfo sortInfo=new SortInfo();
+		sortInfo.setSortField("createDateTime");
+		sortInfo.setSortType("desc");
+		filterInfos.add(filterInfo);
+		searchInfo.setFilters(filterInfos);
+		searchInfo.setPagination(new PaginationInfo(0,10));
+		searchInfo.setSort(sortInfo);
+
+		Page<RegistrationStatusEntity> pageDto = new PageImpl<RegistrationStatusEntity>(entities);
+		Mockito.when(registrationStatusDao.getPagedSearchResults(any(), any(), any())).thenReturn(pageDto);
+		Page<InternalRegistrationStatusDto> idList = registrationStatusService.searchRegistrationDetails(searchInfo);
+		assertEquals(1, idList.getContent().size());
+	}
+
+	@Test(expected = TablenotAccessibleException.class)
+	public void testSearchRegistrationDetailsFailure() {
+		SearchInfo searchInfo = new SearchInfo();
+		List<FilterInfo> filterInfos = new ArrayList<FilterInfo>();
+		FilterInfo filterInfo=new FilterInfo();
+		filterInfo.setColumnName("name");
+		filterInfo.setValue("mosip");
+		SortInfo sortInfo=new SortInfo();
+		sortInfo.setSortField("createDateTime");
+		sortInfo.setSortType("desc");
+		filterInfos.add(filterInfo);
+		searchInfo.setFilters(filterInfos);
+		searchInfo.setPagination(new PaginationInfo(0,10));
+		searchInfo.setSort(sortInfo);
+
+		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
+				"errorMessage", new Exception());
+
+		Mockito.when(registrationStatusDao.getPagedSearchResults(any(), any(), any())).thenThrow(exp);
+		registrationStatusService.searchRegistrationDetails(searchInfo);
 	}
 
 	@Test
@@ -433,5 +511,22 @@ public class RegistrationStatusServiceTest {
 
 		Mockito.when(registrationStatusDao.save(any())).thenThrow(exp);
 		registrationStatusService.updateRegistrationStatusForWorkflow(registrationStatusDto, "", "");
+	}
+	
+	@Test
+	public void getRegStatusForMainProcessSuccessTest() {
+
+		Mockito.when(registrationStatusDao.findAll(any())).thenReturn(entities);
+		String registartionId="1000";
+		InternalRegistrationStatusDto dto = registrationStatusService.getRegStatusForMainProcess(registartionId);
+		assertEquals("1000", dto.getRegistrationId());
+	}
+	
+	@Test(expected = TablenotAccessibleException.class)
+	public void getRegStatusForMainProcessFailureTest() {
+		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
+				"errorMessage", new Exception());
+		Mockito.when(registrationStatusDao.findAll(anyString())).thenThrow(exp);
+		registrationStatusService.getRegStatusForMainProcess("1001");
 	}
 }

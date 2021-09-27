@@ -6,9 +6,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,9 +31,6 @@ import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
-import io.mosip.registration.processor.core.pms.ExtractorDto;
-import io.mosip.registration.processor.core.pms.ExtractorProviderDto;
-import io.mosip.registration.processor.core.pms.ExtractorsDto;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.manager.dto.IdResponseDTO;
@@ -126,7 +120,6 @@ public class FinalizationStageTest {
 		}
 	};
 	
-	@SuppressWarnings("unchecked")
 	@Before
 	public void setUp() throws Exception {
 		ReflectionTestUtils.setField(finalizationStage, "workerPoolSize", 10);
@@ -205,7 +198,8 @@ public class FinalizationStageTest {
 		MessageDTO result = finalizationStage.process(messageDTO);
 		assertTrue(result.getInternalError());
 		assertFalse(result.getIsValid());
-	} 
+	}
+	
 	@Test
 	public void testBiometricExtractionAPIException() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
@@ -218,7 +212,22 @@ public class FinalizationStageTest {
 		MessageDTO result = finalizationStage.process(messageDTO);
 		assertTrue(result.getInternalError());
 		assertFalse(result.getIsValid());
-	} 
+	}
+	
+	@Test
+	public void testBiometricExtractionUnknownException() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.NEW.name());
+		messageDTO.setWorkflowInstanceId("123er");
+		messageDTO.setIteration(1);
+		
+		when(idrepoDraftService.idrepoHasDraft(anyString())).thenThrow(NullPointerException.class);
+		MessageDTO result = finalizationStage.process(messageDTO);
+		assertTrue(result.getInternalError());
+		assertFalse(result.getIsValid());
+	}
+	
 	@Test
 	public void testDeployVerticle() {
 		finalizationStage.deployVerticle();

@@ -19,7 +19,9 @@ import io.mosip.registration.processor.core.workflow.dto.SortInfo;
 import io.mosip.registration.processor.status.dto.FilterInfo;
 import io.mosip.registration.processor.status.dto.SyncStatusDto;
 import io.mosip.registration.processor.status.dto.SyncTypeDto;
+import io.mosip.registration.processor.status.entity.SaltEntity;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
+import io.mosip.registration.processor.status.repositary.SaltRepository;
 import io.mosip.registration.processor.status.repositary.SyncRegistrationRepository;
 
 /**
@@ -37,6 +39,9 @@ public class SyncRegistrationDaoTest {
 	/** The sync registration repository. */
 	@Mock
 	SyncRegistrationRepository<SyncRegistrationEntity, String> syncRegistrationRepository;
+
+	@Mock
+	SaltRepository saltRepository;
 
 	/** The sync registration entity. */
 	private SyncRegistrationEntity syncRegistrationEntity;
@@ -121,12 +126,45 @@ public class SyncRegistrationDaoTest {
 	}
 
 	@Test
+	public void getById() {
+		List<SyncRegistrationEntity> rEntityList = syncRegistrationDao.findById("1000.zip");
+		assertEquals(syncRegistrationEntityList, rEntityList);
+	}
+
+	@Test
+	public void deleteAdditionalInfoTest() {
+		Mockito.when(syncRegistrationRepository.update(any())).thenReturn(syncRegistrationEntity);
+		boolean status = syncRegistrationDao.deleteAdditionalInfo(syncRegistrationEntity);
+		assertEquals(true, status);
+	}
+
+	@Test
+	public void findByWorkflowInstanceIdTest() {
+		SyncRegistrationEntity rEntityList = syncRegistrationDao.findByWorkflowInstanceId("0c326dc2-ac54-4c2a-98b4-b0c620f1661f");
+		assertEquals(syncRegistrationEntity, rEntityList);
+	}
+
+	@Test
 	public void findByRegistrationIdIdAndRegTypeTest() {
+		SyncRegistrationEntity rEntityList = syncRegistrationDao.findByRegistrationIdIdAndRegType("1000.zip", "NEW");
+		assertEquals(syncRegistrationEntity, rEntityList);
+	}
+
+	@Test
+	public void findByAdditionalInfoReqIdTest() {
+		List<SyncRegistrationEntity> rEntityList = syncRegistrationDao.findByAdditionalInfoReqId("1000.zip");
+		assertEquals(syncRegistrationEntityList, rEntityList);
+	}
+
+	@Test
+	public void findByRegistrationIdIdAndAdditionalInfoReqIdTest() {
 		Mockito.when(syncRegistrationRepository.createQuerySelect(any(), any())).thenReturn(syncRegistrationEntityList);
-		SyncRegistrationEntity syncRegistrationEntityResult = syncRegistrationDao.findByRegistrationIdIdAndAdditionalInfoReqId("1000", "NEW");
+		SyncRegistrationEntity syncRegistrationEntityResult = syncRegistrationDao
+				.findByRegistrationIdIdAndAdditionalInfoReqId("1000", "NEW");
 		assertEquals("Check id Registration Id is present in DB, expected valie is 1001",
 				syncRegistrationEntity.getRegistrationId(), syncRegistrationEntityResult.getRegistrationId());
 	}
+
 	@Test
 	public void getByPacketIdsTest() {
 		List<String> packetIdList = new ArrayList<>();
@@ -151,6 +189,15 @@ public class SyncRegistrationDaoTest {
 		testIdList.add("1001");
 		List<SyncRegistrationEntity> idList = syncRegistrationDao.getSearchResults(filterInfos, sortInfos);
 		assertEquals(idList.get(0).getRegistrationId(), testIdList.get(0));
+	}
+
+	@Test
+	public void getSaltValueTest() {
+		SaltEntity saltEntity = new SaltEntity();
+		saltEntity.setSalt("qwfs");
+		Mockito.when(saltRepository.findSaltById(any())).thenReturn(saltEntity);
+		String salt = syncRegistrationDao.getSaltValue((long) 10);
+		assertEquals("qwfs", salt);
 	}
 
 }

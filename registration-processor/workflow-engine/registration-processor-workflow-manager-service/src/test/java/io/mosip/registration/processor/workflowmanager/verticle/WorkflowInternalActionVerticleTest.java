@@ -11,11 +11,13 @@ import static org.mockito.Mockito.verify;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.map.HashedMap;
 import org.json.JSONException;
+import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,6 +25,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -30,6 +33,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.entities.Entry;
+import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
@@ -49,6 +53,7 @@ import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventD
 import io.mosip.registration.processor.core.workflow.dto.WorkflowPausedForAdditionalInfoEventDTO;
 import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -96,6 +101,9 @@ public class WorkflowInternalActionVerticleTest {
 	
 	@Mock
 	private IdSchemaUtil idSchemaUtil;
+	
+	@Mock
+	private Utilities utility;
 
 	@Mock
 	private Environment env;
@@ -632,8 +640,7 @@ public class WorkflowInternalActionVerticleTest {
 	
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testProcessSuccessForAnonymousProfile() throws ApisResourceAccessException, PacketManagerException,
-			JsonProcessingException, IOException, JSONException {
+	public void testProcessSuccessForAnonymousProfile() throws IOException, JSONException, BaseCheckedException {
 		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
 		workflowInternalActionDTO.setRid("10006100390000920200603070407");
 		workflowInternalActionDTO.setReg_type("NEW");
@@ -644,6 +651,12 @@ public class WorkflowInternalActionVerticleTest {
 		Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any()))
 				.thenReturn("1.0");
 		Mockito.when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(Arrays.asList(""));
+
+		Map<String, String> fieldTypeMap = new HashedMap();
+		fieldTypeMap.put("postalCode", "string");
+		fieldTypeMap.put("zone", "simpleType");
+		Mockito.when(idSchemaUtil.getIdSchemaFieldTypes(anyDouble())).thenReturn(fieldTypeMap);
+
 		Map<String, String> fieldMap = new HashedMap();
 		fieldMap.put("postalCode", "14022");
 		fieldMap.put("dateOfBirth", "1998/01/01");
@@ -669,16 +682,22 @@ public class WorkflowInternalActionVerticleTest {
 		biometricRecord.setSegments(Arrays.asList(bir));
 		Mockito.when(packetManagerService.getBiometrics(anyString(), anyString(), anyString(), any()))
 				.thenReturn(biometricRecord);
-
+		
+		org.json.simple.JSONObject identity = new org.json.simple.JSONObject();
+		LinkedHashMap IDSchemaVersion = new LinkedHashMap();
+		IDSchemaVersion.put("value", "1.0");
+		identity.put("IDSchemaVersion", IDSchemaVersion);
+		
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
 				.thenReturn(registrationStatusDto);
+		Mockito.when(utility.getRegistrationProcessorMappingJson(any()))
+		.thenReturn(identity);
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(null);
-		Mockito.when(
-				anonymousProfileService.buildJsonStringFromPacketInfo(any(), any(), any(), anyString(), anyString()))
-				.thenReturn("jsonProfile");
+		Mockito.when(anonymousProfileService.buildJsonStringFromPacketInfo(any(), any(), any(), any(), anyString(),
+				anyString())).thenReturn("jsonProfile");
 		Mockito.doNothing().when(anonymousProfileService).saveAnonymousProfile(anyString(), anyString(), anyString());
 		MessageDTO object = workflowInternalActionVerticle.process(workflowInternalActionDTO);
 		assertEquals(true, object.getIsValid());

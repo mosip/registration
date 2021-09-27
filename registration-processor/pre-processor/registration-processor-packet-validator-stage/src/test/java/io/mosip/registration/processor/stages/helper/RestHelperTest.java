@@ -26,6 +26,7 @@ import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -53,9 +54,9 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 import io.mosip.registration.processor.stages.dto.AsyncRequestDTO;
 import io.mosip.registration.processor.stages.exception.RestServiceException;
-import io.mosip.registration.processor.stages.utils.AuditUtility;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import reactor.core.publisher.Mono;
@@ -63,7 +64,7 @@ import reactor.core.publisher.Mono;
 
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(PowerMockRunner.class)
-@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
+@PowerMockIgnore({"com.sun.org.apache.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PowerMockRunnerDelegate(SpringJUnit4ClassRunner.class)
 @WebMvcTest
 @AutoConfigureMockMvc
@@ -83,22 +84,18 @@ public class RestHelperTest {
 	@Autowired
 	Environment environment;
 	
-	/** The rest factory. */
-	@InjectMocks
-	AuditUtility auditUtility;
+	@MockBean
+	private RestApiClient restApiClient;
 	
 	@Before
-	public void before() throws SSLException {
-		ReflectionTestUtils.setField(auditUtility, "env", environment);
-		ReflectionTestUtils.setField(restHelper, "env", environment);
-		ReflectionTestUtils.setField(restHelper, "mapper", mapper);
-		ReflectionTestUtils.setField(restHelper, "authToken", "1324");
+	public void before() throws IOException {
 		PowerMockito.mockStatic(SslContextBuilder.class);
 		SslContextBuilder sslContextBuilder = PowerMockito.mock(SslContextBuilder.class);
 		PowerMockito.when(SslContextBuilder.forClient()).thenReturn(sslContextBuilder);
 		PowerMockito.when(sslContextBuilder.trustManager(Mockito.any(TrustManagerFactory.class)))
 				.thenReturn(sslContextBuilder);
 		PowerMockito.when(sslContextBuilder.build()).thenReturn(Mockito.mock(SslContext.class));
+		Mockito.when(restApiClient.getToken()).thenReturn("Gjnaiuhs==");
 	}
 	
 	/**
@@ -112,7 +109,7 @@ public class RestHelperTest {
 	@Test
 	@Ignore
 	public void testGetAuthToken() throws IOException {
-		ReflectionTestUtils.setField(restHelper, "authToken", null);
+		//ReflectionTestUtils.setField(restHelper, "authToken", null);
 		PowerMockito.mockStatic(WebClient.class);
 		WebClient webClient = PowerMockito.mock(WebClient.class);
 		PowerMockito.when(WebClient.create(Mockito.any())).thenReturn(webClient);
@@ -143,7 +140,7 @@ public class RestHelperTest {
 	@Test
 	@Ignore
 	public void testGetAuthTokenInvalid() throws JsonParseException, JsonMappingException, IOException {
-		ReflectionTestUtils.setField(restHelper, "authToken", null);
+		//ReflectionTestUtils.setField(restHelper, "authToken", null);
 		PowerMockito.mockStatic(WebClient.class);
 		WebClient webClient = PowerMockito.mock(WebClient.class);
 		PowerMockito.when(WebClient.create(Mockito.any())).thenReturn(webClient);
@@ -176,7 +173,6 @@ public class RestHelperTest {
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
-	@Ignore
 	public void testRequestAsync() throws JsonParseException, JsonMappingException, IOException {
 		PowerMockito.mockStatic(WebClient.class);
 		ResponseSpec responseSpec=PowerMockito.mock(ResponseSpec.class);
@@ -208,7 +204,6 @@ public class RestHelperTest {
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
-	@Ignore
 	public void testRequestAsyncWithHeaders() throws JsonParseException, JsonMappingException, IOException {
 		PowerMockito.mockStatic(WebClient.class);
 		ResponseSpec responseSpec=PowerMockito.mock(ResponseSpec.class);
@@ -243,7 +238,6 @@ public class RestHelperTest {
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
-	@Ignore
 	public void testRequestAsyncWithParam() throws IOException {
 		PowerMockito.mockStatic(WebClient.class);
 		ResponseSpec responseSpec=PowerMockito.mock(ResponseSpec.class);
@@ -285,7 +279,6 @@ public class RestHelperTest {
 	 * @throws SSLException the SSL exception
 	 */
 	@Test(expected=RestServiceException.class)
-	@Ignore
 	public void testRequestAsyncAndReturn() throws RestServiceException, SSLException {
 		PowerMockito.mockStatic(SslContextBuilder.class);
 		SslContextBuilder sslContextBuilder = PowerMockito.mock(SslContextBuilder.class);
