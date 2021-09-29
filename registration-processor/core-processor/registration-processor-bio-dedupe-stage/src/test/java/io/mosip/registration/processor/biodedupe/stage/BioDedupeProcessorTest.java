@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -351,11 +352,11 @@ public class BioDedupeProcessorTest {
 		set.add("1");
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
 
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any(),any())).thenReturn(set);
+		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(set);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
-		assertFalse(messageDto.getIsValid());
-		assertTrue(messageDto.getInternalError());
+		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 
 	}
 
@@ -426,7 +427,7 @@ public class BioDedupeProcessorTest {
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
 
 		Set<String> matchedRidList = new HashSet<>();
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any(),any())).thenReturn(matchedRidList);
+		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(matchedRidList);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
 		assertFalse(messageDto.getInternalError());
@@ -453,7 +454,7 @@ public class BioDedupeProcessorTest {
 
 		Set<String> matchedRidList = new HashSet<>();
 		matchedRidList.add("27847657360002520190320095010");
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any(),any())).thenReturn(matchedRidList);
+		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(matchedRidList);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
@@ -479,7 +480,7 @@ public class BioDedupeProcessorTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
 		Set<String> matchedRidList = new HashSet<>();
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any(),any())).thenReturn(matchedRidList);
+		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(matchedRidList);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertFalse(messageDto.getIsValid());
@@ -506,7 +507,7 @@ public class BioDedupeProcessorTest {
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
 		Set<String> matchedRidList = new HashSet<>();
 		matchedRidList.add("27847657360002520190320095010");
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any(),any())).thenReturn(matchedRidList);
+		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(matchedRidList);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
@@ -529,7 +530,7 @@ public class BioDedupeProcessorTest {
 		Set<String> matchedRidList = new HashSet<>();
 		matchedRidList.add("27847657360002520190320095010");
 		matchedRidList.add("27847657360002520190320095011");
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any(),any())).thenReturn(matchedRidList);
+		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(matchedRidList);
 
 		Mockito.when(priorityBasedPacketManagerService.getField("reg1234","gender","LOST", ProviderStageName.BIO_DEDUPE)).thenReturn("MALE");
 		Mockito.when(priorityBasedPacketManagerService.getField("reg1234","dob", "LOST", ProviderStageName.BIO_DEDUPE)).thenReturn("2016/01/01");
@@ -564,7 +565,7 @@ public class BioDedupeProcessorTest {
 		Set<String> matchedRidList = new HashSet<>();
 		matchedRidList.add("27847657360002520190320095010");
 		matchedRidList.add("27847657360002520190320095011");
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any(),any())).thenReturn(matchedRidList);
+		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(matchedRidList);
 
 		JSONObject obj1 = new JSONObject();
 		obj1.put("dateOfBirth", "2016/01/01");
@@ -588,7 +589,7 @@ public class BioDedupeProcessorTest {
 		Set<String> matchedRidList = new HashSet<>();
 		matchedRidList.add("27847657360002520190320095010");
 		matchedRidList.add("27847657360002520190320095011");
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any(),any())).thenReturn(matchedRidList);
+		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(matchedRidList);
 
 		JSONObject obj1 = new JSONObject();
 		obj1.put("dateOfBirth", "2016/01/01");
@@ -617,7 +618,7 @@ public class BioDedupeProcessorTest {
 		matchedRidList.add("27847657360002520190320095010");
 		matchedRidList.add("27847657360002520190320095011");
 		matchedRidList.add("27847657360002520190320095012");
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any(),any())).thenReturn(matchedRidList);
+		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(matchedRidList);
 
 		JSONObject obj1 = new JSONObject();
 		obj1.put("dateOfBirth", "2016/01/01");

@@ -18,6 +18,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,14 +30,15 @@ import io.mosip.registration.processor.quality.check.controller.QualityCheckerCo
 import io.mosip.registration.processor.quality.check.dto.DecisionStatus;
 import io.mosip.registration.processor.quality.check.dto.QCUserDto;
 
-
-
-
 @RunWith(SpringRunner.class)
 @WebMvcTest(QualityCheckerController.class)
 public class QualityCheckControllerTest {
+	
 	@Autowired
 	private MockMvc mockMvc;
+	
+	@Autowired
+	private WebApplicationContext webApplicationContext;
 
 	@MockBean
 	private QualityCheckManager<String, QCUserDto> qualityCheckManger;
@@ -44,6 +47,7 @@ public class QualityCheckControllerTest {
 	String arrayToJson ;
 	@Before
 	public void setup() throws JsonProcessingException {
+		mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 		QCUserDto dto1=new QCUserDto();
 		dto1.setQcUserId("qc001");
 		dto1.setRegId("123456");
@@ -75,13 +79,13 @@ public class QualityCheckControllerTest {
 	@Test
 	public void updateQCUserStatusControllerSuccessTest() throws Exception {
 		
-		mockMvc.perform(post("/v0.1/registration-processor/quality-checker/decisionStatus").accept(MediaType.APPLICATION_JSON_VALUE)
+		this.mockMvc.perform(post("/v0.1/registration-processor/quality-checker/decisionStatus").accept(MediaType.APPLICATION_JSON_VALUE)
 				.contentType(MediaType.APPLICATION_JSON).content(arrayToJson)).andExpect(status().isOk());
 	}
 	@Test
 	public void updateQCUserStatusControllerFailureTest() throws Exception {
 		
-		mockMvc.perform(post("/v0.1/registration-processor/quality-checker/decisionStatus").accept(MediaType.APPLICATION_JSON_VALUE)
+		this.mockMvc.perform(post("/v0.1/registration-processor/quality-checker/decisionStatus").accept(MediaType.APPLICATION_JSON_VALUE)
 				.contentType(MediaType.APPLICATION_JSON).content("")).andExpect(MockMvcResultMatchers.status().isBadRequest());
 	}
 

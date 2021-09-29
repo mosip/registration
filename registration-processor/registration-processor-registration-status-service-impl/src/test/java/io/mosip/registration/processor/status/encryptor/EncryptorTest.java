@@ -2,11 +2,13 @@ package io.mosip.registration.processor.status.encryptor;
 
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.registration.processor.status.dto.DecryptResponseDto;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,6 +16,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -31,7 +34,7 @@ import io.mosip.registration.processor.status.exception.EncryptionFailureExcepti
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
-@PrepareForTest({ EncryptorTest.class })
+@PrepareForTest({ EncryptorTest.class, CryptoUtil.class})
 public class EncryptorTest {
 
 	@InjectMocks
@@ -51,6 +54,8 @@ public class EncryptorTest {
 
 	@Before
 	public void setup() throws FileNotFoundException {
+		PowerMockito.mockStatic(CryptoUtil.class);
+		PowerMockito.when(CryptoUtil.decodeBase64(anyString())).thenReturn("mosip".getBytes());
 		data = "bW9zaXA";
 		cryptomanagerResponseDto = new DecryptResponseDto();
 		cryptomanagerResponseDto.setData(data);

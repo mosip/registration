@@ -24,7 +24,7 @@ public enum StatusUtil {
 	PACKET_RETRY_CNT_EXCEEDED(StatusConstants.PACKET_UPLOADER_MODULE_FAILED + "008", "Retry count has exceeded the maximum limit specified"),
 	
 	// Quality checker stage
-	INDIVIDUAL_BIOMETRIC_NOT_FOUND(StatusConstants.QUALITY_CHECKER_MODULE_SUCCESS + "001","Individual Biometric Parameter Not Found in ID JSON so skipping biometric classification"), 
+	INDIVIDUAL_BIOMETRIC_NOT_FOUND(StatusConstants.QUALITY_CHECKER_MODULE_SUCCESS + "001","Individual Biometric Parameter Not Found in ID JSON so skipping biometric classification"),
 	BIOMETRIC_QUALITY_CHECK_SUCCESS(StatusConstants.QUALITY_CHECKER_MODULE_SUCCESS + "002","Biometric Quality Check is Successful"),
 	BIOMETRIC_QUALITY_CHECK_FAILED(StatusConstants.QUALITY_CHECKER_MODULE_FAILED + "001","Quality Score of Biometrics Captured is Below the Threshold"),
 
@@ -46,7 +46,7 @@ public enum StatusUtil {
 	PACKET_MANAGER_EXCEPTION(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "014", "Exception occured in packet manager."),
 	XSD_VALIDATION_EXCEPTION(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "015", "XSD validation failed."),
 	BIOMETRICS_SIGNATURE_VALIDATION_FAILURE(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "016", "Biometric Signature validation failed"),
-	
+
 	// packet classifier stage
 	PACKET_CLASSIFICATION_SUCCESS(StatusConstants.PACKET_CLASSIFIER_MODULE_SUCCESS + "001","Packet Classification is Successful"),
 
@@ -74,6 +74,8 @@ public enum StatusUtil {
 	TIMESTAMP_NOT_VALID(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "016"  ,"digital id timestamp is not within acctable time range of packet creation time"),
 	DEVICE_HOTLISTED(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "017"  ,"Device has been hot listed"),
 	DEVICE_SIGNATURE_VALIDATION_FAILED(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "018", "DigitalId signature Validation Failed"),
+	CMD_LANGUAGE_NOT_SET(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "019", "Mandatory/Optional Language not set for CMD validation."),
+
 	// Operator Validator stage
 	OPERATOR_VALIDATION_SUCCESS(StatusConstants.OVM_VALIDAOR_MODULE_SUCCESS + "001", "OPERATOR Validation is Successful"),
 	OFFICER_NOT_ACTIVE(StatusConstants.OVM_VALIDAOR_MODULE_FAILED + "001","OfficerId is inActive"),
@@ -153,7 +155,7 @@ public enum StatusUtil {
 
 	// Uin generator stage
 	UIN_GENERATED_SUCCESS(StatusConstants.UIN_GENERATOR_MODULE_SUCCESS + "001","UIN Generated Successfully"), 
-	UIN_DATA_UPDATION_SUCCESS(StatusConstants.UIN_GENERATOR_MODULE_SUCCESS + "002","UIN Data is Updated Successfully"),
+	UIN_DATA_UPDATION_SUCCESS(StatusConstants.UIN_GENERATOR_MODULE_SUCCESS + "002","UIN Data is drafted Successfully"),
 	UIN_ACTIVATED_SUCCESS(StatusConstants.UIN_GENERATOR_MODULE_SUCCESS + "003", "UIN is Activated"), 
 	UIN_DEACTIVATION_SUCCESS(StatusConstants.UIN_GENERATOR_MODULE_SUCCESS + "004", "UIN is Deactivated"),
 	LINK_RID_FOR_LOST_PACKET_SUCCESS(StatusConstants.UIN_GENERATOR_MODULE_SUCCESS + "005","RID linked Successfully for Lost UIN Packet"),
@@ -167,7 +169,16 @@ public enum StatusUtil {
 	UIN_REACTIVATION_FAILED(StatusConstants.UIN_GENERATOR_MODULE_FAILED + "006", "UIN Reactivation  failed - "),
 	UIN_DEACTIVATION_FAILED(StatusConstants.UIN_GENERATOR_MODULE_FAILED + "007", "UIN Deactivation  failed - "),
 	LINK_RID_FOR_LOST_PACKET_FAILED(StatusConstants.UIN_GENERATOR_MODULE_FAILED + "008","UIn not found the the matched RID"),
-	
+	IDREPO_DRAFT_EXCEPTION(StatusConstants.UIN_GENERATOR_MODULE_FAILED + "008", "Exception occured updating idrepo draft."),
+
+	//Biometric extraction stage
+	BIOMETRIC_EXTRACTION_SUCCESS(StatusConstants.BIOMETRIC_EXTRACTION_MODULE_SUCCESS + "001","biometric extaction was successful"),
+	BIOMETRIC_EXTRACTION_DRAFT_REQUEST_UNAVAILABLE(StatusConstants.BIOMETRIC_EXTRACTION_MODULE_FAILED + "001","Draft request is unavaialble in id-repo draft repository."),
+
+	FINALIZATION_SUCCESS(StatusConstants.FINALIZATION_MODULE_SUCCESS + "001","idrepo draft was published  successfuly"),
+	FINALIZATION_FAILURE(StatusConstants.FINALIZATION_MODULE_FAILED + "001","Draft request failed to publish."),
+	FINALIZATION_DRAFT_REQUEST_UNAVAILABLE(StatusConstants.FINALIZATION_MODULE_FAILED + "001","Draft request is unavaialble in id-repo draft repository."),
+
 	//Request handler service
 	//1)Resident UIN update
 	RESIDENT_UPDATE_SUCCES(StatusConstants.REQUEST_HANDLER_MODULE_SUCCESS + "001" , "Resident Uin data updated sucessfully"),

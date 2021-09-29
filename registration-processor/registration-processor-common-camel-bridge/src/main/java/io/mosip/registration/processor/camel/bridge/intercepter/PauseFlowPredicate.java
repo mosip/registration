@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.camel.bridge.intercepter;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +11,7 @@ import javax.annotation.PostConstruct;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Predicate;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -29,8 +31,6 @@ import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.util.JsonUtil;
-import io.vertx.core.json.JsonObject;
 import net.minidev.json.JSONArray;
 
 public class PauseFlowPredicate implements Predicate {
@@ -48,7 +48,9 @@ public class PauseFlowPredicate implements Predicate {
 	@PostConstruct
 	private void init() {
 		try {
-			settings = objectMapper.readValue(settingsString, Setting[].class);
+			String encodedSettings = StringUtils.toEncodedString(settingsString.getBytes(Charset.forName("ISO-8859-1")),
+					Charset.forName("UTF-8"));
+			settings = objectMapper.readValue(encodedSettings, Setting[].class);
 		} catch (IOException e) {
 			LOGGER.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 					"RoutePredicate::exception " + e.getMessage());

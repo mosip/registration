@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -62,7 +63,6 @@ import io.mosip.registration.processor.message.sender.exception.TemplateGenerati
 import io.mosip.registration.processor.message.sender.exception.TemplateNotFoundException;
 import io.mosip.registration.processor.message.sender.util.StatusNotificationTypeMapUtil;
 import io.mosip.registration.processor.message.sender.utility.MessageSenderStatusMessage;
-import io.mosip.registration.processor.message.sender.utility.NotificationTemplateCode;
 import io.mosip.registration.processor.message.sender.utility.NotificationTemplateType;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -108,6 +108,18 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 	/** The registration status service. */
 	@Autowired
 	private RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
+	private static final String NOTIFICATION_TEMPLATE_CODE="regproc.notification.template.code.";
+	private static final String EMAIL="email";
+	private static final String SMS="sms";
+	private static final String SUB="sub";
+	private static final String LOST_UIN=NOTIFICATION_TEMPLATE_CODE+"lost.uin.";
+	private static final String UIN_CREATED=NOTIFICATION_TEMPLATE_CODE+"uin.created.";
+	private static final String UIN_NEW=NOTIFICATION_TEMPLATE_CODE+"uin.new.";
+	private static final String UIN_ACTIVATE=NOTIFICATION_TEMPLATE_CODE+"uin.activate.";
+	private static final String UIN_DEACTIVATE=NOTIFICATION_TEMPLATE_CODE+"uin.deactivate.";
+	private static final String UIN_UPDATE=NOTIFICATION_TEMPLATE_CODE+"uin.update.";
+	private static final String DUPLICATE_UIN=NOTIFICATION_TEMPLATE_CODE+"duplicate.uin.";
+	private static final String TECHNICAL_ISSUE=NOTIFICATION_TEMPLATE_CODE+"technical.issue.";
 
 
 
@@ -140,6 +152,9 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 	/** Mosip router for APIs */
 	@Autowired
 	MosipRouter router;
+	
+	@Autowired
+	Environment env;
 
 	/** worker pool size. */
 	@Value("${worker.pool.size}")
@@ -451,8 +466,8 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 			MessageSenderDto messageSenderDto, LogDescription description) throws Exception {
 		boolean isEmailSuccess = false;
 		try {
-			ResponseDto emailResponse = service.sendEmailNotification(messageSenderDto.getEmailTemplateCode().name(),
-					id, process, messageSenderDto.getIdType(), attributes, ccEMailList, messageSenderDto.getSubjectCode().name(), null,
+			ResponseDto emailResponse = service.sendEmailNotification(messageSenderDto.getEmailTemplateCode(),
+					id, process, messageSenderDto.getIdType(), attributes, ccEMailList, messageSenderDto.getSubjectCode(), null,
 					regType);
 			if (emailResponse.getStatus().equals("success")) {
 				isEmailSuccess = true;
@@ -488,7 +503,7 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 			JSONException {
 		boolean isSmsSuccess = false;
 		try {
-			SmsResponseDto smsResponse = service.sendSmsNotification(messageSenderDto.getSmsTemplateCode().name(), id,
+			SmsResponseDto smsResponse = service.sendSmsNotification(messageSenderDto.getSmsTemplateCode(), id,
 					process, messageSenderDto.getIdType(), attributes, regType);
 			if (smsResponse.getStatus().equals("success")) {
 				isSmsSuccess = true;
@@ -530,52 +545,52 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 			MessageSenderDto messageSenderDto) {
 		switch (templatetype) {
 		case LOST_UIN:
-			messageSenderDto.setSmsTemplateCode(NotificationTemplateCode.RPR_LOST_UIN_SMS);
-			messageSenderDto.setEmailTemplateCode(NotificationTemplateCode.RPR_LOST_UIN_EMAIL);
+			messageSenderDto.setSmsTemplateCode(env.getProperty(LOST_UIN+SMS));
+			messageSenderDto.setEmailTemplateCode(env.getProperty(LOST_UIN+EMAIL));
 			messageSenderDto.setIdType(IdType.UIN);
-			messageSenderDto.setSubjectCode(NotificationTemplateCode.RPR_UIN_GEN_EMAIL_SUB);
+			messageSenderDto.setSubjectCode(env.getProperty(LOST_UIN+SUB));
 			break;
 		case UIN_CREATED:
-			messageSenderDto.setSmsTemplateCode(NotificationTemplateCode.RPR_UIN_GEN_SMS);
-			messageSenderDto.setEmailTemplateCode(NotificationTemplateCode.RPR_UIN_GEN_EMAIL);
+			messageSenderDto.setSmsTemplateCode(env.getProperty(UIN_CREATED+SMS));
+			messageSenderDto.setEmailTemplateCode(env.getProperty(UIN_CREATED+EMAIL));
 			messageSenderDto.setIdType(IdType.UIN);
-			messageSenderDto.setSubjectCode(NotificationTemplateCode.RPR_UIN_GEN_EMAIL_SUB);
+			messageSenderDto.setSubjectCode(env.getProperty(UIN_CREATED+SUB));
 			break;
 		case UIN_UPDATE:
 			if (regType.equalsIgnoreCase(RegistrationType.NEW.name())) {
-				messageSenderDto.setSmsTemplateCode(NotificationTemplateCode.RPR_UIN_UPD_SMS);
-				messageSenderDto.setEmailTemplateCode(NotificationTemplateCode.RPR_UIN_UPD_EMAIL);
+				messageSenderDto.setSmsTemplateCode(env.getProperty(UIN_NEW+SMS));
+				messageSenderDto.setEmailTemplateCode(env.getProperty(UIN_NEW+EMAIL));
 				messageSenderDto.setIdType(IdType.UIN);
-				messageSenderDto.setSubjectCode(NotificationTemplateCode.RPR_UIN_UPD_EMAIL_SUB);
+				messageSenderDto.setSubjectCode(env.getProperty(UIN_NEW+SUB));
 			} else if (regType.equalsIgnoreCase(RegistrationType.ACTIVATED.name())) {
-				messageSenderDto.setSmsTemplateCode(NotificationTemplateCode.RPR_UIN_REAC_SMS);
-				messageSenderDto.setEmailTemplateCode(NotificationTemplateCode.RPR_UIN_REAC_EMAIL);
+				messageSenderDto.setSmsTemplateCode(env.getProperty(UIN_ACTIVATE+SMS));
+				messageSenderDto.setEmailTemplateCode(env.getProperty(UIN_ACTIVATE+EMAIL));
 				messageSenderDto.setIdType(IdType.UIN);
-				messageSenderDto.setSubjectCode(NotificationTemplateCode.RPR_UIN_REAC_EMAIL_SUB);
+				messageSenderDto.setSubjectCode(env.getProperty(UIN_ACTIVATE+SUB));
 			} else if (regType.equalsIgnoreCase(RegistrationType.DEACTIVATED.name())) {
-				messageSenderDto.setSmsTemplateCode(NotificationTemplateCode.RPR_UIN_DEAC_SMS);
-				messageSenderDto.setEmailTemplateCode(NotificationTemplateCode.RPR_UIN_DEAC_EMAIL);
+				messageSenderDto.setSmsTemplateCode(env.getProperty(UIN_DEACTIVATE+SMS));
+				messageSenderDto.setEmailTemplateCode(env.getProperty(UIN_DEACTIVATE+EMAIL));
 				messageSenderDto.setIdType(IdType.UIN);
-				messageSenderDto.setSubjectCode(NotificationTemplateCode.RPR_UIN_DEAC_EMAIL_SUB);
+				messageSenderDto.setSubjectCode(env.getProperty(UIN_DEACTIVATE+SUB));
 			} else if (regType.equalsIgnoreCase(RegistrationType.UPDATE.name())
 			|| regType.equalsIgnoreCase(RegistrationType.RES_UPDATE.name())) {
-				messageSenderDto.setSmsTemplateCode(NotificationTemplateCode.RPR_UIN_UPD_SMS);
-				messageSenderDto.setEmailTemplateCode(NotificationTemplateCode.RPR_UIN_UPD_EMAIL);
+				messageSenderDto.setSmsTemplateCode(env.getProperty(UIN_UPDATE+SMS));
+				messageSenderDto.setEmailTemplateCode(env.getProperty(UIN_UPDATE+EMAIL));
 				messageSenderDto.setIdType(IdType.UIN);
-				messageSenderDto.setSubjectCode(NotificationTemplateCode.RPR_UIN_UPD_EMAIL_SUB);
+				messageSenderDto.setSubjectCode(env.getProperty(UIN_UPDATE+SMS));
 			}
 			break;
 		case DUPLICATE_UIN:
-			messageSenderDto.setSmsTemplateCode(NotificationTemplateCode.RPR_DUP_UIN_SMS);
-			messageSenderDto.setEmailTemplateCode(NotificationTemplateCode.RPR_DUP_UIN_EMAIL);
+			messageSenderDto.setSmsTemplateCode(env.getProperty(DUPLICATE_UIN+SMS));
+			messageSenderDto.setEmailTemplateCode(env.getProperty(DUPLICATE_UIN+EMAIL));
 			messageSenderDto.setIdType(IdType.RID);
-			messageSenderDto.setSubjectCode(NotificationTemplateCode.RPR_DUP_UIN_EMAIL_SUB);
+			messageSenderDto.setSubjectCode(env.getProperty(DUPLICATE_UIN+SUB));
 			break;
 		case TECHNICAL_ISSUE:
-			messageSenderDto.setSmsTemplateCode(NotificationTemplateCode.RPR_TEC_ISSUE_SMS);
-			messageSenderDto.setEmailTemplateCode(NotificationTemplateCode.RPR_TEC_ISSUE_EMAIL);
+			messageSenderDto.setSmsTemplateCode(env.getProperty(TECHNICAL_ISSUE+SMS));
+			messageSenderDto.setEmailTemplateCode(env.getProperty(TECHNICAL_ISSUE+EMAIL));
 			messageSenderDto.setIdType(IdType.RID);
-			messageSenderDto.setSubjectCode(NotificationTemplateCode.RPR_TEC_ISSUE_EMAIL_SUB);
+			messageSenderDto.setSubjectCode(env.getProperty(TECHNICAL_ISSUE+SUB));
 			break;
 		default:
 			break;
@@ -611,7 +626,7 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 
 		if (responseWrapper.getErrors() == null) {
 			templateResponseDto.getTemplates().forEach(dto -> {
-				if (dto.getTemplateTypeCode().equalsIgnoreCase(messageSenderDto.getSmsTemplateCode().name())) {
+				if (dto.getTemplateTypeCode().equalsIgnoreCase(messageSenderDto.getSmsTemplateCode())) {
 					messageSenderDto.setTemplateAvailable(true);
 				}
 			});

@@ -20,6 +20,9 @@ public class RegistrationTransactionDto {
 
 	/** The status code. */
 	private String statusCode;
+	
+	/** The sub status code. */
+	private String subStatusCode;
 
 	/** The status comment. */
 	private String statusComment;
@@ -29,13 +32,15 @@ public class RegistrationTransactionDto {
 	private LocalDateTime createdDateTimes;
 
 	public RegistrationTransactionDto(String id, String registrationId, String transactionTypeCode,
-			String parentTransactionId, String statusCode, String statusComment, LocalDateTime createdDateTimes) {
-		
+			String parentTransactionId, String statusCode, String subStatusCode, String statusComment,
+			LocalDateTime createdDateTimes) {
+
 		this.id = id;
 		this.registrationId = registrationId;
 		this.transactionTypeCode = transactionTypeCode;
 		this.parentTransactionId = parentTransactionId;
 		this.statusCode = statusCode;
+		this.subStatusCode = subStatusCode;
 		this.statusComment = statusComment;
 		this.createdDateTimes = createdDateTimes;
 	}
@@ -78,6 +83,14 @@ public class RegistrationTransactionDto {
 
 	public void setStatusCode(String statusCode) {
 		this.statusCode = statusCode;
+	}
+
+	public String getSubStatusCode() {
+		return subStatusCode;
+	}
+
+	public void setSubStatusCode(String subStatusCode) {
+		this.subStatusCode = subStatusCode;
 	}
 
 	public String getStatusComment() {

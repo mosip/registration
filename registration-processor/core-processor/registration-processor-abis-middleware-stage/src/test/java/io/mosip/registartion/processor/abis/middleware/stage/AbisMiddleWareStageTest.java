@@ -1,6 +1,5 @@
 package io.mosip.registartion.processor.abis.middleware.stage;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 
@@ -29,7 +28,6 @@ import io.mosip.registration.processor.core.abstractverticle.EventDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
-import io.mosip.registration.processor.core.eventbus.MosipEventBusFactory;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorUnCheckedException;
 import io.mosip.registration.processor.core.packet.dto.Identity;
@@ -37,6 +35,7 @@ import io.mosip.registration.processor.core.packet.dto.abis.AbisIdentifyResponse
 import io.mosip.registration.processor.core.packet.dto.abis.AbisRequestDto;
 import io.mosip.registration.processor.core.packet.dto.abis.CandidateListDto;
 import io.mosip.registration.processor.core.packet.dto.abis.CandidatesDto;
+import io.mosip.registration.processor.core.packet.dto.abis.RegBioRefDto;
 import io.mosip.registration.processor.core.queue.factory.MosipQueue;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
@@ -279,9 +278,11 @@ public class AbisMiddleWareStageTest {
 		List<String> bioRefId = new ArrayList<>();
 		bioRefId.add("d1070375-0960-4e90-b12c-72ab6186444d");
 		Mockito.when(packetInfoManager.getReferenceIdByBatchId(Mockito.anyString())).thenReturn(bioRefId);
-		List<String> abisMatchedRefIds = new ArrayList<>();
-		abisMatchedRefIds.add("d1070375-0960-4e90-b12c-72ab6186444d");
-		Mockito.when(packetInfoDao.getAbisRefRegIdsByMatchedRefIds(Mockito.any())).thenReturn(abisMatchedRefIds);
+		List<RegBioRefDto> regBioRefist = new ArrayList<RegBioRefDto>();
+		RegBioRefDto bioRefDto = new RegBioRefDto();
+		bioRefDto.setBioRefId("d1070375-0960-4e90-b12c-72ab6186444d");
+		regBioRefist.add(bioRefDto);
+		Mockito.when(packetInfoManager.getRegBioRefDataByBioRefIds(Mockito.any())).thenReturn(regBioRefist);
 		List<String> transIdList = new ArrayList<>();
 		transIdList.add("1234");
 		Mockito.when(packetInfoManager.getAbisTransactionIdByRequestId(Mockito.anyString())).thenReturn(transIdList);
@@ -313,6 +314,7 @@ public class AbisMiddleWareStageTest {
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("10003100030001520190422074511");
 		dto.setWorkflowInstanceId("workflowInstanceId");
+		dto.setReg_type("NEW");
 
 		stage.deployVerticle();
 		stage.process(dto);

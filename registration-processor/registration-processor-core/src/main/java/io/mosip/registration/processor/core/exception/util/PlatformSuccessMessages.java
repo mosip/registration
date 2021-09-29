@@ -28,7 +28,8 @@ public enum PlatformSuccessMessages {
 	// Packet Validator Success messages
 	/** The rpr pkr packet validate. */
 	RPR_PKR_PACKET_VALIDATE(PlatformConstants.RPR_PACKET_VALIDATOR_MODULE + "000", "Packet Validation Success"),
-	
+	/** The reverse data sync success. */
+	REVERSE_DATA_SYNC_SUCCESS(PlatformConstants.RPR_PACKET_VALIDATOR_MODULE + "017", "Reverse Data Sync Success"),
 	// Packet Classifier Success messages
 	/** The rpr pkr packet classifier. */
 	RPR_PKR_PACKET_CLASSIFIER(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "000", "Packet Classifier Success"),
@@ -68,11 +69,11 @@ public enum PlatformSuccessMessages {
 	RPR_BIO_LOST_PACKET_UNIQUE_MATCH_FOUND(PlatformConstants.RPR_BIO_DEDUPE_STAGE_MODULE + "001",
 			"Unique Match was Found for the Biometrics Received"),
 
-	RPR_RE_PROCESS_SUCCESS(PlatformConstants.RPR_REPROCESSOR_STAGE + "000", "Reprocessor Success"),
+	RPR_RE_PROCESS_SUCCESS(PlatformConstants.RPR_REPROCESSOR_VERTICLE + "000", "Reprocessor Success"),
 
-	RPR_RE_PROCESS_FAILED(PlatformConstants.RPR_REPROCESSOR_STAGE + "002", "Reprocessor FAILED"),
+	RPR_RE_PROCESS_FAILED(PlatformConstants.RPR_REPROCESSOR_VERTICLE + "002", "Reprocessor FAILED"),
 
-	RPR_SENT_TO_REPROCESS_SUCCESS(PlatformConstants.RPR_REPROCESSOR_STAGE + "001", "sent to reprocess Success"),
+	RPR_SENT_TO_REPROCESS_SUCCESS(PlatformConstants.RPR_REPROCESSOR_VERTICLE + "001", "sent to reprocess Success"),
 
 	RPR_WORKFLOW_INTERNAL_ACTION_SUCCESS(PlatformConstants.RPR_WORKFLOW_INTERNAL_ACTION + "000",
 			"Workflow internal action completed successfully"),
@@ -89,6 +90,12 @@ public enum PlatformSuccessMessages {
 	RPR_EXTERNAL_STAGE_SUCCESS(PlatformConstants.RPR_EXTERNAL_STAGE + "000", "External stage  Success"),
 
 	RPR_UIN_GENERATOR_STAGE_SUCCESS(PlatformConstants.RPR_UIN_GENERATOR_STAGE + "000", "UIN Generator  Success"),
+	
+	RPR_BIOMETRIC_EXTRACTION_SUCCESS(PlatformConstants.RPR_BIOMETRIC_EXTRACTION_STAGE + "000",
+			"biometric extraction success"),
+	
+	RPR_FINALIZATION_SUCCESS(PlatformConstants.RPR_FINALIZATION_STAGE + "000",
+			"Finalization success"),
 
 	RPR_UIN_DATA_UPDATION_SUCCESS(PlatformConstants.RPR_UIN_GENERATOR_STAGE + "001", "UIN Generator  Success"),
 
@@ -150,7 +157,10 @@ public enum PlatformSuccessMessages {
 			"Packet parent flow restart initiated"),
 
 	PACKET_COMPLETE_AS_REJECTED_WITHOUT_PARENT_FLOW(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "007",
-			"Packet processing completed with reject status without Parent flow");
+			"Packet processing completed with reject status without Parent flow"),
+	
+	PACKET_ANONYMOUS_PROFILE(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "008",
+			"Packet anonymous profile flow initiated");
 
 	/** The success message. */
 	private final String successMessage;

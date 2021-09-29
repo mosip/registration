@@ -2,9 +2,9 @@ package io.mosip.registration.processor.packet.service;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -18,15 +18,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.mosip.commons.khazana.exception.FileNotFoundInDestinationException;
-import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
-import io.mosip.kernel.core.util.JsonUtils;
-import io.mosip.kernel.core.util.exception.JsonProcessingException;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
-import io.mosip.registration.processor.packet.manager.decryptor.Decryptor;
-import io.mosip.registration.processor.packet.manager.utils.ZipUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,8 +35,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.HttpClientErrorException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.mosip.commons.khazana.exception.FileNotFoundInDestinationException;
+import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.util.HMACUtils2;
+import io.mosip.kernel.core.util.JsonUtils;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.kernel.core.virusscanner.exception.VirusScannerException;
 import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -54,13 +51,17 @@ import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
+import io.mosip.registration.processor.packet.manager.decryptor.Decryptor;
+import io.mosip.registration.processor.packet.manager.utils.ZipUtils;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.packet.uploader.service.PacketUploaderService;
 import io.mosip.registration.processor.packet.uploader.service.impl.PacketUploaderServiceImpl;
-
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -125,11 +126,16 @@ public class PacketUploaderServiceTest {
 
 	@Mock
 	private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationService;
+	
+	@Mock
+    private Utilities utility;
 
 	private File file;
 
 	@Before
 	public void setUp() throws IOException, ApisResourceAccessException, JsonProcessingException, NoSuchAlgorithmException {
+		
+		ReflectionTestUtils.setField(packetuploaderservice, "isIterationAdditionEnabled", true);
 		file = new File("src/test/resources/1001.zip");
 		dto.setRid("1001");
 		dto.setReg_type("NEW");
@@ -155,7 +161,6 @@ public class PacketUploaderServiceTest {
 		PowerMockito.mockStatic(HMACUtils2.class);
 		PowerMockito.when(HMACUtils2.digestAsPlainText(any())).thenReturn("abcd1234");
 		Mockito.when(syncRegistrationService.findByWorkflowInstanceId(Mockito.any())).thenReturn(regEntity);
-		AuditResponseDto auditResponseDto = new AuditResponseDto();
 		ResponseWrapper<AuditResponseDto> responseWrapper = new ResponseWrapper<>();
 		Mockito.doReturn(responseWrapper).when(auditLogRequestBuilder).createAuditRequestBuilder(
 				"test case description", EventId.RPR_401.toString(), EventName.ADD.toString(),
@@ -214,6 +219,20 @@ public class PacketUploaderServiceTest {
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto, "PacketUploaderStage");
 		assertTrue(result.getIsValid());
 		assertTrue(result.getInternalError());
+	}
+	
+	@Test
+	public void testvalidateHashCodeFailed() throws Exception {
+		PowerMockito.mockStatic(HMACUtils2.class);
+		PowerMockito.when(HMACUtils2.digestAsPlainText(any())).thenReturn("abcd123");
+		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any(),Mockito.any(),Mockito.any(), Mockito.any())).thenReturn(entry);
+		ReflectionTestUtils.setField(packetuploaderservice, "maxRetryCount", 3);
+		
+		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class))).thenReturn(Boolean.TRUE);
+		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any(),Mockito.any())).thenReturn(is);
+		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto, "PacketUploaderStage");
+		assertFalse(result.getIsValid());
+		assertFalse(result.getInternalError());
 	}
 
 	@Test

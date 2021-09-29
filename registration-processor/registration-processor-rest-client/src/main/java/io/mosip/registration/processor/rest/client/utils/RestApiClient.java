@@ -9,6 +9,7 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import javax.annotation.PostConstruct;
 import javax.net.ssl.SSLContext;
 
 import io.mosip.registration.processor.core.tracing.ContextualData;
@@ -31,6 +32,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -49,7 +51,6 @@ import io.mosip.kernel.core.util.TokenHandlerUtil;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.rest.client.audit.dto.Metadata;
-import io.mosip.registration.processor.rest.client.audit.dto.PasswordRequest;
 import io.mosip.registration.processor.rest.client.audit.dto.SecretKeyRequest;
 import io.mosip.registration.processor.rest.client.audit.dto.TokenRequestDTO;
 import io.mosip.registration.processor.rest.client.exception.TokenGenerationFailedException;
@@ -74,6 +75,15 @@ public class RestApiClient {
 
 	private static final String AUTHORIZATION = "Authorization=";
 
+	RestTemplate localRestTemplate;
+
+	@PostConstruct
+	private void loadRestTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
+		localRestTemplate = getRestTemplate();
+		logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
+				LoggerFileConstant.APPLICATIONID.toString(), "loadRestTemplate completed successfully");
+	}
+
 
 	/**
 	 * Gets the api. *
@@ -86,11 +96,9 @@ public class RestApiClient {
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T getApi(URI uri, Class<?> responseType) throws Exception {
-		RestTemplate restTemplate;
 		T result = null;
 		try {
-			restTemplate = getRestTemplate();
-			result = (T) restTemplate.exchange(uri, HttpMethod.GET, setRequestHeader(null, null), responseType)
+			result = (T) localRestTemplate.exchange(uri, HttpMethod.GET, setRequestHeader(null, null), responseType)
 					.getBody();
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
@@ -117,13 +125,11 @@ public class RestApiClient {
 	@SuppressWarnings("unchecked")
 	public <T> T postApi(String uri, MediaType mediaType, Object requestType, Class<?> responseClass) throws Exception {
 
-		RestTemplate restTemplate;
 		T result = null;
 		try {
-			restTemplate = getRestTemplate();
 			logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					LoggerFileConstant.APPLICATIONID.toString(), uri);
-			result = (T) restTemplate.postForObject(uri, setRequestHeader(requestType, mediaType), responseClass);
+			result = (T) localRestTemplate.postForObject(uri, setRequestHeader(requestType, mediaType), responseClass);
 
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
@@ -151,13 +157,11 @@ public class RestApiClient {
 	public <T> T patchApi(String uri, MediaType mediaType, Object requestType, Class<?> responseClass)
 			throws Exception {
 
-		RestTemplate restTemplate;
 		T result = null;
 		try {
-			restTemplate = getRestTemplate();
 			logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					LoggerFileConstant.APPLICATIONID.toString(), uri);
-			result = (T) restTemplate.patchForObject(uri, setRequestHeader(requestType, mediaType), responseClass);
+			result = (T) localRestTemplate.patchForObject(uri, setRequestHeader(requestType, mediaType), responseClass);
 
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
@@ -191,16 +195,14 @@ public class RestApiClient {
 	@SuppressWarnings("unchecked")
 	public <T> T putApi(String uri, Object requestType, Class<?> responseClass, MediaType mediaType) throws Exception {
 
-		RestTemplate restTemplate;
 		T result = null;
 		ResponseEntity<T> response = null;
 		try {
-			restTemplate = getRestTemplate();
 			logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					LoggerFileConstant.APPLICATIONID.toString(), uri);
 
-			response = (ResponseEntity<T>) restTemplate.exchange(uri, HttpMethod.PUT,
-					setRequestHeader(requestType.toString(), mediaType), responseClass);
+			response = (ResponseEntity<T>) localRestTemplate.exchange(uri, HttpMethod.PUT,
+					setRequestHeader(requestType, mediaType), responseClass);
 			result = response.getBody();
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
@@ -211,7 +213,23 @@ public class RestApiClient {
 		return result;
 	}
 
+	public int headApi(URI uri) throws Exception {
+		try {
+			HttpStatus httpStatus = localRestTemplate.exchange(uri, HttpMethod.HEAD, setRequestHeader(
+					null, null), Object.class).getStatusCode();
+			return httpStatus.value();
+		} catch (Exception e) {
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
+					LoggerFileConstant.APPLICATIONID.toString(), e.getMessage() + ExceptionUtils.getStackTrace(e));
+			tokenExceptionHandler(e);
+			throw e;
+		}
+	}
+
 	public RestTemplate getRestTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
+		if(localRestTemplate != null)
+			return localRestTemplate;
+
 		logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 				LoggerFileConstant.APPLICATIONID.toString(), Arrays.asList(environment.getActiveProfiles()).toString());
 		if (Arrays.stream(environment.getActiveProfiles()).anyMatch("dev-k8"::equals)) {

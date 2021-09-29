@@ -38,14 +38,17 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.mosip.registration.processor.status.sync.response.dto.RegExternalStatusResponseDTO;
 import io.mosip.registration.processor.status.validator.RegistrationExternalStatusRequestValidator;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RefreshScope
 @RestController
-@Api(tags = "External Registration Status")
+@Tag(name = "External Registration Status", description = "Registration External Status Controller")
 public class RegistrationExternalStatusController {
 	
 	/** The registration status service. */
@@ -80,11 +83,19 @@ public class RegistrationExternalStatusController {
 	 * @return the response entity
 	 * @throws RegStatusAppException
 	 */
-	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_OFFICER', 'REGISTRATION_SUPERVISOR','RESIDENT')")
+	//@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_OFFICER', 'REGISTRATION_SUPERVISOR','RESIDENT')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostexternalstatussearch())")
 	@PostMapping(path = "/externalstatus/search", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@ApiOperation(value = "Get the registration external status", response = RegistrationExternalStatusCode.class)
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Registration external status successfully fetched"),
-			@ApiResponse(code = 400, message = "Unable to fetch the registration external status") })
+	@Operation(summary = "Get the registration external status", description = "Get the registration external status", tags = { "External Registration Status" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Registration external status successfully fetched",
+					content = @Content(schema = @Schema(implementation = RegistrationExternalStatusCode.class))),
+			@ApiResponse(responseCode = "201", description = "Created" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "400", description = "Unable to fetch the registration external status" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
+
 	public ResponseEntity<Object> search(
 			@RequestBody(required = true) RegistrationExternalStatusRequestDTO registrationExternalStatusRequestDTO)
 			throws RegStatusAppException {
