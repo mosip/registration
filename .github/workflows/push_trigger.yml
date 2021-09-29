@@ -64,9 +64,6 @@ jobs:
         name: release
         path: ./release.zip
        
-    - name: Get current date
-      id: date
-      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
       
     - name: Build registration-processor-stage-group-1 image
     
@@ -96,9 +93,6 @@ jobs:
         SERVICE_NAME: registration-processor-stage-group-1
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-1
     
-    - name: Get current date
-      id: date
-      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
       
     - name: Build registration-processor-stage-group-2 image
       run: |
@@ -127,9 +121,6 @@ jobs:
         SERVICE_NAME: registration-processor-stage-group-2
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-2
     
-    - name: Get current date
-      id: date
-      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
         
     - name: Build registration-processor-stage-group-3 image
       run: |
@@ -158,9 +149,6 @@ jobs:
         SERVICE_NAME: registration-processor-stage-group-3
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-3
     
-    - name: Get current date
-      id: date
-      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
       
     - name: Build registration-processor-stage-group-4 image
       run: |
@@ -189,9 +177,6 @@ jobs:
         SERVICE_NAME: registration-processor-stage-group-4
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-4
         
-    - name: Get current date
-      id: date
-      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
       
     - name: Build registration-processor-stage-group-5 image
       run: |
@@ -220,10 +205,6 @@ jobs:
         SERVICE_NAME: registration-processor-stage-group-5
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-5
     
-    - name: Get current date
-      id: date
-      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-        
     - name: Build registration-processor-stage-group-6 image
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
@@ -251,9 +232,6 @@ jobs:
         SERVICE_NAME: registration-processor-stage-group-6
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-6
 
-    - name: Get current date
-      id: date
-      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
       
     - name: Build registration-processor-stage-group-7 image
       run: |
