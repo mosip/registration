@@ -63,20 +63,17 @@ jobs:
       with:
         name: release
         path: ./release.zip
-
-    - name: Analyze with SonarCloud
-      run: |
-        cd registration-processor
-        mvn -B -Dgpg.skip -Dmaven.javadoc.skip=true verify sonar:sonar -Dsonar.projectKey=mosip_${{ github.event.repository.name }} -Dsonar.organization=${{ secrets.ORG_KEY }} -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
+       
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+      
     - name: Build registration-processor-stage-group-1 image
+    
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
           cd "./$SERVICE_LOCATION"
-          docker build . --file Dockerfile --tag $SERVICE_NAME
+          docker build . --build-arg SOURCE=mosip --build-arg COMMIT_HASH=$(git rev-parse HEAD) --build-arg COMMIT_ID=$(git rev-parse --short HEAD) --build-arg BUILD_TIME=${{steps.date.outputs.date}} --file Dockerfile --tag $SERVICE_NAME
       env:
         SERVICE_NAME: registration-processor-stage-group-1
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-1
@@ -98,12 +95,16 @@ jobs:
         NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
         SERVICE_NAME: registration-processor-stage-group-1
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-1
-
+    
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+      
     - name: Build registration-processor-stage-group-2 image
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
           cd "./$SERVICE_LOCATION"
-          docker build . --file Dockerfile --tag $SERVICE_NAME
+          docker build . --build-arg SOURCE=mosip --build-arg COMMIT_HASH=$(git rev-parse HEAD) --build-arg COMMIT_ID=$(git rev-parse --short HEAD) --build-arg BUILD_TIME=${{steps.date.outputs.date}} --file Dockerfile --tag $SERVICE_NAME
       env:
         SERVICE_NAME: registration-processor-stage-group-2
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-2
@@ -125,12 +126,16 @@ jobs:
         NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
         SERVICE_NAME: registration-processor-stage-group-2
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-2
-
+    
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        
     - name: Build registration-processor-stage-group-3 image
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
           cd "./$SERVICE_LOCATION"
-          docker build . --file Dockerfile --tag $SERVICE_NAME
+          docker build . --build-arg SOURCE=mosip --build-arg COMMIT_HASH=$(git rev-parse HEAD) --build-arg COMMIT_ID=$(git rev-parse --short HEAD) --build-arg BUILD_TIME=${{steps.date.outputs.date}} --file Dockerfile --tag $SERVICE_NAME
       env:
         SERVICE_NAME: registration-processor-stage-group-3
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-3
@@ -152,12 +157,16 @@ jobs:
         NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
         SERVICE_NAME: registration-processor-stage-group-3
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-3
-
+    
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+      
     - name: Build registration-processor-stage-group-4 image
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
           cd "./$SERVICE_LOCATION"
-          docker build . --file Dockerfile --tag $SERVICE_NAME
+          docker build . --build-arg SOURCE=mosip --build-arg COMMIT_HASH=$(git rev-parse HEAD) --build-arg COMMIT_ID=$(git rev-parse --short HEAD) --build-arg BUILD_TIME=${{steps.date.outputs.date}} --file Dockerfile --tag $SERVICE_NAME
       env:
         SERVICE_NAME: registration-processor-stage-group-4
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-4
@@ -179,12 +188,16 @@ jobs:
         NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
         SERVICE_NAME: registration-processor-stage-group-4
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-4
-
+        
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+      
     - name: Build registration-processor-stage-group-5 image
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
           cd "./$SERVICE_LOCATION"
-          docker build . --file Dockerfile --tag $SERVICE_NAME
+          docker build . --build-arg SOURCE=mosip --build-arg COMMIT_HASH=$(git rev-parse HEAD) --build-arg COMMIT_ID=$(git rev-parse --short HEAD) --build-arg BUILD_TIME=${{steps.date.outputs.date}} --file Dockerfile --tag $SERVICE_NAME
       env:
         SERVICE_NAME: registration-processor-stage-group-5
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-5
@@ -206,12 +219,16 @@ jobs:
         NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
         SERVICE_NAME: registration-processor-stage-group-5
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-5
-
+    
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        
     - name: Build registration-processor-stage-group-6 image
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
           cd "./$SERVICE_LOCATION"
-          docker build . --file Dockerfile --tag $SERVICE_NAME
+          docker build . --build-arg SOURCE=mosip --build-arg COMMIT_HASH=$(git rev-parse HEAD) --build-arg COMMIT_ID=$(git rev-parse --short HEAD) --build-arg BUILD_TIME=${{steps.date.outputs.date}} --file Dockerfile --tag $SERVICE_NAME
       env:
         SERVICE_NAME: registration-processor-stage-group-6
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-6
@@ -234,12 +251,15 @@ jobs:
         SERVICE_NAME: registration-processor-stage-group-6
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-6
 
-
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+      
     - name: Build registration-processor-stage-group-7 image
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
           cd "./$SERVICE_LOCATION"
-          docker build . --file Dockerfile --tag $SERVICE_NAME
+          docker build . --build-arg SOURCE=mosip --build-arg COMMIT_HASH=$(git rev-parse HEAD) --build-arg COMMIT_ID=$(git rev-parse --short HEAD) --build-arg BUILD_TIME=${{steps.date.outputs.date}} --file Dockerfile --tag $SERVICE_NAME
       env:
         SERVICE_NAME: registration-processor-stage-group-7
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-7
@@ -262,13 +282,15 @@ jobs:
         SERVICE_NAME: registration-processor-stage-group-7
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-7
 
-
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
 
     - name: Build camel bridge image
       run: |
         # The camel bridge is not packaged as part of release.zip
         cd "./registration-processor/registration-processor-common-camel-bridge"
-        docker build . --file Dockerfile --tag registration-processor-common-camel-bridge
+        docker build . --build-arg SOURCE=mosip --build-arg COMMIT_HASH=$(git rev-parse HEAD) --build-arg COMMIT_ID=$(git rev-parse --short HEAD) --build-arg BUILD_TIME=${{steps.date.outputs.date}} --file Dockerfile --tag registration-processor-common-camel-bridge
     - name: Log into registry
       run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
 
@@ -369,11 +391,15 @@ jobs:
       
       - name: Unzip and extract the ${{ env.SERVICE_NAME }}
         run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-      
+        
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
-          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+          docker build . --build-arg SOURCE=mosip --build-arg COMMIT_HASH=$(git rev-parse HEAD) --build-arg COMMIT_ID=$(git rev-parse --short HEAD) --build-arg BUILD_TIME=${{steps.date.outputs.date}} --file Dockerfile --tag ${{ env.SERVICE_NAME }}
       - name: Log into registry
         run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
         
@@ -420,11 +446,15 @@ jobs:
       
       - name: Unzip and extract the ${{ env.SERVICE_NAME }}
         run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-      
+        
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
-          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+          docker build . --build-arg SOURCE=mosip --build-arg COMMIT_HASH=$(git rev-parse HEAD) --build-arg COMMIT_ID=$(git rev-parse --short HEAD) --build-arg BUILD_TIME=${{steps.date.outputs.date}} --file Dockerfile --tag ${{ env.SERVICE_NAME }}
       - name: Log into registry
         run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
         
@@ -471,10 +501,14 @@ jobs:
       - name: Unzip and extract the ${{ env.SERVICE_NAME }}
         run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
       
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
-          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+          docker build . --build-arg SOURCE=mosip --build-arg COMMIT_HASH=$(git rev-parse HEAD) --build-arg COMMIT_ID=$(git rev-parse --short HEAD) --build-arg BUILD_TIME=${{steps.date.outputs.date}} --file Dockerfile --tag ${{ env.SERVICE_NAME }}
       - name: Log into registry
         run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
         
@@ -514,11 +548,15 @@ jobs:
         with:
           xml-file: ./${{ env.SERVICE_LOCATION }}/version.xml
           xpath: version
-      
+          
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
-          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+          docker build . --build-arg SOURCE=mosip --build-arg COMMIT_HASH=$(git rev-parse HEAD) --build-arg COMMIT_ID=$(git rev-parse --short HEAD) --build-arg BUILD_TIME=${{steps.date.outputs.date}} --file Dockerfile --tag ${{ env.SERVICE_NAME }}
       - name: Log into registry
         run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
         
@@ -566,10 +604,14 @@ jobs:
       - name: Unzip and extract the ${{ env.SERVICE_NAME }}
         run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
       
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
-          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+          docker build . --build-arg SOURCE=mosip --build-arg COMMIT_HASH=$(git rev-parse HEAD) --build-arg COMMIT_ID=$(git rev-parse --short HEAD) --build-arg BUILD_TIME=${{steps.date.outputs.date}} --file Dockerfile --tag ${{ env.SERVICE_NAME }}
       - name: Log into registry
         run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
         
@@ -616,11 +658,15 @@ jobs:
 
       - name: Unzip and extract the ${{ env.SERVICE_NAME }}
         run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-
+       
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
-          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+          docker build . --build-arg SOURCE=mosip --build-arg COMMIT_HASH=$(git rev-parse HEAD) --build-arg COMMIT_ID=$(git rev-parse --short HEAD) --build-arg BUILD_TIME=${{steps.date.outputs.date}} --file Dockerfile --tag ${{ env.SERVICE_NAME }}
       - name: Log into registry
         run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
 
@@ -667,11 +713,15 @@ jobs:
 
       - name: Unzip and extract the ${{ env.SERVICE_NAME }}
         run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-
+      
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
-          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+          docker build . --build-arg SOURCE=mosip --build-arg COMMIT_HASH=$(git rev-parse HEAD) --build-arg COMMIT_ID=$(git rev-parse --short HEAD) --build-arg BUILD_TIME=${{steps.date.outputs.date}}--file Dockerfile --tag ${{ env.SERVICE_NAME }}
       - name: Log into registry
         run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
 
@@ -687,3 +737,58 @@ jobs:
           echo VERSION=$VERSION
           docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
           docker push $IMAGE_ID:$VERSION
+
+  sonar_analysis:
+    runs-on: ubuntu-latest
+    env:
+      NAMESPACE: mosipdev
+      SERVICE_NAME: registration-client
+      SERVICE_LOCATION: registration
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          ref: ${{ github.ref }}
+          java-version: 11
+          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
+          settings-path: ${{ github.workspace }} # location for the settings.xml file
+
+      - name: Setup branch and env
+        run: |
+          # Strip git ref prefix from version
+          echo "BRANCH_NAME=$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')" >> $GITHUB_ENV
+          echo "GPG_TTY=$(tty)" >> $GITHUB_ENV
+      - uses: actions/cache@v1
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-${{ env.BRANCH_NAME }}
+      - name: Setup the settings file for ossrh server
+        run: echo "<settings> <servers>  <server>  <id>ossrh</id>    <username>${{secrets.ossrh_user}}</username> <password>${{secrets.ossrh_secret}}</password> </server> </servers> <profiles> <profile>     <id>ossrh</id> <activation> <activeByDefault>true</activeByDefault> </activation>  <properties> <gpg.executable>gpg2</gpg.executable> <gpg.passphrase>${{secrets.gpg_secret}}</gpg.passphrase> </properties> </profile> <profile> <id>allow-snapshots</id>       <activation><activeByDefault>true</activeByDefault></activation> <repositories> <repository>        <id>snapshots-repo</id> <url>https://oss.sonatype.org/content/repositories/snapshots</url> <releases><enabled>false</enabled></releases> <snapshots><enabled>true</enabled></snapshots> </repository>  <repository>         <id>releases-repo</id>  <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>         <releases><enabled>true</enabled></releases>         <snapshots><enabled>false</enabled></snapshots> </repository> </repositories> <pluginRepositories>       <pluginRepository>               <id>staged-releases</id>               <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>       </pluginRepository>       </pluginRepositories> </profile> <profile> <id>sonar</id> <properties>  <sonar.sources>.</sonar.sources> <sonar.host.url>https://sonarcloud.io</sonar.host.url>  </properties> <activation> <activeByDefault>false</activeByDefault> </activation> </profile> </profiles> </settings>" > $GITHUB_WORKSPACE/settings.xml
+
+      - name: Install xmllint
+        run: |
+          sudo apt-get update
+          sudo apt-get install libxml2-utils
+      - name: Build with Maven
+        run: |
+          cd registration-processor
+          mvn -B package --file pom.xml -s $GITHUB_WORKSPACE/settings.xml
+      - name: Analyze with SonarCloud
+        run: |
+          cd registration-processor
+          mvn -B -Dgpg.skip verify sonar:sonar -Dsonar.projectKey=mosip_${{ github.event.repository.name }} -Dsonar.organization=${{ secrets.ORG_KEY }} -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,author,ref,job # selectable (default: repo,message)
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEVOPS_WEBHOOK }} # required
+        if: failure() # Pick up events even if the job fails or is canceled.
