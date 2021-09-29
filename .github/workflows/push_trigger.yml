@@ -699,7 +699,7 @@ jobs:
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
-          docker build . --build-arg SOURCE=mosip --build-arg COMMIT_HASH=$(git rev-parse HEAD) --build-arg COMMIT_ID=$(git rev-parse --short HEAD) --build-arg BUILD_TIME=${{steps.date.outputs.date}}--file Dockerfile --tag ${{ env.SERVICE_NAME }}
+          docker build . --build-arg SOURCE=mosip --build-arg COMMIT_HASH=$(git rev-parse HEAD) --build-arg COMMIT_ID=$(git rev-parse --short HEAD) --build-arg BUILD_TIME=${{steps.date.outputs.date}} --file Dockerfile --tag ${{ env.SERVICE_NAME }}
       - name: Log into registry
         run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
 
@@ -751,10 +751,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install libxml2-utils
-      - name: Build with Maven
-        run: |
-          cd registration-processor
-          mvn -B package --file pom.xml -s $GITHUB_WORKSPACE/settings.xml
+      
       - name: Analyze with SonarCloud
         run: |
           cd registration-processor
