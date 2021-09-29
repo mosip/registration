@@ -12,8 +12,7 @@ LABEL build_time=${BUILD_TIME}
 #Uncomment below and Comment above line(i.e. FROM openjdk:8) for OS specific (e.g. Alpine OS ) docker base image
 #FROM openjdk:8-jdk-alpine
 
-# setting labels for extra properties needed for this Docker image, so that it can be used
-at run time with docker inspect
+# setting labels for extra properties needed for this Docker image, so that it can be used at run time with docker inspect
 LABEL network=host
 LABEL privileged=true
 LABEL zone_env=dmz 
