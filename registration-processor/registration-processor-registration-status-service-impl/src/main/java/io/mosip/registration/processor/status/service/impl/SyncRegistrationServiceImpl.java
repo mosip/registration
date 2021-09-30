@@ -838,7 +838,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		syncRegistrationEntities.forEach(syncEntity -> {
 			LostRidDto lostRidDto = new LostRidDto();
 			lostRidDto.setRegistrationId(syncEntity.getRegistrationId());
-			lostRidDto.setRegistartionDate(syncEntity.getRegistrationDate().toString());
+			lostRidDto.setRegistartionDate(null!=syncEntity.getRegistrationDate()?syncEntity.getRegistrationDate().toString():null);
 			lostRidDtos.add(lostRidDto);
 		});
 		return lostRidDtos;
