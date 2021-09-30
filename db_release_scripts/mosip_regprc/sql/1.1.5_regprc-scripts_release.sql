@@ -5,10 +5,11 @@
 -- Created By   		: Ram Bhatt
 -- Created Date		: Jan-2021
 -- 
--- Modified Date        Modified By         Comments / Remarks
+-- Modified Date        Modified By         		Comments / Remarks
 -- -------------------------------------------------------------------------------------------------
--- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes for 1.1.5
--- Apr-2021		Ram Bhatt	    Packet Classification dml Changes
+-- Mar-2021		Ram Bhatt	    		Reverting is_deleted not null changes for 1.1.5
+-- Apr-2021		Ram Bhatt	    		Packet Classification dml Changes
+-- Sep-2021		Chandra Keshav Mishra		transaction typr table changes
 ----------------------------------------------------------------------------------------------------
 
 \c mosip_regprc sysadmin
