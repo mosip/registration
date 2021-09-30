@@ -180,7 +180,7 @@ public class RegistrationStatusDao {
 		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
 		LocalDateTime timeDifference = DateUtils.getUTCCurrentDateTime().minusSeconds(elapseTime);
 
-		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + EMPTY_STRING + alias
+		String queryStr = SELECT + alias + FROM + className + EMPTY_STRING + alias + WHERE + EMPTY_STRING + alias
 				+ ".latestTransactionTimes<" + ":timeDifference " + AND + EMPTY_STRING + alias
 				+ ".latestTransactionStatusCode IN :status " + AND + EMPTY_STRING + alias
 				+ ".regProcessRetryCount<=" + ":reprocessCount order by "+ alias + ".updateDateTime asc";
