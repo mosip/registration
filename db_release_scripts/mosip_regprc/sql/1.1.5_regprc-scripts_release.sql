@@ -41,11 +41,11 @@
 --ALTER TABLE regprc.registration ALTER COLUMN is_deleted SET DEFAULT FALSE;
 --ALTER TABLE regprc.transaction_type ALTER COLUMN is_deleted SET DEFAULT FALSE;
 
-TRUNCATE TABLE regprc.transaction_type cascade ;
-
-\COPY regprc.transaction_type (code,descr,lang_code,is_active,cr_by,cr_dtimes) FROM '../dml/regprc-transaction_type.csv' delimiter ',' HEADER csv;
 
 ALTER TABLE regprc.reg_manual_verification ADD COLUMN res_text bytea;
+
+INSERT INTO regprc.transaction_type (code, descr, lang_code, is_active, cr_by, cr_dtimes, upd_by, upd_dtimes, is_deleted, del_dtimes) Select 'PACKET_CLASSIFICATION', 'transcation done', 'eng', true, 'MOSIP_SYSTEM', now(), null, null, null, null WHERE NOT EXISTS (SELECT code FROM regprc.transaction_type WHERE code = 'PACKET_CLASSIFICATION');
+
 
 
 ----------------------------------------------------------------------------------------------------
