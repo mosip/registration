@@ -258,7 +258,7 @@ public class RegistrationStatusDao {
 		statusCodes.add(RegistrationStatusCode.REJECTED.toString());
 		statusCodes.add(RegistrationStatusCode.FAILED.toString());
 		statusCodes.add(RegistrationStatusCode.PROCESSED.toString());
-		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
+		String queryStr = SELECT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
 				+ ".latestTransactionStatusCode IN :status" + EMPTY_STRING + AND + EMPTY_STRING + alias
 				+ ".regProcessRetryCount<=" + ":reprocessCount" + EMPTY_STRING + AND + EMPTY_STRING + alias
 				+ ".latestTransactionTimes<" + ":timeDifference"+ EMPTY_STRING + AND + EMPTY_STRING+ alias
