@@ -507,6 +507,10 @@ public class MessageNotificationServiceImpl
 						for (int count = 0; count < jsonValues.length; count++) {
 							String lang = jsonValues[count].getLanguage();
 							attribute.put(val + "_" + lang, jsonValues[count].getValue());
+							if(key.equalsIgnoreCase(JsonUtil.getJSONValue(JsonUtil.getJSONObject
+									(mapperIdentity, MappingJsonConstants.NAME), VALUE))) {
+								attribute.put(MappingJsonConstants.NAME + "_" + lang, jsonValues[count].getValue());
+							}
 						}
 					} else if (object instanceof LinkedHashMap) {
 						JSONObject json = JsonUtil.getJSONObject(demographicIdentity, val);
@@ -570,7 +574,7 @@ public class MessageNotificationServiceImpl
 					Object json = new JSONTokener(value).nextValue();
 					if (json instanceof org.json.JSONObject) {
 						HashMap<String, Object> hashMap = new ObjectMapper().readValue(value, HashMap.class);
-						attribute.putIfAbsent(e.getKey().toString(), hashMap.get(VALUE));
+						attribute.putIfAbsent(e.getKey().toString(), hashMap.get(VALUE));						
 					}
 					else if (json instanceof org.json.JSONArray) {
 						org.json.JSONArray jsonArray = new org.json.JSONArray(value);
@@ -578,6 +582,10 @@ public class MessageNotificationServiceImpl
 							Object obj = jsonArray.get(i);
 							JsonValue jsonValue = mapper.readValue(obj.toString(), JsonValue.class);
 							attribute.putIfAbsent(e.getKey().toString() + "_" + jsonValue.getLanguage(), jsonValue.getValue());
+							if(((String) e.getKey()).equalsIgnoreCase(JsonUtil.getJSONValue(JsonUtil.getJSONObject
+									(mapperIdentity, MappingJsonConstants.NAME), VALUE))) {
+								attribute.put(MappingJsonConstants.NAME + "_" + jsonValue.getLanguage(), jsonValue.getValue());
+							}
 						}
 					} else
 						attribute.putIfAbsent(e.getKey().toString(), value);
