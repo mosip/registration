@@ -526,7 +526,9 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			syncRegistration = convertDtoToEntity(registrationDto, referenceId, timeStamp);
 			syncRegistration.setWorkflowInstanceId(existingSyncRegistration.getWorkflowInstanceId());
 			syncRegistration.setCreateDateTime(existingSyncRegistration.getCreateDateTime());
-			syncRegistration.setRegistrationDate(syncRegistration.getCreateDateTime().toLocalDate());
+			if(syncRegistration.getCreateDateTime()!=null) {
+				syncRegistration.setRegistrationDate(syncRegistration.getCreateDateTime().toLocalDate());
+			}
 			syncRegistrationDao.update(syncRegistration);
 			syncResponseDto.setRegistrationId(registrationDto.getRegistrationId());
 
@@ -537,7 +539,9 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			syncRegistration = convertDtoToEntity(registrationDto, referenceId, timeStamp);
 			syncRegistration.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 			syncRegistration.setWorkflowInstanceId(RegistrationUtility.generateId());
-			syncRegistration.setRegistrationDate(syncRegistration.getCreateDateTime().toLocalDate());
+			if(syncRegistration.getCreateDateTime()!=null) {
+				syncRegistration.setRegistrationDate(syncRegistration.getCreateDateTime().toLocalDate());
+			}
 			syncRegistrationDao.save(syncRegistration);
 			syncResponseDto.setRegistrationId(registrationDto.getRegistrationId());
 			
