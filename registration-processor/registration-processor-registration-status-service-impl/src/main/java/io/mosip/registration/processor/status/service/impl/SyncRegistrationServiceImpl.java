@@ -520,22 +520,21 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 				registrationDto.getRegistrationId(), "SyncRegistrationServiceImpl::validateRegId()::entry");
 		SyncResponseSuccessDto syncResponseDto = new SyncResponseSuccessDto();
 		SyncRegistrationEntity existingSyncRegistration = findByPacketId(registrationDto.getPacketId());
-		SyncRegistrationEntity syncRegistration;
+		SyncRegistrationEntity syncRegistration=new SyncRegistrationEntity();
 		if (existingSyncRegistration != null) {
 			// update sync registration record
-			syncRegistration = convertDtoToEntity(registrationDto, referenceId, timeStamp);
 			syncRegistration.setWorkflowInstanceId(existingSyncRegistration.getWorkflowInstanceId());
 			syncRegistration.setCreateDateTime(existingSyncRegistration.getCreateDateTime());
+			syncRegistration = convertDtoToEntity(syncRegistration,registrationDto, referenceId, timeStamp);
 			syncRegistrationDao.update(syncRegistration);
 			syncResponseDto.setRegistrationId(registrationDto.getRegistrationId());
 
 			eventId = EventId.RPR_402.toString();
 		} else {
 			// first time sync registration
-
-			syncRegistration = convertDtoToEntity(registrationDto, referenceId, timeStamp);
 			syncRegistration.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 			syncRegistration.setWorkflowInstanceId(RegistrationUtility.generateId());
+			syncRegistration = convertDtoToEntity(syncRegistration,registrationDto, referenceId, timeStamp);
 			syncRegistrationDao.save(syncRegistration);
 			syncResponseDto.setRegistrationId(registrationDto.getRegistrationId());
 			
@@ -631,14 +630,15 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 
 	/**
 	 * Convert dto to entity.
+	 * @param syncRegistrationEntity 
 	 *
 	 * @param dto
 	 *            the dto
 	 * @return the sync registration entity
 	 */
-	private SyncRegistrationEntity convertDtoToEntity(SyncRegistrationDto dto, String referenceId,
+	private SyncRegistrationEntity convertDtoToEntity(SyncRegistrationEntity syncRegistrationEntity, SyncRegistrationDto dto, String referenceId,
 			String timeStamp) {
-		SyncRegistrationEntity syncRegistrationEntity = new SyncRegistrationEntity();
+		
 		syncRegistrationEntity.setRegistrationId(dto.getRegistrationId().trim());
 		syncRegistrationEntity.setIsDeleted(dto.getIsDeleted() != null ? dto.getIsDeleted() : Boolean.FALSE);
 		syncRegistrationEntity.setLangCode(dto.getLangCode());
