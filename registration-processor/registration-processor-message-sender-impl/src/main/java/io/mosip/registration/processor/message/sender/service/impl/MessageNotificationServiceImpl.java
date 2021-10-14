@@ -507,7 +507,8 @@ public class MessageNotificationServiceImpl
 						for (int count = 0; count < jsonValues.length; count++) {
 							String lang = jsonValues[count].getLanguage();
 							attribute.put(val + "_" + lang, jsonValues[count].getValue());
-							if(key.equalsIgnoreCase(MappingJsonConstants.NAME)) {
+							if(key.equalsIgnoreCase(JsonUtil.getJSONValue(JsonUtil.getJSONObject
+									(mapperIdentity, MappingJsonConstants.NAME), VALUE))) {
 								attribute.put(MappingJsonConstants.NAME + "_" + lang, jsonValues[count].getValue());
 							}
 						}
