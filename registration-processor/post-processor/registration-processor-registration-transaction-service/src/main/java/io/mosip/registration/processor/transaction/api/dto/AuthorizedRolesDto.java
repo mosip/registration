@@ -13,8 +13,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class AuthorizedRolesDto {
-//Internal auth delegate service controller
+ //Registration Transaction controller
 
-    private List<String> getGetsearchrid;
+    private List<String> getsearchrid;
 
 }
