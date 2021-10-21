@@ -33,6 +33,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.entities.Entry;
+import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
@@ -639,8 +640,7 @@ public class WorkflowInternalActionVerticleTest {
 	
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testProcessSuccessForAnonymousProfile() throws ApisResourceAccessException, PacketManagerException,
-			JsonProcessingException, IOException, JSONException {
+	public void testProcessSuccessForAnonymousProfile() throws IOException, JSONException, BaseCheckedException {
 		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
 		workflowInternalActionDTO.setRid("10006100390000920200603070407");
 		workflowInternalActionDTO.setReg_type("NEW");
@@ -651,6 +651,12 @@ public class WorkflowInternalActionVerticleTest {
 		Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any()))
 				.thenReturn("1.0");
 		Mockito.when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(Arrays.asList(""));
+		
+		Map<String, String> fieldTypeMap = new HashedMap();
+		fieldTypeMap.put("postalCode", "string");
+		fieldTypeMap.put("zone", "simpleType");
+		Mockito.when(idSchemaUtil.getIdSchemaFieldTypes(anyDouble())).thenReturn(fieldTypeMap);
+		
 		Map<String, String> fieldMap = new HashedMap();
 		fieldMap.put("postalCode", "14022");
 		fieldMap.put("dateOfBirth", "1998/01/01");
@@ -690,9 +696,8 @@ public class WorkflowInternalActionVerticleTest {
 		.thenReturn(identity);
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(null);
-		Mockito.when(
-				anonymousProfileService.buildJsonStringFromPacketInfo(any(), any(), any(), anyString(), anyString()))
-				.thenReturn("jsonProfile");
+		Mockito.when(anonymousProfileService.buildJsonStringFromPacketInfo(any(), any(), any(), any(), anyString(),
+				anyString())).thenReturn("jsonProfile");
 		Mockito.doNothing().when(anonymousProfileService).saveAnonymousProfile(anyString(), anyString(), anyString());
 		MessageDTO object = workflowInternalActionVerticle.process(workflowInternalActionDTO);
 		assertEquals(true, object.getIsValid());

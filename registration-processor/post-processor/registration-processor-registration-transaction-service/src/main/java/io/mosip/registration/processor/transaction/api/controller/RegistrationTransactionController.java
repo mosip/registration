@@ -76,7 +76,8 @@ public class RegistrationTransactionController {
 	 * @return list of RegTransactionResponseDTOs 
 	 * @throws Exception
 	 */
-	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR','REGISTRATION_ADMIN')")
+	@PreAuthorize("hasAnyRole(@authorizedTransactionRoles.getGetsearchrid())")
+	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR','REGISTRATION_ADMIN')")
 	@GetMapping(path = "/search/{rid}")
 	@Operation(summary = "Get the transaction entity/entities", description = "Get the transaction entity/entities", tags = { "Registration Status" })
 	@ApiResponses(value = {

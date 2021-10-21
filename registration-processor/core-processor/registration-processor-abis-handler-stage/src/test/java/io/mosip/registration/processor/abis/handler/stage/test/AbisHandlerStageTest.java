@@ -334,6 +334,7 @@ public class AbisHandlerStageTest {
 		Mockito.when(packetInfoManager.getIdentifyByTransactionId(any(), any())).thenReturn(Boolean.FALSE);
 		Mockito.when(packetInfoManager.getAllAbisDetails()).thenReturn(abisApplicationDtos);
 
+		mockDataSharePolicy(Lists.newArrayList(BiometricType.IRIS, BiometricType.FINGER, BiometricType.FACE));
 		Mockito.when(packetInfoManager.getBioRefIdByRegId(any())).thenReturn(bioRefDtos);
 		tags.put("AGE_GROUP", "ADULT");
 		Mockito.when(packetService.getAllTags(any())).thenReturn(tags);
@@ -361,6 +362,7 @@ public class AbisHandlerStageTest {
 		Mockito.when(packetInfoManager.getIdentifyByTransactionId(any(), any())).thenReturn(Boolean.FALSE);
 		Mockito.when(packetInfoManager.getAllAbisDetails()).thenReturn(abisApplicationDtos);
 
+		mockDataSharePolicy(Lists.newArrayList(BiometricType.IRIS, BiometricType.FINGER, BiometricType.FACE));
 		RegBioRefDto regBioRefDto = new RegBioRefDto();
 		regBioRefDto.setBioRefId("1234567890");
 		bioRefDtos.add(regBioRefDto);
@@ -469,7 +471,8 @@ public class AbisHandlerStageTest {
 		dto.setRid("10003100030001520190422074511");
 		MessageDTO result = abisHandlerStage.process(dto);
 
-		assertTrue(result.getMessageBusAddress().getAddress().equalsIgnoreCase("abis-middle-ware-bus-in"));
+		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 	@Test
@@ -647,7 +650,7 @@ public class AbisHandlerStageTest {
 		MessageDTO result = abisHandlerStage.process(dto);
 
 		assertTrue(result.getIsValid());
-		assertTrue(result.getInternalError());
+		assertFalse(result.getInternalError());
 	}
 
 

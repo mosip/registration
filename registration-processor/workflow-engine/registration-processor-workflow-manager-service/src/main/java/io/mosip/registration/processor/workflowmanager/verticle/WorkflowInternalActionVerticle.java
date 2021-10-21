@@ -21,6 +21,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
@@ -253,8 +254,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 	}
 
 	private void processAnonymousProfile(WorkflowInternalActionDTO workflowInternalActionDTO)
-			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException,
-			JSONException {
+			throws IOException, JSONException, BaseCheckedException {
 		
 		String json = null;
 		String registrationId = workflowInternalActionDTO.getRid();
@@ -269,6 +269,8 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		String idSchemaVersionValue = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.IDSCHEMA_VERSION), MappingJsonConstants.VALUE);
 		String schemaVersion = packetManagerService.getFieldByMappingJsonKey(registrationId,
 				idSchemaVersionValue, registrationType, ProviderStageName.WORKFLOW_MANAGER);
+		Map<String,String> fieldTypeMap = idSchemaUtil.getIdSchemaFieldTypes(
+				Double.parseDouble(schemaVersion));
 		Map<String, String> fieldMap = packetManagerService.getFields(registrationId,
 				idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion)), registrationType,
 				ProviderStageName.WORKFLOW_MANAGER);
@@ -276,8 +278,8 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 				ProviderStageName.WORKFLOW_MANAGER);
 		BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId,
 				MappingJsonConstants.INDIVIDUAL_BIOMETRICS, registrationType, ProviderStageName.WORKFLOW_MANAGER);
-		json = anonymousProfileService.buildJsonStringFromPacketInfo(biometricRecord, fieldMap, metaInfoMap,
-				registrationStatusDto.getStatusCode(), registrationStatusDto.getRegistrationStageName());
+		json = anonymousProfileService.buildJsonStringFromPacketInfo(biometricRecord, fieldMap, fieldTypeMap,
+				metaInfoMap, registrationStatusDto.getStatusCode(), registrationStatusDto.getRegistrationStageName());
 		anonymousProfileService.saveAnonymousProfile(registrationId, registrationStatusDto.getRegistrationStageName(), json);
 		
 		this.send(this.mosipEventBus, new MessageBusAddress(anonymousProfileBusAddress), workflowInternalActionDTO);

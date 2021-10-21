@@ -52,12 +52,12 @@ import io.vertx.ext.web.RoutingContext;
 		"io.mosip.registration.processor.core.config",
         "io.mosip.registration.processor.securezone.notification.config",
         "io.mosip.registration.processor.packet.manager.config",
-        "io.mosip.registration.processor.status.config", 
+        "io.mosip.registration.processor.status.config",
         "io.mosip.registration.processor.rest.client.config",
         "io.mosip.registration.processor.core.kernel.beans"
 })
 public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
-	
+
 	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.securezone.notification.";
 
     /**
@@ -70,6 +70,19 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
      */
     @Value("${vertx.cluster.configuration}")
     private String clusterManagerUrl;
+
+    /**
+     * server port number.
+     */
+    @Value("${server.port}")
+    private String port;
+
+    /**
+     * server port number.
+     */
+    @Value("${securezone.routing.enabled:true}")
+    private boolean routingEnabled;
+
 
     /**
      * worker pool size.
@@ -85,6 +98,9 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
     /** After this time intervel, message should be considered as expired (In seconds). */
     @Value("${mosip.regproc.securezone.notification.message.expiry-time-limit}")
     private Long messageExpiryTimeLimit;
+
+    @Value("#{T(java.util.Arrays).asList('${registration.processor.main-processes:}')}")
+	private List<String> mainProcesses;
 
     /** The Constant USER. */
     private static final String USER = "MOSIP_SYSTEM";
@@ -117,7 +133,7 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
         this.consumeAndSend(mosipEventBus, MessageBusAddress.SECUREZONE_NOTIFICATION_IN,
                 MessageBusAddress.SECUREZONE_NOTIFICATION_OUT, messageExpiryTimeLimit);
     }
-    
+
     @Override
     protected String getPropertyPrefix() {
     	return STAGE_PROPERTY_PREFIX;
@@ -303,7 +319,8 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
      * @param messageDTO the message DTO
      */
     public void sendMessage(MessageDTO messageDTO) {
-        this.send(this.mosipEventBus, MessageBusAddress.SECUREZONE_NOTIFICATION_OUT, messageDTO);
+        if (routingEnabled)
+            this.send(this.mosipEventBus, MessageBusAddress.SECUREZONE_NOTIFICATION_OUT, messageDTO);
     }
 
     @Override
@@ -312,38 +329,56 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
     }
 
     private boolean isDuplicatePacketForSameReqId(MessageDTO messageDTO) {
-        // Validate if duplicate packet received against same additional_info_req_id
-        SyncRegistrationEntity entity = syncRegistrationService.findByWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
-        // find all records for same additionalInfoReqId.
-        List<SyncRegistrationEntity> entities = syncRegistrationService.findByAdditionalInfoReqId(entity.getAdditionalInfoReqId());
-        // if multiple records are present for same additionalInfoReqId then check in registration table how many packets are received
-        if (!CollectionUtils.isEmpty(entities) && entities.size() > 1) {
-            List<String> workflowInstanceIds = entities.stream().map(e -> e.getWorkflowInstanceId()).collect(Collectors.toList());
-            List<InternalRegistrationStatusDto> dtos = new ArrayList<>();
-            for (String workflowInstanceId : workflowInstanceIds) {
-                InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus(
-                        messageDTO.getRid(), messageDTO.getReg_type(), messageDTO.getIteration(), workflowInstanceId);
-                if (dto != null )
-                    dtos.add(dto);
-            }
-            InternalRegistrationStatusDto currentPacket = dtos.stream().filter(d -> d.getWorkflowInstanceId() != null &&
-                    d.getWorkflowInstanceId().equalsIgnoreCase(messageDTO.getWorkflowInstanceId())).findAny().get();
+    	boolean isDuplicate = false;
+		SyncRegistrationEntity entity = syncRegistrationService
+				.findByWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
 
-            // remove current packet from list so that it contains only other packets received for same additionalInfoReqId
-            dtos.remove(currentPacket);
+		if (entity.getAdditionalInfoReqId() == null && mainProcesses.contains(entity.getRegistrationType())) {
+			// find all main process records for same registrationId.
+			List<SyncRegistrationEntity> entities = syncRegistrationService.findByRegistrationId(entity.getRegistrationId());
+			List<SyncRegistrationEntity> mainProcessEntities = entities.stream()
+					.filter(e -> e.getAdditionalInfoReqId() == null).collect(Collectors.toList());
+			isDuplicate = checkDuplicates(messageDTO, mainProcessEntities);
+		} else {
+			// find all records for same additionalInfoReqId.
+			List<SyncRegistrationEntity> entities = syncRegistrationService.findByAdditionalInfoReqId(entity.getAdditionalInfoReqId());
+			// if multiple records are present for same additionalInfoReqId then check in registration table how many packets are received
+			isDuplicate = checkDuplicates(messageDTO, entities);
+		}
+		return isDuplicate;
+	}
 
-            for (InternalRegistrationStatusDto otherPacket : dtos) {
-                if (otherPacket.getCreateDateTime().isBefore(currentPacket.getCreateDateTime())) {
-                    messageDTO.setIsValid(Boolean.FALSE);
-                    regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-                            LoggerFileConstant.REGISTRATIONID.toString(), messageDTO.getRid(),
-                            "Packet already received for same additionalInfoReqId.");
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
+	private boolean checkDuplicates(MessageDTO messageDTO, List<SyncRegistrationEntity> entities) {
+		if (!CollectionUtils.isEmpty(entities) && entities.size() > 1) {
+			List<String> workflowInstanceIds = entities.stream().map(e -> e.getWorkflowInstanceId())
+					.collect(Collectors.toList());
+			List<InternalRegistrationStatusDto> dtos = new ArrayList<>();
+			for (String workflowInstanceId : workflowInstanceIds) {
+				InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus(messageDTO.getRid(),
+						messageDTO.getReg_type(), messageDTO.getIteration(), workflowInstanceId);
+				if (dto != null)
+					dtos.add(dto);
+			}
+			InternalRegistrationStatusDto currentPacket = dtos.stream()
+					.filter(d -> d.getWorkflowInstanceId() != null
+							&& d.getWorkflowInstanceId().equalsIgnoreCase(messageDTO.getWorkflowInstanceId()))
+					.findAny().get();
+
+			// remove current packet from list so that it contains only other packets received for same additionalInfoReqId
+			dtos.remove(currentPacket);
+
+			for (InternalRegistrationStatusDto otherPacket : dtos) {
+				if (otherPacket.getCreateDateTime().isBefore(currentPacket.getCreateDateTime())) {
+					messageDTO.setIsValid(Boolean.FALSE);
+					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+							LoggerFileConstant.REGISTRATIONID.toString(), messageDTO.getRid(),
+							"Packet already received for same registrationId.");
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 
     private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
 		object.setInternalError(true);
