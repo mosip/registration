@@ -141,8 +141,10 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 		String dobValue = JsonUtil.getJSONValue(
 				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.DOB),
 				MappingJsonConstants.VALUE);
-		Date dob = DateUtils.parseToDate(fieldMap.get(dobValue), dobFormat);
-		anonymousProfileDTO.setYearOfBirth(DateUtils.parseDateToLocalDateTime(dob).getYear());
+		if (fieldMap.get(dobValue) != null) {
+			Date dob = DateUtils.parseToDate(fieldMap.get(dobValue), dobFormat);
+			anonymousProfileDTO.setYearOfBirth(DateUtils.parseDateToLocalDateTime(dob).getYear());
+		}
 
 		// preferred Lang Value
 		String preferredaLangValue = JsonUtil.getJSONValue(
@@ -162,7 +164,8 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 		String genderValue = JsonUtil.getJSONValue(
 				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.GENDER),
 				MappingJsonConstants.VALUE);
-		anonymousProfileDTO.setGender(getLanguageBasedValueForSimpleType(fieldMap.get(genderValue), language));
+		if (fieldMap.get(genderValue) != null)
+			anonymousProfileDTO.setGender(getLanguageBasedValueForSimpleType(fieldMap.get(genderValue), language));
 
 		// set email and phone
 		String emailValue = JsonUtil.getJSONValue(
