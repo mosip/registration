@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,8 +27,8 @@ import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.AuthSystemException;
-import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.IntroducerOnHoldException;
+import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.ValidationFailedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -83,15 +82,14 @@ public class IntroducerValidator {
 	 * @throws SAXException
 	 * @throws ParserConfigurationException
 	 * @throws NoSuchAlgorithmException
-	 * @throws InvalidKeySpecException
 	 * @throws BiometricException
 	 * @throws io.mosip.kernel.core.exception.IOException
 	 * @throws BaseCheckedException
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
 	 */
-	public void validate(String registrationId, InternalRegistrationStatusDto registrationStatusDto) throws IOException,
-			InvalidKeySpecException, NoSuchAlgorithmException, CertificateException, BaseCheckedException {
+	public void validate(String registrationId, InternalRegistrationStatusDto registrationStatusDto)
+			throws IOException, NoSuchAlgorithmException, CertificateException, BaseCheckedException {
 
 		regProcLogger.debug("validate called for registrationId {}", registrationId);
 
@@ -128,12 +126,7 @@ public class IntroducerValidator {
 			}
 
 		}
-		if (introducerUIN != null && !introducerUIN.isEmpty()) {
-			validateIntroducerBiometric(registrationId, registrationStatusDto, introducerUIN);
-		} else {
-			throw new ValidationFailedException(StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getMessage(),
-					StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getCode());
-		}
+		validateIntroducerBiometric(registrationId, registrationStatusDto, introducerUIN);
 
 		regProcLogger.debug("validate call ended for registrationId {}", registrationId);
 	}
