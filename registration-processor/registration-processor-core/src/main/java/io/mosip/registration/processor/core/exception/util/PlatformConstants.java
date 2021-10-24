@@ -81,6 +81,9 @@ public final class PlatformConstants {
 	public static final String RPR_PACKET_VALIDATOR_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "PVM-";
 
 	/** The Constant RPR_PACKET_VALIDATOR_MODULE. */
+	public static final String RPR_PACKET_CLASSIFIER_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "PCM-";
+
+	/** The Constant RPR_PACKET_VALIDATOR_MODULE. */
 	public static final String RPR_SECUREZONE_NOTIFICATION_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "SEZ-";
 
 	/** The Constant RPR_UIN_GENERATOR_STAGE. */
@@ -106,6 +109,7 @@ public final class PlatformConstants {
 
 	public static final String RPR_ABIS_HANDLER = RPR_REGISTRATION_PROCESSOR_PREFIX + "ABIS-HANDLER-";
 
+	public static final String RPR_MA_MIDDLEWARE = RPR_REGISTRATION_PROCESSOR_PREFIX + "MANUAL-ADJUDICATION-";
 	/**
 	 * Instantiates a new RPR platform error codes.
 	 */

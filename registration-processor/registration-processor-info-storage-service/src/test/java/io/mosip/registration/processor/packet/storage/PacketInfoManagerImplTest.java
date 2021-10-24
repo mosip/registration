@@ -24,6 +24,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -163,7 +164,7 @@ public class PacketInfoManagerImplTest {
 	private BasePacketRepository<RegLostUinDetEntity, String> regLostUinDetRepository;
 
 	@Mock
-	private PacketManagerService packetManagerService;
+	private PriorityBasedPacketManagerService packetManagerService;
 
 	@Mock
 	private ObjectMapper objectMapper;
@@ -754,7 +755,7 @@ public class PacketInfoManagerImplTest {
 		List<String> uniqueMatchedRefIds = Arrays.asList("123av", "124abc", "125abcd");
 
 		packetInfoManagerImpl.saveManualAdjudicationData(uniqueMatchedRefIds, registrationId, DedupeSourceName.DEMO, "",
-				"");
+				"",null,null);
 
 	}
 
@@ -768,7 +769,7 @@ public class PacketInfoManagerImplTest {
 		List<String> uniqueMatchedRefIds = Arrays.asList("123av", "124abc", "125abcd");
 
 		packetInfoManagerImpl.saveManualAdjudicationData(uniqueMatchedRefIds, registrationId, DedupeSourceName.DEMO, "",
-				"");
+				"",null,null);
 
 	}
 

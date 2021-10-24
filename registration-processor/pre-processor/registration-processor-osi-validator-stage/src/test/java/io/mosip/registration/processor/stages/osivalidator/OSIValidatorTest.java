@@ -28,8 +28,9 @@ import io.mosip.kernel.biometrics.entities.BDBInfo;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
-import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
 import org.json.JSONException;
@@ -186,7 +187,7 @@ public class OSIValidatorTest {
 	private ClassLoader classLoader;
 
 	@Mock
-	private PacketManagerService packetManagerService;
+	private PriorityBasedPacketManagerService packetManagerService;
 
 	/**
 	 * Sets the up.
@@ -203,8 +204,6 @@ public class OSIValidatorTest {
 		ReflectionTestUtils.setField(osiValidator, "ageLimit", "5");
 		ReflectionTestUtils.setField(osiValidator, "dobFormat", "yyyy/MM/dd");
 		ReflectionTestUtils.setField(osiValidator, "introducerValidation", true);
-		ReflectionTestUtils.setField(osiValidator, "officerBiometricFileSource", "id");
-		ReflectionTestUtils.setField(osiValidator, "supervisorBiometricFileSource", "id");
 		File idJson = new File(classLoader.getResource("ID.json").getFile());
 		InputStream ip = new FileInputStream(idJson);
 
@@ -235,7 +234,7 @@ public class OSIValidatorTest {
 		metaInfo.put(JsonConstant.OFFICEROTPAUTHENTICATION, "S1234");
 		metaInfo.put(JsonConstant.PREREGISTRATIONID, "123234567899");
 		metaInfo.put(JsonConstant.REGISTRATIONID, "1234567890");
-		metaInfo.put(JsonConstant.SUPERVISORBIOMETRICFILENAME, "S1234");
+		metaInfo.put(MappingJsonConstants.SUPERVISORBIOMETRICFILENAME, "S1234");
 		metaInfo.put(JsonConstant.OFFICERPHOTONAME, "S1234");
 		metaInfo.put(JsonConstant.SUPERVISORPWR, "S1234");
 		metaInfo.put(JsonConstant.SUPERVISORID, "S1234");
@@ -286,7 +285,7 @@ public class OSIValidatorTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
 
 		FieldValue officerBiofileName = new FieldValue();
-		officerBiofileName.setLabel(JsonConstant.OFFICERBIOMETRICFILENAME);
+		officerBiofileName.setLabel(MappingJsonConstants.OFFICERBIOMETRICFILENAME);
 		officerBiofileName.setValue("officer_bio_CBEFF");
 
 		FieldValue officerPassword = new FieldValue();
@@ -306,11 +305,11 @@ public class OSIValidatorTest {
 		supervisorId.setValue("110016");
 
 		FieldValue supervisorOtp = new FieldValue();
-		supervisorOtp.setLabel(JsonConstant.SUPERVISOROTPAUTHENTICATION);
+		supervisorOtp.setLabel(MappingJsonConstants.SUPERVISOROTPAUTHENTICATION);
 		supervisorOtp.setValue("false");
 
 		FieldValue supervisorBiofileName = new FieldValue();
-		supervisorBiofileName.setLabel(JsonConstant.SUPERVISORBIOMETRICFILENAME);
+		supervisorBiofileName.setLabel(MappingJsonConstants.SUPERVISORBIOMETRICFILENAME);
 		supervisorBiofileName.setValue("supervisor_bio_CBEFF");
 
 		FieldValue creationDate = new FieldValue();
@@ -372,9 +371,9 @@ public class OSIValidatorTest {
 
 		BiometricRecord biometricRecord = new BiometricRecord();
 		biometricRecord.setSegments(Lists.newArrayList(birType3,birType4));
-		when(packetManagerService.getBiometrics(anyString(),any(),any(),anyString())).thenReturn(biometricRecord);
+		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(),any(),any(), any())).thenReturn(biometricRecord);
 
-		when(packetManagerService.getFieldByKey(anyString(), anyString(), anyString())).thenReturn("field");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any())).thenReturn("field");
 	}
 
 	/**
@@ -543,8 +542,8 @@ public class OSIValidatorTest {
 	public void testIntroducerRIDFailedOnHold() throws ApisResourceAccessException, IOException, Exception {
 		registrationStatusDto.setStatusCode("FAILED");
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
-		when(packetManagerService.getFieldByKey("reg1234","parentOrGuardianUIN","New")).thenReturn(null);
-		when(packetManagerService.getFieldByKey("reg1234","parentOrGuardianRID","New")).thenReturn("field");
+		when(packetManagerService.getFieldByMappingJsonKey("reg1234","parentOrGuardianUIN","New", ProviderStageName.OSI_VALIDATOR)).thenReturn(null);
+		when(packetManagerService.getFieldByMappingJsonKey("reg1234","parentOrGuardianRID","New", ProviderStageName.OSI_VALIDATOR)).thenReturn("field");
 		boolean isValid = osiValidator.isValidOSI("reg1234", registrationStatusDto, metaInfo);
 		assertFalse(isValid);
 	}
@@ -561,16 +560,16 @@ public class OSIValidatorTest {
 		introducerRegistrationStatusDto.setStatusCode((RegistrationStatusCode.PROCESSING.toString()));
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
 				.thenReturn(introducerRegistrationStatusDto);
-		when(packetManagerService.getFieldByKey("reg1234","parentOrGuardianUIN","New")).thenReturn(null);
-		when(packetManagerService.getFieldByKey("reg1234","parentOrGuardianRID","New")).thenReturn("field");
+		when(packetManagerService.getFieldByMappingJsonKey("reg1234","parentOrGuardianUIN","New", ProviderStageName.OSI_VALIDATOR)).thenReturn(null);
+		when(packetManagerService.getFieldByMappingJsonKey("reg1234","parentOrGuardianRID","New", ProviderStageName.OSI_VALIDATOR)).thenReturn("field");
 
 		osiValidator.isValidOSI("reg1234",  registrationStatusDto, metaInfo);
 	}
 
 	@Test
 	public void testIntroducerUINAndRIDNull() throws Exception {
-		when(packetManagerService.getFieldByKey("reg1234","parentOrGuardianUIN","New")).thenReturn(null);
-		when(packetManagerService.getFieldByKey("reg1234","parentOrGuardianRID","New")).thenReturn(null);
+		when(packetManagerService.getFieldByMappingJsonKey("reg1234","parentOrGuardianUIN","New", ProviderStageName.OSI_VALIDATOR)).thenReturn(null);
+		when(packetManagerService.getFieldByMappingJsonKey("reg1234","parentOrGuardianRID","New", ProviderStageName.OSI_VALIDATOR)).thenReturn(null);
 
 		boolean isValid = osiValidator.isValidOSI("reg1234",  registrationStatusDto, metaInfo);
 		assertFalse(isValid);
@@ -582,8 +581,8 @@ public class OSIValidatorTest {
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
 		registrationStatusDto.setRegistrationType("NEW");
-		when(packetManagerService.getFieldByKey("reg1234","parentOrGuardianUIN","New")).thenReturn(null);
-		when(packetManagerService.getFieldByKey("reg1234","parentOrGuardianRID","New")).thenReturn("field");
+		when(packetManagerService.getFieldByMappingJsonKey("reg1234","parentOrGuardianUIN","New", ProviderStageName.OSI_VALIDATOR)).thenReturn(null);
+		when(packetManagerService.getFieldByMappingJsonKey("reg1234","parentOrGuardianRID","New", ProviderStageName.OSI_VALIDATOR)).thenReturn("field");
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(null);
 		osiValidator.isValidOSI("reg1234",  registrationStatusDto, metaInfo);
 	}
@@ -592,7 +591,7 @@ public class OSIValidatorTest {
 	public void testIntroducerBioFileNull() throws Exception {
 		regOsiDto.setSupervisorBiometricFileName(null);
 		Mockito.when(osiUtils.getOSIDetailsFromMetaInfo(anyMap())).thenReturn(regOsiDto);
-		when(packetManagerService.getBiometrics(anyString(),anyString(),any(),anyString())).thenReturn(null);
+		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn(null);
 		boolean isValid = osiValidator.isValidOSI("reg1234",  registrationStatusDto, metaInfo);
 		assertFalse(isValid);
 	}
@@ -655,8 +654,8 @@ public class OSIValidatorTest {
 		introducerRegistrationStatusDto.setStatusCode((RegistrationStatusCode.PROCESSED.toString()));
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
 				.thenReturn(introducerRegistrationStatusDto);
-		when(packetManagerService.getFieldByKey("reg1234","parentOrGuardianUIN","New")).thenReturn(null);
-		when(packetManagerService.getFieldByKey("reg1234","parentOrGuardianRID","New")).thenReturn("field");
+		when(packetManagerService.getFieldByMappingJsonKey("reg1234","parentOrGuardianUIN","New", ProviderStageName.OSI_VALIDATOR)).thenReturn(null);
+		when(packetManagerService.getFieldByMappingJsonKey("reg1234","parentOrGuardianRID","New", ProviderStageName.OSI_VALIDATOR)).thenReturn("field");
 		Mockito.when(idRepoService.getUinByRid(any(), any())).thenReturn(null);
 
 		boolean isValid = osiValidator.isValidOSI("reg1234",  registrationStatusDto, metaInfo);

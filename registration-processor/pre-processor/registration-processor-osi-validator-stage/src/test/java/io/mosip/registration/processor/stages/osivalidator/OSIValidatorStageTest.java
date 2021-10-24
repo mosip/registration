@@ -14,6 +14,7 @@ import java.util.HashMap;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -70,7 +71,7 @@ public class OSIValidatorStageTest {
 
 		@Override
 		public void consumeAndSend(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
-				MessageBusAddress toAddress) {
+				MessageBusAddress toAddress, long messageExpiryTimeLimit) {
 		}
 	};
 
@@ -108,7 +109,7 @@ public class OSIValidatorStageTest {
 	InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 
 	@Mock
-	private PacketManagerService packetManagerService;
+	private PriorityBasedPacketManagerService packetManagerService;
 
 	/**
 	 * Sets the up.
@@ -120,10 +121,11 @@ public class OSIValidatorStageTest {
 	public void setUp() throws Exception {
 
 		Mockito.when(utility.getDefaultSource(any(), any())).thenReturn("reg-client");
-		Mockito.when(packetManagerService.getMetaInfo(anyString(), anyString())).thenReturn(new HashMap<>());
+		Mockito.when(packetManagerService.getMetaInfo(anyString(), anyString(), any())).thenReturn(new HashMap<>());
 
 		ReflectionTestUtils.setField(osiValidatorStage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(osiValidatorStage, "clusterManagerUrl", "/dummyPath");
+		ReflectionTestUtils.setField(osiValidatorStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(osiValidatorStage, "validateUMC", true);
 
 		@SuppressWarnings("unchecked")
@@ -334,7 +336,7 @@ public class OSIValidatorStageTest {
 	@Test
 	public void jsonProcessingExceptionTest() throws Exception {
 		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenReturn(Boolean.TRUE);
-		Mockito.when(packetManagerService.getMetaInfo(any(), any())).thenThrow(new JsonProcessingException("message"));
+		Mockito.when(packetManagerService.getMetaInfo(any(), any(), any())).thenThrow(new JsonProcessingException("message"));
 		MessageDTO messageDto = osiValidatorStage.process(dto);
 		assertEquals(true, messageDto.getInternalError());
 	}
@@ -342,7 +344,7 @@ public class OSIValidatorStageTest {
 	@Test
 	public void packetManagerExceptionTest() throws Exception {
 		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenReturn(Boolean.TRUE);
-		Mockito.when(packetManagerService.getMetaInfo(any(), any())).thenThrow(new PacketManagerException("id", "message"));
+		Mockito.when(packetManagerService.getMetaInfo(any(), any(), any())).thenThrow(new PacketManagerException("id", "message"));
 		MessageDTO messageDto = osiValidatorStage.process(dto);
 		assertEquals(true, messageDto.getInternalError());
 	}

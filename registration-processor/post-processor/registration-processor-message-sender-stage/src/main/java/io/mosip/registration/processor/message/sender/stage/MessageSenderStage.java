@@ -154,6 +154,10 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 	/** worker pool size. */
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
+
+	/** After this time intervel, message should be considered as expired (In seconds). */
+	@Value("${mosip.regproc.message.sender.message.expiry-time-limit}")
+	private Long messageExpiryTimeLimit;
 	
 	@Autowired
 	private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationservice;
@@ -162,7 +166,7 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 	 */
 	public void deployVerticle() {
 		MosipEventBus mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
-		this.consume(mosipEventBus, MessageBusAddress.MESSAGE_SENDER_BUS);
+		this.consume(mosipEventBus, MessageBusAddress.MESSAGE_SENDER_BUS, messageExpiryTimeLimit);
 	}
 
 	/*

@@ -67,7 +67,7 @@ public class PacketValidatorStageTest {
 		
 		@Override
 		public void consumeAndSend(MosipEventBus eventbus, MessageBusAddress addressbus1,
-				MessageBusAddress addressbus2) {
+				MessageBusAddress addressbus2, long messageExpiryTimeLimit) {
 		}
 		
 		@Override
@@ -96,6 +96,7 @@ public class PacketValidatorStageTest {
 		
 		ReflectionTestUtils.setField(packetValidatorStage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(packetValidatorStage, "clusterManagerUrl", "/dummyPath");
+		ReflectionTestUtils.setField(packetValidatorStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		packetValidatorStage.deployVerticle();
 	}
 

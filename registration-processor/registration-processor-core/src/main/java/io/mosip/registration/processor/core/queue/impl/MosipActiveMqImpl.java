@@ -88,6 +88,18 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
      */
     @Override
     public Boolean send(MosipQueue mosipQueue, byte[] message, String address) {
+        return send(mosipQueue, message, address, 0);
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * io.mosip.registration.processor.core.spi.queue.MosipQueueManager#send(java.
+     * lang.Object, java.lang.Object, java.lang.String, long)
+     */
+    @Override
+    public Boolean send(MosipQueue mosipQueue, byte[] message, String address, int messageTTL) {
         regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
                 "", "MosipActiveMqImpl::send()::entry");
 
@@ -98,6 +110,8 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
             MessageProducer messageProducer = session.createProducer(destination);
             BytesMessage byteMessage = session.createBytesMessage();
             byteMessage.writeObject(message);
+            if(messageTTL > 0)
+                messageProducer.setTimeToLive(messageTTL * 1000);
             messageProducer.send(byteMessage);
             flag = true;
         } catch (JMSException e) {
@@ -117,6 +131,11 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
 
     @Override
     public Boolean send(MosipQueue mosipQueue, String message, String address) {
+        return send(mosipQueue, message, address, 0);
+    }
+
+    @Override
+    public Boolean send(MosipQueue mosipQueue, String message, String address, int messageTTL) {
         boolean flag = false;
         initialSetup(mosipQueue);
         try {
@@ -124,6 +143,8 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
             MessageProducer messageProducer = session.createProducer(destination);
             TextMessage textMessage = session.createTextMessage();
             textMessage.setText(message);
+            if(messageTTL > 0)
+                messageProducer.setTimeToLive(messageTTL * 1000);
             messageProducer.send(textMessage);
             flag = true;
         } catch (JMSException e) {

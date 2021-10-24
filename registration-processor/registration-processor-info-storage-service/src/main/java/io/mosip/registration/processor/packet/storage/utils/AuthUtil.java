@@ -18,6 +18,7 @@ import java.util.stream.IntStream;
 import javax.crypto.SecretKey;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -132,6 +133,9 @@ public class AuthUtil {
 		authRequestDTO.setEnv(domainUrl);
 		authRequestDTO.setDomainUri(domainUrl);
 
+		String thumbprint = CryptoUtil.encodeBase64(getCertificateThumbprint(getCertificate(PARTNER_ID)));
+		authRequestDTO.setThumbprint(thumbprint);
+
 		AuthTypeDTO authType = new AuthTypeDTO();
 		authType.setBio(Boolean.TRUE);
 		authRequestDTO.setRequestedAuth(authType);
@@ -140,7 +144,7 @@ public class AuthUtil {
 		authRequestDTO.setIndividualId(individualId);
 		authRequestDTO.setIndividualIdType(individualType);
 		List<BioInfo> biometrics;
-		biometrics = getBiometricsList(list);
+		biometrics = getBiometricsList(list, thumbprint);
 		RequestDTO request = new RequestDTO();
 		request.setBiometrics(biometrics);
 		request.setTimestamp(DateUtils.formatToISOString(localdatetime));
@@ -155,7 +159,6 @@ public class AuthUtil {
 		// encrypted with MOSIP public key and encoded session key
 		byte[] encryptedSessionKeyByte = encryptRSA(secretKey.getEncoded(), PARTNER_ID, mapper);
 		authRequestDTO.setRequestSessionKey(Base64.encodeBase64URLSafeString(encryptedSessionKeyByte));
-
 		// sha256 of the request block before encryption and the hash is encrypted
 		// using the requestSessionKey
 		byte[] byteArray = encryptor.symmetricEncrypt(secretKey,
@@ -203,14 +206,14 @@ public class AuthUtil {
 
 		CertificateFactory cf = CertificateFactory.getInstance("X.509");
 		X509Certificate x509cert = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(java.util.Base64.getDecoder().decode(certificate)));
-
 		PublicKey publicKey = x509cert.getPublicKey();
 
 		return encryptor.asymmetricEncrypt(publicKey, sessionKey);
 
 	}
 
-	private List<BioInfo> getBiometricsList(List<io.mosip.kernel.biometrics.entities.BIR> list) throws BioTypeException, NoSuchAlgorithmException {
+	private List<BioInfo> getBiometricsList(List<io.mosip.kernel.biometrics.entities.BIR> list, String thumbprint)
+			throws BioTypeException, NoSuchAlgorithmException {
 
 		String previousHash = HMACUtils2.digestAsPlainText("".getBytes());
 		CbeffToBiometricUtil CbeffToBiometricUtil = new CbeffToBiometricUtil();
@@ -251,7 +254,7 @@ public class AuthUtil {
 						.digestAsPlainText((concatenatedHash.toString().getBytes()));
 				bioInfo.setHash(finalHash);
 				bioInfo.setSessionKey(splittedEncryptData.getEncryptedSessionKey());
-				bioInfo.setThumbprint("");
+				bioInfo.setThumbprint(thumbprint);
 				biometrics.add(bioInfo);
 				previousHash = finalHash;
 			}
@@ -380,6 +383,39 @@ public class AuthUtil {
 		pKey = pKey.replaceAll("-*END([^-]*)-*(\r?\n)?", "");
 		pKey = pKey.replaceAll("\\s", "");
 		return pKey;
+	}
+
+	private X509Certificate getCertificate(String refId)
+			throws ApisResourceAccessException, IOException, CertificateException {
+
+		// encrypt AES Session Key using RSA public key
+		ResponseWrapper<?> responseWrapper;
+		CertificateResponseDto certificateResponseDto;
+		ObjectMapper mapper = new ObjectMapper();
+		responseWrapper = (ResponseWrapper<?>) registrationProcessorRestClientService.getApi(ApiName.IDAUTHCERTIFICATE,
+				null, "applicationId,referenceId", IDA_APP_ID + ',' + refId, ResponseWrapper.class);
+		certificateResponseDto = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
+				CertificateResponseDto.class);
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), refId,
+				"AuthUtil::encryptRSA():: ENCRYPTIONSERVICE GET service call ended with response data "
+						+ JsonUtil.objectMapperObjectToJson(responseWrapper));
+
+		if (responseWrapper.getErrors() != null && responseWrapper.getErrors().size() > 0)
+			throw new IOException(responseWrapper.getErrors().get(0).getMessage());
+
+		String certificate = trimBeginEnd(certificateResponseDto.getCertificate());
+
+		CertificateFactory cf = CertificateFactory.getInstance("X.509");
+		X509Certificate x509cert = (X509Certificate) cf
+				.generateCertificate(new ByteArrayInputStream(java.util.Base64.getDecoder().decode(certificate)));
+
+		return x509cert;
+
+	}
+	private byte[] getCertificateThumbprint(java.security.cert.Certificate cert)
+			throws java.security.cert.CertificateEncodingException {
+
+		return DigestUtils.sha256(cert.getEncoded());
 	}
 
 }

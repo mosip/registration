@@ -12,10 +12,12 @@ import java.util.List;
 import java.util.Map;
 
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.packet.storage.dto.ConfigEnum;
-import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.json.JSONException;
 import org.json.JSONTokener;
@@ -117,7 +119,7 @@ public class MessageNotificationServiceImpl
 	private TemplateGenerator templateGenerator;
 
 	@Autowired
-	private PacketManagerService packetManagerService;
+	private PriorityBasedPacketManagerService packetManagerService;
 
 	/** The utility. */
 	@Autowired
@@ -501,12 +503,12 @@ public class MessageNotificationServiceImpl
 		mapperIdentity.keySet().forEach(key -> mapperJsonValues.add(JsonUtil.getJSONValue(JsonUtil.getJSONObject(mapperIdentity, key), VALUE)));
 
 		String source = utility.getDefaultSource(process, ConfigEnum.READER);
-		Map<String, String> fieldMap = packetManagerService.getFields(id, mapperJsonValues, process);
+		Map<String, String> fieldMap = packetManagerService.getFields(id, mapperJsonValues, process, ProviderStageName.MESSAGE_SENDER);
 
 		for (Map.Entry e : fieldMap.entrySet()) {
 			if (e.getValue() != null) {
 				String value = e.getValue().toString();
-				if (value != null) {
+				if (StringUtils.isNotEmpty(value)) {
 					Object json = new JSONTokener(value).nextValue();
 					if (json instanceof org.json.JSONObject) {
 						HashMap<String, Object> hashMap = new ObjectMapper().readValue(value, HashMap.class);

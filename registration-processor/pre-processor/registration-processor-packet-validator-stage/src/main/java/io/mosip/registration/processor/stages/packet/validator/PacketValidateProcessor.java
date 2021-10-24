@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import io.mosip.registration.processor.core.constant.ProviderStageName;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
@@ -97,7 +99,7 @@ public class PacketValidateProcessor {
 	private PacketValidator compositePacketValidator;
 
 	@Autowired
-	private PacketManagerService packetManagerService;
+	private PriorityBasedPacketManagerService packetManagerService;
 
 	@Autowired
 	private Utilities utility;
@@ -461,7 +463,7 @@ public class PacketValidateProcessor {
 			PacketValidationDto packetValidationDto) throws IOException, ApisResourceAccessException,
 			PacketManagerException, JsonProcessingException, JSONException {
 
-		Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(id, process);
+		Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(id, process, ProviderStageName.PACKET_VALIDATOR);
 		String metadata = metaInfoMap.get(JsonConstant.METADATA);
 		if (StringUtils.isNotEmpty(metadata)) {
 			JSONArray jsonArray = new JSONArray(metadata);

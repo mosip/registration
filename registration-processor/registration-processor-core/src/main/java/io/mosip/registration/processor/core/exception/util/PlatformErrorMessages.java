@@ -377,6 +377,81 @@ public enum PlatformErrorMessages {
 	RPR_PVM_PACKET_REJECTED(PlatformConstants.RPR_PACKET_VALIDATOR_MODULE + "011",
 			"Rejected by Supervisor"),
 
+	/** The packet classification failed. */
+	PACKET_CLASSIFICATION_FAILED("", "Packet Classification failed"),
+
+	/** The rpr pcm base unchecked exception. */
+	RPR_PCM_BASE_UNCHECKED_EXCEPTION(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "001",
+			"Packet Classification failed"),
+
+	/** The rpr pcm base checked exception. */
+	RPR_PCM_BASE_CHECKED_EXCEPTION(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "002",
+			"Tag generation failed"),
+
+	/** The rpr pcm idobject required field name fetching failed. */
+	RPR_PCM_COLLECT_IDOBJECT_FIELD_FAILED(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "003",
+			"Getting the required Id object field names from tag generator failed"),
+
+	/** The rpr pcm accessing idobject mapping file failed. */
+	RPR_PCM_ACCESSING_IDOBJECT_MAPPING_FILE_FAILED(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "004",
+			"Accessing Idobject mapping file filed"),
+
+	/** The rpr pcm unknown schema data type found. */
+	RPR_PCM_UNKNOWN_SCHEMA_DATA_TYPE(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "005",
+			"Field's schema data type is not supported"),
+
+	/** The rpr pcm schema data type json parsing failed. */
+	RPR_PCM_SCHEMA_DATA_TYPE_JSON_PARSING_FAILED(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "006",
+			"JSON parsing of field value according to the schema type failed"),
+
+	/** The rpr pcm data object mapping failed. */
+	RPR_PCM_DATA_OBJECT_MAPPING_FAILED(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "007",
+			"JSON parsing to java object failed"),
+
+	/** The rpr pcm meta info json parsing failed. */
+	RPR_PCM_META_INFO_JSON_PARSING_FAILED(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "008",
+			"JSON parsing of meta info failed"),
+
+	/** The rpr pcm mapping field name is not present in identity mapping json. */
+	RPR_PCM_FIELD_NAME_NOT_AVAILABLE_IN_MAPPING_JSON(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "009",
+			"Mapping field name is not present in identity mapping json"),
+
+	/** The rpr pcm value not available in configured language. */
+	RPR_PCM_VALUE_NOT_AVAILABLE_IN_CONFIGURED_LANGUAGE(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "010",
+			"Value not available in configured language for field"),
+
+	/** The rpr pcm fieldDTO or non string field value is null. */
+	RPR_PCM_FIELD_DTO_OR_NON_STRING_FIELD_IS_NULL(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "011",
+			"FieldDTO or non string field value is null"),
+
+	/** The rpr pcm sync registration entity not available null. */
+	RPR_PCM_SYNC_REGISTRATION_ENTITY_NOT_AVAILABLE(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "012",
+			"sync registration entity not available"),
+
+	/** The rpr pcm exception biometrics entry not avaiable in metainfo map. */
+	RPR_PCM_EXCEPTION_BIOMETRICS_ENTRY_NOT_AVAILABLE(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "013",
+			"ExceptionBiometrics entry not available in metainfo map"),
+
+	/** The rpr pcm operations data entry not avaiable in metainfo map. */
+	RPR_PCM_OPERATIONS_DATA_ENTRY_NOT_AVAILABLE(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "014",
+			"Operations data entry not avaiable in metainfo map"),
+
+	/** The rpr pcm meta data entry not avaiable in metainfo map. */
+	RPR_PCM_META_DATA_ENTRY_NOT_AVAILABLE(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "015",
+			"Meta data entry not avaiable in metainfo map"),
+
+	/** The rpr pcm ageGroupRangeMap does not contain group for given age. */
+	RPR_PCM_AGE_GROUP_NOT_FOUND(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "016",
+			"Age Group Range Map configuration does not contain age group for given age"),
+
+	/** The rpr pcm Captured Registered Devices entry not avaiable in metainfo map. */
+	RPR_PCM_CAPTURED_REGISTERED_DEVICES_ENTRY_NOT_AVAILABLE(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "017",
+			"Captured registered devices entry not avaiable in metainfo map"),
+
+	/** The rpr pcm exception biometrics entry not avaiable in metainfo map. */
+	RPR_PCM_EXCEPTION_BIOMETRICS_APPLICANT_ENTRY_NOT_AVAILABLE(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "018",
+			"ExceptionBiometrics applicant entry not available in metainfo map"),
+
 	/** The unsupported encoding. */
 	// UIN check - JSON file encoding failed.
 	UNSUPPORTED_ENCODING("", "Json Object Parsing Failed"),
@@ -446,6 +521,12 @@ public enum PlatformErrorMessages {
 
 	/** The system exception occured. */
 	SYSTEM_EXCEPTION_OCCURED(PlatformConstants.RPR_ABIS_MIDDLEWARE + "008", "Internal error occured"),
+
+	DUPLICATE_INSERT_RESPONSE(PlatformConstants.RPR_ABIS_MIDDLEWARE + "009",
+			"Duplicate Insert Response received from abis for same request id : "),
+
+	DUPLICATE_IDENTITY_RESPONSE(PlatformConstants.RPR_ABIS_MIDDLEWARE + "010",
+			"Duplicate Identify Response received from abis for same request id : "),
 
 	/** The packet bio dedupe failed. */
 	// Stages - Bio-Dedupe error code and message
@@ -600,6 +681,13 @@ public enum PlatformErrorMessages {
 	RPR_MVS_NO_USER_ID_SHOULD_NOT_EMPTY_OR_NULL(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "017",
 			"User Id should not empty or null "),
 
+	/** The rpr mvs no registration id should not empty or null. */
+	RPR_MVS_NO_RID_SHOULD_NOT_EMPTY_OR_NULL(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "022",
+			"Registration Id should not empty or null "),
+
+	/** The rpr mvs no matched ref id found for given ref id. */
+	RPR_MVS_NO_MATCHEDRID_FOUND_FOR_GIVEN_RID(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "023",
+			"No matched reference id found for given RID"),
 	/** The rpr mvs user status not active. */
 	RPR_MVS_USER_STATUS_NOT_ACTIVE(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "015",
 			"User is not in ACTIVE status"),
@@ -615,9 +703,21 @@ public enum PlatformErrorMessages {
 	RPR_MANUAL_VERIFICATION_REJECTED(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "021",
 			"Manual verification rejected"),
 
+	/** The rpr manual verification rejected. */
+	RPR_MANUAL_VERIFICATION_RESEND(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "025",
+			"Manual verification resend to queue."),
+
 	/** The rpr table not accessible. */
 	RPR_TABLE_NOT_ACCESSIBLE(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "022",
 			"TablenotAccessibleException in Manual verification"),
+
+	/** The rpr table not accessible. */
+	RPR_INVALID_MESSSAGE(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "023",
+			"Invalid message received from queue"),
+
+	/** The rpr table not accessible. */
+	RPR_INVALID_RID_FOUND(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "024",
+			"Multiple rids found for a reference id"),
 
 	/** The rpr tem not found. */
 	// Registration processor Message sender Exception error code
@@ -836,6 +936,14 @@ public enum PlatformErrorMessages {
 	/** The packet store not accessible. */
 	OBJECT_STORE_NOT_ACCESSIBLE(PlatformConstants.RPR_SYSTEM_EXCEPTION + "018",
 			"Unable to Access Object Store"),
+
+	/** The packet tags copying failed. */
+	RPR_SYS_PACKET_TAGS_COPYING_FAILED(PlatformConstants.RPR_SYSTEM_EXCEPTION + "019",
+			"Packet tags copying to message event failed"),
+
+	/** The message expired. */
+	RPR_SYS_MESSAGE_EXPIRED(PlatformConstants.RPR_SYSTEM_EXCEPTION + "020",
+			"Message expired as per the last hop timestamp"),
 
 	// Cbeff Util Exceptions
 	/** The rpr utl biometric tag match. */
@@ -1146,7 +1254,11 @@ public enum PlatformErrorMessages {
 	RPR_SECUREZONE_FAILURE(PlatformConstants.RPR_SECUREZONE_NOTIFICATION_MODULE + "001",
 			"Exception occured in securezone notification stage. Check logs for more info"),
 
-	RPR_AUTH_SYSTEM_EXCEPTION(PlatformConstants.RPR_AUTHENTICATION + "03", "Request could not be processed. Please try again");
+	RPR_AUTH_SYSTEM_EXCEPTION(PlatformConstants.RPR_AUTHENTICATION + "03", "Request could not be processed. Please try again"),
+
+	/** The queue json validation failed. */
+	QUEUE_JSON_VALIDATION_FAILED(PlatformConstants.RPR_MA_MIDDLEWARE + "004",
+			"Unable to find Connection Properties");
 
 	/** The error message. */
 	private final String errorMessage; 

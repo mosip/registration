@@ -7,9 +7,11 @@ import java.util.Map;
 
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -34,7 +36,7 @@ public class ApplicantDocumentValidation {
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(ApplicantDocumentValidation.class);
 
 	@Autowired
-    private PacketManagerService packetManagerService;
+    private PriorityBasedPacketManagerService packetManagerService;
 
 	@Autowired
 	private Utilities utility;
@@ -62,36 +64,36 @@ public class ApplicantDocumentValidation {
 		 fields.add(applicantBiometricLabel);
 		 fields.add(introducerBiometricLabel);
 
-		Map<String, String> docFields = packetManagerService.getFields(registrationId, fields, process);
+		Map<String, String> docFields = packetManagerService.getFields(registrationId, fields, process, ProviderStageName.PACKET_VALIDATOR);
 
         if (docFields.get(proofOfAddressLabel) != null) {
-			if (packetManagerService.getDocument(registrationId, MappingJsonConstants.POA, process) == null)
+			if (packetManagerService.getDocument(registrationId, proofOfAddressLabel, process, ProviderStageName.PACKET_VALIDATOR) == null)
 					return false;
 		}
 		if (docFields.get(proofOfDateOfBirthLabel) != null) {
-			if (packetManagerService.getDocument(registrationId, MappingJsonConstants.POB, process) == null)
+			if (packetManagerService.getDocument(registrationId, proofOfDateOfBirthLabel, process, ProviderStageName.PACKET_VALIDATOR) == null)
 				return false;
 		}
 		if (docFields.get(proofOfIdentityLabel) != null) {
-			if (packetManagerService.getDocument(registrationId, MappingJsonConstants.POI, process) == null)
+			if (packetManagerService.getDocument(registrationId, proofOfIdentityLabel, process, ProviderStageName.PACKET_VALIDATOR) == null)
 				return false;
 		}
 		if (docFields.get(proofOfRelationshipLabel) != null) {
-			if (packetManagerService.getDocument(registrationId, MappingJsonConstants.POR, process) == null)
+			if (packetManagerService.getDocument(registrationId, proofOfRelationshipLabel, process, ProviderStageName.PACKET_VALIDATOR) == null)
 				return false;
 		}
 		if (docFields.get(applicantBiometricLabel) != null) {
-			BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId, MappingJsonConstants.INDIVIDUAL_BIOMETRICS, null, process);
+			BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(registrationId, MappingJsonConstants.INDIVIDUAL_BIOMETRICS, process, ProviderStageName.PACKET_VALIDATOR);
 			if (biometricRecord == null || biometricRecord.getSegments() == null || biometricRecord.getSegments().size() == 0)
 				return false;
 		}
 		if (docFields.get(introducerBiometricLabel) != null) {
-			BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId, MappingJsonConstants.PARENT_OR_GUARDIAN_BIO, null, process);
+			BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(registrationId, MappingJsonConstants.PARENT_OR_GUARDIAN_BIO, process, ProviderStageName.PACKET_VALIDATOR);
 			if (biometricRecord == null || biometricRecord.getSegments() == null || biometricRecord.getSegments().size() == 0)
 				return false;
 		}
 		if (docFields.get(proofOfExceptionsLabel) != null) {
-			if (packetManagerService.getDocument(registrationId, MappingJsonConstants.POE, process) == null)
+			if (packetManagerService.getDocument(registrationId, proofOfExceptionsLabel, process, ProviderStageName.PACKET_VALIDATOR) == null)
 				return false;
 		}
 

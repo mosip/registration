@@ -23,6 +23,7 @@ import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.quality.checker.stage.QualityCheckerStage;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
@@ -78,7 +79,7 @@ public class QualityCheckerStageTest {
 	private Utilities utility;
 
 	@Mock
-	private PacketManagerService packetManagerService;
+	private PriorityBasedPacketManagerService packetManagerService;
 
 	/** The cbeff util. */
 	@Mock
@@ -121,7 +122,7 @@ public class QualityCheckerStageTest {
 
 		@Override
 		public void consumeAndSend(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
-				MessageBusAddress toAddress) {
+				MessageBusAddress toAddress, long messageExpiryTimeLimit) {
 		}
 	};
 
@@ -129,6 +130,7 @@ public class QualityCheckerStageTest {
 	public void setUp() throws Exception {
 		ReflectionTestUtils.setField(qualityCheckerStage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(qualityCheckerStage, "clusterManagerUrl", "/dummyPath");
+		ReflectionTestUtils.setField(qualityCheckerStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(qualityCheckerStage, "irisThreshold", 70);
 		ReflectionTestUtils.setField(qualityCheckerStage, "leftFingerThreshold", 80);
 		ReflectionTestUtils.setField(qualityCheckerStage, "rightFingerThreshold", 80);
@@ -210,8 +212,8 @@ public class QualityCheckerStageTest {
 
 		BiometricRecord biometricRecord = new BiometricRecord();
 		biometricRecord.setSegments(birTypeList);
-		when(packetManagerService.getBiometrics(any(),any(),any(),any())).thenReturn(biometricRecord);
-		when(packetManagerService.getFieldByKey(any(), any(), any())).thenReturn("individualBiometrics");
+		when(packetManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenReturn(biometricRecord);
+		when(packetManagerService.getFieldByMappingJsonKey(any(), any(), any(), any())).thenReturn("individualBiometrics");
 
 		File file = new File(classLoader.getResource("RegistrationProcessorIdentity.json").getFile());
 		InputStream inputStream = new FileInputStream(file);
@@ -284,7 +286,7 @@ public class QualityCheckerStageTest {
 
 		BiometricRecord biometricRecord = new BiometricRecord();
 		biometricRecord.setSegments(birTypeList);
-		when(packetManagerService.getBiometrics(any(),any(),any(),any())).thenReturn(null).thenReturn(biometricRecord);
+		when(packetManagerService.getBiometrics(any(),any(), any(), any())).thenReturn(null).thenReturn(biometricRecord);
 
 
 
@@ -305,7 +307,7 @@ public class QualityCheckerStageTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testException() throws Exception {
-		when(packetManagerService.getBiometrics(any(),any(),any(),any())).thenThrow(new PacketManagerException("code","message"));
+		when(packetManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenThrow(new PacketManagerException("code","message"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO messageDTO = qualityCheckerStage.process(dto);
@@ -314,7 +316,7 @@ public class QualityCheckerStageTest {
 	
 	@Test
 	public void testCbeffNotFound() throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
-		when(packetManagerService.getBiometrics(any(),any(),any(),any())).thenThrow(new IOException("message"));
+		when(packetManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenThrow(new IOException("message"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO messageDTO = qualityCheckerStage.process(dto);
@@ -398,7 +400,7 @@ public class QualityCheckerStageTest {
 	@Test
 	public void testFileMissing() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
-		when(packetManagerService.getBiometrics(anyString(),anyString(),any(),anyString())).thenReturn(null);
+		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(),any(), any(),any())).thenReturn(null);
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
@@ -410,7 +412,7 @@ public class QualityCheckerStageTest {
 	@Test
 	public void testBioetricFileNotPresentInIdObject() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
 
-		when(packetManagerService.getFieldByKey(any(), any(), any())).thenReturn(null);
+		when(packetManagerService.getFieldByMappingJsonKey(any(), any(), any(), any())).thenReturn(null);
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");

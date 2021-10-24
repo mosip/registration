@@ -129,7 +129,11 @@ public class MessageBusAddress implements Serializable {
 	public static final MessageBusAddress DEMO_DEDUPE_BUS_OUT = new MessageBusAddress("demo-dedupe-bus-out");
 
 	/** The Constant MANUAL_VERIFICATION_BUS. */
-	public static final MessageBusAddress MANUAL_VERIFICATION_BUS = new MessageBusAddress("manual-verification-bus-out");
+	public static final MessageBusAddress MANUAL_VERIFICATION_BUS_OUT = new MessageBusAddress("manual-verification-bus-out");
+
+	/** The Constant MANUAL_VERIFICATION_BUS_IN. */
+	public static final MessageBusAddress MANUAL_VERIFICATION_BUS_IN = new MessageBusAddress("manual-verification-bus-in");
+
 
 	/** The Constant UIN_GENERATION_BUS_IN. */
 	public static final MessageBusAddress UIN_GENERATION_BUS_IN = new MessageBusAddress("uin-generator-bus-in");
@@ -192,8 +196,13 @@ public class MessageBusAddress implements Serializable {
 	/** The Constant SECUREZONE_NOTIFICATION_OUT. */
 	public static final MessageBusAddress SECUREZONE_NOTIFICATION_OUT = new MessageBusAddress("securezone-notification-bus-out");
 
+	/** The Constant STRUCTURE_BUS_IN. */
+	public static final MessageBusAddress PACKET_CLASSIFIER_BUS_IN = new MessageBusAddress("packet-classifier-bus-in");
 
-
+	/** The Constant STRUCTURE_BUS_OUT. */
+	public static final MessageBusAddress PACKET_CLASSIFIER_BUS_OUT = new MessageBusAddress("packet-classifier-bus-out");
+	
+	
 	/*
 	 * (non-Javadoc)
 	 *

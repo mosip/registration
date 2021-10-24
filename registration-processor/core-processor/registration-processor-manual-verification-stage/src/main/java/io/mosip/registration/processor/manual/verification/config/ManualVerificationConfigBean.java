@@ -11,14 +11,15 @@ import io.mosip.registration.processor.manual.verification.util.ManualVerificati
 
 @Configuration
 public class ManualVerificationConfigBean {
+	
+	
+	@Bean ManualVerificationService getManualVerificationService() {
+		return new ManualVerificationServiceImpl();
+	}
 
 	@Bean
 	public ManualVerificationStage getManualVerificationStage() {
 		return new ManualVerificationStage();
-	}
-	
-	@Bean ManualVerificationService getManualVerificationService() {
-		return new ManualVerificationServiceImpl();
 	}
 
 	@Bean

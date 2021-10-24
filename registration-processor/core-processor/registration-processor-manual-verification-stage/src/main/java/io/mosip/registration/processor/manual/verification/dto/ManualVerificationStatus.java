@@ -10,8 +10,9 @@ public enum ManualVerificationStatus {
 
 	/** The pending. */
 	PENDING, /** The assigned. */
- ASSIGNED, /** The approved. */
- APPROVED, /** The rejected. */
- REJECTED
+     ASSIGNED, /** The approved. */
+     APPROVED, /** The rejected. */
+     REJECTED,
+    INQUEUE
 	
 }
