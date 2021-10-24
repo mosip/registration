@@ -66,6 +66,10 @@ public class ExternalStage extends MosipVerticleAPIManager {
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
 
+	/** After this time intervel, message should be considered as expired (In seconds). */
+	@Value("${mosip.regproc.external.message.expiry-time-limit}")
+	private Long messageExpiryTimeLimit;
+
 	@Autowired
 	private AuditLogRequestBuilder auditLogRequestBuilder;
 
@@ -97,7 +101,7 @@ public class ExternalStage extends MosipVerticleAPIManager {
 	public void deployVerticle() {
 		this.mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.EXTERNAL_STAGE_BUS_IN,
-				MessageBusAddress.EXTERNAL_STAGE_BUS_OUT);
+				MessageBusAddress.EXTERNAL_STAGE_BUS_OUT, messageExpiryTimeLimit);
 	}
 
 	/*

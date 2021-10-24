@@ -10,8 +10,10 @@ import java.util.function.Supplier;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.packet.storage.dto.FieldResponseDto;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.collections.CollectionUtils;
 import org.assertj.core.util.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +60,7 @@ public class AuditUtility {
 	private ObjectMapper mapper;
 
 	@Autowired
-	private PacketManagerService packetManagerService;
+	private PriorityBasedPacketManagerService packetManagerService;
 
 	/**
 	 * Save the audit Details.
@@ -73,7 +75,7 @@ public class AuditUtility {
 		try {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", "AuditUtility::saveAuditDetails()::entry");
-			List<FieldResponseDto> audits = packetManagerService.getAudits(registrationId, process);
+			List<FieldResponseDto> audits = packetManagerService.getAudits(registrationId, process, ProviderStageName.PACKET_VALIDATOR);
 			if (CollectionUtils.isNotEmpty(audits)) {
 				audits.parallelStream().forEach(audit -> {
 					AsyncRequestDTO request = buildRequest(audit);

@@ -5,10 +5,10 @@
     <parent>
         <artifactId>pre-processor</artifactId>
         <groupId>io.mosip.registrationprocessor</groupId>
-        <version>1.1.4</version>
+        <version>1.1.5.2</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <version>1.1.4</version>
+    <version>1.1.5.2</version>
 
     <artifactId>registration-processor-securezone-notification-stage</artifactId>
 
@@ -94,16 +94,6 @@
             <artifactId>awaitility</artifactId>
             <version>${awaitility.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-core</artifactId>
-            <version>${io.micrometer.prometheus.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-registry-prometheus</artifactId>
-            <version>${io.micrometer.prometheus.version}</version>
         </dependency>
     </dependencies>
 

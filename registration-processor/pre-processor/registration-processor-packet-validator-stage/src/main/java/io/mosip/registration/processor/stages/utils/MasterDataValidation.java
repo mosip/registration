@@ -7,8 +7,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +63,7 @@ public class MasterDataValidation {
 	private Utilities utility;
 
 	@Autowired
-	private PacketManagerService packetManagerService;
+	private PriorityBasedPacketManagerService packetManagerService;
 
 	@Autowired
 	private ObjectMapper objectMapper;
@@ -87,7 +89,7 @@ public class MasterDataValidation {
 	 * @return the boolean
 	 * @throws ApisResourceAccessException
 	 */
-	public boolean validateMasterData(String id, String source, String process) throws ApisResourceAccessException, IOException, io.mosip.kernel.core.util.exception.JsonProcessingException, PacketManagerException {
+	public boolean validateMasterData(String id, String process) throws ApisResourceAccessException, IOException, io.mosip.kernel.core.util.exception.JsonProcessingException, PacketManagerException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"MasterDataValidation::validateMasterData()::entry");
 		boolean isValid = false;
@@ -103,7 +105,7 @@ public class MasterDataValidation {
 			if (env.getProperty(ApiName.valueOf(element.toUpperCase()).name()) != null) {
 				String primaryLangValue = null;
 				String secondaryLangValue = null;
-				String val = packetManagerService.getField(id, element, utility.getSourceFromIdField(MappingJsonConstants.IDENTITY, process, element), process);
+				String val = packetManagerService.getField(id, element, process, ProviderStageName.PACKET_VALIDATOR);
 				if (val != null) {
 					Object object = objectMapper.readValue(val, Object.class);
 					if (object instanceof ArrayList) {

@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import io.mosip.registration.processor.core.constant.PolicyConstant;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,7 +78,6 @@ import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.utils.BIRConverter;
-import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -109,6 +111,10 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	/** worker pool size. */
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
+
+	/** After this time intervel, message should be considered as expired (In seconds). */
+	@Value("${mosip.regproc.abis.handler.message.expiry-time-limit}")
+	private Long messageExpiryTimeLimit;
 
 	@Value("${registration.processor.policy.id}")
 	private String policyId;
@@ -151,7 +157,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	private Environment env;
 
 	@Autowired
-	private PacketManagerService packetManagerService;
+	private PriorityBasedPacketManagerService priorityBasedPacketManagerService;
 
 	private static final String DATASHARECREATEURL = "DATASHARECREATEURL";
 
@@ -162,12 +168,12 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	public void deployVerticle() {
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.ABIS_HANDLER_BUS_IN,
-				MessageBusAddress.ABIS_HANDLER_BUS_OUT);
+				MessageBusAddress.ABIS_HANDLER_BUS_OUT, messageExpiryTimeLimit);
 	}
 
 	@Override
 	public void start() {
-		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.ABIS_HANDLER_BUS_IN,
+		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.ABIS_HANDLER_BUS_IN,
 				MessageBusAddress.ABIS_HANDLER_BUS_OUT));
 		this.createServer(router.getRouter(), Integer.parseInt(port));
 	}
@@ -532,7 +538,8 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		String individualBiometricsLabel = JsonUtil.getJSONValue(
 				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
 				MappingJsonConstants.VALUE);
-		BiometricRecord biometricRecord = packetManagerService.getBiometrics(id, MappingJsonConstants.INDIVIDUAL_BIOMETRICS, modalities, process);
+		BiometricRecord biometricRecord = priorityBasedPacketManagerService.getBiometrics(
+				id, individualBiometricsLabel, modalities, process, ProviderStageName.BIO_DEDUPE);
 		byte[] content = cbeffutil.createXML(BIRConverter.convertSegmentsToBIRList(biometricRecord.getSegments()));
 
 		MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
@@ -560,14 +567,14 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	public Map<String, List<String>> createTypeSubtypeMapping() throws ApisResourceAccessException, DataShareException, JsonParseException, JsonMappingException, com.fasterxml.jackson.core.JsonProcessingException, IOException{
 		Map<String, List<String>> typeAndSubTypeMap = new HashMap<>();
 		ResponseWrapper<?> policyResponse = (ResponseWrapper<?>) registrationProcessorRestClientService.getApi(
-				ApiName.PMS, Lists.newArrayList(subscriberId, AbisHandlerStageConstant.POLICY_ID, policyId), "", "", ResponseWrapper.class);
+				ApiName.PMS, Lists.newArrayList(policyId, PolicyConstant.PARTNER_ID, subscriberId), "", "", ResponseWrapper.class);
 		if (policyResponse == null || (policyResponse.getErrors() != null && policyResponse.getErrors().size() >0)) {
 			throw new DataShareException(policyResponse == null ? "Policy Response response is null" : policyResponse.getErrors().get(0).getMessage());
 			
 		} else {
 			LinkedHashMap<String, Object> responseMap = (LinkedHashMap<String, Object>) policyResponse.getResponse();
-			LinkedHashMap<String, Object> policies = (LinkedHashMap<String, Object>) responseMap.get(AbisHandlerStageConstant.POLICIES);
-			List<?> attributes = (List<?>) policies.get(AbisHandlerStageConstant.SHAREABLE_ATTRIBUTES);
+			LinkedHashMap<String, Object> policies = (LinkedHashMap<String, Object>) responseMap.get(PolicyConstant.POLICIES);
+			List<?> attributes = (List<?>) policies.get(PolicyConstant.SHAREABLE_ATTRIBUTES);
 			ObjectMapper mapper = new ObjectMapper();
 			ShareableAttributes shareableAttributes = mapper.readValue(mapper.writeValueAsString(attributes.get(0)),
 					ShareableAttributes.class);

@@ -1,5 +1,7 @@
 package io.mosip.registration.processor.core.abstractverticle;
 
+import brave.Tracer;
+import io.mosip.registration.processor.core.tracing.VertxWrapperHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +22,9 @@ public class MosipRouter {
 	/** Token validator class */
 	@Autowired
 	TokenValidator tokenValidator;
+
+	@Autowired
+	private Tracer tracer;
 
 	/**
 	 * This method sets router for API
@@ -58,19 +63,21 @@ public class MosipRouter {
 	 * @param failureHandler
 	 */
 	public void handler(Handler<RoutingContext> requestHandler, Handler<RoutingContext> failureHandler) {
-		this.route.blockingHandler(this::validateToken).blockingHandler(requestHandler, false)
-				.failureHandler(failureHandler);
+		this.route.blockingHandler(this::validateToken).blockingHandler(new VertxWrapperHandler(requestHandler){}, false)
+				.failureHandler(new VertxWrapperHandler(failureHandler){});
 	}
 
 	public void nonSecureHandler(Handler<RoutingContext> requestHandler, Handler<RoutingContext> failureHandler) {
-		this.route.blockingHandler(requestHandler, false)
-				.failureHandler(failureHandler);
+		this.route.blockingHandler(new VertxWrapperHandler(requestHandler) {}, false)
+				.failureHandler(new VertxWrapperHandler(failureHandler){});
 	}
 
 	public void handler(Handler<RoutingContext> requestHandler, Handler<RoutingContext> requestHandler2,
 			Handler<RoutingContext> failureHandler) {
-		this.route.blockingHandler(this::validateToken).blockingHandler(requestHandler, false)
-				.blockingHandler(requestHandler2, false).failureHandler(failureHandler);
+		this.route.blockingHandler(this::validateToken)
+				.blockingHandler(new VertxWrapperHandler(requestHandler){}, false)
+				.blockingHandler(new VertxWrapperHandler(requestHandler2){}, false)
+				.failureHandler(new VertxWrapperHandler(failureHandler){});
 	}
 
 	/**
@@ -100,8 +107,10 @@ public class MosipRouter {
 	 */
 	private void validateToken(RoutingContext routingContext) {
 		String token = routingContext.request().getHeader("Cookie");
-		tokenValidator.validate(token, routingContext.normalisedPath());
+		String url = routingContext.normalisedPath();
+		tokenValidator.validate(token, url);
 		routingContext.next();
 	}
+
 
 }

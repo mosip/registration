@@ -11,6 +11,9 @@ import java.net.URLConnection;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import io.mosip.registration.processor.core.tracing.ContextualData;
+import io.mosip.registration.processor.core.tracing.TracingConstant;
+import io.vertx.ext.web.RoutingContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -43,6 +46,7 @@ public class TokenValidator {
 	@Autowired
 	Environment env;
 
+
 	public void validate(String token, String url) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"TokenValidator::validate()::entry");
@@ -59,6 +63,7 @@ public class TokenValidator {
 				con = (HttpURLConnection) urlConnection;
 			}
 			con.setRequestProperty("Cookie", token);
+			con.setRequestProperty(TracingConstant.TRACE_HEADER, (String) ContextualData.getOrDefault(TracingConstant.TRACE_ID_KEY));
 			con.setRequestMethod("GET");
 
 			BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));

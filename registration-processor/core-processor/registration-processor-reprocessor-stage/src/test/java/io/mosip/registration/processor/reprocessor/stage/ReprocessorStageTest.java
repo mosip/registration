@@ -137,8 +137,6 @@ public class ReprocessorStageTest {
 		registrationStatusDto1.setRegistrationType("NEW");
 		registrationStatusDto1.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 		dtolist.add(registrationStatusDto1);
-		Mockito.when(registrationStatusService.getUnProcessedPacketsCount(anyLong(), anyInt(), anyList()))
-				.thenReturn(1);
 		Mockito.when(registrationStatusService.getUnProcessedPackets(anyInt(), anyLong(), anyInt(), anyList()))
 				.thenReturn(dtolist);
 		dto = reprocessorStage.process(dto);
@@ -165,8 +163,6 @@ public class ReprocessorStageTest {
 		registrationStatusDto1.setRegistrationType("NEW");
 		registrationStatusDto1.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 		dtolist.add(registrationStatusDto1);
-		Mockito.when(registrationStatusService.getUnProcessedPacketsCount(anyLong(), anyInt(), anyList()))
-				.thenReturn(1);
 		Mockito.when(registrationStatusService.getUnProcessedPackets(anyInt(), anyLong(), anyInt(), anyList()))
 				.thenReturn(dtolist);
 		dto = reprocessorStage.process(dto);
@@ -181,16 +177,16 @@ public class ReprocessorStageTest {
 	 */
 	@Test
 	public void exceptionTest() throws Exception {
-		Mockito.when(registrationStatusService.getUnProcessedPacketsCount(anyLong(), anyInt(), anyList()))
+		Mockito.when(registrationStatusService.getUnProcessedPackets(anyInt(),anyLong(), anyInt(), anyList()))
 				.thenReturn(null);
 		dto = reprocessorStage.process(dto);
-		assertEquals(true, dto.getInternalError());
+		assertEquals(null, dto.getIsValid());
 
 	}
 
 	@Test
 	public void TablenotAccessibleExceptionTest() throws Exception {
-		Mockito.when(registrationStatusService.getUnProcessedPacketsCount(anyLong(), anyInt(), anyList()))
+		Mockito.when(registrationStatusService.getUnProcessedPackets(anyInt(), anyLong(), anyInt(), anyList()))
 				.thenThrow(new TablenotAccessibleException("") {
 				});
 

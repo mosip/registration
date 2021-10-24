@@ -10,10 +10,11 @@ import java.util.Map;
 
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
+import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.util.StringUtils;
-import io.mosip.registration.processor.packet.storage.dto.ConfigEnum;
 import io.mosip.registration.processor.packet.storage.dto.Document;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.packet.storage.utils.*;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
@@ -54,10 +55,10 @@ import io.mosip.registration.processor.core.constant.EventType;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
-import io.mosip.registration.processor.core.http.RequestWrapper;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.idrepo.dto.Documents;
 import io.mosip.registration.processor.core.logger.LogDescription;
@@ -114,6 +115,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	@Value("${registration.processor.id.repo.vidType}")
 	private String vidType;
 
+	@Value("${mosip.commons.packet.manager.schema.validator.convertIdSchemaToDouble:true}")
+	private boolean convertIdschemaToDouble;
+
 	/** The cluster manager url. */
 	@Value("${vertx.cluster.configuration}")
 	private String clusterManagerUrl;
@@ -134,9 +138,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
 
-	/** The default source of the packet (Ex - id packet)*/
-	@Value("${packet.default.source}")
-	private String defaultSource;
+	/** After this time intervel, message should be considered as expired (In seconds). */
+	@Value("${mosip.regproc.uin.generator.message.expiry-time-limit}")
+	private Long messageExpiryTimeLimit;
 
 	/** The core audit request builder. */
 	@Autowired
@@ -175,7 +179,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	private ABISHandlerUtil aBISHandlerUtil;
 
 	@Autowired
-	private PacketManagerService packetManagerService;
+	private PriorityBasedPacketManagerService packetManagerService;
 
 	@Autowired
 	private IdSchemaUtil idSchemaUtil;
@@ -202,6 +206,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 				registrationId, "UinGeneratorStage::process()::entry");
 		UinGenResponseDto uinResponseDto = null;
 
+		regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				registrationId, "Started processing rid in UinGeneratorStage");
+
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(registrationId);
 		try {
 			registrationStatusDto
@@ -218,21 +225,27 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			} else {
 
 				IdResponseDTO idResponseDTO = new IdResponseDTO();
-				String schemaVersion = packetManagerService.getFieldByKey(registrationId, MappingJsonConstants.IDSCHEMA_VERSION, registrationStatusDto.getRegistrationType());
-				List<String> defaultFields = idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion));
-				String source = utility.getDefaultSource(registrationStatusDto.getRegistrationType(), ConfigEnum.READER);
-				Map<String, String> fieldMap = packetManagerService.getFields(registrationId, defaultFields, source, registrationStatusDto.getRegistrationType());
+				String schemaVersion = packetManagerService.getFieldByMappingJsonKey(registrationId, MappingJsonConstants.IDSCHEMA_VERSION, registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
+
+				Map<String, String> fieldMap = packetManagerService.getFields(registrationId,
+						idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion)), registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
 				String uinField = fieldMap.get(utility.getMappingJsonValue(MappingJsonConstants.UIN, MappingJsonConstants.IDENTITY));
 
 				JSONObject demographicIdentity = new JSONObject();
-				demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, Double.valueOf(schemaVersion));
+				demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, convertIdschemaToDouble ? Double.valueOf(schemaVersion) : schemaVersion);
 
 				loadDemographicIdentity(fieldMap, demographicIdentity);
 
 				if (StringUtils.isEmpty(uinField) || uinField.equalsIgnoreCase("null") ) {
 
+					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+							registrationId, "Calling UINGENERATOR API to get unused uin");
+
 					String test = (String) registrationProcessorRestClientService.getApi(ApiName.UINGENERATOR, null, "",
 							"", String.class);
+
+					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+							registrationId, "Received response from UINGENERATOR API");
 
 					Gson gsonObj = new Gson();
 					uinResponseDto = gsonObj.fromJson(test, UinGenResponseDto.class);
@@ -403,8 +416,13 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			String eventType = eventId.equalsIgnoreCase(EventId.RPR_402.toString()) ? EventType.BUSINESS.toString()
 					: EventType.SYSTEM.toString();
 
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId, "Auditing stage result");
 			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
 					moduleId, moduleName, registrationId);
+
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId, "Finished processing rid in UinGeneratorStage");
 
 		}
 
@@ -477,8 +495,14 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 		try {
 
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId, "Calling IDREPOSITORY create API to link uin with applicant");
+
 			result = (IdResponseDTO) registrationProcessorRestClientService.postApi(ApiName.IDREPOSITORY, "", "",
 					idRequestDTO, IdResponseDTO.class);
+
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId, "Received response from IDREPOSITORY create API");
 
 		} catch (ApisResourceAccessException e) {
 
@@ -528,47 +552,57 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		String proofOfDateOfBirthLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(docJson, MappingJsonConstants.POB), MappingJsonConstants.VALUE);
 		String proofOfIdentityLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(docJson, MappingJsonConstants.POI), MappingJsonConstants.VALUE);
 		String proofOfRelationshipLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(docJson, MappingJsonConstants.POR), MappingJsonConstants.VALUE);
+		String proofOfExceptionLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(docJson, MappingJsonConstants.POE), MappingJsonConstants.VALUE);
 		String applicantBiometricLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(identityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS), MappingJsonConstants.VALUE);
 
 		HashMap<String, String> proofOfAddress = (HashMap<String, String>) idJSON.get(proofOfAddressLabel);
 		HashMap<String, String> proofOfDateOfBirth = (HashMap<String, String>) idJSON.get(proofOfDateOfBirthLabel);
 		HashMap<String, String> proofOfIdentity = (HashMap<String, String>) idJSON.get(proofOfIdentityLabel);
 		HashMap<String, String> proofOfRelationship = (HashMap<String, String>) idJSON.get(proofOfRelationshipLabel);
+		HashMap<String, String> proofOfException = (HashMap<String, String>) idJSON.get(proofOfExceptionLabel);
 		HashMap<String, String> applicantBiometric = (HashMap<String, String>) idJSON.get(applicantBiometricLabel);
 		if (proofOfAddress != null) {
 			applicantDocuments
-					.add(getIdDocumnet(regId, process, MappingJsonConstants.POA));
+					.add(getIdDocumnet(regId, proofOfAddressLabel, process));
 		}
 		if (proofOfDateOfBirth != null) {
-			applicantDocuments.add(
-					getIdDocumnet(regId, process, MappingJsonConstants.POB));
+			applicantDocuments
+					.add(getIdDocumnet(regId, proofOfDateOfBirthLabel, process));
 		}
 		if (proofOfIdentity != null) {
 			applicantDocuments
-					.add(getIdDocumnet(regId, process, MappingJsonConstants.POI));
+					.add(getIdDocumnet(regId, proofOfIdentityLabel, process));
 		}
 		if (proofOfRelationship != null) {
-			applicantDocuments.add(getIdDocumnet(regId, process, MappingJsonConstants.POR));
+			applicantDocuments
+					.add(getIdDocumnet(regId, proofOfRelationshipLabel, process));
+		}
+		if (proofOfException != null) {
+			applicantDocuments
+					.add(getIdDocumnet(regId, proofOfExceptionLabel, process));
 		}
 		if (applicantBiometric != null) {
-			applicantDocuments.add(getBiometrics(regId, process, MappingJsonConstants.INDIVIDUAL_BIOMETRICS));
+			applicantDocuments.add(getBiometrics(regId, applicantBiometricLabel, process, applicantBiometricLabel));
 		}
 		return applicantDocuments;
 	}
 
-	private Documents getIdDocumnet(String registrationId, String process, String idDocLabel)
+	private Documents getIdDocumnet(String registrationId, String dockey, String process)
 			throws IOException, ApisResourceAccessException, PacketManagerException, io.mosip.kernel.core.util.exception.JsonProcessingException {
 		Documents documentsInfoDto = new Documents();
 
-		Document document = packetManagerService.getDocument(registrationId, idDocLabel, process);
-		documentsInfoDto.setValue(CryptoUtil.encodeBase64(document.getDocument()));
-		documentsInfoDto.setCategory(document.getValue());
-		return documentsInfoDto;
+		Document document =
+				packetManagerService.getDocument(registrationId, dockey, process, ProviderStageName.UIN_GENERATOR);
+		if (document != null) {
+			documentsInfoDto.setValue(CryptoUtil.encodeBase64(document.getDocument()));
+			documentsInfoDto.setCategory(document.getValue());
+			return documentsInfoDto;
+		}
+		return null;
 	}
 
-	private Documents getBiometrics(String registrationId, String process, String idDocLabel)
-			throws Exception {
-		BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId, idDocLabel, null, process);
+	private Documents getBiometrics(String registrationId, String person, String process, String idDocLabel) throws Exception {
+		BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId, person, process, ProviderStageName.UIN_GENERATOR);
 		byte[] xml = cbeffutil.createXML(BIRConverter.convertSegmentsToBIRList(biometricRecord.getSegments()));
 		Documents documentsInfoDto = new Documents();
 		documentsInfoDto.setValue(CryptoUtil.encodeBase64(xml));
@@ -958,7 +992,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 				String uinSuccessDescription = "Kernel service called successfully to update the uin status as assigned";
 
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString() + registrationId, "Success",
+						LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
 						uinSuccessDescription);
 			} else {
 				String uinErrorDescription = "Kernel service called successfully to update the uin status as unassigned";
@@ -988,12 +1022,12 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.UIN_GENERATION_BUS_IN,
-				MessageBusAddress.UIN_GENERATION_BUS_OUT);
+				MessageBusAddress.UIN_GENERATION_BUS_OUT, messageExpiryTimeLimit);
 	}
 
 	@Override
 	public void start() {
-		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.UIN_GENERATION_BUS_IN,
+		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.UIN_GENERATION_BUS_IN,
 				MessageBusAddress.UIN_GENERATION_BUS_OUT));
 		this.createServer(router.getRouter(), Integer.parseInt(port));
 
@@ -1003,12 +1037,18 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	private void generateVid(String registrationId, String UIN, boolean isUinAlreadyPresent)
 			throws ApisResourceAccessException, IOException, VidCreationException {
 		VidRequestDto vidRequestDto = new VidRequestDto();
-		RequestWrapper<VidRequestDto> request = new RequestWrapper<>();
+		RequestWrapper<VidRequestDto> request = new RequestWrapper<VidRequestDto>();
 		ResponseWrapper<VidResponseDto> response;
 
 		try {
 			if (isUinAlreadyPresent) {
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						registrationId, "Getting UIN from rid by calling IDREPO API");
+
 				String uin = idRepoService.getUinByRid(registrationId, utility.getGetRegProcessorDemographicIdentity());
+
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						registrationId, "Received response from IDREPO for UIN");
 				vidRequestDto.setUIN(uin);
 			} else {
 				vidRequestDto.setUIN(UIN);
@@ -1027,8 +1067,14 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 					"UinGeneratorStage::generateVid():: post CREATEVID service call started with request data : "
 							+ JsonUtil.objectMapperObjectToJson(request));
 
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId, "Calling IDREPO CREATEVID API to create new vid");
+
 			response = (ResponseWrapper<VidResponseDto>) registrationProcessorRestClientService
 					.postApi(ApiName.CREATEVID, "", "", request, ResponseWrapper.class);
+
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId, "Received response from CREATEVID API");
 
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId,
@@ -1082,8 +1128,8 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 			JSONObject identityObject = new JSONObject();
 			identityObject.put(UINConstants.UIN, uin);
-			double schemaVersion = Double.valueOf(packetManagerService.getFieldByKey(lostPacketRegId, MappingJsonConstants.IDSCHEMA_VERSION, process));
-			identityObject.put(idschemaversion, schemaVersion);
+			String schemaVersion = packetManagerService.getFieldByMappingJsonKey(lostPacketRegId, MappingJsonConstants.IDSCHEMA_VERSION, process, ProviderStageName.UIN_GENERATOR);
+			identityObject.put(idschemaversion, convertIdschemaToDouble ? Double.valueOf(schemaVersion) : schemaVersion);
 
 			requestDto.setRegistrationId(lostPacketRegId);
 			requestDto.setIdentity(identityObject);

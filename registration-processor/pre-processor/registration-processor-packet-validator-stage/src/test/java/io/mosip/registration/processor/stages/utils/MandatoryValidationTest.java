@@ -17,6 +17,7 @@ import io.mosip.registration.processor.core.exception.ApisResourceAccessExceptio
 import io.mosip.registration.processor.core.packet.dto.packetvalidator.PacketValidationDto;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -50,7 +51,7 @@ public class MandatoryValidationTest {
 	private InputStream inputStream;
 
 	@Mock
-	private PacketManagerService packetManagerService;
+	private PriorityBasedPacketManagerService packetManagerService;
 
 	private static final String source = "default";
 	private static final String process = "NEW";
@@ -94,7 +95,7 @@ public class MandatoryValidationTest {
 
 		PowerMockito.mockStatic(Utilities.class);
 		PowerMockito.when(Utilities.class, "getJson", any(), any()).thenReturn(mappingJsonString);
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),anyString())).thenReturn("field");
+		when(packetManagerService.getField(anyString(),anyString(),anyString(), any())).thenReturn("field");
 	}
 
 	@Test
@@ -110,7 +111,7 @@ public class MandatoryValidationTest {
 		idJsonString = "{\"identity\":{\"dateOfBirth\":\"1999/01/01\",\"age\":20,\"gender\":[{\"language\":\"eng\",\"value\":\"Male\"},{\"language\":\"ara\",\"value\":\"الذكر\"}],\"residenceStatus\":[{\"language\":\"eng\",\"value\":\"Non-Foreigner\"},{\"language\":\"ara\",\"value\":\"غير أجنبي\"}],\"addressLine1\":[{\"language\":\"eng\",\"value\":\"Kumar street\"},{\"language\":\"ara\",\"value\":\"نعةشق سفقثثف\"}],\"addressLine3\":[{\"language\":\"eng\",\"value\":\"Line 3\"},{\"language\":\"ara\",\"value\":\"مىث ٣\"}],\"region\":[{\"language\":\"eng\",\"value\":\"Rabat Sale Kenitra\"},{\"language\":\"ara\",\"value\":\"جهة الرباط سلا القنيطرة\"}],\"province\":[{\"language\":\"eng\",\"value\":\"Kenitra\"},{\"language\":\"ara\",\"value\":\"القنيطرة\"}],\"city\":[{\"language\":\"eng\",\"value\":\"Mograne\"},{\"language\":\"ara\",\"value\":\"مڭرن\"}],\"postalCode\":\"123456\",\"phone\":\"9962385854\",\"email\":\"raghavdce@gmail.com\",\"localAdministrativeAuthority\":[{\"language\":\"eng\",\"value\":\"14023\"},{\"language\":\"ara\",\"value\":\"14023\"}],\"proofOfAddress\":{\"value\":\"POA_Rental contract\",\"type\":\"Rental contract\",\"format\":\"jpg\"},\"proofOfIdentity\":{\"value\":\"POI_CNIE card\",\"type\":\"CNIE card\",\"format\":\"jpg\"},\"proofOfRelationship\":{\"value\":\"POR_Certificate of Relationship\",\"type\":\"Certificate of Relationship\",\"format\":\"jpg\"},\"individualBiometrics\":{\"format\":\"cbeff\",\"version\":1,\"value\":\"applicant_bio_CBEFF\"},\"IDSchemaVersion\":1,\"CNIENumber\":\"12345678809\"}}";
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(idJsonString.getBytes());
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),anyString())).thenReturn(null);
+		when(packetManagerService.getField(anyString(),anyString(),anyString(),any())).thenReturn(null);
 
 		boolean result = mandatoryValidation.mandatoryFieldValidation(registrationStatusDto.getRegistrationId(), process, packetValidationDto);
 
@@ -140,7 +141,7 @@ public class MandatoryValidationTest {
 		idJsonString = "{\"identity\":{\"fullName\":\"\",\"dateOfBirth\":null,\"age\":20,\"gender\":[{\"language\":\"eng\",\"value\":\"Male\"},{\"language\":\"ara\",\"value\":\"الذكر\"}],\"residenceStatus\":[{\"language\":\"eng\",\"value\":\"Non-Foreigner\"},{\"language\":\"ara\",\"value\":\"غير أجنبي\"}],\"addressLine1\":[{\"language\":\"eng\",\"value\":\"Kumar street\"},{\"language\":\"ara\",\"value\":\"نعةشق سفقثثف\"}],\"addressLine3\":[{\"language\":\"eng\",\"value\":\"Line 3\"},{\"language\":\"ara\",\"value\":\"مىث ٣\"}],\"region\":[{\"language\":\"eng\",\"value\":\"Rabat Sale Kenitra\"},{\"language\":\"ara\",\"value\":\"جهة الرباط سلا القنيطرة\"}],\"province\":[{\"language\":\"eng\",\"value\":\"Kenitra\"},{\"language\":\"ara\",\"value\":\"القنيطرة\"}],\"city\":[{\"language\":\"eng\",\"value\":\"Mograne\"},{\"language\":\"ara\",\"value\":\"مڭرن\"}],\"postalCode\":\"123456\",\"phone\":\"9962385854\",\"email\":\"raghavdce@gmail.com\",\"localAdministrativeAuthority\":[{\"language\":\"eng\",\"value\":\"14023\"},{\"language\":\"ara\",\"value\":\"14023\"}],\"proofOfAddress\":{\"value\":\"POA_Rental contract\",\"type\":\"Rental contract\",\"format\":\"jpg\"},\"proofOfIdentity\":{\"value\":\"POI_CNIE card\",\"type\":\"CNIE card\",\"format\":\"jpg\"},\"proofOfRelationship\":{\"value\":\"POR_Certificate of Relationship\",\"type\":\"Certificate of Relationship\",\"format\":\"jpg\"},\"individualBiometrics\":{\"format\":\"cbeff\",\"version\":1,\"value\":\"applicant_bio_CBEFF\"},\"IDSchemaVersion\":1,\"CNIENumber\":\"12345678809\"}}";
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(idJsonString.getBytes());
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),anyString())).thenReturn(null);
+		when(packetManagerService.getField(anyString(),anyString(),anyString(),any())).thenReturn(null);
 
 		boolean result = mandatoryValidation.mandatoryFieldValidation(registrationStatusDto.getRegistrationId(), process, packetValidationDto);
 
@@ -153,7 +154,7 @@ public class MandatoryValidationTest {
 		idJsonString = "{\"identity\":{\"fullName\":[{\"language\":\"eng\",\"value\":null},{\"language\":\"ara\",\"value\":\"قشلشرثىيقشى ر\"}],\"dateOfBirth\":\"1999/01/01\",\"age\":20,\"gender\":[{\"language\":\"eng\",\"value\":\"Male\"},{\"language\":\"ara\",\"value\":\"الذكر\"}],\"residenceStatus\":[{\"language\":\"eng\",\"value\":\"Non-Foreigner\"},{\"language\":\"ara\",\"value\":\"غير أجنبي\"}],\"addressLine1\":[{\"language\":\"eng\",\"value\":\"Kumar street\"},{\"language\":\"ara\",\"value\":\"نعةشق سفقثثف\"}],\"addressLine3\":[{\"language\":\"eng\",\"value\":\"Line 3\"},{\"language\":\"ara\",\"value\":\"مىث ٣\"}],\"region\":[{\"language\":\"eng\",\"value\":\"Rabat Sale Kenitra\"},{\"language\":\"ara\",\"value\":\"جهة الرباط سلا القنيطرة\"}],\"province\":[{\"language\":\"eng\",\"value\":\"Kenitra\"},{\"language\":\"ara\",\"value\":\"القنيطرة\"}],\"city\":[{\"language\":\"eng\",\"value\":\"Mograne\"},{\"language\":\"ara\",\"value\":\"مڭرن\"}],\"postalCode\":\"123456\",\"phone\":\"9962385854\",\"email\":\"raghavdce@gmail.com\",\"localAdministrativeAuthority\":[{\"language\":\"eng\",\"value\":\"14023\"},{\"language\":\"ara\",\"value\":\"14023\"}],\"proofOfAddress\":{\"value\":\"POA_Rental contract\",\"type\":\"Rental contract\",\"format\":\"jpg\"},\"proofOfIdentity\":{\"value\":\"POI_CNIE card\",\"type\":\"CNIE card\",\"format\":\"jpg\"},\"proofOfRelationship\":{\"value\":\"POR_Certificate of Relationship\",\"type\":\"Certificate of Relationship\",\"format\":\"jpg\"},\"individualBiometrics\":{\"format\":\"cbeff\",\"version\":1,\"value\":\"applicant_bio_CBEFF\"},\"IDSchemaVersion\":1,\"CNIENumber\":\"12345678809\"}}";
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(idJsonString.getBytes());
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),anyString())).thenReturn(null);
+		when(packetManagerService.getField(anyString(),anyString(),anyString(),any())).thenReturn(null);
 
 		boolean result = mandatoryValidation.mandatoryFieldValidation(registrationStatusDto.getRegistrationId(), process, packetValidationDto);
 

@@ -1,5 +1,8 @@
 package io.mosip.registration.processor.core.eventbus;
 
+import brave.Tracing;
+import io.mosip.registration.processor.core.tracing.EventTracingHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -33,6 +36,9 @@ public class MosipEventBusFactory {
     @Value("${mosip.regproc.eventbus.kafka.poll.frequency:0}")
     int pollFrequency;
 
+    @Autowired
+    private Tracing tracing;
+
     /**
      * Instantiate and return event bus of a particular type
      * @param vertx The vertx instance to which this event bus object should be attached
@@ -41,16 +47,25 @@ public class MosipEventBusFactory {
      * @throws UnsupportedEventBusTypeException - Will be thrown when the eventBusType is not recognized
      */
     public MosipEventBus getEventBus(Vertx vertx, String eventBusType) throws UnsupportedEventBusTypeException {
+        EventTracingHandler eventTracingHandler = new EventTracingHandler(tracing, eventBusType);
         switch (eventBusType) {
             case "vertx":
-                return new VertxMosipEventBus(vertx);
+                return new VertxMosipEventBus(vertx, eventTracingHandler);
             case "kafka":
                 return new KafkaMosipEventBus(vertx, kafkaBootstrapServers, kafkaGroupId, 
-                    kafkaCommitType, maxPollRecords, pollFrequency);
+                    kafkaCommitType, maxPollRecords, pollFrequency, eventTracingHandler);
             /*case "amqp":
                 return new AmqpMosipEventBus(vertx);*/
             default:
                 throw new UnsupportedEventBusTypeException();
         }
+    }
+
+    public Tracing getTracing() {
+        return tracing;
+    }
+
+    public void setTracing(Tracing tracing) {
+        this.tracing = tracing;
     }
 }

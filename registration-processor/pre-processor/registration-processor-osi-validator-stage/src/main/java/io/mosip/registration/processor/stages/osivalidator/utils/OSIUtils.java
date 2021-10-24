@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.constant.JsonConstant;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.core.packet.dto.NewRegisteredDevice;
@@ -25,8 +26,6 @@ import java.util.Map;
 
 @Service
 public class OSIUtils {
-	@Value("${packet.default.source}")
-	private String defaultSource;
 
 	@Autowired
 	private ObjectMapper objectMapper;
@@ -40,12 +39,12 @@ public class OSIUtils {
 		regOsi.setOfficerOTPAuthentication(allMap.get(JsonConstant.OFFICEROTPAUTHENTICATION));
 		regOsi.setPreregId(allMap.get(JsonConstant.PREREGISTRATIONID));
 		regOsi.setRegId(allMap.get(JsonConstant.REGISTRATIONID));
-		regOsi.setSupervisorBiometricFileName(allMap.get(JsonConstant.SUPERVISORBIOMETRICFILENAME));
+		regOsi.setSupervisorBiometricFileName(allMap.get(MappingJsonConstants.SUPERVISORBIOMETRICFILENAME));
 		regOsi.setSupervisorHashedPin(allMap.get(JsonConstant.OFFICERPHOTONAME));
 		regOsi.setSupervisorHashedPwd(allMap.get(JsonConstant.SUPERVISORPWR));
 		regOsi.setSupervisorId(allMap.get(JsonConstant.SUPERVISORID));
-		regOsi.setSupervisorOTPAuthentication(allMap.get(JsonConstant.SUPERVISOROTPAUTHENTICATION));
-		regOsi.setOfficerBiometricFileName(allMap.get(JsonConstant.OFFICERBIOMETRICFILENAME));
+		regOsi.setSupervisorOTPAuthentication(allMap.get(MappingJsonConstants.SUPERVISOROTPAUTHENTICATION));
+		regOsi.setOfficerBiometricFileName(allMap.get(MappingJsonConstants.OFFICERBIOMETRICFILENAME));
 		regOsi.setRegcntrId(allMap.get(JsonConstant.CENTERID));
 		regOsi.setMachineId(allMap.get(JsonConstant.MACHINEID));
 		regOsi.setLatitude(allMap.get(JsonConstant.GEOLOCLATITUDE));

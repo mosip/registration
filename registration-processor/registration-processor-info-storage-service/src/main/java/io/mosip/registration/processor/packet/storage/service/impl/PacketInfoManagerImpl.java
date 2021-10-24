@@ -8,11 +8,13 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
-import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -137,7 +139,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	private ObjectMapper objectMapper;
 
 	@Autowired
-	private PacketManagerService packetManagerService;
+	private PriorityBasedPacketManagerService packetManagerService;
 
 	@Value("${registration.processor.demodedupe.manualverification.status}")
 	private String manualVerificationStatus;
@@ -202,7 +204,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 * PacketDecryptionFailureException @throws ApiNotAccessibleException @throws
 	 */
 	@Override
-	public IndividualDemographicDedupe getIdentityKeysAndFetchValuesFromJSON(String registrationId, String process) {
+	public IndividualDemographicDedupe getIdentityKeysAndFetchValuesFromJSON(String registrationId, String process, ProviderStageName stageName) {
 		IndividualDemographicDedupe demographicData = new IndividualDemographicDedupe();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"PacketInfoManagerImpl::getIdentityKeysAndFetchValuesFromJSON()::entry");
@@ -232,7 +234,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 			fields.add(email);
 			fields.add(phone);
 
-			Map<String, String> fieldMap = packetManagerService.getFields(registrationId, fields, process);
+			Map<String, String> fieldMap = packetManagerService.getFields(registrationId, fields, process, stageName);
 
 
 			String[] names = ((String) JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.NAME),
@@ -290,7 +292,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 
 		boolean isTransactionSuccessful = false;
 
-		IndividualDemographicDedupe demographicData = getIdentityKeysAndFetchValuesFromJSON(regId, process);
+		IndividualDemographicDedupe demographicData = getIdentityKeysAndFetchValuesFromJSON(regId, process, ProviderStageName.DEMO_DEDUPE);
 
 		try {
 			List<IndividualDemographicDedupeEntity> applicantDemographicEntities = PacketInfoMapper
@@ -440,7 +442,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 */
 	@Override
 	public void saveManualAdjudicationData(List<String> uniqueMatchedRefIds, String registrationId,
-			DedupeSourceName sourceName, String moduleId, String moduleName) {
+			DedupeSourceName sourceName, String moduleId, String moduleName,String transactionId,String requestId) {
 		boolean isTransactionSuccessful = false;
 		LogDescription description = new LogDescription();
 
@@ -456,7 +458,11 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 
 				manualVerificationEntity.setId(manualVerificationPKEntity);
 				manualVerificationEntity.setLangCode("eng");
-				manualVerificationEntity.setMatchedScore(null);
+				manualVerificationEntity.setRequestId(UUID.randomUUID().toString());
+				//manualVerificationEntity.setMatchedScore(null);
+				manualVerificationEntity.setReponseText(null);
+				manualVerificationEntity.setRequestId(requestId);
+				manualVerificationEntity.setTransactionId(transactionId);
 				manualVerificationEntity.setMvUsrId(null);
 				manualVerificationEntity.setReasonCode("Potential Match");
 				if (sourceName.equals(DedupeSourceName.DEMO)) {

@@ -38,6 +38,7 @@ public class IdSchemaUtil {
     public static final String IDSCHEMA_URL = "IDSCHEMA";
     public static final String SCHEMA_JSON = "schemaJson";
     public static final String SCHEMA_VERSION_QUERY_PARAM = "schemaVersion";
+    public static final String SCHEMA_REF_DEFINITIONS_PREFIX = "#/definitions/";
 
     static {
         categorySubpacketMapping.put("pvt", "id");
@@ -65,10 +66,7 @@ public class IdSchemaUtil {
 
         String schemaJson = getIdSchema(schemaVersion);
 
-        JSONObject schema = new JSONObject(schemaJson);
-        schema =  schema.getJSONObject(PROPERTIES);
-        schema =  schema.getJSONObject(IDENTITY);
-        schema =  schema.getJSONObject(PROPERTIES);
+        JSONObject schema = getIdentityFieldsSchema(schemaJson);
 
         JSONArray fieldNames = schema.names();
         for(int i=0;i<fieldNames.length();i++) {
@@ -117,5 +115,35 @@ public class IdSchemaUtil {
         }
 
         return idschema.get(version);
+    }
+
+    private JSONObject getIdentityFieldsSchema(String schemaJson) throws JSONException {
+
+        JSONObject schema = new JSONObject(schemaJson);
+        schema =  schema.getJSONObject(PROPERTIES);
+        schema =  schema.getJSONObject(IDENTITY);
+        schema =  schema.getJSONObject(PROPERTIES);
+
+        return schema;
+    }
+
+    public Map<String, String> getIdSchemaFieldTypes(Double schemaVersion) throws JSONException, ApisResourceAccessException, IOException {
+        Map<String, String> fieldTypesMap = new HashMap<String, String>();
+
+        String schemaJson = getIdSchema(schemaVersion);
+        JSONObject schema = getIdentityFieldsSchema(schemaJson);
+
+        JSONArray fieldNames = schema.names();
+        for(int i=0;i<fieldNames.length();i++) {
+            String fieldName = fieldNames.getString(i);
+            JSONObject fieldDetail = schema.getJSONObject(fieldName);
+            String fieldType = "";
+            if(fieldDetail.has(SCHEMA_REF))
+                fieldType = fieldDetail.getString(SCHEMA_REF).replace(SCHEMA_REF_DEFINITIONS_PREFIX, "");
+            else
+                fieldType = fieldDetail.getString(SCHEMA_TYPE);
+            fieldTypesMap.put(fieldName, fieldType);
+        }
+        return fieldTypesMap;
     }
 }

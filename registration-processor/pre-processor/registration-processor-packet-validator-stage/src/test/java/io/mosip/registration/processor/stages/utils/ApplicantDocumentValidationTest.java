@@ -4,7 +4,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -23,7 +22,7 @@ import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.entities.RegistryIDType;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.packet.storage.dto.Document;
-import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -61,7 +60,7 @@ public class ApplicantDocumentValidationTest {
 	JSONObject proofOfDocument;
 
 	@Mock
-	private PacketManagerService packetReaderService;
+	private PriorityBasedPacketManagerService packetManagerService;
 
 	@Before
 	public void setUp()
@@ -83,11 +82,11 @@ public class ApplicantDocumentValidationTest {
 		document.setValue(MappingJsonConstants.POA);
 		document.setDocument("document".getBytes());
 
-		when(packetReaderService.getDocument(anyString(),anyString(),anyString())).thenReturn(document);
+		when(packetManagerService.getDocument(anyString(),anyString(),anyString(), any())).thenReturn(document);
 
 		Map<String, String> docFields = new HashMap<>();
 		docFields.put("label", "value");
-		when(packetReaderService.getFields(anyString(), anyList(), anyString())).thenReturn(docFields);
+		when(packetManagerService.getFields(anyString(), anyList(), anyString(), any())).thenReturn(docFields);
 
 		List<BIR> birTypeList = new ArrayList<>();
 		BIR birType1 = new BIR.BIRBuilder().build();
@@ -111,7 +110,8 @@ public class ApplicantDocumentValidationTest {
 		BiometricRecord biometricRecord = new BiometricRecord();
 		biometricRecord.setSegments(birTypeList);
 
-		when(packetReaderService.getBiometrics(anyString(), anyString(), any(), anyString())).thenReturn(biometricRecord);
+		when(packetManagerService.getBiometrics(anyString(),any(), any(), any())).thenReturn(biometricRecord);
+		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), anyString(), any(), any())).thenReturn(biometricRecord);
 	}
 
 	@Test
@@ -122,7 +122,7 @@ public class ApplicantDocumentValidationTest {
 
 	@Test
 	public void testApplicantDocumentValidationFailure() throws Exception {
-		when(packetReaderService.getDocument(anyString(),anyString(),anyString())).thenReturn(null);
+		when(packetManagerService.getDocument(anyString(),anyString(),anyString(), any())).thenReturn(null);
 		boolean isApplicantDocumentValidated = applicantDocumentValidation.validateDocument("1234", "NEW");
 		assertFalse(isApplicantDocumentValidated);
 	}

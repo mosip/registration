@@ -2,12 +2,7 @@ package io.mosip.registration.processor.status.service;
 
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.web.bind.annotation.RequestParam;
-
-import io.mosip.registration.processor.rest.client.utils.RestApiClient;
-import io.swagger.annotations.ApiParam;
 
 /**
  * The Interface InternalAuthDelegateService - the service that delegates

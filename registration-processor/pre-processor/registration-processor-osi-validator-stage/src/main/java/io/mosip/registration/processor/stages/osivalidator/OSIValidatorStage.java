@@ -15,6 +15,7 @@ import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.AuthSystemException;
 import io.mosip.registration.processor.core.exception.ParentOnHoldException;
@@ -27,6 +28,7 @@ import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -78,7 +80,7 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 	private Utilities utility;
 
 	@Autowired
-	private PacketManagerService packetManagerService;
+	private PriorityBasedPacketManagerService packetManagerService;
 
 	@Value("${vertx.cluster.configuration}")
 	private String clusterManagerUrl;
@@ -90,6 +92,10 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 	/** worker pool size. */
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
+
+	/** After this time intervel, message should be considered as expired (In seconds). */
+	@Value("${mosip.regproc.osi.validator.message.expiry-time-limit}")
+	private Long messageExpiryTimeLimit;
 	
 	@Value("${mosip.registartion.processor.validateUMC}")
 	private boolean validateUMC;
@@ -103,13 +109,14 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 	 */
 	public void deployVerticle() {
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
-		this.consumeAndSend(mosipEventBus, MessageBusAddress.OSI_BUS_IN, MessageBusAddress.OSI_BUS_OUT);
+		this.consumeAndSend(mosipEventBus, MessageBusAddress.OSI_BUS_IN, MessageBusAddress.OSI_BUS_OUT,
+			messageExpiryTimeLimit);
 	}
 
 	@Override
 	public void start() {
 		router.setRoute(
-				this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.OSI_BUS_IN, MessageBusAddress.OSI_BUS_OUT));
+				this.postUrl(getVertx(), MessageBusAddress.OSI_BUS_IN, MessageBusAddress.OSI_BUS_OUT));
 		this.createServer(router.getRouter(), Integer.parseInt(port));
 	}
 
@@ -140,7 +147,8 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 		registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
 
 		try {
-			Map<String, String> metaInfo = packetManagerService.getMetaInfo(registrationId, registrationStatusDto.getRegistrationType());
+			Map<String, String> metaInfo = packetManagerService.getMetaInfo(
+					registrationId, registrationStatusDto.getRegistrationType(), ProviderStageName.OSI_VALIDATOR);
 			if(validateUMC)
 				isValidUMC = umcValidator.isValidUMC(registrationId, registrationStatusDto, metaInfo);
 			else

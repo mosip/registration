@@ -32,6 +32,10 @@ public class DemoDedupeStage extends MosipVerticleAPIManager {
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
 
+	/** After this time intervel, message should be considered as expired (In seconds). */
+	@Value("${mosip.regproc.demo.dedupe.message.expiry-time-limit}")
+	private Long messageExpiryTimeLimit;
+
 	private MosipEventBus mosipEventBus = null;
 	@Autowired
 	DemodedupeProcessor demodedupeProcessor;
@@ -46,12 +50,13 @@ public class DemoDedupeStage extends MosipVerticleAPIManager {
 	 */
 	public void deployVerticle() {
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
-		this.consumeAndSend(mosipEventBus, MessageBusAddress.DEMO_DEDUPE_BUS_IN, MessageBusAddress.DEMO_DEDUPE_BUS_OUT);
+		this.consumeAndSend(mosipEventBus, MessageBusAddress.DEMO_DEDUPE_BUS_IN, 
+			MessageBusAddress.DEMO_DEDUPE_BUS_OUT, messageExpiryTimeLimit);
 	}
 
 	@Override
 	public void start(){
-		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.DEMO_DEDUPE_BUS_IN, MessageBusAddress.DEMO_DEDUPE_BUS_OUT));
+		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.DEMO_DEDUPE_BUS_IN, MessageBusAddress.DEMO_DEDUPE_BUS_OUT));
 		this.createServer(router.getRouter(), Integer.parseInt(port));
 	}
 

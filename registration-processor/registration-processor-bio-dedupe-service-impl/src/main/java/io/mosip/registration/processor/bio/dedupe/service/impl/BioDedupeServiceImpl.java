@@ -13,6 +13,7 @@ import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorUnCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -34,6 +35,7 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.utils.BIRConverter;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import org.json.simple.JSONObject;
@@ -95,7 +97,7 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 	private Utilities utility;
 
 	@Autowired
-	private PacketManagerService packetManagerService;
+	private PriorityBasedPacketManagerService packetManagerService;
 
 	@Autowired
 	private CbeffUtil cbeffutil;
@@ -335,7 +337,8 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationId, "BioDedupeServiceImpl::getFile()::entry");
 		try {
-			BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId, MappingJsonConstants.INDIVIDUAL_BIOMETRICS, null, process);
+			BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(
+					registrationId, MappingJsonConstants.INDIVIDUAL_BIOMETRICS, process, ProviderStageName.BIO_DEDUPE);
 			file = cbeffutil.createXML(BIRConverter.convertSegmentsToBIRList(biometricRecord.getSegments()));
 
 
