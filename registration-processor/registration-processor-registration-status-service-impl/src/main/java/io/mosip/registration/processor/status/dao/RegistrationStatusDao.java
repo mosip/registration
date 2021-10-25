@@ -200,7 +200,7 @@ public class RegistrationStatusDao {
 		}
 		List<RegistrationStatusEntity> result = registrationStatusRepositary.createQuerySelect(sb.toString(), params,
 			pagination.getPageFetch());
-		rows = registrationStatusRepositary.count();
+		rows = result.size();
 
 		return new PageImpl<>(result,
 				PageRequest.of(pagination.getPageStart(), pagination.getPageFetch()),
