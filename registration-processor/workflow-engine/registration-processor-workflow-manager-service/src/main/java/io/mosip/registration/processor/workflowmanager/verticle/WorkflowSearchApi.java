@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import io.mosip.registration.processor.core.util.JsonUtil;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -99,8 +100,8 @@ public class WorkflowSearchApi extends MosipRouter {
 		try {
 			JsonObject obj = ctx.getBodyAsJson();
 			user = getUser(ctx);
-			WorkflowSearchRequestDTO searchRequestDTO = (WorkflowSearchRequestDTO) JsonUtils
-					.jsonStringToJavaObject(WorkflowSearchRequestDTO.class, obj.toString());
+			WorkflowSearchRequestDTO searchRequestDTO = (WorkflowSearchRequestDTO) JsonUtil
+					.readValueWithUnknownProperties(obj.toString(), WorkflowSearchRequestDTO.class);
 			regProcLogger.debug("WorkflowActionApi:processURL called");
 			workflowSearchRequestValidator.validate(searchRequestDTO);
 			Page<WorkflowDetail> pageDtos = workflowSearchService
@@ -115,13 +116,6 @@ public class WorkflowSearchApi extends MosipRouter {
 			buildResponse(ctx, pageResponseDto, null);
 			regProcLogger.debug("WorkflowSearchApi:processURL ended");
 
-		} catch (IOException e) {
-			description.setMessage(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage());
-			description.setCode(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode());
-			updateAudit(description, "", isTransactionSuccessful, user);
-			logError(
-					PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode(),
-					PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), e,ctx);
 		} catch (WorkFlowSearchException e) {
 			description.setMessage(e.getMessage());
 			description.setCode(e.getErrorCode());
