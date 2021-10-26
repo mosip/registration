@@ -378,7 +378,7 @@ public class MessageNotificationServiceImplTest {
 	@Test(expected = TemplateGenerationFailedException.class)
 	public void testTemplateGenerationFailedException() throws IOException, ApisResourceAccessException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JSONException {
-		Mockito.when(templateGenerator.getTemplate("RPR_UIN_GEN_SMS", attributes, "eng"))
+		Mockito.when(templateGenerator.getTemplate(anyString(), any(), anyString()))
 				.thenThrow(new TemplateNotFoundException());
 
 		messageNotificationServiceImpl.sendSmsNotification("RPR_UIN_GEN_SMS", "12345", "NEW", IdType.RID, attributes,
@@ -392,7 +392,7 @@ public class MessageNotificationServiceImplTest {
 	 */
 	@Test(expected = TemplateGenerationFailedException.class)
 	public void testTemplateProcessingFailureException() throws Exception {
-		Mockito.when(templateGenerator.getTemplate("RPR_UIN_GEN_EMAIL", attributes, "ara"))
+		Mockito.when(templateGenerator.getTemplate(anyString(), any(), anyString()))
 				.thenThrow(new TemplateNotFoundException());
 
 		messageNotificationServiceImpl.sendEmailNotification("RPR_UIN_GEN_EMAIL", "12345", "NEW", IdType.RID, attributes,
