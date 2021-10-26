@@ -22,4 +22,7 @@ public interface BaseRegProcRepository<T extends BasePacketEntity, E> extends Ba
 	@Query("SELECT additionalInfoRequest FROM AdditionalInfoRequestEntity additionalInfoRequest WHERE additionalInfoRequest.regId =:regId AND additionalInfoRequest.additionalInfoProcess =:additionalInfoProcess order by additionalInfoRequest.additionalInfoIteration desc")
 	public List<AdditionalInfoRequestEntity> getAdditionalInfoRequestByRegIdAndProcess(@Param("regId") String regId,
 			@Param("additionalInfoProcess") String additionalInfoProcess);
+
+    @Query("SELECT additionalInfoRequest FROM AdditionalInfoRequestEntity additionalInfoRequest WHERE additionalInfoRequest.regId =:regId")
+    public List<AdditionalInfoRequestEntity> getAdditionalInfoByRegId(@Param("regId") String regId);
 }
