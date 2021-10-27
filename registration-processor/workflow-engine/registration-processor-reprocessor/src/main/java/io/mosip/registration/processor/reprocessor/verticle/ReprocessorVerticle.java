@@ -68,6 +68,14 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 	/** The mosip event bus. */
 	MosipEventBus mosipEventBus = null;
 
+	/** The processingLimitExceeded flag. */
+	@Value("${registration.processor.pause.packets.for.exceeded.limit}")
+	private boolean pauseProcessingLimitExceeded;
+
+	/** The maximumInprogressPackets count. */
+	@Value("${registration.processor.maximum.packets.in.progress}")
+	private long maximumInprogressPackets;
+	
 	/** The fetch size. */
 	@Value("${registration.processor.reprocess.fetchsize}")
 	private Integer fetchSize;
@@ -225,7 +233,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 						reprocessCount, statusList);
 			}
 
-
+			if(proceedToReprocess()){
 			if (!CollectionUtils.isEmpty(reprocessorDtoList)) {
 				reprocessorDtoList.forEach(dto -> {
 					String registrationId = dto.getRegistrationId();
@@ -287,6 +295,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 							eventType, moduleId, moduleName, registrationId);
 				});
 			}
+			}
 
 		} catch (TablenotAccessibleException e) {
 			isTransactionSuccessful = false;
@@ -328,6 +337,17 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 		return object;
 	}
 
+	private boolean proceedToReprocess() throws TablenotAccessibleException {
+
+		if(!pauseProcessingLimitExceeded) {
+			return true;
+		}
+		if(registrationStatusService.getInProgressPacketsCount()<maximumInprogressPackets){
+			return true;
+		}
+		return false;
+	}
+	
 	@Override
 	protected String getPropertyPrefix() {
 		return VERTICLE_PROPERTY_PREFIX;
