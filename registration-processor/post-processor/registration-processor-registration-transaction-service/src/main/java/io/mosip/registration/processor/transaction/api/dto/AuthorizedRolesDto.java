@@ -9,7 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 
-@Component("authorizedRoles")
+@Component("authorizedTransactionRoles")
 @ConfigurationProperties(prefix = "mosip.role.registration")
 @Getter
 @Setter
