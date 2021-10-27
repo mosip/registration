@@ -106,6 +106,10 @@ public class ReprocessorVerticleTest {
 		 ReflectionTestUtils.setField(reprocessorVerticle, "fetchSize", 2);
          ReflectionTestUtils.setField(reprocessorVerticle, "elapseTime", 21600);
          ReflectionTestUtils.setField(reprocessorVerticle, "reprocessCount", 3);
+         ReflectionTestUtils.setField(reprocessorVerticle, "pauseProcessingLimitExceeded", true);
+         ReflectionTestUtils.setField(reprocessorVerticle, "maximumInprogressPackets", 5);
+         Mockito.when(registrationStatusService.getInProgressPacketsCount())
+			.thenReturn(1);
          Field auditLog = AuditLogRequestBuilder.class.getDeclaredField("registrationProcessorRestService");
          auditLog.setAccessible(true);
          @SuppressWarnings("unchecked")
@@ -123,7 +127,7 @@ public class ReprocessorVerticleTest {
 	}
 
 	@Test
-	public void testProcessValid() throws TablenotAccessibleException, PacketManagerException,
+	public void testProcessValidwithLimitFalg() throws TablenotAccessibleException, PacketManagerException,
 			ApisResourceAccessException, WorkflowActionException {
 
 		List<InternalRegistrationStatusDto> dtolist = new ArrayList<>();
@@ -147,6 +151,36 @@ public class ReprocessorVerticleTest {
 		dtolist.add(registrationStatusDto1);
 		Mockito.when(registrationStatusService.getUnProcessedPackets(anyInt(), anyLong(), anyInt(), anyList()))
 				.thenReturn(dtolist);
+		reprocessorVerticle.process(dto);
+
+	}
+	
+	@Test
+	public void testProcessValidwithoutLimitFalg() throws TablenotAccessibleException, PacketManagerException,
+			ApisResourceAccessException, WorkflowActionException {
+
+		List<InternalRegistrationStatusDto> dtolist = new ArrayList<>();
+		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
+
+		registrationStatusDto.setRegistrationId("2018701130000410092018110735");
+		registrationStatusDto.setRegistrationType(RegistrationType.NEW.toString());
+		registrationStatusDto.setRegistrationStageName("PacketValidatorStage");
+		registrationStatusDto.setDefaultResumeAction("RESUME_PROCESSING");
+		registrationStatusDto.setResumeTimeStamp(LocalDateTime.now());
+		registrationStatusDto.setReProcessRetryCount(0);
+		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+		dtolist.add(registrationStatusDto);
+		InternalRegistrationStatusDto registrationStatusDto1 = new InternalRegistrationStatusDto();
+
+		registrationStatusDto1.setRegistrationId("2018701130000410092018110734");
+		registrationStatusDto1.setRegistrationStageName("PacketValidatorStage");
+		registrationStatusDto1.setReProcessRetryCount(1);
+		registrationStatusDto1.setRegistrationType("NEW");
+		registrationStatusDto1.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
+		dtolist.add(registrationStatusDto1);
+		Mockito.when(registrationStatusService.getUnProcessedPackets(anyInt(), anyLong(), anyInt(), anyList()))
+				.thenReturn(dtolist);
+		ReflectionTestUtils.setField(reprocessorVerticle, "pauseProcessingLimitExceeded", false);
 		reprocessorVerticle.process(dto);
 
 	}
@@ -179,6 +213,7 @@ public class ReprocessorVerticleTest {
 		reprocessorVerticle.process(dto);
 
 	}
+	
 
 	/**
 	 * Exception test.

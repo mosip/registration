@@ -372,4 +372,21 @@ public class RegistrationStatusDao {
 		return registrationStatusRepositary.createQuerySelect(queryStr, params, fetchSize);
 	}
 
+	public int getInProgressPacketsCount() {
+		Map<String, Object> params = new HashMap<>();
+		String className = RegistrationStatusEntity.class.getSimpleName();
+		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
+		
+		
+		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
+				+ ".statusCode  = :statusCode ";
+
+		params.put("statusCode", RegistrationStatusCode.PROCESSING.toString());
+		
+		List<RegistrationStatusEntity> unprocessedPackets = registrationStatusRepositary.createQuerySelect(queryStr,
+				params);
+
+		return unprocessedPackets.size();
+	}
+
 }
