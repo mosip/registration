@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -65,21 +66,26 @@ public class ApplicantDocumentValidationTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		Map<String,String> map=new HashMap<>();
+		Map<String,String> map=new LinkedHashMap<>();
 		map.put("value", "documentValue");
 		proofOfDocument=new JSONObject(map);
-		when(utility.getRegistrationProcessorMappingJson(anyString())).thenReturn(regProcessorIdentityJson);
+
+		JSONObject identityJSON = new JSONObject();
+		identityJSON.put("proofOfAddress", map);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(identityJSON);
+
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(regProcessorIdentityJson);
 
 		PowerMockito.mockStatic(JsonUtil.class);
 		PowerMockito.when(JsonUtil.class, "getJSONObject", any(), any())
 				.thenReturn(proofOfDocument);
 		PowerMockito.when(JsonUtil.class, "getJSONValue", any(), anyString())
 		.thenReturn(label);
-		when(utility.getRegistrationProcessorMappingJson(anyString())).thenReturn(demographicIdentityJSONObject);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(demographicIdentityJSONObject);
 
 		Document document = new Document();
-		document.setType(MappingJsonConstants.POA);
-		document.setValue(MappingJsonConstants.POA);
+		document.setType("POA");
+		document.setValue("POA");
 		document.setDocument("document".getBytes());
 
 		when(packetManagerService.getDocument(anyString(),anyString(),anyString(), any())).thenReturn(document);
@@ -87,6 +93,7 @@ public class ApplicantDocumentValidationTest {
 		Map<String, String> docFields = new HashMap<>();
 		docFields.put("label", "value");
 		when(packetManagerService.getFields(anyString(), anyList(), anyString(), any())).thenReturn(docFields);
+		when(packetManagerService.getField(anyString(), any(), anyString(), any())).thenReturn(docFields.toString());
 
 		List<BIR> birTypeList = new ArrayList<>();
 		BIR birType1 = new BIR.BIRBuilder().build();
