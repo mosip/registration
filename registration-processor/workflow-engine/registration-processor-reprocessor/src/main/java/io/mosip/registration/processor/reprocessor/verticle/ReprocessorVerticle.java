@@ -233,7 +233,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 						reprocessCount, statusList);
 			}
 
-			if(proceedToReprocess())
+			if(proceedToReprocess()) {
 			if (!CollectionUtils.isEmpty(reprocessorDtoList)) {
 				reprocessorDtoList.forEach(dto -> {
 					String registrationId = dto.getRegistrationId();
@@ -294,6 +294,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 					auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName,
 							eventType, moduleId, moduleName, registrationId);
 				});
+			}
 			}
 
 		} catch (TablenotAccessibleException e) {
