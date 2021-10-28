@@ -1,6 +1,5 @@
 package io.mosip.registration.processor.app;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -25,6 +24,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
+import io.mosip.kernel.core.exception.BaseCheckedException;
+import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.EventId;
@@ -42,6 +43,7 @@ import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessor
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
+import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.utils.OSIUtils;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
@@ -51,6 +53,7 @@ import io.mosip.registration.processor.stages.supervisorvalidator.SupervisorVali
 import io.mosip.registration.processor.stages.supervisorvalidator.SupervisorValidator;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
+import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 
 /**
@@ -156,6 +159,18 @@ public class SupervisorValidatorProcessorTest {
 		assertTrue(object.getIsValid());
 		assertFalse(object.getInternalError());
 	}
+	
+	@Test
+	public void supervisorIdEmptyTest() throws Exception {
+
+		regOsi.setSupervisorId("");
+		Mockito.when(osiUtils.getOSIDetailsFromMetaInfo(any())).thenReturn(regOsi);
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.SUPERVISORID_NOT_PRESENT_IN_PACKET)).thenReturn("FAILED");
+		MessageDTO object = supervisorValidationProcessor.process(dto, stageName);
+		assertFalse(object.getIsValid());
+		assertFalse(object.getInternalError());
+	}
 
 	/**
 	 * IO exception test.
@@ -165,6 +180,7 @@ public class SupervisorValidatorProcessorTest {
 	@Test
 	public void IOExceptionTest() throws Exception {
 
+		registrationStatusDto.setRetryCount(1);
 		Mockito.doThrow(new IOException()).when(supervisorValidator).validate(anyString(), any(), any());
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.IOEXCEPTION)).thenReturn("ERROR");
@@ -274,4 +290,53 @@ public class SupervisorValidatorProcessorTest {
 		assertTrue(object.getIsValid());
 		assertTrue(object.getInternalError());
 	}
+	
+	@Test
+	public void parsingExceptionTest() throws Exception {
+
+		Mockito.doThrow(new ParsingException()).when(supervisorValidator).validate(anyString(),
+				any(), any());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.PARSE_EXCEPTION)).thenReturn("FAILED");
+		MessageDTO object = supervisorValidationProcessor.process(dto, stageName);
+		assertFalse(object.getIsValid());
+		assertTrue(object.getInternalError());
+	}
+	
+	@Test
+	public void TablenotAccessibleExceptionTest() throws Exception {
+
+		Mockito.doThrow(new TablenotAccessibleException()).when(supervisorValidator).validate(anyString(),
+				any(), any());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.TABLE_NOT_ACCESSIBLE_EXCEPTION)).thenReturn("REPROCESS");
+		MessageDTO object = supervisorValidationProcessor.process(dto, stageName);
+		assertTrue(object.getIsValid());
+		assertTrue(object.getInternalError());
+	}
+	
+	@Test
+	public void BaseUncheckedExceptionTest() throws Exception {
+
+		Mockito.doThrow(new BaseUncheckedException()).when(supervisorValidator).validate(anyString(),
+				any(), any());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.BASE_UNCHECKED_EXCEPTION)).thenReturn("ERROR");
+		MessageDTO object = supervisorValidationProcessor.process(dto, stageName);
+		assertFalse(object.getIsValid());
+		assertTrue(object.getInternalError());
+	}
+	
+	@Test
+	public void BaseCheckedExceptionTest() throws Exception {
+
+		Mockito.doThrow(new BaseCheckedException()).when(supervisorValidator).validate(anyString(),
+				any(), any());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.BASE_CHECKED_EXCEPTION)).thenReturn("ERROR");
+		MessageDTO object = supervisorValidationProcessor.process(dto, stageName);
+		assertFalse(object.getIsValid());
+		assertTrue(object.getInternalError());
+	}
+
 }

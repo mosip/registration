@@ -10,8 +10,6 @@ import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
 
-import io.mosip.registration.processor.packet.storage.utils.Utilities;
-import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.xml.sax.SAXException;
@@ -49,6 +47,7 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 
@@ -90,7 +89,6 @@ public class OperatorValidator {
 	 * @throws SAXException
 	 * @throws ParserConfigurationException
 	 * @throws NoSuchAlgorithmException
-	 * @throws InvalidKeySpecException
 	 * @throws NumberFormatException
 	 * @throws io.mosip.kernel.core.exception.IOException
 	 * @throws BaseCheckedException
@@ -98,8 +96,8 @@ public class OperatorValidator {
 	 * @throws RegistrationProcessorCheckedException
 	 */
 	public void validate(String registrationId, InternalRegistrationStatusDto registrationStatusDto, RegOsiDto regOsi)
-			throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, NumberFormatException, JSONException,
-			CertificateException, BaseCheckedException {
+			throws IOException, NoSuchAlgorithmException, NumberFormatException, CertificateException,
+			BaseCheckedException {
 		regProcLogger.debug("validate called for registrationId {}", registrationId);
 
 		validateOperator(registrationId, regOsi, registrationStatusDto);
@@ -138,7 +136,7 @@ public class OperatorValidator {
 			InternalRegistrationStatusDto registrationStatusDto) throws IOException, BaseCheckedException {
 		boolean wasOfficerActiveDuringPCT = false;
 		if (officerId != null && !officerId.isEmpty()) {
-			UserResponseDto officerResponse = getUserDetails(officerId, creationDate, registrationStatusDto);
+			UserResponseDto officerResponse = getUserDetails(officerId, creationDate);
 			if (officerResponse.getErrors() == null) {
 				wasOfficerActiveDuringPCT = officerResponse.getResponse().getUserResponseDto().get(0).getIsActive();
 				if (!wasOfficerActiveDuringPCT) {
@@ -156,8 +154,8 @@ public class OperatorValidator {
 		return wasOfficerActiveDuringPCT;
 	}
 
-	private UserResponseDto getUserDetails(String operatorId, String creationDate,
-			InternalRegistrationStatusDto registrationStatusDto) throws ApisResourceAccessException, IOException {
+	private UserResponseDto getUserDetails(String operatorId, String creationDate)
+			throws ApisResourceAccessException, IOException {
 		UserResponseDto userResponse;
 		List<String> pathSegments = new ArrayList<>();
 		pathSegments.add(operatorId);
