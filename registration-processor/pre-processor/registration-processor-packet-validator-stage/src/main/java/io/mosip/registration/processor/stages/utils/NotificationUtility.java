@@ -141,9 +141,9 @@ public class NotificationUtility {
 		List<String> preferredLanguages=getPreferredLanguages(registrationStatusDto);
 		for(String preferredLanguage:preferredLanguages) {
 		if (registrationAdditionalInfoDTO.getName() != null) {
-			attributes.put("name_" + preferredLanguage, registrationAdditionalInfoDTO.getName());
+			attributes.put("name" , registrationAdditionalInfoDTO.getName());
 		} else {
-			attributes.put("name_" + preferredLanguage, "");
+			attributes.put("name" , "");
 		}
 		
 		if (isProcessingSuccess) {

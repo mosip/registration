@@ -165,11 +165,12 @@ public class MessageNotificationServiceImpl
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), id,
 				"MessageNotificationServiceImpl::sendSmsNotification()::entry");
 		try {
-			setAttributes(id, process, idType, attributes, regType, phoneNumber, emailId);
 			List<String> preferredLanguages= getPreferredLanguages(id,process);
 			String artifact="";
 			for(String lang: preferredLanguages) {
-				InputStream stream = templateGenerator.getTemplate(templateTypeCode, attributes, lang);
+				Map<String, Object> attributesLang=new HashMap<>(attributes);
+				setAttributes(id, process,lang, idType, attributesLang, regType, phoneNumber, emailId);
+				InputStream stream = templateGenerator.getTemplate(templateTypeCode, attributesLang, lang);
 				if(artifact.isBlank()) {
 				 artifact = IOUtils.toString(stream, ENCODING);
 				}else {
@@ -236,16 +237,18 @@ public class MessageNotificationServiceImpl
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), id,
 				"MessageNotificationServiceImpl::sendEmailNotification()::entry");
 		try {
-			setAttributes(id, process, idType, attributes, regType, phoneNumber, emailId);
 			List<String> preferredLanguages= getPreferredLanguages(id,process);
+						
 			String artifact="";
 			String subject="";
 			for(String lang: preferredLanguages) {
-				InputStream stream = templateGenerator.getTemplate(templateTypeCode, attributes, lang);	
+				Map<String, Object> attributesLang=new HashMap<>(attributes);
+				setAttributes(id, process,lang, idType, attributesLang, regType, phoneNumber, emailId);
+				InputStream stream = templateGenerator.getTemplate(templateTypeCode, attributesLang, lang);	
 				
 				artifact = IOUtils.toString(stream, ENCODING);
 				
-				InputStream subStream = templateGenerator.getTemplate(subjectCode, attributes, lang);
+				InputStream subStream = templateGenerator.getTemplate(subjectCode, attributesLang, lang);
 				
 				subject=IOUtils.toString(subStream, ENCODING);
 				if (emailId == null || emailId.length() == 0) {
@@ -380,6 +383,7 @@ public class MessageNotificationServiceImpl
 	 * Gets the template json.
 	 *
 	 * @param id         the id
+	 * @param lang 
 	 * @param idType     the id type
 	 * @param attributes the attributes
 	 * @param regType    the reg typesetAttributes
@@ -391,7 +395,7 @@ public class MessageNotificationServiceImpl
 	 * @throws RegistrationProcessorCheckedException
 	 * @throws IdRepoAppException
 	 */
-	private Map<String, Object> setAttributes(String id, String process, IdType idType, Map<String, Object> attributes, String regType,
+	private Map<String, Object> setAttributes(String id, String process, String lang, IdType idType, Map<String, Object> attributes, String regType,
 			StringBuilder phoneNumber, StringBuilder emailId) throws IOException, ApisResourceAccessException,
 			JsonProcessingException, PacketManagerException, JSONException {
 
@@ -412,9 +416,9 @@ public class MessageNotificationServiceImpl
 				|| regType.equalsIgnoreCase(RegistrationType.UPDATE.name())
 				|| regType.equalsIgnoreCase(RegistrationType.RES_UPDATE.name())
 				|| regType.equalsIgnoreCase(RegistrationType.LOST.name()))) {
-			setAttributesFromIdRepo(uin, attributes, regType, phoneNumber, emailId);
+			setAttributesFromIdRepo(uin, attributes, regType,lang, phoneNumber, emailId);
 		} else {
-			setAttributesFromIdJson(id, process, attributes, regType, phoneNumber, emailId);
+			setAttributesFromIdJson(id, process, attributes, regType,lang, phoneNumber, emailId);
 		}
 
 		return attributes;
@@ -429,13 +433,14 @@ public class MessageNotificationServiceImpl
 	 *            the attributes
 	 * @param regType
 	 *            the reg type
+	 * @param lang 
 	 * @return the map
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
 	@SuppressWarnings("rawtypes")
 	private Map<String, Object> setAttributesFromIdRepo(String uin, Map<String, Object> attributes, String regType,
-			StringBuilder phoneNumber, StringBuilder emailId) throws IOException {
+			String lang, StringBuilder phoneNumber, StringBuilder emailId) throws IOException {
 		List<String> pathsegments = new ArrayList<>();
 		pathsegments.add(uin);
 		IdResponseDTO response;
@@ -456,7 +461,7 @@ public class MessageNotificationServiceImpl
 			}
 
 			String jsonString = new JSONObject((Map) response.getResponse().getIdentity()).toString();
-			setAttributes(jsonString, attributes, regType, phoneNumber, emailId);
+			setAttributes(jsonString, attributes, regType,lang, phoneNumber, emailId);
 
 		} catch (ApisResourceAccessException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -477,13 +482,14 @@ public class MessageNotificationServiceImpl
 	 *            the attribute
 	 * @param regType
 	 *            the reg type
+	 * @param lang 
 	 * @return the keysand values
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
 	@SuppressWarnings("unchecked")
 	private Map<String, Object> setAttributes(String idJsonString, Map<String, Object> attribute, String regType,
-			StringBuilder phoneNumber, StringBuilder emailId) throws IOException {
+			String lang, StringBuilder phoneNumber, StringBuilder emailId) throws IOException {
 		JSONObject demographicIdentity = null;
 
 			demographicIdentity = JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class);
@@ -505,8 +511,9 @@ public class MessageNotificationServiceImpl
 						JSONArray node = JsonUtil.getJSONArray(demographicIdentity, val);
 						JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
 						for (int count = 0; count < jsonValues.length; count++) {
-							String lang = jsonValues[count].getLanguage();
-							attribute.put(val + "_" + lang, jsonValues[count].getValue());
+							if(jsonValues[count].getLanguage().equalsIgnoreCase(lang)) {
+								attribute.put(val , jsonValues[count].getValue());
+							}
 						}
 					} else if (object instanceof LinkedHashMap) {
 						JSONObject json = JsonUtil.getJSONObject(demographicIdentity, val);
@@ -551,7 +558,7 @@ public class MessageNotificationServiceImpl
 
 	@SuppressWarnings("unchecked")
 	private Map<String, Object> setAttributesFromIdJson(String id, String process, Map<String, Object> attribute,
-			String regType, StringBuilder phoneNumber, StringBuilder emailId)
+			String regType, String lang, StringBuilder phoneNumber, StringBuilder emailId)
 			throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException, JSONException {
 
 		JSONObject mapperIdentity = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
@@ -577,7 +584,9 @@ public class MessageNotificationServiceImpl
 						for (int i = 0; i < jsonArray.length(); i++) {
 							Object obj = jsonArray.get(i);
 							JsonValue jsonValue = mapper.readValue(obj.toString(), JsonValue.class);
-							attribute.putIfAbsent(e.getKey().toString() + "_" + jsonValue.getLanguage(), jsonValue.getValue());
+							if(jsonValue.getLanguage().equalsIgnoreCase(lang)) {
+							attribute.putIfAbsent(e.getKey().toString(), jsonValue.getValue());
+							}
 						}
 					} else
 						attribute.putIfAbsent(e.getKey().toString(), value);
