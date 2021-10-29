@@ -401,8 +401,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 
 
 	private iBioProviderApi getBioSdkInstance(BiometricType biometricType) throws BiometricException {
-		iBioProviderApi bioProvider = bioApiFactory.getBioProvider(biometricType, BiometricFunction.QUALITY_CHECK);
-		return bioProvider;
+		return bioApiFactory.getBioProvider(biometricType, BiometricFunction.QUALITY_CHECK);
 	}
 	
 	private Map<String, String> getQualityTags(List<BIR> birs) throws BiometricException{

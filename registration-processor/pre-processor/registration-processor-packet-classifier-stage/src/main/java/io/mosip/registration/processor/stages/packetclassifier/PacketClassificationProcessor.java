@@ -319,10 +319,8 @@ public class PacketClassificationProcessor {
 			eventType, moduleId, moduleName, registrationId);
 	}
 
-	private void generateAndAddTags(String workflowInstanceId, String registrationId, String process, 
-				int iteration)
-			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, 
-				IOException, BaseCheckedException, NumberFormatException, JSONException {
+	private void generateAndAddTags(String workflowInstanceId, String registrationId, String process, int iteration)
+			throws IOException, BaseCheckedException, NumberFormatException, JSONException {
 		regProcLogger.debug("generateAndAddTags called for registration id {} {}", registrationId, 
 			requiredIdObjectFieldNames);
 		Map<String, String> identityFieldValueMap = priorityBasedPacketManagerService.getFields(registrationId,

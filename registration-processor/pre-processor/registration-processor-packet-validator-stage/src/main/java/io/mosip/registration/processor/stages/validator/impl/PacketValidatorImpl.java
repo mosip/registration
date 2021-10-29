@@ -177,7 +177,7 @@ public class PacketValidatorImpl implements PacketValidator {
 			BiometricRecord biometricRecord = null;
 			if (field.equals(MappingJsonConstants.OFFICERBIOMETRICFILENAME)
 					|| field.equals(MappingJsonConstants.SUPERVISORBIOMETRICFILENAME)) {
-				String value = getOperationsDataFromMetaInfo(id, process, field, metaInfoMap);
+				String value = getOperationsDataFromMetaInfo(field, metaInfoMap);
 				if (value != null && !value.isEmpty()) {
 					biometricRecord = packetManagerService.getBiometrics(id, field, process,
 							ProviderStageName.PACKET_VALIDATOR);
@@ -224,9 +224,8 @@ public class PacketValidatorImpl implements PacketValidator {
 		return true;
 	}
 	
-	private String getOperationsDataFromMetaInfo(String id, String process, String fileName,
-			Map<String, String> metaInfoMap)
-			throws ApisResourceAccessException, PacketManagerException, IOException, JSONException {
+	private String getOperationsDataFromMetaInfo(String fileName, Map<String, String> metaInfoMap)
+			throws IOException, JSONException {
 		String metadata = metaInfoMap.get(JsonConstant.OPERATIONSDATA);
 		String value = null;
 		if (StringUtils.isNotEmpty(metadata)) {

@@ -10,7 +10,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -25,6 +24,7 @@ import org.powermock.reflect.Whitebox;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
+import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.stages.packetclassifier.dto.FieldDTO;
 import io.mosip.registration.processor.stages.packetclassifier.utility.PacketClassifierUtility;
@@ -70,6 +70,8 @@ public class IDObjectDataAvailabilityTagGeneratorTest {
 		idObjectFieldDTOMap.put("IDSchemaVersion", new FieldDTO("number", ""));
 		idObjectFieldDTOMap.put("dateOfBirth", new FieldDTO("string", "1995/01/19"));
 		idObjectFieldDTOMap.put("gender", new FieldDTO("simpleType", "[ {\n  \"language\" : \"eng\",\n  \"value\" : null\n} ]"));
+		idObjectFieldDTOMap.put("document", new FieldDTO("documentType", "{\n  \"language\" : \"eng\",\n  \"value\" : \"POA\"\n}"));
+		idObjectFieldDTOMap.put("biometric", new FieldDTO("biometricsType", "{\n  \"language\" : \"eng\",\n  \"value\" : \"Face\"\n}"));
 
 		tagValueMap = new HashMap<>();
 		tagValueMap.put("AVAILABILITY_CHECK_1", "true");
@@ -152,6 +154,14 @@ public class IDObjectDataAvailabilityTagGeneratorTest {
 		idObjectDataAvailabilityTagGenerator.getRequiredIdObjectFieldNames();
 		FieldDTO fieldDTO = idObjectFieldDTOMap.get("IDSchemaVersion");
 		fieldDTO.setType("notavailabletype");
+		idObjectDataAvailabilityTagGenerator.generateTags("12345", "1234", "NEW", idObjectFieldDTOMap, null, 0);
+	}
+	
+	@Test(expected = ParsingException.class)
+	public void testGenerateTagsJsonException() throws BaseCheckedException, JSONException {
+		idObjectDataAvailabilityTagGenerator.getRequiredIdObjectFieldNames();
+		Mockito.when(classifierUtility.getLanguageBasedValueForSimpleType(anyString()))
+				.thenThrow(new JSONException(""));
 		idObjectDataAvailabilityTagGenerator.generateTags("12345", "1234", "NEW", idObjectFieldDTOMap, null, 0);
 	}
 	
