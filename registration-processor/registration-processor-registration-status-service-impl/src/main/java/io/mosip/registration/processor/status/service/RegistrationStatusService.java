@@ -139,7 +139,7 @@ public interface RegistrationStatusService<T, U, D> {
 	 *
 	 * @return the InProgress packets count
 	 */
-	public Integer getInProgressPacketsCount();
+	public long getInProgressPacketsCount();
 
 	/**
 	 * Check Rid if uin is available.

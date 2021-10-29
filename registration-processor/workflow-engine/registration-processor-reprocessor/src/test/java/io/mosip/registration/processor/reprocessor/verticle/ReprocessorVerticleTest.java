@@ -109,7 +109,7 @@ public class ReprocessorVerticleTest {
          ReflectionTestUtils.setField(reprocessorVerticle, "pauseProcessingLimitExceeded", true);
          ReflectionTestUtils.setField(reprocessorVerticle, "maximumInprogressPackets", 5);
          Mockito.when(registrationStatusService.getInProgressPacketsCount())
-			.thenReturn(1);
+			.thenReturn(1l);
          Field auditLog = AuditLogRequestBuilder.class.getDeclaredField("registrationProcessorRestService");
          auditLog.setAccessible(true);
          @SuppressWarnings("unchecked")

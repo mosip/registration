@@ -950,11 +950,11 @@ public class RegistrationStatusServiceImpl
 	}
 
 	@Override
-	public Integer getInProgressPacketsCount() {
+	public long getInProgressPacketsCount() {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"RegistrationStatusServiceImpl::getInProgressPacketsCount()::entry");
 		try {
-			int count = registrationStatusDao.getInProgressPacketsCount();
+			long count = registrationStatusDao.getInProgressPacketsCount();
 
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 					"RegistrationStatusServiceImpl::getInProgressPacketsCount()::exit");
