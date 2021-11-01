@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +24,6 @@ import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
@@ -33,6 +33,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -405,6 +406,44 @@ public class PrintingStageTest {
 		
 		assertTrue(result.getInternalError());
 		assertTrue(result.getIsValid());
+	}
+	
+	@Test
+	public void testVidNotAvailableGETAPIResponseNullException()
+			throws ApisResourceAccessException, JsonParseException, JsonMappingException, IOException {
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("1234567890987654321");
+
+		dto.setReg_type(RegistrationType.NEW.name());
+
+		VidsInfosDTO vidsInfosDTO = new VidsInfosDTO();
+		vidsInfosDTO.setResponse(null);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(vidsInfosDTO);
+
+		MessageDTO result = stage.process(dto);
+		assertTrue(result.getIsValid());
+		assertTrue(result.getInternalError());
+	}
+
+	@Test
+	public void testVidNotAvailableGETAPIException()
+			throws ApisResourceAccessException, JsonParseException, JsonMappingException, IOException {
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("1234567890987654321");
+
+		dto.setReg_type(RegistrationType.NEW.name());
+
+		VidsInfosDTO vidsInfosDTO = new VidsInfosDTO();
+		vidsInfosDTO.setResponse(null);
+		ServiceError error = new ServiceError();
+		error.setErrorCode("ERR-001");
+		error.setMessage("exception occured");
+		vidsInfosDTO.setErrors(Arrays.asList(error));
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(vidsInfosDTO);
+
+		MessageDTO result = stage.process(dto);
+		assertTrue(result.getIsValid());
+		assertTrue(result.getInternalError());
 	}
 
 }

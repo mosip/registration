@@ -917,4 +917,22 @@ public class MessageSenderStageTest {
 		MessageDTO result = stage.process(dto);
 		assertFalse(result.getIsValid());
 	}
+	
+	@Test
+	public void testNotificationFailedForLost() throws Exception {
+
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
+				.thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusDto.getStatusCode()).thenReturn(RegistrationStatusCode.FAILED.name());
+		Mockito.when(registrationStatusDto.getLatestTransactionTypeCode())
+				.thenReturn(RegistrationTransactionTypeCode.INTRODUCER_VALIDATION.name());
+		Mockito.when(registrationStatusDto.getRegistrationType()).thenReturn("LOST");
+		Mockito.when(registrationStatusDto.getLatestTransactionStatusCode())
+				.thenReturn(RegistrationTransactionStatusCode.FAILED.name());
+
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("85425022110000120190117110505");
+		MessageDTO result = stage.process(dto);
+		assertFalse(result.getIsValid());
+	}
 }
