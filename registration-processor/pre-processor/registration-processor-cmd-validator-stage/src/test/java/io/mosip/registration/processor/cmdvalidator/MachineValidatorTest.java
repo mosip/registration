@@ -78,5 +78,27 @@ public class MachineValidatorTest {
 				eq(ResponseWrapper.class))).thenReturn(responseWrapper);
 		machineValidator.validate("1001", "eng", "2021-06-04T07:31:59.831Z", "45128164920495");
 	}
+	
+	@Test(expected = BaseCheckedException.class)
+	public void validateMachineNotFoundMasterDBFailureTest() throws IOException, BaseCheckedException {
+		ResponseWrapper<MachineHistoryResponseDto> responseWrapper = new ResponseWrapper<MachineHistoryResponseDto>();
+		MachineHistoryResponseDto machineHistoryResponseDto = new MachineHistoryResponseDto();
+		MachineHistoryDto machineHistoryDto = new MachineHistoryDto();
+		machineHistoryDto.setId(null);
+		machineHistoryDto.setIsActive(false);
+		machineHistoryResponseDto.setMachineHistoryDetails(Arrays.asList(machineHistoryDto));
+		responseWrapper.setResponse(machineHistoryResponseDto);
+		responseWrapper.setErrors(null);
+
+		Mockito.when(registrationProcessorRestService.getApi(any(), any(), anyString(), anyString(),
+				eq(ResponseWrapper.class))).thenReturn(responseWrapper);
+		machineValidator.validate("1001", "eng", "2021-06-04T07:31:59.831Z", "45128164920495");
+	}
+	
+	@Test(expected = BaseCheckedException.class)
+	public void validateMachineIdNotFoundFailureTest() throws IOException, BaseCheckedException {
+
+		machineValidator.validate(null, "eng", "2021-06-04T07:31:59.831Z", "45128164920495");
+	}
 
 }

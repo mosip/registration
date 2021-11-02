@@ -80,6 +80,8 @@ public class DeviceValidatorTests {
 
 		Mockito.when(packetManagerService.getBiometricsByMappingJsonKey(any(),
 				any(), any(),any())).thenReturn(biometricRecord);
+		Mockito.when(packetManagerService.getBiometrics(any(),
+				any(), any(),any())).thenReturn(biometricRecord);
 		Mockito.when(packetManagerService.getField(any(),
 				any(), any(),any())).thenReturn("individualBiometrics_bio_CBEFF");
 		HotlistRequestResponseDTO hotlistRequestResponseDTO=new HotlistRequestResponseDTO();
@@ -114,6 +116,13 @@ public class DeviceValidatorTests {
 				any(), any(),any())).thenReturn(biometricRecord);
 		deviceValidator.validate(regOsi, process, registrationId);
 	}
+	
+	@Test(expected = BaseCheckedException.class)
+	public void deviceValidationBiometricsNullTest() throws JsonProcessingException, ApisResourceAccessException, IOException, BaseCheckedException, JSONException {
+		Mockito.when(packetManagerService.getBiometricsByMappingJsonKey(any(),
+				any(), any(),any())).thenReturn(null);
+		deviceValidator.validate(regOsi, process, registrationId);
+	}
 
 	@Test(expected=BaseCheckedException.class)
 	public void deviceValidationdigitalIdFailedTest() throws JsonProcessingException, ApisResourceAccessException, IOException, BaseCheckedException, JSONException {
@@ -124,6 +133,22 @@ public class DeviceValidatorTests {
 		ResponseWrapper<JWTSignatureVerifyResponseDto> ResponseWrapper1=new ResponseWrapper<JWTSignatureVerifyResponseDto>();
 		ResponseWrapper1.setResponse(jwtSignatureVerifyResponseDto);
 		Mockito.when(registrationProcessorRestService.postApi(any(), any(), anyString(), any(), any())).thenReturn(ResponseWrapper1);
+
+		deviceValidator.validate(regOsi, process, registrationId);
+	}
+	
+	@Test(expected = BaseCheckedException.class)
+	public void deviceValidationdigitalIdTrustValidationFailedTest() throws JsonProcessingException,
+			ApisResourceAccessException, IOException, BaseCheckedException, JSONException {
+		ReflectionTestUtils.setField(deviceValidator, "disableTrustValidation", false);
+		JWTSignatureVerifyResponseDto jwtSignatureVerifyResponseDto = new JWTSignatureVerifyResponseDto();
+		jwtSignatureVerifyResponseDto.setMessage("signature invalid");
+		jwtSignatureVerifyResponseDto.setSignatureValid(true);
+		jwtSignatureVerifyResponseDto.setTrustValid("TRUST_CERT_PATH_NOT_VALID");
+		ResponseWrapper<JWTSignatureVerifyResponseDto> ResponseWrapper1 = new ResponseWrapper<JWTSignatureVerifyResponseDto>();
+		ResponseWrapper1.setResponse(jwtSignatureVerifyResponseDto);
+		Mockito.when(registrationProcessorRestService.postApi(any(), any(), anyString(), any(), any()))
+				.thenReturn(ResponseWrapper1);
 
 		deviceValidator.validate(regOsi, process, registrationId);
 	}
@@ -223,13 +248,47 @@ public class DeviceValidatorTests {
 	}
 	
 	@Test
+	public void deviceValidationOfficerBiometricsInPacket() 
+			throws JsonProcessingException, ApisResourceAccessException, IOException, 
+				BaseCheckedException, JSONException {
+		Map<String, String> metamap = new HashMap<>();
+		JSONArray jsonArray = new JSONArray();
+		JSONObject jsonObject1 = new JSONObject();
+		jsonObject1.put("label", "officerBiometricFileName");
+		jsonObject1.put("value", "110024");
+		jsonArray.put(jsonObject1);
+		metamap.put(JsonConstant.OPERATIONSDATA, jsonArray.toString());
+		Mockito.when(packetManagerService.getMetaInfo(anyString(), anyString(), any())).thenReturn(metamap);
+		deviceValidator.validate(regOsi, process, registrationId);
+	}
+	
+	@Test(expected = BaseCheckedException.class)
+	public void deviceValidationOfficerBiometricsNotFoundInPacket() 
+			throws JsonProcessingException, ApisResourceAccessException, IOException, 
+				BaseCheckedException, JSONException {
+		Map<String, String> metamap = new HashMap<>();
+		JSONArray jsonArray = new JSONArray();
+		JSONObject jsonObject1 = new JSONObject();
+		jsonObject1.put("label", "officerBiometricFileName");
+		jsonObject1.put("value", "110024");
+		jsonArray.put(jsonObject1);
+		metamap.put(JsonConstant.OPERATIONSDATA, jsonArray.toString());
+		Mockito.when(packetManagerService.getMetaInfo(anyString(), anyString(), any())).thenReturn(metamap);
+		Mockito.when(packetManagerService.getBiometrics(any(),
+				any(), any(),any())).thenReturn(null);
+		deviceValidator.validate(regOsi, process, registrationId);
+	}
+	
+	@Test
 	public void deviceValidationNoOfficerBiometricsInPacket() 
 			throws JsonProcessingException, ApisResourceAccessException, IOException, 
 				BaseCheckedException, JSONException {
 		Map<String, String> metamap = new HashMap<>();
 		JSONArray jsonArray = new JSONArray();
 		JSONObject jsonObject1 = new JSONObject();
-		jsonObject1.put("officerBiometricFileName", JSONObject.NULL);
+		jsonObject1.put("label", "officerBiometricFileName");
+		jsonObject1.put("value", JSONObject.NULL);
+		jsonArray.put(jsonObject1);
 		metamap.put(JsonConstant.OPERATIONSDATA, jsonArray.toString());
 		Mockito.when(packetManagerService.getMetaInfo(anyString(), anyString(), any())).thenReturn(metamap);
 		deviceValidator.validate(regOsi, process, registrationId);

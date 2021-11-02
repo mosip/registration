@@ -158,5 +158,44 @@ public class CenterValidatorTest {
 				eq(ResponseWrapper.class))).thenReturn(responseWrapper).thenReturn(responseWrapper2);
 		centerValidator.validate("eng", regOsi, "45128164920495");
 	}
+	
+	@Test(expected = BaseCheckedException.class)
+	public void validateWithTimestampCenterIdNullFailureTest() throws IOException, BaseCheckedException {
+		RegOsiDto regOsi = new RegOsiDto();
+		regOsi.setRegId("45128164920495");
+		regOsi.setRegcntrId(null);
+		regOsi.setPacketCreationDate("2021-06-04T07:31:59.831Z");
+
+		centerValidator.validate("eng", regOsi, "45128164920495");
+	}
+
+	@Test(expected = BaseCheckedException.class)
+	public void validateWithTimestampErrorFailureTest() throws IOException, BaseCheckedException {
+		ReflectionTestUtils.setField(centerValidator, "isWorkingHourValidationRequired", true);
+		RegOsiDto regOsi = new RegOsiDto();
+		regOsi.setRegId("45128164920495");
+		regOsi.setRegcntrId("1001");
+		regOsi.setPacketCreationDate("2021-06-04T07:31:59.831Z");
+
+		ResponseWrapper<RegistrationCenterResponseDto> responseWrapper = new ResponseWrapper<RegistrationCenterResponseDto>();
+		RegistrationCenterResponseDto rcpdto = new RegistrationCenterResponseDto();
+		RegistrationCenterDto registrationCenterHistory = new RegistrationCenterDto();
+		registrationCenterHistory.setId("1001");
+		registrationCenterHistory.setIsActive(true);
+		rcpdto.setRegistrationCentersHistory(Arrays.asList(registrationCenterHistory));
+		responseWrapper.setResponse(rcpdto);
+		responseWrapper.setErrors(null);
+
+		ResponseWrapper<RegistartionCenterTimestampResponseDto> responseWrapper2 = new ResponseWrapper<RegistartionCenterTimestampResponseDto>();
+		ErrorDTO error = new ErrorDTO();
+		error.setErrorCode("ERR-001");
+		error.setMessage("exception occured");
+		responseWrapper2.setErrors(Arrays.asList(error));
+		responseWrapper2.setResponse(null);
+
+		Mockito.when(registrationProcessorRestService.getApi(any(), any(), anyString(), anyString(),
+				eq(ResponseWrapper.class))).thenReturn(responseWrapper).thenReturn(responseWrapper2);
+		centerValidator.validate("eng", regOsi, "45128164920495");
+	}
 
 }

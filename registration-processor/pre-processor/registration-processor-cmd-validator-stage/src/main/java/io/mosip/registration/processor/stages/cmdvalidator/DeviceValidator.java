@@ -19,9 +19,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.biometrics.entities.BIR;
@@ -59,8 +56,6 @@ public class DeviceValidator {
 
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
 
-	private static final String VALID = "Valid";
-
 	ObjectMapper mapper = new ObjectMapper();
 
 	@Autowired
@@ -91,14 +86,11 @@ public class DeviceValidator {
 	 * @param process
 	 * @param registrationId
 	 * @throws IOException
-	 * @throws JsonProcessingException
 	 * @throws BaseCheckedException,                               ApisResourceAccessException
 	 * @throws JSONException
-	 * @throws com.fasterxml.jackson.databind.JsonMappingException
-	 * @throws com.fasterxml.jackson.core.JsonParseException
 	 */
-	public void validate(RegOsiDto regOsi, String process, String registrationId) throws JsonProcessingException,
-			IOException, BaseCheckedException, ApisResourceAccessException, JSONException {
+	public void validate(RegOsiDto regOsi, String process, String registrationId)
+			throws IOException, BaseCheckedException, JSONException {
 		List<String> fields = Arrays.asList(MappingJsonConstants.INDIVIDUAL_BIOMETRICS,
 				MappingJsonConstants.AUTHENTICATION_BIOMETRICS, MappingJsonConstants.INTRODUCER_BIO,
 				MappingJsonConstants.OFFICERBIOMETRICFILENAME, MappingJsonConstants.SUPERVISORBIOMETRICFILENAME);
@@ -132,8 +124,8 @@ public class DeviceValidator {
 	}
 
 	private String getOperationsDataFromMetaInfo(String id, String process, String fileName)
-			throws ApisResourceAccessException, PacketManagerException, IOException, JSONException, JsonParseException,
-			JsonMappingException, JsonProcessingException, io.mosip.kernel.core.util.exception.JsonProcessingException {
+			throws ApisResourceAccessException, PacketManagerException, IOException, JSONException,
+			io.mosip.kernel.core.util.exception.JsonProcessingException {
 		Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(id, process,
 				ProviderStageName.PACKET_VALIDATOR);
 		String metadata = metaInfoMap.get(JsonConstant.OPERATIONSDATA);
@@ -156,8 +148,7 @@ public class DeviceValidator {
 	}
 
 	private void validateDevicesInBiometricRecord(BiometricRecord biometricRecord, RegOsiDto regOsi)
-			throws JsonProcessingException, IOException, BaseCheckedException,
-				ApisResourceAccessException, JSONException {
+			throws IOException, BaseCheckedException, JSONException {
 		List<BIR> birs = biometricRecord.getSegments();
 		List<JSONObject> payloads = new ArrayList<>();
 		for(BIR bir : birs) {
@@ -205,8 +196,9 @@ public class DeviceValidator {
 		}
 	}
 
-	private void validateDeviceForHotlist(String deviceCode, String digitalIdTimestamp) throws JsonParseException, JsonMappingException, JsonProcessingException, IOException, JSONException, BaseCheckedException {
-		List<String> pathSegments=new ArrayList<>();
+	private void validateDeviceForHotlist(String deviceCode, String digitalIdTimestamp)
+			throws IOException, BaseCheckedException {
+		List<String> pathSegments = new ArrayList<>();
 		pathSegments.add("DEVICE");
 		pathSegments.add(deviceCode);
 		ResponseWrapper<?> responseWrapper = (ResponseWrapper<?>) registrationProcessorRestService
@@ -242,8 +234,8 @@ public class DeviceValidator {
 		}
 	}
 
-	private void validateTimestamp(JSONObject payload, String packetCreationDate,String dateTime)
-			throws JSONException, BaseCheckedException, JsonParseException, JsonMappingException, IOException {
+	private void validateTimestamp(JSONObject payload, String packetCreationDate, String dateTime)
+			throws BaseCheckedException {
 		DateTimeFormatter packetCreationTimestampFormatter = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 		DateTimeFormatter digitalIdTimestampFormatter = DateTimeFormatter.ofPattern(digitalIdTimestampFormat);
 		LocalDateTime packetCreationDateTime = LocalDateTime
@@ -261,7 +253,7 @@ public class DeviceValidator {
 
 	}
 
-	private void validateDigitalId(JSONObject payload) throws JsonParseException, JsonMappingException, JsonProcessingException, IOException, JSONException, BaseCheckedException {
+	private void validateDigitalId(JSONObject payload) throws IOException, JSONException, BaseCheckedException {
 		JWTSignatureVerifyRequestDto jwtSignatureVerifyRequestDto = new JWTSignatureVerifyRequestDto();
 		jwtSignatureVerifyRequestDto.setApplicationId("REGISTRATION");
 		jwtSignatureVerifyRequestDto.setReferenceId("SIGN");
