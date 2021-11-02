@@ -212,8 +212,7 @@ public class ReprocessorVerticleTest {
 				.thenReturn(dtolist);
 		reprocessorVerticle.process(dto);
 
-	}
-	
+	}	
 
 	/**
 	 * Exception test.
