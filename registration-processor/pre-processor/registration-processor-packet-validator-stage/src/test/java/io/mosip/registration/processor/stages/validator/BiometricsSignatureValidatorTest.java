@@ -34,6 +34,7 @@ import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.entities.Entry;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.BiometricSignatureValidationException;
+import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.packet.dto.FieldValue;
@@ -182,6 +183,28 @@ public class BiometricsSignatureValidatorTest {
 		PowerMockito.when(BiometricsSignatureHelper.extractJWTToken(any()))
 				.thenThrow(BiometricSignatureValidationException.class);
 		biometricsSignatureValidator.validateSignature(id, process, biometricRecord1, metamap);
+	}
+	
+	@Test(expected = BiometricSignatureValidationException.class)
+	public void othersInfoNullTest() throws JsonProcessingException, IOException, BaseCheckedException, JSONException {
+		BiometricRecord biometricRecord = new BiometricRecord();
+		BIR bir = new BIR();
+		bir.setOthers(null);
+		biometricRecord.setSegments(Arrays.asList(bir));
+		biometricsSignatureValidator.validateSignature(id, process, biometricRecord, metamap);
+	}
+	
+	@Test(expected = BiometricSignatureValidationException.class)
+	public void jwtVerificationFailedTest()
+			throws JsonProcessingException, IOException, BaseCheckedException, JSONException {
+		ServiceError error = new ServiceError();
+		error.setErrorCode("ERR-001");
+		error.setMessage("exception occured");
+		ResponseWrapper1.setResponse(null);
+		ResponseWrapper1.setErrors(Arrays.asList(error));
+		Mockito.when(registrationProcessorRestService.postApi(any(), any(), anyString(), any(), any()))
+				.thenReturn(ResponseWrapper1);
+		biometricsSignatureValidator.validateSignature(id, process, biometricRecord, metamap);
 	}
 	
 	@Test

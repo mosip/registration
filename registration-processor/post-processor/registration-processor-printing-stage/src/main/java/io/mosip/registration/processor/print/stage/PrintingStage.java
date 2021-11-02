@@ -366,7 +366,6 @@ public class PrintingStage extends MosipVerticleAPIManager {
 		return RandomStringUtils.randomNumeric(6);
 	}
 
-	@SuppressWarnings("unchecked")
 	private String getVid(String uin) throws ApisResourceAccessException, VidNotAvailableException {
 		List<String> pathsegments = new ArrayList<>();
 		pathsegments.add(uin);

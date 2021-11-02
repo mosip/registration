@@ -3,6 +3,7 @@ package io.mosip.registration.processor.stages.packetclassifier.tagging.impl;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
@@ -61,6 +62,12 @@ public class SupervisorApprovalStatusTagGeneratorTest {
 		Mockito.when(syncRegistrationService.findByWorkflowInstanceId(anyString()))
 			.thenReturn(null);
 		supervisorApprovalStatusTagGenerator.generateTags("12345", "1234", "NEW", null, null, 0);
+	}
+	
+	@Test
+	public void getRequiredIdObjectFieldNamesTest() throws Exception {
+		List<String> result = supervisorApprovalStatusTagGenerator.getRequiredIdObjectFieldNames();
+		assertEquals(result, null);
 	}
 	
 }

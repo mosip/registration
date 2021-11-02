@@ -153,6 +153,18 @@ public class PacketClassificationProcessorTest {
 		assertTrue(object.getIsValid());
 		assertFalse(object.getInternalError());
 	}
+	
+	@Test(expected = IOException.class)
+	public void collectRequiredIdObjectFieldNamesIOExceptionTest() throws Exception {
+		Mockito.when(utility.getRegistrationProcessorMappingJson(anyString())).thenThrow(IOException.class);
+		Whitebox.invokeMethod(packetClassificationProcessor, "collectRequiredIdObjectFieldNames");
+	}
+
+	@Test(expected = BaseCheckedException.class)
+	public void collectRequiredIdObjectFieldNamesBaseCheckedExceptionTest() throws Exception {
+		Mockito.when(tagGenerator.getRequiredIdObjectFieldNames()).thenThrow(BaseCheckedException.class);
+		Whitebox.invokeMethod(packetClassificationProcessor, "collectRequiredIdObjectFieldNames");
+	}
 
 	@Test
 	public void packetClassificationWithEmptyListOfTagGenerators() throws Exception {
@@ -195,11 +207,27 @@ public class PacketClassificationProcessorTest {
 
 	@Test
 	public void packetClassificationIOExceptionTest() throws Exception {
-		BaseCheckedException exc = new BaseCheckedException("", "", new IOException(""));
+		registrationStatusDto.setRetryCount(1);
+		IOException exc = new IOException("");
 		Whitebox.invokeMethod(packetClassificationProcessor, "collectRequiredIdObjectFieldNames");
-		Mockito.when(tagGenerator.generateTags(any(), any(), any(), any(), any(), anyInt())).thenThrow(exc);
-		Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BASE_CHECKED_EXCEPTION))
-		.thenReturn("ERROR");
+		Mockito.when(priorityBasedPacketManagerService.getFields(any(), any(), any(), any())).thenThrow(exc);
+		Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.IOEXCEPTION))
+				.thenReturn("ERROR");
+		MessageDTO object = packetClassificationProcessor.process(messageDTO, stageName);
+		assertFalse(object.getIsValid());
+		assertTrue(object.getInternalError());
+	}
+	
+	@Test
+	public void packetClassificationExceptionTest() throws Exception {
+		
+		Map<String, String> fieldMap = new HashMap<>();
+		fieldMap.put(IDSchemaVersionLabel, "V1");
+		Mockito.when(priorityBasedPacketManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
+		
+		Whitebox.invokeMethod(packetClassificationProcessor, "collectRequiredIdObjectFieldNames");
+		Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.EXCEPTION))
+				.thenReturn("ERROR");
 		MessageDTO object = packetClassificationProcessor.process(messageDTO, stageName);
 		assertFalse(object.getIsValid());
 		assertTrue(object.getInternalError());

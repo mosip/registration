@@ -13,9 +13,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.biometrics.commons.BiometricsSignatureHelper;
@@ -62,7 +59,7 @@ public class BiometricsSignatureValidator {
 			ApisResourceAccessException, PacketManagerException, IOException {
 
 		// backward compatibility check
-		String version = getRegClientVersionFromMetaInfo(id, process, metaInfoMap);
+		String version = getRegClientVersionFromMetaInfo(metaInfoMap);
 		if (regClientVersionsBeforeCbeffOthersAttritube.contains(version)) {
 			return;
 		}
@@ -94,8 +91,7 @@ public class BiometricsSignatureValidator {
 
 	}
 
-	private String getRegClientVersionFromMetaInfo(String id, String process, Map<String, String> metaInfoMap)
-			throws ApisResourceAccessException, PacketManagerException, IOException, JSONException {
+	private String getRegClientVersionFromMetaInfo(Map<String, String> metaInfoMap) throws IOException, JSONException {
 		String metadata = metaInfoMap.get(JsonConstant.METADATA);
 		String version = null;
 		if (StringUtils.isNotEmpty(metadata)) {
@@ -116,8 +112,7 @@ public class BiometricsSignatureValidator {
 	}
 
 	private void validateJWTToken(String token)
-			throws JsonParseException, JsonMappingException, JsonProcessingException, IOException, JSONException,
-			BiometricSignatureValidationException, ApisResourceAccessException {
+			throws IOException, BiometricSignatureValidationException, ApisResourceAccessException {
 		JWTSignatureVerifyRequestDto jwtSignatureVerifyRequestDto = new JWTSignatureVerifyRequestDto();
 		jwtSignatureVerifyRequestDto.setApplicationId("REGISTRATION");
 		jwtSignatureVerifyRequestDto.setReferenceId("SIGN");
