@@ -106,9 +106,9 @@ public class ReprocessorVerticleTest {
 		 ReflectionTestUtils.setField(reprocessorVerticle, "fetchSize", 2);
          ReflectionTestUtils.setField(reprocessorVerticle, "elapseTime", 21600);
          ReflectionTestUtils.setField(reprocessorVerticle, "reprocessCount", 3);
-         ReflectionTestUtils.setField(reprocessorVerticle, "pauseProcessingLimitExceeded", true);
-         ReflectionTestUtils.setField(reprocessorVerticle, "maximumInprogressPackets", 5);
-         Mockito.when(registrationStatusService.getInProgressPacketsCount())
+         ReflectionTestUtils.setField(reprocessorVerticle, "pauseProcessingForBackpressure", true);
+         ReflectionTestUtils.setField(reprocessorVerticle, "reprocessPacketsLimit", 5);
+         Mockito.when(registrationStatusService.getInReprocessPacketsCount(anyLong()))
 			.thenReturn(1l);
          Field auditLog = AuditLogRequestBuilder.class.getDeclaredField("registrationProcessorRestService");
          auditLog.setAccessible(true);
@@ -180,7 +180,7 @@ public class ReprocessorVerticleTest {
 		dtolist.add(registrationStatusDto1);
 		Mockito.when(registrationStatusService.getUnProcessedPackets(anyInt(), anyLong(), anyInt(), anyList()))
 				.thenReturn(dtolist);
-		ReflectionTestUtils.setField(reprocessorVerticle, "pauseProcessingLimitExceeded", false);
+		ReflectionTestUtils.setField(reprocessorVerticle, "pauseProcessingForBackpressure", false);
 		reprocessorVerticle.process(dto);
 
 	}

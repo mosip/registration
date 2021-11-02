@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.status.dao;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
+import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.workflow.dto.FilterInfo;
 import io.mosip.registration.processor.core.workflow.dto.PaginationInfo;
 import io.mosip.registration.processor.core.workflow.dto.SortInfo;
@@ -372,8 +374,9 @@ public class RegistrationStatusDao {
 		return registrationStatusRepositary.createQuerySelect(queryStr, params, fetchSize);
 	}
 
-	public long getInProgressPacketsCount() {
-		return registrationStatusRepositary.countByStatusCode(RegistrationStatusCode.PROCESSING.toString());
+	public long getInReprocessPacketsCount(long reprocessorduration) {
+		LocalDateTime timeDifference = LocalDateTime.now(ZoneId.of("UTC")).minusSeconds(reprocessorduration);
+		return registrationStatusRepositary.countByStatusCode(RegistrationStatusCode.REPROCESS.toString(),RegistrationTransactionStatusCode.SUCCESS.toString(), timeDifference);
 	}
 
 }

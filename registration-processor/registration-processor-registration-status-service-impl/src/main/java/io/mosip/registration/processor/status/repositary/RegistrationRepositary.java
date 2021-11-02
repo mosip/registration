@@ -3,6 +3,7 @@
  */
 package io.mosip.registration.processor.status.repositary;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.Query;
@@ -32,6 +33,6 @@ public interface RegistrationRepositary<T extends BaseRegistrationEntity, E> ext
 	public List<String> getWithoutStatusCodes(@Param("regIds") List<String> regIds,
 													   @Param("statusCode1") String statusCode1, @Param("statusCode2") String statusCode2);
 	
-	@Query("SELECT COUNT(*)  FROM RegistrationStatusEntity registration WHERE registration.statusCode =:statusCode")
-	long countByStatusCode(String statusCode);
+	@Query("SELECT COUNT(*)  FROM RegistrationStatusEntity registration WHERE registration.statusCode=:statusCode AND registration.latestTransactionStatusCode =:latestTransactionStatusCode AND registration.latestTransactionTimes < :timeDifference")
+	long countByStatusCode(@Param("statusCode")String statusCode,@Param("latestTransactionStatusCode")String latestTransactionStatusCode,@Param("timeDifference")LocalDateTime timeDifference);
 }

@@ -69,12 +69,12 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 	MosipEventBus mosipEventBus = null;
 
 	/** The processingLimitExceeded flag. */
-	@Value("${registration.processor.pause.packets.for.exceeded.limit}")
-	private boolean pauseProcessingLimitExceeded;
+	@Value("${registration.processor.pause.packets.for.backpressure}")
+	private boolean pauseProcessingForBackpressure ;
 	
-	/** The maximumInprogressPackets count. */
-	@Value("${registration.processor.maximum.packets.in.progress}")
-	private long maximumInprogressPackets;
+	/** The processingLimitExceeded flag. */
+	@Value("${registration.processor.reprocess.limit}")
+	private long reprocessPacketsLimit ;
 	
 	/** The fetch size. */
 	@Value("${registration.processor.reprocess.fetchsize}")
@@ -111,8 +111,10 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 	 * Deploy verticle.
 	 */
 	public void deployVerticle() {
-		mosipEventBus = this.getEventBus(this, clusterManagerUrl);
-		deployScheduler(getVertx());
+		MessageDTO dto=new MessageDTO();
+		process(dto);
+//		mosipEventBus = this.getEventBus(this, clusterManagerUrl);
+//		deployScheduler(getVertx());
 
 	}
 
@@ -197,8 +199,8 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 
 	@Override
 	public void start() {
-		router.setRoute(this.postUrl(getVertx(), null, null));
-		this.createServer(router.getRouter(), Integer.parseInt(port));
+//		router.setRoute(this.postUrl(getVertx(), null, null));
+//		this.createServer(router.getRouter(), Integer.parseInt(port));
 	}
 
 	/*
@@ -339,10 +341,10 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 
 	private boolean proceedToReprocess() throws TablenotAccessibleException {
 		
-		if(!pauseProcessingLimitExceeded) {
+		if(!pauseProcessingForBackpressure) {
 			return true;
 		}
-		if(registrationStatusService.getInProgressPacketsCount()<maximumInprogressPackets){
+		if(registrationStatusService.getInReprocessPacketsCount(elapseTime)<reprocessPacketsLimit){
 			return true;
 		}
 		return false;
