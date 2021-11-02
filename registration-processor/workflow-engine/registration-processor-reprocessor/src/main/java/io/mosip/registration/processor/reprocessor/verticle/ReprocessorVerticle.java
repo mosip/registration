@@ -111,10 +111,8 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 	 * Deploy verticle.
 	 */
 	public void deployVerticle() {
-		MessageDTO dto=new MessageDTO();
-		process(dto);
-//		mosipEventBus = this.getEventBus(this, clusterManagerUrl);
-//		deployScheduler(getVertx());
+		mosipEventBus = this.getEventBus(this, clusterManagerUrl);
+		deployScheduler(getVertx());
 
 	}
 
@@ -199,8 +197,8 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 
 	@Override
 	public void start() {
-//		router.setRoute(this.postUrl(getVertx(), null, null));
-//		this.createServer(router.getRouter(), Integer.parseInt(port));
+		router.setRoute(this.postUrl(getVertx(), null, null));
+		this.createServer(router.getRouter(), Integer.parseInt(port));
 	}
 
 	/*
