@@ -15,8 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.json.JSONArray;
@@ -60,7 +58,7 @@ public class MetaInfoTagGenerator implements TagGenerator {
     private String notAvailableTagValue;
 
     /** The reg proc logger. */
-	private static Logger regProcLogger = RegProcessorLogger.getLogger(AgeGroupTagGenerator.class);
+	private static Logger regProcLogger = RegProcessorLogger.getLogger(MetaInfoTagGenerator.class);
 
     /** Mapper utility used for unmarshalling JSON to Java objects  */
     @Autowired
@@ -103,8 +101,8 @@ public class MetaInfoTagGenerator implements TagGenerator {
         }
     }
 
-    private Map<String, String> generateTagsFromOpertationsData(Map<String, String> metaInfoMap) 
-            throws JSONException, JsonParseException, JsonMappingException, IOException, BaseCheckedException {
+	private Map<String, String> generateTagsFromOpertationsData(Map<String, String> metaInfoMap)
+			throws JSONException, IOException, BaseCheckedException {
         Map<String, String> tags = new HashMap<String, String>();
         String operationsDataString = metaInfoMap.get(JsonConstant.OPERATIONSDATA);
         if(operationsDataString == null)
@@ -129,8 +127,8 @@ public class MetaInfoTagGenerator implements TagGenerator {
         return tags;
     }
 
-    private Map<String, String> generateTagsFromMetaData(Map<String, String> metaInfoMap) 
-            throws JSONException, JsonParseException, JsonMappingException, IOException, BaseCheckedException {
+	private Map<String, String> generateTagsFromMetaData(Map<String, String> metaInfoMap)
+			throws JSONException, IOException, BaseCheckedException {
         Map<String, String> tags = new HashMap<String, String>();
         String metaDataString = metaInfoMap.get(JsonConstant.METADATA);
         if(metaDataString == null)
@@ -154,8 +152,8 @@ public class MetaInfoTagGenerator implements TagGenerator {
         return tags;
     }
 
-    private Map<String, String> generateTagsFromCapturedRegisteredDevices(Map<String, String> metaInfoMap) 
-            throws JSONException, JsonParseException, JsonMappingException, IOException, BaseCheckedException {
+	private Map<String, String> generateTagsFromCapturedRegisteredDevices(Map<String, String> metaInfoMap)
+			throws JSONException, BaseCheckedException {
         Map<String, String> tags = new HashMap<String, String>();
         String capturedRegisteredDevicesString = metaInfoMap.get(JsonConstant.CAPTUREDREGISTEREDDEVICES);
         if(capturedRegisteredDevicesString == null)
@@ -184,8 +182,7 @@ public class MetaInfoTagGenerator implements TagGenerator {
         return tags;
     }
 
-    private Map<String, String> getMapFromLabelValueArray(JSONArray jsonArray)
-            throws JsonParseException, JsonMappingException, IOException, JSONException {
+	private Map<String, String> getMapFromLabelValueArray(JSONArray jsonArray) throws IOException, JSONException {
         Map<String, String> map = new HashMap<String, String>();
 		for (int i =0; i < jsonArray.length(); i++) {
 			JSONObject jsonObject = (JSONObject) jsonArray.get(i);
