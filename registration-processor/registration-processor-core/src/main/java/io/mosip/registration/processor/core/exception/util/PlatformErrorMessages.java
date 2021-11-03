@@ -779,6 +779,9 @@ public enum PlatformErrorMessages {
 	/** The rpr table not accessible. */
 	RPR_INVALID_RID_FOUND(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "024",
 			"Multiple rids found for a reference id"),
+	
+	MANUAL_VERIFICATION_FAILED(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "025",
+			"Manual verification failed"),
 
 	/** The rpr tem not found. */
 	// Registration processor Message sender Exception error code

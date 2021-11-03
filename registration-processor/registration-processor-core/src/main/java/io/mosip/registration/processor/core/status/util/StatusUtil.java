@@ -243,7 +243,11 @@ public enum StatusUtil {
     MESSAGE_SENDER_SMS_FAILED(StatusConstants.MESSAGE_SENDER__FAILED_CODE + "006","Notification was not sent as the required mode of channel was not available"),
     MESSAGE_SENDER_NOTIFICATION_FAILED(StatusConstants.MESSAGE_SENDER__FAILED_CODE + "006","Notification was not sent as the required mode of channel was not available"),
 	VID_CREATION_FAILED(StatusConstants.UIN_GENERATOR_MODULE_FAILED + "009", "VID creation failed -"),
-
+	MANUAL_VERIFICATION_FAILED(StatusConstants.MANUAL_VERIFICATION_MODULE_FAILED + "000", "manual verification failed -"),
+	MANUAL_VERIFICATION_RID_SHOULD_NOT_EMPTY_OR_NULL(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "001",
+			"Registration Id should not empty or null "),
+	MANUAL_VERIFICATION_MATCHEDRID_FOUND_FOR_GIVEN_RID(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "002",
+			"No matched reference id found for given RID"),
 	WORKFLOW_INTERNAL_ACTION_SUCCESS(StatusConstants.WORKFLOW_INTERNAL_ACTION + "001",
 			"Packet workflow internal action completed successfully"),
 	
