@@ -14,10 +14,13 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -34,6 +37,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.TestPropertySource;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.cbeffutil.exception.CbeffException;
@@ -41,6 +46,8 @@ import io.mosip.kernel.core.exception.BiometricSignatureValidationException;
 import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.constant.JsonConstant;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
@@ -114,6 +121,9 @@ public class PacketValidatorImplTest {
 	@Mock
 	private ApplicantDocumentValidation applicantDocumentValidation;
 
+	@Mock
+	ObjectMapper mapper;
+	
 	@Value("${packetmanager.name.source.default}")
 	private String source;
 
@@ -126,12 +136,14 @@ public class PacketValidatorImplTest {
 	public static final String APPROVED = "APPROVED";
 	public static final String REJECTED = "REJECTED";
 	private static final String VALIDATEAPPLICANTDOCUMENT = "mosip.regproc.packet.validator.validate-applicant-document";
+	private static final String VALIDATEAPPLICANTDOCUMENTPROCESS = "mosip.regproc.packet.validator.validate-applicant-document.processes";
 
 	private static final String PRIMARY_LANGUAGE = "mosip.primary-language";
 
 	private static final String SECONDARY_LANGUAGE = "mosip.secondary-language";
 	
 	JSONObject jsonObject = Mockito.mock(JSONObject.class);
+	Map<String, String> metamap = new HashMap<>();
 
 	@Before
 	public void setup() throws Exception {
@@ -218,6 +230,7 @@ public class PacketValidatorImplTest {
 		when(env.getProperty(PRIMARY_LANGUAGE)).thenReturn("eng");
 		when(env.getProperty(SECONDARY_LANGUAGE)).thenReturn("ara");
 		when(env.getProperty(VALIDATEAPPLICANTDOCUMENT)).thenReturn("true");
+		when(env.getProperty(VALIDATEAPPLICANTDOCUMENTPROCESS)).thenReturn("NEW,UPDATE,LOST,BIOMETRIC_CORRECTION");
 		Mockito.when(idObjectValidator.validateIdObject(any(), any(), any())).thenReturn(true);
 
 		PowerMockito.when(JsonUtil.getJSONObject(jsonObject, "individualBiometrics")).thenReturn(jsonObject);
@@ -238,6 +251,15 @@ public class PacketValidatorImplTest {
 		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
 				.thenReturn(biometricRecord);
 		when(applicantDocumentValidation.validateDocument(any(), any())).thenReturn(true);
+		
+		JSONArray jsonArray = new JSONArray();
+		org.json.JSONObject jsonObject = new org.json.JSONObject();
+		jsonObject.put(MappingJsonConstants.OFFICERBIOMETRICFILENAME, "officerBiometricFilename");
+		jsonArray.put(0, jsonObject);
+		metamap.put(JsonConstant.OPERATIONSDATA, jsonArray.toString());
+		Mockito.when(packetManagerService.getMetaInfo(anyString(), any(), any())).thenReturn(metamap);
+		Mockito.when(mapper.readValue(anyString(), any(Class.class)))
+				.thenReturn(new FieldValue(MappingJsonConstants.OFFICERBIOMETRICFILENAME, "officerBiometricFilename"));
 	}
 
 	@Test
@@ -247,6 +269,16 @@ public class PacketValidatorImplTest {
 		Mockito.doNothing().when(biometricsSignatureValidator).validateSignature(anyString(), anyString(), any(),
 				any());
 		assertTrue(PacketValidator.validate("123456789", "NEW", packetValidationDto));
+	}
+	
+	@Test
+	public void testdocumentValidationFailed() throws PacketValidatorException, ApisResourceAccessException,
+			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException,
+			BiometricSignatureValidationException, JSONException {
+		Mockito.doNothing().when(biometricsSignatureValidator).validateSignature(anyString(), anyString(), any(),
+				any());
+		when(applicantDocumentValidation.validateDocument(any(), any())).thenReturn(false);
+		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
 
 	@Test
@@ -342,6 +374,23 @@ public class PacketValidatorImplTest {
 		validatePacketResponse.setValid(false);
 		when(packetManagerService.validate(anyString(), anyString(), any())).thenReturn(validatePacketResponse);
 		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
+	}
+	
+	@Test(expected = PacketManagerException.class)
+	public void testPacketManagerValidationException() throws PacketManagerException, ApisResourceAccessException,
+			JsonProcessingException, IOException, RegistrationProcessorCheckedException {
+		when(packetManagerService.validate(anyString(), anyString(), any())).thenThrow(PacketManagerException.class);
+		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
+	}
+	
+	@Test
+	public void testJsonException() throws PacketManagerException, ApisResourceAccessException, JsonProcessingException,
+			IOException, RegistrationProcessorCheckedException, JSONException {
+		org.json.JSONObject jsonObject = new org.json.JSONObject();
+		jsonObject.put(MappingJsonConstants.OFFICERBIOMETRICFILENAME, "officerBiometricFilename");
+		metamap.put(JsonConstant.OPERATIONSDATA, jsonObject.toString());
+		Mockito.when(packetManagerService.getMetaInfo(anyString(), any(), any())).thenReturn(metamap);
+		assertTrue(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
 
 }
