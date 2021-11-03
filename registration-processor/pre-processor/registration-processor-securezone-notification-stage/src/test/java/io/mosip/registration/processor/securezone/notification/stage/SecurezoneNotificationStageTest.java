@@ -63,6 +63,8 @@ import io.vertx.ext.web.Session;
 @RunWith(SpringRunner.class)
 public class SecurezoneNotificationStageTest {
 
+	private static final int maxRetryCount = 5;
+
 	private static final InputStream stream = Mockito.mock(InputStream.class);
 
 	/** The registration status service. */

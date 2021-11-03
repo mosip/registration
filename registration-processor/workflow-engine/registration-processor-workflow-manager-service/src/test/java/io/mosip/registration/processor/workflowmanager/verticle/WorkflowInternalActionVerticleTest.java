@@ -95,13 +95,13 @@ public class WorkflowInternalActionVerticleTest {
 
 	@Mock
 	private PacketManagerService packetManagerService;
-	
+
 	@Mock
 	private AnonymousProfileService anonymousProfileService;
-	
+
 	@Mock
 	private IdSchemaUtil idSchemaUtil;
-	
+
 	@Mock
 	private Utilities utility;
 
@@ -156,9 +156,9 @@ public class WorkflowInternalActionVerticleTest {
 		public void createServer(Router router, int port) {
 
 		}
-		
+
 		public void send(MosipEventBus mosipEventBus, MessageBusAddress toAddress, MessageDTO message) {
-			
+
 		};
 	};
 
@@ -166,7 +166,7 @@ public class WorkflowInternalActionVerticleTest {
 	public void setUp() throws Exception {
 		ReflectionTestUtils.setField(workflowInternalActionVerticle, "anonymousProfileBusAddress", "anonymous-profile-bus-in");
 	}
-	
+
 	@Test
 	public void testDeployVerticle() {
 
@@ -637,7 +637,7 @@ public class WorkflowInternalActionVerticleTest {
 		verify(webSubUtil, atLeastOnce()).publishEvent(argument1.capture());
 		assertEquals(RegistrationStatusCode.REJECTED.toString(), argument1.getAllValues().get(0).getResultCode());
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testProcessSuccessForAnonymousProfile() throws IOException, JSONException, BaseCheckedException {
@@ -651,12 +651,12 @@ public class WorkflowInternalActionVerticleTest {
 		Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any()))
 				.thenReturn("1.0");
 		Mockito.when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(Arrays.asList(""));
-		
+
 		Map<String, String> fieldTypeMap = new HashedMap();
 		fieldTypeMap.put("postalCode", "string");
 		fieldTypeMap.put("zone", "simpleType");
 		Mockito.when(idSchemaUtil.getIdSchemaFieldTypes(anyDouble())).thenReturn(fieldTypeMap);
-		
+
 		Map<String, String> fieldMap = new HashedMap();
 		fieldMap.put("postalCode", "14022");
 		fieldMap.put("dateOfBirth", "1998/01/01");
@@ -682,12 +682,12 @@ public class WorkflowInternalActionVerticleTest {
 		biometricRecord.setSegments(Arrays.asList(bir));
 		Mockito.when(packetManagerService.getBiometrics(anyString(), anyString(), anyString(), any()))
 				.thenReturn(biometricRecord);
-		
+
 		org.json.simple.JSONObject identity = new org.json.simple.JSONObject();
 		LinkedHashMap IDSchemaVersion = new LinkedHashMap();
 		IDSchemaVersion.put("value", "1.0");
 		identity.put("IDSchemaVersion", IDSchemaVersion);
-		
+
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
