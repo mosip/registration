@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.cmdvalidator;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 
 import java.io.IOException;
@@ -9,6 +10,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
+import io.mosip.registration.processor.packet.storage.utils.OSIUtils;
+import io.mosip.registration.processor.status.service.AdditionalInfoRequestService;
+import org.assertj.core.util.Lists;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -51,6 +57,12 @@ public class DeviceValidatorTests {
 
 	@Mock
 	private Environment env;
+
+	@Mock
+	private OSIUtils osiUtils;
+
+	@Mock
+	private AdditionalInfoRequestService additionalInfoRequestService;
 
 	@Mock
 	private PriorityBasedPacketManagerService packetManagerService;
@@ -100,6 +112,7 @@ public class DeviceValidatorTests {
 		ResponseWrapper1.setResponse(jwtSignatureVerifyResponseDto);
 		Mockito.when(registrationProcessorRestService.postApi(any(), any(), anyString(), any(), any())).thenReturn(ResponseWrapper1);
 		Mockito.when(env.getProperty(anyString())).thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		Mockito.when(additionalInfoRequestService.getAdditionalInfoByRid(any())).thenReturn(null);
 	}
 	@Test
 	public void deviceValidationTest() throws JsonProcessingException, ApisResourceAccessException, IOException, BaseCheckedException, JSONException {
@@ -292,5 +305,27 @@ public class DeviceValidatorTests {
 		metamap.put(JsonConstant.OPERATIONSDATA, jsonArray.toString());
 		Mockito.when(packetManagerService.getMetaInfo(anyString(), anyString(), any())).thenReturn(metamap);
 		deviceValidator.validate(regOsi, process, registrationId);
+	}
+
+	@Test(expected = BaseCheckedException.class)
+	public void testCorrectionPacketDatetimeValidation() throws JSONException, IOException, BaseCheckedException {
+		AdditionalInfoRequestDto infoRequestDto = new AdditionalInfoRequestDto("", "",
+				"", "BIOMETRIC_CORRECTION", 1, DateUtils.getUTCCurrentDateTime());
+
+		regOsi.setPacketCreationDate("2021-03-04T07:31:59.831Z");
+
+		Map<String, String> metamap = new HashMap<>();
+		JSONObject jsonObject1 = new JSONObject();
+		jsonObject1.put("creationDate", "2021-10-26T12:32:20.972Z");
+		metamap.put("creationDate", "2021-10-26T12:32:20.972Z");
+		RegOsiDto regOsiDto = new RegOsiDto();
+		regOsiDto.setPacketCreationDate("2021-10-26T12:32:20.972Z");
+
+		Mockito.when(packetManagerService.getMetaInfo(anyString(), anyString(), any())).thenReturn(metamap);
+		Mockito.when(osiUtils.getOSIDetailsFromMetaInfo(anyMap())).thenReturn(regOsiDto);
+		Mockito.when(additionalInfoRequestService.getAdditionalInfoByRid(any())).thenReturn(Lists.newArrayList(infoRequestDto));
+
+		deviceValidator.validate(regOsi, process, registrationId);
+
 	}
 }

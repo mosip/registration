@@ -15,8 +15,8 @@ import lombok.Data;
 @ConfigurationProperties(prefix = "openapi")
 @Data
 public class OpenApiProperties {
-	private InfoProperty info;
-	private RegistrationProcessor registrationProcessor;
+    private InfoProperty info;
+    private RegistrationProcessor registrationProcessor;
 }
 
 /**
@@ -25,10 +25,10 @@ public class OpenApiProperties {
  */
 @Data
 class InfoProperty {
-	private String title;
-	private String description;
-	private String version;
-	private LicenseProperty license;
+    private String title;
+    private String description;
+    private String version;
+    private LicenseProperty license;
 }
 
 /**
@@ -37,8 +37,8 @@ class InfoProperty {
  */
 @Data
 class LicenseProperty {
-	private String name;
-	private String url;
+    private String name;
+    private String url;
 }
 
 /**
@@ -47,7 +47,7 @@ class LicenseProperty {
  */
 @Data
 class RegistrationProcessor {
-	private List<Server> servers;
+    private List<Server> servers;
 }
 
 /**
@@ -56,6 +56,6 @@ class RegistrationProcessor {
  */
 @Data
 class Server {
-	private String description;
-	private String url;
+    private String description;
+    private String url;
 }
