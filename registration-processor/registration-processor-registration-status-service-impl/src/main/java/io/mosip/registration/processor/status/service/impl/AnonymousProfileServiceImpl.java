@@ -71,7 +71,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 
 	@Value("${registration.processor.applicant.dob.format:yyyy/MM/dd}")
 	private String dobFormat;
-	
+
 	@Value("${mosip.preferred-language.enabled:false}")
 	private boolean isPreferredLangEnabled;
 
@@ -120,7 +120,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 			throws JSONException, IOException, BaseCheckedException {
 
 		regProcLogger.info("buildJsonStringFromPacketInfo method called");
-		
+
 		AnonymousProfileDTO anonymousProfileDTO = new AnonymousProfileDTO();
 		anonymousProfileDTO.setProcessName(
 				getFieldValueFromMetaInfo(metaInfoMap, JsonConstant.METADATA, JsonConstant.REGISTRATIONTYPE));
@@ -141,16 +141,18 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 		String dobValue = JsonUtil.getJSONValue(
 				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.DOB),
 				MappingJsonConstants.VALUE);
-		Date dob = DateUtils.parseToDate(fieldMap.get(dobValue), dobFormat);
-		anonymousProfileDTO.setYearOfBirth(DateUtils.parseDateToLocalDateTime(dob).getYear());
-		
+		if (fieldMap.get(dobValue) != null) {
+			Date dob = DateUtils.parseToDate(fieldMap.get(dobValue), dobFormat);
+			anonymousProfileDTO.setYearOfBirth(DateUtils.parseDateToLocalDateTime(dob).getYear());
+		}
+
 		// preferred Lang Value
 		String preferredaLangValue = JsonUtil.getJSONValue(
 				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.PREFERRED_LANGUAGE),
 				MappingJsonConstants.VALUE);
 		anonymousProfileDTO.setPreferredLanguages(fieldMap.get(preferredaLangValue) != null ?
 				Arrays.asList(fieldMap.get(preferredaLangValue)) : null);
-		
+
 		String language = null;
 		if (fieldMap.get(preferredaLangValue) != null && isPreferredLangEnabled) {
 			language = fieldMap.get(preferredaLangValue);
@@ -162,7 +164,8 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 		String genderValue = JsonUtil.getJSONValue(
 				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.GENDER),
 				MappingJsonConstants.VALUE);
-		anonymousProfileDTO.setGender(getLanguageBasedValueForSimpleType(fieldMap.get(genderValue), language));
+		if (fieldMap.get(genderValue) != null)
+			anonymousProfileDTO.setGender(getLanguageBasedValueForSimpleType(fieldMap.get(genderValue), language));
 
 		// set email and phone
 		String emailValue = JsonUtil.getJSONValue(
@@ -194,7 +197,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 		anonymousProfileDTO.setDocuments(getDocumentsDataFromMetaInfo(metaInfoMap));
 		anonymousProfileDTO.setEnrollmentCenterId(
 				getFieldValueFromMetaInfo(metaInfoMap, JsonConstant.METADATA, JsonConstant.CENTERID));
-		
+
 		List<String> assisted = new ArrayList<>();
 		String officerId = getFieldValueFromMetaInfo(metaInfoMap, JsonConstant.OPERATIONSDATA, JsonConstant.OFFICERID);
 		if (officerId != null) {
@@ -208,7 +211,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 		}
 		anonymousProfileDTO.setAssisted(assisted);
 		getExceptionAndBiometricInfo(biometricRecord, anonymousProfileDTO);
-		
+
 		regProcLogger.info("buildJsonStringFromPacketInfo method call ended");
 		return JsonUtil.objectMapperObjectToJson(anonymousProfileDTO);
 	}
@@ -322,7 +325,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 
 	private String getValueBasedOnType(String fieldName, String value, String type, String language)
 			throws JSONException, BaseCheckedException {
-        
+
         switch (type) {
             case "simpleType":
             	return getLanguageBasedValueForSimpleType(value,language);
@@ -342,8 +345,8 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
                 return biometricsTypeJSON.getString(VALUE_LABEL);
             default:
                 throw new BaseCheckedException(
-                    PlatformErrorMessages.RPR_PCM_UNKNOWN_SCHEMA_DATA_TYPE.getCode(), 
-                    PlatformErrorMessages.RPR_PCM_UNKNOWN_SCHEMA_DATA_TYPE.getMessage() + 
+                    PlatformErrorMessages.RPR_PCM_UNKNOWN_SCHEMA_DATA_TYPE.getCode(),
+                    PlatformErrorMessages.RPR_PCM_UNKNOWN_SCHEMA_DATA_TYPE.getMessage() +
                     " Field name: " + fieldName + " type: " + type);
         }
     }
