@@ -152,6 +152,7 @@ public enum StatusUtil {
 	MANUAL_VERIFIER_APPROVED_PACKET(StatusConstants.MANUAL_VERIFICATION_MODULE_SUCCESS + "001", "Match Not Found by Manual Verifier"), 
 	MANUAL_VERIFIER_REJECTED_PACKET(StatusConstants.MANUAL_VERIFICATION_MODULE_FAILED + "002", "Match Found by Manual Verifier"),
 	RPR_MANUAL_VERIFICATION_RESEND(StatusConstants.MANUAL_VERIFICATION_MODULE_FAILED + "003", "Error in manual verification"),
+	RPR_MANUAL_VERIFICATION_SENT_TO_QUEUE(StatusConstants.MANUAL_VERIFICATION_MODULE_SUCCESS + "002", "Manual verification request sent to queue"),
 
 	// Uin generator stage
 	UIN_GENERATED_SUCCESS(StatusConstants.UIN_GENERATOR_MODULE_SUCCESS + "001","UIN Generated Successfully"), 
