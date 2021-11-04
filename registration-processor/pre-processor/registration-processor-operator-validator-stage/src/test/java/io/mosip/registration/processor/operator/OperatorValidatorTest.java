@@ -172,9 +172,9 @@ public class OperatorValidatorTest {
 	private List<RegistrationCenterUserMachineMappingHistoryDto> registrationCenters = new ArrayList<RegistrationCenterUserMachineMappingHistoryDto>();
 	private RegistrationCenterUserMachineMappingHistoryDto center = new RegistrationCenterUserMachineMappingHistoryDto();
 	private IndividualIdDto individualIdDto = new IndividualIdDto();
-	
+
 	private BiometricRecord biometricRecord = new BiometricRecord();
-	
+
 	@Mock
 	RegistrationExceptionMapperUtil registrationExceptionMapperUtil;
 
@@ -327,14 +327,14 @@ public class OperatorValidatorTest {
 		regOsiDto.setSupervisorHashedPwd("true");
 		regOsiDto.setOfficerHashedPwd("true");
 		regOsiDto.setOfficerBiometricFileName("officerBiometrics");
-		
+
 		center.setCntrId("10001");
 		center.setIsActive(true);
 		registrationCenters.add(center);
 		centerMapping.setRegistrationCenters(registrationCenters);
 		centerResponse.setErrors(null);
 		centerResponse.setResponse(centerMapping);
-		
+
 		individualIdDto.setIndividualId("6531762");
 		individualResponse.setResponse(individualIdDto);
 		individualResponse.setErrors(null);
@@ -390,7 +390,7 @@ public class OperatorValidatorTest {
 		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
 		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
-	
+
 	@Test(expected = BaseCheckedException.class)
 	public void testisValidOperatorCreatedDateNull() throws Exception {
 
@@ -399,7 +399,7 @@ public class OperatorValidatorTest {
 		registrationStatusDto.setRegistrationType("ACTIVATED");
 		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
-	
+
 	@Test(expected = ValidationFailedException.class)
 	public void testisValidOperatorBiometricfileNull() throws Exception {
 
@@ -409,7 +409,7 @@ public class OperatorValidatorTest {
 		registrationStatusDto.setRegistrationType("ACTIVATED");
 		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
-	
+
 	@Test(expected = ValidationFailedException.class)
 	public void testisValidOperatorBiometricRecordNull() throws Exception {
 
@@ -446,7 +446,7 @@ public class OperatorValidatorTest {
 		registrationStatusDto.setRegistrationType("ACTIVATED");
 		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
-	
+
 	@Test(expected = ValidationFailedException.class)
 	public void testAuthByIdAuthenticationStatusFailed() throws Exception {
 
@@ -464,7 +464,7 @@ public class OperatorValidatorTest {
 		registrationStatusDto.setRegistrationType("ACTIVATED");
 		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
-	
+
 	@Test(expected = AuthSystemException.class)
 	public void testOperatorAuthSystemError() throws Exception {
 		ErrorDTO errordto = new ErrorDTO();
@@ -475,7 +475,7 @@ public class OperatorValidatorTest {
 		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
 		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
-	
+
 	@Test(expected = BaseCheckedException.class)
 	public void testusernotActive() throws Exception {
 		UserDetailsResponseDto userDetailsResponseDto = new UserDetailsResponseDto();
@@ -573,7 +573,7 @@ public class OperatorValidatorTest {
 				.thenReturn(biometricRecord);
 		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
-	
+
 	@Test(expected = BaseCheckedException.class)
 	public void testMappingNotFoundResponse() throws Exception {
 
@@ -588,7 +588,7 @@ public class OperatorValidatorTest {
 		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
 		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
-	
+
 	@Test(expected = ValidationFailedException.class)
 	public void testUMCValidationFailed() throws Exception {
 		

@@ -172,7 +172,7 @@ public class WorkflowSearchRequestValidator {
 		}
 		for (FilterInfo filter : filterInfos) {
 			if (filter.getColumnName().equals("workflowType") || filter.getColumnName().equals("statusCode")
-					|| filter.getColumnName().equals("workflowId")) {
+					|| filter.getColumnName().equals("regId")) {
 
 			} else {
 				throw new WorkFlowSearchException(

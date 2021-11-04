@@ -236,7 +236,7 @@ public class RegistrationStatusServiceTest {
 		Mockito.when(registrationStatusDao.save(any())).thenThrow(exp);
 		registrationStatusService.addRegistrationStatus(registrationStatusDto, "", "");
 	}
-	
+
 	@Test
 	public void testSearchRegistrationDetailsSuccess() {
 		SearchInfo searchInfo = new SearchInfo();
@@ -251,13 +251,13 @@ public class RegistrationStatusServiceTest {
 		searchInfo.setFilters(filterInfos);
 		searchInfo.setPagination(new PaginationInfo(0,10));
 		searchInfo.setSort(sortInfo);
-		
+
 		Page<RegistrationStatusEntity> pageDto = new PageImpl<RegistrationStatusEntity>(entities);
 		Mockito.when(registrationStatusDao.getPagedSearchResults(any(), any(), any())).thenReturn(pageDto);
 		Page<InternalRegistrationStatusDto> idList = registrationStatusService.searchRegistrationDetails(searchInfo);
 		assertEquals(1, idList.getContent().size());
 	}
-	
+
 	@Test(expected = TablenotAccessibleException.class)
 	public void testSearchRegistrationDetailsFailure() {
 		SearchInfo searchInfo = new SearchInfo();
@@ -272,7 +272,7 @@ public class RegistrationStatusServiceTest {
 		searchInfo.setFilters(filterInfos);
 		searchInfo.setPagination(new PaginationInfo(0,10));
 		searchInfo.setSort(sortInfo);
-		
+
 		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
 				"errorMessage", new Exception());
 
