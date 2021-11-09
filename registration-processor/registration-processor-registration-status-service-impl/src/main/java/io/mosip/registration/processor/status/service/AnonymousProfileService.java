@@ -24,5 +24,5 @@ public interface AnonymousProfileService {
 
 	public String buildJsonStringFromPacketInfo(BiometricRecord biometricRecord, Map<String, String> fieldMap,
 			Map<String, String> fieldTypeMap, Map<String, String> metaInfoMap, String statusCode, String processStage)
-			throws JSONException, ApisResourceAccessException, PacketManagerException, IOException, BaseCheckedException; 
+			throws JSONException, ApisResourceAccessException, PacketManagerException, IOException, BaseCheckedException;
 }

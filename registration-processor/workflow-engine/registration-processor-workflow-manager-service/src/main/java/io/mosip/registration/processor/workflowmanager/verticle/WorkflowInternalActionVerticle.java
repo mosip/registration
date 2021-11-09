@@ -101,7 +101,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
     @Value("${mosip.regproc.workflow-manager.internal.action.max-allowed-iteration}")
     private int defaultMaxAllowedIteration;
-    
+
     @Value("${mosip.anonymous.profile.eventbus.address}")
 	private String anonymousProfileBusAddress;
 
@@ -113,7 +113,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
 	@Autowired
 	private WorkflowActionService workflowActionService;
-	
+
 	@Autowired
 	private AnonymousProfileService anonymousProfileService;
 
@@ -129,7 +129,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
 	@Autowired
 	private Utilities utility;
-	
+
 	@Autowired
 	private IdSchemaUtil idSchemaUtil;
 
@@ -255,13 +255,13 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
 	private void processAnonymousProfile(WorkflowInternalActionDTO workflowInternalActionDTO)
 			throws IOException, JSONException, BaseCheckedException {
-		
+
 		String json = null;
 		String registrationId = workflowInternalActionDTO.getRid();
 		String registrationType = workflowInternalActionDTO.getReg_type();
 
 		regProcLogger.info("processAnonymousProfile called for registration id {}", registrationId);
-		
+
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(
 				registrationId, registrationType, workflowInternalActionDTO.getIteration(),
 				workflowInternalActionDTO.getWorkflowInstanceId());
@@ -281,9 +281,9 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		json = anonymousProfileService.buildJsonStringFromPacketInfo(biometricRecord, fieldMap, fieldTypeMap,
 				metaInfoMap, registrationStatusDto.getStatusCode(), registrationStatusDto.getRegistrationStageName());
 		anonymousProfileService.saveAnonymousProfile(registrationId, registrationStatusDto.getRegistrationStageName(), json);
-		
+
 		this.send(this.mosipEventBus, new MessageBusAddress(anonymousProfileBusAddress), workflowInternalActionDTO);
-		
+
 		regProcLogger.info("processAnonymousProfile ended for registration id {}", registrationId);
 	}
 

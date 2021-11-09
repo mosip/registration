@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -562,39 +563,20 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		JSONObject  docJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT);
 		JSONObject  identityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 
-		String proofOfAddressLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(docJson, MappingJsonConstants.POA), MappingJsonConstants.VALUE);
-		String proofOfDateOfBirthLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(docJson, MappingJsonConstants.POB), MappingJsonConstants.VALUE);
-		String proofOfIdentityLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(docJson, MappingJsonConstants.POI), MappingJsonConstants.VALUE);
-		String proofOfRelationshipLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(docJson, MappingJsonConstants.POR), MappingJsonConstants.VALUE);
-		String proofOfExceptionLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(docJson, MappingJsonConstants.POE), MappingJsonConstants.VALUE);
 		String applicantBiometricLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(identityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS), MappingJsonConstants.VALUE);
 
-		HashMap<String, String> proofOfAddress = (HashMap<String, String>) idJSON.get(proofOfAddressLabel);
-		HashMap<String, String> proofOfDateOfBirth = (HashMap<String, String>) idJSON.get(proofOfDateOfBirthLabel);
-		HashMap<String, String> proofOfIdentity = (HashMap<String, String>) idJSON.get(proofOfIdentityLabel);
-		HashMap<String, String> proofOfRelationship = (HashMap<String, String>) idJSON.get(proofOfRelationshipLabel);
-		HashMap<String, String> proofOfException = (HashMap<String, String>) idJSON.get(proofOfExceptionLabel);
 		HashMap<String, String> applicantBiometric = (HashMap<String, String>) idJSON.get(applicantBiometricLabel);
-		if (proofOfAddress != null) {
-			applicantDocuments
-					.add(getIdDocumnet(regId, proofOfAddressLabel, process));
+
+
+		for (Object doc : docJson.values()) {
+			Map docMap = (LinkedHashMap) doc;
+			String docValue = docMap.values().iterator().next().toString();
+			HashMap<String, String> docInIdentityJson = (HashMap<String, String>) idJSON.get(docValue);
+			if (docInIdentityJson != null)
+				applicantDocuments
+						.add(getIdDocumnet(regId, docValue, process));
 		}
-		if (proofOfDateOfBirth != null) {
-			applicantDocuments
-					.add(getIdDocumnet(regId, proofOfDateOfBirthLabel, process));
-		}
-		if (proofOfIdentity != null) {
-			applicantDocuments
-					.add(getIdDocumnet(regId, proofOfIdentityLabel, process));
-		}
-		if (proofOfRelationship != null) {
-			applicantDocuments
-					.add(getIdDocumnet(regId, proofOfRelationshipLabel, process));
-		}
-		if (proofOfException != null) {
-			applicantDocuments
-					.add(getIdDocumnet(regId, proofOfExceptionLabel, process));
-		}
+
 		if (applicantBiometric != null) {
 			applicantDocuments.add(getBiometrics(regId, applicantBiometricLabel, process, applicantBiometricLabel));
 		}

@@ -16,4 +16,6 @@ public interface AdditionalInfoRequestService {
     public List<AdditionalInfoRequestDto> getAdditionalInfoRequestByRegIdAndProcess(String regId, 
         String additionalInfoProcess);
 
+    public  List<AdditionalInfoRequestDto> getAdditionalInfoByRid(String regId);
+
 }
