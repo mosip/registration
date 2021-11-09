@@ -37,7 +37,7 @@ public class ExceptionBiometricsTagGenerator implements TagGenerator {
     private String notAvailableTagValue;
 
     /** The reg proc logger. */
-	private static Logger regProcLogger = RegProcessorLogger.getLogger(AgeGroupTagGenerator.class);
+	private static Logger regProcLogger = RegProcessorLogger.getLogger(ExceptionBiometricsTagGenerator.class);
 
     private static String BIOMETRICS_DELIMITER = ",";
 

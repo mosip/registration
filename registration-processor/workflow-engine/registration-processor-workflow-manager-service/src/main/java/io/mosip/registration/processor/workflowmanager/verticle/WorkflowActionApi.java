@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import io.mosip.registration.processor.core.util.JsonUtil;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -152,8 +153,8 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 		try {
 		JsonObject obj = ctx.getBodyAsJson();
 
-			WorkflowActionDTO workflowActionDTO = (WorkflowActionDTO) JsonUtils
-					.jsonStringToJavaObject(WorkflowActionDTO.class, obj.toString());
+			WorkflowActionDTO workflowActionDTO = JsonUtil
+					.readValueWithUnknownProperties(obj.toString(), WorkflowActionDTO.class);
 			workflowIds = workflowActionDTO.getRequest().getWorkflowIds();
 			regProcLogger.debug("WorkflowActionApi:processURL called for registration ids {}",
 					workflowIds);
@@ -194,10 +195,6 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 				regProcLogger.debug("WorkflowActionApi:processURL ended for registration ids {}",
 						workflowActionDTO.getRequest().getWorkflowIds());
 
-		} catch (IOException e) {
-			logError(workflowIds, workflowAction,
-					PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode(),
-					PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), e,ctx);
 		} catch (WorkflowActionException e) {
 			logError(workflowIds, workflowAction, e.getErrorCode(), e.getMessage(), e, ctx);
 		} catch(WorkflowActionRequestValidationException e) {

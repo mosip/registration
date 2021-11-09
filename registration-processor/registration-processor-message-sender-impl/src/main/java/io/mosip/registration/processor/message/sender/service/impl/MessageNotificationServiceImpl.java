@@ -238,13 +238,13 @@ public class MessageNotificationServiceImpl
 				"MessageNotificationServiceImpl::sendEmailNotification()::entry");
 		try {
 			List<String> preferredLanguages= getPreferredLanguages(id,process);
-						
+
 			String artifact="";
 			String subject="";
 			for(String lang: preferredLanguages) {
 				Map<String, Object> attributesLang=new HashMap<>(attributes);
 				setAttributes(id, process,lang, idType, attributesLang, regType, phoneNumber, emailId);
-				InputStream stream = templateGenerator.getTemplate(templateTypeCode, attributesLang, lang);	
+				InputStream stream = templateGenerator.getTemplate(templateTypeCode, attributesLang, lang);
 				
 				artifact = IOUtils.toString(stream, ENCODING);
 				
@@ -383,7 +383,7 @@ public class MessageNotificationServiceImpl
 	 * Gets the template json.
 	 *
 	 * @param id         the id
-	 * @param lang 
+	 * @param lang
 	 * @param idType     the id type
 	 * @param attributes the attributes
 	 * @param regType    the reg typesetAttributes
@@ -433,7 +433,7 @@ public class MessageNotificationServiceImpl
 	 *            the attributes
 	 * @param regType
 	 *            the reg type
-	 * @param lang 
+	 * @param lang
 	 * @return the map
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
@@ -482,7 +482,7 @@ public class MessageNotificationServiceImpl
 	 *            the attribute
 	 * @param regType
 	 *            the reg type
-	 * @param lang 
+	 * @param lang
 	 * @return the keysand values
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.

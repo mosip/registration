@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
@@ -111,6 +112,12 @@ public class ExceptionBiometricsTagGeneratorTest {
 		Map<String, String> tags = 
 			exceptionBiometricsTagGenerator.generateTags("12345", "1234", "NEW", null, metaInfoMap, 0);
 		assertEquals(notAvailableTagValue, tags.get(tagName));
+	}
+	
+	@Test
+	public void getRequiredIdObjectFieldNamesTest() throws Exception {
+		List<String> result = exceptionBiometricsTagGenerator.getRequiredIdObjectFieldNames();
+		assertEquals(result, null);
 	}
 	
 }

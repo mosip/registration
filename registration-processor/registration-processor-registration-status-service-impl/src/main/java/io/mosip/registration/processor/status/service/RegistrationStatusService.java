@@ -132,6 +132,15 @@ public interface RegistrationStatusService<T, U, D> {
 	 * @return the un processed packets count
 	 */
 	public Integer getUnProcessedPacketsCount(long elapseTime, Integer reprocessCount, List<String> status);
+	
+	/**
+	 * Gets the reprocess packets count.
+	 *@param reprocessDuration
+	 *            the reprocessDuration
+	 *
+	 * @return the reprocess packets count
+	 */
+	public long getInReprocessPacketsCount(long reprocessDuration);
 
 	/**
 	 * Check Rid if uin is available.
