@@ -16,6 +16,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
@@ -141,7 +142,8 @@ public class NotificationServiceImpl implements NotificationService {
 	private Environment env;
 
 	// sends init subscribe req to hub
-	@EventListener(ApplicationReadyEvent.class)
+	@Scheduled(fixedDelayString = "43200000",
+            initialDelayString = "300000")
 	protected void init() {
 		SubscriptionChangeRequest subscriptionRequest = new SubscriptionChangeRequest();
 		subscriptionRequest.setCallbackURL(callbackURL);
