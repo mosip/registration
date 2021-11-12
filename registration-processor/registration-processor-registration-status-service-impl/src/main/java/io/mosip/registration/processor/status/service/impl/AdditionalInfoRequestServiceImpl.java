@@ -40,6 +40,16 @@ public class AdditionalInfoRequestServiceImpl implements AdditionalInfoRequestSe
 			return null;
         return additionalInfoRequestDtos.get(0);
    	}
+
+	@Override
+	public  List<AdditionalInfoRequestDto> getAdditionalInfoByRid(String regId) {
+		List<AdditionalInfoRequestEntity> additionalInfoRequestEntityList =
+				additionalInfoRequestRepository.getAdditionalInfoByRegId(regId);
+		List<AdditionalInfoRequestDto> additionalInfoRequestDtos =
+				convertToAdditionalInfoRequestDtos(additionalInfoRequestEntityList);
+		return additionalInfoRequestDtos;
+	}
+
     @Override
 	public List<AdditionalInfoRequestDto> getAdditionalInfoRequestByRegIdAndProcess(String regId, 
 			String additionalInfoProcess) {

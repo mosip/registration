@@ -200,8 +200,6 @@ public class UinGeneratorStageTest {
 
 	@Mock
 	private Utilities utility;
-	@Mock
-	private JsonUtil util;
 
 	@Mock
 	private IdRepoService idRepoService;
@@ -232,6 +230,9 @@ public class UinGeneratorStageTest {
 	@Mock
 	private IdSchemaUtil idSchemaUtil;
 
+	JSONObject documentObj;
+	JSONObject identityObj;
+
 	@Before
 	public void setup() throws Exception {
 		ReflectionTestUtils.setField(uinGeneratorStage, "workerPoolSize", 10);
@@ -244,7 +245,10 @@ public class UinGeneratorStageTest {
 		LinkedHashMap hm = new ObjectMapper().readValue(idJsonStream1, LinkedHashMap.class);
 		JSONObject jsonObject = new JSONObject(hm);
 		identityMappingjsonString = jsonObject.toJSONString();
-		when(utility.getRegistrationProcessorMappingJson(anyString())).thenReturn(JsonUtil.getJSONObject(new ObjectMapper().readValue(identityMappingjsonString, JSONObject.class), MappingJsonConstants.IDENTITY));
+		documentObj = JsonUtil.getJSONObject(new ObjectMapper().readValue(identityMappingjsonString, JSONObject.class), MappingJsonConstants.DOCUMENT);
+		identityObj = JsonUtil.getJSONObject(new ObjectMapper().readValue(identityMappingjsonString, JSONObject.class), MappingJsonConstants.IDENTITY);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
 
 		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(),
@@ -275,9 +279,7 @@ public class UinGeneratorStageTest {
 		PowerMockito.mockStatic(Utilities.class);
 		PowerMockito.when(Utilities.class, "getJson", CONFIG_SERVER_URL, "RegistrationProcessorIdentity.json")
 				.thenReturn(identityMappingjsonString);
-		when(utility.getConfigServerFileStorageURL()).thenReturn(CONFIG_SERVER_URL);
 		when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
-		when(utility.getGetRegProcessorIdentityJson()).thenReturn("RegistrationProcessorIdentity.json");
 
 		when(identityJson.get(anyString())).thenReturn(demographicIdentity);
 		List<ApplicantDocument> applicantDocument = new ArrayList<>();
@@ -332,7 +334,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("dob");
 		defaultFields.add("gender");
 
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(packetManagerService.getDocument(anyString(),anyString(),anyString(),any())).thenReturn(document);
@@ -365,6 +367,8 @@ public class UinGeneratorStageTest {
 		idResponseDTO.setVersion("1.0");
 
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getInternalError());
@@ -380,6 +384,8 @@ public class UinGeneratorStageTest {
 		when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.IDREPO_DRAFT_EXCEPTION)).thenReturn("FAILED");
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenThrow(IdrepoDraftException.class);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getInternalError());
@@ -405,7 +411,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -417,6 +423,8 @@ public class UinGeneratorStageTest {
 		when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenThrow(apisResourceAccessException);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getInternalError());
@@ -450,7 +458,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -484,7 +492,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -541,7 +549,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -598,7 +606,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -643,7 +651,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMaps);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -726,7 +734,7 @@ public class UinGeneratorStageTest {
 
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -757,7 +765,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -812,7 +820,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(),any(),any(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -922,7 +930,7 @@ public class UinGeneratorStageTest {
 
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -969,7 +977,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -1006,7 +1014,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -1055,7 +1063,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -1124,7 +1132,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("UIN");
 
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -1153,7 +1161,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(),any(),any(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -1214,6 +1222,9 @@ public class UinGeneratorStageTest {
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenThrow(apisResourceAccessException);
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
+
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getInternalError());
 		assertTrue(result.getIsValid());
@@ -1234,6 +1245,9 @@ public class UinGeneratorStageTest {
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenThrow(apisResourceAccessException);
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
+
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getInternalError());
 		assertTrue(result.getIsValid());
@@ -1252,6 +1266,8 @@ public class UinGeneratorStageTest {
 		String idJsonData = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
 
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenThrow(apisResourceAccessException);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
 		
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
@@ -1272,6 +1288,8 @@ public class UinGeneratorStageTest {
 				HttpStatus.INTERNAL_SERVER_ERROR, "KER-FSE-004:encrypted data is corrupted or not base64 encoded");
 		when(apisResourceAccessException.getCause()).thenReturn(httpClientErrorException);
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenThrow(apisResourceAccessException);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
 
 		messageDTO.setReg_type(RegistrationType.NEW.name());
 		Mockito.when(registrationStatusMapperUtil
@@ -1297,6 +1315,8 @@ public class UinGeneratorStageTest {
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 		messageDTO.setReg_type(RegistrationType.NEW.name());
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getInternalError());
@@ -1319,6 +1339,9 @@ public class UinGeneratorStageTest {
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenThrow(apisResourceAccessException);
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
+
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getInternalError());
 		assertTrue(result.getIsValid());
@@ -1413,7 +1436,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -1466,7 +1489,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("UIN");
 
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -1491,6 +1514,8 @@ public class UinGeneratorStageTest {
 				.thenReturn(responsedto);
 		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
 				.thenReturn(idResponseDTO);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getIsValid());
@@ -1586,7 +1611,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("UIN");
 
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -1618,6 +1643,8 @@ public class UinGeneratorStageTest {
 		idResponseDTO1.setResponsetime("2019-01-17T06:29:01.940Z");
 		idResponseDTO1.setVersion("1.0");
 
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
 		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
 				.thenReturn(idResponseDTO1);
 
@@ -1641,7 +1668,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("UIN");
 
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -1663,6 +1690,8 @@ public class UinGeneratorStageTest {
 
 		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
 				.thenReturn(idResponseDTO1);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getInternalError());
@@ -1682,10 +1711,12 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
 
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 		MessageDTO messageDTO = new MessageDTO();
@@ -1746,17 +1777,8 @@ public class UinGeneratorStageTest {
 		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(),
 				anyString(), any(Class.class))).thenReturn(str);
-
-		ClassLoader classLoader = getClass().getClassLoader();
-
-		File mappingJsonFile = new File(classLoader.getResource("RegistrationProcessorIdentity.json").getFile());
-		InputStream is = new FileInputStream(mappingJsonFile);
-		String value = IOUtils.toString(is);
-		Mockito.when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(JsonUtil
-				.getJSONObject(JsonUtil.objectMapperReadValue(value, JSONObject.class), MappingJsonConstants.DOCUMENT));
-
-		Mockito.when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(JsonUtil
-				.getJSONObject(JsonUtil.objectMapperReadValue(value, JSONObject.class), MappingJsonConstants.IDENTITY));
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getInternalError());
@@ -1803,7 +1825,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -1861,7 +1883,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -1910,7 +1932,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -1960,7 +1982,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -2008,7 +2030,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -2056,7 +2078,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -2136,7 +2158,7 @@ public class UinGeneratorStageTest {
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_REPROCESS)).thenReturn("REPROCESS");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldsMap);
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -2160,7 +2182,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(),any(),any(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -2181,6 +2203,8 @@ public class UinGeneratorStageTest {
 		idResponseDTO.setVersion("1.0");
 		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any()))
 				.thenReturn(idResponseDTO);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
 
 		String Str = "{\"uin\":\"6517036426\"}";
 
@@ -2211,7 +2235,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(),any(),any(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
