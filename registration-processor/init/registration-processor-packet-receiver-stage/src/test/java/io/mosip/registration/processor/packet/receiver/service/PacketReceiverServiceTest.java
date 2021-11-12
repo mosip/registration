@@ -181,7 +181,6 @@ public class PacketReceiverServiceTest {
 		} finally {
 
 			when(syncRegistrationService.isPresent(anyString())).thenReturn(true);
-			new AuditResponseDto();
 			ResponseWrapper<AuditResponseDto> responseWrapper = new ResponseWrapper<>();
 			Mockito.doReturn(responseWrapper).when(auditLogRequestBuilder).createAuditRequestBuilder(
 					"test case description", EventId.RPR_401.toString(), EventName.ADD.toString(),
