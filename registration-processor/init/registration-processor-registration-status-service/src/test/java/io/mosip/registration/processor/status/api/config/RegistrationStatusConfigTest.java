@@ -1,7 +1,5 @@
 package io.mosip.registration.processor.status.api.config;
 
-import io.mosip.registration.processor.status.dto.AuthorizedRolesDto;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
@@ -11,6 +9,7 @@ import io.mosip.registration.processor.core.config.CoreConfigBean;
 import io.mosip.registration.processor.rest.client.config.RestConfigBean;
 import io.mosip.registration.processor.status.config.RegistrationStatusBeanConfig;
 import io.mosip.registration.processor.status.config.RegistrationStatusServiceBeanConfig;
+import io.mosip.registration.processor.status.dto.AuthorizedRolesDto;
 
 @Configuration
 @ComponentScan(basePackages = {

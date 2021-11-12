@@ -27,9 +27,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 
@@ -196,8 +194,6 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 	@Autowired
 	private PriorityBasedPacketManagerService priorityBasedPacketManagerService;
-
-	private static final String DATASHARECREATEURL = "DATASHARECREATEURL";
 
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
 
@@ -635,10 +631,9 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		return response.getDataShare().getUrl();
 	}
 
-	@SuppressWarnings("deprecation")
 	private void validateBiometricRecord(BiometricRecord biometricRecord, List<String> modalities,
 			Map<String, List<String>> biometricModalitySegmentsMap, Map<String, String> metaInfoMap)
-			throws DataShareException, JsonParseException, JsonMappingException, IOException {
+			throws DataShareException, IOException {
 		if (modalities == null || modalities.isEmpty()) {
 			throw new DataShareException("Data Share Policy Modalities were Empty");
 		}
@@ -704,8 +699,8 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		}
 	}
 
-	public Map<String, List<String>> createTypeSubtypeMapping() throws ApisResourceAccessException, DataShareException,
-			JsonParseException, JsonMappingException, com.fasterxml.jackson.core.JsonProcessingException, IOException {
+	public Map<String, List<String>> createTypeSubtypeMapping()
+			throws ApisResourceAccessException, DataShareException, IOException {
 		Map<String, List<String>> typeAndSubTypeMap = new HashMap<>();
 		ResponseWrapper<?> policyResponse = (ResponseWrapper<?>) registrationProcessorRestClientService.getApi(
 				ApiName.PMS, Lists.newArrayList(policyId, PolicyConstant.PARTNER_ID, subscriberId), "", "",

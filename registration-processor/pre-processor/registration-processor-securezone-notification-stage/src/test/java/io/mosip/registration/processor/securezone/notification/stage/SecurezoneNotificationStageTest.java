@@ -6,7 +6,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 
-import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -62,8 +61,6 @@ import io.vertx.ext.web.Session;
 
 @RunWith(SpringRunner.class)
 public class SecurezoneNotificationStageTest {
-
-	private static final InputStream stream = Mockito.mock(InputStream.class);
 
 	/** The registration status service. */
 	@Mock
