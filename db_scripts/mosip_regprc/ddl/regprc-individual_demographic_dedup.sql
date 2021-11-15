@@ -8,10 +8,7 @@
 -- 
 -- Modified Date        Modified By         Comments / Remarks
 -- ------------------------------------------------------------------------------------------
--- 11-Nov-2019           Sadanandegowda DM   Added columns for lost UIN requirements 
--- Jan-2021	        Ram Bhatt	    Set is_deleted flag to not null and default false
--- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes for 1.1.5
--- Jul-2021		Ram Bhatt	    PK constraint change and added new column
+
 -- ------------------------------------------------------------------------------------------
 
 -- object: regprc.individual_demographic_dedup | type: TABLE --

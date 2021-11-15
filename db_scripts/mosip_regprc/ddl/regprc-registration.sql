@@ -8,12 +8,7 @@
 -- 
 -- Modified Date        Modified By         Comments / Remarks
 -- ------------------------------------------------------------------------------------------
--- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
--- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes for 1.1.5
--- Apr-2021		Ram Bhatt	    Added resume_remove_tags column
--- May-2021		Ram Bhatt	    Added new column last_success_stage_name
--- Jul-2021		Ram Bhatt	    Index Creation, pk constraint change and added new column
--- Aug-2021		Ram Bhatt	    Add and remove columns
+
 -- ------------------------------------------------------------------------------------------
 
 -- object: regprc.registration | type: TABLE --
