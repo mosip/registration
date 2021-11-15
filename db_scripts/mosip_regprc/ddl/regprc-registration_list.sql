@@ -8,12 +8,7 @@
 -- 
 -- Modified Date        Modified By         Comments / Remarks
 -- ------------------------------------------------------------------------------------------
--- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
--- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes for 1.1.5
--- Jun-2021		Ram Bhatt	    Added additional columns to table
--- Jul-2021		Ram Bhatt	    id renamed to → workflow_instance_id
--- Jul-2021		Ram Bhatt	    reg_type renamed to → process
--- Jul-2021		Ram Bhatt	    Added 3 additional columns , pk constraint changes
+
 -- ------------------------------------------------------------------------------------------
 
 -- object: regprc.registration_list | type: TABLE --

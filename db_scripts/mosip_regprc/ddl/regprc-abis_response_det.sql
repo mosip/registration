@@ -8,9 +8,7 @@
 -- 
 -- Modified Date        Modified By         Comments / Remarks
 -- ------------------------------------------------------------------------------------------
--- 27-Apr-2020          Sadanandegowda DM   Removed score column from table
--- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
--- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes for 1.1.5
+
 -- ------------------------------------------------------------------------------------------
 
 -- object: regprc.abis_response_det | type: TABLE --

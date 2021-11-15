@@ -8,9 +8,7 @@
 -- 
 -- Modified Date        Modified By         Comments / Remarks
 -- ------------------------------------------------------------------------------------------
--- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
--- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes for 1.1.5
--- Jul-2021		Ram Bhatt	    Column name change and added new column
+
 -- ------------------------------------------------------------------------------------------
 
 -- object: regprc.reg_lost_uin_det | type: TABLE --
