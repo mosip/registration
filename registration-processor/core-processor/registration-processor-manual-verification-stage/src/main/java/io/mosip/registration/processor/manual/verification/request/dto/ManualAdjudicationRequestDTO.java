@@ -22,7 +22,7 @@ public class ManualAdjudicationRequestDTO {
 
 	private String requesttime;
 	
-	private String referenceURL;
+	private Object referenceURL;
 	
 	private List<Addtional> addtional;
 	
