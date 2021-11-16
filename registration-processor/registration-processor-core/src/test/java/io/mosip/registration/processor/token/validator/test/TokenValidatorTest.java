@@ -147,7 +147,7 @@ public class TokenValidatorTest {
 		assertTrue(tokenValidator.validateAccess("/registration-sync", "REGISTRATION_PROCESSOR"));
 		assertTrue(tokenValidator.validateAccess("/biodedupe", "REGISTRATION_PROCESSOR"));
 		assertTrue(tokenValidator.validateAccess("/printing", "REGISTRATION_PROCESSOR"));
-		assertTrue(tokenValidator.validateAccess("/manual-verification", "REGISTRATION_ADMIN"));
+		assertTrue(tokenValidator.validateAccess("/manual-adjudication", "REGISTRATION_ADMIN"));
 		assertFalse(tokenValidator.validateAccess("/receiver", "MANUAL_VERIFIER"));
 	}
 }

@@ -42,7 +42,7 @@
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.registrationprocessor</groupId>
-			<artifactId>registration-processor-manual-verification-stage</artifactId>
+			<artifactId>registration-processor-manual-adjudication-stage</artifactId>
 			<version>1.2.0-rc2-SNAPSHOT</version>
 		</dependency>
 		

@@ -155,10 +155,10 @@ public class MessageBusAddress implements Serializable {
 	public static final MessageBusAddress DEMO_DEDUPE_BUS_OUT = new MessageBusAddress("demo-dedupe-bus-out");
 
 	/** The Constant MANUAL_VERIFICATION_BUS. */
-	public static final MessageBusAddress MANUAL_VERIFICATION_BUS_OUT = new MessageBusAddress("manual-verification-bus-out");
+	public static final MessageBusAddress MANUAL_ADJUDICATION_BUS_OUT = new MessageBusAddress("manual-adjudication-bus-out");
 
 	/** The Constant MANUAL_VERIFICATION_BUS_IN. */
-	public static final MessageBusAddress MANUAL_VERIFICATION_BUS_IN = new MessageBusAddress("manual-verification-bus-in");
+	public static final MessageBusAddress MANUAL_ADJUDICATION_BUS_IN = new MessageBusAddress("manual-adjudication-bus-in");
 
 
 	/** The Constant UIN_GENERATION_BUS_IN. */
@@ -243,6 +243,9 @@ public class MessageBusAddress implements Serializable {
 
 	/** The Constant STRUCTURE_BUS_OUT. */
 	public static final MessageBusAddress PACKET_CLASSIFIER_BUS_OUT = new MessageBusAddress("packet-classifier-bus-out");
+
+	/** The Constant ABIS_MIDDLEWARE_BUS_IN. */
+	public static final MessageBusAddress VERIFICATION_BUS_IN = new MessageBusAddress("verification-bus-in");
 
 
 	/** The Constant WORKFLOW_INTERNAL_ACTION_ADDRESS. */
