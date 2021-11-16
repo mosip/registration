@@ -155,7 +155,7 @@ public class VerificationStage extends MosipVerticleAPIManager {
 	 */
 	public void deployStage() {
 		this.mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
-		this.consume(mosipEventBus, MessageBusAddress.MANUAL_ADJUDICATION_BUS_IN, messageExpiryTimeLimit);
+		this.consume(mosipEventBus, MessageBusAddress.VERIFICATION_BUS_IN, messageExpiryTimeLimit);
 		queue = getQueueConnection();
 		if (queue != null) {
 
@@ -186,7 +186,7 @@ public class VerificationStage extends MosipVerticleAPIManager {
 	}
 
 	public void sendMessage(MessageDTO messageDTO) {
-		this.send(this.mosipEventBus, MessageBusAddress.MANUAL_ADJUDICATION_BUS_OUT, messageDTO);
+		this.send(this.mosipEventBus, MessageBusAddress.VERIFICATION_BUS_OUT, messageDTO);
 	}
 
 	@Override
