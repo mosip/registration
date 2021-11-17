@@ -17,16 +17,13 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import io.mosip.registration.processor.core.constant.PolicyConstant;
-import io.mosip.registration.processor.core.constant.ProviderStageName;
-import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -40,7 +37,6 @@ import org.springframework.util.MultiValueMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import com.google.gson.Gson;
 
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
@@ -60,9 +56,10 @@ import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
-import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.constant.PolicyConstant;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
@@ -70,7 +67,7 @@ import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.idrepo.dto.Documents;
-import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO1;
+import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
 import io.mosip.registration.processor.core.kernel.master.dto.UserResponseDTOWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
@@ -104,11 +101,12 @@ import io.mosip.registration.processor.manual.verification.request.dto.Source;
 import io.mosip.registration.processor.manual.verification.response.dto.ManualAdjudicationResponseDTO;
 import io.mosip.registration.processor.manual.verification.service.ManualVerificationService;
 import io.mosip.registration.processor.manual.verification.stage.ManualVerificationStage;
+import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.dto.Document;
 import io.mosip.registration.processor.packet.storage.entity.ManualVerificationEntity;
-import io.mosip.registration.processor.packet.storage.exception.IdRepoAppException;
 import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -167,6 +165,10 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 	@Value("${mosip.regproc.data.share.internal.domain.name}")
 	private String internalDomainName;
+	
+	
+	@Value("${mosip.regproc.use.manual.adjudication.request.old}")
+	private boolean  useOldManualAdjudicationRequest;
 
 	@Autowired
 	private RegistrationProcessorRestClientService registrationProcessorRestClientService;
@@ -176,6 +178,9 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 	@Autowired
 	private Utilities utility;
+	
+	@Autowired 
+	private IdRepoService idRepoService;
 
 	@Autowired
 	private MosipQueueManager<MosipQueue, byte[]> mosipQueueManager;
@@ -445,8 +450,12 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 			throw new MatchedRefNotExistsException(
 					PlatformErrorMessages.RPR_MVS_NO_MATCHEDRID_FOUND_FOR_GIVEN_RID.getCode(),
 					PlatformErrorMessages.RPR_MVS_NO_MATCHEDRID_FOUND_FOR_GIVEN_RID.getMessage());
-
-		ManualAdjudicationRequestDTO mar = prepareManualAdjudicationRequestV2(messageDTO, mves);
+		ManualAdjudicationRequestDTO mar=null;
+		if(useOldManualAdjudicationRequest) {
+			mar =prepareManualAdjudicationRequestOld(messageDTO, mves); 
+		}else {
+			mar = prepareManualAdjudicationRequest(messageDTO, mves);
+		}
 		String requestId = UUID.randomUUID().toString();
 		mar.setRequestId(requestId);
 		regProcLogger.info("Request : " + JsonUtils.javaObjectToJsonString(mar));
@@ -468,31 +477,11 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		Map<String, String> policyMap = getPolicyMap(policy);
 
 		// set demographic
-		Map<String, String> demographicMap = policyMap.entrySet().stream().filter(e-> e.getValue() != null &&
-				(!META_INFO.equalsIgnoreCase(e.getValue()) && !AUDITS.equalsIgnoreCase(e.getValue())))
-				.collect(Collectors.toMap(e-> e.getKey(),e -> e.getValue()));
+		Map<String, String> demographicMap = getDemographicMap(policyMap);
 		requestDto.setIdentity(packetManagerService.getFields(id, demographicMap.values().stream().collect(Collectors.toList()), process, ProviderStageName.MANUAL_VERIFICATION));
 
 		// set documents
-		JSONObject docJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT);
-		for (Object doc : docJson.keySet()) {
-			if (doc != null) {
-				HashMap docmap = (HashMap) docJson.get(doc.toString());
-				String docName = docmap != null && docmap.get(MappingJsonConstants.VALUE)!= null ? docmap.get(MappingJsonConstants.VALUE).toString() : null;
-				if (policyMap.containsValue(docName)) {
-					Document document = packetManagerService.getDocument(id, doc.toString(), process, ProviderStageName.MANUAL_VERIFICATION);
-					if (document != null) {
-						if (requestDto.getDocuments() != null)
-							requestDto.getDocuments().put(docmap.get(MappingJsonConstants.VALUE).toString(), CryptoUtil.encodeBase64String(document.getDocument()));
-						else {
-							Map<String, String> docMap = new HashMap<>();
-							docMap.put(docmap.get(MappingJsonConstants.VALUE).toString(), CryptoUtil.encodeBase64String(document.getDocument()));
-							requestDto.setDocuments(docMap);
-						}
-					}
-				}
-			}
-		}
+		requestDto=setDocuments(policyMap, requestDto, id, process, null);
 
 		// set audits
 		if (policyMap.containsValue(AUDITS))
@@ -516,121 +505,50 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 			byte[] content = cbeffutil.createXML(biometricRecord.getSegments());
 			requestDto.setBiometrics(content != null ? CryptoUtil.encodeBase64(content) : null);
 		}
-
-
-		String req = JsonUtils.javaObjectToJsonString(requestDto);
-
-		MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
-		map.add("name", MANUAL_VERIFICATION);
-		map.add("filename", MANUAL_VERIFICATION);
-
-		ByteArrayResource contentsAsResource = new ByteArrayResource(req.getBytes()) {
-			@Override
-			public String getFilename() {
-				return MANUAL_VERIFICATION;
-			}
-		};
-		map.add("file", contentsAsResource);
-
-		List<String> pathSegments = new ArrayList<>();
-		pathSegments.add(policyId);
-		pathSegments.add(subscriberId);
-		URL dataShareUrl = null;
-		String protocol = PROTOCOL;
-		String url = null;
-
-		if (httpProtocol != null && !httpProtocol.isEmpty()) {
-			protocol = httpProtocol;
-		}
-
-		dataShareUrl = new URL(protocol, internalDomainName, env.getProperty(ApiName.DATASHARECREATEURL.name()));
-		url = dataShareUrl.toString();
-		url = url.replaceAll("[\\[\\]]", "");
-		io.mosip.kernel.core.http.ResponseWrapper<DataShareResponseDto> resp = new io.mosip.kernel.core.http.ResponseWrapper<>();
-
-		LinkedHashMap response = (LinkedHashMap) registrationProcessorRestClientService.postApi(url, MediaType.MULTIPART_FORM_DATA, pathSegments, null, null, map, LinkedHashMap.class);
-		if (response == null || (response.get(ERRORS) != null))
-			throw new DataShareException(response == null ? "Datashare response is null" : response.get(ERRORS).toString());
-
-		LinkedHashMap datashare = (LinkedHashMap) response.get(DATASHARE);
-		return datashare.get(URL) != null ? datashare.get(URL).toString() : null;
+		return CreateDataShareUrl( requestDto);
 	}
 	
-	@SuppressWarnings("unchecked")
-	private String getDataShareUrlfromIdRepo(String id) throws DataShareException, ApisResourceAccessException, JsonProcessingException, IOException  {
+	private String getDataShareUrlfromIdRepo(String id) throws DataShareException, ApisResourceAccessException, JsonProcessingException, IOException, PacketManagerException  {
+		
 		DataShareRequestDto requestDto = new DataShareRequestDto();
-		Gson gson = new Gson();
 		LinkedHashMap<String, Object> policy = getPolicy();
 		Map<String, String> policyMap = getPolicyMap(policy);
-		if (id != null) {
-			List<String> pathSegments1 = new ArrayList<>();
-			pathSegments1.add(id);
-			IdResponseDTO1 idResponseDto=(IdResponseDTO1) restClientService.getApi(ApiName.IDREPOGETIDBYUIN, pathSegments1, "type", "ALL",
-					IdResponseDTO1.class);
-			if (idResponseDto == null) {
-				return null;
-			}
-			if (!idResponseDto.getErrors().isEmpty()) {
-				List<ErrorDTO> error = idResponseDto.getErrors();
-				throw new IdRepoAppException(error.get(0).getMessage());
-			}
-			String response = mapper.writeValueAsString(idResponseDto.getResponse().getIdentity());
-			requestDto.setIdentity(gson.fromJson(response, Map.class));
-			List<Documents> documents=idResponseDto.getResponse().getDocuments();
-			JSONObject docJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT);
-			for (Object doc : docJson.keySet()) {
-				if (doc != null) {
-					HashMap docmap = (HashMap) docJson.get(doc.toString());
-					String docName = docmap != null && docmap.get(MappingJsonConstants.VALUE)!= null ? docmap.get(MappingJsonConstants.VALUE).toString() : null;
-					if (policyMap.containsValue(docName)) {
-						for(Documents docs:documents) {
-							if(docs.getCategory().equalsIgnoreCase(docName)) {
-								if (requestDto.getDocuments() != null)
-									requestDto.getDocuments().put(docmap.get(MappingJsonConstants.VALUE).toString(), docs.getValue());
-								else {
-									Map<String, String> docMap = new HashMap<>();
-									docMap.put(docmap.get(MappingJsonConstants.VALUE).toString(), docs.getValue());
-									requestDto.setDocuments(docMap);
-								}
-							}
-						}			
-					}
-				}
-			}
+		Map<String, String> demographicMap  = getDemographicMap(policyMap);
+		
+		ResponseDTO responseDTO=idRepoService.getIdResponseFromIDRepo(id);
 			
-			JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
-			String individualBiometricsLabel = JsonUtil.getJSONValue(
+		String identityResponse = mapper.writeValueAsString(responseDTO.getIdentity());
+		Map<String,String> identity=new HashMap<>();
+	
+		for(Entry<String,String> entry:demographicMap.entrySet()) {
+			JSONObject identityJson = JsonUtil.objectMapperReadValue(identityResponse, JSONObject.class);
+			identity.put(entry.getValue(),mapper.writeValueAsString(JsonUtil.getJSONValue(identityJson, entry.getValue())));
+		}
+		requestDto.setIdentity(identity);
+		List<Documents> documents=responseDTO.getDocuments();
+		requestDto=setDocuments(policyMap, requestDto, null, null, documents);
+			
+		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
+		String individualBiometricsLabel = JsonUtil.getJSONValue(
 					JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
 					MappingJsonConstants.VALUE);
-
-			if (policyMap.containsValue(individualBiometricsLabel)) {
-				for(Documents docs:documents) {
-				if(docs.getCategory().equalsIgnoreCase(individualBiometricsLabel)) {
+		for(Documents docs:documents) {
+			if(policyMap.containsValue(individualBiometricsLabel) && docs.getCategory().equalsIgnoreCase(individualBiometricsLabel)){
 				requestDto.setBiometrics(docs.getValue() != null ? docs.getValue() : null);
 			}
-			}
-			}
-			JSONObject auditsJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.AUDITS);
-			String auditsLabel = JsonUtil.getJSONValue(auditsJson, MappingJsonConstants.VALUE);
-			if (policyMap.containsValue(auditsLabel)) {
-				for(Documents docs:documents) {
-				if(docs.getCategory().equalsIgnoreCase(auditsLabel)) {
+			if(policyMap.containsValue(AUDITS) && docs.getCategory().equalsIgnoreCase(AUDITS)){
 				requestDto.setAudits(docs.getValue() != null ? docs.getValue() : null);
 			}
-			}
-			}
-			JSONObject metaInfoJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.METAINFO);
-			String metaInfoLabel = JsonUtil.getJSONValue(auditsJson, MappingJsonConstants.VALUE);
-			if (policyMap.containsValue(metaInfoLabel)) {
-				for(Documents docs:documents) {
-				if(docs.getCategory().equalsIgnoreCase(metaInfoLabel)) {
+			if(policyMap.containsValue(META_INFO) && docs.getCategory().equalsIgnoreCase(META_INFO)){
 				requestDto.setMetaInfo(docs.getValue() != null ? docs.getValue() : null);
 			}
-			}
-			}
-		
 		}
-
+		
+		return CreateDataShareUrl( requestDto);
+		
+	}
+	@SuppressWarnings("rawtypes")
+	private String CreateDataShareUrl(DataShareRequestDto requestDto) throws JsonProcessingException, MalformedURLException, ApisResourceAccessException, DataShareException {
 		String req = JsonUtils.javaObjectToJsonString(requestDto);
 
 		MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
@@ -667,7 +585,6 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 		LinkedHashMap datashare = (LinkedHashMap) response1.get(DATASHARE);
 		return datashare.get(URL) != null ? datashare.get(URL).toString() : null;
-		
 	}
 
 	private Map<String, String> getPolicyMap(LinkedHashMap<String, Object> policies) throws DataShareException, IOException, ApisResourceAccessException {
@@ -681,6 +598,49 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		}
 		return policyMap;
 
+	}
+	private Map<String,String> getDemographicMap(Map<String,String> policyMap){
+		Map<String, String> demographicMap = policyMap.entrySet().stream().filter(e-> e.getValue() != null &&
+				(!META_INFO.equalsIgnoreCase(e.getValue()) && !AUDITS.equalsIgnoreCase(e.getValue())))
+				.collect(Collectors.toMap(e-> e.getKey(),e -> e.getValue()));
+		return demographicMap;
+	}
+	private DataShareRequestDto setDocuments(Map<String,String> policyMap,DataShareRequestDto requestDto, String id, String process, List<Documents> documents) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException{
+		JSONObject docJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT);
+		for (Object doc : docJson.keySet()) {
+			if (doc != null) {
+				HashMap docmap = (HashMap) docJson.get(doc.toString());
+				String docName = docmap != null && docmap.get(MappingJsonConstants.VALUE)!= null ? docmap.get(MappingJsonConstants.VALUE).toString() : null;
+				if (policyMap.containsValue(docName)) {
+					if(documents==null || documents.isEmpty()) {
+						Document document = packetManagerService.getDocument(id, doc.toString(), process, ProviderStageName.MANUAL_VERIFICATION);
+						if (document != null) {
+							if (requestDto.getDocuments() != null)
+								requestDto.getDocuments().put(docmap.get(MappingJsonConstants.VALUE).toString(), CryptoUtil.encodeBase64String(document.getDocument()));
+							else {
+								Map<String, String> docMap = new HashMap<>();
+								docMap.put(docmap.get(MappingJsonConstants.VALUE).toString(), CryptoUtil.encodeBase64String(document.getDocument()));
+								requestDto.setDocuments(docMap);
+							}
+						}
+					}
+					else {
+						for(Documents docs:documents) {
+							if(docs.getCategory().equalsIgnoreCase(docName)) {
+								if (requestDto.getDocuments() != null) {
+									requestDto.getDocuments().put(docmap.get(MappingJsonConstants.VALUE).toString(), docs.getValue());
+								}else {
+									Map<String, String> docMap = new HashMap<>();
+									docMap.put(docmap.get(MappingJsonConstants.VALUE).toString(), docs.getValue());
+									requestDto.setDocuments(docMap);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return requestDto;
 	}
 
 	private LinkedHashMap<String, Object> getPolicy() throws DataShareException, ApisResourceAccessException {
@@ -749,7 +709,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		return matchedEntities;
 	}
 	
-	private ManualAdjudicationRequestDTO prepareManualAdjudicationRequestV1(MessageDTO messageDTO, List<ManualVerificationEntity> mve) throws Exception {
+	private ManualAdjudicationRequestDTO prepareManualAdjudicationRequestOld(MessageDTO messageDTO, List<ManualVerificationEntity> mve) throws Exception {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ManualVerificationServiceImpl::formAdjudicationRequest()::entry");
 
@@ -799,10 +759,11 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 		return req;
 	}
+	
 	/*
 	 * Form manual adjudication request
 	 */
-	private ManualAdjudicationRequestDTO prepareManualAdjudicationRequestV2(MessageDTO messageDTO, List<ManualVerificationEntity> mve) throws Exception {
+	private ManualAdjudicationRequestDTO prepareManualAdjudicationRequest(MessageDTO messageDTO, List<ManualVerificationEntity> mve) throws Exception {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ManualVerificationServiceImpl::formAdjudicationRequest()::entry");
 
@@ -816,7 +777,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		registrationStatusDto = registrationStatusService.getRegistrationStatus(
 				mve.get(0).getRegId(), messageDTO.getReg_type(), messageDTO.getIteration(), mve.get(0).getId().getWorkflowInstanceId());
 		try {
-			req.setReferenceURL(addReferenceURLs(mve.get(0).getRegId(),registrationStatusDto));
+			req.setReferenceURL(JsonUtil.objectMapperObjectToJson(addReferenceURLs(mve.get(0).getRegId(),registrationStatusDto)));
 		} catch (PacketManagerException | ApisResourceAccessException ex) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					ex.getErrorCode(), ex.getErrorText());
@@ -828,11 +789,11 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 			ReferenceIds r = new ReferenceIds();
 			InternalRegistrationStatusDto registrationStatusDto1 = null;
 			registrationStatusDto1 = registrationStatusService.getRegistrationStatus(
-					e.getId().getMatchedRefId(),messageDTO.getReg_type(), messageDTO.getIteration(), e.getId().getWorkflowInstanceId());
+					e.getId().getMatchedRefId(),messageDTO.getReg_type(), messageDTO.getIteration(), null);
 
 			try {
 				r.setReferenceId(e.getId().getMatchedRefId());
-				r.setReferenceURL(addReferenceURLs(e.getId().getMatchedRefId(),registrationStatusDto1));
+				r.setReferenceURL(JsonUtil.objectMapperObjectToJson(addReferenceURLs(e.getId().getMatchedRefId(),registrationStatusDto1)));
 				referenceIds.add(r);
 			} catch (PacketManagerException | ApisResourceAccessException ex) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),

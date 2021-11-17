@@ -6,6 +6,6 @@ import lombok.Data;
 public class ReferenceIds {
 
 	private String referenceId;
-	private Object referenceURL;
+	private String referenceURL;
 	
 }

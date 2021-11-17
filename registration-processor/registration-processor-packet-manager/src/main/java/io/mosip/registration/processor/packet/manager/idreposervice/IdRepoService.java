@@ -5,6 +5,8 @@ import java.io.IOException;
 import org.json.simple.JSONObject;
 
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO;
+import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
 
 /**
  * The Interface IdRepoService.
@@ -60,5 +62,18 @@ public interface IdRepoService {
 	 */
 	JSONObject getIdJsonFromIDRepo(String machedRegId, String regProcessorDemographicIdentity)
 			throws IOException, ApisResourceAccessException;
-
+	
+	/**
+	 * Gets the id response from ID repo.
+	 *
+	 * @param machedRegId
+	 *            the mached reg id
+	 * 
+	 * @return the id response from ID repo
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 * @throws ApisResourceAccessException
+	 *             the apis resource access exception
+	 */
+	ResponseDTO getIdResponseFromIDRepo(String machedRegId) throws IOException, ApisResourceAccessException; 
 }
