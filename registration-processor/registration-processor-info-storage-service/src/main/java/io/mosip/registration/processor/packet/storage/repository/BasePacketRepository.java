@@ -2,6 +2,7 @@ package io.mosip.registration.processor.packet.storage.repository;
 
 import java.util.List;
 
+import io.mosip.registration.processor.packet.storage.entity.VerificationEntity;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -108,6 +109,10 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	 */
 	@Query("SELECT mve FROM ManualVerificationEntity mve where mve.regId=:regId and  mve.statusCode=:statusCode")
 	public List<E> getAllAssignedRecord(@Param("regId") String regId, @Param("statusCode") String statusCode);
+
+
+	@Query("SELECT mve FROM VerificationEntity mve where mve.regId=:regId and  mve.statusCode=:statusCode")
+	public List<E> getAssignedVerificationRecord(@Param("regId") String regId, @Param("statusCode") String statusCode);
 
 	/**
 	 * Gets the assigned applicant details.
@@ -470,4 +475,7 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 
 	@Query(value ="SELECT m FROM ManualVerificationEntity m WHERE m.requestId =:requestId")
 	public List<ManualVerificationEntity> getRegistrationIdbyRequestId(@Param("requestId") String requestId);
+
+	@Query(value ="SELECT m FROM VerificationEntity m WHERE m.requestId =:requestId")
+	public List<VerificationEntity> getVerificationRecordByRequestId(@Param("requestId") String requestId);
 }

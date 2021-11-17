@@ -10,7 +10,7 @@ stage group 3:
 	regproc-bio-dedupe-stage
 	regproc-abis-handler-stage
 	regproc-abis-middleware-stage
-	regproc-manual-verification-stage
+	regproc-manual-adjudication-stage
 stage group 4:
 	regproc-biometric-authentication-stage
 	regproc-demo-dedupe-stage

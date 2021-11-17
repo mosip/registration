@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.biodedupe.config;
 
+import io.mosip.registration.processor.biodedupe.service.CbeffValidateAndVerificatonService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -26,4 +27,8 @@ public class BioDedupeBeanConfig {
 		return new PacketInfoDao();
 	}
 
+	@Bean
+	public CbeffValidateAndVerificatonService cbeffValidateAndVerificatonService() {
+		return new CbeffValidateAndVerificatonService();
+	}
 }

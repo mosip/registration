@@ -11,6 +11,8 @@ public class BioDedupeConstants {
 	public static final String VALUE = "value";
 	
 	public static final String CBEFF_PRESENT_IN_PACKET = "Cbeff is present in the packet, destination stage is abis_handler";
+
+	public static final String CBEFF_NOT_PRESENT_IN_PACKET = "Cbeff is not present in the packet. This will be sent to manual verification.";
 	
 	public static final String CBEFF_ABSENT_IN_PACKET = "Cbeff is absent in the packet for child, destination stage is UIN";
 	

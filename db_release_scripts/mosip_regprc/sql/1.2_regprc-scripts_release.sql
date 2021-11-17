@@ -78,6 +78,7 @@ create index idx_rgstrn_ltstrbcode_ltststscode on regprc.registration (latest_tr
 
 create index idx_rgstrnlst_pcktid on regprc.registration_list (packet_id);
 create index idx_rgstrnlst_aireqid on regprc.registration_list (additional_info_req_id);
+create index idx_reg_verification_reqId on regprc.reg_verification (verification_req_id);
 
 ALTER TABLE regprc.individual_demographic_dedup DROP CONSTRAINT pk_idemogd_id;
 ALTER TABLE regprc.individual_demographic_dedup ALTER COLUMN workflow_instance_id SET NOT NULL;
@@ -139,6 +140,7 @@ TRUNCATE TABLE regprc.transaction_type cascade ;
 
 
 ALTER TABLE regprc.registration ADD COLUMN last_success_stage_name CHARACTER VARYING(50);
+ALTER TABLE regprc.reg_manual_verification RENAME TO reg_manual_adjudication;
 
 ---------------------------------------------------------FOR HISTORY DATA----------------------------------------------
 

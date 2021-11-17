@@ -138,7 +138,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	@Autowired
 	private PriorityBasedPacketManagerService packetManagerService;
 
-	@Value("${registration.processor.demodedupe.manualverification.status}")
+	@Value("${registration.processor.demodedupe.manual.adjudication.status}")
 	private String manualVerificationStatus;
 
 	/** The Constant MATCHED_REFERENCE_TYPE. */
