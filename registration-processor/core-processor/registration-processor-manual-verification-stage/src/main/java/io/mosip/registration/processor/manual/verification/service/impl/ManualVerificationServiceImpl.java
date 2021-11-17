@@ -735,7 +735,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 			ReferenceIds r = new ReferenceIds();
 			InternalRegistrationStatusDto registrationStatusDto1 = null;
 			registrationStatusDto1 = registrationStatusService.getRegistrationStatus(
-					e.getId().getMatchedRefId(),messageDTO.getReg_type(), messageDTO.getIteration(), e.getId().getWorkflowInstanceId());
+					e.getId().getMatchedRefId(),messageDTO.getReg_type(), messageDTO.getIteration(), null);
 
 			try {
 				r.setReferenceId(e.getId().getMatchedRefId());
