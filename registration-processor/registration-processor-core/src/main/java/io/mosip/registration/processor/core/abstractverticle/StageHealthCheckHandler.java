@@ -74,9 +74,9 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	private String nameNodeUrl;
 	private String kdcDomain;
 	private String keytabPath;
-	private String queueUsername;
+	/*private String queueUsername;
 	private String queuePassword;
-	private String queueBrokerUrl;
+	private String queueBrokerUrl;*/
 	private Boolean isAuthEnable;
 	private int virusScannerPort;
 	private File currentWorkingDirPath;
@@ -113,9 +113,9 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 		this.url = environment.getProperty(HealthConstant.URL);
 		this.username = environment.getProperty(HealthConstant.USER);
 		this.password = environment.getProperty(HealthConstant.PASSWORD);
-		this.queueUsername = environment.getProperty(HealthConstant.QUEUE_USERNAME);
+		/*this.queueUsername = environment.getProperty(HealthConstant.QUEUE_USERNAME);
 		this.queuePassword = environment.getProperty(HealthConstant.QUEUE_PASSWORD);
-		this.queueBrokerUrl = environment.getProperty(HealthConstant.QUEUE_BROKER_URL);
+		this.queueBrokerUrl = environment.getProperty(HealthConstant.QUEUE_BROKER_URL);*/
 		this.currentWorkingDirPath = new File(System.getProperty(HealthConstant.CURRENT_WORKING_DIRECTORY));
 		this.resultBuilder = new StageHealthCheckHandler.JSONResultBuilder();
 		this.virusScanner = virusScanner;
@@ -136,7 +136,7 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	/**
 	 * @param promise
 	 */
-	public void queueHealthChecker(Promise<Status> promise) {
+	/*public void queueHealthChecker(Promise<Status> promise) {
 		try {
 			ActiveMQConnectionFactory activeMQConnectionFactory = new ActiveMQConnectionFactory(queueUsername,
 					queuePassword, queueBrokerUrl);
@@ -156,7 +156,7 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 			final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, e.getMessage()).build();
 			promise.complete(Status.KO(result));
 		}
-	}
+	}*/
 
 	/**
 	 * @param configuration

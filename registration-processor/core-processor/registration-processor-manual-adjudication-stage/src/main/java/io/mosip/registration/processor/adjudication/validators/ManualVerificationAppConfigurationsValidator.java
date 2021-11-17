@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.verification.validators;
+package io.mosip.registration.processor.adjudication.validators;
 
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -21,10 +21,10 @@ public class ManualVerificationAppConfigurationsValidator {
     @Value("${registration.processor.reprocess.elapse.time}")
     private long reprocessorElapseTime;
 
-    @Value("${registration.processor.queue.verification.request.messageTTL}")
+    @Value("${registration.processor.queue.manual.adjudication.request.messageTTL}")
 	private int mvRequestMessageTTL;
 
-    @Value("${registration.processor.verification.reprocess.buffer.time:900}")
+    @Value("${registration.processor.manual.adjudication.reprocess.buffer.time}")
     private long reprocessBufferTime;
 
     /**

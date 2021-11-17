@@ -3,7 +3,6 @@ package io.mosip.registration.processor.verification.config;
 import io.mosip.registration.processor.verification.exception.handler.ManualVerificationExceptionHandler;
 import io.mosip.registration.processor.verification.response.builder.ManualVerificationResponseBuilder;
 import io.mosip.registration.processor.verification.service.impl.VerificationServiceImpl;
-import io.mosip.registration.processor.verification.stage.VerificationStage;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

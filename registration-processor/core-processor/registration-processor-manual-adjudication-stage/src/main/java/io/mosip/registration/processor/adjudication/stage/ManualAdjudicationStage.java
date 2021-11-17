@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.verification.stage;
+package io.mosip.registration.processor.adjudication.stage;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -15,12 +15,12 @@ import io.mosip.registration.processor.core.queue.factory.QueueListener;
 import io.mosip.registration.processor.core.spi.queue.MosipQueueConnectionFactory;
 import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import io.mosip.registration.processor.core.util.JsonUtil;
-import io.mosip.registration.processor.verification.exception.InvalidMessageException;
-import io.mosip.registration.processor.verification.exception.handler.ManualVerificationExceptionHandler;
-import io.mosip.registration.processor.verification.response.builder.ManualVerificationResponseBuilder;
-import io.mosip.registration.processor.verification.response.dto.VerificationResponseDTO;
-import io.mosip.registration.processor.verification.service.VerificationService;
-import io.mosip.registration.processor.verification.util.ManualVerificationRequestValidator;
+import io.mosip.registration.processor.adjudication.exception.InvalidMessageException;
+import io.mosip.registration.processor.adjudication.exception.handler.ManualVerificationExceptionHandler;
+import io.mosip.registration.processor.adjudication.response.builder.ManualVerificationResponseBuilder;
+import io.mosip.registration.processor.adjudication.response.dto.ManualAdjudicationResponseDTO;
+import io.mosip.registration.processor.adjudication.service.ManualAdjudicationService;
+import io.mosip.registration.processor.adjudication.util.ManualVerificationRequestValidator;
 import io.mosip.registration.processor.packet.storage.exception.QueueConnectionNotFound;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -50,20 +50,20 @@ import javax.jms.TextMessage;
 @Service
 @Configuration
 @ComponentScan(basePackages = { "io.mosip.registration.processor.core.config",
-		"io.mosip.registration.processor.verification.config",
+		"io.mosip.registration.processor.adjudication.config",
 		"io.mosip.registration.processor.packet.receiver.config",
 		"io.mosip.registration.processor.packet.manager.config",
 		"io.mosip.kernel.packetmanager.config",
 		"io.mosip.registration.processor.status.config", "io.mosip.registration.processor.rest.client.config",
 		"io.mosip.registration.processor.core.kernel.beans",
 		"io.mosip.registration.processor.packet.storage.config",
-		"io.mosip.registration.processor.verification.validators"})
-public class VerificationStage extends MosipVerticleAPIManager {
+		"io.mosip.registration.processor.adjudication.validators"})
+public class ManualAdjudicationStage extends MosipVerticleAPIManager {
 
-	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.verification.";
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.manual.adjudication.";
 
 	@Autowired
-	private VerificationService verificationService;
+	private ManualAdjudicationService manualAdjudicationService;
 
 	/** The core audit request builder. */
 	@Autowired
@@ -87,7 +87,7 @@ public class VerificationStage extends MosipVerticleAPIManager {
 	private String clusterManagerUrl;
 
 	/** The reg proc logger. */
-	private static Logger regProcLogger = RegProcessorLogger.getLogger(VerificationStage.class);
+	private static Logger regProcLogger = RegProcessorLogger.getLogger(ManualAdjudicationStage.class);
 
 	/** The env. */
 	@Autowired
@@ -97,10 +97,10 @@ public class VerificationStage extends MosipVerticleAPIManager {
 	ManualVerificationRequestValidator manualVerificationRequestValidator;
 
 	@Autowired
-    ManualVerificationExceptionHandler manualVerificationExceptionHandler;
+	ManualVerificationExceptionHandler manualVerificationExceptionHandler;
 
 	@Autowired
-    ManualVerificationResponseBuilder manualVerificationResponseBuilder;
+	ManualVerificationResponseBuilder manualVerificationResponseBuilder;
 
 	/** Mosip router for APIs */
 	@Autowired
@@ -113,19 +113,19 @@ public class VerificationStage extends MosipVerticleAPIManager {
 	private MosipQueueConnectionFactory<MosipQueue> mosipConnectionFactory;
 
 	/** The username. */
-	@Value("${registration.processor.verification.queue.username}")
+	@Value("${registration.processor.manual.adjudication.queue.username}")
 	private String username;
 
 	/** The password. */
-	@Value("${registration.processor.verification.queue.password}")
+	@Value("${registration.processor.manual.adjudication.queue.password}")
 	private String password;
 
 	/** The type of queue. */
-	@Value("${registration.processor.verification.queue.typeOfQueue}")
+	@Value("${registration.processor.manual.adjudication.queue.typeOfQueue}")
 	private String typeOfQueue;
 
 	/** The address. */
-	@Value("${registration.processor.verification.queue.response:verification-to-mosip}")
+	@Value("${registration.processor.manual.adjudication.queue.response:adjudication-to-mosip}")
 	private String mvResponseAddress;
 
 	/** The Constant FAIL_OVER. */
@@ -137,7 +137,7 @@ public class VerificationStage extends MosipVerticleAPIManager {
 	private static final String CONFIGURE_MONITOR_IN_ACTIVITY = "?wireFormat.maxInactivityDuration=0";
 
 	/** The url. */
-	@Value("${registration.processor.verification.queue.url}")
+	@Value("${registration.processor.manual.adjudication.queue.url}")
 	private String url;
 
 	/** worker pool size. */
@@ -145,7 +145,7 @@ public class VerificationStage extends MosipVerticleAPIManager {
 	private Integer workerPoolSize;
 
 	/** After this time intervel, message should be considered as expired (In seconds). */
-	@Value("${mosip.regproc.verification.message.expiry-time-limit}")
+	@Value("${mosip.regproc.manual.adjudication.message.expiry-time-limit}")
 	private Long messageExpiryTimeLimit;
 
 	private static final String APPLICATION_JSON = "application/json";
@@ -155,7 +155,7 @@ public class VerificationStage extends MosipVerticleAPIManager {
 	 */
 	public void deployVerticle() {
 		this.mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
-		this.consume(mosipEventBus, MessageBusAddress.VERIFICATION_BUS_IN, messageExpiryTimeLimit);
+		this.consume(mosipEventBus, MessageBusAddress.MANUAL_ADJUDICATION_BUS_IN, messageExpiryTimeLimit);
 		queue = getQueueConnection();
 		if (queue != null) {
 
@@ -186,12 +186,12 @@ public class VerificationStage extends MosipVerticleAPIManager {
 	}
 
 	public void sendMessage(MessageDTO messageDTO) {
-		this.send(this.mosipEventBus, MessageBusAddress.VERIFICATION_BUS_OUT, messageDTO);
+		this.send(this.mosipEventBus, MessageBusAddress.MANUAL_ADJUDICATION_BUS_OUT, messageDTO);
 	}
 
 	@Override
 	public MessageDTO process(MessageDTO object) {
-		return verificationService.process(object, queue);
+		return manualAdjudicationService.process(object, queue);
 	}
 
 	private MosipQueue getQueueConnection() {
@@ -215,9 +215,9 @@ public class VerificationStage extends MosipVerticleAPIManager {
 						PlatformErrorMessages.RPR_INVALID_MESSSAGE.getCode(), PlatformErrorMessages.RPR_INVALID_MESSSAGE.getMessage());
 				throw new InvalidMessageException(PlatformErrorMessages.RPR_INVALID_MESSSAGE.getCode(), PlatformErrorMessages.RPR_INVALID_MESSSAGE.getMessage());
 			}
-			VerificationResponseDTO resp = JsonUtil.readValueWithUnknownProperties(response, VerificationResponseDTO.class);
+			ManualAdjudicationResponseDTO resp = JsonUtil.readValueWithUnknownProperties(response, ManualAdjudicationResponseDTO.class);
 			if (resp != null) {
-				boolean isProcessingSuccessful = verificationService.updatePacketStatus(resp, this.getClass().getSimpleName(),queue);
+				boolean isProcessingSuccessful = manualAdjudicationService.updatePacketStatus(resp, this.getClass().getSimpleName(),queue);
 				
 				if (isProcessingSuccessful)
 					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
