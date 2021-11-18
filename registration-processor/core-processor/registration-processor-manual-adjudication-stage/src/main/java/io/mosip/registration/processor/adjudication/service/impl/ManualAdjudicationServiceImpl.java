@@ -802,7 +802,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 
 			try {
 				r.setReferenceId(e.getId().getMatchedRefId());
-				r.setReferenceURL(JsonUtil.objectMapperObjectToJson(addReferenceURLs(mve.get(0).getRegId(),registrationStatusDto1)));
+				r.setReferenceURL(JsonUtil.objectMapperObjectToJson(addReferenceURLs(e.getId().getMatchedRefId(),registrationStatusDto1)));
 				referenceIds.add(r);
 			} catch (PacketManagerException | ApisResourceAccessException ex) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
