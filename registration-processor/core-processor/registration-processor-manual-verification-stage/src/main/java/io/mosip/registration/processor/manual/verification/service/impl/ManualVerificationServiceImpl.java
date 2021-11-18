@@ -823,8 +823,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 					getDataShareUrlfromIdRepo(id));
 			referenceURLs.add(referenceURL);
 		}
-		if(! registrationStatusDto.getStatusCode().equalsIgnoreCase(RegistrationStatusCode.PROCESSED.name()))
-			 {
+		else{
 			ReferenceURL referenceURL=new ReferenceURL();
 			referenceURL.setSource(PACKET);
 			referenceURL.setStatus(registrationStatusDto.getStatusCode());
