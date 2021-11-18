@@ -17,6 +17,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @SuppressWarnings("deprecation")
 @RunWith(MockitoJUnitRunner.class)
@@ -32,6 +33,7 @@ public class RegistrationStatusDaoTest {
 
 	@Before
 	public void setup() {
+		ReflectionTestUtils.setField(registrationStatusDao, "maxLimit", 100);
 		registrationStatusEntity = new RegistrationStatusEntity();
 		registrationStatusEntity.setIsActive(true);
 
@@ -50,6 +52,7 @@ public class RegistrationStatusDaoTest {
 
 	@Test
 	public void getByIds() {
+		Mockito.when(registrationStatusRepositary.createQuerySelect(Matchers.any(), Matchers.any(), Matchers.anyInt())).thenReturn(list);
 		List<String> idList = new ArrayList<>();
 		idList.add("1000.zip");
 		List<RegistrationStatusEntity> rEntityList = registrationStatusDao.getByIds(idList);

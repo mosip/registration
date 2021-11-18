@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -23,6 +24,9 @@ public class SyncRegistrationDao {
 	@Autowired
 	RegistrationRepositary<SyncRegistrationEntity, String> syncRegistrationRepository;
 
+	@Value("${registration.processor.fetch.registration.records.limit:100}")
+	private int maxLimit;
+
 	/** The Constant AND. */
 	public static final String AND = "AND";
 
@@ -31,6 +35,7 @@ public class SyncRegistrationDao {
 
 	/** The Constant SELECT_DISTINCT. */
 	public static final String SELECT_DISTINCT = "SELECT DISTINCT ";
+	public static final String SELECT = "SELECT ";
 
 	/** The Constant FROM. */
 	public static final String FROM = " FROM  ";
@@ -113,12 +118,12 @@ public class SyncRegistrationDao {
 		String className = SyncRegistrationEntity.class.getSimpleName();
 
 		String alias = SyncRegistrationEntity.class.getName().toLowerCase().substring(0, 1);
-		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
+		String queryStr = SELECT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
 				+ ".registrationId IN :ids" + EMPTY_STRING + AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
 		params.put("ids", ids);
 		params.put(ISDELETED, Boolean.FALSE);
 
-		return syncRegistrationRepository.createQuerySelect(queryStr, params);
+		return syncRegistrationRepository.createQuerySelect(queryStr, params, maxLimit);
 	}
 
 	/**

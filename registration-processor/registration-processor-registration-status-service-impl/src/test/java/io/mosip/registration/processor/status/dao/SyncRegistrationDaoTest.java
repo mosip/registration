@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.status.dao;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Matchers.any;
 
 import java.time.LocalDateTime;
@@ -109,6 +110,7 @@ public class SyncRegistrationDaoTest {
 
 	@Test
 	public void getByIds() {
+		Mockito.when(syncRegistrationRepository.createQuerySelect(any(), any(), anyInt())).thenReturn(syncRegistrationEntityList);
 		List<String> idList = new ArrayList<>();
 		idList.add("1000.zip");
 		List<SyncRegistrationEntity> rEntityList = syncRegistrationDao.getByIds(idList);
