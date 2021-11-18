@@ -136,7 +136,6 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	private static final String META_INFO = "meta_info";
 	private static final String AUDITS = "audits";
 	private static final String ID_REPO = "idrepo";
-	private static final String IN_PROGRESS = "IN_PROGRESS";
 	private static final String PACKET = "packet";
 	private static final String PROCESSED = "PROCESSED";
 
@@ -819,7 +818,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		if( registrationStatusDto.getStatusCode().equalsIgnoreCase(RegistrationStatusCode.PROCESSED.name())) {
 			ReferenceURL referenceURL=new ReferenceURL();
 			referenceURL.setSource(ID_REPO);
-			referenceURL.setStatus(PROCESSED);
+			referenceURL.setStatus(registrationStatusDto.getStatusCode());
 			referenceURL.setURL(
 					getDataShareUrlfromIdRepo(id));
 			referenceURLs.add(referenceURL);
@@ -828,7 +827,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 			 {
 			ReferenceURL referenceURL=new ReferenceURL();
 			referenceURL.setSource(PACKET);
-			referenceURL.setStatus(IN_PROGRESS);
+			referenceURL.setStatus(registrationStatusDto.getStatusCode());
 			referenceURL.setURL(
 					getDataShareUrl(id,registrationStatusDto.getRegistrationType()));
 			referenceURLs.add(referenceURL);
