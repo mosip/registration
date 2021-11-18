@@ -5,12 +5,8 @@ import static io.mosip.registration.processor.manual.verification.constants.Manu
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -49,7 +45,6 @@ import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.ApiName;
-import io.mosip.registration.processor.core.code.DedupeSourceName;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
@@ -65,7 +60,6 @@ import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
-import io.mosip.registration.processor.core.kernel.master.dto.UserResponseDTOWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.Identity;
@@ -79,21 +73,19 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.manual.verification.constants.ManualVerificationConstants;
 import io.mosip.registration.processor.manual.verification.dto.DataShareRequestDto;
-import io.mosip.registration.processor.manual.verification.dto.DataShareResponseDto;
 import io.mosip.registration.processor.manual.verification.dto.ManualVerificationStatus;
-import io.mosip.registration.processor.manual.verification.dto.UserDto;
 import io.mosip.registration.processor.manual.verification.exception.DataShareException;
 import io.mosip.registration.processor.manual.verification.exception.InvalidFileNameException;
 import io.mosip.registration.processor.manual.verification.exception.InvalidRidException;
 import io.mosip.registration.processor.manual.verification.exception.MatchedRefNotExistsException;
 import io.mosip.registration.processor.manual.verification.exception.NoRecordAssignedException;
-import io.mosip.registration.processor.manual.verification.exception.UserIDNotPresentException;
 import io.mosip.registration.processor.manual.verification.request.dto.Filter;
 import io.mosip.registration.processor.manual.verification.request.dto.Gallery;
 import io.mosip.registration.processor.manual.verification.request.dto.ManualAdjudicationRequestDTO;
 import io.mosip.registration.processor.manual.verification.request.dto.ReferenceIds;
 import io.mosip.registration.processor.manual.verification.request.dto.ShareableAttributes;
 import io.mosip.registration.processor.manual.verification.request.dto.Source;
+import io.mosip.registration.processor.manual.verification.response.dto.Candidate;
 import io.mosip.registration.processor.manual.verification.response.dto.ManualAdjudicationResponseDTO;
 import io.mosip.registration.processor.manual.verification.service.ManualVerificationService;
 import io.mosip.registration.processor.manual.verification.stage.ManualVerificationStage;
@@ -187,9 +179,6 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	private ManualVerificationStage manualVerificationStage;
 
 	@Autowired
-	private RegistrationProcessorRestClientService<Object> restClientService;
-
-	@Autowired
 	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
 
 	@Autowired
@@ -200,11 +189,6 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 	/** The Constant PROTOCOL. */
 	public static final String PROTOCOL = "https";
-
-	private boolean isMatchTypeDemoOrBio(String matchType) {
-		return matchType.equalsIgnoreCase(DedupeSourceName.DEMO.toString())
-				|| matchType.equalsIgnoreCase(DedupeSourceName.BIO.toString());
-	}
 
 	/*
 	 * (non-Javadoc)
@@ -334,9 +318,9 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	private ManualVerificationEntity validateRequestIdAndReturnRid(String reqId) {
 		List<ManualVerificationEntity> entities = basePacketRepository.getRegistrationIdbyRequestId(reqId);
 
-		if (CollectionUtils.isEmpty(entities) || new HashSet<>(entities.stream().map(e -> e.getRegId()).collect(Collectors.toList())).size() != 1) {
+		if (CollectionUtils.isEmpty(entities) || new HashSet<>(entities.stream().map(ManualVerificationEntity::getRegId).collect(Collectors.toList())).size() != 1) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					entities != null ? entities.stream().map(e -> e.getRegId()).collect(Collectors.toList()) : null,
+					entities != null ? entities.stream().map(ManualVerificationEntity::getRegId).collect(Collectors.toList()) : null,
 					"Multiple rids found against request id : " + reqId);
 			throw new InvalidRidException(
 					PlatformErrorMessages.RPR_INVALID_RID_FOUND.getCode(), PlatformErrorMessages.RPR_INVALID_RID_FOUND.getCode());
@@ -370,57 +354,6 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		return entities;
 	}
 
-
-	@SuppressWarnings({ "unchecked", "unused" })
-	private void checkUserIDExistsInMasterList(UserDto dto) {
-		ResponseWrapper<UserResponseDTOWrapper> responseWrapper;
-		UserResponseDTOWrapper userResponseDTOWrapper;
-		List<String> pathSegments = new ArrayList<>();
-		pathSegments.add(ManualVerificationConstants.USERS);
-		pathSegments.add(dto.getUserId());
-		Date date = Calendar.getInstance().getTime();
-		DateFormat dateFormat = new SimpleDateFormat(ManualVerificationConstants.TIME_FORMAT);
-		String effectiveDate = dateFormat.format(date);
-		// pathSegments.add("2019-05-16T06:12:52.994Z");
-		pathSegments.add(effectiveDate);
-		try {
-
-			responseWrapper = (ResponseWrapper<UserResponseDTOWrapper>) restClientService.getApi(ApiName.MASTER,
-					pathSegments, "", "", ResponseWrapper.class);
-
-			if (responseWrapper.getResponse() != null) {
-				userResponseDTOWrapper = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
-						UserResponseDTOWrapper.class);
-				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-						dto.getUserId(),
-						"ManualVerificationServiceImpl::checkUserIDExistsInMasterList()::get MASTER USERS service call ended with response data : "
-								+ JsonUtil.objectMapperObjectToJson(userResponseDTOWrapper));
-				if (!userResponseDTOWrapper.getUserResponseDto().get(0).getStatusCode()
-						.equals(ManualVerificationConstants.ACT)) {
-					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), null,
-							PlatformErrorMessages.RPR_MVS_USER_STATUS_NOT_ACTIVE.getCode(),
-							PlatformErrorMessages.RPR_MVS_USER_STATUS_NOT_ACTIVE.getMessage() + dto.getUserId());
-					throw new UserIDNotPresentException(PlatformErrorMessages.RPR_MVS_USER_STATUS_NOT_ACTIVE.getCode(),
-							PlatformErrorMessages.RPR_MVS_USER_STATUS_NOT_ACTIVE.getMessage());
-				}
-			} else {
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), null,
-						PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getCode(),
-						PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getMessage());
-				throw new UserIDNotPresentException(PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getCode(),
-						PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getMessage());
-
-			}
-		} catch (ApisResourceAccessException | IOException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), null,
-					PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getCode(),
-					PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getMessage() + e);
-			throw new UserIDNotPresentException(PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getCode(),
-					PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getMessage());
-
-		}
-	}
-
 	/*
 	 * Get matched ref id for given RID and form request ,push to queue
 	 */
@@ -429,7 +362,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				refId, "ManualVerificationServiceImpl::pushRequestToQueue()::entry");
 		List<ManualVerificationEntity> mves = getMatchingEntitiesforRefId(refId);
-		if (mves.size() == 0 || null == mves)
+		if (mves == null || mves.isEmpty())
 			throw new MatchedRefNotExistsException(
 					PlatformErrorMessages.RPR_MVS_NO_MATCHEDRID_FOUND_FOR_GIVEN_RID.getCode(),
 					PlatformErrorMessages.RPR_MVS_NO_MATCHEDRID_FOUND_FOR_GIVEN_RID.getMessage());
@@ -534,7 +467,6 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		dataShareUrl = new URL(protocol, internalDomainName, env.getProperty(ApiName.DATASHARECREATEURL.name()));
 		url = dataShareUrl.toString();
 		url = url.replaceAll("[\\[\\]]", "");
-		io.mosip.kernel.core.http.ResponseWrapper<DataShareResponseDto> resp = new io.mosip.kernel.core.http.ResponseWrapper<>();
 
 		LinkedHashMap response = (LinkedHashMap) registrationProcessorRestClientService.postApi(url, MediaType.MULTIPART_FORM_DATA, pathSegments, null, null, map, LinkedHashMap.class);
 		if (response == null || (response.get(ERRORS) != null))
@@ -544,7 +476,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		return datashare.get(URL) != null ? datashare.get(URL).toString() : null;
 	}
 
-	private Map<String, String> getPolicyMap(LinkedHashMap<String, Object> policies) throws DataShareException, IOException, ApisResourceAccessException {
+	private Map<String, String> getPolicyMap(LinkedHashMap<String, Object> policies) throws IOException {
 		Map<String, String> policyMap = new HashMap<>();
 		List<LinkedHashMap> attributes = (List<LinkedHashMap>) policies.get(ManualVerificationConstants.SHAREABLE_ATTRIBUTES);
 		ObjectMapper mapper = new ObjectMapper();
@@ -563,9 +495,8 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 		ResponseWrapper<?> policyResponse = (ResponseWrapper<?>) registrationProcessorRestClientService.getApi(
 				ApiName.PMS, Lists.newArrayList(policyId, PolicyConstant.PARTNER_ID, subscriberId), "", "", ResponseWrapper.class);
-		if (policyResponse == null || (policyResponse.getErrors() != null && policyResponse.getErrors().size() >0)) {
+		if (policyResponse == null || (policyResponse.getErrors() != null && !policyResponse.getErrors().isEmpty())) {
 			throw new DataShareException(policyResponse == null ? "Policy Response response is null" : policyResponse.getErrors().get(0).getMessage());
-
 		} else {
 			LinkedHashMap<String, Object> responseMap = (LinkedHashMap<String, Object>) policyResponse.getResponse();
 			policies = (LinkedHashMap<String, Object>) responseMap.get(ManualVerificationConstants.POLICIES);
@@ -787,8 +718,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 				ManualVerificationStatus.APPROVED.name() : ManualVerificationStatus.REJECTED.name();
 
 		for (int i = 0; i < entities.size(); i++) {
-			ObjectMapper objectMapper = new ObjectMapper();
-			byte[] responsetext = objectMapper.writeValueAsBytes(manualVerificationDTO);
+			byte[] responsetext = mapper.writeValueAsBytes(manualVerificationDTO);
 
 			ManualVerificationEntity manualVerificationEntity=entities.get(i);
 			manualVerificationEntity.setStatusCode(statusCode);
@@ -882,7 +812,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 			// get the reference ids from response candidates.
 			List<String> refIdsFromResponse = !CollectionUtils.isEmpty(manualVerificationDTO.getCandidateList().getCandidates()) ?
-					manualVerificationDTO.getCandidateList().getCandidates().stream().map(c -> c.getReferenceId()).collect(Collectors.toList())
+					manualVerificationDTO.getCandidateList().getCandidates().stream().map(Candidate::getReferenceId).collect(Collectors.toList())
 					: Collections.emptyList();
 
 			// get the reference ids from manual verification table entities.
