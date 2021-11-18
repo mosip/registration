@@ -166,8 +166,8 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	private String internalDomainName;
 	
 	
-	@Value("${mosip.regproc.use.manual.adjudication.request.old}")
-	private boolean  useOldManualAdjudicationRequest;
+	@Value("${mosip.regproc.manual.adjudication.use.lts.format}")
+	private boolean  uselatestManualAdjudicationRequestFormat;
 
 	@Autowired
 	private RegistrationProcessorRestClientService registrationProcessorRestClientService;
@@ -450,8 +450,8 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 					PlatformErrorMessages.RPR_MVS_NO_MATCHEDRID_FOUND_FOR_GIVEN_RID.getCode(),
 					PlatformErrorMessages.RPR_MVS_NO_MATCHEDRID_FOUND_FOR_GIVEN_RID.getMessage());
 		ManualAdjudicationRequestDTO mar=null;
-		if(useOldManualAdjudicationRequest) {
-			mar =prepareManualAdjudicationRequestOld(messageDTO, mves); 
+		if(uselatestManualAdjudicationRequestFormat) {
+			mar =prepareManualAdjudicationRequestLatest(messageDTO, mves); 
 		}else {
 			mar = prepareManualAdjudicationRequest(messageDTO, mves);
 		}
@@ -708,7 +708,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		return matchedEntities;
 	}
 	
-	private ManualAdjudicationRequestDTO prepareManualAdjudicationRequestOld(MessageDTO messageDTO, List<ManualVerificationEntity> mve) throws Exception {
+	private ManualAdjudicationRequestDTO prepareManualAdjudicationRequest(MessageDTO messageDTO, List<ManualVerificationEntity> mve) throws Exception {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ManualVerificationServiceImpl::formAdjudicationRequest()::entry");
 
@@ -762,7 +762,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	/*
 	 * Form manual adjudication request
 	 */
-	private ManualAdjudicationRequestDTO prepareManualAdjudicationRequest(MessageDTO messageDTO, List<ManualVerificationEntity> mve) throws Exception {
+	private ManualAdjudicationRequestDTO prepareManualAdjudicationRequestLatest(MessageDTO messageDTO, List<ManualVerificationEntity> mve) throws Exception {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ManualVerificationServiceImpl::formAdjudicationRequest()::entry");
 
