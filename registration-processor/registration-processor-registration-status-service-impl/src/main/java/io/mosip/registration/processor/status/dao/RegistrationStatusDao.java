@@ -7,7 +7,6 @@ import java.util.Map;
 
 import io.mosip.kernel.core.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
@@ -25,9 +24,6 @@ public class RegistrationStatusDao {
 	/** The registration status repositary. */
 	@Autowired
 	RegistrationRepositary<RegistrationStatusEntity, String> registrationStatusRepositary;
-
-	@Value("${registration.processor.fetch.registration.records.limit:100}")
-	private int maxLimit;
 
 	/** The Constant AND. */
 	public static final String AND = "AND";
@@ -153,14 +149,14 @@ public class RegistrationStatusDao {
 		String className = RegistrationStatusEntity.class.getSimpleName();
 
 		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
-		String queryStr = SELECT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
+		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
 				+ ".id IN :ids" + EMPTY_STRING + AND + EMPTY_STRING + alias + ISACTIVE_COLON + ISACTIVE + EMPTY_STRING
 				+ AND + EMPTY_STRING + alias + ISDELETED_COLON + ISDELETED;
 		params.put("ids", ids);
 		params.put(ISACTIVE, Boolean.TRUE);
 		params.put(ISDELETED, Boolean.FALSE);
 
-		return registrationStatusRepositary.createQuerySelect(queryStr, params, maxLimit);
+		return registrationStatusRepositary.createQuerySelect(queryStr, params);
 	}
 
 	/**
