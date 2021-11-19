@@ -3,6 +3,7 @@
  */
 package io.mosip.registration.processor.status.repositary;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.Query;
@@ -31,5 +32,9 @@ public interface RegistrationRepositary<T extends BaseRegistrationEntity, E> ext
 	@Query("SELECT registration.regId FROM RegistrationStatusEntity registration WHERE registration.regId in :regIds and registration.statusCode !=:statusCode1 and registration.statusCode !=:statusCode2")
 	public List<String> getWithoutStatusCodes(@Param("regIds") List<String> regIds,
 													   @Param("statusCode1") String statusCode1, @Param("statusCode2") String statusCode2);
+
+	@Query("SELECT COUNT(registration.id.workflowInstanceId)  FROM RegistrationStatusEntity registration WHERE registration.statusCode=:statusCode AND registration.latestTransactionStatusCode =:latestTransactionStatusCode AND registration.latestTransactionTimes < :timeDifference")
+	long getInReprocessPacketsCount(@Param("statusCode")String statusCode,@Param("latestTransactionStatusCode")String latestTransactionStatusCode,@Param("timeDifference")LocalDateTime timeDifference);
+
 	
 }
