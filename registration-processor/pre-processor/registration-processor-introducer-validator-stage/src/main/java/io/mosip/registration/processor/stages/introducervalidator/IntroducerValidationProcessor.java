@@ -145,7 +145,7 @@ public class IntroducerValidationProcessor {
 		} catch (Exception e) {
 			updateDTOsAndLogError(registrationStatusDto, RegistrationStatusCode.FAILED,
 					StatusUtil.UNKNOWN_EXCEPTION_OCCURED, RegistrationExceptionTypeCode.EXCEPTION, description,
-					PlatformErrorMessages.INTRODUCER_VALIDATION_FAILED, e);
+					PlatformErrorMessages.INTRODUCER_ON_HOLD, e);
 		} finally {
 			if (object.getInternalError()) {
 				int retryCount = registrationStatusDto.getRetryCount() != null
