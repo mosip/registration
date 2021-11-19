@@ -2,6 +2,7 @@ package io.mosip.registration.processor.stages.introducervalidator;
 
 import java.io.IOException;
 
+import io.mosip.registration.processor.core.exception.IntroducerOnHoldException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -104,6 +105,10 @@ public class IntroducerValidationProcessor {
 			updateDTOsAndLogError(registrationStatusDto, RegistrationStatusCode.PROCESSING,
 					StatusUtil.PACKET_MANAGER_EXCEPTION, RegistrationExceptionTypeCode.PACKET_MANAGER_EXCEPTION,
 					description, PlatformErrorMessages.PACKET_MANAGER_EXCEPTION, e);
+		} catch (IntroducerOnHoldException e) {
+			updateDTOsAndLogError(registrationStatusDto, RegistrationStatusCode.PROCESSING,
+					StatusUtil.PACKET_ON_HOLD, RegistrationExceptionTypeCode.ON_HOLD_INTRODUCER_PACKET, description,
+					PlatformErrorMessages.INTRODUCER_VALIDATION_FAILED, e);
 		} catch (DataAccessException e) {
 			updateDTOsAndLogError(registrationStatusDto, RegistrationStatusCode.PROCESSING,
 					StatusUtil.DB_NOT_ACCESSIBLE, RegistrationExceptionTypeCode.DATA_ACCESS_EXCEPTION, description,
@@ -140,7 +145,7 @@ public class IntroducerValidationProcessor {
 		} catch (Exception e) {
 			updateDTOsAndLogError(registrationStatusDto, RegistrationStatusCode.FAILED,
 					StatusUtil.UNKNOWN_EXCEPTION_OCCURED, RegistrationExceptionTypeCode.EXCEPTION, description,
-					PlatformErrorMessages.INTRODUCER_VALIDATION_FAILED, e);
+					PlatformErrorMessages.INTRODUCER_ON_HOLD, e);
 		} finally {
 			if (object.getInternalError()) {
 				int retryCount = registrationStatusDto.getRetryCount() != null
