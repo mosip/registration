@@ -376,6 +376,6 @@ public class RegistrationStatusDao {
 
 	public long getInReprocessPacketsCount(long reprocessorduration) {
 		LocalDateTime timeDifference = LocalDateTime.now(ZoneId.of("UTC")).minusSeconds(reprocessorduration);
-		return registrationStatusRepositary.getInReprocessPacketsCount(RegistrationStatusCode.REPROCESS.toString(),RegistrationTransactionStatusCode.SUCCESS.toString(), timeDifference);
+		return registrationStatusRepositary.getInReprocessPacketsCount(RegistrationStatusCode.REPROCESS.toString(),RegistrationTransactionStatusCode.REPROCESS.toString(), timeDifference);
 	}
 }
