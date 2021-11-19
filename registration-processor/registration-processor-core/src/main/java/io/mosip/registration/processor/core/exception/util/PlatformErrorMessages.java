@@ -535,6 +535,9 @@ public enum PlatformErrorMessages {
 	/** The INTRODUCER validation failed. */
 	INTRODUCER_VALIDATION_FAILED(PlatformConstants.RPR_IVM_VALIDATOR_MODULE + "000", "INTRODUCER Validation Failed"),
 
+	/** The INTRODUCER validation failed. */
+	INTRODUCER_ON_HOLD(PlatformConstants.RPR_IVM_VALIDATOR_MODULE + "001", "Packet on hold as introducer packet is not processed yet"),
+
 	/** The packet demo dedupe failed. */
 	// Stages - Demo-Dedupe error code and message
 	PACKET_DEMO_DEDUPE_FAILED(PlatformConstants.RPR_DEMO_DEDUPE_MODULE+"000", "Demo Dedupe Failed"),

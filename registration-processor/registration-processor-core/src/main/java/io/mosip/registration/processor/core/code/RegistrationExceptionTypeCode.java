@@ -216,7 +216,7 @@ public enum RegistrationExceptionTypeCode {
 	PACKET_UPLOAD_FAILED_ON_MAX_RETRY_CNT,
 
 	/** The osi failed on hold introducer packet. */
-	OSI_FAILED_ON_HOLD_INTRODUCER_PACKET,
+	ON_HOLD_INTRODUCER_PACKET,
 
 	/** Packet hash failed in uploader stage */
 	PACKET_HASH_VALIDATION_FAILED,
