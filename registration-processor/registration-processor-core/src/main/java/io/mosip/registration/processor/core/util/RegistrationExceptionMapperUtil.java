@@ -142,7 +142,7 @@ public class RegistrationExceptionMapperUtil {
 				RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.DEMO_DEDUPE_ABIS_RESPONSE_ERROR,
 				RegistrationTransactionStatusCode.REPROCESS);
-		statusMap.put(RegistrationExceptionTypeCode.OSI_FAILED_ON_HOLD_INTRODUCER_PACKET,
+		statusMap.put(RegistrationExceptionTypeCode.ON_HOLD_INTRODUCER_PACKET,
 				RegistrationTransactionStatusCode.REPROCESS);
 		statusMap.put(RegistrationExceptionTypeCode.INTRODUCER_UIN_AND_RID_NOT_IN_PACKET,
 				RegistrationTransactionStatusCode.FAILED);
