@@ -78,6 +78,14 @@ public class SyncRegistrationDaoTest {
 		Mockito.when(syncRegistrationRepository.save(any())).thenReturn(syncRegistrationEntity);
 
 		Mockito.when(syncRegistrationRepository.createQuerySelect(any(), any())).thenReturn(syncRegistrationEntityList);
+		Mockito.when(syncRegistrationRepository.findByAdditionalInfoReqId( any())).thenReturn(syncRegistrationEntityList);
+		Mockito.when(syncRegistrationRepository.findByPacketId( any())).thenReturn(syncRegistrationEntityList);
+		Mockito.when(syncRegistrationRepository.findByPacketIds( any())).thenReturn(syncRegistrationEntityList);
+		Mockito.when(syncRegistrationRepository.findByRegistrationId( any())).thenReturn(syncRegistrationEntityList);
+		Mockito.when(syncRegistrationRepository.findByRegistrationIdIdAndAdditionalInfoReqId( any(),any())).thenReturn(syncRegistrationEntityList);
+		Mockito.when(syncRegistrationRepository.findByRegistrationIdIdAndRegType(any(), any())).thenReturn(syncRegistrationEntityList);
+		Mockito.when(syncRegistrationRepository.findByRegistrationIds( any())).thenReturn(syncRegistrationEntityList);
+		Mockito.when(syncRegistrationRepository.findByworkflowInstanceId( any())).thenReturn(syncRegistrationEntityList);
 
 	}
 
@@ -111,7 +119,7 @@ public class SyncRegistrationDaoTest {
 	@Test
 	public void findByIdFailureTest() {
 		syncRegistrationEntityList = new ArrayList<>();
-		Mockito.when(syncRegistrationRepository.createQuerySelect(any(), any())).thenReturn(syncRegistrationEntityList);
+		Mockito.when(syncRegistrationRepository.findByPacketId( any())).thenReturn(syncRegistrationEntityList);
 		SyncRegistrationEntity syncRegistrationEntityResult = syncRegistrationDao.findByPacketId("1001");
 		assertEquals("Check id Registration Id is present in DB, expected value is empty List", null,
 				syncRegistrationEntityResult);
@@ -158,7 +166,7 @@ public class SyncRegistrationDaoTest {
 
 	@Test
 	public void findByRegistrationIdIdAndAdditionalInfoReqIdTest() {
-		Mockito.when(syncRegistrationRepository.createQuerySelect(any(), any())).thenReturn(syncRegistrationEntityList);
+		
 		SyncRegistrationEntity syncRegistrationEntityResult = syncRegistrationDao
 				.findByRegistrationIdIdAndAdditionalInfoReqId("1000", "NEW");
 		assertEquals("Check id Registration Id is present in DB, expected valie is 1001",
