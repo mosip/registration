@@ -352,12 +352,23 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
 			.getRegistrationStatus(workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getReg_type(),
 						workflowInternalActionDTO.getIteration(), workflowInternalActionDTO.getWorkflowInstanceId());
-		registrationStatusDto.setStatusComment(workflowInternalActionDTO.getActionMessage());
+		String iteration=env.getProperty("mosip.regproc.workflow-manager.internal.action.max-allowed-iteration." + workflowInternalActionDTO.getAdditionalInfoProcess());
+		int maxAllowedIteration;
+		if(iteration!=null) {
+			maxAllowedIteration=Integer.parseInt(iteration);
+		}else {
+			maxAllowedIteration=defaultMaxAllowedIteration;
+		}
+		if (workflowInternalActionDTO.getIteration()>maxAllowedIteration) {
+			registrationStatusDto.setStatusComment(StatusUtil.WORKFLOW_INTERNAL_ACTION_REJECTED_ITERATIONS_EXCEEDED_LIMIT.getMessage());
+		}else {
+			registrationStatusDto.setStatusComment(workflowInternalActionDTO.getActionMessage());
+		}
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
 		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
 		registrationStatusDto.setSubStatusCode(StatusUtil.WORKFLOW_INTERNAL_ACTION_SUCCESS.getCode());
 		registrationStatusService.updateRegistrationStatusForWorkflowEngine(registrationStatusDto, MODULE_ID, MODULE_NAME);
-
+		
 		if (additionalInfoRequestDto != null) {
 			Map<String, String> tags = new HashMap<String, String>();
 			tags.put(workflowInternalActionDTO.getReg_type() + "_FLOW_STATUS",
