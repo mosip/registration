@@ -2,6 +2,7 @@ package io.mosip.registration.processor.status.dao;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -82,8 +83,8 @@ public class SyncRegistrationDaoTest {
 		Mockito.when(syncRegistrationRepository.findByPacketId( any())).thenReturn(syncRegistrationEntityList);
 		Mockito.when(syncRegistrationRepository.findByPacketIds( any())).thenReturn(syncRegistrationEntityList);
 		Mockito.when(syncRegistrationRepository.findByRegistrationId( any())).thenReturn(syncRegistrationEntityList);
-		Mockito.when(syncRegistrationRepository.findByRegistrationIdIdAndAdditionalInfoReqId( any(),any())).thenReturn(syncRegistrationEntityList);
-		Mockito.when(syncRegistrationRepository.findByRegistrationIdIdAndRegType(any(), any())).thenReturn(syncRegistrationEntityList);
+		Mockito.when(syncRegistrationRepository.findByRegistrationIdIdANDAdditionalInfoReqId( anyString(),anyString())).thenReturn(syncRegistrationEntityList);
+		Mockito.when(syncRegistrationRepository.findByRegistrationIdIdANDRegType(anyString(),anyString())).thenReturn(syncRegistrationEntityList);
 		Mockito.when(syncRegistrationRepository.findByRegistrationIds( any())).thenReturn(syncRegistrationEntityList);
 		Mockito.when(syncRegistrationRepository.findByworkflowInstanceId( any())).thenReturn(syncRegistrationEntityList);
 
