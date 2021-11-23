@@ -120,7 +120,7 @@ public class SyncRegistrationDao {
 	}
 
 	public SyncRegistrationEntity findByRegistrationIdIdAndRegType(String registrationId, String registrationType) {
-		List<SyncRegistrationEntity> syncRegistrationEntityList = syncRegistrationRepository.findByRegistrationIdIdANDAdditionalInfoReqId(registrationId,
+		List<SyncRegistrationEntity> syncRegistrationEntityList = syncRegistrationRepository.findByRegistrationIdIdANDRegType(registrationId,
 				registrationType);
 
 		return !CollectionUtils.isEmpty(syncRegistrationEntityList) ? syncRegistrationEntityList.get(0) : null;
