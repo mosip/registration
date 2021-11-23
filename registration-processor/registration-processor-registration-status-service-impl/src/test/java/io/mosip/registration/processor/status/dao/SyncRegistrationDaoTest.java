@@ -84,7 +84,6 @@ public class SyncRegistrationDaoTest {
 		Mockito.when(syncRegistrationRepository.findByPacketIds( any())).thenReturn(syncRegistrationEntityList);
 		Mockito.when(syncRegistrationRepository.findByRegistrationId( any())).thenReturn(syncRegistrationEntityList);
 		Mockito.when(syncRegistrationRepository.findByRegistrationIdIdANDAdditionalInfoReqId( anyString(),anyString())).thenReturn(syncRegistrationEntityList);
-		Mockito.when(syncRegistrationRepository.findByRegistrationIdIdANDRegType(anyString(),anyString())).thenReturn(syncRegistrationEntityList);
 		Mockito.when(syncRegistrationRepository.findByRegistrationIds( any())).thenReturn(syncRegistrationEntityList);
 		Mockito.when(syncRegistrationRepository.findByworkflowInstanceId( any())).thenReturn(syncRegistrationEntityList);
 
