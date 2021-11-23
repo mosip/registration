@@ -46,9 +46,6 @@ public interface RegistrationRepositary<T extends BaseRegistrationEntity, E> ext
 	@Query("SELECT registration FROM RegistrationStatusEntity registration WHERE registration.regId IN :regIds AND registration.isDeleted =false AND registration.isActive=true order by registration.createDateTime")
 	public List<RegistrationStatusEntity> findByRegIdsOrderbyCreatedDateTime(@Param("regIds") List<String> regIds);
 	
-	@Query(value ="SELECT * FROM registration r WHERE r.status_code = :statusCode order by r.upd_dtimes LIMIT :fetchSize ", nativeQuery = true)
-	public List<RegistrationStatusEntity> findByStatusCodeOrderbyUpdatedDateTime(@Param("statusCode") String statusCode,@Param("fetchSize") Integer fetchSize);
-	
 	@Query("SELECT registration FROM RegistrationStatusEntity registration WHERE registration.statusCode = :statusCode AND registration.isDeleted =false AND registration.isActive=true")
 	public List<RegistrationStatusEntity> findByStatusCode(@Param("statusCode") String statusCode);
 	
