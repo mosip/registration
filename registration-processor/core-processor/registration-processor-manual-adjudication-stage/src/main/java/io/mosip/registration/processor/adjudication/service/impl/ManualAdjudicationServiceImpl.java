@@ -164,7 +164,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 	@Value("${mosip.regproc.data.share.internal.domain.name}")
 	private String internalDomainName;
 	
-	@Value("${mosip.regproc.manual.adjudication.use.lts.format}")
+	@Value("${mosip.regproc.manual.adjudication.use.lts.format:true}")
 	private boolean  uselatestManualAdjudicationRequestFormat;
 	
 	@Autowired
@@ -450,7 +450,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 
 		ManualAdjudicationRequestDTO mar=null;
 		if(uselatestManualAdjudicationRequestFormat) {
-			mar =prepareManualAdjudicationRequestLatest(messageDTO, mves); 
+			mar = prepareManualAdjudicationRequestLatest(messageDTO, mves);
 		}else {
 			mar = prepareManualAdjudicationRequest(messageDTO, mves);
 		}
@@ -505,7 +505,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 		}
 
 
-		return CreateDataShareUrl( requestDto);
+		return CreateDataShareUrl(requestDto, policy);
 	}
 	
 	private String getDataShareUrlfromIdRepo(String id) throws DataShareException, ApisResourceAccessException, JsonProcessingException, IOException, PacketManagerException  {
@@ -544,12 +544,12 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 			}
 		}
 
-		return CreateDataShareUrl( requestDto);
+		return CreateDataShareUrl(requestDto, policy);
 
 	}
 	
 	@SuppressWarnings("rawtypes")
-	private String CreateDataShareUrl(DataShareRequestDto requestDto) throws JsonProcessingException, MalformedURLException, ApisResourceAccessException, DataShareException {
+	private String CreateDataShareUrl(DataShareRequestDto requestDto, LinkedHashMap<String, Object> policy) throws JsonProcessingException, MalformedURLException, ApisResourceAccessException, DataShareException {
 		String req = JsonUtils.javaObjectToJsonString(requestDto);
 
 		MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
@@ -567,18 +567,17 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 		List<String> pathSegments = new ArrayList<>();
 		pathSegments.add(policyId);
 		pathSegments.add(subscriberId);
-		URL dataShareUrl = null;
-		String protocol = PROTOCOL;
+		String protocol = StringUtils.isNotEmpty(httpProtocol) ? PolicyConstant.HTTP_PROTOCOL : PolicyConstant.HTTPS_PROTOCOL;
 		String url = null;
 
-		if (httpProtocol != null && !httpProtocol.isEmpty()) {
-			protocol = httpProtocol;
+		if (policy.get(PolicyConstant.DATASHARE_POLICIES) != null) {
+			LinkedHashMap<String, String> datasharePolicies = (LinkedHashMap<String, String>) policies.get(PolicyConstant.DATASHARE_POLICIES);
+			if (!CollectionUtils.isEmpty(datasharePolicies) && datasharePolicies.get(PolicyConstant.SHAREDOMAIN_WRITE) != null)
+				url = datasharePolicies.get(PolicyConstant.SHAREDOMAIN_WRITE) + env.getProperty(ApiName.DATASHARECREATEURL.name());
 		}
-
-		dataShareUrl = new URL(protocol, internalDomainName, env.getProperty(ApiName.DATASHARECREATEURL.name()));
-		url = dataShareUrl.toString();
+		if (StringUtils.isEmpty(url))
+			url = protocol + internalDomainName + env.getProperty(ApiName.DATASHARECREATEURL.name());
 		url = url.replaceAll("[\\[\\]]", "");
-		io.mosip.kernel.core.http.ResponseWrapper<DataShareResponseDto> resp = new io.mosip.kernel.core.http.ResponseWrapper<>();
 
 		LinkedHashMap response1 = (LinkedHashMap) registrationProcessorRestClientService.postApi(url, MediaType.MULTIPART_FORM_DATA, pathSegments, null, null, map, LinkedHashMap.class);
 		if (response1 == null || (response1.get(ERRORS) != null))
@@ -829,8 +828,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 			ReferenceURL referenceURL=new ReferenceURL();
 			referenceURL.setSource(ID_REPO);
 			referenceURL.setStatus(registrationStatusDto.getStatusCode());
-			referenceURL.setURL(
-					getDataShareUrlfromIdRepo(id));
+			referenceURL.setURL(getDataShareUrlfromIdRepo(id));
 			referenceURLs.add(referenceURL);
 		}
 		else{

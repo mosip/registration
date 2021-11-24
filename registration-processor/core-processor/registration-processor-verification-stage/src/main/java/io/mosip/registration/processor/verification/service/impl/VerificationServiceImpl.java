@@ -119,7 +119,7 @@ public class VerificationServiceImpl implements VerificationService {
 	/** The logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(VerificationServiceImpl.class);
 	private LinkedHashMap<String, Object> policies = null;
-	private static final String MANUAL_ADJUDICATION = "verification";
+	private static final String VERIFICATION = "verification";
 
 	/** The Constant USER. */
 	private static final String USER = "MOSIP_SYSTEM";
@@ -553,13 +553,13 @@ public class VerificationServiceImpl implements VerificationService {
 		String req = JsonUtils.javaObjectToJsonString(requestDto);
 
 		MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
-		map.add("name", MANUAL_ADJUDICATION);
-		map.add("filename", MANUAL_ADJUDICATION);
+		map.add("name", VERIFICATION);
+		map.add("filename", VERIFICATION);
 
 		ByteArrayResource contentsAsResource = new ByteArrayResource(req.getBytes()) {
 			@Override
 			public String getFilename() {
-				return MANUAL_ADJUDICATION;
+				return VERIFICATION;
 			}
 		};
 		map.add("file", contentsAsResource);
@@ -567,18 +567,21 @@ public class VerificationServiceImpl implements VerificationService {
 		List<String> pathSegments = new ArrayList<>();
 		pathSegments.add(policyId);
 		pathSegments.add(subscriberId);
-		URL dataShareUrl = null;
-		String protocol = PROTOCOL;
+		String protocol = StringUtils.isNotEmpty(httpProtocol) ? PolicyConstant.HTTP_PROTOCOL : PolicyConstant.HTTPS_PROTOCOL;
 		String url = null;
 
 		if (httpProtocol != null && !httpProtocol.isEmpty()) {
 			protocol = httpProtocol;
 		}
 
-		dataShareUrl = new URL(protocol, internalDomainName, env.getProperty(ApiName.DATASHARECREATEURL.name()));
-		url = dataShareUrl.toString();
+		if (policy.get(PolicyConstant.DATASHARE_POLICIES) != null) {
+			LinkedHashMap<String, String> datasharePolicies = (LinkedHashMap<String, String>) policies.get(PolicyConstant.DATASHARE_POLICIES);
+			if (!CollectionUtils.isEmpty(datasharePolicies) && datasharePolicies.get(PolicyConstant.SHAREDOMAIN_WRITE) != null)
+				url = datasharePolicies.get(PolicyConstant.SHAREDOMAIN_WRITE) + env.getProperty(ApiName.DATASHARECREATEURL.name());
+		}
+		if (StringUtils.isEmpty(url))
+			url = protocol + internalDomainName + env.getProperty(ApiName.DATASHARECREATEURL.name());
 		url = url.replaceAll("[\\[\\]]", "");
-		io.mosip.kernel.core.http.ResponseWrapper<DataShareResponseDto> resp = new io.mosip.kernel.core.http.ResponseWrapper<>();
 
 		LinkedHashMap response = (LinkedHashMap) registrationProcessorRestClientService.postApi(url, MediaType.MULTIPART_FORM_DATA, pathSegments, null, null, map, LinkedHashMap.class);
 		if (response == null || (response.get(ERRORS) != null))
