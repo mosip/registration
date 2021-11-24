@@ -13,7 +13,6 @@ import io.mosip.registration.processor.adjudication.service.impl.ManualAdjudicat
 @Configuration
 public class ManualAdjudicationConfigBean {
 	
-	
 	@Bean
     ManualAdjudicationService getManualVerificationService() {
 		return new ManualAdjudicationServiceImpl();
@@ -33,10 +32,4 @@ public class ManualAdjudicationConfigBean {
 	ManualVerificationResponseBuilder getManualVerificationResponseBuilder() {
 		return new ManualVerificationResponseBuilder();
 	}
-
-	@Bean
-	public ManualAdjudicationStage manualAdjudicationStage() {
-		return new ManualAdjudicationStage();
-	}
-
 }
