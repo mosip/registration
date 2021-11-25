@@ -58,6 +58,10 @@ public class LostRidRequestValidator {
 	@Value("${mosip.registration.processor.grace.period}")
 	private int gracePeriod;
 
+	/** The registrationDate pattern. */
+	@Value("${mosip.registration.processor.lostrid.registrationdate.pattern}")
+	private String regDatePattern;
+
 
 	/**
 	 * Validate.
@@ -141,7 +145,7 @@ public class LostRidRequestValidator {
 			throws WorkFlowSearchException, RegStatusAppException {
 		LostRidValidationException exception = new LostRidValidationException();
 		if (filter.getColumnName().equals("registrationDate") && filter.getType().equalsIgnoreCase("between")) {
-			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+			DateTimeFormatter dtf = DateTimeFormatter.ofPattern(regDatePattern);
 			LocalDate dateForm = LocalDate.parse(filter.getFromValue(), dtf);
 			LocalDate dateTo = LocalDate.parse(filter.getToValue(), dtf);
 			long noOfDaysBetween = ChronoUnit.DAYS.between(dateForm, dateTo);
