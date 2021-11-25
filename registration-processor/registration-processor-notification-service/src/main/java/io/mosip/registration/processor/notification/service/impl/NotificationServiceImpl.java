@@ -142,8 +142,8 @@ public class NotificationServiceImpl implements NotificationService {
 	private Environment env;
 
 	// sends init subscribe req to hub
-	@Scheduled(fixedDelayString = "${mosip.regproc.websub.resubscription.delay.secs:1800000}",
-            initialDelayString = "${mosip.regproc.websub.subscriptions-delay-on-startup.secs:300000}")
+	@Scheduled(fixedDelayString = "${mosip.regproc.websub.resubscription.delay.millisecs:43200000}",
+            initialDelayString = "${mosip.regproc.websub.subscriptions-delay-on-startup.millisecs:300000}")
 	protected void init() {
 		SubscriptionChangeRequest subscriptionRequest = new SubscriptionChangeRequest();
 		subscriptionRequest.setCallbackURL(callbackURL);
