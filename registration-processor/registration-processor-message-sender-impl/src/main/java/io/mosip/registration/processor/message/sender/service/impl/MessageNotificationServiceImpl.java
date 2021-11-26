@@ -3,6 +3,7 @@ package io.mosip.registration.processor.message.sender.service.impl;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -62,7 +63,6 @@ import io.mosip.registration.processor.message.sender.exception.PhoneNumberNotFo
 import io.mosip.registration.processor.message.sender.exception.TemplateGenerationFailedException;
 import io.mosip.registration.processor.message.sender.exception.TemplateNotFoundException;
 import io.mosip.registration.processor.message.sender.template.TemplateGenerator;
-import io.mosip.registration.processor.packet.storage.dto.ConfigEnum;
 import io.mosip.registration.processor.packet.storage.exception.IdRepoAppException;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
@@ -95,9 +95,6 @@ public class MessageNotificationServiceImpl
 
 	/** The Constant FILE_SEPARATOR. */
 	public static final String FILE_SEPARATOR = File.separator;
-
-	/** The Constant ENCODING. */
-	public static final String ENCODING = "UTF-8";
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(MessageNotificationServiceImpl.class);
@@ -171,10 +168,10 @@ public class MessageNotificationServiceImpl
 				Map<String, Object> attributesLang=new HashMap<>(attributes);
 				setAttributes(id, process,lang, idType, attributesLang, regType, phoneNumber, emailId);
 				InputStream stream = templateGenerator.getTemplate(templateTypeCode, attributesLang, lang);
-				if(artifact.isBlank()) {
-				 artifact = IOUtils.toString(stream, ENCODING);
-				}else {
-				artifact = artifact + LINE_SEPARATOR + IOUtils.toString(stream, ENCODING);;
+				if (artifact.isBlank()) {
+					artifact = IOUtils.toString(stream, StandardCharsets.UTF_8);
+				} else {
+					artifact = artifact + LINE_SEPARATOR + IOUtils.toString(stream, StandardCharsets.UTF_8);
 				}
 			}
 			
@@ -246,11 +243,11 @@ public class MessageNotificationServiceImpl
 				setAttributes(id, process,lang, idType, attributesLang, regType, phoneNumber, emailId);
 				InputStream stream = templateGenerator.getTemplate(templateTypeCode, attributesLang, lang);
 				
-				artifact = IOUtils.toString(stream, ENCODING);
+				artifact = IOUtils.toString(stream, StandardCharsets.UTF_8);
 				
 				InputStream subStream = templateGenerator.getTemplate(subjectCode, attributesLang, lang);
 				
-				subject=IOUtils.toString(subStream, ENCODING);
+				subject=IOUtils.toString(subStream, StandardCharsets.UTF_8);
 				if (emailId == null || emailId.length() == 0) {
 					throw new EmailIdNotFoundException(PlatformErrorMessages.RPR_EML_EMAILID_NOT_FOUND.getCode());
 				}
@@ -300,8 +297,8 @@ public class MessageNotificationServiceImpl
 		    }
 		}
 		Set<String> langSet=new HashSet<>();
-		for( String idValue:idValues) {
-			if(idValue!=null&& !idValue.isBlank()  ) {
+		for (String idValue : idValues) {
+			if (idValue != null && !idValue.isBlank()) {
 				if(isJSONArrayValid(idValue)) {
 					ObjectMapper mapper=new ObjectMapper();
 					JSONArray array=mapper.readValue(idValue, JSONArray.class);
@@ -409,8 +406,6 @@ public class MessageNotificationServiceImpl
 			attributes.put("RID", id);
 		}
 
-
-
 		if (idType.toString().equalsIgnoreCase(UIN) && (regType.equalsIgnoreCase(RegistrationType.ACTIVATED.name())
 				|| regType.equalsIgnoreCase(RegistrationType.DEACTIVATED.name())
 				|| regType.equalsIgnoreCase(RegistrationType.UPDATE.name())
@@ -418,7 +413,7 @@ public class MessageNotificationServiceImpl
 				|| regType.equalsIgnoreCase(RegistrationType.LOST.name()))) {
 			setAttributesFromIdRepo(uin, attributes, regType,lang, phoneNumber, emailId);
 		} else {
-			setAttributesFromIdJson(id, process, attributes, regType,lang, phoneNumber, emailId);
+			setAttributesFromIdJson(id, process, attributes, lang, phoneNumber, emailId);
 		}
 
 		return attributes;
@@ -558,8 +553,8 @@ public class MessageNotificationServiceImpl
 
 	@SuppressWarnings("unchecked")
 	private Map<String, Object> setAttributesFromIdJson(String id, String process, Map<String, Object> attribute,
-			String regType, String lang, StringBuilder phoneNumber, StringBuilder emailId)
-			throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException, JSONException {
+			String lang, StringBuilder phoneNumber, StringBuilder emailId) throws IOException,
+			ApisResourceAccessException, PacketManagerException, JsonProcessingException, JSONException {
 
 		JSONObject mapperIdentity = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 
@@ -567,7 +562,6 @@ public class MessageNotificationServiceImpl
 		JsonUtil.getJSONValue(JsonUtil.getJSONObject(mapperIdentity, MappingJsonConstants.INDIVIDUAL_BIOMETRICS), VALUE);
 		mapperIdentity.keySet().forEach(key -> mapperJsonValues.add(JsonUtil.getJSONValue(JsonUtil.getJSONObject(mapperIdentity, key), VALUE)));
 
-		String source = utility.getDefaultSource(process, ConfigEnum.READER);
 		Map<String, String> fieldMap = packetManagerService.getFields(id, mapperJsonValues, process, ProviderStageName.MESSAGE_SENDER);
 
 		for (Map.Entry e : fieldMap.entrySet()) {

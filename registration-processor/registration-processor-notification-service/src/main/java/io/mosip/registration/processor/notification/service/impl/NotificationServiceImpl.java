@@ -10,9 +10,7 @@ import org.json.JSONException;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -575,7 +573,6 @@ public class NotificationServiceImpl implements NotificationService {
 
 				isTransactionSuccessful = sendNotification(id, workflowType, attributes, ccEMailList,
 						allNotificationTypes, workflowType, messageSenderDto, description);
-
 
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					id, "NotificationServiceImpl::success");

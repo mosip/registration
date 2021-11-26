@@ -3,10 +3,9 @@ package io.mosip.registration.processor.packet.storage;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -23,10 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Sets;
-import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
-import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -41,8 +36,13 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Sets;
+
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.kernel.dataaccess.hibernate.constant.HibernateErrorCode;
+import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.DedupeSourceName;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.logger.LogDescription;
@@ -78,11 +78,14 @@ import io.mosip.registration.processor.packet.storage.entity.RegBioRefPKEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegDemoDedupeListEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegDemoDedupeListPKEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegLostUinDetEntity;
+import io.mosip.registration.processor.packet.storage.exception.MappingJsonException;
+import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.packet.storage.exception.UnableToInsertData;
 import io.mosip.registration.processor.packet.storage.mapper.PacketInfoMapper;
 import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
 import io.mosip.registration.processor.packet.storage.service.impl.PacketInfoManagerImpl;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 
@@ -540,10 +543,6 @@ public class PacketInfoManagerImplTest {
 		metaDataList.add(regId);
 		metaDataList.add(preRegId);
 
-		String inputString = "test";
-		InputStream inputStream = new ByteArrayInputStream(inputString.getBytes(StandardCharsets.UTF_8));
-
-
 		exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.toString(), "errorMessage", new Exception());
 		classLoader = getClass().getClassLoader();
 		demographicJsonFile = new File(classLoader.getResource("ID.json").getFile());
@@ -610,10 +609,24 @@ public class PacketInfoManagerImplTest {
 		Mockito.when(demographicDedupeRepository.save(any())).thenThrow(exp);
 		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229",
 				"", "", "",1, "");
-
 	}
+	
+	@Test(expected = MappingJsonException.class)
+	public void demographicDedupeIOExceptionTest() throws Exception {
 
+		Mockito.when(utility.getRegistrationProcessorMappingJson(any())).thenThrow(new IOException());
+		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229",
+				"", "", "",1, "");
+	}
+	
+	@Test(expected = ParsingException.class)
+	public void demographicDedupeParsingExceptionTest() throws Exception {
 
+		Mockito.when(packetManagerService.getFields(anyString(), any(), anyString(), any()))
+				.thenThrow(new JsonProcessingException("exception occured"));
+		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229",
+				"", "", "",1, "");
+	}
 
 	/**
 	 * Gets the packets for QC users test.
@@ -658,6 +671,60 @@ public class PacketInfoManagerImplTest {
 		Mockito.when(packetInfoDao.getPacketsforQCUser(any())).thenThrow(exp);
 		packetInfoManagerImpl.getPacketsforQCUser("1234");
 
+	}
+	
+	@Test
+	public void getReferenceIdByWorkflowInstanceIdTest() throws Exception {
+
+		Mockito.when(regBioRefRepository.getRefIdByWorkflowInstanceId(anyString())).thenReturn(Arrays.asList());
+		packetInfoManagerImpl.getReferenceIdByWorkflowInstanceId("workflowInstanceId");
+	}
+	
+	@Test
+	public void getReferenceIdByBatchIdTest() throws Exception {
+
+		Mockito.when(packetInfoDao.getReferenceIdByBatchId(anyString())).thenReturn(Arrays.asList());
+		packetInfoManagerImpl.getReferenceIdByBatchId("657");
+	}
+	
+	@Test
+	public void getAbisTransactionIdByRequestIdTest() throws Exception {
+
+		Mockito.when(packetInfoDao.getAbisTransactionIdByRequestId(anyString())).thenReturn(Arrays.asList());
+		packetInfoManagerImpl.getAbisTransactionIdByRequestId("657");
+	}
+	
+	@Test
+	public void getIdentifyReqListByTransactionIdTest() throws Exception {
+		Mockito.when(packetInfoDao.getIdentifyReqListByTransactionId(anyString(), anyString()))
+				.thenReturn(Arrays.asList());
+		packetInfoManagerImpl.getIdentifyReqListByTransactionId("657", "type");
+	}
+	
+	@Test
+	public void getInsertOrIdentifyRequestTest() throws Exception {
+		Mockito.when(packetInfoDao.getInsertOrIdentifyRequest(anyString(), anyString(),anyString()))
+				.thenReturn(Arrays.asList());
+		packetInfoManagerImpl.getInsertOrIdentifyRequest("657","349", "type");
+	}
+	
+	@Test
+	public void getAbisProcessedRequestsAppCodeByBioRefIdTest() throws Exception {
+		Mockito.when(packetInfoDao.getAbisProcessedRequestsAppCodeByBioRefId(anyString(), anyString(),anyString()))
+				.thenReturn(Arrays.asList());
+		packetInfoManagerImpl.getAbisProcessedRequestsAppCodeByBioRefId("657","349", "type");
+	}
+	
+	@Test
+	public void getAbisResponseDetRecordsListTest() throws Exception {
+		Mockito.when(packetInfoDao.getAbisResponseDetRecordsList(any())).thenReturn(Arrays.asList());
+		packetInfoManagerImpl.getAbisResponseDetRecordsList(Arrays.asList("654"));
+	}
+	
+	@Test
+	public void getRegBioRefDataByBioRefIdsTest() throws Exception {
+		Mockito.when(packetInfoDao.getRegBioRefDataByBioRefIds(any())).thenReturn(Arrays.asList());
+		packetInfoManagerImpl.getRegBioRefDataByBioRefIds(Arrays.asList("654"));
 	}
 
 	/**

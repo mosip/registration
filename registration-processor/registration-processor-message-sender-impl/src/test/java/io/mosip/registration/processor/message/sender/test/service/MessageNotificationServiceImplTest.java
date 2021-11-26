@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -52,6 +53,7 @@ import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
 import io.mosip.registration.processor.core.notification.template.generator.dto.ResponseDto;
 import io.mosip.registration.processor.core.notification.template.generator.dto.SmsResponseDto;
 import io.mosip.registration.processor.core.packet.dto.Identity;
+import io.mosip.registration.processor.core.packet.dto.demographicinfo.JsonValue;
 import io.mosip.registration.processor.core.spi.message.sender.MessageNotificationService;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
@@ -300,9 +302,44 @@ public class MessageNotificationServiceImplTest {
 	 *
 	 * @throws Exception the exception
 	 */
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testSendEmailNotificationSuccess() throws Exception {
+		ResponseWrapper<ResponseDto> wrapper = new ResponseWrapper<>();
+		responseDto = new ResponseDto();
+		responseDto.setStatus("Success");
+		wrapper.setErrors(null);
+		wrapper.setResponse(responseDto);
+
+		JsonValue value = new JsonValue();
+		value.setLanguage("eng");
+		value.setValue("Male");
+		JsonValue value2 = new JsonValue();
+		value2.setLanguage("ara");
+		value2.setValue("ذكر");
+		
+		Map<String, String> fieldMap = new HashMap<>();
+		fieldMap.put("name", "mono");
+		fieldMap.put("email", "mono@mono.com");
+		fieldMap.put("phone", "23456");
+		fieldMap.put("dob", "11/11/2011");
+		fieldMap.put("individualBiometrics", "{\"format\":\"cbeff\",\"version\":1,\"value\":\"applicant_bio_CBEFF\"}");
+		fieldMap.put("gender","[{\"language\" : \"eng\", \"value\" : \"Male\"}, {\"language\" : \"ara\",\"value\" : \"ذكر\"}]");
+
+		when(packetManagerService.getFields(anyString(),anyList(),any(), any())).thenReturn(fieldMap);
+		
+		Mockito.when(restApiClient.postApi(any(), any(), any(), any())).thenReturn(wrapper);
+		Mockito.when(mapper.writeValueAsString(any())).thenReturn(responseDto.toString());
+		Mockito.when(mapper.readValue(anyString(), eq(JsonValue.class))).thenReturn(value).thenReturn(value2);
+		Mockito.when(mapper.readValue(anyString(), eq(ResponseDto.class))).thenReturn(responseDto);
+
+		ResponseDto resultResponse = messageNotificationServiceImpl.sendEmailNotification("RPR_UIN_GEN_EMAIL", "12345",
+				"NEW", IdType.RID, attributes, mailCc, subject, null, RegistrationType.NEW.name());
+		assertEquals("Test for Email Notification Success", "Success", resultResponse.getStatus());
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testSendEmailNotificationLostSuccess() throws Exception {
 		ResponseWrapper<ResponseDto> wrapper = new ResponseWrapper<>();
 		responseDto = new ResponseDto();
 		responseDto.setStatus("Success");
@@ -314,7 +351,7 @@ public class MessageNotificationServiceImplTest {
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(responseDto);
 
 		ResponseDto resultResponse = messageNotificationServiceImpl.sendEmailNotification("RPR_UIN_GEN_EMAIL", "12345",
-				"NEW", IdType.RID, attributes, mailCc, subject, null, RegistrationType.NEW.name());
+				"LOST", IdType.UIN, attributes, mailCc, subject, null, RegistrationType.LOST.name());
 		assertEquals("Test for Email Notification Success", "Success", resultResponse.getStatus());
 	}
 
@@ -338,12 +375,30 @@ public class MessageNotificationServiceImplTest {
 		fieldMap.put("dob", "11/11/2011");
 
 		when(packetManagerService.getFields(anyString(),anyList(),any(), any())).thenReturn(fieldMap);
-
-
-
 		messageNotificationServiceImpl.sendSmsNotification("RPR_UIN_GEN_SMS", "12345", "NEW", IdType.RID, attributes,
 				RegistrationType.NEW.name());
 
+	}
+	
+	@Test(expected = ApisResourceAccessException.class)
+	public void apisResourceAccessExceptionTest() throws ApisResourceAccessException, PacketDecryptionFailureException, IOException, JSONException, PacketManagerException, JsonProcessingException {
+
+		when(packetManagerService.getFields(anyString(), anyList(), any(), any()))
+				.thenThrow(new ApisResourceAccessException("exception occured"));
+		messageNotificationServiceImpl.sendSmsNotification("RPR_UIN_GEN_SMS", "12345", "NEW", IdType.RID, attributes,
+				RegistrationType.NEW.name());
+	}
+	
+	@Test(expected = PhoneNumberNotFoundException.class)
+	public void JSONExceptionTest() throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException, PacketDecryptionFailureException, JSONException {
+
+		Map<String,String> idValuesMap = new HashMap<String, String>();
+		String jsonArray= "[ {\"language\" : \"eng\", \"value\" : \"ghjghj\", { \"language\" : \"ara\", \"value\" : \"لع\"} ]";
+		idValuesMap.put("fullName", jsonArray);
+		
+		Mockito.when(packetManagerService.getAllFieldsByMappingJsonKeys(anyString(), anyString(), any())).thenReturn(idValuesMap);
+		messageNotificationServiceImpl.sendSmsNotification("RPR_UIN_GEN_SMS", "12345", "NEW", IdType.RID, attributes,
+				RegistrationType.NEW.name());
 	}
 
 	/**

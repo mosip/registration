@@ -12,7 +12,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.AuditLogConstant;
@@ -383,39 +381,11 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 				"PacketInfoManagerImpl::saveDemographicInfoJson()::entry");
 		LogDescription description = new LogDescription();
 
-		boolean isTransactionSuccessful = false;
+		saveIndividualDemographicDedupe(registrationId, process, description, moduleId, moduleName, iteration,
+				workflowInstanceId);
 
-
-		try {
-
-			saveIndividualDemographicDedupe(registrationId, process, description, moduleId, moduleName, iteration, workflowInstanceId);
-
-			isTransactionSuccessful = true;
-			description.setMessage("Demographic Json saved");
-
-		} catch (DataAccessLayerException e) {
-
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
-
-			description.setMessage("DataAccessLayerException while saving Demographic Json" + "::" + e.getMessage());
-
-			throw new UnableToInsertData(
-					PlatformErrorMessages.RPR_PIS_UNABLE_TO_INSERT_DATA.getMessage() + registrationId, e);
-		} finally {
-
-			String eventId = isTransactionSuccessful ? EventId.RPR_407.toString() : EventId.RPR_405.toString();
-			String eventName = eventId.equalsIgnoreCase(EventId.RPR_407.toString()) ? EventName.ADD.toString()
-					: EventName.EXCEPTION.toString();
-			String eventType = eventId.equalsIgnoreCase(EventId.RPR_407.toString()) ? EventType.BUSINESS.toString()
-					: EventType.SYSTEM.toString();
-			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
-					moduleId, moduleName, registrationId);
-
-		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"PacketInfoManagerImpl::saveDemographicInfoJson()::exit");
-
 	}
 
 	/*
@@ -1000,18 +970,6 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
 				"PacketInfoManagerImpl::saveRegLostUinDetData()::exit");
 
-	}
-
-	private JsonValue[] getField(String value) throws IOException {
-		if (StringUtils.isNotEmpty(value)) {
-			Object object = objectMapper.readValue(value, Object.class);
-			if (object instanceof ArrayList) {
-				JSONArray node = objectMapper.readValue(value, JSONArray.class);
-				JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
-				return jsonValues;
-			}
-		}
-		return null;
 	}
 
 	@Override
