@@ -173,7 +173,8 @@ public class MessageNotificationServiceImpl
 			String artifact="";
 			for(String lang: preferredLanguages) {
 				Map<String, Object> attributesLang=new HashMap<>(attributes);
-				setAttributes(id, process,languageUtility.getLangCodeFromNativeName(lang), idType, attributesLang, regType, phoneNumber, emailId);
+				String preferredLangCode=languageUtility.getLangCodeFromNativeName(lang);
+				setAttributes(id, process,preferredLangCode!=null?preferredLangCode:lang, idType, attributesLang, regType, phoneNumber, emailId);
 				InputStream stream = templateGenerator.getTemplate(templateTypeCode, attributesLang, lang);
 				if(artifact.isBlank()) {
 				 artifact = IOUtils.toString(stream, ENCODING);
@@ -247,7 +248,8 @@ public class MessageNotificationServiceImpl
 			String subject="";
 			for(String lang: preferredLanguages) {
 				Map<String, Object> attributesLang=new HashMap<>(attributes);
-				setAttributes(id, process,languageUtility.getLangCodeFromNativeName(lang), idType, attributesLang, regType, phoneNumber, emailId);
+				String preferredLangCode=languageUtility.getLangCodeFromNativeName(lang);
+				setAttributes(id, process,preferredLangCode!=null?preferredLangCode:lang, idType, attributesLang, regType, phoneNumber, emailId);
 				InputStream stream = templateGenerator.getTemplate(templateTypeCode, attributesLang, lang);
 				
 				artifact = IOUtils.toString(stream, ENCODING);
