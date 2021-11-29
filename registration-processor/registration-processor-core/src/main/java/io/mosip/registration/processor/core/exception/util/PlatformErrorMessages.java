@@ -1023,6 +1023,9 @@ public enum PlatformErrorMessages {
 
 	/** The rpr utl digital sign exception. */
 	RPR_UTL_DIGITAL_SIGN_EXCEPTION(PlatformConstants.RPR_UTIL + "003", "Failed to generate digital signature"),
+	
+	/** The rpr utl language exception. */
+	RPR_UTL_LANGUAGE_EXCEPTION(PlatformConstants.RPR_UTIL + "004", "Failed to retrieve language details."),
 
 	/** The rpr prt pdf not generated. */
 	// Printing stage exceptions

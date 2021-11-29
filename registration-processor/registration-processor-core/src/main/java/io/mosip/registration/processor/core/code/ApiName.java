@@ -143,6 +143,9 @@ public enum ApiName {
 
 	/** The digitalsignature. */
 	DIGITALSIGNATURE,
+	
+	/** The Language. */
+	LANGUAGE,
 
 	/** The Vid creation. */
 	CREATEVID,
