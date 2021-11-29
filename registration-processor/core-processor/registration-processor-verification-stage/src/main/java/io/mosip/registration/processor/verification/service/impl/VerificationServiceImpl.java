@@ -207,7 +207,7 @@ public class VerificationServiceImpl implements VerificationService {
 	 * pushed to queue and update Manual verification entity
 	 */
 	@Override
-	public MessageDTO process(MessageDTO messageDTO, MosipQueue queue) {
+	public MessageDTO process(MessageDTO messageDTO, MosipQueue queue, String stageName) {
 		messageDTO.setInternalError(false);
 		messageDTO.setIsValid(false);
 		messageDTO.setMessageBusAddress(MessageBusAddress.VERIFICATION_BUS_IN);
@@ -234,6 +234,20 @@ public class VerificationServiceImpl implements VerificationService {
 				mosipQueueManager.send(queue, JsonUtils.javaObjectToJsonString(mar).getBytes(), mvRequestAddress, mvRequestMessageTTL);
 
 			isTransactionSuccessful = saveVerificationRecord(messageDTO, mar.getRequestId(), description);
+			if (isTransactionSuccessful) {
+				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+				registrationStatusDto.setSubStatusCode(StatusUtil.VERIFICATION_SENT.getCode());
+				registrationStatusDto.setStatusComment(StatusUtil.VERIFICATION_SENT.getMessage());
+				registrationStatusDto
+						.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.IN_PROGRESS.toString());
+			} else {
+				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+				registrationStatusDto.setSubStatusCode(StatusUtil.VERIFICATION_FAILED.getCode());
+				registrationStatusDto.setStatusComment(StatusUtil.VERIFICATION_FAILED.getMessage());
+				registrationStatusDto
+						.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.ERROR.toString());
+			}
+			registrationStatusDto.setRegistrationStageName(stageName);
 
 		} catch (DataShareException de) {
 			messageDTO.setInternalError(true);
@@ -272,8 +286,8 @@ public class VerificationServiceImpl implements VerificationService {
 				description.setCode(PlatformSuccessMessages.RPR_VERIFICATION_SUCCESS.getCode());
 				description.setMessage(PlatformSuccessMessages.RPR_VERIFICATION_SUCCESS.getMessage());
 			}
-			/*updateStatus(messageDTO, registrationStatusDto,
-					isTransactionSuccessful, description, PlatformSuccessMessages.RPR_VERIFICATION_SENT);*/
+			updateStatus(messageDTO, registrationStatusDto,
+					isTransactionSuccessful, description, PlatformSuccessMessages.RPR_VERIFICATION_SENT);
 		}
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -318,13 +332,13 @@ public class VerificationServiceImpl implements VerificationService {
 
 			// check if response is marked for resend
 			if (isResendFlow(registrationStatusDto, manualVerificationDTO, entity)) {
-				registrationStatusDto.setStatusComment(StatusUtil.RPR_MANUAL_VERIFICATION_RESEND.getMessage());
-				registrationStatusDto.setSubStatusCode(StatusUtil.RPR_MANUAL_VERIFICATION_RESEND.getCode());
+				registrationStatusDto.setStatusComment(StatusUtil.VERIFICATION_RESEND.getMessage());
+				registrationStatusDto.setSubStatusCode(StatusUtil.VERIFICATION_RESEND.getCode());
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 				registrationStatusDto
 						.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
-				description.setMessage(PlatformSuccessMessages.RPR_MANUAL_VERIFICATION_RESEND.getMessage());
-				description.setCode(PlatformSuccessMessages.RPR_MANUAL_VERIFICATION_RESEND.getCode());
+				description.setMessage(StatusUtil.VERIFICATION_RESEND.getMessage());
+				description.setCode(StatusUtil.VERIFICATION_RESEND.getCode());
 				messageDTO.setInternalError(true);
 				messageDTO.setIsValid(isTransactionSuccessful);
 				verificationStage.sendMessage(messageDTO);
@@ -705,12 +719,13 @@ public class VerificationServiceImpl implements VerificationService {
 				ManualVerificationStatus.APPROVED.name() : ManualVerificationStatus.REJECTED.name();
 
 		String responsetext = JsonUtils.javaObjectToJsonString(manualVerificationDTO);
+		responsetext = StringUtils.isNotEmpty(responsetext) ? responsetext.replaceAll("\\s+","") : responsetext;
 
 		entity.setStatusCode(statusCode);
 		entity.setReponseText(responsetext);
 		entity.setStatusComment(statusCode.equalsIgnoreCase(ManualVerificationStatus.APPROVED.name()) ?
-				StatusUtil.MANUAL_VERIFIER_APPROVED_PACKET.getMessage() :
-				StatusUtil.MANUAL_VERIFIER_REJECTED_PACKET.getMessage());
+				StatusUtil.VERIFICATION_SUCCESS.getMessage() :
+				StatusUtil.VERIFICATION_FAILED.getMessage());
 
 		isTransactionSuccessful = true;
 		registrationStatusDto
@@ -720,19 +735,19 @@ public class VerificationServiceImpl implements VerificationService {
 		if (statusCode != null && statusCode.equalsIgnoreCase(ManualVerificationStatus.APPROVED.name())) {
 			messageDTO.setIsValid(isTransactionSuccessful);
 			verificationStage.sendMessage(messageDTO);
-			registrationStatusDto.setStatusComment(StatusUtil.MANUAL_VERIFIER_APPROVED_PACKET.getMessage());
-			registrationStatusDto.setSubStatusCode(StatusUtil.MANUAL_VERIFIER_APPROVED_PACKET.getCode());
+			registrationStatusDto.setStatusComment(StatusUtil.VERIFICATION_SUCCESS.getMessage());
+			registrationStatusDto.setSubStatusCode(StatusUtil.VERIFICATION_SUCCESS.getCode());
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 			registrationStatusDto
 					.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 
-			description.setMessage(PlatformSuccessMessages.RPR_MANUAL_VERIFICATION_APPROVED.getMessage());
-			description.setCode(PlatformSuccessMessages.RPR_MANUAL_VERIFICATION_APPROVED.getCode());
+			description.setMessage(PlatformSuccessMessages.RPR_VERIFICATION_SUCCESS.getMessage());
+			description.setCode(PlatformSuccessMessages.RPR_VERIFICATION_SUCCESS.getCode());
 
 		} else if (statusCode != null && statusCode.equalsIgnoreCase(ManualVerificationStatus.REJECTED.name())) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
-			registrationStatusDto.setStatusComment(StatusUtil.MANUAL_VERIFIER_REJECTED_PACKET.getMessage());
-			registrationStatusDto.setSubStatusCode(StatusUtil.MANUAL_VERIFIER_REJECTED_PACKET.getCode());
+			registrationStatusDto.setStatusComment(StatusUtil.VERIFICATION_FAILED.getMessage());
+			registrationStatusDto.setSubStatusCode(StatusUtil.VERIFICATION_FAILED.getCode());
 			registrationStatusDto
 					.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
 
@@ -743,8 +758,8 @@ public class VerificationServiceImpl implements VerificationService {
 			verificationStage.sendMessage(messageDTO);
 		} else {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-			registrationStatusDto.setStatusComment(StatusUtil.RPR_MANUAL_VERIFICATION_RESEND.getMessage());
-			registrationStatusDto.setSubStatusCode(StatusUtil.RPR_MANUAL_VERIFICATION_RESEND.getCode());
+			registrationStatusDto.setStatusComment(StatusUtil.VERIFICATION_RESEND.getMessage());
+			registrationStatusDto.setSubStatusCode(StatusUtil.VERIFICATION_RESEND.getCode());
 			registrationStatusDto
 					.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.IN_PROGRESS.toString());
 

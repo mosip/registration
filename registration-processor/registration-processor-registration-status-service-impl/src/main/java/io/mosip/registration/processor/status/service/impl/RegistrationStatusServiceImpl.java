@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -269,6 +270,8 @@ public class RegistrationStatusServiceImpl
 
 	private void updateRegistrationStatus(InternalRegistrationStatusDto registrationStatusDto, String moduleId,
 			String moduleName, boolean updateStatusCode) {
+		registrationStatusDto
+				.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.VERIFICATION.toString());
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationStatusDto.getRegistrationId(),
 				"RegistrationStatusServiceImpl::updateRegistrationStatus()::entry");

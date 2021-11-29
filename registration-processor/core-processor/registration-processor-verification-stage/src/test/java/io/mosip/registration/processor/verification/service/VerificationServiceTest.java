@@ -76,6 +76,7 @@ import static org.mockito.Matchers.any;
 @PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*","javax.management.*", "javax.net.ssl.*" })
 public class VerificationServiceTest {
 
+	private static final String STAGE_NAME = "VerificationStage";
 	private List<ManualVerificationEntity> entities;
 	private List<ManualVerificationEntity> entitiesTemp;
 	@InjectMocks
@@ -356,7 +357,7 @@ public class VerificationServiceTest {
 		Mockito.when(mosipQueueManager.send(any(), anyString(), anyString(), anyInt())).thenReturn(true);
 
 
-		MessageDTO response = verificationService.process(object, queue);
+		MessageDTO response = verificationService.process(object, queue, stageName);
 
 		assertTrue(response.getIsValid());
 	}

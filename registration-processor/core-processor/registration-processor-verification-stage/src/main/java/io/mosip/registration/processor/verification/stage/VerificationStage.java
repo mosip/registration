@@ -61,6 +61,7 @@ import javax.jms.TextMessage;
 public class VerificationStage extends MosipVerticleAPIManager {
 
 	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.verification.";
+	private static final String CLASS_NAME = "VerificationStage";
 
 	@Autowired
 	private VerificationService verificationService;
@@ -191,7 +192,7 @@ public class VerificationStage extends MosipVerticleAPIManager {
 
 	@Override
 	public MessageDTO process(MessageDTO object) {
-		return verificationService.process(object, queue);
+		return verificationService.process(object, queue, CLASS_NAME);
 	}
 
 	private MosipQueue getQueueConnection() {
@@ -217,7 +218,7 @@ public class VerificationStage extends MosipVerticleAPIManager {
 			}
 			VerificationResponseDTO resp = JsonUtil.readValueWithUnknownProperties(response, VerificationResponseDTO.class);
 			if (resp != null) {
-				boolean isProcessingSuccessful = verificationService.updatePacketStatus(resp, this.getClass().getSimpleName(),queue);
+				boolean isProcessingSuccessful = verificationService.updatePacketStatus(resp, CLASS_NAME, queue);
 				
 				if (isProcessingSuccessful)
 					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
