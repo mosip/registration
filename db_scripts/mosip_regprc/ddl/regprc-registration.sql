@@ -40,6 +40,10 @@ CREATE TABLE regprc.registration(
 	CONSTRAINT pk_reg_id PRIMARY KEY (id)
 
 );
+
+-- indexes section -------------------------------------------------
+CREATE INDEX idx_reg_upd_trn_dtimes_asc ON regprc.registration USING btree (upd_dtimes asc,latest_trn_dtimes asc)
+
 -- ddl-end --
 COMMENT ON TABLE regprc.registration IS 'Registration: Registration Processor table is to store registration requests that are being processed, Also maintains packet id details and status of the registration requests.';
 -- ddl-end --
