@@ -94,7 +94,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	 * Comma separated out bus message addresses for which message will not be sent out from any stage
 	 */
 	@Value("#{T(java.util.Arrays).asList('${mosip.regproc.stage-common.bus-out-halt-addresses:}')}")
-	private List<String> busOutHaltAddresses;
+	protected List<String> busOutHaltAddresses;
 	
 	@Autowired
 	private MosipEventBusFactory mosipEventBusFactory;
@@ -175,7 +175,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	@Override
 	public void consumeAndSend(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
 			MessageBusAddress toAddress, long messageExpiryTimeLimit) {
-		if(busOutHaltAddresses.contains(toAddress.toString())) {
+		if(busOutHaltAddresses.contains(toAddress.getAddress())) {
 			consume(mosipEventBus, fromAddress, messageExpiryTimeLimit);
 			return;
 		}
@@ -212,7 +212,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	 *            The message that needs to be sent
 	 */
 	public void send(MosipEventBus mosipEventBus, MessageBusAddress toAddress, MessageDTO message) {
-		if(busOutHaltAddresses.contains(toAddress.toString()))
+		if(busOutHaltAddresses.contains(toAddress.getAddress()))
 			return;
 		if(message.getTags() == null)
 			addTagsToMessageDTO(message);
