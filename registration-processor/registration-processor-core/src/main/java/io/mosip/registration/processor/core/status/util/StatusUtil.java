@@ -251,7 +251,12 @@ public enum StatusUtil {
 			"Packet rejected as number of iterations exceeded permited limit."),
 	
 	WORKFLOW_ACTION_SERVICE_SUCCESS(StatusConstants.WORKFLOW_ACTION_SERVICE + "001",
-			"Packet workflow resume  successfully");
+			"Packet workflow resume  successfully"),
+
+	VERIFICATION_SUCCESS(StatusConstants.VERIFICATION_STAGE + "001", "Verification success"),
+	VERIFICATION_FAILED(StatusConstants.VERIFICATION_STAGE + "002","Verification failed"),
+	VERIFICATION_SENT(StatusConstants.VERIFICATION_STAGE + "003", "Sent for verification"),
+	VERIFICATION_RESEND(StatusConstants.VERIFICATION_STAGE + "004", "Resend for verification");
 
 	private final String statusComment;
 	private final String statusCode;

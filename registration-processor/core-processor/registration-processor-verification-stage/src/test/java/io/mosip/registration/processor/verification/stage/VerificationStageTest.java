@@ -37,6 +37,8 @@ import static org.mockito.Matchers.any;
 
 public class VerificationStageTest {
 
+	private static final String STAGE_NAME = "VerificationStage";
+
 	@Mock
 	private MosipQueueConnectionFactory<MosipQueue> mosipConnectionFactory;
 	@Mock
@@ -130,7 +132,7 @@ public class VerificationStageTest {
 		messageDTO.setRid("12345");
 		messageDTO.setIsValid(true);
 
-		Mockito.when(verificationService.process(messageDTO, mosipQueue)).thenReturn(messageDTO);
+		Mockito.when(verificationService.process(messageDTO, mosipQueue, STAGE_NAME)).thenReturn(messageDTO);
 
 		MessageDTO result = verificationstage.process(messageDTO);
 

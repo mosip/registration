@@ -26,7 +26,7 @@ public interface VerificationService {
 	 */
 	public boolean updatePacketStatus(VerificationResponseDTO resp, String stageName, MosipQueue queue);
 
-	public MessageDTO process(MessageDTO object, MosipQueue queue);
+	public MessageDTO process(MessageDTO object, MosipQueue queue, String stageName);
 
 	
 	
