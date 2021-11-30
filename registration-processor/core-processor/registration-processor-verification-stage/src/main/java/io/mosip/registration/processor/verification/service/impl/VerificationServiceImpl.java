@@ -388,6 +388,8 @@ public class VerificationServiceImpl implements VerificationService {
 		if(messageDTO.getInternalError()) {
 			updateErrorFlags(registrationStatusDto, messageDTO);
 		}
+		registrationStatusDto
+				.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.VERIFICATION.toString());
 		String regId = messageDTO.getRid();
 		/** Module-Id can be Both Success/Error code */
 		String moduleId = isTransactionSuccessful

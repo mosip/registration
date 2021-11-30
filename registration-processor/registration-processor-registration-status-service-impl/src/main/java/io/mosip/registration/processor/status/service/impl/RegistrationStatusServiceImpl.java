@@ -270,8 +270,6 @@ public class RegistrationStatusServiceImpl
 
 	private void updateRegistrationStatus(InternalRegistrationStatusDto registrationStatusDto, String moduleId,
 			String moduleName, boolean updateStatusCode) {
-		registrationStatusDto
-				.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.VERIFICATION.toString());
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationStatusDto.getRegistrationId(),
 				"RegistrationStatusServiceImpl::updateRegistrationStatus()::entry");
