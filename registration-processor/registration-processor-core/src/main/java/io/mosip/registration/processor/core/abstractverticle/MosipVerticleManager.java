@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -94,6 +95,12 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	@Autowired
 	protected PropertiesUtil propertiesUtil;
 
+	/*
+	 * Comma separated out bus message addresses for which message will not be sent out from any stage
+	 */
+	@Value("#{T(java.util.Arrays).asList('${mosip.regproc.stage-common.bus-out-halt-addresses:}')}")
+	protected List<String> busOutHaltAddresses;
+	
 	@Autowired
 	private MosipEventBusFactory mosipEventBusFactory;
 
@@ -173,6 +180,10 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	@Override
 	public void consumeAndSend(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
 			MessageBusAddress toAddress, long messageExpiryTimeLimit) {
+		if(busOutHaltAddresses.contains(toAddress.getAddress())) {
+			consume(mosipEventBus, fromAddress, messageExpiryTimeLimit);
+			return;
+		}
 		mosipEventBus.consumeAndSend(fromAddress, toAddress, (msg, handler) -> {
 			logger.debug("consumeAndSend received from {} {}",fromAddress.toString(), msg.getBody());
 			Map<String, String> mdc = MDC.getCopyOfContextMap();
@@ -218,6 +229,8 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	 *            The message that needs to be sent
 	 */
 	public void send(MosipEventBus mosipEventBus, MessageBusAddress toAddress, MessageDTO message) {
+		if(busOutHaltAddresses.contains(toAddress.getAddress()))
+			return;
 		addTagsToMessageDTO(message);
 		message.setLastHopTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 		mosipEventBus.send(toAddress, message);
