@@ -56,6 +56,7 @@ import io.mosip.registration.processor.core.packet.dto.demographicinfo.JsonValue
 import io.mosip.registration.processor.core.spi.message.sender.MessageNotificationService;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
+import io.mosip.registration.processor.core.util.LanguageUtility;
 import io.mosip.registration.processor.message.sender.exception.EmailIdNotFoundException;
 import io.mosip.registration.processor.message.sender.exception.IDRepoResponseNull;
 import io.mosip.registration.processor.message.sender.exception.PhoneNumberNotFoundException;
@@ -120,6 +121,9 @@ public class MessageNotificationServiceImpl
 	/** The utility. */
 	@Autowired
 	private Utilities utility;
+	
+	@Autowired
+	private LanguageUtility languageUtility;
 
 	/** The rest client service. */
 	@Autowired
@@ -169,7 +173,8 @@ public class MessageNotificationServiceImpl
 			String artifact="";
 			for(String lang: preferredLanguages) {
 				Map<String, Object> attributesLang=new HashMap<>(attributes);
-				setAttributes(id, process,lang, idType, attributesLang, regType, phoneNumber, emailId);
+				String preferredLangCode=languageUtility.getLangCodeFromNativeName(lang);
+				setAttributes(id, process,preferredLangCode!=null?preferredLangCode:lang, idType, attributesLang, regType, phoneNumber, emailId);
 				InputStream stream = templateGenerator.getTemplate(templateTypeCode, attributesLang, lang);
 				if(artifact.isBlank()) {
 				 artifact = IOUtils.toString(stream, ENCODING);
@@ -243,7 +248,8 @@ public class MessageNotificationServiceImpl
 			String subject="";
 			for(String lang: preferredLanguages) {
 				Map<String, Object> attributesLang=new HashMap<>(attributes);
-				setAttributes(id, process,lang, idType, attributesLang, regType, phoneNumber, emailId);
+				String preferredLangCode=languageUtility.getLangCodeFromNativeName(lang);
+				setAttributes(id, process,preferredLangCode!=null?preferredLangCode:lang, idType, attributesLang, regType, phoneNumber, emailId);
 				InputStream stream = templateGenerator.getTemplate(templateTypeCode, attributesLang, lang);
 				
 				artifact = IOUtils.toString(stream, ENCODING);
