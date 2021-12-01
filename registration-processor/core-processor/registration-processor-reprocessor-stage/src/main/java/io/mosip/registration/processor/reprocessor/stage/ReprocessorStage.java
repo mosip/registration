@@ -276,7 +276,8 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 					String eventName = EventName.UPDATE.toString();
 					String eventType = EventType.BUSINESS.toString();
 
-					auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName,
+					if (!isTransactionSuccessful)
+						auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName,
 							eventType, moduleId, moduleName, registrationId);
 				}
 			}
@@ -296,7 +297,7 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 			description.setCode(PlatformErrorMessages.REPROCESSOR_STAGE_FAILED.getCode());
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					description.getCode() + " -- " + registrationId,
-					PlatformErrorMessages.STRUCTURAL_VALIDATION_FAILED.getMessage() + ex.getMessage()
+					PlatformErrorMessages.REPROCESSOR_STAGE_FAILED.getMessage() + ex.getMessage()
 							+ ExceptionUtils.getStackTrace(ex));
 			object.setInternalError(Boolean.TRUE);
 
