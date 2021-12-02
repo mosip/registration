@@ -115,7 +115,7 @@ public class RegistrationStatusServiceImpl
 					registrationId, "RegistrationStatusServiceImpl::getAllRegistrationStatuses()::exit");
 
 			if(entities != null)
-				entities.forEach(e -> dtos.add(convertEntityToDto(e)));;
+				entities.forEach(e -> dtos.add(convertEntityToDto(e)));
 			return dtos;
 		} catch (DataAccessLayerException e) {
 

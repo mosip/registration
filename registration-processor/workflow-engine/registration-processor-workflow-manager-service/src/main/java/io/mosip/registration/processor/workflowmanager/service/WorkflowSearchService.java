@@ -36,7 +36,7 @@ public class WorkflowSearchService {
 	AuditLogRequestBuilder auditLogRequestBuilder;
 
 	/** The reg proc logger. */
-	private static Logger regProcLogger = RegProcessorLogger.getLogger(WorkflowActionService.class);
+	private static Logger regProcLogger = RegProcessorLogger.getLogger(WorkflowSearchService.class);
 
 	public Page<WorkflowDetail> searchRegistrationDetails(SearchInfo searchInfo)
 			throws WorkFlowSearchException {
@@ -65,8 +65,6 @@ public class WorkflowSearchService {
 				pageDtos.getTotalElements());
 
 	}
-
-
 
 	private void buildSearchInfoDto(SearchInfo searchInfo) {
 		for (FilterInfo filterInfo : searchInfo.getFilters()) {

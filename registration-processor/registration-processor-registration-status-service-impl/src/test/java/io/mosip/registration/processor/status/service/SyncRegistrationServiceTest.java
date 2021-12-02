@@ -3,15 +3,14 @@ package io.mosip.registration.processor.status.service;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import io.mosip.kernel.core.util.CryptoUtil;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,6 +25,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.core.env.Environment;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,6 +34,8 @@ import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.exception.IOException;
 import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
 import io.mosip.kernel.core.idvalidator.spi.RidValidator;
+import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonMappingException;
 import io.mosip.kernel.core.util.exception.JsonParseException;
@@ -74,7 +76,7 @@ import io.mosip.registration.processor.status.utilities.RegistrationUtility;
 @RefreshScope
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
-@PrepareForTest({JsonUtils.class, CryptoUtil.class})
+@PrepareForTest({ JsonUtils.class, CryptoUtil.class, HMACUtils2.class })
 public class SyncRegistrationServiceTest {
 
 	/** The sync registration dto. */
@@ -153,6 +155,7 @@ public class SyncRegistrationServiceTest {
 	 * Setup.
 	 * @throws Exception 
 	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Before
 	public void setup() throws Exception {
 		PowerMockito.mockStatic(CryptoUtil.class);
@@ -236,6 +239,8 @@ public class SyncRegistrationServiceTest {
 		syncRegistrationDto6 = new SyncRegistrationDto();
 		syncRegistrationDto6.setRegistrationId("27847657360002520181208183052");
 		syncRegistrationDto6.setLangCode("eng");
+		syncRegistrationDto6.setEmail("satish@gmail.com");
+		syncRegistrationDto6.setPhone("9374838433");
 		syncRegistrationDto6.setIsActive(true);
 		syncRegistrationDto6.setIsDeleted(false);
 
@@ -442,6 +447,62 @@ public class SyncRegistrationServiceTest {
 				(syncResponseDto.get(0)).getRegistrationId());
 		Mockito.doNothing().when(anonymousProfileService).saveAnonymousProfile(anyString(), anyString(), anyString());
 	}
+	
+	@Test
+	public void testGetSyncRegistrationStatusIOException() throws EncryptionFailureException, ApisResourceAccessException, java.io.IOException {
+		List<SyncRegistrationDto> request = new ArrayList<>();
+		request.add(syncRegistrationDto6);
+		byte[] encryptedInfo = "encryptedInfo".getBytes();
+		Mockito.when(encryptor.encrypt(anyString(), anyString(), anyString())).thenReturn(encryptedInfo);
+		Mockito.when(syncRegistrationDao.save(any())).thenReturn(syncRegistrationEntity);
+		Mockito.when(mapper.readValue(anyString(), Mockito.eq(JSONObject.class)))
+				.thenThrow(new java.io.IOException("exception occured"));
+		List<SyncResponseDto> syncResponse = syncRegistrationService.sync(request, "", "");
+
+		assertEquals("Verifing List returned", (syncResponse.get(0)).getRegistrationId(),
+				syncRegistrationDto.getRegistrationId());
+	}
+	
+	@Test
+	public void testGetSyncRegistrationStatusNoSuchAlgorithmException() throws EncryptionFailureException, ApisResourceAccessException, java.io.IOException, NoSuchAlgorithmException {
+		List<SyncRegistrationDto> request = new ArrayList<>();
+		request.add(syncRegistrationDto6);
+		byte[] encryptedInfo = "encryptedInfo".getBytes();
+		Mockito.when(encryptor.encrypt(anyString(), anyString(), anyString())).thenReturn(encryptedInfo);
+		Mockito.when(syncRegistrationDao.save(any())).thenReturn(syncRegistrationEntity);
+		PowerMockito.mockStatic(HMACUtils2.class);
+		PowerMockito.when(HMACUtils2.generateHash(any())).thenThrow(new NoSuchAlgorithmException("exception occured"));
+		List<SyncResponseDto> syncResponse = syncRegistrationService.sync(request, "", "");
+
+		assertEquals("Verifing List returned", (syncResponse.get(0)).getRegistrationId(),
+				syncRegistrationDto.getRegistrationId());
+	}
+	
+	@Test
+	public void testGetSyncRegistrationStatusEncryptionFailureException() throws EncryptionFailureException, ApisResourceAccessException {
+		List<SyncRegistrationDto> request = new ArrayList<>();
+		request.add(syncRegistrationDto6);
+		Mockito.when(encryptor.encrypt(anyString(), anyString(), anyString()))
+				.thenThrow(new EncryptionFailureException("ERR-001", "exception occured"));
+		Mockito.when(syncRegistrationDao.save(any())).thenReturn(syncRegistrationEntity);
+		List<SyncResponseDto> syncResponse = syncRegistrationService.sync(request, "", "");
+
+		assertEquals("Verifing List returned", (syncResponse.get(0)).getRegistrationId(),
+				syncRegistrationDto.getRegistrationId());
+	}
+	
+	@Test
+	public void testGetSyncRegistrationStatusPostalCodeException() throws Exception {
+		List<SyncRegistrationDto> request = new ArrayList<>();
+		request.add(syncRegistrationDto6);
+		Mockito.when(restApiClient.getApi(any(),Mockito.eq(String.class)))
+				.thenThrow(new RestClientException("exception occured"));
+		Mockito.when(syncRegistrationDao.save(any())).thenReturn(syncRegistrationEntity);
+		List<SyncResponseDto> syncResponse = syncRegistrationService.sync(request, "", "");
+
+		assertEquals("Verifing List returned", (syncResponse.get(0)).getRegistrationId(),
+				syncRegistrationDto.getRegistrationId());
+	}
 
 	@Test
 	public void testGetSyncRegistrationStatusV2Success() throws EncryptionFailureException, ApisResourceAccessException {
@@ -531,7 +592,7 @@ public class SyncRegistrationServiceTest {
 				((SyncResponseFailureV2Dto) syncResponse3.get(0)).getMessage());
 		
 		syncRegistrationDto16.setSyncType("NEW");
-		syncRegistrationDto16.setSupervisorStatus("APPROVED");
+		syncRegistrationDto16.setSupervisorStatus("REJECTED");
 		syncRegistrationDto16.setPacketHashValue("abc");
 		syncRegistrationDto16.setLangCode("eng");
 		syncRegistrationDto16.setRegistrationId(null);
@@ -541,6 +602,13 @@ public class SyncRegistrationServiceTest {
 
 		assertEquals("Invalid Request Value - RID cannot be NULL",
 				((SyncResponseFailureV2Dto) syncResponse4.get(0)).getMessage());
+		
+		syncRegistrationDto16.setPacketId(null);
+		List<SyncRegistrationDto> request5 = new ArrayList<>();
+		request5.add(syncRegistrationDto16);
+		List<SyncResponseDto> syncResponse5 = syncRegistrationService.syncV2(request2, "", "");
+
+		assertEquals("Missing Request Value -  packetId", ((SyncResponseFailDto) syncResponse5.get(0)).getMessage());
 	}
 	
 	@Test(expected = TablenotAccessibleException.class)
@@ -822,6 +890,7 @@ public class SyncRegistrationServiceTest {
 
 	@Test(expected = TablenotAccessibleException.class)
 	public void searchLostRid() {
+		
 		SearchInfo searchInfo = new SearchInfo();
 		List<FilterInfo> filterInfos = new ArrayList<FilterInfo>();
 		List<SortInfo> sortInfos = new ArrayList<SortInfo>();
@@ -841,6 +910,36 @@ public class SyncRegistrationServiceTest {
 		filterInfos.add(filterInfo1);
 		sortInfos.add(sortInfo);
 		testIdList.add("1001");
+		searchInfo.setFilters(filterInfos);
+		searchInfo.setSort(sortInfos);
+		List<LostRidDto> lostRidDtos = syncRegistrationService.searchLostRid(searchInfo);
+		assertEquals(lostRidDtos.get(0).getRegistrationId(), testIdList.get(0));
+	}
+	
+	@Test
+	public void searchLostRidVariousScenario() {
+		
+		ReflectionTestUtils.setField(syncRegistrationService, "maxSearchResult", 2);
+		Mockito.when(syncRegistrationDao.getSearchResults(any(),any())).thenReturn(syncRegistrationEntities);
+		SearchInfo searchInfo = new SearchInfo();
+		List<FilterInfo> filterInfos = new ArrayList<FilterInfo>();
+		List<SortInfo> sortInfos = new ArrayList<SortInfo>();
+		List<String> testIdList = new ArrayList<String>();
+		FilterInfo filterInfo = new FilterInfo();
+		filterInfo.setColumnName("name");
+		filterInfo.setValue("mosip");
+		filterInfo.setType("equals");
+		FilterInfo filterInfo1 = new FilterInfo();
+		filterInfo1.setColumnName("email");
+		filterInfo1.setValue("mosip1@gmail.com");
+		filterInfo1.setType("equals");
+		SortInfo sortInfo = new SortInfo();
+		sortInfo.setSortField("createDateTime");
+		sortInfo.setSortType("desc");
+		filterInfos.add(filterInfo);
+		filterInfos.add(filterInfo1);
+		sortInfos.add(sortInfo);
+		testIdList.add("27847657360002520181208183052");
 		searchInfo.setFilters(filterInfos);
 		searchInfo.setSort(sortInfos);
 		List<LostRidDto> lostRidDtos = syncRegistrationService.searchLostRid(searchInfo);
@@ -868,6 +967,42 @@ public class SyncRegistrationServiceTest {
 				"errorMessage", new Exception());
 		Mockito.when(syncRegistrationDao.getByIds(any())).thenThrow(exp);
 		syncRegistrationService.getExternalStatusByIds(requestIds);
+	}
+	
+	@Test
+	public void findByWorkflowInstanceIdTest() {
+
+		Mockito.when(syncRegistrationDao.findByWorkflowInstanceId(any())).thenReturn(syncRegistrationEntity);
+
+		SyncRegistrationEntity entity = syncRegistrationService.findByWorkflowInstanceId("0c326dc2-ac54-4c2a-98b4-b0c620f1661f");
+		assertEquals("0c326dc2-ac54-4c2a-98b4-b0c620f1661f", entity.getWorkflowInstanceId());
+	}
+	
+	@Test
+	public void findByRegistrationIdAndAdditionalInfoReqIdTest() {
+
+		Mockito.when(syncRegistrationDao.findByRegistrationIdIdAndAdditionalInfoReqId(any(),any())).thenReturn(syncRegistrationEntity);
+
+		SyncRegistrationEntity entity = syncRegistrationService.findByRegistrationIdAndAdditionalInfoReqId("100","additionalInfo");
+		assertEquals("0c326dc2-ac54-4c2a-98b4-b0c620f1661f", entity.getWorkflowInstanceId());
+	}
+	
+	@Test
+	public void findByAdditionalInfoReqIdTest() {
+
+		Mockito.when(syncRegistrationDao.findByAdditionalInfoReqId(any())).thenReturn(syncRegistrationEntities);
+
+		List<SyncRegistrationEntity> entities = syncRegistrationService.findByAdditionalInfoReqId("additionalInfo");
+		assertEquals(1, entities.size());
+	}
+	
+	@Test
+	public void deleteAdditionalInfoTest() {
+
+		Mockito.when(syncRegistrationDao.deleteAdditionalInfo(any())).thenReturn(true);
+
+		boolean status = syncRegistrationService.deleteAdditionalInfo(syncRegistrationEntity);
+		assertEquals(true, status);
 	}
 
 }

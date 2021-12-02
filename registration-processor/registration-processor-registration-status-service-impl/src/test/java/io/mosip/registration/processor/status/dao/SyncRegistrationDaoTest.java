@@ -172,6 +172,7 @@ public class SyncRegistrationDaoTest {
 		List<SyncRegistrationEntity> rEntityList = syncRegistrationDao.getByPacketIds(packetIdList);
 		assertEquals(syncRegistrationEntityList, rEntityList);
 	}
+	
 	@Test
 	public void getSearchResults() {
 		List<FilterInfo> filterInfos = new ArrayList<FilterInfo>();
@@ -181,6 +182,26 @@ public class SyncRegistrationDaoTest {
 		filterInfo.setColumnName("name");
 		filterInfo.setValue("mosip");
 		filterInfo.setType("equals");
+		SortInfo sortInfo=new SortInfo();
+		sortInfo.setSortField("createDateTime");
+		sortInfo.setSortType("desc");
+		filterInfos.add(filterInfo);
+		sortInfos.add(sortInfo);
+		testIdList.add("1001");
+		List<SyncRegistrationEntity> idList = syncRegistrationDao.getSearchResults(filterInfos, sortInfos);
+		assertEquals(idList.get(0).getRegistrationId(), testIdList.get(0));
+	}
+	
+	@Test
+	public void getSearchResultsTest() {
+		List<FilterInfo> filterInfos = new ArrayList<FilterInfo>();
+		List<SortInfo> sortInfos = new ArrayList<SortInfo>();
+		List<String> testIdList = new ArrayList<String>();
+		FilterInfo filterInfo=new FilterInfo();
+		filterInfo.setColumnName("packetSize");
+		filterInfo.setFromValue("1000");
+		filterInfo.setToValue("2000");
+		filterInfo.setType("between");
 		SortInfo sortInfo=new SortInfo();
 		sortInfo.setSortField("createDateTime");
 		sortInfo.setSortType("desc");

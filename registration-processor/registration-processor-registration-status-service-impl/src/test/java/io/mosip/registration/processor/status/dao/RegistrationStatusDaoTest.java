@@ -64,14 +64,20 @@ public class RegistrationStatusDaoTest {
 	public void findByIdTest() {
 		RegistrationStatusEntity rEntity = registrationStatusDao.find("1000.zip", "NEW", 1, "");
 		assertEquals(registrationStatusEntity, rEntity);
-
 	}
 	
 	@Test
 	public void findByIdworkFlowNullTest() {
 		RegistrationStatusEntity rEntity = registrationStatusDao.find("1000.zip", "NEW", 1, null);
 		assertEquals(registrationStatusEntity, rEntity);
-
+	}
+	
+	@Test
+	public void getInReprocessPacketsCountTest() {
+		Mockito.when(registrationStatusRepositary.countByStatusCode(Matchers.any(), Matchers.any(), Matchers.any()))
+				.thenReturn((long) 2);
+		long response = registrationStatusDao.getInReprocessPacketsCount(20);
+		assertEquals(2, response);
 	}
 	
 	@Test

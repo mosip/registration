@@ -2,10 +2,10 @@ package io.mosip.registration.processor.status.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -133,7 +133,7 @@ public class RegistrationStatusServiceTest {
 		registrationExternalStatusEntity2.setIteration(1);
 		registrationExternalStatusEntity2.setRegistrationType("CORRECTION");
 		registrationExternalStatusEntity2.setId(pk);
-		registrationExternalStatusEntity2.setStatusCode("FAILED");
+		registrationExternalStatusEntity2.setStatusCode("REJECTED");
 		registrationExternalStatusEntity2.setCreateDateTime(LocalDateTime.now().plusDays(1));
 		registrationExternalStatusEntity2.setRetryCount(2);
 		registrationExternalStatusEntity2.setRegistrationStageName("PacketValidatorStage");
@@ -287,6 +287,15 @@ public class RegistrationStatusServiceTest {
 		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus("1001", "NEW", 1, "");
 		assertEquals("PACKET_UPLOADED_TO_LANDING_ZONE", dto.getStatusCode());
 	}
+	
+	@Test
+	public void testupdateRegistrationStatusForWorkflowEngineSuccess() {
+		registrationStatusDto.setRefId("abc");
+		registrationStatusService.updateRegistrationStatusForWorkflowEngine(registrationStatusDto, "", "");
+
+		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus("1001", "NEW", 1, "");
+		assertEquals("PACKET_UPLOADED_TO_LANDING_ZONE", dto.getStatusCode());
+	}
 
 	@Test(expected = TablenotAccessibleException.class)
 	public void updateRegistrationStatusFailureTest() {
@@ -328,6 +337,33 @@ public class RegistrationStatusServiceTest {
 	}
 	
 	@Test
+	public void testGetByIdsStatusCodeNull() {
+
+		registrationStatusEntity.setStatusCode(null);
+		entities = new ArrayList<>();
+		entities.add(registrationStatusEntity);
+		Mockito.when(registrationStatusDao.getByIds(any())).thenReturn(entities);
+		RegistrationStatusSubRequestDto registrationId = new RegistrationStatusSubRequestDto();
+		registrationId.setRegistrationId("1001");
+		List<RegistrationStatusSubRequestDto> registrationIds = new ArrayList<>();
+		registrationIds.add(registrationId);
+		List<RegistrationStatusDto> list = registrationStatusService.getByIds(registrationIds);
+		assertEquals(null, list.get(0).getStatusCode());
+	}
+	
+	@Test
+	public void testGetExternalStatusByIdsProcessingSuccess() {
+
+		registrationExternalStatusEntity2.setStatusCode("REPROCESS");
+		Mockito.when(registrationStatusDao.getByIds(any())).thenReturn(externalEntities);
+		String registartionId="1001";
+		List<String> registrationIds = new ArrayList<>();
+		registrationIds.add(registartionId);
+		List<RegistrationStatusDto> list = registrationStatusService.getExternalStatusByIds(registrationIds);
+		assertEquals("PROCESSING", list.get(0).getStatusCode());
+	}
+	
+	@Test
 	public void testGetExternalStatusByIdsAwaitingInfoSuccess() {
 
 		Mockito.when(registrationStatusDao.getByIds(any())).thenReturn(externalEntities);
@@ -339,6 +375,20 @@ public class RegistrationStatusServiceTest {
 	}
 	
 	@Test
+	public void testGetExternalStatusByIdsStatusCodeNull() {
+
+		registrationExternalStatusEntity1.setStatusCode(null);
+		externalEntities = new ArrayList<>();
+		externalEntities.add(registrationExternalStatusEntity1);
+		Mockito.when(registrationStatusDao.getByIds(any())).thenReturn(externalEntities);
+		String registartionId="1001";
+		List<String> registrationIds = new ArrayList<>();
+		registrationIds.add(registartionId);
+		List<RegistrationStatusDto> list = registrationStatusService.getExternalStatusByIds(registrationIds);
+		assertEquals(null, list.get(0).getStatusCode());
+	}
+	
+	@Test
 	public void testGetExternalStatusByIdsProcessedSuccess() {
 
 		Mockito.when(registrationStatusDao.getByIds(any())).thenReturn(externalEntities1);
@@ -347,6 +397,30 @@ public class RegistrationStatusServiceTest {
 		registrationIds.add(registartionId);
 		List<RegistrationStatusDto> list = registrationStatusService.getExternalStatusByIds(registrationIds);
 		assertEquals("UIN_GENERATED", list.get(0).getStatusCode());
+	}
+	
+	@Test
+	public void testGetExternalStatusByIdsReprocessSuccess() {
+
+		registrationExternalStatusEntity3.setStatusCode("REPROCESS");
+		Mockito.when(registrationStatusDao.getByIds(any())).thenReturn(externalEntities1);
+		String registartionId="1001";
+		List<String> registrationIds = new ArrayList<>();
+		registrationIds.add(registartionId);
+		List<RegistrationStatusDto> list = registrationStatusService.getExternalStatusByIds(registrationIds);
+		assertEquals("PROCESSING", list.get(0).getStatusCode());
+	}
+	
+	@Test
+	public void testGetExternalStatusByIdsReprocessFailedSuccess() {
+
+		registrationExternalStatusEntity3.setStatusCode("REPROCESS_FAILED");
+		Mockito.when(registrationStatusDao.getByIds(any())).thenReturn(externalEntities1);
+		String registartionId="1001";
+		List<String> registrationIds = new ArrayList<>();
+		registrationIds.add(registartionId);
+		List<RegistrationStatusDto> list = registrationStatusService.getExternalStatusByIds(registrationIds);
+		assertEquals("REREGISTER", list.get(0).getStatusCode());
 	}
 	
 	@Test
@@ -528,5 +602,30 @@ public class RegistrationStatusServiceTest {
 				"errorMessage", new Exception());
 		Mockito.when(registrationStatusDao.findAll(anyString())).thenThrow(exp);
 		registrationStatusService.getRegStatusForMainProcess("1001");
+	}
+	
+	@Test
+	public void checkUinAvailabilityForRidTest() {
+
+		Mockito.when(registrationStatusDao.checkUinAvailabilityForRid(any())).thenReturn(true);
+		String registartionId="1000";
+		Boolean status = registrationStatusService.checkUinAvailabilityForRid(registartionId);
+		assertEquals(true, status);
+	}
+	
+	@Test
+	public void getInReprocessPacketsCountTest() {
+
+		Mockito.when(registrationStatusDao.getInReprocessPacketsCount(anyLong())).thenReturn((long) 2);
+		long value = registrationStatusService.getInReprocessPacketsCount(100);
+		assertEquals(2, value);
+	}
+	
+	@Test(expected = TablenotAccessibleException.class)
+	public void getInReprocessPacketsCountDataAccessExceptionTest() {
+
+		Mockito.when(registrationStatusDao.getInReprocessPacketsCount(anyLong()))
+				.thenThrow(new DataAccessLayerException("ERR-001", "exception occured", null));
+		registrationStatusService.getInReprocessPacketsCount(100);
 	}
 }

@@ -1,6 +1,5 @@
 package io.mosip.registration.processor.status.dao;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -266,7 +265,6 @@ public class SyncRegistrationDao {
 
 	public List<SyncRegistrationEntity> getSearchResults(List<FilterInfo> filters, List<SortInfo> sort) {
 		Map<String, Object> params = new HashMap<>();
-		List<String> registrationIdlist = new ArrayList<String>();
 		String className = SyncRegistrationEntity.class.getSimpleName();
 		String queryStr=null;
 		String alias = SyncRegistrationEntity.class.getName().toLowerCase().substring(0, 1);
