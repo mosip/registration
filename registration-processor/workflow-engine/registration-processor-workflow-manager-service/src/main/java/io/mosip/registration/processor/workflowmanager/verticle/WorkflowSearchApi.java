@@ -10,10 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 
-import io.mosip.kernel.core.exception.IOException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
@@ -211,7 +209,7 @@ public class WorkflowSearchApi extends MosipRouter {
 		ctx.response().putHeader("content-type", "text/plain").putHeader("Access-Control-Allow-Origin", "*")
 				.putHeader("Access-Control-Allow-Methods", "GET, POST").setStatusCode(200)
 				.end(Json.encodePrettily(object));
-	};
+	}
 
 	public void setApiRoute(Router router) {
 		setRoute(router);

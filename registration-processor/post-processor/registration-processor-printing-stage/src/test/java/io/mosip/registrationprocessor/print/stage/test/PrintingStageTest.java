@@ -175,6 +175,7 @@ public class PrintingStageTest {
 		ReflectionTestUtils.setField(stage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(stage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(stage, "clusterManagerUrl", "/dummyPath");
+		ReflectionTestUtils.setField(stage, "busOutHaltAddresses", Arrays.asList());
 		System.setProperty("server.port", "8099");
 
 		//ReflectionTestUtils.setField(stage, "port", "8080");

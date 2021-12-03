@@ -35,8 +35,6 @@ import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.workflowmanager.service.WorkflowActionService;
 import io.mosip.registration.processor.workflowmanager.validator.WorkflowActionRequestValidator;
-import io.mosip.registration.processor.workflowmanager.verticle.WorkflowActionApi;
-import io.mosip.registration.processor.workflowmanager.verticle.WorkflowSearchApi;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -483,6 +481,21 @@ public class WorkflowActionApiTest {
 	@Test
 	public void testWorkflowIdNotPresent() {
 		internalRegistrationStatusDtos = new ArrayList<InternalRegistrationStatusDto>();
+		Mockito.when(registrationStatusService.getByIdsAndTimestamp(Mockito.any()))
+				.thenReturn(internalRegistrationStatusDtos);
+		workflowActionApi.processURL(ctx);
+		assertTrue(responseObject);
+	}
+	
+	@Test
+	public void testWorkflowIdVariousScenario() {
+		InternalRegistrationStatusDto registrationStatusDto1 = new InternalRegistrationStatusDto();
+		registrationStatusDto1.setRegistrationId("2018701130000410092018110735");
+		registrationStatusDto1.setRegistrationType("NEW");
+		registrationStatusDto1.setRegistrationStageName("SecurezoneNotificationStage");
+		registrationStatusDto1.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.name());
+		internalRegistrationStatusDtos.add(registrationStatusDto1);
+		registrationStatusDto1.setStatusCode(RegistrationStatusCode.PAUSED.name());
 		Mockito.when(registrationStatusService.getByIdsAndTimestamp(Mockito.any()))
 				.thenReturn(internalRegistrationStatusDtos);
 		workflowActionApi.processURL(ctx);
