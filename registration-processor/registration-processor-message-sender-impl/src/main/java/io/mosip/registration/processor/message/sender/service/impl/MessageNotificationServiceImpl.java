@@ -163,15 +163,14 @@ public class MessageNotificationServiceImpl
 		RequestWrapper<SmsRequestDto> requestWrapper = new RequestWrapper<>();
 		ResponseWrapper<?> responseWrapper;
 
-		StringBuilder emailId = new StringBuilder();
-		StringBuilder phoneNumber = new StringBuilder();
-
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), id,
 				"MessageNotificationServiceImpl::sendSmsNotification()::entry");
 		try {
 			List<String> preferredLanguages= getPreferredLanguages(id,process);
 			String artifact="";
 			for(String lang: preferredLanguages) {
+				StringBuilder emailId = new StringBuilder();
+				StringBuilder phoneNumber = new StringBuilder();
 				Map<String, Object> attributesLang=new HashMap<>(attributes);
 				String preferredLangCode=languageUtility.getLangCodeFromNativeName(lang);
 				setAttributes(id, process,preferredLangCode!=null?preferredLangCode:lang, idType, attributesLang, regType, phoneNumber, emailId);
@@ -181,13 +180,12 @@ public class MessageNotificationServiceImpl
 				}else {
 				artifact = artifact + LINE_SEPARATOR + IOUtils.toString(stream, ENCODING);;
 				}
+				if (phoneNumber == null || phoneNumber.length() == 0) {
+					throw new PhoneNumberNotFoundException(PlatformErrorMessages.RPR_SMS_PHONE_NUMBER_NOT_FOUND.getCode());
+				}
+				smsDto.setNumber(phoneNumber.toString());
 			}
 			
-
-			if (phoneNumber == null || phoneNumber.length() == 0) {
-				throw new PhoneNumberNotFoundException(PlatformErrorMessages.RPR_SMS_PHONE_NUMBER_NOT_FOUND.getCode());
-			}
-			smsDto.setNumber(phoneNumber.toString());
 			smsDto.setMessage(artifact);
 
 			requestWrapper.setId(env.getProperty(SMS_SERVICE_ID));
@@ -237,8 +235,6 @@ public class MessageNotificationServiceImpl
 			Map<String, Object> attributes, String[] mailCc, String subjectCode, MultipartFile[] attachment, String regType)
 			throws Exception {
 		ResponseDto response = null;
-		StringBuilder emailId = new StringBuilder();
-		StringBuilder phoneNumber = new StringBuilder();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), id,
 				"MessageNotificationServiceImpl::sendEmailNotification()::entry");
 		try {
@@ -247,6 +243,8 @@ public class MessageNotificationServiceImpl
 			String artifact="";
 			String subject="";
 			for(String lang: preferredLanguages) {
+				StringBuilder emailId = new StringBuilder();
+				StringBuilder phoneNumber = new StringBuilder();
 				Map<String, Object> attributesLang=new HashMap<>(attributes);
 				String preferredLangCode=languageUtility.getLangCodeFromNativeName(lang);
 				setAttributes(id, process,preferredLangCode!=null?preferredLangCode:lang, idType, attributesLang, regType, phoneNumber, emailId);
