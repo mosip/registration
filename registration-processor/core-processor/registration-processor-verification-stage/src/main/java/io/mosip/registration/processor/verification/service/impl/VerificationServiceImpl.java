@@ -284,7 +284,8 @@ public class VerificationServiceImpl implements VerificationService {
 				messageDTO.setIsValid(true);
 				description.setCode(PlatformSuccessMessages.RPR_VERIFICATION_SUCCESS.getCode());
 				description.setMessage(PlatformSuccessMessages.RPR_VERIFICATION_SUCCESS.getMessage());
-			}
+			} else
+				registrationStatusDto.setSubStatusCode(StatusUtil.VERIFICATION_FAILED.getCode());
 			updateStatus(messageDTO, registrationStatusDto,
 					isTransactionSuccessful, description, PlatformSuccessMessages.RPR_VERIFICATION_SENT);
 		}
