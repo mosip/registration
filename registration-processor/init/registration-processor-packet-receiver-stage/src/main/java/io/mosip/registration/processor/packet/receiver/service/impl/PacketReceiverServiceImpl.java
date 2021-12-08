@@ -155,7 +155,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 			try (InputStream encryptedInputStream = FileUtils.newInputStream(file.getAbsolutePath())) {
 				byte[] encryptedByteArray = IOUtils.toByteArray(encryptedInputStream);
 				messageDTO.setReg_type(regEntity.getRegistrationType());
-				validateHashCode(encryptedByteArray, regEntity, registrationId, description);
+				validateHashCode(new ByteArrayInputStream(encryptedByteArray), regEntity, registrationId, description);
 				validatePacketFormat(fileOriginalName, registrationId, description);
 				validatePacketSize(file.length(), regEntity, registrationId, description);
 				if (isDuplicatePacket(registrationId, regEntity) && !isExternalStatusResend(registrationId)) {
@@ -322,9 +322,10 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	 *            the input packet byte
 	 * @param description
 	 */
-	private boolean scanFile(InputStream inputStream, RegistrationExceptionMapperUtil registrationExceptionMapperUtil,
+	private boolean scanFile(final byte[] input, RegistrationExceptionMapperUtil registrationExceptionMapperUtil,
 			String registrationId, InternalRegistrationStatusDto dto, LogDescription description) throws IOException {
 		try {
+			InputStream inputStream = new ByteArrayInputStream(input);
 			boolean isInputFileClean = virusScannerService.scanFile(inputStream);
 
 			if (!isInputFileClean) {
@@ -426,9 +427,10 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
-	private void validateHashCode(byte[] isbytearray, SyncRegistrationEntity regEntity, String registrationId,
+	private void validateHashCode(InputStream inputStream, SyncRegistrationEntity regEntity, String registrationId,
 			LogDescription description) throws IOException, NoSuchAlgorithmException {
 		// TO-DO testing
+		byte[] isbytearray = IOUtils.toByteArray(inputStream);
 		String hashSequence = HMACUtils2.digestAsPlainText(isbytearray);
 		String packetHashSequence = regEntity.getPacketHashValue();
 		if (!(MessageDigest.isEqual(packetHashSequence.getBytes(), hashSequence.getBytes()))) {
@@ -500,11 +502,11 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 		messageDTO.setSource(regEntity.getSource());
 		messageDTO.setWorkflowInstanceId(regEntity.getWorkflowInstanceId());
 		try (InputStream encryptedInputStream = FileUtils.newInputStream(file.getAbsolutePath())) {
-	
-			scanningFlag = scanFile(encryptedInputStream, registrationExceptionMapperUtil,
+			final byte[] encryptedByteArray = IOUtils.toByteArray(encryptedInputStream);
+			scanningFlag = scanFile(encryptedByteArray, registrationExceptionMapperUtil,
 					registrationId, dto, description);
 			if (scanningFlag) {
-				fileManager.put(packetId,encryptedInputStream,
+				fileManager.put(packetId, new ByteArrayInputStream(encryptedByteArray),
 						DirectoryPathDto.LANDING_ZONE);
 				dto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 				dto.setStatusComment(StatusUtil.PACKET_UPLOADED_TO_LANDING_ZONE.getMessage());
@@ -520,7 +522,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 						"PacketReceiverServiceImpl::success");
 
 			}
-			encryptedInputStream.close();
+
 		} catch (IOException e) {
 			messageDTO.setInternalError(Boolean.TRUE);
 			description.setMessage(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage());
