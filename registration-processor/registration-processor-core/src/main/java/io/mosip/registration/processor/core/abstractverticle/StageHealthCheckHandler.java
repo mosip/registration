@@ -113,9 +113,9 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 		this.url = environment.getProperty(HealthConstant.URL);
 		this.username = environment.getProperty(HealthConstant.USER);
 		this.password = environment.getProperty(HealthConstant.PASSWORD);
-		/*this.queueUsername = environment.getProperty(HealthConstant.QUEUE_USERNAME);
+		this.queueUsername = environment.getProperty(HealthConstant.QUEUE_USERNAME);
 		this.queuePassword = environment.getProperty(HealthConstant.QUEUE_PASSWORD);
-		this.queueBrokerUrl = environment.getProperty(HealthConstant.QUEUE_BROKER_URL);*/
+		this.queueBrokerUrl = environment.getProperty(HealthConstant.QUEUE_BROKER_URL);
 		this.currentWorkingDirPath = new File(System.getProperty(HealthConstant.CURRENT_WORKING_DIRECTORY));
 		this.resultBuilder = new StageHealthCheckHandler.JSONResultBuilder();
 		this.virusScanner = virusScanner;
@@ -219,7 +219,7 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	/**
 	 * Database health check handler
 	 * 
-	 * @param promise {@link promise} instance from handler
+	 * @param promise {@link Promise} instance from handler
 	 */
 	public void databaseHealthChecker(Promise<Status> promise) {
 
@@ -252,7 +252,7 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	/**
 	 * Disk-Space health check Handler
 	 * 
-	 * @param promise {@link promise} instance from handler
+	 * @param promise {@link Promise} instance from handler
 	 */
 	public void dispSpaceHealthChecker(Promise<Status> promise) {
 
@@ -273,7 +273,7 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	/**
 	 * Send Verticle health check handler
 	 * 
-	 * @param promise {@link promise} instance from handler
+	 * @param promise {@link Promise} instance from handler
 	 * @param vertx  {@link Vertx} instance
 	 */
 	public void senderHealthHandler(Promise<Status> promise, Vertx vertx, String address) {
