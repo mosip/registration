@@ -26,9 +26,9 @@ public class HealthConstant {
 	public static final String VIRUS_SCANNER_HOST = "mosip.kernel.virus-scanner.host";
 	public static final String VIRUS_SCANNER_PORT = "mosip.kernel.virus-scanner.port";
 	public static final String QUEUE_ADDRESS = "health-check-address";
-/*	public static final String QUEUE_USERNAME = "registration.processor.queue.username";
+	public static final String QUEUE_USERNAME = "registration.processor.queue.username";
 	public static final String QUEUE_PASSWORD = "registration.processor.queue.password";
-	public static final String QUEUE_BROKER_URL = "registration.processor.queue.url";*/
+	public static final String QUEUE_BROKER_URL = "registration.processor.queue.url";
 	public static final String CURRENT_WORKING_DIRECTORY= "user.dir";
 	
 }
