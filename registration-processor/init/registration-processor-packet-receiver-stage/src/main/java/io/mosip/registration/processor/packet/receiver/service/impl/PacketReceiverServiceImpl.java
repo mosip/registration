@@ -322,9 +322,10 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	 *            the input packet byte
 	 * @param description
 	 */
-	private boolean scanFile(InputStream inputStream, RegistrationExceptionMapperUtil registrationExceptionMapperUtil,
+	private boolean scanFile(final byte[] input, RegistrationExceptionMapperUtil registrationExceptionMapperUtil,
 			String registrationId, InternalRegistrationStatusDto dto, LogDescription description) throws IOException {
 		try {
+			InputStream inputStream = new ByteArrayInputStream(input);
 			boolean isInputFileClean = virusScannerService.scanFile(inputStream);
 
 			if (!isInputFileClean) {
@@ -500,11 +501,11 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 		messageDTO.setSource(regEntity.getSource());
 		messageDTO.setWorkflowInstanceId(regEntity.getWorkflowInstanceId());
 		try (InputStream encryptedInputStream = FileUtils.newInputStream(file.getAbsolutePath())) {
-	
-			scanningFlag = scanFile(encryptedInputStream, registrationExceptionMapperUtil,
+			final byte[] encryptedByteArray = IOUtils.toByteArray(encryptedInputStream);
+			scanningFlag = scanFile(encryptedByteArray, registrationExceptionMapperUtil,
 					registrationId, dto, description);
 			if (scanningFlag) {
-				fileManager.put(packetId,encryptedInputStream,
+				fileManager.put(packetId, new ByteArrayInputStream(encryptedByteArray),
 						DirectoryPathDto.LANDING_ZONE);
 				dto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 				dto.setStatusComment(StatusUtil.PACKET_UPLOADED_TO_LANDING_ZONE.getMessage());
@@ -520,7 +521,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 						"PacketReceiverServiceImpl::success");
 
 			}
-			encryptedInputStream.close();
+
 		} catch (IOException e) {
 			messageDTO.setInternalError(Boolean.TRUE);
 			description.setMessage(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage());

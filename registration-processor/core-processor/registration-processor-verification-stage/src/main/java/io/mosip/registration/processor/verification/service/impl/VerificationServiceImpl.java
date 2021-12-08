@@ -225,15 +225,14 @@ public class VerificationServiceImpl implements VerificationService {
 				throw new InvalidRidException(PlatformErrorMessages.RPR_MVS_NO_RID_SHOULD_NOT_EMPTY_OR_NULL.getCode(),
 						PlatformErrorMessages.RPR_MVS_NO_RID_SHOULD_NOT_EMPTY_OR_NULL.getMessage());
 			VerificationRequestDTO mar = prepareVerificationRequest(messageDTO, registrationStatusDto);
-			//String requestId = UUID.randomUUID().toString();
-			//mar.setRequestId(requestId);
+			saveVerificationRecord(messageDTO, mar.getRequestId(), description);
 			regProcLogger.debug("Request : " + JsonUtils.javaObjectToJsonString(mar));
+
 			if (messageFormat.equalsIgnoreCase(TEXT_MESSAGE))
 				mosipQueueManager.send(queue, JsonUtils.javaObjectToJsonString(mar), mvRequestAddress, mvRequestMessageTTL);
 			else
 				mosipQueueManager.send(queue, JsonUtils.javaObjectToJsonString(mar).getBytes(), mvRequestAddress, mvRequestMessageTTL);
 
-			isTransactionSuccessful = saveVerificationRecord(messageDTO, mar.getRequestId(), description);
 			if (isTransactionSuccessful) {
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 				registrationStatusDto.setSubStatusCode(StatusUtil.VERIFICATION_SENT.getCode());
@@ -285,7 +284,8 @@ public class VerificationServiceImpl implements VerificationService {
 				messageDTO.setIsValid(true);
 				description.setCode(PlatformSuccessMessages.RPR_VERIFICATION_SUCCESS.getCode());
 				description.setMessage(PlatformSuccessMessages.RPR_VERIFICATION_SUCCESS.getMessage());
-			}
+			} else
+				registrationStatusDto.setSubStatusCode(StatusUtil.VERIFICATION_FAILED.getCode());
 			updateStatus(messageDTO, registrationStatusDto,
 					isTransactionSuccessful, description, PlatformSuccessMessages.RPR_VERIFICATION_SENT);
 		}
@@ -585,10 +585,6 @@ public class VerificationServiceImpl implements VerificationService {
 		pathSegments.add(subscriberId);
 		String protocol = StringUtils.isNotEmpty(httpProtocol) ? PolicyConstant.HTTP_PROTOCOL : PolicyConstant.HTTPS_PROTOCOL;
 		String url = null;
-
-		if (httpProtocol != null && !httpProtocol.isEmpty()) {
-			protocol = httpProtocol;
-		}
 
 		if (policy.get(PolicyConstant.DATASHARE_POLICIES) != null) {
 			LinkedHashMap<String, String> datasharePolicies = (LinkedHashMap<String, String>) policies.get(PolicyConstant.DATASHARE_POLICIES);

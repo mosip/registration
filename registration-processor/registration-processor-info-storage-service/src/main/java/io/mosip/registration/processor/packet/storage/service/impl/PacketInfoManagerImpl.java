@@ -6,6 +6,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -225,7 +226,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 					JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.EMAIL),
 					MappingJsonConstants.VALUE);
 
-			fields.add(nameKey);
+			fields.addAll(Arrays.asList(nameKey.split(",")));
 			fields.add(dob);
 			fields.add(gender);
 			fields.add(email);
