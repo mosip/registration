@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
+import io.mosip.registration.processor.packet.storage.exception.ObjectDoesnotExistsException;
 import io.mosip.registration.processor.packet.storage.utils.OSIUtils;
 import io.mosip.registration.processor.status.service.AdditionalInfoRequestService;
 import org.apache.commons.collections.CollectionUtils;
@@ -95,6 +96,9 @@ public class DeviceValidator {
 
 	@Value("#{T(java.util.Arrays).asList('${mosip.regproc.common.before-cbeff-others-attibute.reg-client-versions:}')}")
 	private List<String> regClientVersionsBeforeCbeffOthersAttritube;
+
+	@Value("#{T(java.util.Arrays).asList('${mosip.regproc.biometric.correction.process:}')}")
+	private List<String> biometricCorrectionProcess;
 
 	/**
 	 * Checks if is device active.
@@ -204,9 +208,8 @@ public class DeviceValidator {
 				signatures.add(digitalIdString);
 			}
 			signatures.add(digitalIdString);
-			String correctionPacketCreationTime = getCorrectionPacketDateTime(rid);
-			validateTimestamp(regOsi.getPacketCreationDate(), newDigitalId.getDateTime(), correctionPacketCreationTime);
-			validateTimestamp(regOsi.getPacketCreationDate(), payload.getString("timestamp"), correctionPacketCreationTime);
+			validateTimestamp(rid, regOsi.getPacketCreationDate(), newDigitalId.getDateTime());
+			validateTimestamp(rid, regOsi.getPacketCreationDate(), payload.getString("timestamp"));
 			// the device id combination of serial no make and model in hotlist table
 			String deviceId = newDigitalId.getSerialNo() + newDigitalId.getMake() + newDigitalId.getModel();
 			if(!deviceCodeTimestamps.contains(deviceId + newDigitalId.getDateTime())) {
@@ -234,9 +237,13 @@ public class DeviceValidator {
 	private String getCorrectionPacketDateTime(String rid) throws ApisResourceAccessException, IOException, PacketManagerException, io.mosip.kernel.core.util.exception.JsonProcessingException, JSONException {
 		String process = getCorrectionPacketProcess(rid);
 		if (process != null) {
-			Map<String, String> metaInfo = packetManagerService.getMetaInfo(rid, process, ProviderStageName.CMD_VALIDATOR);
-			RegOsiDto regOsi = osiUtils.getOSIDetailsFromMetaInfo(metaInfo);
-			return regOsi.getPacketCreationDate();
+			try {
+				Map<String, String> metaInfo = packetManagerService.getMetaInfo(rid, process, ProviderStageName.CMD_VALIDATOR);
+				RegOsiDto regOsi = osiUtils.getOSIDetailsFromMetaInfo(metaInfo);
+				return regOsi.getPacketCreationDate();
+			} catch (ObjectDoesnotExistsException e) {
+				return null;
+			}
 		}
 		return null;
 	}
@@ -249,7 +256,7 @@ public class DeviceValidator {
 			additionalInfos.sort(Comparator.comparing(AdditionalInfoRequestDto::getTimestamp).reversed());
 			if (additionalInfos.size() > 1) {
 				List<AdditionalInfoRequestDto> tempInfos = additionalInfos.stream().filter(add->
-						add.getAdditionalInfoProcess().toUpperCase().contains("BIOMETRIC")).collect(Collectors.toList());
+						biometricCorrectionProcess.contains(add.getAdditionalInfoProcess())).collect(Collectors.toList());
 				if (CollectionUtils.isEmpty(tempInfos))
 					tempInfos = additionalInfos;
 
@@ -298,8 +305,8 @@ public class DeviceValidator {
 		}
 	}
 
-	private void validateTimestamp(String packetCreationDate, String dateTime, String correctionPacketCreationTime)
-			throws BaseCheckedException {
+	private void validateTimestamp(String rid, String packetCreationDate, String dateTime)
+			throws BaseCheckedException, IOException, JSONException {
 		DateTimeFormatter packetCreationTimestampFormatter = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 		DateTimeFormatter digitalIdTimestampFormatter = DateTimeFormatter.ofPattern(digitalIdTimestampFormat);
 		LocalDateTime packetCreationDateTime = LocalDateTime
@@ -309,6 +316,7 @@ public class DeviceValidator {
 
 			if (timestamp.isAfter(packetCreationDateTime)|| timestamp.isBefore(
 							packetCreationDateTime.minus(allowedDigitalIdTimestampVariation, ChronoUnit.MINUTES))) {
+				String correctionPacketCreationTime = getCorrectionPacketDateTime(rid);
 				if (validateCorrectionTimestamp(correctionPacketCreationTime, dateTime))
 					throw new BaseCheckedException(
 							StatusUtil.TIMESTAMP_NOT_VALID.getCode(),
