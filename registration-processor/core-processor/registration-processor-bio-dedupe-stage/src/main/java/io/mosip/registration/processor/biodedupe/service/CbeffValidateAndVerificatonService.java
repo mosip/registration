@@ -3,15 +3,19 @@ package io.mosip.registration.processor.biodedupe.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.biodedupe.stage.exception.CbeffNotFoundException;
 import io.mosip.registration.processor.core.code.ApiName;
+import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.PolicyConstant;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.datashare.Filter;
 import io.mosip.registration.processor.core.packet.dto.datashare.ShareableAttributes;
 import io.mosip.registration.processor.core.packet.dto.datashare.Source;
@@ -39,6 +43,7 @@ import java.util.stream.Collectors;
 public class CbeffValidateAndVerificatonService {
 
     private Map<String, List<String>> typeAndSubTypeMap = new HashMap<>();
+    private static Logger regProcLogger = RegProcessorLogger.getLogger(CbeffValidateAndVerificatonService.class);
 
     @Value("${registration.processor.policy.id}")
     private String policyId;
@@ -63,7 +68,7 @@ public class CbeffValidateAndVerificatonService {
     public void validateBiometrics(String id, String process)
             throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
 
-        Map<String, List<String>> typeAndSubtypMap = createTypeSubtypeMapping();
+        Map<String, List<String>> typeAndSubtypMap = createTypeSubtypeMapping(id);
         List<String> modalities = new ArrayList<>();
         for (Map.Entry<String, List<String>> entry : typeAndSubtypMap.entrySet()) {
             if (entry.getValue() == null)
@@ -86,13 +91,12 @@ public class CbeffValidateAndVerificatonService {
         boolean isBiometricsNotPresent = availableTypes != null ? typeAndSubtypMap.keySet().stream().noneMatch(
                 type -> availableTypes.contains(type)) : true;
 
-        //isBiometricsNotPresent = true;
         if (isBiometricsNotPresent)
             throw new CbeffNotFoundException("Biometrics not found for : " + id);
     }
 
-    public Map<String, List<String>> createTypeSubtypeMapping() throws ApisResourceAccessException, CbeffNotFoundException,
-            IOException {
+    public Map<String, List<String>> createTypeSubtypeMapping(String id) throws ApisResourceAccessException, CbeffNotFoundException,
+            IOException, JsonProcessingException {
 
         // Call only once and use cache
         if (!CollectionUtils.isEmpty(typeAndSubTypeMap))
@@ -102,8 +106,9 @@ public class CbeffValidateAndVerificatonService {
                 ApiName.PMS, Lists.newArrayList(policyId, PolicyConstant.PARTNER_ID, subscriberId), "", "",
                 ResponseWrapper.class);
         if (policyResponse == null || (policyResponse.getErrors() != null && policyResponse.getErrors().size() > 0)) {
-            throw new CbeffNotFoundException(policyResponse == null ? "Policy Response response is null"
-                    : policyResponse.getErrors().get(0).getMessage());
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                    id, JsonUtils.javaObjectToJsonString(policyResponse));
+            throw new ApisResourceAccessException(policyResponse.getErrors().get(0).getMessage());
 
         } else {
             LinkedHashMap<String, Object> responseMap = (LinkedHashMap<String, Object>) policyResponse.getResponse();
