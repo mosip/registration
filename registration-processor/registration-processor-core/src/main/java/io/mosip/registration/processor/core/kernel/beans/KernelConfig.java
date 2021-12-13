@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.core.kernel.beans;
 
+import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -32,7 +33,7 @@ public class KernelConfig {
 	@Bean
 	@Primary
 	public ObjectMapper getObjectMapper() {
-		ObjectMapper objectMapper = new ObjectMapper();
+		ObjectMapper objectMapper = new ObjectMapper().registerModule(new AfterburnerModule());
 		JavaTimeModule javaTimeModule = new JavaTimeModule();
 		objectMapper.registerModule(javaTimeModule);
 		objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
