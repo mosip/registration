@@ -165,6 +165,8 @@ public class BioDedupeProcessor {
 
 		boolean isTransactionSuccessful = false;
 
+		boolean isDuplicateRequestForSameTransactionId = false;
+
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 		try {
 			registrationStatusDto = registrationStatusService.getRegistrationStatus(
@@ -203,6 +205,9 @@ public class BioDedupeProcessor {
 				}
 
 			}
+
+			if (abisHandlerUtil.getPacketStatus(registrationStatusDto).equalsIgnoreCase(AbisConstant.DUPLICATE_FOR_SAME_TRANSACTION_ID))
+				isDuplicateRequestForSameTransactionId = true;
 
 			registrationStatusDto.setRegistrationStageName(stageName);
 			isTransactionSuccessful = true;
@@ -272,25 +277,32 @@ public class BioDedupeProcessor {
 					description.getMessage() + "\n" + ExceptionUtils.getStackTrace(ex));
 			object.setInternalError(Boolean.TRUE);
 		} finally {
-			if (object.getInternalError()) {
-				updateErrorFlags(registrationStatusDto, object);
+			if (!isDuplicateRequestForSameTransactionId) {
+				if (object.getInternalError()) {
+					updateErrorFlags(registrationStatusDto, object);
+				}
+				registrationStatusDto
+						.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.BIOGRAPHIC_VERIFICATION.toString());
+				String moduleId = isTransactionSuccessful ? PlatformSuccessMessages.RPR_BIO_DEDUPE_SUCCESS.getCode()
+						: description.getCode();
+				String moduleName = ModuleName.BIO_DEDUPE.name();
+				registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);
+
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						registrationId, "BioDedupeProcessor::" + registrationStatusDto.getLatestTransactionStatusCode());
+
+				String eventId = isTransactionSuccessful ? EventId.RPR_402.toString() : EventId.RPR_405.toString();
+				String eventName = isTransactionSuccessful ? EventName.UPDATE.toString() : EventName.EXCEPTION.toString();
+				String eventType = isTransactionSuccessful ? EventType.BUSINESS.toString() : EventType.SYSTEM.toString();
+
+				auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
+						moduleId, moduleName, registrationId);
+			} else {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						registrationId, "Duplicate request received for same latest transaction id. This will be ignored.");
+				object.setIsValid(false);
+				object.setInternalError(true);
 			}
-			registrationStatusDto
-					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.BIOGRAPHIC_VERIFICATION.toString());
-			String moduleId = isTransactionSuccessful ? PlatformSuccessMessages.RPR_BIO_DEDUPE_SUCCESS.getCode()
-					: description.getCode();
-			String moduleName = ModuleName.BIO_DEDUPE.name();
-			registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);
-
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, "BioDedupeProcessor::" + registrationStatusDto.getLatestTransactionStatusCode());
-
-			String eventId = isTransactionSuccessful ? EventId.RPR_402.toString() : EventId.RPR_405.toString();
-			String eventName = isTransactionSuccessful ? EventName.UPDATE.toString() : EventName.EXCEPTION.toString();
-			String eventType = isTransactionSuccessful ? EventType.BUSINESS.toString() : EventType.SYSTEM.toString();
-
-			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
-					moduleId, moduleName, registrationId);
 		}
 		return object;
 	}
