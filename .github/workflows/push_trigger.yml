@@ -1,7 +1,6 @@
 name: Maven Package upon a push 
 
 on:
-
   pull_request:
     types: [closed]
   push:
@@ -9,10 +8,8 @@ on:
       - master
       - 1.*
       - develop
-
 jobs:
   build:
-
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -64,14 +61,6 @@ jobs:
         name: release
         path: ./release.zip
 
-    - name: Analyze with SonarCloud
-      run: |
-        cd registration-processor
-        mvn -B -Dgpg.skip -Dmaven.javadoc.skip=true verify sonar:sonar -Dsonar.projectKey=mosip_${{ github.event.repository.name }} -Dsonar.organization=${{ secrets.ORG_KEY }} -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
     - name: Build registration-processor-stage-group-1 image
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
@@ -80,6 +69,7 @@ jobs:
       env:
         SERVICE_NAME: registration-processor-stage-group-1
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-1
+        
     - name: Log into registry
       run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
         
@@ -107,6 +97,7 @@ jobs:
       env:
         SERVICE_NAME: registration-processor-stage-group-2
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-2
+        
     - name: Log into registry
       run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
         
@@ -134,6 +125,7 @@ jobs:
       env:
         SERVICE_NAME: registration-processor-stage-group-3
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-3
+        
     - name: Log into registry
       run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
         
@@ -161,6 +153,7 @@ jobs:
       env:
         SERVICE_NAME: registration-processor-stage-group-4
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-4
+        
     - name: Log into registry
       run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
         
@@ -188,6 +181,7 @@ jobs:
       env:
         SERVICE_NAME: registration-processor-stage-group-5
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-5
+        
     - name: Log into registry
       run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
         
@@ -243,6 +237,7 @@ jobs:
       env:
         SERVICE_NAME: registration-processor-stage-group-7
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-7
+        
     - name: Log into registry
       run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
         
@@ -289,7 +284,6 @@ jobs:
         SERVICE_LOCATION: registration-processor/registration-processor-common-camel-bridge
 
   publish_to_nexus:
-
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -301,7 +295,6 @@ jobs:
         server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
         settings-path: ${{ github.workspace }} # location for the settings.xml file
     - uses: actions/checkout@v2
-
 
     - name: Setup branch and env
       run: |
@@ -317,6 +310,7 @@ jobs:
         sudo apt-get --yes install gnupg2
         gpg2 --import ./.github/keys/mosipgpgkey_pub.gpg
         gpg2 --quiet --batch --passphrase=${{secrets.gpg_secret}}  --allow-secret-key-import --import ./.github/keys/mosipgpgkey_sec.gpg
+        
     - uses: actions/cache@v1
       with:
         path: ~/.m2/repository
@@ -341,13 +335,11 @@ jobs:
 
   docker-registration-processor-registration-transaction-service:
     needs: build
-
     runs-on: ubuntu-latest
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-registration-transaction-service
       SERVICE_LOCATION: registration-processor/post-processor/registration-processor-registration-transaction-service
-
     steps:
       - uses: actions/checkout@v2
       - uses: actions/download-artifact@v1
@@ -687,3 +679,55 @@ jobs:
           echo VERSION=$VERSION
           docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
           docker push $IMAGE_ID:$VERSION
+          
+  sonar_analysis:
+    runs-on: ubuntu-latest
+    env:
+      NAMESPACE: mosipdev
+      SERVICE_NAME: registration-client
+      SERVICE_LOCATION: registration
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          ref: ${{ github.ref }}
+          java-version: 11
+          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
+          settings-path: ${{ github.workspace }} # location for the settings.xml file
+
+      - name: Setup branch and env
+        run: |
+          # Strip git ref prefix from version
+          echo "BRANCH_NAME=$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')" >> $GITHUB_ENV
+          echo "GPG_TTY=$(tty)" >> $GITHUB_ENV
+          
+      - uses: actions/cache@v1
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-${{ env.BRANCH_NAME }}
+      - name: Setup the settings file for ossrh server
+        run: echo "<settings> <servers>  <server>  <id>ossrh</id>    <username>${{secrets.ossrh_user}}</username> <password>${{secrets.ossrh_secret}}</password> </server> </servers> <profiles> <profile>     <id>ossrh</id> <activation> <activeByDefault>true</activeByDefault> </activation>  <properties> <gpg.executable>gpg2</gpg.executable> <gpg.passphrase>${{secrets.gpg_secret}}</gpg.passphrase> </properties> </profile> <profile> <id>allow-snapshots</id>       <activation><activeByDefault>true</activeByDefault></activation> <repositories> <repository>        <id>snapshots-repo</id> <url>https://oss.sonatype.org/content/repositories/snapshots</url> <releases><enabled>false</enabled></releases> <snapshots><enabled>true</enabled></snapshots> </repository>  <repository>         <id>releases-repo</id>  <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>         <releases><enabled>true</enabled></releases>         <snapshots><enabled>false</enabled></snapshots> </repository> </repositories> <pluginRepositories>       <pluginRepository>               <id>staged-releases</id>               <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>       </pluginRepository>       </pluginRepositories> </profile> <profile> <id>sonar</id> <properties>  <sonar.sources>.</sonar.sources> <sonar.host.url>https://sonarcloud.io</sonar.host.url>  </properties> <activation> <activeByDefault>false</activeByDefault> </activation> </profile> </profiles> </settings>" > $GITHUB_WORKSPACE/settings.xml      
+
+      - name: Install xmllint
+        run: |
+          sudo apt-get update
+          sudo apt-get install libxml2-utils
+      
+      - name: Analyze with SonarCloud
+        run: |
+          cd registration-processor
+          mvn -B -Dgpg.skip verify sonar:sonar -Dsonar.projectKey=mosip_${{ github.event.repository.name }} -Dsonar.organization=${{ secrets.ORG_KEY }} -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,author,ref,job # selectable (default: repo,message)
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEVOPS_WEBHOOK }} # required
+        if: failure() # Pick up events even if the job fails or is canceled.          
