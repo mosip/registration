@@ -103,7 +103,7 @@ public class Decryptor {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"Decryptor::decrypt()::entry");
 		try {
-			byte[] packet = CryptoUtil.decodeBase64(encryptedSyncMetaInfo.toString());
+			byte[] packet = CryptoUtil.decodeURLSafeBase64(encryptedSyncMetaInfo.toString());
 			CryptomanagerRequestDto cryptomanagerRequestDto = new CryptomanagerRequestDto();
 			cryptomanagerRequestDto.setPrependThumbprint(isPrependThumbprintEnabled);
 			io.mosip.kernel.core.http.RequestWrapper<CryptomanagerRequestDto> request = new RequestWrapper<>();
@@ -114,9 +114,9 @@ public class Decryptor {
 					CryptomanagerConstant.GCM_NONCE_LENGTH + CryptomanagerConstant.GCM_AAD_LENGTH);
 			byte[] encryptedData = Arrays.copyOfRange(packet, CryptomanagerConstant.GCM_NONCE_LENGTH + CryptomanagerConstant.GCM_AAD_LENGTH,
 					packet.length);
-			cryptomanagerRequestDto.setAad(CryptoUtil.encodeBase64String(aad));
-			cryptomanagerRequestDto.setSalt(CryptoUtil.encodeBase64String(nonce));
-			cryptomanagerRequestDto.setData(CryptoUtil.encodeBase64String(encryptedData));
+			cryptomanagerRequestDto.setAad(CryptoUtil.encodeToURLSafeBase64(aad));
+			cryptomanagerRequestDto.setSalt(CryptoUtil.encodeToURLSafeBase64(nonce));
+			cryptomanagerRequestDto.setData(CryptoUtil.encodeToURLSafeBase64(encryptedData));
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 			LocalDateTime time = LocalDateTime.parse(timeStamp, format);
 			cryptomanagerRequestDto.setTimeStamp(time);
@@ -134,7 +134,7 @@ public class Decryptor {
 			if (response.getResponse() != null) {
 				LinkedHashMap responseMap = mapper.readValue(mapper.writeValueAsString(response.getResponse()),
 						LinkedHashMap.class);
-				byte[] decryptedPacket = CryptoUtil.decodeBase64(responseMap.get(KEY).toString());
+				byte[] decryptedPacket = CryptoUtil.decodeURLSafeBase64(responseMap.get(KEY).toString());
 				decryptedData = new String(decryptedPacket);
 			} else {
 				description.setMessage(PlatformErrorMessages.RPR_PDS_PACKET_DECRYPTION_FAILURE.getMessage());
