@@ -1,4 +1,4 @@
-# Registration Processor  
+# Registration Processor 
 This repository contains the source code and design documents for MOSIP Registration Processor module. 
 
 # Dependencies
