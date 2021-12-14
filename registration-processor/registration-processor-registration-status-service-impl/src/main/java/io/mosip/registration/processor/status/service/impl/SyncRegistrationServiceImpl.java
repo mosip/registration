@@ -971,12 +971,12 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			Long hashValue = Long.parseLong(result, 16);
 			Long saltIndex = hashValue % 10000;
 			String salt = syncRegistrationDao.getSaltValue(saltIndex);
-			byte[] saltBytes = CryptoUtil.decodeBase64(salt);
+			byte[] saltBytes = CryptoUtil.decodeURLSafeBase64(salt);
 			byte[] hashBytes = value.getBytes();
 			for (int i = 0; i <= iteration; i++) {
 				hashBytes = getHMACHashWithSalt(hashBytes, saltBytes);
 			}
-			encodedHash = CryptoUtil.encodeBase64(hashBytes);
+			encodedHash = CryptoUtil.encodeToURLSafeBase64(hashBytes);
 		} catch (NoSuchAlgorithmException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
