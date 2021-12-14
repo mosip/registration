@@ -10,6 +10,8 @@ import io.mosip.registration.processor.core.spi.message.sender.MessageNotificati
 import io.mosip.registration.processor.core.util.LanguageUtility;
 import io.mosip.registration.processor.message.sender.service.impl.MessageNotificationServiceImpl;
 import io.mosip.registration.processor.message.sender.template.TemplateGenerator;
+import io.mosip.registration.processor.packet.manager.decryptor.Decryptor;
+import io.mosip.registration.processor.packet.manager.decryptor.DecryptorImpl;
 
 @Configuration
 public class MsgNotificationBeanCofig {
@@ -29,4 +31,8 @@ public class MsgNotificationBeanCofig {
 		return new LanguageUtility();
 	}
 	
+	@Bean
+	public Decryptor getDecryptor() {
+		return new DecryptorImpl();
+	}
 }
