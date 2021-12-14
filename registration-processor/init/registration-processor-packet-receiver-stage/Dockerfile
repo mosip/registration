@@ -40,9 +40,9 @@ CMD if [ "$active_profile_env" = "preprod" ]; then \
     rm -rf glowroot.zip ; \
     
     sed -i 's/<service_name>/registration-processor-packet-receiver-stage/g' glowroot/glowroot.properties ; \
-    java -jar -javaagent:glowroot/glowroot.jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" registration-processor-packet-receiver-stage.jar ; \
+    java -jar -javaagent:glowroot/glowroot.jar -Dlog4j2.formatMsgNoLookups=true -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" registration-processor-packet-receiver-stage.jar ; \
     else \
-    java -jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" registration-processor-packet-receiver-stage.jar ; \
+    java -jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dlog4j2.formatMsgNoLookups=true -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" registration-processor-packet-receiver-stage.jar ; \
     fi
 
-#CMD ["java","-Dspring.cloud.config.label=${spring_config_label_env}","-Dspring.profiles.active=${active_profile_env}","-Dspring.cloud.config.uri=${spring_config_url_env}","-jar","-javaagent:/home/Glowroot/glowroot.jar","registration-processor-packet-receiver-stage.jar"]
+#CMD ["java","-Dspring.cloud.config.label=${spring_config_label_env}","-Dlog4j2.formatMsgNoLookups=true","-Dspring.profiles.active=${active_profile_env}","-Dspring.cloud.config.uri=${spring_config_url_env}","-jar","-javaagent:/home/Glowroot/glowroot.jar","registration-processor-packet-receiver-stage.jar"]

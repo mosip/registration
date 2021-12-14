@@ -45,10 +45,10 @@ CMD if [ "$is_glowroot_env" = "present" ]; then \
     rm -rf glowroot.zip ; \
     
     sed -i 's/<service_name>/registration-processor-quality-checker-stage/g' glowroot/glowroot.properties ; \
-    java -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -jar -javaagent:glowroot/glowroot.jar registration-processor-quality-checker-stage.jar ; \
+    java -Dspring.cloud.config.label="${spring_config_label_env}" -Dlog4j2.formatMsgNoLookups=true -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -jar -javaagent:glowroot/glowroot.jar registration-processor-quality-checker-stage.jar ; \
     else \
-    java -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -jar registration-processor-quality-checker-stage.jar ; \
+    java -Dspring.cloud.config.label="${spring_config_label_env}" -Dlog4j2.formatMsgNoLookups=true -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -jar registration-processor-quality-checker-stage.jar ; \
     fi
 
 
-#CMD ["java","-Dspring.cloud.config.label=${spring_config_label_env}","-Dspring.profiles.active=${active_profile_env}","-Dspring.cloud.config.uri=${spring_config_url_env}","-jar","registration-processor-quality-checker-stage.jar"]
+#CMD ["java","-Dspring.cloud.config.label=${spring_config_label_env}","-Dlog4j2.formatMsgNoLookups=true","-Dspring.profiles.active=${active_profile_env}","-Dspring.cloud.config.uri=${spring_config_url_env}","-jar","registration-processor-quality-checker-stage.jar"]
