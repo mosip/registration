@@ -47,7 +47,7 @@ CMD if [ "$active_profile_env" = "preprod" ]; then \
     rm -rf glowroot.zip ; \
     
     sed -i 's/<service_name>/registration-processor-registration-status-service/g' glowroot/glowroot.properties ; \
-    java -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1 -XX:+HeapDumpOnOutOfMemoryError -XX:+UseG1GC -XX:+UseStringDeduplication -jar -javaagent:glowroot/glowroot.jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" registration-processor-registration-status-service.jar ; \
+    java -XX:+UnlockExperimentalVMOptions -Dlog4j2.formatMsgNoLookups=true -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1 -XX:+HeapDumpOnOutOfMemoryError -XX:+UseG1GC -XX:+UseStringDeduplication -jar -javaagent:glowroot/glowroot.jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" registration-processor-registration-status-service.jar ; \
    else \
    wget "${iam_adapter_url_env}" -O kernel-auth-adapter.jar; \
     java -Dloader.path=./kernel-auth-adapter.jar -jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}"  -Dspring.cloud.config.uri="${spring_config_url_env}" registration-processor-registration-status-service.jar; \   
