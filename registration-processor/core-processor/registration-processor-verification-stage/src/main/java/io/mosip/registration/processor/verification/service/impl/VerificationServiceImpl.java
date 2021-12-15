@@ -233,6 +233,8 @@ public class VerificationServiceImpl implements VerificationService {
 			else
 				mosipQueueManager.send(queue, JsonUtils.javaObjectToJsonString(mar).getBytes(), mvRequestAddress, mvRequestMessageTTL);
 
+			regProcLogger.info("ID : " + messageDTO.getRid() + " has been successfully sent for verification.");
+
 			if (isTransactionSuccessful) {
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 				registrationStatusDto.setSubStatusCode(StatusUtil.VERIFICATION_SENT.getCode());
@@ -362,6 +364,19 @@ public class VerificationServiceImpl implements VerificationService {
 
 			description.setMessage(PlatformErrorMessages.RPR_TABLE_NOT_ACCESSIBLE.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_TABLE_NOT_ACCESSIBLE.getCode());
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId, e.getMessage() + ExceptionUtils.getStackTrace(e));
+		} catch (NoRecordAssignedException e) {
+			messageDTO.setIsValid(false);
+			messageDTO.setInternalError(false);
+			registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
+					.getStatusCode(RegistrationExceptionTypeCode.NO_RECORDS_ASSIGNED));
+			registrationStatusDto.setStatusComment(trimExceptionMessage
+					.trimExceptionMessage(PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getMessage() + e.getMessage()));
+			registrationStatusDto.setSubStatusCode(PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getCode());
+
+			description.setMessage(PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getMessage());
+			description.setCode(PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getCode());
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					regId, e.getMessage() + ExceptionUtils.getStackTrace(e));
 		} catch (Exception e) {
@@ -675,9 +690,14 @@ public class VerificationServiceImpl implements VerificationService {
 				"VerificationServiceImpl::formAdjudicationRequest()::entry");
 
 		VerificationRequestDTO req = new VerificationRequestDTO();
+		List<VerificationEntity> entities = basePacketRepository.getVerificationRecordByWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
+		if (!CollectionUtils.isEmpty(entities))
+			req.setRequestId(entities.get(0).getRequestId());
+		else
+			req.setRequestId(UUID.randomUUID().toString());
+
 		req.setId(VerificationConstants.MANUAL_ADJUDICATION_ID);
 		req.setVersion(VerificationConstants.VERSION);
-		req.setRequestId(UUID.randomUUID().toString());
 		req.setRequesttime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		req.setReferenceId(messageDTO.getRid());
 		try {

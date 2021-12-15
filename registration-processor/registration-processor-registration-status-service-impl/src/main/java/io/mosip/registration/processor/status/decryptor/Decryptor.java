@@ -117,6 +117,7 @@ public class Decryptor {
 			cryptomanagerRequestDto.setAad(CryptoUtil.encodeToPlainBase64(aad));
 			cryptomanagerRequestDto.setSalt(CryptoUtil.encodeToPlainBase64(nonce));
 			cryptomanagerRequestDto.setData(CryptoUtil.encodeToPlainBase64(encryptedData));
+
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 			LocalDateTime time = LocalDateTime.parse(timeStamp, format);
 			cryptomanagerRequestDto.setTimeStamp(time);
