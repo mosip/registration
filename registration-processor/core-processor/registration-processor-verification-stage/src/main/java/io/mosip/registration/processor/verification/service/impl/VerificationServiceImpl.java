@@ -826,28 +826,41 @@ public class VerificationServiceImpl implements VerificationService {
 	private boolean saveVerificationRecord(MessageDTO messageDTO, String requestId, LogDescription description) {
 		String registrationId = messageDTO.getRid();
 		boolean isTransactionSuccessful = false;
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+				registrationId, "saveVerificationRecord::entry");
 
 		try {
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-					registrationId, "saveVerificationRecord::entry");
-			VerificationEntity verificationEntity = new VerificationEntity();
-			VerificationPKEntity verificationPKEntity = new VerificationPKEntity();
-			verificationPKEntity.setWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
+			List<VerificationEntity> existingRecords = basePacketRepository.getVerificationRecordByWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
 
-			verificationEntity.setRegId(registrationId);
-			verificationEntity.setId(verificationPKEntity);
-			verificationEntity.setReponseText(null);
-			verificationEntity.setRequestId(requestId);
-			verificationEntity.setVerificationUsrId(null);
-			verificationEntity.setReasonCode("Packet marked for verification");
-			verificationEntity.setStatusComment("Packet marked for verification");
-			verificationEntity.setStatusCode(ManualVerificationStatus.INQUEUE.name());
-			verificationEntity.setActive(true);
-			verificationEntity.setDeleted(false);
-			verificationEntity.setCrBy("SYSTEM");
-			verificationEntity.setCrDtimes(Timestamp.valueOf(LocalDateTime.now(ZoneId.of("UTC"))));
-			verificationEntity.setUpdDtimes(Timestamp.valueOf(LocalDateTime.now(ZoneId.of("UTC"))));
-			basePacketRepository.save(verificationEntity);
+			if (CollectionUtils.isEmpty(existingRecords)) {
+				VerificationEntity verificationEntity = new VerificationEntity();
+				VerificationPKEntity verificationPKEntity = new VerificationPKEntity();
+				verificationPKEntity.setWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
+
+				verificationEntity.setRegId(registrationId);
+				verificationEntity.setId(verificationPKEntity);
+				verificationEntity.setReponseText(null);
+				verificationEntity.setRequestId(requestId);
+				verificationEntity.setVerificationUsrId(null);
+				verificationEntity.setReasonCode("Packet marked for verification");
+				verificationEntity.setStatusComment("Packet marked for verification");
+				verificationEntity.setStatusCode(ManualVerificationStatus.INQUEUE.name());
+				verificationEntity.setActive(true);
+				verificationEntity.setDeleted(false);
+				verificationEntity.setCrBy("SYSTEM");
+				verificationEntity.setCrDtimes(Timestamp.valueOf(LocalDateTime.now(ZoneId.of("UTC"))));
+				verificationEntity.setUpdDtimes(Timestamp.valueOf(LocalDateTime.now(ZoneId.of("UTC"))));
+				basePacketRepository.save(verificationEntity);
+			} else {
+				VerificationEntity existingRecord = existingRecords.iterator().next();
+				existingRecord.setReponseText(null);
+				existingRecord.setVerificationUsrId(null);
+				existingRecord.setReasonCode("Packet marked for verification");
+				existingRecord.setStatusComment("Packet marked for verification");
+				existingRecord.setStatusCode(ManualVerificationStatus.INQUEUE.name());
+				existingRecord.setUpdDtimes(Timestamp.valueOf(LocalDateTime.now(ZoneId.of("UTC"))));
+				basePacketRepository.update(existingRecord);
+			}
 			description.setMessage("Packet marked for Verification saved successfully");
 			isTransactionSuccessful = true;
 
