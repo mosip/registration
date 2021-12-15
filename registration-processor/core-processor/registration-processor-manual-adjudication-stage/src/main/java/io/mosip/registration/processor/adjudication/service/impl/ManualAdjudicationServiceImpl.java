@@ -501,7 +501,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 			BiometricRecord biometricRecord = packetManagerService.getBiometrics(
 					id, individualBiometricsLabel, modalities, process, ProviderStageName.MANUAL_ADJUDICATION);
 			byte[] content = cbeffutil.createXML(biometricRecord.getSegments());
-			requestDto.setBiometrics(content != null ? CryptoUtil.encodeToURLSafeBase64(content) : null);
+			requestDto.setBiometrics(content != null ? CryptoUtil.encodeToPlainBase64(content) : null);
 		}
 
 
@@ -617,10 +617,10 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 						Document document = packetManagerService.getDocument(id, doc.toString(), process, ProviderStageName.MANUAL_ADJUDICATION);
 						if (document != null) {
 							if (requestDto.getDocuments() != null)
-								requestDto.getDocuments().put(docmap.get(MappingJsonConstants.VALUE).toString(), CryptoUtil.encodeToURLSafeBase64(document.getDocument()));
+								requestDto.getDocuments().put(docmap.get(MappingJsonConstants.VALUE).toString(), CryptoUtil.encodeToPlainBase64(document.getDocument()));
 							else {
 								Map<String, String> docMap = new HashMap<>();
-								docMap.put(docmap.get(MappingJsonConstants.VALUE).toString(), CryptoUtil.encodeToURLSafeBase64(document.getDocument()));
+								docMap.put(docmap.get(MappingJsonConstants.VALUE).toString(), CryptoUtil.encodeToPlainBase64(document.getDocument()));
 								requestDto.setDocuments(docMap);
 							}
 						}
