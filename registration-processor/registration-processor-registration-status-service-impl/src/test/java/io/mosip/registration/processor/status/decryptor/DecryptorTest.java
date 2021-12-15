@@ -65,7 +65,7 @@ public class DecryptorTest {
 		cryptomanagerResponseDto.setData(data);
 
 		LinkedHashMap linkedHashMap = new LinkedHashMap();
-		linkedHashMap.put("data", CryptoUtil.encodeToPlainBase64("mosip".getBytes()));
+		linkedHashMap.put("data", CryptoUtil.encodeToURLSafeBase64("mosip".getBytes()));
 		when(env.getProperty("mosip.registration.processor.crypto.decrypt.id"))
 				.thenReturn("mosip.cryptomanager.decrypt");
 		when(env.getProperty("mosip.registration.processor.application.version")).thenReturn("1.0");

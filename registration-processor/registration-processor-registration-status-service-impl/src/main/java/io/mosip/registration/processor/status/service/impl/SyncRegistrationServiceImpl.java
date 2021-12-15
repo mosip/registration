@@ -976,7 +976,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			for (int i = 0; i <= iteration; i++) {
 				hashBytes = getHMACHashWithSalt(hashBytes, saltBytes);
 			}
-			encodedHash = CryptoUtil.encodeToPlainBase64(hashBytes);
+			encodedHash = CryptoUtil.encodeToURLSafeBase64(hashBytes);
 		} catch (NoSuchAlgorithmException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", e.getMessage() + ExceptionUtils.getStackTrace(e));

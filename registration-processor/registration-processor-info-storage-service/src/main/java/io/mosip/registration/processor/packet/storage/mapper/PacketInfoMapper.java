@@ -178,7 +178,7 @@ public class PacketInfoMapper {
 	public static String getHMACHashCode(String value) throws NoSuchAlgorithmException {
 		if (value == null)
 			return null;
-		return CryptoUtil.encodeToPlainBase64(HMACUtils2.generateHash(value.getBytes()));
+		return CryptoUtil.encodeToURLSafeBase64(HMACUtils2.generateHash(value.getBytes()));
 
 	}
 

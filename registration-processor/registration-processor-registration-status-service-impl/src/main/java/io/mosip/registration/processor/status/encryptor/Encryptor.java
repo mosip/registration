@@ -80,7 +80,7 @@ public class Encryptor {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 			
-			String syncInfo = CryptoUtil.encodeToPlainBase64(syncMetaInfo.getBytes());
+			String syncInfo = CryptoUtil.encodeToURLSafeBase64(syncMetaInfo.getBytes());
 	        
 			CryptomanagerRequestDto cryptomanagerRequestDto = new CryptomanagerRequestDto();
 			cryptomanagerRequestDto.setPrependThumbprint(isPrependThumbprintEnabled);
@@ -94,8 +94,8 @@ public class Encryptor {
 			byte[] aad = new byte[CryptomanagerConstant.GCM_AAD_LENGTH];
 			sRandom.nextBytes(nonce);
 			sRandom.nextBytes(aad);
-			cryptomanagerRequestDto.setAad(CryptoUtil.encodeToPlainBase64(aad));
-			cryptomanagerRequestDto.setSalt(CryptoUtil.encodeToPlainBase64(nonce));
+			cryptomanagerRequestDto.setAad(CryptoUtil.encodeToURLSafeBase64(aad));
+			cryptomanagerRequestDto.setSalt(CryptoUtil.encodeToURLSafeBase64(nonce));
 			CryptomanagerResponseDto cryptomanagerResponseDto;
 
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
@@ -116,7 +116,7 @@ public class Encryptor {
 			if (response.getResponse() != null) {
 				LinkedHashMap responseMap = mapper.readValue(mapper.writeValueAsString(response.getResponse()),
 						LinkedHashMap.class);
-				byte[] tempEncryptedData = CryptoUtil.decodePlainBase64(responseMap.get(KEY).toString());
+				byte[] tempEncryptedData = CryptoUtil.decodeURLSafeBase64(responseMap.get(KEY).toString());
 				encryptedData = mergeEncryptedData(tempEncryptedData, nonce, aad);
 			} else {
 				description.setMessage(PlatformErrorMessages.RPR_PGS_ENCRYPTOR_INVLAID_DATA_EXCEPTION.getMessage());

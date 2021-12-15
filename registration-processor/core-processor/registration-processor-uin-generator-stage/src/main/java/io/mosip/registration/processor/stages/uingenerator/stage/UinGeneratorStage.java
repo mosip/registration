@@ -586,7 +586,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		Document document =
 				packetManagerService.getDocument(registrationId, dockey, process, ProviderStageName.UIN_GENERATOR);
 		if (document != null) {
-			documentsInfoDto.setValue(CryptoUtil.encodeToPlainBase64(document.getDocument()));
+			documentsInfoDto.setValue(CryptoUtil.encodeToURLSafeBase64(document.getDocument()));
 			documentsInfoDto.setCategory(document.getValue());
 			return documentsInfoDto;
 		}
@@ -597,7 +597,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId, person, process, ProviderStageName.UIN_GENERATOR);
 		byte[] xml = cbeffutil.createXML(biometricRecord.getSegments());
 		Documents documentsInfoDto = new Documents();
-		documentsInfoDto.setValue(CryptoUtil.encodeToPlainBase64(xml));
+		documentsInfoDto.setValue(CryptoUtil.encodeToURLSafeBase64(xml));
 		documentsInfoDto.setCategory(utility.getMappingJsonValue(idDocLabel, MappingJsonConstants.IDENTITY));
 		return documentsInfoDto;
 
