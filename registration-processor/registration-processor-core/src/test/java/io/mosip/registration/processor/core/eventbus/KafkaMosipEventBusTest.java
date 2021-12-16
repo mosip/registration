@@ -21,6 +21,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.TopicPartition;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -483,6 +484,7 @@ public class KafkaMosipEventBusTest {
 	}
 
 	@Test
+	@Ignore
 	public void testConsumeAndSendWithMessageExpiredException(TestContext testContext) {
 		int testDataCount = 20;
 		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", 
@@ -545,6 +547,7 @@ public class KafkaMosipEventBusTest {
 	}
 
 	@Test
+	@Ignore
 	public void testConsumeWithMessageExpiredException(TestContext testContext) {
 		int testDataCount = 20;
 		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", 
