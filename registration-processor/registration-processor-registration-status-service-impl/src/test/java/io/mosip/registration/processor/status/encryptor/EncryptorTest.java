@@ -55,7 +55,7 @@ public class EncryptorTest {
 	@Before
 	public void setup() throws FileNotFoundException {
 		PowerMockito.mockStatic(CryptoUtil.class);
-		PowerMockito.when(CryptoUtil.decodeURLSafeBase64(anyString())).thenReturn("mosip".getBytes());
+		PowerMockito.when(CryptoUtil.decodeBase64(anyString())).thenReturn("mosip".getBytes());
 		data = "bW9zaXA";
 		cryptomanagerResponseDto = new DecryptResponseDto();
 		cryptomanagerResponseDto.setData(data);
