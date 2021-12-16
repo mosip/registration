@@ -232,7 +232,7 @@ public class NotificationServiceImpl implements NotificationService {
 			description.setMessage(PlatformErrorMessages.RPR_EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getCode());
 			
-			responseEntity = new ResponseEntity<Void>(HttpStatus.INTERNAL_SERVER_ERROR);
+			responseEntity = new ResponseEntity<Void>(HttpStatus.OK);
 		} catch (TemplateNotFoundException tnf) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					id, tnf.getMessage() + ExceptionUtils.getStackTrace(tnf));
@@ -241,7 +241,7 @@ public class NotificationServiceImpl implements NotificationService {
 			description.setSubStatusCode(StatusUtil.EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getCode());
 			description.setMessage(PlatformErrorMessages.RPR_EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getCode());
-			responseEntity = new ResponseEntity<Void>(HttpStatus.INTERNAL_SERVER_ERROR);
+			responseEntity = new ResponseEntity<Void>(HttpStatus.OK);
 		} catch (Exception ex) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					id, ex.getMessage() + ExceptionUtils.getStackTrace(ex));
@@ -250,10 +250,9 @@ public class NotificationServiceImpl implements NotificationService {
 			description.setSubStatusCode(StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getCode());
 			description.setMessage(PlatformErrorMessages.RPR_MESSAGE_SENDER_STAGE_FAILED.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_MESSAGE_SENDER_STAGE_FAILED.getCode());
-			responseEntity = new ResponseEntity<Void>(HttpStatus.INTERNAL_SERVER_ERROR);
+			responseEntity = new ResponseEntity<Void>(HttpStatus.OK);
 		} finally {
-			responseEntity = isTransactionSuccessful ? new ResponseEntity<Void>(HttpStatus.OK)
-					: new ResponseEntity<Void>(HttpStatus.INTERNAL_SERVER_ERROR);
+			responseEntity =  new ResponseEntity<Void>(HttpStatus.OK);
 			String eventId = isTransactionSuccessful ? EventId.RPR_402.toString() : EventId.RPR_405.toString();
 			String eventName = eventId.equalsIgnoreCase(EventId.RPR_402.toString()) ? EventName.UPDATE.toString()
 					: EventName.EXCEPTION.toString();
@@ -587,7 +586,7 @@ public class NotificationServiceImpl implements NotificationService {
 			description.setSubStatusCode(StatusUtil.EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getCode());
 			description.setMessage(PlatformErrorMessages.RPR_EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getCode());
-			responseEntity = new ResponseEntity<Void>(HttpStatus.INTERNAL_SERVER_ERROR);
+			responseEntity = new ResponseEntity<Void>(HttpStatus.OK);
 		} catch (Exception ex) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					id, ex.getMessage() + ExceptionUtils.getStackTrace(ex));
@@ -596,10 +595,9 @@ public class NotificationServiceImpl implements NotificationService {
 			description.setSubStatusCode(StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getCode());
 			description.setMessage(PlatformErrorMessages.RPR_MESSAGE_SENDER_STAGE_FAILED.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_MESSAGE_SENDER_STAGE_FAILED.getCode());
-			responseEntity = new ResponseEntity<Void>(HttpStatus.INTERNAL_SERVER_ERROR);
+			responseEntity = new ResponseEntity<Void>(HttpStatus.OK);
 		} finally {
-			responseEntity = isTransactionSuccessful ? new ResponseEntity<Void>(HttpStatus.OK)
-					: new ResponseEntity<Void>(HttpStatus.INTERNAL_SERVER_ERROR);
+			responseEntity =  new ResponseEntity<Void>(HttpStatus.OK);
 			String eventId = isTransactionSuccessful ? EventId.RPR_402.toString() : EventId.RPR_405.toString();
 			String eventName = eventId.equalsIgnoreCase(EventId.RPR_402.toString()) ? EventName.UPDATE.toString()
 					: EventName.EXCEPTION.toString();
