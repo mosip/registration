@@ -89,7 +89,7 @@ public class RegistrationProcessorRestClientServiceTest {
 		registrationProcessorRestClientService.postApi(ApiName.AUDIT, "query1", "12345", auditRequestDto,
 				AuditResponseDto.class);
 	}
-	
+
 	@Test
 	public void getObjectForArgListSuccessTest() throws Exception {
 
@@ -135,7 +135,7 @@ public class RegistrationProcessorRestClientServiceTest {
 		registrationProcessorRestClientService.postApi(ApiName.AUDIT, pathSegments, "query1", "12345", auditRequestDto,
 				AuditResponseDto.class);
 	}
-	
+
 	@Test
 	public void postObjectForArgListSuccessTest() throws Exception {
 		AuditRequestDto auditRequestDto = new AuditRequestDto();
@@ -162,7 +162,7 @@ public class RegistrationProcessorRestClientServiceTest {
 		registrationProcessorRestClientService.postApi(ApiName.AUDIT, null, pathSegments, Arrays.asList("query1"),
 				Arrays.asList("12345"), auditRequestDto, AuditResponseDto.class);
 	}
-	
+
 	@Test
 	public void patchObjectSuccessTest() throws Exception {
 		AuditRequestDto auditRequestDto = new AuditRequestDto();
@@ -214,7 +214,7 @@ public class RegistrationProcessorRestClientServiceTest {
 		registrationProcessorRestClientService.putApi(ApiName.AUDIT, pathSegments, "query1", "12345", auditRequestDto,
 				AuditResponseDto.class,null);
 	}
-	
+
 	@Test
 	public void postObjectForUrlSuccessTest() throws Exception {
 		AuditRequestDto auditRequestDto = new AuditRequestDto();
@@ -239,7 +239,7 @@ public class RegistrationProcessorRestClientServiceTest {
 		registrationProcessorRestClientService.postApi("AUDIT", null, pathSegments, Arrays.asList("query1"),
 				Arrays.asList("12345"), auditRequestDto, AuditResponseDto.class);
 	}
-	
+
 	@Test
 	public void headObjectSuccessTest() throws Exception {
 		Mockito.when(env.getProperty(ArgumentMatchers.any())).thenReturn("AUDIT");
@@ -250,7 +250,7 @@ public class RegistrationProcessorRestClientServiceTest {
 		Object result = registrationProcessorRestClientService.headApi(ApiName.AUDIT, pathSegments, Arrays.asList("query1"), Arrays.asList("12345"));
 		assertEquals(1, result);
 	}
-	
+
 	@Test(expected = ApisResourceAccessException.class)
 	public void headObjectTestFailureTest() throws Exception {
 		Mockito.when(env.getProperty(ArgumentMatchers.any())).thenReturn("AUDIT");

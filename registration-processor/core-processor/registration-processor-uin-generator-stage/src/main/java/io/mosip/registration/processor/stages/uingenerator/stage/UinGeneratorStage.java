@@ -9,12 +9,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.registration.processor.core.constant.VidType;
-import io.mosip.registration.processor.core.idrepo.dto.VidsInfosDTO;
 import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftException;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService;
-import io.mosip.registration.processor.stages.uingenerator.exception.VidServiceFailedException;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -1001,22 +997,18 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 	@SuppressWarnings({ "unchecked", "unused" })
 	private void generateVid(String registrationId, String UIN, boolean isUinAlreadyPresent)
-			throws ApisResourceAccessException, IOException, VidCreationException, VidServiceFailedException {
+			throws ApisResourceAccessException, IOException, VidCreationException {
 		VidRequestDto vidRequestDto = new VidRequestDto();
 		RequestWrapper<VidRequestDto> request = new RequestWrapper<VidRequestDto>();
 		ResponseWrapper<VidResponseDto> response;
 
 		try {
-			String uin = UIN;
 			if (isUinAlreadyPresent) {
-				uin = idRepoService.getUinByRid(registrationId, utility.getGetRegProcessorDemographicIdentity());
-				if (isPerpetualVidAlreadyPresent(uin)) {
-					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-							registrationId, "VID already present. Skipping vid generation.");
-					return;
-				}
+				String uin = idRepoService.getUinByRid(registrationId, utility.getGetRegProcessorDemographicIdentity());
+				vidRequestDto.setUIN(uin);
+			} else {
+				vidRequestDto.setUIN(UIN);
 			}
-			vidRequestDto.setUIN(uin);
 			vidRequestDto.setVidType(vidType);
 			request.setId(env.getProperty(UINConstants.VID_CREATE_ID));
 			request.setRequest(vidRequestDto);
@@ -1044,7 +1036,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 			}
 
-		} catch (ApisResourceAccessException | VidServiceFailedException e) {
+		} catch (ApisResourceAccessException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId, PlatformErrorMessages.RPR_UGS_API_RESOURCE_EXCEPTION.getMessage() + e.getMessage()
 							+ ExceptionUtils.getStackTrace(e));
@@ -1152,33 +1144,6 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		}
 
 		return idResponse;
-	}
-
-	private boolean isPerpetualVidAlreadyPresent(String uin) throws ApisResourceAccessException, VidServiceFailedException {
-		List<String> pathsegments = new ArrayList<>();
-		pathsegments.add(uin);
-
-		VidsInfosDTO vidsInfosDTO;
-
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-				"PrintServiceImpl::getVid():: get GETVIDSBYUIN service call started with request data : "
-		);
-
-		vidsInfosDTO =  (VidsInfosDTO) registrationProcessorRestClientService.getApi(ApiName.GETVIDSBYUIN,
-				pathsegments, "", "", VidsInfosDTO.class);
-
-		if (CollectionUtils.isEmpty(vidsInfosDTO.getErrors())
-				&& CollectionUtils.isNotEmpty(vidsInfosDTO.getResponse())) {
-			for (io.mosip.registration.processor.core.idrepo.dto.VidInfoDTO VidInfoDTO : vidsInfosDTO.getResponse()) {
-				if (VidType.PERPETUAL.name().equalsIgnoreCase(VidInfoDTO.getVidType())) {
-					return true;
-				}
-			}
-		} else if (CollectionUtils.isNotEmpty(vidsInfosDTO.getErrors())) {
-			throw new VidServiceFailedException(vidsInfosDTO.getErrors().iterator().next().getErrorCode(),
-					vidsInfosDTO.getErrors().iterator().next().getMessage());
-		}
-		return false;
 	}
 
 	private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {

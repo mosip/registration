@@ -211,12 +211,12 @@ public enum RegistrationExceptionTypeCode {
 
 	/** Exception in IDREPO draft. */
 	IDREPO_DRAFT_EXCEPTION,
-	
+
 	/**Retry count has exceeded the maximum limit specified */
 	PACKET_UPLOAD_FAILED_ON_MAX_RETRY_CNT,
 
 	/** The osi failed on hold introducer packet. */
-	OSI_FAILED_ON_HOLD_INTRODUCER_PACKET,
+	ON_HOLD_INTRODUCER_PACKET,
 
 	/** Packet hash failed in uploader stage */
 	PACKET_HASH_VALIDATION_FAILED,
@@ -290,13 +290,15 @@ public enum RegistrationExceptionTypeCode {
 	VID_CREATION_EXCEPTION, 
 	
 	PACKET_UIN_GENERATION_REPROCESS,
-	
+
 	BIOMETRIC_EXTRACTION_REPROCESS,
-	
+
 	BIOMETRIC_EXTRACTION_FAILED,
-	
+
 	DRAFT_REQUEST_UNAVAILABLE,
 
-	PACKET_FAILED, FINALIZATION_FAILED,FINALIZATION_REPROCESS;
+	PACKET_FAILED, FINALIZATION_FAILED,FINALIZATION_REPROCESS,
+
+	NO_RECORDS_ASSIGNED;
 
 }

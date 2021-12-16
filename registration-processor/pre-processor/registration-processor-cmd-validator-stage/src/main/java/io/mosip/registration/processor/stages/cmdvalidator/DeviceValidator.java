@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
+import io.mosip.registration.processor.packet.storage.exception.ObjectDoesnotExistsException;
 import io.mosip.registration.processor.packet.storage.utils.OSIUtils;
 import io.mosip.registration.processor.status.service.AdditionalInfoRequestService;
 import org.apache.commons.collections.CollectionUtils;
@@ -25,6 +26,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.biometrics.entities.BIR;
@@ -62,6 +66,8 @@ public class DeviceValidator {
 
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
 
+	private static final String VALID = "Valid";
+
 	ObjectMapper mapper = new ObjectMapper();
 
 	@Autowired
@@ -91,6 +97,9 @@ public class DeviceValidator {
 	@Value("#{T(java.util.Arrays).asList('${mosip.regproc.common.before-cbeff-others-attibute.reg-client-versions:}')}")
 	private List<String> regClientVersionsBeforeCbeffOthersAttritube;
 
+	@Value("#{T(java.util.Arrays).asList('${mosip.regproc.biometric.correction.process:}')}")
+	private List<String> biometricCorrectionProcess;
+
 	/**
 	 * Checks if is device active.
 	 *
@@ -98,11 +107,14 @@ public class DeviceValidator {
 	 * @param process
 	 * @param registrationId
 	 * @throws IOException
+	 * @throws JsonProcessingException
 	 * @throws BaseCheckedException,                               ApisResourceAccessException
 	 * @throws JSONException
+	 * @throws com.fasterxml.jackson.databind.JsonMappingException
+	 * @throws com.fasterxml.jackson.core.JsonParseException
 	 */
-	public void validate(RegOsiDto regOsi, String process, String registrationId)
-			throws IOException, BaseCheckedException, JSONException {
+	public void validate(RegOsiDto regOsi, String process, String registrationId) throws JsonProcessingException,
+			IOException, BaseCheckedException, ApisResourceAccessException, JSONException {
 		List<String> fields = Arrays.asList(MappingJsonConstants.INDIVIDUAL_BIOMETRICS,
 				MappingJsonConstants.AUTHENTICATION_BIOMETRICS, MappingJsonConstants.INTRODUCER_BIO,
 				MappingJsonConstants.OFFICERBIOMETRICFILENAME, MappingJsonConstants.SUPERVISORBIOMETRICFILENAME);
@@ -136,8 +148,8 @@ public class DeviceValidator {
 	}
 
 	private String getOperationsDataFromMetaInfo(String id, String process, String fileName)
-			throws ApisResourceAccessException, PacketManagerException, IOException, JSONException,
-			io.mosip.kernel.core.util.exception.JsonProcessingException {
+			throws ApisResourceAccessException, PacketManagerException, IOException, JSONException, JsonParseException,
+			JsonMappingException, JsonProcessingException, io.mosip.kernel.core.util.exception.JsonProcessingException {
 		Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(id, process,
 				ProviderStageName.PACKET_VALIDATOR);
 		String metadata = metaInfoMap.get(JsonConstant.OPERATIONSDATA);
@@ -196,9 +208,8 @@ public class DeviceValidator {
 				signatures.add(digitalIdString);
 			}
 			signatures.add(digitalIdString);
-			String correctionPacketCreationTime = getCorrectionPacketDateTime(rid);
-			validateTimestamp(regOsi.getPacketCreationDate(), newDigitalId.getDateTime(), correctionPacketCreationTime);
-			validateTimestamp(regOsi.getPacketCreationDate(), payload.getString("timestamp"), correctionPacketCreationTime);
+			validateTimestamp(rid, regOsi.getPacketCreationDate(), newDigitalId.getDateTime());
+			validateTimestamp(rid, regOsi.getPacketCreationDate(), payload.getString("timestamp"));
 			// the device id combination of serial no make and model in hotlist table
 			String deviceId = newDigitalId.getSerialNo() + newDigitalId.getMake() + newDigitalId.getModel();
 			if(!deviceCodeTimestamps.contains(deviceId + newDigitalId.getDateTime())) {
@@ -226,9 +237,13 @@ public class DeviceValidator {
 	private String getCorrectionPacketDateTime(String rid) throws ApisResourceAccessException, IOException, PacketManagerException, io.mosip.kernel.core.util.exception.JsonProcessingException, JSONException {
 		String process = getCorrectionPacketProcess(rid);
 		if (process != null) {
-			Map<String, String> metaInfo = packetManagerService.getMetaInfo(rid, process, ProviderStageName.CMD_VALIDATOR);
-			RegOsiDto regOsi = osiUtils.getOSIDetailsFromMetaInfo(metaInfo);
-			return regOsi.getPacketCreationDate();
+			try {
+				Map<String, String> metaInfo = packetManagerService.getMetaInfo(rid, process, ProviderStageName.CMD_VALIDATOR);
+				RegOsiDto regOsi = osiUtils.getOSIDetailsFromMetaInfo(metaInfo);
+				return regOsi.getPacketCreationDate();
+			} catch (ObjectDoesnotExistsException e) {
+				return null;
+			}
 		}
 		return null;
 	}
@@ -241,7 +256,7 @@ public class DeviceValidator {
 			additionalInfos.sort(Comparator.comparing(AdditionalInfoRequestDto::getTimestamp).reversed());
 			if (additionalInfos.size() > 1) {
 				List<AdditionalInfoRequestDto> tempInfos = additionalInfos.stream().filter(add->
-						add.getAdditionalInfoProcess().toUpperCase().contains("BIOMETRIC")).collect(Collectors.toList());
+						biometricCorrectionProcess.contains(add.getAdditionalInfoProcess())).collect(Collectors.toList());
 				if (CollectionUtils.isEmpty(tempInfos))
 					tempInfos = additionalInfos;
 
@@ -253,9 +268,8 @@ public class DeviceValidator {
 		return correctionPacketProcess;
 	}
 
-	private void validateDeviceForHotlist(String deviceCode, String digitalIdTimestamp)
-			throws IOException, BaseCheckedException {
-		List<String> pathSegments = new ArrayList<>();
+	private void validateDeviceForHotlist(String deviceCode, String digitalIdTimestamp) throws JsonParseException, JsonMappingException, JsonProcessingException, IOException, JSONException, BaseCheckedException {
+		List<String> pathSegments=new ArrayList<>();
 		pathSegments.add("DEVICE");
 		pathSegments.add(deviceCode);
 		ResponseWrapper<?> responseWrapper = (ResponseWrapper<?>) registrationProcessorRestService
@@ -291,8 +305,8 @@ public class DeviceValidator {
 		}
 	}
 
-	private void validateTimestamp(String packetCreationDate, String dateTime, String correctionPacketCreationTime)
-			throws BaseCheckedException {
+	private void validateTimestamp(String rid, String packetCreationDate, String dateTime)
+			throws BaseCheckedException, IOException, JSONException {
 		DateTimeFormatter packetCreationTimestampFormatter = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 		DateTimeFormatter digitalIdTimestampFormatter = DateTimeFormatter.ofPattern(digitalIdTimestampFormat);
 		LocalDateTime packetCreationDateTime = LocalDateTime
@@ -302,6 +316,7 @@ public class DeviceValidator {
 
 			if (timestamp.isAfter(packetCreationDateTime)|| timestamp.isBefore(
 							packetCreationDateTime.minus(allowedDigitalIdTimestampVariation, ChronoUnit.MINUTES))) {
+				String correctionPacketCreationTime = getCorrectionPacketDateTime(rid);
 				if (validateCorrectionTimestamp(correctionPacketCreationTime, dateTime))
 					throw new BaseCheckedException(
 							StatusUtil.TIMESTAMP_NOT_VALID.getCode(),
@@ -326,7 +341,7 @@ public class DeviceValidator {
 		return true;
 	}
 
-	private void validateDigitalId(JSONObject payload) throws IOException, JSONException, BaseCheckedException {
+	private void validateDigitalId(JSONObject payload) throws JsonParseException, JsonMappingException, JsonProcessingException, IOException, JSONException, BaseCheckedException {
 		JWTSignatureVerifyRequestDto jwtSignatureVerifyRequestDto = new JWTSignatureVerifyRequestDto();
 		jwtSignatureVerifyRequestDto.setApplicationId("REGISTRATION");
 		jwtSignatureVerifyRequestDto.setReferenceId("SIGN");

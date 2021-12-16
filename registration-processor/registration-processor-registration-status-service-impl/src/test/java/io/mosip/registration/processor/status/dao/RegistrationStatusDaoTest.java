@@ -41,8 +41,19 @@ public class RegistrationStatusDaoTest {
 
 		list = new ArrayList<>();
 		list.add(registrationStatusEntity);
-		Mockito.when(registrationStatusRepositary.createQuerySelect(Matchers.any(), Matchers.any())).thenReturn(list);
+		List<String> statusList = new ArrayList<>();
+		statusList.add("SUCCESS");
 		Mockito.when(registrationStatusRepositary.save(Matchers.any())).thenReturn(registrationStatusEntity);
+		Mockito.when(registrationStatusRepositary.findByRegId(Matchers.any())).thenReturn(list);
+		Mockito.when(registrationStatusRepositary.findByRegIdANDByStatusCode(Matchers.any(),Matchers.any())).thenReturn(list);
+		Mockito.when(registrationStatusRepositary.findByRegIds(Matchers.any())).thenReturn(list);
+		Mockito.when(registrationStatusRepositary.findByRegIdsOrderbyCreatedDateTime(Matchers.any())).thenReturn(list);
+		Mockito.when(registrationStatusRepositary.findByStatusCode(Matchers.any())).thenReturn(list);
+		Mockito.when(registrationStatusRepositary.findByWorkflowInstanceId(Matchers.any())).thenReturn(list);
+		Mockito.when(registrationStatusRepositary.getActionablePausedPackets(Matchers.any(),Matchers.any())).thenReturn(list);
+		Mockito.when(registrationStatusRepositary.getResumablePackets(Matchers.any(),Matchers.any())).thenReturn(list);
+		Mockito.when(registrationStatusRepositary.getUnProcessedPacketsCount(Matchers.any(),Matchers.any(),Matchers.any(),Matchers.any())).thenReturn(1);
+		Mockito.when(registrationStatusRepositary.getUnProcessedPackets(Matchers.any(),Matchers.any(),Matchers.any(),Matchers.any(),Matchers.any())).thenReturn(list);
 	}
 
 	@Test
@@ -66,14 +77,14 @@ public class RegistrationStatusDaoTest {
 		assertEquals(registrationStatusEntity, rEntity);
 
 	}
-	
+
 	@Test
 	public void findByIdworkFlowNullTest() {
 		RegistrationStatusEntity rEntity = registrationStatusDao.find("1000.zip", "NEW", 1, null);
 		assertEquals(registrationStatusEntity, rEntity);
 
 	}
-	
+
 	@Test
 	public void findAllTest() {
 		List<RegistrationStatusEntity> rEntity = registrationStatusDao.findAll("1000.zip");
@@ -99,8 +110,6 @@ public class RegistrationStatusDaoTest {
 	public void testgetUnProcessedPackets() {
 		List<String> statusList = new ArrayList<>();
 		statusList.add("SUCCESS");
-		Mockito.when(registrationStatusRepositary.createQuerySelect(Matchers.anyString(), Matchers.anyMap(),
-				Matchers.anyInt())).thenReturn(list);
 		List<RegistrationStatusEntity> rEntityList = registrationStatusDao.getUnProcessedPackets(2, 60000, 4,
 				statusList);
 		assertEquals(list, rEntityList);
@@ -111,8 +120,7 @@ public class RegistrationStatusDaoTest {
 		List<String> statusList = new ArrayList<>();
 		statusList.add("SUCCESS");
 		int entityCount = list.size();
-		Mockito.when(registrationStatusRepositary.createQuerySelect(Matchers.anyString(), Matchers.anyMap()))
-				.thenReturn(list);
+
 		int count = registrationStatusDao.getUnProcessedPacketsCount(6000, 4, statusList);
 		assertEquals(count, entityCount);
 	}
@@ -121,8 +129,6 @@ public class RegistrationStatusDaoTest {
 	public void testgetPausedPackets() {
 		List<String> statusList = new ArrayList<>();
 		statusList.add("SUCCESS");
-		Mockito.when(registrationStatusRepositary.createQuerySelect(Matchers.anyString(), Matchers.anyMap(),
-				Matchers.anyInt())).thenReturn(list);
 		List<RegistrationStatusEntity> rEntityList = registrationStatusDao.getActionablePausedPackets(2);
 		assertEquals(list, rEntityList);
 	}
@@ -139,12 +145,10 @@ public class RegistrationStatusDaoTest {
 	public void testResumablePackets() {
 		List<String> statusList = new ArrayList<>();
 		statusList.add("SUCCESS");
-		Mockito.when(registrationStatusRepositary.createQuerySelect(Matchers.anyString(), Matchers.anyMap(),
-				Matchers.anyInt())).thenReturn(list);
 		List<RegistrationStatusEntity> rEntityList = registrationStatusDao.getResumablePackets(2);
 		assertEquals(list, rEntityList);
 	}
-	
+
 	@Test
 	public void getPagedSearchResultsTest() {
 		List<FilterInfo> filters = new ArrayList<FilterInfo>();
@@ -157,10 +161,9 @@ public class RegistrationStatusDaoTest {
 		Page<RegistrationStatusEntity> rEntityList = registrationStatusDao.getPagedSearchResults(filters,sort,pagination);
 		assertEquals(registrationStatusEntity, rEntityList.getContent().get(0));
 	}
-	
+
 	@Test
 	public void checkUinAvailabilityForRidTest() {
-		Mockito.when(registrationStatusRepositary.createQuerySelect(Matchers.anyString(), Matchers.anyMap())).thenReturn(list);
 		Boolean status = registrationStatusDao.checkUinAvailabilityForRid("1000");
 		assertEquals(true, status);
 	}

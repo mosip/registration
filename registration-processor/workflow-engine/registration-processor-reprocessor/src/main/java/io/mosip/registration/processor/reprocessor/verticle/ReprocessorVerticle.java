@@ -71,11 +71,11 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 	/** The processingLimitExceeded flag. */
 	@Value("${registration.processor.pause.packets.for.backpressure}")
 	private boolean pauseProcessingForBackpressure ;
-	
+
 	/** The processingLimitExceeded flag. */
 	@Value("${registration.processor.reprocess.limit}")
 	private long reprocessPacketsLimit ;
-	
+
 	/** The fetch size. */
 	@Value("${registration.processor.reprocess.fetchsize}")
 	private Integer fetchSize;
@@ -296,7 +296,6 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 				});
 			}
 			}
-
 		} catch (TablenotAccessibleException e) {
 			isTransactionSuccessful = false;
 			object.setInternalError(Boolean.TRUE);
@@ -338,7 +337,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 	}
 
 	private boolean proceedToReprocess() throws TablenotAccessibleException {
-		
+
 		if(!pauseProcessingForBackpressure) {
 			return true;
 		}

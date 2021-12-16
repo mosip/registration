@@ -316,7 +316,7 @@ public class RegistrationStatusAndSyncControllerTest {
 						.content(requestJson.getBytes()).cookie(new Cookie("Authorization", requestJson)))
 				.andExpect(status().isOk());
 	}
-	
+
 	@Test
 	@WithMockUser(value = "resident", roles = "RESIDENT")
 	public void testSyncV2Controller() throws Exception {

@@ -74,12 +74,6 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
     /**
      * server port number.
      */
-    @Value("${server.port}")
-    private String port;
-
-    /**
-     * server port number.
-     */
     @Value("${securezone.routing.enabled:true}")
     private boolean routingEnabled;
 
