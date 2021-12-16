@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.xml.sax.SAXException;
@@ -47,7 +49,6 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
-import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 
@@ -97,7 +98,7 @@ public class SupervisorValidator {
 	 * @throws RegistrationProcessorCheckedException
 	 */
 	public void validate(String registrationId, InternalRegistrationStatusDto registrationStatusDto, RegOsiDto regOsi)
-			throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, NumberFormatException,
+			throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, NumberFormatException, JSONException,
 			CertificateException, BaseCheckedException {
 		regProcLogger.debug("validate called for registrationId {}", registrationId);
 
@@ -140,7 +141,7 @@ public class SupervisorValidator {
 		boolean wasSupervisorActiveDuringPCT = false;
 
 		if (supervisorId != null && !supervisorId.isEmpty()) {
-			UserResponseDto supervisorResponse = getUserDetails(supervisorId, creationDate);
+			UserResponseDto supervisorResponse = getUserDetails(supervisorId, creationDate, registrationStatusDto);
 			if (supervisorResponse.getErrors() == null) {
 				wasSupervisorActiveDuringPCT = supervisorResponse.getResponse().getUserResponseDto().get(0)
 						.getIsActive();
@@ -159,8 +160,8 @@ public class SupervisorValidator {
 		return wasSupervisorActiveDuringPCT;
 	}
 
-	private UserResponseDto getUserDetails(String operatorId, String creationDate)
-			throws ApisResourceAccessException, IOException {
+	private UserResponseDto getUserDetails(String operatorId, String creationDate,
+			InternalRegistrationStatusDto registrationStatusDto) throws ApisResourceAccessException, IOException {
 		UserResponseDto userResponse;
 		List<String> pathSegments = new ArrayList<>();
 		pathSegments.add(operatorId);
@@ -184,14 +185,15 @@ public class SupervisorValidator {
 	 * @throws SAXException
 	 * @throws ParserConfigurationException
 	 * @throws NoSuchAlgorithmException
+	 * @throws InvalidKeySpecException
 	 * @throws io.mosip.kernel.core.exception.IOException
 	 * @throws BaseCheckedException
 	 * @throws PacketDecryptionFailureException
 	 * @throws Exception
 	 */
 	private void authenticateSupervisor(RegOsiDto regOsi, String registrationId,
-			InternalRegistrationStatusDto registrationStatusDto)
-			throws IOException, NoSuchAlgorithmException, CertificateException, BaseCheckedException {
+			InternalRegistrationStatusDto registrationStatusDto) throws IOException, InvalidKeySpecException,
+			NoSuchAlgorithmException, CertificateException, BaseCheckedException {
 		String supervisorId = regOsi.getSupervisorId();
 
 		// officer password and otp check

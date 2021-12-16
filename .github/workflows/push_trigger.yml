@@ -1,7 +1,6 @@
 name: Maven Package upon a push 
 
 on:
-
   pull_request:
     types: [closed]
   push:
@@ -9,10 +8,8 @@ on:
       - master
       - 1.*
       - develop
-
 jobs:
   build:
-
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -63,10 +60,9 @@ jobs:
       with:
         name: release
         path: ./release.zip
-       
-      
+
     - name: Build registration-processor-stage-group-1 image
-    
+
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
           cd "./$SERVICE_LOCATION"
@@ -74,6 +70,7 @@ jobs:
       env:
         SERVICE_NAME: registration-processor-stage-group-1
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-1
+
     - name: Log into registry
       run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
         
@@ -92,8 +89,8 @@ jobs:
         NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
         SERVICE_NAME: registration-processor-stage-group-1
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-1
-    
-      
+
+
     - name: Build registration-processor-stage-group-2 image
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
@@ -102,6 +99,7 @@ jobs:
       env:
         SERVICE_NAME: registration-processor-stage-group-2
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-2
+
     - name: Log into registry
       run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
         
@@ -120,8 +118,8 @@ jobs:
         NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
         SERVICE_NAME: registration-processor-stage-group-2
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-2
-    
-        
+
+
     - name: Build registration-processor-stage-group-3 image
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
@@ -130,6 +128,7 @@ jobs:
       env:
         SERVICE_NAME: registration-processor-stage-group-3
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-3
+
     - name: Log into registry
       run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
         
@@ -148,8 +147,8 @@ jobs:
         NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
         SERVICE_NAME: registration-processor-stage-group-3
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-3
-    
-      
+
+
     - name: Build registration-processor-stage-group-4 image
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
@@ -158,6 +157,7 @@ jobs:
       env:
         SERVICE_NAME: registration-processor-stage-group-4
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-4
+
     - name: Log into registry
       run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
         
@@ -176,8 +176,8 @@ jobs:
         NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
         SERVICE_NAME: registration-processor-stage-group-4
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-4
-        
-      
+
+
     - name: Build registration-processor-stage-group-5 image
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
@@ -186,6 +186,7 @@ jobs:
       env:
         SERVICE_NAME: registration-processor-stage-group-5
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-5
+
     - name: Log into registry
       run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
         
@@ -204,7 +205,7 @@ jobs:
         NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
         SERVICE_NAME: registration-processor-stage-group-5
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-5
-    
+
     - name: Build registration-processor-stage-group-6 image
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
@@ -232,7 +233,7 @@ jobs:
         SERVICE_NAME: registration-processor-stage-group-6
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-6
 
-      
+
     - name: Build registration-processor-stage-group-7 image
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
@@ -241,6 +242,7 @@ jobs:
       env:
         SERVICE_NAME: registration-processor-stage-group-7
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-7
+
     - name: Log into registry
       run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
         
@@ -289,7 +291,6 @@ jobs:
         SERVICE_LOCATION: registration-processor/registration-processor-common-camel-bridge
 
   publish_to_nexus:
-
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -301,7 +302,6 @@ jobs:
         server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
         settings-path: ${{ github.workspace }} # location for the settings.xml file
     - uses: actions/checkout@v2
-
 
     - name: Setup branch and env
       run: |
@@ -317,6 +317,7 @@ jobs:
         sudo apt-get --yes install gnupg2
         gpg2 --import ./.github/keys/mosipgpgkey_pub.gpg
         gpg2 --quiet --batch --passphrase=${{secrets.gpg_secret}}  --allow-secret-key-import --import ./.github/keys/mosipgpgkey_sec.gpg
+
     - uses: actions/cache@v1
       with:
         path: ~/.m2/repository
@@ -341,13 +342,11 @@ jobs:
 
   docker-registration-processor-registration-transaction-service:
     needs: build
-
     runs-on: ubuntu-latest
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-registration-transaction-service
       SERVICE_LOCATION: registration-processor/post-processor/registration-processor-registration-transaction-service
-
     steps:
       - uses: actions/checkout@v2
       - uses: actions/download-artifact@v1
@@ -369,11 +368,11 @@ jobs:
       
       - name: Unzip and extract the ${{ env.SERVICE_NAME }}
         run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-        
+
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-        
+
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
@@ -424,11 +423,11 @@ jobs:
       
       - name: Unzip and extract the ${{ env.SERVICE_NAME }}
         run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-        
+
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-        
+
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
@@ -482,7 +481,7 @@ jobs:
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-        
+
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
@@ -526,11 +525,11 @@ jobs:
         with:
           xml-file: ./${{ env.SERVICE_LOCATION }}/version.xml
           xpath: version
-          
+
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-        
+
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
@@ -585,7 +584,7 @@ jobs:
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-        
+
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
@@ -636,11 +635,11 @@ jobs:
 
       - name: Unzip and extract the ${{ env.SERVICE_NAME }}
         run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-       
+
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-        
+
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
@@ -691,11 +690,11 @@ jobs:
 
       - name: Unzip and extract the ${{ env.SERVICE_NAME }}
         run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-      
+
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-        
+
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
@@ -722,7 +721,6 @@ jobs:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-client
       SERVICE_LOCATION: registration
-
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 11
@@ -738,6 +736,7 @@ jobs:
           # Strip git ref prefix from version
           echo "BRANCH_NAME=$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')" >> $GITHUB_ENV
           echo "GPG_TTY=$(tty)" >> $GITHUB_ENV
+
       - uses: actions/cache@v1
         with:
           path: ~/.m2/repository
@@ -745,13 +744,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-${{ env.BRANCH_NAME }}
       - name: Setup the settings file for ossrh server
-        run: echo "<settings> <servers>  <server>  <id>ossrh</id>    <username>${{secrets.ossrh_user}}</username> <password>${{secrets.ossrh_secret}}</password> </server> </servers> <profiles> <profile>     <id>ossrh</id> <activation> <activeByDefault>true</activeByDefault> </activation>  <properties> <gpg.executable>gpg2</gpg.executable> <gpg.passphrase>${{secrets.gpg_secret}}</gpg.passphrase> </properties> </profile> <profile> <id>allow-snapshots</id>       <activation><activeByDefault>true</activeByDefault></activation> <repositories> <repository>        <id>snapshots-repo</id> <url>https://oss.sonatype.org/content/repositories/snapshots</url> <releases><enabled>false</enabled></releases> <snapshots><enabled>true</enabled></snapshots> </repository>  <repository>         <id>releases-repo</id>  <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>         <releases><enabled>true</enabled></releases>         <snapshots><enabled>false</enabled></snapshots> </repository> </repositories> <pluginRepositories>       <pluginRepository>               <id>staged-releases</id>               <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>       </pluginRepository>       </pluginRepositories> </profile> <profile> <id>sonar</id> <properties>  <sonar.sources>.</sonar.sources> <sonar.host.url>https://sonarcloud.io</sonar.host.url>  </properties> <activation> <activeByDefault>false</activeByDefault> </activation> </profile> </profiles> </settings>" > $GITHUB_WORKSPACE/settings.xml      
+        run: echo "<settings> <servers>  <server>  <id>ossrh</id>    <username>${{secrets.ossrh_user}}</username> <password>${{secrets.ossrh_secret}}</password> </server> </servers> <profiles> <profile>     <id>ossrh</id> <activation> <activeByDefault>true</activeByDefault> </activation>  <properties> <gpg.executable>gpg2</gpg.executable> <gpg.passphrase>${{secrets.gpg_secret}}</gpg.passphrase> </properties> </profile> <profile> <id>allow-snapshots</id>       <activation><activeByDefault>true</activeByDefault></activation> <repositories> <repository>        <id>snapshots-repo</id> <url>https://oss.sonatype.org/content/repositories/snapshots</url> <releases><enabled>false</enabled></releases> <snapshots><enabled>true</enabled></snapshots> </repository>  <repository>         <id>releases-repo</id>  <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>         <releases><enabled>true</enabled></releases>         <snapshots><enabled>false</enabled></snapshots> </repository> </repositories> <pluginRepositories>       <pluginRepository>               <id>staged-releases</id>               <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>       </pluginRepository>       </pluginRepositories> </profile> <profile> <id>sonar</id> <properties>  <sonar.sources>.</sonar.sources> <sonar.host.url>https://sonarcloud.io</sonar.host.url>  </properties> <activation> <activeByDefault>false</activeByDefault> </activation> </profile> </profiles> </settings>" > $GITHUB_WORKSPACE/settings.xml
 
       - name: Install xmllint
         run: |
           sudo apt-get update
           sudo apt-get install libxml2-utils
-      
+
       - name: Analyze with SonarCloud
         run: |
           cd registration-processor

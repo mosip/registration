@@ -123,7 +123,7 @@ public class PacketValidatorImplTest {
 
 	@Mock
 	ObjectMapper mapper;
-	
+
 	@Value("${packetmanager.name.source.default}")
 	private String source;
 
@@ -141,7 +141,7 @@ public class PacketValidatorImplTest {
 	private static final String PRIMARY_LANGUAGE = "mosip.primary-language";
 
 	private static final String SECONDARY_LANGUAGE = "mosip.secondary-language";
-	
+
 	JSONObject jsonObject = Mockito.mock(JSONObject.class);
 	Map<String, String> metamap = new HashMap<>();
 
@@ -251,7 +251,7 @@ public class PacketValidatorImplTest {
 		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
 				.thenReturn(biometricRecord);
 		when(applicantDocumentValidation.validateDocument(any(), any())).thenReturn(true);
-		
+
 		JSONArray jsonArray = new JSONArray();
 		org.json.JSONObject jsonObject = new org.json.JSONObject();
 		jsonObject.put(MappingJsonConstants.OFFICERBIOMETRICFILENAME, "officerBiometricFilename");
@@ -270,7 +270,7 @@ public class PacketValidatorImplTest {
 				any());
 		assertTrue(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
-	
+
 	@Test
 	public void testdocumentValidationFailed() throws PacketValidatorException, ApisResourceAccessException,
 			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException,
@@ -303,7 +303,7 @@ public class PacketValidatorImplTest {
 		Mockito.when(idRepoService.findUinFromIdrepo(anyString(), any())).thenReturn(null);
 		assertFalse(PacketValidator.validate("123456789", "UPDATE", packetValidationDto));
 	}
-	
+
 	@Test(expected = IdRepoAppException.class)
 	public void testValidationUINNull() throws PacketValidatorException, ApisResourceAccessException,
 			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException,
@@ -313,7 +313,7 @@ public class PacketValidatorImplTest {
 				any());
 		PacketValidator.validate("123456789", "UPDATE", packetValidationDto);
 	}
-	
+
 	@Test(expected = IdRepoAppException.class)
 	public void testValidationJsonNull() throws PacketValidatorException, ApisResourceAccessException,
 			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException,
@@ -324,7 +324,7 @@ public class PacketValidatorImplTest {
 				any());
 		PacketValidator.validate("123456789", "UPDATE", packetValidationDto);
 	}
-	
+
 	@Test(expected = RegistrationProcessorCheckedException.class)
 	public void testValidationStatusDeactived() throws PacketValidatorException, ApisResourceAccessException,
 			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException,
@@ -375,14 +375,14 @@ public class PacketValidatorImplTest {
 		when(packetManagerService.validate(anyString(), anyString(), any())).thenReturn(validatePacketResponse);
 		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
-	
+
 	@Test(expected = PacketManagerException.class)
 	public void testPacketManagerValidationException() throws PacketManagerException, ApisResourceAccessException,
 			JsonProcessingException, IOException, RegistrationProcessorCheckedException {
 		when(packetManagerService.validate(anyString(), anyString(), any())).thenThrow(PacketManagerException.class);
 		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
-	
+
 	@Test
 	public void testJsonException() throws PacketManagerException, ApisResourceAccessException, JsonProcessingException,
 			IOException, RegistrationProcessorCheckedException, JSONException {

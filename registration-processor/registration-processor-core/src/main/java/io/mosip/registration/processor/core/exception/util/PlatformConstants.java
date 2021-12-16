@@ -61,7 +61,10 @@ public final class PlatformConstants {
 	public static final String RPR_PACKET_DECRYPTION_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "PDS-";
 
 	/** The Constant RPR_MANUAL_VERIFICATION_MODULE. */
-	public static final String RPR_MANUAL_VERIFICATION_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "MVS-";
+	public static final String RPR_MANUAL_ADJUDICATION_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "MVS-";
+
+	/** The Constant RPR_MANUAL_VERIFICATION_MODULE. */
+	public static final String RPR_VERIFICATION_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "VS-";
 
 	/** The Constant RPR_REST_CLIENT_MODULE. */
 	public static final String RPR_REST_CLIENT_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "RCT-";
@@ -97,7 +100,7 @@ public final class PlatformConstants {
 
 	/** The Constant RPR_UIN_GENERATOR_STAGE. */
 	public static final String RPR_UIN_GENERATOR_STAGE = RPR_REGISTRATION_PROCESSOR_PREFIX + "UGS-";
-	
+
 	/** The Constant RPR_BIOMETRIC_EXTRACTION_STAGE. */
 	public static final String RPR_BIOMETRIC_EXTRACTION_STAGE = RPR_REGISTRATION_PROCESSOR_PREFIX + "BEN-";
 

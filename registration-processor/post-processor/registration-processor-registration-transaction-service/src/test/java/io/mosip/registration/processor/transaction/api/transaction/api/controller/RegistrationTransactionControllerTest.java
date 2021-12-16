@@ -46,6 +46,7 @@ import io.mosip.registration.processor.transaction.api.transaction.api.config.Re
 @ContextConfiguration(classes = RegistrationTransactionBeanConfigTest.class)
 @TestPropertySource(locations = "classpath:application.properties")
 @ImportAutoConfiguration(RefreshAutoConfiguration.class)
+@Ignore
 public class RegistrationTransactionControllerTest {
 	@InjectMocks
 	RegistrationTransactionController registrationTransactionController;

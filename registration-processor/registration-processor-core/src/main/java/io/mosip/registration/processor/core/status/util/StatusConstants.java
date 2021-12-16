@@ -104,12 +104,12 @@ public final class StatusConstants {
 	public static final String UIN_GENERATOR_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "UIN-";
 	public static final String UIN_GENERATOR_MODULE_SUCCESS = UIN_GENERATOR_MODULE + SUCCESS;
 	public static final String UIN_GENERATOR_MODULE_FAILED = UIN_GENERATOR_MODULE + FAILED;
-	
+
 	// Biometric extraction stage
 	public static final String BIOMETRIC_EXTRACTION_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "BEN-";
 	public static final String BIOMETRIC_EXTRACTION_MODULE_SUCCESS = BIOMETRIC_EXTRACTION_MODULE + SUCCESS;
 	public static final String BIOMETRIC_EXTRACTION_MODULE_FAILED = BIOMETRIC_EXTRACTION_MODULE + FAILED;
-	
+
 	// Biometric extraction stage
 		public static final String FINALIZATION_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "FIN-";
 		public static final String FINALIZATION_MODULE_SUCCESS = FINALIZATION_MODULE + SUCCESS;
@@ -135,6 +135,8 @@ public final class StatusConstants {
 	public static final String WORKFLOW_INTERNAL_ACTION = RPR_REGISTRATION_PROCESSOR_PREFIX + "WIA-";
 
 	public static final String WORKFLOW_ACTION_SERVICE = RPR_REGISTRATION_PROCESSOR_PREFIX + "WAS-";
+
+	public static final String VERIFICATION_STAGE = RPR_REGISTRATION_PROCESSOR_PREFIX + "VER-";
 
 
 }

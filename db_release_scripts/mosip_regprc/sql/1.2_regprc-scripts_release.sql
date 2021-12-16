@@ -74,10 +74,11 @@ create index idx_rbioref_crdtimes on regprc.reg_bio_ref (cr_dtimes);
 
 create index idx_rmanvrn_reqid on regprc.reg_manual_verification (request_id);
 
-create index idx_rgstrn_ltstrbcode_ltststscode on regprc.registration (latest_trn_dtimes, latest_trn_status_code);
-
+DROP INDEX idx_rgstrn_ltstrbcode_ltststscode;
+CREATE INDEX idx_reg_upd_trn_dtimes_asc ON regprc.registration USING btree (upd_dtimes asc,latest_trn_dtimes asc)
 create index idx_rgstrnlst_pcktid on regprc.registration_list (packet_id);
 create index idx_rgstrnlst_aireqid on regprc.registration_list (additional_info_req_id);
+create index idx_reg_verification_reqId on regprc.reg_verification (verification_req_id);
 
 ALTER TABLE regprc.individual_demographic_dedup DROP CONSTRAINT pk_idemogd_id;
 ALTER TABLE regprc.individual_demographic_dedup ALTER COLUMN workflow_instance_id SET NOT NULL;
@@ -139,6 +140,7 @@ TRUNCATE TABLE regprc.transaction_type cascade ;
 
 
 ALTER TABLE regprc.registration ADD COLUMN last_success_stage_name CHARACTER VARYING(50);
+ALTER TABLE regprc.reg_manual_verification RENAME TO reg_manual_adjudication;
 
 ---------------------------------------------------------FOR HISTORY DATA----------------------------------------------
 

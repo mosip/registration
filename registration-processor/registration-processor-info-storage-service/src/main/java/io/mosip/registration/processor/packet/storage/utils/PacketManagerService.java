@@ -9,6 +9,8 @@ import javax.annotation.PostConstruct;
 
 import io.mosip.registration.processor.core.packet.dto.packetmanager.TagRequestDto;
 import io.mosip.registration.processor.core.packet.dto.packetmanager.TagResponseDto;
+import io.mosip.registration.processor.packet.storage.exception.ObjectDoesnotExistsException;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -50,6 +52,7 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
     private static Logger regProcLogger = RegProcessorLogger.getLogger(PacketManagerService.class);
     private static final String ID = "mosip.commmons.packetmanager";
     private static final String VERSION = "v1";
+    private static final String OBJECT_DOESNOT_EXISTS_ERROR_CODE = "KER-PUT-027";
 
     @Autowired
     private RegistrationProcessorRestClientService<Object> restApi;
@@ -77,7 +80,11 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
 
         if (response.getErrors() != null && response.getErrors().size() > 0) {
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
-            throw new PacketManagerException(response.getErrors().get(0).getErrorCode(), response.getErrors().get(0).getMessage());
+            ErrorDTO errorDTO = response.getErrors().iterator().next();
+            if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
+                throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
+            else
+                throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
         }
 
         FieldResponseDto fieldResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), FieldResponseDto.class);
@@ -100,7 +107,11 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
 
         if (response.getErrors() != null && response.getErrors().size() > 0) {
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
-            throw new PacketManagerException(response.getErrors().get(0).getErrorCode(), response.getErrors().get(0).getMessage());
+            ErrorDTO errorDTO = response.getErrors().iterator().next();
+            if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
+                throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
+            else
+                throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
         }
 
         FieldResponseDto fieldResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), FieldResponseDto.class);
@@ -124,7 +135,11 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
 
         if (response.getErrors() != null && response.getErrors().size() > 0) {
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
-            throw new PacketManagerException(response.getErrors().get(0).getErrorCode(), response.getErrors().get(0).getMessage());
+            ErrorDTO errorDTO = response.getErrors().iterator().next();
+            if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
+                throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
+            else
+                throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
         }
 
         Document document = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), Document.class);
@@ -144,7 +159,11 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
 
         if (response.getErrors() != null && response.getErrors().size() > 0) {
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
-            throw new PacketManagerException(response.getErrors().get(0).getErrorCode(), response.getErrors().get(0).getMessage());
+            ErrorDTO errorDTO = response.getErrors().iterator().next();
+            if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
+                throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
+            else
+                throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
         }
         ValidatePacketResponse validatePacketResponse = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), ValidatePacketResponse.class);
 
@@ -165,7 +184,11 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
 
         if (responseObj.getErrors() != null && responseObj.getErrors().size() > 0) {
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(responseObj));
-            throw new PacketManagerException(responseObj.getErrors().get(0).getErrorCode(), responseObj.getErrors().get(0).getMessage());
+            ErrorDTO errorDTO = responseObj.getErrors().iterator().next();
+            if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
+                throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
+            else
+                throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
         }
 
         for (Object o : responseObj.getResponse()) {
@@ -189,7 +212,11 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
 
         if (response.getErrors() != null && response.getErrors().size() > 0) {
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
-            throw new PacketManagerException(response.getErrors().get(0).getErrorCode(), response.getErrors().get(0).getMessage());
+            ErrorDTO errorDTO = response.getErrors().iterator().next();
+            if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
+                throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
+            else
+                throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
         }
         if (response.getResponse() != null) {
             BiometricRecord biometricRecord = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), BiometricRecord.class);
@@ -209,9 +236,14 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
         request.setRequest(fieldDto);
         ResponseWrapper<FieldResponseDto> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_SEARCH_METAINFO, "", "", request, ResponseWrapper.class);
 
-        if (response.getErrors() != null && response.getErrors().size() > 0) {
-            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
-            throw new PacketManagerException(response.getErrors().get(0).getErrorCode(), response.getErrors().get(0).getMessage());
+        if (CollectionUtils.isNotEmpty(response.getErrors())) {
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+                    LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
+            ErrorDTO errorDTO = response.getErrors().iterator().next();
+            if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
+                throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
+            else
+                throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
         }
 
         FieldResponseDto fieldResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), FieldResponseDto.class);
@@ -231,7 +263,11 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
 
         if (response.getErrors() != null && response.getErrors().size() > 0) {
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
-            throw new PacketManagerException(response.getErrors().get(0).getErrorCode(), response.getErrors().get(0).getMessage());
+            ErrorDTO errorDTO = response.getErrors().iterator().next();
+            if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
+                throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
+            else
+                throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
         }
 
         InfoResponseDto infoResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), InfoResponseDto.class);
@@ -251,7 +287,11 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
 
         if (response.getErrors() != null && response.getErrors().size() > 0) {
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
-            throw new PacketManagerException(response.getErrors().get(0).getErrorCode(), response.getErrors().get(0).getMessage());
+            ErrorDTO errorDTO = response.getErrors().iterator().next();
+            if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
+                throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
+            else
+                throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
         }
     }
 
@@ -271,8 +311,11 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
 		if (response.getErrors() != null && response.getErrors().size() > 0) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					id, JsonUtils.javaObjectToJsonString(response));
-			throw new PacketManagerException(response.getErrors().get(0).getErrorCode(),
-					response.getErrors().get(0).getMessage());
+            ErrorDTO errorDTO = response.getErrors().iterator().next();
+            if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
+                throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
+            else
+                throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
 		}
 
 
@@ -300,8 +343,13 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
             //This error code will return if requested tag is not present ,so returning null for that
             if(error.getErrorCode().equalsIgnoreCase("KER-PUT-024")) 
         		return null;
-            throw new PacketManagerException(response.getErrors().get(0).getErrorCode(),
-                    response.getErrors().get(0).getMessage());
+            else {
+                ErrorDTO errorDTO = response.getErrors().iterator().next();
+                if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
+                    throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
+                else
+                    throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
+            }
         }
 
         TagResponseDto tagResponseDto = null;

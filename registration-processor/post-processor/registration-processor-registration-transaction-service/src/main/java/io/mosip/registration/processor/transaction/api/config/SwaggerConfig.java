@@ -14,7 +14,7 @@ import io.swagger.v3.oas.models.servers.Server;
 
 /**
  * Configuration class for swagger config
- * 
+ *
  * @author Dharmesh Khandelwal
  * @since 1.0.0
  * @author Govindaraj Velu
@@ -23,12 +23,12 @@ import io.swagger.v3.oas.models.servers.Server;
  */
 @Configuration
 public class SwaggerConfig {
-	
-	private static final Logger logger = LoggerFactory.getLogger(SwaggerConfig.class);
+
+    private static final Logger logger = LoggerFactory.getLogger(SwaggerConfig.class);
 
 	@Autowired
 	private OpenApiProperties openApiProperties;
-	
+
 	@Bean
     public OpenAPI openApi() {
 		String msg = "Swagger open api, ";
@@ -51,7 +51,7 @@ public class SwaggerConfig {
 		} else {
 			logger.error(msg + "info property is empty");
 		}
-		
+
 		if (null != openApiProperties.getRegistrationProcessor().getServers()) {
 			openApiProperties.getRegistrationProcessor().getServers().forEach(server -> {
 				api.addServersItem(new Server().description(server.getDescription()).url(server.getUrl()));
@@ -62,5 +62,5 @@ public class SwaggerConfig {
 		}
 		return api;
     }
-	
+
 }

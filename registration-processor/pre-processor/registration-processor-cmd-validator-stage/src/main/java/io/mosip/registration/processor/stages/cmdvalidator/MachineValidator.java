@@ -14,6 +14,7 @@ import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.ValidationFailedException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
@@ -47,7 +48,7 @@ public class MachineValidator {
 	 * @throws com.fasterxml.jackson.core.JsonParseException
 	 */
 	public void validate(String machineId, String langCode, String effdatetimes, String registrationId)
-			throws IOException, BaseCheckedException {
+			throws IOException, BaseCheckedException, ApisResourceAccessException {
 
 		if (machineId == null) {
 			throw new BaseCheckedException(StatusUtil.MACHINE_ID_NOT_FOUND.getMessage(),

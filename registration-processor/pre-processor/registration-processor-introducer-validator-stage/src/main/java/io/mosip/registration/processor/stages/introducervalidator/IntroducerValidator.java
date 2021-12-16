@@ -82,14 +82,15 @@ public class IntroducerValidator {
 	 * @throws SAXException
 	 * @throws ParserConfigurationException
 	 * @throws NoSuchAlgorithmException
+	 * @throws InvalidKeySpecException
 	 * @throws BiometricException
 	 * @throws io.mosip.kernel.core.exception.IOException
 	 * @throws BaseCheckedException
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
 	 */
-	public void validate(String registrationId, InternalRegistrationStatusDto registrationStatusDto)
-			throws IOException, NoSuchAlgorithmException, CertificateException, BaseCheckedException {
+	public void validate(String registrationId, InternalRegistrationStatusDto registrationStatusDto) throws IOException,
+			InvalidKeySpecException, NoSuchAlgorithmException, CertificateException, BaseCheckedException {
 
 		regProcLogger.debug("validate called for registrationId {}", registrationId);
 
@@ -126,7 +127,12 @@ public class IntroducerValidator {
 			}
 
 		}
-		validateIntroducerBiometric(registrationId, registrationStatusDto, introducerUIN);
+		if (introducerUIN != null && !introducerUIN.isEmpty()) {
+			validateIntroducerBiometric(registrationId, registrationStatusDto, introducerUIN);
+		} else {
+			throw new ValidationFailedException(StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getMessage(),
+					StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getCode());
+		}
 
 		regProcLogger.debug("validate call ended for registrationId {}", registrationId);
 	}
@@ -156,7 +162,7 @@ public class IntroducerValidator {
 			if (introducerRegistrationStatusDto.getStatusCode().equals(RegistrationStatusCode.PROCESSING.toString())) {
 
 				registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
-						.getStatusCode(RegistrationExceptionTypeCode.OSI_FAILED_ON_HOLD_INTRODUCER_PACKET));
+						.getStatusCode(RegistrationExceptionTypeCode.ON_HOLD_INTRODUCER_PACKET));
 
 				registrationStatusDto.setStatusComment(StatusUtil.PACKET_ON_HOLD.getMessage());
 				registrationStatusDto.setSubStatusCode(StatusUtil.PACKET_ON_HOLD.getCode());
@@ -185,7 +191,7 @@ public class IntroducerValidator {
 
 		} else {
 			registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
-					.getStatusCode(RegistrationExceptionTypeCode.OSI_FAILED_ON_HOLD_INTRODUCER_PACKET));
+					.getStatusCode(RegistrationExceptionTypeCode.ON_HOLD_INTRODUCER_PACKET));
 
 			registrationStatusDto.setStatusComment(StatusUtil.PACKET_IS_ON_HOLD.getMessage());
 			registrationStatusDto.setSubStatusCode(StatusUtil.PACKET_IS_ON_HOLD.getCode());
