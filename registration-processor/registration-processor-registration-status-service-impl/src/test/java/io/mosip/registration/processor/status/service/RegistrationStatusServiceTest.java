@@ -182,14 +182,14 @@ public class RegistrationStatusServiceTest {
 		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus("1001", "NEW", 1, "");
 		assertEquals("PACKET_UPLOADED_TO_LANDING_ZONE", dto.getStatusCode());
 	}
-	
+
 	@Test
 	public void testGetAllRegistrationStatusesSuccess() {
 		Mockito.when(registrationStatusDao.findAll(anyString())).thenReturn(entities);
 		List<InternalRegistrationStatusDto> dto = registrationStatusService.getAllRegistrationStatuses("1001");
 		assertEquals(1, dto.size());
 	}
-	
+
 	@Test(expected = TablenotAccessibleException.class)
 	public void testGetAllRegistrationStatusesFailure() {
 		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
@@ -197,14 +197,14 @@ public class RegistrationStatusServiceTest {
 		Mockito.when(registrationStatusDao.findAll(anyString())).thenThrow(exp);
 		registrationStatusService.getAllRegistrationStatuses("1001");
 	}
-	
+
 	@Test
 	public void testGetRegStatusForMainProcessSuccess() {
 		Mockito.when(registrationStatusDao.findAll(anyString())).thenReturn(entities);
 		List<InternalRegistrationStatusDto> dto = registrationStatusService.getAllRegistrationStatuses("1001");
 		assertEquals(1, dto.size());
 	}
-	
+
 	@Test(expected = TablenotAccessibleException.class)
 	public void testGetRegStatusForMainProcessFailure() {
 		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
@@ -512,7 +512,7 @@ public class RegistrationStatusServiceTest {
 		Mockito.when(registrationStatusDao.save(any())).thenThrow(exp);
 		registrationStatusService.updateRegistrationStatusForWorkflow(registrationStatusDto, "", "");
 	}
-	
+
 	@Test
 	public void getRegStatusForMainProcessSuccessTest() {
 
@@ -521,7 +521,7 @@ public class RegistrationStatusServiceTest {
 		InternalRegistrationStatusDto dto = registrationStatusService.getRegStatusForMainProcess(registartionId);
 		assertEquals("1000", dto.getRegistrationId());
 	}
-	
+
 	@Test(expected = TablenotAccessibleException.class)
 	public void getRegStatusForMainProcessFailureTest() {
 		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),

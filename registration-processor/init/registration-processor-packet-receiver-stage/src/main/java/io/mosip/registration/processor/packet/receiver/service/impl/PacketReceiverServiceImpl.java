@@ -155,7 +155,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 			try (InputStream encryptedInputStream = FileUtils.newInputStream(file.getAbsolutePath())) {
 				byte[] encryptedByteArray = IOUtils.toByteArray(encryptedInputStream);
 				messageDTO.setReg_type(regEntity.getRegistrationType());
-				validateHashCode(new ByteArrayInputStream(encryptedByteArray), regEntity, registrationId, description);
+				validateHashCode(encryptedByteArray, regEntity, registrationId, description);
 				validatePacketFormat(fileOriginalName, registrationId, description);
 				validatePacketSize(file.length(), regEntity, registrationId, description);
 				if (isDuplicatePacket(registrationId, regEntity) && !isExternalStatusResend(registrationId)) {
@@ -427,10 +427,9 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
-	private void validateHashCode(InputStream inputStream, SyncRegistrationEntity regEntity, String registrationId,
+	private void validateHashCode(byte[] isbytearray, SyncRegistrationEntity regEntity, String registrationId,
 			LogDescription description) throws IOException, NoSuchAlgorithmException {
 		// TO-DO testing
-		byte[] isbytearray = IOUtils.toByteArray(inputStream);
 		String hashSequence = HMACUtils2.digestAsPlainText(isbytearray);
 		String packetHashSequence = regEntity.getPacketHashValue();
 		if (!(MessageDigest.isEqual(packetHashSequence.getBytes(), hashSequence.getBytes()))) {

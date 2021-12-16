@@ -155,10 +155,16 @@ public class MessageBusAddress implements Serializable {
 	public static final MessageBusAddress DEMO_DEDUPE_BUS_OUT = new MessageBusAddress("demo-dedupe-bus-out");
 
 	/** The Constant MANUAL_VERIFICATION_BUS. */
-	public static final MessageBusAddress MANUAL_VERIFICATION_BUS_OUT = new MessageBusAddress("manual-verification-bus-out");
+	public static final MessageBusAddress MANUAL_ADJUDICATION_BUS_OUT = new MessageBusAddress("manual-adjudication-bus-out");
 
 	/** The Constant MANUAL_VERIFICATION_BUS_IN. */
-	public static final MessageBusAddress MANUAL_VERIFICATION_BUS_IN = new MessageBusAddress("manual-verification-bus-in");
+	public static final MessageBusAddress MANUAL_ADJUDICATION_BUS_IN = new MessageBusAddress("manual-adjudication-bus-in");
+
+	/** The Constant MANUAL_VERIFICATION_BUS. */
+	public static final MessageBusAddress VERIFICATION_BUS_OUT = new MessageBusAddress("verification-bus-out");
+
+	/** The Constant MANUAL_VERIFICATION_BUS_IN. */
+	public static final MessageBusAddress VERIFICATION_BUS_IN = new MessageBusAddress("verification-bus-in");
 
 
 	/** The Constant UIN_GENERATION_BUS_IN. */
@@ -166,14 +172,14 @@ public class MessageBusAddress implements Serializable {
 
 	/** The Constant UIN_GENERATION_BUS_OUT. */
 	public static final MessageBusAddress UIN_GENERATION_BUS_OUT = new MessageBusAddress("uin-generator-bus-out");
-	
+
 	/** The Constant BIOMETRIC_EXTRACTION_BUS_IN. */
 	public static final MessageBusAddress BIOMETRIC_EXTRACTION_BUS_IN = new MessageBusAddress("biometric-extraction-bus-in");
 
 	/** The Constant BIOMETRIC_EXTRACTION_BUS_OUT. */
 	public static final MessageBusAddress BIOMETRIC_EXTRACTION_BUS_OUT = new MessageBusAddress("biometric-extraction-bus-out");
 
-	
+
 	/** The Constant FINALIZATION_BUS_IN. */
 	public static final MessageBusAddress FINALIZATION_BUS_IN = new MessageBusAddress("finalization-bus-in");
 
@@ -243,7 +249,6 @@ public class MessageBusAddress implements Serializable {
 
 	/** The Constant STRUCTURE_BUS_OUT. */
 	public static final MessageBusAddress PACKET_CLASSIFIER_BUS_OUT = new MessageBusAddress("packet-classifier-bus-out");
-
 
 	/** The Constant WORKFLOW_INTERNAL_ACTION_ADDRESS. */
 	public static final MessageBusAddress WORKFLOW_INTERNAL_ACTION_ADDRESS = new MessageBusAddress(

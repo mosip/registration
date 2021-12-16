@@ -1,27 +1,10 @@
 package io.mosip.registration.processor.biodedupe.stage;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import io.mosip.registration.processor.core.constant.ProviderStageName;
-import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataAccessException;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.biodedupe.constants.BioDedupeConstants;
+import io.mosip.registration.processor.biodedupe.service.CbeffValidateAndVerificatonService;
 import io.mosip.registration.processor.biodedupe.stage.exception.CbeffNotFoundException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -36,6 +19,7 @@ import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode
 import io.mosip.registration.processor.core.constant.AbisConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
@@ -57,6 +41,7 @@ import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoServic
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.exception.IdentityNotFoundException;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -64,6 +49,21 @@ import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.SyncTypeDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * The Class BioDedupeProcessor.
@@ -87,6 +87,8 @@ public class BioDedupeProcessor {
 	@Value("#{'${registration.processor.sub-processes}'.split(',')}")
 	private List<String> subProcesses;
 
+	@Autowired
+	private CbeffValidateAndVerificatonService cbeffValidateAndVerificatonService;
 
 	@Autowired
 	private PriorityBasedPacketManagerService priorityBasedPacketManagerService;
@@ -126,6 +128,9 @@ public class BioDedupeProcessor {
 	@Value("${mosip.kernel.applicant.type.age.limit}")
 	private String ageLimit;
 
+	@Value("${registration.processor.missing.biometric.verification.enabled:true}")
+	private boolean missingBiometricVerificationEnabled;
+
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(BioDedupeProcessor.class);
 
@@ -160,6 +165,8 @@ public class BioDedupeProcessor {
 
 		boolean isTransactionSuccessful = false;
 
+		boolean isDuplicateRequestForSameTransactionId = false;
+
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 		try {
 			registrationStatusDto = registrationStatusService.getRegistrationStatus(
@@ -185,7 +192,7 @@ public class BioDedupeProcessor {
 				}
 
 			} else if (registrationType.equalsIgnoreCase(SyncTypeDto.LOST.toString())
-					&& isValidCbeff(registrationId, registrationType)) {
+					&& isValidCbeff(object)) {
 				String packetStatus = abisHandlerUtil.getPacketStatus(registrationStatusDto);
 
 				if (packetStatus.equalsIgnoreCase(AbisConstant.PRE_ABIS_IDENTIFICATION)) {
@@ -198,6 +205,9 @@ public class BioDedupeProcessor {
 				}
 
 			}
+
+			if (abisHandlerUtil.getPacketStatus(registrationStatusDto).equalsIgnoreCase(AbisConstant.DUPLICATE_FOR_SAME_TRANSACTION_ID))
+				isDuplicateRequestForSameTransactionId = true;
 
 			registrationStatusDto.setRegistrationStageName(stageName);
 			isTransactionSuccessful = true;
@@ -267,25 +277,32 @@ public class BioDedupeProcessor {
 					description.getMessage() + "\n" + ExceptionUtils.getStackTrace(ex));
 			object.setInternalError(Boolean.TRUE);
 		} finally {
-			if (object.getInternalError()) {
-				updateErrorFlags(registrationStatusDto, object);
+			if (!isDuplicateRequestForSameTransactionId) {
+				if (object.getInternalError()) {
+					updateErrorFlags(registrationStatusDto, object);
+				}
+				registrationStatusDto
+						.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.BIOGRAPHIC_VERIFICATION.toString());
+				String moduleId = isTransactionSuccessful ? PlatformSuccessMessages.RPR_BIO_DEDUPE_SUCCESS.getCode()
+						: description.getCode();
+				String moduleName = ModuleName.BIO_DEDUPE.name();
+				registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);
+
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						registrationId, "BioDedupeProcessor::" + registrationStatusDto.getLatestTransactionStatusCode());
+
+				String eventId = isTransactionSuccessful ? EventId.RPR_402.toString() : EventId.RPR_405.toString();
+				String eventName = isTransactionSuccessful ? EventName.UPDATE.toString() : EventName.EXCEPTION.toString();
+				String eventType = isTransactionSuccessful ? EventType.BUSINESS.toString() : EventType.SYSTEM.toString();
+
+				auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
+						moduleId, moduleName, registrationId);
+			} else {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						registrationId, "Duplicate request received for same latest transaction id. This will be ignored.");
+				object.setIsValid(false);
+				object.setInternalError(true);
 			}
-			registrationStatusDto
-					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.BIOGRAPHIC_VERIFICATION.toString());
-			String moduleId = isTransactionSuccessful ? PlatformSuccessMessages.RPR_BIO_DEDUPE_SUCCESS.getCode()
-					: description.getCode();
-			String moduleName = ModuleName.BIO_DEDUPE.name();
-			registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);
-
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, "BioDedupeProcessor::" + registrationStatusDto.getLatestTransactionStatusCode());
-
-			String eventId = isTransactionSuccessful ? EventId.RPR_402.toString() : EventId.RPR_405.toString();
-			String eventName = isTransactionSuccessful ? EventName.UPDATE.toString() : EventName.EXCEPTION.toString();
-			String eventType = isTransactionSuccessful ? EventType.BUSINESS.toString() : EventType.SYSTEM.toString();
-
-			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
-					moduleId, moduleName, registrationId);
 		}
 		return object;
 	}
@@ -305,7 +322,7 @@ public class BioDedupeProcessor {
 	 */
 	private void newPacketPreAbisIdentification(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object)
 			throws ApisResourceAccessException, IOException, JsonProcessingException, PacketManagerException {
-		if (isValidCbeff(registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType())) {
+		if (isValidCbeff(object)) {
 			object.setIsValid(Boolean.TRUE);
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 			registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_INPROGRESS.getMessage());
@@ -316,13 +333,25 @@ public class BioDedupeProcessor {
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationStatusDto.getRegistrationId(), BioDedupeConstants.CBEFF_PRESENT_IN_PACKET);
 		} else {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
-			registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_SUCCESS.getMessage());
-			registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_SUCCESS.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
-			object.setIsValid(Boolean.TRUE);
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationStatusDto.getRegistrationId(), BioDedupeConstants.CBEFF_ABSENT_IN_PACKET);
+			if (object.getMessageBusAddress() == MessageBusAddress.VERIFICATION_BUS_IN) {
+				object.setIsValid(Boolean.TRUE);
+				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+				registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_INPROGRESS.getMessage());
+				registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_INPROGRESS.getCode());
+				registrationStatusDto
+						.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.IN_PROGRESS.toString());
+				registrationStatusDto.setStatusComment(BioDedupeConstants.CBEFF_NOT_PRESENT_IN_PACKET);
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						registrationStatusDto.getRegistrationId(), BioDedupeConstants.CBEFF_NOT_PRESENT_IN_PACKET);
+			} else {
+				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+				registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_SUCCESS.getMessage());
+				registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_SUCCESS.getCode());
+				registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
+				object.setIsValid(Boolean.TRUE);
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						registrationStatusDto.getRegistrationId(), BioDedupeConstants.CBEFF_ABSENT_IN_PACKET);
+			}
 		}
 	}
 
@@ -344,8 +373,7 @@ public class BioDedupeProcessor {
 		String bioField = priorityBasedPacketManagerService.getFieldByMappingJsonKey(registrationStatusDto.getRegistrationId(),
 				MappingJsonConstants.INDIVIDUAL_BIOMETRICS, registrationStatusDto.getRegistrationType(), ProviderStageName.BIO_DEDUPE);
 
-		if (StringUtils.isNotEmpty(bioField) && isValidCbeff(registrationStatusDto.getRegistrationId(),
-				registrationStatusDto.getRegistrationType())) {
+		if (StringUtils.isNotEmpty(bioField) && isValidCbeff(object)) {
 			object.setIsValid(Boolean.TRUE);
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 			registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_INPROGRESS.getMessage());
@@ -418,7 +446,7 @@ public class BioDedupeProcessor {
 			object.setRid(registrationStatusDto.getRegistrationId());
 			object.setIsValid(Boolean.TRUE);
 			object.setReg_type(registrationType);
-			object.setMessageBusAddress(MessageBusAddress.MANUAL_VERIFICATION_BUS_IN);
+			object.setMessageBusAddress(MessageBusAddress.MANUAL_ADJUDICATION_BUS_IN);
 
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationStatusDto.getRegistrationId(), BioDedupeConstants.ABIS_RESPONSE_NOT_NULL);
@@ -429,7 +457,7 @@ public class BioDedupeProcessor {
 	/**
 	 * Checks if is valid cbeff.
 	 *
-	 * @param registrationId the registration id
+	 * @param messageDTO the messageDTO
 	 * @return the boolean
 	 * @throws ApisResourceAccessException           the apis resource access
 	 *                                               exception
@@ -439,33 +467,28 @@ public class BioDedupeProcessor {
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException RegistrationProcessorCheckedException
 	 */
-	private Boolean isValidCbeff(String registrationId, String registrationType) throws ApisResourceAccessException,
+	private Boolean isValidCbeff(MessageDTO messageDTO) throws ApisResourceAccessException,
 			IOException, JsonProcessingException, PacketManagerException {
-
+		String id = messageDTO.getRid();
+		String process = messageDTO.getReg_type();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "BioDedupeProcessor::isValidCbeff()::get BIODEDUPE service call started");
-		byte[] bytefile = null;
-		boolean isInfant = infantCheck(registrationId, registrationType);
-		if (isInfant) {
-			if (infantDedupe.equalsIgnoreCase(GLOBAL_CONFIG_TRUE_VALUE)) {
-				bytefile = biodedupeServiceImpl.getFileByRegId(registrationId, registrationType);
-			} else
-				return false;
-		} else {
-			 bytefile = biodedupeServiceImpl.getFileByRegId(registrationId, registrationType);
-
+				id, "BioDedupeProcessor::isValidCbeff()::get BIODEDUPE service call started");
+		boolean isInfant = infantCheck(id, process);
+		try {
+			if (isInfant)
+				if (infantDedupe.equalsIgnoreCase(GLOBAL_CONFIG_TRUE_VALUE))
+					cbeffValidateAndVerificatonService.validateBiometrics(id, process);
+				else
+					return false;
+			else
+				cbeffValidateAndVerificatonService.validateBiometrics(id, process);
+		} catch (CbeffNotFoundException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+					LoggerFileConstant.REGISTRATIONID.toString(), id, ExceptionUtils.getStackTrace(e));
+			messageDTO.setMessageBusAddress(MessageBusAddress.VERIFICATION_BUS_IN);
+			return false;
 		}
-		if (bytefile != null) {
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId,
-					"BioDedupeProcessor::isValidCbeff()::get BIODEDUPE service call ended and Fetched ByteFile");
-			return true;
-		} else {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, "BioDedupeProcessor::isValidCbeff()::get BIODEDUPE service call ended successfully"
-							+ BioDedupeConstants.CBEFF_NOT_FOUND);
-			throw new CbeffNotFoundException(PlatformErrorMessages.PACKET_BIO_DEDUPE_CBEFF_NOT_PRESENT.getMessage());
-		}
+		return true;
 
 	}
 

@@ -1,6 +1,7 @@
 
 package io.mosip.registration.processor.camel.bridge.config;
 
+import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
@@ -32,7 +33,7 @@ public class CamelBridgeConfig {
 	@Bean
 	@Primary
 	public ObjectMapper getObjectMapper() {
-		return new ObjectMapper().registerModule(new JavaTimeModule());
+		return new ObjectMapper().registerModule(new AfterburnerModule()).registerModule(new JavaTimeModule());
 	}
 	
 	@Bean
