@@ -6,6 +6,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -185,7 +186,7 @@ public class CoreConfigBean {
 
 	@Bean
 	public ObjectMapper getObjectMapper() {
-		return new ObjectMapper().registerModule(new JavaTimeModule());
+		return new ObjectMapper().registerModule(new AfterburnerModule()).registerModule(new JavaTimeModule());
 	}
 	
 	@Bean

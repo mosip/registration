@@ -15,6 +15,7 @@ import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.ValidationFailedException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
@@ -54,7 +55,7 @@ public class CenterValidator {
 	 * @throws com.fasterxml.jackson.core.JsonParseException
 	 */
 	private void validateRegistrationCenter(String registrationCenterId, String langCode, String effectiveDate,
-			String registrationId) throws IOException, BaseCheckedException {
+			String registrationId) throws IOException, BaseCheckedException, ApisResourceAccessException {
 
 		regProcLogger.debug("validateRegistrationCenter called for registrationId {}", registrationId);
 		if (registrationCenterId == null || effectiveDate == null) {
@@ -106,7 +107,7 @@ public class CenterValidator {
 	 */
 
 	private void validateCenterIdAndTimestamp(RegOsiDto rcmDto, String primaryLanguagecode, String registrationId)
-			throws IOException, BaseCheckedException {
+			throws IOException, BaseCheckedException, ApisResourceAccessException {
 
 		regProcLogger.debug("validateCenterIdAndTimestamp called for registrationId {}", rcmDto.getRegId());
 		List<String> pathsegments = new ArrayList<>();

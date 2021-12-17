@@ -141,7 +141,7 @@ public interface RegistrationStatusService<T, U, D> {
 	 * @return the reprocess packets count
 	 */
 	public long getInReprocessPacketsCount(long reprocessDuration);
-
+	
 	/**
 	 * Check Rid if uin is available.
 	 *

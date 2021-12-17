@@ -140,8 +140,8 @@ public class NotificationServiceImpl implements NotificationService {
 	private Environment env;
 
 	// sends init subscribe req to hub
-	@Scheduled(fixedDelayString = "${mosip.regproc.websub.resubscription.delay.secs:1800000}",
-            initialDelayString = "${mosip.regproc.websub.subscriptions-delay-on-startup.secs:300000}")
+	@Scheduled(fixedDelayString = "${mosip.regproc.websub.resubscription.delay.millisecs:43200000}",
+            initialDelayString = "${mosip.regproc.websub.subscriptions-delay-on-startup.millisecs:300000}")
 	protected void init() {
 		SubscriptionChangeRequest subscriptionRequest = new SubscriptionChangeRequest();
 		subscriptionRequest.setCallbackURL(callbackURL);
@@ -230,7 +230,7 @@ public class NotificationServiceImpl implements NotificationService {
 			description.setMessage(PlatformErrorMessages.RPR_EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getCode());
 			
-			responseEntity = new ResponseEntity<Void>(HttpStatus.INTERNAL_SERVER_ERROR);
+			responseEntity = new ResponseEntity<Void>(HttpStatus.OK);
 		} catch (TemplateNotFoundException tnf) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					id, tnf.getMessage() + ExceptionUtils.getStackTrace(tnf));
@@ -239,7 +239,7 @@ public class NotificationServiceImpl implements NotificationService {
 			description.setSubStatusCode(StatusUtil.EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getCode());
 			description.setMessage(PlatformErrorMessages.RPR_EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getCode());
-			responseEntity = new ResponseEntity<Void>(HttpStatus.INTERNAL_SERVER_ERROR);
+			responseEntity = new ResponseEntity<Void>(HttpStatus.OK);
 		} catch (Exception ex) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					id, ex.getMessage() + ExceptionUtils.getStackTrace(ex));
@@ -248,10 +248,9 @@ public class NotificationServiceImpl implements NotificationService {
 			description.setSubStatusCode(StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getCode());
 			description.setMessage(PlatformErrorMessages.RPR_MESSAGE_SENDER_STAGE_FAILED.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_MESSAGE_SENDER_STAGE_FAILED.getCode());
-			responseEntity = new ResponseEntity<Void>(HttpStatus.INTERNAL_SERVER_ERROR);
+			responseEntity = new ResponseEntity<Void>(HttpStatus.OK);
 		} finally {
-			responseEntity = isTransactionSuccessful ? new ResponseEntity<Void>(HttpStatus.OK)
-					: new ResponseEntity<Void>(HttpStatus.INTERNAL_SERVER_ERROR);
+			responseEntity =  new ResponseEntity<Void>(HttpStatus.OK);
 			String eventId = isTransactionSuccessful ? EventId.RPR_402.toString() : EventId.RPR_405.toString();
 			String eventName = eventId.equalsIgnoreCase(EventId.RPR_402.toString()) ? EventName.UPDATE.toString()
 					: EventName.EXCEPTION.toString();
@@ -574,6 +573,7 @@ public class NotificationServiceImpl implements NotificationService {
 				isTransactionSuccessful = sendNotification(id, workflowType, attributes, ccEMailList,
 						allNotificationTypes, workflowType, messageSenderDto, description);
 
+
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					id, "NotificationServiceImpl::success");
 		} catch (TemplateNotFoundException tnf) {
@@ -584,7 +584,7 @@ public class NotificationServiceImpl implements NotificationService {
 			description.setSubStatusCode(StatusUtil.EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getCode());
 			description.setMessage(PlatformErrorMessages.RPR_EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getCode());
-			responseEntity = new ResponseEntity<Void>(HttpStatus.INTERNAL_SERVER_ERROR);
+			responseEntity = new ResponseEntity<Void>(HttpStatus.OK);
 		} catch (Exception ex) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					id, ex.getMessage() + ExceptionUtils.getStackTrace(ex));
@@ -593,10 +593,9 @@ public class NotificationServiceImpl implements NotificationService {
 			description.setSubStatusCode(StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getCode());
 			description.setMessage(PlatformErrorMessages.RPR_MESSAGE_SENDER_STAGE_FAILED.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_MESSAGE_SENDER_STAGE_FAILED.getCode());
-			responseEntity = new ResponseEntity<Void>(HttpStatus.INTERNAL_SERVER_ERROR);
+			responseEntity = new ResponseEntity<Void>(HttpStatus.OK);
 		} finally {
-			responseEntity = isTransactionSuccessful ? new ResponseEntity<Void>(HttpStatus.OK)
-					: new ResponseEntity<Void>(HttpStatus.INTERNAL_SERVER_ERROR);
+			responseEntity =  new ResponseEntity<Void>(HttpStatus.OK);
 			String eventId = isTransactionSuccessful ? EventId.RPR_402.toString() : EventId.RPR_405.toString();
 			String eventName = eventId.equalsIgnoreCase(EventId.RPR_402.toString()) ? EventName.UPDATE.toString()
 					: EventName.EXCEPTION.toString();

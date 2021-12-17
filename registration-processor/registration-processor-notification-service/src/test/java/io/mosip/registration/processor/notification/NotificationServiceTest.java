@@ -364,7 +364,7 @@ public class NotificationServiceTest {
 		completedEventDTO.setErrorCode("MANUAL_VERIFICATION_FAILED");
 
 		ResponseEntity<Void> res=notificationService.process(completedEventDTO);
-		assertEquals(500, res.getStatusCodeValue());
+		assertEquals(200, res.getStatusCodeValue());
 	}
 	
 	@Test
@@ -398,7 +398,7 @@ public class NotificationServiceTest {
 		completedEventDTO.setWorkflowType("LOST");
 
 		ResponseEntity<Void> res=notificationService.process(completedEventDTO);
-		assertEquals(500, res.getStatusCodeValue());
+		assertEquals(200, res.getStatusCodeValue());
 	}
 	
 	@Test
@@ -422,7 +422,7 @@ public class NotificationServiceTest {
 		completedEventDTO.setWorkflowType("LOST");
 
 		ResponseEntity<Void> res=notificationService.process(completedEventDTO);
-		assertEquals(500, res.getStatusCodeValue());
+		assertEquals(200, res.getStatusCodeValue());
 	}
 	
 	@Test
@@ -454,7 +454,7 @@ public class NotificationServiceTest {
 		completedEventDTO.setWorkflowType("LOST");
 
 		ResponseEntity<Void> res=notificationService.process(completedEventDTO);
-		assertEquals(500, res.getStatusCodeValue());
+		assertEquals(200, res.getStatusCodeValue());
 	}
 	
 	@Test
@@ -486,7 +486,7 @@ public class NotificationServiceTest {
 		completedEventDTO.setWorkflowType("LOST");
 
 		ResponseEntity<Void> res=notificationService.process(completedEventDTO);
-		assertEquals(500, res.getStatusCodeValue());
+		assertEquals(200, res.getStatusCodeValue());
 	}
 	
 	@Test
@@ -518,7 +518,7 @@ public class NotificationServiceTest {
 		completedEventDTO.setWorkflowType("LOST");
 
 		ResponseEntity<Void> res=notificationService.process(completedEventDTO);
-		assertEquals(500, res.getStatusCodeValue());
+		assertEquals(200, res.getStatusCodeValue());
 	}
 	
 	
@@ -551,7 +551,7 @@ public class NotificationServiceTest {
 		completedEventDTO.setWorkflowType("LOST");
 
 		ResponseEntity<Void> res=notificationService.process(completedEventDTO);
-		assertEquals(500, res.getStatusCodeValue());
+		assertEquals(200, res.getStatusCodeValue());
 	}
 	
 	@Test
@@ -583,7 +583,7 @@ public class NotificationServiceTest {
 		completedEventDTO.setWorkflowType("LOST");
 
 		ResponseEntity<Void> res=notificationService.process(completedEventDTO);
-		assertEquals(500, res.getStatusCodeValue());
+		assertEquals(200, res.getStatusCodeValue());
 	}
 
 	@Test
@@ -615,7 +615,7 @@ public class NotificationServiceTest {
 		completedEventDTO.setWorkflowType("LOST");
 
 		ResponseEntity<Void> res=notificationService.process(completedEventDTO);
-		assertEquals(500, res.getStatusCodeValue());
+		assertEquals(200, res.getStatusCodeValue());
 	}
 	
 	
@@ -648,7 +648,7 @@ public class NotificationServiceTest {
 		completedEventDTO.setWorkflowType("LOST");
 
 		ResponseEntity<Void> res=notificationService.process(completedEventDTO);
-		assertEquals(500, res.getStatusCodeValue());
+		assertEquals(200, res.getStatusCodeValue());
 	}
 	
 	@Test
@@ -680,7 +680,7 @@ public class NotificationServiceTest {
 		completedEventDTO.setWorkflowType("LOST");
 
 		ResponseEntity<Void> res=notificationService.process(completedEventDTO);
-		assertEquals(500, res.getStatusCodeValue());
+		assertEquals(200, res.getStatusCodeValue());
 	}
     
 	@Test
@@ -712,7 +712,7 @@ public class NotificationServiceTest {
 		completedEventDTO.setWorkflowType("LOST");
 
 		ResponseEntity<Void> res=notificationService.process(completedEventDTO);
-		assertEquals(500, res.getStatusCodeValue());
+		assertEquals(200, res.getStatusCodeValue());
 	}
 
 	@Test
@@ -768,7 +768,7 @@ public class NotificationServiceTest {
 		workflowPausedForAdditionalInfoEventDTO.setWorkflowType("NEW");
 		workflowPausedForAdditionalInfoEventDTO.setAdditionalInfoProcess("correction");
 		ResponseEntity<Void> res = notificationService.process(workflowPausedForAdditionalInfoEventDTO);
-		assertEquals(500, res.getStatusCodeValue());
+		assertEquals(200, res.getStatusCodeValue());
 	}
 
 	@Test
@@ -801,7 +801,7 @@ public class NotificationServiceTest {
 		workflowPausedForAdditionalInfoEventDTO.setWorkflowType("NEW");
 		workflowPausedForAdditionalInfoEventDTO.setAdditionalInfoProcess("correction");
 		ResponseEntity<Void> res = notificationService.process(workflowPausedForAdditionalInfoEventDTO);
-		assertEquals(500, res.getStatusCodeValue());
+		assertEquals(200, res.getStatusCodeValue());
 	}
 
 	@Test
@@ -836,7 +836,7 @@ public class NotificationServiceTest {
 		workflowPausedForAdditionalInfoEventDTO.setWorkflowType("NEW");
 		workflowPausedForAdditionalInfoEventDTO.setAdditionalInfoProcess("correction");
 		ResponseEntity<Void> res = notificationService.process(workflowPausedForAdditionalInfoEventDTO);
-		assertEquals(500, res.getStatusCodeValue());
+		assertEquals(200, res.getStatusCodeValue());
 	}
 	
 	@Test

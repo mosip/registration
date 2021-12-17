@@ -6,6 +6,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -94,7 +95,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	/** The reg bio ref repository. */
 	@Autowired
 	private BasePacketRepository<RegBioRefEntity, String> regBioRefRepository;
-	
+
 	/** The reg abis request repository. */
 	@Autowired
 	private BasePacketRepository<AbisRequestEntity, String> regAbisRequestRepository;
@@ -136,7 +137,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	@Autowired
 	private PriorityBasedPacketManagerService packetManagerService;
 
-	@Value("${registration.processor.demodedupe.manualverification.status}")
+	@Value("${registration.processor.demodedupe.manual.adjudication.status}")
 	private String manualVerificationStatus;
 
 	/** The Constant MATCHED_REFERENCE_TYPE. */
@@ -223,7 +224,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 					JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.EMAIL),
 					MappingJsonConstants.VALUE);
 
-			fields.add(nameKey);
+			fields.addAll(Arrays.asList(nameKey.split(",")));
 			fields.add(dob);
 			fields.add(gender);
 			fields.add(email);
@@ -381,11 +382,39 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 				"PacketInfoManagerImpl::saveDemographicInfoJson()::entry");
 		LogDescription description = new LogDescription();
 
-		saveIndividualDemographicDedupe(registrationId, process, description, moduleId, moduleName, iteration,
-				workflowInstanceId);
+		boolean isTransactionSuccessful = false;
 
+
+		try {
+
+			saveIndividualDemographicDedupe(registrationId, process, description, moduleId, moduleName, iteration, workflowInstanceId);
+
+			isTransactionSuccessful = true;
+			description.setMessage("Demographic Json saved");
+
+		} catch (DataAccessLayerException e) {
+
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
+
+			description.setMessage("DataAccessLayerException while saving Demographic Json" + "::" + e.getMessage());
+
+			throw new UnableToInsertData(
+					PlatformErrorMessages.RPR_PIS_UNABLE_TO_INSERT_DATA.getMessage() + registrationId, e);
+		} finally {
+
+			String eventId = isTransactionSuccessful ? EventId.RPR_407.toString() : EventId.RPR_405.toString();
+			String eventName = eventId.equalsIgnoreCase(EventId.RPR_407.toString()) ? EventName.ADD.toString()
+					: EventName.EXCEPTION.toString();
+			String eventType = eventId.equalsIgnoreCase(EventId.RPR_407.toString()) ? EventType.BUSINESS.toString()
+					: EventType.SYSTEM.toString();
+			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
+					moduleId, moduleName, registrationId);
+
+		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"PacketInfoManagerImpl::saveDemographicInfoJson()::exit");
+
 	}
 
 	/*
@@ -977,6 +1006,5 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 		List<RegBioRefEntity> regBioRefList = packetInfoDao.getRegBioRefDataByBioRefIds(bioRefId);
 		return PacketInfoMapper.convertRegBioRefEntityListToDto(regBioRefList);
 	}
-
 
 }

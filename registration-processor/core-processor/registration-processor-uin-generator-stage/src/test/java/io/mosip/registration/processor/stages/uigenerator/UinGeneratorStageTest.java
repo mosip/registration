@@ -372,7 +372,7 @@ public class UinGeneratorStageTest {
 		assertFalse(result.getInternalError());
 		assertTrue(result.getIsValid());
 	}
-	
+
 	@Test
 	public void testUinGenerationIDRepoDraftException() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
@@ -389,7 +389,7 @@ public class UinGeneratorStageTest {
 		assertTrue(result.getInternalError());
 		assertFalse(result.getIsValid());
 	}
-	
+
 	@Test
 	public void testUinGenerationIDRepoFaliure() throws Exception {
 
@@ -437,12 +437,12 @@ public class UinGeneratorStageTest {
 	
 	@Test
 	public void testUinGenerationIDRepoDraftAPiResourceException() throws Exception {
-		
+
 		ApisResourceAccessException apisResourceAccessException = Mockito.mock(ApisResourceAccessException.class);
 		HttpServerErrorException httpServerErrorException = new HttpServerErrorException(
 				HttpStatus.INTERNAL_SERVER_ERROR, "KER-FSE-004:encrypted data is corrupted or not base64 encoded");
 		when(apisResourceAccessException.getCause()).thenReturn(httpServerErrorException);
-		
+
 		Map<String, String> fieldMap = new HashMap<>();
 		fieldMap.put("UIN", "123456");
 		fieldMap.put("name", "mono");
@@ -458,7 +458,7 @@ public class UinGeneratorStageTest {
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
-		
+
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
 		messageDTO.setReg_type(RegistrationType.UPDATE.name());
@@ -676,7 +676,7 @@ public class UinGeneratorStageTest {
 		idResponseDTO.setResponse(responseDTO);
 		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
 		idResponseDTO.setVersion("1.0");
-		
+
 		IdResponseDTO idResponseDTO1 = new IdResponseDTO();
 		idResponseDTO1.setResponse(null);
 
@@ -1217,7 +1217,7 @@ public class UinGeneratorStageTest {
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenThrow(apisResourceAccessException);
 		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
 		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
-
+		
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
@@ -1230,6 +1230,7 @@ public class UinGeneratorStageTest {
 	public void testUinGenerationHttpClientErrorException() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
+
 		ApisResourceAccessException apisResourceAccessException = Mockito.mock(ApisResourceAccessException.class);
 		HttpClientErrorException httpClientErrorException = new HttpClientErrorException(
 				HttpStatus.INTERNAL_SERVER_ERROR, "KER-FSE-004:encrypted data is corrupted or not base64 encoded");
@@ -1251,6 +1252,7 @@ public class UinGeneratorStageTest {
 	public void testUinGenerationHttpServerErrorException() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
+
 		ApisResourceAccessException apisResourceAccessException = Mockito.mock(ApisResourceAccessException.class);
 		HttpServerErrorException httpServerErrorException = new HttpServerErrorException(
 				HttpStatus.INTERNAL_SERVER_ERROR, "KER-FSE-004:encrypted data is corrupted or not base64 encoded");
@@ -1340,7 +1342,7 @@ public class UinGeneratorStageTest {
 		ApisResourceAccessException exc = new ApisResourceAccessException();
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
-		
+
 		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
 				.thenThrow(exc);
 
@@ -1382,6 +1384,11 @@ public class UinGeneratorStageTest {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
 		messageDTO.setReg_type(RegistrationType.LOST.name());
+
+		String response = "{\"timestamp\":1553771083721,\"status\":404,\"errors\":[{\"errorCode\":\"KER-UIG-004\",\"errorMessage\":\"Given UIN is not in ISSUED status\"}]}";
+
+		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(response);
 
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
@@ -1477,7 +1484,7 @@ public class UinGeneratorStageTest {
 		String response = "{\"timestamp\":1553771083721,\"status\":404,\"errors\":[{\"errorCode\":\"KER-UIG-004\",\"errorMessage\":\"Given UIN is not in ISSUED status\"}]}";
 		when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn(null);
 		when(regLostUinDetEntity.getLostUinMatchedRegIdByWorkflowId(any())).thenReturn("27847657360002520181210094052");
-		
+
 		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(response);
 
@@ -1510,7 +1517,7 @@ public class UinGeneratorStageTest {
 		messageDTO.setReg_type(RegistrationType.LOST.name());
 		String response = "{\"timestamp\":1553771083721,\"status\":404,\"errors\":[{\"errorCode\":\"KER-UIG-004\",\"errorMessage\":\"Given UIN is not in ISSUED status\"}]}";
 
-		
+
 		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(response);
 		when(regLostUinDetEntity.getLostUinMatchedRegIdByWorkflowId(any())).thenReturn("27847657360002520181210094052");
@@ -1686,7 +1693,7 @@ public class UinGeneratorStageTest {
 		messageDTO.setReg_type(RegistrationType.NEW.name());
 		String response = "{\"timestamp\":1553771083721,\"status\":404,\"errors\":[{\"errorCode\":\"KER-UIG-004\",\"errorMessage\":\"Given UIN is not in ISSUED status\"}]}";
 
-		
+
 		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(response);
 
@@ -2127,7 +2134,7 @@ public class UinGeneratorStageTest {
 		assertFalse(result.getInternalError());
 		assertFalse(result.getIsValid());
 	}
-	
+
 	@Test
 	public void testUinUpdationIDRepoFaliure() throws Exception {
 
@@ -2175,12 +2182,12 @@ public class UinGeneratorStageTest {
 
 	@Test
 	public void testUinUpdationIOExceptionFaliure() throws Exception {
-		
+
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any()))
 				.thenThrow(IOException.class);
 		when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_REPROCESS)).thenReturn("REPROCESS");
-		
+
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
 		messageDTO.setReg_type("UPDATE");

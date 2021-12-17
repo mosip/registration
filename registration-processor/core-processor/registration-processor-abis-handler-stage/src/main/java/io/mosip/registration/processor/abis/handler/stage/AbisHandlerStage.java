@@ -1,7 +1,6 @@
 package io.mosip.registration.processor.abis.handler.stage;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -27,7 +26,9 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 
@@ -38,12 +39,10 @@ import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
+import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.abis.handler.constant.AbisHandlerStageConstant;
 import io.mosip.registration.processor.abis.handler.dto.DataShareResponseDto;
-import io.mosip.registration.processor.abis.handler.dto.Filter;
-import io.mosip.registration.processor.abis.handler.dto.ShareableAttributes;
-import io.mosip.registration.processor.abis.handler.dto.Source;
 import io.mosip.registration.processor.abis.handler.exception.AbisHandlerException;
 import io.mosip.registration.processor.abis.handler.exception.DataShareException;
 import io.mosip.registration.processor.abis.queue.dto.AbisQueueDetails;
@@ -78,6 +77,9 @@ import io.mosip.registration.processor.core.packet.dto.abis.Flag;
 import io.mosip.registration.processor.core.packet.dto.abis.ReferenceIdDto;
 import io.mosip.registration.processor.core.packet.dto.abis.RegBioRefDto;
 import io.mosip.registration.processor.core.packet.dto.abis.RegDemoDedupeListDto;
+import io.mosip.registration.processor.core.packet.dto.datashare.Filter;
+import io.mosip.registration.processor.core.packet.dto.datashare.ShareableAttributes;
+import io.mosip.registration.processor.core.packet.dto.datashare.Source;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
@@ -107,6 +109,8 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.abis.handler.";
+	private Map<String, List<String>> typeAndSubTypeMap = new HashMap<>();
+	LinkedHashMap<String, String> datasharePolicies = null;
 
 	/** The cluster manager url. */
 	@Value("${vertx.cluster.configuration}")
@@ -145,10 +149,10 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 	@Value("#{${mosip.regproc.abis.handler.biometric-modalities-segments-mapping.INFANT}}")
 	private Map<String, List<String>> biometricModalitySegmentsMapInfant;
-	
+
 	@Value("#{${mosip.regproc.abis.handler.biometric-modalities-segments-mapping.MINOR}}")
 	private Map<String, List<String>> biometricModalitySegmentsMapMinor;
-	
+
 	@Value("#{${mosip.regproc.abis.handler.biometric-modalities-segments-mapping.ADULT}}")
 	private Map<String, List<String>> biometricModalitySegmentsMapAdult;
 
@@ -172,7 +176,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	/** The packet info manager. */
 	@Autowired
 	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
-	
+
 	@Autowired
 	private PacketManagerService packetManagerService;
 
@@ -196,9 +200,6 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	private PriorityBasedPacketManagerService priorityBasedPacketManagerService;
 
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
-
-	/** The Constant PROTOCOL. */
-	public static final String PROTOCOL = "https";
 
 	/**
 	 * Deploy verticle.
@@ -579,7 +580,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 		Map<String, String> tags = packetManagerService.getAllTags(id);
 		String ageGroup = tags.get("AGE_GROUP");
-		
+
 		if (ageGroup.equalsIgnoreCase("INFANT")) {
 			validateBiometricRecord(biometricRecord, modalities, biometricModalitySegmentsMapInfant,
 					priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE));
@@ -611,16 +612,13 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		List<String> pathSegments = new ArrayList<>();
 		pathSegments.add(policyId);
 		pathSegments.add(subscriberId);
-		URL dataShareUrl = null;
-		String protocol = PROTOCOL;
+		String protocol = StringUtils.isNotEmpty(httpProtocol) ? PolicyConstant.HTTP_PROTOCOL : PolicyConstant.HTTPS_PROTOCOL;
 		String url = null;
 
-		if (httpProtocol != null && !httpProtocol.isEmpty()) {
-			protocol = httpProtocol;
-		}
-
-		dataShareUrl = new URL(protocol, internalDomainName, env.getProperty(ApiName.DATASHARECREATEURL.name()));
-		url = dataShareUrl.toString();
+		if (!CollectionUtils.isEmpty(datasharePolicies) && datasharePolicies.get(PolicyConstant.SHAREDOMAIN_WRITE) != null)
+			url = datasharePolicies.get(PolicyConstant.SHAREDOMAIN_WRITE) + env.getProperty(ApiName.DATASHARECREATEURL.name());
+		else
+			url = protocol + internalDomainName + env.getProperty(ApiName.DATASHARECREATEURL.name());
 		url = url.replaceAll("[\\[\\]]", "");
 		DataShareResponseDto response = (DataShareResponseDto) registrationProcessorRestClientService.postApi(url,
 				MediaType.MULTIPART_FORM_DATA, pathSegments, null, null, map, DataShareResponseDto.class);
@@ -631,9 +629,10 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		return response.getDataShare().getUrl();
 	}
 
+	@SuppressWarnings("deprecation")
 	private void validateBiometricRecord(BiometricRecord biometricRecord, List<String> modalities,
 			Map<String, List<String>> biometricModalitySegmentsMap, Map<String, String> metaInfoMap)
-			throws DataShareException, IOException {
+			throws DataShareException, JsonParseException, JsonMappingException, IOException {
 		if (modalities == null || modalities.isEmpty()) {
 			throw new DataShareException("Data Share Policy Modalities were Empty");
 		}
@@ -699,9 +698,13 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		}
 	}
 
-	public Map<String, List<String>> createTypeSubtypeMapping()
-			throws ApisResourceAccessException, DataShareException, IOException {
-		Map<String, List<String>> typeAndSubTypeMap = new HashMap<>();
+	public Map<String, List<String>> createTypeSubtypeMapping() throws ApisResourceAccessException, DataShareException,
+			IOException {
+
+		// Call only once and use cache
+		if (!CollectionUtils.isEmpty(typeAndSubTypeMap) && !CollectionUtils.isEmpty(datasharePolicies))
+			return typeAndSubTypeMap;
+
 		ResponseWrapper<?> policyResponse = (ResponseWrapper<?>) registrationProcessorRestClientService.getApi(
 				ApiName.PMS, Lists.newArrayList(policyId, PolicyConstant.PARTNER_ID, subscriberId), "", "",
 				ResponseWrapper.class);
@@ -714,6 +717,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 			LinkedHashMap<String, Object> policies = (LinkedHashMap<String, Object>) responseMap
 					.get(PolicyConstant.POLICIES);
 			List<?> attributes = (List<?>) policies.get(PolicyConstant.SHAREABLE_ATTRIBUTES);
+			datasharePolicies = (LinkedHashMap<String, String>) policies.get(PolicyConstant.DATASHARE_POLICIES);
 			ObjectMapper mapper = new ObjectMapper();
 			ShareableAttributes shareableAttributes = mapper.readValue(mapper.writeValueAsString(attributes.get(0)),
 					ShareableAttributes.class);

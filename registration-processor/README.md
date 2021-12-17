@@ -32,7 +32,7 @@ Registration Processor services' dependencies are mentioned below.  For all Kern
     * kernel-auth-service
     * kernel-config-service
 
-* registration-processor-manual-verification-stage
+* registration-processor-manual-adjudication-stage
     * kernel-masterdata-service
     * kernel-signature-service
     * kernel-auth-service

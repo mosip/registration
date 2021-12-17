@@ -90,10 +90,10 @@ public enum PlatformSuccessMessages {
 	RPR_EXTERNAL_STAGE_SUCCESS(PlatformConstants.RPR_EXTERNAL_STAGE + "000", "External stage  Success"),
 
 	RPR_UIN_GENERATOR_STAGE_SUCCESS(PlatformConstants.RPR_UIN_GENERATOR_STAGE + "000", "UIN Generator  Success"),
-	
+
 	RPR_BIOMETRIC_EXTRACTION_SUCCESS(PlatformConstants.RPR_BIOMETRIC_EXTRACTION_STAGE + "000",
 			"biometric extraction success"),
-	
+
 	RPR_FINALIZATION_SUCCESS(PlatformConstants.RPR_FINALIZATION_STAGE + "000",
 			"Finalization success"),
 
@@ -120,14 +120,20 @@ public enum PlatformSuccessMessages {
 	RPR_ABIS_MIDDLEWARE_STAGE_SUCCESS(PlatformConstants.RPR_ABIS_MIDDLEWARE + "000",
 			"Abis insertRequests sucessfully sent to Queue"),
 
-	RPR_MANUAL_VERIFICATION_APPROVED(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "000",
+	RPR_MANUAL_VERIFICATION_APPROVED(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "000",
 			"Manual verification approved"),
 
-	RPR_MANUAL_VERIFICATION_RESEND(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "002",
+	RPR_MANUAL_VERIFICATION_RESEND(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "002",
 			"Manual verification resend"),
 
-	RPR_MANUAL_VERIFICATION_SENT(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "001",
+	RPR_MANUAL_VERIFICATION_SENT(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "001",
 			"Manual verification Sent to queue"),
+
+	RPR_VERIFICATION_SENT(PlatformConstants.RPR_VERIFICATION_MODULE + "000",
+			"Sent for Verification"),
+
+	RPR_VERIFICATION_SUCCESS(PlatformConstants.RPR_VERIFICATION_MODULE + "001",
+			"Verification successful"),
 
 	RPR_DECRYPTION_SUCCESS(PlatformConstants.RPR_PACKET_DECRYPTION_MODULE + "000", "Decryption success"),
 	
@@ -158,7 +164,7 @@ public enum PlatformSuccessMessages {
 
 	PACKET_COMPLETE_AS_REJECTED_WITHOUT_PARENT_FLOW(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "007",
 			"Packet processing completed with reject status without Parent flow"),
-	
+
 	PACKET_ANONYMOUS_PROFILE(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "008",
 			"Packet anonymous profile flow initiated");
 

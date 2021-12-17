@@ -561,6 +561,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 				maxAllowedIteration=defaultMaxAllowedIteration;
 			}
 			if (additionalInfoRequestDtos != null && !additionalInfoRequestDtos.isEmpty() && additionalInfoRequestDtos.get(0).getAdditionalInfoIteration()>=maxAllowedIteration) {
+				workflowInternalActionDTO.setActionMessage(StatusUtil.WORKFLOW_INTERNAL_ACTION_REJECTED_ITERATIONS_EXCEEDED_LIMIT.getMessage());
 				processCompleteAsRejected(workflowInternalActionDTO);
 			}else {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PAUSED_FOR_ADDITIONAL_INFO.toString());

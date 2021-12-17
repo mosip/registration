@@ -87,7 +87,7 @@ public class PacketExternalStatusControllerTest {
 	
 	@MockBean
 	DigitalSignatureUtility digitalSignatureUtility;
-	
+
 	@MockBean
 	RegistrationUtility registrationUtility;
 

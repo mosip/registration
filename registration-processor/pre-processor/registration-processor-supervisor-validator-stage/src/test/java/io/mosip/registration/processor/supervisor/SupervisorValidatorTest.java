@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.processor.core.auth.dto.ErrorDTO;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
 import org.json.simple.JSONObject;
@@ -42,7 +43,6 @@ import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
-import io.mosip.registration.processor.core.auth.dto.ErrorDTO;
 import io.mosip.registration.processor.core.auth.dto.IndividualIdDto;
 import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
@@ -172,9 +172,9 @@ public class SupervisorValidatorTest {
 	private List<RegistrationCenterUserMachineMappingHistoryDto> registrationCenters = new ArrayList<RegistrationCenterUserMachineMappingHistoryDto>();
 	private RegistrationCenterUserMachineMappingHistoryDto center = new RegistrationCenterUserMachineMappingHistoryDto();
 	private IndividualIdDto individualIdDto = new IndividualIdDto();
-	
+
 	BiometricRecord biometricRecord = new BiometricRecord();
-	
+
 	@Mock
 	RegistrationExceptionMapperUtil registrationExceptionMapperUtil;
 
@@ -326,7 +326,7 @@ public class SupervisorValidatorTest {
 		regOsiDto.setSupervisorHashedPwd("true");
 		regOsiDto.setOfficerHashedPwd("true");
 		regOsiDto.setSupervisorBiometricFileName("supervisorBiometrics");
-		
+
 		center.setCntrId("10001");
 		center.setIsActive(true);
 		registrationCenters.add(center);
@@ -389,7 +389,7 @@ public class SupervisorValidatorTest {
 		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
 		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
-	
+
 	@Test(expected = BaseCheckedException.class)
 	public void testisValidSupervisorCreatedDateNull() throws Exception {
 
@@ -398,7 +398,7 @@ public class SupervisorValidatorTest {
 		registrationStatusDto.setRegistrationType("ACTIVATED");
 		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
-	
+
 	@Test(expected = ValidationFailedException.class)
 	public void testisValidSupervisorBiometricfileNull() throws Exception {
 
@@ -408,7 +408,7 @@ public class SupervisorValidatorTest {
 		registrationStatusDto.setRegistrationType("ACTIVATED");
 		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
-	
+
 	@Test(expected = ValidationFailedException.class)
 	public void testisValidSupervisorBiometricRecordNull() throws Exception {
 
@@ -418,7 +418,7 @@ public class SupervisorValidatorTest {
 		registrationStatusDto.setRegistrationType("ACTIVATED");
 		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
-	
+
 	@Test(expected = ValidationFailedException.class)
 	public void testAuthByIdAuthenticationStatusInActive() throws Exception {
 
@@ -432,7 +432,7 @@ public class SupervisorValidatorTest {
 		registrationStatusDto.setRegistrationType("ACTIVATED");
 		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
-	
+
 	@Test(expected = ValidationFailedException.class)
 	public void testAuthByIdAuthenticationStatusFailed() throws Exception {
 
@@ -562,7 +562,7 @@ public class SupervisorValidatorTest {
 				.thenReturn(biometricRecord);
 		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
-	
+
 	@Test(expected = AuthSystemException.class)
 	public void testSupervisorAuthSystemError() throws Exception {
 		ErrorDTO errordto = new ErrorDTO();
@@ -573,7 +573,7 @@ public class SupervisorValidatorTest {
 		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
 		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
-	
+
 	@Test(expected = BaseCheckedException.class)
 	public void testMappingNotFoundResponse() throws Exception {
 
@@ -588,7 +588,7 @@ public class SupervisorValidatorTest {
 		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
 		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
-	
+
 	@Test(expected = ValidationFailedException.class)
 	public void testUMCValidationFailed() throws Exception {
 		

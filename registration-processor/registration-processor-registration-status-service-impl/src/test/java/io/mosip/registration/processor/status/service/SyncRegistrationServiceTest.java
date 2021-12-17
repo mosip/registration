@@ -112,7 +112,7 @@ public class SyncRegistrationServiceTest {
 	/** The anonymousProfileService */
 	@Mock
 	private AnonymousProfileService anonymousProfileService;
-	
+
 	@Mock
 	private RegistrationUtility registrationUtility;
 
@@ -560,7 +560,7 @@ public class SyncRegistrationServiceTest {
 		List<SyncResponseDto> syncResponse = syncRegistrationService.syncV2(request, "", "");
 
 		assertEquals("Invalid Sync Type", ((SyncResponseFailureV2Dto) syncResponse.get(0)).getMessage());
-		
+
 		syncRegistrationDto16.setSyncType("NEW");
 		syncRegistrationDto16.setSupervisorStatus(null);
 		List<SyncRegistrationDto> request1=new ArrayList<>();
@@ -569,7 +569,7 @@ public class SyncRegistrationServiceTest {
 
 		assertEquals("Invalid Request Value - Supervisor Status can be APPROVED/REJECTED",
 				((SyncResponseFailureV2Dto) syncResponse1.get(0)).getMessage());
-		
+
 		syncRegistrationDto16.setSyncType("NEW");
 		syncRegistrationDto16.setSupervisorStatus("APPROVED");
 		syncRegistrationDto16.setPacketHashValue(null);
@@ -579,7 +579,7 @@ public class SyncRegistrationServiceTest {
 
 		assertEquals("Invalid Request Value - Hash Sequence is NULL",
 				((SyncResponseFailureV2Dto) syncResponse2.get(0)).getMessage());
-		
+
 		syncRegistrationDto16.setSyncType("NEW");
 		syncRegistrationDto16.setSupervisorStatus("APPROVED");
 		syncRegistrationDto16.setPacketHashValue("abc");
@@ -590,7 +590,7 @@ public class SyncRegistrationServiceTest {
 
 		assertEquals("Invalid Language Code - Language Code must be of Three Characters",
 				((SyncResponseFailureV2Dto) syncResponse3.get(0)).getMessage());
-		
+
 		syncRegistrationDto16.setSyncType("NEW");
 		syncRegistrationDto16.setSupervisorStatus("REJECTED");
 		syncRegistrationDto16.setPacketHashValue("abc");
@@ -610,7 +610,7 @@ public class SyncRegistrationServiceTest {
 
 		assertEquals("Missing Request Value -  packetId", ((SyncResponseFailDto) syncResponse5.get(0)).getMessage());
 	}
-	
+
 	@Test(expected = TablenotAccessibleException.class)
 	public void testGetSyncRegistrationStatusV2DataAccessLayerFailure()
 			throws EncryptionFailureException, ApisResourceAccessException {
@@ -629,7 +629,7 @@ public class SyncRegistrationServiceTest {
 		syncRegistrationDto16.setSupervisorStatus("APPROVED");
 		List<SyncRegistrationDto> request = new ArrayList<>();
 		request.add(syncRegistrationDto16);
-		
+
 		DataAccessLayerException exception = new DataAccessLayerException("ERR-001", "exception occured", null);
 		Mockito.when(encryptor.encrypt(anyString(), anyString(), anyString())).thenReturn(encryptedInfo);
 		Mockito.when(syncRegistrationDao.save(any())).thenThrow(exception);
@@ -786,7 +786,7 @@ public class SyncRegistrationServiceTest {
 				syncResponseList);
 		assertEquals("decrypted and return the dto", regSyncDto, registrationSyncRequestDTO);
 	}
-	
+
 	@Test
 	public void testdecryptAndGetSyncRequestIOException() throws PacketDecryptionFailureException, ApisResourceAccessException,
 			JsonParseException, JsonMappingException, IOException {
@@ -867,7 +867,7 @@ public class SyncRegistrationServiceTest {
 		Mockito.when(syncRegistrationDao.getByIds(any())).thenThrow(exp);
 		syncRegistrationService.getByIds(registrationIds);
 	}
-	
+
 	@Test
 	public void testGetByPacketIdsSuccess() {
 
@@ -915,7 +915,7 @@ public class SyncRegistrationServiceTest {
 		List<LostRidDto> lostRidDtos = syncRegistrationService.searchLostRid(searchInfo);
 		assertEquals(lostRidDtos.get(0).getRegistrationId(), testIdList.get(0));
 	}
-	
+
 	@Test
 	public void searchLostRidVariousScenario() {
 		
@@ -959,7 +959,7 @@ public class SyncRegistrationServiceTest {
 		List<RegistrationStatusDto> list = syncRegistrationService.getExternalStatusByIds(requestIds);
 		assertEquals("UPLOAD_PENDING", list.get(0).getStatusCode());
 	}
-	
+
 	@Test(expected = TablenotAccessibleException.class)
 	public void getExternalStatusByIdsFailureTest() {
 		List<String> requestIds = Arrays.asList("1001");
