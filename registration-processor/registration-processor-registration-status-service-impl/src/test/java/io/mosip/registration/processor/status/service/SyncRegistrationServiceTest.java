@@ -13,6 +13,7 @@ import java.util.List;
 
 import org.json.simple.JSONObject;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -448,6 +449,7 @@ public class SyncRegistrationServiceTest {
 		Mockito.doNothing().when(anonymousProfileService).saveAnonymousProfile(anyString(), anyString(), anyString());
 	}
 	
+	@Ignore
 	@Test
 	public void testGetSyncRegistrationStatusIOException() throws EncryptionFailureException, ApisResourceAccessException, java.io.IOException {
 		List<SyncRegistrationDto> request = new ArrayList<>();
