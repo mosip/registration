@@ -4,7 +4,6 @@ import static io.mosip.registration.processor.adjudication.constants.ManualAdjud
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,9 +20,7 @@ import io.mosip.registration.processor.core.constant.PolicyConstant;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.adjudication.dto.DataShareRequestDto;
-import io.mosip.registration.processor.adjudication.dto.DataShareResponseDto;
 import io.mosip.registration.processor.adjudication.dto.ManualVerificationStatus;
-import io.mosip.registration.processor.adjudication.dto.UserDto;
 import io.mosip.registration.processor.adjudication.exception.MatchedRefNotExistsException;
 import io.mosip.registration.processor.adjudication.request.dto.Filter;
 import io.mosip.registration.processor.adjudication.request.dto.Gallery;
@@ -76,12 +73,8 @@ import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
-<<<<<<< HEAD:registration-processor/core-processor/registration-processor-manual-verification-stage/src/main/java/io/mosip/registration/processor/manual/verification/service/impl/ManualVerificationServiceImpl.java
-=======
 import io.mosip.registration.processor.core.idrepo.dto.Documents;
 import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
-import io.mosip.registration.processor.core.kernel.master.dto.UserResponseDTOWrapper;
->>>>>>> e080f8b5a7c6dca22bdfbfaffaf108c90e658e13:registration-processor/core-processor/registration-processor-manual-adjudication-stage/src/main/java/io/mosip/registration/processor/adjudication/service/impl/ManualAdjudicationServiceImpl.java
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.Identity;
@@ -93,35 +86,14 @@ import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
-<<<<<<< HEAD:registration-processor/core-processor/registration-processor-manual-verification-stage/src/main/java/io/mosip/registration/processor/manual/verification/service/impl/ManualVerificationServiceImpl.java
-import io.mosip.registration.processor.manual.verification.constants.ManualVerificationConstants;
-import io.mosip.registration.processor.manual.verification.dto.DataShareRequestDto;
-import io.mosip.registration.processor.manual.verification.dto.ManualVerificationStatus;
-import io.mosip.registration.processor.manual.verification.exception.DataShareException;
-import io.mosip.registration.processor.manual.verification.exception.InvalidFileNameException;
-import io.mosip.registration.processor.manual.verification.exception.InvalidRidException;
-import io.mosip.registration.processor.manual.verification.exception.MatchedRefNotExistsException;
-import io.mosip.registration.processor.manual.verification.exception.NoRecordAssignedException;
-import io.mosip.registration.processor.manual.verification.request.dto.Filter;
-import io.mosip.registration.processor.manual.verification.request.dto.Gallery;
-import io.mosip.registration.processor.manual.verification.request.dto.ManualAdjudicationRequestDTO;
-import io.mosip.registration.processor.manual.verification.request.dto.ReferenceIds;
-import io.mosip.registration.processor.manual.verification.request.dto.ShareableAttributes;
-import io.mosip.registration.processor.manual.verification.request.dto.Source;
-import io.mosip.registration.processor.manual.verification.response.dto.Candidate;
-import io.mosip.registration.processor.manual.verification.response.dto.ManualAdjudicationResponseDTO;
-import io.mosip.registration.processor.manual.verification.service.ManualVerificationService;
-import io.mosip.registration.processor.manual.verification.stage.ManualVerificationStage;
-=======
 import io.mosip.registration.processor.adjudication.constants.ManualAdjudicationConstants;
 import io.mosip.registration.processor.adjudication.exception.DataShareException;
 import io.mosip.registration.processor.adjudication.exception.InvalidFileNameException;
 import io.mosip.registration.processor.adjudication.exception.InvalidRidException;
 import io.mosip.registration.processor.adjudication.exception.NoRecordAssignedException;
-import io.mosip.registration.processor.adjudication.exception.UserIDNotPresentException;
+import io.mosip.registration.processor.adjudication.response.dto.Candidate;
 import io.mosip.registration.processor.adjudication.response.dto.ManualAdjudicationResponseDTO;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
->>>>>>> e080f8b5a7c6dca22bdfbfaffaf108c90e658e13:registration-processor/core-processor/registration-processor-manual-adjudication-stage/src/main/java/io/mosip/registration/processor/adjudication/service/impl/ManualAdjudicationServiceImpl.java
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.dto.Document;
 import io.mosip.registration.processor.packet.storage.entity.ManualVerificationEntity;
@@ -395,60 +367,6 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 		return entities;
 	}
 
-<<<<<<< HEAD:registration-processor/core-processor/registration-processor-manual-verification-stage/src/main/java/io/mosip/registration/processor/manual/verification/service/impl/ManualVerificationServiceImpl.java
-=======
-
-	@SuppressWarnings({ "unchecked", "unused" })
-	private void checkUserIDExistsInMasterList(UserDto dto) {
-		ResponseWrapper<UserResponseDTOWrapper> responseWrapper;
-		UserResponseDTOWrapper userResponseDTOWrapper;
-		List<String> pathSegments = new ArrayList<>();
-		pathSegments.add(ManualAdjudicationConstants.USERS);
-		pathSegments.add(dto.getUserId());
-		Date date = Calendar.getInstance().getTime();
-		DateFormat dateFormat = new SimpleDateFormat(ManualAdjudicationConstants.TIME_FORMAT);
-		String effectiveDate = dateFormat.format(date);
-		// pathSegments.add("2019-05-16T06:12:52.994Z");
-		pathSegments.add(effectiveDate);
-		try {
-
-			responseWrapper = (ResponseWrapper<UserResponseDTOWrapper>) restClientService.getApi(ApiName.MASTER,
-					pathSegments, "", "", ResponseWrapper.class);
-
-			if (responseWrapper.getResponse() != null) {
-				userResponseDTOWrapper = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
-						UserResponseDTOWrapper.class);
-				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-						dto.getUserId(),
-						"ManualVerificationServiceImpl::checkUserIDExistsInMasterList()::get MASTER USERS service call ended with response data : "
-								+ JsonUtil.objectMapperObjectToJson(userResponseDTOWrapper));
-				if (!userResponseDTOWrapper.getUserResponseDto().get(0).getStatusCode()
-						.equals(ManualAdjudicationConstants.ACT)) {
-					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), null,
-							PlatformErrorMessages.RPR_MVS_USER_STATUS_NOT_ACTIVE.getCode(),
-							PlatformErrorMessages.RPR_MVS_USER_STATUS_NOT_ACTIVE.getMessage() + dto.getUserId());
-					throw new UserIDNotPresentException(PlatformErrorMessages.RPR_MVS_USER_STATUS_NOT_ACTIVE.getCode(),
-							PlatformErrorMessages.RPR_MVS_USER_STATUS_NOT_ACTIVE.getMessage());
-				}
-			} else {
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), null,
-						PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getCode(),
-						PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getMessage());
-				throw new UserIDNotPresentException(PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getCode(),
-						PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getMessage());
-
-			}
-		} catch (ApisResourceAccessException | IOException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), null,
-					PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getCode(),
-					PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getMessage() + e);
-			throw new UserIDNotPresentException(PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getCode(),
-					PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getMessage());
-
-		}
-	}
-
->>>>>>> e080f8b5a7c6dca22bdfbfaffaf108c90e658e13:registration-processor/core-processor/registration-processor-manual-adjudication-stage/src/main/java/io/mosip/registration/processor/adjudication/service/impl/ManualAdjudicationServiceImpl.java
 	/*
 	 * Get matched ref id for given RID and form request ,push to queue
 	 */
@@ -600,13 +518,8 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 		LinkedHashMap datashare = (LinkedHashMap) response1.get(DATASHARE);
 		return datashare.get(URL) != null ? datashare.get(URL).toString() : null;
 	}
-<<<<<<< HEAD:registration-processor/core-processor/registration-processor-manual-verification-stage/src/main/java/io/mosip/registration/processor/manual/verification/service/impl/ManualVerificationServiceImpl.java
 
 	private Map<String, String> getPolicyMap(LinkedHashMap<String, Object> policies) throws IOException {
-=======
-	
-	private Map<String, String> getPolicyMap(LinkedHashMap<String, Object> policies) throws DataShareException, IOException, ApisResourceAccessException {
->>>>>>> e080f8b5a7c6dca22bdfbfaffaf108c90e658e13:registration-processor/core-processor/registration-processor-manual-adjudication-stage/src/main/java/io/mosip/registration/processor/adjudication/service/impl/ManualAdjudicationServiceImpl.java
 		Map<String, String> policyMap = new HashMap<>();
 		List<LinkedHashMap> attributes = (List<LinkedHashMap>) policies.get(ManualAdjudicationConstants.SHAREABLE_ATTRIBUTES);
 		ObjectMapper mapper = new ObjectMapper();

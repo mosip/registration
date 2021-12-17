@@ -21,8 +21,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-<<<<<<< HEAD:registration-processor/core-processor/registration-processor-manual-verification-stage/src/test/java/io/mosip/registration/processor/manual/verification/service/ManualVerificationServiceTest.java
-=======
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -45,7 +43,6 @@ import io.mosip.registration.processor.adjudication.dto.ManualVerificationStatus
 import io.mosip.registration.processor.adjudication.dto.MatchDetail;
 import io.mosip.registration.processor.adjudication.dto.UserDto;
 import io.mosip.registration.processor.adjudication.stage.ManualAdjudicationStage;
->>>>>>> e080f8b5a7c6dca22bdfbfaffaf108c90e658e13:registration-processor/core-processor/registration-processor-manual-adjudication-stage/src/test/java/io/mosip/registration/processor/verification/service/ManualAdjudicationServiceTest.java
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.groups.Tuple;
 import org.assertj.core.util.Lists;
@@ -66,18 +63,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
-import io.mosip.kernel.biometrics.constant.BiometricType;
-import io.mosip.kernel.biometrics.constant.QualityType;
-import io.mosip.kernel.biometrics.entities.BDBInfo;
-import io.mosip.kernel.biometrics.entities.BIR;
-import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.mosip.kernel.biometrics.entities.RegistryIDType;
-import io.mosip.kernel.biometrics.spi.CbeffUtil;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
@@ -103,8 +88,6 @@ import io.mosip.registration.processor.packet.storage.dto.Document;
 import io.mosip.registration.processor.packet.storage.entity.ManualVerificationEntity;
 import io.mosip.registration.processor.packet.storage.entity.ManualVerificationPKEntity;
 import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
-import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
-import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
@@ -214,12 +197,8 @@ public class ManualAdjudicationServiceTest {
 		};
 
 		ReflectionTestUtils.setField(manualAdjudicationService, "messageFormat", "text");
-<<<<<<< HEAD:registration-processor/core-processor/registration-processor-manual-verification-stage/src/test/java/io/mosip/registration/processor/manual/verification/service/ManualVerificationServiceTest.java
 		ReflectionTestUtils.setField(manualAdjudicationService, "httpProtocol", "https");
-		regprocLogger = (Logger) LoggerFactory.getLogger(ManualVerificationServiceImpl.class);
-=======
 		regprocLogger = (Logger) LoggerFactory.getLogger(ManualAdjudicationServiceImpl.class);
->>>>>>> e080f8b5a7c6dca22bdfbfaffaf108c90e658e13:registration-processor/core-processor/registration-processor-manual-adjudication-stage/src/test/java/io/mosip/registration/processor/verification/service/ManualAdjudicationServiceTest.java
 		listAppender = new ListAppender<>();
 		classLoader = getClass().getClassLoader();
 
