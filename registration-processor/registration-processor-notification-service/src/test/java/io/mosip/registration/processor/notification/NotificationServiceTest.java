@@ -852,7 +852,7 @@ public class NotificationServiceTest {
 		completedEventDTO.setWorkflowType("LOST");
 
 		ResponseEntity<Void> res=notificationService.process(completedEventDTO);
-		assertEquals(500, res.getStatusCodeValue());
+		assertEquals(200, res.getStatusCodeValue());
 	}
 	
 	@Test

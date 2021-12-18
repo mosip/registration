@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -240,25 +239,6 @@ public class BiometricExtractionStageTest {
 		responseWrapper1.setResponse(extractorsDto);
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), anyString(), any())).thenReturn(responseWrapper1);
 		when(mapper.readValue(anyString(),any(Class.class))).thenReturn(extractorsDto);
-
-		MessageDTO result = biometricExtractionStage.process(messageDTO);
-		assertTrue(result.getInternalError());
-		assertFalse(result.getIsValid());
-	}
-	
-	@Test
-	public void testBiometricExtractionIOExceptionFailed() throws Exception {
-		MessageDTO messageDTO = new MessageDTO();
-		messageDTO.setRid("27847657360002520181210094052");
-		messageDTO.setReg_type(RegistrationType.NEW.name());
-		messageDTO.setWorkflowInstanceId("123er");
-		messageDTO.setIteration(1);
-		ResponseWrapper<ExtractorsDto> responseWrapper1=new ResponseWrapper<>();
-		ExtractorsDto extractorsDto=new ExtractorsDto();
-		extractorsDto.setExtractors(Arrays.asList());
-		responseWrapper1.setResponse(extractorsDto);
-		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), anyString(), any())).thenReturn(responseWrapper1);
-		when(mapper.readValue(anyString(),any(Class.class))).thenThrow(IOException.class);
 
 		MessageDTO result = biometricExtractionStage.process(messageDTO);
 		assertTrue(result.getInternalError());
