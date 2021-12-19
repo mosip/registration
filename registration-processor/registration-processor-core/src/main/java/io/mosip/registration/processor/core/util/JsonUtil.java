@@ -9,13 +9,14 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
@@ -259,7 +260,7 @@ public class JsonUtil {
 	
 	
 	public static String objectMapperObjectToJson(Object obj) throws IOException {
-		ObjectMapper objectMapper = new ObjectMapper();
+		ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 		return objectMapper.writeValueAsString(obj);
 	} 
 
