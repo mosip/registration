@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.manual.verification.validator;
+package io.mosip.registration.processor.verification.validator;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
