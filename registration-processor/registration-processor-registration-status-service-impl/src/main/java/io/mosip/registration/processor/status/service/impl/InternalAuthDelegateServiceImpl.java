@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -86,8 +85,7 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 
 		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(internalAuthUri);
 		HttpEntity<?> httpRequestEntity = new HttpEntity<Object>(authRequestDTO, headers);
-		return postApi(builder.toUriString(), MediaType.APPLICATION_JSON, httpRequestEntity, AuthResponseDTO.class)
-				.getBody();
+		return postApi(builder.toUriString(), httpRequestEntity, AuthResponseDTO.class).getBody();
 	}
 
 	/**
@@ -107,7 +105,7 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 		return restApiClient.getApi(builder.build().toUri(), Object.class);
 	}
 	
-	public <T> HttpEntity<T> postApi(String uri, MediaType mediaType, HttpEntity<?> requestEntity, Class<T> responseClass) throws Exception {
+	public <T> HttpEntity<T> postApi(String uri, HttpEntity<?> requestEntity, Class<T> responseClass) throws Exception {
 		RestTemplate restTemplate;
 		try {
 			restTemplate = restApiClient.getRestTemplate();

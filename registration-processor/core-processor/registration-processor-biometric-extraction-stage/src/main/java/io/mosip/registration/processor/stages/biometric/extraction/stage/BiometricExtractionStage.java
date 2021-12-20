@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.ws.rs.core.MediaType;
-
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -16,9 +14,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -126,7 +122,6 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 	
 	@Override
 	protected String getPropertyPrefix() {
-		// TODO Auto-generated method stub
 		return STAGE_PROPERTY_PREFIX;
 	}
 	
@@ -193,13 +188,12 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 						StatusUtil.BIOMETRIC_EXTRACTION_DRAFT_REQUEST_UNAVAILABLE.getMessage());
 			}
 			else {
-				ExtractorsDto extractorsDto=getExtractors(registrationStatusDto.getRegistrationId());
-				if(extractorsDto.getExtractors()!=null && !extractorsDto.getExtractors().isEmpty()) {
-				for(ExtractorDto dto:extractorsDto.getExtractors()) {
-					addBiometricExtractiontoIdRepository(dto,registrationStatusDto.getRegistrationId());	
-				}
-				}
-				else {
+				ExtractorsDto extractorsDto = getExtractors();
+				if (extractorsDto.getExtractors() != null && !extractorsDto.getExtractors().isEmpty()) {
+					for (ExtractorDto dto : extractorsDto.getExtractors()) {
+						addBiometricExtractiontoIdRepository(dto, registrationStatusDto.getRegistrationId());
+					}
+				} else {
 					throw new RegistrationProcessorCheckedException(PlatformErrorMessages.RPR_PMS_BIOMETRIC_EXTRACTION_NULL_RESPONSE.getCode(),
 							PlatformErrorMessages.RPR_PMS_BIOMETRIC_EXTRACTION_NULL_RESPONSE.getMessage());
 				}
@@ -333,9 +327,9 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 		String extractionFormat = "";
 		if(dto.getBiometric().equals("iris")) {
 			extractionFormat="irisExtractionFormat";
-		}if(dto.getBiometric().equals("face")) {
+		}else if(dto.getBiometric().equals("face")) {
 			extractionFormat="faceExtractionFormat";
-		}if(dto.getBiometric().equals("finger")) {
+		}else if(dto.getBiometric().equals("finger")) {
 			extractionFormat="fingerExtractionFormat";
 		}
 		List<String> segments=List.of(registrationId);
@@ -354,12 +348,10 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 	 * @throws JSONException
 	 * @throws IOException
 	 * @throws ApisResourceAccessException
-	 * @throws JsonProcessingException 
-	 * @throws JsonMappingException 
-	 * @throws JsonParseException 
 	 * @throws RegistrationProcessorCheckedException 
 	 */
-	private ExtractorsDto getExtractors(String id) throws JSONException, ApisResourceAccessException, JsonParseException, JsonMappingException, JsonProcessingException, IOException, RegistrationProcessorCheckedException {
+	private ExtractorsDto getExtractors()
+			throws JSONException, ApisResourceAccessException, IOException, RegistrationProcessorCheckedException {
 		JSONArray jArray=new JSONArray(partnerPolicyIdsJson);
 		ExtractorsDto extractorsDto=new ExtractorsDto();
 		 List<ErrorDTO> errors = new ArrayList<>();
@@ -385,7 +377,7 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 	        }
 			
 		}
-		if(errors!=null && !errors.isEmpty()) {
+		if(!errors.isEmpty()) {
 			throw new RegistrationProcessorCheckedException(errors.iterator().next().getErrorCode(),
 					errors.iterator().next().getMessage());
 		}

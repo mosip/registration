@@ -110,6 +110,16 @@ public class AdditionalInfoRequestServiceImplTest {
 	}
 	
 	@Test
+	public void getAdditionalInfoByRidTest() {
+
+		Mockito.when(additionalInfoRequestRepository.getAdditionalInfoByRegId(anyString()))
+				.thenReturn(additionalInfoRequestEntityList);
+		List<AdditionalInfoRequestDto> result = additionalInfoRequestServiceImpl
+				.getAdditionalInfoByRid("10011100120000620210727102631");
+		assertEquals(result.size(), 1);
+	}
+	
+	@Test
 	public void addAdditionalInfoRequestSuccessTest() {
 		AdditionalInfoRequestDto additionalInfoRequestDto = new AdditionalInfoRequestDto();
 		additionalInfoRequestDto.setAdditionalInfoIteration(1);

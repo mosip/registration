@@ -39,6 +39,13 @@ public class ManualVerificationAppConfigurationsValidatorTest {
 
 		manualVerificationAppConfigurationsValidator.validateConfigurations(listener.events.peek());
 	}
+	
+	@Test
+	public void validateConfigurationsElapseTimeTest() throws RegistrationProcessorCheckedException {
+
+		ReflectionTestUtils.setField(manualVerificationAppConfigurationsValidator, "reprocessorElapseTime", 1000);
+		manualVerificationAppConfigurationsValidator.validateConfigurations(listener.events.peek());
+	}
 
 	public static class MyConfig {
 		@Bean

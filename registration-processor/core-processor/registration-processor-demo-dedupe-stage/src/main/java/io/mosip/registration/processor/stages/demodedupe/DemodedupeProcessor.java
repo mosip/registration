@@ -460,14 +460,10 @@ public class DemodedupeProcessor {
 	 *                                               exception
 	 * @throws IOException                           Signals that an I/O exception
 	 *                                               has occurred.
-	 * @throws                                       io.mosip.kernel.core.exception.IOException
-	 * @throws PacketDecryptionFailureException
-	 * @throws RegistrationProcessorCheckedException
 	 */
 	private boolean processDemoDedupeRequesthandler(InternalRegistrationStatusDto registrationStatusDto,
-			MessageDTO object, LogDescription description) throws ApisResourceAccessException, IOException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			RegistrationProcessorCheckedException, JsonProcessingException, PacketManagerException {
+			MessageDTO object, LogDescription description)
+			throws ApisResourceAccessException, IOException, JsonProcessingException, PacketManagerException {
 		boolean isTransactionSuccessful = false;
 		List<String> responsIds = new ArrayList<>();
 

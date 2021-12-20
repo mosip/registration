@@ -34,8 +34,6 @@ import io.mosip.registration.processor.core.anonymous.dto.ExceptionsDTO;
 import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.Document;
@@ -230,7 +228,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 	}
 
 	private List<String> getDocumentsDataFromMetaInfo(Map<String, String> metaInfoMap)
-			throws ApisResourceAccessException, PacketManagerException, IOException, JSONException {
+			throws IOException, JSONException {
 		String metadata = metaInfoMap.get(MappingJsonConstants.DOCUMENT);
 		List<String> documentTypes = new ArrayList<String>();
 		if (StringUtils.isNotEmpty(metadata)) {
@@ -250,7 +248,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 	}
 
 	private String getFieldValueFromMetaInfo(Map<String, String> metaInfoMap, String field, String label)
-			throws ApisResourceAccessException, PacketManagerException, IOException, JSONException {
+			throws IOException, JSONException {
 		String metadata = metaInfoMap.get(field);
 		String value = null;
 		if (StringUtils.isNotEmpty(metadata)) {

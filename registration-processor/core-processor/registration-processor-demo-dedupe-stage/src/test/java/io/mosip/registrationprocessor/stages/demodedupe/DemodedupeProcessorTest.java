@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
@@ -27,7 +27,6 @@ import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -535,12 +534,53 @@ public class DemodedupeProcessorTest {
 		Mockito.when(registrationStatusDao.find(any(),any(),any(),any())).thenReturn(entity);
 		Mockito.when(packetInfoManager.getAbisResponseRecords(anyString(), anyString())).thenReturn(abisResponseDtos);
 		Mockito.when(packetInfoManager.getAbisResponseDetRecordsList(any())).thenReturn(abisResponseDetDtos);
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(),any(), any())).thenReturn(matchedRegIds);
+		Mockito.when(abisHandlerUtil.getUniqueRegIds(anyString(), anyString(), anyInt(), any(), any()))
+				.thenReturn(matchedRegIds);
 		doNothing().when(packetInfoManager).saveManualAdjudicationData(anySet(), any(), any(), any(), any(),any(),any());
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 
 		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
+	}
+	
+	@Test
+	public void testDemoDedupeWithOnePotentialMatch() throws Exception {
+		List<AbisResponseDto> abisResponseDtos = new ArrayList<>();
+		List<AbisResponseDetDto> abisResponseDetDtos = new ArrayList<>();
+		Set<String> matchedRegIds = new HashSet<>();
+		AbisResponseDto abisResponseDto = new AbisResponseDto();
+		abisResponseDto.setId("100");
+		abisResponseDto.setStatusCode(AbisStatusCode.SUCCESS.toString());
+		abisResponseDto.setLangCode("eng");
+		abisResponseDtos.add(abisResponseDto);
+		
+		AbisResponseDetDto abisResponseDetDto = new AbisResponseDetDto();
+		abisResponseDetDto.setAbiRespId("1004");
+		abisResponseDetDtos.add(abisResponseDetDto);
+
+		matchedRegIds.add("2018701130000410092018110735");
+		byte[] b = "sds".getBytes();
+
+		PowerMockito.mockStatic(JsonUtil.class);
+		PowerMockito.mockStatic(IOUtils.class);
+		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
+				.thenReturn(packetMetaInfo);
+		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(b);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(), any())).thenReturn(registrationStatusDto);
+		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
+		Mockito.when(demoDedupe.performDedupe(anyString())).thenReturn(duplicateDtos);
+		registrationStatusDto.setRegistrationType(RegistrationType.NEW.toString());
+		Mockito.when(registrationStatusDao.find(any(),any(),any(),any())).thenReturn(entity);
+		Mockito.when(packetInfoManager.getAbisResponseRecords(anyString(), anyString())).thenReturn(abisResponseDtos);
+		Mockito.when(packetInfoManager.getAbisResponseDetRecordsList(any())).thenReturn(abisResponseDetDtos);
+		Mockito.when(abisHandlerUtil.getUniqueRegIds(anyString(), anyString(), anyInt(), any(), any()))
+				.thenReturn(matchedRegIds);
+		doNothing().when(packetInfoManager).saveManualAdjudicationData(anySet(), any(), any(), any(), any(),any(),any());
+		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
+		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
+
+		assertFalse(messageDto.getIsValid());
 		assertFalse(messageDto.getInternalError());
 	}
 	
@@ -569,7 +609,8 @@ public class DemodedupeProcessorTest {
 		Mockito.when(registrationStatusDao.find(any(),any(),any(),any())).thenReturn(entity);
 		Mockito.when(packetInfoManager.getAbisResponseRecords(anyString(), anyString())).thenReturn(abisResponseDtos);
 		Mockito.when(packetInfoManager.getAbisResponseDetRecordsList(any())).thenReturn(abisResponseDetDtos);
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), any(), any())).thenReturn(matchedRegIds);
+		Mockito.when(abisHandlerUtil.getUniqueRegIds(anyString(), anyString(), anyInt(), any(), any()))
+				.thenReturn(matchedRegIds);
 		doNothing().when(packetInfoManager).saveManualAdjudicationData(anySet(), any(), any(), any(), any(),any(),any());
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);

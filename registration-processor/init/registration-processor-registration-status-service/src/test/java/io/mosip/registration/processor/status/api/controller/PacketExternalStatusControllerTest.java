@@ -2,7 +2,6 @@ package io.mosip.registration.processor.status.api.controller;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -37,6 +36,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.util.NestedServletException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.gson.Gson;
@@ -45,10 +45,12 @@ import com.google.gson.GsonBuilder;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
+import io.mosip.registration.processor.core.util.exception.DigitalSignatureException;
 import io.mosip.registration.processor.status.api.config.RegistrationStatusConfigTest;
 import io.mosip.registration.processor.status.dto.PacketExternalStatusDTO;
 import io.mosip.registration.processor.status.dto.PacketExternalStatusRequestDTO;
 import io.mosip.registration.processor.status.dto.PacketExternalStatusSubRequestDTO;
+import io.mosip.registration.processor.status.exception.RegStatusAppException;
 import io.mosip.registration.processor.status.service.PacketExternalStatusService;
 import io.mosip.registration.processor.status.service.impl.RegistrationStatusServiceImpl;
 import io.mosip.registration.processor.status.service.impl.SyncRegistrationServiceImpl;
@@ -102,11 +104,6 @@ public class PacketExternalStatusControllerTest {
 	public void setUp() throws JsonProcessingException, ApisResourceAccessException {
 
 		mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-		when(env.getProperty("mosip.registration.processor.packet.external.status.id"))
-				.thenReturn("mosip.registration.packet.external.status");
-		when(env.getProperty("mosip.registration.processor.datetime.pattern"))
-				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		when(env.getProperty("mosip.registration.processor.packet.external.status.version")).thenReturn("1.0");
 
 		PacketExternalStatusSubRequestDTO packetExternalStatusSubRequestDTO = new PacketExternalStatusSubRequestDTO();
 		packetExternalStatusSubRequestDTO.setPacketId("test1");
@@ -147,5 +144,28 @@ public class PacketExternalStatusControllerTest {
 		JSONObject packetExternalStatusDTO = (JSONObject) responseObject.get(0);
 		assertEquals(packetExternalStatusDTO.get("packetId").toString(), "test1");
 		assertEquals(packetExternalStatusDTO.get("statusCode").toString(), "PROCESSED");
+	}
+	
+	@Test(expected = NestedServletException.class)
+	@WithMockUser(value = "resident", roles = "RESIDENT")
+	public void packetExternalStatusRegStatusAppExceptionTest() throws Exception {
+		Mockito.doThrow(RegStatusAppException.class).when(packetStatusRequestValidator).validate(ArgumentMatchers.any(),
+				ArgumentMatchers.anyString());
+		this.mockMvc.perform(post("/packetexternalstatus").accept(MediaType.APPLICATION_JSON_VALUE)
+				.cookie(new Cookie("Authorization", packetExternalStatusRequestToJson)).contentType(MediaType.APPLICATION_JSON_VALUE)
+				.content(packetExternalStatusRequestToJson.getBytes()).header("timestamp", "2019-05-07T05:13:55.704Z"));
+	}
+	
+	@Test(expected = NestedServletException.class)
+	@WithMockUser(value = "resident", roles = "RESIDENT")
+	public void packetExternalStatusUnknownExceptionTest() throws Exception {
+		doNothing().when(packetStatusRequestValidator).validate(ArgumentMatchers.any(),
+				ArgumentMatchers.anyString());
+		Mockito.doThrow(DigitalSignatureException.class).when(digitalSignatureUtility)
+				.getDigitalSignature(ArgumentMatchers.any());
+		this.mockMvc.perform(post("/packetexternalstatus").accept(MediaType.APPLICATION_JSON_VALUE)
+				.cookie(new Cookie("Authorization", packetExternalStatusRequestToJson))
+				.contentType(MediaType.APPLICATION_JSON_VALUE).content(packetExternalStatusRequestToJson.getBytes())
+				.header("timestamp", "2019-05-07T05:13:55.704Z"));
 	}
 }
