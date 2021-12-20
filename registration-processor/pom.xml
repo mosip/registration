@@ -4,7 +4,6 @@
 
 	<parent>
 		<groupId>io.mosip</groupId>
-		
 		<artifactId>registration</artifactId>
 		<version>1.2.0-rc2-SNAPSHOT</version>
 	</parent>
