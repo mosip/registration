@@ -49,6 +49,7 @@ import io.mosip.registration.processor.core.notification.template.generator.dto.
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.util.JsonUtil;
+import io.mosip.registration.processor.core.util.LanguageUtility;
 import io.mosip.registration.processor.message.sender.exception.TemplateGenerationFailedException;
 import io.mosip.registration.processor.message.sender.exception.TemplateNotFoundException;
 import io.mosip.registration.processor.message.sender.template.TemplateGenerator;
@@ -99,6 +100,9 @@ public class NotificationUtility {
 	/** The template generator. */
 	@Autowired
 	private TemplateGenerator templateGenerator;
+	
+	@Autowired
+	private LanguageUtility languageUtility;
 
 	/** The resclient. */
 	@Autowired
@@ -141,9 +145,9 @@ public class NotificationUtility {
 		List<String> preferredLanguages=getPreferredLanguages(registrationStatusDto);
 		for(String preferredLanguage:preferredLanguages) {
 		if (registrationAdditionalInfoDTO.getName() != null) {
-			attributes.put("name" , registrationAdditionalInfoDTO.getName());
+			attributes.put("name_"+preferredLanguage , registrationAdditionalInfoDTO.getName());
 		} else {
-			attributes.put("name" , "");
+			attributes.put("name_"+ preferredLanguage, "");
 		}
 		
 		if (isProcessingSuccess) {
@@ -173,10 +177,20 @@ public class NotificationUtility {
 	private List<String> getPreferredLanguages(InternalRegistrationStatusDto registrationStatusDto) throws ApisResourceAccessException, 
 	PacketManagerException, JsonProcessingException, IOException, JSONException {
 		if(userPreferredLanguageAttribute!=null && !userPreferredLanguageAttribute.isBlank()) {
+			try {
 			String preferredLang=packetManagerService.getField(registrationStatusDto.getRegistrationId(), userPreferredLanguageAttribute,
 				registrationStatusDto.getRegistrationType(), ProviderStageName.PACKET_VALIDATOR);
-			if(preferredLang!=null && !preferredLang.isBlank()) {
-				return List.of(preferredLang.split(","));
+				if(preferredLang!=null && !preferredLang.isBlank()) {
+					List<String> codes=new ArrayList<>();
+					for(String lang:preferredLang.split(",")) {
+						codes.add(languageUtility.getLangCodeFromNativeName(lang));
+					}
+					if(!codes.isEmpty())return codes;
+				}
+			}catch(ApisResourceAccessException e) {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationStatusDto.getRegistrationId(), PlatformErrorMessages.RPR_PGS_API_RESOURCE_NOT_AVAILABLE.name() + e.getMessage()
+							+ ExceptionUtils.getStackTrace(e));
 			}
 		}
 		if(defaultTemplateLanguages!=null && !defaultTemplateLanguages.isBlank()) {

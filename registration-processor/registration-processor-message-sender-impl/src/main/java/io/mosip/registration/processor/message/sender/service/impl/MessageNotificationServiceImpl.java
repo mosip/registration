@@ -674,7 +674,7 @@ public class MessageNotificationServiceImpl
 				String decryptedData = IOUtils.toString(decryptedInputStream, "UTF-8");
 				RegistrationAdditionalInfoDTO registrationAdditionalInfoDTO = (RegistrationAdditionalInfoDTO) JsonUtils
 						.jsonStringToJavaObject(RegistrationAdditionalInfoDTO.class, decryptedData);
-				attribute.put("name", registrationAdditionalInfoDTO.getName());
+				attribute.put("fullName", registrationAdditionalInfoDTO.getName());
 				if (registrationAdditionalInfoDTO.getEmail() != null) {
 					emailId.append(registrationAdditionalInfoDTO.getEmail());
 				}
