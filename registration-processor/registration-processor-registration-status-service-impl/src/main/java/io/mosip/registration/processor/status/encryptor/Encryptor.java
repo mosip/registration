@@ -96,7 +96,6 @@ public class Encryptor {
 			sRandom.nextBytes(aad);
 			cryptomanagerRequestDto.setAad(CryptoUtil.encodeBase64String(aad));
 			cryptomanagerRequestDto.setSalt(CryptoUtil.encodeBase64String(nonce));
-			CryptomanagerResponseDto cryptomanagerResponseDto;
 
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 			LocalDateTime time = LocalDateTime.parse(timeStamp, format);

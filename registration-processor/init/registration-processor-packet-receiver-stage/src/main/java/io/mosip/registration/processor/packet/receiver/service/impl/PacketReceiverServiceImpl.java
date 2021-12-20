@@ -132,7 +132,6 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	public MessageDTO validatePacket(File file, String stageName) {
 
 		LogDescription description = new LogDescription();
-		InternalRegistrationStatusDto dto = new InternalRegistrationStatusDto();
 		MessageDTO messageDTO = new MessageDTO();
 		Boolean storageFlag = false;
 		messageDTO.setInternalError(false);
@@ -169,7 +168,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
 						PlatformSuccessMessages.PACKET_RECEIVER_VALIDATION_SUCCESS.getMessage());
-				storageFlag = storePacket(stageName, regEntity, dto, description);
+				storageFlag = storePacket(stageName, regEntity, description);
 				isTransactionSuccessful = true;
 			} catch (IOException | NoSuchAlgorithmException e) {
 
@@ -242,8 +241,6 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	/**
 	 * Store packet.
 	 *
-	 * @param dto
-	 *            the InternalRegistrationStatusDto
 	 * @param regEntity
 	 *            the SyncRegistrationEntity
 	 * @param stageName
@@ -252,11 +249,10 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
-	private boolean storePacket(String stageName, SyncRegistrationEntity regEntity, InternalRegistrationStatusDto dto,
-			LogDescription description) {
+	private boolean storePacket(String stageName, SyncRegistrationEntity regEntity, LogDescription description) {
 		Boolean storageFlag = false;
 		int iteration = getIterationForSyncRecord(regEntity);
-		dto = registrationStatusService.getRegistrationStatus(regEntity.getRegistrationId(),
+		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus(regEntity.getRegistrationId(),
 				regEntity.getRegistrationType(), iteration, regEntity.getWorkflowInstanceId());
 		if (dto == null) {
 			dto = new InternalRegistrationStatusDto();
@@ -323,7 +319,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	 * @param description
 	 */
 	private boolean scanFile(final byte[] input, RegistrationExceptionMapperUtil registrationExceptionMapperUtil,
-			String registrationId, InternalRegistrationStatusDto dto, LogDescription description) throws IOException {
+			String registrationId, InternalRegistrationStatusDto dto, LogDescription description) {
 		try {
 			InputStream inputStream = new ByteArrayInputStream(input);
 			boolean isInputFileClean = virusScannerService.scanFile(inputStream);

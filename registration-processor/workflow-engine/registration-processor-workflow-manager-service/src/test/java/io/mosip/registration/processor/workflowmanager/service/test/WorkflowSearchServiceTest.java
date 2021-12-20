@@ -53,7 +53,8 @@ public class WorkflowSearchServiceTest {
 	@Before
 	public void setUp() throws Exception {
 		FilterInfo filterInfo = new FilterInfo("id", "45128164920495");
-		searchInfo.setFilters(Arrays.asList(filterInfo));
+		FilterInfo filterInfo1 = new FilterInfo("workflowType", "New");
+		searchInfo.setFilters(Arrays.asList(filterInfo, filterInfo1));
 		PaginationInfo pagination = new PaginationInfo(1, 5);
 		searchInfo.setPagination(pagination);
 	}
@@ -69,6 +70,7 @@ public class WorkflowSearchServiceTest {
 		internalRegis.setRegistrationType("New");
 		internalRegis.setStatusCode("Success");
 		internalRegis.setUpdateDateTime(LocalDateTime.now());
+		internalRegis.setResumeTimeStamp(LocalDateTime.now());
 		regList.add(internalRegis);
 
 		Page<InternalRegistrationStatusDto> pageDtos = new PageImpl<InternalRegistrationStatusDto>(regList);

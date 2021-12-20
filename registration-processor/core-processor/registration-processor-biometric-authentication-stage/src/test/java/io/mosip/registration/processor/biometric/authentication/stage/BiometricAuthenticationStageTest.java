@@ -354,6 +354,31 @@ public class BiometricAuthenticationStageTest {
 	}
 	
 	@Test
+	public void individualBiometricAuthenticationSuccessTest() throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+		when(regentity.getRegistrationType()).thenReturn("UPDATE");
+
+		String individualBiometrics="{\"format\" : \"cbeff\",\"version\" : 1.0,\"value\" : \"individualBiometrics_bio_CBEFF\"}";
+		when(packetManagerService.getFieldByMappingJsonKey(any(),
+				any(), any(),any())).thenReturn(individualBiometrics);
+
+		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
+		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
+	}
+	
+	@Test
+	public void individualBiometricAuthenticationBiometricNullTest() throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+		when(regentity.getRegistrationType()).thenReturn("UPDATE");
+
+		when(packetManagerService.getBiometricsByMappingJsonKey(any(),
+				any(), any(),any())).thenReturn(null);
+		
+		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
+		assertFalse(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
+	}
+	
+	@Test
 	public void biometricAuthenticationBiometricNullTest() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
 		when(regentity.getRegistrationType()).thenReturn("UPDATE");
 
@@ -368,7 +393,19 @@ public class BiometricAuthenticationStageTest {
 		assertFalse(messageDto.getIsValid());
 		assertFalse(messageDto.getInternalError());
 	}
+	
+	@Test
+	public void biometricAuthenticationIndividualBiometricsValueNullTest() throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+		when(regentity.getRegistrationType()).thenReturn("UPDATE");
 
+		String individualBiometrics="{\"format\" : \"cbeff\",\"version\" : 1.0,\"value\" : null}";
+		when(packetManagerService.getFieldByMappingJsonKey(any(),
+				any(), any(),any())).thenReturn(individualBiometrics);
+
+		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
+		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
+	}
 
 	@Test
 	public void IDAuthFailureTest() throws IOException, ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException, BioTypeException, CertificateException {

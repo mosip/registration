@@ -3,9 +3,9 @@ package io.mosip.registration.processor.biodedupe.stage;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.anyInt;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -145,8 +145,6 @@ public class BioDedupeProcessorTest {
 	/** The stage name. */
 	private String stageName = "BioDedupeStage";
 
-	/** The Constant CONFIG_SERVER_URL. */
-	private static final String CONFIG_SERVER_URL = "url";
 	/** The utilities. */
 	@Mock
 	Utilities utility;
@@ -175,8 +173,6 @@ public class BioDedupeProcessorTest {
 
 	@Mock
 	private PriorityBasedPacketManagerService priorityBasedPacketManagerService;
-
-	private static final String ISINFANTBIOTOABIS = "registration.processor.infant.bio.to.abis";
 
 	/**
 	 * Sets the up.
@@ -589,6 +585,7 @@ public class BioDedupeProcessorTest {
 		assertFalse(messageDto.getIsValid());
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testPacketValidationSingleDemoMatch() throws Exception {
 		registrationStatusDto.setRegistrationId("reg1234");
@@ -605,14 +602,19 @@ public class BioDedupeProcessorTest {
 
 		JSONObject obj2 = new JSONObject();
 		obj2.put("dateOfBirth", "2016/01/02");
+		LinkedHashMap map = new LinkedHashMap();
+		map.put("language", "eng");
+		map.put("value", "Male");
+		obj2.put("gender", map);
+
 		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn(IDENTITY);
 		Mockito.when(idRepoService.getIdJsonFromIDRepo("27847657360002520190320095010", IDENTITY)).thenReturn(obj1);
 		Mockito.when(idRepoService.getIdJsonFromIDRepo("27847657360002520190320095011", IDENTITY)).thenReturn(obj2);
-		Mockito.when(priorityBasedPacketManagerService.getFieldByMappingJsonKey("reg1234","dob","LOST", ProviderStageName.BIO_DEDUPE)).thenReturn("2016/01/01");
+		Mockito.when(priorityBasedPacketManagerService.getField("reg1234","dob","LOST", ProviderStageName.BIO_DEDUPE)).thenReturn("2016/01/01");
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
 		assertFalse(messageDto.getInternalError());
-		assertFalse(messageDto.getIsValid());
+		assertTrue(messageDto.getIsValid());
 	}
 
 	@SuppressWarnings("unchecked")

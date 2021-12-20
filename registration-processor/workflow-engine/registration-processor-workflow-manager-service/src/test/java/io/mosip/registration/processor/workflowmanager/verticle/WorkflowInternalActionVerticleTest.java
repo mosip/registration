@@ -17,7 +17,6 @@ import java.util.Map;
 
 import org.apache.commons.collections.map.HashedMap;
 import org.json.JSONException;
-import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,7 +24,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -406,6 +404,7 @@ public class WorkflowInternalActionVerticleTest {
 				argument2.getAllValues().get(0).getAdditionalInfoProcess());
 
 	}
+	
 	@Test
 	public void testProcessSuccessForRestartParentFlow() throws WorkflowActionException, ApisResourceAccessException,
 			PacketManagerException, JsonProcessingException, IOException {
@@ -431,6 +430,25 @@ public class WorkflowInternalActionVerticleTest {
 		workflowInternalActionVerticle.process(workflowInternalActionDTO);
 		verify(workflowActionService, times(1)).processWorkflowAction(Mockito.any(), Mockito.anyString());
 		verify(packetManagerService, times(1)).addOrUpdateTags(Mockito.anyString(), Mockito.any());
+	}
+	
+	@Test
+	public void testRestartParentFlowAdditionalInfoAbsent() throws WorkflowActionException, ApisResourceAccessException,
+			PacketManagerException, JsonProcessingException, IOException {
+		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
+		workflowInternalActionDTO.setRid("10006100390000920200603070407");
+		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.RESTART_PARENT_FLOW.toString());
+		workflowInternalActionDTO.setActionMessage(PlatformSuccessMessages.PACKET_RESTART_PARENT_FLOW.getMessage());
+		workflowInternalActionDTO.setReg_type("CORRECTION");
+		workflowInternalActionDTO.setIteration(1);
+		
+		registrationStatusDto = new InternalRegistrationStatusDto();
+		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
+		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(null);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
+				.thenReturn(registrationStatusDto);
+		workflowInternalActionVerticle.process(workflowInternalActionDTO);
 	}
 
 	@Test
