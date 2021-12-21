@@ -373,7 +373,7 @@ public class AuthUtil {
 	}
 
 	public SplittedEncryptedData splitEncryptedData(String data) {
-		byte[] dataBytes = CryptoUtil.decodeBase64(data);
+		byte[] dataBytes = CryptoUtil.decodeURLSafeBase64(data);
 		byte[][] splits = splitAtFirstOccurance(dataBytes,
 				String.valueOf(env.getProperty(KERNEL_KEY_SPLITTER)).getBytes());
 		return new SplittedEncryptedData(CryptoUtil.encodeToURLSafeBase64(splits[0]), CryptoUtil.encodeToURLSafeBase64(splits[1]));
