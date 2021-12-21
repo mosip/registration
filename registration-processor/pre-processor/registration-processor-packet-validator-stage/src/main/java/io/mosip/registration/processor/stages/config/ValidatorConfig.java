@@ -24,6 +24,7 @@ import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.applicantcategory.ApplicantTypeDocument;
 import io.mosip.registration.processor.core.packet.dto.packetvalidator.PacketValidationDto;
 import io.mosip.registration.processor.core.spi.packet.validator.PacketValidator;
+import io.mosip.registration.processor.core.util.LanguageUtility;
 import io.mosip.registration.processor.message.sender.template.TemplateGenerator;
 import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 import io.mosip.registration.processor.stages.helper.RestHelper;
@@ -112,6 +113,11 @@ public class ValidatorConfig {
 	@Bean
 	public TemplateGenerator getTemplateGenerator() {
 		return new TemplateGenerator();
+	}
+	
+	@Bean
+	public LanguageUtility getLanguageUtility() {
+		return new LanguageUtility();
 	}
 	
 /*	@Bean
