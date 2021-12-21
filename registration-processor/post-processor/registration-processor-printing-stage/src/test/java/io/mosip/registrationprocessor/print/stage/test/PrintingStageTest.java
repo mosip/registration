@@ -313,27 +313,6 @@ public class PrintingStageTest {
 	}
 
 	@Test
-	public void testIOException()
-			throws JsonParseException, JsonMappingException, IOException, ApisResourceAccessException {
-		MessageDTO dto = new MessageDTO();
-		dto.setRid("1234567890987654321");
-
-		dto.setReg_type(RegistrationType.NEW.name());
-
-		ResponseWrapper<CredentialResponseDto> responseWrapper = new ResponseWrapper<>();
-		CredentialResponseDto credentialResponseDto = new CredentialResponseDto();
-		credentialResponseDto.setRequestId("879664323421");
-		Mockito.when(objectMapper.readValue(response, CredentialResponseDto.class))
-				.thenThrow(new IOException());
-		responseWrapper.setResponse(credentialResponseDto);
-		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any(), any(MediaType.class)))
-				.thenReturn(responseWrapper);
-		MessageDTO result = stage.process(dto);
-		assertTrue(result.getInternalError());
-		assertTrue(result.getIsValid());
-	}
-
-	@Test
 	public void testApisResourceAccessException()
 			throws JsonParseException, JsonMappingException, IOException, ApisResourceAccessException {
 		MessageDTO dto = new MessageDTO();

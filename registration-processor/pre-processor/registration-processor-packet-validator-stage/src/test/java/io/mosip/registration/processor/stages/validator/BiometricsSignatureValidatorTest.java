@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.mosip.kernel.core.util.JsonUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -48,7 +49,7 @@ import io.mosip.registration.processor.stages.validator.impl.BiometricsSignature
  * @author Satish Gohil
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ BiometricsSignatureHelper.class })
+@PrepareForTest({ BiometricsSignatureHelper.class, JsonUtils.class})
 @PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*", "javax.net.ssl.*" })
 public class BiometricsSignatureValidatorTest {
 
@@ -166,6 +167,8 @@ public class BiometricsSignatureValidatorTest {
 
 		PowerMockito.mockStatic(BiometricsSignatureHelper.class);
 		PowerMockito.when(BiometricsSignatureHelper.extractJWTToken(any())).thenReturn(constructedJwtToken);
+		PowerMockito.mockStatic(JsonUtils.class);
+		PowerMockito.when(JsonUtils.javaObjectToJsonString(any())).thenReturn("");
 
 		Mockito.when(registrationProcessorRestService.postApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(ResponseWrapper1);

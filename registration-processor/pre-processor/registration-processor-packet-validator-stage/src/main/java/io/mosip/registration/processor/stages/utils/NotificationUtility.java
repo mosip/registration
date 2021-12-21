@@ -17,6 +17,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -49,10 +50,12 @@ import io.mosip.registration.processor.core.notification.template.generator.dto.
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.util.JsonUtil;
+import io.mosip.registration.processor.core.util.LanguageUtility;
 import io.mosip.registration.processor.message.sender.exception.TemplateGenerationFailedException;
 import io.mosip.registration.processor.message.sender.exception.TemplateNotFoundException;
 import io.mosip.registration.processor.message.sender.template.TemplateGenerator;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 import io.mosip.registration.processor.stages.dto.MessageSenderDTO;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -99,6 +102,9 @@ public class NotificationUtility {
 	/** The template generator. */
 	@Autowired
 	private TemplateGenerator templateGenerator;
+	
+	@Autowired
+	private LanguageUtility languageUtility;
 
 	/** The resclient. */
 	@Autowired
@@ -106,6 +112,10 @@ public class NotificationUtility {
 	
 	@Autowired
 	private PriorityBasedPacketManagerService packetManagerService;
+	
+	/** The utility. */
+	@Autowired
+	private Utilities utility;
 
 	private static final String SMS_SERVICE_ID = "mosip.registration.processor.sms.id";
 	private static final String REG_PROC_APPLICATION_VERSION = "mosip.registration.processor.application.version";
@@ -139,11 +149,15 @@ public class NotificationUtility {
 		Map<String, Object> attributes = new HashMap<>();
 		attributes.put("RID", registrationId);
 		List<String> preferredLanguages=getPreferredLanguages(registrationStatusDto);
+		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
+        String nameField = JsonUtil.getJSONValue(
+                JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.NAME),
+                MappingJsonConstants.VALUE);
 		for(String preferredLanguage:preferredLanguages) {
 		if (registrationAdditionalInfoDTO.getName() != null) {
-			attributes.put("name" , registrationAdditionalInfoDTO.getName());
+			attributes.put(nameField , registrationAdditionalInfoDTO.getName());
 		} else {
-			attributes.put("name" , "");
+			attributes.put(nameField, "");
 		}
 		
 		if (isProcessingSuccess) {
@@ -173,10 +187,20 @@ public class NotificationUtility {
 	private List<String> getPreferredLanguages(InternalRegistrationStatusDto registrationStatusDto) throws ApisResourceAccessException, 
 	PacketManagerException, JsonProcessingException, IOException, JSONException {
 		if(userPreferredLanguageAttribute!=null && !userPreferredLanguageAttribute.isBlank()) {
+			try {
 			String preferredLang=packetManagerService.getField(registrationStatusDto.getRegistrationId(), userPreferredLanguageAttribute,
 				registrationStatusDto.getRegistrationType(), ProviderStageName.PACKET_VALIDATOR);
-			if(preferredLang!=null && !preferredLang.isBlank()) {
-				return List.of(preferredLang.split(","));
+				if(preferredLang!=null && !preferredLang.isBlank()) {
+					List<String> codes=new ArrayList<>();
+					for(String lang:preferredLang.split(",")) {
+						codes.add(languageUtility.getLangCodeFromNativeName(lang));
+					}
+					if(!codes.isEmpty())return codes;
+				}
+			}catch(ApisResourceAccessException e) {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationStatusDto.getRegistrationId(), PlatformErrorMessages.RPR_PGS_API_RESOURCE_NOT_AVAILABLE.name() + e.getMessage()
+							+ ExceptionUtils.getStackTrace(e));
 			}
 		}
 		if(defaultTemplateLanguages!=null && !defaultTemplateLanguages.isBlank()) {
