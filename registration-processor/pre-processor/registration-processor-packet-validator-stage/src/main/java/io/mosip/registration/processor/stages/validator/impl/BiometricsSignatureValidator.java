@@ -6,6 +6,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.JsonUtils;
+import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +45,7 @@ import io.mosip.registration.processor.core.status.util.StatusUtil;
 public class BiometricsSignatureValidator {
 
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
+	private static Logger regProcLogger = RegProcessorLogger.getLogger(BiometricsSignatureValidator.class);
 
 	/** The Constant TRUE. */
 	private static final String TRUE = "true";
@@ -59,7 +64,7 @@ public class BiometricsSignatureValidator {
 
 	public void validateSignature(String id, String process, BiometricRecord biometricRecord,
 			Map<String, String> metaInfoMap) throws JSONException, BiometricSignatureValidationException,
-			ApisResourceAccessException, PacketManagerException, IOException {
+			ApisResourceAccessException, PacketManagerException, IOException, io.mosip.kernel.core.util.exception.JsonProcessingException {
 
 		// backward compatibility check
 		String version = getRegClientVersionFromMetaInfo(id, process, metaInfoMap);
@@ -89,7 +94,7 @@ public class BiometricsSignatureValidator {
 			}
 
 			String token = BiometricsSignatureHelper.extractJWTToken(bir);
-			validateJWTToken(token);
+			validateJWTToken(id, token);
 		}
 
 	}
@@ -115,9 +120,9 @@ public class BiometricsSignatureValidator {
 		return version;
 	}
 
-	private void validateJWTToken(String token)
+	private void validateJWTToken(String id, String token)
 			throws JsonParseException, JsonMappingException, JsonProcessingException, IOException, JSONException,
-			BiometricSignatureValidationException, ApisResourceAccessException {
+			BiometricSignatureValidationException, ApisResourceAccessException, io.mosip.kernel.core.util.exception.JsonProcessingException {
 		JWTSignatureVerifyRequestDto jwtSignatureVerifyRequestDto = new JWTSignatureVerifyRequestDto();
 		jwtSignatureVerifyRequestDto.setApplicationId("REGISTRATION");
 		jwtSignatureVerifyRequestDto.setReferenceId("SIGN");
@@ -144,6 +149,9 @@ public class BiometricsSignatureValidator {
 					mapper.writeValueAsString(responseWrapper.getResponse()), JWTSignatureVerifyResponseDto.class);
 
 			if (!jwtResponse.isSignatureValid()) {
+				regProcLogger.error(LoggerFileConstant.REGISTRATIONID.toString(), id,
+						"Request -> " + JsonUtils.javaObjectToJsonString(request)
+						," Response -> " + JsonUtils.javaObjectToJsonString(responseWrapper));
 				throw new BiometricSignatureValidationException(
 						StatusUtil.BIOMETRICS_SIGNATURE_VALIDATION_FAILURE.getCode(),
 						StatusUtil.BIOMETRICS_SIGNATURE_VALIDATION_FAILURE.getMessage());
