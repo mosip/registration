@@ -973,9 +973,9 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			String salt = syncRegistrationDao.getSaltValue(saltIndex);
 			byte[] saltBytes=null;
 			try {
-				saltBytes= CryptoUtil.decodeURLSafeBase64(salt);
+				saltBytes= CryptoUtil.decodePlainBase64(salt);
 			} catch (IllegalArgumentException exception) {
-				saltBytes = CryptoUtil.decodePlainBase64(salt);
+				saltBytes = CryptoUtil.decodeURLSafeBase64(salt);
 			}
 			byte[] hashBytes = value.getBytes();
 			for (int i = 0; i <= iteration; i++) {
