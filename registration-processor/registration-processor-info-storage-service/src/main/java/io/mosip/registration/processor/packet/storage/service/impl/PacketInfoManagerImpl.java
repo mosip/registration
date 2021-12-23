@@ -13,7 +13,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,7 +23,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.AuditLogConstant;
@@ -1003,23 +1001,10 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 
 	}
 
-	private JsonValue[] getField(String value) throws IOException {
-		if (StringUtils.isNotEmpty(value)) {
-			Object object = objectMapper.readValue(value, Object.class);
-			if (object instanceof ArrayList) {
-				JSONArray node = objectMapper.readValue(value, JSONArray.class);
-				JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
-				return jsonValues;
-			}
-		}
-		return null;
-	}
-
 	@Override
 	public List<RegBioRefDto> getRegBioRefDataByBioRefIds(List<String> bioRefId) {
 		List<RegBioRefEntity> regBioRefList = packetInfoDao.getRegBioRefDataByBioRefIds(bioRefId);
 		return PacketInfoMapper.convertRegBioRefEntityListToDto(regBioRefList);
 	}
-
 
 }

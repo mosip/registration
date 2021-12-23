@@ -802,7 +802,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			List<LostRidDto> lostRidDtos = entityToDtoMapper(syncRegistrationEntities);
 			validateRegistrationIds(lostRidDtos);
 			return lostRidDtos;
-		} catch (DataAccessLayerException | NoSuchAlgorithmException | RegStatusAppException e) {
+		} catch (DataAccessLayerException | RegStatusAppException e) {
 
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
@@ -854,8 +854,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 
 	}
 
-	private void updateFiltersWithHashedValues(SearchInfo searchInfo)
-			throws NoSuchAlgorithmException, RegStatusAppException {
+	private void updateFiltersWithHashedValues(SearchInfo searchInfo) throws RegStatusAppException {
 		for (FilterInfo filterInfo : searchInfo.getFilters()) {
 			if (filterInfo.getColumnName().equals("email") || filterInfo.getColumnName().equals("phone")
 					|| filterInfo.getColumnName().equals("centerId")

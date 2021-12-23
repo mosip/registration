@@ -4,14 +4,9 @@ import static io.mosip.registration.processor.adjudication.constants.ManualAdjud
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -25,9 +20,7 @@ import io.mosip.registration.processor.core.constant.PolicyConstant;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.adjudication.dto.DataShareRequestDto;
-import io.mosip.registration.processor.adjudication.dto.DataShareResponseDto;
 import io.mosip.registration.processor.adjudication.dto.ManualVerificationStatus;
-import io.mosip.registration.processor.adjudication.dto.UserDto;
 import io.mosip.registration.processor.adjudication.exception.MatchedRefNotExistsException;
 import io.mosip.registration.processor.adjudication.request.dto.Filter;
 import io.mosip.registration.processor.adjudication.request.dto.Gallery;
@@ -65,7 +58,6 @@ import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.ApiName;
-import io.mosip.registration.processor.core.code.DedupeSourceName;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
@@ -83,7 +75,6 @@ import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessag
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.idrepo.dto.Documents;
 import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
-import io.mosip.registration.processor.core.kernel.master.dto.UserResponseDTOWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.Identity;
@@ -100,7 +91,7 @@ import io.mosip.registration.processor.adjudication.exception.DataShareException
 import io.mosip.registration.processor.adjudication.exception.InvalidFileNameException;
 import io.mosip.registration.processor.adjudication.exception.InvalidRidException;
 import io.mosip.registration.processor.adjudication.exception.NoRecordAssignedException;
-import io.mosip.registration.processor.adjudication.exception.UserIDNotPresentException;
+import io.mosip.registration.processor.adjudication.response.dto.Candidate;
 import io.mosip.registration.processor.adjudication.response.dto.ManualAdjudicationResponseDTO;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
@@ -201,9 +192,6 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 	private ManualAdjudicationStage manualAdjudicationStage;
 
 	@Autowired
-	private RegistrationProcessorRestClientService<Object> restClientService;
-
-	@Autowired
 	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
 
 	@Autowired
@@ -214,11 +202,6 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 
 	/** The Constant PROTOCOL. */
 	public static final String PROTOCOL = "https";
-
-	private boolean isMatchTypeDemoOrBio(String matchType) {
-		return matchType.equalsIgnoreCase(DedupeSourceName.DEMO.toString())
-				|| matchType.equalsIgnoreCase(DedupeSourceName.BIO.toString());
-	}
 
 	/*
 	 * (non-Javadoc)
@@ -348,9 +331,9 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 	private ManualVerificationEntity validateRequestIdAndReturnRid(String reqId) {
 		List<ManualVerificationEntity> entities = basePacketRepository.getRegistrationIdbyRequestId(reqId);
 
-		if (CollectionUtils.isEmpty(entities) || new HashSet<>(entities.stream().map(e -> e.getRegId()).collect(Collectors.toList())).size() != 1) {
+		if (CollectionUtils.isEmpty(entities) || new HashSet<>(entities.stream().map(ManualVerificationEntity::getRegId).collect(Collectors.toList())).size() != 1) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					entities != null ? entities.stream().map(e -> e.getRegId()).collect(Collectors.toList()) : null,
+					entities != null ? entities.stream().map(ManualVerificationEntity::getRegId).collect(Collectors.toList()) : null,
 					"Multiple rids found against request id : " + reqId);
 			throw new InvalidRidException(
 					PlatformErrorMessages.RPR_INVALID_RID_FOUND.getCode(), PlatformErrorMessages.RPR_INVALID_RID_FOUND.getCode());
@@ -384,57 +367,6 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 		return entities;
 	}
 
-
-	@SuppressWarnings({ "unchecked", "unused" })
-	private void checkUserIDExistsInMasterList(UserDto dto) {
-		ResponseWrapper<UserResponseDTOWrapper> responseWrapper;
-		UserResponseDTOWrapper userResponseDTOWrapper;
-		List<String> pathSegments = new ArrayList<>();
-		pathSegments.add(ManualAdjudicationConstants.USERS);
-		pathSegments.add(dto.getUserId());
-		Date date = Calendar.getInstance().getTime();
-		DateFormat dateFormat = new SimpleDateFormat(ManualAdjudicationConstants.TIME_FORMAT);
-		String effectiveDate = dateFormat.format(date);
-		// pathSegments.add("2019-05-16T06:12:52.994Z");
-		pathSegments.add(effectiveDate);
-		try {
-
-			responseWrapper = (ResponseWrapper<UserResponseDTOWrapper>) restClientService.getApi(ApiName.MASTER,
-					pathSegments, "", "", ResponseWrapper.class);
-
-			if (responseWrapper.getResponse() != null) {
-				userResponseDTOWrapper = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
-						UserResponseDTOWrapper.class);
-				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-						dto.getUserId(),
-						"ManualVerificationServiceImpl::checkUserIDExistsInMasterList()::get MASTER USERS service call ended with response data : "
-								+ JsonUtil.objectMapperObjectToJson(userResponseDTOWrapper));
-				if (!userResponseDTOWrapper.getUserResponseDto().get(0).getStatusCode()
-						.equals(ManualAdjudicationConstants.ACT)) {
-					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), null,
-							PlatformErrorMessages.RPR_MVS_USER_STATUS_NOT_ACTIVE.getCode(),
-							PlatformErrorMessages.RPR_MVS_USER_STATUS_NOT_ACTIVE.getMessage() + dto.getUserId());
-					throw new UserIDNotPresentException(PlatformErrorMessages.RPR_MVS_USER_STATUS_NOT_ACTIVE.getCode(),
-							PlatformErrorMessages.RPR_MVS_USER_STATUS_NOT_ACTIVE.getMessage());
-				}
-			} else {
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), null,
-						PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getCode(),
-						PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getMessage());
-				throw new UserIDNotPresentException(PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getCode(),
-						PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getMessage());
-
-			}
-		} catch (ApisResourceAccessException | IOException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), null,
-					PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getCode(),
-					PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getMessage() + e);
-			throw new UserIDNotPresentException(PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getCode(),
-					PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getMessage());
-
-		}
-	}
-
 	/*
 	 * Get matched ref id for given RID and form request ,push to queue
 	 */
@@ -443,7 +375,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				refId, "ManualVerificationServiceImpl::pushRequestToQueue()::entry");
 		List<ManualVerificationEntity> mves = getMatchingEntitiesforRefId(refId);
-		if (mves.size() == 0 || null == mves)
+		if (mves == null || mves.isEmpty())
 			throw new MatchedRefNotExistsException(
 					PlatformErrorMessages.RPR_MVS_NO_MATCHEDRID_FOUND_FOR_GIVEN_RID.getCode(),
 					PlatformErrorMessages.RPR_MVS_NO_MATCHEDRID_FOUND_FOR_GIVEN_RID.getMessage());
@@ -586,8 +518,8 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 		LinkedHashMap datashare = (LinkedHashMap) response1.get(DATASHARE);
 		return datashare.get(URL) != null ? datashare.get(URL).toString() : null;
 	}
-	
-	private Map<String, String> getPolicyMap(LinkedHashMap<String, Object> policies) throws DataShareException, IOException, ApisResourceAccessException {
+
+	private Map<String, String> getPolicyMap(LinkedHashMap<String, Object> policies) throws IOException {
 		Map<String, String> policyMap = new HashMap<>();
 		List<LinkedHashMap> attributes = (List<LinkedHashMap>) policies.get(ManualAdjudicationConstants.SHAREABLE_ATTRIBUTES);
 		ObjectMapper mapper = new ObjectMapper();
@@ -650,9 +582,8 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 
 		ResponseWrapper<?> policyResponse = (ResponseWrapper<?>) registrationProcessorRestClientService.getApi(
 				ApiName.PMS, Lists.newArrayList(policyId, PolicyConstant.PARTNER_ID, subscriberId), "", "", ResponseWrapper.class);
-		if (policyResponse == null || (policyResponse.getErrors() != null && policyResponse.getErrors().size() >0)) {
+		if (policyResponse == null || (policyResponse.getErrors() != null && !policyResponse.getErrors().isEmpty())) {
 			throw new DataShareException(policyResponse == null ? "Policy Response response is null" : policyResponse.getErrors().get(0).getMessage());
-
 		} else {
 			LinkedHashMap<String, Object> responseMap = (LinkedHashMap<String, Object>) policyResponse.getResponse();
 			policies = (LinkedHashMap<String, Object>) responseMap.get(ManualAdjudicationConstants.POLICIES);
@@ -960,8 +891,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 				ManualVerificationStatus.APPROVED.name() : ManualVerificationStatus.REJECTED.name();
 
 		for (int i = 0; i < entities.size(); i++) {
-			ObjectMapper objectMapper = new ObjectMapper();
-			byte[] responsetext = objectMapper.writeValueAsBytes(manualVerificationDTO);
+			byte[] responsetext = mapper.writeValueAsBytes(manualVerificationDTO);
 
 			ManualVerificationEntity manualVerificationEntity=entities.get(i);
 			manualVerificationEntity.setStatusCode(statusCode);
@@ -1055,7 +985,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 
 			// get the reference ids from response candidates.
 			List<String> refIdsFromResponse = !CollectionUtils.isEmpty(manualVerificationDTO.getCandidateList().getCandidates()) ?
-					manualVerificationDTO.getCandidateList().getCandidates().stream().map(c -> c.getReferenceId()).collect(Collectors.toList())
+					manualVerificationDTO.getCandidateList().getCandidates().stream().map(Candidate::getReferenceId).collect(Collectors.toList())
 					: Collections.emptyList();
 
 			// get the reference ids from manual verification table entities.

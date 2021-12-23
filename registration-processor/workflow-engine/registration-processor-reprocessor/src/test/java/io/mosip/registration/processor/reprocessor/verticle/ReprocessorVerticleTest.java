@@ -277,6 +277,12 @@ public class ReprocessorVerticleTest {
 		Mockito.when(registrationStatusService.getUnProcessedPackets(anyInt(), anyLong(), anyInt(), anyList()))
 				.thenReturn(reprocessorDtoList);
 		reprocessorVerticle.process(dto);
-
+	}
+	
+	@Test
+	public void testProcessProceedToReprocessFalse() {
+		Mockito.when(registrationStatusService.getInReprocessPacketsCount(anyLong()))
+		.thenReturn(100l);
+		reprocessorVerticle.process(dto);
 	}
 }

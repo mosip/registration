@@ -90,7 +90,16 @@ public class IdRepoServiceImplTest {
 		PowerMockito.when(JsonUtil.class, "getJSONObject", any(), any()).thenReturn(demoJson);
 		String matchedDemographicIdentity = idRepoService.getUinByRid("", "Identity");
 		assertNull(matchedDemographicIdentity);
-
+	}
+	
+	@Test
+	public void testgetUINByRIDResponseNull() throws Exception {
+		ResponseWrapper<IdResponseDTO> response = new ResponseWrapper();
+		response.setId("1");
+		response.setResponse(null);
+		Mockito.when(restClientService.getApi(any(), anyList(), anyString(), any(), any())).thenReturn(response);
+		String matchedDemographicIdentity = idRepoService.getUinByRid("", "Identity");
+		assertNull(matchedDemographicIdentity);
 	}
 
 	/**

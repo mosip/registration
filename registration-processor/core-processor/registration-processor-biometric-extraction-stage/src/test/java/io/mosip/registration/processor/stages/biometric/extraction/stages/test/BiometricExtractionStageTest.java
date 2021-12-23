@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
@@ -223,7 +224,26 @@ public class BiometricExtractionStageTest {
 		MessageDTO result = biometricExtractionStage.process(messageDTO);
 		assertTrue(result.getInternalError());
 		assertFalse(result.getIsValid());
-	} 
+	}
+	
+	@Test
+	public void testBiometricExtractionNullResponseFailed() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.NEW.name());
+		messageDTO.setWorkflowInstanceId("123er");
+		messageDTO.setIteration(1);
+		ResponseWrapper<ExtractorsDto> responseWrapper1=new ResponseWrapper<>();
+		ExtractorsDto extractorsDto=new ExtractorsDto();
+		extractorsDto.setExtractors(Arrays.asList());
+		responseWrapper1.setResponse(extractorsDto);
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), anyString(), any())).thenReturn(responseWrapper1);
+		when(mapper.readValue(anyString(),any(Class.class))).thenReturn(extractorsDto);
+
+		MessageDTO result = biometricExtractionStage.process(messageDTO);
+		assertTrue(result.getInternalError());
+		assertFalse(result.getIsValid());
+	}
 	
 	@Test
 	public void testBiometricExtractionPartnerApiFailed() throws Exception {
@@ -280,12 +300,12 @@ public class BiometricExtractionStageTest {
 		messageDTO.setWorkflowInstanceId("123er");
 		messageDTO.setIteration(1);
 		when(registrationProcessorRestClientService.putApi(any(), any(), anyString(), anyString(), any(), any(), any()))
-		.thenThrow(ApisResourceAccessException.class);
-		
+				.thenThrow(ApisResourceAccessException.class);
+		when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("REPROCESS");
 
 		MessageDTO result = biometricExtractionStage.process(messageDTO);
 		assertTrue(result.getInternalError());
-		assertFalse(result.getIsValid());
+		assertTrue(result.getIsValid());
 	} 
 	
 	@Test

@@ -8,13 +8,11 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -337,7 +335,7 @@ public class UinGeneratorStageTest {
 
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
-		when(packetManagerService.getDocument(anyString(),anyString(),anyString(),any())).thenReturn(document);
+		when(packetManagerService.getDocument(anyString(), anyString(), any(), any())).thenReturn(document);
 		when(packetManagerService.getBiometrics(anyString(),anyString(),any(),any())).thenReturn(biometricRecord);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 		when(utility.getMappingJsonValue(anyString(), any())).thenReturn("UIN");
@@ -392,6 +390,51 @@ public class UinGeneratorStageTest {
 		assertFalse(result.getIsValid());
 	}
 
+	@Test
+	public void testUinGenerationIDRepoFaliure() throws Exception {
+
+		Map<String, String> fieldMap = new HashMap<>();
+		fieldMap.put("name", "mono");
+		fieldMap.put("email", "mono@mono.com");
+
+		List<String> defaultFields = new ArrayList<>();
+		defaultFields.add("name");
+		defaultFields.add("dob");
+		defaultFields.add("gender");
+		defaultFields.add("UIN");
+
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
+		when(packetManagerService.getFields(any(),any(),any(),any())).thenReturn(fieldMap);
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ErrorDTO errorDto = new ErrorDTO();
+		errorDto.setErrorCode("KER-IDR-001");
+		errorDto.setMessage("Record already Exists in DB");
+		List<ErrorDTO> errors = new ArrayList<>();
+		errors.add(errorDto);
+		idResponseDTO.setErrors(errors);
+		idResponseDTO.setId("mosip.id.error");
+		idResponseDTO.setResponse(null);
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
+
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_FAILED)).thenReturn("FAILED");
+		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
+
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.NEW.name());
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+
+		assertTrue(result.getInternalError());
+		assertFalse(result.getIsValid());
+	}
+	
 	@Test
 	public void testUinGenerationIDRepoDraftAPiResourceException() throws Exception {
 
@@ -469,11 +512,6 @@ public class UinGeneratorStageTest {
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(idResponseDTO);
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
-
-		String idJsonData = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":4215839851}}";
-
-		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any()))
-				.thenReturn(idResponseDTO);
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getIsValid());
 		assertFalse(result.getInternalError());
@@ -497,8 +535,6 @@ public class UinGeneratorStageTest {
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
-		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
-
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
 		messageDTO.setReg_type(RegistrationType.valueOf("ACTIVATED").name());
@@ -512,26 +548,60 @@ public class UinGeneratorStageTest {
 		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
 		idResponseDTO.setVersion("1.0");
 
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
+				.thenReturn(idResponseDTO);
+
+		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertFalse(result.getIsValid());
+		assertFalse(result.getInternalError());
+	}
+
+	@Test
+	public void testUinReActivationIDraftResponseActivated() throws Exception {
+		Map<String, String> fieldMap = new HashMap<>();
+		fieldMap.put("UIN", "123456");
+		fieldMap.put("name", "mono");
+		fieldMap.put("email", "mono@mono.com");
+
+		List<String> defaultFields = new ArrayList<>();
+		defaultFields.add("name");
+		defaultFields.add("dob");
+		defaultFields.add("gender");
+		defaultFields.add("UIN");
+
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
+		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.valueOf("ACTIVATED").name());
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.update");
+		responseDTO.setStatus("ANY");
+		idResponseDTO.setResponse(responseDTO);
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
+		
 		IdResponseDTO idResponseDTO1 = new IdResponseDTO();
 		ResponseDTO responseDTO1 = new ResponseDTO();
 		idResponseDTO1.setErrors(null);
 		idResponseDTO1.setId("mosip.id.update");
 		responseDTO1.setStatus("ACTIVATED");
 		idResponseDTO1.setResponse(responseDTO1);
-
 		idResponseDTO1.setResponsetime("2019-01-17T06:29:01.940Z");
 		idResponseDTO1.setVersion("1.0");
 
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(idResponseDTO);
 
-		String idJsonData = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
-
-		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
-		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
-				.thenReturn(idResponseDTO1);
+		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO1);
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
-		assertFalse(result.getIsValid());
+		assertTrue(result.getIsValid());
 		assertFalse(result.getInternalError());
 	}
 
@@ -549,11 +619,8 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
-		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
-
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
 		MessageDTO messageDTO = new MessageDTO();
@@ -569,24 +636,10 @@ public class UinGeneratorStageTest {
 		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
 		idResponseDTO.setVersion("1.0");
 
-		IdResponseDTO idResponseDTO1 = new IdResponseDTO();
-		ResponseDTO responseDTO1 = new ResponseDTO();
-		idResponseDTO1.setErrors(null);
-		idResponseDTO1.setId("mosip.id.update");
-		responseDTO1.setStatus("ACTIVATED");
-		idResponseDTO1.setResponse(null);
-
-		idResponseDTO1.setResponsetime("2019-01-17T06:29:01.940Z");
-		idResponseDTO1.setVersion("1.0");
-
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(idResponseDTO);
 
-		String idJsonData = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";;
-
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
-		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
-				.thenReturn(idResponseDTO1);
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getIsValid());
 		assertFalse(result.getInternalError());
@@ -656,8 +709,6 @@ public class UinGeneratorStageTest {
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMaps);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
-		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
-
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
 		messageDTO.setReg_type(RegistrationType.valueOf("ACTIVATED").name());
@@ -671,23 +722,9 @@ public class UinGeneratorStageTest {
 		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
 		idResponseDTO.setVersion("1.0");
 
-		IdResponseDTO idResponseDTO1 = new IdResponseDTO();
-		ResponseDTO responseDTO1 = new ResponseDTO();
-		idResponseDTO1.setErrors(null);
-		idResponseDTO1.setId("mosip.id.update");
-		responseDTO1.setStatus("ANY");
-		idResponseDTO1.setResponse(responseDTO1);
-
-		idResponseDTO1.setResponsetime("2019-01-17T06:29:01.940Z");
-		idResponseDTO1.setVersion("1.0");
-
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 		.thenReturn(idResponseDTO);
-		String idJsonData = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
-
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
-		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
-				.thenReturn(idResponseDTO1);
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getIsValid());
@@ -711,16 +748,6 @@ public class UinGeneratorStageTest {
 		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
 		idResponseDTO.setVersion("1.0");
 
-		IdResponseDTO idResponseDTO1 = new IdResponseDTO();
-		ResponseDTO responseDTO1 = new ResponseDTO();
-		idResponseDTO1.setErrors(null);
-		idResponseDTO1.setId("mosip.id.update");
-		responseDTO1.setStatus("ACTIVATED");
-		idResponseDTO1.setResponse(responseDTO1);
-
-		idResponseDTO1.setResponsetime("2019-01-17T06:29:01.940Z");
-		idResponseDTO1.setVersion("1.0");
-
 		Map<String, String> fieldMap = new HashMap<>();
 		fieldMap.put("UIN", "123456");
 		fieldMap.put("name", "mono");
@@ -739,13 +766,8 @@ public class UinGeneratorStageTest {
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
-		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
-
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(idResponseDTO);
-
-		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
-				.thenReturn(idResponseDTO1);
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getIsValid());
@@ -770,8 +792,6 @@ public class UinGeneratorStageTest {
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
-		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
-
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
 		messageDTO.setReg_type(RegistrationType.valueOf("ACTIVATED").name());
@@ -785,23 +805,10 @@ public class UinGeneratorStageTest {
 		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
 		idResponseDTO.setVersion("1.0");
 
-		IdResponseDTO idResponseDTO1 = new IdResponseDTO();
-		ResponseDTO responseDTO1 = new ResponseDTO();
-		idResponseDTO1.setErrors(null);
-		idResponseDTO1.setId("mosip.id.update");
-		responseDTO1.setStatus("ANY");
-		idResponseDTO1.setResponse(responseDTO1);
-		idResponseDTO1.setResponsetime("2019-01-17T06:29:01.940Z");
-		idResponseDTO1.setVersion("1.0");
-
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(idResponseDTO);
 
-		String idJsonData = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":4215839851}}";
-
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
-		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
-				.thenReturn(idResponseDTO1);
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getIsValid());
 		assertFalse(result.getInternalError());
@@ -825,8 +832,6 @@ public class UinGeneratorStageTest {
 		when(packetManagerService.getFields(any(),any(),any(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
-		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
-
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
 		messageDTO.setReg_type(RegistrationType.valueOf("ACTIVATED").name());
@@ -840,24 +845,10 @@ public class UinGeneratorStageTest {
 		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
 		idResponseDTO.setVersion("1.0");
 
-		IdResponseDTO idResponseDTO1 = new IdResponseDTO();
-		List<ErrorDTO> errors = new ArrayList<>();
-		ErrorDTO errorDTO = new ErrorDTO("tets", "error");
-		errors.add(errorDTO);
-		idResponseDTO1.setErrors(errors);
-		idResponseDTO1.setId("mosip.id.update");
-		idResponseDTO1.setResponse(null);
-		idResponseDTO1.setResponsetime("2019-01-17T06:29:01.940Z");
-		idResponseDTO1.setVersion("1.0");
-
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(idResponseDTO);
 
-		String idJsonData = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":4215839851}}";
-
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
-		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
-				.thenReturn(idResponseDTO1);
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_REPROCESS)).thenReturn("REPROCESS");
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
@@ -886,8 +877,6 @@ public class UinGeneratorStageTest {
 
 		ApisResourceAccessException exp = new ApisResourceAccessException(
 				HibernateErrorCode.ERR_DATABASE.getErrorCode());
-		String Str = "{\"uin\":\"6517036426\"}";
-
 		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any())).thenThrow(exp);
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_REPROCESS)).thenReturn("REPROCESS");
@@ -930,18 +919,13 @@ public class UinGeneratorStageTest {
 
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 
-
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
-		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
-		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
 		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED").name());
 		IdResponseDTO responsedto = new IdResponseDTO();
-		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
-		InputStream idJsonStream1 = new ByteArrayInputStream(idJson.getBytes(StandardCharsets.UTF_8));
 
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
@@ -955,8 +939,6 @@ public class UinGeneratorStageTest {
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responsedto);
-		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
-				.thenReturn(idResponseDTO);
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getIsValid());
@@ -977,18 +959,14 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
-		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
-
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
 		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED").name());
 
-		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":4215839851}}";
 		ResponseDTO responseDTO = new ResponseDTO();
 
 		responseDTO.setStatus("DEACTIVATED");
@@ -1014,11 +992,8 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
-		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
-
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
 		MessageDTO messageDTO = new MessageDTO();
@@ -1028,8 +1003,6 @@ public class UinGeneratorStageTest {
 		ResponseDTO responseDTO1 = new ResponseDTO();
 		responseDTO1.setStatus("DEACTIVATED");
 		responsedto.setResponse(responseDTO1);
-		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
-		InputStream idJsonStream1 = new ByteArrayInputStream(idJson.getBytes(StandardCharsets.UTF_8));
 
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
@@ -1043,8 +1016,6 @@ public class UinGeneratorStageTest {
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responsedto);
-		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
-				.thenReturn(idResponseDTO);
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getIsValid());
 		assertFalse(result.getInternalError());
@@ -1063,18 +1034,14 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
-		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
 		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED").name());
 		IdResponseDTO responsedto = new IdResponseDTO();
-		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
-		InputStream idJsonStream1 = new ByteArrayInputStream(idJson.getBytes(StandardCharsets.UTF_8));
 
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
@@ -1088,8 +1055,6 @@ public class UinGeneratorStageTest {
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responsedto);
-		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
-				.thenReturn(idResponseDTO);
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_REPROCESS)).thenReturn("REPROCESS");
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
@@ -1111,7 +1076,6 @@ public class UinGeneratorStageTest {
 		errors.add(errorDto);
 
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
-		ResponseDTO responseDTO = new ResponseDTO();
 		idResponseDTO.setErrors(errors);
 		idResponseDTO.setId("mosip.id.update");
 		ResponseDTO responseDTO1 = new ResponseDTO();
@@ -1136,8 +1100,6 @@ public class UinGeneratorStageTest {
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
-
-		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
 				.thenReturn(idResponseDTO);
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
@@ -1161,22 +1123,13 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(),any(),any(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
-		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
-
-		ApisResourceAccessException exp = new ApisResourceAccessException(
-				HibernateErrorCode.ERR_DATABASE.getErrorCode());
-
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
 		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED").name());
-
-		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":4215839851}}";
-		InputStream idJsonStream1 = new ByteArrayInputStream(idJson.getBytes(StandardCharsets.UTF_8));
 
 		ErrorDTO errorDto = new ErrorDTO();
 		errorDto.setErrorCode("KER-IDR-001");
@@ -1198,8 +1151,6 @@ public class UinGeneratorStageTest {
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(idResponseDTO);
 
-		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
-				.thenThrow(exp);
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_REPROCESS)).thenReturn("REPROCESS");
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
@@ -1263,8 +1214,6 @@ public class UinGeneratorStageTest {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
 		messageDTO.setReg_type(RegistrationType.valueOf("ACTIVATED").name());
-		String idJsonData = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
-
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenThrow(apisResourceAccessException);
 		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
 		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
@@ -1281,7 +1230,6 @@ public class UinGeneratorStageTest {
 	public void testUinGenerationHttpClientErrorException() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
-		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
 
 		ApisResourceAccessException apisResourceAccessException = Mockito.mock(ApisResourceAccessException.class);
 		HttpClientErrorException httpClientErrorException = new HttpClientErrorException(
@@ -1304,7 +1252,6 @@ public class UinGeneratorStageTest {
 	public void testUinGenerationHttpServerErrorException() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
-		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
 
 		ApisResourceAccessException apisResourceAccessException = Mockito.mock(ApisResourceAccessException.class);
 		HttpServerErrorException httpServerErrorException = new HttpServerErrorException(
@@ -1349,7 +1296,6 @@ public class UinGeneratorStageTest {
 	
 	@Test
 	public void testIOException() {
-		IOException exception = new IOException("File not found");
 
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_REPROCESS)).thenReturn("REPROCESS");
@@ -1360,7 +1306,6 @@ public class UinGeneratorStageTest {
 		assertTrue(result.getInternalError());
 		assertTrue(result.getIsValid());
 	}
-
 
 	@Test
 	public void testDeployVerticle() {
@@ -1374,8 +1319,6 @@ public class UinGeneratorStageTest {
 		messageDTO.setRid("10031100110005020190313110030");
 		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED").name());
 		IdResponseDTO responsedto = new IdResponseDTO();
-		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
-
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
 		idResponseDTO.setErrors(null);
@@ -1388,8 +1331,6 @@ public class UinGeneratorStageTest {
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responsedto);
-		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
-				.thenReturn(idResponseDTO);
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getInternalError());
@@ -1436,18 +1377,15 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
-		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
 		messageDTO.setReg_type(RegistrationType.LOST.name());
-		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
-		String response = "{\"timestamp\":1553771083721,\"status\":404,\"errors\":[{\"errorCode\":\"KER-UIG-004\",\"errorMessage\":\"Given UIN is not in ISSUED status\"}]}";
 
+		String response = "{\"timestamp\":1553771083721,\"status\":404,\"errors\":[{\"errorCode\":\"KER-UIG-004\",\"errorMessage\":\"Given UIN is not in ISSUED status\"}]}";
 
 		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(response);
@@ -1462,17 +1400,38 @@ public class UinGeneratorStageTest {
 		idResponseDTO.setVersion("1.0");
 
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
-		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any(Class.class)))
-				.thenReturn(idResponseDTO);
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any(Class.class)))
-				.thenReturn(idResponseDTO);
-		when(
-				registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any(Class.class)))
 				.thenReturn(idResponseDTO);
 		when(regLostUinDetEntity.getLostUinMatchedRegIdByWorkflowId(any())).thenReturn("27847657360002520181210094052");
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getInternalError());
 		assertTrue(result.getIsValid());
+	}
+
+	@Test
+	public void testLinkForLostUinUpdateFailure() throws Exception {
+
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.LOST.name());
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ErrorDTO error = new ErrorDTO("ERR-001", "excpetion occured");
+		idResponseDTO.setErrors(Arrays.asList(error));
+		idResponseDTO.setId("mosip.id.update");
+		idResponseDTO.setResponse(null);
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
+
+		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any(Class.class)))
+				.thenReturn(idResponseDTO);
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_ID_REPO_ERROR)).thenReturn("REPROCESS");
+		when(regLostUinDetEntity.getLostUinMatchedRegIdByWorkflowId(any())).thenReturn("27847657360002520181210094052");
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertFalse(result.getInternalError());
+		assertFalse(result.getIsValid());
 	}
 
 	@Test
@@ -1489,12 +1448,9 @@ public class UinGeneratorStageTest {
 		defaultFields.add("UIN");
 
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
-
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
-		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
-		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
 		messageDTO.setReg_type(RegistrationType.valueOf("UPDATE").name());
@@ -1512,8 +1468,6 @@ public class UinGeneratorStageTest {
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responsedto);
-		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
-				.thenReturn(idResponseDTO);
 		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
 		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
 
@@ -1527,7 +1481,6 @@ public class UinGeneratorStageTest {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
 		messageDTO.setReg_type(RegistrationType.LOST.name());
-		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
 		String response = "{\"timestamp\":1553771083721,\"status\":404,\"errors\":[{\"errorCode\":\"KER-UIG-004\",\"errorMessage\":\"Given UIN is not in ISSUED status\"}]}";
 		when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn(null);
 		when(regLostUinDetEntity.getLostUinMatchedRegIdByWorkflowId(any())).thenReturn("27847657360002520181210094052");
@@ -1562,7 +1515,6 @@ public class UinGeneratorStageTest {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
 		messageDTO.setReg_type(RegistrationType.LOST.name());
-		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
 		String response = "{\"timestamp\":1553771083721,\"status\":404,\"errors\":[{\"errorCode\":\"KER-UIG-004\",\"errorMessage\":\"Given UIN is not in ISSUED status\"}]}";
 
 
@@ -1611,21 +1563,14 @@ public class UinGeneratorStageTest {
 		defaultFields.add("UIN");
 
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
-
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
-		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
-
-		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
-
 
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
 		responseDTO.setStatus("ACTIVATED");
 		idResponseDTO.setErrors(null);
 		idResponseDTO.setId("mosip.id.update");
-
-		idResponseDTO.setErrors(null);
 		idResponseDTO.setResponse(responseDTO);
 		idResponseDTO.setResponsetime("2019-03-12T06:49:30.779Z");
 		idResponseDTO.setVersion("1.0");
@@ -1634,25 +1579,52 @@ public class UinGeneratorStageTest {
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(idResponseDTO);
 
-		IdResponseDTO idResponseDTO1 = new IdResponseDTO();
-		ResponseDTO responseDTO1 = new ResponseDTO();
-		idResponseDTO1.setErrors(null);
-		idResponseDTO1.setId("mosip.id.update");
-		responseDTO1.setStatus("ACTIVATED");
-		idResponseDTO1.setResponse(responseDTO1);
-		idResponseDTO1.setResponsetime("2019-01-17T06:29:01.940Z");
-		idResponseDTO1.setVersion("1.0");
-
 		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
 		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
-		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
-				.thenReturn(idResponseDTO1);
-
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getInternalError());
 		assertTrue(result.getIsValid());
 	}
 
+	@Test
+	public void testUpdateDraftSuccess() throws Exception {
+		Map<String, String> fieldMap = new HashMap<>();
+		fieldMap.put("UIN", "123456");
+		fieldMap.put("name", "mono");
+		fieldMap.put("email", "mono@mono.com");
+
+		List<String> defaultFields = new ArrayList<>();
+		defaultFields.add("name");
+		defaultFields.add("dob");
+		defaultFields.add("gender");
+		defaultFields.add("UIN");
+
+		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+		
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("10031100110005020190313110030");
+		messageDTO.setReg_type(RegistrationType.UPDATE.name());
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setStatus("DRAFTED");
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.update");
+		idResponseDTO.setResponse(responseDTO);
+		idResponseDTO.setResponsetime("2019-03-12T06:49:30.779Z");
+		idResponseDTO.setVersion("1.0");
+		when(idrepoDraftService.idrepoUpdateDraft(any(), any(), any()))
+				.thenReturn(idResponseDTO);
+
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
+	}
 	
 	@Test
 	public void testUpdateDraftFailed() throws Exception {
@@ -1668,12 +1640,9 @@ public class UinGeneratorStageTest {
 		defaultFields.add("UIN");
 
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
-
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
-		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
-		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
 		messageDTO.setReg_type(RegistrationType.UPDATE.name());
@@ -1757,6 +1726,7 @@ public class UinGeneratorStageTest {
 		fieldMap.put("proofOfException", "{\"value\":\"POA_Rental contract\",\"type\":\"Rental contract\",\"format\":\"jpg\"}");
 		fieldMap.put("proofOfAddress", "{\"value\":\"POA_Rental contract\",\"type\":\"Rental contract\",\"format\":\"jpg\"}");
 		fieldMap.put("individualBiometrics", "{\"format\":\"cbeff\",\"version\":1,\"value\":\"applicant_bio_CBEFF\"}");
+		fieldMap.put("gender","[{\"language\" : \"eng\", \"value\" : \"Male\"}, {\"language\" : \"ara\",\"value\" : \"ذكر\"}]");
 
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
@@ -1825,11 +1795,8 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
-		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
-
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
 		MessageDTO messageDTO = new MessageDTO();
@@ -1839,27 +1806,9 @@ public class UinGeneratorStageTest {
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		idResponseDTO.setResponse(null);
 
-		IdResponseDTO idResponseDTO1 = new IdResponseDTO();
-		ResponseDTO responseDTO1 = new ResponseDTO();
-		idResponseDTO1.setErrors(null);
-		idResponseDTO1.setId("mosip.id.update");
-		responseDTO1.setStatus("ACTIVATED");
-		idResponseDTO1.setResponse(null);
-
-		idResponseDTO1.setResponsetime("2019-01-17T06:29:01.940Z");
-		idResponseDTO1.setVersion("1.0");
-
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(idResponseDTO);
-
-		String idJsonData = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
-		InputStream idJsonStream = new ByteArrayInputStream(idJsonData.getBytes(StandardCharsets.UTF_8));
-
-
-
-		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
-				.thenReturn(idResponseDTO1);
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getIsValid());
@@ -1883,18 +1832,14 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
-		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
 		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED").name());
 		IdResponseDTO responsedto = new IdResponseDTO();
-		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
-		InputStream idJsonStream1 = new ByteArrayInputStream(idJson.getBytes(StandardCharsets.UTF_8));
 
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
@@ -1908,9 +1853,6 @@ public class UinGeneratorStageTest {
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responsedto);
-		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
-				.thenReturn(idResponseDTO);
-
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getIsValid());
@@ -1932,18 +1874,13 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
-		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
 		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED").name());
-		IdResponseDTO responsedto = new IdResponseDTO();
-		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
-		InputStream idJsonStream1 = new ByteArrayInputStream(idJson.getBytes(StandardCharsets.UTF_8));
 
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
@@ -1982,17 +1919,13 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
-		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
 		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED").name());
-		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
-
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
 		idResponseDTO.setErrors(null);
@@ -2030,17 +1963,13 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
-		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
 		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED").name());
-		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
-
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
 		idResponseDTO.setErrors(null);
@@ -2056,7 +1985,6 @@ public class UinGeneratorStageTest {
 				.thenThrow(ex);
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
-
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getIsValid());
@@ -2078,12 +2006,10 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
-		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
 		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED").name());
@@ -2091,8 +2017,6 @@ public class UinGeneratorStageTest {
 		ResponseDTO dto=new ResponseDTO();
 		dto.setStatus("DEACTIVATED");
 		responsedto.setResponse(dto);
-		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
-
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
 		idResponseDTO.setErrors(null);
@@ -2105,9 +2029,6 @@ public class UinGeneratorStageTest {
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responsedto);
-		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
-				.thenReturn(idResponseDTO);
-
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getIsValid());
@@ -2153,8 +2074,6 @@ public class UinGeneratorStageTest {
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responsedto);
-		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
-				.thenReturn(idResponseDTO);
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_REPROCESS)).thenReturn("REPROCESS");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldsMap);
@@ -2182,15 +2101,11 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(),any(),any(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
-		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
-
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
-		ResponseDTO responseDTO = new ResponseDTO();
 		ErrorDTO errorDto = new ErrorDTO();
 		errorDto.setErrorCode("KER-IDR-001");
 		errorDto.setMessage("Record already Exists in DB");
@@ -2205,8 +2120,6 @@ public class UinGeneratorStageTest {
 				.thenReturn(idResponseDTO);
 		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
 		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
-
-		String Str = "{\"uin\":\"6517036426\"}";
 
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_REPROCESS)).thenReturn("REPROCESS");
@@ -2235,7 +2148,8 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
-
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(any(),any(),any(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -2251,8 +2165,6 @@ public class UinGeneratorStageTest {
 		idResponseDTO.setResponse(null);
 		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
 		idResponseDTO.setVersion("1.0");
-		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any()))
-				.thenReturn(idResponseDTO);
 
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_REPROCESS)).thenReturn("REPROCESS");
@@ -2285,5 +2197,43 @@ public class UinGeneratorStageTest {
 		assertTrue(result.getInternalError());
 		assertTrue(result.getIsValid());
 	}
+	
+	@Test
+	public void testUinUpdationHttpClientErrorExceptionFaliure() throws Exception {
+		
+		Map<String, String> fieldMap = new HashMap<>();
+		fieldMap.put("name", "mono");
+		fieldMap.put("email", "mono@mono.com");
 
+		List<String> defaultFields = new ArrayList<>();
+		defaultFields.add("name");
+		defaultFields.add("dob");
+		defaultFields.add("gender");
+		defaultFields.add("UIN");
+		
+		ApisResourceAccessException apisResourceAccessException = Mockito.mock(ApisResourceAccessException.class);
+		HttpClientErrorException httpClientErrorException = new HttpClientErrorException(
+				HttpStatus.INTERNAL_SERVER_ERROR, "KER-FSE-004:encrypted data is corrupted or not base64 encoded");
+		when(apisResourceAccessException.getCause()).thenReturn(httpClientErrorException);
+
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
+		when(packetManagerService.getFields(any(),any(),any(),any())).thenReturn(fieldMap);
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+		
+		when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
+		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenThrow(apisResourceAccessException);
+		
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type("UPDATE");
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+
+		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
+	}
+	
 }

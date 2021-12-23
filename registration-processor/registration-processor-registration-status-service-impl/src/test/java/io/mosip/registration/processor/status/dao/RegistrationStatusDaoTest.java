@@ -75,14 +75,12 @@ public class RegistrationStatusDaoTest {
 	public void findByIdTest() {
 		RegistrationStatusEntity rEntity = registrationStatusDao.find("1000.zip", "NEW", 1, "");
 		assertEquals(registrationStatusEntity, rEntity);
-
 	}
 
 	@Test
 	public void findByIdworkFlowNullTest() {
 		RegistrationStatusEntity rEntity = registrationStatusDao.find("1000.zip", "NEW", 1, null);
 		assertEquals(registrationStatusEntity, rEntity);
-
 	}
 
 	@Test

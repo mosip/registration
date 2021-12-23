@@ -2,11 +2,13 @@ package io.mosip.registration.processor.packet.manager.decryptor;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 
 import org.apache.commons.io.IOUtils;
@@ -16,7 +18,9 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
@@ -25,6 +29,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
 import io.mosip.kernel.core.exception.ServiceError;
+import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
@@ -36,6 +41,7 @@ import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequest
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @SpringBootTest(classes = PacketManagerBootApplication.class)
+@PrepareForTest({ DateUtils.class, IOUtils.class })
 public class DecryptorTest {
 
 	
@@ -78,7 +84,22 @@ public class DecryptorTest {
 		InputStream decryptedStream = decryptor.decrypt("84071493960000320190110145452", "refid", inputStream);
 		String decryptedString = IOUtils.toString(decryptedStream, "UTF-8");
 		assertEquals("mosip", decryptedString);
+	}
+	
+	@Test(expected = PacketDecryptionFailureException.class)
+	public void decryptDateTimeParseExceptionTest()
+			throws PacketDecryptionFailureException, ApisResourceAccessException, IOException {
+		PowerMockito.mockStatic(DateUtils.class);
+		PowerMockito.when(DateUtils.getUTCCurrentDateTimeString(anyString())).thenThrow(DateTimeParseException.class);
+		decryptor.decrypt("84071493960000320190110145452", "refid", inputStream);
+	}
 
+	@Test(expected = PacketDecryptionFailureException.class)
+	public void decryptIOExceptionTest()
+			throws PacketDecryptionFailureException, ApisResourceAccessException, IOException {
+		PowerMockito.mockStatic(IOUtils.class);
+		PowerMockito.when(IOUtils.toByteArray(inputStream)).thenThrow(IOException.class);
+		decryptor.decrypt("84071493960000320190110145451", "refid", inputStream);
 	}
 
 	@Test(expected = PacketDecryptionFailureException.class)

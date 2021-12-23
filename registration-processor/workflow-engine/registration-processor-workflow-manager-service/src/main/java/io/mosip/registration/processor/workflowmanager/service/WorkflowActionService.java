@@ -116,10 +116,9 @@ public class WorkflowActionService {
 			processStopProcessing(internalRegistrationStatusDtos, workflowActionCode);
 			break;
 		default:
-				throw new WorkflowActionException(PlatformErrorMessages.RPR_WAS_UNKNOWN_WORKFLOW_ACTION.getCode(),
-						PlatformErrorMessages.RPR_WAS_UNKNOWN_WORKFLOW_ACTION.getMessage());
-
-			}
+			throw new WorkflowActionException(PlatformErrorMessages.RPR_WAS_UNKNOWN_WORKFLOW_ACTION.getCode(),
+					PlatformErrorMessages.RPR_WAS_UNKNOWN_WORKFLOW_ACTION.getMessage());
+		}
 
 	}
 
@@ -292,11 +291,9 @@ public class WorkflowActionService {
 							isTransactionSuccessful = true;
 					}
 
-				}
-			catch (TablenotAccessibleException e) {
-				logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
-			} catch (ApisResourceAccessException | PacketManagerException | JsonProcessingException
-			e) {
+				} catch (TablenotAccessibleException e) {
+					logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
+				} catch (ApisResourceAccessException | PacketManagerException | JsonProcessingException e) {
 				logAndThrowError(e, ((BaseCheckedException) e).getErrorCode(), ((BaseCheckedException) e).getMessage(),
 						rid, description);
 			} catch (Exception e) {
