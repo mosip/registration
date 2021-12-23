@@ -313,7 +313,13 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 				biometricInfoDTO.setQualityScore(bir.getBdbInfo().getQuality().getScore());
 				biometricInfoDTO.setAttempts(retries);
 				if (digitalID != null) {
-					biometricInfoDTO.setDigitalId(new String(CryptoUtil.decodePlainBase64(digitalID.split("\\.")[1])));
+					byte[] digitalIdBytes=null;
+					try {
+						 digitalIdBytes= CryptoUtil.decodeURLSafeBase64(digitalID.split("\\.")[1]);
+					} catch (IllegalArgumentException exception) {
+						digitalIdBytes = CryptoUtil.decodePlainBase64(digitalID.split("\\.")[1]);
+					}
+					biometricInfoDTO.setDigitalId(new String(digitalIdBytes));
 				}
 				biometrics.add(biometricInfoDTO);
 			}

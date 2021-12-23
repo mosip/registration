@@ -116,7 +116,12 @@ public class Encryptor {
 			if (response.getResponse() != null) {
 				LinkedHashMap responseMap = mapper.readValue(mapper.writeValueAsString(response.getResponse()),
 						LinkedHashMap.class);
-				byte[] tempEncryptedData = CryptoUtil.decodeURLSafeBase64(responseMap.get(KEY).toString());
+				byte[] tempEncryptedData =null;
+				try {
+					tempEncryptedData= CryptoUtil.decodeURLSafeBase64(responseMap.get(KEY).toString());
+				} catch (IllegalArgumentException exception) {
+					tempEncryptedData= CryptoUtil.decodePlainBase64(responseMap.get(KEY).toString());
+				}
 				encryptedData = mergeEncryptedData(tempEncryptedData, nonce, aad);
 			} else {
 				description.setMessage(PlatformErrorMessages.RPR_PGS_ENCRYPTOR_INVLAID_DATA_EXCEPTION.getMessage());
