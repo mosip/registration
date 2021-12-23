@@ -157,6 +157,7 @@ public class SyncRegistrationServiceTest {
 	public void setup() throws Exception {
 		PowerMockito.mockStatic(CryptoUtil.class);
 		PowerMockito.when(CryptoUtil.decodePlainBase64(anyString())).thenReturn("mosip".getBytes());
+		PowerMockito.when(CryptoUtil.decodeURLSafeBase64(anyString())).thenReturn("mosip".getBytes());
 		registrationSyncRequestDTO = new RegistrationSyncRequestDTO();
 		entities = new ArrayList<>();
 		syncRegistrationEntities = new ArrayList<>();
