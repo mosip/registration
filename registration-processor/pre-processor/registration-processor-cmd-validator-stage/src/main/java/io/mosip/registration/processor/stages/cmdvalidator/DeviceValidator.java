@@ -200,8 +200,12 @@ public class DeviceValidator {
 		Set<String> signatures = new HashSet<>();
 		Set<String> deviceCodeTimestamps = new HashSet<>();
 		for(JSONObject payload : payloads) {
-			String digitalIdString = new String(CryptoUtil.decodeURLSafeBase64(
-						payload.getString("digitalId").split("\\.")[1]));
+			String digitalIdString = null;
+			try {
+				digitalIdString= new String(CryptoUtil.decodeURLSafeBase64(payload.getString("digitalId").split("\\.")[1]));
+			} catch (IllegalArgumentException exception) {
+				digitalIdString= new String(CryptoUtil.decodePlainBase64(payload.getString("digitalId").split("\\.")[1]));
+			}
 			NewDigitalId newDigitalId = mapper.readValue(digitalIdString, NewDigitalId.class);
 			if(!signatures.contains(digitalIdString)) {
 				validateDigitalId(payload);

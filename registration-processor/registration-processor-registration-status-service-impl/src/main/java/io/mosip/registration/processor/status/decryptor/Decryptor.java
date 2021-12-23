@@ -5,6 +5,7 @@ import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.LinkedHashMap;
 
 import io.mosip.kernel.core.http.RequestWrapper;
@@ -103,7 +104,12 @@ public class Decryptor {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"Decryptor::decrypt()::entry");
 		try {
-			byte[] packet = CryptoUtil.decodeURLSafeBase64(encryptedSyncMetaInfo.toString());
+			byte[] packet = null;
+			try {
+				packet= CryptoUtil.decodeURLSafeBase64(encryptedSyncMetaInfo.toString());
+			} catch (IllegalArgumentException exception) {
+				packet= CryptoUtil.decodePlainBase64(encryptedSyncMetaInfo.toString());
+			}
 			CryptomanagerRequestDto cryptomanagerRequestDto = new CryptomanagerRequestDto();
 			cryptomanagerRequestDto.setPrependThumbprint(isPrependThumbprintEnabled);
 			io.mosip.kernel.core.http.RequestWrapper<CryptomanagerRequestDto> request = new RequestWrapper<>();
