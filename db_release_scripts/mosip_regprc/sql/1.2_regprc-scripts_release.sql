@@ -294,3 +294,10 @@ ALTER TABLE regprc.registration_list ADD COLUMN postal_code character varying;
 \ir ../ddl/regprc-crypto_salt.sql
 
 --------------------------------------------------------------------------------------------------------------------------------------------
+
+-------------------------------------------------------RENAME column to registration_list----------------------------------------------
+
+ALTER TABLE regprc.registration_list RENAME COLUMN postal_code TO location_code;
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+

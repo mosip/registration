@@ -849,6 +849,37 @@ public class SyncRegistrationServiceTest {
 	}
 
 	@Test
+	public void searchLostRidVariousScenario() throws PacketDecryptionFailureException, ApisResourceAccessException {
+		
+		ReflectionTestUtils.setField(syncRegistrationService, "maxSearchResult", 2);
+		Mockito.when(syncRegistrationDao.getSearchResults(any(),any())).thenReturn(syncRegistrationEntities);
+		Mockito.when(decryptor.decrypt(any(), any(), any())).thenReturn("{\"name\":\"mosip\"}");
+		SearchInfo searchInfo = new SearchInfo();
+		List<FilterInfo> filterInfos = new ArrayList<FilterInfo>();
+		List<SortInfo> sortInfos = new ArrayList<SortInfo>();
+		List<String> testIdList = new ArrayList<String>();
+		FilterInfo filterInfo = new FilterInfo();
+		filterInfo.setColumnName("name");
+		filterInfo.setValue("mosip");
+		filterInfo.setType("equals");
+		FilterInfo filterInfo1 = new FilterInfo();
+		filterInfo1.setColumnName("email");
+		filterInfo1.setValue("mosip1@gmail.com");
+		filterInfo1.setType("equals");
+		SortInfo sortInfo = new SortInfo();
+		sortInfo.setSortField("createDateTime");
+		sortInfo.setSortType("desc");
+		filterInfos.add(filterInfo);
+		filterInfos.add(filterInfo1);
+		sortInfos.add(sortInfo);
+		testIdList.add("27847657360002520181208183052");
+		searchInfo.setFilters(filterInfos);
+		searchInfo.setSort(sortInfos);
+		List<LostRidDto> lostRidDtos = syncRegistrationService.searchLostRid(searchInfo);
+		assertEquals(lostRidDtos.get(0).getRegistrationId(), testIdList.get(0));
+	}
+	
+	@Test
 	public void getExternalStatusByIdsTest() {
 
 		List<String> requestIds = Arrays.asList("1001");
