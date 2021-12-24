@@ -41,7 +41,7 @@ CREATE TABLE regprc.registration_list(
 	email character varying,
 	center_id character varying,
 	registration_date date,
-	postal_code character varying,
+	location_code character varying,
 	additional_info_req_id character varying(256),
 	packet_id character varying,
 	ref_id character varying(512),

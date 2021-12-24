@@ -919,10 +919,11 @@ public class SyncRegistrationServiceTest {
 	}
 
 	@Test
-	public void searchLostRidVariousScenario() {
+	public void searchLostRidVariousScenario() throws PacketDecryptionFailureException, ApisResourceAccessException {
 		
 		ReflectionTestUtils.setField(syncRegistrationService, "maxSearchResult", 2);
 		Mockito.when(syncRegistrationDao.getSearchResults(any(),any())).thenReturn(syncRegistrationEntities);
+		Mockito.when(decryptor.decrypt(any(), any(), any())).thenReturn("{\"name\":\"mosip\"}");
 		SearchInfo searchInfo = new SearchInfo();
 		List<FilterInfo> filterInfos = new ArrayList<FilterInfo>();
 		List<SortInfo> sortInfos = new ArrayList<SortInfo>();
