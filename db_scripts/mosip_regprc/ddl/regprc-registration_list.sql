@@ -52,6 +52,7 @@ CREATE TABLE regprc.registration_list(
 -- indexes section -------------------------------------------------
 create index idx_rgstrnlst_pcktid on regprc.registration_list (packet_id);
 create index idx_rgstrnlst_aireqid on regprc.registration_list (additional_info_req_id);
+create index idx_rgstrnlst_reg_id on regprc.registration_list (reg_id);
 -- ddl-end --
 COMMENT ON TABLE regprc.registration_list IS 'Registration Lists: List of Registration packets details received (to be received) from registration client applications. These details are used to validate the actuall packets received for processing.';
 -- ddl-end --

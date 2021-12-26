@@ -54,6 +54,8 @@ CREATE TABLE regprc.registration(
 -- indexes section -------------------------------------------------
 create index idx_rgstrn_ltstrbcode_ltststscode on regprc.registration (latest_trn_dtimes, latest_trn_status_code);
 
+create index idx_rgstrn_reg_id on regprc.registration (reg_id);
+
 -- ddl-end --
 COMMENT ON TABLE regprc.registration IS 'Registration: Registration Processor table is to store registration requests that are being processed, Also maintains packet id details and status of the registration requests.';
 -- ddl-end --

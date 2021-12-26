@@ -300,4 +300,8 @@ ALTER TABLE regprc.registration_list ADD COLUMN postal_code character varying;
 ALTER TABLE regprc.registration_list RENAME COLUMN postal_code TO location_code;
 
 ---------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------Index Creation--------------------------------------------------------------------------
+
+create index idx_rgstrn_reg_id on regprc.registration (reg_id);
+create index idx_rgstrnlst_reg_id on regprc.registration_list (reg_id);
 
