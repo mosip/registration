@@ -113,8 +113,8 @@ public class SyncRegistrationEntity extends BaseSyncRegistrationEntity {
 	@Column(name = "registration_date")
 	private LocalDate registrationDate;
 
-	@Column(name = "postal_code")
-	private String postalCode;
+	@Column(name = "location_code")
+	private String locationCode;
 
 	/**
 	 * Instantiates a new sync registration entity.
@@ -492,11 +492,11 @@ public class SyncRegistrationEntity extends BaseSyncRegistrationEntity {
 	}
 
 	public String getPostalCode() {
-		return postalCode;
+		return locationCode;
 	}
 
-	public void setPostalCode(String postalCode) {
-		this.postalCode = postalCode;
+	public void setLocationCode(String locationCode) {
+		this.locationCode = locationCode;
 	}
 	public String getReferenceId() {
 		return referenceId;
