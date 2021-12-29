@@ -35,6 +35,12 @@ CREATE TABLE regprc.registration_transaction(
 
 );
 -- ddl-end --
+-- index creation starts--
+CREATE INDEX IF NOT EXISTS idx_reg_trn_reg_id ON regprc.registration_transaction USING btree (reg_id);
+CREATE INDEX IF NOT EXISTS idx_reg_trn_status_code ON regprc.registration_transaction USING btree (status_code);
+CREATE INDEX IF NOT EXISTS idx_reg_trn_trntypecode ON regprc.registration_transaction USING btree (trn_type_code);
+CREATE INDEX IF NOT EXISTS idx_reg_trn_upd_dtimes ON regprc.registration_transaction USING btree (upd_dtimes);
+--index creation ends--
 COMMENT ON TABLE regprc.registration_transaction IS 'Registration Transaction: Registration Processor Transaction table is to store ALL  Registration Processor packet processing/process transaction details for ID issuance';
 -- ddl-end --
 COMMENT ON COLUMN regprc.registration_transaction.id IS 'ID: Transaction id of the transactions that were recorded in registration module/application';

@@ -32,6 +32,7 @@ CREATE TABLE regprc.reg_bio_ref(
 );
 -- indexes section -------------------------------------------------
 create index idx_rbioref_crdtimes on regprc.reg_bio_ref (cr_dtimes);
+CREATE INDEX IF NOT EXISTS idx_bio_ref_id ON regprc.reg_bio_ref USING btree (bio_ref_id);
 
 -- ddl-end --
 
