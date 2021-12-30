@@ -1,15 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_reg
--- Table Name 	: reg.key_store
--- Purpose    	: Key Store: In MOSIP, data related to an individual in stored in encrypted form. This table is to manage all the keys(private and public keys) used.
---           
--- Create By   	: Sadanandegowda DM
--- Created Date	: Sep-2020
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- Sep-2020             Sadanandegowda DM   Update private_key data type and added certificate_data attribute
--- ------------------------------------------------------------------------------------------
+
 
 -- object: reg.key_store | type: TABLE --
 -- DROP TABLE IF EXISTS reg.key_store CASCADE;

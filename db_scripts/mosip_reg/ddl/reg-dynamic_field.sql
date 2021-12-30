@@ -1,15 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_reg
--- Table Name 	: 
--- Purpose    	: 
---           
--- Create By   	: Sadanandegowda DM
--- Created Date	: 22-Apr-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- 
--- ------------------------------------------------------------------------------------------
+
 -- object: reg.dynamic_field | type: TABLE --
 -- DROP TABLE IF EXISTS reg.dynamic_field CASCADE;
 CREATE TABLE reg.dynamic_field(

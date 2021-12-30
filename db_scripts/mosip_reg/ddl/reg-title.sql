@@ -1,15 +1,3 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_reg
--- Table Name 	: reg.title
--- Purpose    	: 
---           
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- 
--- ------------------------------------------------------------------------------------------
 
 -- object: reg.title | type: TABLE --
 -- DROP TABLE IF EXISTS reg.title CASCADE;

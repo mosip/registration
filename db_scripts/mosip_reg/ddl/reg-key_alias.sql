@@ -1,15 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_reg
--- Table Name 	: reg.key_alias
--- Purpose    	: Key Alias: To maintain a system generated key as alias for the encryption key that will be stored in key-store devices like HSM.
---           
--- Create By   	: Sadanandegowda DM
--- Created Date	: Sep-2020
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- 
--- ------------------------------------------------------------------------------------------
+
 
 -- object: reg.key_alias | type: TABLE --
 -- DROP TABLE IF EXISTS reg.key_alias CASCADE;

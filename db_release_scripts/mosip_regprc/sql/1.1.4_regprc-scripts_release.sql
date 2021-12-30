@@ -1,12 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_regprc
--- Release Version 	: 1.1.4
--- Purpose    		: Database Alter scripts for the release for Registration Processor DB.       
--- Create By   		: Sadanandegowda DM
--- Created Date		: Dec-2020
--- 
--- Modified Date        Modified By         Comments / Remarks
--- -------------------------------------------------------------------------------------------------
+
 
 \c mosip_regprc sysadmin
 

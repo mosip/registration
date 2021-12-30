@@ -1,15 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_reg
--- Table Name 	: reg.app_audit_log
--- Purpose    	: 
---           
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- 
--- ------------------------------------------------------------------------------------------
+
 
 -- object: reg.app_audit_log | type: TABLE --
 -- DROP TABLE IF EXISTS reg.app_audit_log CASCADE;

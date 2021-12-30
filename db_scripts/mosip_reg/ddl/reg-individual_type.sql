@@ -1,15 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_reg
--- Table Name 	: reg.individual_type
--- Purpose    	: 
---           
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- 
--- ------------------------------------------------------------------------------------------
+
 
 -- object: reg.individual_type | type: TABLE --
 -- DROP TABLE IF EXISTS reg.individual_type CASCADE;

@@ -1,15 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_regprc
--- Table Name 	: regprc.reg_bio_ref
--- Purpose    	: Registration Biometric Reference: Mapping table to store the bio reference id for an registration id
---           
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
 
--- ------------------------------------------------------------------------------------------
 
 -- object: regprc.reg_bio_ref | type: TABLE --
 -- DROP TABLE IF EXISTS regprc.reg_bio_ref CASCADE;

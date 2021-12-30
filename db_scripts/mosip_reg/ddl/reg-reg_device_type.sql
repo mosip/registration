@@ -1,15 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_reg
--- Table Name 	: reg.reg_device_type
--- Purpose    	: Device Type : Types of devices that are supported by the MOSIP system,  like  scanning, finger, face, iris etc
---           
--- Create By   	: Sadanandegowda
--- Created Date	: 25-Oct-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- 
--- ------------------------------------------------------------------------------------------
+
 -- object: reg.reg_device_type | type: TABLE --
 -- DROP TABLE IF EXISTS reg.reg_device_type CASCADE;
 CREATE TABLE reg.reg_device_type(

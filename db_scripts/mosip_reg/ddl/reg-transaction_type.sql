@@ -1,15 +1,3 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_reg
--- Table Name 	: reg.transaction_type
--- Purpose    	: 
---           
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- 
--- ------------------------------------------------------------------------------------------
 
 -- object: reg.transaction_type | type: TABLE --
 -- DROP TABLE IF EXISTS reg.transaction_type CASCADE;

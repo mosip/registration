@@ -1,15 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_reg
--- Table Name 	: reg.applicant_valid_document
--- Purpose    	: 
---           
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- 
--- ------------------------------------------------------------------------------------------
+
 
 -- object: reg.applicant_valid_document | type: TABLE --
 -- DROP TABLE IF EXISTS reg.applicant_valid_document CASCADE;

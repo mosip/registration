@@ -1,14 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_reg
--- Table Name : 
--- Purpose    : 
---           
--- Create By   : Nasir Khan / Sadanandegowda
--- Created Date: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- 16-Jul-2019          Nasir Khan          Included the simple FK script and commented script generated from pgmodeler, which is specific to postgres
+
 -- ------------------------------------------------------------------------------------------
 
 -- -- object: fk_machm_mspec | type: CONSTRAINT --

@@ -1,15 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_regprc
--- Table Name 	: regprc.abis_response
--- Purpose    	: ABIS Response: Stores all the responses that were received from ABIS systems for the request sent.
---           
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
 
--- ------------------------------------------------------------------------------------------
 
 -- object: regprc.abis_response | type: TABLE --
 -- DROP TABLE IF EXISTS regprc.abis_response CASCADE;

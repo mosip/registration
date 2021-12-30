@@ -1,15 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_reg
--- Table Name 	: reg.key_policy_def
--- Purpose    	: Key Policy Defination: Policy related to encryption key management is defined here. For eg. Expiry duration of a key generated.
---           
--- Create By   	: Sadanandegowda DM
--- Created Date	: Sep-2020
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- 
--- ------------------------------------------------------------------------------------------
+
 
 -- object: reg.key_policy_def | type: TABLE --
 -- DROP TABLE IF EXISTS reg.key_policy_def CASCADE;

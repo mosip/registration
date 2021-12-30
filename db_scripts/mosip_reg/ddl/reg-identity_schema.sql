@@ -1,15 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_reg
--- Table Name 	: 
--- Purpose    	: 
---           
--- Create By   	: Sadanandegowda DM
--- Created Date	: 22-Apr-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- 
--- ------------------------------------------------------------------------------------------
+
 -- object: reg.identity_schema | type: TABLE --
 -- DROP TABLE IF EXISTS reg.identity_schema CASCADE;
 CREATE TABLE reg.identity_schema(

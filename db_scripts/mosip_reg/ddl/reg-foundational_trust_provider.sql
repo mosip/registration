@@ -1,15 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_reg
--- Table Name 	: reg.foundational_trust_provider
--- Purpose    	: Foundational Trust Provider : To store all foundational trust provider, This provider will issue certificates to the chip/device manufacturer to certify devices.
---           
--- Create By   	: Sadanandegowda
--- Created Date	: 25-Oct-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- 
--- ------------------------------------------------------------------------------------------
+
 
 -- object: reg.foundational_trust_provider | type: TABLE --
 -- DROP TABLE IF EXISTS reg.foundational_trust_provider CASCADE;

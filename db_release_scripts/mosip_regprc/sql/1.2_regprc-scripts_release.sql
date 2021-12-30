@@ -1,24 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_regprc
--- Release Version 	: 1.2
--- Purpose    		: Database Alter scripts for the release for Registration Processor DB.       
--- Create By   		: Ram Bhatt
--- Created Date		: Mar-2021
--- 
--- Modified Date        Modified By         Comments / Remarks
--- -------------------------------------------------------------------------------------------------
--- Apr-2021		Ram Bhatt	   Added resume_remove_tags column to registration table
--- Apr-2021		Ram Bhatt	   Added rows to transaction_type.csv
--- May-2021		Ram Bhatt	   Creation of last_success_stage_name in registration table
--- Jun-2021		Ram Bhatt	   Added rows to transaction_type.csv
--- Jun-2021		Ram Bhatt	   Added columns to registration list table
--- Jun-2021 		Ram Bhatt	   Create crypto salt table.
--- July-2021		Ram Bhatt	   Added rows to transaction_type.csv
--- Jul-2021		Ram Bhatt	   Multiple table changes on regprc db
--- Aug-2021		Ram Bhatt	   Remove resume_remove_tags column from registration table
--- Aug-2021		Ram Bhatt	   Added pause_rule_ids column to registration table
--- Sep-2021		Ram Bhatt	   Anonymous profile table creation
-----------------------------------------------------------------------------------------------------
+
 \c mosip_regprc sysadmin
 
 ----------------------------------------------Multiple table level changes on regprc db-------------------------------------------------------

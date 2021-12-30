@@ -1,15 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_regprc
--- Table Name 	: regprc.transaction_type
--- Purpose    	: Transaction Type: Registration Process Transaction Type list table, Store all the transaction which are used in registration processor.
---           
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
 
--- ------------------------------------------------------------------------------------------
 
 -- object: regprc.transaction_type | type: TABLE --
 -- DROP TABLE IF EXISTS regprc.transaction_type CASCADE;

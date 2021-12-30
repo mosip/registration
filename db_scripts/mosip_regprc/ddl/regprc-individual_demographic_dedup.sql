@@ -1,15 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_regprc
--- Table Name 	: regprc.individual_demographic_dedup
--- Purpose    	: Individual Demographic Dedupe: Table stores applicant demographic details for deduplication, Only required information for dedupe is stored.
---           
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
 
--- ------------------------------------------------------------------------------------------
 
 -- object: regprc.individual_demographic_dedup | type: TABLE --
 -- DROP TABLE IF EXISTS regprc.individual_demographic_dedup CASCADE;

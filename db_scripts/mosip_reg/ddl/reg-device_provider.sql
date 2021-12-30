@@ -1,15 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_reg
--- Table Name 	: reg.device_provider
--- Purpose    	: Device Provider : To store MOSIP device provider details, Devices will be used in MOSIP those are provided by only registred device provider.
---           
--- Create By   	: Sadanandegowda
--- Created Date	: 25-Oct-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- 
--- ------------------------------------------------------------------------------------------
+
 -- object: reg.device_provider | type: TABLE --
 -- DROP TABLE IF EXISTS reg.device_provider CASCADE;
 CREATE TABLE reg.device_provider(

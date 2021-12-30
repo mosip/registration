@@ -1,15 +1,3 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_reg
--- Table Name : reg.rid_seq
--- Purpose    : 
---           
--- Create By   : Nasir Khan / Sadanandegowda
--- Created Date: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- 
--- ------------------------------------------------------------------------------------------
 
 -- object: reg.rid_seq | type: TABLE --
 -- DROP TABLE IF EXISTS reg.rid_seq CASCADE;

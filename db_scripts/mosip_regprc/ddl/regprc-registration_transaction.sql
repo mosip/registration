@@ -1,15 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_regprc
--- Table Name 	: regprc.registration_transaction
--- Purpose    	: Registration Transaction: Registration Processor Transaction table is to store ALL  Registration Processor packet processing/process transaction details for ID issuance.
---           
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
 
--- ------------------------------------------------------------------------------------------
 
 -- object: regprc.registration_transaction | type: TABLE --
 -- DROP TABLE IF EXISTS regprc.registration_transaction CASCADE;

@@ -1,15 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_regprc
--- Table Name 	: regprc.abis_response_det
--- Purpose    	: ABIS Response Detail: Stores details of all the ABIS responses received from ABIS system. Response details will mainly have scores, which is applicable only for identify request type.
---           
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
 
--- ------------------------------------------------------------------------------------------
 
 -- object: regprc.abis_response_det | type: TABLE --
 -- DROP TABLE IF EXISTS regprc.abis_response_det CASCADE;

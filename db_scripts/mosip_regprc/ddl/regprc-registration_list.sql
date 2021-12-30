@@ -1,15 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_regprc
--- Table Name 	: regprc.registration_list
--- Purpose    	: Registration Lists: List of Registration packets details received (to be received) from registration client applications. These details are used to validate the actuall packets received for processing.
---           
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
 
--- ------------------------------------------------------------------------------------------
 
 -- object: regprc.registration_list | type: TABLE --
 -- DROP TABLE IF EXISTS regprc.registration_list CASCADE;

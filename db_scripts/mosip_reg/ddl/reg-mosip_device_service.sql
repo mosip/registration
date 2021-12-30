@@ -1,15 +1,3 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_reg
--- Table Name 	: reg.mosip_device_service
--- Purpose    	: MOSIP Device Service : Mosip device cervice to have all the details about the device types, provider and software details
---           
--- Create By   	: Sadanandegowda
--- Created Date	: 25-Oct-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- 
--- ------------------------------------------------------------------------------------------
 
 -- object: reg.mosip_device_service | type: TABLE --
 -- DROP TABLE IF EXISTS reg.mosip_device_service CASCADE;
