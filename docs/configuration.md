@@ -1,6 +1,37 @@
 # Registration Processor Configuration Guide
 
+## Configuration files
+Regprocessor uses the following configuration files:
+```
+application-default.properties
+application-default-dmz.properties
+registration-processor-default.properties
+registration-processor-abis.json
+registration-processor-camel-routes-activate-default-dmz.xml
+registration-processor-camel-routes-activate-default.xml
+registration-processor-camel-routes-biometric-correction-default-dmz.xml
+registration-processor-camel-routes-biometric-correction-default.xml
+registration-processor-camel-routes-deactivate-default-dmz.xml
+registration-processor-camel-routes-deactivate-default.xml
+registration-processor-camel-routes-lost-default-dmz.xml
+registration-processor-camel-routes-lost-default.xml
+registration-processor-camel-routes-new-default-dmz.xml
+registration-processor-camel-routes-new-default.xml
+registration-processor-camel-routes-res-reprint-default-dmz.xml
+registration-processor-camel-routes-res-reprint-default.xml
+registration-processor-camel-routes-res-update-default-dmz.xml
+registration-processor-camel-routes-res-update-default.xml
+registration-processor-camel-routes-update-default-dmz.xml
+registration-processor-camel-routes-update-default.xml
+registration-processor-default-dmz.properties
+registration-processor-print-text-file.json
+identity-mapping.json
+```
+The `*-dmz` files are application only to [sandbox v2](https://github.com/mosip/mosip-infra/tree/1.2.0-rc2/deployment/sandbox-v2) installation.  [sandbox v3](https://github.com/mosip/mosip-infra/tree/1.2.0-rc2/deployment/v3) does not use them.
 
+The above files are located in [mosip-config](https://github.com/mosip/mosip-config/blob/develop2-v2/) repo
+
+## DB
 * DB properties: Point to your postgres
 
 ## Custom subprocess (flow)
