@@ -1,15 +1,10 @@
-# registration-processor-biometric-authentication stage
+# Biometric Authentication Stage
 
-This component validates update packets in case of adult registration.
+## About
+The biometric authentication stage applies only for UPDATE packet. It performs the following functions:
+* Authenticates biometrics of applicant againts UIN.
+* Calls IDA Internal for the above authentication.
 
-## Design
+## Default context-path and port
+Refer [`bootstrap.properties`](src/main/resources/bootstrap.properties)
 
-[Desgin - Approach for Biometrics Authentication Stage - TBA](https://github.com/mosip/registration/tree/master/design/registration-processor)
-
-## Default Port
-```
-server.port=8020
-eventbus.port=5777
-```
-## Description of Validation
-Checking whether the 'individualBiometrics' file is present, if not present, implies the packet to be a demographic update packet. We check 'authenticationBiometricFileName' and validate it against IDA.
