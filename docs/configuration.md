@@ -27,13 +27,14 @@ registration-processor-default-dmz.properties
 registration-processor-print-text-file.json
 identity-mapping.json
 ```
-The `*-dmz` files are application only to [sandbox v2](https://github.com/mosip/mosip-infra/tree/1.2.0-rc2/deployment/sandbox-v2) installation.  [sandbox v3](https://github.com/mosip/mosip-infra/tree/1.2.0-rc2/deployment/v3) does not use them.
+The `*-dmz` files are applicable only to [sandbox v2](https://github.com/mosip/mosip-infra/tree/1.2.0-rc2/deployment/sandbox-v2) installation.  [sandbox v3](https://github.com/mosip/mosip-infra/tree/1.2.0-rc2/deployment/v3) does not use them.
 
 The above files are located in [mosip-config](https://github.com/mosip/mosip-config/blob/develop2-v2/) repo
 
 ## DB
 * `mosip.registration.processor.database.hostname`
 * `mosip.registration.processor.database.port`
+
 Point the above to your DB and port.  Default is set to point to in-cluster Postgres installed with sandbox.
 
 ## Custom subprocess (flow)
@@ -41,13 +42,12 @@ Point the above to your DB and port.  Default is set to point to in-cluster Post
 If a subprocess is added by a country (for e.g. document correction), then the same has to updated here.  Example:
   `registration.processor.sub-processes=BIOMETRIC_CORRECTION,DOCUMENT_CORRECTION`. Update the following properties as well (example):
 * `mosip.regproc.workflow-manager.internal.action.max-allowed-iteration.DOCUMENT_CORRECTION=5` 
-* ` mosip.regproc.cmd-validator.center-validation.processes=NEW,UPDATE,LOST,BIOMETRIC_CORRECTION,DOCUMENT_CORRECTION`
+* `mosip.regproc.cmd-validator.center-validation.processes=NEW,UPDATE,LOST,BIOMETRIC_CORRECTION,DOCUMENT_CORRECTION`
 * `mosip.regproc.cmd-validator.machine-validation.processes=NEW,UPDATE,LOST,BIOMETRIC_CORRECTION,DOCUMENT_CORRECTION`
-*  mosip.regproc.cmd-validator.device-validation.processes=NEW,UPDATE,LOST,BIOMETRIC_CORRECTION,DOCUMENT_CORRECTION`
+* `mosip.regproc.cmd-validator.device-validation.processes=NEW,UPDATE,LOST,BIOMETRIC_CORRECTION,DOCUMENT_CORRECTION`
 
 ## Notification settings
-Following templates need to be changed to according to country's messaging design.
-
+Following templates need to be changed according to country's messaging design.
 ```
 mosip.regproc.notification_service.biometric_correction.email
 mosip.regproc.notification_service.biometric_correction.sms
@@ -72,10 +72,10 @@ TBD.
 * `registration.processor.policy.id`: Specify the policy id (as in `auth_policy` table in `mosip_pms` DB) of the ABIS.
 
 ## Biosdk
-* `mosip.biosdk.default.host`:` Point to your biosdk service
+* `mosip.biosdk.default.host`: Point to your biosdk service
 * `mosip.regproc.quality.classifier.tagging.quality.ranges`: Scores range based on biometric sdk scoring.
 
-## Workflow rules:
+## Workflow rules
 * `mosip.regproc.camelbridge.pause-settings`: Rules for pausing processing of a packet.
 
 ## Template conversion
