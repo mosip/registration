@@ -1,4 +1,6 @@
 # Registration Processor Configuration Guide
+## Overview
+The guide here lists down some of the important properties that may be customised for a given installation. Note that the listing here is not exhaustive, but a checklist to review properties that are likely to be different from default.  If you would like to see all the properites, then refer to the files listed below.
 
 ## Configuration files
 Regprocessor uses the following configuration files:
