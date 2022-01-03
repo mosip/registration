@@ -482,11 +482,12 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 		requestDto=setDocuments(policyMap, requestDto, id, process, null);
 
 		// set audits
-		if (policyMap.containsValue(AUDITS))
+		for(Entry<String,String> entry: policyMap.entrySet()) {
+		if (entry.getValue().contains(AUDITS))
 			requestDto.setAudits(JsonUtils.javaObjectToJsonString(packetManagerService.getAudits(id, process, ProviderStageName.MANUAL_ADJUDICATION)));
 
 		// set metainfo
-		if (policyMap.containsValue(META_INFO))
+		if (entry.getValue().contains(META_INFO))
 			requestDto.setMetaInfo(JsonUtils.javaObjectToJsonString(packetManagerService.getMetaInfo(id, process, ProviderStageName.MANUAL_ADJUDICATION)));
 
 
@@ -496,14 +497,14 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
 				MappingJsonConstants.VALUE);
 
-		if (policyMap.containsValue(individualBiometricsLabel)) {
+		if (entry.getValue().contains(individualBiometricsLabel)) {
 			List<String> modalities = getModalities(policy);
 			BiometricRecord biometricRecord = packetManagerService.getBiometrics(
 					id, individualBiometricsLabel, modalities, process, ProviderStageName.MANUAL_ADJUDICATION);
 			byte[] content = cbeffutil.createXML(biometricRecord.getSegments());
 			requestDto.setBiometrics(content != null ? CryptoUtil.encodeToURLSafeBase64(content) : null);
 		}
-
+		}
 
 		return CreateDataShareUrl(requestDto, policy);
 	}
@@ -533,14 +534,16 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 					JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
 					MappingJsonConstants.VALUE);
 		for(Documents docs:documents) {
-			if(policyMap.containsValue(individualBiometricsLabel) && docs.getCategory().equalsIgnoreCase(individualBiometricsLabel)){
+			for(Entry<String,String> entry: policyMap.entrySet()) {
+			if(entry.getValue().contains(individualBiometricsLabel) && docs.getCategory().equalsIgnoreCase(individualBiometricsLabel)){
 				requestDto.setBiometrics(docs.getValue() != null ? docs.getValue() : null);
 			}
-			if(policyMap.containsValue(AUDITS) && docs.getCategory().equalsIgnoreCase(AUDITS)){
+			if(entry.getValue().contains(AUDITS) && docs.getCategory().equalsIgnoreCase(AUDITS)){
 				requestDto.setAudits(docs.getValue() != null ? docs.getValue() : null);
 			}
-			if(policyMap.containsValue(META_INFO) && docs.getCategory().equalsIgnoreCase(META_INFO)){
+			if(entry.getValue().contains(META_INFO) && docs.getCategory().equalsIgnoreCase(META_INFO)){
 				requestDto.setMetaInfo(docs.getValue() != null ? docs.getValue() : null);
+			}
 			}
 		}
 
@@ -612,7 +615,8 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 			if (doc != null) {
 				HashMap docmap = (HashMap) docJson.get(doc.toString());
 				String docName = docmap != null && docmap.get(MappingJsonConstants.VALUE)!= null ? docmap.get(MappingJsonConstants.VALUE).toString() : null;
-				if (policyMap.containsValue(docName)) {
+				for(Entry<String,String> entry: policyMap.entrySet()) {
+				if (entry.getValue().contains(docName)) {
 					if(documents==null || documents.isEmpty()) {
 						Document document = packetManagerService.getDocument(id, doc.toString(), process, ProviderStageName.MANUAL_ADJUDICATION);
 						if (document != null) {
@@ -638,6 +642,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 							}
 						}
 					}
+				}
 				}
 			}
 		}
