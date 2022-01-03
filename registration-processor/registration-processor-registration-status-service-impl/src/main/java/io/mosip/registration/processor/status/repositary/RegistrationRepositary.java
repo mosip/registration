@@ -34,9 +34,6 @@ public interface RegistrationRepositary<T extends BaseRegistrationEntity, E> ext
 	public List<String> getWithoutStatusCodes(@Param("regIds") List<String> regIds,
 													   @Param("statusCode1") String statusCode1, @Param("statusCode2") String statusCode2);
 
-	@Query("SELECT COUNT(registration.id.workflowInstanceId)  FROM RegistrationStatusEntity registration WHERE registration.statusCode=:statusCode AND registration.latestTransactionStatusCode =:latestTransactionStatusCode AND registration.latestTransactionTimes < :timeDifference")
-	long getInReprocessPacketsCount(@Param("statusCode")String statusCode,@Param("latestTransactionStatusCode")String latestTransactionStatusCode,@Param("timeDifference")LocalDateTime timeDifference);
-
 	@Query("SELECT registration FROM RegistrationStatusEntity registration WHERE registration.regId = :regId AND registration.isDeleted =false AND registration.isActive=true")
 	public List<RegistrationStatusEntity> findByRegId(@Param("regId") String regId);
 	

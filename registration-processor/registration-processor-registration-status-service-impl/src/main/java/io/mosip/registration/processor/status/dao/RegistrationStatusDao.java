@@ -242,9 +242,4 @@ public class RegistrationStatusDao {
 
 		return registrationStatusRepositary.getResumablePackets(RegistrationStatusCode.RESUMABLE.toString(), fetchSize);
 	}
-
-	public long getInReprocessPacketsCount(long reprocessorduration) {
-		LocalDateTime timeDifference = LocalDateTime.now(ZoneId.of("UTC")).minusSeconds(reprocessorduration);
-		return registrationStatusRepositary.getInReprocessPacketsCount(RegistrationStatusCode.REPROCESS.toString(),RegistrationTransactionStatusCode.REPROCESS.toString(), timeDifference);
-	}
 }
