@@ -3,15 +3,10 @@ package io.mosip.registration.processor.verification.service.impl;
 import static io.mosip.registration.processor.verification.constants.VerificationConstants.DATETIME_PATTERN;
 
 import java.io.IOException;
-import java.net.URL;
 import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -29,7 +24,6 @@ import io.mosip.registration.processor.packet.storage.entity.VerificationEntity;
 import io.mosip.registration.processor.packet.storage.entity.VerificationPKEntity;
 import io.mosip.registration.processor.verification.exception.MatchedRefNotExistsException;
 import io.mosip.registration.processor.verification.exception.NoRecordAssignedException;
-import io.mosip.registration.processor.verification.exception.UserIDNotPresentException;
 import io.mosip.registration.processor.verification.request.dto.Filter;
 import io.mosip.registration.processor.verification.request.dto.VerificationRequestDTO;
 import org.apache.commons.lang.StringUtils;
@@ -73,12 +67,9 @@ import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
-import io.mosip.registration.processor.core.kernel.master.dto.UserResponseDTOWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.queue.factory.MosipQueue;
-import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
@@ -87,9 +78,7 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.verification.constants.VerificationConstants;
 import io.mosip.registration.processor.verification.dto.DataShareRequestDto;
-import io.mosip.registration.processor.verification.dto.DataShareResponseDto;
 import io.mosip.registration.processor.verification.dto.ManualVerificationStatus;
-import io.mosip.registration.processor.verification.dto.UserDto;
 import io.mosip.registration.processor.verification.exception.DataShareException;
 import io.mosip.registration.processor.verification.exception.InvalidFileNameException;
 import io.mosip.registration.processor.verification.exception.InvalidRidException;
@@ -98,7 +87,6 @@ import io.mosip.registration.processor.verification.request.dto.Source;
 import io.mosip.registration.processor.verification.response.dto.VerificationResponseDTO;
 import io.mosip.registration.processor.verification.service.VerificationService;
 import io.mosip.registration.processor.verification.stage.VerificationStage;
-import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.dto.Document;
 import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
@@ -185,15 +173,6 @@ public class VerificationServiceImpl implements VerificationService {
 	/** The manual verification stage. */
 	@Autowired
 	private VerificationStage verificationStage;
-
-	@Autowired
-	private RegistrationProcessorRestClientService<Object> restClientService;
-
-	@Autowired
-	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
-
-	@Autowired
-	private ObjectMapper mapper;
 
 	@Autowired
 	RegistrationExceptionMapperUtil registrationExceptionMapperUtil;
@@ -286,10 +265,13 @@ public class VerificationServiceImpl implements VerificationService {
 				messageDTO.setIsValid(true);
 				description.setCode(PlatformSuccessMessages.RPR_VERIFICATION_SUCCESS.getCode());
 				description.setMessage(PlatformSuccessMessages.RPR_VERIFICATION_SUCCESS.getMessage());
-			} else
+			} else {
+				registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
+						.getStatusCode(RegistrationExceptionTypeCode.VERIFICATION_FAILED));
 				registrationStatusDto.setSubStatusCode(StatusUtil.VERIFICATION_FAILED.getCode());
-			updateStatus(messageDTO, registrationStatusDto,
-					isTransactionSuccessful, description, PlatformSuccessMessages.RPR_VERIFICATION_SENT);
+				updateStatus(messageDTO, registrationStatusDto, isTransactionSuccessful, description,
+						PlatformSuccessMessages.RPR_VERIFICATION_SENT);
+			}
 		}
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -330,10 +312,8 @@ public class VerificationServiceImpl implements VerificationService {
 
 		try {
 
-			List<VerificationEntity> entities = retrieveInqueuedRecordsByRid(regId);
-
 			// check if response is marked for resend
-			if (isResendFlow(registrationStatusDto, manualVerificationDTO, entity)) {
+			if (isResendFlow(registrationStatusDto, manualVerificationDTO)) {
 				registrationStatusDto.setStatusComment(StatusUtil.VERIFICATION_RESEND.getMessage());
 				registrationStatusDto.setSubStatusCode(StatusUtil.VERIFICATION_RESEND.getCode());
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
@@ -456,73 +436,6 @@ public class VerificationServiceImpl implements VerificationService {
 		return entity;
 	}
 
-	private List<VerificationEntity> retrieveInqueuedRecordsByRid(String regId) {
-
-		List<VerificationEntity> entities = basePacketRepository.getAssignedVerificationRecord(
-				regId, ManualVerificationStatus.INQUEUE.name());
-
-		if (CollectionUtils.isEmpty(entities)) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					regId, "VerificationServiceImpl::updatePacketStatus()"
-							+ PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getMessage());
-			throw new NoRecordAssignedException(PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getCode(),
-					PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getMessage());
-		}
-
-		return entities;
-	}
-
-
-	@SuppressWarnings({ "unchecked", "unused" })
-	private void checkUserIDExistsInMasterList(UserDto dto) {
-		ResponseWrapper<UserResponseDTOWrapper> responseWrapper;
-		UserResponseDTOWrapper userResponseDTOWrapper;
-		List<String> pathSegments = new ArrayList<>();
-		pathSegments.add(VerificationConstants.USERS);
-		pathSegments.add(dto.getUserId());
-		Date date = Calendar.getInstance().getTime();
-		DateFormat dateFormat = new SimpleDateFormat(VerificationConstants.TIME_FORMAT);
-		String effectiveDate = dateFormat.format(date);
-		// pathSegments.add("2019-05-16T06:12:52.994Z");
-		pathSegments.add(effectiveDate);
-		try {
-
-			responseWrapper = (ResponseWrapper<UserResponseDTOWrapper>) restClientService.getApi(ApiName.MASTER,
-					pathSegments, "", "", ResponseWrapper.class);
-
-			if (responseWrapper.getResponse() != null) {
-				userResponseDTOWrapper = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
-						UserResponseDTOWrapper.class);
-				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-						dto.getUserId(),
-						"VerificationServiceImpl::checkUserIDExistsInMasterList()::get MASTER USERS service call ended with response data : "
-								+ JsonUtil.objectMapperObjectToJson(userResponseDTOWrapper));
-				if (!userResponseDTOWrapper.getUserResponseDto().get(0).getStatusCode()
-						.equals(VerificationConstants.ACT)) {
-					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), null,
-							PlatformErrorMessages.RPR_MVS_USER_STATUS_NOT_ACTIVE.getCode(),
-							PlatformErrorMessages.RPR_MVS_USER_STATUS_NOT_ACTIVE.getMessage() + dto.getUserId());
-					throw new UserIDNotPresentException(PlatformErrorMessages.RPR_MVS_USER_STATUS_NOT_ACTIVE.getCode(),
-							PlatformErrorMessages.RPR_MVS_USER_STATUS_NOT_ACTIVE.getMessage());
-				}
-			} else {
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), null,
-						PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getCode(),
-						PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getMessage());
-				throw new UserIDNotPresentException(PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getCode(),
-						PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getMessage());
-
-			}
-		} catch (ApisResourceAccessException | IOException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), null,
-					PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getCode(),
-					PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getMessage() + e);
-			throw new UserIDNotPresentException(PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getCode(),
-					PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getMessage());
-
-		}
-	}
-
 	private String getDataShareUrl(String id, String process) throws Exception {
 		DataShareRequestDto requestDto = new DataShareRequestDto();
 
@@ -637,7 +550,7 @@ public class VerificationServiceImpl implements VerificationService {
 
 		ResponseWrapper<?> policyResponse = (ResponseWrapper<?>) registrationProcessorRestClientService.getApi(
 				ApiName.PMS, Lists.newArrayList(policyId, PolicyConstant.PARTNER_ID, subscriberId), "", "", ResponseWrapper.class);
-		if (policyResponse == null || (policyResponse.getErrors() != null && policyResponse.getErrors().size() >0)) {
+		if (policyResponse == null || (policyResponse.getErrors() != null && !policyResponse.getErrors().isEmpty())) {
 			throw new DataShareException(policyResponse == null ? "Policy Response response is null" : policyResponse.getErrors().get(0).getMessage());
 
 		} else {
@@ -750,7 +663,7 @@ public class VerificationServiceImpl implements VerificationService {
 				.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.VERIFICATION.toString());
 		registrationStatusDto.setRegistrationStageName(registrationStatusDto.getRegistrationStageName());
 
-		if (statusCode != null && statusCode.equalsIgnoreCase(ManualVerificationStatus.APPROVED.name())) {
+		if (statusCode.equalsIgnoreCase(ManualVerificationStatus.APPROVED.name())) {
 			messageDTO.setIsValid(isTransactionSuccessful);
 			verificationStage.sendMessage(messageDTO);
 			registrationStatusDto.setStatusComment(StatusUtil.VERIFICATION_SUCCESS.getMessage());
@@ -762,7 +675,7 @@ public class VerificationServiceImpl implements VerificationService {
 			description.setMessage(PlatformSuccessMessages.RPR_VERIFICATION_SUCCESS.getMessage());
 			description.setCode(PlatformSuccessMessages.RPR_VERIFICATION_SUCCESS.getCode());
 
-		} else if (statusCode != null && statusCode.equalsIgnoreCase(ManualVerificationStatus.REJECTED.name())) {
+		} else if (statusCode.equalsIgnoreCase(ManualVerificationStatus.REJECTED.name())) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
 			registrationStatusDto.setStatusComment(StatusUtil.VERIFICATION_FAILED.getMessage());
 			registrationStatusDto.setSubStatusCode(StatusUtil.VERIFICATION_FAILED.getCode());
@@ -807,9 +720,9 @@ public class VerificationServiceImpl implements VerificationService {
 	 * @param registrationStatusDto
 	 * @param manualVerificationDTO
 	 * @return boolean
-	 * @throws JsonProcessingException
 	 */
-	public boolean isResendFlow(InternalRegistrationStatusDto registrationStatusDto, VerificationResponseDTO manualVerificationDTO, VerificationEntity entity) throws JsonProcessingException {
+	public boolean isResendFlow(InternalRegistrationStatusDto registrationStatusDto,
+			VerificationResponseDTO manualVerificationDTO) {
 		boolean isResendFlow = false;
 		if(manualVerificationDTO.getReturnValue() == 2) {
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -865,7 +778,6 @@ public class VerificationServiceImpl implements VerificationService {
 			isTransactionSuccessful = true;
 
 		} catch (DataAccessLayerException e) {
-			isTransactionSuccessful = false;
 			description.setMessage("DataAccessLayerException while saving Verification data for rid"
 					+ registrationId + "::" + e.getMessage());
 
