@@ -3,7 +3,6 @@ package io.mosip.registration.processor.adjudication.service.impl;
 import static io.mosip.registration.processor.adjudication.constants.ManualAdjudicationConstants.DATETIME_PATTERN;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,21 +15,6 @@ import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import io.mosip.registration.processor.core.constant.PolicyConstant;
-import io.mosip.registration.processor.core.constant.ProviderStageName;
-import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
-import io.mosip.registration.processor.adjudication.dto.DataShareRequestDto;
-import io.mosip.registration.processor.adjudication.dto.ManualVerificationStatus;
-import io.mosip.registration.processor.adjudication.exception.MatchedRefNotExistsException;
-import io.mosip.registration.processor.adjudication.request.dto.Filter;
-import io.mosip.registration.processor.adjudication.request.dto.Gallery;
-import io.mosip.registration.processor.adjudication.request.dto.ManualAdjudicationRequestDTO;
-import io.mosip.registration.processor.adjudication.request.dto.ReferenceIds;
-import io.mosip.registration.processor.adjudication.request.dto.ReferenceURL;
-import io.mosip.registration.processor.adjudication.request.dto.ShareableAttributes;
-import io.mosip.registration.processor.adjudication.request.dto.Source;
-import io.mosip.registration.processor.adjudication.service.ManualAdjudicationService;
-import io.mosip.registration.processor.adjudication.stage.ManualAdjudicationStage;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
@@ -55,6 +39,25 @@ import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.adjudication.constants.ManualAdjudicationConstants;
+import io.mosip.registration.processor.adjudication.dto.DataShareRequestDto;
+import io.mosip.registration.processor.adjudication.dto.ManualVerificationStatus;
+import io.mosip.registration.processor.adjudication.exception.DataShareException;
+import io.mosip.registration.processor.adjudication.exception.InvalidFileNameException;
+import io.mosip.registration.processor.adjudication.exception.InvalidRidException;
+import io.mosip.registration.processor.adjudication.exception.MatchedRefNotExistsException;
+import io.mosip.registration.processor.adjudication.exception.NoRecordAssignedException;
+import io.mosip.registration.processor.adjudication.request.dto.Filter;
+import io.mosip.registration.processor.adjudication.request.dto.Gallery;
+import io.mosip.registration.processor.adjudication.request.dto.ManualAdjudicationRequestDTO;
+import io.mosip.registration.processor.adjudication.request.dto.ReferenceIds;
+import io.mosip.registration.processor.adjudication.request.dto.ReferenceURL;
+import io.mosip.registration.processor.adjudication.request.dto.ShareableAttributes;
+import io.mosip.registration.processor.adjudication.request.dto.Source;
+import io.mosip.registration.processor.adjudication.response.dto.Candidate;
+import io.mosip.registration.processor.adjudication.response.dto.ManualAdjudicationResponseDTO;
+import io.mosip.registration.processor.adjudication.service.ManualAdjudicationService;
+import io.mosip.registration.processor.adjudication.stage.ManualAdjudicationStage;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.ApiName;
@@ -67,6 +70,8 @@ import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCo
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.constant.PolicyConstant;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
@@ -86,18 +91,12 @@ import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
-import io.mosip.registration.processor.adjudication.constants.ManualAdjudicationConstants;
-import io.mosip.registration.processor.adjudication.exception.DataShareException;
-import io.mosip.registration.processor.adjudication.exception.InvalidFileNameException;
-import io.mosip.registration.processor.adjudication.exception.InvalidRidException;
-import io.mosip.registration.processor.adjudication.exception.NoRecordAssignedException;
-import io.mosip.registration.processor.adjudication.response.dto.Candidate;
-import io.mosip.registration.processor.adjudication.response.dto.ManualAdjudicationResponseDTO;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.dto.Document;
 import io.mosip.registration.processor.packet.storage.entity.ManualVerificationEntity;
 import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -481,7 +480,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 	}
 	
 	@SuppressWarnings("rawtypes")
-	private String CreateDataShareUrl(DataShareRequestDto requestDto, LinkedHashMap<String, Object> policy) throws JsonProcessingException, MalformedURLException, ApisResourceAccessException, DataShareException {
+	private String CreateDataShareUrl(DataShareRequestDto requestDto, LinkedHashMap<String, Object> policy) throws JsonProcessingException, ApisResourceAccessException, DataShareException {
 		String req = JsonUtils.javaObjectToJsonString(requestDto);
 
 		MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();

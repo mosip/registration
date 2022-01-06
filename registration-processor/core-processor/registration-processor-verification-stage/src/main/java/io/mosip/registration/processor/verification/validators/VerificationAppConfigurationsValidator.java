@@ -11,9 +11,9 @@ import org.slf4j.Logger;
  * All the configuration validations will be done in this class
  */
 @Component
-public class ManualVerificationAppConfigurationsValidator {
+public class VerificationAppConfigurationsValidator {
 
-    private static final Logger logger = LoggerFactory.getLogger(ManualVerificationAppConfigurationsValidator.class);
+    private static final Logger logger = LoggerFactory.getLogger(VerificationAppConfigurationsValidator.class);
 
     /**
      * This configuration will be used by reprocessor stage to reprocess the events

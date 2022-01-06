@@ -178,6 +178,7 @@ public class RegistrationExceptionMapperUtil {
 				RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.FINALIZATION_REPROCESS,
 				RegistrationTransactionStatusCode.REPROCESS);
+		statusMap.put(RegistrationExceptionTypeCode.VERIFICATION_FAILED, RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.AUTH_ERROR, RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.AUTH_FAILED, RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.IDA_AUTHENTICATION_FAILURE,
