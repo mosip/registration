@@ -6,37 +6,37 @@
 # Registration Processor
 This repository contains source code and design documents for MOSIP Registration Processor which is the server-side module to manage ID lifecycle.  The modules exposes API endpoints.  
 
-For an overview of registration processor and its role in ID lifecycle management, refer [here](https://docs.mosip.io)
+[Overview of Registration Processor and its role in ID lifecycle management](https://nayakrounak.gitbook.io/mosip-docs/modules/registration-processor)
 
-The front end UI registration application is available in a separate repo [here](https://github.com/mosip/registration-client/tree/develop)
+The front end UI application called Registration Client is available in a separate repo [here](https://github.com/mosip/registration-client/tree/develop)
 
 ## Registration stages and pipeline
 
 Staged architecture:
 
   * Group 1 stages 
-      * Packet receiver  
+      * [Packet receiver](registration-processor/init/registration-processor-packet-receiver-stage)
   * Group 2 stages
-      * Securezone notification
-      * Quality classifier
-      * Message sender
+      * [Securezone notification](registration-processor/pre-processor/registration-processor-securezone-notification-stage)
+      * [Quality classifier](registration-processor/pre-processor/registration-processor-quality-classifier-stage)
+      * [Message sender]()
   * Group 3 stages
-      * ABIS handler
-      * ABIS middleware 
-      * Bio dedupe
-      * Manual adjudication
+      * [ABIS handler](registration-processor/core-processor/registration-processor-abis-handler-stage)
+      * [ABIS middleware ](registration-processor/core-processor/registration-processor-abis-middleware-stage)
+      * [Bio dedupe](registration-processor/core-processor/registration-processor-bio-dedupe-stage)
+      * [Manual adjudication](registration-processor/core-processor/registration-processor-manual-adjudication-stage)
  * Group 4 stages
-      * Biometric authentication
-      * Demo dedupe
+      * [Biometric authentication](registration-processor/core-processor/registration-processor-biometric-authentication-stage)
+      * [Demo dedupe](registration-processor/core-processor/registration-processor-demo-dedupe-stage)
  * Group 5 stages
-      * CMD validator
-      * Operator validator
-      * Supervisor validator
-      * Introducer validator
-      * Packet validator
+      * [CMD validator](registration-processor/pre-processor/registration-processor-cmd-validator-stage)
+      * [Operator validator](registration-processor/pre-processor/registration-processor-operator-validator-stage)
+      * [Supervisor validator](registration-processor/pre-processor/registration-processor-supervisor-validator-stage)
+      * [Introducer validator](registration-processor/pre-processor/registration-processor-introducer-validator-stage)
+      * [Packet validator](registration-processor/pre-processor/registration-processor-packet-validator-stage)
  * Group 6 stages
-      * Packet uploader
-      * [Packet classifier](registration-processor/pre-processor/registration-processor-packet-classifier-stage/README.md)
+      * [Packet uploader](registration-processor/pre-processor/registration-processor-packet-uploader-stage)
+      * [Packet classifier](registration-processor/pre-processor/registration-processor-packet-classifier-stage)
       * Verification
  * Group 7 stages
       * UIN generator
@@ -50,11 +50,11 @@ Other services:
   * Packet Server
   * Registration status service
   * Notification service
-  * Transaction service:  Used by Admin module
+  * Transaction service
 
 ## Workflow engine
 Consists of the following elements:
-*  Camel bridge: For routing packet to different stages based on registration [flows](docs/flows.md).
+*  Camel bridge: For routing packet to different stages based on [registration flows](#registration-flows).
 *  Workflow manager service:  Enables certain workflow functions via exposed APIs:
     *  Pause: Pause processing of packets based on rules
     *  Resume: Resume proessing of packets  
@@ -63,7 +63,9 @@ Consists of the following elements:
 
 The work flow can be controlled with Admin portal
 
-# Registration flows
+### Registration flows
+
+An overview of various enrollment scenarious (or flows) is described in [ID Lifecycle Management](https://nayakrounak.gitbook.io/mosip-docs/id-lifecycle-management).  Registration Processor recognises the following flows:
 
 * New 
 * Update
@@ -75,10 +77,10 @@ The work flow can be controlled with Admin portal
 
 The stage sequence against each flow refer [here](docs/flows.md)
  
-# Vertx
+## Vertx
 Vertx is a framework for stages. Stages run as Vertx.
 
-# Kafka
+## Kafka
 Regprocessor stages are connected with eventbus.  MOSIP supports two types of eventbus: 
  - Vertx Eventbus 
  - Kafka (default) - provides persistence across restarts (more robust), throttling capacity, better debugging 
@@ -87,17 +89,17 @@ Kafka offers certain advantages over Vertx eventbus hence it is recommended as t
 
 One of the power features is to enable throttling in the pipeline.  See details on throttling [here](docs/throttling.md)
 
-# Hazelcast 
+## Hazelcast 
 Distributed cache - for packetmanager
 
-# Database
+## Database
 
 See [DB guide](db_scripts/README.md)
 
-# Registration Packet Structure
+## Registration Packet Structure
 [Packetmanager](https://github.com/mosip/packet-manager/tree/develop/README.md)
 
-# Build
+## Build
 The project requires JDK 1.11. 
 1. To build jars:
     ```
@@ -114,12 +116,12 @@ The project requires JDK 1.11.
     $ docker build -f Dockerfile
     ```
 
-# Deploy
+## Deploy
 
-## PreReg in Sandbox
+### Registration processor in sandbox
 To deploy Registration on Kubernetes cluster using Dockers refer to [mosip-infra](https://github.com/mosip/mosip-infra/tree/1.2.0_v3/deployment/v3)
 
-## Developer
+### Developer
 
 1. As a developer, to run a service jar individually:
     ```
@@ -135,20 +137,20 @@ To deploy Registration on Kubernetes cluster using Dockers refer to [mosip-infra
 
 1. Note that you will have to run the dependent services like kernel-config-server to run any service successfully.
     
-# Dependencies
+## Dependencies
 Registration module depends on the following services:
 
 
-# Configuration
+## Configuration
 Refer to the [configuration guide](docs/configuration.md).
 
-# Test
+## Test
 Automated functaionl tests available in [Functional Tests repo](https://github.com/mosip/mosip-functional-tests)
 
-# APIs
+## APIs
 API documentation available on Wiki: [Registration APIs](https://github.com/mosip/documentation/wiki/Registration-APIs)
 
-# License
+## License
 This project is licensed under the terms of [Mozilla Public License 2.0](https://github.com/mosip/mosip-platform/blob/master/LICENSE)
 
 Refer to README in respective folders for details.
