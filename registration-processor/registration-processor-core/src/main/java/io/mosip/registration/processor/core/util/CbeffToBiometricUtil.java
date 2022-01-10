@@ -209,6 +209,8 @@ public class CbeffToBiometricUtil {
 		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 		dbFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
 		dbFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+		dbFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+		dbFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
 		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 		Document doc1 = dBuilder.parse(source1);
 		Document doc2 = dBuilder.parse(source2);
