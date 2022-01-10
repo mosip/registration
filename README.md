@@ -4,6 +4,8 @@
 [![Join the chat at https://gitter.im/mosip-community/registration](https://badges.gitter.im/mosip-community/registration.svg)](https://gitter.im/mosip-community/registration?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 # Registration Processor
+
+## Overview
 This repository contains source code and design documents for MOSIP Registration Processor which is the server-side module to manage ID lifecycle.  The modules exposes API endpoints.  
 
 [Overview of Registration Processor and its role in ID lifecycle management](https://nayakrounak.gitbook.io/mosip-docs/modules/registration-processor)
@@ -44,7 +46,7 @@ Staged architecture:
       * Finalization
       * Printing
 
-The control and data flow in the stages is controlled by [Workflow engine](#workflow-engine).
+The control and data flow in the stages is controlled by [Workflow engine](registration-processor/workflow-engine/)
 
 Other services:
   * Packet Server
@@ -52,19 +54,7 @@ Other services:
   * Notification service
   * Transaction service
 
-## Workflow engine
-Consists of the following elements:
-*  Camel bridge: For routing packet to different stages based on [registration flows](#registration-flows).
-*  Workflow manager service:  Enables certain workflow functions via exposed APIs:
-    *  Pause: Pause processing of packets based on rules
-    *  Resume: Resume proessing of packets  
-    *  Request for additional information from user (like a new document) and continue registration as CORRECTION packet.
-    * Reprocessor
-
-The work flow can be controlled with Admin portal
-
 ### Registration flows
-
 An overview of various enrollment scenarious (or flows) is described in [ID Lifecycle Management](https://nayakrounak.gitbook.io/mosip-docs/id-lifecycle-management).  Registration Processor recognises the following flows:
 
 * New 
@@ -87,7 +77,7 @@ Regprocessor stages are connected with eventbus.  MOSIP supports two types of ev
 
 Kafka offers certain advantages over Vertx eventbus hence it is recommended as the default eventbus mechanism. All events between stages pass through Kafka queues. There is a separate Kafka topic for each stage.
 
-One of the power features is to enable throttling in the pipeline.  See details on throttling [here](docs/throttling.md)
+One of the power features is to enable throttling in the pipeline.  See [Throttling](docs/throttling.md)
 
 ## Hazelcast 
 Distributed cache - for packetmanager
