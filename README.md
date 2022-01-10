@@ -15,7 +15,7 @@ The front end UI application called Registration Client is available in a separa
 Staged architecture:
 
   * Group 1 stages 
-      * Packet receiver  
+      * [Packet receiver](registration-processor/init/registration-processor-packet-receiver-stage)
   * Group 2 stages
       * Securezone notification
       * Quality classifier
