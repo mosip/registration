@@ -17,26 +17,26 @@ Staged architecture:
   * Group 1 stages 
       * [Packet receiver](registration-processor/init/registration-processor-packet-receiver-stage)
   * Group 2 stages
-      * Securezone notification
-      * Quality classifier
-      * Message sender
-  * Group 3 stages
-      * ABIS handler
-      * ABIS middleware 
-      * Bio dedupe
-      * Manual adjudication
- * Group 4 stages
-      * Biometric authentication
-      * Demo dedupe
- * Group 5 stages
-      * CMD validator
-      * Operator validator
-      * Supervisor validator
-      * Introducer validator
-      * Packet validator
- * Group 6 stages
-      * Packet uploader
-      * [Packet classifier](registration-processor/pre-processor/registration-processor-packet-classifier-stage/README.md)
+      * [Securezone notification](registration-processor/pre-processor/registration-processor-securezone-notification-stage)
+      * [Quality classifier](registration-processor/pre-processor/registration-processor-quality-classifier-stage)
+      * [Message sender]()
+  * [Group 3 stages]()
+      * [ABIS handler](registration-processor/core-processor/registration-processor-abis-handler-stage)
+      * [ABIS middleware ](registration-processor/core-processor/registration-processor-abis-middleware-stage)
+      * [Bio dedupe](registration-processor/core-processor/registration-processor-bio-dedupe-stage)
+      * [Manual adjudication](registration-processor/core-processor/registration-processor-manual-adjudication-stage)
+ * [Group 4 stages](registration-processor/)
+      * [Biometric authentication](registration-processor/core-processor/registration-processor-biometric-authentication-stage)
+      * [Demo dedupe](registration-processor/core-processor/registration-processor-demo-dedupe-stage)
+ * [Group 5 stages](registration-processor/)
+      * [CMD validator](registration-processor/pre-processor/registration-processor-cmd-validator-stage)
+      * [Operator validator](registration-processor/pre-processor/registration-processor-operator-validator-stage)
+      * [Supervisor validator](registration-processor/pre-processor/registration-processor-supervisor-validator-stage)
+      * [Introducer validator](registration-processor/pre-processor/registration-processor-introducer-validator-stage)
+      * [Packet validator](registration-processor/pre-processor/registration-processor-packet-validator-stage)
+ * [Group 6 stages](registration-processor/)
+      * [Packet uploader](registration-processor/pre-processor/registration-processor-packet-uploader-stage)
+      * [Packet classifier](registration-processor/pre-processor/registration-processor-packet-classifier-stage)
       * Verification
  * Group 7 stages
       * UIN generator
