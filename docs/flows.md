@@ -1,5 +1,7 @@
 # Registration flows and stage sequence
 
+Sections here list the sequence in which various stages/services are called for a particular enrollment flow.
+
 ## New/Child/Update/Lost
 * Packet receiver
 * Securezone notification
