@@ -63,7 +63,7 @@ Consists of the following elements:
 
 The work flow can be controlled with Admin portal
 
-# Registration flows
+### Registration flows
 
 An overview of various enrollment scenarious (or flows) is described in [ID Lifecycle Management](https://nayakrounak.gitbook.io/mosip-docs/id-lifecycle-management).  Registration Processor recognises the following flows:
 
@@ -77,10 +77,10 @@ An overview of various enrollment scenarious (or flows) is described in [ID Life
 
 The stage sequence against each flow refer [here](docs/flows.md)
  
-# Vertx
+## Vertx
 Vertx is a framework for stages. Stages run as Vertx.
 
-# Kafka
+## Kafka
 Regprocessor stages are connected with eventbus.  MOSIP supports two types of eventbus: 
  - Vertx Eventbus 
  - Kafka (default) - provides persistence across restarts (more robust), throttling capacity, better debugging 
@@ -89,17 +89,17 @@ Kafka offers certain advantages over Vertx eventbus hence it is recommended as t
 
 One of the power features is to enable throttling in the pipeline.  See details on throttling [here](docs/throttling.md)
 
-# Hazelcast 
+## Hazelcast 
 Distributed cache - for packetmanager
 
-# Database
+## Database
 
 See [DB guide](db_scripts/README.md)
 
-# Registration Packet Structure
+## Registration Packet Structure
 [Packetmanager](https://github.com/mosip/packet-manager/tree/develop/README.md)
 
-# Build
+## Build
 The project requires JDK 1.11. 
 1. To build jars:
     ```
@@ -116,12 +116,12 @@ The project requires JDK 1.11.
     $ docker build -f Dockerfile
     ```
 
-# Deploy
+## Deploy
 
-## PreReg in Sandbox
+### PreReg in Sandbox
 To deploy Registration on Kubernetes cluster using Dockers refer to [mosip-infra](https://github.com/mosip/mosip-infra/tree/1.2.0_v3/deployment/v3)
 
-## Developer
+### Developer
 
 1. As a developer, to run a service jar individually:
     ```
@@ -137,20 +137,20 @@ To deploy Registration on Kubernetes cluster using Dockers refer to [mosip-infra
 
 1. Note that you will have to run the dependent services like kernel-config-server to run any service successfully.
     
-# Dependencies
+## Dependencies
 Registration module depends on the following services:
 
 
-# Configuration
+## Configuration
 Refer to the [configuration guide](docs/configuration.md).
 
-# Test
+## Test
 Automated functaionl tests available in [Functional Tests repo](https://github.com/mosip/mosip-functional-tests)
 
-# APIs
+## APIs
 API documentation available on Wiki: [Registration APIs](https://github.com/mosip/documentation/wiki/Registration-APIs)
 
-# License
+## License
 This project is licensed under the terms of [Mozilla Public License 2.0](https://github.com/mosip/mosip-platform/blob/master/LICENSE)
 
 Refer to README in respective folders for details.
