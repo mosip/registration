@@ -54,7 +54,7 @@ Other services:
 
 ## Workflow engine
 Consists of the following elements:
-*  Camel bridge: For routing packet to different stages based on registration [flows](docs/flows.md).
+*  Camel bridge: For routing packet to different stages based on [registration flows](#registration-flows).
 *  Workflow manager service:  Enables certain workflow functions via exposed APIs:
     *  Pause: Pause processing of packets based on rules
     *  Resume: Resume proessing of packets  
