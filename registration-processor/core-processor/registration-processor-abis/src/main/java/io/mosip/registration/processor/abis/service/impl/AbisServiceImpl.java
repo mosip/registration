@@ -185,6 +185,7 @@ public class AbisServiceImpl implements AbisService {
 
 				DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 				dbFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+				dbFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
 				DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 				return dBuilder.parse(is);
 			}
