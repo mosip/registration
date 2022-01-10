@@ -50,7 +50,7 @@ Other services:
   * Packet Server
   * Registration status service
   * Notification service
-  * Transaction service:  Used by Admin module
+  * Transaction service
 
 ## Workflow engine
 Consists of the following elements:
