@@ -20,21 +20,21 @@ Staged architecture:
       * [Securezone notification](registration-processor/pre-processor/registration-processor-securezone-notification-stage)
       * [Quality classifier](registration-processor/pre-processor/registration-processor-quality-classifier-stage)
       * [Message sender]()
-  * [Group 3 stages]()
+  * Group 3 stages
       * [ABIS handler](registration-processor/core-processor/registration-processor-abis-handler-stage)
       * [ABIS middleware ](registration-processor/core-processor/registration-processor-abis-middleware-stage)
       * [Bio dedupe](registration-processor/core-processor/registration-processor-bio-dedupe-stage)
       * [Manual adjudication](registration-processor/core-processor/registration-processor-manual-adjudication-stage)
- * [Group 4 stages](registration-processor/)
+ * Group 4 stages
       * [Biometric authentication](registration-processor/core-processor/registration-processor-biometric-authentication-stage)
       * [Demo dedupe](registration-processor/core-processor/registration-processor-demo-dedupe-stage)
- * [Group 5 stages](registration-processor/)
+ * Group 5 stages
       * [CMD validator](registration-processor/pre-processor/registration-processor-cmd-validator-stage)
       * [Operator validator](registration-processor/pre-processor/registration-processor-operator-validator-stage)
       * [Supervisor validator](registration-processor/pre-processor/registration-processor-supervisor-validator-stage)
       * [Introducer validator](registration-processor/pre-processor/registration-processor-introducer-validator-stage)
       * [Packet validator](registration-processor/pre-processor/registration-processor-packet-validator-stage)
- * [Group 6 stages](registration-processor/)
+ * Group 6 stages
       * [Packet uploader](registration-processor/pre-processor/registration-processor-packet-uploader-stage)
       * [Packet classifier](registration-processor/pre-processor/registration-processor-packet-classifier-stage)
       * Verification
