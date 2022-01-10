@@ -87,7 +87,7 @@ Regprocessor stages are connected with eventbus.  MOSIP supports two types of ev
 
 Kafka offers certain advantages over Vertx eventbus hence it is recommended as the default eventbus mechanism. All events between stages pass through Kafka queues. There is a separate Kafka topic for each stage.
 
-One of the power features is to enable throttling in the pipeline.  See details on throttling [here](docs/throttling.md)
+One of the power features is to enable throttling in the pipeline.  See [Throttling](docs/throttling.md)
 
 ## Hazelcast 
 Distributed cache - for packetmanager
