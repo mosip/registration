@@ -65,6 +65,8 @@ The work flow can be controlled with Admin portal
 
 # Registration flows
 
+An overview of arious enrollment scenarious (or flows) are described [here](https://nayakrounak.gitbook.io/mosip-docs/id-lifecycle-management).  Registration Processor recognises the following flows:
+
 * New 
 * Update
 * Child
