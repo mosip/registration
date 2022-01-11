@@ -235,8 +235,8 @@ public class OperatorValidator {
 	 * @param otp the otp
 	 * @return true, if successful
 	 */
-	boolean validateOtpAndPwd(String pwd, String otp) {
-		return (pwd != null && pwd.equals(ISTRUE) || otp != null && otp.equals(ISTRUE));
+	private boolean validateOtpAndPwd(String operatorPassword, String otp) {
+		return (operatorPassword != null && operatorPassword.equals(ISTRUE) || otp != null && otp.equals(ISTRUE));
 	}
 
 	/**
