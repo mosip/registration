@@ -3,6 +3,8 @@ package io.mosip.registration.processor.packet.receiver.config;
 import java.io.File;
 import java.io.InputStream;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import org.springframework.beans.factory.annotation.Value;
@@ -114,11 +116,13 @@ public class PacketReceiverConfig {
 	public CbeffUtil getCbeffUtil() {
 		return new CbeffImpl();
 	}
-	
+
 	@Bean
 	@Primary
 	public ObjectMapper getObjectMapper() {
-		return new ObjectMapper().registerModule(new JavaTimeModule());
+		ObjectMapper objectMapper = new ObjectMapper().registerModule(new AfterburnerModule()).registerModule(new JavaTimeModule());
+		objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+		return objectMapper;
 	}
 	
 	@Bean

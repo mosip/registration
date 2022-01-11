@@ -120,14 +120,20 @@ public enum PlatformSuccessMessages {
 	RPR_ABIS_MIDDLEWARE_STAGE_SUCCESS(PlatformConstants.RPR_ABIS_MIDDLEWARE + "000",
 			"Abis insertRequests sucessfully sent to Queue"),
 
-	RPR_MANUAL_VERIFICATION_APPROVED(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "000",
+	RPR_MANUAL_VERIFICATION_APPROVED(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "000",
 			"Manual verification approved"),
 
-	RPR_MANUAL_VERIFICATION_RESEND(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "002",
+	RPR_MANUAL_VERIFICATION_RESEND(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "002",
 			"Manual verification resend"),
 
-	RPR_MANUAL_VERIFICATION_SENT(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "001",
+	RPR_MANUAL_VERIFICATION_SENT(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "001",
 			"Manual verification Sent to queue"),
+
+	RPR_VERIFICATION_SENT(PlatformConstants.RPR_VERIFICATION_MODULE + "000",
+			"Sent for Verification"),
+
+	RPR_VERIFICATION_SUCCESS(PlatformConstants.RPR_VERIFICATION_MODULE + "001",
+			"Verification successful"),
 
 	RPR_DECRYPTION_SUCCESS(PlatformConstants.RPR_PACKET_DECRYPTION_MODULE + "000", "Decryption success"),
 	
@@ -149,6 +155,8 @@ public enum PlatformSuccessMessages {
 	PACKET_COMPLETE_AS_FAILED(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "003",
 			"Packet processing completed with failed status"),
 	PACKET_MARK_AS_REPROCESS(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "004", "Packet marked for reprocessing"),
+	PACKET_PROCESSING_COMPLETED(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "009",
+			"Packet processing completed with action code : "),
 
 	PAUSE_AND_REQUEST_ADDITIONAL_INFO(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "005",
 			"packet paused and request additional info"),

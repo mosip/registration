@@ -302,7 +302,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 			if (exceptionValue) {
 				ExceptionsDTO exceptionsDTO = new ExceptionsDTO();
 				exceptionsDTO.setType(bir.getBdbInfo().getType().get(0).name());
-				exceptionsDTO.setSubType(bir.getBdbInfo().getSubtype().get(0));
+				exceptionsDTO.setSubType(String.join(" ", bir.getBdbInfo().getSubtype()));
 				exceptions.add(exceptionsDTO);
 			} else {
 				BiometricInfoDTO biometricInfoDTO = new BiometricInfoDTO();
@@ -313,7 +313,13 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 				biometricInfoDTO.setQualityScore(bir.getBdbInfo().getQuality().getScore());
 				biometricInfoDTO.setAttempts(retries);
 				if (digitalID != null) {
-					biometricInfoDTO.setDigitalId(new String(CryptoUtil.decodeBase64(digitalID.split("\\.")[1])));
+					byte[] digitalIdBytes=null;
+					try {
+						 digitalIdBytes= CryptoUtil.decodeURLSafeBase64(digitalID.split("\\.")[1]);
+					} catch (IllegalArgumentException exception) {
+						digitalIdBytes = CryptoUtil.decodePlainBase64(digitalID.split("\\.")[1]);
+					}
+					biometricInfoDTO.setDigitalId(new String(digitalIdBytes));
 				}
 				biometrics.add(biometricInfoDTO);
 			}

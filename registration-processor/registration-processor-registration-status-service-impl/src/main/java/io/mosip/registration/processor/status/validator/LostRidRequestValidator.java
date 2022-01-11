@@ -58,6 +58,10 @@ public class LostRidRequestValidator {
 	@Value("${mosip.registration.processor.grace.period}")
 	private int gracePeriod;
 
+	/** The registrationDate pattern. */
+	@Value("${mosip.registration.processor.lostrid.registrationdate.pattern}")
+	private String regDatePattern;
+
 
 	/**
 	 * Validate.
@@ -119,7 +123,7 @@ public class LostRidRequestValidator {
 		for (FilterInfo filter : filterInfos) {
 			if (filter.getColumnName().equals("name") || filter.getColumnName().equals("email")
 					|| filter.getColumnName().equals("phone") || filter.getColumnName().equals("centerId")
-					|| filter.getColumnName().equals("postalCode")||filter.getColumnName().equals("registrationDate")) {
+					|| filter.getColumnName().equals("locationCode")||filter.getColumnName().equals("registrationDate")) {
 				validateFilterType(filter);
 			} else {
 				throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER, exception);
@@ -141,7 +145,7 @@ public class LostRidRequestValidator {
 			throws WorkFlowSearchException, RegStatusAppException {
 		LostRidValidationException exception = new LostRidValidationException();
 		if (filter.getColumnName().equals("registrationDate") && filter.getType().equalsIgnoreCase("between")) {
-			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+			DateTimeFormatter dtf = DateTimeFormatter.ofPattern(regDatePattern);
 			LocalDate dateForm = LocalDate.parse(filter.getFromValue(), dtf);
 			LocalDate dateTo = LocalDate.parse(filter.getToValue(), dtf);
 			long noOfDaysBetween = ChronoUnit.DAYS.between(dateForm, dateTo);
@@ -186,7 +190,7 @@ public class LostRidRequestValidator {
 		} else if (sortInfos.get(0).getSortField().equals("name") || sortInfos.get(0).getSortField().equals("email")
 				|| sortInfos.get(0).getSortField().equals("phone") || sortInfos.get(0).getSortField().equals("centerId")
 				|| sortInfos.get(0).getSortField().equals("registrationDate")
-				|| sortInfos.get(0).getSortField().equals("postalCode")) {
+				|| sortInfos.get(0).getSortField().equals("locationCode")) {
 
 		} else {
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER, exception);

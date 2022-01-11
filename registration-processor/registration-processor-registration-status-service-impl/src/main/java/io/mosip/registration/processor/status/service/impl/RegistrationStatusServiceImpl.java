@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -948,5 +949,5 @@ public class RegistrationStatusServiceImpl
 				"RegistrationStatusServiceImpl::updateRegistrationStatusForWorkFlow()::exit");
 
 	}
-
+	
 }

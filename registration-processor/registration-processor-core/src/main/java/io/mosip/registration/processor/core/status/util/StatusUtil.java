@@ -99,7 +99,7 @@ public enum StatusUtil {
 	UIN_RID_NOT_FOUND(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "002", "UIN or RID of Introducer Not Found in Packet"),
 	INTRODUCER_UIN_NOT_FOUND(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "003", "Introducer UIN not Found for the Given RID"),
 	INTRODUCER_BIOMETRIC_FILE_NAME_NOT_FOUND(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "004", "Introducer Biometric File Name Not Found"),
-	PACKET_ON_HOLD(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "005", "Packet On-Hold as Parent RID Not Found"),
+	PACKET_ON_HOLD(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "005", "Packet On-Hold as Introducer packet is not processed yet."),
 	CHILD_PACKET_REJECTED(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "006", "Packet Rejected as Parent Packet is Rejected"),
 	PACKET_IS_ON_HOLD(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "007", "Packet is on Hold due to parent packet processing"),
 	
@@ -247,8 +247,16 @@ public enum StatusUtil {
 	WORKFLOW_INTERNAL_ACTION_SUCCESS(StatusConstants.WORKFLOW_INTERNAL_ACTION + "001",
 			"Packet workflow internal action completed successfully"),
 	
+	WORKFLOW_INTERNAL_ACTION_REJECTED_ITERATIONS_EXCEEDED_LIMIT(StatusConstants.WORKFLOW_INTERNAL_ACTION + "002",
+			"Packet rejected as number of iterations exceeded permited limit."),
+	
 	WORKFLOW_ACTION_SERVICE_SUCCESS(StatusConstants.WORKFLOW_ACTION_SERVICE + "001",
-			"Packet workflow resume  successfully");
+			"Packet workflow resume  successfully"),
+
+	VERIFICATION_SUCCESS(StatusConstants.VERIFICATION_STAGE + "001", "Verification success"),
+	VERIFICATION_FAILED(StatusConstants.VERIFICATION_STAGE + "002","Verification failed"),
+	VERIFICATION_SENT(StatusConstants.VERIFICATION_STAGE + "003", "Sent for verification"),
+	VERIFICATION_RESEND(StatusConstants.VERIFICATION_STAGE + "004", "Resend for verification");
 
 	private final String statusComment;
 	private final String statusCode;

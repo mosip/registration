@@ -187,6 +187,11 @@
 			<artifactId>micrometer-registry-prometheus</artifactId>
 			<version>${io.micrometer.prometheus.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.module</groupId>
+			<artifactId>jackson-module-afterburner</artifactId>
+			<version>${jackson.afterburner.version}</version>
+		</dependency>
        </dependencies>
 	<dependencyManagement>
 		<dependencies>

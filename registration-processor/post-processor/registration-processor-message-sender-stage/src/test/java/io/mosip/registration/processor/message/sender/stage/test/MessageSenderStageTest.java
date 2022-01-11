@@ -424,7 +424,7 @@ public class MessageSenderStageTest {
 
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(registrationStatusDto.getLatestTransactionTypeCode())
-				.thenReturn(RegistrationTransactionTypeCode.MANUAL_VERIFICATION.name());
+				.thenReturn(RegistrationTransactionTypeCode.MANUAL_ADJUDICATION.name());
 		Mockito.when(registrationStatusDto.getLatestTransactionStatusCode())
 				.thenReturn(RegistrationTransactionStatusCode.FAILED.name());
 		Mockito.when(registrationStatusDto.getStatusCode()).thenReturn(RegistrationStatusCode.REJECTED.name());
@@ -434,7 +434,7 @@ public class MessageSenderStageTest {
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("85425022110000120190117110505");
 		MessageDTO result = stage.process(dto);
-		assertTrue(result.getIsValid());
+		assertFalse(result.getIsValid());
 	}
 
 	@SuppressWarnings("unchecked")

@@ -110,7 +110,7 @@ public class WorkflowCommandPredicate implements Predicate {
 		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
 		workflowInternalActionDTO.setRid(json.getString(JsonConstant.RID));
 		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_REJECTED.toString());
-		workflowInternalActionDTO.setActionMessage(PlatformSuccessMessages.PACKET_COMPLETE_AS_REJECTED.getMessage());
+		workflowInternalActionDTO.setActionMessage(PlatformSuccessMessages.PACKET_PROCESSING_COMPLETED.getMessage() + WorkflowInternalActionCode.COMPLETE_AS_REJECTED.toString());
 		workflowInternalActionDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
 		workflowInternalActionDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
 		workflowInternalActionDTO.setSource(json.getString(JsonConstant.SOURCE));
@@ -124,7 +124,7 @@ public class WorkflowCommandPredicate implements Predicate {
 		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
 		workflowInternalActionDTO.setRid(json.getString(JsonConstant.RID));
 		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.MARK_AS_REPROCESS.toString());
-		workflowInternalActionDTO.setActionMessage(PlatformSuccessMessages.PACKET_MARK_AS_REPROCESS.getMessage());
+		workflowInternalActionDTO.setActionMessage(PlatformSuccessMessages.PACKET_PROCESSING_COMPLETED.getMessage() + WorkflowInternalActionCode.MARK_AS_REPROCESS.toString());
 		workflowInternalActionDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
 		workflowInternalActionDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
 		workflowInternalActionDTO.setSource(json.getString(JsonConstant.SOURCE));
@@ -138,7 +138,7 @@ public class WorkflowCommandPredicate implements Predicate {
 		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
 		workflowInternalActionDTO.setRid(json.getString(JsonConstant.RID));
 		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_FAILED.toString());
-		workflowInternalActionDTO.setActionMessage(PlatformSuccessMessages.PACKET_COMPLETE_AS_FAILED.getMessage());
+		workflowInternalActionDTO.setActionMessage(PlatformSuccessMessages.PACKET_PROCESSING_COMPLETED.getMessage() + WorkflowInternalActionCode.COMPLETE_AS_FAILED.toString());
 		workflowInternalActionDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
 		workflowInternalActionDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
 		workflowInternalActionDTO.setSource(json.getString(JsonConstant.SOURCE));
@@ -166,7 +166,7 @@ public class WorkflowCommandPredicate implements Predicate {
 		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
 		workflowInternalActionDTO.setRid(json.getString(JsonConstant.RID));
 		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_PROCESSED.toString());
-		workflowInternalActionDTO.setActionMessage(PlatformSuccessMessages.PACKET_COMPLETE_AS_PROCESSED.getMessage());
+		workflowInternalActionDTO.setActionMessage(PlatformSuccessMessages.PACKET_PROCESSING_COMPLETED.getMessage() + WorkflowInternalActionCode.COMPLETE_AS_PROCESSED.toString());
 		workflowInternalActionDTO.setReg_type(json.getString(JsonConstant.REGTYPE));
 		workflowInternalActionDTO.setIteration(json.getInteger(JsonConstant.ITERATION));
 		workflowInternalActionDTO.setSource(json.getString(JsonConstant.SOURCE));

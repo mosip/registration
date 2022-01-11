@@ -150,7 +150,7 @@ public class ReprocessorVerticleTest {
 		reprocessorVerticle.process(dto);
 
 	}
-
+	
 	@Test
 	public void testProcessFailure() throws TablenotAccessibleException, PacketManagerException,
 			ApisResourceAccessException, WorkflowActionException {

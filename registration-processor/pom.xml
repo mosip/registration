@@ -43,7 +43,8 @@
 		<!-- Miscellaneous -->
 		<javax.el-api.version>3.0.0</javax.el-api.version>
 		<javax.validation-api.version>2.0.1.Final</javax.validation-api.version>
-		<jackson.version>2.9.5</jackson.version>
+		<jackson.version>2.12.0</jackson.version>
+		<jackson.afterburner.version>2.12.0</jackson.afterburner.version>
 		<hibernate.validator.version>6.0.12.Final</hibernate.validator.version>
 		<modelmapper.version>2.1.1</modelmapper.version>
 		<jcl.to.slf4j.version>1.7.25</jcl.to.slf4j.version>
@@ -122,9 +123,9 @@
 		<kernel.idvalidator.uin.version>1.2.0-rc2-SNAPSHOT</kernel.idvalidator.uin.version>
 		<kernel.idvalidator.rid.version>1.2.0-rc2-SNAPSHOT</kernel.idvalidator.rid.version>
 		<kernel.cbeffutil.version>1.2.0-rc2-SNAPSHOT</kernel.cbeffutil.version>
-        <kernel.bioapi.provider.version>1.2.0-rc2-SNAPSHOT</kernel.bioapi.provider.version>
-        <kernel.auth.adapter.version>1.2.0-rc2-SNAPSHOT</kernel.auth.adapter.version>
-        <kernel.pdfgenerator.itext.version>1.2.0-rc2-SNAPSHOT</kernel.pdfgenerator.itext.version>
+                <kernel.bioapi.provider.version>1.2.0-rc2-SNAPSHOT</kernel.bioapi.provider.version>
+                <kernel.auth.adapter.version>1.2.0-rc2-SNAPSHOT</kernel.auth.adapter.version>
+                <kernel.pdfgenerator.itext.version>1.2.0-rc2-SNAPSHOT</kernel.pdfgenerator.itext.version>
 		<kernel.qrcodegenerator.zxing.version>1.2.0-rc2-SNAPSHOT</kernel.qrcodegenerator.zxing.version>
 		<kernel.logger.logback.version>1.2.0-rc2-SNAPSHOT</kernel.logger.logback.version>
 		<kernel.idvalidator.vid.version>1.2.0-rc2-SNAPSHOT</kernel.idvalidator.vid.version>
@@ -311,6 +312,21 @@
 		    <artifactId>javassist</artifactId>
 		    <version>3.27.0-GA</version>
 		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+        <dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+			<version>${jackson.version}</version>
+        </dependency>
 		</dependencies>
 	</dependencyManagement>
 

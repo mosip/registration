@@ -1,25 +1,15 @@
-### registration-processor-packet-receiver-stage
-[Background & design](https://github.com/mosip/mosip/wiki/Registration-Processor)
+# Packet Receiver Stage
 
-This component supports upload of packet(s) through rest api.
+## About
 
-[API Specification](https://github.com/mosip/mosip/wiki/Registration-Processor-APIs#1-packet-receiver-service)
+Packet receiver stage performs the following functions:
+*  Receives registration packets uploaded by registration clients.
+*  Performs sanity checks (like virus scan, checksum validation, file size) on the encrypted packet (without decrypting).
+*  Stores packet in landing zone.
 
-##### Default Context-path and Port
+## Landing zone
+Landing zone is a data store (disk, distributed storage etc) where uploaded packets from registration clients are stored.  In standard sandbox installation the landing zone is mounted inside Packet Receiver container as given in the [persistence] properties of [`regproc-receiver` Helm Chart](https://github.com/mosip/mosip-helm/blob/1.2.0/charts/regproc-group1/values.yaml)
 
-```
-server.port=8081
-server.servlet.path=/registrationprocessor/v1/packetreceiver
+## Default context-path and port
+Refer [`bootstrap.properties`](src/main/resources/bootstrap.properties)
 
-```
-
-##### Configurable Properties from Config Server
-
-```
-registration.processor.max.file.size=5
-mosip.registration.processor.application.version=1.0
-mosip.registration.processor.datetime.pattern=yyyy-MM-dd'T'HH:mm:ss.SSS'Z'
-mosip.registration.processor.timezone=GMT
-mosip.registration.processor.packet.id=mosip.registration.packet
-
-```
