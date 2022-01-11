@@ -335,7 +335,6 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 			description.setMessage(PlatformErrorMessages.RPR_SYS_JSON_PARSING_EXCEPTION.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_SYS_JSON_PARSING_EXCEPTION.getCode());
 			object.setInternalError(Boolean.TRUE);
-			e.printStackTrace();
 		} catch (IOException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					regId, RegistrationStatusCode.FAILED.toString() + e.getMessage()

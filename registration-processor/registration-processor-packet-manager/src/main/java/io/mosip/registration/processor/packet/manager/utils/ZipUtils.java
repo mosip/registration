@@ -149,6 +149,7 @@ public class ZipUtils {
 			while (ze != null) {
 				if (ze.isDirectory()) {
 					File file = FileUtils.getFile(desDir + ze.getName());
+					zipSlipCompliant( file.getCanonicalPath(), desDir);
 					if (file.mkdir()) {
 						regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 								LoggerFileConstant.REGISTRATIONID.toString(), "", file + "created");
@@ -157,6 +158,7 @@ public class ZipUtils {
 				} else {
 					String fileName = ze.getName();
 					File newFile = FileUtils.getFile(desDir + File.separator + fileName);
+					zipSlipCompliant( newFile.getCanonicalPath(), desDir);
 					if (FileUtils.getFile(newFile.getParent()).mkdirs()) {
 						FileOutputStream fos = new FileOutputStream(newFile);
 						int len;
@@ -175,6 +177,11 @@ public class ZipUtils {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ZipUtils::unZipFromInputStream()::exit");
 
+	}
+	public static void zipSlipCompliant(String canonicalDestinationPath, String baseDirectory) throws IOException {
+	      if (!canonicalDestinationPath.startsWith(baseDirectory)) {
+	        throw new IOException("Entry is outside of the target directory");
+	      }
 	}
 
 	/**

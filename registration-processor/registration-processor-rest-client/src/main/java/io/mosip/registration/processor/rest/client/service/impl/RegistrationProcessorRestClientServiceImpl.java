@@ -88,7 +88,6 @@ public class RegistrationProcessorRestClientServiceImpl implements RegistrationP
 				obj = restApiClient.getApi(uriComponents.toUri(), responseType);
 
 			} catch (Exception e) {
-				e.printStackTrace();
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), "",
 						e.getMessage() + ExceptionUtils.getStackTrace(e));
@@ -139,7 +138,6 @@ public class RegistrationProcessorRestClientServiceImpl implements RegistrationP
 				obj = restApiClient.getApi(uriComponents.toUri(), responseType);
 
 			} catch (Exception e) {
-				e.printStackTrace();
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), "",
 						e.getMessage() + ExceptionUtils.getStackTrace(e));
@@ -509,7 +507,6 @@ public class RegistrationProcessorRestClientServiceImpl implements RegistrationP
 				obj = restApiClient.headApi(uriComponents.toUri());
 
 			} catch (Exception e) {
-				e.printStackTrace();
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), "",
 						e.getMessage() + ExceptionUtils.getStackTrace(e));
