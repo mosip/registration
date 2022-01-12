@@ -1,26 +1,13 @@
-### registration-processor-registration-status-service
+# Registration Status Service
 
-[Background & Design](https://github.com/mosip/mosip/wiki/Registration-Processor)
+## About
+Provides APIs to
+* query status of registration.
+* Sync packet information (see below).
 
-This component enables syncing of packet(s) and getting status of packet(s) via REST Api.
+## Packet sync process
+Before a registration packet is uploaded, the information of packet (packet hash code, size, applicant contact etc.) is first sent to the system using APIs of this service.  This information is matched against actual packet when it is uploaded. See [Packet Receiver](../registration-processor-packet-receiver-stage/)
 
-[API Specification](https://github.com/mosip/mosip/wiki/Registration-Processor-APIs#2-registration-status-service)
+## Default context-path and port
+Refer [`bootstrap.properties`](src/main/resources/bootstrap.properties)
 
-##### Default Context-path and Port
-
-```
-server.port=8083
-server.servlet.path=/registrationprocessor/v1/registrationstatus
-
-```
-
-##### Configurable Properties from Config Server
-
-```
-registration.processor.max.retry=3
-mosip.registration.processor.registration.status.id=mosip.registration.status
-mosip.registration.processor.registration.sync.id=mosip.registration.sync
-# The comma separate list of external statuses that should be considered as processed 
-# for search API response consumed by regclient
-mosip.registration.processor.registration.status.external-statuses-to-consider-processed=UIN_GENERATED,REREGISTER,REJECTED,REPROCESS_FAILED	
-```
