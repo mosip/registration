@@ -22,10 +22,7 @@ import javax.jms.Queue;
 import javax.jms.Session;
 
 import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
-import io.mosip.registration.processor.core.queue.factory.MosipActiveMq;
-import io.mosip.registration.processor.core.queue.factory.MosipQueue;
 import io.mosip.registration.processor.core.queue.impl.TransportExceptionListener;
-import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQBytesMessage;
@@ -49,6 +46,7 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
+//import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
@@ -144,13 +142,8 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	/**
 	 * @param promise
 	 */
-	public void queueHealthChecker(Promise<Status> promise, MosipQueueManager<MosipQueue, byte[]> mosipQueueManager) {
+	public void queueHealthChecker(Promise<Status> promise) {
 		try {
-
-			String message = "Ping";
-			MosipQueue mosipQueue = new MosipActiveMq(HealthConstant.QUEUE_ADDRESS, queueUsername, queuePassword, queueBrokerUrl);
-			mosipQueueManager.send(mosipQueue, message.getBytes(), HealthConstant.QUEUE_ADDRESS);
-
 			ActiveMQConnectionFactory activeMQConnectionFactory = new ActiveMQConnectionFactory(queueUsername,
 					queuePassword, queueBrokerUrl);
 			ActiveMQConnection activemQConn = (ActiveMQConnection) connection;
@@ -163,13 +156,13 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 					this.session = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 					Queue destination = session.createQueue(HealthConstant.QUEUE_ADDRESS);
 					messageConsumer = session.createConsumer(destination);
+					messageProducer = session.createProducer(destination);
 				}
 			}
+			BytesMessage byteMessage = session.createBytesMessage();
+			byteMessage.writeObject((HealthConstant.PING).getBytes());
+			messageProducer.send(byteMessage);
 			String res = new String(((ActiveMQBytesMessage) messageConsumer.receive()).getContent().data);
-			if (res == null || !message.equalsIgnoreCase(res)) {
-				final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, "Could not read response from queue").build();
-				promise.complete(Status.KO(result));
-			}
 			final JsonObject result = resultBuilder.create().add(HealthConstant.RESPONSE, res).build();
 			promise.complete(Status.OK(result));
 		} catch (Exception e) {
