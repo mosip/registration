@@ -2,7 +2,7 @@
 
 ## About
 Provides APIs to
-* query status of registration.
+* Query status of registration.
 * Sync packet information (see below).
 
 ## Packet sync process
