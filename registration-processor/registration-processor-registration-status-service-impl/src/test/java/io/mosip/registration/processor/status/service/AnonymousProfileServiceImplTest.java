@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -34,7 +35,6 @@ import io.mosip.kernel.biometrics.constant.QualityType;
 import io.mosip.kernel.biometrics.entities.BDBInfo;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.mosip.kernel.biometrics.entities.Entry;
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.util.DateUtils;
@@ -112,20 +112,13 @@ public class AnonymousProfileServiceImplTest {
 		bir.setSb("eyJ4NWMiOlsiTUlJRGtEQ0NBbmlnQXdJQkFnSUVwNzo".getBytes());
 		bir.setBdb("SUlSADAyMAAAACc6AAEAAQAAJyoH5AoJECYh//8Bc18wBgAAAQIDCgABlwExCA".getBytes());
 
-		Entry entry = new Entry();
-		entry.setKey("PAYLOAD");
-		entry.setValue(
+		HashMap<String, String> entry = new HashMap<String, String>();
+		entry.put("PAYLOAD",
 				"{\"digitalId\":\"eyJ4NWMiOlsiTUlJRjZqQ0NB.OUtnQXdJQkFnSUJCVE.FOQmdrcWhraUc5dzBC\",\"bioValue\":\"<bioValue>\",\"qualityScore\":\"80\",\"bioType\":\"Iris\"}");
+		entry.put("EXCEPTION", "false");
+		entry.put("RETRIES", "1");
 
-		Entry entry1 = new Entry();
-		entry1.setKey("EXCEPTION");
-		entry1.setValue("false");
-
-		Entry entry2 = new Entry();
-		entry2.setKey("RETRIES");
-		entry2.setValue("1");
-
-		bir.setOthers(Arrays.asList(entry, entry1, entry2));
+		bir.setOthers(entry);
 		biometricRecord.setSegments(Arrays.asList(bir));
 
 		Mockito.when(anonymousProfileRepository.save(Mockito.any(AnonymousProfileEntity.class))).thenReturn(new AnonymousProfileEntity());

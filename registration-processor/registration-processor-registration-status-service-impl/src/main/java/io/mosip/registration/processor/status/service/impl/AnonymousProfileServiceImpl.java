@@ -6,6 +6,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.mosip.kernel.biometrics.entities.Entry;
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -277,7 +277,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 
 		List<BIR> birs = biometricRecord.getSegments();
 		for (BIR bir : birs) {
-			List<Entry> othersInfo = bir.getOthers();
+			HashMap<String, String> othersInfo = bir.getOthers();
 
 			if (othersInfo == null) {
 				continue;
@@ -286,7 +286,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 			String retries = null;
 			String digitalID = null;
 			boolean exceptionValue = false;
-			for (Entry other : othersInfo) {
+			for (Map.Entry<String, String> other : othersInfo.entrySet()) {
 				if (other.getKey().equals(JsonConstant.BIOMETRICRECORDEXCEPTION) && other.getValue().equals(TRUE)) {
 					exceptionValue = true;
 				}
