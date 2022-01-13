@@ -1,8 +1,6 @@
 package io.mosip.registration.processor.core.abstractverticle;
 
 import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
-import io.mosip.registration.processor.core.queue.factory.MosipQueue;
-import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -48,10 +46,6 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 
 	@Autowired(required = false)
     private VirusScanner virusScanner;
-
-	/** The mosip queue manager. */
-	@Autowired
-	private MosipQueueManager<MosipQueue, byte[]> mosipQueueManager;
 
 	private static final String PROMETHEUS_ENDPOINT = "/actuator/prometheus";
 
@@ -128,7 +122,7 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 					future -> healthCheckHandler.senderHealthHandler(future, vertx, sendAddress));
 		}
 		if (servletPath.contains("print") || servletPath.contains("abismiddleware")) {
-			healthCheckHandler.register("queuecheck", future -> healthCheckHandler.queueHealthChecker(future, mosipQueueManager));
+			healthCheckHandler.register("queuecheck", healthCheckHandler::queueHealthChecker);
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Verticle",
 					future -> healthCheckHandler.consumerHealthHandler(future, vertx, consumeAddress));
