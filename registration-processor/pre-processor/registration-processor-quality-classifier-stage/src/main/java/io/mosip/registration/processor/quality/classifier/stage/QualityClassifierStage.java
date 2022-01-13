@@ -422,9 +422,9 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 		for (BIR bir : birs) {
 
 			if (bir.getOthers() != null) {
-				List<io.mosip.kernel.biometrics.entities.Entry> othersInfo = bir.getOthers();
+				HashMap<String, String> othersInfo = bir.getOthers();
 				boolean exceptionValue = false;
-				for (io.mosip.kernel.biometrics.entities.Entry other : othersInfo) {
+				for (Map.Entry<String, String> other : othersInfo.entrySet()) {
 					if (other.getKey().equals(EXCEPTION)) {
 						if (other.getValue().equals(TRUE)) {
 							exceptionValue = true;

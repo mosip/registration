@@ -290,7 +290,7 @@ public class AuthUtil {
 
 	private boolean isExceptionBIR(io.mosip.kernel.biometrics.entities.BIR bir) {
 		if(bir.getOthers() != null) {
-			Optional<io.mosip.kernel.biometrics.entities.Entry> entry = bir.getOthers().stream().filter(
+			Optional<Entry<String, String>> entry = bir.getOthers().entrySet().stream().filter(
 				it -> it.getKey().equals(JsonConstant.BIOMETRICRECORDEXCEPTION)).findAny();
 			if(entry.isPresent() && entry.get().getValue().equals("true"))
 				return true;
