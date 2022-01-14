@@ -1,8 +1,24 @@
 package io.mosip.registration.processor.biodedupe.service;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.biometrics.entities.Entry;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
@@ -24,20 +40,6 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
-import org.json.simple.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class CbeffValidateAndVerificatonService {
@@ -50,6 +52,9 @@ public class CbeffValidateAndVerificatonService {
 
     @Value("${registration.processor.subscriber.id}")
     private String subscriberId;
+    
+    @Value("#{'${mosip.regproc.cbeff-validation.mandatory.modalities:Right,Left,LeftRingFinger,LeftLittleFinger,RightRingFinger,LeftThumb,LeftIndexFinger,RightIndexFinger,RightLittleFinger,RightMiddleFinger,LeftMiddleFinger,RightThumb,Face}'.split(',')}")
+	private List<String> mandatoryModalities ;
 
     /** The utilities. */
     @Autowired
@@ -69,27 +74,30 @@ public class CbeffValidateAndVerificatonService {
             throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
 
         Map<String, List<String>> typeAndSubtypMap = createTypeSubtypeMapping(id);
-        List<String> modalities = new ArrayList<>();
-        for (Map.Entry<String, List<String>> entry : typeAndSubtypMap.entrySet()) {
-            if (entry.getValue() == null)
-                modalities.add(entry.getKey());
-            else
-                modalities.addAll(entry.getValue());
-        }
+        
 
         JSONObject regProcessorIdentityJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
         String individualBiometricsLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(
                 regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS), MappingJsonConstants.VALUE);
 
         BiometricRecord biometricRecord = priorityBasedPacketManagerService.getBiometrics(id, individualBiometricsLabel,
-                modalities, process, ProviderStageName.BIO_DEDUPE);
+        		mandatoryModalities, process, ProviderStageName.BIO_DEDUPE);
 
-        Set<String> availableTypes = biometricRecord != null && !CollectionUtils.isEmpty(biometricRecord.getSegments()) ?
-                biometricRecord.getSegments().stream().map(b -> b.getBdbInfo().getType() != null ?
-                b.getBdbInfo().getType().iterator().next().value() : null).collect(Collectors.toSet()) : null;
+        Set<String> availableModalities = biometricRecord != null && !CollectionUtils.isEmpty(biometricRecord.getSegments()) ?
+                biometricRecord.getSegments().stream().map(b -> {
+                	if(b.getBdbInfo().getType()!=null || !b.getBdbInfo().getType().isEmpty()) {
+                		for(Entry entry:b.getOthers()) {
+                			if(entry.getKey().equals("EXCEPTION") &&!entry.getValue().equals("true")) {
+                				return b.getBdbInfo().getSubtype()!=null ||!b.getBdbInfo().getSubtype().isEmpty()?String.join(" ", b.getBdbInfo().getSubtype())
+                						:b.getBdbInfo().getType().iterator().next().value();
+                			}
+                		}
+                	}
+                	return null;
+                }).collect(Collectors.toSet()) : null;
 
-        boolean isBiometricsNotPresent = availableTypes != null ? typeAndSubtypMap.keySet().stream().noneMatch(
-                type -> availableTypes.contains(type)) : true;
+        boolean isBiometricsNotPresent = availableModalities != null ? mandatoryModalities.stream().noneMatch(
+                modalities -> availableModalities.contains(modalities)) : true;
 
         if (isBiometricsNotPresent)
             throw new CbeffNotFoundException("Biometrics not found for : " + id);
