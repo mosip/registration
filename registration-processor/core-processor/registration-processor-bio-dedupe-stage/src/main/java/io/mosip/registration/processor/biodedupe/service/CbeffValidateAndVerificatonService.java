@@ -53,7 +53,9 @@ public class CbeffValidateAndVerificatonService {
     @Value("${registration.processor.subscriber.id}")
     private String subscriberId;
     
-    @Value("#{'${mosip.regproc.cbeff-validation.mandatory.modalities:Right,Left,LeftRingFinger,LeftLittleFinger,RightRingFinger,LeftThumb,LeftIndexFinger,RightIndexFinger,RightLittleFinger,RightMiddleFinger,LeftMiddleFinger,RightThumb,Face}'.split(',')}")
+    @Value("#{'${mosip.regproc.cbeff-validation.mandatory.modalities:Right,Left,Left RingFinger,Left LittleFinger,"
+    		+ "Right RingFinger,Left Thumb,Left IndexFinger,Right IndexFinger,Right LittleFinger,Right MiddleFinger,"
+    		+ "Left MiddleFinger,Right Thumb,Face}'.split(',')}")
 	private List<String> mandatoryModalities ;
 
     /** The utilities. */
@@ -88,7 +90,8 @@ public class CbeffValidateAndVerificatonService {
                 	if(b.getBdbInfo().getType()!=null || !b.getBdbInfo().getType().isEmpty()) {
                 		for(Entry entry:b.getOthers()) {
                 			if(entry.getKey().equals("EXCEPTION") &&!entry.getValue().equals("true")) {
-                				return b.getBdbInfo().getSubtype()!=null ||!b.getBdbInfo().getSubtype().isEmpty()?String.join(" ", b.getBdbInfo().getSubtype())
+                				return b.getBdbInfo().getSubtype()!=null ||!b.getBdbInfo().getSubtype().isEmpty()?
+                						String.join(" ", b.getBdbInfo().getSubtype())
                 						:b.getBdbInfo().getType().iterator().next().value();
                 			}
                 		}
