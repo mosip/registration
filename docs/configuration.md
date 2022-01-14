@@ -29,9 +29,10 @@ registration-processor-default-dmz.properties
 registration-processor-print-text-file.json
 identity-mapping.json
 ```
+The above files are located in [mosip-config](https://github.com/mosip/mosip-config/blob/develop2-v2/) repo
+
 The `*-dmz` files are applicable only to [sandbox v2](https://github.com/mosip/mosip-infra/tree/1.2.0-rc2/deployment/sandbox-v2) installation.  [sandbox v3](https://github.com/mosip/mosip-infra/tree/1.2.0-rc2/deployment/v3) does not use them.
 
-The above files are located in [mosip-config](https://github.com/mosip/mosip-config/blob/develop2-v2/) repo
 
 ## DB
 * `mosip.registration.processor.database.hostname`
