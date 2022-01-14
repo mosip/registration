@@ -89,7 +89,7 @@ See [DB guide](db_scripts/README.md)
 ## Registration Packet Structure
 [Packetmanager](https://github.com/mosip/packet-manager/tree/develop/README.md)
 
-## Build
+## Build & run (for developers)
 The project requires JDK 1.11. 
 1. To build jars:
     ```
