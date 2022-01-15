@@ -18,7 +18,6 @@ Sections here list the sequence in which various stages/services are called for 
 * [Bio dedupe](../registration-processor/core-processor/registration-processor-bio-dedupe-stage)
 * Verification
 * [ABIS handler](../registration-processor/core-processor/registration-processor-abis-handler-stage)
-* ABIS middleware
 * [ABIS middleware ](../registration-processor/core-processor/registration-processor-abis-middleware-stage)
 * [Manual adjudication](../registration-processor/core-processor/registration-processor-manual-adjudication-stage)
 * UIN generator
