@@ -152,7 +152,8 @@ public enum StatusUtil {
 	MANUAL_VERIFIER_APPROVED_PACKET(StatusConstants.MANUAL_VERIFICATION_MODULE_SUCCESS + "001", "Match Not Found by Manual Verifier"), 
 	MANUAL_VERIFIER_REJECTED_PACKET(StatusConstants.MANUAL_VERIFICATION_MODULE_FAILED + "002", "Match Found by Manual Verifier"),
 	RPR_MANUAL_VERIFICATION_RESEND(StatusConstants.MANUAL_VERIFICATION_MODULE_FAILED + "003", "Error in manual verification"),
-
+	RPR_MANUAL_VERIFICATION_SENT_TO_QUEUE(StatusConstants.MANUAL_VERIFICATION_MODULE_SUCCESS + "002", "Manual verification request sent to queue"),
+	
 	// Uin generator stage
 	UIN_GENERATED_SUCCESS(StatusConstants.UIN_GENERATOR_MODULE_SUCCESS + "001","UIN Generated Successfully"), 
 	UIN_DATA_UPDATION_SUCCESS(StatusConstants.UIN_GENERATOR_MODULE_SUCCESS + "002","UIN Data is drafted Successfully"),
@@ -252,7 +253,11 @@ public enum StatusUtil {
 	
 	WORKFLOW_ACTION_SERVICE_SUCCESS(StatusConstants.WORKFLOW_ACTION_SERVICE + "001",
 			"Packet workflow resume  successfully"),
-
+	MANUAL_ADJUDICATION_FAILED(StatusConstants.MANUAL_VERIFICATION_MODULE_FAILED + "000", "manual verification failed -"),
+	MANUAL_ADJUDICATION_RID_SHOULD_NOT_EMPTY_OR_NULL(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "001",
+			"Registration Id should not empty or null "),
+	MANUAL_ADJUDICATION_MATCHEDRID_FOUND_FOR_GIVEN_RID(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "002",
+			"No matched reference id found for given RID"),
 	VERIFICATION_SUCCESS(StatusConstants.VERIFICATION_STAGE + "001", "Verification success"),
 	VERIFICATION_FAILED(StatusConstants.VERIFICATION_STAGE + "002","Verification failed"),
 	VERIFICATION_SENT(StatusConstants.VERIFICATION_STAGE + "003", "Sent for verification"),
