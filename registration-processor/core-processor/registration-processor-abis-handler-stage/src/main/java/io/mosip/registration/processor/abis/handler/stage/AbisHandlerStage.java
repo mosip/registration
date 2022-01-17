@@ -681,7 +681,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 					BIR bir = optionalBIR.get();
 					Map<String, String> othersMap = new HashMap<String, String>();
 					if (bir.getOthers() != null) {
-						othersMap = bir.getOthers().stream()
+						othersMap = bir.getOthers().entrySet().stream()
 								.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
 					}
 
