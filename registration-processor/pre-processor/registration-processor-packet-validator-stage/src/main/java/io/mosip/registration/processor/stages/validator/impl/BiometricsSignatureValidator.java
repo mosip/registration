@@ -3,6 +3,7 @@ package io.mosip.registration.processor.stages.validator.impl;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +26,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.biometrics.commons.BiometricsSignatureHelper;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.mosip.kernel.biometrics.entities.Entry;
 import io.mosip.kernel.core.exception.BiometricSignatureValidationException;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.http.ResponseWrapper;
@@ -74,13 +74,13 @@ public class BiometricsSignatureValidator {
 
 		List<BIR> birs = biometricRecord.getSegments();
 		for (BIR bir : birs) {
-			List<Entry> othersInfo = bir.getOthers();
+			HashMap<String, String> othersInfo = bir.getOthers();
 			if (othersInfo == null) {
 				throw new BiometricSignatureValidationException("Others value is null inside BIR");
 			}
 
 			boolean exceptionValue = false;
-			for (Entry other : othersInfo) {
+			for (Map.Entry other : othersInfo.entrySet()) {
 				if (other.getKey().equals(JsonConstant.BIOMETRICRECORDEXCEPTION)) {
 					if (other.getValue().equals(TRUE)) {
 						exceptionValue = true;
