@@ -3,11 +3,16 @@ package io.mosip.registration.processor.workflowmanager.util.test;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -29,7 +34,15 @@ public class WebSubUtilTest {
 
 	@InjectMocks
 	WebSubUtil webSubUtil;
+	
 
+	@Mock
+	Environment environment;
+
+	@Before
+	public void setup() {
+		when(environment.getProperty(Mockito.anyString())).thenReturn("").thenReturn("").thenReturn("").thenReturn("").thenReturn("").thenReturn("");
+	}
 
 	@Test
 	public void testPublishEventSuccess() throws WebSubClientException {
@@ -39,6 +52,7 @@ public class WebSubUtilTest {
 		WorkflowCompletedEventDTO workflowCompletedEventDTO = new WorkflowCompletedEventDTO();
 		webSubUtil.publishEvent(workflowCompletedEventDTO);
 		verify(pb, times(1)).publishUpdate(any(), any(WorkflowCompletedEventDTO.class), any(), any(), any());
+		
 	}
 
 	@Test
