@@ -2,7 +2,7 @@ package io.mosip.registration.processor.biodedupe.service;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map.Entry;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -62,8 +62,8 @@ public class CbeffValidateAndVerificatonService {
 
         Set<String> availableModalities = biometricRecord != null && !CollectionUtils.isEmpty(biometricRecord.getSegments()) ?
                 biometricRecord.getSegments().stream().map(b -> {
-                	if(b.getBdbInfo().getType()!=null || !b.getBdbInfo().getType().isEmpty()) {
-                		for(Entry<String, String> entry:b.getOthers().entrySet()) {
+                	if(!CollectionUtils.isEmpty(b.getBdbInfo().getType())) {
+                		for(Map.Entry entry : b.getOthers().entrySet()) {
                 			if(entry.getKey().equals("EXCEPTION") &&!entry.getValue().equals("true")) {
                 				return b.getBdbInfo().getSubtype()!=null ||!b.getBdbInfo().getSubtype().isEmpty()?
                 						String.join(" ", b.getBdbInfo().getSubtype())
