@@ -37,8 +37,7 @@ public class WebSubUtilTest {
 				"registration_processor_workflow_completed_event");
 		WorkflowCompletedEventDTO workflowCompletedEventDTO = new WorkflowCompletedEventDTO();
 		webSubUtil.publishEvent(workflowCompletedEventDTO);
-		verify(pb, times(1)).publishUpdate(any(), any(WorkflowCompletedEventDTO.class), any(), any(), any());
-		
+		verify(pb, times(1)).publishUpdate(any(), any(WorkflowCompletedEventDTO.class), any(), any(), any());		
 	}
 
 	@Test

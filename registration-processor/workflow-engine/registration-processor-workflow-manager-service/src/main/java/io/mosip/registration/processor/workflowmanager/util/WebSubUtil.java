@@ -4,7 +4,6 @@ import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -24,9 +23,6 @@ public class WebSubUtil {
 
 	@Autowired
 	private PublisherClient<String, WorkflowPausedForAdditionalInfoEventDTO, HttpHeaders> workflowPausedForAdditionalInfoPublisher;
-
-	@Autowired
-	Environment environment;
 	
 	@Value("${mosip.regproc.workflow.complete.topic}")
 	private String workflowCompleteTopic;
@@ -40,7 +36,6 @@ public class WebSubUtil {
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(WebSubUtil.class);
 	
-	private static final String AUTHORIZATION = "Authorization=";
 
 	@PostConstruct
 	private void registerTopic() {
