@@ -1,15 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_regprc
--- Table Name 	: regprc.anonymous_profile
--- Purpose    	: Storing anonymous profile info
---           
--- Create By   	: Monobikash Das
--- Created Date	: Sep-2021
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
 
--- ------------------------------------------------------------------------------------------
 
 -- object: regprc.anonymous_profile | type: TABLE --
 -- DROP TABLE IF EXISTS regprc.anonymous_profile CASCADE;

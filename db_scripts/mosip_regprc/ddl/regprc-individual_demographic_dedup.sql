@@ -1,18 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_regprc
--- Table Name 	: regprc.individual_demographic_dedup
--- Purpose    	: Individual Demographic Dedupe: Table stores applicant demographic details for deduplication, Only required information for dedupe is stored.
---           
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- 11-Nov-2019           Sadanandegowda DM   Added columns for lost UIN requirements 
--- Jan-2021	        Ram Bhatt	    Set is_deleted flag to not null and default false
--- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes for 1.1.5
--- Jul-2021		Ram Bhatt	    PK constraint change and added new column
--- ------------------------------------------------------------------------------------------
+
 
 -- object: regprc.individual_demographic_dedup | type: TABLE --
 -- DROP TABLE IF EXISTS regprc.individual_demographic_dedup CASCADE;
@@ -40,7 +26,7 @@ CREATE TABLE regprc.individual_demographic_dedup(
 );
 
 -- indexes section -------------------------------------------------
-create index idx_idemogd_namedobgender on regprc.individual_demographic_dedup (name, dob,gender);
+CREATE INDEX IF NOT EXISTS idx_idemogd_namedob ON regprc.individual_demographic_dedup USING btree (name, dob);
 
 -- ddl-end --
 COMMENT ON TABLE regprc.individual_demographic_dedup IS 'Individual Demographic Dedupe: Table stores applicant demographic details for deduplication, Only required information for dedupe is stored. ';
