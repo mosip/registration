@@ -83,7 +83,6 @@ One of the power features is to enable throttling in the pipeline.  See [Throttl
 Distributed cache - for packetmanager
 
 ## Database
-
 See [DB guide](db_scripts/README.md)
 
 ## Registration Packet Structure
