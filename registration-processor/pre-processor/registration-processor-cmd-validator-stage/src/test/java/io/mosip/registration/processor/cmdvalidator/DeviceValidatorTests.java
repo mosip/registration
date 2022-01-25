@@ -269,4 +269,22 @@ public class DeviceValidatorTests {
 		deviceValidator.validate(regOsi, process, registrationId);
 
 	}
+	
+	@Test(expected = BaseCheckedException.class)
+	public void deviceValidationOfficerBiometricsInPacket() throws JSONException, IOException, BaseCheckedException {
+		Map<String, String> metamap = new HashMap<>();
+		metamap.put(JsonConstant.OPERATIONSDATA, "[ {\n  \"label\" : \"officerId\",\n  \"value\" : \"5151\"\n},"
+				+ " {\n  \"label\" : \"officerBiometricFileName\",\n  \"value\" : \"individualBiometrics\"\n}, "
+				+ "{\n  \"label\" : \"supervisorId\",\n  \"value\" : \"5050\"\n}, "
+				+ "{\n  \"label\" : \"supervisorBiometricFileName\",\n  \"value\" : null\n}, "
+				+ "{\n  \"label\" : \"supervisorPassword\",\n  \"value\" : \"true\"\n}, "
+				+ "{\n  \"label\" : \"officerPassword\",\n  \"value\" : \"true\"\n}, "
+				+ "{\n  \"label\" : \"supervisorPIN\",\n  \"value\" : null\n}, "
+				+ "{\n  \"label\" : \"officerPIN\",\n  \"value\" : null\n}, "
+				+ "{\n  \"label\" : \"supervisorOTPAuthentication\",\n  \"value\" : \"false\"\n}, "
+				+ "{\n  \"label\" : \"officerOTPAuthentication\",\n  \"value\" : \"false\"\n} ]");
+		Mockito.when(packetManagerService.getMetaInfo(anyString(), anyString(), any())).thenReturn(metamap);
+		deviceValidator.validate(regOsi, process, registrationId);
+
+	}
 }

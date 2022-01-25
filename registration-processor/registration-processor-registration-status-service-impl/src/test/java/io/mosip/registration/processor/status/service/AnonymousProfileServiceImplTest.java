@@ -70,6 +70,7 @@ public class AnonymousProfileServiceImplTest {
 	Map<String, String> fieldMap = new HashedMap();
 	Map<String, String> metaInfoMap = new HashedMap();
 	BiometricRecord biometricRecord = new BiometricRecord();
+	BiometricRecord biometricRecord1 = new BiometricRecord();
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Before
@@ -120,7 +121,14 @@ public class AnonymousProfileServiceImplTest {
 
 		bir.setOthers(entry);
 		biometricRecord.setSegments(Arrays.asList(bir));
-
+		BIR bir1 = new BIR();
+		bir1.setBdbInfo(bdbInfo);
+		bir1.setSb("eyJ4NWMiOlsiTUlJRGtEQ0NBbmlnQXdJQkFnSUVwNzo".getBytes());
+		bir1.setBdb("SUlSADAyMAAAACc6AAEAAQAAJyoH5AoJECYh//8Bc18wBgAAAQIDCgABlwExCA".getBytes());
+		HashMap<String, String> entry1 = new HashMap<String, String>();
+		entry1.put("EXCEPTION", "true");
+		bir1.setOthers(entry1);
+		biometricRecord1.setSegments(Arrays.asList(bir1));
 		Mockito.when(anonymousProfileRepository.save(Mockito.any(AnonymousProfileEntity.class))).thenReturn(new AnonymousProfileEntity());
 		String mappingJsonString = "{\"identity\":{\"IDSchemaVersion\":{\"value\":\"IDSchemaVersion\"},\"address\":{\"value\":\"permanentAddressLine1,permanentAddressLine2,permanentAddressLine3,permanentRegion,permanentProvince,permanentCity,permanentZone,permanentPostalcode\"},\"phone\":{\"value\":\"phone\"},\"email\":{\"value\":\"email\"}}}";
 
@@ -220,6 +228,63 @@ public class AnonymousProfileServiceImplTest {
 				.thenReturn(doc2).thenReturn(new FieldValue("centerId", "1003"))
 				.thenReturn(new FieldValue("officerId", "110024"));
 		assertEquals(json, anonymousProfileService.buildJsonStringFromPacketInfo(biometricRecord, fieldMap,
+				fieldTypeMap, metaInfoMap, "PROCESSED", "packetValidatorStage"));
+	}
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test
+	public void buildJsonStringFromPacketInfoVariousScenarioTest() throws JSONException, IOException, BaseCheckedException {
+
+		ReflectionTestUtils.setField(anonymousProfileService, "isPreferredLangEnabled", true);
+		fieldMap.put("email", "satish@gmail.com");
+		fieldMap.put("gender",
+				"[ {\"language\" : \"eng\",\"value\" : null}, {\"language\" : \"ara\",\"value\" : \"أنثى\"} ]");
+		metaInfoMap.put("operationsData",
+				"[{\"label\" : \"supervisorId\",\"value\" : \"110024\"},{\"label\" : \"supervisorBiometricFileName\",\"value\" : \"null\"}]");
+		
+		String json = "{\"processName\":\"NEW\",\"processStage\":\"packetValidatorStage\",\"date\":\"2021-09-12T06:50:19.517872400Z\",\"startDateTime\":\"2021-09-12T06:50:19.517872400Z\",\"endDateTime\":\"2021-09-12T06:50:19.517872400Z\",\"yearOfBirth\":1998,\"gender\":null,\"location\":[null,\"14022\"],\"preferredLanguages\":[\"English\"],\"channel\":[\"email\",\"phone\"],\"exceptions\":[{\"type\":\"FINGER\",\"subType\":\"Left RingFinger\"}],\"verified\":null,\"biometricInfo\":[],\"device\":null,\"documents\":[\"CIN\",\"RNC\"],\"assisted\":[\"110024\"],\"enrollmentCenterId\":\"1003\",\"status\":\"PROCESSED\"}";
+		Document doc1 = new Document();
+		doc1.setDocumentType("CIN");
+		Document doc2 = new Document();
+		doc2.setDocumentType("RNC");
+
+		org.json.simple.JSONObject mappingJsonObject = new JSONObject();
+		LinkedHashMap identity = new LinkedHashMap();
+		LinkedHashMap IDSchemaVersion = new LinkedHashMap();
+		IDSchemaVersion.put("value", "IDSchemaVersion");
+		LinkedHashMap address = new LinkedHashMap();
+		address.put("value",
+				"permanentAddressLine1,permanentAddressLine2,permanentAddressLine3,permanentRegion,permanentProvince,permanentCity,permanentZone,permanentPostalcode");
+		LinkedHashMap phone = new LinkedHashMap();
+		phone.put("value", "phone");
+		LinkedHashMap email = new LinkedHashMap();
+		email.put("value", "email");
+		LinkedHashMap dateOfBirth = new LinkedHashMap();
+		dateOfBirth.put("value", "dateOfBirth");
+		LinkedHashMap gender = new LinkedHashMap();
+		gender.put("value", "gender");
+		LinkedHashMap locationHierarchyForProfiling = new LinkedHashMap();
+		locationHierarchyForProfiling.put("value", "zone,postalCode");
+		LinkedHashMap preferredLang = new LinkedHashMap();
+		preferredLang.put("value", "preferredLang");
+
+		identity.put("IDSchemaVersion", IDSchemaVersion);
+		identity.put("address", address);
+		identity.put("phone", phone);
+		identity.put("email", email);
+		identity.put("dob", dateOfBirth);
+		identity.put("gender", gender);
+		identity.put("preferredLanguage", preferredLang);
+		identity.put("locationHierarchyForProfiling", locationHierarchyForProfiling);
+		mappingJsonObject.put("identity", identity);
+		String mappingJsonString = "{\"identity\":{\"IDSchemaVersion\":{\"value\":\"IDSchemaVersion\"},\"address\":{\"value\":\"permanentAddressLine1,permanentAddressLine2,permanentAddressLine3,permanentRegion,permanentProvince,permanentCity,permanentZone,permanentPostalcode\"},\"phone\":{\"value\":\"phone\"},\"email\":{\"value\":\"email\"},\"preferredLanguage\":{\"value\":\"preferredLang\"}}}";
+
+		Mockito.when(anonymousProfileRepository.save(Mockito.any(AnonymousProfileEntity.class))).thenReturn(new AnonymousProfileEntity());
+		Mockito.when(restTemplate.getForObject(anyString(), eq(String.class))).thenReturn(mappingJsonString);
+		Mockito.when(mapper.readValue(anyString(), any(Class.class)))
+				.thenReturn(new FieldValue("registrationType", "NEW")).thenReturn(mappingJsonObject).thenReturn(doc1)
+				.thenReturn(doc2).thenReturn(new FieldValue("centerId", "1003"))
+				.thenReturn(new FieldValue("supervisorId", "110024"));
+		assertEquals(json, anonymousProfileService.buildJsonStringFromPacketInfo(biometricRecord1, fieldMap,
 				fieldTypeMap, metaInfoMap, "PROCESSED", "packetValidatorStage"));
 	}
 
