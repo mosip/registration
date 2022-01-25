@@ -659,7 +659,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 				throw new DataShareException("Biometrics Segments Not Configured for modality : " + biometricSegment);
 			}
 			for (String segment : biometricModalitySegmentsMap.get(biometricSegment)) {
-				Optional<BIR> optionalBIR = null;
+				Optional<BIR> optionalBIR = Optional.empty();
 				if (segment.equalsIgnoreCase("Face")) {
 					optionalBIR = biometricRecord.getSegments().stream()
 							.filter(bir -> bir.getBdbInfo().getType() != null
@@ -677,7 +677,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 									: false)
 							.findFirst();
 				}
-				if (optionalBIR != null && optionalBIR.isPresent()) {
+				if (optionalBIR.isPresent()) {
 					BIR bir = optionalBIR.get();
 					Map<String, String> othersMap = new HashMap<String, String>();
 					if (bir.getOthers() != null) {

@@ -352,7 +352,7 @@ public class DemodedupeProcessor {
 				}
 			}
 			else {
-				if (env.getProperty(DEMODEDUPEENABLE).trim().equalsIgnoreCase(TRUE)) {
+				if (env.getProperty(DEMODEDUPEENABLE)!=null && env.getProperty(DEMODEDUPEENABLE).trim().equalsIgnoreCase(TRUE)) {
 					isDemoDedupeSkip = false;
 				duplicateDtos = performDemoDedupe(registrationStatusDto, object, description);
 				if (duplicateDtos.isEmpty())
