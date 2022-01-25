@@ -117,6 +117,7 @@ public class StagesConfig {
 		String uri = environment.getProperty(ConfigurationUtil.CLOUD_CONFIG_URI);
 		String label = environment.getProperty(ConfigurationUtil.CLOUD_CONFIG_LABEL);
 		List<String> profiles = getProfiles(environment);
+		if(appNames!=null && profiles !=null) {
 		profiles.forEach(profile -> {
 			appNames.forEach(app -> {
 				String url = uri + "/" + app + "/" + profile + "/" + label;
@@ -125,6 +126,7 @@ public class StagesConfig {
 		});
 		appNames.forEach(appName -> {
 		});
+		}
 		return configUrls;
 	}
 	
@@ -135,7 +137,7 @@ public class StagesConfig {
 
 	private static List<String> getProfiles(Environment env) {
 		String names = env.getProperty(ConfigurationUtil.ACTIVE_PROFILES);
-		return Stream.of(names.split(",")).collect(Collectors.toList());
+		return names!=null?Stream.of(names.split(",")).collect(Collectors.toList()):null;
 	}
 	
 	public String getStageGroupName() {

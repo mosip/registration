@@ -854,8 +854,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			}
 			lostRidDtos.add(lostRidDto);
 		});
-		lostRidDtos.stream().distinct().collect(Collectors.toList());
-		return lostRidDtos;
+		return lostRidDtos.stream().distinct().collect(Collectors.toList());
 	}
 
 	private void getAdditionalInfo(String referenceId, byte[] optionalValues, Map<String, String> additionalInfo)  {

@@ -98,7 +98,7 @@ public class LostRidRequestValidator {
 		if (Objects.isNull(id)) {
 
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER_ID, exception);
-		} else if (!env.getProperty(REG_LOSTRID_SERVICE_ID).equals(id)) {
+		} else if (env.getProperty(REG_LOSTRID_SERVICE_ID)!=null && !env.getProperty(REG_LOSTRID_SERVICE_ID).equals(id)) {
 
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_INVALID_INPUT_PARAMETER_ID, exception);
 
@@ -170,7 +170,7 @@ public class LostRidRequestValidator {
 		if (Objects.isNull(ver)) {
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER_VERSION, exception);
 
-		} else if (!version.equals(ver)) {
+		} else if (version!=null && !version.equals(ver)) {
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_INVALID_INPUT_PARAMETER_VERSION, exception);
 		}
 	}

@@ -30,6 +30,7 @@ import org.springframework.web.reactive.function.client.WebClient.ResponseSpec;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import brave.http.HttpRuleSampler.Builder;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
@@ -88,10 +89,14 @@ public class RestHelperImpl implements RestHelper {
 		RequestBodyUriSpec method;
 
 		if (request.getHeaders() != null) {
-			webClient = WebClient.builder()
+			org.springframework.web.reactive.function.client.WebClient.Builder webClientBuilder = WebClient.builder()
 					.clientConnector(new ReactorClientHttpConnector(builder -> builder.sslContext(sslContext)))
-					.baseUrl(request.getUri())
-					.defaultHeader(HttpHeaders.CONTENT_TYPE, request.getHeaders().getContentType().toString()).build();
+					.baseUrl(request.getUri());
+			if (request.getHeaders().getContentType() != null) {
+				webClientBuilder = webClientBuilder.defaultHeader(HttpHeaders.CONTENT_TYPE,
+						request.getHeaders().getContentType().toString());
+			}
+			webClient = webClientBuilder.build();
 		} else {
 			webClient = WebClient.builder()
 					.clientConnector(new ReactorClientHttpConnector(builder -> builder.sslContext(sslContext)))

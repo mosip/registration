@@ -112,9 +112,10 @@ public class IdSchemaUtil {
                 idschema.put(version, responseString);
             } else
                 idschema.put(version, responseString);
-        }
-
-        return idschema.get(version);
+            return idschema.get(version);
+        }else {
+        	throw new RuntimeException("responseString is null");
+        }   
     }
 
     private JSONObject getIdentityFieldsSchema(String schemaJson) throws JSONException {
