@@ -103,7 +103,9 @@ public class StagesConfig {
 				}
 			});
 			return (Map<String,Object>)configLoader.get().mapTo(Map.class);
-		} catch (Exception e1) {
+		}
+		// TODO change exception to catch and rethrow intruppted exception before base exception
+		catch (Exception e1) {
 			regProcLogger.error(ExceptionUtils.getStackTrace(e1));
 			throw new RuntimeException("Could not load config", e1);
 		}
@@ -128,7 +130,7 @@ public class StagesConfig {
 	
 	private static List<String> getAppNames(Environment env) {
 		String names = env.getProperty(ConfigurationUtil.APPLICATION_NAMES);
-		return Stream.of(names.split(",")).collect(Collectors.toList());
+		return names!=null?Stream.of(names.split(",")).collect(Collectors.toList()):null;
 	}
 
 	private static List<String> getProfiles(Environment env) {

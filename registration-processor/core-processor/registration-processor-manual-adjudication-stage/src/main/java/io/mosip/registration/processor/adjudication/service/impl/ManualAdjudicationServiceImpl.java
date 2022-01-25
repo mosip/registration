@@ -229,6 +229,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 	 */
 	@Override
 	public boolean updatePacketStatus(ManualAdjudicationResponseDTO manualVerificationDTO, String stageName,MosipQueue queue) {
+		
 		TrimExceptionMessage trimExceptionMessage = new TrimExceptionMessage();
 		LogDescription description = new LogDescription();
 		boolean isTransactionSuccessful = false;
@@ -237,20 +238,22 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 				manualVerificationDTO.getRequestId(), "ManualVerificationServiceImpl::updatePacketStatus()::entry");
 
 		ManualVerificationEntity entity = validateRequestIdAndReturnRid(manualVerificationDTO.getRequestId());
-		String regId = entity.getRegId();
+		String regId = entity!=null?entity.getRegId():null;
 
-		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
-				.getRegistrationStatus(entity.getRegId(), null, null, entity.getId().getWorkflowInstanceId());
-		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.MANUAL_ADJUDICATION.name());
-		registrationStatusDto.setRegistrationStageName(stageName);
+		InternalRegistrationStatusDto registrationStatusDto = null;
 
 		MessageDTO messageDTO = new MessageDTO();
-		messageDTO.setInternalError(false);
-		messageDTO.setIsValid(false);
-		messageDTO.setRid(regId);
-		messageDTO.setReg_type(registrationStatusDto.getRegistrationType());
+		
 
 		try {
+			registrationStatusDto = registrationStatusService
+					.getRegistrationStatus((entity!=null?entity.getRegId():null), null, null, (entity!=null?(entity.getId()!=null?entity.getId().getWorkflowInstanceId():null):null));
+			registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.MANUAL_ADJUDICATION.name());
+			registrationStatusDto.setRegistrationStageName(stageName);
+			messageDTO.setInternalError(false);
+			messageDTO.setIsValid(false);
+			messageDTO.setRid(regId);
+			messageDTO.setReg_type(registrationStatusDto.getRegistrationType());
 
 			List<ManualVerificationEntity> entities = retrieveInqueuedRecordsByRid(regId);
 
@@ -616,7 +619,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 				HashMap docmap = (HashMap) docJson.get(doc.toString());
 				String docName = docmap != null && docmap.get(MappingJsonConstants.VALUE)!= null ? docmap.get(MappingJsonConstants.VALUE).toString() : null;
 				for(Entry<String,String> entry: policyMap.entrySet()) {
-				if (entry.getValue().contains(docName)) {
+				if (entry.getValue().contains(docName) && docmap!=null) {
 					if(documents==null || documents.isEmpty()) {
 						Document document = packetManagerService.getDocument(id, doc.toString(), process, ProviderStageName.MANUAL_ADJUDICATION);
 						if (document != null) {

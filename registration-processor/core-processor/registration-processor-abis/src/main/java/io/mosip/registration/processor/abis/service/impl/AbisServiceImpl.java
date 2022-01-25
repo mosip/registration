@@ -221,7 +221,7 @@ public class AbisServiceImpl implements AbisService {
 
 			response.setReturnValue("1");
 			String duplicateIndicator = env.getProperty(duplicateSet);
-			if (StringUtils.isNotEmpty(duplicateIndicator) && duplicateIndicator.equalsIgnoreCase("true")) {
+			if (duplicateIndicator!=null && StringUtils.isNotEmpty(duplicateIndicator) && duplicateIndicator.equalsIgnoreCase("true")) {
 				addCandidateList(identifyReqId, identifyRequest, response);
 			}
 
