@@ -12,7 +12,6 @@ import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.entities.RegistryIDType;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.ApiName;
@@ -148,9 +147,6 @@ public class VerificationServiceTest {
 
 	@Mock
 	LogDescription description;
-
-	@Mock
-	ObjectMapper mapper;
 
 	@Mock
 	private Environment env;
@@ -421,10 +417,10 @@ public class VerificationServiceTest {
 	}
 
 	@Test(expected = InvalidRidException.class)
-	public void testInvalidRidException() throws JsonProcessingException {
+	public void testInvalidRidException() throws JsonProcessingException, com.fasterxml.jackson.core.JsonProcessingException {
 
 
-		String response = JsonUtils.javaObjectToJsonString(resp);
+		String response = new ObjectMapper().writeValueAsString(resp);
 
 		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
 		ByteSequence byteSeq = new ByteSequence();
@@ -437,10 +433,10 @@ public class VerificationServiceTest {
 	}
 
 	@Test
-	public void testNoRecordAssignedException() throws JsonProcessingException {
+	public void testNoRecordAssignedException() throws JsonProcessingException, com.fasterxml.jackson.core.JsonProcessingException {
 
 
-		String response = JsonUtils.javaObjectToJsonString(resp);
+		String response = new ObjectMapper().writeValueAsString(resp);
 
 		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
 		ByteSequence byteSeq = new ByteSequence();
@@ -453,11 +449,11 @@ public class VerificationServiceTest {
 	}
 
 	@Test
-	public void testUpdateStatusSuccess() throws JsonProcessingException {
+	public void testUpdateStatusSuccess() throws JsonProcessingException, com.fasterxml.jackson.core.JsonProcessingException {
 
 		Mockito.when(basePacketRepository.getAssignedVerificationRecord(anyString(), anyString())).thenReturn(entities);
 
-		String response = JsonUtils.javaObjectToJsonString(resp);
+		String response = new ObjectMapper().writeValueAsString(resp);
 
 		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
 		ByteSequence byteSeq = new ByteSequence();
@@ -470,11 +466,11 @@ public class VerificationServiceTest {
 	}
 
 	@Test
-	public void testUpdateStatusResend() throws JsonProcessingException {
+	public void testUpdateStatusResend() throws JsonProcessingException, com.fasterxml.jackson.core.JsonProcessingException {
 
 		Mockito.when(basePacketRepository.getAssignedVerificationRecord(anyString(), anyString())).thenReturn(entities);
 
-		String response = JsonUtils.javaObjectToJsonString(resp);
+		String response = new ObjectMapper().writeValueAsString(resp);
 
 		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
 		ByteSequence byteSeq = new ByteSequence();
@@ -490,11 +486,11 @@ public class VerificationServiceTest {
 	}
 
 	@Test
-	public void testUpdateStatusRejected() throws JsonProcessingException {
+	public void testUpdateStatusRejected() throws JsonProcessingException, com.fasterxml.jackson.core.JsonProcessingException {
 
 		Mockito.when(basePacketRepository.getAssignedVerificationRecord(anyString(), anyString())).thenReturn(entities);
 
-		String response = JsonUtils.javaObjectToJsonString(resp);
+		String response = new ObjectMapper().writeValueAsString(resp);
 
 		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
 		ByteSequence byteSeq = new ByteSequence();
