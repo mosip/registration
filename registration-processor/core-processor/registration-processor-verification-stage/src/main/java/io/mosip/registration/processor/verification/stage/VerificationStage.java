@@ -17,7 +17,6 @@ import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.verification.exception.InvalidMessageException;
 import io.mosip.registration.processor.verification.exception.handler.ManualVerificationExceptionHandler;
-import io.mosip.registration.processor.verification.response.builder.ManualVerificationResponseBuilder;
 import io.mosip.registration.processor.verification.response.dto.VerificationResponseDTO;
 import io.mosip.registration.processor.verification.service.VerificationService;
 import io.mosip.registration.processor.verification.util.ManualVerificationRequestValidator;
@@ -99,9 +98,6 @@ public class VerificationStage extends MosipVerticleAPIManager {
 
 	@Autowired
     ManualVerificationExceptionHandler manualVerificationExceptionHandler;
-
-	@Autowired
-    ManualVerificationResponseBuilder manualVerificationResponseBuilder;
 
 	/** Mosip router for APIs */
 	@Autowired

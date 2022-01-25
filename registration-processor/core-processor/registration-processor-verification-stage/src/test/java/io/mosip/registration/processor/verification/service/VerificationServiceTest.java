@@ -38,13 +38,8 @@ import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequest
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
-import io.mosip.registration.processor.verification.dto.ManualVerificationDTO;
-import io.mosip.registration.processor.verification.dto.ManualVerificationStatus;
-import io.mosip.registration.processor.verification.dto.MatchDetail;
-import io.mosip.registration.processor.verification.dto.UserDto;
-import io.mosip.registration.processor.verification.dto.VerificationDecisionDto;
+import io.mosip.registration.processor.verification.dto.*;
 import io.mosip.registration.processor.verification.exception.InvalidRidException;
-import io.mosip.registration.processor.verification.exception.NoRecordAssignedException;
 import io.mosip.registration.processor.verification.response.dto.VerificationResponseDTO;
 import io.mosip.registration.processor.verification.service.impl.VerificationServiceImpl;
 import io.mosip.registration.processor.verification.stage.VerificationStage;
@@ -52,27 +47,20 @@ import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.apache.activemq.util.ByteSequence;
 import org.json.simple.JSONObject;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -80,7 +68,6 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Matchers.any;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ Utilities.class, JsonUtil.class })
 @PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*","javax.management.*", "javax.net.ssl.*" })
 public class VerificationServiceTest {
 
@@ -89,6 +76,9 @@ public class VerificationServiceTest {
 	private List<VerificationEntity> entitiesTemp;
 	@InjectMocks
 	private VerificationService verificationService = new VerificationServiceImpl();
+	
+	@Autowired
+	private ObjectMapper objectMapper = new ObjectMapper();
 
 	@Mock
     UserDto dto;
@@ -421,7 +411,7 @@ public class VerificationServiceTest {
 	public void testInvalidRidException() throws JsonProcessingException, com.fasterxml.jackson.core.JsonProcessingException {
 
 
-		String response = new ObjectMapper().writeValueAsString(resp);
+		String response = objectMapper.writeValueAsString(resp);
 
 		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
 		ByteSequence byteSeq = new ByteSequence();
@@ -437,7 +427,7 @@ public class VerificationServiceTest {
 	public void testNoRecordAssignedException() throws JsonProcessingException, com.fasterxml.jackson.core.JsonProcessingException {
 
 
-		String response = new ObjectMapper().writeValueAsString(resp);
+		String response = objectMapper.writeValueAsString(resp);
 
 		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
 		ByteSequence byteSeq = new ByteSequence();
@@ -449,13 +439,12 @@ public class VerificationServiceTest {
 		assertFalse(result);
 	}
 
-	@Ignore
 	@Test
-	public void testUpdateStatusSuccess() throws JsonProcessingException, com.fasterxml.jackson.core.JsonProcessingException {
+	public void testUpdateStatusSuccess() throws com.fasterxml.jackson.core.JsonProcessingException {
 
 		Mockito.when(basePacketRepository.getAssignedVerificationRecord(anyString(), anyString())).thenReturn(entities);
 
-		String response = new ObjectMapper().writeValueAsString(resp);
+		String response = objectMapper.writeValueAsString(resp);
 
 		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
 		ByteSequence byteSeq = new ByteSequence();
@@ -468,11 +457,11 @@ public class VerificationServiceTest {
 	}
 
 	@Test
-	public void testUpdateStatusResend() throws JsonProcessingException, com.fasterxml.jackson.core.JsonProcessingException {
+	public void testUpdateStatusResend() throws com.fasterxml.jackson.core.JsonProcessingException {
 
 		Mockito.when(basePacketRepository.getAssignedVerificationRecord(anyString(), anyString())).thenReturn(entities);
 
-		String response = new ObjectMapper().writeValueAsString(resp);
+		String response = objectMapper.writeValueAsString(resp);
 
 		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
 		ByteSequence byteSeq = new ByteSequence();
@@ -487,13 +476,12 @@ public class VerificationServiceTest {
 		assertFalse(result);
 	}
 
-	@Ignore
 	@Test
 	public void testUpdateStatusRejected() throws JsonProcessingException, com.fasterxml.jackson.core.JsonProcessingException {
 
 		Mockito.when(basePacketRepository.getAssignedVerificationRecord(anyString(), anyString())).thenReturn(entities);
 
-		String response = new ObjectMapper().writeValueAsString(resp);
+		String response = objectMapper.writeValueAsString(resp);
 
 		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
 		ByteSequence byteSeq = new ByteSequence();
