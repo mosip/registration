@@ -469,8 +469,8 @@ public class DemodedupeProcessorTest {
 		registrationStatusDto.setRegistrationType(RegistrationType.NEW.toString());
 		Mockito.when(registrationStatusDao.find(any(),any(),any(),any())).thenReturn(entity);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
-		assertFalse(messageDto.getIsValid());
-		assertTrue(messageDto.getInternalError());
+		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 
 	}
 
