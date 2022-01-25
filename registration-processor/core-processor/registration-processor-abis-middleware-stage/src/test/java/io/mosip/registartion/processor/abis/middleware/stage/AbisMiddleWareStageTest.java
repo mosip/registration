@@ -1,12 +1,13 @@
 package io.mosip.registartion.processor.abis.middleware.stage;
 
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.mosip.registration.processor.core.util.PropertiesUtil;
 import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.apache.activemq.util.ByteSequence;
 import org.junit.Before;
@@ -156,6 +157,9 @@ public class AbisMiddleWareStageTest {
 
 	};
 
+	@Mock
+	private PropertiesUtil propertiesUtil;
+
 	@Before
 	public void setUp() throws RegistrationProcessorCheckedException {
 		MockitoAnnotations.openMocks(this);
@@ -166,7 +170,7 @@ public class AbisMiddleWareStageTest {
 		InternalRegistrationStatusDto internalRegStatusDto = new InternalRegistrationStatusDto();
 		internalRegStatusDto.setRegistrationId("");
 		internalRegStatusDto.setLatestTransactionStatusCode("Demodedupe");
-		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.anyString(),any(),any(), any()))
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
 				.thenReturn(internalRegStatusDto);
 
 		regStatusEntity = new RegistrationStatusEntity();
@@ -302,6 +306,8 @@ public class AbisMiddleWareStageTest {
 
 		// Mockito.when(utility.getInboundOutBoundAddressList()).thenReturn(abisInboundOutBounAddressList);
 		messageTTL = 30 * 60;
+
+		Mockito.when(propertiesUtil.getProperty(any(), any(Class.class), anyBoolean())).thenReturn(true);
 	}
 
 	@Test
@@ -565,7 +571,10 @@ public class AbisMiddleWareStageTest {
 		String response = new String(((ActiveMQBytesMessage) amq).getContent().data);
 		PowerMockito.mockStatic(JsonUtil.class);
 		PowerMockito.when(JsonUtil.objectMapperReadValue(response, AbisIdentifyResponseDto.class)).thenReturn(abisIdentifyResponseDto);
+		PowerMockito.when(JsonUtil.readValueWithUnknownProperties(failedInsertResponse,
+				AbisIdentifyResponseDto.class)).thenReturn(abisIdentifyResponseDto);
 		Mockito.when(packetInfoDao.getRegIdByBioRefId(ArgumentMatchers.any())).thenReturn("Test123");
+
 		stage.consumerListener(amq, "abis1_inboundAddress", queue, evenBus, messageTTL);
 	}
 	
