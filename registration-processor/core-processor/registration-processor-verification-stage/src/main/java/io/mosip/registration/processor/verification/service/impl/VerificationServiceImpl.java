@@ -1,37 +1,66 @@
 package io.mosip.registration.processor.verification.service.impl;
 
-import static io.mosip.registration.processor.verification.constants.VerificationConstants.DATETIME_PATTERN;
-
-import java.io.IOException;
-import java.net.URL;
-import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.JsonUtils;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
+import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
+import io.mosip.registration.processor.core.code.*;
+import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.PolicyConstant;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
-import io.mosip.registration.processor.packet.storage.exception.UnableToInsertData;
-import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
+import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
+import io.mosip.registration.processor.core.http.ResponseWrapper;
+import io.mosip.registration.processor.core.logger.LogDescription;
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.packet.dto.Identity;
+import io.mosip.registration.processor.core.queue.factory.MosipQueue;
+import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
+import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
+import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
+import io.mosip.registration.processor.core.status.util.StatusUtil;
+import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
+import io.mosip.registration.processor.core.util.JsonUtil;
+import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
+import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
+import io.mosip.registration.processor.packet.storage.dto.Document;
 import io.mosip.registration.processor.packet.storage.entity.VerificationEntity;
 import io.mosip.registration.processor.packet.storage.entity.VerificationPKEntity;
-import io.mosip.registration.processor.verification.exception.MatchedRefNotExistsException;
+import io.mosip.registration.processor.packet.storage.exception.UnableToInsertData;
+import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
+import io.mosip.registration.processor.status.code.RegistrationStatusCode;
+import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
+import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
+import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
+import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import io.mosip.registration.processor.verification.constants.VerificationConstants;
+import io.mosip.registration.processor.verification.dto.DataShareRequestDto;
+import io.mosip.registration.processor.verification.dto.ManualVerificationStatus;
+import io.mosip.registration.processor.verification.exception.DataShareException;
+import io.mosip.registration.processor.verification.exception.InvalidFileNameException;
+import io.mosip.registration.processor.verification.exception.InvalidRidException;
 import io.mosip.registration.processor.verification.exception.NoRecordAssignedException;
-import io.mosip.registration.processor.verification.exception.UserIDNotPresentException;
 import io.mosip.registration.processor.verification.request.dto.Filter;
+import io.mosip.registration.processor.verification.request.dto.ShareableAttributes;
+import io.mosip.registration.processor.verification.request.dto.Source;
 import io.mosip.registration.processor.verification.request.dto.VerificationRequestDTO;
+import io.mosip.registration.processor.verification.response.dto.VerificationResponseDTO;
+import io.mosip.registration.processor.verification.service.VerificationService;
+import io.mosip.registration.processor.verification.stage.VerificationStage;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
@@ -46,68 +75,14 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
+import java.io.IOException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.*;
+import java.util.stream.Collectors;
 
-import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.mosip.kernel.biometrics.spi.CbeffUtil;
-import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.kernel.core.util.JsonUtils;
-import io.mosip.kernel.core.util.exception.JsonProcessingException;
-import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
-import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
-import io.mosip.registration.processor.core.code.ApiName;
-import io.mosip.registration.processor.core.code.EventId;
-import io.mosip.registration.processor.core.code.EventName;
-import io.mosip.registration.processor.core.code.EventType;
-import io.mosip.registration.processor.core.code.ModuleName;
-import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
-import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
-import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
-import io.mosip.registration.processor.core.constant.LoggerFileConstant;
-import io.mosip.registration.processor.core.constant.MappingJsonConstants;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketManagerException;
-import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
-import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
-import io.mosip.registration.processor.core.http.ResponseWrapper;
-import io.mosip.registration.processor.core.kernel.master.dto.UserResponseDTOWrapper;
-import io.mosip.registration.processor.core.logger.LogDescription;
-import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.packet.dto.Identity;
-import io.mosip.registration.processor.core.queue.factory.MosipQueue;
-import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
-import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
-import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
-import io.mosip.registration.processor.core.status.util.StatusUtil;
-import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
-import io.mosip.registration.processor.core.util.JsonUtil;
-import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
-import io.mosip.registration.processor.verification.constants.VerificationConstants;
-import io.mosip.registration.processor.verification.dto.DataShareRequestDto;
-import io.mosip.registration.processor.verification.dto.DataShareResponseDto;
-import io.mosip.registration.processor.verification.dto.ManualVerificationStatus;
-import io.mosip.registration.processor.verification.dto.UserDto;
-import io.mosip.registration.processor.verification.exception.DataShareException;
-import io.mosip.registration.processor.verification.exception.InvalidFileNameException;
-import io.mosip.registration.processor.verification.exception.InvalidRidException;
-import io.mosip.registration.processor.verification.request.dto.ShareableAttributes;
-import io.mosip.registration.processor.verification.request.dto.Source;
-import io.mosip.registration.processor.verification.response.dto.VerificationResponseDTO;
-import io.mosip.registration.processor.verification.service.VerificationService;
-import io.mosip.registration.processor.verification.stage.VerificationStage;
-import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
-import io.mosip.registration.processor.packet.storage.dto.Document;
-import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
-import io.mosip.registration.processor.packet.storage.utils.Utilities;
-import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
-import io.mosip.registration.processor.status.code.RegistrationStatusCode;
-import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
-import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
-import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
-import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import static io.mosip.registration.processor.verification.constants.VerificationConstants.DATETIME_PATTERN;
 
 /**
  * The Class ManualAdjudicationServiceImpl.
@@ -270,14 +245,6 @@ public class VerificationServiceImpl implements VerificationService {
 			description.setMessage(exp.getMessage());
 			messageDTO.setInternalError(true);
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), null, exp.getErrorCode(), exp.getErrorText());
-
-		} catch (MatchedRefNotExistsException exp) {
-			isTransactionSuccessful = false;
-			description.setCode(exp.getErrorCode());
-			description.setMessage(exp.getMessage());
-			messageDTO.setInternalError(true);
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					exp.getErrorCode(), exp.getErrorText());
 
 		} catch (Exception e) {
 			isTransactionSuccessful = false;
@@ -481,56 +448,6 @@ public class VerificationServiceImpl implements VerificationService {
 		}
 
 		return entities;
-	}
-
-	@SuppressWarnings({ "unchecked", "unused" })
-	private void checkUserIDExistsInMasterList(UserDto dto) {
-		ResponseWrapper<UserResponseDTOWrapper> responseWrapper;
-		UserResponseDTOWrapper userResponseDTOWrapper;
-		List<String> pathSegments = new ArrayList<>();
-		pathSegments.add(VerificationConstants.USERS);
-		pathSegments.add(dto.getUserId());
-		Date date = Calendar.getInstance().getTime();
-		DateFormat dateFormat = new SimpleDateFormat(VerificationConstants.TIME_FORMAT);
-		String effectiveDate = dateFormat.format(date);
-		// pathSegments.add("2019-05-16T06:12:52.994Z");
-		pathSegments.add(effectiveDate);
-		try {
-
-			responseWrapper = (ResponseWrapper<UserResponseDTOWrapper>) restClientService.getApi(ApiName.MASTER,
-					pathSegments, "", "", ResponseWrapper.class);
-
-			if (responseWrapper.getResponse() != null) {
-				userResponseDTOWrapper = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
-						UserResponseDTOWrapper.class);
-				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-						dto.getUserId(),
-						"VerificationServiceImpl::checkUserIDExistsInMasterList()::get MASTER USERS service call ended with response data : "
-								+ JsonUtil.objectMapperObjectToJson(userResponseDTOWrapper));
-				if (!userResponseDTOWrapper.getUserResponseDto().get(0).getStatusCode()
-						.equals(VerificationConstants.ACT)) {
-					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), null,
-							PlatformErrorMessages.RPR_MVS_USER_STATUS_NOT_ACTIVE.getCode(),
-							PlatformErrorMessages.RPR_MVS_USER_STATUS_NOT_ACTIVE.getMessage() + dto.getUserId());
-					throw new UserIDNotPresentException(PlatformErrorMessages.RPR_MVS_USER_STATUS_NOT_ACTIVE.getCode(),
-							PlatformErrorMessages.RPR_MVS_USER_STATUS_NOT_ACTIVE.getMessage());
-				}
-			} else {
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), null,
-						PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getCode(),
-						PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getMessage());
-				throw new UserIDNotPresentException(PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getCode(),
-						PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getMessage());
-
-			}
-		} catch (ApisResourceAccessException | IOException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), null,
-					PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getCode(),
-					PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getMessage() + e);
-			throw new UserIDNotPresentException(PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getCode(),
-					PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getMessage());
-
-		}
 	}
 
 	private String getDataShareUrl(String id, String process) throws Exception {
