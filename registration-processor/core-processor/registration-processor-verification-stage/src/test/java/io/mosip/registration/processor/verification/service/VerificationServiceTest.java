@@ -12,7 +12,12 @@ import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.entities.RegistryIDType;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.JsonUtils;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
+import io.mosip.registration.processor.core.code.ApiName;
+import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.kernel.master.dto.UserResponseDTO;
 import io.mosip.registration.processor.core.kernel.master.dto.UserResponseDTOWrapper;
@@ -25,8 +30,8 @@ import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessor
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
-import io.mosip.registration.processor.packet.storage.entity.ManualVerificationEntity;
-import io.mosip.registration.processor.packet.storage.entity.ManualVerificationPKEntity;
+import io.mosip.registration.processor.packet.storage.entity.VerificationEntity;
+import io.mosip.registration.processor.packet.storage.entity.VerificationPKEntity;
 import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
@@ -39,9 +44,13 @@ import io.mosip.registration.processor.verification.dto.ManualVerificationStatus
 import io.mosip.registration.processor.verification.dto.MatchDetail;
 import io.mosip.registration.processor.verification.dto.UserDto;
 import io.mosip.registration.processor.verification.dto.VerificationDecisionDto;
+import io.mosip.registration.processor.verification.exception.InvalidRidException;
+import io.mosip.registration.processor.verification.exception.NoRecordAssignedException;
 import io.mosip.registration.processor.verification.response.dto.VerificationResponseDTO;
 import io.mosip.registration.processor.verification.service.impl.VerificationServiceImpl;
 import io.mosip.registration.processor.verification.stage.VerificationStage;
+import org.apache.activemq.command.ActiveMQBytesMessage;
+import org.apache.activemq.util.ByteSequence;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -65,10 +74,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Matchers.any;
 
 @RunWith(PowerMockRunner.class)
@@ -77,18 +85,23 @@ import static org.mockito.Matchers.any;
 public class VerificationServiceTest {
 
 	private static final String STAGE_NAME = "VerificationStage";
-	private List<ManualVerificationEntity> entities;
-	private List<ManualVerificationEntity> entitiesTemp;
+	private List<VerificationEntity> entities;
+	private List<VerificationEntity> entitiesTemp;
 	@InjectMocks
 	private VerificationService verificationService = new VerificationServiceImpl();
+
 	@Mock
     UserDto dto;
+
 	@Mock
 	private VerificationStage manualAdjudicationStage;
+
 	@Mock
 	VerificationService mockManualAdjudicationService;
+
 	@Mock
 	AuditLogRequestBuilder auditLogRequestBuilder;
+
 	@Mock
 	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 
@@ -99,7 +112,7 @@ public class VerificationServiceTest {
 	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
 
 	@Mock
-	private BasePacketRepository<ManualVerificationEntity, String> basePacketRepository;
+	private BasePacketRepository<VerificationEntity, String> basePacketRepository;
 
 	@Mock
 	private PriorityBasedPacketManagerService packetManagerService;
@@ -114,10 +127,10 @@ public class VerificationServiceTest {
 	private RegistrationProcessorRestClientService registrationProcessorRestClientService;
 
 	private InternalRegistrationStatusDto registrationStatusDto;
-	private ManualVerificationPKEntity PKId;
+	private VerificationPKEntity PKId;
 	private ManualVerificationDTO manualVerificationDTO;
 	private MatchDetail matchDetail=new MatchDetail();
-	private ManualVerificationEntity manualVerificationEntity;
+	private VerificationEntity manualVerificationEntity;
 	private ListAppender<ILoggingEvent> listAppender;
 	private Logger regprocLogger;
 	ClassLoader classLoader;
@@ -131,6 +144,8 @@ public class VerificationServiceTest {
 	private VerificationDecisionDto verificationDecisionDto =new  VerificationDecisionDto();
 	private VerificationResponseDTO verificationResponseDTO=new  VerificationResponseDTO();
 	private MosipQueue queue;
+	LinkedHashMap dataShareResponse;
+
 	@Mock
 	LogDescription description;
 
@@ -143,23 +158,39 @@ public class VerificationServiceTest {
 	@Mock
 	private CbeffUtil cbeffutil;
 
+	MessageDTO object;
+
 	@Mock
 	RegistrationExceptionMapperUtil registrationExceptionMapperUtil;
 
+	VerificationResponseDTO resp;
+
 	@Before
-	public void setup() throws SecurityException, IllegalArgumentException {
+	public void setup() throws Exception {
+
+		resp = new VerificationResponseDTO();
+		resp.setId("verification");
+		resp.setRequestId("e2e59a9b-ce7c-41ae-a953-effb854d1205");
+		resp.setResponsetime(DateUtils.getCurrentDateTimeString());
+		resp.setReturnValue(1);
+
+		object = new MessageDTO();
+		object.setReg_type("NEW");
+		object.setRid("92379526572940");
+		object.setIteration(1);
+		object.setWorkflowInstanceId("26fa3eff-f3b9-48f7-b365-d7f7c2e56e00");
+		object.setIsValid(true);
+		object.setInternalError(false);
 
 		queue=new MosipQueue() {
 
 			@Override
 			public String getQueueName() {
-				// TODO Auto-generated method stub
 				return null;
 			}
 
 			@Override
 			public void createConnection(String username, String password, String brokerUrl) {
-				// TODO Auto-generated method stub
 
 			}
 		};
@@ -173,28 +204,21 @@ public class VerificationServiceTest {
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		dto = new UserDto();
 
-		PKId = new ManualVerificationPKEntity();
-		PKId.setMatchedRefId("10002100880000920210628085700");
-		PKId.setMatchedRefType("Type");
+		PKId = new VerificationPKEntity();
 		PKId.setWorkflowInstanceId("WorkflowInstanceId");
 		dto.setUserId("mvusr22");
 
-		entities = new ArrayList<ManualVerificationEntity>();
-		entitiesTemp = new ArrayList<ManualVerificationEntity>();
-		manualVerificationEntity = new ManualVerificationEntity();
+		entities = new ArrayList<VerificationEntity>();
+		entitiesTemp = new ArrayList<VerificationEntity>();
+		manualVerificationEntity = new VerificationEntity();
 		manualVerificationEntity.setRegId("10002100741000320210107125533");
 		manualVerificationEntity.setCrBy("regprc");
-		manualVerificationEntity.setMvUsrId("test");
-		manualVerificationEntity.setIsActive(true);
 		Date date = new Date();
 		manualVerificationEntity.setDelDtimes(new Timestamp(date.getTime()));
-		manualVerificationEntity.setIsDeleted(true);
 		manualVerificationEntity.setStatusComment("test");
 		manualVerificationEntity.setStatusCode(ManualVerificationStatus.PENDING.name());
 		manualVerificationEntity.setReasonCode("test");
-		manualVerificationEntity.setIsActive(true);
 		manualVerificationEntity.setId(PKId);
-		manualVerificationEntity.setLangCode("eng");
 		entities.add(manualVerificationEntity);
 
 		matchDetail.setMatchedRefType("Type");
@@ -208,6 +232,7 @@ public class VerificationServiceTest {
 		registrationStatusDto.setStatusComment("test");
 		registrationStatusDto.setRegistrationType("LOST");
 		registrationStatusDto.setRegistrationId("10002100741000320210107125533");
+		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
 
 		List<MatchDetail> list=new ArrayList<>();
 		list.add(matchDetail);
@@ -231,19 +256,65 @@ public class VerificationServiceTest {
 		verificationResponseDTO.setResponsetime(DateUtils.getCurrentDateTimeString());
 		verificationResponseDTO.setId("mosip.manual.adjudication.adjudicate");
 		verificationResponseDTO.setRequestId("4d4f27d3-ec73-41c4-a384-bf87fce4969e");
-		
-	}
 
-	@Test
-	public void testVerificationSuccess() throws Exception {
+		List<BIR> birTypeList = new ArrayList<>();
+		BIR birType1 = new BIR.BIRBuilder().build();
+		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType1 = new BDBInfo.BDBInfoBuilder().build();
+		io.mosip.kernel.biometrics.entities.RegistryIDType registryIDType = new RegistryIDType();
+		registryIDType.setOrganization("Mosip");
+		registryIDType.setType("257");
+		io.mosip.kernel.biometrics.constant.QualityType quality = new QualityType();
+		quality.setAlgorithm(registryIDType);
+		quality.setScore(90l);
+		bdbInfoType1.setQuality(quality);
+		BiometricType singleType1 = BiometricType.FINGER;
+		List<BiometricType> singleTypeList1 = new ArrayList<>();
+		singleTypeList1.add(singleType1);
+		List<String> subtype1 = new ArrayList<>(Arrays.asList("Left", "RingFinger"));
+		bdbInfoType1.setSubtype(subtype1);
+		bdbInfoType1.setType(singleTypeList1);
+		birType1.setBdbInfo(bdbInfoType1);
+		birTypeList.add(birType1);
 
-		MessageDTO object = new MessageDTO();
-		object.setReg_type("NEW");
-		object.setRid("92379526572940");
-		object.setIteration(1);
-		object.setWorkflowInstanceId("26fa3eff-f3b9-48f7-b365-d7f7c2e56e00");
-		object.setIsValid(true);
-		object.setInternalError(false);
+		BiometricRecord biometricRecord = new BiometricRecord();
+		biometricRecord.setSegments(birTypeList);
+
+		JSONObject docObject = new JSONObject();
+		HashMap docmap = new HashMap<String, String>();
+		docmap.put("documentType", "DOC005");
+		docmap.put("documentCategory", "POI");
+		docmap.put("documentName", "POI_DOC005");
+		docObject.put("POI", docmap);
+
+		JSONObject regProcessorIdentityJson = new JSONObject();
+		LinkedHashMap bioIdentity = new LinkedHashMap<String, String>();
+		bioIdentity.put("value", "biometrics");
+		regProcessorIdentityJson.put("individualBiometrics", bioIdentity);
+
+		Map<String, String> identity = new HashMap<String, String>();
+		identity.put("fullName", "Satish");
+
+		Map<String, String> metaInfo = new HashMap<String, String>();
+		metaInfo.put("registrationId", "92379526572940");
+
+		dataShareResponse = new LinkedHashMap<String, String>();
+		LinkedHashMap datashareUrl = new LinkedHashMap<String, String>();
+		datashareUrl.put("url", "Http://.....");
+		dataShareResponse.put("dataShare", datashareUrl);
+
+		Mockito.when(env.getProperty("mosip.registration.processor.datetime.pattern")).thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		Mockito.when(env.getProperty(ApiName.DATASHARECREATEURL.name())).thenReturn("/v1/datashare/create");
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any()))
+				.thenReturn(registrationStatusDto);
+
+		Mockito.when(packetManagerService.getFields(anyString(), any(), anyString(), any())).thenReturn(identity);
+		Mockito.when(packetManagerService.getBiometrics(anyString(), anyString(), any(), anyString(), any()))
+				.thenReturn(biometricRecord);
+		Mockito.when(cbeffutil.createXML(any())).thenReturn(new byte[120]);
+		Mockito.when(packetManagerService.getMetaInfo(anyString(), anyString(), any())).thenReturn(metaInfo);
+		Mockito.when(utility.getRegistrationProcessorMappingJson(any())).thenReturn(docObject)
+				.thenReturn(regProcessorIdentityJson);
+		Mockito.when(mosipQueueManager.send(any(), anyString(), anyString(), anyInt())).thenReturn(true);
 
 		ResponseWrapper policiesResponse = new ResponseWrapper();
 		LinkedHashMap<String, Object> policiesMap = new LinkedHashMap<String, Object>();
@@ -293,72 +364,149 @@ public class VerificationServiceTest {
 		policiesMap.put("policies", shareableAttributes);
 		policiesResponse.setResponse(policiesMap);
 
-		List<BIR> birTypeList = new ArrayList<>();
-		BIR birType1 = new BIR.BIRBuilder().build();
-		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType1 = new BDBInfo.BDBInfoBuilder().build();
-		io.mosip.kernel.biometrics.entities.RegistryIDType registryIDType = new RegistryIDType();
-		registryIDType.setOrganization("Mosip");
-		registryIDType.setType("257");
-		io.mosip.kernel.biometrics.constant.QualityType quality = new QualityType();
-		quality.setAlgorithm(registryIDType);
-		quality.setScore(90l);
-		bdbInfoType1.setQuality(quality);
-		BiometricType singleType1 = BiometricType.FINGER;
-		List<BiometricType> singleTypeList1 = new ArrayList<>();
-		singleTypeList1.add(singleType1);
-		List<String> subtype1 = new ArrayList<>(Arrays.asList("Left", "RingFinger"));
-		bdbInfoType1.setSubtype(subtype1);
-		bdbInfoType1.setType(singleTypeList1);
-		birType1.setBdbInfo(bdbInfoType1);
-		birTypeList.add(birType1);
-
-		BiometricRecord biometricRecord = new BiometricRecord();
-		biometricRecord.setSegments(birTypeList);
-
-		JSONObject docObject = new JSONObject();
-		HashMap docmap = new HashMap<String, String>();
-		docmap.put("documentType", "DOC005");
-		docmap.put("documentCategory", "POI");
-		docmap.put("documentName", "POI_DOC005");
-		docObject.put("POI", docmap);
-
-		JSONObject regProcessorIdentityJson = new JSONObject();
-		LinkedHashMap bioIdentity = new LinkedHashMap<String, String>();
-		bioIdentity.put("value", "biometrics");
-		regProcessorIdentityJson.put("individualBiometrics", bioIdentity);
-
-		Map<String, String> identity = new HashMap<String, String>();
-		identity.put("fullName", "Satish");
-
-		Map<String, String> metaInfo = new HashMap<String, String>();
-		metaInfo.put("registrationId", "92379526572940");
-
-		LinkedHashMap dataShareResponse = new LinkedHashMap<String, String>();
-		LinkedHashMap datashareUrl = new LinkedHashMap<String, String>();
-		datashareUrl.put("url", "Http://.....");
-		dataShareResponse.put("dataShare", datashareUrl);
-
-		Mockito.when(basePacketRepository.getMatchedIds(any(), anyString())).thenReturn(entities);
-		Mockito.when(env.getProperty(anyString())).thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-				.thenReturn("/v1/datashare/create");
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any()))
-				.thenReturn(registrationStatusDto);
 		Mockito.when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), anyString(),
 				eq(ResponseWrapper.class))).thenReturn(policiesResponse);
-		Mockito.when(packetManagerService.getFields(anyString(), any(), anyString(), any())).thenReturn(identity);
-		Mockito.when(packetManagerService.getBiometrics(anyString(), anyString(), any(), anyString(), any()))
-				.thenReturn(biometricRecord);
-		Mockito.when(cbeffutil.createXML(any())).thenReturn(new byte[120]);
-		Mockito.when(packetManagerService.getMetaInfo(anyString(), anyString(), any())).thenReturn(metaInfo);
-		Mockito.when(utility.getRegistrationProcessorMappingJson(any())).thenReturn(docObject)
-				.thenReturn(regProcessorIdentityJson);
+
+		Mockito.when(basePacketRepository.getVerificationRecordByRequestId(resp.getRequestId())).thenReturn(entities);
+		
+	}
+
+	@Test
+	public void testVerificationSuccess() throws ApisResourceAccessException {
+
 		Mockito.when(registrationProcessorRestClientService.postApi(anyString(), any(), any(), any(), any(), any(),
 				eq(LinkedHashMap.class))).thenReturn(dataShareResponse);
-		Mockito.when(mosipQueueManager.send(any(), anyString(), anyString(), anyInt())).thenReturn(true);
-
 
 		MessageDTO response = verificationService.process(object, queue, stageName);
 
 		assertTrue(response.getIsValid());
 	}
+
+	@Test
+	public void testVerificationFailed() throws ApisResourceAccessException {
+
+		Mockito.when(registrationProcessorRestClientService.postApi(anyString(), any(), any(), any(), any(), any(),
+				eq(LinkedHashMap.class))).thenThrow(new ApisResourceAccessException("exception"));
+
+		MessageDTO response = verificationService.process(object, queue, stageName);
+
+		assertFalse(response.getIsValid());
+		assertTrue(response.getInternalError());
+	}
+
+	@Test
+	public void testVerificationDatashareException() throws ApisResourceAccessException {
+		LinkedHashMap dataShareResponse = new LinkedHashMap<String, String>();
+		LinkedHashMap datashareUrl = new LinkedHashMap<String, String>();
+		datashareUrl.put("errors", "Http://.....");
+		dataShareResponse.put("errors", datashareUrl);
+
+		Mockito.when(registrationProcessorRestClientService.postApi(anyString(), any(), any(), any(), any(), any(),
+				eq(LinkedHashMap.class))).thenReturn(dataShareResponse);
+
+		MessageDTO response = verificationService.process(object, queue, stageName);
+
+		assertFalse(response.getIsValid());
+		assertTrue(response.getInternalError());
+	}
+
+	@Test
+	public void testVerificationInvalidRId() {
+		object.setRid("");
+
+		MessageDTO response = verificationService.process(object, queue, stageName);
+
+		assertFalse(response.getIsValid());
+		assertTrue(response.getInternalError());
+	}
+
+	@Test(expected = InvalidRidException.class)
+	public void testInvalidRidException() throws JsonProcessingException {
+
+
+		String response = JsonUtils.javaObjectToJsonString(resp);
+
+		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
+		ByteSequence byteSeq = new ByteSequence();
+		byteSeq.setData(response.getBytes());
+		amq.setContent(byteSeq);
+
+		resp.setRequestId("2344");
+
+		boolean result = verificationService.updatePacketStatus(resp, stageName, queue);
+	}
+
+	@Test
+	public void testNoRecordAssignedException() throws JsonProcessingException {
+
+
+		String response = JsonUtils.javaObjectToJsonString(resp);
+
+		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
+		ByteSequence byteSeq = new ByteSequence();
+		byteSeq.setData(response.getBytes());
+		amq.setContent(byteSeq);
+
+		boolean result = verificationService.updatePacketStatus(resp, stageName, queue);
+
+		assertFalse(result);
+	}
+
+	@Test
+	public void testUpdateStatusSuccess() throws JsonProcessingException {
+
+		Mockito.when(basePacketRepository.getAssignedVerificationRecord(anyString(), anyString())).thenReturn(entities);
+
+		String response = JsonUtils.javaObjectToJsonString(resp);
+
+		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
+		ByteSequence byteSeq = new ByteSequence();
+		byteSeq.setData(response.getBytes());
+		amq.setContent(byteSeq);
+
+		boolean result = verificationService.updatePacketStatus(resp, stageName, queue);
+
+		assertTrue(result);
+	}
+
+	@Test
+	public void testUpdateStatusResend() throws JsonProcessingException {
+
+		Mockito.when(basePacketRepository.getAssignedVerificationRecord(anyString(), anyString())).thenReturn(entities);
+
+		String response = JsonUtils.javaObjectToJsonString(resp);
+
+		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
+		ByteSequence byteSeq = new ByteSequence();
+		byteSeq.setData(response.getBytes());
+		amq.setContent(byteSeq);
+
+		// for resend
+		resp.setReturnValue(2);
+
+		boolean result = verificationService.updatePacketStatus(resp, stageName, queue);
+
+		assertFalse(result);
+	}
+
+	@Test
+	public void testUpdateStatusRejected() throws JsonProcessingException {
+
+		Mockito.when(basePacketRepository.getAssignedVerificationRecord(anyString(), anyString())).thenReturn(entities);
+
+		String response = JsonUtils.javaObjectToJsonString(resp);
+
+		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
+		ByteSequence byteSeq = new ByteSequence();
+		byteSeq.setData(response.getBytes());
+		amq.setContent(byteSeq);
+
+		// for rejected
+		resp.setReturnValue(3);
+
+		boolean result = verificationService.updatePacketStatus(resp, stageName, queue);
+
+		assertTrue(result);
+	}
 }
+
