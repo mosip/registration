@@ -382,20 +382,6 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			object.setInternalError(Boolean.TRUE);
 			description.setMessage(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode());
-		} catch (VidCreationException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId,
-					RegistrationStatusCode.PROCESSING.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
-			registrationStatusDto.setStatusComment(trimExceptionMessage
-					.trimExceptionMessage(StatusUtil.VID_CREATION_FAILED.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.VID_CREATION_FAILED.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.VID_CREATION_EXCEPTION));
-			description.setMessage(PlatformErrorMessages.VID_CREATION_FAILED.getMessage());
-			description.setCode(PlatformErrorMessages.VID_CREATION_FAILED.getCode());
-			object.setInternalError(Boolean.TRUE);
-			object.setRid(registrationStatusDto.getRegistrationId());
 		} catch (IdrepoDraftException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId,
@@ -992,55 +978,6 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	@Override
 	protected String getPropertyPrefix() {
 		return STAGE_PROPERTY_PREFIX;
-	}
-
-	@SuppressWarnings({ "unchecked", "unused" })
-	private void generateVid(String registrationId, String UIN, boolean isUinAlreadyPresent)
-			throws ApisResourceAccessException, IOException, VidCreationException {
-		VidRequestDto vidRequestDto = new VidRequestDto();
-		RequestWrapper<VidRequestDto> request = new RequestWrapper<VidRequestDto>();
-		ResponseWrapper<VidResponseDto> response;
-
-		try {
-			if (isUinAlreadyPresent) {
-				String uin = idRepoService.getUinByRid(registrationId, utility.getGetRegProcessorDemographicIdentity());
-				vidRequestDto.setUIN(uin);
-			} else {
-				vidRequestDto.setUIN(UIN);
-			}
-			vidRequestDto.setVidType(vidType);
-			request.setId(env.getProperty(UINConstants.VID_CREATE_ID));
-			request.setRequest(vidRequestDto);
-			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(UINConstants.DATETIME_PATTERN));
-			LocalDateTime localdatetime = LocalDateTime.parse(
-					DateUtils.getUTCCurrentDateTimeString(env.getProperty(UINConstants.DATETIME_PATTERN)), format);
-			request.setRequesttime(localdatetime);
-			request.setVersion(env.getProperty(UINConstants.REG_PROC_APPLICATION_VERSION));
-
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId,
-					"UinGeneratorStage::generateVid():: post CREATEVID service call started with request data : "
-							+ JsonUtil.objectMapperObjectToJson(request));
-
-			response = (ResponseWrapper<VidResponseDto>) registrationProcessorRestClientService
-					.postApi(ApiName.CREATEVID, "", "", request, ResponseWrapper.class);
-
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId,
-					"UinGeneratorStage::generateVid():: create Vid response :: "+JsonUtil.objectMapperObjectToJson(response));
-
-			if (!response.getErrors().isEmpty()) {
-				throw new VidCreationException(PlatformErrorMessages.RPR_UGS_VID_EXCEPTION.getMessage(),
-						"VID creation exception");
-
-			}
-
-		} catch (ApisResourceAccessException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, PlatformErrorMessages.RPR_UGS_API_RESOURCE_EXCEPTION.getMessage() + e.getMessage()
-							+ ExceptionUtils.getStackTrace(e));
-			throw e;
-		}
 	}
 
 	/**

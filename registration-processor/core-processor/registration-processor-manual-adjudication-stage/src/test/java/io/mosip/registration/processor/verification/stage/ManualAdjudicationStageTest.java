@@ -1,7 +1,9 @@
 package io.mosip.registration.processor.verification.stage;
 
 
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 
 import java.io.File;
 import java.util.HashSet;
@@ -9,19 +11,31 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.LoggingEvent;
+import ch.qos.logback.core.Appender;
+import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.adjudication.exception.InvalidMessageException;
+import io.mosip.registration.processor.adjudication.response.dto.ManualAdjudicationResponseDTO;
 import io.mosip.registration.processor.adjudication.stage.ManualAdjudicationStage;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.queue.factory.MosipQueue;
 import io.mosip.registration.processor.core.spi.queue.MosipQueueConnectionFactory;
 import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import io.mosip.registration.processor.adjudication.util.ManualVerificationRequestValidator;
+import org.apache.activemq.command.ActiveMQBytesMessage;
+import org.apache.activemq.command.ActiveMQTextMessage;
+import org.apache.activemq.util.ByteSequence;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -493,5 +507,61 @@ public class ManualAdjudicationStageTest {
 		};
 	}
 
-}
+	@Test
+	public void testConsumeListener() throws JsonProcessingException {
+		ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory
+				.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
+		final Appender<ILoggingEvent> mockAppender = mock(Appender.class);
+		when(mockAppender.getName()).thenReturn("MOCK");
+		root.addAppender(mockAppender);
 
+		ManualAdjudicationResponseDTO resp = new ManualAdjudicationResponseDTO();
+		resp.setId("verification");
+		resp.setRequestId("e2e59a9b-ce7c-41ae-a953-effb854d1205");
+		resp.setResponsetime(DateUtils.getCurrentDateTimeString());
+		resp.setReturnValue(1);
+
+		String response = JsonUtils.javaObjectToJsonString(resp);
+
+		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
+		ByteSequence byteSeq = new ByteSequence();
+		byteSeq.setData(response.getBytes());
+		amq.setContent(byteSeq);
+
+		Mockito.when(manualAdjudicationService.updatePacketStatus(any(), any(), any())).thenReturn(true);
+
+		manualverificationstage.consumerListener(amq);
+
+		verify(mockAppender).doAppend(argThat(new ArgumentMatcher<ILoggingEvent>() {
+
+			@Override
+			public boolean matches(ILoggingEvent argument) {
+				return ((LoggingEvent) argument).getFormattedMessage()
+						.contains("ManualVerificationStage::processDecision::success");
+			}
+		}));
+	}
+
+	@Test
+	public void testInvalidMessage() {
+
+		ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory
+				.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
+		final Appender<ILoggingEvent> mockAppender = mock(Appender.class);
+		when(mockAppender.getName()).thenReturn("MOCK");
+		root.addAppender(mockAppender);
+
+		manualverificationstage.consumerListener(null);
+
+		verify(mockAppender).doAppend(argThat(new ArgumentMatcher<ILoggingEvent>() {
+
+			@Override
+			public boolean matches(ILoggingEvent argument) {
+				return ((LoggingEvent) argument).getFormattedMessage()
+						.contains("InvalidMessageException");
+			}
+		}));
+
+	}
+
+}
