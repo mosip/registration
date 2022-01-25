@@ -252,6 +252,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
+	// TODO remove InternalRegistrationStatusDto from method param and return new InternalRegistrationStatusDto,ignore for sonar
 	private boolean storePacket(String stageName, SyncRegistrationEntity regEntity, InternalRegistrationStatusDto dto,
 			LogDescription description) {
 		Boolean storageFlag = false;

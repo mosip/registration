@@ -103,7 +103,8 @@ public class StagesConfig {
 				}
 			});
 			return (Map<String,Object>)configLoader.get().mapTo(Map.class);
-		} catch (Exception e1) {
+		}
+		catch (Exception e1) {
 			regProcLogger.error(ExceptionUtils.getStackTrace(e1));
 			throw new RuntimeException("Could not load config", e1);
 		}

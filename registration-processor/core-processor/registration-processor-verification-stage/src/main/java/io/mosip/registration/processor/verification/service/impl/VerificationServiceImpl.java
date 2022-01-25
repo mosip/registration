@@ -137,7 +137,10 @@ public class VerificationServiceImpl implements VerificationService {
 	@Value("${registration.processor.queue.verification.request:mosip-to-verification}")
 	private String mvRequestAddress;
 
-	/**Manual adjudication queue message expiry in seconds, if given 0 then message will never expire*/
+	/**
+	 * Manual adjudication queue message expiry in seconds, if given 0 then message
+	 * will never expire
+	 */
 	@Value("${registration.processor.queue.verification.request.messageTTL}")
 	private int mvRequestMessageTTL;
 
@@ -167,7 +170,7 @@ public class VerificationServiceImpl implements VerificationService {
 
 	@Autowired
 	private MosipQueueManager<MosipQueue, byte[]> mosipQueueManager;
-	
+
 	@Autowired
 	private PriorityBasedPacketManagerService packetManagerService;
 
@@ -219,7 +222,8 @@ public class VerificationServiceImpl implements VerificationService {
 		LogDescription description = new LogDescription();
 
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(
-				messageDTO.getRid(), messageDTO.getReg_type(), messageDTO.getIteration(), messageDTO.getWorkflowInstanceId());
+				messageDTO.getRid(), messageDTO.getReg_type(), messageDTO.getIteration(),
+				messageDTO.getWorkflowInstanceId());
 		try {
 			if (null == messageDTO.getRid() || messageDTO.getRid().isEmpty())
 				throw new InvalidRidException(PlatformErrorMessages.RPR_MVS_NO_RID_SHOULD_NOT_EMPTY_OR_NULL.getCode(),
@@ -229,9 +233,11 @@ public class VerificationServiceImpl implements VerificationService {
 			regProcLogger.debug("Request : " + JsonUtils.javaObjectToJsonString(mar));
 
 			if (messageFormat.equalsIgnoreCase(TEXT_MESSAGE))
-				mosipQueueManager.send(queue, JsonUtils.javaObjectToJsonString(mar), mvRequestAddress, mvRequestMessageTTL);
+				mosipQueueManager.send(queue, JsonUtils.javaObjectToJsonString(mar), mvRequestAddress,
+						mvRequestMessageTTL);
 			else
-				mosipQueueManager.send(queue, JsonUtils.javaObjectToJsonString(mar).getBytes(), mvRequestAddress, mvRequestMessageTTL);
+				mosipQueueManager.send(queue, JsonUtils.javaObjectToJsonString(mar).getBytes(), mvRequestAddress,
+						mvRequestMessageTTL);
 
 			regProcLogger.info("ID : " + messageDTO.getRid() + " has been successfully sent for verification.");
 
@@ -288,8 +294,8 @@ public class VerificationServiceImpl implements VerificationService {
 				description.setMessage(PlatformSuccessMessages.RPR_VERIFICATION_SUCCESS.getMessage());
 			} else
 				registrationStatusDto.setSubStatusCode(StatusUtil.VERIFICATION_FAILED.getCode());
-			updateStatus(messageDTO, registrationStatusDto,
-					isTransactionSuccessful, description, PlatformSuccessMessages.RPR_VERIFICATION_SENT);
+			updateStatus(messageDTO, registrationStatusDto, isTransactionSuccessful, description,
+					PlatformSuccessMessages.RPR_VERIFICATION_SENT);
 		}
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -306,7 +312,9 @@ public class VerificationServiceImpl implements VerificationService {
 	 * verification.dto.ManualVerificationDTO)
 	 */
 	@Override
-	public boolean updatePacketStatus(VerificationResponseDTO manualVerificationDTO, String stageName, MosipQueue queue) {
+	public boolean updatePacketStatus(VerificationResponseDTO manualVerificationDTO, String stageName,
+			MosipQueue queue) {
+
 		TrimExceptionMessage trimExceptionMessage = new TrimExceptionMessage();
 		LogDescription description = new LogDescription();
 		boolean isTransactionSuccessful = false;
@@ -315,20 +323,20 @@ public class VerificationServiceImpl implements VerificationService {
 				manualVerificationDTO.getRequestId(), "VerificationServiceImpl::updatePacketStatus()::entry");
 
 		VerificationEntity entity = validateRequestIdAndReturnRid(manualVerificationDTO.getRequestId());
-		String regId = entity.getRegId();
-
-		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
-				.getRegistrationStatus(entity.getRegId(), null, null, entity.getId().getWorkflowInstanceId());
-		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.VERIFICATION.name());
-		registrationStatusDto.setRegistrationStageName(stageName);
+		String regId = entity != null ? entity.getRegId() : null;
 
 		MessageDTO messageDTO = new MessageDTO();
-		messageDTO.setInternalError(false);
-		messageDTO.setIsValid(false);
-		messageDTO.setRid(regId);
-		messageDTO.setReg_type(registrationStatusDto.getRegistrationType());
-
+		InternalRegistrationStatusDto registrationStatusDto = null;
 		try {
+			registrationStatusDto = registrationStatusService.getRegistrationStatus(
+					(entity != null ? entity.getRegId() : null), null, null,
+					(entity != null ? (entity.getId() != null ? entity.getId().getWorkflowInstanceId() : null) : null));
+			registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.VERIFICATION.name());
+			registrationStatusDto.setRegistrationStageName(stageName);
+			messageDTO.setInternalError(false);
+			messageDTO.setIsValid(false);
+			messageDTO.setRid(regId);
+			messageDTO.setReg_type(registrationStatusDto.getRegistrationType());
 
 			List<VerificationEntity> entities = retrieveInqueuedRecordsByRid(regId);
 
@@ -345,13 +353,14 @@ public class VerificationServiceImpl implements VerificationService {
 				messageDTO.setIsValid(isTransactionSuccessful);
 				verificationStage.sendMessage(messageDTO);
 			} else {
-				// call success flow and process the response received from manual verification system
-				isTransactionSuccessful = successFlow(
-						manualVerificationDTO, entity, registrationStatusDto, messageDTO, description);
+				// call success flow and process the response received from manual verification
+				// system
+				isTransactionSuccessful = successFlow(manualVerificationDTO, entity, registrationStatusDto, messageDTO,
+						description);
 
 				registrationStatusDto.setUpdatedBy(USER);
-				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-						regId, description.getMessage());
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), regId, description.getMessage());
 			}
 
 		} catch (TablenotAccessibleException e) {
@@ -369,10 +378,10 @@ public class VerificationServiceImpl implements VerificationService {
 		} catch (NoRecordAssignedException e) {
 			messageDTO.setIsValid(false);
 			messageDTO.setInternalError(false);
-			registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
-					.getStatusCode(RegistrationExceptionTypeCode.NO_RECORDS_ASSIGNED));
-			registrationStatusDto.setStatusComment(trimExceptionMessage
-					.trimExceptionMessage(PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getMessage() + e.getMessage()));
+			registrationStatusDto.setLatestTransactionStatusCode(
+					registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.NO_RECORDS_ASSIGNED));
+			registrationStatusDto.setStatusComment(trimExceptionMessage.trimExceptionMessage(
+					PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getMessage() + e.getMessage()));
 			registrationStatusDto.setSubStatusCode(PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getCode());
 
 			description.setMessage(PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getMessage());
@@ -381,8 +390,8 @@ public class VerificationServiceImpl implements VerificationService {
 					regId, e.getMessage() + ExceptionUtils.getStackTrace(e));
 		} catch (Exception e) {
 			messageDTO.setInternalError(true);
-			registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
-					.getStatusCode(RegistrationExceptionTypeCode.EXCEPTION));
+			registrationStatusDto.setLatestTransactionStatusCode(
+					registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.EXCEPTION));
 			registrationStatusDto.setStatusComment(trimExceptionMessage
 					.trimExceptionMessage(StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getMessage() + e.getMessage()));
 			registrationStatusDto.setSubStatusCode(StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getCode());
@@ -392,24 +401,24 @@ public class VerificationServiceImpl implements VerificationService {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					regId, e.getMessage() + ExceptionUtils.getStackTrace(e));
 		} finally {
-			updateStatus(messageDTO, registrationStatusDto, isTransactionSuccessful, description, PlatformSuccessMessages.RPR_VERIFICATION_SUCCESS);
+			// TODO structure to not return in finally,ignore for sonar
+			updateStatus(messageDTO, registrationStatusDto, isTransactionSuccessful, description,
+					PlatformSuccessMessages.RPR_VERIFICATION_SUCCESS);
 			return isTransactionSuccessful;
 		}
 
 	}
 
 	private void updateStatus(MessageDTO messageDTO, InternalRegistrationStatusDto registrationStatusDto,
-							  boolean isTransactionSuccessful, LogDescription description, PlatformSuccessMessages platformSuccessMessages) {
-		if(messageDTO.getInternalError()) {
+			boolean isTransactionSuccessful, LogDescription description,
+			PlatformSuccessMessages platformSuccessMessages) {
+		if (messageDTO.getInternalError()) {
 			updateErrorFlags(registrationStatusDto, messageDTO);
 		}
-		registrationStatusDto
-				.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.VERIFICATION.toString());
+		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.VERIFICATION.toString());
 		String regId = messageDTO.getRid();
 		/** Module-Id can be Both Success/Error code */
-		String moduleId = isTransactionSuccessful
-				? platformSuccessMessages.getCode()
-				: description.getCode();
+		String moduleId = isTransactionSuccessful ? platformSuccessMessages.getCode() : description.getCode();
 		String moduleName = ModuleName.VERIFICATION.toString();
 		registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);
 
@@ -423,25 +432,27 @@ public class VerificationServiceImpl implements VerificationService {
 				moduleId, moduleName, regId);
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-		regId, "VerificationServiceImpl::updatePacketStatus()::exit");
-		
+				regId, "VerificationServiceImpl::updatePacketStatus()::exit");
+
 	}
 
 	/**
-	 * Basic validation of requestId received against the rid present in manual-adjudication table
-	 * Returns the correct rid after successful validation
+	 * Basic validation of requestId received against the rid present in
+	 * manual-adjudication table Returns the correct rid after successful validation
+	 * 
 	 * @param reqId : the request id
 	 * @return rid : the registration id
 	 */
 	private VerificationEntity validateRequestIdAndReturnRid(String reqId) {
 		List<VerificationEntity> entities = basePacketRepository.getVerificationRecordByRequestId(reqId);
 
-		if (CollectionUtils.isEmpty(entities) || new HashSet<>(entities.stream().map(e -> e.getRegId()).collect(Collectors.toList())).size() != 1) {
+		if (CollectionUtils.isEmpty(entities)
+				|| new HashSet<>(entities.stream().map(e -> e.getRegId()).collect(Collectors.toList())).size() != 1) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					entities != null ? entities.stream().map(e -> e.getRegId()).collect(Collectors.toList()) : null,
 					"Multiple rids found against request id : " + reqId);
-			throw new InvalidRidException(
-					PlatformErrorMessages.RPR_INVALID_RID_FOUND.getCode(), PlatformErrorMessages.RPR_INVALID_RID_FOUND.getCode());
+			throw new InvalidRidException(PlatformErrorMessages.RPR_INVALID_RID_FOUND.getCode(),
+					PlatformErrorMessages.RPR_INVALID_RID_FOUND.getCode());
 		}
 
 		VerificationEntity entity = entities.iterator().next();
@@ -458,8 +469,8 @@ public class VerificationServiceImpl implements VerificationService {
 
 	private List<VerificationEntity> retrieveInqueuedRecordsByRid(String regId) {
 
-		List<VerificationEntity> entities = basePacketRepository.getAssignedVerificationRecord(
-				regId, ManualVerificationStatus.INQUEUE.name());
+		List<VerificationEntity> entities = basePacketRepository.getAssignedVerificationRecord(regId,
+				ManualVerificationStatus.INQUEUE.name());
 
 		if (CollectionUtils.isEmpty(entities)) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -471,7 +482,6 @@ public class VerificationServiceImpl implements VerificationService {
 
 		return entities;
 	}
-
 
 	@SuppressWarnings({ "unchecked", "unused" })
 	private void checkUserIDExistsInMasterList(UserDto dto) {
@@ -531,25 +541,33 @@ public class VerificationServiceImpl implements VerificationService {
 		Map<String, String> policyMap = getPolicyMap(policy);
 
 		// set demographic
-		Map<String, String> demographicMap = policyMap.entrySet().stream().filter(e-> e.getValue() != null &&
-				(!META_INFO.equalsIgnoreCase(e.getValue()) && !AUDITS.equalsIgnoreCase(e.getValue())))
-				.collect(Collectors.toMap(e-> e.getKey(),e -> e.getValue()));
-		requestDto.setIdentity(packetManagerService.getFields(id, demographicMap.values().stream().collect(Collectors.toList()), process, ProviderStageName.VERIFICATION));
+		Map<String, String> demographicMap = policyMap.entrySet().stream()
+				.filter(e -> e.getValue() != null
+						&& (!META_INFO.equalsIgnoreCase(e.getValue()) && !AUDITS.equalsIgnoreCase(e.getValue())))
+				.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+		requestDto.setIdentity(
+				packetManagerService.getFields(id, demographicMap.values().stream().collect(Collectors.toList()),
+						process, ProviderStageName.VERIFICATION));
 
 		// set documents
 		JSONObject docJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT);
 		for (Object doc : docJson.keySet()) {
 			if (doc != null) {
 				HashMap docmap = (HashMap) docJson.get(doc.toString());
-				String docName = docmap != null && docmap.get(MappingJsonConstants.VALUE)!= null ? docmap.get(MappingJsonConstants.VALUE).toString() : null;
+				String docName = docmap != null && docmap.get(MappingJsonConstants.VALUE) != null
+						? docmap.get(MappingJsonConstants.VALUE).toString()
+						: null;
 				if (policyMap.containsValue(docName)) {
-					Document document = packetManagerService.getDocument(id, doc.toString(), process, ProviderStageName.VERIFICATION);
+					Document document = packetManagerService.getDocument(id, doc.toString(), process,
+							ProviderStageName.VERIFICATION);
 					if (document != null) {
 						if (requestDto.getDocuments() != null)
-							requestDto.getDocuments().put(docmap.get(MappingJsonConstants.VALUE).toString(), CryptoUtil.encodeToURLSafeBase64(document.getDocument()));
+							requestDto.getDocuments().put(docmap.get(MappingJsonConstants.VALUE).toString(),
+									CryptoUtil.encodeToURLSafeBase64(document.getDocument()));
 						else {
 							Map<String, String> docMap = new HashMap<>();
-							docMap.put(docmap.get(MappingJsonConstants.VALUE).toString(), CryptoUtil.encodeToURLSafeBase64(document.getDocument()));
+							docMap.put(docmap.get(MappingJsonConstants.VALUE).toString(),
+									CryptoUtil.encodeToURLSafeBase64(document.getDocument()));
 							requestDto.setDocuments(docMap);
 						}
 					}
@@ -559,27 +577,28 @@ public class VerificationServiceImpl implements VerificationService {
 
 		// set audits
 		if (policyMap.containsValue(AUDITS))
-			requestDto.setAudits(JsonUtils.javaObjectToJsonString(packetManagerService.getAudits(id, process, ProviderStageName.VERIFICATION)));
+			requestDto.setAudits(JsonUtils.javaObjectToJsonString(
+					packetManagerService.getAudits(id, process, ProviderStageName.VERIFICATION)));
 
 		// set metainfo
 		if (policyMap.containsValue(META_INFO))
-			requestDto.setMetaInfo(JsonUtils.javaObjectToJsonString(packetManagerService.getMetaInfo(id, process, ProviderStageName.VERIFICATION)));
-
+			requestDto.setMetaInfo(JsonUtils.javaObjectToJsonString(
+					packetManagerService.getMetaInfo(id, process, ProviderStageName.VERIFICATION)));
 
 		// set biometrics
-		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
+		JSONObject regProcessorIdentityJson = utility
+				.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 		String individualBiometricsLabel = JsonUtil.getJSONValue(
 				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
 				MappingJsonConstants.VALUE);
 
 		if (policyMap.containsValue(individualBiometricsLabel)) {
 			List<String> modalities = getModalities(policy);
-			BiometricRecord biometricRecord = packetManagerService.getBiometrics(
-					id, individualBiometricsLabel, modalities, process, ProviderStageName.VERIFICATION);
+			BiometricRecord biometricRecord = packetManagerService.getBiometrics(id, individualBiometricsLabel,
+					modalities, process, ProviderStageName.VERIFICATION);
 			byte[] content = cbeffutil.createXML(biometricRecord.getSegments());
 			requestDto.setBiometrics(content != null ? CryptoUtil.encodeToURLSafeBase64(content) : null);
 		}
-
 
 		String req = JsonUtils.javaObjectToJsonString(requestDto);
 
@@ -598,21 +617,27 @@ public class VerificationServiceImpl implements VerificationService {
 		List<String> pathSegments = new ArrayList<>();
 		pathSegments.add(policyId);
 		pathSegments.add(subscriberId);
-		String protocol = StringUtils.isNotEmpty(httpProtocol) ? PolicyConstant.HTTP_PROTOCOL : PolicyConstant.HTTPS_PROTOCOL;
+		String protocol = StringUtils.isNotEmpty(httpProtocol) ? PolicyConstant.HTTP_PROTOCOL
+				: PolicyConstant.HTTPS_PROTOCOL;
 		String url = null;
 
 		if (policy.get(PolicyConstant.DATASHARE_POLICIES) != null) {
-			LinkedHashMap<String, String> datasharePolicies = (LinkedHashMap<String, String>) policies.get(PolicyConstant.DATASHARE_POLICIES);
-			if (!CollectionUtils.isEmpty(datasharePolicies) && datasharePolicies.get(PolicyConstant.SHAREDOMAIN_WRITE) != null)
-				url = datasharePolicies.get(PolicyConstant.SHAREDOMAIN_WRITE) + env.getProperty(ApiName.DATASHARECREATEURL.name());
+			LinkedHashMap<String, String> datasharePolicies = (LinkedHashMap<String, String>) policies
+					.get(PolicyConstant.DATASHARE_POLICIES);
+			if (!CollectionUtils.isEmpty(datasharePolicies)
+					&& datasharePolicies.get(PolicyConstant.SHAREDOMAIN_WRITE) != null)
+				url = datasharePolicies.get(PolicyConstant.SHAREDOMAIN_WRITE)
+						+ env.getProperty(ApiName.DATASHARECREATEURL.name());
 		}
 		if (StringUtils.isEmpty(url))
 			url = protocol + internalDomainName + env.getProperty(ApiName.DATASHARECREATEURL.name());
 		url = url.replaceAll("[\\[\\]]", "");
 
-		LinkedHashMap response = (LinkedHashMap) registrationProcessorRestClientService.postApi(url, MediaType.MULTIPART_FORM_DATA, pathSegments, null, null, map, LinkedHashMap.class);
+		LinkedHashMap response = (LinkedHashMap) registrationProcessorRestClientService.postApi(url,
+				MediaType.MULTIPART_FORM_DATA, pathSegments, null, null, map, LinkedHashMap.class);
 		if (response == null || (response.get(ERRORS) != null))
-			throw new DataShareException(response == null ? "Datashare response is null" : response.get(ERRORS).toString());
+			throw new DataShareException(
+					response == null ? "Datashare response is null" : response.get(ERRORS).toString());
 
 		LinkedHashMap datashare = (LinkedHashMap) response.get(DATASHARE);
 		return datashare.get(URL) != null ? datashare.get(URL).toString() : null;
@@ -625,7 +650,8 @@ public class VerificationServiceImpl implements VerificationService {
 		for (LinkedHashMap map : attributes) {
 			ShareableAttributes shareableAttributes = mapper.readValue(mapper.writeValueAsString(map),
 					ShareableAttributes.class);
-			policyMap.put(shareableAttributes.getAttributeName(), shareableAttributes.getSource().iterator().next().getAttribute());
+			policyMap.put(shareableAttributes.getAttributeName(),
+					shareableAttributes.getSource().iterator().next().getAttribute());
 		}
 		return policyMap;
 
@@ -636,9 +662,11 @@ public class VerificationServiceImpl implements VerificationService {
 			return policies;
 
 		ResponseWrapper<?> policyResponse = (ResponseWrapper<?>) registrationProcessorRestClientService.getApi(
-				ApiName.PMS, Lists.newArrayList(policyId, PolicyConstant.PARTNER_ID, subscriberId), "", "", ResponseWrapper.class);
-		if (policyResponse == null || (policyResponse.getErrors() != null && policyResponse.getErrors().size() >0)) {
-			throw new DataShareException(policyResponse == null ? "Policy Response response is null" : policyResponse.getErrors().get(0).getMessage());
+				ApiName.PMS, Lists.newArrayList(policyId, PolicyConstant.PARTNER_ID, subscriberId), "", "",
+				ResponseWrapper.class);
+		if (policyResponse == null || (policyResponse.getErrors() != null && policyResponse.getErrors().size() > 0)) {
+			throw new DataShareException(policyResponse == null ? "Policy Response response is null"
+					: policyResponse.getErrors().get(0).getMessage());
 
 		} else {
 			LinkedHashMap<String, Object> responseMap = (LinkedHashMap<String, Object>) policyResponse.getResponse();
@@ -648,8 +676,7 @@ public class VerificationServiceImpl implements VerificationService {
 
 	}
 
-
-	public List<String> getModalities(LinkedHashMap<String, Object> policy) throws IOException{
+	public List<String> getModalities(LinkedHashMap<String, Object> policy) throws IOException {
 		Map<String, List<String>> typeAndSubTypeMap = new HashMap<>();
 		List<LinkedHashMap> attributes = (List<LinkedHashMap>) policy.get(VerificationConstants.SHAREABLE_ATTRIBUTES);
 		ObjectMapper mapper = new ObjectMapper();
@@ -669,9 +696,9 @@ public class VerificationServiceImpl implements VerificationService {
 				}
 			}
 		}
-		List<String> modalities=new ArrayList<>();
-		for(Map.Entry<String, List<String>> entry : typeAndSubTypeMap.entrySet()) {
-			if(entry.getValue() == null) {
+		List<String> modalities = new ArrayList<>();
+		for (Map.Entry<String, List<String>> entry : typeAndSubTypeMap.entrySet()) {
+			if (entry.getValue() == null) {
 				modalities.add(entry.getKey());
 			} else {
 				modalities.addAll(entry.getValue());
@@ -685,12 +712,14 @@ public class VerificationServiceImpl implements VerificationService {
 	/*
 	 * Form manual adjudication request
 	 */
-	private VerificationRequestDTO prepareVerificationRequest(MessageDTO messageDTO, InternalRegistrationStatusDto registrationStatusDto) throws Exception {
+	private VerificationRequestDTO prepareVerificationRequest(MessageDTO messageDTO,
+			InternalRegistrationStatusDto registrationStatusDto) throws Exception {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"VerificationServiceImpl::formAdjudicationRequest()::entry");
 
 		VerificationRequestDTO req = new VerificationRequestDTO();
-		List<VerificationEntity> entities = basePacketRepository.getVerificationRecordByWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
+		List<VerificationEntity> entities = basePacketRepository
+				.getVerificationRecordByWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
 		if (!CollectionUtils.isEmpty(entities))
 			req.setRequestId(entities.get(0).getRequestId());
 		else
@@ -701,8 +730,7 @@ public class VerificationServiceImpl implements VerificationService {
 		req.setRequesttime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		req.setReferenceId(messageDTO.getRid());
 		try {
-			req.setReferenceURL(
-					getDataShareUrl(messageDTO.getRid(), registrationStatusDto.getRegistrationType()));
+			req.setReferenceURL(getDataShareUrl(messageDTO.getRid(), registrationStatusDto.getRegistrationType()));
 
 		} catch (PacketManagerException | ApisResourceAccessException ex) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -727,27 +755,25 @@ public class VerificationServiceImpl implements VerificationService {
 	 * @return boolean
 	 * @throws com.fasterxml.jackson.core.JsonProcessingException
 	 */
-	private boolean successFlow(VerificationResponseDTO manualVerificationDTO,
-								VerificationEntity entity,
-								InternalRegistrationStatusDto registrationStatusDto, MessageDTO messageDTO,
-								LogDescription description) throws JsonProcessingException {
+	private boolean successFlow(VerificationResponseDTO manualVerificationDTO, VerificationEntity entity,
+			InternalRegistrationStatusDto registrationStatusDto, MessageDTO messageDTO, LogDescription description)
+			throws JsonProcessingException {
 
 		boolean isTransactionSuccessful = false;
-		String statusCode = manualVerificationDTO.getReturnValue() == 1 ?
-				ManualVerificationStatus.APPROVED.name() : ManualVerificationStatus.REJECTED.name();
+		String statusCode = manualVerificationDTO.getReturnValue() == 1 ? ManualVerificationStatus.APPROVED.name()
+				: ManualVerificationStatus.REJECTED.name();
 
 		String responsetext = JsonUtils.javaObjectToJsonString(manualVerificationDTO);
-		responsetext = StringUtils.isNotEmpty(responsetext) ? responsetext.replaceAll("\\s+","") : responsetext;
+		responsetext = StringUtils.isNotEmpty(responsetext) ? responsetext.replaceAll("\\s+", "") : responsetext;
 
 		entity.setStatusCode(statusCode);
 		entity.setReponseText(responsetext);
-		entity.setStatusComment(statusCode.equalsIgnoreCase(ManualVerificationStatus.APPROVED.name()) ?
-				StatusUtil.VERIFICATION_SUCCESS.getMessage() :
-				StatusUtil.VERIFICATION_FAILED.getMessage());
+		entity.setStatusComment(statusCode.equalsIgnoreCase(ManualVerificationStatus.APPROVED.name())
+				? StatusUtil.VERIFICATION_SUCCESS.getMessage()
+				: StatusUtil.VERIFICATION_FAILED.getMessage());
 
 		isTransactionSuccessful = true;
-		registrationStatusDto
-				.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.VERIFICATION.toString());
+		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.VERIFICATION.toString());
 		registrationStatusDto.setRegistrationStageName(registrationStatusDto.getRegistrationStageName());
 
 		if (statusCode != null && statusCode.equalsIgnoreCase(ManualVerificationStatus.APPROVED.name())) {
@@ -756,8 +782,7 @@ public class VerificationServiceImpl implements VerificationService {
 			registrationStatusDto.setStatusComment(StatusUtil.VERIFICATION_SUCCESS.getMessage());
 			registrationStatusDto.setSubStatusCode(StatusUtil.VERIFICATION_SUCCESS.getCode());
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-			registrationStatusDto
-					.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
+			registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 
 			description.setMessage(PlatformSuccessMessages.RPR_VERIFICATION_SUCCESS.getMessage());
 			description.setCode(PlatformSuccessMessages.RPR_VERIFICATION_SUCCESS.getCode());
@@ -766,8 +791,7 @@ public class VerificationServiceImpl implements VerificationService {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
 			registrationStatusDto.setStatusComment(StatusUtil.VERIFICATION_FAILED.getMessage());
 			registrationStatusDto.setSubStatusCode(StatusUtil.VERIFICATION_FAILED.getCode());
-			registrationStatusDto
-					.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
+			registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
 
 			description.setMessage(PlatformErrorMessages.RPR_MANUAL_VERIFICATION_REJECTED.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_MANUAL_VERIFICATION_REJECTED.getCode());
@@ -802,22 +826,27 @@ public class VerificationServiceImpl implements VerificationService {
 	}
 
 	/**
-	 * This method would validate response and on failure it will mark the response for reprocessing.
+	 * This method would validate response and on failure it will mark the response
+	 * for reprocessing.
 	 *
 	 * @param registrationStatusDto
 	 * @param manualVerificationDTO
 	 * @return boolean
 	 * @throws JsonProcessingException
 	 */
-	public boolean isResendFlow(InternalRegistrationStatusDto registrationStatusDto, VerificationResponseDTO manualVerificationDTO, VerificationEntity entity) throws JsonProcessingException {
+	public boolean isResendFlow(InternalRegistrationStatusDto registrationStatusDto,
+			VerificationResponseDTO manualVerificationDTO, VerificationEntity entity) throws JsonProcessingException {
 		boolean isResendFlow = false;
-		if(manualVerificationDTO.getReturnValue() == 2) {
+		if (manualVerificationDTO.getReturnValue() == 2) {
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationStatusDto.getRegistrationId(), "Received resend request from manual verification application. This will be marked for reprocessing.");
+					registrationStatusDto.getRegistrationId(),
+					"Received resend request from manual verification application. This will be marked for reprocessing.");
 
-			// updating status code to pending so that it can be marked for manual verification again
+			// updating status code to pending so that it can be marked for manual
+			// verification again
 			registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.name());
-			registrationStatusService.updateRegistrationStatus(registrationStatusDto, ModuleName.VERIFICATION.name(), ModuleName.VERIFICATION.name());
+			registrationStatusService.updateRegistrationStatus(registrationStatusDto, ModuleName.VERIFICATION.name(),
+					ModuleName.VERIFICATION.name());
 			isResendFlow = true;
 		}
 		return isResendFlow;
@@ -830,7 +859,8 @@ public class VerificationServiceImpl implements VerificationService {
 				registrationId, "saveVerificationRecord::entry");
 
 		try {
-			List<VerificationEntity> existingRecords = basePacketRepository.getVerificationRecordByWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
+			List<VerificationEntity> existingRecords = basePacketRepository
+					.getVerificationRecordByWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
 
 			if (CollectionUtils.isEmpty(existingRecords)) {
 				VerificationEntity verificationEntity = new VerificationEntity();
@@ -866,8 +896,8 @@ public class VerificationServiceImpl implements VerificationService {
 
 		} catch (DataAccessLayerException e) {
 			isTransactionSuccessful = false;
-			description.setMessage("DataAccessLayerException while saving Verification data for rid"
-					+ registrationId + "::" + e.getMessage());
+			description.setMessage("DataAccessLayerException while saving Verification data for rid" + registrationId
+					+ "::" + e.getMessage());
 
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId, e.getMessage() + ExceptionUtils.getStackTrace(e));
@@ -880,6 +910,5 @@ public class VerificationServiceImpl implements VerificationService {
 
 		return isTransactionSuccessful;
 	}
-
 
 }

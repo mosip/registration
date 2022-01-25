@@ -791,9 +791,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 							.trimExceptionMessage(StatusUtil.UIN_REACTIVATION_FAILED.getMessage() + statusComment));
 					description.setSubStatusCode(StatusUtil.UIN_REACTIVATION_FAILED.getCode());
 					description.setMessage(
-							UINConstants.UIN_FAILURE + id + "::" + result != null && result.getErrors() != null
+							UINConstants.UIN_FAILURE + id + "::" + (result != null && result.getErrors() != null
 									? result.getErrors().get(0).getMessage()
-									: UINConstants.NULL_IDREPO_RESPONSE);
+									: UINConstants.NULL_IDREPO_RESPONSE));
 					description.setMessage(PlatformErrorMessages.UIN_REACTIVATION_FAILED.getMessage());
 					description.setCode(PlatformErrorMessages.UIN_REACTIVATION_FAILED.getCode());
 					description.setTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
@@ -811,9 +811,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 					.trimExceptionMessage(StatusUtil.UIN_REACTIVATION_FAILED.getMessage() + statusComment));
 			description.setSubStatusCode(StatusUtil.UIN_REACTIVATION_FAILED.getCode());
 			description.setMessage(
-					UINConstants.UIN_FAILURE + id + "::" + result != null && result.getErrors() != null
+					UINConstants.UIN_FAILURE + id + "::" + (result != null && result.getErrors() != null
 							? result.getErrors().get(0).getMessage()
-							: UINConstants.NULL_IDREPO_RESPONSE);
+							: UINConstants.NULL_IDREPO_RESPONSE));
 			description.setMessage(PlatformErrorMessages.UIN_REACTIVATION_FAILED.getMessage());
 			description.setCode(PlatformErrorMessages.UIN_REACTIVATION_FAILED.getCode());
 			description.setTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
