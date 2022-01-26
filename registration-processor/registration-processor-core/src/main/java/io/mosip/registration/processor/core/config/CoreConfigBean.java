@@ -48,6 +48,7 @@ public class CoreConfigBean {
 
 	private enum HttpConstants {
 		HTTP("http://"), HTTPS("https://");
+
 		private String url;
 
 		HttpConstants(String url) {
@@ -61,7 +62,7 @@ public class CoreConfigBean {
 	}
 
 	@Bean
-	public PropertySourcesPlaceholderConfigurer getPropertiesFromConfigServer(Environment environment) {
+	public PropertySourcesPlaceholderConfigurer getPropertiesFromConfigServer(Environment environment) throws InterruptedException {
 		try {
 			Vertx vertx = Vertx.vertx();
 			List<ConfigStoreOptions> configStores = new ArrayList<>();
@@ -103,6 +104,9 @@ public class CoreConfigBean {
 				}
 			});
 			configLoader.get();
+		} catch (InterruptedException interruptedException) {
+			regProcLogger.error(this.getClass().getName(), "", "", ExceptionUtils.getStackTrace(interruptedException));
+			throw interruptedException;
 		} catch (Exception exception) {
 			regProcLogger.error(this.getClass().getName(), "", "", ExceptionUtils.getStackTrace(exception));
 		}
@@ -111,11 +115,17 @@ public class CoreConfigBean {
 
 	private static List<String> getAppNames(Environment env) {
 		String names = env.getProperty(ConfigurationUtil.APPLICATION_NAMES);
+		if(names==null) {
+			throw new RuntimeException(ConfigurationUtil.APPLICATION_NAMES+" property not found in env");
+		}
 		return Stream.of(names.split(",")).collect(Collectors.toList());
 	}
 
 	private static List<String> getProfiles(Environment env) {
 		String names = env.getProperty(ConfigurationUtil.ACTIVE_PROFILES);
+		if(names==null) {
+			throw new RuntimeException(ConfigurationUtil.ACTIVE_PROFILES+" property not found in env");
+		}
 		return Stream.of(names.split(",")).collect(Collectors.toList());
 	}
 
@@ -133,6 +143,7 @@ public class CoreConfigBean {
 		});
 		appNames.forEach(appName -> {
 		});
+		
 		return configUrls;
 	}
 
@@ -183,15 +194,18 @@ public class CoreConfigBean {
 	}
 
 	@Bean
-	public Tracer tracer() { return tracing().tracer(); }
+	public Tracer tracer() {
+		return tracing().tracer();
+	}
 
 	@Bean
 	public ObjectMapper getObjectMapper() {
-		ObjectMapper objectMapper = new ObjectMapper().registerModule(new AfterburnerModule()).registerModule(new JavaTimeModule());
+		ObjectMapper objectMapper = new ObjectMapper().registerModule(new AfterburnerModule())
+				.registerModule(new JavaTimeModule());
 		objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 		return objectMapper;
 	}
-	
+
 	@Bean
 	public PropertiesUtil getPropertiesUtil() {
 		return new PropertiesUtil();

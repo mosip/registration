@@ -95,7 +95,7 @@ public class KafkaMosipEventBus implements MosipEventBus {
 		consumerConfig.put("group.id", groupId);
 		consumerConfig.put("auto.offset.reset", "latest");
 		consumerConfig.put("max.poll.records", maxPollRecords);
-		if (commitType == "auto")
+		if (commitType.equals("auto"))
 			consumerConfig.put("enable.auto.commit", "true");
 		else
 			consumerConfig.put("enable.auto.commit", "false");

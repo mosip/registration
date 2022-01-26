@@ -1,7 +1,6 @@
 package io.mosip.registration.processor.verification.config;
 
 import io.mosip.registration.processor.verification.exception.handler.ManualVerificationExceptionHandler;
-import io.mosip.registration.processor.verification.response.builder.ManualVerificationResponseBuilder;
 import io.mosip.registration.processor.verification.service.impl.VerificationServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,11 +25,6 @@ public class VerificationConfigBean {
 	@Bean
     ManualVerificationExceptionHandler getManualVerificationExceptionHandler() {
 		return new ManualVerificationExceptionHandler();
-	}
-	
-	@Bean
-    ManualVerificationResponseBuilder getManualVerificationResponseBuilder() {
-		return new ManualVerificationResponseBuilder();
 	}
 
 }

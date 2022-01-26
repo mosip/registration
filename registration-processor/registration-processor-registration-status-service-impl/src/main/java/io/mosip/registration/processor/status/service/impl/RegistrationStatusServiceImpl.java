@@ -511,9 +511,15 @@ public class RegistrationStatusServiceImpl
 			}
 			registrationStatusDto.setRegistrationId(parentEntity.get().getRegId());
 		} else {
+			if(parentEntity.isPresent()) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					parentEntity.get().getReferenceRegistrationId(),
 					PlatformErrorMessages.RPR_RGS_REGISTRATION_STATUS_NOT_EXIST.getMessage());
+			}else {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						null,
+						PlatformErrorMessages.RPR_RGS_REGISTRATION_STATUS_NOT_EXIST.getMessage());
+			}
 		}
 
 		return registrationStatusDto;

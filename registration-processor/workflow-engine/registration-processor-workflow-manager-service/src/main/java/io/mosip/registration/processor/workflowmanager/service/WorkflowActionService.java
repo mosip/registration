@@ -343,7 +343,7 @@ public class WorkflowActionService {
 				}
 			}
 		}
-        String.join(", ", rulesSet);
+        //String.join(", ", rulesSet);
 		Map<String,String> tagsToAdd=new HashMap<String,String>();
 		tagsToAdd.put("PAUSE_IMMUNITY_RULE_IDS", String.join(", ", rulesSet));
 		packetManagerService.addOrUpdateTags(internalRegistrationStatusDto.getRegistrationId(), tagsToAdd);

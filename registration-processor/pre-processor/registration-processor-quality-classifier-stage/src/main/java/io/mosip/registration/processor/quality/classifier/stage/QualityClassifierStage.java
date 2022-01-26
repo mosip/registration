@@ -443,7 +443,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 			birArray[0] = bir;
 			float[] qualityScoreresponse = getBioSdkInstance(biometricType).getSegmentQuality(birArray, null);
 
-			float score = Float.valueOf(qualityScoreresponse[0]);
+			float score = qualityScoreresponse[0];
 			String bioType = bir.getBdbInfo().getType().get(0).value();
 
 			// Check for entry

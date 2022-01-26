@@ -111,7 +111,7 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
             BytesMessage byteMessage = session.createBytesMessage();
             byteMessage.writeObject(message);
             if(messageTTL > 0)
-                messageProducer.setTimeToLive(messageTTL * 1000);
+                messageProducer.setTimeToLive(messageTTL * (long)1000);
             messageProducer.send(byteMessage);
             flag = true;
         } catch (JMSException e) {
@@ -144,7 +144,7 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
             TextMessage textMessage = session.createTextMessage();
             textMessage.setText(message);
             if(messageTTL > 0)
-                messageProducer.setTimeToLive(messageTTL * 1000);
+                messageProducer.setTimeToLive(messageTTL * (long)1000);
             messageProducer.send(textMessage);
             flag = true;
         } catch (JMSException e) {
