@@ -187,7 +187,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		if(StringUtils.isNotEmpty(referenceId)) {
 		referenceId = referenceId.replace("//", "");
 		}else {
-			throw new RuntimeException("reference id is null");
+			throw new RuntimeException("reference id is null or empty");
 		}
 		List<SyncResponseDto> syncResponseList = new ArrayList<>();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",

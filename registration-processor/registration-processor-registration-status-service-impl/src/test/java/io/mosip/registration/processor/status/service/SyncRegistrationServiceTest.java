@@ -429,7 +429,7 @@ public class SyncRegistrationServiceTest {
 		byte[] encryptedInfo = "encryptedInfo".getBytes();
 		Mockito.when(encryptor.encrypt(anyString(), anyString(), anyString())).thenReturn(encryptedInfo);
 		Mockito.when(syncRegistrationDao.save(any())).thenReturn(syncRegistrationEntity);
-		List<SyncResponseDto> syncResponse = syncRegistrationService.sync(request, "", "");
+		List<SyncResponseDto> syncResponse = syncRegistrationService.sync(request, "10011_10011", "");
 		Mockito.doNothing().when(anonymousProfileService).saveAnonymousProfile(any(), any(), any());
 
 		assertEquals("Verifing List returned", (syncResponse.get(0)).getRegistrationId(),
@@ -437,7 +437,7 @@ public class SyncRegistrationServiceTest {
 
 		Mockito.when(syncRegistrationDao.findByPacketId(any())).thenReturn(syncRegistrationEntity);
 		Mockito.when(syncRegistrationDao.update(any())).thenReturn(syncRegistrationEntity);
-		List<SyncResponseDto> syncResponseDto = syncRegistrationService.sync(request, "", "");
+		List<SyncResponseDto> syncResponseDto = syncRegistrationService.sync(request, "10011_10011", "");
 		assertEquals("Verifing if list is returned. Expected value should be 1002",
 				syncRegistrationDto.getRegistrationId(),
 				(syncResponseDto.get(0)).getRegistrationId());
@@ -588,7 +588,7 @@ public class SyncRegistrationServiceTest {
 		byte[] encryptedInfo = "encryptedInfo".getBytes();
 		Mockito.when(encryptor.encrypt(anyString(), anyString(), anyString())).thenReturn(encryptedInfo);
 		Mockito.when(syncRegistrationDao.save(any())).thenThrow(exp);
-		syncRegistrationService.sync(request, "", "");
+		syncRegistrationService.sync(request, "10011_10011", "");
 
 	}
 
@@ -614,7 +614,7 @@ public class SyncRegistrationServiceTest {
 		List<SyncRegistrationDto> request = new ArrayList<>();
 		request.add(syncRegistrationDto3);
 		Mockito.when(ridValidator.validateId(any())).thenThrow(exp);
-		syncRegistrationService.sync(request, "", "");
+		syncRegistrationService.sync(request, "10011_10011", "");
 	}
 
 	/**
@@ -631,7 +631,7 @@ public class SyncRegistrationServiceTest {
 		List<SyncRegistrationDto> request = new ArrayList<>();
 		request.add(syncRegistrationDto3);
 		Mockito.when(ridValidator.validateId(anyString())).thenThrow(exp);
-		List<SyncResponseDto> syncResponseList = syncRegistrationService.sync(request, "", "");
+		List<SyncResponseDto> syncResponseList = syncRegistrationService.sync(request, "10011_10011", "");
 		assertEquals("FAILURE", syncResponseList.get(0).getStatus());
 	}
 
@@ -649,7 +649,7 @@ public class SyncRegistrationServiceTest {
 		List<SyncRegistrationDto> request = new ArrayList<>();
 		request.add(syncRegistrationDto4);
 		Mockito.when(ridValidator.validateId(anyString())).thenThrow(exp);
-		List<SyncResponseDto> syncResponseList = syncRegistrationService.sync(request, "", "");
+		List<SyncResponseDto> syncResponseList = syncRegistrationService.sync(request, "10011_10011", "");
 		assertEquals("FAILURE", syncResponseList.get(0).getStatus());
 	}
 
@@ -668,7 +668,7 @@ public class SyncRegistrationServiceTest {
 		List<SyncRegistrationDto> request = new ArrayList<>();
 		request.add(syncRegistrationDto3);
 		Mockito.when(ridValidator.validateId(anyString())).thenThrow(exp);
-		List<SyncResponseDto> syncResponseList = syncRegistrationService.sync(request, "", "");
+		List<SyncResponseDto> syncResponseList = syncRegistrationService.sync(request, "10011_10011", "");
 		assertEquals("FAILURE", syncResponseList.get(0).getStatus());
 	}
 
@@ -686,7 +686,7 @@ public class SyncRegistrationServiceTest {
 		List<SyncRegistrationDto> request = new ArrayList<>();
 		request.add(syncRegistrationDto4);
 		Mockito.when(ridValidator.validateId(anyString())).thenThrow(exp);
-		List<SyncResponseDto> syncResponseList = syncRegistrationService.sync(request, "", "");
+		List<SyncResponseDto> syncResponseList = syncRegistrationService.sync(request, "10011_10011", "");
 		assertEquals("FAILURE", syncResponseList.get(0).getStatus());
 	}
 
@@ -704,7 +704,7 @@ public class SyncRegistrationServiceTest {
 		List<SyncRegistrationDto> request = new ArrayList<>();
 		request.add(syncRegistrationDto5);
 		Mockito.when(ridValidator.validateId(anyString())).thenThrow(exp);
-		List<SyncResponseDto> syncResponseList = syncRegistrationService.sync(request, "", "");
+		List<SyncResponseDto> syncResponseList = syncRegistrationService.sync(request, "10011_10011", "");
 		assertEquals("FAILURE", syncResponseList.get(0).getStatus());
 	}
 
