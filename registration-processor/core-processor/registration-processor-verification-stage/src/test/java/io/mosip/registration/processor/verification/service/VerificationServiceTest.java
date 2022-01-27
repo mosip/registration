@@ -439,7 +439,6 @@ public class VerificationServiceTest {
 
 		assertFalse(result);
 	}
-
 	
 	@Test
 	@Ignore

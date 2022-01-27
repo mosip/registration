@@ -43,6 +43,7 @@ import com.google.common.collect.Sets;
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.kernel.dataaccess.hibernate.constant.HibernateErrorCode;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.DedupeSourceName;
@@ -83,6 +84,8 @@ import io.mosip.registration.processor.packet.storage.entity.RegBioRefPKEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegDemoDedupeListEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegDemoDedupeListPKEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegLostUinDetEntity;
+import io.mosip.registration.processor.packet.storage.exception.MappingJsonException;
+import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.packet.storage.exception.UnableToInsertData;
 import io.mosip.registration.processor.packet.storage.mapper.PacketInfoMapper;
@@ -624,7 +627,20 @@ public class PacketInfoManagerImplTest {
 	}
 
 
-
+	@Test(expected = MappingJsonException.class)
+	public void demographicDedupeIOExceptionTest() throws Exception {
+		Mockito.when(utility.getRegistrationProcessorMappingJson(any())).thenThrow(new IOException());
+		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229",
+				"", "", "",1, "");
+	}
+	
+	@Test(expected = ParsingException.class)
+	public void demographicDedupeParsingExceptionTest() throws Exception {
+		Mockito.when(packetManagerService.getFields(anyString(), any(), anyString(), any()))
+				.thenThrow(new JsonProcessingException("exception occured"));
+		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229",
+				"", "", "",1, "");
+	}
 	/**
 	 * Gets the packets for QC users test.
 	 *
