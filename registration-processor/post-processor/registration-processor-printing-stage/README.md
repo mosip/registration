@@ -1,6 +1,6 @@
 # Priting Stage
 
-## Function
+## About
 Creates [Credential Request]() for printing systems.
 
 ## Default context, path, port

@@ -7,6 +7,6 @@ Consists of the following elements:
     *  Pause: Pause processing of packets based on rules
     *  Resume: Resume proessing of packets  
     *  Request for additional information from user (like a new document) and continue registration as CORRECTION packet.
-    * Reprocessor
+* Reprocessor
 
 The work flow can be controlled with Admin portal

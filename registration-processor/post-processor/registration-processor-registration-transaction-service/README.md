@@ -1,6 +1,6 @@
 # Registration Transaction Service
 
-## Function
+## About
 Used by Admin service to find latest transactions for an application id.
 
 ## Default context, path, port

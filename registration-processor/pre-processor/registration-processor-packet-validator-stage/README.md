@@ -1,6 +1,6 @@
 # Packet Validator Stage
 
-## Function
+## About
 Performs the following functions:
 * Calls Packetmanager's "validate" API to validate packet contents.
 * Checks if UIN in UPDATE packet.
