@@ -1,12 +1,10 @@
 package io.mosip.registration.processor.adjudication.config;
 
-import io.mosip.registration.processor.adjudication.stage.ManualAdjudicationStage;
 import io.mosip.registration.processor.adjudication.util.ManualVerificationRequestValidator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import io.mosip.registration.processor.adjudication.exception.handler.ManualVerificationExceptionHandler;
-import io.mosip.registration.processor.adjudication.response.builder.ManualVerificationResponseBuilder;
 import io.mosip.registration.processor.adjudication.service.ManualAdjudicationService;
 import io.mosip.registration.processor.adjudication.service.impl.ManualAdjudicationServiceImpl;
 
@@ -26,10 +24,5 @@ public class ManualAdjudicationConfigBean {
 	@Bean
 	ManualVerificationExceptionHandler getManualVerificationExceptionHandler() {
 		return new ManualVerificationExceptionHandler();
-	}
-	
-	@Bean
-	ManualVerificationResponseBuilder getManualVerificationResponseBuilder() {
-		return new ManualVerificationResponseBuilder();
 	}
 }
