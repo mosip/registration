@@ -35,6 +35,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.util.JsonUtils;
+import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.exception.JsonMappingException;
 import io.mosip.kernel.core.util.exception.JsonParseException;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
@@ -183,6 +184,11 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	 */
 	public List<SyncResponseDto> sync(List<SyncRegistrationDto> resgistrationDtos, String referenceId,
 			String timeStamp) {
+		if(StringUtils.isNotEmpty(referenceId)) {
+		referenceId = referenceId.replace("//", "");
+		}else {
+			throw new RuntimeException("reference id is null");
+		}
 		List<SyncResponseDto> syncResponseList = new ArrayList<>();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"SyncRegistrationServiceImpl::sync()::entry");

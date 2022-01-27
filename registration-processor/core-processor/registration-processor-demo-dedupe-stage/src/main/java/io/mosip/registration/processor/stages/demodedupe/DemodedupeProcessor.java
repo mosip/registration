@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
@@ -352,7 +353,7 @@ public class DemodedupeProcessor {
 				}
 			}
 			else {
-				if (env.getProperty(DEMODEDUPEENABLE)!=null && env.getProperty(DEMODEDUPEENABLE).trim().equalsIgnoreCase(TRUE)) {
+				if (StringUtils.isNotEmpty(env.getProperty(DEMODEDUPEENABLE)) && env.getProperty(DEMODEDUPEENABLE).trim().equalsIgnoreCase(TRUE)) {
 					isDemoDedupeSkip = false;
 				duplicateDtos = performDemoDedupe(registrationStatusDto, object, description);
 				if (duplicateDtos.isEmpty())

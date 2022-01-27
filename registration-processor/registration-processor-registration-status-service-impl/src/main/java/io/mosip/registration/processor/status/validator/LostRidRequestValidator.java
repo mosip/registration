@@ -14,8 +14,11 @@ import org.springframework.core.env.Environment;
 import org.springframework.format.datetime.joda.DateTimeFormatterFactory;
 import org.springframework.stereotype.Component;
 
+import com.hazelcast.util.StringUtil;
+
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.WorkFlowSearchException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -98,7 +101,7 @@ public class LostRidRequestValidator {
 		if (Objects.isNull(id)) {
 
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER_ID, exception);
-		} else if (env.getProperty(REG_LOSTRID_SERVICE_ID)!=null && !env.getProperty(REG_LOSTRID_SERVICE_ID).equals(id)) {
+		} else if (StringUtils.isNotEmpty(env.getProperty(REG_LOSTRID_SERVICE_ID)) && !env.getProperty(REG_LOSTRID_SERVICE_ID).equals(id)) {
 
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_INVALID_INPUT_PARAMETER_ID, exception);
 
