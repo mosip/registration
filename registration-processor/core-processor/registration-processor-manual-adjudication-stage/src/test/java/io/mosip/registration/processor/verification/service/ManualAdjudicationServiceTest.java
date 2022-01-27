@@ -3,10 +3,10 @@ package io.mosip.registration.processor.verification.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,29 +22,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
-import io.mosip.kernel.biometrics.constant.BiometricType;
-import io.mosip.kernel.biometrics.constant.QualityType;
-import io.mosip.kernel.biometrics.entities.BDBInfo;
-import io.mosip.kernel.biometrics.entities.BIR;
-import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.mosip.kernel.biometrics.entities.RegistryIDType;
-import io.mosip.kernel.biometrics.spi.CbeffUtil;
-import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.registration.processor.adjudication.service.ManualAdjudicationService;
-import io.mosip.registration.processor.packet.storage.dto.Document;
-import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
-import io.mosip.registration.processor.packet.storage.utils.Utilities;
-
-import io.mosip.registration.processor.adjudication.dto.ManualVerificationDTO;
-import io.mosip.registration.processor.adjudication.dto.ManualVerificationDecisionDto;
-import io.mosip.registration.processor.adjudication.dto.ManualVerificationStatus;
-import io.mosip.registration.processor.adjudication.dto.MatchDetail;
-import io.mosip.registration.processor.adjudication.dto.UserDto;
-import io.mosip.registration.processor.adjudication.stage.ManualAdjudicationStage;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.groups.Tuple;
 import org.assertj.core.util.Lists;
@@ -58,10 +35,44 @@ import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import io.mosip.kernel.biometrics.constant.BiometricType;
+import io.mosip.kernel.biometrics.constant.QualityType;
+import io.mosip.kernel.biometrics.entities.BDBInfo;
+import io.mosip.kernel.biometrics.entities.BIR;
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.biometrics.entities.RegistryIDType;
+import io.mosip.kernel.biometrics.spi.CbeffUtil;
+import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.adjudication.dto.ManualVerificationDTO;
+import io.mosip.registration.processor.adjudication.dto.ManualVerificationDecisionDto;
+import io.mosip.registration.processor.adjudication.dto.ManualVerificationStatus;
+import io.mosip.registration.processor.adjudication.dto.MatchDetail;
+import io.mosip.registration.processor.adjudication.dto.UserDto;
+import io.mosip.registration.processor.adjudication.exception.InvalidFileNameException;
+import io.mosip.registration.processor.adjudication.exception.InvalidRidException;
+import io.mosip.registration.processor.adjudication.response.dto.Candidate;
+import io.mosip.registration.processor.adjudication.response.dto.CandidateList;
+import io.mosip.registration.processor.adjudication.response.dto.ManualAdjudicationResponseDTO;
+import io.mosip.registration.processor.adjudication.service.ManualAdjudicationService;
+import io.mosip.registration.processor.adjudication.service.impl.ManualAdjudicationServiceImpl;
+import io.mosip.registration.processor.adjudication.stage.ManualAdjudicationStage;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
+import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
 import io.mosip.registration.processor.core.kernel.master.dto.UserResponseDTO;
 import io.mosip.registration.processor.core.kernel.master.dto.UserResponseDTOWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
@@ -72,24 +83,19 @@ import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
-import io.mosip.registration.processor.adjudication.exception.InvalidFileNameException;
-import io.mosip.registration.processor.adjudication.exception.InvalidRidException;
-import io.mosip.registration.processor.adjudication.response.dto.Candidate;
-import io.mosip.registration.processor.adjudication.response.dto.CandidateList;
-import io.mosip.registration.processor.adjudication.response.dto.ManualAdjudicationResponseDTO;
-import io.mosip.registration.processor.adjudication.service.impl.ManualAdjudicationServiceImpl;
+import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
+import io.mosip.registration.processor.packet.storage.dto.Document;
 import io.mosip.registration.processor.packet.storage.entity.ManualVerificationEntity;
 import io.mosip.registration.processor.packet.storage.entity.ManualVerificationPKEntity;
 import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
-import org.slf4j.LoggerFactory;
-import org.springframework.core.env.Environment;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ Utilities.class, JsonUtil.class })
@@ -107,6 +113,9 @@ public class ManualAdjudicationServiceTest {
 
 	@Mock
     ManualAdjudicationStage manualAdjudicationStage;
+	
+	@Mock 
+	private IdRepoService idRepoService;
 
 	@Mock
 	ManualAdjudicationService mockManualAdjudicationService;
@@ -611,15 +620,7 @@ public class ManualAdjudicationServiceTest {
 		manualAdjudicationService.process(object, queue);
 	}
 
-	@Test
-	public void testManualAdjudicationProcess() throws Exception {
-
-		MessageDTO object = new MessageDTO();
-		object.setReg_type("NEW");
-		object.setRid("92379526572940");
-		object.setIteration(1);
-		object.setWorkflowInstanceId("26fa3eff-f3b9-48f7-b365-d7f7c2e56e00");
-
+	public void setDataShareDetails() throws Exception {
 		ResponseWrapper policiesResponse = new ResponseWrapper();
 		LinkedHashMap<String, Object> policiesMap = new LinkedHashMap<String, Object>();
 		List<LinkedHashMap> attributeList = new ArrayList<LinkedHashMap>();
@@ -737,6 +738,29 @@ public class ManualAdjudicationServiceTest {
 		document.setValue("biometrics");
 		document.setType("biometrics");
 		Mockito.when(packetManagerService.getDocument(any(), any(), any(), any())).thenReturn(new Document());
+	}
+	@Test
+	public void testManualAdjudicationProcess() throws Exception {
+
+		MessageDTO object = new MessageDTO();
+		object.setReg_type("NEW");
+		object.setRid("92379526572940");
+		object.setIteration(1);
+		object.setWorkflowInstanceId("26fa3eff-f3b9-48f7-b365-d7f7c2e56e00");
+
+		setDataShareDetails();
+
+		manualAdjudicationService.process(object, queue);
+	}
+	@Test
+	public void testManualAdjudicationProcessLatest() throws Exception {
+		ReflectionTestUtils.setField(manualAdjudicationService, "uselatestManualAdjudicationRequestFormat", true);
+		MessageDTO object = new MessageDTO();
+		object.setReg_type("NEW");
+		object.setRid("92379526572940");
+		object.setIteration(1);
+		object.setWorkflowInstanceId("26fa3eff-f3b9-48f7-b365-d7f7c2e56e00");
+		setDataShareDetails();
 
 		manualAdjudicationService.process(object, queue);
 	}
