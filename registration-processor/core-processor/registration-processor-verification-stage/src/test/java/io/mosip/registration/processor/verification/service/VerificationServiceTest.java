@@ -439,7 +439,6 @@ public class VerificationServiceTest {
 
 		assertFalse(result);
 	}
-
 	
 	@Test
 	@Ignore
@@ -479,7 +478,6 @@ public class VerificationServiceTest {
 		assertFalse(result);
 	}
 
-	
 	@Test
 	@Ignore
 	public void testUpdateStatusRejected() throws JsonProcessingException, com.fasterxml.jackson.core.JsonProcessingException {
