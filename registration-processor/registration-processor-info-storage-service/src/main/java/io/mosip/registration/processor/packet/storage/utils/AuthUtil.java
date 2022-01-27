@@ -412,8 +412,8 @@ public class AuthUtil {
 	}
 
 	private static String trimBeginEnd(String pKey) {
-		pKey = pKey.replaceAll("-+BEGIN[\\s\\w]*-+(\\n\\r)*", "");
-		pKey = pKey.replaceAll("-+END[\\s\\w]*-+(\\n\\r)*", "");
+		pKey = pKey.replaceAll("-*BEGIN([^-]*)-*(\r?\n)?", "");
+		pKey = pKey.replaceAll("-*END([^-]*)-*(\r?\n)?", "");
 		pKey = pKey.replaceAll("\\s", "");
 		return pKey;
 	}

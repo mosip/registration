@@ -184,11 +184,6 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	 */
 	public List<SyncResponseDto> sync(List<SyncRegistrationDto> resgistrationDtos, String referenceId,
 			String timeStamp) {
-		if(StringUtils.isNotEmpty(referenceId)) {
-		referenceId = referenceId.replace("//", "");
-		}else {
-			throw new RuntimeException("reference id is null or empty");
-		}
 		List<SyncResponseDto> syncResponseList = new ArrayList<>();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"SyncRegistrationServiceImpl::sync()::entry");
