@@ -114,7 +114,7 @@ To deploy Registration Processor services on Kubernetes cluster using Dockers re
 Refer to the [configuration guide](docs/configuration.md).
 
 ## Test
-Automated functaionl tests available in [Functional Tests repo](https://github.com/mosip/mosip-functional-tests)
+Automated functional tests available in [Functional Tests repo](https://github.com/mosip/mosip-functional-tests)
 
 ## APIs
 API documentation is available [here](https://docs.mosip.io/1.2.0/api)
