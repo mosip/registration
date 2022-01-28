@@ -25,10 +25,10 @@ Sections here list the sequence in which various stages/services are called for 
 * Finalization 
 * Printing
 
-The flows are specified in [Camel XMLs](https://github.com/mosip/mosip-config/tree/develop2-v2)
+The flows are specified in [Camel XMLs](https://docs.mosip.io/1.2.0/modules/module-configuration)
 
 ## Correction
-The flow depends on the type of correction.  For biometric correction example is given [here](https://github.com/mosip/mosip-config/blob/develop2-v2/registration-processor-camel-routes-biometric-correction-default.xml)
+The flow depends on the type of correction.  See [example XML](example.correction.xml) 
 
 ## Activate/Deactivate
 * [Packet receiver](../registration-processor/init/registration-processor-packet-receiver-stage)

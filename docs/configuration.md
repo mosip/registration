@@ -29,10 +29,8 @@ registration-processor-default-dmz.properties
 registration-processor-print-text-file.json
 identity-mapping.json
 ```
-The above files are located in [mosip-config](https://github.com/mosip/mosip-config/blob/develop2-v2/) repo
 
-The `*-dmz` files are applicable only to [sandbox v2](https://github.com/mosip/mosip-infra/tree/1.2.0-rc2/deployment/sandbox-v2) installation.  [sandbox v3](https://github.com/mosip/mosip-infra/tree/1.2.0-rc2/deployment/v3) does not use them.
-
+See [Module Configuration](https://docs.mosip.io/1.2.0/modules/module-configuration) for location of these files.
 
 ## DB
 * `mosip.registration.processor.database.hostname`
@@ -91,7 +89,7 @@ TBD.
 * `mosip.regproc.packet.classifier.tagging.agegroup.ranges`
 
 ## Misc properties 
-* `registration.processor.max.retry`: Max number of retries allowed by registration client if sanity check of packet fails in [packet uploader stage](https://github.com/mosip/registration/tree/1.2.0-rc2/registration-processor/pre-processor/registration-processor-packet-uploader-stage)
-* `mosip.regproc.virusscanner.provider`: Virus Scanner JAR is picked up on runtime.  If another scanner is used, the implementation class needs to be provided here. See [Integrating Antivirus](https://github.com/mosip/mosip-ref-impl/tree/1.2.0-rc2/kernel/kernel-virusscanner-clamav/docs/av.md)
+* `registration.processor.max.retry`: Max number of retries allowed by registration client if sanity check of packet fails in [packet uploader stage](registration-processor/pre-processor/registration-processor-packet-uploader-stage)
+* `mosip.regproc.virusscanner.provider`: Virus Scanner JAR is picked up on runtime.  If another scanner is used, the implementation class needs to be provided here. See [Integrating Antivirus](https://github.com/mosip/mosip-ref-impl/tree/v1.2.0/kernel/kernel-virusscanner-clamav/docs/av.md)
 * `registration.processor.signature.isEnabled`: Disabling this flag is sometimes useful in development mode.  NEVER disable this in production.
 *  `registration.processor.infant.dedupe`: Enable this flag only if infant biometrics are captured, and dedup is desired.
