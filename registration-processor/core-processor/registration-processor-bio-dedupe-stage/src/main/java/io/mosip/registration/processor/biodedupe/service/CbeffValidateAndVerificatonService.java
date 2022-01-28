@@ -65,9 +65,9 @@ public class CbeffValidateAndVerificatonService {
                 	if(!CollectionUtils.isEmpty(b.getBdbInfo().getType())) {
                 		for(Map.Entry entry : b.getOthers().entrySet()) {
                 			if(entry.getKey().equals("EXCEPTION") &&!entry.getValue().equals("true")) {
-                				return b.getBdbInfo().getSubtype()!=null ||!b.getBdbInfo().getSubtype().isEmpty()?
+                				return b.getBdbInfo().getSubtype()!=null && !b.getBdbInfo().getSubtype().isEmpty()?
                 						String.join(" ", b.getBdbInfo().getSubtype())
-                						:b.getBdbInfo().getType().iterator().next().value();
+                						:b.getBdbInfo().getType().get(0).value();
                 			}
                 		}
                 	}
