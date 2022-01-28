@@ -1,7 +1,6 @@
 # Packet Receiver Stage
 
 ## About
-
 Packet receiver stage performs the following functions:
 *  Receives registration packets uploaded by registration clients.
 *  Performs sanity checks (like virus scan, checksum validation, file size) on the encrypted packet (without decrypting).

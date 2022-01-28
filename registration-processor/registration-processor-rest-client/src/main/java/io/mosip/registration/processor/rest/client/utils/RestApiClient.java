@@ -264,8 +264,7 @@ public class RestApiClient {
 				Iterator<String> iterator = httpHeader.keySet().iterator();
 				while (iterator.hasNext()) {
 					String key = iterator.next();
-					if (httpHeader != null && httpHeader.get(key) != null
-							&& !(headers.containsKey("Content-Type") && key.equals("Content-Type")))
+					if (!(headers.containsKey("Content-Type") && key == "Content-Type"))
 						headers.add(key, httpHeader.get(key).get(0));
 				}
 				return new HttpEntity<Object>(httpEntity.getBody(), headers);

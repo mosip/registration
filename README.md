@@ -8,9 +8,9 @@
 ## Overview
 This repository contains source code and design documents for MOSIP Registration Processor which is the server-side module to manage ID lifecycle.  The modules exposes API endpoints.  
 
-[Overview of Registration Processor and its role in ID lifecycle management](https://nayakrounak.gitbook.io/mosip-docs/modules/registration-processor)
+[Overview of Registration Processor](https://docs.mosip.io/1.2.0/modules/registration-processor)
 
-The front end UI application called Registration Client is available in a separate repo [here](https://github.com/mosip/registration-client/tree/develop)
+The front end UI application called Registration Client is available in a separate repo [here](https://github.com/mosip/registration-client)
 
 ## Registration stages and pipeline
 
@@ -55,7 +55,7 @@ Other services:
   * Transaction service
 
 ### Registration flows
-An overview of various enrollment scenarious (or flows) is described in [ID Lifecycle Management](https://nayakrounak.gitbook.io/mosip-docs/id-lifecycle-management).  Registration Processor recognises the following flows:
+An overview of various enrollment scenarious (or flows) is described in [ID Lifecycle Management](https://docs.mosip.io/1.2.0/id-lifecycle-management).  Registration Processor recognises the following flows:
 
 * New 
 * Update
@@ -86,7 +86,7 @@ Distributed cache - for packetmanager
 See [DB guide](db_scripts/README.md)
 
 ## Registration Packet Structure
-[Packetmanager](https://github.com/mosip/packet-manager/tree/develop/README.md)
+[Packetmanager](https://docs.mosip.io/1.2.0/modules/packet-manager)
 
 ## Build & run (for developers)
 The project requires JDK 1.11. 
@@ -108,27 +108,7 @@ The project requires JDK 1.11.
 ## Deploy
 
 ### Registration processor in sandbox
-To deploy Registration on Kubernetes cluster using Dockers refer to [mosip-infra](https://github.com/mosip/mosip-infra/tree/1.2.0_v3/deployment/v3)
-
-### Developer
-
-1. As a developer, to run a service jar individually:
-    ```
-    `java -Dspring.profiles.active=<profile> -Dspring.cloud.config.uri=<config-url> -Dspring.cloud.config.label=<config-label> -jar <jar-name>.jar`
-    ```
-    Example:  
-        _profile_: `env` (extension used on configuration property files*)    
-        _config_label_: `master` (git branch of config repo*)  
-        _config-url_: `http://localhost:51000` (Url of the config server*)  
-	
-	\* Refer to [kernel-config-server](https://github.com/mosip/commons/tree/master/kernel/kernel-config-server) for details
-
-
-1. Note that you will have to run the dependent services like kernel-config-server to run any service successfully.
-    
-## Dependencies
-Registration module depends on the following services:
-
+To deploy Registration Processor services on Kubernetes cluster using Dockers refer to [Sandbox Deployment](https://docs.mosip.io/1.2.0/deployment/sandbox-deployment).
 
 ## Configuration
 Refer to the [configuration guide](docs/configuration.md).
@@ -137,10 +117,8 @@ Refer to the [configuration guide](docs/configuration.md).
 Automated functaionl tests available in [Functional Tests repo](https://github.com/mosip/mosip-functional-tests)
 
 ## APIs
-API documentation available on Wiki: [Registration APIs](https://github.com/mosip/documentation/wiki/Registration-APIs)
+API documentation is available [here](https://docs.mosip.io/1.2.0/api)
 
 ## License
-This project is licensed under the terms of [Mozilla Public License 2.0](https://github.com/mosip/mosip-platform/blob/master/LICENSE)
-
-Refer to README in respective folders for details.
+This project is licensed under the terms of [Mozilla Public License 2.0](LICENSE).
 
