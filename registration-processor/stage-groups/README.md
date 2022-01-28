@@ -28,12 +28,10 @@ stage group 7:
     regproc-printing-stage
 ````
 
-The `regproc-reprocessor` and `regproc-external-stage` are not grouped into any stage group.
-
-
 # Sample Command to build:
+Example -
 ````
-sudo docker build -t  registration-processor-stage-group-1:1.2.0-SNAPSHOT .
+sudo docker build -t  registration-processor-stage-group-1:1.2.0-rc2 .
 ````
 
 # Sample Command to run:
