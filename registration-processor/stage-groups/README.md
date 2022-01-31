@@ -1,40 +1,4 @@
-#Below are the stage groups:
-````
-stage group 1:
-	regproc-packet-receiver-stage
-stage group 2:
-	regproc-securezone-notification-stage
-	regproc-quality-classifier-stage
-	regproc-message-sender-stage
-stage group 3:
-	regproc-bio-dedupe-stage
-	regproc-abis-handler-stage
-	regproc-abis-middleware-stage
-	regproc-manual-adjudication-stage
-stage group 4:
-	regproc-biometric-authentication-stage
-	regproc-demo-dedupe-stage
-stage group 5:
-	regproc-packet-validator-stage
-	regproc-cmd-validator-stage
-	regproc-operator-validator-stage
-	regproc-supervisor-validator-stage
-	regproc-introducer-validator-stage
-stage group 6:
-	regproc-packet-uploader-stage
-	regproc-packet-classifier-stage
-stage group 7:
-	regproc-uin-generator-stage
-    regproc-printing-stage
-````
+# Stage Groups
 
-# Sample Command to build:
-Example -
-````
-sudo docker build -t  registration-processor-stage-group-1:1.2.0-rc2 .
-````
-
-# Sample Command to run:
-````
-sudo docker run --rm -it -e active_profile_env=dmz -e spring_config_url_env=http://localhost:51000/config -e spring_config_label_env=master  registration-processor-stage-group-1:1.2.0-SNAPSHOT
-````
+## Overview
+Refer grouping of stages [here](../../README.md#registration-stages-and-pipeline).
