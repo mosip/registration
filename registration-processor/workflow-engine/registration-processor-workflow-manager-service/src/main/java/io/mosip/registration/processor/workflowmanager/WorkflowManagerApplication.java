@@ -12,6 +12,7 @@ public class WorkflowManagerApplication
 	public static void main(String[] args) {
 		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
 		ctx.scan("io.mosip.registration.processor.core.config",
+				"${mosip.auth.adapter.impl.basepackage}",
 				"io.mosip.registration.processor.workflowmanager.config",
 				"io.mosip.registration.processor.status.config",
 				"io.mosip.registration.processor.core.kernel.beans",
