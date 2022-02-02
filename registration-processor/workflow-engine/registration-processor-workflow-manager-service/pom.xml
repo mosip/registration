@@ -34,11 +34,6 @@
 			<version>${vertx.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-auth-adapter</artifactId>
-			<version>${registration.status.service.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>io.mosip.registrationprocessor</groupId>
 			<artifactId>registration-processor-registration-status-service-impl</artifactId>
 			<version>${registration.status.service.version}</version>
