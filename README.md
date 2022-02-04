@@ -1,7 +1,5 @@
-
-[![Build Status](https://travis-ci.org/mosip/registration.svg?branch=master)](https://travis-ci.org/mosip/registration)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mosip_registration&metric=alert_status)](https://sonarcloud.io/dashboard?id=mosip_registration)
-[![Join the chat at https://gitter.im/mosip-community/registration](https://badges.gitter.im/mosip-community/registration.svg)](https://gitter.im/mosip-community/registration?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Maven Package upon a push](https://github.com/mosip/registration/actions/workflows/push_trigger.yml/badge.svg?branch=release-1.2.0)](https://github.com/mosip/registration/actions/workflows/push_trigger.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?branch=release-1.2.0&project=mosip_registration&metric=alert_status)](https://sonarcloud.io/dashboard?branch=release-1.2.0&id=mosip_registration)
 
 # Registration Processor
 
