@@ -185,6 +185,9 @@ public class AbisServiceImpl implements AbisService {
 
 				DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 				dbFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+				dbFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+				dbFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+				dbFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
 				DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 				return dBuilder.parse(is);
 			}
@@ -218,7 +221,7 @@ public class AbisServiceImpl implements AbisService {
 
 			response.setReturnValue("1");
 			String duplicateIndicator = env.getProperty(duplicateSet);
-			if (StringUtils.isNotEmpty(duplicateIndicator) && duplicateIndicator.equalsIgnoreCase("true")) {
+			if (duplicateIndicator!=null && StringUtils.isNotEmpty(duplicateIndicator) && duplicateIndicator.equalsIgnoreCase("true")) {
 				addCandidateList(identifyReqId, identifyRequest, response);
 			}
 

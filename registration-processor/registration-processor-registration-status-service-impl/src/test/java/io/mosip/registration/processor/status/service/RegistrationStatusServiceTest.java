@@ -2,6 +2,7 @@ package io.mosip.registration.processor.status.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -586,7 +587,7 @@ public class RegistrationStatusServiceTest {
 		Mockito.when(registrationStatusDao.save(any())).thenThrow(exp);
 		registrationStatusService.updateRegistrationStatusForWorkflow(registrationStatusDto, "", "");
 	}
-
+	
 	@Test
 	public void getRegStatusForMainProcessSuccessTest() {
 
@@ -595,37 +596,12 @@ public class RegistrationStatusServiceTest {
 		InternalRegistrationStatusDto dto = registrationStatusService.getRegStatusForMainProcess(registartionId);
 		assertEquals("1000", dto.getRegistrationId());
 	}
-
+	
 	@Test(expected = TablenotAccessibleException.class)
 	public void getRegStatusForMainProcessFailureTest() {
 		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
 				"errorMessage", new Exception());
 		Mockito.when(registrationStatusDao.findAll(anyString())).thenThrow(exp);
 		registrationStatusService.getRegStatusForMainProcess("1001");
-	}
-	
-	@Test
-	public void checkUinAvailabilityForRidTest() {
-
-		Mockito.when(registrationStatusDao.checkUinAvailabilityForRid(any())).thenReturn(true);
-		String registartionId="1000";
-		Boolean status = registrationStatusService.checkUinAvailabilityForRid(registartionId);
-		assertEquals(true, status);
-	}
-	
-	@Test
-	public void getInReprocessPacketsCountTest() {
-
-		Mockito.when(registrationStatusDao.getInReprocessPacketsCount(anyLong())).thenReturn((long) 2);
-		long value = registrationStatusService.getInReprocessPacketsCount(100);
-		assertEquals(2, value);
-	}
-	
-	@Test(expected = TablenotAccessibleException.class)
-	public void getInReprocessPacketsCountDataAccessExceptionTest() {
-
-		Mockito.when(registrationStatusDao.getInReprocessPacketsCount(anyLong()))
-				.thenThrow(new DataAccessLayerException("ERR-001", "exception occured", null));
-		registrationStatusService.getInReprocessPacketsCount(100);
 	}
 }

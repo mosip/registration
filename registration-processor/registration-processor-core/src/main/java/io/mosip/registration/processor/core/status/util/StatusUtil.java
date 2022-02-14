@@ -99,7 +99,7 @@ public enum StatusUtil {
 	UIN_RID_NOT_FOUND(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "002", "UIN or RID of Introducer Not Found in Packet"),
 	INTRODUCER_UIN_NOT_FOUND(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "003", "Introducer UIN not Found for the Given RID"),
 	INTRODUCER_BIOMETRIC_FILE_NAME_NOT_FOUND(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "004", "Introducer Biometric File Name Not Found"),
-	PACKET_ON_HOLD(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "005", "Packet On-Hold as Introducer packet is processed yet."),
+	PACKET_ON_HOLD(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "005", "Packet On-Hold as Introducer packet is not processed yet."),
 	CHILD_PACKET_REJECTED(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "006", "Packet Rejected as Parent Packet is Rejected"),
 	PACKET_IS_ON_HOLD(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "007", "Packet is on Hold due to parent packet processing"),
 	
@@ -152,7 +152,8 @@ public enum StatusUtil {
 	MANUAL_VERIFIER_APPROVED_PACKET(StatusConstants.MANUAL_VERIFICATION_MODULE_SUCCESS + "001", "Match Not Found by Manual Verifier"), 
 	MANUAL_VERIFIER_REJECTED_PACKET(StatusConstants.MANUAL_VERIFICATION_MODULE_FAILED + "002", "Match Found by Manual Verifier"),
 	RPR_MANUAL_VERIFICATION_RESEND(StatusConstants.MANUAL_VERIFICATION_MODULE_FAILED + "003", "Error in manual verification"),
-
+	RPR_MANUAL_VERIFICATION_SENT_TO_QUEUE(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "002", "Manual verification request sent to queue"),
+	
 	// Uin generator stage
 	UIN_GENERATED_SUCCESS(StatusConstants.UIN_GENERATOR_MODULE_SUCCESS + "001","UIN Generated Successfully"), 
 	UIN_DATA_UPDATION_SUCCESS(StatusConstants.UIN_GENERATOR_MODULE_SUCCESS + "002","UIN Data is drafted Successfully"),
@@ -252,7 +253,11 @@ public enum StatusUtil {
 	
 	WORKFLOW_ACTION_SERVICE_SUCCESS(StatusConstants.WORKFLOW_ACTION_SERVICE + "001",
 			"Packet workflow resume  successfully"),
-
+	MANUAL_ADJUDICATION_FAILED(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "000", "manual verification failed -"),
+	MANUAL_ADJUDICATION_RID_SHOULD_NOT_EMPTY_OR_NULL(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "001",
+			"Registration Id should not empty or null "),
+	MANUAL_ADJUDICATION_MATCHEDRID_FOUND_FOR_GIVEN_RID(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "002",
+			"No matched reference id found for given RID"),
 	VERIFICATION_SUCCESS(StatusConstants.VERIFICATION_STAGE + "001", "Verification success"),
 	VERIFICATION_FAILED(StatusConstants.VERIFICATION_STAGE + "002","Verification failed"),
 	VERIFICATION_SENT(StatusConstants.VERIFICATION_STAGE + "003", "Sent for verification"),

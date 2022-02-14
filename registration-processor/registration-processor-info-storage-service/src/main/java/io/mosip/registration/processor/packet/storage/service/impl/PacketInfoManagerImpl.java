@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -95,7 +96,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	/** The reg bio ref repository. */
 	@Autowired
 	private BasePacketRepository<RegBioRefEntity, String> regBioRefRepository;
-
+	
 	/** The reg abis request repository. */
 	@Autowired
 	private BasePacketRepository<AbisRequestEntity, String> regAbisRequestRepository;
@@ -1006,5 +1007,6 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 		List<RegBioRefEntity> regBioRefList = packetInfoDao.getRegBioRefDataByBioRefIds(bioRefId);
 		return PacketInfoMapper.convertRegBioRefEntityListToDto(regBioRefList);
 	}
+
 
 }

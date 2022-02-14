@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -34,7 +35,6 @@ import io.mosip.kernel.biometrics.constant.QualityType;
 import io.mosip.kernel.biometrics.entities.BDBInfo;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.mosip.kernel.biometrics.entities.Entry;
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.util.DateUtils;
@@ -88,7 +88,7 @@ public class AnonymousProfileServiceImplTest {
 		
 		fieldMap.put("postalCode", "14022");
 		fieldMap.put("dateOfBirth", "1998/01/01");
-		fieldMap.put("preferredLang", "eng");
+		fieldMap.put("preferredLang", "English");
 		fieldMap.put("phone", "6666666666");
 		fieldMap.put("gender",
 				"[ {\"language\" : \"eng\",\"value\" : \"Female\"}, {\"language\" : \"ara\",\"value\" : \"أنثى\"} ]");
@@ -113,33 +113,22 @@ public class AnonymousProfileServiceImplTest {
 		bir.setSb("eyJ4NWMiOlsiTUlJRGtEQ0NBbmlnQXdJQkFnSUVwNzo".getBytes());
 		bir.setBdb("SUlSADAyMAAAACc6AAEAAQAAJyoH5AoJECYh//8Bc18wBgAAAQIDCgABlwExCA".getBytes());
 
+		HashMap<String, String> entry = new HashMap<String, String>();
+		entry.put("PAYLOAD",
+				"{\"digitalId\":\"eyJ4NWMiOlsiTUlJRjZqQ0NB.OUtnQXdJQkFnSUJCVE.FOQmdrcWhraUc5dzBC\",\"bioValue\":\"<bioValue>\",\"qualityScore\":\"80\",\"bioType\":\"Iris\"}");
+		entry.put("EXCEPTION", "false");
+		entry.put("RETRIES", "1");
+
+		bir.setOthers(entry);
+		biometricRecord.setSegments(Arrays.asList(bir));
 		BIR bir1 = new BIR();
 		bir1.setBdbInfo(bdbInfo);
 		bir1.setSb("eyJ4NWMiOlsiTUlJRGtEQ0NBbmlnQXdJQkFnSUVwNzo".getBytes());
 		bir1.setBdb("SUlSADAyMAAAACc6AAEAAQAAJyoH5AoJECYh//8Bc18wBgAAAQIDCgABlwExCA".getBytes());
-
-		Entry entry = new Entry();
-		entry.setKey("PAYLOAD");
-		entry.setValue(
-				"{\"digitalId\":\"eyJ4NWMiOlsiTUlJRjZqQ0NB.OUtnQXdJQkFnSUJCVE.FOQmdrcWhraUc5dzBC\",\"bioValue\":\"<bioValue>\",\"qualityScore\":\"80\",\"bioType\":\"Iris\"}");
-
-		Entry entry1 = new Entry();
-		entry1.setKey("EXCEPTION");
-		entry1.setValue("false");
-
-		Entry entry2 = new Entry();
-		entry2.setKey("RETRIES");
-		entry2.setValue("1");
-
-		bir.setOthers(Arrays.asList(entry, entry1, entry2));
-		biometricRecord.setSegments(Arrays.asList(bir));
-		
-		Entry entry3 = new Entry();
-		entry3.setKey("EXCEPTION");
-		entry3.setValue("true");
-		bir1.setOthers(Arrays.asList(entry3));
+		HashMap<String, String> entry1 = new HashMap<String, String>();
+		entry1.put("EXCEPTION", "true");
+		bir1.setOthers(entry1);
 		biometricRecord1.setSegments(Arrays.asList(bir1));
-
 		Mockito.when(anonymousProfileRepository.save(Mockito.any(AnonymousProfileEntity.class))).thenReturn(new AnonymousProfileEntity());
 		String mappingJsonString = "{\"identity\":{\"IDSchemaVersion\":{\"value\":\"IDSchemaVersion\"},\"address\":{\"value\":\"permanentAddressLine1,permanentAddressLine2,permanentAddressLine3,permanentRegion,permanentProvince,permanentCity,permanentZone,permanentPostalcode\"},\"phone\":{\"value\":\"phone\"},\"email\":{\"value\":\"email\"}}}";
 
@@ -241,7 +230,6 @@ public class AnonymousProfileServiceImplTest {
 		assertEquals(json, anonymousProfileService.buildJsonStringFromPacketInfo(biometricRecord, fieldMap,
 				fieldTypeMap, metaInfoMap, "PROCESSED", "packetValidatorStage"));
 	}
-	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void buildJsonStringFromPacketInfoVariousScenarioTest() throws JSONException, IOException, BaseCheckedException {
@@ -253,7 +241,7 @@ public class AnonymousProfileServiceImplTest {
 		metaInfoMap.put("operationsData",
 				"[{\"label\" : \"supervisorId\",\"value\" : \"110024\"},{\"label\" : \"supervisorBiometricFileName\",\"value\" : \"null\"}]");
 		
-		String json = "{\"processName\":\"NEW\",\"processStage\":\"packetValidatorStage\",\"date\":\"2021-09-12T06:50:19.517872400Z\",\"startDateTime\":\"2021-09-12T06:50:19.517872400Z\",\"endDateTime\":\"2021-09-12T06:50:19.517872400Z\",\"yearOfBirth\":1998,\"gender\":null,\"location\":[\"Ben Mansour\",\"14022\"],\"preferredLanguages\":[\"eng\"],\"channel\":[\"email\",\"phone\"],\"exceptions\":[{\"type\":\"FINGER\",\"subType\":\"Left RingFinger\"}],\"verified\":null,\"biometricInfo\":[],\"device\":null,\"documents\":[\"CIN\",\"RNC\"],\"assisted\":[\"110024\"],\"enrollmentCenterId\":\"1003\",\"status\":\"PROCESSED\"}";
+		String json = "{\"processName\":\"NEW\",\"processStage\":\"packetValidatorStage\",\"date\":\"2021-09-12T06:50:19.517872400Z\",\"startDateTime\":\"2021-09-12T06:50:19.517872400Z\",\"endDateTime\":\"2021-09-12T06:50:19.517872400Z\",\"yearOfBirth\":1998,\"gender\":null,\"location\":[null,\"14022\"],\"preferredLanguages\":[\"English\"],\"channel\":[\"email\",\"phone\"],\"exceptions\":[{\"type\":\"FINGER\",\"subType\":\"Left RingFinger\"}],\"verified\":null,\"biometricInfo\":[],\"device\":null,\"documents\":[\"CIN\",\"RNC\"],\"assisted\":[\"110024\"],\"enrollmentCenterId\":\"1003\",\"status\":\"PROCESSED\"}";
 		Document doc1 = new Document();
 		doc1.setDocumentType("CIN");
 		Document doc2 = new Document();

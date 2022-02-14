@@ -18,6 +18,7 @@ import io.mosip.registration.processor.packet.storage.exception.ObjectDoesnotExi
 import io.mosip.registration.processor.packet.storage.utils.OSIUtils;
 import io.mosip.registration.processor.status.service.AdditionalInfoRequestService;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -33,7 +34,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.mosip.kernel.biometrics.entities.Entry;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
@@ -176,10 +176,10 @@ public class DeviceValidator {
 		List<BIR> birs = biometricRecord.getSegments();
 		List<JSONObject> payloads = new ArrayList<>();
 		for(BIR bir : birs) {
-			if(bir.getOthers() != null) {
+			if(MapUtils.isNotEmpty(bir.getOthers())) {
 				boolean exception = false;
 				String payload = "";
-				for(Entry entry: bir.getOthers()) {
+				for(Map.Entry<String, String> entry: bir.getOthers().entrySet()) {
 					if(entry.getKey().equals("EXCEPTION") && entry.getValue().equals("true") ) {
 						exception = true;
 						break;
@@ -200,8 +200,12 @@ public class DeviceValidator {
 		Set<String> signatures = new HashSet<>();
 		Set<String> deviceCodeTimestamps = new HashSet<>();
 		for(JSONObject payload : payloads) {
-			String digitalIdString = new String(CryptoUtil.decodeBase64(
-						payload.getString("digitalId").split("\\.")[1]));
+			String digitalIdString = null;
+			try {
+				digitalIdString= new String(CryptoUtil.decodeURLSafeBase64(payload.getString("digitalId").split("\\.")[1]));
+			} catch (IllegalArgumentException exception) {
+				digitalIdString= new String(CryptoUtil.decodePlainBase64(payload.getString("digitalId").split("\\.")[1]));
+			}
 			NewDigitalId newDigitalId = mapper.readValue(digitalIdString, NewDigitalId.class);
 			if(!signatures.contains(digitalIdString)) {
 				validateDigitalId(payload);

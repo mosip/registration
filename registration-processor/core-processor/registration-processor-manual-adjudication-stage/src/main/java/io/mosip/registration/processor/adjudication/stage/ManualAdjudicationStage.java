@@ -17,7 +17,6 @@ import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.adjudication.exception.InvalidMessageException;
 import io.mosip.registration.processor.adjudication.exception.handler.ManualVerificationExceptionHandler;
-import io.mosip.registration.processor.adjudication.response.builder.ManualVerificationResponseBuilder;
 import io.mosip.registration.processor.adjudication.response.dto.ManualAdjudicationResponseDTO;
 import io.mosip.registration.processor.adjudication.service.ManualAdjudicationService;
 import io.mosip.registration.processor.adjudication.util.ManualVerificationRequestValidator;
@@ -98,9 +97,6 @@ public class ManualAdjudicationStage extends MosipVerticleAPIManager {
 
 	@Autowired
 	ManualVerificationExceptionHandler manualVerificationExceptionHandler;
-
-	@Autowired
-	ManualVerificationResponseBuilder manualVerificationResponseBuilder;
 
 	/** Mosip router for APIs */
 	@Autowired

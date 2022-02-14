@@ -125,9 +125,6 @@ public class RegistrationStatusAndSyncControllerTest {
 	
 	@MockBean
 	RegistrationUtility registrationUtility;
-	
-	@MockBean
-	DigitalSignatureUtility digitalSignatureUtility;
 
 	private ResponseWrapper dto = new ResponseWrapper();
 
@@ -251,7 +248,6 @@ public class RegistrationStatusAndSyncControllerTest {
 
 		Mockito.doReturn(registrationDtoList).when(registrationStatusService).getByIds(ArgumentMatchers.any());
 		Mockito.doReturn(registrationDtoList1).when(syncRegistrationService).getByIds(ArgumentMatchers.any());
-		Mockito.doReturn("test").when(digitalSignatureUtility).getDigitalSignature(ArgumentMatchers.any());
 
 		signresponse.setSignature("abcd");
 		dto.setResponse(signresponse);
@@ -273,7 +269,8 @@ public class RegistrationStatusAndSyncControllerTest {
 	@Test
 	@WithMockUser(value = "resident", roles = "RESIDENT")
 	public void searchSuccessTest() throws Exception {
-		doNothing().when(registrationStatusRequestValidator).validate(ArgumentMatchers.any(), ArgumentMatchers.anyString());
+		doNothing().when(registrationStatusRequestValidator).validate((registrationStatusRequestDTO),
+				"mosip.registration.status");
 
 		this.mockMvc.perform(post("/search").accept(MediaType.APPLICATION_JSON_VALUE)
 				.cookie(new Cookie("Authorization", regStatusToJson)).contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -287,19 +284,6 @@ public class RegistrationStatusAndSyncControllerTest {
 
 		Mockito.doThrow(new RegStatusAppException()).when(registrationStatusRequestValidator)
 				.validate(ArgumentMatchers.any(), ArgumentMatchers.any());
-		this.mockMvc.perform(post("/search").accept(MediaType.APPLICATION_JSON_VALUE)
-				.cookie(new Cookie("Authorization", regStatusToJson)).contentType(MediaType.APPLICATION_JSON_VALUE)
-				.content(regStatusToJson.getBytes()).header("timestamp", "2019-05-07T05:13:55.704Z"))
-				.andExpect(status().isOk());
-	}
-	
-	@Test(expected = NestedServletException.class)
-	@WithMockUser(value = "resident", roles = "RESIDENT")
-	public void searchUnknownException() throws Exception {
-
-		doNothing().when(registrationStatusRequestValidator).validate(ArgumentMatchers.any(), ArgumentMatchers.anyString());
-		Mockito.doThrow(DigitalSignatureException.class).when(digitalSignatureUtility)
-		.getDigitalSignature(ArgumentMatchers.any());
 		this.mockMvc.perform(post("/search").accept(MediaType.APPLICATION_JSON_VALUE)
 				.cookie(new Cookie("Authorization", regStatusToJson)).contentType(MediaType.APPLICATION_JSON_VALUE)
 				.content(regStatusToJson.getBytes()).header("timestamp", "2019-05-07T05:13:55.704Z"))

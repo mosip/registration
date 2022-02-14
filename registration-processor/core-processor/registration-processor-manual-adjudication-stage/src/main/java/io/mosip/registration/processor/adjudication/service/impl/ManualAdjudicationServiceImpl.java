@@ -3,6 +3,8 @@ package io.mosip.registration.processor.adjudication.service.impl;
 import static io.mosip.registration.processor.adjudication.constants.ManualAdjudicationConstants.DATETIME_PATTERN;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,6 +17,23 @@ import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import io.mosip.registration.processor.core.constant.PolicyConstant;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
+import io.mosip.registration.processor.adjudication.dto.DataShareRequestDto;
+import io.mosip.registration.processor.adjudication.dto.DataShareResponseDto;
+import io.mosip.registration.processor.adjudication.dto.ManualVerificationStatus;
+import io.mosip.registration.processor.adjudication.dto.UserDto;
+import io.mosip.registration.processor.adjudication.exception.MatchedRefNotExistsException;
+import io.mosip.registration.processor.adjudication.request.dto.Filter;
+import io.mosip.registration.processor.adjudication.request.dto.Gallery;
+import io.mosip.registration.processor.adjudication.request.dto.ManualAdjudicationRequestDTO;
+import io.mosip.registration.processor.adjudication.request.dto.ReferenceIds;
+import io.mosip.registration.processor.adjudication.request.dto.ReferenceURL;
+import io.mosip.registration.processor.adjudication.request.dto.ShareableAttributes;
+import io.mosip.registration.processor.adjudication.request.dto.Source;
+import io.mosip.registration.processor.adjudication.service.ManualAdjudicationService;
+import io.mosip.registration.processor.adjudication.stage.ManualAdjudicationStage;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
@@ -80,6 +99,7 @@ import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessag
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.idrepo.dto.Documents;
 import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
+import io.mosip.registration.processor.core.kernel.master.dto.UserResponseDTOWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.Identity;
@@ -91,6 +111,13 @@ import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
+import io.mosip.registration.processor.adjudication.constants.ManualAdjudicationConstants;
+import io.mosip.registration.processor.adjudication.exception.DataShareException;
+import io.mosip.registration.processor.adjudication.exception.InvalidFileNameException;
+import io.mosip.registration.processor.adjudication.exception.InvalidRidException;
+import io.mosip.registration.processor.adjudication.exception.NoRecordAssignedException;
+import io.mosip.registration.processor.adjudication.exception.UserIDNotPresentException;
+import io.mosip.registration.processor.adjudication.response.dto.ManualAdjudicationResponseDTO;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.dto.Document;
@@ -191,6 +218,9 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 	private ManualAdjudicationStage manualAdjudicationStage;
 
 	@Autowired
+	private RegistrationProcessorRestClientService<Object> restClientService;
+
+	@Autowired
 	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
 
 	@Autowired
@@ -211,6 +241,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 	 */
 	@Override
 	public boolean updatePacketStatus(ManualAdjudicationResponseDTO manualVerificationDTO, String stageName,MosipQueue queue) {
+		
 		TrimExceptionMessage trimExceptionMessage = new TrimExceptionMessage();
 		LogDescription description = new LogDescription();
 		boolean isTransactionSuccessful = false;
@@ -219,20 +250,22 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 				manualVerificationDTO.getRequestId(), "ManualVerificationServiceImpl::updatePacketStatus()::entry");
 
 		ManualVerificationEntity entity = validateRequestIdAndReturnRid(manualVerificationDTO.getRequestId());
-		String regId = entity.getRegId();
+		String regId = entity!=null?entity.getRegId():null;
 
-		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
-				.getRegistrationStatus(entity.getRegId(), null, null, entity.getId().getWorkflowInstanceId());
-		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.MANUAL_ADJUDICATION.name());
-		registrationStatusDto.setRegistrationStageName(stageName);
+		InternalRegistrationStatusDto registrationStatusDto = null;
 
 		MessageDTO messageDTO = new MessageDTO();
-		messageDTO.setInternalError(false);
-		messageDTO.setIsValid(false);
-		messageDTO.setRid(regId);
-		messageDTO.setReg_type(registrationStatusDto.getRegistrationType());
+		
 
 		try {
+			registrationStatusDto = registrationStatusService
+					.getRegistrationStatus((entity!=null?entity.getRegId():null), null, null, (entity!=null?(entity.getId()!=null?entity.getId().getWorkflowInstanceId():null):null));
+			registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.MANUAL_ADJUDICATION.name());
+			registrationStatusDto.setRegistrationStageName(stageName);
+			messageDTO.setInternalError(false);
+			messageDTO.setIsValid(false);
+			messageDTO.setRid(regId);
+			messageDTO.setReg_type(registrationStatusDto.getRegistrationType());
 
 			List<ManualVerificationEntity> entities = retrieveInqueuedRecordsByRid(regId);
 
@@ -413,11 +446,12 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 		requestDto=setDocuments(policyMap, requestDto, id, process, null);
 
 		// set audits
-		if (policyMap.containsValue(AUDITS))
+		for(Entry<String,String> entry: policyMap.entrySet()) {
+		if (entry.getValue().contains(AUDITS))
 			requestDto.setAudits(JsonUtils.javaObjectToJsonString(packetManagerService.getAudits(id, process, ProviderStageName.MANUAL_ADJUDICATION)));
 
 		// set metainfo
-		if (policyMap.containsValue(META_INFO))
+		if (entry.getValue().contains(META_INFO))
 			requestDto.setMetaInfo(JsonUtils.javaObjectToJsonString(packetManagerService.getMetaInfo(id, process, ProviderStageName.MANUAL_ADJUDICATION)));
 
 
@@ -427,14 +461,14 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
 				MappingJsonConstants.VALUE);
 
-		if (policyMap.containsValue(individualBiometricsLabel)) {
+		if (entry.getValue().contains(individualBiometricsLabel)) {
 			List<String> modalities = getModalities(policy);
 			BiometricRecord biometricRecord = packetManagerService.getBiometrics(
 					id, individualBiometricsLabel, modalities, process, ProviderStageName.MANUAL_ADJUDICATION);
 			byte[] content = cbeffutil.createXML(biometricRecord.getSegments());
-			requestDto.setBiometrics(content != null ? CryptoUtil.encodeBase64(content) : null);
+			requestDto.setBiometrics(content != null ? CryptoUtil.encodeToURLSafeBase64(content) : null);
 		}
-
+		}
 
 		return CreateDataShareUrl(requestDto, policy);
 	}
@@ -464,14 +498,16 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 					JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
 					MappingJsonConstants.VALUE);
 		for(Documents docs:documents) {
-			if(policyMap.containsValue(individualBiometricsLabel) && docs.getCategory().equalsIgnoreCase(individualBiometricsLabel)){
+			for(Entry<String,String> entry: policyMap.entrySet()) {
+			if(entry.getValue().contains(individualBiometricsLabel) && docs.getCategory().equalsIgnoreCase(individualBiometricsLabel)){
 				requestDto.setBiometrics(docs.getValue() != null ? docs.getValue() : null);
 			}
-			if(policyMap.containsValue(AUDITS) && docs.getCategory().equalsIgnoreCase(AUDITS)){
+			if(entry.getValue().contains(AUDITS) && docs.getCategory().equalsIgnoreCase(AUDITS)){
 				requestDto.setAudits(docs.getValue() != null ? docs.getValue() : null);
 			}
-			if(policyMap.containsValue(META_INFO) && docs.getCategory().equalsIgnoreCase(META_INFO)){
+			if(entry.getValue().contains(META_INFO) && docs.getCategory().equalsIgnoreCase(META_INFO)){
 				requestDto.setMetaInfo(docs.getValue() != null ? docs.getValue() : null);
+			}
 			}
 		}
 
@@ -480,7 +516,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 	}
 	
 	@SuppressWarnings("rawtypes")
-	private String CreateDataShareUrl(DataShareRequestDto requestDto, LinkedHashMap<String, Object> policy) throws JsonProcessingException, ApisResourceAccessException, DataShareException {
+	private String CreateDataShareUrl(DataShareRequestDto requestDto, LinkedHashMap<String, Object> policy) throws JsonProcessingException, MalformedURLException, ApisResourceAccessException, DataShareException {
 		String req = JsonUtils.javaObjectToJsonString(requestDto);
 
 		MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
@@ -517,8 +553,8 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 		LinkedHashMap datashare = (LinkedHashMap) response1.get(DATASHARE);
 		return datashare.get(URL) != null ? datashare.get(URL).toString() : null;
 	}
-
-	private Map<String, String> getPolicyMap(LinkedHashMap<String, Object> policies) throws IOException {
+	
+	private Map<String, String> getPolicyMap(LinkedHashMap<String, Object> policies) throws DataShareException, IOException, ApisResourceAccessException {
 		Map<String, String> policyMap = new HashMap<>();
 		List<LinkedHashMap> attributes = (List<LinkedHashMap>) policies.get(ManualAdjudicationConstants.SHAREABLE_ATTRIBUTES);
 		ObjectMapper mapper = new ObjectMapper();
@@ -543,15 +579,16 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 			if (doc != null) {
 				HashMap docmap = (HashMap) docJson.get(doc.toString());
 				String docName = docmap != null && docmap.get(MappingJsonConstants.VALUE)!= null ? docmap.get(MappingJsonConstants.VALUE).toString() : null;
-				if (policyMap.containsValue(docName)) {
+				for(Entry<String,String> entry: policyMap.entrySet()) {
+				if (entry.getValue().contains(docName) && docmap!=null) {
 					if(documents==null || documents.isEmpty()) {
 						Document document = packetManagerService.getDocument(id, doc.toString(), process, ProviderStageName.MANUAL_ADJUDICATION);
 						if (document != null) {
 							if (requestDto.getDocuments() != null)
-								requestDto.getDocuments().put(docmap.get(MappingJsonConstants.VALUE).toString(), CryptoUtil.encodeBase64String(document.getDocument()));
+								requestDto.getDocuments().put(docmap.get(MappingJsonConstants.VALUE).toString(), CryptoUtil.encodeToURLSafeBase64(document.getDocument()));
 							else {
 								Map<String, String> docMap = new HashMap<>();
-								docMap.put(docmap.get(MappingJsonConstants.VALUE).toString(), CryptoUtil.encodeBase64String(document.getDocument()));
+								docMap.put(docmap.get(MappingJsonConstants.VALUE).toString(), CryptoUtil.encodeToURLSafeBase64(document.getDocument()));
 								requestDto.setDocuments(docMap);
 							}
 						}
@@ -569,6 +606,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 							}
 						}
 					}
+				}
 				}
 			}
 		}
@@ -714,7 +752,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 				mve.get(0).getRegId(), messageDTO.getReg_type(), messageDTO.getIteration(), mve.get(0).getId().getWorkflowInstanceId());
 		try {
 			req.setReferenceURL(
-					JsonUtil.objectMapperObjectToJson(addReferenceURLs(mve.get(0).getRegId(),registrationStatusDto)));
+					JsonUtil.objectMapperObjectToJson(addReferenceURLs(mve.get(0).getRegId(), registrationStatusDto)));
 
 		} catch (PacketManagerException | ApisResourceAccessException ex) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -781,28 +819,6 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 		}
 		return referenceURLs;
 	}
-	
-	/*
-	 * Once response is obtained from queue it is saved in manual verification
-	 * entity
-	 */
-	public void saveToDB(ManualAdjudicationResponseDTO res) {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				res.getId(), "ManualVerificationServiceImpl::saveToDB()::entry");
-
-		if (res.getCandidateList().getCount() > 0) {
-			res.getCandidateList().getCandidates().forEach(candidate -> {
-				ManualVerificationEntity mve = basePacketRepository.getManualVerificationEntitty(res.getRequestId(),
-				 candidate.getReferenceId());
-				mve.setReponseText(res.toString().getBytes());
-				basePacketRepository.update(mve);
-			});
-
-		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				res.getId(), "ManualVerificationServiceImpl::saveToDB()::entry");
-
-	}
 
 	/*
 	 * This method will be called from the event bus passing messageDTO object
@@ -812,39 +828,100 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 
 	@Override
 	public MessageDTO process(MessageDTO object, MosipQueue queue) {
+		InternalRegistrationStatusDto registrationStatusDto=new InternalRegistrationStatusDto();
+		TrimExceptionMessage trimExceptionMessage = new TrimExceptionMessage();
+		LogDescription description = new LogDescription();
+		String moduleName = ModuleName.MANUAL_ADJUDICATION.toString();
+		String moduleId = PlatformSuccessMessages.RPR_MANUAL_VERIFICATION_SENT.getCode();
+		String registrationId = object.getRid();
+		boolean isTransactionSuccessful = false;
 		try {
 			object.setInternalError(false);
 			object.setIsValid(false);
 			object.setMessageBusAddress(MessageBusAddress.MANUAL_ADJUDICATION_BUS_IN);
 
-			if (null == object.getRid() || object.getRid().isEmpty())
+			if (null == object.getRid() || object.getRid().isEmpty()) {
 				throw new InvalidRidException(PlatformErrorMessages.RPR_MVS_NO_RID_SHOULD_NOT_EMPTY_OR_NULL.getCode(),
 						PlatformErrorMessages.RPR_MVS_NO_RID_SHOULD_NOT_EMPTY_OR_NULL.getMessage());
+			}
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					object.getRid(), "ManualVerificationServiceImpl::process()::entry");
-			pushRequestToQueue(object, queue);
+			
+			registrationStatusDto = registrationStatusService
+					.getRegistrationStatus(object.getRid(), object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
 
+			pushRequestToQueue(object, queue);
+			isTransactionSuccessful=true;
+			registrationStatusDto.setStatusComment(StatusUtil.RPR_MANUAL_VERIFICATION_SENT_TO_QUEUE.getMessage());
+			registrationStatusDto.setSubStatusCode(StatusUtil.RPR_MANUAL_VERIFICATION_SENT_TO_QUEUE.getCode());
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+			registrationStatusDto
+					.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
+			
 		} catch (DataShareException de) {
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
+			registrationStatusDto.setStatusComment(trimExceptionMessage
+					.trimExceptionMessage(StatusUtil.MANUAL_ADJUDICATION_FAILED.getMessage() + de.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.MANUAL_ADJUDICATION_FAILED.getCode());
+			registrationStatusDto.setLatestTransactionStatusCode(
+					registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.MANUAL_VERIFICATION_FAILED));
+			description.setCode(PlatformErrorMessages.MANUAL_VERIFICATION_FAILED.getCode());
+			description.setMessage(PlatformErrorMessages.MANUAL_VERIFICATION_FAILED.getMessage());
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), description.getCode(), object.getRid(),
+					description.getMessage() + ExceptionUtils.getStackTrace(de));
 			object.setInternalError(true);
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					de.getErrorCode(), de.getErrorText());
 
 		} catch (InvalidRidException exp) {
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
+			registrationStatusDto.setStatusComment(trimExceptionMessage
+					.trimExceptionMessage(StatusUtil.MANUAL_ADJUDICATION_RID_SHOULD_NOT_EMPTY_OR_NULL.getMessage() + exp.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.MANUAL_ADJUDICATION_RID_SHOULD_NOT_EMPTY_OR_NULL.getCode());
+			registrationStatusDto.setLatestTransactionStatusCode(
+					registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.MANUAL_VERIFICATION_FAILED));
+			description.setCode(PlatformErrorMessages.RPR_MVS_NO_RID_SHOULD_NOT_EMPTY_OR_NULL.getCode());
+			description.setMessage(PlatformErrorMessages.RPR_MVS_NO_RID_SHOULD_NOT_EMPTY_OR_NULL.getMessage());
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), description.getCode(), null,
+					description.getMessage() + ExceptionUtils.getStackTrace(exp));
 			object.setInternalError(true);
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), null, exp.getErrorCode(), exp.getErrorText());
-		} catch (MatchedRefNotExistsException exp) {
-			object.setInternalError(true);
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					exp.getErrorCode(), exp.getErrorText());
 
 		} catch (Exception e) {
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
+			registrationStatusDto.setStatusComment(trimExceptionMessage
+					.trimExceptionMessage(StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getMessage() + e.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getCode());
+			registrationStatusDto.setLatestTransactionStatusCode(
+					registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.MANUAL_VERIFICATION_FAILED));
+			description.setCode(PlatformErrorMessages.MANUAL_VERIFICATION_FAILED.getCode());
+			description.setMessage(PlatformErrorMessages.MANUAL_VERIFICATION_FAILED.getMessage());
 			object.setInternalError(true);
-			regProcLogger.error(ExceptionUtils.getStackTrace(e));
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					e.getMessage(), e.getMessage());
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), description.getCode(), object.getRid(),
+					description.getMessage() + ExceptionUtils.getStackTrace(e));
+		}finally {
+			registrationStatusDto
+			.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.MANUAL_ADJUDICATION.toString());
+			registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);	
+			if (object.getInternalError()) {
+				updateErrorFlags(registrationStatusDto, object);
+			}
+			if (object.getIsValid() && !object.getInternalError())
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), registrationId, "ManualVerificationServiceImpl::process()::success");
+			else
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), registrationId, "ManualVerificationServiceImpl::process()::failure");
+
+			String eventId = isTransactionSuccessful ? EventId.RPR_402.toString() : EventId.RPR_405.toString();
+			String eventName = isTransactionSuccessful ? EventName.UPDATE.toString() : EventName.EXCEPTION.toString();
+			String eventType = isTransactionSuccessful ? EventType.BUSINESS.toString() : EventType.SYSTEM.toString();
+
+			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
+					moduleId, moduleName, registrationId);
+
 		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				object.getRid(), "ManualVerificationServiceImpl::process()::entry");
+				object.getRid(), "ManualVerificationServiceImpl::process()::exit");
 
 		return object;
 	}

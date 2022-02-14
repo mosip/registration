@@ -1,14 +1,11 @@
-# registration-processor-manual-adjudication-stage
+# Manual Adjudication Stage
 
-## Design
+## About
+The manual adjudication stage  performs the following functions:
+* Sends applicant's demographic and biometric information (via queque + Datashare) to Manual Adjudiction System (MAS).
+* Receives decision from MAS and accordingly forwards the packets.
+* If rejected, notifies the applicant.
 
-[Design - Approach for Manual Verification Stage](https://github.com/mosip/registration/blob/master/design/registration-processor/Approach_for_manual_adjudication.md)
+## Default context-path and port
+Refer [`bootstrap.properties`](src/main/resources/bootstrap.properties)
 
-## Port and Context-Path
-```
-TBA
-```
-## Configurable properties from Configuration Server
-```
-TBA
-```

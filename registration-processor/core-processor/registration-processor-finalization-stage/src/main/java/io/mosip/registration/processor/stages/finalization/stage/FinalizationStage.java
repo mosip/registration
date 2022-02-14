@@ -95,6 +95,7 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 	
 	@Override
 	protected String getPropertyPrefix() {
+		// TODO Auto-generated method stub
 		return STAGE_PROPERTY_PREFIX;
 	}
 	

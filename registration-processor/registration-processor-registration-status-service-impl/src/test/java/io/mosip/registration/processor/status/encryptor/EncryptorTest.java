@@ -7,7 +7,9 @@ import static org.mockito.Mockito.when;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Arrays;
+
+import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.registration.processor.status.dto.DecryptResponseDto;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,13 +25,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
-import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
-import io.mosip.registration.processor.status.dto.DecryptResponseDto;
+import io.mosip.registration.processor.status.dto.CryptomanagerResponseDto;
 import io.mosip.registration.processor.status.exception.EncryptionFailureException;
 
 @RunWith(PowerMockRunner.class)
@@ -55,7 +55,7 @@ public class EncryptorTest {
 	@Before
 	public void setup() throws FileNotFoundException {
 		PowerMockito.mockStatic(CryptoUtil.class);
-		PowerMockito.when(CryptoUtil.decodeBase64(anyString())).thenReturn("mosip".getBytes());
+		PowerMockito.when(CryptoUtil.decodeURLSafeBase64(anyString())).thenReturn("mosip".getBytes());
 		data = "bW9zaXA";
 		cryptomanagerResponseDto = new DecryptResponseDto();
 		cryptomanagerResponseDto.setData(data);
@@ -76,16 +76,6 @@ public class EncryptorTest {
 		byte[] encryptedData = encryptor.encrypt(data, "10011", "2019-05-07T05:13:55.704Z");
 
 		assertNotNull(encryptedData);
-	}
-	
-	@Test(expected = EncryptionFailureException.class)
-	public void encryptResponseNullTest() throws EncryptionFailureException, ApisResourceAccessException, IOException {
-		ResponseWrapper<DecryptResponseDto> response = new ResponseWrapper<>();
-		response.setResponse(null);
-		ErrorDTO error = new ErrorDTO("ERR-001", "Exception occured");
-		response.setErrors(Arrays.asList(error));
-		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any())).thenReturn(response);
-		encryptor.encrypt(data, "10011", "2019-05-07T05:13:55.704Z");
 	}
 
 	@Test(expected = EncryptionFailureException.class)

@@ -103,7 +103,9 @@ public class StagesConfig {
 				}
 			});
 			return (Map<String,Object>)configLoader.get().mapTo(Map.class);
-		} catch (Exception e1) {
+		}
+		// TODO change exception to catch and rethrow intruppted exception before base exception
+		catch (Exception e1) {
 			regProcLogger.error(ExceptionUtils.getStackTrace(e1));
 			throw new RuntimeException("Could not load config", e1);
 		}
@@ -115,6 +117,7 @@ public class StagesConfig {
 		String uri = environment.getProperty(ConfigurationUtil.CLOUD_CONFIG_URI);
 		String label = environment.getProperty(ConfigurationUtil.CLOUD_CONFIG_LABEL);
 		List<String> profiles = getProfiles(environment);
+		if(appNames!=null && profiles !=null) {
 		profiles.forEach(profile -> {
 			appNames.forEach(app -> {
 				String url = uri + "/" + app + "/" + profile + "/" + label;
@@ -123,17 +126,18 @@ public class StagesConfig {
 		});
 		appNames.forEach(appName -> {
 		});
+		}
 		return configUrls;
 	}
 	
 	private static List<String> getAppNames(Environment env) {
 		String names = env.getProperty(ConfigurationUtil.APPLICATION_NAMES);
-		return Stream.of(names.split(",")).collect(Collectors.toList());
+		return names!=null?Stream.of(names.split(",")).collect(Collectors.toList()):null;
 	}
 
 	private static List<String> getProfiles(Environment env) {
 		String names = env.getProperty(ConfigurationUtil.ACTIVE_PROFILES);
-		return Stream.of(names.split(",")).collect(Collectors.toList());
+		return names!=null?Stream.of(names.split(",")).collect(Collectors.toList()):null;
 	}
 	
 	public String getStageGroupName() {

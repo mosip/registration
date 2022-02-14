@@ -1,17 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_regprc
--- Table Name 	: regprc.reg_manual_verification
--- Purpose    	: Manual Verification: Stores all the registration request which goes through manual verification process, registration can be assinged to single/multiple manual verifier as part of the verification process.
---           
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
--- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes for 1.1.5
--- Jul-2021		Ram Bhatt	    Index Creation, pk constraint change and added new column
--- ------------------------------------------------------------------------------------------
+
 
 -- object: regprc.reg_manual_verification | type: TABLE --
 -- DROP TABLE IF EXISTS regprc.reg_manual_verification CASCADE;

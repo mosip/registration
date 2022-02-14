@@ -88,15 +88,6 @@ public class PacketExternalStatusServiceTest {
 	}
 	
 	@Test
-	public void testGetByPacketIdsSuccessForStatusNull() {
-		internalRegistrationStatusDto.setStatusCode(null);
-		List<String> packetIdList = new ArrayList<>();
-		packetIdList.add("packetId1");
-		List<PacketExternalStatusDTO> packetExternalStatusDTOList=packetExternalStatusService.getByPacketIds(packetIdList);
-		assertEquals("RECEIVED", packetExternalStatusDTOList.get(0).getStatusCode());
-	}
-	
-	@Test
 	public void testGetByPacketIdsPacketReceiverSuccess() {
 		internalRegistrationStatusDto.setLatestTransactionTimes(LocalDateTime.now().minusSeconds(100));
 		internalRegistrationStatusDto

@@ -1,15 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_regprc
--- Table Name 	: regprc.rid_seq
--- Purpose    	: Registration ID Sequence: regprc tables to keep the current Registration ID sequence, Machine ID and Registration Center ID.
---           
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- 
--- ------------------------------------------------------------------------------------------
+
 
 -- object: regprc.rid_seq | type: TABLE --
 -- DROP TABLE IF EXISTS regprc.rid_seq CASCADE;

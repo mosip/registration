@@ -188,15 +188,17 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 			logger.debug("consumeAndSend received from {} {}",fromAddress.toString(), msg.getBody());
 			Map<String, String> mdc = MDC.getCopyOfContextMap();
 			vertx.executeBlocking(future -> {
+				MessageDTO messageDTO =new MessageDTO();
+				try {
 				MDC.setContextMap(mdc);
 				JsonObject jsonObject = (JsonObject) msg.getBody();
-				MessageDTO messageDTO = jsonObject.mapTo(MessageDTO.class);
+				messageDTO = objectMapper.readValue(objectMapper.writeValueAsString(jsonObject.getMap()), MessageDTO.class);
 				if(isMessageExpired(messageDTO, messageExpiryTimeLimit)) {
 					future.fail(new MessageExpiredException("rid: " + messageDTO.getRid() +
 						" lastHopTimestamp " + messageDTO.getLastHopTimestamp()));
 					return;
 				}
-				try {
+				
 					MessageDTO result = process(messageDTO);
 					addTagsToMessageDTO(result);
 					result.setLastHopTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
@@ -252,15 +254,17 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 			logger.debug("Received from {} {}",fromAddress.toString(), msg.getBody());
 			Map<String, String> mdc = MDC.getCopyOfContextMap();
 			vertx.executeBlocking(future -> {
+				MessageDTO messageDTO=new MessageDTO();
+				try {
 				MDC.setContextMap(mdc);
 				JsonObject jsonObject = (JsonObject) msg.getBody();
-				MessageDTO messageDTO = jsonObject.mapTo(MessageDTO.class);
+				messageDTO = objectMapper.readValue(objectMapper.writeValueAsString(jsonObject.getMap()), MessageDTO.class);
 				if(isMessageExpired(messageDTO, messageExpiryTimeLimit)) {
 					future.fail(new MessageExpiredException("rid: " + messageDTO.getRid() +
 						" lastHopTimestamp " + messageDTO.getLastHopTimestamp()));
 					return;
 				}
-				try {
+				
 					MessageDTO result = process(messageDTO);
 					future.complete(result);
 				} catch (Exception e) {
