@@ -26,41 +26,41 @@ public class SwaggerConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(SwaggerConfig.class);
 
-	@Autowired
-	private OpenApiProperties openApiProperties;
+    @Autowired
+    private OpenApiProperties openApiProperties;
 
-	@Bean
+    @Bean
     public OpenAPI openApi() {
-		String msg = "Swagger open api, ";
-		OpenAPI api = new OpenAPI()
+        String msg = "Swagger open api, ";
+        OpenAPI api = new OpenAPI()
                 .components(new Components());
-		if (null != openApiProperties.getInfo()) {
-			api.info(new Info()
-				.title(openApiProperties.getInfo().getTitle())
-				.version(openApiProperties.getInfo().getVersion())
-				.description(openApiProperties.getInfo().getDescription()));
-			if (null != openApiProperties.getInfo().getLicense()) {
-				api.getInfo().license(new License()
-						.name(openApiProperties.getInfo().getLicense().getName())
-						.url(openApiProperties.getInfo().getLicense().getUrl()));
-				logger.info(msg + "info license property is added");
-			} else {
-				logger.error(msg + "info license property is empty");
-			}
-			logger.info(msg + "info property is added");
-		} else {
-			logger.error(msg + "info property is empty");
-		}
+        if (null != openApiProperties.getInfo()) {
+            api.info(new Info()
+                    .title(openApiProperties.getInfo().getTitle())
+                    .version(openApiProperties.getInfo().getVersion())
+                    .description(openApiProperties.getInfo().getDescription()));
+            if (null != openApiProperties.getInfo().getLicense()) {
+                api.getInfo().license(new License()
+                        .name(openApiProperties.getInfo().getLicense().getName())
+                        .url(openApiProperties.getInfo().getLicense().getUrl()));
+                logger.info(msg + "info license property is added");
+            } else {
+                logger.error(msg + "info license property is empty");
+            }
+            logger.info(msg + "info property is added");
+        } else {
+            logger.error(msg + "info property is empty");
+        }
 
-		if (null != openApiProperties.getRegistrationProcessor().getServers()) {
-			openApiProperties.getRegistrationProcessor().getServers().forEach(server -> {
-				api.addServersItem(new Server().description(server.getDescription()).url(server.getUrl()));
-			});
-			logger.info(msg + "server property is added");
-		} else {
-			logger.error(msg + "server property is empty");
-		}
-		return api;
+        if (null != openApiProperties.getRegistrationProcessor().getServers()) {
+            openApiProperties.getRegistrationProcessor().getServers().forEach(server -> {
+                api.addServersItem(new Server().description(server.getDescription()).url(server.getUrl()));
+            });
+            logger.info(msg + "server property is added");
+        } else {
+            logger.error(msg + "server property is empty");
+        }
+        return api;
     }
 
 }

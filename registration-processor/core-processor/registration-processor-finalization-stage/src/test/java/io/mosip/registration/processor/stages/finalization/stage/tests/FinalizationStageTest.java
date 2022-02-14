@@ -209,10 +209,9 @@ public class FinalizationStageTest {
 		messageDTO.setIteration(1);
 		
 		when(idrepoDraftService.idrepoHasDraft(anyString())).thenThrow(ApisResourceAccessException.class);
-		when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("REPROCESS");
 		MessageDTO result = finalizationStage.process(messageDTO);
 		assertTrue(result.getInternalError());
-		assertTrue(result.getIsValid());
+		assertFalse(result.getIsValid());
 	}
 	
 	@Test

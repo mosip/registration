@@ -172,14 +172,14 @@ public class MessageBusAddress implements Serializable {
 
 	/** The Constant UIN_GENERATION_BUS_OUT. */
 	public static final MessageBusAddress UIN_GENERATION_BUS_OUT = new MessageBusAddress("uin-generator-bus-out");
-
+	
 	/** The Constant BIOMETRIC_EXTRACTION_BUS_IN. */
 	public static final MessageBusAddress BIOMETRIC_EXTRACTION_BUS_IN = new MessageBusAddress("biometric-extraction-bus-in");
 
 	/** The Constant BIOMETRIC_EXTRACTION_BUS_OUT. */
 	public static final MessageBusAddress BIOMETRIC_EXTRACTION_BUS_OUT = new MessageBusAddress("biometric-extraction-bus-out");
 
-
+	
 	/** The Constant FINALIZATION_BUS_IN. */
 	public static final MessageBusAddress FINALIZATION_BUS_IN = new MessageBusAddress("finalization-bus-in");
 

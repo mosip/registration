@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.abis.handler.stage;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -11,6 +12,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import io.mosip.kernel.core.util.StringUtils;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,10 +42,12 @@ import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
-import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.abis.handler.constant.AbisHandlerStageConstant;
 import io.mosip.registration.processor.abis.handler.dto.DataShareResponseDto;
+import io.mosip.registration.processor.core.packet.dto.datashare.Filter;
+import io.mosip.registration.processor.core.packet.dto.datashare.ShareableAttributes;
+import io.mosip.registration.processor.core.packet.dto.datashare.Source;
 import io.mosip.registration.processor.abis.handler.exception.AbisHandlerException;
 import io.mosip.registration.processor.abis.handler.exception.DataShareException;
 import io.mosip.registration.processor.abis.queue.dto.AbisQueueDetails;
@@ -77,16 +82,12 @@ import io.mosip.registration.processor.core.packet.dto.abis.Flag;
 import io.mosip.registration.processor.core.packet.dto.abis.ReferenceIdDto;
 import io.mosip.registration.processor.core.packet.dto.abis.RegBioRefDto;
 import io.mosip.registration.processor.core.packet.dto.abis.RegDemoDedupeListDto;
-import io.mosip.registration.processor.core.packet.dto.datashare.Filter;
-import io.mosip.registration.processor.core.packet.dto.datashare.ShareableAttributes;
-import io.mosip.registration.processor.core.packet.dto.datashare.Source;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
-import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
@@ -198,6 +199,8 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 	@Autowired
 	private PriorityBasedPacketManagerService priorityBasedPacketManagerService;
+
+	private static final String DATASHARECREATEURL = "DATASHARECREATEURL";
 
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
 
@@ -656,7 +659,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 				throw new DataShareException("Biometrics Segments Not Configured for modality : " + biometricSegment);
 			}
 			for (String segment : biometricModalitySegmentsMap.get(biometricSegment)) {
-				Optional<BIR> optionalBIR = null;
+				Optional<BIR> optionalBIR = Optional.empty();
 				if (segment.equalsIgnoreCase("Face")) {
 					optionalBIR = biometricRecord.getSegments().stream()
 							.filter(bir -> bir.getBdbInfo().getType() != null
@@ -674,11 +677,11 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 									: false)
 							.findFirst();
 				}
-				if (optionalBIR != null && optionalBIR.isPresent()) {
+				if (optionalBIR.isPresent()) {
 					BIR bir = optionalBIR.get();
 					Map<String, String> othersMap = new HashMap<String, String>();
 					if (bir.getOthers() != null) {
-						othersMap = bir.getOthers().stream()
+						othersMap = bir.getOthers().entrySet().stream()
 								.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
 					}
 

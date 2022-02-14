@@ -116,9 +116,10 @@ public class WorkflowActionService {
 			processStopProcessing(internalRegistrationStatusDtos, workflowActionCode);
 			break;
 		default:
-			throw new WorkflowActionException(PlatformErrorMessages.RPR_WAS_UNKNOWN_WORKFLOW_ACTION.getCode(),
-					PlatformErrorMessages.RPR_WAS_UNKNOWN_WORKFLOW_ACTION.getMessage());
-		}
+				throw new WorkflowActionException(PlatformErrorMessages.RPR_WAS_UNKNOWN_WORKFLOW_ACTION.getCode(),
+						PlatformErrorMessages.RPR_WAS_UNKNOWN_WORKFLOW_ACTION.getMessage());
+
+			}
 
 	}
 
@@ -291,9 +292,11 @@ public class WorkflowActionService {
 							isTransactionSuccessful = true;
 					}
 
-				} catch (TablenotAccessibleException e) {
-					logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
-				} catch (ApisResourceAccessException | PacketManagerException | JsonProcessingException e) {
+				}
+			catch (TablenotAccessibleException e) {
+				logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
+			} catch (ApisResourceAccessException | PacketManagerException | JsonProcessingException
+			e) {
 				logAndThrowError(e, ((BaseCheckedException) e).getErrorCode(), ((BaseCheckedException) e).getMessage(),
 						rid, description);
 			} catch (Exception e) {
@@ -340,7 +343,7 @@ public class WorkflowActionService {
 				}
 			}
 		}
-        String.join(", ", rulesSet);
+        //String.join(", ", rulesSet);
 		Map<String,String> tagsToAdd=new HashMap<String,String>();
 		tagsToAdd.put("PAUSE_IMMUNITY_RULE_IDS", String.join(", ", rulesSet));
 		packetManagerService.addOrUpdateTags(internalRegistrationStatusDto.getRegistrationId(), tagsToAdd);

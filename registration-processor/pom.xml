@@ -123,9 +123,9 @@
 		<kernel.idvalidator.uin.version>1.2.0-SNAPSHOT</kernel.idvalidator.uin.version>
 		<kernel.idvalidator.rid.version>1.2.0-SNAPSHOT</kernel.idvalidator.rid.version>
 		<kernel.cbeffutil.version>1.2.0-SNAPSHOT</kernel.cbeffutil.version>
-        <kernel.bioapi.provider.version>1.2.0-SNAPSHOT</kernel.bioapi.provider.version>
-        <kernel.auth.adapter.version>1.2.0-SNAPSHOT</kernel.auth.adapter.version>
-        <kernel.pdfgenerator.itext.version>1.2.0-SNAPSHOT</kernel.pdfgenerator.itext.version>
+                <kernel.bioapi.provider.version>1.2.0-SNAPSHOT</kernel.bioapi.provider.version>
+                <kernel.auth.adapter.version>1.2.0-SNAPSHOT</kernel.auth.adapter.version>
+                <kernel.pdfgenerator.itext.version>1.2.0-SNAPSHOT</kernel.pdfgenerator.itext.version>
 		<kernel.qrcodegenerator.zxing.version>1.2.0-SNAPSHOT</kernel.qrcodegenerator.zxing.version>
 		<kernel.logger.logback.version>1.2.0-SNAPSHOT</kernel.logger.logback.version>
 		<kernel.idvalidator.vid.version>1.2.0-SNAPSHOT</kernel.idvalidator.vid.version>
@@ -214,9 +214,8 @@
 			**/registration/processor/status/code/*.java,
 			**/registration/processor/rest/client/config/RestConfigBean.java,
 			**/registration/processor/bio/dedupe/api/BioDedupeApiApp.java,
-			**/registration/processor/adjudication/response/builder/*.java,
-			**/registration/processor/verification/response/builder/*.java,
-			**/registration/processor/verification/config/*.java,
+			**/registration/processor/manual/verification/response/builder/*.java,
+			**/registration/processor/manual/verification/config/*.java,
 			**/registration/processor/stages/config/OSIConfigBean.java,
 			**/registration/processor/stages/demo/dedupe/StatusMessage.java,
 			**/registration/processor/stages/demo/dedupe/DemodedupeStage.java,
@@ -236,8 +235,7 @@
 			**/registration/processor/print/service/utility/UINCardConstant.java,
 			**/registration/processor/stages/demodedupe/BiometricValidation.java,
 			**/registration/processor/camel/bridge/MosipBridgeFactory.java,
-			**/registration/processor/verification/stage/VerificationStage.java,
-			**/registration/processor/adjudication/stage/ManualAdjudicationStage.java,
+			**/registration/processor/manual/verification/stage/ManualVerificationStage.java,
 			**/registration/processor/packet/receiver/builder/PacketReceiverResponseBuilder.java,
 			**/registration/processor/packet/receiver/stage/PacketReceiverStage.java,
 			**/registration/processor/camel/bridge/**/*.java,

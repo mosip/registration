@@ -1,15 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_regprc
--- Table Name 	: regprc.crypto_salt
--- Purpose    	: 
 
--- Create By   	: Ram Bhatt
--- Created Date	: Jun-2021
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
-
--- ------------------------------------------------------------------------------------------
 
 -- object: regprc.crypto_salt | type: TABLE --
 -- DROP TABLE IF EXISTS regprc.crypto_salt CASCADE;

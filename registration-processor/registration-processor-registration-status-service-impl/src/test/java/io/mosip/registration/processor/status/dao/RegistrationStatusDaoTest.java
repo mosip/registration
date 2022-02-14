@@ -75,12 +75,14 @@ public class RegistrationStatusDaoTest {
 	public void findByIdTest() {
 		RegistrationStatusEntity rEntity = registrationStatusDao.find("1000.zip", "NEW", 1, "");
 		assertEquals(registrationStatusEntity, rEntity);
+
 	}
 
 	@Test
 	public void findByIdworkFlowNullTest() {
 		RegistrationStatusEntity rEntity = registrationStatusDao.find("1000.zip", "NEW", 1, null);
 		assertEquals(registrationStatusEntity, rEntity);
+
 	}
 
 	@Test
@@ -118,7 +120,7 @@ public class RegistrationStatusDaoTest {
 		List<String> statusList = new ArrayList<>();
 		statusList.add("SUCCESS");
 		int entityCount = list.size();
-
+		
 		int count = registrationStatusDao.getUnProcessedPacketsCount(6000, 4, statusList);
 		assertEquals(count, entityCount);
 	}

@@ -1,12 +1,9 @@
 package io.mosip.registration.processor.status.service;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.junit.Assert.assertNull;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Before;
@@ -15,123 +12,84 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.mockito.runners.MockitoJUnitRunner;
+
 import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
 import io.mosip.registration.processor.status.entity.AdditionalInfoRequestEntity;
 import io.mosip.registration.processor.status.entity.AdditionalInfoRequestPKEntity;
 import io.mosip.registration.processor.status.repositary.BaseRegProcRepository;
 import io.mosip.registration.processor.status.service.impl.AdditionalInfoRequestServiceImpl;
-
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(MockitoJUnitRunner.class)
 public class AdditionalInfoRequestServiceImplTest {
-
-	@InjectMocks
-	AdditionalInfoRequestServiceImpl additionalInfoRequestServiceImpl = new AdditionalInfoRequestServiceImpl();
-
 	@Mock
-	private BaseRegProcRepository<AdditionalInfoRequestEntity, String> additionalInfoRequestRepository;
-
-	List<AdditionalInfoRequestEntity> additionalInfoRequestEntityList = new ArrayList<AdditionalInfoRequestEntity>();
-	AdditionalInfoRequestEntity additionalInfoRequestEntity = new AdditionalInfoRequestEntity();
-	
+    private BaseRegProcRepository<AdditionalInfoRequestEntity, String> additionalInfoRequestRepository;
+	@InjectMocks
+	private AdditionalInfoRequestService AdditionalInfoRequestServiceImpl=new AdditionalInfoRequestServiceImpl();
+	private AdditionalInfoRequestDto additionalInfoRequestDto;
+	private AdditionalInfoRequestEntity entity;
 	@Before
-	public void setup() throws Exception {
-		AdditionalInfoRequestPKEntity entity = new AdditionalInfoRequestPKEntity();
-		entity.setAdditionalInfoReqId("10011100120000620210727102631-BIOMETRIC_CORRECTION-1");
-		entity.setWorkflowInstanceId("c39653b6-f07d-4942-838f-dca9f2c1a4fc");
-		additionalInfoRequestEntity.setId(entity);
-		additionalInfoRequestEntity.setAdditionalInfoIteration(1);
-		additionalInfoRequestEntity.setRegId("10011100120000620210727102631");
-		additionalInfoRequestEntity.setTimestamp(LocalDateTime.now());
-		additionalInfoRequestEntityList.add(additionalInfoRequestEntity);
-	}
-
-	@Test
-	public void getAdditionalInfoRequestByReqIdSuccessTest() {
-
-		Mockito.when(additionalInfoRequestRepository.getAdditionalInfoRequestByReqId(anyString()))
-				.thenReturn(additionalInfoRequestEntityList);
-		AdditionalInfoRequestDto result = additionalInfoRequestServiceImpl
-				.getAdditionalInfoRequestByReqId("10011100120000620210727102631");
-		assertEquals(result.getRegId(), "10011100120000620210727102631");
-	}
-
-	@Test
-	public void getAdditionalInfoRequestByReqIdFailureTest() {
-
-		Mockito.when(additionalInfoRequestRepository.getAdditionalInfoRequestByReqId(anyString())).thenReturn(null);
-		AdditionalInfoRequestDto result = additionalInfoRequestServiceImpl
-				.getAdditionalInfoRequestByReqId("10011100120000620210727102631");
-		assertEquals(result, null);
-	}
-
-	@Test
-	public void getAdditionalInfoRequestByRegIdAndProcessAndIterationSuccessTest() {
-
-		Mockito.when(additionalInfoRequestRepository.getAdditionalInfoRequestByRegIdAndProcessAndIteration(anyString(),
-				anyString(), anyInt())).thenReturn(additionalInfoRequestEntityList);
-		AdditionalInfoRequestDto result = additionalInfoRequestServiceImpl
-				.getAdditionalInfoRequestByRegIdAndProcessAndIteration("10011100120000620210727102631",
-						"BIOMETRIC_CORRECTION", 1);
-		assertEquals(result.getRegId(), "10011100120000620210727102631");
-	}
-
-	@Test
-	public void getAdditionalInfoRequestByRegIdAndProcessAndIterationFailureTest() {
-
-		Mockito.when(additionalInfoRequestRepository.getAdditionalInfoRequestByRegIdAndProcessAndIteration(anyString(),
-				anyString(), anyInt())).thenReturn(null);
-		AdditionalInfoRequestDto result = additionalInfoRequestServiceImpl
-				.getAdditionalInfoRequestByRegIdAndProcessAndIteration("10011100120000620210727102631",
-						"BIOMETRIC_CORRECTION", 1);
-		assertEquals(result, null);
+	public void setup() {
+		LocalDateTime timestamp=LocalDateTime.now();
+		additionalInfoRequestDto=new AdditionalInfoRequestDto("1234", "12345", "1234567890", "CORRCETION", 1, timestamp);
+		entity=new AdditionalInfoRequestEntity();
+		entity.setAdditionalInfoIteration(1);
+		entity.setAdditionalInfoProcess("CORRCETION");
+		entity.setRegId("1234567890");
+		entity.setTimestamp(timestamp);
+		AdditionalInfoRequestPKEntity pk=new AdditionalInfoRequestPKEntity();
+		pk.setAdditionalInfoReqId("1234");
+		pk.setWorkflowInstanceId("12345");
+		entity.setId(pk);
+		Mockito.when(additionalInfoRequestRepository.getAdditionalInfoRequestByReqId(Mockito.anyString())).thenReturn(List.of(entity));
+		Mockito.when(additionalInfoRequestRepository.getAdditionalInfoRequestByRegIdAndProcessAndIteration(Mockito.anyString(),Mockito.anyString(),Mockito.anyInt())).thenReturn(List.of(entity));
+		Mockito.when(additionalInfoRequestRepository.getAdditionalInfoByRegId(Mockito.anyString())).thenReturn(List.of(entity));
+		Mockito.when(additionalInfoRequestRepository.getAdditionalInfoRequestByRegIdAndProcess(Mockito.anyString(),Mockito.anyString())).thenReturn(List.of(entity));
+		Mockito.when(additionalInfoRequestRepository.save(Mockito.any(AdditionalInfoRequestEntity.class))).thenReturn(entity);
+		
 	}
 	
 	@Test
-	public void getAdditionalInfoRequestByRegIdAndProcessSuccessTest() {
+	public void addAdditionalInfoRequestTest() {
 
-		Mockito.when(additionalInfoRequestRepository.getAdditionalInfoRequestByRegIdAndProcess(anyString(),
-				anyString())).thenReturn(additionalInfoRequestEntityList);
-		List<AdditionalInfoRequestDto> result = additionalInfoRequestServiceImpl
-				.getAdditionalInfoRequestByRegIdAndProcess("10011100120000620210727102631",
-						"BIOMETRIC_CORRECTION");
-		assertEquals(result.size(), 1);
+		AdditionalInfoRequestServiceImpl.addAdditionalInfoRequest(additionalInfoRequestDto);
 	}
 
 	@Test
-	public void getAdditionalInfoRequestByRegIdAndProcessFailureTest() {
+	public void getAdditionalInfoRequestByRegIdAndProcessTest() {
 
-		Mockito.when(additionalInfoRequestRepository.getAdditionalInfoRequestByRegIdAndProcess(anyString(),
-				anyString())).thenReturn(null);
-		List<AdditionalInfoRequestDto> result = additionalInfoRequestServiceImpl
-				.getAdditionalInfoRequestByRegIdAndProcess("10011100120000620210727102631",
-						"BIOMETRIC_CORRECTION");
-		assertEquals(result.size(), 0);
+		assertEquals("1234",AdditionalInfoRequestServiceImpl.getAdditionalInfoRequestByRegIdAndProcess("1234567890", "CORRCETION").get(0).getAdditionalInfoReqId());
 	}
-	
 	@Test
 	public void getAdditionalInfoByRidTest() {
 
-		Mockito.when(additionalInfoRequestRepository.getAdditionalInfoByRegId(anyString()))
-				.thenReturn(additionalInfoRequestEntityList);
-		List<AdditionalInfoRequestDto> result = additionalInfoRequestServiceImpl
-				.getAdditionalInfoByRid("10011100120000620210727102631");
-		assertEquals(result.size(), 1);
+		assertEquals("1234",AdditionalInfoRequestServiceImpl.getAdditionalInfoByRid("1234567890").get(0).getAdditionalInfoReqId());
+		
+	}
+	@Test
+	public void getAdditionalInfoRequestByReqIdTest() {
+		assertEquals("1234",AdditionalInfoRequestServiceImpl.getAdditionalInfoRequestByReqId("1234").getAdditionalInfoReqId());
+		
 	}
 	
 	@Test
-	public void addAdditionalInfoRequestSuccessTest() {
-		AdditionalInfoRequestDto additionalInfoRequestDto = new AdditionalInfoRequestDto();
-		additionalInfoRequestDto.setAdditionalInfoIteration(1);
-		additionalInfoRequestDto.setAdditionalInfoProcess("BIOMETRIC_CORRECTION");
-		additionalInfoRequestDto.setAdditionalInfoReqId("10011100120000620210727102631-BIOMETRIC_CORRECTION-1");
-		additionalInfoRequestDto.setRegId("10011100120000620210727102631");
-		additionalInfoRequestDto.setTimestamp(LocalDateTime.now());
-		additionalInfoRequestDto.setWorkflowInstanceId("c39653b6-f07d-4942-838f-dca9f2c1a4fc");
+	public void getAdditionalInfoRequestByRegIdAndProcessAndIterationTest() {
+		assertEquals("1234",AdditionalInfoRequestServiceImpl.getAdditionalInfoRequestByRegIdAndProcessAndIteration("1234567890", "CORRCETION",1).getAdditionalInfoReqId());
 		
-		Mockito.when(additionalInfoRequestRepository.save(any())).thenReturn(additionalInfoRequestEntity);
-		additionalInfoRequestServiceImpl
-				.addAdditionalInfoRequest(additionalInfoRequestDto);
 	}
-
+	
+	@Test
+	public void getAdditionalInfoRequestByReqIdFailureTest() {
+		Mockito.when(additionalInfoRequestRepository.getAdditionalInfoRequestByReqId(Mockito.anyString())).thenReturn(null);
+		assertNull(AdditionalInfoRequestServiceImpl.getAdditionalInfoRequestByReqId("1234"));
+		
+	}
+	
+	@Test
+	public void getAdditionalInfoRequestByRegIdAndProcessAndIterationFailureTest() {
+		Mockito.when(additionalInfoRequestRepository.getAdditionalInfoRequestByRegIdAndProcessAndIteration(Mockito.anyString(),Mockito.anyString(),Mockito.anyInt())).thenReturn(null);
+		
+		assertNull("1234",AdditionalInfoRequestServiceImpl.getAdditionalInfoRequestByRegIdAndProcessAndIteration("1234567890", "CORRCETION",1));
+		
+	}
+	
 }

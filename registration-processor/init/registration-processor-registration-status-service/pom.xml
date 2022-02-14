@@ -153,8 +153,8 @@
 						</executions>
 						<configuration>
 							<apiDocsUrl>http://localhost:8090/app/generic/v3/api-docs</apiDocsUrl>
-							<outputFileName>${name}-openapi.json</outputFileName>
-							<outputDir>${project.build.directory}</outputDir>
+              <outputFileName>${name}-openapi.json</outputFileName>
+              <outputDir>${project.build.directory}</outputDir>
 							<skip>false</skip>
 						</configuration>
 					</plugin>

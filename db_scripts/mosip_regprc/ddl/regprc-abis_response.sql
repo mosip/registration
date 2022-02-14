@@ -1,16 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_regprc
--- Table Name 	: regprc.abis_response
--- Purpose    	: ABIS Response: Stores all the responses that were received from ABIS systems for the request sent.
---           
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
--- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes for 1.1.5
--- ------------------------------------------------------------------------------------------
+
 
 -- object: regprc.abis_response | type: TABLE --
 -- DROP TABLE IF EXISTS regprc.abis_response CASCADE;

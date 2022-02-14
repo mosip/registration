@@ -285,24 +285,12 @@ public class PacketValidateProcessorTest {
 	@Test
 	public void PacketValidationPacketManagerFailedTest()
 			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
-		registrationStatusDto.setRetryCount(1);
 		Mockito.when(packetManagerService.getMetaInfo(anyString(), any(), any()))
 				.thenThrow(PacketManagerException.class);
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_EXCEPTION)).thenReturn("REPROCESS");
 		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
 		assertTrue(object.getIsValid());
-		assertTrue(object.getInternalError());
-	}
-	
-	@Test
-	public void PacketValidationUnknownExceptionFailedTest()
-			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
-		Mockito.when(syncRegistrationService.findByWorkflowInstanceId(any())).thenReturn(null);
-		Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.EXCEPTION))
-				.thenReturn("ERROR");
-		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
-		assertFalse(object.getIsValid());
 		assertTrue(object.getInternalError());
 	}
 	

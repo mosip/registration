@@ -2,6 +2,7 @@ package io.mosip.registration.processor.status.api.controller;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -10,6 +11,7 @@ import java.util.List;
 
 import javax.servlet.http.Cookie;
 
+import io.mosip.registration.processor.core.util.exception.DigitalSignatureException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -46,7 +48,6 @@ import com.google.gson.GsonBuilder;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
-import io.mosip.registration.processor.core.util.exception.DigitalSignatureException;
 import io.mosip.registration.processor.core.workflow.dto.SortInfo;
 import io.mosip.registration.processor.status.api.config.RegistrationStatusConfigTest;
 import io.mosip.registration.processor.status.dto.FilterInfo;
@@ -125,6 +126,11 @@ public class RegistrationExternalStatusControllerTest {
 	public void setUp() throws JsonProcessingException, ApisResourceAccessException {
 
 		mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+		when(env.getProperty("mosip.registration.processor.registration.external.status.id"))
+				.thenReturn("mosip.registration.external.status");
+		when(env.getProperty("mosip.registration.processor.datetime.pattern"))
+				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		when(env.getProperty("mosip.registration.processor.registration.external.status.version")).thenReturn("1.0");
 		List<RegistrationExternalStatusSubRequestDto> request = new ArrayList<>();
 		RegistrationExternalStatusSubRequestDto regitrationid1 = new RegistrationExternalStatusSubRequestDto();
 		RegistrationExternalStatusSubRequestDto regitrationid2 = new RegistrationExternalStatusSubRequestDto();
@@ -183,8 +189,8 @@ public class RegistrationExternalStatusControllerTest {
 	@Test
 	@WithMockUser(value = "resident", roles = "RESIDENT")
 	public void searchSuccessTest() throws Exception {
-		doNothing().when(registrationExternalStatusRequestValidator).validate(ArgumentMatchers.any(),
-				ArgumentMatchers.anyString());
+		doNothing().when(registrationExternalStatusRequestValidator).validate((registrationExternalStatusRequestDTO),
+				"mosip.registration.external.status");
 		Mockito.doReturn("test").when(digitalSignatureUtility).getDigitalSignature(ArgumentMatchers.any());
 		
 		MvcResult result = this.mockMvc.perform(post("/externalstatus/search").accept(MediaType.APPLICATION_JSON_VALUE)
@@ -217,18 +223,6 @@ public class RegistrationExternalStatusControllerTest {
 				.cookie(new Cookie("Authorization", regStatusToJson)).contentType(MediaType.APPLICATION_JSON_VALUE)
 				.content(regStatusToJson.getBytes()).header("timestamp", "2019-05-07T05:13:55.704Z"))
 				.andExpect(status().isInternalServerError());
-	}
-	
-	@Test(expected = NestedServletException.class)
-	@WithMockUser(value = "resident", roles = "RESIDENT")
-	public void registrationExternalStatusUnknownExceptionTest() throws Exception {
-		doNothing().when(registrationExternalStatusRequestValidator).validate(ArgumentMatchers.any(),
-				ArgumentMatchers.anyString());
-		Mockito.doThrow(DigitalSignatureException.class).when(digitalSignatureUtility)
-				.getDigitalSignature(ArgumentMatchers.any());
-		this.mockMvc.perform(post("/externalstatus/search").accept(MediaType.APPLICATION_JSON_VALUE)
-				.cookie(new Cookie("Authorization", regStatusToJson)).contentType(MediaType.APPLICATION_JSON_VALUE)
-				.content(regStatusToJson.getBytes()).header("timestamp", "2019-05-07T05:13:55.704Z"));
 	}
 
 }

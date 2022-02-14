@@ -1,17 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_regprc
--- Table Name 	: regprc.reg_bio_ref
--- Purpose    	: Registration Biometric Reference: Mapping table to store the bio reference id for an registration id
---           
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
--- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes for 1.1.5
--- Jul-2021		Ram Bhatt	    Index Creation and added new column
--- ------------------------------------------------------------------------------------------
+
 
 -- object: regprc.reg_bio_ref | type: TABLE --
 -- DROP TABLE IF EXISTS regprc.reg_bio_ref CASCADE;
@@ -34,6 +21,7 @@ CREATE TABLE regprc.reg_bio_ref(
 );
 -- indexes section -------------------------------------------------
 create index idx_rbioref_crdtimes on regprc.reg_bio_ref (cr_dtimes);
+CREATE INDEX IF NOT EXISTS idx_bio_ref_id ON regprc.reg_bio_ref USING btree (bio_ref_id);
 
 -- ddl-end --
 

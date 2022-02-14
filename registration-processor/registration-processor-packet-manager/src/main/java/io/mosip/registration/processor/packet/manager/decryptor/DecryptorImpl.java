@@ -105,9 +105,9 @@ public class DecryptorImpl implements Decryptor {
 					CryptomanagerConstant.GCM_NONCE_LENGTH + CryptomanagerConstant.GCM_AAD_LENGTH);
 			byte[] encryptedData = Arrays.copyOfRange(packet, CryptomanagerConstant.GCM_NONCE_LENGTH + CryptomanagerConstant.GCM_AAD_LENGTH,
 					packet.length);
-			cryptomanagerRequestDto.setAad(CryptoUtil.encodeBase64String(aad));
-			cryptomanagerRequestDto.setSalt(CryptoUtil.encodeBase64String(nonce));
-			cryptomanagerRequestDto.setData(CryptoUtil.encodeBase64String(encryptedData));
+			cryptomanagerRequestDto.setAad(CryptoUtil.encodeToURLSafeBase64(aad));
+			cryptomanagerRequestDto.setSalt(CryptoUtil.encodeToURLSafeBase64(nonce));
+			cryptomanagerRequestDto.setData(CryptoUtil.encodeToURLSafeBase64(encryptedData));
 			cryptomanagerRequestDto.setTimeStamp(DateUtils.getUTCCurrentDateTime());
 
 			request.setId(env.getProperty(DECRYPT_SERVICE_ID));
@@ -129,7 +129,12 @@ public class DecryptorImpl implements Decryptor {
 				description.setCode(PlatformErrorMessages.RPR_PDS_PACKET_DECRYPTION_FAILURE.getCode());
 				throw new PacketDecryptionFailureException(error.getErrorCode(), error.getMessage());
 			}
-			byte[] decryptedPacket = CryptoUtil.decodeBase64(response.getResponse().getData());
+			byte[] decryptedPacket =null;
+			try {
+				decryptedPacket= CryptoUtil.decodeURLSafeBase64(response.getResponse().getData());
+			} catch (IllegalArgumentException exception) {
+				decryptedPacket= CryptoUtil.decodePlainBase64(response.getResponse().getData());
+			}
 			outstream = new ByteArrayInputStream(decryptedPacket);
 			isTransactionSuccessful = true;
 			description.setMessage(PlatformSuccessMessages.RPR_DECRYPTION_SUCCESS.getMessage());

@@ -6,6 +6,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.mosip.kernel.biometrics.entities.Entry;
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -34,6 +34,8 @@ import io.mosip.registration.processor.core.anonymous.dto.ExceptionsDTO;
 import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.Document;
@@ -228,7 +230,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 	}
 
 	private List<String> getDocumentsDataFromMetaInfo(Map<String, String> metaInfoMap)
-			throws IOException, JSONException {
+			throws ApisResourceAccessException, PacketManagerException, IOException, JSONException {
 		String metadata = metaInfoMap.get(MappingJsonConstants.DOCUMENT);
 		List<String> documentTypes = new ArrayList<String>();
 		if (StringUtils.isNotEmpty(metadata)) {
@@ -248,7 +250,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 	}
 
 	private String getFieldValueFromMetaInfo(Map<String, String> metaInfoMap, String field, String label)
-			throws IOException, JSONException {
+			throws ApisResourceAccessException, PacketManagerException, IOException, JSONException {
 		String metadata = metaInfoMap.get(field);
 		String value = null;
 		if (StringUtils.isNotEmpty(metadata)) {
@@ -275,7 +277,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 
 		List<BIR> birs = biometricRecord.getSegments();
 		for (BIR bir : birs) {
-			List<Entry> othersInfo = bir.getOthers();
+			HashMap<String, String> othersInfo = bir.getOthers();
 
 			if (othersInfo == null) {
 				continue;
@@ -284,7 +286,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 			String retries = null;
 			String digitalID = null;
 			boolean exceptionValue = false;
-			for (Entry other : othersInfo) {
+			for (Map.Entry<String, String> other : othersInfo.entrySet()) {
 				if (other.getKey().equals(JsonConstant.BIOMETRICRECORDEXCEPTION) && other.getValue().equals(TRUE)) {
 					exceptionValue = true;
 				}
@@ -311,7 +313,13 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 				biometricInfoDTO.setQualityScore(bir.getBdbInfo().getQuality().getScore());
 				biometricInfoDTO.setAttempts(retries);
 				if (digitalID != null) {
-					biometricInfoDTO.setDigitalId(new String(CryptoUtil.decodeBase64(digitalID.split("\\.")[1])));
+					byte[] digitalIdBytes=null;
+					try {
+						 digitalIdBytes= CryptoUtil.decodeURLSafeBase64(digitalID.split("\\.")[1]);
+					} catch (IllegalArgumentException exception) {
+						digitalIdBytes = CryptoUtil.decodePlainBase64(digitalID.split("\\.")[1]);
+					}
+					biometricInfoDTO.setDigitalId(new String(digitalIdBytes));
 				}
 				biometrics.add(biometricInfoDTO);
 			}

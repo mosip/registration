@@ -177,6 +177,7 @@ public class PacketExternalStatusServiceImpl implements PacketExternalStatusServ
 		LocalDateTime createdTime = internalRegistrationStatusDto.getLatestTransactionTimes();
 		LocalDateTime currentTime = LocalDateTime.now();
 		LocalDateTime tempDate = LocalDateTime.from(createdTime);
-		return tempDate.until(currentTime, ChronoUnit.SECONDS);
+		long seconds = tempDate.until(currentTime, ChronoUnit.SECONDS);
+		return seconds;
 	}
 }

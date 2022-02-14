@@ -51,8 +51,11 @@ public class ApplicantDocumentValidation {
             String docValue = docMap.values().iterator().next().toString();
             String idObjectField = packetManagerService.getField(registrationId, docValue, process, ProviderStageName.PACKET_VALIDATOR);
             if (idObjectField != null) {
-                if (packetManagerService.getDocument(registrationId, docValue, process, ProviderStageName.PACKET_VALIDATOR) == null)
+                if (packetManagerService.getDocument(registrationId, docValue, process, ProviderStageName.PACKET_VALIDATOR) == null) {
+                    regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+                            LoggerFileConstant.REGISTRATIONID.toString(), registrationId, "Missing document : " + docValue);
                     return false;
+                }
             }
         }
 
@@ -70,8 +73,11 @@ public class ApplicantDocumentValidation {
 
         if (docFields.get(applicantBiometricLabel) != null) {
             BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(registrationId, MappingJsonConstants.INDIVIDUAL_BIOMETRICS, process, ProviderStageName.PACKET_VALIDATOR);
-            if (biometricRecord == null || biometricRecord.getSegments() == null || biometricRecord.getSegments().size() == 0)
+            if (biometricRecord == null || biometricRecord.getSegments() == null || biometricRecord.getSegments().size() == 0) {
+                regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+                        LoggerFileConstant.REGISTRATIONID.toString(), registrationId, "Missing document : " + applicantBiometricLabel);
                 return false;
+            }
         }
         if (docFields.get(introducerBiometricLabel) != null) {
             BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(registrationId, MappingJsonConstants.INTRODUCER_BIO, process, ProviderStageName.PACKET_VALIDATOR);

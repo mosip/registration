@@ -64,30 +64,29 @@ public class IDObjectFieldsTagGeneratorTest {
 		mappingFieldNames = new ArrayList<String>();
 		mappingFieldNames.add("IDSchemaVersion");
 		mappingFieldNames.add("dob");
+		mappingFieldNames.add("individualBiometrics");
 		mappingFieldNames.add("gender");
-		mappingFieldNames.add("document");
-		mappingFieldNames.add("biometric");
-	
+		mappingFieldNames.add("poa");
 		actualFieldNames = new ArrayList<>();
 		actualFieldNames.add("IDSchemaVersion");
 		actualFieldNames.add("dateOfBirth");
+		actualFieldNames.add("individualBiometrics");
 		actualFieldNames.add("gender");
-		actualFieldNames.add("document");
-		actualFieldNames.add("biometric");
+		actualFieldNames.add("proofOfAddress");
 		
 		idObjectFieldDTOMap = new HashMap<>();
 		idObjectFieldDTOMap.put(actualFieldNames.get(0), new FieldDTO("number", "0.5"));
 		idObjectFieldDTOMap.put(actualFieldNames.get(1), new FieldDTO("string", "1995/01/19"));
-		idObjectFieldDTOMap.put(actualFieldNames.get(2), new FieldDTO("simpleType", "[ {\n  \"language\" : \"eng\",\n  \"value\" : \"MALE\"\n} ]"));
-		idObjectFieldDTOMap.put(actualFieldNames.get(3), new FieldDTO("documentType", "{\n  \"language\" : \"eng\",\n  \"value\" : \"POA\"\n}"));
-		idObjectFieldDTOMap.put(actualFieldNames.get(4), new FieldDTO("biometricsType", "{\n  \"language\" : \"eng\",\n  \"value\" : \"Face\"\n}"));
-		
+		idObjectFieldDTOMap.put(actualFieldNames.get(2), new FieldDTO("biometricsType", "{\n  \"format\" : \"cbeff\",\n  \"version\" : 1.0,\n  \"value\" : \"individualBiometrics_bio_CBEFF\"\n}"));
+		idObjectFieldDTOMap.put(actualFieldNames.get(3), new FieldDTO("simpleType", "[ {\n  \"language\" : \"eng\",\n  \"value\" : \"MALE\"\n} ]"));
+		idObjectFieldDTOMap.put(actualFieldNames.get(4), new FieldDTO("documentType", "{\n  \"value\" : \"proofOfAddress\",\n  \"type\" : \"RNC\",\n  \"format\" : \"PDF\"\n}"));
+
 		tagValues = new ArrayList<>();
 		tagValues.add("0.5");
 		tagValues.add("1995/01/19");
+		tagValues.add("individualBiometrics_bio_CBEFF");
 		tagValues.add("MALE");
-		tagValues.add("POA");
-		tagValues.add("Face");
+		tagValues.add("proofOfAddress");
 
 		Whitebox.setInternalState(idObjectFieldsTagGenerator, "tagNamePrefix", tagNamePrefix);
 		Whitebox.setInternalState(idObjectFieldsTagGenerator, "mappingFieldNames", mappingFieldNames);
@@ -130,6 +129,17 @@ public class IDObjectFieldsTagGeneratorTest {
 			IOException {
 		Mockito.when(utility.getRegistrationProcessorMappingJson(anyString())).thenThrow(new IOException());
 		idObjectFieldsTagGenerator.getRequiredIdObjectFieldNames();
+	}
+	
+	@Test(expected = ParsingException.class)
+	public void testGetRequiredIdObjectFieldNamesForUtilityThrowingIParsingException() throws BaseCheckedException,
+			IOException {
+		idObjectFieldsTagGenerator.getRequiredIdObjectFieldNames();
+		idObjectFieldDTOMap.remove(actualFieldNames.get(0));
+		idObjectFieldDTOMap.put(actualFieldNames.get(4), new FieldDTO("documentType", "{\n  \"value\" : \"proofOfAddress\"\n  \"type\" : \"RNC\",\n  \"format\" : \"PDF\"\n}"));
+
+		Map<String, String> tags = idObjectFieldsTagGenerator.generateTags("12345", "1234", "NEW", idObjectFieldDTOMap, null, 0);
+		
 	}
 
 	@Test

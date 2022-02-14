@@ -53,6 +53,7 @@ public class IdRepoServiceImpl implements IdRepoService {
 	 * io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService#
 	 * getUinByRid(java.lang.String, java.lang.String)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public String getUinByRid(String rid, String regProcessorDemographicIdentity)
 			throws IOException, ApisResourceAccessException {
@@ -63,6 +64,7 @@ public class IdRepoServiceImpl implements IdRepoService {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
 				"IdRepoServiceImpl::getUinByRid()::exit");
 		return getUin(pathSegments, regProcessorDemographicIdentity, IdType.RID);
+
 	}
 
 	/**
@@ -81,6 +83,7 @@ public class IdRepoServiceImpl implements IdRepoService {
 	@SuppressWarnings("unchecked")
 	private String getUin(List<String> pathSegments, String regProcessorDemographicIdentity, IdType idType)
 			throws IOException, ApisResourceAccessException {
+		@SuppressWarnings("unchecked")
 		ResponseWrapper<IdResponseDTO> response;
 		ApiName apiName;
 		if (idType.equals(IdType.RID))
@@ -144,6 +147,7 @@ public class IdRepoServiceImpl implements IdRepoService {
 		pathSegments.add(machedRegId);
 		JSONObject demographicJsonObj = null;
 
+		@SuppressWarnings("unchecked")
 		ResponseWrapper<IdResponseDTO> response;
 
 		response = (ResponseWrapper<IdResponseDTO>) restClientService.getApi(ApiName.RETRIEVEIDENTITYFROMRID, pathSegments, "", "",

@@ -101,7 +101,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
     @Value("${mosip.regproc.workflow-manager.internal.action.max-allowed-iteration}")
     private int defaultMaxAllowedIteration;
-
+    
     @Value("${mosip.anonymous.profile.eventbus.address}")
 	private String anonymousProfileBusAddress;
 
@@ -129,7 +129,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
 	@Autowired
 	private Utilities utility;
-
+	
 	@Autowired
 	private IdSchemaUtil idSchemaUtil;
 
@@ -281,7 +281,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		json = anonymousProfileService.buildJsonStringFromPacketInfo(biometricRecord, fieldMap, fieldTypeMap,
 				metaInfoMap, registrationStatusDto.getStatusCode(), registrationStatusDto.getRegistrationStageName());
 		anonymousProfileService.saveAnonymousProfile(registrationId, registrationStatusDto.getRegistrationStageName(), json);
-
+		
 		this.send(this.mosipEventBus, new MessageBusAddress(anonymousProfileBusAddress), workflowInternalActionDTO);
 
 		regProcLogger.info("processAnonymousProfile ended for registration id {}", registrationId);
@@ -357,7 +357,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
 		registrationStatusDto.setSubStatusCode(StatusUtil.WORKFLOW_INTERNAL_ACTION_SUCCESS.getCode());
 		registrationStatusService.updateRegistrationStatusForWorkflowEngine(registrationStatusDto, MODULE_ID, MODULE_NAME);
-
+		
 		if (additionalInfoRequestDto != null) {
 			Map<String, String> tags = new HashMap<String, String>();
 			tags.put(workflowInternalActionDTO.getReg_type() + "_FLOW_STATUS",
