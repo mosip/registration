@@ -100,7 +100,7 @@ public final class PlatformConstants {
 
 	/** The Constant RPR_UIN_GENERATOR_STAGE. */
 	public static final String RPR_UIN_GENERATOR_STAGE = RPR_REGISTRATION_PROCESSOR_PREFIX + "UGS-";
-
+	
 	/** The Constant RPR_BIOMETRIC_EXTRACTION_STAGE. */
 	public static final String RPR_BIOMETRIC_EXTRACTION_STAGE = RPR_REGISTRATION_PROCESSOR_PREFIX + "BEN-";
 

@@ -233,14 +233,14 @@ public class SupervisorValidator {
 	}
 
 	/**
-	 * Validate otp and pwd.
+	 * Validate opValidated and otpValidated.
 	 *
-	 * @param pwd the password
-	 * @param otp the otp
+	 * @param pwd the opValidated
+	 * @param otp the otpValidated
 	 * @return true, if successful
 	 */
-	boolean validateOtpAndPwd(String pwd, String otp) {
-		return (pwd != null && pwd.equals(ISTRUE) || otp != null && otp.equals(ISTRUE));
+	private boolean validateOtpAndPwd(String opValidated, String otpValidated) {
+		return (opValidated != null && opValidated.equals(ISTRUE) || otpValidated != null && otpValidated.equals(ISTRUE));
 	}
 
 	/**

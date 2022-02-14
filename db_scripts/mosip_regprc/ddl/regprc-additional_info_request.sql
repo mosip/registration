@@ -1,15 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_regprc
--- Table Name 	: regprc.additional_info_request
--- Purpose    	: Additional Info Request : 
---           
--- Create By   	: Ram Bhatt
--- Created Date	: Jul-2021
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
 
--- ------------------------------------------------------------------------------------------
 
 -- object: regprc.additional_info_request | type: TABLE --
 -- DROP TABLE IF EXISTS regprc.additional_info_request CASCADE;

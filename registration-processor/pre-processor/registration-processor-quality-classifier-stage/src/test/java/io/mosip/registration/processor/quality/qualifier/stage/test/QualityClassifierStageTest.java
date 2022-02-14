@@ -38,7 +38,6 @@ import io.mosip.kernel.biometrics.constant.QualityType;
 import io.mosip.kernel.biometrics.entities.BDBInfo;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.mosip.kernel.biometrics.entities.Entry;
 import io.mosip.kernel.biometrics.entities.RegistryIDType;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.biosdk.provider.factory.BioAPIFactory;
@@ -191,10 +190,19 @@ public class QualityClassifierStageTest {
 		registrationStatusDto.setRegistrationId("123456789");
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
+		String idJsonString = "{\n" + "  \"identity\" : {\n" + "    \"fullName\" : [ {\n"
+				+ "      \"language\" : \"eng\",\n" + "      \"value\" : \"Ragavendran V\"\n" + "    }, {\n"
+				+ "      \"language\" : \"ara\",\n" + "      \"value\" : \"قشلشرثىيقشى ر\"\n" + "    } ],\n"
+				+ "    \"individualBiometrics\" : {\n" + "      \"format\" : \"cbeff\",\n"
+				+ "      \"version\" : 1.0,\n" + "      \"value\" : \"applicant_bio_CBEFF\"\n" + "    }\n" + "  }\n"
+				+ "}";
+		InputStream idJsonStream = IOUtils.toInputStream(idJsonString, "UTF-8");
 
 		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
 
 		ClassLoader classLoader = getClass().getClassLoader();
+		File cbeff1 = new File(classLoader.getResource("CBEFF1.xml").getFile());
+		InputStream cbeff1Stream = new FileInputStream(cbeff1);
 
 		List<BIR> birTypeList = new ArrayList<>();
 		BIR birType1 = new BIR.BIRBuilder().build();
@@ -389,21 +397,6 @@ public class QualityClassifierStageTest {
 		bdbInfoType2.setType(singleTypeList2);
 		birType2.setBdbInfo(bdbInfoType2);
 		birTypeList.add(birType2);
-		
-		BIR birType21 = new BIR.BIRBuilder().build();
-		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType21 = new io.mosip.kernel.biometrics.entities.BDBInfo.BDBInfoBuilder()
-				.build();
-		bdbInfoType21.setQuality(quality);
-		BiometricType singleType21 = BiometricType.FINGER;
-		List<BiometricType> singleTypeList21 = new ArrayList<>();
-		singleTypeList2.add(singleType21);
-		List<String> subtype21 = new ArrayList<>(Arrays.asList("Right", "IndexFinger"));
-		bdbInfoType21.setSubtype(subtype21);
-		bdbInfoType21.setType(singleTypeList21);
-		birType21.setBdbInfo(bdbInfoType21);
-		Entry entry = new Entry("EXCEPTION", "true");
-		birType21.setOthers(Arrays.asList(entry));
-		birTypeList.add(birType21);
 
 		BIR birType3 = new BIR.BIRBuilder().build();
 		BDBInfo bdbInfoType3 = new BDBInfo.BDBInfoBuilder().build();

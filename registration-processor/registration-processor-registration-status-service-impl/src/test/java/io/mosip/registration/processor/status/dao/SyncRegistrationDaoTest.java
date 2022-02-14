@@ -167,6 +167,7 @@ public class SyncRegistrationDaoTest {
 
 	@Test
 	public void findByRegistrationIdIdAndAdditionalInfoReqIdTest() {
+		
 		SyncRegistrationEntity syncRegistrationEntityResult = syncRegistrationDao
 				.findByRegistrationIdIdAndAdditionalInfoReqId("1000", "NEW");
 		assertEquals("Check id Registration Id is present in DB, expected valie is 1001",
@@ -201,6 +202,14 @@ public class SyncRegistrationDaoTest {
 	}
 
 	@Test
+	public void getSaltValueTest() {
+		SaltEntity saltEntity = new SaltEntity();
+		saltEntity.setSalt("qwfs");
+		Mockito.when(saltRepository.findSaltById(any())).thenReturn(saltEntity);
+		String salt = syncRegistrationDao.getSaltValue((long) 10);
+		assertEquals("qwfs", salt);
+	}
+	@Test
 	public void getSearchResultsTest() {
 		List<FilterInfo> filterInfos = new ArrayList<FilterInfo>();
 		List<SortInfo> sortInfos = new ArrayList<SortInfo>();
@@ -219,14 +228,4 @@ public class SyncRegistrationDaoTest {
 		List<SyncRegistrationEntity> idList = syncRegistrationDao.getSearchResults(filterInfos, sortInfos);
 		assertEquals(idList.get(0).getRegistrationId(), testIdList.get(0));
 	}
-	
-	@Test
-	public void getSaltValueTest() {
-		SaltEntity saltEntity = new SaltEntity();
-		saltEntity.setSalt("qwfs");
-		Mockito.when(saltRepository.findSaltById(any())).thenReturn(saltEntity);
-		String salt = syncRegistrationDao.getSaltValue((long) 10);
-		assertEquals("qwfs", salt);
-	}
-
 }

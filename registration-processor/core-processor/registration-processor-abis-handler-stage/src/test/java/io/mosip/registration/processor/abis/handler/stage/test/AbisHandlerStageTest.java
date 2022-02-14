@@ -32,6 +32,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 
@@ -40,7 +41,6 @@ import io.mosip.kernel.biometrics.constant.QualityType;
 import io.mosip.kernel.biometrics.entities.BDBInfo;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.mosip.kernel.biometrics.entities.Entry;
 import io.mosip.kernel.biometrics.entities.RegistryIDType;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.util.JsonUtils;
@@ -289,6 +289,8 @@ public class AbisHandlerStageTest {
 
 	private ResponseWrapper<LinkedHashMap<String, Object>> getMockDataSharePolicy(
 			List<BiometricType> sherableBiometricList) {
+
+		ObjectMapper mapper = new ObjectMapper();
 
 		List<ShareableAttributes> attr = new LinkedList<>();
 		if (sherableBiometricList != null && !sherableBiometricList.isEmpty()) {
@@ -993,22 +995,13 @@ public class AbisHandlerStageTest {
 			birType1.setBdbInfo(bdbInfoType1);
 			birType1.setBdb(bdb);
 			
-			if (bdb == null) {
+			if(bdb==null) {
 				Map<String, Object> others = new HashMap<>();
 				others.put("EXCEPTION", true);
-				Entry entry = new Entry();
-				entry.setKey("EXCEPTION");
-				entry.setValue("true");
-				List<Entry> entryList = new ArrayList<Entry>();
-				entryList.add(entry);
-				birType1.setOthers(entryList);
-			} else {
-				Entry entry = new Entry();
-				entry.setKey("EXCEPTION");
-				entry.setValue("false");
-				List<Entry> entryList = new ArrayList<Entry>();
-				entryList.add(entry);
-				birType1.setOthers(entryList);
+				HashMap<String, String> entry = new HashMap<>();
+				entry.put("EXCEPTION", "true");
+				birType1.setOthers(entry);
+				
 			}
 			
 			biometricRecord.getSegments().add(birType1); 

@@ -74,7 +74,7 @@ public enum PlatformErrorMessages {
 	/** The rpr rgs transaction table not accessible. */
 	RPR_RGS_TRANSACTION_TABLE_NOT_ACCESSIBLE(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "002",
 			"Unable to Access Registration Transaction Table"),
-
+	
 	/** The rpr rgs anonymous profile table not accessible. */
 	RPR_RGS_ANONYMOUS_PROFILE_TABLE_NOT_ACCESSIBLE(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "038",
 			"Unable to anonymous profile  Table"),
@@ -782,6 +782,9 @@ public enum PlatformErrorMessages {
 	/** The rpr table not accessible. */
 	RPR_INVALID_RID_FOUND(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "024",
 			"Multiple rids found for a reference id"),
+	
+	MANUAL_VERIFICATION_FAILED(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "025",
+			"Manual adjudication failed"),
 
 	/** The rpr tem not found. */
 	// Registration processor Message sender Exception error code

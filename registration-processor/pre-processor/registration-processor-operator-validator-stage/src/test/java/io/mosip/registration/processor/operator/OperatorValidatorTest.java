@@ -391,7 +391,7 @@ public class OperatorValidatorTest {
 		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
 		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
-
+	
 	@Test(expected = BaseCheckedException.class)
 	public void testisValidOperatorCreatedDateNull() throws Exception {
 
@@ -400,7 +400,7 @@ public class OperatorValidatorTest {
 		registrationStatusDto.setRegistrationType("ACTIVATED");
 		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
-
+	
 	@Test(expected = ValidationFailedException.class)
 	public void testisValidOperatorBiometricfileNull() throws Exception {
 
@@ -410,7 +410,7 @@ public class OperatorValidatorTest {
 		registrationStatusDto.setRegistrationType("ACTIVATED");
 		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
-
+	
 	@Test(expected = ValidationFailedException.class)
 	public void testisValidOperatorBiometricRecordNull() throws Exception {
 
@@ -463,17 +463,6 @@ public class OperatorValidatorTest {
 		.thenReturn(biometricRecord);
 		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
-		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
-	}
-
-	@Test(expected = AuthSystemException.class)
-	public void testOperatorAuthSystemError() throws Exception {
-		ErrorDTO errordto = new ErrorDTO();
-		errordto.setErrorCode("IDA-MLC-007");
-		authResponseDTO.setErrors(Arrays.asList(errordto));
-		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
-				.thenReturn(biometricRecord);
-		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
 		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
 

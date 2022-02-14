@@ -1,16 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_regprc
--- Table Name 	: regprc.reg_demo_dedupe_list
--- Purpose    	: Registration Demographic Deduplication List: List of matched UIN / RIDs, as part of demographic data.
---           
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
--- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes for 1.1.5
--- ------------------------------------------------------------------------------------------
+
 
 -- object: regprc.reg_demo_dedupe_list | type: TABLE --
 -- DROP TABLE IF EXISTS regprc.reg_demo_dedupe_list CASCADE;

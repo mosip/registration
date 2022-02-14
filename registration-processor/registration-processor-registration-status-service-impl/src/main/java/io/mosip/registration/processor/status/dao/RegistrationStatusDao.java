@@ -230,7 +230,7 @@ public class RegistrationStatusDao {
 	}
 
 	public List<RegistrationStatusEntity> getActionablePausedPackets(Integer fetchSize) {
-
+		
 		List<String> statusCodes = new ArrayList<String>();
 		statusCodes.add(RegistrationStatusCode.PAUSED.toString());
 		statusCodes.add(RegistrationStatusCode.PAUSED_FOR_ADDITIONAL_INFO.toString());
@@ -241,10 +241,5 @@ public class RegistrationStatusDao {
 	public List<RegistrationStatusEntity> getResumablePackets(Integer fetchSize) {
 
 		return registrationStatusRepositary.getResumablePackets(RegistrationStatusCode.RESUMABLE.toString(), fetchSize);
-	}
-
-	public long getInReprocessPacketsCount(long reprocessorduration) {
-		LocalDateTime timeDifference = LocalDateTime.now(ZoneId.of("UTC")).minusSeconds(reprocessorduration);
-		return registrationStatusRepositary.getInReprocessPacketsCount(RegistrationStatusCode.REPROCESS.toString(),RegistrationTransactionStatusCode.REPROCESS.toString(), timeDifference);
 	}
 }

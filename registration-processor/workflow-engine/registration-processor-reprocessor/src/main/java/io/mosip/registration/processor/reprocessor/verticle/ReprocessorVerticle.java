@@ -67,15 +67,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 
 	/** The mosip event bus. */
 	MosipEventBus mosipEventBus = null;
-
-	/** The processingLimitExceeded flag. */
-	@Value("${registration.processor.pause.packets.for.backpressure}")
-	private boolean pauseProcessingForBackpressure ;
-
-	/** The processingLimitExceeded flag. */
-	@Value("${registration.processor.reprocess.limit}")
-	private long reprocessPacketsLimit ;
-
+	
 	/** The fetch size. */
 	@Value("${registration.processor.reprocess.fetchsize}")
 	private Integer fetchSize;
@@ -233,7 +225,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 						reprocessCount, statusList);
 			}
 
-			if(proceedToReprocess()) {
+			
 			if (!CollectionUtils.isEmpty(reprocessorDtoList)) {
 				reprocessorDtoList.forEach(dto -> {
 					String registrationId = dto.getRegistrationId();
@@ -294,7 +286,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 					auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName,
 							eventType, moduleId, moduleName, registrationId);
 				});
-			}
+			
 			}
 		} catch (TablenotAccessibleException e) {
 			isTransactionSuccessful = false;
@@ -335,18 +327,9 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 
 		return object;
 	}
-
-	private boolean proceedToReprocess() throws TablenotAccessibleException {
-
-		if(!pauseProcessingForBackpressure) {
-			return true;
-		}
-		if(registrationStatusService.getInReprocessPacketsCount(elapseTime)<reprocessPacketsLimit){
-			return true;
-		}
-		return false;
-	}
-
+	
+	
+	
 	@Override
 	protected String getPropertyPrefix() {
 		return VERTICLE_PROPERTY_PREFIX;

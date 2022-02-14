@@ -40,12 +40,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
+import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.kernel.dataaccess.hibernate.constant.HibernateErrorCode;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.DedupeSourceName;
+import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.Applicant;
 import io.mosip.registration.processor.core.packet.dto.Biometric;
 import io.mosip.registration.processor.core.packet.dto.BiometricDetails;
@@ -198,6 +203,8 @@ public class PacketInfoManagerImplTest {
 
 	/** The identity mappingjson string. */
 	private String identityMappingjsonString;
+	
+	private static Logger regProcLogger = RegProcessorLogger.getLogger(PacketInfoManagerImplTest.class);
 
 	/**
 	 * Setup.
@@ -217,7 +224,8 @@ public class PacketInfoManagerImplTest {
 		try {
 			byteArray = IOUtils.toByteArray(demographicJsonStream);
 		} catch (IOException e) {
-			e.printStackTrace();
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.name() + ExceptionUtils.getStackTrace(e));
 		}
 
 		File identityMappingjson = new File(classLoader.getResource("RegistrationProcessorIdentity.json").getFile());
@@ -226,7 +234,8 @@ public class PacketInfoManagerImplTest {
 		try {
 			identityMappingjsonString = IOUtils.toString(identityMappingjsonStream, StandardCharsets.UTF_8);
 		} catch (IOException e) {
-			e.printStackTrace();
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.name() + ExceptionUtils.getStackTrace(e));
 		}
 		PowerMockito.mockStatic(Utilities.class);
 		PowerMockito.when(Utilities.class, "getJson", CONFIG_SERVER_URL, "RegistrationProcessorIdentity.json")
@@ -609,11 +618,12 @@ public class PacketInfoManagerImplTest {
 		Mockito.when(demographicDedupeRepository.save(any())).thenThrow(exp);
 		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229",
 				"", "", "",1, "");
+
 	}
-	
+
+
 	@Test(expected = MappingJsonException.class)
 	public void demographicDedupeIOExceptionTest() throws Exception {
-
 		Mockito.when(utility.getRegistrationProcessorMappingJson(any())).thenThrow(new IOException());
 		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229",
 				"", "", "",1, "");
@@ -621,13 +631,11 @@ public class PacketInfoManagerImplTest {
 	
 	@Test(expected = ParsingException.class)
 	public void demographicDedupeParsingExceptionTest() throws Exception {
-
 		Mockito.when(packetManagerService.getFields(anyString(), any(), anyString(), any()))
 				.thenThrow(new JsonProcessingException("exception occured"));
 		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229",
 				"", "", "",1, "");
 	}
-
 	/**
 	 * Gets the packets for QC users test.
 	 *

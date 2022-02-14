@@ -128,7 +128,7 @@ public class IDObjectDataAvailabilityTagGenerator implements TagGenerator {
     }
 
     private String getValueBasedOnType(String fieldName, FieldDTO fieldDTO) throws JSONException, BaseCheckedException {
-        if(fieldDTO == null || (fieldDTO.getValue() == null && fieldDTO.getType() != "string")) {
+        if(fieldDTO == null || (fieldDTO.getValue() == null && !"string".equalsIgnoreCase(fieldDTO.getType()))) {
             regProcLogger.warn("{} --> {} Field name: {} setting value as {}", 
                 PlatformErrorMessages.RPR_PCM_FIELD_DTO_OR_NON_STRING_FIELD_IS_NULL.getCode(), 
                 PlatformErrorMessages.RPR_PCM_FIELD_DTO_OR_NON_STRING_FIELD_IS_NULL.getMessage(),

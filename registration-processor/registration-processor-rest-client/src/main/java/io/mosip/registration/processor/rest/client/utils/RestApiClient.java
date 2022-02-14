@@ -84,12 +84,11 @@ public class RestApiClient {
 				LoggerFileConstant.APPLICATIONID.toString(), "loadRestTemplate completed successfully");
 	}
 
-
 	/**
 	 * Gets the api. *
 	 * 
-	 * @param              <T> the generic type
-	 * @param uri       the get URI
+	 * @param <T>          the generic type
+	 * @param uri          the get URI
 	 * @param responseType the response type
 	 * @return the api
 	 * @throws Exception
@@ -112,14 +111,10 @@ public class RestApiClient {
 	/**
 	 * Post api.
 	 *
-	 * @param <T>
-	 *            the generic type
-	 * @param uri
-	 *            the uri
-	 * @param requestType
-	 *            the request type
-	 * @param responseClass
-	 *            the response class
+	 * @param <T>           the generic type
+	 * @param uri           the uri
+	 * @param requestType   the request type
+	 * @param responseClass the response class
 	 * @return the t
 	 */
 	@SuppressWarnings("unchecked")
@@ -143,14 +138,10 @@ public class RestApiClient {
 	/**
 	 * Patch api.
 	 *
-	 * @param <T>
-	 *            the generic type
-	 * @param uri
-	 *            the uri
-	 * @param requestType
-	 *            the request type
-	 * @param responseClass
-	 *            the response class
+	 * @param <T>           the generic type
+	 * @param uri           the uri
+	 * @param requestType   the request type
+	 * @param responseClass the response class
 	 * @return the t
 	 */
 	@SuppressWarnings("unchecked")
@@ -179,18 +170,13 @@ public class RestApiClient {
 	/**
 	 * Put api.
 	 *
-	 * @param <T>
-	 *            the generic type
-	 * @param uri
-	 *            the uri
-	 * @param requestType
-	 *            the request type
-	 * @param responseClass
-	 *            the response class
+	 * @param <T>           the generic type
+	 * @param uri           the uri
+	 * @param requestType   the request type
+	 * @param responseClass the response class
 	 * @param mediaType
 	 * @return the t
-	 * @throws Exception
-	 *             the exception
+	 * @throws Exception the exception
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T putApi(String uri, Object requestType, Class<?> responseClass, MediaType mediaType) throws Exception {
@@ -215,8 +201,8 @@ public class RestApiClient {
 
 	public int headApi(URI uri) throws Exception {
 		try {
-			HttpStatus httpStatus = localRestTemplate.exchange(uri, HttpMethod.HEAD, setRequestHeader(
-					null, null), Object.class).getStatusCode();
+			HttpStatus httpStatus = localRestTemplate
+					.exchange(uri, HttpMethod.HEAD, setRequestHeader(null, null), Object.class).getStatusCode();
 			return httpStatus.value();
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
@@ -227,7 +213,7 @@ public class RestApiClient {
 	}
 
 	public RestTemplate getRestTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
-		if(localRestTemplate != null)
+		if (localRestTemplate != null)
 			return localRestTemplate;
 
 		logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
@@ -304,39 +290,39 @@ public class RestApiClient {
 			isValid = TokenHandlerUtil.isValidBearerToken(token, environment.getProperty("token.request.issuerUrl"),
 					environment.getProperty("token.request.clientId"));
 
-
 		}
 		if (!isValid) {
-		TokenRequestDTO<SecretKeyRequest> tokenRequestDTO = new TokenRequestDTO<SecretKeyRequest>();
-		tokenRequestDTO.setId(environment.getProperty("token.request.id"));
-		tokenRequestDTO.setMetadata(new Metadata());
+			TokenRequestDTO<SecretKeyRequest> tokenRequestDTO = new TokenRequestDTO<SecretKeyRequest>();
+			tokenRequestDTO.setId(environment.getProperty("token.request.id"));
+			tokenRequestDTO.setMetadata(new Metadata());
 
-		tokenRequestDTO.setRequesttime(DateUtils.getUTCCurrentDateTimeString());
-		// tokenRequestDTO.setRequest(setPasswordRequestDTO());
-		tokenRequestDTO.setRequest(setSecretKeyRequestDTO());
-		tokenRequestDTO.setVersion(environment.getProperty("token.request.version"));
+			tokenRequestDTO.setRequesttime(DateUtils.getUTCCurrentDateTimeString());
+			// tokenRequestDTO.setRequest(setPasswordRequestDTO());
+			tokenRequestDTO.setRequest(setSecretKeyRequestDTO());
+			tokenRequestDTO.setVersion(environment.getProperty("token.request.version"));
 
-		Gson gson = new Gson();
-		HttpClient httpClient = HttpClientBuilder.create().build();
-		HttpPost post = new HttpPost(environment.getProperty("KEYBASEDTOKENAPI"));
-		try {
-			StringEntity postingString = new StringEntity(gson.toJson(tokenRequestDTO));
-			post.setEntity(postingString);
-			post.setHeader("Content-type", "application/json");
-			post.setHeader(TracingConstant.TRACE_HEADER, (String) ContextualData.getOrDefault(TracingConstant.TRACE_ID_KEY));
-			HttpResponse response = httpClient.execute(post);
-			org.apache.http.HttpEntity entity = response.getEntity();
-			String responseBody = EntityUtils.toString(entity, "UTF-8");
-			Header[] cookie = response.getHeaders("Set-Cookie");
-			if (cookie.length == 0)
-				throw new TokenGenerationFailedException();
-			token = response.getHeaders("Set-Cookie")[0].getValue();
+			Gson gson = new Gson();
+			HttpClient httpClient = HttpClientBuilder.create().build();
+			HttpPost post = new HttpPost(environment.getProperty("KEYBASEDTOKENAPI"));
+			try {
+				StringEntity postingString = new StringEntity(gson.toJson(tokenRequestDTO));
+				post.setEntity(postingString);
+				post.setHeader("Content-type", "application/json");
+				post.setHeader(TracingConstant.TRACE_HEADER,
+						(String) ContextualData.getOrDefault(TracingConstant.TRACE_ID_KEY));
+				HttpResponse response = httpClient.execute(post);
+				org.apache.http.HttpEntity entity = response.getEntity();
+				String responseBody = EntityUtils.toString(entity, "UTF-8");
+				Header[] cookie = response.getHeaders("Set-Cookie");
+				if (cookie.length == 0)
+					throw new TokenGenerationFailedException();
+				token = response.getHeaders("Set-Cookie")[0].getValue();
 				System.setProperty("token", token.substring(14, token.indexOf(';')));
-			return token.substring(0, token.indexOf(';'));
-		} catch (IOException e) {
-			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-					LoggerFileConstant.APPLICATIONID.toString(), e.getMessage() + ExceptionUtils.getStackTrace(e));
-			throw e;
+				return token.substring(0, token.indexOf(';'));
+			} catch (IOException e) {
+				logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
+						LoggerFileConstant.APPLICATIONID.toString(), e.getMessage() + ExceptionUtils.getStackTrace(e));
+				throw e;
 			}
 		}
 		return AUTHORIZATION + token;
@@ -360,6 +346,5 @@ public class RestApiClient {
 			}
 		}
 	}
-
 
 }

@@ -290,7 +290,7 @@ public class AuthUtil {
 
 	private boolean isExceptionBIR(io.mosip.kernel.biometrics.entities.BIR bir) {
 		if(bir.getOthers() != null) {
-			Optional<io.mosip.kernel.biometrics.entities.Entry> entry = bir.getOthers().stream().filter(
+			Optional<Entry<String, String>> entry = bir.getOthers().entrySet().stream().filter(
 				it -> it.getKey().equals(JsonConstant.BIOMETRICRECORDEXCEPTION)).findAny();
 			if(entry.isPresent() && entry.get().getValue().equals("true"))
 				return true;
@@ -373,7 +373,12 @@ public class AuthUtil {
 	}
 
 	public SplittedEncryptedData splitEncryptedData(String data) {
-		byte[] dataBytes = CryptoUtil.decodeBase64(data);
+		byte[] dataBytes =null;
+		try {
+			dataBytes= CryptoUtil.decodeURLSafeBase64(data);
+		} catch (IllegalArgumentException exception) {
+			dataBytes= CryptoUtil.decodePlainBase64(data);
+		}
 		byte[][] splits = splitAtFirstOccurance(dataBytes,
 				String.valueOf(env.getProperty(KERNEL_KEY_SPLITTER)).getBytes());
 		return new SplittedEncryptedData(CryptoUtil.encodeToURLSafeBase64(splits[0]), CryptoUtil.encodeToURLSafeBase64(splits[1]));

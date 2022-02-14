@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -65,7 +64,6 @@ public class DigitalSignatureTest {
 	
 	
 	@Test(expected=DigitalSignatureException.class)
-	@Ignore
 	public void testException() throws ApisResourceAccessException {
 		Mockito.when(registrationProcessorRestService.postApi(Matchers.any(), Matchers.any(), Matchers.any(),
 				Matchers.any(), Matchers.any())).thenThrow(ApisResourceAccessException.class);

@@ -25,15 +25,6 @@ public interface ManualAdjudicationService {
 	 * @return The updated {@link ManualAdjudicationResponseDTO}
 	 */
 	public boolean updatePacketStatus(ManualAdjudicationResponseDTO resp, String stageName, MosipQueue queue);
-	
-	/**
-	 * This method receives response from the queue and saves to DB
-	 *
-	 * @param res
-	 *        {@link ManualAdjudicationResponseDTO}
-	 *
-	 */
-	public  void saveToDB(ManualAdjudicationResponseDTO res);
 
 	public MessageDTO process(MessageDTO object, MosipQueue queue);
 

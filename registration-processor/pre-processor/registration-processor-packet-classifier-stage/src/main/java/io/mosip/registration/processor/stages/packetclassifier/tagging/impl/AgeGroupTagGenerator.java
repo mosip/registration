@@ -86,7 +86,7 @@ public class AgeGroupTagGenerator implements TagGenerator {
 				}
 			}
 
-            if(ageGroup == "")
+            if(ageGroup == null || ageGroup.trim().isEmpty())
                 throw new BaseCheckedException(
                     PlatformErrorMessages.RPR_PCM_AGE_GROUP_NOT_FOUND.getCode(), 
                     PlatformErrorMessages.RPR_PCM_AGE_GROUP_NOT_FOUND.getMessage() + " Age: " + age); 

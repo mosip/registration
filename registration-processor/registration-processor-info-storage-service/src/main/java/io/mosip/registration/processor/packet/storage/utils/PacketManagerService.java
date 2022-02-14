@@ -7,6 +7,7 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
+import com.fasterxml.jackson.databind.SerializationFeature;
 import io.mosip.registration.processor.core.packet.dto.packetmanager.TagRequestDto;
 import io.mosip.registration.processor.core.packet.dto.packetmanager.TagResponseDto;
 import io.mosip.registration.processor.packet.storage.exception.ObjectDoesnotExistsException;

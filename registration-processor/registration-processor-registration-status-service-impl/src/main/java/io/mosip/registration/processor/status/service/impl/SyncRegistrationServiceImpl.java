@@ -35,6 +35,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.util.JsonUtils;
+import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.exception.JsonMappingException;
 import io.mosip.kernel.core.util.exception.JsonParseException;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
@@ -809,7 +810,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			List<LostRidDto> lostRidDtos = entityToDtoMapper(syncRegistrationEntities);
 			validateRegistrationIds(lostRidDtos);
 			return lostRidDtos;
-		} catch (DataAccessLayerException | RegStatusAppException e) {
+		} catch (DataAccessLayerException | NoSuchAlgorithmException | RegStatusAppException e) {
 
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
@@ -854,8 +855,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			}
 			lostRidDtos.add(lostRidDto);
 		});
-		lostRidDtos.stream().distinct().collect(Collectors.toList());
-		return lostRidDtos;
+		return lostRidDtos.stream().distinct().collect(Collectors.toList());
 	}
 
 	private void getAdditionalInfo(String referenceId, byte[] optionalValues, Map<String, String> additionalInfo)  {
@@ -879,7 +879,8 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 
 	}
 
-	private void updateFiltersWithHashedValues(SearchInfo searchInfo) throws RegStatusAppException {
+	private void updateFiltersWithHashedValues(SearchInfo searchInfo)
+			throws NoSuchAlgorithmException, RegStatusAppException {
 		for (FilterInfo filterInfo : searchInfo.getFilters()) {
 			if (filterInfo.getColumnName().equals("email") || filterInfo.getColumnName().equals("phone")
 					|| filterInfo.getColumnName().equals("centerId")
@@ -995,12 +996,17 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			Long hashValue = Long.parseLong(result, 16);
 			Long saltIndex = hashValue % 10000;
 			String salt = syncRegistrationDao.getSaltValue(saltIndex);
-			byte[] saltBytes = CryptoUtil.decodeBase64(salt);
+			byte[] saltBytes=null;
+			try {
+				saltBytes= CryptoUtil.decodeURLSafeBase64(salt);
+			} catch (IllegalArgumentException exception) {
+				saltBytes = CryptoUtil.decodePlainBase64(salt);
+			}
 			byte[] hashBytes = value.getBytes();
 			for (int i = 0; i <= iteration; i++) {
 				hashBytes = getHMACHashWithSalt(hashBytes, saltBytes);
 			}
-			encodedHash = CryptoUtil.encodeBase64(hashBytes);
+			encodedHash = CryptoUtil.encodeToURLSafeBase64(hashBytes);
 		} catch (NoSuchAlgorithmException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", e.getMessage() + ExceptionUtils.getStackTrace(e));

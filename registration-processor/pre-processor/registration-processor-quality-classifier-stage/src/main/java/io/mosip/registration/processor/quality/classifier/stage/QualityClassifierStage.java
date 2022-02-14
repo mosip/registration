@@ -335,7 +335,6 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 			description.setMessage(PlatformErrorMessages.RPR_SYS_JSON_PARSING_EXCEPTION.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_SYS_JSON_PARSING_EXCEPTION.getCode());
 			object.setInternalError(Boolean.TRUE);
-			e.printStackTrace();
 		} catch (IOException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					regId, RegistrationStatusCode.FAILED.toString() + e.getMessage()
@@ -423,9 +422,9 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 		for (BIR bir : birs) {
 
 			if (bir.getOthers() != null) {
-				List<io.mosip.kernel.biometrics.entities.Entry> othersInfo = bir.getOthers();
+				HashMap<String, String> othersInfo = bir.getOthers();
 				boolean exceptionValue = false;
-				for (io.mosip.kernel.biometrics.entities.Entry other : othersInfo) {
+				for (Map.Entry<String, String> other : othersInfo.entrySet()) {
 					if (other.getKey().equals(EXCEPTION)) {
 						if (other.getValue().equals(TRUE)) {
 							exceptionValue = true;
@@ -444,7 +443,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 			birArray[0] = bir;
 			float[] qualityScoreresponse = getBioSdkInstance(biometricType).getSegmentQuality(birArray, null);
 
-			float score = Float.valueOf(qualityScoreresponse[0]);
+			float score = qualityScoreresponse[0];
 			String bioType = bir.getBdbInfo().getType().get(0).value();
 
 			// Check for entry
