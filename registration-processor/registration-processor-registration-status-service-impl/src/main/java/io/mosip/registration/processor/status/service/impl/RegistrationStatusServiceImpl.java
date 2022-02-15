@@ -53,6 +53,9 @@ import io.mosip.registration.processor.status.utilities.RegistrationExternalStat
 public class RegistrationStatusServiceImpl
 		implements RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> {
 
+	@Value("${mosip.regproc.registration.status.service.disable-audit:false}")
+	private boolean disableAudit;
+
 	/** The registration status dao. */
 	@Autowired
 	private RegistrationStatusDao registrationStatusDao;
@@ -240,7 +243,8 @@ public class RegistrationStatusServiceImpl
 			String eventType = eventId.equalsIgnoreCase(EventId.RPR_407.toString()) ? EventType.BUSINESS.toString()
 					: EventType.SYSTEM.toString();
 
-			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
+			if(!disableAudit)
+				auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
 					moduleId, moduleName, registrationStatusDto.getRegistrationId());
 		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
@@ -322,7 +326,8 @@ public class RegistrationStatusServiceImpl
 			String eventType = eventId.equalsIgnoreCase(EventId.RPR_407.toString()) ? EventType.BUSINESS.toString()
 					: EventType.SYSTEM.toString();
 
-			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
+			if(!disableAudit)
+				auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
 					moduleId, moduleName, registrationStatusDto.getRegistrationId());
 
 		}
