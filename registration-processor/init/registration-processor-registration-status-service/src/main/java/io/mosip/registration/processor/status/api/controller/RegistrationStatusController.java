@@ -150,12 +150,12 @@ public class RegistrationStatusController {
 			updatedConditionalStatusToProcessed(registrations);
 
 			if (isEnabled) {
-				RegStatusResponseDTO response = buildRegistrationStatusResponse(registrations,
-						recordsToFetch);
 				Gson gson = new GsonBuilder().serializeNulls().create();
+				String response = gson.toJson(buildRegistrationStatusResponse(registrations,
+						recordsToFetch));	
 				HttpHeaders headers = new HttpHeaders();
-				headers.add(RESPONSE_SIGNATURE, digitalSignatureUtility.getDigitalSignature(gson.toJson(response)));
-				return ResponseEntity.status(HttpStatus.OK).headers(headers).body(gson.toJson(response));
+				headers.add(RESPONSE_SIGNATURE, digitalSignatureUtility.getDigitalSignature(response));
+				return ResponseEntity.status(HttpStatus.OK).headers(headers).body(response);
 			}
 			return ResponseEntity.status(HttpStatus.OK)
 					.body(buildRegistrationStatusResponse(registrations, recordsToFetch));
