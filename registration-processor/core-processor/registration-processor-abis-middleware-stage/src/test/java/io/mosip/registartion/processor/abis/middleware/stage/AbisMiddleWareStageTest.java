@@ -1,12 +1,13 @@
 package io.mosip.registartion.processor.abis.middleware.stage;
 
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.mosip.registration.processor.core.util.PropertiesUtil;
 import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.apache.activemq.util.ByteSequence;
 import org.junit.Before;
@@ -37,6 +38,7 @@ import io.mosip.registration.processor.core.packet.dto.abis.CandidateListDto;
 import io.mosip.registration.processor.core.packet.dto.abis.CandidatesDto;
 import io.mosip.registration.processor.core.packet.dto.abis.RegBioRefDto;
 import io.mosip.registration.processor.core.queue.factory.MosipQueue;
+import io.mosip.registration.processor.core.queue.impl.exception.ConnectionUnavailableException;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
@@ -156,6 +158,9 @@ public class AbisMiddleWareStageTest {
 
 	};
 
+	@Mock
+	private PropertiesUtil propertiesUtil;
+
 	@Before
 	public void setUp() throws RegistrationProcessorCheckedException {
 		MockitoAnnotations.openMocks(this);
@@ -166,7 +171,7 @@ public class AbisMiddleWareStageTest {
 		InternalRegistrationStatusDto internalRegStatusDto = new InternalRegistrationStatusDto();
 		internalRegStatusDto.setRegistrationId("");
 		internalRegStatusDto.setLatestTransactionStatusCode("Demodedupe");
-		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.anyString(),any(),any(), any()))
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
 				.thenReturn(internalRegStatusDto);
 
 		regStatusEntity = new RegistrationStatusEntity();
@@ -281,6 +286,7 @@ public class AbisMiddleWareStageTest {
 		List<RegBioRefDto> regBioRefist = new ArrayList<RegBioRefDto>();
 		RegBioRefDto bioRefDto = new RegBioRefDto();
 		bioRefDto.setBioRefId("d1070375-0960-4e90-b12c-72ab6186444d");
+		bioRefDto.setRegId("10001100010027120190430071052");
 		regBioRefist.add(bioRefDto);
 		Mockito.when(packetInfoManager.getRegBioRefDataByBioRefIds(Mockito.any())).thenReturn(regBioRefist);
 		List<String> transIdList = new ArrayList<>();
@@ -302,6 +308,8 @@ public class AbisMiddleWareStageTest {
 
 		// Mockito.when(utility.getInboundOutBoundAddressList()).thenReturn(abisInboundOutBounAddressList);
 		messageTTL = 30 * 60;
+
+		Mockito.when(propertiesUtil.getProperty(any(), any(Class.class), anyBoolean())).thenReturn(true);
 	}
 
 	@Test
@@ -333,7 +341,45 @@ public class AbisMiddleWareStageTest {
 				.thenReturn(abisInsertIdentifyList);
 		stage.process(dto);
 		assertTrue(dto.getIsValid());
+	}
 
+	@Test
+	public void testProcessForMessageFormatText() throws RegistrationProcessorCheckedException {
+
+		ReflectionTestUtils.setField(stage, "messageFormat", "text");
+		Mockito.when(packetInfoManager.getInsertOrIdentifyRequest(Mockito.anyString(), Mockito.anyString()))
+				.thenReturn(abisInsertIdentifyList);
+
+		Mockito.when(mosipQueueManager.send(Mockito.any(), Mockito.anyString(), Mockito.anyString(), Mockito.anyInt()))
+				.thenThrow(ConnectionUnavailableException.class);
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("10003100030001520190422074511");
+		dto.setWorkflowInstanceId("workflowInstanceId");
+		dto.setReg_type("NEW");
+
+		stage.deployVerticle();
+		stage.process(dto);
+		assertTrue(dto.getIsValid());
+		assertTrue(dto.getInternalError());
+	}
+	
+	@Test
+	public void testInsertIdentitySuccessText() throws RegistrationProcessorCheckedException {
+		// test for insert identity success
+		ReflectionTestUtils.setField(stage, "messageFormat", "text");
+		Mockito.when(packetInfoManager.getInsertOrIdentifyRequest(Mockito.anyString(), Mockito.anyString()))
+				.thenReturn(abisInsertIdentifyList);
+
+		Mockito.when(mosipQueueManager.send(Mockito.any(), Mockito.anyString(), Mockito.anyString(), Mockito.anyInt()))
+		.thenReturn(true);
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("10003100030001520190422074511");
+		dto.setWorkflowInstanceId("workflowInstanceId");
+		dto.setReg_type("NEW");
+		
+		stage.deployVerticle();
+		stage.process(dto);
+		assertTrue(dto.getIsValid());
 	}
 
 	@Test
@@ -406,7 +452,6 @@ public class AbisMiddleWareStageTest {
 	@Test
 	public void testConsumerListener() throws RegistrationProcessorCheckedException {
 
-
 		String failedInsertResponse = "{\"id\":\"mosip.abis.insert\",\"requestId\":\"5b64e806-8d5f-4ba1-b641-0b55cf40c0e1\",\"responsetime\":"
 				+ null + ",\"returnValue\":2,\"failureReason\":7}\r\n"
 				+ "";
@@ -437,14 +482,12 @@ public class AbisMiddleWareStageTest {
 		stage.consumerListener(amq, "abis1_inboundAddress", queue, evenBus, messageTTL);
 		// test for multiple response for same request id
 		abisCommonRequestDto1.setStatusCode("PROCESSED");
-		stage.consumerListener(amq, "abis1_inboundAddress", queue, evenBus, messageTTL);
-
+		stage.consumerListener(amq, "abis1_inboundAddress", queue, evenBus, messageTTL);	
 	}
 	
 
 	@Test
-	public void testConsumerListenerForIdentifyReq() throws RegistrationProcessorCheckedException {
-
+	public void testConsumerListenerForIdentifyReq() throws RegistrationProcessorCheckedException, IOException {
 
 		String failedInsertResponse = "{\"id\":\"mosip.id.identify\",\"requestId\":\"01234567-89AB-CDEF-0123-456789ABCDEF\",\"responsetime\":\"2020-03-29T07:01:24.692Z\",\"returnValue\":\"2\",\"failureReason\":\"7\"}";
 		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
@@ -460,9 +503,38 @@ public class AbisMiddleWareStageTest {
 		abisCommonRequestDto.setStatusCode("SENT");
 		Mockito.when(packetInfoManager.getAbisRequestByRequestId(Mockito.any())).thenReturn(abisCommonRequestDto);
 		stage.consumerListener(amq, "abis1_inboundAddress", queue, evenBus, messageTTL);
-
-
+		
+		// Exception
+		PowerMockito.mockStatic(JsonUtil.class);
+		PowerMockito.when(
+				JsonUtil.readValueWithUnknownProperties(Mockito.anyString(), Mockito.eq(AbisIdentifyResponseDto.class)))
+				.thenThrow(NullPointerException.class);
+		stage.consumerListener(amq, "abis1_inboundAddress", queue, evenBus, messageTTL);
 	}
+	
+	@Test(expected = RegistrationProcessorCheckedException.class)
+	public void testConsumerListenerForIdentifyReqIOException() throws RegistrationProcessorCheckedException, IOException {
+
+		// test for IO Exception
+		String failedInsertResponse = "{\"id\":\"mosip.id.identify\",\"requestId\":\"01234567-89AB-CDEF-0123-456789ABCDEF\",\"responsetime\":\"2020-03-29T07:01:24.692Z\",\"returnValue\":\"2\",\"failureReason\":\"7\"}";
+		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
+		ByteSequence byteSeq = new ByteSequence();
+		byteSeq.setData(failedInsertResponse.getBytes());
+		amq.setContent(byteSeq);
+		MosipEventBus evenBus = Mockito.mock(MosipEventBus.class);
+		MosipQueue queue = Mockito.mock(MosipQueue.class);
+		
+		AbisRequestDto abisCommonRequestDto = new AbisRequestDto();
+		abisCommonRequestDto.setRequestType("IDENTIFY");
+		abisCommonRequestDto.setStatusCode("SENT");
+		Mockito.when(packetInfoManager.getAbisRequestByRequestId(Mockito.any())).thenReturn(abisCommonRequestDto);
+		PowerMockito.mockStatic(JsonUtil.class);
+		PowerMockito.when(
+				JsonUtil.readValueWithUnknownProperties(Mockito.anyString(), Mockito.eq(AbisIdentifyResponseDto.class)))
+				.thenThrow(IOException.class);
+		stage.consumerListener(amq, "abis1_inboundAddress", queue, evenBus, messageTTL);
+	}
+	
 	
 	@Test
 	public void batchIdNull() throws RegistrationProcessorCheckedException {
@@ -518,7 +590,12 @@ public class AbisMiddleWareStageTest {
 		amq1.setContent(byteSeq1);
 		abisCommonRequestDto1.setStatusCode("SENT");
 		stage.consumerListener(amq1, "abis1_inboundAddress", queue1, evenBus1, messageTTL);
+		
 		// test for identify response - with duplicates
+		List<String> bioRefId = new ArrayList<>();
+		bioRefId.add("d1070375-0960-4e90-b12c-72ab6186764c");
+		Mockito.when(packetInfoManager.getReferenceIdByBatchId(Mockito.anyString())).thenReturn(bioRefId);
+		Mockito.when(packetInfoDao.getRegIdByBioRefId(ArgumentMatchers.any())).thenReturn("Test123");
 		String duplicateIdentifySuccessResponse = "{\"id\":\"mosip.abis.identify\",\"requestId\":\"f4b1f6fd-466c-462f-aa8b-c218596542ec\",\"responsetime\":"
 				+ null
 				+ ",\"returnValue\":1,\"failureReason\":null,\"candidateList\":{\"count\":\"1\",\"candidates\":[{\"referenceId\":\"d1070375-0960-4e90-b12c-72ab6186444d\",\"analytics\":null,\"modalities\":null}]}}";
@@ -565,7 +642,10 @@ public class AbisMiddleWareStageTest {
 		String response = new String(((ActiveMQBytesMessage) amq).getContent().data);
 		PowerMockito.mockStatic(JsonUtil.class);
 		PowerMockito.when(JsonUtil.objectMapperReadValue(response, AbisIdentifyResponseDto.class)).thenReturn(abisIdentifyResponseDto);
+		PowerMockito.when(JsonUtil.readValueWithUnknownProperties(failedInsertResponse,
+				AbisIdentifyResponseDto.class)).thenReturn(abisIdentifyResponseDto);
 		Mockito.when(packetInfoDao.getRegIdByBioRefId(ArgumentMatchers.any())).thenReturn("Test123");
+
 		stage.consumerListener(amq, "abis1_inboundAddress", queue, evenBus, messageTTL);
 	}
 	

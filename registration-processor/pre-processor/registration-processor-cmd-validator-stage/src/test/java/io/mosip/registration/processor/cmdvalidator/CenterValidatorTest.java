@@ -2,11 +2,11 @@ package io.mosip.registration.processor.cmdvalidator;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -18,6 +18,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.ValidationFailedException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.packet.dto.RegOsiDto;
@@ -30,133 +31,112 @@ import io.mosip.registration.processor.stages.cmdvalidator.CenterValidator;
 @RunWith(MockitoJUnitRunner.class)
 @SpringBootTest
 public class CenterValidatorTest {
-
 	@InjectMocks
 	private CenterValidator centerValidator;
 
 	@Mock
 	private RegistrationProcessorRestClientService<Object> registrationProcessorRestService;
-
-	@Test
-	public void validateWithoutTimestampSuccessTest() throws IOException, BaseCheckedException {
-		ReflectionTestUtils.setField(centerValidator, "isWorkingHourValidationRequired", false);
-		RegOsiDto regOsi = new RegOsiDto();
-		regOsi.setRegId("45128164920495");
-		regOsi.setRegcntrId("1001");
-		regOsi.setPacketCreationDate("2021-06-04T07:31:59.831Z");
-
-		ResponseWrapper<RegistrationCenterResponseDto> responseWrapper = new ResponseWrapper<RegistrationCenterResponseDto>();
-		RegistrationCenterResponseDto rcpdto = new RegistrationCenterResponseDto();
-		RegistrationCenterDto registrationCenterHistory = new RegistrationCenterDto();
-		registrationCenterHistory.setId("1001");
-		registrationCenterHistory.setIsActive(true);
-		rcpdto.setRegistrationCentersHistory(Arrays.asList(registrationCenterHistory));
-		responseWrapper.setResponse(rcpdto);
-		responseWrapper.setErrors(null);
-
-		Mockito.when(registrationProcessorRestService.getApi(any(), any(), anyString(), anyString(),
-				eq(ResponseWrapper.class))).thenReturn(responseWrapper);
-		centerValidator.validate("eng", regOsi, "45128164920495");
-	}
-
-	@Test(expected = ValidationFailedException.class)
-	public void validateWithoutTimestampCenterInActiveFailureTest() throws IOException, BaseCheckedException {
-		ReflectionTestUtils.setField(centerValidator, "isWorkingHourValidationRequired", false);
-		RegOsiDto regOsi = new RegOsiDto();
-		regOsi.setRegId("45128164920495");
-		regOsi.setRegcntrId("1001");
-		regOsi.setPacketCreationDate("2021-06-04T07:31:59.831Z");
-
-		ResponseWrapper<RegistrationCenterResponseDto> responseWrapper = new ResponseWrapper<RegistrationCenterResponseDto>();
-		RegistrationCenterResponseDto rcpdto = new RegistrationCenterResponseDto();
-		RegistrationCenterDto registrationCenterHistory = new RegistrationCenterDto();
-		registrationCenterHistory.setId("1001");
-		registrationCenterHistory.setIsActive(false);
-		rcpdto.setRegistrationCentersHistory(Arrays.asList(registrationCenterHistory));
-		responseWrapper.setResponse(rcpdto);
-		responseWrapper.setErrors(null);
-
-		Mockito.when(registrationProcessorRestService.getApi(any(), any(), anyString(), anyString(),
-				eq(ResponseWrapper.class))).thenReturn(responseWrapper);
-		centerValidator.validate("eng", regOsi, "45128164920495");
-	}
-
-	@Test(expected = BaseCheckedException.class)
-	public void validateWithoutTimestampCenterNotFoundFailureTest() throws IOException, BaseCheckedException {
-		ReflectionTestUtils.setField(centerValidator, "isWorkingHourValidationRequired", false);
-		RegOsiDto regOsi = new RegOsiDto();
-		regOsi.setRegId("45128164920495");
-		regOsi.setRegcntrId("1001");
-		regOsi.setPacketCreationDate("2021-06-04T07:31:59.831Z");
-
-		ResponseWrapper<RegistrationCenterResponseDto> responseWrapper = new ResponseWrapper<RegistrationCenterResponseDto>();
-		ErrorDTO error = new ErrorDTO();
-		error.setErrorCode("ERR-001");
-		error.setMessage("center not found");
-		responseWrapper.setResponse(null);
-		responseWrapper.setErrors(Arrays.asList(error));
-
-		Mockito.when(registrationProcessorRestService.getApi(any(), any(), anyString(), anyString(),
-				eq(ResponseWrapper.class))).thenReturn(responseWrapper);
-		centerValidator.validate("eng", regOsi, "45128164920495");
-	}
-
-	@Test
-	public void validateWithTimestampSuccessTest() throws IOException, BaseCheckedException {
+	 RegOsiDto regOsi=new RegOsiDto();
+	@Before
+	public void setup() throws ApisResourceAccessException {
 		ReflectionTestUtils.setField(centerValidator, "isWorkingHourValidationRequired", true);
-		RegOsiDto regOsi = new RegOsiDto();
-		regOsi.setRegId("45128164920495");
+		
+	}
+	@Test
+	public void validateTest() throws IOException, BaseCheckedException {
 		regOsi.setRegcntrId("1001");
-		regOsi.setPacketCreationDate("2021-06-04T07:31:59.831Z");
-
-		ResponseWrapper<RegistrationCenterResponseDto> responseWrapper = new ResponseWrapper<RegistrationCenterResponseDto>();
-		RegistrationCenterResponseDto rcpdto = new RegistrationCenterResponseDto();
-		RegistrationCenterDto registrationCenterHistory = new RegistrationCenterDto();
-		registrationCenterHistory.setId("1001");
-		registrationCenterHistory.setIsActive(true);
-		rcpdto.setRegistrationCentersHistory(Arrays.asList(registrationCenterHistory));
-		responseWrapper.setResponse(rcpdto);
+		regOsi.setRegId("10001");
+		regOsi.setPacketCreationDate("2022-01-24T05:04:47.692Z");
+		ResponseWrapper<RegistrationCenterResponseDto> responseWrapper=new ResponseWrapper<RegistrationCenterResponseDto>();
+		RegistrationCenterDto registrationCenterDto=new RegistrationCenterDto();
+		registrationCenterDto.setIsActive(true);
+		registrationCenterDto.setId("1001");
+		RegistrationCenterResponseDto registrationCenterResponseDto=new RegistrationCenterResponseDto();
+		registrationCenterResponseDto.setRegistrationCentersHistory(List.of(registrationCenterDto));
+		responseWrapper.setResponse(registrationCenterResponseDto);
 		responseWrapper.setErrors(null);
-
-		ResponseWrapper<RegistartionCenterTimestampResponseDto> responseWrapper2 = new ResponseWrapper<RegistartionCenterTimestampResponseDto>();
-		RegistartionCenterTimestampResponseDto centerTimestampResponseDto = new RegistartionCenterTimestampResponseDto();
-		centerTimestampResponseDto.setErrors(null);
-		centerTimestampResponseDto.setStatus("Valid");
-		responseWrapper2.setResponse(centerTimestampResponseDto);
-		responseWrapper2.setErrors(null);
-
-		Mockito.when(registrationProcessorRestService.getApi(any(), any(), anyString(), anyString(),
-				eq(ResponseWrapper.class))).thenReturn(responseWrapper).thenReturn(responseWrapper2);
-		centerValidator.validate("eng", regOsi, "45128164920495");
+		ResponseWrapper<RegistartionCenterTimestampResponseDto> responseWrapper1=new ResponseWrapper<RegistartionCenterTimestampResponseDto>();
+		RegistartionCenterTimestampResponseDto registartionCenterTimestampResponseDto=new RegistartionCenterTimestampResponseDto();
+		registartionCenterTimestampResponseDto.setStatus("Valid");
+		responseWrapper1.setResponse(registartionCenterTimestampResponseDto);
+		responseWrapper1.setErrors(null);
+		Mockito.when(registrationProcessorRestService.getApi(any(), any(), anyString(), any(), any())).thenReturn(responseWrapper).thenReturn(responseWrapper1);
+		centerValidator.validate("eng", regOsi, "10001");
+	}
+	@Test(expected=BaseCheckedException.class)
+	public void validateCenterIdNotfoundTest() throws IOException, BaseCheckedException {
+		regOsi.setRegId("10001");
+		centerValidator.validate("eng", regOsi, "10001");
+	}
+	@Test(expected=ValidationFailedException.class)
+	public void validationFailedExceptionTest() throws IOException, BaseCheckedException {
+		regOsi.setRegcntrId("1001");
+		regOsi.setRegId("10001");
+		regOsi.setPacketCreationDate("2022-01-24T05:04:47.692Z");
+		ResponseWrapper<RegistrationCenterResponseDto> responseWrapper=new ResponseWrapper<RegistrationCenterResponseDto>();
+		RegistrationCenterDto registrationCenterDto=new RegistrationCenterDto();
+		registrationCenterDto.setId("1001");
+		registrationCenterDto.setIsActive(false);
+		RegistrationCenterResponseDto registrationCenterResponseDto=new RegistrationCenterResponseDto();
+		registrationCenterResponseDto.setRegistrationCentersHistory(List.of(registrationCenterDto));
+		responseWrapper.setResponse(registrationCenterResponseDto);
+		responseWrapper.setErrors(null);
+		Mockito.when(registrationProcessorRestService.getApi(any(), any(), anyString(), any(), any())).thenReturn(responseWrapper);
+		
+		centerValidator.validate("eng", regOsi, "10001");
+	}
+	@Test(expected=BaseCheckedException.class)
+	public void ErrorResponseTest() throws IOException, BaseCheckedException {
+		regOsi.setRegcntrId("1001");
+		regOsi.setRegId("10001");
+		regOsi.setPacketCreationDate("2022-01-24T05:04:47.692Z");
+		ResponseWrapper<RegistrationCenterResponseDto> responseWrapper=new ResponseWrapper<RegistrationCenterResponseDto>();
+		ErrorDTO errorDTO=new ErrorDTO("", "");
+		responseWrapper.setErrors(List.of(errorDTO));
+		Mockito.when(registrationProcessorRestService.getApi(any(), any(), anyString(), any(), any())).thenReturn(responseWrapper);
+		
+		centerValidator.validate("eng", regOsi, "10001");
+	}
+	@Test(expected=ValidationFailedException.class)
+	public void CenterIdAndTimestampValidationFailedExceptionTest() throws IOException, BaseCheckedException {
+		regOsi.setRegcntrId("1001");
+		regOsi.setRegId("10001");
+		regOsi.setPacketCreationDate("2022-01-24T05:04:47.692Z");
+		ResponseWrapper<RegistrationCenterResponseDto> responseWrapper=new ResponseWrapper<RegistrationCenterResponseDto>();
+		RegistrationCenterDto registrationCenterDto=new RegistrationCenterDto();
+		registrationCenterDto.setIsActive(true);
+		registrationCenterDto.setId("1001");
+		RegistrationCenterResponseDto registrationCenterResponseDto=new RegistrationCenterResponseDto();
+		registrationCenterResponseDto.setRegistrationCentersHistory(List.of(registrationCenterDto));
+		responseWrapper.setResponse(registrationCenterResponseDto);
+		responseWrapper.setErrors(null);
+		ResponseWrapper<RegistartionCenterTimestampResponseDto> responseWrapper1=new ResponseWrapper<RegistartionCenterTimestampResponseDto>();
+		RegistartionCenterTimestampResponseDto registartionCenterTimestampResponseDto=new RegistartionCenterTimestampResponseDto();
+		registartionCenterTimestampResponseDto.setStatus("inValid");
+		responseWrapper1.setResponse(registartionCenterTimestampResponseDto);
+		responseWrapper1.setErrors(null);
+		Mockito.when(registrationProcessorRestService.getApi(any(), any(), anyString(), any(), any())).thenReturn(responseWrapper).thenReturn(responseWrapper1);
+		centerValidator.validate("eng", regOsi, "10001");
+	}
+	@Test(expected=BaseCheckedException.class)
+	public void CenterIdAndTimestampErrorResponseTest() throws IOException, BaseCheckedException {
+		regOsi.setRegcntrId("1001");
+		regOsi.setRegId("10001");
+		regOsi.setPacketCreationDate("2022-01-24T05:04:47.692Z");
+		ResponseWrapper<RegistrationCenterResponseDto> responseWrapper=new ResponseWrapper<RegistrationCenterResponseDto>();
+		RegistrationCenterDto registrationCenterDto=new RegistrationCenterDto();
+		registrationCenterDto.setIsActive(true);
+		registrationCenterDto.setId("1001");
+		RegistrationCenterResponseDto registrationCenterResponseDto=new RegistrationCenterResponseDto();
+		registrationCenterResponseDto.setRegistrationCentersHistory(List.of(registrationCenterDto));
+		responseWrapper.setResponse(registrationCenterResponseDto);
+		responseWrapper.setErrors(null);
+		ResponseWrapper<RegistartionCenterTimestampResponseDto> responseWrapper1=new ResponseWrapper<RegistartionCenterTimestampResponseDto>();
+		ErrorDTO errorDTO=new ErrorDTO("", "");
+		responseWrapper1.setErrors(List.of(errorDTO));
+		Mockito.when(registrationProcessorRestService.getApi(any(), any(), anyString(), any(), any())).thenReturn(responseWrapper).thenReturn(responseWrapper1);
+		
+		centerValidator.validate("eng", regOsi, "10001");
 	}
 	
-	@Test(expected = ValidationFailedException.class)
-	public void validateWithTimestampCenterNotFoundFailureTest() throws IOException, BaseCheckedException {
-		ReflectionTestUtils.setField(centerValidator, "isWorkingHourValidationRequired", true);
-		RegOsiDto regOsi = new RegOsiDto();
-		regOsi.setRegId("45128164920495");
-		regOsi.setRegcntrId("1001");
-		regOsi.setPacketCreationDate("2021-06-04T07:31:59.831Z");
-
-		ResponseWrapper<RegistrationCenterResponseDto> responseWrapper = new ResponseWrapper<RegistrationCenterResponseDto>();
-		RegistrationCenterResponseDto rcpdto = new RegistrationCenterResponseDto();
-		RegistrationCenterDto registrationCenterHistory = new RegistrationCenterDto();
-		registrationCenterHistory.setId("1001");
-		registrationCenterHistory.setIsActive(true);
-		rcpdto.setRegistrationCentersHistory(Arrays.asList(registrationCenterHistory));
-		responseWrapper.setResponse(rcpdto);
-		responseWrapper.setErrors(null);
-		
-		ResponseWrapper<RegistartionCenterTimestampResponseDto> responseWrapper2 = new ResponseWrapper<RegistartionCenterTimestampResponseDto>();
-		RegistartionCenterTimestampResponseDto centerTimestampResponseDto = new RegistartionCenterTimestampResponseDto();
-		centerTimestampResponseDto.setErrors(null);
-		centerTimestampResponseDto.setStatus("Invalid");
-		responseWrapper2.setResponse(centerTimestampResponseDto);
-		responseWrapper2.setErrors(null);
-
-		Mockito.when(registrationProcessorRestService.getApi(any(), any(), anyString(), anyString(),
-				eq(ResponseWrapper.class))).thenReturn(responseWrapper).thenReturn(responseWrapper2);
-		centerValidator.validate("eng", regOsi, "45128164920495");
-	}
-
 }

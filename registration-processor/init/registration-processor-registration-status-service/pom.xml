@@ -8,10 +8,10 @@
 	<parent>
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>init</artifactId>
-		<version>1.2.0-SNAPSHOT</version>
+		<version>1.2.0.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>registration-processor-registration-status-service</artifactId>
-	 <version>1.2.0-SNAPSHOT</version>
+	 <version>1.2.0.1-SNAPSHOT</version>
 
 	<name>registration-processor-registration-status-service</name>
 
@@ -56,6 +56,12 @@
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-ui</artifactId>
 			<version>1.5.10</version>
+		</dependency>
+        <dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+			<version>${spring.boot.version}</version>
+			<optional>true</optional>
 		</dependency>
 	</dependencies>
 	<build>
@@ -146,9 +152,9 @@
 							</execution>
 						</executions>
 						<configuration>
-							<apiDocsUrl>http://localhost:8090/app/generic/v3/api-docs.yaml</apiDocsUrl>
-							<outputFileName>openapi.yaml</outputFileName>
-							<outputDir>${project.build.directory}</outputDir>
+							<apiDocsUrl>http://localhost:8090/app/generic/v3/api-docs</apiDocsUrl>
+              <outputFileName>${name}-openapi.json</outputFileName>
+              <outputDir>${project.build.directory}</outputDir>
 							<skip>false</skip>
 						</configuration>
 					</plugin>

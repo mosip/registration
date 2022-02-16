@@ -53,6 +53,17 @@ public class AbisMiddlewareAppConfigurationsValidatorTest {
 		Mockito.when(utility.getAbisQueueDetails()).thenReturn(abisQueueDetails);
 		abisMiddlewareAppConfigurationsValidator.validateConfigurations(listener.events.peek());
 	}
+	
+	@Test
+	public void validateConfigurationsElapseTimeTest() throws RegistrationProcessorCheckedException {
+
+		ReflectionTestUtils.setField(abisMiddlewareAppConfigurationsValidator, "reprocessorElapseTime", 1000);
+		AbisQueueDetails details = new AbisQueueDetails();
+		details.setInboundMessageTTL(100);
+		abisQueueDetails.add(details);
+		Mockito.when(utility.getAbisQueueDetails()).thenReturn(abisQueueDetails);
+		abisMiddlewareAppConfigurationsValidator.validateConfigurations(listener.events.peek());
+	}
 
 	@Test
 	public void validateConfigurationsFailureTest() throws RegistrationProcessorCheckedException {

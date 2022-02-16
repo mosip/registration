@@ -426,4 +426,12 @@ public class WorkflowSearchApiTest {
 		workflowSearchApi.processURL(ctx);
 		assertTrue(responseObject);
 	}
+	
+	@Test
+	public void testProcessUnkonwnFailureURL() throws WorkFlowSearchException {
+
+		Mockito.doThrow(NullPointerException.class).when(workflowSearchRequestValidator).validate(Mockito.any());
+		workflowSearchApi.processURL(ctx);
+		assertTrue(responseObject);
+	}
 }

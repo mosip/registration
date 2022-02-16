@@ -11,6 +11,7 @@ import java.util.List;
 
 import javax.servlet.http.Cookie;
 
+import io.mosip.registration.processor.core.util.exception.DigitalSignatureException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;

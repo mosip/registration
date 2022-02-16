@@ -33,6 +33,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.util.NestedServletException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.gson.Gson;
@@ -41,8 +42,11 @@ import com.google.gson.GsonBuilder;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.digital.signature.dto.SignResponseDto;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.WorkFlowSearchException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
+import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
+import io.mosip.registration.processor.core.util.exception.DigitalSignatureException;
 import io.mosip.registration.processor.core.workflow.dto.SortInfo;
 import io.mosip.registration.processor.status.api.config.RegistrationStatusConfigTest;
 import io.mosip.registration.processor.status.dto.FilterInfo;
@@ -316,7 +320,7 @@ public class RegistrationStatusAndSyncControllerTest {
 						.content(requestJson.getBytes()).cookie(new Cookie("Authorization", requestJson)))
 				.andExpect(status().isOk());
 	}
-	
+
 	@Test
 	@WithMockUser(value = "resident", roles = "RESIDENT")
 	public void testSyncV2Controller() throws Exception {
@@ -388,6 +392,18 @@ public class RegistrationStatusAndSyncControllerTest {
 	public void lostRidRegstatusException() throws Exception {
 
 		Mockito.doThrow(new RegStatusAppException()).when(lostRidRequestValidator).validate(ArgumentMatchers.any());
+		this.mockMvc.perform(post("/lostridsearch").accept(MediaType.APPLICATION_JSON_VALUE)
+				.cookie(new Cookie("Authorization", lostRidReqToJson)).contentType(MediaType.APPLICATION_JSON_VALUE)
+				.content(lostRidReqToJson.getBytes()).header("timestamp", "2019-05-07T05:13:55.704Z"))
+				.andExpect(status().isOk());
+	}
+	
+	@Test
+	@WithMockUser(value = "admin", roles = "REGISTRATION_ADMIN")
+	public void lostRidWorkFlowSearchException() throws Exception {
+
+		Mockito.doThrow(new WorkFlowSearchException("ERR-001", "exception occured")).when(lostRidRequestValidator)
+				.validate(ArgumentMatchers.any());
 		this.mockMvc.perform(post("/lostridsearch").accept(MediaType.APPLICATION_JSON_VALUE)
 				.cookie(new Cookie("Authorization", lostRidReqToJson)).contentType(MediaType.APPLICATION_JSON_VALUE)
 				.content(lostRidReqToJson.getBytes()).header("timestamp", "2019-05-07T05:13:55.704Z"))

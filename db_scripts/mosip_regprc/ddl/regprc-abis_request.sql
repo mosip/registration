@@ -1,16 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_regprc
--- Table Name 	: regprc.abis_request
--- Purpose    	: ABIS Request: Stores all the requests that were sent to ABIS systems.
---           
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
--- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes for 1.1.5
--- ------------------------------------------------------------------------------------------
+
 
 -- object: regprc.abis_request | type: TABLE --
 -- DROP TABLE IF EXISTS regprc.abis_request CASCADE;
@@ -37,6 +25,10 @@ CREATE TABLE regprc.abis_request(
 
 );
 -- ddl-end --
+-- index creation starts--
+CREATE INDEX IF NOT EXISTS idx_user_detail_cntr_id ON regprc.abis_request USING btree (bio_ref_id);
+CREATE INDEX IF NOT EXISTS idx_abis_req_regtrn_id ON regprc.abis_request USING btree (ref_regtrn_id);
+-- index creation ends--
 COMMENT ON TABLE regprc.abis_request IS 'ABIS Request: Stores all the requests that were sent to ABIS systems';
 -- ddl-end --
 COMMENT ON COLUMN regprc.abis_request.id IS 'Request ID: System generated id, used to track all the ABIS request sent to ABIS applications.';

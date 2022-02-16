@@ -56,6 +56,7 @@ import io.mosip.registration.processor.core.spi.message.sender.MessageNotificati
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
+import io.mosip.registration.processor.core.util.LanguageUtility;
 import io.mosip.registration.processor.message.sender.exception.EmailIdNotFoundException;
 import io.mosip.registration.processor.message.sender.exception.IDRepoResponseNull;
 import io.mosip.registration.processor.message.sender.exception.PhoneNumberNotFoundException;
@@ -93,6 +94,9 @@ public class MessageNotificationServiceImplTest {
 	/** The packet info manager. */
 	@Mock
 	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
+	
+	@Mock
+	private LanguageUtility languageUtility;
 
 	/** The utility. */
 	@Mock
@@ -167,7 +171,7 @@ public class MessageNotificationServiceImplTest {
 		ReflectionTestUtils.setField(messageNotificationServiceImpl, "defaultTemplateLanguages", "");
 		ReflectionTestUtils.setField(messageNotificationServiceImpl, "languageType", "both");
 		Mockito.when(env.getProperty(ApiName.EMAILNOTIFIER.name())).thenReturn("https://mosip.com");
-
+		Mockito.when(languageUtility.getLangCodeFromNativeName(anyString())).thenReturn("eng");
 		Map<String, String> fieldMap = new HashMap<>();
 		fieldMap.put("name", "mono");
 		fieldMap.put("email", "mono@mono.com");
@@ -378,7 +382,7 @@ public class MessageNotificationServiceImplTest {
 	@Test(expected = TemplateGenerationFailedException.class)
 	public void testTemplateGenerationFailedException() throws IOException, ApisResourceAccessException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JSONException {
-		Mockito.when(templateGenerator.getTemplate("RPR_UIN_GEN_SMS", attributes, "eng"))
+		Mockito.when(templateGenerator.getTemplate(anyString(), any(), anyString()))
 				.thenThrow(new TemplateNotFoundException());
 
 		messageNotificationServiceImpl.sendSmsNotification("RPR_UIN_GEN_SMS", "12345", "NEW", IdType.RID, attributes,
@@ -392,7 +396,7 @@ public class MessageNotificationServiceImplTest {
 	 */
 	@Test(expected = TemplateGenerationFailedException.class)
 	public void testTemplateProcessingFailureException() throws Exception {
-		Mockito.when(templateGenerator.getTemplate("RPR_UIN_GEN_EMAIL", attributes, "ara"))
+		Mockito.when(templateGenerator.getTemplate(anyString(), any(), anyString()))
 				.thenThrow(new TemplateNotFoundException());
 
 		messageNotificationServiceImpl.sendEmailNotification("RPR_UIN_GEN_EMAIL", "12345", "NEW", IdType.RID, attributes,

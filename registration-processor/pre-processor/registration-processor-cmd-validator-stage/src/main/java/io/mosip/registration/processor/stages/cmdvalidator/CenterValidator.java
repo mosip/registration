@@ -56,7 +56,7 @@ public class CenterValidator {
 	 */
 	private void validateRegistrationCenter(String registrationCenterId, String langCode, String effectiveDate,
 			String registrationId) throws IOException, BaseCheckedException, ApisResourceAccessException {
-		
+
 		regProcLogger.debug("validateRegistrationCenter called for registrationId {}", registrationId);
 		if (registrationCenterId == null || effectiveDate == null) {
 			throw new BaseCheckedException(StatusUtil.CENTER_ID_NOT_FOUND.getMessage(),

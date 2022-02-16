@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,6 +52,9 @@ import io.mosip.registration.processor.status.utilities.RegistrationExternalStat
 @Component
 public class RegistrationStatusServiceImpl
 		implements RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> {
+
+	@Value("${mosip.regproc.registration.status.service.disable-audit:false}")
+	private boolean disableAudit;
 
 	/** The registration status dao. */
 	@Autowired
@@ -115,7 +119,7 @@ public class RegistrationStatusServiceImpl
 					registrationId, "RegistrationStatusServiceImpl::getAllRegistrationStatuses()::exit");
 
 			if(entities != null)
-				entities.forEach(e -> dtos.add(convertEntityToDto(e)));;
+				entities.forEach(e -> dtos.add(convertEntityToDto(e)));
 			return dtos;
 		} catch (DataAccessLayerException e) {
 
@@ -239,7 +243,8 @@ public class RegistrationStatusServiceImpl
 			String eventType = eventId.equalsIgnoreCase(EventId.RPR_407.toString()) ? EventType.BUSINESS.toString()
 					: EventType.SYSTEM.toString();
 
-			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
+			if(!disableAudit)
+				auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
 					moduleId, moduleName, registrationStatusDto.getRegistrationId());
 		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
@@ -321,7 +326,8 @@ public class RegistrationStatusServiceImpl
 			String eventType = eventId.equalsIgnoreCase(EventId.RPR_407.toString()) ? EventType.BUSINESS.toString()
 					: EventType.SYSTEM.toString();
 
-			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
+			if(!disableAudit)
+				auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
 					moduleId, moduleName, registrationStatusDto.getRegistrationId());
 
 		}
@@ -510,9 +516,15 @@ public class RegistrationStatusServiceImpl
 			}
 			registrationStatusDto.setRegistrationId(parentEntity.get().getRegId());
 		} else {
+			if(parentEntity.isPresent()) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					parentEntity.get().getReferenceRegistrationId(),
 					PlatformErrorMessages.RPR_RGS_REGISTRATION_STATUS_NOT_EXIST.getMessage());
+			}else {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						null,
+						PlatformErrorMessages.RPR_RGS_REGISTRATION_STATUS_NOT_EXIST.getMessage());
+			}
 		}
 
 		return registrationStatusDto;
@@ -948,5 +960,5 @@ public class RegistrationStatusServiceImpl
 				"RegistrationStatusServiceImpl::updateRegistrationStatusForWorkFlow()::exit");
 
 	}
-
+	
 }

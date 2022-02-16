@@ -121,60 +121,10 @@ public class ZipUtils {
 		return isExist;
 	}
 
-	/**
-	 * Method to unzip the file for passed destination path
-	 * 
-	 * @param input
-	 *            zip file to be unzipped
-	 * @param desDir
-	 *            location where to unzip the files
-	 * @throws IOException
-	 *             if any error occurred while unzipping
-	 */
-	public static void unZipFromInputStream(InputStream input, String desDir) throws IOException {
-		byte[] buffer = new byte[1024];
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-				"ZipUtils::unZipFromInputStream()::entry");
-
-		try (ZipInputStream zis = new ZipInputStream(input)) {
-			File folder = FileUtils.getFile(desDir);
-			if (!folder.exists()) {
-				if (folder.mkdir()) {
-					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), "", folder + "created");
-
-				}
-			}
-			ZipEntry ze = zis.getNextEntry();
-			while (ze != null) {
-				if (ze.isDirectory()) {
-					File file = FileUtils.getFile(desDir + ze.getName());
-					if (file.mkdir()) {
-						regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-								LoggerFileConstant.REGISTRATIONID.toString(), "", file + "created");
-
-					}
-				} else {
-					String fileName = ze.getName();
-					File newFile = FileUtils.getFile(desDir + File.separator + fileName);
-					if (FileUtils.getFile(newFile.getParent()).mkdirs()) {
-						FileOutputStream fos = new FileOutputStream(newFile);
-						int len;
-						while ((len = zis.read(buffer)) > 0) {
-							fos.write(buffer, 0, len);
-						}
-						fos.close();
-					}
-				}
-				ze = zis.getNextEntry();
-			}
-			zis.closeEntry();
-		} finally {
-			input.close();
-		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-				"ZipUtils::unZipFromInputStream()::exit");
-
+	public static void zipSlipCompliant(String canonicalDestinationPath, String baseDirectory) throws IOException {
+	      if (!canonicalDestinationPath.startsWith(baseDirectory)) {
+	        throw new IOException("Entry is outside of the target directory");
+	      }
 	}
 
 	/**

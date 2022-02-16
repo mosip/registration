@@ -6,6 +6,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.mosip.kernel.biometrics.entities.Entry;
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -71,7 +71,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 
 	@Value("${registration.processor.applicant.dob.format:yyyy/MM/dd}")
 	private String dobFormat;
-	
+
 	@Value("${mosip.preferred-language.enabled:false}")
 	private boolean isPreferredLangEnabled;
 
@@ -120,7 +120,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 			throws JSONException, IOException, BaseCheckedException {
 
 		regProcLogger.info("buildJsonStringFromPacketInfo method called");
-		
+
 		AnonymousProfileDTO anonymousProfileDTO = new AnonymousProfileDTO();
 		anonymousProfileDTO.setProcessName(
 				getFieldValueFromMetaInfo(metaInfoMap, JsonConstant.METADATA, JsonConstant.REGISTRATIONTYPE));
@@ -141,16 +141,18 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 		String dobValue = JsonUtil.getJSONValue(
 				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.DOB),
 				MappingJsonConstants.VALUE);
-		Date dob = DateUtils.parseToDate(fieldMap.get(dobValue), dobFormat);
-		anonymousProfileDTO.setYearOfBirth(DateUtils.parseDateToLocalDateTime(dob).getYear());
-		
+		if (fieldMap.get(dobValue) != null) {
+			Date dob = DateUtils.parseToDate(fieldMap.get(dobValue), dobFormat);
+			anonymousProfileDTO.setYearOfBirth(DateUtils.parseDateToLocalDateTime(dob).getYear());
+		}
+
 		// preferred Lang Value
 		String preferredaLangValue = JsonUtil.getJSONValue(
 				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.PREFERRED_LANGUAGE),
 				MappingJsonConstants.VALUE);
 		anonymousProfileDTO.setPreferredLanguages(fieldMap.get(preferredaLangValue) != null ?
 				Arrays.asList(fieldMap.get(preferredaLangValue)) : null);
-		
+
 		String language = null;
 		if (fieldMap.get(preferredaLangValue) != null && isPreferredLangEnabled) {
 			language = fieldMap.get(preferredaLangValue);
@@ -162,7 +164,8 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 		String genderValue = JsonUtil.getJSONValue(
 				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.GENDER),
 				MappingJsonConstants.VALUE);
-		anonymousProfileDTO.setGender(getLanguageBasedValueForSimpleType(fieldMap.get(genderValue), language));
+		if (fieldMap.get(genderValue) != null)
+			anonymousProfileDTO.setGender(getLanguageBasedValueForSimpleType(fieldMap.get(genderValue), language));
 
 		// set email and phone
 		String emailValue = JsonUtil.getJSONValue(
@@ -194,7 +197,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 		anonymousProfileDTO.setDocuments(getDocumentsDataFromMetaInfo(metaInfoMap));
 		anonymousProfileDTO.setEnrollmentCenterId(
 				getFieldValueFromMetaInfo(metaInfoMap, JsonConstant.METADATA, JsonConstant.CENTERID));
-		
+
 		List<String> assisted = new ArrayList<>();
 		String officerId = getFieldValueFromMetaInfo(metaInfoMap, JsonConstant.OPERATIONSDATA, JsonConstant.OFFICERID);
 		if (officerId != null) {
@@ -208,7 +211,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 		}
 		anonymousProfileDTO.setAssisted(assisted);
 		getExceptionAndBiometricInfo(biometricRecord, anonymousProfileDTO);
-		
+
 		regProcLogger.info("buildJsonStringFromPacketInfo method call ended");
 		return JsonUtil.objectMapperObjectToJson(anonymousProfileDTO);
 	}
@@ -274,7 +277,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 
 		List<BIR> birs = biometricRecord.getSegments();
 		for (BIR bir : birs) {
-			List<Entry> othersInfo = bir.getOthers();
+			HashMap<String, String> othersInfo = bir.getOthers();
 
 			if (othersInfo == null) {
 				continue;
@@ -283,7 +286,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 			String retries = null;
 			String digitalID = null;
 			boolean exceptionValue = false;
-			for (Entry other : othersInfo) {
+			for (Map.Entry<String, String> other : othersInfo.entrySet()) {
 				if (other.getKey().equals(JsonConstant.BIOMETRICRECORDEXCEPTION) && other.getValue().equals(TRUE)) {
 					exceptionValue = true;
 				}
@@ -299,7 +302,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 			if (exceptionValue) {
 				ExceptionsDTO exceptionsDTO = new ExceptionsDTO();
 				exceptionsDTO.setType(bir.getBdbInfo().getType().get(0).name());
-				exceptionsDTO.setSubType(bir.getBdbInfo().getSubtype().get(0));
+				exceptionsDTO.setSubType(String.join(" ", bir.getBdbInfo().getSubtype()));
 				exceptions.add(exceptionsDTO);
 			} else {
 				BiometricInfoDTO biometricInfoDTO = new BiometricInfoDTO();
@@ -310,7 +313,13 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 				biometricInfoDTO.setQualityScore(bir.getBdbInfo().getQuality().getScore());
 				biometricInfoDTO.setAttempts(retries);
 				if (digitalID != null) {
-					biometricInfoDTO.setDigitalId(new String(CryptoUtil.decodeBase64(digitalID.split("\\.")[1])));
+					byte[] digitalIdBytes=null;
+					try {
+						 digitalIdBytes= CryptoUtil.decodeURLSafeBase64(digitalID.split("\\.")[1]);
+					} catch (IllegalArgumentException exception) {
+						digitalIdBytes = CryptoUtil.decodePlainBase64(digitalID.split("\\.")[1]);
+					}
+					biometricInfoDTO.setDigitalId(new String(digitalIdBytes));
 				}
 				biometrics.add(biometricInfoDTO);
 			}
@@ -322,7 +331,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 
 	private String getValueBasedOnType(String fieldName, String value, String type, String language)
 			throws JSONException, BaseCheckedException {
-        
+
         switch (type) {
             case "simpleType":
             	return getLanguageBasedValueForSimpleType(value,language);
@@ -342,8 +351,8 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
                 return biometricsTypeJSON.getString(VALUE_LABEL);
             default:
                 throw new BaseCheckedException(
-                    PlatformErrorMessages.RPR_PCM_UNKNOWN_SCHEMA_DATA_TYPE.getCode(), 
-                    PlatformErrorMessages.RPR_PCM_UNKNOWN_SCHEMA_DATA_TYPE.getMessage() + 
+                    PlatformErrorMessages.RPR_PCM_UNKNOWN_SCHEMA_DATA_TYPE.getCode(),
+                    PlatformErrorMessages.RPR_PCM_UNKNOWN_SCHEMA_DATA_TYPE.getMessage() +
                     " Field name: " + fieldName + " type: " + type);
         }
     }

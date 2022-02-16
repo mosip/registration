@@ -29,14 +29,10 @@ public class WorkflowSearchService {
 
 	/** The registration status service. */
 	@Autowired
-	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
-
-	/** The core audit request builder. */
-	@Autowired
-	AuditLogRequestBuilder auditLogRequestBuilder;
+	private RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 
 	/** The reg proc logger. */
-	private static Logger regProcLogger = RegProcessorLogger.getLogger(WorkflowActionService.class);
+	private static Logger regProcLogger = RegProcessorLogger.getLogger(WorkflowSearchService.class);
 
 	public Page<WorkflowDetail> searchRegistrationDetails(SearchInfo searchInfo)
 			throws WorkFlowSearchException {
@@ -65,8 +61,6 @@ public class WorkflowSearchService {
 				pageDtos.getTotalElements());
 
 	}
-
-
 
 	private void buildSearchInfoDto(SearchInfo searchInfo) {
 		for (FilterInfo filterInfo : searchInfo.getFilters()) {

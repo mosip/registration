@@ -23,6 +23,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.kernel.core.exception.NoSuchAlgorithmException;
 import io.mosip.registration.processor.core.auth.dto.AuthRequestDTO;
 import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
 import io.mosip.registration.processor.core.auth.dto.IndividualIdDto;
@@ -89,6 +90,17 @@ public class InternalAuthDelegateServiceImplTest {
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), anyString(), any())).thenReturn(response);
 		AuthResponseDTO result = internalAuthDelegateServiceImpl.authenticate(authRequestDTO, new HttpHeaders());
 		assertEquals(result.getResponse().isAuthStatus(), true);
+	}
+	
+	@Test(expected = NoSuchAlgorithmException.class)
+	public void authenticateExceptionTest() throws Exception {
+
+		individualIdDto.setIndividualId("84953741281492");
+		response.setResponse(individualIdDto);
+		response.setErrors(null);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), anyString(), any())).thenReturn(response);
+		Mockito.when(restApiClient.getRestTemplate()).thenThrow(NoSuchAlgorithmException.class);
+		internalAuthDelegateServiceImpl.authenticate(authRequestDTO, new HttpHeaders());
 	}
 
 	@Test(expected = ApisResourceAccessException.class)

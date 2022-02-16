@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -339,7 +340,6 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			description.setCode(PlatformErrorMessages.RPR_SYS_JSON_PARSING_EXCEPTION.getCode());
 			object.setInternalError(Boolean.TRUE);
 			object.setRid(registrationStatusDto.getRegistrationId());
-			e.printStackTrace();
 		} catch (PacketManagerException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId,
@@ -382,20 +382,6 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			object.setInternalError(Boolean.TRUE);
 			description.setMessage(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode());
-		} catch (VidCreationException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId,
-					RegistrationStatusCode.PROCESSING.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
-			registrationStatusDto.setStatusComment(trimExceptionMessage
-					.trimExceptionMessage(StatusUtil.VID_CREATION_FAILED.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.VID_CREATION_FAILED.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.VID_CREATION_EXCEPTION));
-			description.setMessage(PlatformErrorMessages.VID_CREATION_FAILED.getMessage());
-			description.setCode(PlatformErrorMessages.VID_CREATION_FAILED.getCode());
-			object.setInternalError(Boolean.TRUE);
-			object.setRid(registrationStatusDto.getRegistrationId());
 		} catch (IdrepoDraftException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId,
@@ -558,39 +544,20 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		JSONObject  docJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT);
 		JSONObject  identityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 
-		String proofOfAddressLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(docJson, MappingJsonConstants.POA), MappingJsonConstants.VALUE);
-		String proofOfDateOfBirthLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(docJson, MappingJsonConstants.POB), MappingJsonConstants.VALUE);
-		String proofOfIdentityLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(docJson, MappingJsonConstants.POI), MappingJsonConstants.VALUE);
-		String proofOfRelationshipLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(docJson, MappingJsonConstants.POR), MappingJsonConstants.VALUE);
-		String proofOfExceptionLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(docJson, MappingJsonConstants.POE), MappingJsonConstants.VALUE);
 		String applicantBiometricLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(identityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS), MappingJsonConstants.VALUE);
 
-		HashMap<String, String> proofOfAddress = (HashMap<String, String>) idJSON.get(proofOfAddressLabel);
-		HashMap<String, String> proofOfDateOfBirth = (HashMap<String, String>) idJSON.get(proofOfDateOfBirthLabel);
-		HashMap<String, String> proofOfIdentity = (HashMap<String, String>) idJSON.get(proofOfIdentityLabel);
-		HashMap<String, String> proofOfRelationship = (HashMap<String, String>) idJSON.get(proofOfRelationshipLabel);
-		HashMap<String, String> proofOfException = (HashMap<String, String>) idJSON.get(proofOfExceptionLabel);
 		HashMap<String, String> applicantBiometric = (HashMap<String, String>) idJSON.get(applicantBiometricLabel);
-		if (proofOfAddress != null) {
-			applicantDocuments
-					.add(getIdDocumnet(regId, proofOfAddressLabel, process));
+
+
+		for (Object doc : docJson.values()) {
+			Map docMap = (LinkedHashMap) doc;
+			String docValue = docMap.values().iterator().next().toString();
+			HashMap<String, String> docInIdentityJson = (HashMap<String, String>) idJSON.get(docValue);
+			if (docInIdentityJson != null)
+				applicantDocuments
+						.add(getIdDocumnet(regId, docValue, process));
 		}
-		if (proofOfDateOfBirth != null) {
-			applicantDocuments
-					.add(getIdDocumnet(regId, proofOfDateOfBirthLabel, process));
-		}
-		if (proofOfIdentity != null) {
-			applicantDocuments
-					.add(getIdDocumnet(regId, proofOfIdentityLabel, process));
-		}
-		if (proofOfRelationship != null) {
-			applicantDocuments
-					.add(getIdDocumnet(regId, proofOfRelationshipLabel, process));
-		}
-		if (proofOfException != null) {
-			applicantDocuments
-					.add(getIdDocumnet(regId, proofOfExceptionLabel, process));
-		}
+
 		if (applicantBiometric != null) {
 			applicantDocuments.add(getBiometrics(regId, applicantBiometricLabel, process, applicantBiometricLabel));
 		}
@@ -604,7 +571,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		Document document =
 				packetManagerService.getDocument(registrationId, dockey, process, ProviderStageName.UIN_GENERATOR);
 		if (document != null) {
-			documentsInfoDto.setValue(CryptoUtil.encodeBase64(document.getDocument()));
+			documentsInfoDto.setValue(CryptoUtil.encodeToURLSafeBase64(document.getDocument()));
 			documentsInfoDto.setCategory(document.getValue());
 			return documentsInfoDto;
 		}
@@ -615,7 +582,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId, person, process, ProviderStageName.UIN_GENERATOR);
 		byte[] xml = cbeffutil.createXML(biometricRecord.getSegments());
 		Documents documentsInfoDto = new Documents();
-		documentsInfoDto.setValue(CryptoUtil.encodeBase64(xml));
+		documentsInfoDto.setValue(CryptoUtil.encodeToURLSafeBase64(xml));
 		documentsInfoDto.setCategory(utility.getMappingJsonValue(idDocLabel, MappingJsonConstants.IDENTITY));
 		return documentsInfoDto;
 
@@ -810,9 +777,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 							.trimExceptionMessage(StatusUtil.UIN_REACTIVATION_FAILED.getMessage() + statusComment));
 					description.setSubStatusCode(StatusUtil.UIN_REACTIVATION_FAILED.getCode());
 					description.setMessage(
-							UINConstants.UIN_FAILURE + id + "::" + result != null && result.getErrors() != null
+							UINConstants.UIN_FAILURE + id + "::" + (result != null && result.getErrors() != null
 									? result.getErrors().get(0).getMessage()
-									: UINConstants.NULL_IDREPO_RESPONSE);
+									: UINConstants.NULL_IDREPO_RESPONSE));
 					description.setMessage(PlatformErrorMessages.UIN_REACTIVATION_FAILED.getMessage());
 					description.setCode(PlatformErrorMessages.UIN_REACTIVATION_FAILED.getCode());
 					description.setTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
@@ -830,9 +797,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 					.trimExceptionMessage(StatusUtil.UIN_REACTIVATION_FAILED.getMessage() + statusComment));
 			description.setSubStatusCode(StatusUtil.UIN_REACTIVATION_FAILED.getCode());
 			description.setMessage(
-					UINConstants.UIN_FAILURE + id + "::" + result != null && result.getErrors() != null
+					UINConstants.UIN_FAILURE + id + "::" + (result != null && result.getErrors() != null
 							? result.getErrors().get(0).getMessage()
-							: UINConstants.NULL_IDREPO_RESPONSE);
+							: UINConstants.NULL_IDREPO_RESPONSE));
 			description.setMessage(PlatformErrorMessages.UIN_REACTIVATION_FAILED.getMessage());
 			description.setCode(PlatformErrorMessages.UIN_REACTIVATION_FAILED.getCode());
 			description.setTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
@@ -1007,59 +974,10 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		this.createServer(router.getRouter(), getPort());
 
 	}
-	
+
 	@Override
 	protected String getPropertyPrefix() {
 		return STAGE_PROPERTY_PREFIX;
-	}
-
-	@SuppressWarnings({ "unchecked", "unused" })
-	private void generateVid(String registrationId, String UIN, boolean isUinAlreadyPresent)
-			throws ApisResourceAccessException, IOException, VidCreationException {
-		VidRequestDto vidRequestDto = new VidRequestDto();
-		RequestWrapper<VidRequestDto> request = new RequestWrapper<VidRequestDto>();
-		ResponseWrapper<VidResponseDto> response;
-
-		try {
-			if (isUinAlreadyPresent) {
-				String uin = idRepoService.getUinByRid(registrationId, utility.getGetRegProcessorDemographicIdentity());
-				vidRequestDto.setUIN(uin);
-			} else {
-				vidRequestDto.setUIN(UIN);
-			}
-			vidRequestDto.setVidType(vidType);
-			request.setId(env.getProperty(UINConstants.VID_CREATE_ID));
-			request.setRequest(vidRequestDto);
-			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(UINConstants.DATETIME_PATTERN));
-			LocalDateTime localdatetime = LocalDateTime.parse(
-					DateUtils.getUTCCurrentDateTimeString(env.getProperty(UINConstants.DATETIME_PATTERN)), format);
-			request.setRequesttime(localdatetime);
-			request.setVersion(env.getProperty(UINConstants.REG_PROC_APPLICATION_VERSION));
-
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId,
-					"UinGeneratorStage::generateVid():: post CREATEVID service call started with request data : "
-							+ JsonUtil.objectMapperObjectToJson(request));
-
-			response = (ResponseWrapper<VidResponseDto>) registrationProcessorRestClientService
-					.postApi(ApiName.CREATEVID, "", "", request, ResponseWrapper.class);
-
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId,
-					"UinGeneratorStage::generateVid():: create Vid response :: "+JsonUtil.objectMapperObjectToJson(response));
-
-			if (!response.getErrors().isEmpty()) {
-				throw new VidCreationException(PlatformErrorMessages.RPR_UGS_VID_EXCEPTION.getMessage(),
-						"VID creation exception");
-
-			}
-
-		} catch (ApisResourceAccessException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, PlatformErrorMessages.RPR_UGS_API_RESOURCE_EXCEPTION.getMessage() + e.getMessage()
-							+ ExceptionUtils.getStackTrace(e));
-			throw e;
-		}
 	}
 
 	/**

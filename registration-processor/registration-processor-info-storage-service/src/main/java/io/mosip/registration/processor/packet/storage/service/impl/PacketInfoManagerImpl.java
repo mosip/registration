@@ -6,6 +6,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -23,7 +24,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.AuditLogConstant;
@@ -138,7 +138,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	@Autowired
 	private PriorityBasedPacketManagerService packetManagerService;
 
-	@Value("${registration.processor.demodedupe.manualverification.status}")
+	@Value("${registration.processor.demodedupe.manual.adjudication.status}")
 	private String manualVerificationStatus;
 
 	/** The Constant MATCHED_REFERENCE_TYPE. */
@@ -225,7 +225,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 					JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.EMAIL),
 					MappingJsonConstants.VALUE);
 
-			fields.add(nameKey);
+			fields.addAll(Arrays.asList(nameKey.split(",")));
 			fields.add(dob);
 			fields.add(gender);
 			fields.add(email);
@@ -1000,18 +1000,6 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
 				"PacketInfoManagerImpl::saveRegLostUinDetData()::exit");
 
-	}
-
-	private JsonValue[] getField(String value) throws IOException {
-		if (StringUtils.isNotEmpty(value)) {
-			Object object = objectMapper.readValue(value, Object.class);
-			if (object instanceof ArrayList) {
-				JSONArray node = objectMapper.readValue(value, JSONArray.class);
-				JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
-				return jsonValues;
-			}
-		}
-		return null;
 	}
 
 	@Override

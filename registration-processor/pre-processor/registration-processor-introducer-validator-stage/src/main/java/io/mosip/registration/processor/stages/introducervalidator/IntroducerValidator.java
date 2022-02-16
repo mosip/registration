@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -163,7 +162,7 @@ public class IntroducerValidator {
 			if (introducerRegistrationStatusDto.getStatusCode().equals(RegistrationStatusCode.PROCESSING.toString())) {
 
 				registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
-						.getStatusCode(RegistrationExceptionTypeCode.OSI_FAILED_ON_HOLD_INTRODUCER_PACKET));
+						.getStatusCode(RegistrationExceptionTypeCode.ON_HOLD_INTRODUCER_PACKET));
 
 				registrationStatusDto.setStatusComment(StatusUtil.PACKET_ON_HOLD.getMessage());
 				registrationStatusDto.setSubStatusCode(StatusUtil.PACKET_ON_HOLD.getCode());
@@ -192,7 +191,7 @@ public class IntroducerValidator {
 
 		} else {
 			registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
-					.getStatusCode(RegistrationExceptionTypeCode.OSI_FAILED_ON_HOLD_INTRODUCER_PACKET));
+					.getStatusCode(RegistrationExceptionTypeCode.ON_HOLD_INTRODUCER_PACKET));
 
 			registrationStatusDto.setStatusComment(StatusUtil.PACKET_IS_ON_HOLD.getMessage());
 			registrationStatusDto.setSubStatusCode(StatusUtil.PACKET_IS_ON_HOLD.getCode());

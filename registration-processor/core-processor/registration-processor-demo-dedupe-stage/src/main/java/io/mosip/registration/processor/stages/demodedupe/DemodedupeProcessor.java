@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
@@ -352,7 +353,7 @@ public class DemodedupeProcessor {
 				}
 			}
 			else {
-				if (env.getProperty(DEMODEDUPEENABLE).trim().equalsIgnoreCase(TRUE)) {
+				if (StringUtils.isNotEmpty(env.getProperty(DEMODEDUPEENABLE)) && env.getProperty(DEMODEDUPEENABLE).trim().equalsIgnoreCase(TRUE)) {
 					isDemoDedupeSkip = false;
 				duplicateDtos = performDemoDedupe(registrationStatusDto, object, description);
 				if (duplicateDtos.isEmpty())
@@ -460,14 +461,10 @@ public class DemodedupeProcessor {
 	 *                                               exception
 	 * @throws IOException                           Signals that an I/O exception
 	 *                                               has occurred.
-	 * @throws                                       io.mosip.kernel.core.exception.IOException
-	 * @throws PacketDecryptionFailureException
-	 * @throws RegistrationProcessorCheckedException
 	 */
 	private boolean processDemoDedupeRequesthandler(InternalRegistrationStatusDto registrationStatusDto,
-			MessageDTO object, LogDescription description) throws ApisResourceAccessException, IOException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			RegistrationProcessorCheckedException, JsonProcessingException, PacketManagerException {
+			MessageDTO object, LogDescription description)
+			throws ApisResourceAccessException, IOException, JsonProcessingException, PacketManagerException {
 		boolean isTransactionSuccessful = false;
 		List<String> responsIds = new ArrayList<>();
 

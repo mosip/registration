@@ -21,8 +21,9 @@ public enum StatusUtil {
 	PACKET_HASHCODE_VALIDATION_FAILED(StatusConstants.PACKET_UPLOADER_MODULE_FAILED + "005","Packet Hash Code Validation Failed"),
 	VIRUS_SCANNER_FAILED_UPLOADER(StatusConstants.PACKET_UPLOADER_MODULE_FAILED + "006","Packet is Virus Infected"),
 	PACKET_UPLOAD_DECRYPTION_FAILED(StatusConstants.PACKET_UPLOADER_MODULE_FAILED + "007", "Packet Decryption Failed"),
-	PACKET_RETRY_CNT_EXCEEDED(StatusConstants.PACKET_UPLOADER_MODULE_FAILED + "008", "Retry count has exceeded the maximum limit specified"),
-	
+    PACKET_ALREADY_UPLOADED(StatusConstants.PACKET_UPLOADER_MODULE_SUCCESS + "008","Packet is already present in Packet Store"),
+	PACKET_RETRY_CNT_EXCEEDED(StatusConstants.PACKET_UPLOADER_MODULE_FAILED + "009", "Retry count has exceeded the maximum limit specified"),
+
 	// Quality checker stage
 	INDIVIDUAL_BIOMETRIC_NOT_FOUND(StatusConstants.QUALITY_CHECKER_MODULE_SUCCESS + "001","Individual Biometric Parameter Not Found in ID JSON so skipping biometric classification"),
 	BIOMETRIC_QUALITY_CHECK_SUCCESS(StatusConstants.QUALITY_CHECKER_MODULE_SUCCESS + "002","Biometric Quality Check is Successful"),
@@ -57,7 +58,7 @@ public enum StatusUtil {
 	// CMD Validator stage
 	CMD_VALIDATION_SUCCESS(StatusConstants.CMD_VALIDAOR_MODULE_SUCCESS + "001", "CMD Validation is Successful"),
 	GPS_DETAILS_NOT_FOUND(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "001", "GPS Details are Not Found in Packet"),
-	CENTER_ID_NOT_FOUND(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "002","Center ID Not Found in Master DB - "), 
+	CENTER_ID_NOT_FOUND(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "002","Center ID Not Found in Master DB - "),
 	CENTER_ID_INACTIVE(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "003","Center was InActive during Packet Creation - "),
 	MACHINE_ID_NOT_FOUND(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "004","Machine ID Not Found in Master DB - "),
 	MACHINE_ID_NOT_ACTIVE(StatusConstants.CMD_VALIDAOR_MODULE_FAILED + "005","Machine ID was InActive during Packet Creation - "),
@@ -83,7 +84,7 @@ public enum StatusUtil {
 	OPERATOR_PASSWORD_OTP_FAILURE(StatusConstants.OVM_VALIDAOR_MODULE_FAILED + "003","Password or OTP Verification Failed for Officer - "),
 	OFFICER_WAS_INACTIVE(StatusConstants.OVM_VALIDAOR_MODULE_FAILED + "004","Officer was Not Active during Packet Creation - "),
 	OFFICER_NOT_FOUND_PACKET(StatusConstants.OVM_VALIDAOR_MODULE_FAILED + "005","Officer ID is NULL"),
-	
+
 	// Supervisor Validator stage
 	SUPERVISOR_VALIDATION_SUCCESS(StatusConstants.SVM_VALIDAOR_MODULE_SUCCESS + "001", "SUPERVISOR Validation is Successful"),
 	SUPERVISOR_NOT_ACTIVE(StatusConstants.SVM_VALIDAOR_MODULE_FAILED + "001","SupervisorId is inActive"),
@@ -92,17 +93,17 @@ public enum StatusUtil {
 	SUPERVISOR_WAS_INACTIVE(StatusConstants.SVM_VALIDAOR_MODULE_FAILED + "004","Supervisor was Not Active during Packet Creation - "),
 	PASSWORD_OTP_FAILURE_SUPERVISOR(StatusConstants.SVM_VALIDAOR_MODULE_FAILED + "005","Password or OTP Verification Failed for Supervisor - "),
 	SUPERVISOR_NOT_FOUND_PACKET(StatusConstants.OVM_VALIDAOR_MODULE_FAILED + "006","Supervisor ID is NULL"),
-	
+
 	// Introducer Validator stage
 	INTRODUCER_VALIDATION_SUCCESS(StatusConstants.IVM_VALIDAOR_MODULE_SUCCESS + "001", "INTRODUCER Validation is Successful"),
 	INTRODUCER_AUTHENTICATION_FAILED(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "001","INTRODUCER Biometric Authentication Failed - "),
 	UIN_RID_NOT_FOUND(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "002", "UIN or RID of Introducer Not Found in Packet"),
 	INTRODUCER_UIN_NOT_FOUND(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "003", "Introducer UIN not Found for the Given RID"),
 	INTRODUCER_BIOMETRIC_FILE_NAME_NOT_FOUND(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "004", "Introducer Biometric File Name Not Found"),
-	PACKET_ON_HOLD(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "005", "Packet On-Hold as Parent RID Not Found"),
+	PACKET_ON_HOLD(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "005", "Packet On-Hold as Introducer packet is not processed yet."),
 	CHILD_PACKET_REJECTED(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "006", "Packet Rejected as Parent Packet is Rejected"),
 	PACKET_IS_ON_HOLD(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "007", "Packet is on Hold due to parent packet processing"),
-	
+
 	// printing stage
 	PRINT_REQUEST_SUCCESS(StatusConstants.PRINT_STAGE_MODULE_SUCCESS + "001", "Print request submitted"),
 	PDF_ADDED_TO_QUEUE_FAILED(StatusConstants.PRINT_STAGE_MODULE_FAILED + "001","PDF was not added to Queue due to Queue Failure"),
@@ -152,6 +153,7 @@ public enum StatusUtil {
 	MANUAL_VERIFIER_APPROVED_PACKET(StatusConstants.MANUAL_VERIFICATION_MODULE_SUCCESS + "001", "Match Not Found by Manual Verifier"), 
 	MANUAL_VERIFIER_REJECTED_PACKET(StatusConstants.MANUAL_VERIFICATION_MODULE_FAILED + "002", "Match Found by Manual Verifier"),
 	RPR_MANUAL_VERIFICATION_RESEND(StatusConstants.MANUAL_VERIFICATION_MODULE_FAILED + "003", "Error in manual verification"),
+	RPR_MANUAL_VERIFICATION_SENT_TO_QUEUE(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "002", "Manual verification request sent to queue"),
 
 	// Uin generator stage
 	UIN_GENERATED_SUCCESS(StatusConstants.UIN_GENERATOR_MODULE_SUCCESS + "001","UIN Generated Successfully"), 
@@ -246,9 +248,21 @@ public enum StatusUtil {
 
 	WORKFLOW_INTERNAL_ACTION_SUCCESS(StatusConstants.WORKFLOW_INTERNAL_ACTION + "001",
 			"Packet workflow internal action completed successfully"),
-	
+
+	WORKFLOW_INTERNAL_ACTION_REJECTED_ITERATIONS_EXCEEDED_LIMIT(StatusConstants.WORKFLOW_INTERNAL_ACTION + "002",
+			"Packet rejected as number of iterations exceeded permited limit."),
+
 	WORKFLOW_ACTION_SERVICE_SUCCESS(StatusConstants.WORKFLOW_ACTION_SERVICE + "001",
-			"Packet workflow resume  successfully");
+			"Packet workflow resume  successfully"),
+	MANUAL_ADJUDICATION_FAILED(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "000", "manual verification failed -"),
+	MANUAL_ADJUDICATION_RID_SHOULD_NOT_EMPTY_OR_NULL(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "001",
+			"Registration Id should not empty or null "),
+	MANUAL_ADJUDICATION_MATCHEDRID_FOUND_FOR_GIVEN_RID(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "002",
+			"No matched reference id found for given RID"),
+	VERIFICATION_SUCCESS(StatusConstants.VERIFICATION_STAGE + "001", "Verification success"),
+	VERIFICATION_FAILED(StatusConstants.VERIFICATION_STAGE + "002","Verification failed"),
+	VERIFICATION_SENT(StatusConstants.VERIFICATION_STAGE + "003", "Sent for verification"),
+	VERIFICATION_RESEND(StatusConstants.VERIFICATION_STAGE + "004", "Resend for verification");
 
 	private final String statusComment;
 	private final String statusCode;

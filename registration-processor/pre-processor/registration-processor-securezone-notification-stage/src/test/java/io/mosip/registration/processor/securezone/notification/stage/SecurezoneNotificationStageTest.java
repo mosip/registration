@@ -385,30 +385,30 @@ public class SecurezoneNotificationStageTest {
     List<SyncRegistrationEntity> entities = new ArrayList<SyncRegistrationEntity>();
     SyncRegistrationEntity entity = new SyncRegistrationEntity();
     SyncRegistrationEntity entity1 = new SyncRegistrationEntity();
-    
+
     @Before
     public void setup() {
-    	
+
         registrationStatusDto = new InternalRegistrationStatusDto();
         registrationStatusDto.setRegistrationId("2018701130000410092018110735");
         registrationStatusDto.setStatusCode("SECUREZONE_NOTIFICATION_SUCCESS");
         registrationStatusDto.setWorkflowInstanceId("78fc3d34-03f5-11ec-9a03-0242ac130004");
         registrationStatusDto.setCreateDateTime(LocalDateTime.now().minusDays(1));
-        
+
         registrationStatusDto1 = new InternalRegistrationStatusDto();
         registrationStatusDto1.setRegistrationId("2018701130000410092018110735");
         registrationStatusDto1.setStatusCode("SECUREZONE_NOTIFICATION_SUCCESS");
         registrationStatusDto1.setWorkflowInstanceId("78fc3d34-03f5-11ec-9a03-0242ac130003");
         registrationStatusDto1.setCreateDateTime(LocalDateTime.now());
-        
+
         ResponseWrapper<AuditResponseDto> responseWrapper = new ResponseWrapper<AuditResponseDto>();
         AuditResponseDto auditResponseDto = new AuditResponseDto();
         responseWrapper.setResponse(auditResponseDto);
-        
+
         entity.setAdditionalInfoReqId("abc");
         entity.setPacketId("2018701130000410092018110735");
         entity.setWorkflowInstanceId("78fc3d34-03f5-11ec-9a03-0242ac130003");
-        
+
         entity1.setAdditionalInfoReqId(null);
         entity1.setPacketId("2018701130000410092018110735");
         entity1.setWorkflowInstanceId("78fc3d34-03f5-11ec-9a03-0242ac130003");
@@ -450,7 +450,7 @@ public class SecurezoneNotificationStageTest {
         notificationStage.processURL(ctx);
         assertTrue(responseObject);
     }
-    
+
     @Test
     public void duplicateRidFoundTest() {
 
@@ -461,7 +461,7 @@ public class SecurezoneNotificationStageTest {
     	syncEntity.setWorkflowInstanceId("78fc3d34-03f5-11ec-9a03-0242ac130004");
         entities.add(syncEntity);
         entities.add(entity1);
-        
+
         Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any()))
 		.thenReturn(registrationStatusDto).thenReturn(registrationStatusDto).thenReturn(registrationStatusDto1);
     	Mockito.when(syncRegistrationService.findByWorkflowInstanceId(anyString())).thenReturn(syncEntity);
@@ -469,7 +469,7 @@ public class SecurezoneNotificationStageTest {
         notificationStage.processURL(ctx);
         assertTrue(responseObject);
     }
-    
+
     @Test
     public void duplicateAdditionalReqIdFoundTest() {
 
@@ -479,7 +479,7 @@ public class SecurezoneNotificationStageTest {
     	syncEntity.setWorkflowInstanceId("78fc3d34-03f5-11ec-9a03-0242ac130004");
         entities.add(syncEntity);
         entities.add(entity);
-        
+
         Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any()))
 		.thenReturn(registrationStatusDto).thenReturn(registrationStatusDto).thenReturn(registrationStatusDto1);
     	Mockito.when(syncRegistrationService.findByWorkflowInstanceId(anyString())).thenReturn(entity);
@@ -502,7 +502,7 @@ public class SecurezoneNotificationStageTest {
         inputDto.setInternalError(Boolean.FALSE);
         inputDto.setIsValid(Boolean.TRUE);
         inputDto.setRid("2018701130000410092018110735");
-        
+
         Mockito.when(syncRegistrationService.findByWorkflowInstanceId(anyString())).thenReturn(entity);
         Mockito.when(syncRegistrationService.findByAdditionalInfoReqId(anyString())).thenReturn(entities);
         MessageDTO messageDTO = notificationStage.process(inputDto);

@@ -5,10 +5,10 @@
 	<parent>
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>post-processor</artifactId>
-		<version>1.2.0-SNAPSHOT</version>
+		<version>1.2.0.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>registration-processor-registration-transaction-service</artifactId>
-	 <version>1.2.0-SNAPSHOT</version>
+	 <version>1.2.0.1-SNAPSHOT</version>
 	<name>registration-processor-registration-transaction-service</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -157,8 +157,9 @@
 							</execution>
 						</executions>
 						<configuration>
-							<apiDocsUrl>http://localhost:8090/app/generic/v3/api-docs.yaml</apiDocsUrl>
-							<outputFileName>openapi.yaml</outputFileName>
+							<apiDocsUrl>http://localhost:8090/app/generic/v3/api-docs</apiDocsUrl>
+							<outputFileName>${name}-openapi.json</outputFileName>
+
 							<outputDir>${project.build.directory}</outputDir>
 							<skip>false</skip>
 						</configuration>

@@ -14,6 +14,8 @@ public interface AbisConstant {
 
 	static final String POST_ABIS_IDENTIFICATION = "POST_ABIS_IDENTIFICATION";
 
+	static final String DUPLICATE_FOR_SAME_TRANSACTION_ID = "DUPLICATE_FOR_SAME_TRANSACTION_ID";
+
 	static final String PROCESSED = "PROCESSED";
 
 	static final String RE_REGISTER = "RE-REGISTER";

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -93,13 +94,16 @@ public class RegistrationStatusController {
 	@Value("#{'${mosip.registration.processor.registration.status.external-statuses-to-consider-processed:UIN_GENERATED,REREGISTER,REJECTED,REPROCESS_FAILED}'.split(',')}")
 	private List<String> externalStatusesConsideredProcessed;
 
+	@Value("${registration.processor.fetch.registration.records.limit:100}")
+	private int maxLimit;
+
 	@Autowired
 	private DigitalSignatureUtility digitalSignatureUtility;
 
 	/**
 	 * Search.
 	 *
-	 * @param registrationIds the registration ids
+	 * @param registrationStatusRequestDTO the registration ids
 	 * @return the response entity
 	 * @throws RegStatusAppException
 	 */
@@ -122,31 +126,39 @@ public class RegistrationStatusController {
 		try {
 			registrationStatusRequestValidator.validate(registrationStatusRequestDTO,
 					env.getProperty(REG_STATUS_SERVICE_ID));
+
+			// if number of rids in request exceeds max limit then get status for first 100 ids.
+			List<RegistrationStatusSubRequestDto> recordsToFetch = CollectionUtils.isNotEmpty(registrationStatusRequestDTO.getRequest())
+					&& registrationStatusRequestDTO.getRequest().size() > maxLimit ?
+					registrationStatusRequestDTO.getRequest().stream().limit(maxLimit).collect(Collectors.toList()) : registrationStatusRequestDTO.getRequest();
+
 			List<RegistrationStatusDto> registrations = registrationStatusService
-					.getByIds(registrationStatusRequestDTO.getRequest());
-			
-			List<RegistrationStatusSubRequestDto> requestIdsNotAvailable = registrationStatusRequestDTO.getRequest()
+					.getByIds(recordsToFetch);
+			List<RegistrationStatusSubRequestDto> requestIdsNotAvailable = recordsToFetch
 					.stream()
 					.filter(request -> registrations.stream().noneMatch(
 							registration -> registration.getRegistrationId().equals(request.getRegistrationId())))
 					.collect(Collectors.toList());
-			List<RegistrationStatusDto> registrationsList = syncRegistrationService.getByIds(requestIdsNotAvailable);
-			if (registrationsList != null && !registrationsList.isEmpty()) {
-				registrations.addAll(syncRegistrationService.getByIds(requestIdsNotAvailable));
+
+			if (CollectionUtils.isNotEmpty(requestIdsNotAvailable)) {
+				List<RegistrationStatusDto> registrationsList = syncRegistrationService.getByIds(requestIdsNotAvailable);
+				if (registrationsList != null && !registrationsList.isEmpty()) {
+					registrations.addAll(syncRegistrationService.getByIds(requestIdsNotAvailable));
+				}
 			}
 
 			updatedConditionalStatusToProcessed(registrations);
 
 			if (isEnabled) {
-				RegStatusResponseDTO response = buildRegistrationStatusResponse(registrations,
-						registrationStatusRequestDTO.getRequest());
 				Gson gson = new GsonBuilder().serializeNulls().create();
+				String response = gson.toJson(buildRegistrationStatusResponse(registrations,
+						recordsToFetch));	
 				HttpHeaders headers = new HttpHeaders();
-				headers.add(RESPONSE_SIGNATURE, digitalSignatureUtility.getDigitalSignature(gson.toJson(response)));
-				return ResponseEntity.status(HttpStatus.OK).headers(headers).body(gson.toJson(response));
+				headers.add(RESPONSE_SIGNATURE, digitalSignatureUtility.getDigitalSignature(response));
+				return ResponseEntity.status(HttpStatus.OK).headers(headers).body(response);
 			}
 			return ResponseEntity.status(HttpStatus.OK)
-					.body(buildRegistrationStatusResponse(registrations, registrationStatusRequestDTO.getRequest()));
+					.body(buildRegistrationStatusResponse(registrations, recordsToFetch));
 		} catch (RegStatusAppException e) {
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_DATA_VALIDATION_FAILED, e);
 		} catch (Exception e) {

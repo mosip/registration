@@ -1,18 +1,17 @@
 name: Maven Package upon a push 
 
 on:
-
   pull_request:
     types: [closed]
   push:
     branches:
+      - '!release-branch'
+      - release-1*
       - master
       - 1.*
       - develop
-
 jobs:
   build:
-
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -63,10 +62,9 @@ jobs:
       with:
         name: release
         path: ./release.zip
-       
-      
+
     - name: Build registration-processor-stage-group-1 image
-    
+
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
           cd "./$SERVICE_LOCATION"
@@ -74,6 +72,7 @@ jobs:
       env:
         SERVICE_NAME: registration-processor-stage-group-1
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-1
+        
     - name: Log into registry
       run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
         
@@ -83,7 +82,11 @@ jobs:
 
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          VERSION=$BRANCH_NAME
+          if [[ $BRANCH_NAME == master ]]; then
+            VERSION=latest
+          else
+            VERSION=$BRANCH_NAME
+          fi
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
           docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
@@ -92,8 +95,8 @@ jobs:
         NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
         SERVICE_NAME: registration-processor-stage-group-1
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-1
-    
-      
+
+
     - name: Build registration-processor-stage-group-2 image
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
@@ -102,6 +105,7 @@ jobs:
       env:
         SERVICE_NAME: registration-processor-stage-group-2
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-2
+        
     - name: Log into registry
       run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
         
@@ -111,7 +115,11 @@ jobs:
 
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          VERSION=$BRANCH_NAME
+          if [[ $BRANCH_NAME == master ]]; then
+            VERSION=latest
+          else
+            VERSION=$BRANCH_NAME
+          fi
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
           docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
@@ -120,8 +128,8 @@ jobs:
         NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
         SERVICE_NAME: registration-processor-stage-group-2
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-2
-    
-        
+
+
     - name: Build registration-processor-stage-group-3 image
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
@@ -130,6 +138,7 @@ jobs:
       env:
         SERVICE_NAME: registration-processor-stage-group-3
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-3
+        
     - name: Log into registry
       run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
         
@@ -139,7 +148,11 @@ jobs:
 
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          VERSION=$BRANCH_NAME
+          if [[ $BRANCH_NAME == master ]]; then
+            VERSION=latest
+          else
+            VERSION=$BRANCH_NAME
+          fi
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
           docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
@@ -148,8 +161,8 @@ jobs:
         NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
         SERVICE_NAME: registration-processor-stage-group-3
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-3
-    
-      
+
+
     - name: Build registration-processor-stage-group-4 image
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
@@ -158,6 +171,7 @@ jobs:
       env:
         SERVICE_NAME: registration-processor-stage-group-4
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-4
+        
     - name: Log into registry
       run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
         
@@ -167,7 +181,11 @@ jobs:
 
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          VERSION=$BRANCH_NAME
+          if [[ $BRANCH_NAME == master ]]; then
+            VERSION=latest
+          else
+            VERSION=$BRANCH_NAME
+          fi
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
           docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
@@ -176,8 +194,8 @@ jobs:
         NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
         SERVICE_NAME: registration-processor-stage-group-4
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-4
-        
-      
+
+
     - name: Build registration-processor-stage-group-5 image
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
@@ -186,6 +204,7 @@ jobs:
       env:
         SERVICE_NAME: registration-processor-stage-group-5
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-5
+        
     - name: Log into registry
       run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
         
@@ -195,7 +214,11 @@ jobs:
 
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          VERSION=$BRANCH_NAME
+          if [[ $BRANCH_NAME == master ]]; then
+            VERSION=latest
+          else
+            VERSION=$BRANCH_NAME
+          fi
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
           docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
@@ -204,7 +227,7 @@ jobs:
         NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
         SERVICE_NAME: registration-processor-stage-group-5
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-5
-    
+
     - name: Build registration-processor-stage-group-6 image
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
@@ -222,7 +245,11 @@ jobs:
 
         # Change all uppercase to lowercase
         IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-        VERSION=$BRANCH_NAME
+        if [[ $BRANCH_NAME == master ]]; then
+            VERSION=latest
+          else
+            VERSION=$BRANCH_NAME
+          fi
         echo IMAGE_ID=$IMAGE_ID
         echo VERSION=$VERSION
         docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
@@ -232,7 +259,7 @@ jobs:
         SERVICE_NAME: registration-processor-stage-group-6
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-6
 
-      
+
     - name: Build registration-processor-stage-group-7 image
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
@@ -241,6 +268,7 @@ jobs:
       env:
         SERVICE_NAME: registration-processor-stage-group-7
         SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-7
+        
     - name: Log into registry
       run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
         
@@ -250,7 +278,11 @@ jobs:
 
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          VERSION=$BRANCH_NAME
+          if [[ $BRANCH_NAME == master ]]; then
+            VERSION=latest
+          else
+            VERSION=$BRANCH_NAME
+          fi
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
           docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
@@ -278,7 +310,11 @@ jobs:
 
         # Change all uppercase to lowercase
         IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-        VERSION=$BRANCH_NAME
+        if [[ $BRANCH_NAME == master ]]; then
+            VERSION=latest
+          else
+            VERSION=$BRANCH_NAME
+          fi
         echo IMAGE_ID=$IMAGE_ID
         echo VERSION=$VERSION
         docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
@@ -289,7 +325,7 @@ jobs:
         SERVICE_LOCATION: registration-processor/registration-processor-common-camel-bridge
 
   publish_to_nexus:
-
+    if: "!contains(github.ref, 'master')"
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -301,7 +337,6 @@ jobs:
         server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
         settings-path: ${{ github.workspace }} # location for the settings.xml file
     - uses: actions/checkout@v2
-
 
     - name: Setup branch and env
       run: |
@@ -317,6 +352,7 @@ jobs:
         sudo apt-get --yes install gnupg2
         gpg2 --import ./.github/keys/mosipgpgkey_pub.gpg
         gpg2 --quiet --batch --passphrase=${{secrets.gpg_secret}}  --allow-secret-key-import --import ./.github/keys/mosipgpgkey_sec.gpg
+        
     - uses: actions/cache@v1
       with:
         path: ~/.m2/repository
@@ -334,20 +370,18 @@ jobs:
 
     - name: Publish the maven package
       run: |
-        mvn deploy -DaltDeploymentRepository=ossrh::default::${{ secrets.RELEASE_URL }} -s $GITHUB_WORKSPACE/settings.xml -f pom.xml
+        mvn deploy  -DaltDeploymentRepository=ossrh::default::${{ secrets.RELEASE_URL }} -s $GITHUB_WORKSPACE/settings.xml -f pom.xml
       env:
         GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         GPG_TTY: $(tty)
 
   docker-registration-processor-registration-transaction-service:
     needs: build
-
     runs-on: ubuntu-latest
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-registration-transaction-service
       SERVICE_LOCATION: registration-processor/post-processor/registration-processor-registration-transaction-service
-
     steps:
       - uses: actions/checkout@v2
       - uses: actions/download-artifact@v1
@@ -369,11 +403,11 @@ jobs:
       
       - name: Unzip and extract the ${{ env.SERVICE_NAME }}
         run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-        
+
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-        
+
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
@@ -388,7 +422,11 @@ jobs:
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
           echo "push version ${{steps.getPomVersion.outputs.info}}"
-          VERSION=$BRANCH_NAME
+          if [[ $BRANCH_NAME == master ]]; then
+            VERSION=latest
+          else
+            VERSION=$BRANCH_NAME
+          fi
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
           docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
@@ -424,11 +462,11 @@ jobs:
       
       - name: Unzip and extract the ${{ env.SERVICE_NAME }}
         run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-        
+
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-        
+
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
@@ -443,7 +481,11 @@ jobs:
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
           echo "push version ${{steps.getPomVersion.outputs.info}}"
-          VERSION=$BRANCH_NAME
+          if [[ $BRANCH_NAME == master ]]; then
+            VERSION=latest
+          else
+            VERSION=$BRANCH_NAME
+          fi
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
           docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
@@ -482,7 +524,7 @@ jobs:
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-        
+
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
@@ -497,7 +539,11 @@ jobs:
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
           echo "push version ${{steps.getPomVersion.outputs.info}}"
-          VERSION=$BRANCH_NAME
+          if [[ $BRANCH_NAME == master ]]; then
+            VERSION=latest
+          else
+            VERSION=$BRANCH_NAME
+          fi
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
           docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
@@ -526,11 +572,11 @@ jobs:
         with:
           xml-file: ./${{ env.SERVICE_LOCATION }}/version.xml
           xpath: version
-          
+
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-        
+
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
@@ -585,7 +631,7 @@ jobs:
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-        
+
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
@@ -600,7 +646,11 @@ jobs:
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
           echo "push version ${{steps.getPomVersion.outputs.info}}"
-          VERSION=$BRANCH_NAME
+          if [[ $BRANCH_NAME == master ]]; then
+            VERSION=latest
+          else
+            VERSION=$BRANCH_NAME
+          fi
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
           docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
@@ -636,11 +686,11 @@ jobs:
 
       - name: Unzip and extract the ${{ env.SERVICE_NAME }}
         run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-       
+
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-        
+
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
@@ -655,7 +705,11 @@ jobs:
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
           echo "push version ${{steps.getPomVersion.outputs.info}}"
-          VERSION=$BRANCH_NAME
+          if [[ $BRANCH_NAME == master ]]; then
+            VERSION=latest
+          else
+            VERSION=$BRANCH_NAME
+          fi
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
           docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
@@ -691,11 +745,11 @@ jobs:
 
       - name: Unzip and extract the ${{ env.SERVICE_NAME }}
         run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-      
+
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-        
+
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
@@ -710,19 +764,22 @@ jobs:
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
           echo "push version ${{steps.getPomVersion.outputs.info}}"
-          VERSION=$BRANCH_NAME
+          if [[ $BRANCH_NAME == master ]]; then
+            VERSION=latest
+          else
+            VERSION=$BRANCH_NAME
+          fi
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
           docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
           docker push $IMAGE_ID:$VERSION
-
+          
   sonar_analysis:
     runs-on: ubuntu-latest
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-client
       SERVICE_LOCATION: registration
-
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 11
@@ -738,6 +795,7 @@ jobs:
           # Strip git ref prefix from version
           echo "BRANCH_NAME=$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')" >> $GITHUB_ENV
           echo "GPG_TTY=$(tty)" >> $GITHUB_ENV
+          
       - uses: actions/cache@v1
         with:
           path: ~/.m2/repository
@@ -766,4 +824,4 @@ jobs:
           fields: repo,message,author,ref,job # selectable (default: repo,message)
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEVOPS_WEBHOOK }} # required
-        if: failure() # Pick up events even if the job fails or is canceled.
+        if: failure() # Pick up events even if the job fails or is canceled.          

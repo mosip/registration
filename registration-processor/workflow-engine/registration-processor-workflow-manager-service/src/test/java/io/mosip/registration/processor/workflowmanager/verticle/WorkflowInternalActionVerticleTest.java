@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +33,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.mosip.kernel.biometrics.entities.Entry;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
@@ -651,12 +651,12 @@ public class WorkflowInternalActionVerticleTest {
 		Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any()))
 				.thenReturn("1.0");
 		Mockito.when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(Arrays.asList(""));
-		
+
 		Map<String, String> fieldTypeMap = new HashedMap();
 		fieldTypeMap.put("postalCode", "string");
 		fieldTypeMap.put("zone", "simpleType");
 		Mockito.when(idSchemaUtil.getIdSchemaFieldTypes(anyDouble())).thenReturn(fieldTypeMap);
-		
+
 		Map<String, String> fieldMap = new HashedMap();
 		fieldMap.put("postalCode", "14022");
 		fieldMap.put("dateOfBirth", "1998/01/01");
@@ -672,13 +672,11 @@ public class WorkflowInternalActionVerticleTest {
 
 		BiometricRecord biometricRecord = new BiometricRecord();
 		BIR bir = new BIR();
-		Entry entry = new Entry();
+		HashMap<String, String> entry = new HashMap<>();
 		bir.setSb("eyJ4NWMiOlsiTUlJRGtEQ0NBbmlnQXdJQkFnSUVwNzo".getBytes());
 		bir.setBdb("SUlSADAyMAAAACc6AAEAAQAAJyoH5AoJECYh//8Bc18wBgAAAQIDCgABlwExCA".getBytes());
-		entry.setKey("PAYLOAD");
-		entry.setValue(
-				"{\"deviceServiceVersion\":\"0.9.5\",\"bioValue\":\"<bioValue>\",\"qualityScore\":\"80\",\"bioType\":\"Iris\"}");
-		bir.setOthers(Arrays.asList(entry));
+		entry.put("PAYLOAD", "{\"deviceServiceVersion\":\"0.9.5\",\"bioValue\":\"<bioValue>\",\"qualityScore\":\"80\",\"bioType\":\"Iris\"}");
+		bir.setOthers(entry);
 		biometricRecord.setSegments(Arrays.asList(bir));
 		Mockito.when(packetManagerService.getBiometrics(anyString(), anyString(), anyString(), any()))
 				.thenReturn(biometricRecord);

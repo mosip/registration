@@ -1,6 +1,8 @@
 
 package io.mosip.registration.processor.camel.bridge.config;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
@@ -32,7 +34,9 @@ public class CamelBridgeConfig {
 	@Bean
 	@Primary
 	public ObjectMapper getObjectMapper() {
-		return new ObjectMapper().registerModule(new JavaTimeModule());
+		ObjectMapper objectMapper = new ObjectMapper().registerModule(new AfterburnerModule()).registerModule(new JavaTimeModule());
+		objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+		return objectMapper;
 	}
 	
 	@Bean

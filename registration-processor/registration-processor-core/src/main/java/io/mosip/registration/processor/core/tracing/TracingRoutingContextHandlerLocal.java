@@ -6,6 +6,10 @@ import brave.http.HttpServerHandler;
 import brave.http.HttpTracing;
 import brave.propagation.Propagation;
 import brave.propagation.TraceContext;
+import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
@@ -18,6 +22,7 @@ import io.vertx.ext.web.RoutingContext;
  */
 final class TracingRoutingContextHandlerLocal implements Handler<RoutingContext> {
 
+	private static Logger regProcLogger = RegProcessorLogger.getLogger(TracingRoutingContextHandlerLocal.class);
     static final Propagation.Getter<HttpServerRequest, String> GETTER = new Propagation.Getter<HttpServerRequest, String>() {
         public String get(HttpServerRequest carrier, String key) {
             return carrier.getHeader(key);
@@ -60,12 +65,16 @@ final class TracingRoutingContextHandlerLocal implements Handler<RoutingContext>
             if (ws != null)
                 ws.close();
         } catch (Throwable throwable) {
-            throwable.printStackTrace();
+        	regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+					LoggerFileConstant.REGISTRATIONID.toString(), "",
+					throwable.getMessage() + ExceptionUtils.getStackTrace(throwable));
             if (ws != null)
                 try {
                     ws.close();
                 } catch (Throwable throwable1) {
-                    throwable1.printStackTrace();
+                	regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+        					LoggerFileConstant.REGISTRATIONID.toString(), "",
+        					throwable1.getMessage() + ExceptionUtils.getStackTrace(throwable1));
                     throwable.addSuppressed(throwable1);
                 }
             throw throwable;

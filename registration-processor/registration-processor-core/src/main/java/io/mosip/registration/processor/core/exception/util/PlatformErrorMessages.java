@@ -537,6 +537,9 @@ public enum PlatformErrorMessages {
 	/** The INTRODUCER validation failed. */
 	INTRODUCER_VALIDATION_FAILED(PlatformConstants.RPR_IVM_VALIDATOR_MODULE + "000", "INTRODUCER Validation Failed"),
 
+	/** The INTRODUCER validation failed. */
+	INTRODUCER_ON_HOLD(PlatformConstants.RPR_IVM_VALIDATOR_MODULE + "001", "Packet on hold as introducer packet is not processed yet"),
+
 	/** The packet demo dedupe failed. */
 	// Stages - Demo-Dedupe error code and message
 	PACKET_DEMO_DEDUPE_FAILED(PlatformConstants.RPR_DEMO_DEDUPE_MODULE+"000", "Demo Dedupe Failed"),
@@ -683,102 +686,105 @@ public enum PlatformErrorMessages {
 	RPR_RCT_UNKNOWN_RESOURCE_EXCEPTION(PlatformConstants.RPR_REST_CLIENT_MODULE + "001", "Unknown resource provided"),
 
 	/** The rpr mvs invalid file request. */
-	RPR_MVS_INVALID_FILE_REQUEST(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "001", "Invalid file requested"),
+	RPR_MVS_INVALID_FILE_REQUEST(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "001", "Invalid file requested"),
 
 	/** The rpr mvs file not present. */
-	RPR_MVS_FILE_NOT_PRESENT(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "002", "Requested file is not present"),
+	RPR_MVS_FILE_NOT_PRESENT(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "002", "Requested file is not present"),
 
 	/** The rpr mvs invalid status update. */
-	RPR_MVS_INVALID_STATUS_UPDATE(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "003", "Invalid status update"),
+	RPR_MVS_INVALID_STATUS_UPDATE(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "003", "Invalid status update"),
 
 	/** The rpr mvs invalid field. */
-	RPR_MVS_INVALID_FIELD(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "005", " fields can not be empty"),
+	RPR_MVS_INVALID_FIELD(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "005", " fields can not be empty"),
 
 	/** The rpr mvs no assigned record. */
-	RPR_MVS_NO_ASSIGNED_RECORD(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "004", "No Assigned Record Found"),
+	RPR_MVS_NO_ASSIGNED_RECORD(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "004", "No Assigned Record Found"),
 
 	/** The rpr mvs file not found in packet store. */
-	RPR_MVS_FILE_NOT_FOUND_IN_PACKET_STORE(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "018",
+	RPR_MVS_FILE_NOT_FOUND_IN_PACKET_STORE(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "018",
 			"Packet Not Found in Packet Store"),
 
 	/** The rpr mvs missing input parameter version. */
-	RPR_MVS_MISSING_INPUT_PARAMETER_VERSION(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "019",
+	RPR_MVS_MISSING_INPUT_PARAMETER_VERSION(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "019",
 			"Missing Input Parameter - version"),
 
 	/** The rpr mvs missing input parameter timestamp. */
-	RPR_MVS_MISSING_INPUT_PARAMETER_TIMESTAMP(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "006",
+	RPR_MVS_MISSING_INPUT_PARAMETER_TIMESTAMP(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "006",
 			"Missing Input Parameter - requesttime"),
 
 	/** The rpr mvs missing input parameter id. */
-	RPR_MVS_MISSING_INPUT_PARAMETER_ID(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "007",
+	RPR_MVS_MISSING_INPUT_PARAMETER_ID(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "007",
 			"Missing Input Parameter - id"),
 
 	/** The rpr mvs invalid input parameter version. */
-	RPR_MVS_INVALID_INPUT_PARAMETER_VERSION(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "008",
+	RPR_MVS_INVALID_INPUT_PARAMETER_VERSION(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "008",
 			"Invalid Input Parameter - version"),
 
 	/** The rpr mvs invalid input parameter timestamp. */
-	RPR_MVS_INVALID_INPUT_PARAMETER_TIMESTAMP(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "009",
+	RPR_MVS_INVALID_INPUT_PARAMETER_TIMESTAMP(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "009",
 			"Invalid Input Parameter - requesttime"),
 
 	/** The rpr mvs invalid input parameter id. */
-	RPR_MVS_INVALID_INPUT_PARAMETER_ID(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "010",
+	RPR_MVS_INVALID_INPUT_PARAMETER_ID(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "010",
 			"Invalid Input Parameter - id"),
 
 	/** The rpr mvs invalid argument exception. */
-	RPR_MVS_INVALID_ARGUMENT_EXCEPTION(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "011",
+	RPR_MVS_INVALID_ARGUMENT_EXCEPTION(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "011",
 			"Invalid Argument Exception"),
 
 	/** The rpr mvs unknown exception. */
-	RPR_MVS_UNKNOWN_EXCEPTION(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "012", "Unknown Exception"),
+	RPR_MVS_UNKNOWN_EXCEPTION(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "012", "Unknown Exception"),
 
 	/** The rpr mvs decode exception. */
-	RPR_MVS_DECODE_EXCEPTION(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "013", "Request Decoding Exception"),
+	RPR_MVS_DECODE_EXCEPTION(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "013", "Request Decoding Exception"),
 	/** The rpr mvs no user id present. */
-	RPR_MVS_NO_USER_ID_PRESENT(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "014",
+	RPR_MVS_NO_USER_ID_PRESENT(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "014",
 			"User Id does not exists master list"),
 
 	/** The rpr mvs no user id should not empty or null. */
-	RPR_MVS_NO_USER_ID_SHOULD_NOT_EMPTY_OR_NULL(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "017",
+	RPR_MVS_NO_USER_ID_SHOULD_NOT_EMPTY_OR_NULL(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "017",
 			"User Id should not empty or null "),
 
 	/** The rpr mvs no registration id should not empty or null. */
-	RPR_MVS_NO_RID_SHOULD_NOT_EMPTY_OR_NULL(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "022",
+	RPR_MVS_NO_RID_SHOULD_NOT_EMPTY_OR_NULL(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "022",
 			"Registration Id should not empty or null "),
 
 	/** The rpr mvs no matched ref id found for given ref id. */
-	RPR_MVS_NO_MATCHEDRID_FOUND_FOR_GIVEN_RID(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "023",
+	RPR_MVS_NO_MATCHEDRID_FOUND_FOR_GIVEN_RID(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "023",
 			"No matched reference id found for given RID"),
 	/** The rpr mvs user status not active. */
-	RPR_MVS_USER_STATUS_NOT_ACTIVE(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "015",
+	RPR_MVS_USER_STATUS_NOT_ACTIVE(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "015",
 			"User is not in ACTIVE status"),
 
 	/** The rpr mvs no match type present. */
-	RPR_MVS_NO_MATCH_TYPE_PRESENT(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "020", "Match Type is Invalid"),
+	RPR_MVS_NO_MATCH_TYPE_PRESENT(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "020", "Match Type is Invalid"),
 
 	/** The rpr mvs reg id should not empty or null. */
-	RPR_MVS_REG_ID_SHOULD_NOT_EMPTY_OR_NULL(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "016",
+	RPR_MVS_REG_ID_SHOULD_NOT_EMPTY_OR_NULL(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "016",
 			"Reg Id should not be null or empty"),
 
 	/** The rpr manual verification rejected. */
-	RPR_MANUAL_VERIFICATION_REJECTED(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "021",
+	RPR_MANUAL_VERIFICATION_REJECTED(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "021",
 			"Manual verification rejected"),
 
 	/** The rpr manual verification rejected. */
-	RPR_MANUAL_VERIFICATION_RESEND(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "025",
+	RPR_MANUAL_VERIFICATION_RESEND(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "025",
 			"Manual verification resend to queue."),
 
 	/** The rpr table not accessible. */
-	RPR_TABLE_NOT_ACCESSIBLE(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "022",
+	RPR_TABLE_NOT_ACCESSIBLE(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "022",
 			"TablenotAccessibleException in Manual verification"),
 
 	/** The rpr table not accessible. */
-	RPR_INVALID_MESSSAGE(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "023",
+	RPR_INVALID_MESSSAGE(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "023",
 			"Invalid message received from queue"),
 
 	/** The rpr table not accessible. */
-	RPR_INVALID_RID_FOUND(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "024",
+	RPR_INVALID_RID_FOUND(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "024",
 			"Multiple rids found for a reference id"),
+	
+	MANUAL_VERIFICATION_FAILED(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "025",
+			"Manual adjudication failed"),
 
 	/** The rpr tem not found. */
 	// Registration processor Message sender Exception error code
@@ -1022,6 +1028,9 @@ public enum PlatformErrorMessages {
 
 	/** The rpr utl digital sign exception. */
 	RPR_UTL_DIGITAL_SIGN_EXCEPTION(PlatformConstants.RPR_UTIL + "003", "Failed to generate digital signature"),
+
+	/** The rpr utl language exception. */
+	RPR_UTL_LANGUAGE_EXCEPTION(PlatformConstants.RPR_UTIL + "004", "Failed to retrieve language details."),
 
 	/** The rpr prt pdf not generated. */
 	// Printing stage exceptions

@@ -1,16 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_regprc
--- Table Name 	: regprc.abis_application
--- Purpose    	: ABIS Application: List of ABIS (Automatic Biometric Identification System) applications with whom MOSIP application interfaces with.
---           
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
--- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes for 1.1.5
--- ------------------------------------------------------------------------------------------
+
 
 -- object: regprc.abis_application | type: TABLE --
 -- DROP TABLE IF EXISTS regprc.abis_application CASCADE;

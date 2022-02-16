@@ -44,6 +44,22 @@ public class PacketClassifierUtilityTest {
 		assertEquals("Male", packetClassifierUtility.getLanguageBasedValueForSimpleType(value));
 	}
 	
+	@Test
+	public void getLanguageBasedValueForSimpleTypeFirstLangValueNull() throws Exception {
+
+		mandatoryLanguages = new ArrayList<String>();
+		mandatoryLanguages.add("eng");
+		mandatoryLanguages.add("ara");
+
+		optionalLanguages = new ArrayList<String>();
+		optionalLanguages.add("fra");
+		Whitebox.setInternalState(packetClassifierUtility, "mandatoryLanguages", mandatoryLanguages);
+		Whitebox.setInternalState(packetClassifierUtility, "optionalLanguages", optionalLanguages);
+
+		String value = "[{\"language\" : \"eng\", \"value\" : null}, {\"language\" : \"ara\",\"value\" : \"ذكر\"}]";
+		assertEquals(null, packetClassifierUtility.getLanguageBasedValueForSimpleType(value));
+	}
+	
 	@Test(expected = BaseCheckedException.class)
 	public void getLanguageBasedValueForSimpleTypeFirstLangNotAvailable() throws Exception {
 
@@ -72,6 +88,20 @@ public class PacketClassifierUtilityTest {
 		
 		String value = "[{\"language\" : \"eng\", \"value\" : \"Male\"}, {\"language\" : \"ara\",\"value\" : \"ذكر\"}]";
 		assertEquals("Male", packetClassifierUtility.getLanguageBasedValueForSimpleType(value));
+	}
+	
+	@Test
+	public void getLanguageBasedValueForSimpleTypeOptionalFirstLangValueNull() throws Exception {
+
+		mandatoryLanguages = new ArrayList<String>();
+
+		optionalLanguages = new ArrayList<String>();
+		optionalLanguages.add("eng");
+		Whitebox.setInternalState(packetClassifierUtility, "mandatoryLanguages", mandatoryLanguages);
+		Whitebox.setInternalState(packetClassifierUtility, "optionalLanguages", optionalLanguages);
+
+		String value = "[{\"language\" : \"eng\", \"value\" : null}, {\"language\" : \"ara\",\"value\" : \"ذكر\"}]";
+		assertEquals(null, packetClassifierUtility.getLanguageBasedValueForSimpleType(value));
 	}
 	
 	@Test

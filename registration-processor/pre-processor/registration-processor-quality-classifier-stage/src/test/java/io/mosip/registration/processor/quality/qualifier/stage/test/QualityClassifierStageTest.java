@@ -29,6 +29,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.reflect.Whitebox;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.kernel.biometrics.constant.BiometricFunction;
@@ -295,9 +296,9 @@ public class QualityClassifierStageTest {
 	}
 
 	@Test
-	public void testQualityClassifierMixTags() throws ApisResourceAccessException, IOException, PacketManagerException,
-			JsonProcessingException, BiometricException {
+	public void testQualityClassifierMixTags() throws Exception {
 
+		Whitebox.invokeMethod(qualityClassifierStage, "generateParsedQualityRangeMap");
 		when(basedPacketManagerService.getBiometricsByMappingJsonKey(any(), any(), any(), any()))
 				.thenReturn(getMockBiometricRecord());
 

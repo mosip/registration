@@ -113,7 +113,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
 	@Autowired
 	private WorkflowActionService workflowActionService;
-	
+
 	@Autowired
 	private AnonymousProfileService anonymousProfileService;
 
@@ -255,13 +255,13 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
 	private void processAnonymousProfile(WorkflowInternalActionDTO workflowInternalActionDTO)
 			throws IOException, JSONException, BaseCheckedException {
-		
+
 		String json = null;
 		String registrationId = workflowInternalActionDTO.getRid();
 		String registrationType = workflowInternalActionDTO.getReg_type();
 
 		regProcLogger.info("processAnonymousProfile called for registration id {}", registrationId);
-		
+
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(
 				registrationId, registrationType, workflowInternalActionDTO.getIteration(),
 				workflowInternalActionDTO.getWorkflowInstanceId());
@@ -283,7 +283,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		anonymousProfileService.saveAnonymousProfile(registrationId, registrationStatusDto.getRegistrationStageName(), json);
 		
 		this.send(this.mosipEventBus, new MessageBusAddress(anonymousProfileBusAddress), workflowInternalActionDTO);
-		
+
 		regProcLogger.info("processAnonymousProfile ended for registration id {}", registrationId);
 	}
 
@@ -357,7 +357,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
 		registrationStatusDto.setSubStatusCode(StatusUtil.WORKFLOW_INTERNAL_ACTION_SUCCESS.getCode());
 		registrationStatusService.updateRegistrationStatusForWorkflowEngine(registrationStatusDto, MODULE_ID, MODULE_NAME);
-
+		
 		if (additionalInfoRequestDto != null) {
 			Map<String, String> tags = new HashMap<String, String>();
 			tags.put(workflowInternalActionDTO.getReg_type() + "_FLOW_STATUS",
@@ -561,6 +561,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 				maxAllowedIteration=defaultMaxAllowedIteration;
 			}
 			if (additionalInfoRequestDtos != null && !additionalInfoRequestDtos.isEmpty() && additionalInfoRequestDtos.get(0).getAdditionalInfoIteration()>=maxAllowedIteration) {
+				workflowInternalActionDTO.setActionMessage(StatusUtil.WORKFLOW_INTERNAL_ACTION_REJECTED_ITERATIONS_EXCEEDED_LIMIT.getMessage());
 				processCompleteAsRejected(workflowInternalActionDTO);
 			}else {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PAUSED_FOR_ADDITIONAL_INFO.toString());

@@ -67,7 +67,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 
 	/** The mosip event bus. */
 	MosipEventBus mosipEventBus = null;
-
+	
 	/** The fetch size. */
 	@Value("${registration.processor.reprocess.fetchsize}")
 	private Integer fetchSize;
@@ -225,7 +225,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 						reprocessCount, statusList);
 			}
 
-
+			
 			if (!CollectionUtils.isEmpty(reprocessorDtoList)) {
 				reprocessorDtoList.forEach(dto -> {
 					String registrationId = dto.getRegistrationId();
@@ -283,11 +283,12 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 					String eventName = EventName.UPDATE.toString();
 					String eventType = EventType.BUSINESS.toString();
 
-					auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName,
-							eventType, moduleId, moduleName, registrationId);
+					if (!isTransactionSuccessful)
+						auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName,
+								eventType, moduleId, moduleName, registrationId);
 				});
+			
 			}
-
 		} catch (TablenotAccessibleException e) {
 			isTransactionSuccessful = false;
 			object.setInternalError(Boolean.TRUE);
@@ -303,7 +304,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 			description.setCode(PlatformErrorMessages.REPROCESSOR_VERTICLE_FAILED.getCode());
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					description.getCode() + " -- ",
-					PlatformErrorMessages.UNKNOWN_EXCEPTION.getMessage() + ex.getMessage()
+					PlatformErrorMessages.REPROCESSOR_VERTICLE_FAILED.getMessage() + ex.getMessage()
 							+ ExceptionUtils.getStackTrace(ex));
 			object.setInternalError(Boolean.TRUE);
 
@@ -327,7 +328,9 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 
 		return object;
 	}
-
+	
+	
+	
 	@Override
 	protected String getPropertyPrefix() {
 		return VERTICLE_PROPERTY_PREFIX;

@@ -239,7 +239,7 @@ public class RegistrationProcessorRestClientServiceTest {
 		registrationProcessorRestClientService.postApi("AUDIT", null, pathSegments, Arrays.asList("query1"),
 				Arrays.asList("12345"), auditRequestDto, AuditResponseDto.class);
 	}
-	
+
 	@Test
 	public void headObjectSuccessTest() throws Exception {
 		Mockito.when(env.getProperty(ArgumentMatchers.any())).thenReturn("AUDIT");
@@ -250,7 +250,7 @@ public class RegistrationProcessorRestClientServiceTest {
 		Object result = registrationProcessorRestClientService.headApi(ApiName.AUDIT, pathSegments, Arrays.asList("query1"), Arrays.asList("12345"));
 		assertEquals(1, result);
 	}
-	
+
 	@Test(expected = ApisResourceAccessException.class)
 	public void headObjectTestFailureTest() throws Exception {
 		Mockito.when(env.getProperty(ArgumentMatchers.any())).thenReturn("AUDIT");
