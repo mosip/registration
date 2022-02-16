@@ -496,7 +496,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 			messageDTO.setInternalError(Boolean.TRUE);
 			description.setMessage(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode());
-			dto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+			dto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 			dto.setStatusComment(trimExpMessage.trimExceptionMessage(
 					StatusUtil.IO_EXCEPTION.getMessage() + e.getMessage()));
 			dto.setSubStatusCode(StatusUtil.IO_EXCEPTION.getCode());
