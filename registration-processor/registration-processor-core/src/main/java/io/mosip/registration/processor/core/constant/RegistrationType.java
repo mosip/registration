@@ -32,7 +32,7 @@ public enum RegistrationType {
 
 	RES_REPRINT("res_reprint");
 
-	public String regType;
+	private String regType;
 
 	private RegistrationType(String regType) {
 		this.regType = regType;
