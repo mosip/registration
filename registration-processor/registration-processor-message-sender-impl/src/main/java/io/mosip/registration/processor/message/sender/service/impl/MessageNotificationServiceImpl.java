@@ -313,7 +313,7 @@ public class MessageNotificationServiceImpl
 					for(String lang:preferredLang.split(",")) {
 						String langCode=languageUtility.getLangCodeFromNativeName(lang);
 						if(langCode!=null &&!langCode.isBlank())
-						codes.add(langCode);
+							codes.add(langCode);
 					}
 					if(!codes.isEmpty())return codes;
 				}
