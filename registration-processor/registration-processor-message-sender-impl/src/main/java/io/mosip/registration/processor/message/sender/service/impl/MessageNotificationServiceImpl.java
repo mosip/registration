@@ -311,7 +311,9 @@ public class MessageNotificationServiceImpl
 				if(preferredLang!=null && !preferredLang.isBlank()) {
 					List<String> codes=new ArrayList<>();
 					for(String lang:preferredLang.split(",")) {
-						codes.add(languageUtility.getLangCodeFromNativeName(lang));
+						String langCode=languageUtility.getLangCodeFromNativeName(lang);
+						if(langCode!=null &&!langCode.isBlank())
+							codes.add(langCode);
 					}
 					if(!codes.isEmpty())return codes;
 				}
