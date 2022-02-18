@@ -9,6 +9,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
+import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -42,11 +43,21 @@ public class JsonUtil {
 	/** The Constant VALUE. */
 	private static final String VALUE = "value";
 
+	private static ObjectMapper objectMapper = null;
+
 	/**
 	 * Instantiates a new json util.
 	 */
 	private JsonUtil() {
 
+	}
+
+	private static ObjectMapper getObjectMapper() {
+		if (objectMapper == null) {
+			objectMapper = new ObjectMapper().registerModule(new AfterburnerModule()).registerModule(new JavaTimeModule());
+			objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+		}
+		return objectMapper;
 	}
 
 	/**
@@ -177,14 +188,12 @@ public class JsonUtil {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> T objectMapperReadValue(String jsonString, Class<?> clazz) throws IOException {
-		ObjectMapper objectMapper = new ObjectMapper();
-		return (T) objectMapper.readValue(jsonString, clazz);
+		return (T) getObjectMapper().readValue(jsonString, clazz);
 	}
 
 
 	public static <T> T readValueWithUnknownProperties(String jsonString, Class<?> clazz) throws IOException {
-		ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		return (T) objectMapper.readValue(jsonString, clazz);
+		return (T) getObjectMapper().readValue(jsonString, clazz);
 	}
 
 	/**
@@ -260,8 +269,7 @@ public class JsonUtil {
 	
 	
 	public static String objectMapperObjectToJson(Object obj) throws IOException {
-		ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
-		return objectMapper.writeValueAsString(obj);
-	} 
+		return getObjectMapper().writeValueAsString(obj);
+	}
 
 }
