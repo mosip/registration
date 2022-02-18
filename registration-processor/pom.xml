@@ -359,7 +359,6 @@
 		<module>registration-processor-bio-dedupe-service-impl</module>
 		<module>registration-processor-info-storage-service</module>
 		<module>registration-processor-registration-status-service-impl</module>
-        <!-- <module>registration-processor-quality-checker</module> -->
 		<module>registration-processor-message-sender-impl</module>
 		<module>registration-processor-notification-service</module>
 		<module>init</module>

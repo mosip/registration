@@ -75,6 +75,7 @@ public class DemodedupeProcessor {
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(DemodedupeProcessor.class);
+	private static final String MANUAL_VERIFICATION_STATUS = "PENDING";
 
 	/** The registration status service. */
 	@Autowired
@@ -127,6 +128,9 @@ public class DemodedupeProcessor {
 
 	@Value("${registration.processor.infant.dedupe}")
 	private String infantDedupe;
+
+	@Value("${registration.processor.demodedupe.manual.adjudication.status}")
+	private String manualVerificationStatus;
 
 	/**
 	 * Process.
@@ -513,10 +517,20 @@ public class DemodedupeProcessor {
 				description.setCode(PlatformSuccessMessages.RPR_PKR_DEMO_DE_DUP.getCode());
 				description.setMessage(PlatformSuccessMessages.RPR_PKR_DEMO_DE_DUP.getMessage());
 			} else {
-				object.setIsValid(Boolean.FALSE);
+				if (manualVerificationStatus != null && manualVerificationStatus.equalsIgnoreCase(MANUAL_VERIFICATION_STATUS)) {
+					//send message to manual adjudication
+					object.setInternalError(Boolean.FALSE);
+					object.setRid(registrationStatusDto.getRegistrationId());
+					object.setIsValid(Boolean.TRUE);
+					object.setMessageBusAddress(MessageBusAddress.MANUAL_ADJUDICATION_BUS_IN);
+					registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+				} else {
+					object.setIsValid(Boolean.FALSE);
+					registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
+				}
+
 				registrationStatusDto
 						.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
-				registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
 				registrationStatusDto.setStatusComment(StatusUtil.POTENTIAL_MATCH_FOUND_IN_ABIS.getMessage());
 				registrationStatusDto.setSubStatusCode(StatusUtil.POTENTIAL_MATCH_FOUND_IN_ABIS.getCode());
 				description.setCode(PlatformErrorMessages.RPR_DEMO_SENDING_FOR_MANUAL.getCode());
