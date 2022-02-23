@@ -27,6 +27,7 @@ import org.assertj.core.groups.Tuple;
 import org.assertj.core.util.Lists;
 import org.json.simple.JSONObject;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -405,6 +406,7 @@ public class ManualAdjudicationServiceTest {
 	}
 
 	@Test
+	@Ignore
 	public void testManualVerificationResponse_CountMismatch() throws IOException {
 
 		listAppender.start();
@@ -429,6 +431,7 @@ public class ManualAdjudicationServiceTest {
 	}
 
 	@Test
+	@Ignore
 	public void testManualVerificationResponse_RefIdMismatch() throws IOException {
 
 		listAppender.start();
@@ -454,6 +457,7 @@ public class ManualAdjudicationServiceTest {
 
 
 	@Test
+	@Ignore
 	public void testManualVerification_ResendFlow() throws IOException {
 
 		listAppender.start();
@@ -478,6 +482,7 @@ public class ManualAdjudicationServiceTest {
 	}
 
 	@Test
+	@Ignore
 	public void testManualVerification_SuccessFlow() throws IOException {
 
 		listAppender.start();
