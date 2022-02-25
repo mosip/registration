@@ -27,6 +27,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
@@ -75,14 +76,9 @@ public class RestApiClient {
 
 	private static final String AUTHORIZATION = "Authorization=";
 
+	@Autowired
+	@Qualifier("selfTokenRestTemplate")
 	RestTemplate localRestTemplate;
-
-	@PostConstruct
-	private void loadRestTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
-		localRestTemplate = getRestTemplate();
-		logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-				LoggerFileConstant.APPLICATIONID.toString(), "loadRestTemplate completed successfully");
-	}
 
 	/**
 	 * Gets the api. *
@@ -212,33 +208,8 @@ public class RestApiClient {
 		}
 	}
 
-	public RestTemplate getRestTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
-		if (localRestTemplate != null)
-			return localRestTemplate;
-
-		logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-				LoggerFileConstant.APPLICATIONID.toString(), Arrays.asList(environment.getActiveProfiles()).toString());
-		if (Arrays.stream(environment.getActiveProfiles()).anyMatch("dev-k8"::equals)) {
-			logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-					LoggerFileConstant.APPLICATIONID.toString(),
-					Arrays.asList(environment.getActiveProfiles()).toString());
-			return new RestTemplate();
-		} else {
-			TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
-
-			SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
-					.loadTrustMaterial(null, acceptingTrustStrategy).build();
-
-			SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext);
-
-			CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(csf).build();
-
-			HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-
-			requestFactory.setHttpClient(httpClient);
-			return new RestTemplate(requestFactory);
-		}
-
+	public RestTemplate getRestTemplate() {
+		return localRestTemplate;
 	}
 
 	/**
@@ -252,7 +223,7 @@ public class RestApiClient {
 	@SuppressWarnings("unchecked")
 	private HttpEntity<Object> setRequestHeader(Object requestType, MediaType mediaType) throws IOException {
 		MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
-		headers.add("Cookie", getToken());
+		//headers.add("Cookie", getToken());
 		headers.add(TracingConstant.TRACE_HEADER, (String) ContextualData.getOrDefault(TracingConstant.TRACE_ID_KEY));
 		if (mediaType != null) {
 			headers.add("Content-Type", mediaType.toString());

@@ -108,9 +108,8 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 	}
 	
 	public <T> HttpEntity<T> postApi(String uri, MediaType mediaType, HttpEntity<?> requestEntity, Class<T> responseClass) throws Exception {
-		RestTemplate restTemplate;
 		try {
-			restTemplate = restApiClient.getRestTemplate();
+			RestTemplate restTemplate = restApiClient.getRestTemplate();
 			logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					LoggerFileConstant.APPLICATIONID.toString(), uri);
 			return restTemplate.exchange(uri, HttpMethod.POST, requestEntity, responseClass);
