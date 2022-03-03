@@ -16,7 +16,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.processor.core.constant.VidType;
+import io.mosip.registration.processor.core.idrepo.dto.VidInfoDTO;
+import io.mosip.registration.processor.core.idrepo.dto.VidsInfosDTO;
 import org.apache.commons.io.IOUtils;
+import org.assertj.core.util.Lists;
 import org.json.JSONException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -159,6 +163,8 @@ public class MessageNotificationServiceImplTest {
 	@Mock
 	private PriorityBasedPacketManagerService packetManagerService;
 
+	private VidsInfosDTO vidsInfosDTO = new VidsInfosDTO();
+
 	/**
 	 * Setup.
 	 *
@@ -177,6 +183,9 @@ public class MessageNotificationServiceImplTest {
 		fieldMap.put("email", "mono@mono.com");
 		fieldMap.put("phone", "23456");
 		fieldMap.put("dob", "11/11/2011");
+
+		VidInfoDTO vidInfoDTO = new VidInfoDTO("123456", VidType.PERPETUAL.name(), null, 1, null);
+		vidsInfosDTO.setResponse(Lists.newArrayList(vidInfoDTO));
 
 		when(packetManagerService.getFields(anyString(),anyList(),any(), any())).thenReturn(fieldMap);
 
@@ -287,6 +296,8 @@ public class MessageNotificationServiceImplTest {
 		wrapper.setResponse(smsResponseDto);
 		wrapper.setErrors(null);
 
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(vidsInfosDTO).thenReturn(idResponse)
+				.thenReturn(vidsInfosDTO).thenReturn(idResponse);
 		// Mockito.when(abisHandlerUtil.getUinFromIDRepo(any())).thenReturn(1234567);
 		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any()))
 				.thenReturn(wrapper);
@@ -429,7 +440,7 @@ public class MessageNotificationServiceImplTest {
 		uinList.add(uin);
 		// Mockito.when(abisHandlerUtil.getUinFromIDRepo(any())).thenReturn(1234567);
 		ApisResourceAccessException exp = new ApisResourceAccessException("Error Message");
-		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any(Class.class))).thenThrow(exp);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any(Class.class))).thenReturn(vidsInfosDTO).thenThrow(exp);
 		messageNotificationServiceImpl.sendSmsNotification("RPR_UIN_GEN_SMS", "27847657360002520181208094056",
 				"NEW", IdType.UIN, attributes, RegistrationType.DEACTIVATED.name());
 	}

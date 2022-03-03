@@ -15,6 +15,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import io.mosip.kernel.core.exception.BaseUncheckedException;
+import io.mosip.kernel.core.exception.ServiceError;
+import io.mosip.registration.processor.core.constant.*;
+import io.mosip.registration.processor.core.idrepo.dto.VidInfoDTO;
+import io.mosip.registration.processor.core.idrepo.dto.VidsInfosDTO;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -40,10 +45,6 @@ import io.mosip.kernel.core.util.exception.JsonMappingException;
 import io.mosip.kernel.core.util.exception.JsonParseException;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.code.ApiName;
-import io.mosip.registration.processor.core.constant.IdType;
-import io.mosip.registration.processor.core.constant.LoggerFileConstant;
-import io.mosip.registration.processor.core.constant.MappingJsonConstants;
-import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
@@ -445,6 +446,7 @@ public class MessageNotificationServiceImpl
 			uin = JsonUtil.getJSONValue(jsonObject, UIN);
 			attributes.put("RID", id);
 			attributes.put("UIN", uin);
+			attributes.put("VID", getVid(uin));
 		} else {
 			attributes.put("RID", id);
 		}
@@ -691,4 +693,41 @@ public class MessageNotificationServiceImpl
 			return attribute;
 			
 		}
+
+	private String getVid(String uin) throws ApisResourceAccessException {
+		List<String> pathsegments = new ArrayList<>();
+		pathsegments.add(uin);
+		String vid = null;
+
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+				"MessageNotificationServiceImpl::getVid():: get GETVIDSBYUIN service call started with request data : "
+		);
+
+		VidsInfosDTO vidsInfosDTO =  (VidsInfosDTO) restClientService.getApi(ApiName.GETVIDSBYUIN,
+				pathsegments, "", "", VidsInfosDTO.class);
+
+		if (vidsInfosDTO != null) {
+			if (vidsInfosDTO.getErrors() != null && !vidsInfosDTO.getErrors().isEmpty()) {
+				ServiceError error = vidsInfosDTO.getErrors().get(0);
+				throw new BaseUncheckedException(PlatformErrorMessages.RPR_PRT_VID_NOT_AVAILABLE_EXCEPTION.getCode(),
+						error.getMessage());
+
+			} else {
+				if(vidsInfosDTO.getResponse()!=null && !vidsInfosDTO.getResponse().isEmpty()) {
+					for (VidInfoDTO VidInfoDTO : vidsInfosDTO.getResponse()) {
+						if (VidType.PERPETUAL.name().equalsIgnoreCase(VidInfoDTO.getVidType())) {
+							vid = VidInfoDTO.getVid();
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+				LoggerFileConstant.REGISTRATIONID.toString(), "",
+				"MessageNotificationServiceImpl::getVid():: get GETVIDSBYUIN service call ended");
+
+		return vid;
+	}
 	}
