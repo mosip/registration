@@ -318,7 +318,7 @@ public class MessageNotificationServiceImpl
 					}
 					if(!codes.isEmpty())return codes;
 				}
-			}catch(ApisResourceAccessException e) {
+			}catch(Exception e) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 						id, PlatformErrorMessages.RPR_PGS_API_RESOURCE_NOT_AVAILABLE.name() + e.getMessage()
 								+ ExceptionUtils.getStackTrace(e));
