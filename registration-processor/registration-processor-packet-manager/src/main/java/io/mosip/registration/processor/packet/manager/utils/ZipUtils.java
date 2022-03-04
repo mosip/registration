@@ -84,50 +84,6 @@ public class ZipUtils {
 	}
 
 	/**
-	 * Method to unzip the file in-memeory and search the required file exists
-	 * 
-	 * @param packetStream
-	 *            zip file to be unzipped
-	 * @param file
-	 *            file to search within zip file
-	 * @return return true if found the required file, false otherwise
-	 * @throws IOException
-	 *             if any error occored while unzipping the file
-	 */
-	public static boolean unzipAndCheckIsFileExist(InputStream packetStream, String file) throws IOException {
-		boolean isExist = false;
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-				"ZipUtils::unzipAndCheckIsFileExist()::entry");
-
-		try (ZipInputStream zis = new ZipInputStream(packetStream)) {
-			ZipEntry ze = zis.getNextEntry();
-			while (ze != null) {
-				String fileName = ze.getName();
-				String fileNameWithOutExt = FilenameUtils.removeExtension(fileName);
-				if (FilenameUtils.equals(fileNameWithOutExt, file, true, IOCase.INSENSITIVE)) {
-					isExist = true;
-					break;
-				}
-				zis.closeEntry();
-				ze = zis.getNextEntry();
-			}
-			zis.closeEntry();
-		} finally {
-			packetStream.close();
-		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-				"ZipUtils::unzipAndCheckIsFileExist()::exit");
-
-		return isExist;
-	}
-
-	public static void zipSlipCompliant(String canonicalDestinationPath, String baseDirectory) throws IOException {
-	      if (!canonicalDestinationPath.startsWith(baseDirectory)) {
-	        throw new IOException("Entry is outside of the target directory");
-	      }
-	}
-
-	/**
 	 * Get all files from inside zip
 	 *
 	 * @param packetStream
