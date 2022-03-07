@@ -80,7 +80,7 @@ public class Encryptor {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 			
-			String syncInfo = CryptoUtil.encodeBase64String(syncMetaInfo.getBytes());
+			String syncInfo = CryptoUtil.encodeBase64(syncMetaInfo.getBytes());
 	        
 			CryptomanagerRequestDto cryptomanagerRequestDto = new CryptomanagerRequestDto();
 			cryptomanagerRequestDto.setPrependThumbprint(isPrependThumbprintEnabled);
@@ -94,8 +94,8 @@ public class Encryptor {
 			byte[] aad = new byte[CryptomanagerConstant.GCM_AAD_LENGTH];
 			sRandom.nextBytes(nonce);
 			sRandom.nextBytes(aad);
-			cryptomanagerRequestDto.setAad(CryptoUtil.encodeBase64String(aad));
-			cryptomanagerRequestDto.setSalt(CryptoUtil.encodeBase64String(nonce));
+			cryptomanagerRequestDto.setAad(CryptoUtil.encodeBase64(aad));
+			cryptomanagerRequestDto.setSalt(CryptoUtil.encodeBase64(nonce));
 			CryptomanagerResponseDto cryptomanagerResponseDto;
 
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
