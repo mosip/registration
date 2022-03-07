@@ -3,7 +3,6 @@ package io.mosip.registration.processor.reprocessor.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.web.client.RestTemplate;
 
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
@@ -30,14 +29,8 @@ public class ReprocessorConfigBeans {
 		return new RegistrationProcessorRestClientServiceImpl();
 	}
 
-
 	@Bean
 	public PacketManagerService getPacketManagerService() {
 		return new PacketManagerService();
-	}
-
-	@Bean
-	public RestTemplate getRestTemplate() {
-		return new RestTemplate();
 	}
 }
