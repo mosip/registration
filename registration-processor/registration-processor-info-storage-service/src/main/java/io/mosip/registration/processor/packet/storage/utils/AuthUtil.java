@@ -155,15 +155,15 @@ public class AuthUtil {
 		// Encrypted request with session key
 		byte[] encryptedIdentityBlock = encryptor.symmetricEncrypt(secretKey, identityBlock.getBytes(), null);
 		// rbase64 encoded for request
-		authRequestDTO.setRequest(Base64.encodeBase64URLSafeString(encryptedIdentityBlock));
+		authRequestDTO.setRequest(CryptoUtil.encodeBase64(encryptedIdentityBlock));
 		// encrypted with MOSIP public key and encoded session key
 		byte[] encryptedSessionKeyByte = encryptRSA(secretKey.getEncoded(), PARTNER_ID, mapper);
-		authRequestDTO.setRequestSessionKey(Base64.encodeBase64URLSafeString(encryptedSessionKeyByte));
+		authRequestDTO.setRequestSessionKey(CryptoUtil.encodeBase64(encryptedSessionKeyByte));
 		// sha256 of the request block before encryption and the hash is encrypted
 		// using the requestSessionKey
 		byte[] byteArray = encryptor.symmetricEncrypt(secretKey,
 				HMACUtils2.digestAsPlainText(identityBlock.getBytes()).getBytes(), null);
-		authRequestDTO.setRequestHMAC(Base64.encodeBase64String(byteArray));
+		authRequestDTO.setRequestHMAC(CryptoUtil.encodeBase64(byteArray));
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), individualId,
 				"AuthUtil::authByIdAuthentication()::INTERNALAUTH POST service call started");
 
