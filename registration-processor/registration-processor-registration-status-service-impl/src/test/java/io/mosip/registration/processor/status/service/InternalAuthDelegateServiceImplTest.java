@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 
+import java.io.IOException;
 import java.util.Optional;
 
 import org.junit.Before;
@@ -90,17 +91,6 @@ public class InternalAuthDelegateServiceImplTest {
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), anyString(), any())).thenReturn(response);
 		AuthResponseDTO result = internalAuthDelegateServiceImpl.authenticate(authRequestDTO, new HttpHeaders());
 		assertEquals(result.getResponse().isAuthStatus(), true);
-	}
-	
-	@Test(expected = NoSuchAlgorithmException.class)
-	public void authenticateExceptionTest() throws Exception {
-
-		individualIdDto.setIndividualId("84953741281492");
-		response.setResponse(individualIdDto);
-		response.setErrors(null);
-		Mockito.when(restClientService.getApi(any(), any(), anyString(), anyString(), any())).thenReturn(response);
-		Mockito.when(restApiClient.getRestTemplate()).thenThrow(NoSuchAlgorithmException.class);
-		internalAuthDelegateServiceImpl.authenticate(authRequestDTO, new HttpHeaders());
 	}
 
 	@Test(expected = ApisResourceAccessException.class)
