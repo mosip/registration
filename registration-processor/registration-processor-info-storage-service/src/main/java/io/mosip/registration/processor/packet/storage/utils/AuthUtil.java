@@ -26,6 +26,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
@@ -123,6 +124,10 @@ public class AuthUtil {
 	@Autowired
 	private Environment env;
 
+	@Autowired
+	@Qualifier("selfTokenRestTemplate")
+	RestTemplate restTemplate;
+
 	/** The bio api factory. */
 	@Autowired(required = false)
 	private BioAPIFactory bioApiFactory;
@@ -183,13 +188,9 @@ public class AuthUtil {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), individualId,
 				"AuthUtil::authByIdAuthentication()::INTERNALAUTH POST service call started");
 
-		HttpHeaders headers = new HttpHeaders();
-		String token = restApiClient.getToken().replace(AUTHORIZATION, "");
-		headers.add("cookie", restApiClient.getToken());
-		headers.add("Authorization", token);
-		HttpEntity<AuthRequestDTO> httpEntity = new HttpEntity<>(authRequestDTO, headers);
+		HttpEntity<AuthRequestDTO> httpEntity = new HttpEntity<>(authRequestDTO);
 
-		ResponseEntity<AuthResponseDTO> responseEntity = new RestTemplate().exchange(env.getProperty(ApiName.INTERNALAUTH.name()), HttpMethod.POST, httpEntity, AuthResponseDTO.class);
+		ResponseEntity<AuthResponseDTO> responseEntity = restTemplate.exchange(env.getProperty(ApiName.INTERNALAUTH.name()), HttpMethod.POST, httpEntity, AuthResponseDTO.class);
 		AuthResponseDTO response = responseEntity.getBody();
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), null,

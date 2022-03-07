@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -55,7 +56,11 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 	
 	@Autowired
 	RegistrationProcessorRestClientService<Object> restClientService;
-	
+
+	@Autowired
+	@Qualifier("selfTokenRestTemplate")
+	private RestTemplate restTemplate;
+
 	/** The internal auth uri. */
 	@Value("${ida-internal-auth-uri}")
 	private String internalAuthUri;
@@ -109,7 +114,6 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 	
 	public <T> HttpEntity<T> postApi(String uri, MediaType mediaType, HttpEntity<?> requestEntity, Class<T> responseClass) throws Exception {
 		try {
-			RestTemplate restTemplate = restApiClient.getRestTemplate();
 			logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					LoggerFileConstant.APPLICATIONID.toString(), uri);
 			return restTemplate.exchange(uri, HttpMethod.POST, requestEntity, responseClass);
