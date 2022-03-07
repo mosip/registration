@@ -95,6 +95,7 @@ public class VerificationServiceImpl implements VerificationService {
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(VerificationServiceImpl.class);
 	private LinkedHashMap<String, Object> policies = null;
 	private static final String VERIFICATION = "verification";
+	private static final String VERIFICATION_COMMENT = "Packet marked for verification";
 
 	/** The Constant USER. */
 	private static final String USER = "MOSIP_SYSTEM";
@@ -371,9 +372,8 @@ public class VerificationServiceImpl implements VerificationService {
 			// TODO structure to not return in finally,ignore for sonar
 			updateStatus(messageDTO, registrationStatusDto, isTransactionSuccessful, description,
 					PlatformSuccessMessages.RPR_VERIFICATION_SUCCESS);
-			return isTransactionSuccessful;
 		}
-
+		return isTransactionSuccessful;
 	}
 
 	private void updateStatus(MessageDTO messageDTO, InternalRegistrationStatusDto registrationStatusDto,
@@ -693,7 +693,7 @@ public class VerificationServiceImpl implements VerificationService {
 		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.VERIFICATION.toString());
 		registrationStatusDto.setRegistrationStageName(registrationStatusDto.getRegistrationStageName());
 
-		if (statusCode != null && statusCode.equalsIgnoreCase(ManualVerificationStatus.APPROVED.name())) {
+		if (statusCode.equalsIgnoreCase(ManualVerificationStatus.APPROVED.name())) {
 			messageDTO.setIsValid(isTransactionSuccessful);
 			verificationStage.sendMessage(messageDTO);
 			registrationStatusDto.setStatusComment(StatusUtil.VERIFICATION_SUCCESS.getMessage());
@@ -704,7 +704,7 @@ public class VerificationServiceImpl implements VerificationService {
 			description.setMessage(PlatformSuccessMessages.RPR_VERIFICATION_SUCCESS.getMessage());
 			description.setCode(PlatformSuccessMessages.RPR_VERIFICATION_SUCCESS.getCode());
 
-		} else if (statusCode != null && statusCode.equalsIgnoreCase(ManualVerificationStatus.REJECTED.name())) {
+		} else if (statusCode.equalsIgnoreCase(ManualVerificationStatus.REJECTED.name())) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
 			registrationStatusDto.setStatusComment(StatusUtil.VERIFICATION_FAILED.getMessage());
 			registrationStatusDto.setSubStatusCode(StatusUtil.VERIFICATION_FAILED.getCode());
@@ -789,8 +789,8 @@ public class VerificationServiceImpl implements VerificationService {
 				verificationEntity.setReponseText(null);
 				verificationEntity.setRequestId(requestId);
 				verificationEntity.setVerificationUsrId(null);
-				verificationEntity.setReasonCode("Packet marked for verification");
-				verificationEntity.setStatusComment("Packet marked for verification");
+				verificationEntity.setReasonCode(VERIFICATION_COMMENT);
+				verificationEntity.setStatusComment(VERIFICATION_COMMENT);
 				verificationEntity.setStatusCode(ManualVerificationStatus.INQUEUE.name());
 				verificationEntity.setActive(true);
 				verificationEntity.setDeleted(false);
@@ -802,8 +802,8 @@ public class VerificationServiceImpl implements VerificationService {
 				VerificationEntity existingRecord = existingRecords.iterator().next();
 				existingRecord.setReponseText(null);
 				existingRecord.setVerificationUsrId(null);
-				existingRecord.setReasonCode("Packet marked for verification");
-				existingRecord.setStatusComment("Packet marked for verification");
+				existingRecord.setReasonCode(VERIFICATION_COMMENT);
+				existingRecord.setStatusComment(VERIFICATION_COMMENT);
 				existingRecord.setStatusCode(ManualVerificationStatus.INQUEUE.name());
 				existingRecord.setUpdDtimes(Timestamp.valueOf(LocalDateTime.now(ZoneId.of("UTC"))));
 				basePacketRepository.update(existingRecord);
