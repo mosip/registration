@@ -117,9 +117,9 @@ public class DecryptorImpl implements Decryptor {
 					CryptomanagerConstant.GCM_NONCE_LENGTH + CryptomanagerConstant.GCM_AAD_LENGTH);
 			byte[] encryptedData = Arrays.copyOfRange(packet, CryptomanagerConstant.GCM_NONCE_LENGTH + CryptomanagerConstant.GCM_AAD_LENGTH,
 					packet.length);
-			cryptomanagerRequestDto.setAad(CryptoUtil.encodeBase64String(aad));
-			cryptomanagerRequestDto.setSalt(CryptoUtil.encodeBase64String(nonce));
-			cryptomanagerRequestDto.setData(CryptoUtil.encodeBase64String(encryptedData));
+			cryptomanagerRequestDto.setAad(CryptoUtil.encodeBase64(aad));
+			cryptomanagerRequestDto.setSalt(CryptoUtil.encodeBase64(nonce));
+			cryptomanagerRequestDto.setData(CryptoUtil.encodeBase64(encryptedData));
 			// setLocal Date Time
 			if (registrationId.length() > 14) {
 				String packetCreatedDateTime = registrationId.substring(registrationId.length() - 14);
