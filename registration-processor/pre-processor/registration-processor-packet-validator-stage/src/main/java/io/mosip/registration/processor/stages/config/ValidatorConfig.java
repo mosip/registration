@@ -8,13 +8,13 @@ import java.util.Collections;
 
 import javax.annotation.PostConstruct;
 
-import io.mosip.registration.processor.stages.packet.validator.PacketValidatorStage;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
+import org.springframework.web.client.RestTemplate;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
@@ -34,6 +34,7 @@ import io.mosip.registration.processor.stages.utils.ApplicantDocumentValidation;
 import io.mosip.registration.processor.stages.utils.AuditUtility;
 import io.mosip.registration.processor.stages.utils.BiometricsXSDValidator;
 import io.mosip.registration.processor.stages.utils.NotificationUtility;
+import io.mosip.registration.processor.stages.utils.RestTemplateInterceptor;
 import io.mosip.registration.processor.stages.validator.impl.BiometricsSignatureValidator;
 import io.mosip.registration.processor.stages.validator.impl.CompositePacketValidator;
 import io.mosip.registration.processor.stages.validator.impl.PacketValidatorImpl;
@@ -80,6 +81,13 @@ public class ValidatorConfig {
 	@Bean
 	public ApplicantTypeDocument getApplicantTypeDocument() {
 		return new ApplicantTypeDocument();
+	}
+
+	@Bean
+	public RestTemplate restTemplate() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+		RestTemplate restTemplate = new RestTemplate();
+		restTemplate.setInterceptors(Collections.singletonList(new RestTemplateInterceptor(restApiClient)));
+		return restTemplate;
 	}
 	
 	@Bean
