@@ -18,11 +18,6 @@
 	</properties>
 	<dependencies>
 		<dependency>
-			<groupId>com.jayway.jsonpath</groupId>
-			<artifactId>json-path</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
 			<groupId>io.mosip.registrationprocessor</groupId>
 			<artifactId>registration-processor-core</artifactId>
 			<version>${registration.processor.core.version}</version>

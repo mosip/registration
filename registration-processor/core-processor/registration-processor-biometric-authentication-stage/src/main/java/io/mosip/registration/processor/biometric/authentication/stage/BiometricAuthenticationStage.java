@@ -67,8 +67,7 @@ import io.mosip.registration.processor.status.service.SyncRegistrationService;
 @RefreshScope
 @Service
 @Configuration
-@ComponentScan(basePackages = { "${mosip.auth.adapter.impl.basepackage}",
-		"io.mosip.registration.processor.biometric.authentication.config",
+@ComponentScan(basePackages = { "io.mosip.registration.processor.biometric.authentication.config",
 		"io.mosip.registration.processor.status.config", "io.mosip.registration.processor.rest.client.config",
 		"io.mosip.registration.processor.packet.storage.config", "io.mosip.registration.processor.core.config",
 		"io.mosip.registration.processor.core.kernel.beans",

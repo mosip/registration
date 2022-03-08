@@ -123,7 +123,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 			regProcLogger.info("ReprocessorVerticle::schedular()::deployed");
 			cronScheduling(vertx);
 		} else {
-			regProcLogger.error("ReprocessorVerticle::schedular()::deployment failure" + res.cause().toString());
+			regProcLogger.error("ReprocessorVerticle::schedular()::deployment failure");
 		}
 	}
 
