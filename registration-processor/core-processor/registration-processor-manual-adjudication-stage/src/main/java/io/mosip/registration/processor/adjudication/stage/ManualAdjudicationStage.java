@@ -48,8 +48,7 @@ import javax.jms.TextMessage;
 @RefreshScope
 @Service
 @Configuration
-@ComponentScan(basePackages = { "${mosip.auth.adapter.impl.basepackage}",
-		"io.mosip.registration.processor.core.config",
+@ComponentScan(basePackages = { "io.mosip.registration.processor.core.config",
 		"io.mosip.registration.processor.adjudication.config",
 		"io.mosip.registration.processor.packet.receiver.config",
 		"io.mosip.registration.processor.packet.manager.config",
