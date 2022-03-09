@@ -195,6 +195,10 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
         }
         MessageConsumer consumer;
         try {
+            if (session == null) {
+                regProcLogger.error("Session is null. System will retry to create session");
+                setup(mosipActiveMq);
+            }
             destination = session.createQueue(address);
             consumer = session.createConsumer(destination);
             consumer.setMessageListener(QueueListenerFactory.getListener(mosipQueue.getQueueName(), object));
