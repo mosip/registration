@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import io.mosip.kernel.core.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 
@@ -40,6 +41,9 @@ import io.mosip.registration.processor.status.utilities.RegistrationExternalStat
 @Component
 public class RegistrationStatusServiceImpl
 		implements RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> {
+
+	@Value("${mosip.regproc.registration.status.service.disable-audit:false}")
+	private boolean disableAudit;
 
 	/** The registration status dao. */
 	@Autowired
@@ -135,7 +139,8 @@ public class RegistrationStatusServiceImpl
 			String eventType = eventId.equalsIgnoreCase(EventId.RPR_407.toString()) ? EventType.BUSINESS.toString()
 					: EventType.SYSTEM.toString();
 
-			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
+			if(!disableAudit)
+				auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
 					moduleId, moduleName, registrationStatusDto.getRegistrationId());
 		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
@@ -200,7 +205,8 @@ public class RegistrationStatusServiceImpl
 			String eventType = eventId.equalsIgnoreCase(EventId.RPR_407.toString()) ? EventType.BUSINESS.toString()
 					: EventType.SYSTEM.toString();
 
-			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
+			if(!disableAudit)
+				auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
 					moduleId, moduleName, registrationStatusDto.getRegistrationId());
 
 		}
