@@ -68,7 +68,8 @@ public class DeviceValidator {
 
 	private static final String VALID = "Valid";
 
-	ObjectMapper mapper = new ObjectMapper();
+	@Autowired
+	ObjectMapper mapper;
 
 	@Autowired
 	private RegistrationProcessorRestClientService<Object> registrationProcessorRestService;

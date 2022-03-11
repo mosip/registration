@@ -29,7 +29,8 @@ public class MachineValidator {
 
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(MachineValidator.class);
 
-	ObjectMapper mapper = new ObjectMapper();
+	@Autowired
+	ObjectMapper mapper;
 
 	@Autowired
 	private RegistrationProcessorRestClientService<Object> registrationProcessorRestService;
