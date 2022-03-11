@@ -220,7 +220,6 @@ public class NotificationUtility {
 		for( String idValue:idValues) {
 			if(idValue!=null&& !idValue.isBlank()  ) {
 				if(isJSONArrayValid(idValue)) {
-					ObjectMapper mapper=new ObjectMapper();
 					org.json.simple.JSONArray array=mapper.readValue(idValue, org.json.simple.JSONArray.class);
 					for(Object obj:array) {	
 						org.json.simple.JSONObject json= new org.json.simple.JSONObject((Map) obj);

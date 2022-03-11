@@ -53,6 +53,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.LoggerFactory;
@@ -83,6 +84,9 @@ public class VerificationServiceTest {
 
 	@Mock
     UserDto dto;
+
+	@Spy
+	private ObjectMapper mapper = new ObjectMapper();
 
 	@Mock
 	private VerificationStage manualAdjudicationStage;

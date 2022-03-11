@@ -30,6 +30,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -91,6 +92,9 @@ public class MessageNotificationServiceImplTest {
 	@Mock
 	private IdRepoService idRepoService;
 
+	@Spy
+	private ObjectMapper mapper = new ObjectMapper();
+
 	/** The template generator. */
 	@Mock
 	private TemplateGenerator templateGenerator;
@@ -120,9 +124,6 @@ public class MessageNotificationServiceImplTest {
 	/** The env. */
 	@Mock
 	private Environment env;
-
-	@Mock
-	private ObjectMapper mapper;
 
 	/** The attributes. */
 	private Map<String, Object> attributes = new HashMap<>();
@@ -274,9 +275,6 @@ public class MessageNotificationServiceImplTest {
 
 		Mockito.when(restClientService.postApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(wrapper);
-		Mockito.when(mapper.writeValueAsString(any())).thenReturn(smsResponseDto.toString());
-		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(smsResponseDto);
-
 		SmsResponseDto resultResponse = messageNotificationServiceImpl.sendSmsNotification("RPR_UIN_GEN_SMS", "12345",
 				"NEW",IdType.RID, attributes, RegistrationType.NEW.name());
 		assertEquals("Test for SMS Notification Success", "Success", resultResponse.getMessage());
@@ -301,8 +299,6 @@ public class MessageNotificationServiceImplTest {
 		// Mockito.when(abisHandlerUtil.getUinFromIDRepo(any())).thenReturn(1234567);
 		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any()))
 				.thenReturn(wrapper);
-		Mockito.when(mapper.writeValueAsString(any())).thenReturn(smsResponseDto.toString());
-		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(smsResponseDto);
 
 		SmsResponseDto resultResponse = messageNotificationServiceImpl.sendSmsNotification("RPR_UIN_GEN_SMS",
 				"27847657360002520181208094056", "NEW", IdType.UIN, attributes, RegistrationType.ACTIVATED.name());
@@ -325,8 +321,6 @@ public class MessageNotificationServiceImplTest {
 		wrapper.setResponse(responseDto);
 
 		Mockito.when(restApiClient.postApi(any(), any(), any(), any())).thenReturn(wrapper);
-		Mockito.when(mapper.writeValueAsString(any())).thenReturn(responseDto.toString());
-		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(responseDto);
 
 		ResponseDto resultResponse = messageNotificationServiceImpl.sendEmailNotification("RPR_UIN_GEN_EMAIL", "12345",
 				"NEW", IdType.RID, attributes, mailCc, subject, null, RegistrationType.NEW.name());
