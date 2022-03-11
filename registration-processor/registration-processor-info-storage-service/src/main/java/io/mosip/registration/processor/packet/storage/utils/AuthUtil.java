@@ -85,6 +85,9 @@ public class AuthUtil {
 	@Autowired
 	private KeyGenerator keyGenerator;
 
+	@Autowired
+	private ObjectMapper mapper;
+
 	/** The encryptor. */
 	@Autowired
 	private CryptoCoreSpec<byte[], byte[], SecretKey, PublicKey, PrivateKey, String> encryptor;
@@ -164,7 +167,6 @@ public class AuthUtil {
 		RequestDTO request = new RequestDTO();
 		request.setBiometrics(biometrics);
 		request.setTimestamp(DateUtils.formatToISOString(localdatetime));
-		ObjectMapper mapper = new ObjectMapper();
 		String identityBlock = mapper.writeValueAsString(request);
 
 		final SecretKey secretKey = keyGenerator.getSymmetricKey();
@@ -424,7 +426,6 @@ public class AuthUtil {
 		// encrypt AES Session Key using RSA public key
 		ResponseWrapper<?> responseWrapper;
 		CertificateResponseDto certificateResponseDto;
-		ObjectMapper mapper = new ObjectMapper();
 		responseWrapper = (ResponseWrapper<?>) registrationProcessorRestClientService.getApi(ApiName.IDAUTHCERTIFICATE,
 				null, "applicationId,referenceId", IDA_APP_ID + ',' + refId, ResponseWrapper.class);
 		certificateResponseDto = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),

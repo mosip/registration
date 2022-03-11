@@ -198,6 +198,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	@Autowired
 	private IdSchemaUtil idSchemaUtil;
 
+	@Autowired
+	private ObjectMapper objectMapper;
+
 	private TrimExceptionMessage trimExceptionMessage = new TrimExceptionMessage();
 
 	/*
@@ -448,7 +451,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 				if (value != null) {
 					Object json = new JSONTokener(value).nextValue();
 					if (json instanceof org.json.JSONObject) {
-						HashMap<String, Object> hashMap = new ObjectMapper().readValue(value, HashMap.class);
+						HashMap<String, Object> hashMap = objectMapper.readValue(value, HashMap.class);
 						demographicIdentity.putIfAbsent(e.getKey(), hashMap);
 					}
 					else if (json instanceof JSONArray) {
@@ -456,7 +459,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 						JSONArray jsonArray = new JSONArray(value);
 						for (int i = 0; i < jsonArray.length(); i++) {
 							Object obj = jsonArray.get(i);
-							HashMap<String, Object> hashMap = new ObjectMapper().readValue(obj.toString(), HashMap.class);
+							HashMap<String, Object> hashMap = objectMapper.readValue(obj.toString(), HashMap.class);
 							jsonList.add(hashMap);
 						}
 						demographicIdentity.putIfAbsent(e.getKey(), jsonList);

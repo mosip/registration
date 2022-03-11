@@ -30,10 +30,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -229,6 +226,9 @@ public class UinGeneratorStageTest {
 
 	@Mock
 	private IdSchemaUtil idSchemaUtil;
+
+	@Spy
+	private ObjectMapper mapper = new ObjectMapper();
 
 	JSONObject documentObj;
 	JSONObject identityObj;

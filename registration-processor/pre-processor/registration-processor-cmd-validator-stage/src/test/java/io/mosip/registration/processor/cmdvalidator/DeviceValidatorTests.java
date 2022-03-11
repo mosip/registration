@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
 import io.mosip.registration.processor.packet.storage.utils.OSIUtils;
@@ -24,6 +25,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
@@ -59,6 +61,9 @@ public class DeviceValidatorTests {
 
 	@Mock
 	private OSIUtils osiUtils;
+
+	@Spy
+	private ObjectMapper mapper = new ObjectMapper();
 
 	@Mock
 	private AdditionalInfoRequestService additionalInfoRequestService;
