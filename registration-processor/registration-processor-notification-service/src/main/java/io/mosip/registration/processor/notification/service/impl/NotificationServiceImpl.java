@@ -99,6 +99,9 @@ public class NotificationServiceImpl implements NotificationService {
 	@Autowired
 	private AuditLogRequestBuilder auditLogRequestBuilder;
 
+	@Autowired
+	private ObjectMapper mapper;
+
 	/** The notification emails. */
 	@Value("${registration.processor.notification.emails}")
 	private String notificationEmails;
@@ -519,7 +522,6 @@ public class NotificationServiceImpl implements NotificationService {
 		List<String> pathSegments = new ArrayList<>();
 		ResponseWrapper<?> responseWrapper;
 		TemplateResponseDto templateResponseDto = null;
-		ObjectMapper mapper = new ObjectMapper();
 
 		responseWrapper = (ResponseWrapper<?>) restClientService.getApi(ApiName.TEMPLATES, pathSegments, "", "",
 				ResponseWrapper.class);

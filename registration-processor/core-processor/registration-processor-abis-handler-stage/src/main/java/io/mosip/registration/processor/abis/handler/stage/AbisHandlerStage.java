@@ -184,6 +184,9 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	@Autowired
 	private Utilities utility;
 
+	@Autowired
+	private ObjectMapper mapper;
+
 	/** The mosip event bus. */
 	MosipEventBus mosipEventBus = null;
 
@@ -645,7 +648,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		}
 		Map<String, Map<String, Object>> metaInfoExceptionBiometrics = metaInfoMap != null
 				&& metaInfoMap.containsKey("exceptionBiometrics")
-						? new ObjectMapper().readValue(metaInfoMap.get("exceptionBiometrics"),
+						? mapper.readValue(metaInfoMap.get("exceptionBiometrics"),
 								new TypeReference<Map<String, Map<String, Object>>>() {
 								})
 						: null;
@@ -721,7 +724,6 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 					.get(PolicyConstant.POLICIES);
 			List<?> attributes = (List<?>) policies.get(PolicyConstant.SHAREABLE_ATTRIBUTES);
 			datasharePolicies = (LinkedHashMap<String, String>) policies.get(PolicyConstant.DATASHARE_POLICIES);
-			ObjectMapper mapper = new ObjectMapper();
 			ShareableAttributes shareableAttributes = mapper.readValue(mapper.writeValueAsString(attributes.get(0)),
 					ShareableAttributes.class);
 			for (Source source : shareableAttributes.getSource()) {

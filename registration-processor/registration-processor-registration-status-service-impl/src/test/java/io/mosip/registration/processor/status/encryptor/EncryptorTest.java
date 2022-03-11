@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.registration.processor.status.dto.DecryptResponseDto;
 import org.junit.Before;
@@ -16,6 +17,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -39,6 +41,9 @@ public class EncryptorTest {
 
 	@InjectMocks
 	private Encryptor encryptor;
+
+	@Spy
+	private ObjectMapper mapper = new ObjectMapper();
 
 	@Mock
 	private RegistrationProcessorRestClientService<Object> restClientService;
