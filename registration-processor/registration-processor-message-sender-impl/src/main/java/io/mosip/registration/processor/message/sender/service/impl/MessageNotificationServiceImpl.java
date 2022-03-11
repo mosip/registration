@@ -340,7 +340,6 @@ public class MessageNotificationServiceImpl
 		for( String idValue:idValues) {
 			if(idValue!=null&& !idValue.isBlank()  ) {
 				if(isJSONArrayValid(idValue)) {
-					ObjectMapper mapper=new ObjectMapper();
 					JSONArray array=mapper.readValue(idValue, JSONArray.class);
 					for(Object obj:array) {	
 						JSONObject json= new JSONObject( (Map) obj);
@@ -625,7 +624,7 @@ public class MessageNotificationServiceImpl
 					if (StringUtils.isNotEmpty(value)) {
 						Object json = new JSONTokener(value).nextValue();
 						if (json instanceof org.json.JSONObject) {
-							HashMap<String, Object> hashMap = new ObjectMapper().readValue(value, HashMap.class);
+							HashMap<String, Object> hashMap = mapper.readValue(value, HashMap.class);
 							attribute.putIfAbsent(e.getKey().toString(), hashMap.get(VALUE));
 						}
 						else if (json instanceof org.json.JSONArray) {

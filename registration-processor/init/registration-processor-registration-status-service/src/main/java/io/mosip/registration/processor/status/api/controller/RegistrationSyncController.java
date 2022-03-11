@@ -60,6 +60,9 @@ public class RegistrationSyncController {
 	@Autowired
 	private Environment env;
 
+	@Autowired
+	private ObjectMapper objectMapper;
+
 
 
 	@Value("${registration.processor.signature.isEnabled}")
@@ -107,7 +110,6 @@ public class RegistrationSyncController {
 			}
 			if (isEnabled) {
 				RegSyncResponseDTO responseDto = buildRegistrationSyncResponse(syncResponseList);
-				ObjectMapper objectMapper = new ObjectMapper();
 				HttpHeaders headers = new HttpHeaders();
 				headers.add(RESPONSE_SIGNATURE,
 						digitalSignatureUtility.getDigitalSignature(objectMapper.writeValueAsString(responseDto)));
@@ -155,7 +157,6 @@ public class RegistrationSyncController {
 			}
 			if (isEnabled) {
 				RegSyncResponseDTO responseDto = buildRegistrationSyncResponse(syncResponseList);
-				ObjectMapper objectMapper = new ObjectMapper();
 				HttpHeaders headers = new HttpHeaders();
 				headers.add(RESPONSE_SIGNATURE,
 						digitalSignatureUtility.getDigitalSignature(objectMapper.writeValueAsString(responseDto)));
