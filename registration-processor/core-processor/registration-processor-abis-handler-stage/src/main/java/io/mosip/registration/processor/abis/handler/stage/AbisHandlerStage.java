@@ -103,8 +103,7 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 @RefreshScope
 @Service
 @Configuration
-@ComponentScan(basePackages = { "${mosip.auth.adapter.impl.basepackage}",
-		"io.mosip.registration.processor.abis.handler.config",
+@ComponentScan(basePackages = { "io.mosip.registration.processor.abis.handler.config",
 		"io.mosip.registration.processor.status.config", "io.mosip.registration.processor.rest.client.config",
 		"io.mosip.registration.processor.packet.storage.config", "io.mosip.registration.processor.core.config",
 		"io.mosip.registration.processor.core.kernel.beans", "io.mosip.kernel.packetmanager.config" })
@@ -184,6 +183,9 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 	@Autowired
 	private Utilities utility;
+
+	@Autowired
+	private ObjectMapper mapper;
 
 	/** The mosip event bus. */
 	MosipEventBus mosipEventBus = null;
@@ -646,7 +648,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		}
 		Map<String, Map<String, Object>> metaInfoExceptionBiometrics = metaInfoMap != null
 				&& metaInfoMap.containsKey("exceptionBiometrics")
-						? new ObjectMapper().readValue(metaInfoMap.get("exceptionBiometrics"),
+						? mapper.readValue(metaInfoMap.get("exceptionBiometrics"),
 								new TypeReference<Map<String, Map<String, Object>>>() {
 								})
 						: null;
@@ -722,7 +724,6 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 					.get(PolicyConstant.POLICIES);
 			List<?> attributes = (List<?>) policies.get(PolicyConstant.SHAREABLE_ATTRIBUTES);
 			datasharePolicies = (LinkedHashMap<String, String>) policies.get(PolicyConstant.DATASHARE_POLICIES);
-			ObjectMapper mapper = new ObjectMapper();
 			ShareableAttributes shareableAttributes = mapper.readValue(mapper.writeValueAsString(attributes.get(0)),
 					ShareableAttributes.class);
 			for (Source source : shareableAttributes.getSource()) {

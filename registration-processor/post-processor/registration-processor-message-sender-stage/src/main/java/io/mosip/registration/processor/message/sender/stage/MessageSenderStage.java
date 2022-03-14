@@ -88,8 +88,7 @@ import io.mosip.registration.processor.status.service.TransactionService;
 
 @Service
 @Configuration
-@ComponentScan(basePackages = { "${mosip.auth.adapter.impl.basepackage}",
-		"io.mosip.registration.processor.core.config",
+@ComponentScan(basePackages = { "io.mosip.registration.processor.core.config",
 		"io.mosip.registration.processor.message.sender.config",
 		"io.mosip.registration.processor.stages.config", 
 		"io.mosip.registrationprocessor.stages.config", 
@@ -152,10 +151,13 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 
 	/** Mosip router for APIs */
 	@Autowired
-	MosipRouter router;
+	private MosipRouter router;
 	
 	@Autowired
-	Environment env;
+	private Environment env;
+
+	@Autowired
+	private ObjectMapper mapper;
 
 	/** worker pool size. */
 	@Value("${worker.pool.size}")
@@ -618,7 +620,6 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 		List<String> pathSegments = new ArrayList<>();
 		ResponseWrapper<?> responseWrapper;
 		TemplateResponseDto templateResponseDto = null;
-		ObjectMapper mapper = new ObjectMapper();
 
 		responseWrapper = (ResponseWrapper<?>) restClientService.getApi(ApiName.TEMPLATES, pathSegments, "", "",
 				ResponseWrapper.class);

@@ -26,7 +26,6 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
@@ -86,6 +85,9 @@ public class AuthUtil {
 	@Autowired
 	private KeyGenerator keyGenerator;
 
+	@Autowired
+	private ObjectMapper mapper;
+
 	/** The encryptor. */
 	@Autowired
 	private CryptoCoreSpec<byte[], byte[], SecretKey, PublicKey, PrivateKey, String> encryptor;
@@ -123,10 +125,6 @@ public class AuthUtil {
 
 	@Autowired
 	private Environment env;
-
-	@Autowired
-	@Qualifier("selfTokenRestTemplate")
-	RestTemplate restTemplate;
 
 	/** The bio api factory. */
 	@Autowired(required = false)
@@ -169,7 +167,6 @@ public class AuthUtil {
 		RequestDTO request = new RequestDTO();
 		request.setBiometrics(biometrics);
 		request.setTimestamp(DateUtils.formatToISOString(localdatetime));
-		ObjectMapper mapper = new ObjectMapper();
 		String identityBlock = mapper.writeValueAsString(request);
 
 		final SecretKey secretKey = keyGenerator.getSymmetricKey();
@@ -188,9 +185,13 @@ public class AuthUtil {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), individualId,
 				"AuthUtil::authByIdAuthentication()::INTERNALAUTH POST service call started");
 
-		HttpEntity<AuthRequestDTO> httpEntity = new HttpEntity<>(authRequestDTO);
+		HttpHeaders headers = new HttpHeaders();
+		String token = restApiClient.getToken().replace(AUTHORIZATION, "");
+		headers.add("cookie", restApiClient.getToken());
+		headers.add("Authorization", token);
+		HttpEntity<AuthRequestDTO> httpEntity = new HttpEntity<>(authRequestDTO, headers);
 
-		ResponseEntity<AuthResponseDTO> responseEntity = restTemplate.exchange(env.getProperty(ApiName.INTERNALAUTH.name()), HttpMethod.POST, httpEntity, AuthResponseDTO.class);
+		ResponseEntity<AuthResponseDTO> responseEntity = new RestTemplate().exchange(env.getProperty(ApiName.INTERNALAUTH.name()), HttpMethod.POST, httpEntity, AuthResponseDTO.class);
 		AuthResponseDTO response = responseEntity.getBody();
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), null,
@@ -425,7 +426,6 @@ public class AuthUtil {
 		// encrypt AES Session Key using RSA public key
 		ResponseWrapper<?> responseWrapper;
 		CertificateResponseDto certificateResponseDto;
-		ObjectMapper mapper = new ObjectMapper();
 		responseWrapper = (ResponseWrapper<?>) registrationProcessorRestClientService.getApi(ApiName.IDAUTHCERTIFICATE,
 				null, "applicationId,referenceId", IDA_APP_ID + ',' + refId, ResponseWrapper.class);
 		certificateResponseDto = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),

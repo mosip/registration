@@ -67,6 +67,10 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
                             LINE_SEPERATOR + this.connection);
                     regProcLogger.debug(LINE_SEPERATOR, LINE_SEPERATOR, "-----NEW SESSION-----",
                             LINE_SEPERATOR + this.session);
+                    if (!((ActiveMQConnection) connection).isStarted() || session == null) {
+                        regProcLogger.error("Activemq connection is not created. Retrying.....");
+                        setup(mosipActiveMq);
+                    }
                 }
             }
 
@@ -139,6 +143,9 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
         boolean flag = false;
         initialSetup(mosipQueue);
         try {
+            // fix for activemq connection issue
+            if (session == null)
+                initialSetup(mosipQueue);
             destination = session.createQueue(address);
             MessageProducer messageProducer = session.createProducer(destination);
             TextMessage textMessage = session.createTextMessage();
@@ -188,6 +195,10 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
         }
         MessageConsumer consumer;
         try {
+            if (session == null) {
+                regProcLogger.error("Session is null. System will retry to create session");
+                setup(mosipActiveMq);
+            }
             destination = session.createQueue(address);
             consumer = session.createConsumer(destination);
             consumer.setMessageListener(QueueListenerFactory.getListener(mosipQueue.getQueueName(), object));

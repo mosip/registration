@@ -563,7 +563,6 @@ public class VerificationServiceImpl implements VerificationService {
 	private Map<String, String> getPolicyMap(LinkedHashMap<String, Object> policies) throws IOException {
 		Map<String, String> policyMap = new HashMap<>();
 		List<LinkedHashMap> attributes = (List<LinkedHashMap>) policies.get(VerificationConstants.SHAREABLE_ATTRIBUTES);
-		ObjectMapper mapper = new ObjectMapper();
 		for (LinkedHashMap map : attributes) {
 			ShareableAttributes shareableAttributes = mapper.readValue(mapper.writeValueAsString(map),
 					ShareableAttributes.class);
@@ -596,7 +595,6 @@ public class VerificationServiceImpl implements VerificationService {
 	public List<String> getModalities(LinkedHashMap<String, Object> policy) throws IOException {
 		Map<String, List<String>> typeAndSubTypeMap = new HashMap<>();
 		List<LinkedHashMap> attributes = (List<LinkedHashMap>) policy.get(VerificationConstants.SHAREABLE_ATTRIBUTES);
-		ObjectMapper mapper = new ObjectMapper();
 		for (LinkedHashMap map : attributes) {
 			ShareableAttributes shareableAttributes = mapper.readValue(mapper.writeValueAsString(map),
 					ShareableAttributes.class);

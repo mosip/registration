@@ -6,11 +6,13 @@ import static org.mockito.ArgumentMatchers.anyString;
 import java.io.IOException;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -29,6 +31,9 @@ import io.mosip.registration.processor.stages.cmdvalidator.MachineValidator;
 public class MachineValidatorTest {
 	@InjectMocks
 	private MachineValidator machineValidator;
+
+	@Spy
+	private ObjectMapper mapper = new ObjectMapper();
 
 	@Mock
 	private RegistrationProcessorRestClientService<Object> registrationProcessorRestService;

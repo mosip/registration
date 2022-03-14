@@ -557,7 +557,6 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 	private Map<String, String> getPolicyMap(LinkedHashMap<String, Object> policies) throws DataShareException, IOException, ApisResourceAccessException {
 		Map<String, String> policyMap = new HashMap<>();
 		List<LinkedHashMap> attributes = (List<LinkedHashMap>) policies.get(ManualAdjudicationConstants.SHAREABLE_ATTRIBUTES);
-		ObjectMapper mapper = new ObjectMapper();
 		for (LinkedHashMap map : attributes) {
 			ShareableAttributes shareableAttributes = mapper.readValue(mapper.writeValueAsString(map),
 					ShareableAttributes.class);
@@ -633,7 +632,6 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 	public List<String> getModalities(LinkedHashMap<String, Object> policy) throws IOException{
 		Map<String, List<String>> typeAndSubTypeMap = new HashMap<>();
 		List<LinkedHashMap> attributes = (List<LinkedHashMap>) policy.get(ManualAdjudicationConstants.SHAREABLE_ATTRIBUTES);
-		ObjectMapper mapper = new ObjectMapper();
 		for (LinkedHashMap map : attributes) {
 			ShareableAttributes shareableAttributes = mapper.readValue(mapper.writeValueAsString(map),
 					ShareableAttributes.class);

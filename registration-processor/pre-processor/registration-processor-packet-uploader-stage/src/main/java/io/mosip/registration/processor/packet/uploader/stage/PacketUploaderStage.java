@@ -23,8 +23,7 @@ import io.mosip.registration.processor.packet.uploader.service.PacketUploaderSer
  */
 @Component
 @Configuration
-@ComponentScan(basePackages = { "${mosip.auth.adapter.impl.basepackage}",
-		"io.mosip.registration.processor.core.config",
+@ComponentScan(basePackages = { "io.mosip.registration.processor.core.config",
 		"io.mosip.registration.processor.packet.uploader.config",
 		"io.mosip.registration.processor.stages.config", 
 		"io.mosip.registrationprocessor.stages.config", 
