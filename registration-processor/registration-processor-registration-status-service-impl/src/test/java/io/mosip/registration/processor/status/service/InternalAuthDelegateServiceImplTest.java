@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 
-import java.io.IOException;
 import java.util.Optional;
 
 import org.junit.Before;

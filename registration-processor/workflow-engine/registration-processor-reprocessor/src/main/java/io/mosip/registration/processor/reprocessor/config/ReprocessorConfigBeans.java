@@ -21,9 +21,10 @@ import io.mosip.registration.processor.rest.client.service.impl.RegistrationProc
 public class ReprocessorConfigBeans {
 
 	@Bean
-	public ReprocessorVerticle getReprocessorVerticle() {
+	public ReprocessorVerticle reprocessorVerticle() {
 		return new ReprocessorVerticle();
 	}
+
 	@Bean
 	public RegistrationProcessorRestClientService<Object> getRegistrationProcessorRestClientService() {
 		return new RegistrationProcessorRestClientServiceImpl();

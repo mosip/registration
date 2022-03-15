@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.retry.verticle.constants;
+package io.mosip.registration.processor.reprocessor.constants;
 
 public class ReprocessorConstants {
 

@@ -18,11 +18,6 @@
 	</properties>
 	<dependencies>
 		<dependency>
-			<groupId>com.jayway.jsonpath</groupId>
-			<artifactId>json-path</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
 			<groupId>io.mosip.registrationprocessor</groupId>
 			<artifactId>registration-processor-core</artifactId>
 			<version>${registration.processor.core.version}</version>
@@ -42,7 +37,7 @@
 			<version>${vertx.version}</version>
 		</dependency>
 		<dependency>
-			<!-- Ceylon lang dependency is required to have CeylonVerticleFactory 
+			<!-- Ceylon lang dependency is required to have CeylonVerticleFactory
 				which is used to instantiate Ceylon verticles -->
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-lang-ceylon</artifactId>
