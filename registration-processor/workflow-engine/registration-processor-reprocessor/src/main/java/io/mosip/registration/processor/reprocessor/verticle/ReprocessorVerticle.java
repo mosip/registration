@@ -3,10 +3,12 @@ package io.mosip.registration.processor.reprocessor.verticle;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.mosip.registration.processor.reprocessor.constants.ReprocessorConstants;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -29,7 +31,6 @@ import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.util.MessageBusUtil;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
-import io.mosip.registration.processor.retry.verticle.constants.ReprocessorConstants;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
@@ -51,6 +52,7 @@ import io.vertx.core.json.JsonObject;
  * @since 0.10.0
  *
  */
+@Component
 public class ReprocessorVerticle extends MosipVerticleAPIManager {
 
 	private static final String VERTICLE_PROPERTY_PREFIX = "mosip.regproc.reprocessor.";
@@ -123,7 +125,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 			regProcLogger.info("ReprocessorVerticle::schedular()::deployed");
 			cronScheduling(vertx);
 		} else {
-			regProcLogger.error("ReprocessorVerticle::schedular()::deployment failure");
+			regProcLogger.error("ReprocessorVerticle::schedular()::deployment failure" + res.cause().toString());
 		}
 	}
 

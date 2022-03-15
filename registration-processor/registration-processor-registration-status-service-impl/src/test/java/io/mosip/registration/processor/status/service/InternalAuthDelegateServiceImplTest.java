@@ -91,17 +91,6 @@ public class InternalAuthDelegateServiceImplTest {
 		AuthResponseDTO result = internalAuthDelegateServiceImpl.authenticate(authRequestDTO, new HttpHeaders());
 		assertEquals(result.getResponse().isAuthStatus(), true);
 	}
-	
-	@Test(expected = NoSuchAlgorithmException.class)
-	public void authenticateExceptionTest() throws Exception {
-
-		individualIdDto.setIndividualId("84953741281492");
-		response.setResponse(individualIdDto);
-		response.setErrors(null);
-		Mockito.when(restClientService.getApi(any(), any(), anyString(), anyString(), any())).thenReturn(response);
-		Mockito.when(restApiClient.getRestTemplate()).thenThrow(NoSuchAlgorithmException.class);
-		internalAuthDelegateServiceImpl.authenticate(authRequestDTO, new HttpHeaders());
-	}
 
 	@Test(expected = ApisResourceAccessException.class)
 	public void authenticateIndividualIdNotFoundFailureTest() throws Exception {

@@ -129,7 +129,7 @@ public class CoreConfigBean {
 		return Stream.of(names.split(",")).collect(Collectors.toList());
 	}
 
-	private static List<String> getUrls(Environment environment) {
+	public static List<String> getUrls(Environment environment) {
 		List<String> configUrls = new ArrayList<>();
 		List<String> appNames = getAppNames(environment);
 		String uri = environment.getProperty(ConfigurationUtil.CLOUD_CONFIG_URI);

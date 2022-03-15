@@ -77,7 +77,8 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 @Service
 @Configuration
 @EnableScheduling
-@ComponentScan(basePackages = { "io.mosip.registration.processor.core.config",
+@ComponentScan(basePackages = { "${mosip.auth.adapter.impl.basepackage}",
+		"io.mosip.registration.processor.core.config",
 		"io.mosip.registration.processor.stages.config", 
 		"io.mosip.registration.processor.print.config", 
 		"io.mosip.registrationprocessor.stages.config", 
