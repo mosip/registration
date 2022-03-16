@@ -111,7 +111,7 @@ public class ReprocessingSchedulerTest {
 		Mockito.when(vertx.eventBus()).thenReturn(getMockEventBus());
 		reprocessorStage.schedulerResult(res);
 		Assertions.assertThat(listAppender.list).extracting(ILoggingEvent::getLevel, ILoggingEvent::getFormattedMessage)
-				.contains(Tuple.tuple(Level.DEBUG,
+				.contains(Tuple.tuple(Level.INFO,
 						"SESSIONID - REGISTRATIONID -  - ReprocessorStage::schedular()::deployed"));
 	}
 
@@ -123,11 +123,12 @@ public class ReprocessingSchedulerTest {
 		listAppender.start();
 		fooLogger.addAppender(listAppender);
 		Mockito.when(res.succeeded()).thenReturn(false);
+		Mockito.when(res.cause()).thenReturn(new Exception("Exception"));
 		//Mockito.when(vertx.eventBus()).thenReturn(getMockEventBus());
 		reprocessorStage.schedulerResult(res);
 		Assertions.assertThat(listAppender.list).extracting(ILoggingEvent::getLevel, ILoggingEvent::getFormattedMessage)
-				.contains(Tuple.tuple(Level.DEBUG,
-						"SESSIONID - REGISTRATIONID -  - ReprocessorStage::schedular()::deploymemnt failure"));
+				.contains(Tuple.tuple(Level.ERROR,
+						"SESSIONID - REGISTRATIONID -  - ReprocessorStage::schedular()::deploymemnt failure Exception"));
 	}
 	/**
 	 * Returns dummy eventbus instance
