@@ -102,6 +102,7 @@ public class ReprocessorStageTest {
 		 ReflectionTestUtils.setField(reprocessorStage, "fetchSize", 2);
          ReflectionTestUtils.setField(reprocessorStage, "elapseTime", 21600);
          ReflectionTestUtils.setField(reprocessorStage, "reprocessCount", 3);
+		 ReflectionTestUtils.setField(reprocessorStage, "reprocessExcludeStageNames", new ArrayList<>());
          Field auditLog = AuditLogRequestBuilder.class.getDeclaredField("registrationProcessorRestService");
          auditLog.setAccessible(true);
          @SuppressWarnings("unchecked")
@@ -137,7 +138,7 @@ public class ReprocessorStageTest {
 		registrationStatusDto1.setRegistrationType("NEW");
 		registrationStatusDto1.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 		dtolist.add(registrationStatusDto1);
-		Mockito.when(registrationStatusService.getUnProcessedPackets(anyInt(), anyLong(), anyInt(), anyList()))
+		Mockito.when(registrationStatusService.getUnProcessedPackets(anyInt(), anyLong(), anyInt(), anyList(), anyList()))
 				.thenReturn(dtolist);
 		dto = reprocessorStage.process(dto);
 		assertTrue(dto.getIsValid());
@@ -163,7 +164,7 @@ public class ReprocessorStageTest {
 		registrationStatusDto1.setRegistrationType("NEW");
 		registrationStatusDto1.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 		dtolist.add(registrationStatusDto1);
-		Mockito.when(registrationStatusService.getUnProcessedPackets(anyInt(), anyLong(), anyInt(), anyList()))
+		Mockito.when(registrationStatusService.getUnProcessedPackets(anyInt(), anyLong(), anyInt(), anyList(), anyList()))
 				.thenReturn(dtolist);
 		dto = reprocessorStage.process(dto);
 		assertFalse(dto.getIsValid());
@@ -177,7 +178,7 @@ public class ReprocessorStageTest {
 	 */
 	@Test
 	public void exceptionTest() throws Exception {
-		Mockito.when(registrationStatusService.getUnProcessedPackets(anyInt(),anyLong(), anyInt(), anyList()))
+		Mockito.when(registrationStatusService.getUnProcessedPackets(anyInt(),anyLong(), anyInt(), anyList(), anyList()))
 				.thenReturn(null);
 		dto = reprocessorStage.process(dto);
 		assertEquals(null, dto.getIsValid());
@@ -186,7 +187,7 @@ public class ReprocessorStageTest {
 
 	@Test
 	public void TablenotAccessibleExceptionTest() throws Exception {
-		Mockito.when(registrationStatusService.getUnProcessedPackets(anyInt(), anyLong(), anyInt(), anyList()))
+		Mockito.when(registrationStatusService.getUnProcessedPackets(anyInt(), anyLong(), anyInt(), anyList(), anyList()))
 				.thenThrow(new TablenotAccessibleException("") {
 				});
 
