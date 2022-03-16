@@ -205,7 +205,7 @@ public class AuthUtil {
 		String certificate = trimBeginEnd(certificateResponseDto.getCertificate());
 
 		CertificateFactory cf = CertificateFactory.getInstance("X.509");
-		X509Certificate x509cert = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(java.util.Base64.getDecoder().decode(certificate)));
+		X509Certificate x509cert = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(CryptoUtil.decodeBase64(certificate)));
 		PublicKey publicKey = x509cert.getPublicKey();
 
 		return encryptor.asymmetricEncrypt(publicKey, sessionKey);
@@ -243,7 +243,7 @@ public class AuthUtil {
 				dataInfoDTO.setBioValue(splittedEncryptData.getEncryptedData());
 				dataInfoDTO.setTimestamp(timeStamp);
 				String encodedData = CryptoUtil
-						.encodeBase64String(JsonUtil.objectMapperObjectToJson(dataInfoDTO).getBytes());
+						.encodeBase64(JsonUtil.objectMapperObjectToJson(dataInfoDTO).getBytes());
 				bioInfo.setData(encodedData);
 				String presentHash = HMACUtils2.digestAsPlainText(JsonUtil.objectMapperObjectToJson(dataInfoDTO).getBytes());
 				StringBuilder concatenatedHash = new StringBuilder();
@@ -407,7 +407,7 @@ public class AuthUtil {
 
 		CertificateFactory cf = CertificateFactory.getInstance("X.509");
 		X509Certificate x509cert = (X509Certificate) cf
-				.generateCertificate(new ByteArrayInputStream(java.util.Base64.getDecoder().decode(certificate)));
+				.generateCertificate(new ByteArrayInputStream(CryptoUtil.decodeBase64(certificate)));
 
 		return x509cert;
 
