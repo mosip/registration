@@ -98,13 +98,15 @@ RUN find target/ -regextype posix-extended -regex '.*registration-processor-comm
  USER ${container_user_uid}:${container_user_gid}
 
 CMD if [ "$is_glowroot_env" = "present" ]; then \
+    wget "${iam_adapter_url_env}" -O "${loader_path_env}"/kernel-auth-adapter.jar; \
     wget "${artifactory_url_env}"/artifactory/libs-release-local/io/mosip/testing/glowroot.zip ; \
     unzip glowroot.zip ; \
     rm -rf glowroot.zip ; \
     sed -i 's/<service_name>/registration-processor-common-camel-bridge/g' glowroot/glowroot.properties ; \
-    java -jar -javaagent:glowroot/glowroot.jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -Dregistration.processor.zone="${zone_env}" registration-processor-common-camel-bridge.jar ; \
+    java -Dloader.path="${loader_path_env}" -jar -javaagent:glowroot/glowroot.jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -Dregistration.processor.zone="${zone_env}" registration-processor-common-camel-bridge.jar ; \
     else \
-    java -jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -Dregistration.processor.zone="${zone_env}" registration-processor-common-camel-bridge.jar ; \
+    wget "${iam_adapter_url_env}" -O "${loader_path_env}"/kernel-auth-adapter.jar; \
+    java -Dloader.path="${loader_path_env}" -jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -Dregistration.processor.zone="${zone_env}" registration-processor-common-camel-bridge.jar ; \
     fi
 
 
