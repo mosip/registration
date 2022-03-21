@@ -6,6 +6,12 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.FilterType;
 
+import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
+import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
+import io.mosip.registration.processor.core.abstractverticle.MosipVerticleManager;
+import io.mosip.registration.processor.core.abstractverticle.StageHealthCheckHandler;
+import io.mosip.registration.processor.core.eventbus.KafkaMosipEventBus;
+import io.mosip.registration.processor.core.eventbus.VertxMosipEventBus;
 import io.mosip.registration.processor.rest.client.config.RestConfigBean;
 import io.mosip.registration.processor.status.config.RegistrationStatusBeanConfig;
 import io.mosip.registration.processor.status.config.RegistrationStatusServiceBeanConfig;
@@ -22,7 +28,7 @@ import io.mosip.registration.processor.status.config.RegistrationStatusServiceBe
 		"io.mosip.registration.processor.core.config",
 		"${mosip.auth.adapter.impl.basepackage}" },
 		excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = { RegistrationStatusServiceBeanConfig.class,
-				RegistrationStatusBeanConfig.class, RestConfigBean.class }))
+				RegistrationStatusBeanConfig.class, RestConfigBean.class}))
 public class RegistrationStatusApiApplication
 {
     public static void main( String[] args )
