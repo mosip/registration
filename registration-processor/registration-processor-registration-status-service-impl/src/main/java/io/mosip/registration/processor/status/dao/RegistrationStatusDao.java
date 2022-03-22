@@ -190,7 +190,7 @@ public class RegistrationStatusDao {
 	 * @return the un processed packets
 	 */
 	public List<RegistrationStatusEntity> getUnProcessedPackets(Integer fetchSize, long elapseTime,
-			Integer reprocessCount, List<String> status) {
+			Integer reprocessCount, List<String> status, List<String> excludeStageNames) {
 
 		LocalDateTime timeDifference = LocalDateTime.now().minusSeconds(elapseTime);
 		List<String> statusCodes=new ArrayList<>();
@@ -201,15 +201,17 @@ public class RegistrationStatusDao {
 		statusCodes.add(RegistrationStatusCode.FAILED.toString());
 		statusCodes.add(RegistrationStatusCode.PROCESSED.toString());
 
-		return registrationStatusRepositary.getUnProcessedPackets(status, reprocessCount, timeDifference, statusCodes,fetchSize);
+		return registrationStatusRepositary.getUnProcessedPackets(status, reprocessCount, timeDifference, 
+			statusCodes, fetchSize, excludeStageNames);
 	}
 
-	public Integer getUnProcessedPacketsCount(long elapseTime, Integer reprocessCount, List<String> status) {
+	public Integer getUnProcessedPacketsCount(long elapseTime, Integer reprocessCount, List<String> status, 
+			List<String> excludeStageNames) {
 		LocalDateTime timeDifference = LocalDateTime.now().minusSeconds(elapseTime);
 		List<String> statusCodes=new ArrayList<>();
 		statusCodes.add(RegistrationStatusCode.PAUSED.toString());
-		return registrationStatusRepositary.getUnProcessedPacketsCount(status, reprocessCount, timeDifference, statusCodes);
-
+		return registrationStatusRepositary.getUnProcessedPacketsCount(status, reprocessCount, timeDifference, 
+			statusCodes, excludeStageNames);
 	}
 
 	public Boolean checkUinAvailabilityForRid(String rid) {
