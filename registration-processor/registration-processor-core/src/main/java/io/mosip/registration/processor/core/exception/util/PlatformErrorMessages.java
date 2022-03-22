@@ -178,6 +178,9 @@ public enum PlatformErrorMessages {
 	/** The rpr rgs rid not found. */
 	RPR_RGS_RID_NOT_FOUND(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "031", "RID Not Found"),
 
+	LINK_FOR_USERID_INDIVIDUALID_FAILED_STATUS_EXCEPTION(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "035",
+			"Unable to get the IndividualId for UserId"),
+
 	/** The rpr pis registration table not accessible. */
 	// Packet Info Storage Exception error code and message
 	RPR_PIS_REGISTRATION_TABLE_NOT_ACCESSIBLE(PlatformConstants.RPR_PACKET_INFO_STORAGE_MODULE + "001",

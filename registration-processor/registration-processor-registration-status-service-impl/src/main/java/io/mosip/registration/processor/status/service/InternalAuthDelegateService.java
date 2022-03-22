@@ -2,6 +2,8 @@ package io.mosip.registration.processor.status.service;
 
 import java.util.Optional;
 
+import io.mosip.registration.processor.core.auth.dto.AuthRequestDTO;
+import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
 import org.springframework.http.HttpHeaders;
 
 /**
@@ -20,7 +22,7 @@ public interface InternalAuthDelegateService {
 	 * @return the object
 	 * @throws Exception 
 	 */
-	public Object authenticate(Object authRequestDTO, HttpHeaders headers) throws Exception;
+	public AuthResponseDTO authenticate(AuthRequestDTO authRequestDTO, HttpHeaders headers) throws Exception;
 
 	/**
 	 * Gets the certificate.
