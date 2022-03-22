@@ -15,13 +15,14 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 
+import brave.Tracing;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
-import io.mosip.registration.processor.core.eventbus.MosipEventBusFactory;
-import io.mosip.registration.processor.core.exception.UnsupportedEventBusTypeException;
+import io.mosip.registration.processor.core.eventbus.VertxMosipEventBus;
+import io.mosip.registration.processor.core.tracing.EventTracingHandler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -72,6 +73,7 @@ public class ReprocessingSchedulerTest {
 	public void setup() {
 		fooLogger = (Logger) LoggerFactory.getLogger(ReprocessorStage.class);
 		listAppender = new ListAppender<>();
+		Mockito.when(vertx.eventBus()).thenReturn(Vertx.vertx().eventBus());
 	}
 
 	/**
@@ -84,11 +86,8 @@ public class ReprocessingSchedulerTest {
 		 */
 		@Override
 		public MosipEventBus getEventBus(Object verticleName, String clusterManagerUrl) {
-			try {
-				return new MosipEventBusFactory().getEventBus(vertx, "vertx");
-			} catch (UnsupportedEventBusTypeException e) {
-				throw new RuntimeException(e);
-			}
+			EventTracingHandler eventTracingHandler = new EventTracingHandler(Tracing.newBuilder().build(), "vertx");
+            return new VertxMosipEventBus(vertx, eventTracingHandler);
 		}
 	};
 
