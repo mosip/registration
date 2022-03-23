@@ -92,8 +92,9 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 			return postApi(builder.toUriString(), MediaType.APPLICATION_JSON, httpRequestEntity, AuthResponseDTO.class)
 					.getBody();
 		} catch (Exception e) {
-			logger.error("Exception occured while authenticating individual id : " + authRequestDTO.getIndividualId()
-					+ ". Exception - " + ExceptionUtils.getStackTrace(e));
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
+					LoggerFileConstant.APPLICATIONID.toString(),"Exception occured while authenticating individual id : "
+							+ authRequestDTO.getIndividualId() +". " + e.getMessage() + ExceptionUtils.getStackTrace(e));
 			throw new AuthSystemException(e.getMessage());
 		}
 
