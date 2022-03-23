@@ -58,10 +58,6 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 	@Autowired
 	RegistrationProcessorRestClientService<Object> restClientService;
 
-	@Autowired
-	@Qualifier("selfTokenRestTemplate")
-	private RestTemplate restTemplate;
-
 	/** The internal auth uri. */
 	@Value("${ida-internal-auth-uri}")
 	private String internalAuthUri;
