@@ -94,8 +94,7 @@ public class RestApiClient {
 	public <T> T getApi(URI uri, Class<?> responseType) throws Exception {
 		T result = null;
 		try {
-			result = (T) localRestTemplate.exchange(uri, HttpMethod.GET, setRequestHeader(null, null), responseType)
-					.getBody();
+			result = (T) localRestTemplate.getForObject(uri, responseType);
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					LoggerFileConstant.APPLICATIONID.toString(), e.getMessage() + ExceptionUtils.getStackTrace(e));
