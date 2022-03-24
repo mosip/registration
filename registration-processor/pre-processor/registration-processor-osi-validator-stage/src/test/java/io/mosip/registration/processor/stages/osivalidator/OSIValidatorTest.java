@@ -22,14 +22,17 @@ import java.util.Map;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.constant.QualityType;
 import io.mosip.kernel.biometrics.entities.BDBInfo;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.auth.dto.IndividualIdDto;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
@@ -42,6 +45,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -113,6 +117,9 @@ public class OSIValidatorTest {
 
 	@Mock
 	private IdRepoService idRepoService;
+
+	@Spy
+	private ObjectMapper mapper = new ObjectMapper();
 
 
 
@@ -341,8 +348,16 @@ public class OSIValidatorTest {
 		idResponseDTO.setResponse(responseDTO1);
 		regOsiDto.setSupervisorHashedPwd("true");
 		regOsiDto.setOfficerHashedPwd("true");
+		List<String> pathSegments = new ArrayList<>();
+		pathSegments.add("regproc");
+		pathSegments.add("S1234");
+		ResponseWrapper<IndividualIdDto> responseWrapper = new ResponseWrapper<>();
+		IndividualIdDto individualIdDto = new IndividualIdDto();
+		individualIdDto.setIndividualId("S1234");
+		responseWrapper.setResponse(individualIdDto);
+
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(userResponseDto)
-				.thenReturn(userResponseDto).thenReturn(ridResponseDto1).thenReturn(idResponseDTO)
+				.thenReturn(userResponseDto).thenReturn(responseWrapper).thenReturn(ridResponseDto1).thenReturn(idResponseDTO)
 				.thenReturn(ridResponseDto1).thenReturn(idResponseDTO);
 		Mockito.when(osiUtils.getOSIDetailsFromMetaInfo(anyMap())).thenReturn(regOsiDto);
 		File cbeffFile = new File(classLoader.getResource("cbeff.xml").getFile());

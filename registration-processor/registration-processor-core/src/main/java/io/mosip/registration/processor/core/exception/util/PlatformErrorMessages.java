@@ -476,6 +476,9 @@ public enum PlatformErrorMessages {
 	
 	OSI_VALIDATION_AUTH_SYSTEM_EXCEPTION(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "008", "Request could not be processed. Please try again"),
 
+	LINK_FOR_USERID_INDIVIDUALID_FAILED_OVM_EXCEPTION(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "003",
+			"Unable to get the IndividualId for UserId"),
+
 	/** The packet demo dedupe failed. */
 	// Stages - Demo-Dedupe error code and message
 	PACKET_DEMO_DEDUPE_FAILED("", "Demo Dedupe Failed"),

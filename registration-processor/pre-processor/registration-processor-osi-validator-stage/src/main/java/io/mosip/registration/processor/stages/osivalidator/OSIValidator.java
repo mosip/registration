@@ -11,6 +11,10 @@ import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mosip.registration.processor.core.auth.dto.IndividualIdDto;
+import io.mosip.registration.processor.core.http.ResponseWrapper;
+import org.apache.commons.collections.CollectionUtils;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -78,6 +82,8 @@ public class OSIValidator {
 
 	/** The Constant FILE_SEPARATOR. */
 	public static final String FILE_SEPARATOR = "\\";
+	private static final String APPID = "regproc";
+
 
 	/** The Constant BIOMETRIC_INTRODUCER. */
 	public static final String BIOMETRIC = PacketFiles.BIOMETRIC.name() + FILE_SEPARATOR;
@@ -101,6 +107,9 @@ public class OSIValidator {
 
 	@Autowired
 	private PriorityBasedPacketManagerService packetManagerService;
+
+	@Autowired
+	private ObjectMapper mapper;
 
 	/** The Constant TRUE. */
 	private static final String ISTRUE = "true";
@@ -613,6 +622,11 @@ public class OSIValidator {
 			String individualType, InternalRegistrationStatusDto registrationStatusDto)
 			throws ApisResourceAccessException, IOException, BioTypeException, AuthSystemException, CertificateException, NoSuchAlgorithmException {
 
+		if (INDIVIDUAL_TYPE_USERID.equalsIgnoreCase(individualType)) {
+			userId = getIndividualIdByUserId(userId);
+			individualType = null;
+		}
+
 		AuthResponseDTO authResponseDTO = authUtil.authByIdAuthentication(userId, individualType, list);
 		if (authResponseDTO.getErrors() == null || authResponseDTO.getErrors().isEmpty()) {
 			if (authResponseDTO.getResponse().isAuthStatus()) {
@@ -732,6 +746,38 @@ public class OSIValidator {
 
 		}
 		return isValid;
+	}
+
+	/**
+	 * get the individualId by userid
+	 *
+	 * @param userid
+	 * @return individualId
+	 * @throws ApisResourceAccessException
+	 * @throws IOException
+	 */
+	private String getIndividualIdByUserId(String userid) throws ApisResourceAccessException, IOException {
+
+		regProcLogger.debug("getIndividualIdByUserId called for userid {}", userid);
+		List<String> pathSegments = new ArrayList<>();
+		pathSegments.add(APPID);
+		pathSegments.add(userid);
+		String individualId = null;
+		ResponseWrapper<?> response = null;
+		response = (ResponseWrapper<?>) restClientService.getApi(ApiName.GETINDIVIDUALIDFROMUSERID, pathSegments, "",
+				"", ResponseWrapper.class);
+		regProcLogger.debug(
+				"getIndividualIdByUserId called for with GETINDIVIDUALIDFROMUSERID GET service call ended successfully");
+		if (CollectionUtils.isNotEmpty(response.getErrors())) {
+			throw new ApisResourceAccessException(
+					PlatformErrorMessages.LINK_FOR_USERID_INDIVIDUALID_FAILED_OVM_EXCEPTION.toString());
+		} else {
+			IndividualIdDto readValue = mapper.readValue(mapper.writeValueAsString(response.getResponse()),
+					IndividualIdDto.class);
+			individualId = readValue.getIndividualId();
+		}
+		regProcLogger.debug("getIndividualIdByUserId call ended for userid {}", userid);
+		return individualId;
 	}
 
 
