@@ -339,7 +339,7 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 
 		boolean idaAuth = false;
 		AuthResponseDTO authResponseDTO = authUtil.authByIdAuthentication(uin,
-				BiometricAuthenticationConstants.INDIVIDUAL_TYPE_USERID, segments);
+				BiometricAuthenticationConstants.INDIVIDUAL_TYPE_UIN, segments);
 		if ((authResponseDTO.getErrors() == null || authResponseDTO.getErrors().isEmpty())
 				&& authResponseDTO.getResponse().isAuthStatus()) {
 			idaAuth = true;
