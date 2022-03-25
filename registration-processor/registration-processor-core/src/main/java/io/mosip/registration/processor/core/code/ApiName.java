@@ -199,6 +199,9 @@ public enum ApiName {
 	/** get operator rid from id. */
 	GETRIDFROMUSERID,
 
+	/** get individualId from userid. */
+	GETINDIVIDUALIDFROMUSERID,
+
 	/** The internalauth. */
 	INTERNALAUTH,
 

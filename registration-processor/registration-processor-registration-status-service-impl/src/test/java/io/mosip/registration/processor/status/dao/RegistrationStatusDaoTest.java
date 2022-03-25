@@ -81,10 +81,12 @@ public class RegistrationStatusDaoTest {
 	public void testgetUnProcessedPackets() {
 		List<String> statusList = new ArrayList<>();
 		statusList.add("SUCCESS");
+		List<String> excludeStageNames = new ArrayList<>();
+		excludeStageNames.add("PacketReceiverStage");
 		Mockito.when(registrationStatusRepositary.createQuerySelect(Matchers.anyString(), Matchers.anyMap(),
 				Matchers.anyInt())).thenReturn(list);
 		List<RegistrationStatusEntity> rEntityList = registrationStatusDao.getUnProcessedPackets(2, 60000, 4,
-				statusList);
+				statusList, excludeStageNames);
 		assertEquals(list, rEntityList);
 	}
 
@@ -92,10 +94,12 @@ public class RegistrationStatusDaoTest {
 	public void testgetUnProcessedPacketCount() {
 		List<String> statusList = new ArrayList<>();
 		statusList.add("SUCCESS");
+		List<String> excludeStageNames = new ArrayList<>();
+		excludeStageNames.add("PacketReceiverStage");
 		int entityCount = list.size();
 		Mockito.when(registrationStatusRepositary.createQuerySelect(Matchers.anyString(), Matchers.anyMap()))
 				.thenReturn(list);
-		int count = registrationStatusDao.getUnProcessedPacketsCount(6000, 4, statusList);
+		int count = registrationStatusDao.getUnProcessedPacketsCount(6000, 4, statusList, excludeStageNames);
 		assertEquals(count, entityCount);
 	}
 

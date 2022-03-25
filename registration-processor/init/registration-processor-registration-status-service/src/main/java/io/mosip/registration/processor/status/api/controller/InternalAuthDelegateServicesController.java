@@ -2,10 +2,14 @@ package io.mosip.registration.processor.status.api.controller;
 
 import java.util.Optional;
 
+import io.mosip.registration.processor.core.auth.dto.AuthRequestDTO;
+import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,8 +52,9 @@ public class InternalAuthDelegateServicesController {
 	@PostMapping(path = "/auth", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiOperation(value = "Authenticate Internal Request")
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Request authenticated successfully") })
-	public Object authenticate(@Validated @RequestBody Object authRequestDTO, @RequestHeader HttpHeaders headers) throws Exception {
-		return internalAuthDelegateService.authenticate(authRequestDTO, headers);
+	public ResponseEntity<AuthResponseDTO> authenticate(@Validated @RequestBody AuthRequestDTO authRequestDTO, @RequestHeader HttpHeaders headers) throws Exception {
+		return ResponseEntity.status(HttpStatus.OK)
+				.body(internalAuthDelegateService.authenticate(authRequestDTO, headers));
 	}
 
 	/**

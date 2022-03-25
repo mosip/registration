@@ -203,8 +203,10 @@ public class RegistrationStatusServiceTest {
 		List<String> statusList = new ArrayList<>();
 		statusList.add("SUCCESS");
 		statusList.add("REPROCESS");
-		Mockito.when(registrationStatusDao.getUnProcessedPacketsCount(anyLong(), anyInt(), anyList())).thenReturn(1);
-		int packetCount = registrationStatusService.getUnProcessedPacketsCount(21600, 3, statusList);
+		List<String> excludeStageNames = new ArrayList<>();
+		excludeStageNames.add("PacketReceiverStage");
+		Mockito.when(registrationStatusDao.getUnProcessedPacketsCount(anyLong(), anyInt(), anyList(), anyList())).thenReturn(1);
+		int packetCount = registrationStatusService.getUnProcessedPacketsCount(21600, 3, statusList, excludeStageNames);
 		assertEquals(1, packetCount);
 	}
 
@@ -214,10 +216,12 @@ public class RegistrationStatusServiceTest {
 		List<String> statusList = new ArrayList<>();
 		statusList.add("SUCCESS");
 		statusList.add("REPROCESS");
-		Mockito.when(registrationStatusDao.getUnProcessedPackets(anyInt(), anyLong(), anyInt(), anyList()))
+		List<String> excludeStageNames = new ArrayList<>();
+		excludeStageNames.add("PacketReceiverStage");
+		Mockito.when(registrationStatusDao.getUnProcessedPackets(anyInt(), anyLong(), anyInt(), anyList(), anyList()))
 				.thenReturn(entities);
 		List<InternalRegistrationStatusDto> dtolist = registrationStatusService.getUnProcessedPackets(1, 21600, 3,
-				statusList);
+				statusList, excludeStageNames);
 		assertEquals("REPROCESS", dtolist.get(0).getLatestTransactionStatusCode());
 	}
 
@@ -225,23 +229,27 @@ public class RegistrationStatusServiceTest {
 	public void getUnProcessedPacketsCountFailureTest() {
 		List<String> statusList = new ArrayList<>();
 		statusList.add("SUCCESS");
+		List<String> excludeStageNames = new ArrayList<>();
+		excludeStageNames.add("PacketReceiverStage");
 		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
 				"errorMessage", new Exception());
-		Mockito.when(registrationStatusDao.getUnProcessedPacketsCount(anyLong(), anyInt(), anyList())).thenThrow(exp);
+		Mockito.when(registrationStatusDao.getUnProcessedPacketsCount(anyLong(), anyInt(), anyList(), anyList())).thenThrow(exp);
 
-		registrationStatusService.getUnProcessedPacketsCount(21600, 3, statusList);
+		registrationStatusService.getUnProcessedPacketsCount(21600, 3, statusList, excludeStageNames);
 	}
 
 	@Test(expected = TablenotAccessibleException.class)
 	public void getUnProcessedPacketsFailureTest() {
 		List<String> statusList = new ArrayList<>();
 		statusList.add("SUCCESS");
+		List<String> excludeStageNames = new ArrayList<>();
+		excludeStageNames.add("PacketReceiverStage");
 		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
 				"errorMessage", new Exception());
-		Mockito.when(registrationStatusDao.getUnProcessedPackets(anyInt(), anyLong(), anyInt(), anyList()))
+		Mockito.when(registrationStatusDao.getUnProcessedPackets(anyInt(), anyLong(), anyInt(), anyList(), anyList()))
 				.thenThrow(exp);
 
-		registrationStatusService.getUnProcessedPackets(1, 21600, 3, statusList);
+		registrationStatusService.getUnProcessedPackets(1, 21600, 3, statusList, excludeStageNames);
 	}
 
 	@Test

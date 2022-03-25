@@ -173,7 +173,7 @@ public class RegistrationStatusDao {
 	 * @return the un processed packets
 	 */
 	public List<RegistrationStatusEntity> getUnProcessedPackets(Integer fetchSize, long elapseTime,
-			Integer reprocessCount, List<String> status) {
+			Integer reprocessCount, List<String> status, List<String> excludeStageNames) {
 
 		Map<String, Object> params = new HashMap<>();
 		String className = RegistrationStatusEntity.class.getSimpleName();
@@ -183,16 +183,19 @@ public class RegistrationStatusDao {
 		String queryStr = SELECT + alias + FROM + className + EMPTY_STRING + alias + WHERE + EMPTY_STRING + alias
 				+ ".latestTransactionTimes<" + ":timeDifference " + AND + EMPTY_STRING + alias
 				+ ".latestTransactionStatusCode IN :status " + AND + EMPTY_STRING + alias
+				+ ".registrationStageName NOT IN :excludeStageNames " + AND + EMPTY_STRING + alias
 				+ ".regProcessRetryCount<=" + ":reprocessCount order by "+ alias + ".updateDateTime asc";
 
 		params.put("status", status);
+		params.put("excludeStageNames", excludeStageNames);
 		params.put("reprocessCount", reprocessCount);
 		params.put("timeDifference", timeDifference);
 
 		return registrationStatusRepositary.createQuerySelect(queryStr, params, fetchSize);
 	}
 
-	public Integer getUnProcessedPacketsCount(long elapseTime, Integer reprocessCount, List<String> status) {
+	public Integer getUnProcessedPacketsCount(long elapseTime, Integer reprocessCount, List<String> status, 
+			List<String> excludeStageNames) {
 
 		Map<String, Object> params = new HashMap<>();
 		String className = RegistrationStatusEntity.class.getSimpleName();
@@ -202,9 +205,11 @@ public class RegistrationStatusDao {
 		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
 				+ ".latestTransactionStatusCode IN :status" + EMPTY_STRING + AND + EMPTY_STRING + alias
 				+ ".regProcessRetryCount<=" + ":reprocessCount" + EMPTY_STRING + AND + EMPTY_STRING + alias
+				+ ".registrationStageName NOT IN :excludeStageNames " + AND + EMPTY_STRING + alias
 				+ ".latestTransactionTimes<" + ":timeDifference";
 
 		params.put("status", status);
+		params.put("excludeStageNames", excludeStageNames);
 		params.put("reprocessCount", reprocessCount);
 		params.put("timeDifference", timeDifference);
 		List<RegistrationStatusEntity> unprocessedPackets = registrationStatusRepositary.createQuerySelect(queryStr,
