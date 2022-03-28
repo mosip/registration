@@ -110,6 +110,8 @@
 				<version>${spring.boot.version}</version>
 				<configuration>
 					<executable>true</executable>
+					<mainClass>io.mosip.registration.processor.reprocessor.ReprocessorApplication</mainClass>
+					<layout>ZIP</layout>
 				</configuration>
 				<executions>
 					<execution>
