@@ -180,10 +180,10 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 
 	@Value("${mosip.regproc.data.share.internal.domain.name}")
 	private String internalDomainName;
-	
+
 	@Value("${mosip.regproc.manual.adjudication.use.lts.format:true}")
 	private boolean  uselatestManualAdjudicationRequestFormat;
-	
+
 	@Autowired
 	private RegistrationProcessorRestClientService registrationProcessorRestClientService;
 
@@ -192,13 +192,13 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 
 	@Autowired
 	private Utilities utility;
-	
-	@Autowired 
+
+	@Autowired
 	private IdRepoService idRepoService;
-	
+
 	@Autowired
 	private MosipQueueManager<MosipQueue, byte[]> mosipQueueManager;
-	
+
 	@Autowired
 	private PriorityBasedPacketManagerService packetManagerService;
 
@@ -234,14 +234,14 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see io.mosip.registration.processor.manual.adjudication.service.
 	 * ManualAdjudicationService#updatePacketStatus(io.mosip.registration.processor.
 	 * manual.adjudication.dto.ManualVerificationDTO)
 	 */
 	@Override
 	public boolean updatePacketStatus(ManualAdjudicationResponseDTO manualVerificationDTO, String stageName,MosipQueue queue) {
-		
+
 		TrimExceptionMessage trimExceptionMessage = new TrimExceptionMessage();
 		LogDescription description = new LogDescription();
 		boolean isTransactionSuccessful = false;
@@ -255,7 +255,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 		InternalRegistrationStatusDto registrationStatusDto = null;
 
 		MessageDTO messageDTO = new MessageDTO();
-		
+
 
 		try {
 			registrationStatusDto = registrationStatusService
@@ -447,32 +447,32 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 
 		// set audits
 		for(Entry<String,String> entry: policyMap.entrySet()) {
-		if (entry.getValue().contains(AUDITS))
-			requestDto.setAudits(JsonUtils.javaObjectToJsonString(packetManagerService.getAudits(id, process, ProviderStageName.MANUAL_ADJUDICATION)));
+			if (entry.getValue().contains(AUDITS))
+				requestDto.setAudits(JsonUtils.javaObjectToJsonString(packetManagerService.getAudits(id, process, ProviderStageName.MANUAL_ADJUDICATION)));
 
-		// set metainfo
-		if (entry.getValue().contains(META_INFO))
-			requestDto.setMetaInfo(JsonUtils.javaObjectToJsonString(packetManagerService.getMetaInfo(id, process, ProviderStageName.MANUAL_ADJUDICATION)));
+			// set metainfo
+			if (entry.getValue().contains(META_INFO))
+				requestDto.setMetaInfo(JsonUtils.javaObjectToJsonString(packetManagerService.getMetaInfo(id, process, ProviderStageName.MANUAL_ADJUDICATION)));
 
 
-		// set biometrics
-		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
-		String individualBiometricsLabel = JsonUtil.getJSONValue(
-				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
-				MappingJsonConstants.VALUE);
+			// set biometrics
+			JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
+			String individualBiometricsLabel = JsonUtil.getJSONValue(
+					JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
+					MappingJsonConstants.VALUE);
 
-		if (entry.getValue().contains(individualBiometricsLabel)) {
-			List<String> modalities = getModalities(policy);
-			BiometricRecord biometricRecord = packetManagerService.getBiometrics(
-					id, individualBiometricsLabel, modalities, process, ProviderStageName.MANUAL_ADJUDICATION);
-			byte[] content = cbeffutil.createXML(biometricRecord.getSegments());
-			requestDto.setBiometrics(content != null ? CryptoUtil.encodeToURLSafeBase64(content) : null);
-		}
+			if (entry.getValue().contains(individualBiometricsLabel)) {
+				List<String> modalities = getModalities(policy);
+				BiometricRecord biometricRecord = packetManagerService.getBiometrics(
+						id, individualBiometricsLabel, modalities, process, ProviderStageName.MANUAL_ADJUDICATION);
+				byte[] content = cbeffutil.createXML(biometricRecord.getSegments());
+				requestDto.setBiometrics(content != null ? CryptoUtil.encodeToURLSafeBase64(content) : null);
+			}
 		}
 
 		return CreateDataShareUrl(requestDto, policy);
 	}
-	
+
 	private String getDataShareUrlfromIdRepo(String id) throws DataShareException, ApisResourceAccessException, JsonProcessingException, IOException, PacketManagerException  {
 
 		DataShareRequestDto requestDto = new DataShareRequestDto();
@@ -495,26 +495,26 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 
 		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 		String individualBiometricsLabel = JsonUtil.getJSONValue(
-					JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
-					MappingJsonConstants.VALUE);
+				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
+				MappingJsonConstants.VALUE);
 		for(Documents docs:documents) {
 			for(Entry<String,String> entry: policyMap.entrySet()) {
-			if(entry.getValue().contains(individualBiometricsLabel) && docs.getCategory().equalsIgnoreCase(individualBiometricsLabel)){
-				requestDto.setBiometrics(docs.getValue() != null ? docs.getValue() : null);
-			}
-			if(entry.getValue().contains(AUDITS) && docs.getCategory().equalsIgnoreCase(AUDITS)){
-				requestDto.setAudits(docs.getValue() != null ? docs.getValue() : null);
-			}
-			if(entry.getValue().contains(META_INFO) && docs.getCategory().equalsIgnoreCase(META_INFO)){
-				requestDto.setMetaInfo(docs.getValue() != null ? docs.getValue() : null);
-			}
+				if(entry.getValue().contains(individualBiometricsLabel) && docs.getCategory().equalsIgnoreCase(individualBiometricsLabel)){
+					requestDto.setBiometrics(docs.getValue() != null ? docs.getValue() : null);
+				}
+				if(entry.getValue().contains(AUDITS) && docs.getCategory().equalsIgnoreCase(AUDITS)){
+					requestDto.setAudits(docs.getValue() != null ? docs.getValue() : null);
+				}
+				if(entry.getValue().contains(META_INFO) && docs.getCategory().equalsIgnoreCase(META_INFO)){
+					requestDto.setMetaInfo(docs.getValue() != null ? docs.getValue() : null);
+				}
 			}
 		}
 
 		return CreateDataShareUrl(requestDto, policy);
 
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	private String CreateDataShareUrl(DataShareRequestDto requestDto, LinkedHashMap<String, Object> policy) throws JsonProcessingException, MalformedURLException, ApisResourceAccessException, DataShareException {
 		String req = JsonUtils.javaObjectToJsonString(requestDto);
@@ -553,7 +553,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 		LinkedHashMap datashare = (LinkedHashMap) response1.get(DATASHARE);
 		return datashare.get(URL) != null ? datashare.get(URL).toString() : null;
 	}
-	
+
 	private Map<String, String> getPolicyMap(LinkedHashMap<String, Object> policies) throws DataShareException, IOException, ApisResourceAccessException {
 		Map<String, String> policyMap = new HashMap<>();
 		List<LinkedHashMap> attributes = (List<LinkedHashMap>) policies.get(ManualAdjudicationConstants.SHAREABLE_ATTRIBUTES);
@@ -565,7 +565,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 		return policyMap;
 
 	}
-	
+
 	private Map<String,String> getDemographicMap(Map<String,String> policyMap){
 		Map<String, String> demographicMap = policyMap.entrySet().stream().filter(e-> e.getValue() != null &&
 				(!META_INFO.equalsIgnoreCase(e.getValue()) && !AUDITS.equalsIgnoreCase(e.getValue())))
@@ -579,33 +579,33 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 				HashMap docmap = (HashMap) docJson.get(doc.toString());
 				String docName = docmap != null && docmap.get(MappingJsonConstants.VALUE)!= null ? docmap.get(MappingJsonConstants.VALUE).toString() : null;
 				for(Entry<String,String> entry: policyMap.entrySet()) {
-				if (entry.getValue().contains(docName) && docmap!=null) {
-					if(documents==null || documents.isEmpty()) {
-						Document document = packetManagerService.getDocument(id, doc.toString(), process, ProviderStageName.MANUAL_ADJUDICATION);
-						if (document != null) {
-							if (requestDto.getDocuments() != null)
-								requestDto.getDocuments().put(docmap.get(MappingJsonConstants.VALUE).toString(), CryptoUtil.encodeToURLSafeBase64(document.getDocument()));
-							else {
-								Map<String, String> docMap = new HashMap<>();
-								docMap.put(docmap.get(MappingJsonConstants.VALUE).toString(), CryptoUtil.encodeToURLSafeBase64(document.getDocument()));
-								requestDto.setDocuments(docMap);
-							}
-						}
-					}
-					else {
-						for(Documents docs:documents) {
-							if(docs.getCategory().equalsIgnoreCase(docName)) {
-								if (requestDto.getDocuments() != null) {
-									requestDto.getDocuments().put(docmap.get(MappingJsonConstants.VALUE).toString(), docs.getValue());
-								}else {
+					if (entry.getValue().contains(docName) && docmap!=null) {
+						if(documents==null || documents.isEmpty()) {
+							Document document = packetManagerService.getDocument(id, docName, process, ProviderStageName.MANUAL_ADJUDICATION);
+							if (document != null) {
+								if (requestDto.getDocuments() != null)
+									requestDto.getDocuments().put(docmap.get(MappingJsonConstants.VALUE).toString(), CryptoUtil.encodeToURLSafeBase64(document.getDocument()));
+								else {
 									Map<String, String> docMap = new HashMap<>();
-									docMap.put(docmap.get(MappingJsonConstants.VALUE).toString(), docs.getValue());
+									docMap.put(docmap.get(MappingJsonConstants.VALUE).toString(), CryptoUtil.encodeToURLSafeBase64(document.getDocument()));
 									requestDto.setDocuments(docMap);
 								}
 							}
 						}
+						else {
+							for(Documents docs:documents) {
+								if(docs.getCategory().equalsIgnoreCase(docName)) {
+									if (requestDto.getDocuments() != null) {
+										requestDto.getDocuments().put(docmap.get(MappingJsonConstants.VALUE).toString(), docs.getValue());
+									}else {
+										Map<String, String> docMap = new HashMap<>();
+										docMap.put(docmap.get(MappingJsonConstants.VALUE).toString(), docs.getValue());
+										requestDto.setDocuments(docMap);
+									}
+								}
+							}
+						}
 					}
-				}
 				}
 			}
 		}
@@ -731,7 +731,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 
 		return req;
 	}
-	
+
 	/*
 	 * Form manual adjudication request
 	 */
@@ -805,7 +805,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 					getDataShareUrl(id,registrationStatusDto.getRegistrationType()));
 			referenceURLs.add(referenceURL);
 			if(registrationStatusDto.getRegistrationType().equalsIgnoreCase(RegistrationType.UPDATE.name())
-				|| registrationStatusDto.getRegistrationType().equalsIgnoreCase(RegistrationType.RES_UPDATE.name())) {
+					|| registrationStatusDto.getRegistrationType().equalsIgnoreCase(RegistrationType.RES_UPDATE.name())) {
 				String uinField = utility.getUIn(id, registrationStatusDto.getRegistrationType(), ProviderStageName.MANUAL_ADJUDICATION);
 				ReferenceURL referenceURL1=new ReferenceURL();
 				referenceURL1.setSource(ID_REPO);
@@ -844,7 +844,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 			}
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					object.getRid(), "ManualVerificationServiceImpl::process()::entry");
-			
+
 			registrationStatusDto = registrationStatusService
 					.getRegistrationStatus(object.getRid(), object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
 
@@ -855,7 +855,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 			registrationStatusDto
 					.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
-			
+
 		} catch (DataShareException de) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
 			registrationStatusDto.setStatusComment(trimExceptionMessage
@@ -898,8 +898,8 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 					description.getMessage() + ExceptionUtils.getStackTrace(e));
 		}finally {
 			registrationStatusDto
-			.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.MANUAL_ADJUDICATION.toString());
-			registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);	
+					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.MANUAL_ADJUDICATION.toString());
+			registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);
 			if (object.getInternalError()) {
 				updateErrorFlags(registrationStatusDto, object);
 			}
