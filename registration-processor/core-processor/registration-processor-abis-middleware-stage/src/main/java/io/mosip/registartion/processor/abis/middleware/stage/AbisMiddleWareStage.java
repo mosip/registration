@@ -84,7 +84,8 @@ import io.mosip.registration.processor.status.utilities.RegistrationUtility;
 @RefreshScope
 @Service
 @Configuration
-@ComponentScan(basePackages = { "io.mosip.registration.processor.abis.handler.config",
+@ComponentScan(basePackages = { "${mosip.auth.adapter.impl.basepackage}",
+		"io.mosip.registration.processor.abis.handler.config",
         "io.mosip.registration.processor.status.config",
         "io.mosip.registration.processor.rest.client.config",
         "io.mosip.registration.processor.packet.storage.config",

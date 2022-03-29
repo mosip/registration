@@ -37,7 +37,7 @@
 			<version>${vertx.version}</version>
 		</dependency>
 		<dependency>
-			<!-- Ceylon lang dependency is required to have CeylonVerticleFactory 
+			<!-- Ceylon lang dependency is required to have CeylonVerticleFactory
 				which is used to instantiate Ceylon verticles -->
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-lang-ceylon</artifactId>
@@ -110,6 +110,8 @@
 				<version>${spring.boot.version}</version>
 				<configuration>
 					<executable>true</executable>
+					<mainClass>io.mosip.registration.processor.reprocessor.ReprocessorApplication</mainClass>
+					<layout>ZIP</layout>
 				</configuration>
 				<executions>
 					<execution>

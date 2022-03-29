@@ -22,7 +22,8 @@ import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIMan
 @RefreshScope
 @Service
 @Configuration
-@ComponentScan(basePackages = { "io.mosip.registration.processor.core.config",
+@ComponentScan(basePackages = { "${mosip.auth.adapter.impl.basepackage}",
+		"io.mosip.registration.processor.core.config",
 		"io.mosip.registration.processor.stages.config", "io.mosip.registration.processor.demo.dedupe.config",
 		"io.mosip.registration.processor.status.config",
 		"io.mosip.registration.processor.packet.storage.config",
