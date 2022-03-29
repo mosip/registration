@@ -647,7 +647,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 				HashMap docmap = (HashMap) docJson.get(doc.toString());
 				String docName = docmap != null && docmap.get(MappingJsonConstants.VALUE)!= null ? docmap.get(MappingJsonConstants.VALUE).toString() : null;
 				if (policyMap.containsValue(docName)) {
-					Document document = packetManagerService.getDocument(id, doc.toString(), process, ProviderStageName.MANUAL_VERIFICATION);
+					Document document = packetManagerService.getDocument(id, docName, process, ProviderStageName.MANUAL_VERIFICATION);
 					if (document != null) {
 						if (requestDto.getDocuments() != null)
 							requestDto.getDocuments().put(docmap.get(MappingJsonConstants.VALUE).toString(), CryptoUtil.encodeBase64String(document.getDocument()));
