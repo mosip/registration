@@ -52,11 +52,11 @@ public interface RegistrationRepositary<T extends BaseRegistrationEntity, E> ext
 	@Query("SELECT registration FROM RegistrationStatusEntity registration WHERE registration.id.workflowInstanceId = :workflowInstanceId AND registration.isDeleted =false AND registration.isActive=true")
 	public List<RegistrationStatusEntity> findByWorkflowInstanceId(@Param("workflowInstanceId") String workflowInstanceId);
 	
-	@Query(value ="SELECT * FROM registration r WHERE r.latest_trn_status_code IN :status AND r.reg_process_retry_count<=:reprocessCount AND r.latest_trn_dtimes <:timeDifference AND r.status_code NOT IN :statusCodes LIMIT :fetchSize ", nativeQuery = true)
-	public List<RegistrationStatusEntity> getUnProcessedPackets(@Param("status") List<String> status,@Param("reprocessCount") Integer reprocessCount,@Param("timeDifference") LocalDateTime timeDifference,@Param("statusCodes") List<String> statusCodes,@Param("fetchSize") Integer fetchSize );
+	@Query(value ="SELECT * FROM registration r WHERE r.latest_trn_status_code IN :status AND r.reg_process_retry_count<=:reprocessCount AND r.latest_trn_dtimes <:timeDifference AND r.status_code NOT IN :statusCodes AND r.reg_stage_name NOT IN :excludeStageNames LIMIT :fetchSize ", nativeQuery = true)
+	public List<RegistrationStatusEntity> getUnProcessedPackets(@Param("status") List<String> status,@Param("reprocessCount") Integer reprocessCount,@Param("timeDifference") LocalDateTime timeDifference,@Param("statusCodes") List<String> statusCodes,@Param("fetchSize") Integer fetchSize,@Param("excludeStageNames") List<String> excludeStageNames);
 	
-	@Query("SELECT COUNT(*) FROM RegistrationStatusEntity registration WHERE registration.latestTransactionStatusCode IN :status AND registration.regProcessRetryCount<=:reprocessCount AND registration.latestTransactionTimes<:timeDifference AND registration.statusCode  NOT IN :statusCodes ")
-	public int getUnProcessedPacketsCount(@Param("status") List<String> status,@Param("reprocessCount") Integer reprocessCount,@Param("timeDifference") LocalDateTime timeDifference,@Param("statusCodes") List<String> statusCodes );
+	@Query("SELECT COUNT(*) FROM RegistrationStatusEntity registration WHERE registration.latestTransactionStatusCode IN :status AND registration.regProcessRetryCount<=:reprocessCount AND registration.latestTransactionTimes<:timeDifference AND registration.statusCode  NOT IN :statusCodes AND registration.registrationStageName NOT IN :excludeStageNames")
+	public int getUnProcessedPacketsCount(@Param("status") List<String> status,@Param("reprocessCount") Integer reprocessCount,@Param("timeDifference") LocalDateTime timeDifference,@Param("statusCodes") List<String> statusCodes,@Param("excludeStageNames") List<String> excludeStageNames);
 	
 	@Query(value ="SELECT * FROM registration r WHERE r.status_code IN :statusCodes AND r.resume_timestamp < now() AND r.default_resume_action is NOT NULL order by r.upd_dtimes LIMIT :fetchSize ", nativeQuery = true)
 	public List<RegistrationStatusEntity> getActionablePausedPackets(@Param("statusCodes") List<String> statusCodes,@Param("fetchSize") Integer fetchSize);

@@ -61,7 +61,7 @@ public class EncryptorTest {
 	public void setup() throws FileNotFoundException {
 		PowerMockito.mockStatic(CryptoUtil.class);
 		PowerMockito.when(CryptoUtil.decodeURLSafeBase64(anyString())).thenReturn("mosip".getBytes());
-		data = "bW9zaXA";
+		data = "bW9zaXA=";
 		cryptomanagerResponseDto = new DecryptResponseDto();
 		cryptomanagerResponseDto.setData(data);
 		when(env.getProperty("mosip.registration.processor.crypto.decrypt.id"))
@@ -74,7 +74,7 @@ public class EncryptorTest {
 	@Test
 	public void encryptTest() throws EncryptionFailureException, ApisResourceAccessException, IOException {
 		DecryptResponseDto cryptomanagerResponseDto = new DecryptResponseDto();
-		cryptomanagerResponseDto.setData("mosip");
+		cryptomanagerResponseDto.setData("bW9zaXA=");
 		ResponseWrapper<DecryptResponseDto> response = new ResponseWrapper<>();
 		response.setResponse(cryptomanagerResponseDto);
 		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any())).thenReturn(response);
