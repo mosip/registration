@@ -15,6 +15,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 
+import brave.Tracing;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -74,6 +75,7 @@ public class ReprocessingSchedulerTest {
 	public void setup() {
 		fooLogger = (Logger) LoggerFactory.getLogger(ReprocessorVerticle.class);
 		listAppender = new ListAppender<>();
+		Mockito.when(vertx.eventBus()).thenReturn(Vertx.vertx().eventBus());
 	}
 
 	/**
@@ -143,16 +145,16 @@ public class ReprocessingSchedulerTest {
 	 * Failure Test for Chime Scheduler deployment
 	 */
 	@Test
-	@Ignore
 	public void testDeploySchedulerFailureTest() {
 		listAppender.start();
 		fooLogger.addAppender(listAppender);
 		Mockito.when(res.succeeded()).thenReturn(false);
+		Mockito.when(res.cause()).thenReturn(new Exception("Exception"));
 		//Mockito.when(vertx.eventBus()).thenReturn(getMockEventBus());
 		reprocessorVerticle.schedulerResult(res);
 		Assertions.assertThat(listAppender.list).extracting(ILoggingEvent::getLevel, ILoggingEvent::getFormattedMessage)
 				.contains(Tuple.tuple(Level.ERROR,
-						"ReprocessorVerticle::schedular()::deployment failure"));
+						"ReprocessorVerticle::schedular()::deployment failure Exception"));
 	}
 	/**
 	 * Returns dummy eventbus instance
