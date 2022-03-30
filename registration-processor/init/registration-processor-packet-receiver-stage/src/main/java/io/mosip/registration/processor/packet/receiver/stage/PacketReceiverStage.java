@@ -3,7 +3,10 @@ package io.mosip.registration.processor.packet.receiver.stage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -133,7 +136,9 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 	 */
 	public void failure(RoutingContext routingContext) {
 		try {
-			deleteFile(getFileFromCtx(routingContext));
+			Entry<FileUpload,File> fileUploadEntry=getFileFromCtx(routingContext).entrySet().iterator().next();
+			deleteFile(fileUploadEntry.getValue());
+			deleteFile(FileUtils.getFile(fileUploadEntry.getKey().uploadedFileName()));
 		} catch (IOException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
@@ -151,10 +156,13 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 	 */
 	public void processPacket(RoutingContext ctx) {
 		File file=null;
+		File temporaryFile=null;
 		try {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", "PacketReceiverStage::processPacket()::entry");
-			file=getFileFromCtx(ctx);
+			Entry<FileUpload,File> fileUploadEntry=getFileFromCtx(ctx).entrySet().iterator().next();
+			file=fileUploadEntry.getValue();
+			temporaryFile=FileUtils.getFile(fileUploadEntry.getKey().uploadedFileName());
 			MessageDTO messageDTO = packetReceiverService.processPacket(file);
 			messageDTO.setMessageBusAddress(MessageBusAddress.PACKET_RECEIVER_OUT);
 			if (messageDTO.getIsValid()) {
@@ -166,6 +174,7 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 			throw new UnexpectedException(e.getMessage());
 		} finally {
 			deleteFile(file);
+			deleteFile(temporaryFile);
 		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				"", "PacketReceiverStage::processPacket()::exit");
@@ -185,7 +194,7 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 					"", "PacketReceiverStage::processURL()::entry");
 			List<String> listObj = new ArrayList<>();
 			listObj.add(env.getProperty(MODULE_ID));
-			File file=getFileFromCtx(ctx);
+			File file=getFileFromCtx(ctx).entrySet().iterator().next().getValue();
 			MessageDTO messageDTO = packetReceiverService.validatePacket(file, this.getClass().getSimpleName());
 			listObj.add(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 			listObj.add(env.getProperty(APPLICATION_VERSION));
@@ -250,13 +259,14 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 	 * @return the file from ctx
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	private File getFileFromCtx(RoutingContext ctx) throws IOException {
-
+	private Map<FileUpload,File> getFileFromCtx(RoutingContext ctx) throws IOException {
 		FileUpload fileUpload = ctx.fileUploads().iterator().next();
 		FileUtils.copyFile(FileUtils.getFile(fileUpload.uploadedFileName()),
 				FileUtils.getFile(FileUtils.getFile(fileUpload.uploadedFileName()).getParent() + "/" + fileUpload.fileName()));
 		File file = FileUtils.getFile(FileUtils.getFile(fileUpload.uploadedFileName()).getParent() + "/" + fileUpload.fileName());
-		return file;
+		Map<FileUpload,File> uploadedFileMap=new HashMap<>();
+		uploadedFileMap.put(fileUpload,file);
+		return uploadedFileMap;
 
 	}
 }
