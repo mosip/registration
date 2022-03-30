@@ -475,7 +475,7 @@ public class VerificationServiceImpl implements VerificationService {
 						? docmap.get(MappingJsonConstants.VALUE).toString()
 						: null;
 				if (policyMap.containsValue(docName)) {
-					Document document = packetManagerService.getDocument(id, doc.toString(), process,
+					Document document = packetManagerService.getDocument(id, docName, process,
 							ProviderStageName.VERIFICATION);
 					if (document != null) {
 						if (requestDto.getDocuments() != null)
