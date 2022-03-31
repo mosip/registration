@@ -286,7 +286,7 @@ ALTER TABLE regprc.registration_list ADD COLUMN phone character varying;
 ALTER TABLE regprc.registration_list ADD COLUMN email character varying;
 ALTER TABLE regprc.registration_list ADD COLUMN center_id character varying;
 ALTER TABLE regprc.registration_list ADD COLUMN registration_date date;
-ALTER TABLE regprc.registration_list ADD COLUMN postal_code character varying;
+ALTER TABLE regprc.registration_list ADD COLUMN location_code character varying;
 
 -------------------------------------------------------------------------------------------------------------------------------------------
 -------------------------------------------------Creation of crypto salt table--------------------------------------------------------------
@@ -294,10 +294,3 @@ ALTER TABLE regprc.registration_list ADD COLUMN postal_code character varying;
 \ir ../ddl/regprc-crypto_salt.sql
 
 --------------------------------------------------------------------------------------------------------------------------------------------
-
--------------------------------------------------------RENAME column to registration_list----------------------------------------------
-
-ALTER TABLE regprc.registration_list RENAME COLUMN postal_code TO location_code;
-
----------------------------------------------------------------------------------------------------------------------------------------------
-
