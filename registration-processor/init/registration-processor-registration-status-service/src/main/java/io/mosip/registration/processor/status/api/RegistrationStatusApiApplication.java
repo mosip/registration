@@ -28,7 +28,8 @@ import io.mosip.registration.processor.status.config.RegistrationStatusServiceBe
 		"io.mosip.registration.processor.core.config",
 		"${mosip.auth.adapter.impl.basepackage}" },
 		excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = { RegistrationStatusServiceBeanConfig.class,
-				RegistrationStatusBeanConfig.class, RestConfigBean.class}))
+				RegistrationStatusBeanConfig.class, RestConfigBean.class,KafkaMosipEventBus.class,VertxMosipEventBus.class
+				,StageHealthCheckHandler.class,MosipVerticleManager.class,MosipVerticleAPIManager.class,MosipEventBus.class}))
 public class RegistrationStatusApiApplication
 {
     public static void main( String[] args )
