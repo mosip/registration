@@ -899,6 +899,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 			pushRequestToQueue(object.getRid(), queue);
 			isTransactionSuccessful=true;
+			object.setIsValid(true);
 			registrationStatusDto.setStatusComment(StatusUtil.RPR_MANUAL_VERIFICATION_SENT_TO_QUEUE.getMessage());
 			registrationStatusDto.setSubStatusCode(StatusUtil.RPR_MANUAL_VERIFICATION_SENT_TO_QUEUE.getCode());
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
@@ -954,9 +955,6 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 			registrationStatusDto
 			.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.MANUAL_VERIFICATION.toString());
 			registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);	
-			if (object.getInternalError()) {
-				updateErrorFlags(registrationStatusDto, object);
-			}
 			if (object.getIsValid() && !object.getInternalError())
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), registrationId, "ManualVerificationServiceImpl::process()::success");
@@ -976,15 +974,6 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 				object.getRid(), "ManualVerificationServiceImpl::process()::entry");
 
 		return object;
-	}
-	private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
-		object.setInternalError(true);
-		if (registrationStatusDto.getLatestTransactionStatusCode()
-				.equalsIgnoreCase(RegistrationTransactionStatusCode.REPROCESS.toString())) {
-			object.setIsValid(true);
-		} else {
-			object.setIsValid(false);
-		}
 	}
 	/*
 	 * Update manual verification entity once request is pushed to queue for a given
