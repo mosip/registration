@@ -190,7 +190,12 @@ public class AuthUtil {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), individualId,
 				"AuthUtil::authByIdAuthentication()::INTERNALAUTH POST service call started");
 
-		HttpEntity<AuthRequestDTO> httpEntity = new HttpEntity<>(authRequestDTO);
+		HttpHeaders headers = new HttpHeaders();
+		String token = restApiClient.getToken().replace(AUTHORIZATION, "");
+		headers.add("cookie", restApiClient.getToken());
+		headers.add("Authorization", token);
+
+		HttpEntity<AuthRequestDTO> httpEntity = new HttpEntity<>(authRequestDTO, headers);
 
 		ResponseEntity<AuthResponseDTO> responseEntity = restTemplate.exchange(env.getProperty(ApiName.INTERNALAUTH.name()), HttpMethod.POST, httpEntity, AuthResponseDTO.class);
 		AuthResponseDTO response = responseEntity.getBody();
