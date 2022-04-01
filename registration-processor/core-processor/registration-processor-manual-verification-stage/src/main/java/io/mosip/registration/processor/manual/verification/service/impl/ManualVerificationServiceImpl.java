@@ -875,6 +875,13 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 	@Override
 	public MessageDTO process(MessageDTO object, MosipQueue queue) {
+		InternalRegistrationStatusDto registrationStatusDto=new InternalRegistrationStatusDto();
+		TrimExceptionMessage trimExceptionMessage = new TrimExceptionMessage();
+		LogDescription description = new LogDescription();
+		String moduleName = ModuleName.MANUAL_VERIFICATION.toString();
+		String moduleId = PlatformSuccessMessages.RPR_MANUAL_VERIFICATION_SENT.getCode();
+		String registrationId = object.getRid();
+		boolean isTransactionSuccessful = false;
 		try {
 			object.setInternalError(false);
 			object.setIsValid(false);
@@ -885,33 +892,89 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 						PlatformErrorMessages.RPR_MVS_NO_RID_SHOULD_NOT_EMPTY_OR_NULL.getMessage());
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					object.getRid(), "ManualVerificationServiceImpl::process()::entry");
+			
+			
+			registrationStatusDto = registrationStatusService
+					.getRegistrationStatus(object.getRid());
+
 			pushRequestToQueue(object.getRid(), queue);
+			isTransactionSuccessful=true;
+			object.setIsValid(true);
+			registrationStatusDto.setStatusComment(StatusUtil.RPR_MANUAL_VERIFICATION_SENT_TO_QUEUE.getMessage());
+			registrationStatusDto.setSubStatusCode(StatusUtil.RPR_MANUAL_VERIFICATION_SENT_TO_QUEUE.getCode());
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+			registrationStatusDto
+					.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 
 		} catch (DataShareException de) {
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
+			registrationStatusDto.setStatusComment(trimExceptionMessage
+					.trimExceptionMessage(StatusUtil.RPR_MANUAL_VERIFICATION_RESEND.getMessage() + de.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.RPR_MANUAL_VERIFICATION_RESEND.getCode());
+			registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+			description.setCode(PlatformErrorMessages.RPR_MANUAL_VERIFICATION_RESEND.getCode());
+			description.setMessage(PlatformErrorMessages.RPR_MANUAL_VERIFICATION_RESEND.getMessage());
 			object.setInternalError(true);
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					de.getErrorCode(), de.getErrorText());
 
 		} catch (InvalidRidException exp) {
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
+			registrationStatusDto.setStatusComment(trimExceptionMessage
+					.trimExceptionMessage(StatusUtil.RPR_MANUAL_VERIFICATION_RESEND.getMessage() + exp.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.RPR_MANUAL_VERIFICATION_RESEND.getCode());
+			registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+			description.setCode(PlatformErrorMessages.RPR_MANUAL_VERIFICATION_RESEND.getCode());
+			description.setMessage(PlatformErrorMessages.RPR_MANUAL_VERIFICATION_RESEND.getMessage());
 			object.setInternalError(true);
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), null, exp.getErrorCode(), exp.getErrorText());
 		} catch (MatchedRefNotExistsException exp) {
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
+			registrationStatusDto.setStatusComment(trimExceptionMessage
+					.trimExceptionMessage(StatusUtil.RPR_MANUAL_VERIFICATION_RESEND.getMessage() + exp.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.RPR_MANUAL_VERIFICATION_RESEND.getCode());
+			registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+			description.setCode(PlatformErrorMessages.RPR_MANUAL_VERIFICATION_RESEND.getCode());
+			description.setMessage(PlatformErrorMessages.RPR_MANUAL_VERIFICATION_RESEND.getMessage());
 			object.setInternalError(true);
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					exp.getErrorCode(), exp.getErrorText());
 
 		} catch (Exception e) {
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
+			registrationStatusDto.setStatusComment(trimExceptionMessage
+					.trimExceptionMessage(StatusUtil.RPR_MANUAL_VERIFICATION_RESEND.getMessage() + e.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.RPR_MANUAL_VERIFICATION_RESEND.getCode());
+			registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+			description.setCode(PlatformErrorMessages.RPR_MANUAL_VERIFICATION_RESEND.getCode());
+			description.setMessage(PlatformErrorMessages.RPR_MANUAL_VERIFICATION_RESEND.getMessage());
 			object.setInternalError(true);
-			regProcLogger.error(ExceptionUtils.getStackTrace(e));
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					e.getMessage(), e.getMessage());
+		}finally {
+			registrationStatusDto
+			.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.MANUAL_VERIFICATION.toString());
+			registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);	
+			if (object.getIsValid() && !object.getInternalError())
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), registrationId, "ManualVerificationServiceImpl::process()::success");
+			else
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), registrationId, "ManualVerificationServiceImpl::process()::failure");
+
+			String eventId = isTransactionSuccessful ? EventId.RPR_402.toString() : EventId.RPR_405.toString();
+			String eventName = isTransactionSuccessful ? EventName.UPDATE.toString() : EventName.EXCEPTION.toString();
+			String eventType = isTransactionSuccessful ? EventType.BUSINESS.toString() : EventType.SYSTEM.toString();
+
+			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
+					moduleId, moduleName, registrationId);
+
 		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				object.getRid(), "ManualVerificationServiceImpl::process()::entry");
 
 		return object;
 	}
-
 	/*
 	 * Update manual verification entity once request is pushed to queue for a given
 	 * RID
