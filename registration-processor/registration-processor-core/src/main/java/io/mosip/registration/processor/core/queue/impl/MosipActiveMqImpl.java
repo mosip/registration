@@ -69,7 +69,8 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
                             LINE_SEPERATOR + this.session);
                     if (!((ActiveMQConnection) connection).isStarted() || session == null) {
                         regProcLogger.error("Activemq connection is not created. Retrying.....");
-                        setup(mosipActiveMq);
+                        throw new QueueConnectionException("session is "+session);
+                       
                     }
                 }
             }
