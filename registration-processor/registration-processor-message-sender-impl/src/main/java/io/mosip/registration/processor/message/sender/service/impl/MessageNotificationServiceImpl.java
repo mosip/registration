@@ -128,7 +128,7 @@ public class MessageNotificationServiceImpl
 
 	@Autowired
 	private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationService;
-	
+
 	@Autowired
 	private Decryptor decryptor;
 	/** The template generator. */
@@ -141,17 +141,17 @@ public class MessageNotificationServiceImpl
 	/** The utility. */
 	@Autowired
 	private Utilities utility;
-	
+
 	@Autowired
 	private LanguageUtility languageUtility;
 
 	/** The rest client service. */
 	@Autowired
 	private RegistrationProcessorRestClientService<Object> restClientService;
-	
+
 	@Value("${mosip.default.template-languages:#{null}}")
 	private String defaultTemplateLanguages;
-	
+
 	@Value("${mosip.default.user-preferred-language-attribute:#{null}}")
 	private String userPreferredLanguageAttribute;
 
@@ -208,7 +208,7 @@ public class MessageNotificationServiceImpl
 				}
 				smsDto.setNumber(phoneNumber.toString());
 			}
-			
+
 			smsDto.setMessage(artifact);
 
 			requestWrapper.setId(env.getProperty(SMS_SERVICE_ID));
@@ -244,8 +244,8 @@ public class MessageNotificationServiceImpl
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					id, PlatformErrorMessages.RPR_PGS_API_RESOURCE_NOT_AVAILABLE.name() + e.getMessage()
 							+ ExceptionUtils.getStackTrace(e));
-			
-			
+
+
 		}
 
 		return response;
@@ -268,7 +268,7 @@ public class MessageNotificationServiceImpl
 				"MessageNotificationServiceImpl::sendEmailNotification()::entry");
 		try {
 			List<String> preferredLanguages= getPreferredLanguages(id,process);
-			
+
 			String artifact="";
 			String subject="";
 			for(String lang: preferredLanguages) {
@@ -277,11 +277,11 @@ public class MessageNotificationServiceImpl
 				Map<String, Object> attributesLang=new HashMap<>(attributes);
 				setAttributes(id, process,lang, idType, attributesLang, regType, phoneNumber, emailId);
 				InputStream stream = templateGenerator.getTemplate(templateTypeCode, attributesLang, lang);
-				
+
 				artifact = IOUtils.toString(stream, ENCODING);
-				
+
 				InputStream subStream = templateGenerator.getTemplate(subjectCode, attributesLang, lang);
-				
+
 				subject=IOUtils.toString(subStream, ENCODING);
 				if (emailId == null || emailId.length() == 0) {
 					throw new EmailIdNotFoundException(PlatformErrorMessages.RPR_EML_EMAILID_NOT_FOUND.getCode());
@@ -291,7 +291,7 @@ public class MessageNotificationServiceImpl
 				response = sendEmail(mailTo, mailCc, subject, artifact, attachment);
 			}
 
-			
+
 
 		} catch (TemplateNotFoundException | TemplateProcessingFailureException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -310,12 +310,12 @@ public class MessageNotificationServiceImpl
 
 		return response;
 	}
-	
-	private List<String> getPreferredLanguages(String id, String process) throws ApisResourceAccessException, 
+
+	private List<String> getPreferredLanguages(String id, String process) throws ApisResourceAccessException,
 	PacketManagerException, JsonProcessingException, IOException {
 		if(userPreferredLanguageAttribute!=null && !userPreferredLanguageAttribute.isBlank()) {
 			try {
-				String preferredLang=packetManagerService.getField(id, userPreferredLanguageAttribute, process, 
+				String preferredLang=packetManagerService.getField(id, userPreferredLanguageAttribute, process,
 						ProviderStageName.MESSAGE_SENDER);
 				if(preferredLang!=null && !preferredLang.isBlank()) {
 					List<String> codes=new ArrayList<>();
@@ -331,12 +331,12 @@ public class MessageNotificationServiceImpl
 						id, PlatformErrorMessages.RPR_PGS_API_RESOURCE_NOT_AVAILABLE.name() + e.getMessage()
 								+ ExceptionUtils.getStackTrace(e));
 			}
-			
+
 		}
 		if(defaultTemplateLanguages!=null && !defaultTemplateLanguages.isBlank()) {
 			return List.of(defaultTemplateLanguages.split(","));
 		}
-		Map<String,String> idValuesMap=packetManagerService.getAllFieldsByMappingJsonKeys(id, process, 
+		Map<String,String> idValuesMap=packetManagerService.getAllFieldsByMappingJsonKeys(id, process,
 						ProviderStageName.MESSAGE_SENDER);
 		List<String> idValues=new ArrayList<>();
 		for(Entry<String, String> entry: idValuesMap.entrySet()) {
@@ -349,18 +349,18 @@ public class MessageNotificationServiceImpl
 			if(idValue!=null&& !idValue.isBlank()  ) {
 				if(isJSONArrayValid(idValue)) {
 					JSONArray array=mapper.readValue(idValue, JSONArray.class);
-					for(Object obj:array) {	
+					for(Object obj:array) {
 						JSONObject json= new JSONObject( (Map) obj);
-						langSet.add( (String) json.get("language"));			
+						langSet.add( (String) json.get("language"));
 					}
 				}
 			}
 		}
 		return new ArrayList<>(langSet);
 	}
-				
-	
-	
+
+
+
 	public boolean isJSONArrayValid(String jsonArrayString) {
 	        try {
 	            new org.json.JSONArray(jsonArrayString);
@@ -396,17 +396,17 @@ public class MessageNotificationServiceImpl
 		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(apiHost);
 
 		for (String item : mailTo) {
-			builder.queryParam("mailTo", item);
+			params.add("mailTo", item);
 		}
 
 		if (mailCc != null) {
 			for (String item : mailCc) {
-				builder.queryParam("mailCc", item);
+				params.add("mailCc", item);
 			}
 		}
 
-		builder.queryParam("mailSubject", subject);
-		builder.queryParam("mailContent", artifact);
+		params.add("mailSubject", subject);
+		params.add("mailContent", artifact);
 
 		params.add("attachments", attachment);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
@@ -427,7 +427,7 @@ public class MessageNotificationServiceImpl
 	 * Gets the template json.
 	 *
 	 * @param id         the id
-	 * @param lang 
+	 * @param lang
 	 * @param idType     the id type
 	 * @param attributes the attributes
 	 * @param regType    the reg typesetAttributes
@@ -436,10 +436,10 @@ public class MessageNotificationServiceImpl
 	 *                                               has occurred.
 	 * @throws ApisResourceAccessException
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
-	 * @throws io.mosip.kernel.core.exception.IOException 
-	 * @throws JsonMappingException 
-	 * @throws JsonParseException 
-	 * @throws PacketDecryptionFailureException 
+	 * @throws io.mosip.kernel.core.exception.IOException
+	 * @throws JsonMappingException
+	 * @throws JsonParseException
+	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
 	 * @throws IdRepoAppException
 	 */
@@ -482,7 +482,7 @@ public class MessageNotificationServiceImpl
 	 *            the attributes
 	 * @param regType
 	 *            the reg type
-	 * @param lang 
+	 * @param lang
 	 * @return the map
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
@@ -531,7 +531,7 @@ public class MessageNotificationServiceImpl
 	 *            the attribute
 	 * @param regType
 	 *            the reg type
-	 * @param lang 
+	 * @param lang
 	 * @return the keysand values
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
@@ -679,7 +679,7 @@ public class MessageNotificationServiceImpl
 			}
 			return attribute;
 		}
-		
+
 		private Map<String, Object> setAttributesFromSync(String id, String process, Map<String, Object> attribute,
 				String regType, String lang, StringBuilder phoneNumber, StringBuilder emailId) throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, JsonParseException, JsonMappingException, io.mosip.kernel.core.exception.IOException {
 			SyncRegistrationEntity regEntity = syncRegistrationService.findByRegistrationId(id).get(0);
@@ -705,7 +705,7 @@ public class MessageNotificationServiceImpl
 				}
 			}
 			return attribute;
-			
+
 		}
 
 	private String getVid(String uin) throws ApisResourceAccessException {
