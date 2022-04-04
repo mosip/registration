@@ -97,11 +97,12 @@ public class LostRidRequestValidator {
 	 */
 	private void validateId(String id) throws RegStatusAppException {
 		LostRidValidationException exception = new LostRidValidationException();
-
+		String lostRidService=env.getProperty(REG_LOSTRID_SERVICE_ID);
 		if (Objects.isNull(id)) {
 
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER_ID, exception);
-		} else if (StringUtils.isNotEmpty(env.getProperty(REG_LOSTRID_SERVICE_ID)) && !env.getProperty(REG_LOSTRID_SERVICE_ID).equals(id)) {
+			
+		} else if (StringUtils.isNotEmpty(lostRidService) && !lostRidService.equals(id)) {
 
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_INVALID_INPUT_PARAMETER_ID, exception);
 

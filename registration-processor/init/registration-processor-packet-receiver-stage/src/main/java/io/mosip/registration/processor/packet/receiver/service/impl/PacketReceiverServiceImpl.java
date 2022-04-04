@@ -132,7 +132,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	public MessageDTO validatePacket(File file, String stageName) {
 
 		LogDescription description = new LogDescription();
-		InternalRegistrationStatusDto dto = new InternalRegistrationStatusDto();
+		InternalRegistrationStatusDto dto1 = new InternalRegistrationStatusDto();
 		MessageDTO messageDTO = new MessageDTO();
 		Boolean storageFlag = false;
 		messageDTO.setInternalError(false);
@@ -169,7 +169,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
 						PlatformSuccessMessages.PACKET_RECEIVER_VALIDATION_SUCCESS.getMessage());
-				storageFlag = storePacket(stageName, regEntity, dto, description);
+				storageFlag = storePacket(stageName, regEntity,description);
 				isTransactionSuccessful = true;
 			} catch (IOException | NoSuchAlgorithmException e) {
 
@@ -253,11 +253,11 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	 *             Signals that an I/O exception has occurred.
 	 */
 	// TODO remove InternalRegistrationStatusDto from method param and return new InternalRegistrationStatusDto,ignore for sonar
-	private boolean storePacket(String stageName, SyncRegistrationEntity regEntity, InternalRegistrationStatusDto dto,
+	private boolean storePacket(String stageName, SyncRegistrationEntity regEntity,
 			LogDescription description) {
 		Boolean storageFlag = false;
 		int iteration = getIterationForSyncRecord(regEntity);
-		dto = registrationStatusService.getRegistrationStatus(regEntity.getRegistrationId(),
+		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus(regEntity.getRegistrationId(),
 				regEntity.getRegistrationType(), iteration, regEntity.getWorkflowInstanceId());
 		if (dto == null) {
 			dto = new InternalRegistrationStatusDto();
