@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.core.util.exception;
+package io.mosip.registration.processor.core.queue.impl.exception;
 
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 
