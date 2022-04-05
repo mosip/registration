@@ -69,10 +69,15 @@ public class MachineValidator {
 		mhrdto = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
 				MachineHistoryResponseDto.class);
 		if (responseWrapper.getErrors() == null) {
-			mhrdto.setMachineHistoryDetails(mhrdto.getMachineHistoryDetails().stream().filter(m -> m.getId().equalsIgnoreCase(machineId)).collect(Collectors.toList()));	
-
-			if (mhrdto.getMachineHistoryDetails()!=null && !mhrdto.getMachineHistoryDetails().isEmpty()) {
-				mhrdto.setMachineHistoryDetails(mhrdto.getMachineHistoryDetails().stream().filter(m -> m.getIsActive()).collect(Collectors.toList()));				
+			
+			mhrdto.setMachineHistoryDetails(mhrdto.getMachineHistoryDetails().stream().filter(m ->
+			m!=null && m.getId()!=null  && m.getId().equalsIgnoreCase(machineId)).collect(Collectors.toList()));				
+			
+			if (mhrdto.getMachineHistoryDetails()!=null && !mhrdto.getMachineHistoryDetails().isEmpty()) { 
+				
+				mhrdto.setMachineHistoryDetails(mhrdto.getMachineHistoryDetails().stream().filter(m ->
+				 m.getIsActive()!=null  && m.getIsActive() ).collect(Collectors.toList()));				
+				
 				if (mhrdto.getMachineHistoryDetails()==null || mhrdto.getMachineHistoryDetails().isEmpty()) {
 					throw new ValidationFailedException(StatusUtil.MACHINE_ID_NOT_ACTIVE.getMessage() + machineId,
 							StatusUtil.MACHINE_ID_NOT_ACTIVE.getCode());

@@ -76,8 +76,10 @@ public class CenterValidator {
 		rcpdto = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
 				RegistrationCenterResponseDto.class);
 
-		if (responseWrapper.getErrors() == null) {
-			rcpdto.setRegistrationCentersHistory(rcpdto.getRegistrationCentersHistory().stream().filter(c->c.getIsActive()&&c.getId().equalsIgnoreCase(registrationCenterId)).collect(Collectors.toList()));			
+		if (responseWrapper.getErrors() == null && rcpdto.getRegistrationCentersHistory()!=null && !rcpdto.getRegistrationCentersHistory().isEmpty()) {
+			rcpdto.setRegistrationCentersHistory(rcpdto.getRegistrationCentersHistory().stream().filter(c->
+			c!=null && c.getId()!=null && c.getIsActive()!=null && c.getIsActive() && c.getId().equalsIgnoreCase(registrationCenterId)).collect(Collectors.toList()));			
+			
 			if (rcpdto.getRegistrationCentersHistory()==null || rcpdto.getRegistrationCentersHistory().isEmpty()) {
 				throw new ValidationFailedException(StatusUtil.CENTER_ID_INACTIVE.getMessage(),
 						StatusUtil.CENTER_ID_INACTIVE.getCode());
