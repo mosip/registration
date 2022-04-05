@@ -3,6 +3,7 @@ package io.mosip.registration.processor.stages.cmdvalidator;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -76,7 +77,8 @@ public class CenterValidator {
 				RegistrationCenterResponseDto.class);
 
 		if (responseWrapper.getErrors() == null) {
-			if (!rcpdto.getRegistrationCentersHistory().get(0).getIsActive()) {
+			rcpdto.setRegistrationCentersHistory(rcpdto.getRegistrationCentersHistory().stream().filter(c->c.getIsActive()&&c.getId().equalsIgnoreCase(registrationCenterId)).collect(Collectors.toList()));			
+			if (rcpdto.getRegistrationCentersHistory()==null || rcpdto.getRegistrationCentersHistory().isEmpty()) {
 				throw new ValidationFailedException(StatusUtil.CENTER_ID_INACTIVE.getMessage(),
 						StatusUtil.CENTER_ID_INACTIVE.getCode());
 			}
