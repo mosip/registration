@@ -76,7 +76,7 @@ public class CenterValidator {
 		rcpdto = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
 				RegistrationCenterResponseDto.class);
 
-		if (responseWrapper.getErrors() == null && rcpdto.getRegistrationCentersHistory()!=null && !rcpdto.getRegistrationCentersHistory().isEmpty()) {
+		if (responseWrapper.getErrors() == null) {
 			rcpdto.setRegistrationCentersHistory(rcpdto.getRegistrationCentersHistory().stream().filter(c->
 			c!=null && c.getId()!=null && c.getIsActive()!=null && c.getIsActive() && c.getId().equalsIgnoreCase(registrationCenterId)).collect(Collectors.toList()));			
 			
