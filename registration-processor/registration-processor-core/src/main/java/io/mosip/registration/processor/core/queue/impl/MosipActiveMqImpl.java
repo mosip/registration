@@ -1,5 +1,9 @@
 package io.mosip.registration.processor.core.queue.impl;
 
+import io.fabric8.kubernetes.client.Config;
+import io.fabric8.kubernetes.client.ConfigBuilder;
+import io.fabric8.kubernetes.client.DefaultKubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -37,7 +41,7 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
     /**
      * The reg proc logger.
      */
-    private static Logger regProcLogger = RegProcessorLogger.getLogger(MosipActiveMqImpl.class);
+    private static org.apache.logging.log4j.Logger regProcLogger = RegProcessorLogger.getLogger(MosipActiveMqImpl.class);
 
     private Connection connection;
     private Session session;
@@ -62,6 +66,8 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
                 activemQConn = (ActiveMQConnection) connection;
                 activemQConn.addTransportListener(new TransportExceptionListener());
                 if (session == null) {
+                	regProcLogger.info("Reconnecting to queue with delap of 3 min");
+                	Thread.sleep(180000);
                     connection.start();
                     this.session = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
                     regProcLogger.debug(LINE_SEPERATOR, LINE_SEPERATOR, "-----NEW CONNECTION-----",
@@ -70,7 +76,9 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
                             LINE_SEPERATOR + this.session);
                     if (!((ActiveMQConnection) connection).isStarted() || session == null) {
                         regProcLogger.error("Activemq connection is not created. Retrying.....");
-                        throw new QueueConnectionException("session is "+session);
+                        Thread.sleep(180000);
+                        setup(mosipActiveMq);
+                       // throw new QueueConnectionException("session is "+session);
                        
                     }
                 }
