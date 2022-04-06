@@ -61,7 +61,7 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
                 activemQConn = (ActiveMQConnection) connection;
                 activemQConn.addTransportListener(new TransportExceptionListener());
                 if (session == null) {
-                	regProcLogger.info("Reconnecting to queue with delap of 3 min");
+                	regProcLogger.info("Reconnecting to queue with delay of 3 min");
                 	Thread.sleep(180000);
                     connection.start();
                     this.session = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
