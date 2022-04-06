@@ -18,6 +18,7 @@
 -- Aug-2021		Ram Bhatt	   Remove resume_remove_tags column from registration table
 -- Aug-2021		Ram Bhatt	   Added pause_rule_ids column to registration table
 -- Sep-2021		Ram Bhatt	   Anonymous profile table creation
+-- Apr-2022		JyotiPrakashNayak	   Removed column 'reg_type' and added 'process'
 ----------------------------------------------------------------------------------------------------
 \c mosip_regprc sysadmin
 
