@@ -614,7 +614,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		List<Documents> documentInfo = getAllDocumentsByRegId(regId, process, demographicIdentity);
 		result = idRepoRequestBuilder(regId, uin, RegistrationType.ACTIVATED.toString().toUpperCase(), documentInfo,
 				demographicIdentity);
-		if (isIdResponseNotNull(result)) {
+		if (null!=result && isIdResponseNotNull(result)) {
 
 			if (IDREPO_STATUS.equalsIgnoreCase(result.getResponse().getStatus())) {
 				isTransactionSuccessful = true;

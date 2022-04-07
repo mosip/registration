@@ -15,6 +15,7 @@ import javax.net.ssl.SSLContext;
 import io.mosip.registration.processor.core.tracing.ContextualData;
 import io.mosip.registration.processor.core.tracing.TracingConstant;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.directory.api.util.Strings;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -236,8 +237,8 @@ public class RestApiClient {
 				Iterator<String> iterator = httpHeader.keySet().iterator();
 				while (iterator.hasNext()) {
 					String key = iterator.next();
-					if (!(headers.containsKey("Content-Type") && key == "Content-Type"))
-						headers.add(key, httpHeader.get(key).get(0));
+					if (!(headers.containsKey("Content-Type") && key.equalsIgnoreCase("Content-Type")) && httpHeader.get(key).size()>0)
+						headers.add(key,httpHeader.get(key).get(0));
 				}
 				return new HttpEntity<Object>(httpEntity.getBody(), headers);
 			} catch (ClassCastException e) {
