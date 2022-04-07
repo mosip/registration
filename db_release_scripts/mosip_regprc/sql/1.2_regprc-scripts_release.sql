@@ -34,6 +34,8 @@ ALTER TABLE regprc.registration_transaction DROP CONSTRAINT IF EXISTS fk_regtrn_
 
 \ir ../ddl/regprc-anonymous_profile.sql
 
+\ir ../ddl/regprc-reg_verification.sql
+
 ALTER TABLE regprc.registration_list RENAME COLUMN id TO workflow_instance_id;
 ALTER TABLE regprc.registration_list RENAME COLUMN reg_type TO process;
 ALTER TABLE regprc.registration_list ADD COLUMN additional_info_req_id character varying(256);
@@ -66,20 +68,24 @@ UPDATE regprc.reg_manual_verification a SET workflow_instance_id = b.workflow_in
 UPDATE regprc.reg_lost_uin_det a SET workflow_instance_id = b.workflow_instance_id FROM regprc.registration_list b WHERE a.reg_id = b.reg_id;
 UPDATE regprc.reg_bio_ref a SET workflow_instance_id = b.workflow_instance_id FROM regprc.registration_list b WHERE a.reg_id = b.reg_id;
 
-create index idx_rbioref_crdtimes on regprc.reg_bio_ref (cr_dtimes);
-
-DROP INDEX idx_idemogd_namedobgender;
-create index idx_idemogd_namedobgender on regprc.individual_demographic_dedup (name, dob,gender);
-
-create index idx_rbioref_crdtimes on regprc.reg_bio_ref (cr_dtimes);
-
-create index idx_rmanvrn_reqid on regprc.reg_manual_verification (request_id);
-
-DROP INDEX idx_rgstrn_ltstrbcode_ltststscode;
-CREATE INDEX idx_reg_upd_trn_dtimes_asc ON regprc.registration USING btree (upd_dtimes asc,latest_trn_dtimes asc)
-create index idx_rgstrnlst_pcktid on regprc.registration_list (packet_id);
-create index idx_rgstrnlst_aireqid on regprc.registration_list (additional_info_req_id);
-create index idx_reg_verification_reqId on regprc.reg_verification (verification_req_id);
+CREATE INDEX IF NOT EXISTS idx_rbioref_crdtimes on regprc.reg_bio_ref (cr_dtimes);
+CREATE INDEX IF NOT EXISTS idx_bio_ref_id ON regprc.reg_bio_ref USING btree (bio_ref_id);
+DROP INDEX IF EXISTS idx_idemogd_namedobgender;
+CREATE INDEX IF NOT EXISTS idx_idemogd_namedobgender on regprc.individual_demographic_dedup (name, dob,gender);
+CREATE INDEX IF NOT EXISTS idx_rbioref_crdtimes on regprc.reg_bio_ref (cr_dtimes);
+CREATE INDEX IF NOT EXISTS idx_rmanvrn_reqid on regprc.reg_manual_verification (request_id);
+DROP INDEX IF EXISTS idx_rgstrn_ltstrbcode_ltststscode;
+CREATE INDEX IF NOT EXISTS idx_rgstrn_ltstrbcode_ltststscode on regprc.registration (latest_trn_dtimes, latest_trn_status_code);
+CREATE INDEX IF NOT EXISTS idx_reg_latest_trn_dtimes ON regprc.registration USING btree (latest_trn_dtimes);
+CREATE INDEX IF NOT EXISTS idx_rgstrnlst_pcktid on regprc.registration_list (packet_id);
+CREATE INDEX IF NOT EXISTS idx_rgstrnlst_aireqid on regprc.registration_list (additional_info_req_id);
+CREATE INDEX IF NOT EXISTS idx_reg_verification_reqId on regprc.reg_verification (verification_req_id);
+CREATE INDEX IF NOT EXISTS idx_reg_trn_reg_id ON regprc.registration_transaction USING btree (reg_id);
+CREATE INDEX IF NOT EXISTS idx_reg_trn_status_code ON regprc.registration_transaction USING btree (status_code);
+CREATE INDEX IF NOT EXISTS idx_reg_trn_trntypecode ON regprc.registration_transaction USING btree (trn_type_code);
+CREATE INDEX IF NOT EXISTS idx_reg_trn_upd_dtimes ON regprc.registration_transaction USING btree (upd_dtimes);
+CREATE INDEX IF NOT EXISTS idx_user_detail_cntr_id ON regprc.abis_request USING btree (bio_ref_id);
+CREATE INDEX IF NOT EXISTS idx_abis_req_regtrn_id ON regprc.abis_request USING btree (ref_regtrn_id);
 
 ALTER TABLE regprc.individual_demographic_dedup DROP CONSTRAINT pk_idemogd_id;
 ALTER TABLE regprc.individual_demographic_dedup ALTER COLUMN workflow_instance_id SET NOT NULL;
@@ -97,7 +103,7 @@ ALTER TABLE regprc.reg_manual_verification DROP CONSTRAINT pk_rmnlver_id;
 ALTER TABLE regprc.reg_manual_verification ALTER COLUMN workflow_instance_id SET NOT NULL;
 ALTER TABLE regprc.reg_manual_verification ADD CONSTRAINT pk_rmnlver_id PRIMARY KEY (workflow_instance_id,matched_ref_id,matched_ref_type);
 
-ALTER TABLE regprc.registration DROP CONSTRAINT pk_reg_id;
+ALTER TABLE regprc.registration DROP CONSTRAINT pk_reg_id CASCADE;
 ALTER TABLE regprc.registration ALTER COLUMN workflow_instance_id SET NOT NULL;
 ALTER TABLE regprc.registration ADD CONSTRAINT pk_reg_id PRIMARY KEY (workflow_instance_id);
 
@@ -141,7 +147,21 @@ TRUNCATE TABLE regprc.transaction_type cascade ;
 
 
 ALTER TABLE regprc.registration ADD COLUMN last_success_stage_name CHARACTER VARYING(50);
-ALTER TABLE regprc.reg_manual_verification RENAME TO reg_manual_adjudication;
+-------------------------------------------------------Add columns to registration_list----------------------------------------------
+
+ALTER TABLE regprc.registration_list ADD COLUMN name character varying;
+ALTER TABLE regprc.registration_list ADD COLUMN phone character varying;
+ALTER TABLE regprc.registration_list ADD COLUMN email character varying;
+ALTER TABLE regprc.registration_list ADD COLUMN center_id character varying;
+ALTER TABLE regprc.registration_list ADD COLUMN registration_date date;
+ALTER TABLE regprc.registration_list ADD COLUMN location_code character varying;
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------Creation of crypto salt table--------------------------------------------------------------
+
+\ir ../ddl/regprc-crypto_salt.sql
+
+--------------------------------------------------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------FOR HISTORY DATA----------------------------------------------
 
@@ -280,18 +300,4 @@ UPDATE regprc.registration SET last_success_stage_name = 'PacketUploaderStage' w
 UPDATE regprc.registration SET last_success_stage_name = 'UinGeneratorStage' where latest_trn_type_code='PACKET_REPROCESS' and reg_stage_name ='PrintingStage' and process = 'DEACTIVATED';
 
 -------------------------------------------------------------------------------------------------------------------------------------
--------------------------------------------------------Add columns to registration_list----------------------------------------------
 
-ALTER TABLE regprc.registration_list ADD COLUMN name character varying;
-ALTER TABLE regprc.registration_list ADD COLUMN phone character varying;
-ALTER TABLE regprc.registration_list ADD COLUMN email character varying;
-ALTER TABLE regprc.registration_list ADD COLUMN center_id character varying;
-ALTER TABLE regprc.registration_list ADD COLUMN registration_date date;
-ALTER TABLE regprc.registration_list ADD COLUMN location_code character varying;
-
--------------------------------------------------------------------------------------------------------------------------------------------
--------------------------------------------------Creation of crypto salt table--------------------------------------------------------------
-
-\ir ../ddl/regprc-crypto_salt.sql
-
---------------------------------------------------------------------------------------------------------------------------------------------
