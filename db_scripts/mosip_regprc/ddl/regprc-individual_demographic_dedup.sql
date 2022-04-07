@@ -26,8 +26,7 @@ CREATE TABLE regprc.individual_demographic_dedup(
 );
 
 -- indexes section -------------------------------------------------
-CREATE INDEX IF NOT EXISTS idx_idemogd_namedob ON regprc.individual_demographic_dedup (name, dob,gender);
-
+CREATE index IF NOT EXISTS idx_idemogd_namedobgender on regprc.individual_demographic_dedup (name, dob,gender);
 -- ddl-end --
 COMMENT ON TABLE regprc.individual_demographic_dedup IS 'Individual Demographic Dedupe: Table stores applicant demographic details for deduplication, Only required information for dedupe is stored. ';
 -- ddl-end --
