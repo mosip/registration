@@ -357,7 +357,8 @@ public class DemodedupeProcessor {
 				}
 			}
 			else {
-				if (StringUtils.isNotEmpty(env.getProperty(DEMODEDUPEENABLE)) && env.getProperty(DEMODEDUPEENABLE).trim().equalsIgnoreCase(TRUE)) {
+				String  demo=env.getProperty(DEMODEDUPEENABLE);
+				if (StringUtils.isNotEmpty(demo) && demo.trim().equalsIgnoreCase(TRUE)) {
 					isDemoDedupeSkip = false;
 				duplicateDtos = performDemoDedupe(registrationStatusDto, object, description);
 				if (duplicateDtos.isEmpty())
