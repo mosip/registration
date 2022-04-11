@@ -158,7 +158,7 @@ public class RegistrationSyncRequestValidator {
 			syncResponseList.add(syncResponseFailureDto);
 			return false;
 
-		} else if (!version.equals(ver)) {
+		} else if (null!=version && !version.equals(ver)) {
 
 			SyncResponseFailDto syncResponseFailureDto = new SyncResponseFailDto();
 

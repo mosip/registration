@@ -250,10 +250,12 @@ public class PacketValidatorImpl implements PacketValidator {
 	private boolean applicantDocumentValidation(String registrationId, String process,
 			PacketValidationDto packetValidationDto)
 			throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException {
-		if (StringUtils.isNotEmpty(env.getProperty(VALIDATEAPPLICANTDOCUMENT)) && env.getProperty(VALIDATEAPPLICANTDOCUMENT).trim().equalsIgnoreCase(VALIDATIONFALSE))
+		String validateApplicant=env.getProperty(VALIDATEAPPLICANTDOCUMENT);
+		if (StringUtils.isNotEmpty(validateApplicant) && validateApplicant.trim().equalsIgnoreCase(VALIDATIONFALSE))
 			return true;
 		else {
-			if(StringUtils.isNotEmpty(env.getProperty(VALIDATEAPPLICANTDOCUMENTPROCESS)) && env.getProperty(VALIDATEAPPLICANTDOCUMENTPROCESS).contains(process)) {
+			String validateApplicantDocument=env.getProperty(VALIDATEAPPLICANTDOCUMENTPROCESS);
+			if(StringUtils.isNotEmpty(validateApplicantDocument) && validateApplicantDocument.contains(process)) {
 				boolean result = applicantDocumentValidation.validateDocument(registrationId, process);
 				if (!result) {
 					packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.APPLICANT_DOCUMENT_VALIDATION_FAILED.getMessage());
