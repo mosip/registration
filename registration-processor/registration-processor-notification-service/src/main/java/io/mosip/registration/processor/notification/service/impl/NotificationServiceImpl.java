@@ -106,7 +106,7 @@ public class NotificationServiceImpl implements NotificationService {
 	@Value("${registration.processor.notification.emails}")
 	private String notificationEmails;
 
-	@Value("${mosip.notificationtype}")
+	@Value("${mosip.registration.processor.notification.types}")
 	private String notificationTypes;
 	
 	@Value("${websub.hub.url}")
