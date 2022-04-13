@@ -291,17 +291,17 @@ public class MessageNotificationServiceImpl
 		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(apiHost);
 
 		for (String item : mailTo) {
-			params.add("mailTo", item);
+			builder.queryParam("mailTo", item);
 		}
 
 		if (mailCc != null) {
 			for (String item : mailCc) {
-				params.add("mailCc", item);
+				builder.queryParam("mailCc", item);
 			}
 		}
 
-		params.add("mailSubject", subject);
-		params.add("mailContent", artifact);
+		builder.queryParam("mailSubject", subject);
+		builder.queryParam("mailContent", artifact);
 
 		params.add("attachments", attachment);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
