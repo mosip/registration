@@ -675,9 +675,7 @@ public class OSIValidator {
 						StatusUtil.PACKET_ON_HOLD.getMessage());
 
 			} else if (introducerRegistrationStatusDto.getStatusCode()
-					.equals(RegistrationStatusCode.REJECTED.toString())
-					|| introducerRegistrationStatusDto.getStatusCode()
-							.equals(RegistrationStatusCode.FAILED.toString())) {
+					.equals(RegistrationStatusCode.REJECTED.toString())) {
 
 				registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
 						.getStatusCode(RegistrationExceptionTypeCode.OSI_FAILED_REJECTED_PARENT));
