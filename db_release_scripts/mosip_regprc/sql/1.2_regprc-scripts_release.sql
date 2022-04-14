@@ -138,10 +138,28 @@ ALTER TABLE regprc.registration ADD COLUMN default_resume_action character varyi
 ALTER TABLE regprc.registration ADD COLUMN pause_rule_ids character varying(256);
 
 ----------------------------------------------------------------------------------------------------
+ALTER TABLE regprc.registration_transaction DROP CONSTRAINT IF EXISTS fk_regtrn_trntyp ;
+ALTER TABLE regprc.reg_manual_verification  DROP CONSTRAINT IF EXISTS fk_rmnlver_trntyp ;
+ALTER TABLE regprc.reg_demo_dedupe_list  DROP CONSTRAINT IF EXISTS fk_regded_regtrn ;
 
 TRUNCATE TABLE regprc.transaction_type cascade ;
 
-\COPY regprc.transaction_type (code,descr,lang_code,is_active,cr_by,cr_dtimes) FROM '../dml/regprc-transaction_type.csv' delimiter ',' HEADER  csv;
+\COPY regprc.transaction_type (code,descr,lang_code,is_active,cr_by,cr_dtimes) FROM './dml/regprc-transaction_type.csv' delimiter ',' HEADER  csv;
+
+UPDATE regprc.registration_transaction SET trn_type_code='QUALITY_CLASSIFIER' WHERE trn_type_code='QUALITY_CHECK';
+UPDATE regprc.reg_manual_verification SET trntyp_code='QUALITY_CLASSIFIER' WHERE trntyp_code='QUALITY_CHECK';
+
+ALTER TABLE regprc.registration_transaction ADD CONSTRAINT  fk_regtrn_trntyp FOREIGN KEY (trn_type_code,lang_code)
+REFERENCES regprc.transaction_type (code,lang_code) MATCH SIMPLE
+ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+ALTER TABLE regprc.reg_manual_verification ADD CONSTRAINT  fk_rmnlver_trntyp FOREIGN KEY (trntyp_code,lang_code)
+REFERENCES regprc.transaction_type (code,lang_code) MATCH SIMPLE
+ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+ALTER TABLE regprc.reg_demo_dedupe_list ADD CONSTRAINT  fk_regded_regtrn FOREIGN KEY (regtrn_id)
+REFERENCES regprc.registration_transaction (id) MATCH FULL
+ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 ------------------------------------------------------------------------------------------------------
 
@@ -300,4 +318,3 @@ UPDATE regprc.registration SET last_success_stage_name = 'PacketUploaderStage' w
 UPDATE regprc.registration SET last_success_stage_name = 'UinGeneratorStage' where latest_trn_type_code='PACKET_REPROCESS' and reg_stage_name ='PrintingStage' and process = 'DEACTIVATED';
 
 -------------------------------------------------------------------------------------------------------------------------------------
-
