@@ -3,6 +3,7 @@ package io.mosip.registration.processor.stages.cmdvalidator;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -68,10 +69,16 @@ public class MachineValidator {
 		mhrdto = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
 				MachineHistoryResponseDto.class);
 		if (responseWrapper.getErrors() == null) {
-			MachineHistoryDto dto = mhrdto.getMachineHistoryDetails().get(0);
+			
+			mhrdto.setMachineHistoryDetails(mhrdto.getMachineHistoryDetails().stream().filter(m ->
+			m!=null && m.getId()!=null  && m.getId().equalsIgnoreCase(machineId)).collect(Collectors.toList()));				
 
-			if (dto.getId() != null && dto.getId().matches(machineId)) {
-				if (!dto.getIsActive()) {
+			if (mhrdto.getMachineHistoryDetails()!=null && !mhrdto.getMachineHistoryDetails().isEmpty()) { 
+
+				mhrdto.setMachineHistoryDetails(mhrdto.getMachineHistoryDetails().stream().filter(m ->
+				 m.getIsActive()!=null  && m.getIsActive() ).collect(Collectors.toList()));				
+
+				if (mhrdto.getMachineHistoryDetails()==null || mhrdto.getMachineHistoryDetails().isEmpty()) {
 					throw new ValidationFailedException(StatusUtil.MACHINE_ID_NOT_ACTIVE.getMessage() + machineId,
 							StatusUtil.MACHINE_ID_NOT_ACTIVE.getCode());
 				}
