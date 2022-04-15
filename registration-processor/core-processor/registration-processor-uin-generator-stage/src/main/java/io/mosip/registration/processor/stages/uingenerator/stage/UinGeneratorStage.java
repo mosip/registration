@@ -972,13 +972,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.UIN_GENERATION_BUS_IN,
 				MessageBusAddress.UIN_GENERATION_BUS_OUT, messageExpiryTimeLimit);
-		//changes done
-		MessageDTO m=new MessageDTO();
-		m.setReg_type("LOST");
-		m.setRid("10001100771001520220411205541");
-		m.setWorkflowInstanceId("010d4528-37f1-47d9-9864-a228522f029b");
-		process(m);
-		
+				
 	}
 
 	@Override
