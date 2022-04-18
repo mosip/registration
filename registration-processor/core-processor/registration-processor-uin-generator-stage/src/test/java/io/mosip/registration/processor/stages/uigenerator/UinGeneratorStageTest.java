@@ -35,6 +35,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -65,6 +66,7 @@ import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
@@ -238,7 +240,9 @@ public class UinGeneratorStageTest {
 		ReflectionTestUtils.setField(uinGeneratorStage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(uinGeneratorStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(uinGeneratorStage, "clusterManagerUrl", "/dummyPath");
-
+		ReflectionTestUtils.setField(uinGeneratorStage, "updateInfo", "phone");
+		//ReflectionTestUtils.setField(uinGeneratorStage, "convertIdschemaToDouble","true");
+		
 		ClassLoader classLoader1 = getClass().getClassLoader();
 		File idJsonFile1 = new File(classLoader1.getResource("RegistrationProcessorIdentity.json").getFile());
 		InputStream idJsonStream1 = new FileInputStream(idJsonFile1);
@@ -1506,6 +1510,61 @@ public class UinGeneratorStageTest {
 		when(
 				registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any(Class.class)))
 				.thenReturn(idResponseDTO);
+		when(regLostUinDetEntity.getLostUinMatchedRegIdByWorkflowId(any())).thenReturn("27847657360002520181210094052");
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
+	}
+	
+	@Test
+	public void testLinkSuccessForLostUinAndUpdateContactInfo() throws Exception {
+		Map<String, String> fieldMap = new HashMap<>();
+		fieldMap.put("UIN", "123456");
+		fieldMap.put("name", "mono");
+		fieldMap.put("email", "mono@mono.com");
+
+		List<String> defaultFields = new ArrayList<>();
+		defaultFields.add("name");
+		defaultFields.add("dob");
+		defaultFields.add("gender");
+		defaultFields.add("UIN");
+		when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn("9403107397");
+
+		//check
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
+		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.LOST.name());
+		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
+		String response = "{\"timestamp\":1553771083721,\"status\":404,\"errors\":[{\"errorCode\":\"KER-UIG-004\",\"errorMessage\":\"Given UIN is not in ISSUED status\"}]}";
+
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(response);
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.update");
+		responseDTO.setStatus("ACTIVATED");
+		idResponseDTO.setResponse(responseDTO);
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
+		when(packetManagerService.getField(any(), any(), any(),any())).thenReturn("989879234");
+		
+		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
+		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any(Class.class)))
+				.thenReturn(idResponseDTO);
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any(Class.class)))
+				.thenReturn(idResponseDTO);
+		when(
+				registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any(Class.class)))
+				.thenReturn(idResponseDTO);
+		when(packetManagerService.getFieldByMappingJsonKey(any(), any(), any(), any())).thenReturn("1.0");
 		when(regLostUinDetEntity.getLostUinMatchedRegIdByWorkflowId(any())).thenReturn("27847657360002520181210094052");
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getInternalError());
