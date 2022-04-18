@@ -30,12 +30,15 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -66,7 +69,6 @@ import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
-import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
@@ -241,8 +243,6 @@ public class UinGeneratorStageTest {
 		ReflectionTestUtils.setField(uinGeneratorStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(uinGeneratorStage, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(uinGeneratorStage, "updateInfo", "phone");
-		//ReflectionTestUtils.setField(uinGeneratorStage, "convertIdschemaToDouble","true");
-		
 		ClassLoader classLoader1 = getClass().getClassLoader();
 		File idJsonFile1 = new File(classLoader1.getResource("RegistrationProcessorIdentity.json").getFile());
 		InputStream idJsonStream1 = new FileInputStream(idJsonFile1);
@@ -1530,7 +1530,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("UIN");
 		when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn("9403107397");
 
-		//check
+		
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
