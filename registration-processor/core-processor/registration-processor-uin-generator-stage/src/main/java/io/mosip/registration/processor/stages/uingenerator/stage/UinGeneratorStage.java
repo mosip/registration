@@ -154,7 +154,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.uin.generator.message.expiry-time-limit}")
 	private Long messageExpiryTimeLimit;
 	
-	@Value("${uingenerator.lost.packet.update.information}")
+	@Value("${uingenerator.lost.packet.allowed.update.fields:null}")
 	private String updateInfo;
 
 	/** The core audit request builder. */
@@ -972,7 +972,6 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.UIN_GENERATION_BUS_IN,
 				MessageBusAddress.UIN_GENERATION_BUS_OUT, messageExpiryTimeLimit);
-				
 	}
 
 	@Override
@@ -1024,12 +1023,14 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			identityObject.put(UINConstants.UIN, uin);
 			String schemaVersion = packetManagerService.getFieldByMappingJsonKey(lostPacketRegId, MappingJsonConstants.IDSCHEMA_VERSION, process, ProviderStageName.UIN_GENERATOR);
 			identityObject.put(idschemaversion, convertIdschemaToDouble ? Double.valueOf(schemaVersion) : schemaVersion);
-			String[] upd= updateInfo.split(",");
-			for (String infoField : upd) {
-				String fldValue = packetManagerService.getField(lostPacketRegId, infoField, process,
-						ProviderStageName.UIN_GENERATOR);
-				if (null != fldValue)
-					identityObject.put(infoField, fldValue);
+			if (null != updateInfo && !updateInfo.isEmpty()) {
+				String[] upd = updateInfo.split(",");
+				for (String infoField : upd) {
+					String fldValue = packetManagerService.getField(lostPacketRegId, infoField, process,
+							ProviderStageName.UIN_GENERATOR);
+					if (null != fldValue)
+						identityObject.put(infoField, fldValue);
+				}
 			}
 			requestDto.setRegistrationId(lostPacketRegId);
 			requestDto.setIdentity(identityObject);
