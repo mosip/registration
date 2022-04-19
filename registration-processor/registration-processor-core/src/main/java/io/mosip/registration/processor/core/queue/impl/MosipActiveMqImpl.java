@@ -1,6 +1,18 @@
 package io.mosip.registration.processor.core.queue.impl;
 
-import io.mosip.kernel.core.logger.spi.Logger;
+import javax.jms.BytesMessage;
+import javax.jms.Connection;
+import javax.jms.Destination;
+import javax.jms.JMSException;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageProducer;
+import javax.jms.Session;
+import javax.jms.TextMessage;
+
+import org.apache.activemq.ActiveMQConnection;
+import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.commons.lang.exception.ExceptionUtils;
+
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
@@ -12,18 +24,6 @@ import io.mosip.registration.processor.core.queue.impl.exception.ConnectionUnava
 import io.mosip.registration.processor.core.queue.impl.exception.InvalidConnectionException;
 import io.mosip.registration.processor.core.queue.impl.exception.QueueConnectionException;
 import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
-import org.apache.activemq.ActiveMQConnection;
-import org.apache.activemq.ActiveMQConnectionFactory;
-import org.apache.commons.lang.exception.ExceptionUtils;
-
-import javax.jms.BytesMessage;
-import javax.jms.Connection;
-import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageProducer;
-import javax.jms.Session;
-import javax.jms.TextMessage;
 
 
 /**
@@ -37,8 +37,8 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
     /**
      * The reg proc logger.
      */
-    private static Logger regProcLogger = RegProcessorLogger.getLogger(MosipActiveMqImpl.class);
-
+	private static Logger regProcLogger = RegProcessorLogger.getLogger(MosipActiveMqImpl.class);
+	 
     private Connection connection;
     private Session session;
     private Destination destination;
@@ -62,14 +62,17 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
                 activemQConn = (ActiveMQConnection) connection;
                 activemQConn.addTransportListener(new TransportExceptionListener());
                 if (session == null) {
-                    connection.start();
+                	regProcLogger.info("Reconnecting to queue with delay of 3 min");
+                	connection.start();
                     this.session = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
                     regProcLogger.debug(LINE_SEPERATOR, LINE_SEPERATOR, "-----NEW CONNECTION-----",
                             LINE_SEPERATOR + this.connection);
                     regProcLogger.debug(LINE_SEPERATOR, LINE_SEPERATOR, "-----NEW SESSION-----",
                             LINE_SEPERATOR + this.session);
+                    
                     if (!((ActiveMQConnection) connection).isStarted() || session == null) {
                         regProcLogger.error("Activemq connection is not created. Retrying.....");
+                        setup(mosipActiveMq);
                         throw new QueueConnectionException("session is "+session);
                        
                     }
@@ -199,7 +202,8 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
         try {
             if (session == null) {
                 regProcLogger.error("Session is null. System will retry to create session");
-                setup(mosipActiveMq);
+                throw new QueueConnectionException("session is null trying to reconnect");
+              //  setup(mosipActiveMq);
             }
             destination = session.createQueue(address);
             consumer = session.createConsumer(destination);
