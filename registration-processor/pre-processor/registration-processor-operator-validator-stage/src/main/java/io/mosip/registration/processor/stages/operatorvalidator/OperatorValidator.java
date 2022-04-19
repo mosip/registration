@@ -377,7 +377,8 @@ public class OperatorValidator {
 			throw new BaseCheckedException(error.get(0).getMessage(),
 					StatusUtil.CENTER_DEVICE_MAPPING_NOT_FOUND.getCode());
 		} else if (userDto != null) {
-			isValidUser = userDto.getRegistrationCenters().get(0).getIsActive();
+			userDto.setRegistrationCenters(userDto.getRegistrationCenters().stream().filter(u ->u!=null && u.getIsActive()).collect(Collectors.toList()));
+			isValidUser = userDto.getRegistrationCenters()!=null && !userDto.getRegistrationCenters().isEmpty();
 		} else {
 			regProcLogger.debug(
 					"validateMapping call ended with no erros and userDTO as null so considering as mapping not valid");
