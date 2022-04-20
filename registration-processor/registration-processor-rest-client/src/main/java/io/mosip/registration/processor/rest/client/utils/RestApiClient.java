@@ -8,6 +8,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.net.ssl.SSLContext;
@@ -237,8 +238,9 @@ public class RestApiClient {
 				Iterator<String> iterator = httpHeader.keySet().iterator();
 				while (iterator.hasNext()) {
 					String key = iterator.next();
-					if (!(headers.containsKey("Content-Type") && key.equalsIgnoreCase("Content-Type")) && httpHeader.get(key).size()>0)
-						headers.add(key,httpHeader.get(key).get(0));
+					List<String> lst=httpHeader.get(key);
+					if (!(headers.containsKey("Content-Type") && key.equalsIgnoreCase("Content-Type")) && null!=lst &&  lst.size()>0)
+						headers.add(key,lst.get(0));
 				}
 				return new HttpEntity<Object>(httpEntity.getBody(), headers);
 			} catch (ClassCastException e) {
