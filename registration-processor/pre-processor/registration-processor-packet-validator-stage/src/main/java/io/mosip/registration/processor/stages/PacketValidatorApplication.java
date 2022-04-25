@@ -16,7 +16,7 @@ import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIMan
 @Configuration
 @EnableAutoConfiguration
 @SpringBootApplication
-@ComponentScan(basePackages = { "${app.componentscan.basepackages}" })
+@ComponentScan(basePackages = { "${app.componentscan.basepackages}","${mosip.auth.adapter.impl.basepackage}" })
 public class PacketValidatorApplication {
 
 	/**
