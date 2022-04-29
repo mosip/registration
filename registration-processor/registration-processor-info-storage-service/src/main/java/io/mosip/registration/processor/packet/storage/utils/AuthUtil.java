@@ -208,7 +208,7 @@ public class AuthUtil {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), individualId,
 				"AuthUtil::authByIdAuthentication()::INTERNALAUTH POST service call started");
 		MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
-		headers.add("Authorization", getToken());
+		headers.add("Authorization", getConsentToken());
 		headers.add("Cookie", AUTHORIZATION+getToken());
 		HttpEntity<AuthRequestDTO> httpEntity = new HttpEntity<>(authRequestDTO,headers);
 
@@ -221,6 +221,10 @@ public class AuthUtil {
 
 		return response;
 
+	}
+	private String getConsentToken() {
+		// dummy token text 
+		return  "sample consent token";
 	}
 	public String getToken() throws IOException {
 		String token = System.getProperty("token");
