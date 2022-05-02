@@ -17,12 +17,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.token.validation.exception.AccessDeniedException;
 import io.mosip.registration.processor.core.token.validation.exception.InvalidTokenException;
 import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
@@ -70,6 +71,9 @@ public class RegistrationTransactionController {
 	private static final String REG_TRANSACTION_APPLICATION_VERSION = "mosip.registration.processor.transaction.version";
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
 	private static final String RESPONSE_SIGNATURE = "Response-Signature";
+	
+	private static Logger regProcLogger = RegProcessorLogger.getLogger(RegistrationTransactionController.class);
+
 	
 	/**
 	 * get transaction details for the given registration id
@@ -137,12 +141,11 @@ public class RegistrationTransactionController {
 	 * @return
 	 */
 	private String buildSignatureRegistrationTransactionResponse(RegTransactionResponseDTO dto) {
-		
-		
+
 		try {
 			return objMp.writeValueAsString(dto);
 		} catch (JsonProcessingException e) {
-			e.printStackTrace();
+			regProcLogger.error("Error while processing response ",e);
 		}
 		
 		return null;
