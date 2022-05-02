@@ -34,9 +34,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.registration.processor.core.auth.dto.AuthRequestDTO;
 import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
@@ -81,8 +81,10 @@ public class InternalAuthDelegateServicesControllerTest {
 	@MockBean
 	RegistrationUtility registrationUtility;
 
-	Gson gson = new GsonBuilder().serializeNulls().create();
+	
+	ObjectMapper obj=new ObjectMapper();
 
+	
 	AuthRequestDTO authRequestDTO = new AuthRequestDTO();
 	AuthResponseDTO authResponse = new AuthResponseDTO();
 	ResponseDTO responseDto = new ResponseDTO();
@@ -99,13 +101,14 @@ public class InternalAuthDelegateServicesControllerTest {
 		responseDto.setAuthStatus(true);
 		authResponse.setId("");
 		authResponse.setResponse(responseDto);
+		obj.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 	}
 
 	@Test
 	@WithMockUser(value = "admin", roles = "REGISTRATION_ADMIN")
 	public void testAuthDelegateController() throws Exception {
 
-		String authRequestDTOJson = gson.toJson(authRequestDTO);
+		String authRequestDTOJson = obj.writeValueAsString(authRequestDTO);
 		Mockito.when(internalAuthDelegateService.authenticate(any(), any())).thenReturn(authResponse);
 		MvcResult result = this.mockMvc
 				.perform(post("/auth").accept(MediaType.APPLICATION_JSON_VALUE)
@@ -122,7 +125,7 @@ public class InternalAuthDelegateServicesControllerTest {
 	@WithMockUser(value = "admin", roles = "REGISTRATION_ADMIN")
 	public void testAuthDelegateFailureController() throws Exception {
 
-		String authRequestDTOJson = gson.toJson(authRequestDTO);
+		String authRequestDTOJson = obj.writeValueAsString(authRequestDTO);
 		Mockito.when(internalAuthDelegateService.authenticate(any(), any())).thenReturn(authResponse);
 		this.mockMvc.perform(post("/auth").accept(MediaType.APPLICATION_JSON_VALUE)
 				.header("timestamp", "2019-05-07T05:13:55.704Z").contentType(MediaType.APPLICATION_JSON_VALUE)

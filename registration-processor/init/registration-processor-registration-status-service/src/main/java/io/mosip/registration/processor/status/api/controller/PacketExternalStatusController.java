@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.status.api.controller;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -66,6 +68,9 @@ public class PacketExternalStatusController {
 	/** The digital signature utility. */
 	@Autowired
 	private DigitalSignatureUtility digitalSignatureUtility;
+	
+	@Autowired
+	ObjectMapper objectMapper;
 
 	/** The is enabled. */
 	@Value("${registration.processor.signature.isEnabled}")
@@ -120,11 +125,20 @@ public class PacketExternalStatusController {
 				PacketExternalStatusResponseDTO packetExternalStatusResponseDTO = buildPacketStatusResponse(
 						packetExternalStatusDTOList, packetExternalStatusRequestDTO.getRequest());
 				Gson gson = new GsonBuilder().serializeNulls().create();
+				//objectMapper.setSerializationInclusion(Include.USE_DEFAULTS);
 				HttpHeaders headers = new HttpHeaders();
+				String res=null;
+				try {
+					System.out.println("fffffffffffffffff"+gson.toJson(packetExternalStatusResponseDTO));
+					res=objectMapper.writeValueAsString(packetExternalStatusResponseDTO);
+				} catch (IOException e1) {
+					e1.printStackTrace();
+					
+				}
 				headers.add(RESPONSE_SIGNATURE,
-						digitalSignatureUtility.getDigitalSignature(gson.toJson(packetExternalStatusResponseDTO)));
+						digitalSignatureUtility.getDigitalSignature(res));
 				return ResponseEntity.status(HttpStatus.OK).headers(headers)
-						.body(gson.toJson(packetExternalStatusResponseDTO));
+						.body(res);
 			}
 			return ResponseEntity.status(HttpStatus.OK)
 					.body(buildPacketStatusResponse(packetExternalStatusDTOList, packetExternalStatusRequestDTO.getRequest()));

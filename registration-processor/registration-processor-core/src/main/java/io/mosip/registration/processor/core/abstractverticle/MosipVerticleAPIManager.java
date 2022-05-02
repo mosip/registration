@@ -8,10 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.util.ClassUtils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import brave.Tracing;
 import io.mosip.registration.processor.core.constant.HealthConstant;
 import io.mosip.registration.processor.core.tracing.VertxWebTracingLocal;
@@ -180,13 +178,21 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 	 */
 	public void setResponseWithDigitalSignature(RoutingContext ctx, Object object, String contentType) {
 		HttpServerResponse response = ctx.response();
-	Gson gson=new GsonBuilder().serializeNulls().create();
+	//Gson gson=new GsonBuilder().serializeNulls().create();
+		String res=null;
+		try {
+			res = objectMapper.writeValueAsString(object);
+		} catch (JsonProcessingException e) {
+			
+			e.printStackTrace();
+		}
+		
 		if (isEnabled)
 			response.putHeader("Response-Signature",
-					digitalSignatureUtility.getDigitalSignature(gson.toJson(object)));
+					digitalSignatureUtility.getDigitalSignature(res));
 		response.putHeader("content-type", contentType).putHeader("Access-Control-Allow-Origin", "*")
 				.putHeader("Access-Control-Allow-Methods", "GET, POST").setStatusCode(200)
-				.end(gson.toJson(object));
+				.end(res);
 	}
 
 	// Added this method to cast all the stages to this class and invoke the deployVerticle method 

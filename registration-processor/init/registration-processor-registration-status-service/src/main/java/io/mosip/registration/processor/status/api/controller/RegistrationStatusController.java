@@ -19,8 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -43,7 +42,6 @@ import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.mosip.registration.processor.status.sync.response.dto.RegStatusResponseDTO;
 import io.mosip.registration.processor.status.validator.LostRidRequestValidator;
 import io.mosip.registration.processor.status.validator.RegistrationStatusRequestValidator;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -86,6 +84,9 @@ public class RegistrationStatusController {
 
 	@Value("${registration.processor.signature.isEnabled}")
 	private Boolean isEnabled;
+	
+	@Autowired
+	ObjectMapper objMp;
 
 	/** 
 	 * The comma separate list of external statuses that should be considered as processed 
@@ -150,8 +151,8 @@ public class RegistrationStatusController {
 			updatedConditionalStatusToProcessed(registrations);
 
 			if (isEnabled) {
-				Gson gson = new GsonBuilder().serializeNulls().create();
-				String response = gson.toJson(buildRegistrationStatusResponse(registrations,
+				//Gson gson = new GsonBuilder().serializeNulls().create();
+				String response = objMp.writeValueAsString(buildRegistrationStatusResponse(registrations,
 						recordsToFetch));	
 				HttpHeaders headers = new HttpHeaders();
 				headers.add(RESPONSE_SIGNATURE, digitalSignatureUtility.getDigitalSignature(response));

@@ -14,8 +14,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
@@ -27,7 +28,6 @@ import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.token.validation.exception.AccessDeniedException;
 import io.mosip.registration.processor.core.token.validation.exception.InvalidTokenException;
 import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
-import io.mosip.registration.processor.status.exception.RegStatusAppException;
 import io.mosip.registration.processor.status.exception.RegTransactionAppException;
 import io.mosip.registration.processor.status.exception.TransactionTableNotAccessibleException;
 import io.mosip.registration.processor.status.exception.TransactionsUnavailableException;
@@ -49,6 +49,9 @@ public class RegistrationTransactionExceptionHandler {
 	
 	@Autowired
 	DigitalSignatureUtility digitalSignatureUtility;
+	
+	@Autowired
+    ObjectMapper objMp;
 	
 	private static final String RESPONSE_SIGNATURE = "Response-Signature";
 
@@ -116,11 +119,15 @@ public class RegistrationTransactionExceptionHandler {
 		response.setResponsetime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		response.setVersion(env.getProperty(REG_TRANSACTION_APPLICATION_VERSION));
 		response.setResponse(null);
-		Gson gson = new GsonBuilder().serializeNulls().create();
+		objMp.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
 		if(isEnabled) {
 			HttpHeaders headers = new HttpHeaders();
-			headers.add(RESPONSE_SIGNATURE,digitalSignatureUtility.getDigitalSignature(gson.toJson(response)));
+			try {
+				headers.add(RESPONSE_SIGNATURE,digitalSignatureUtility.getDigitalSignature(objMp.writeValueAsString(response)));
+			} catch (JsonProcessingException e1) {
+				regProcLogger.error("Error while processing response",e);
+			}
 			return ResponseEntity.ok().headers(headers).body(response);
 		}
 		return ResponseEntity.status(HttpStatus.OK).body(response);

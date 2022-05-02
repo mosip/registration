@@ -17,9 +17,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
@@ -51,6 +51,9 @@ public class PacketExternalStatusExceptionHandler {
 
 	@Autowired
 	DigitalSignatureUtility digitalSignatureUtility;
+	
+	@Autowired
+	ObjectMapper obj ;
 
 	private static final String RESPONSE_SIGNATURE = "Response-Signature";
 
@@ -151,12 +154,19 @@ public class PacketExternalStatusExceptionHandler {
 		response.setResponsetime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		response.setVersion(env.getProperty(PACKET_EXTERNAL_STATUS_APPLICATION_VERSION));
 		response.setResponse(null);
-		Gson gson = new GsonBuilder().serializeNulls().create();
+		//Gson gson = new GsonBuilder().serializeNulls().create();
 
 		if (isEnabled) {
 			HttpHeaders headers = new HttpHeaders();
-			headers.add(RESPONSE_SIGNATURE, digitalSignatureUtility.getDigitalSignature(gson.toJson(response)));
-			return ResponseEntity.ok().headers(headers).body(gson.toJson(response));
+			String res=null;
+			try {
+				res=obj.writeValueAsString(response);
+			} catch (JsonProcessingException e1) {
+				// TODO Auto-generated catch block
+				regProcLogger.error("Error while processsing response",e1);
+			}
+			headers.add(RESPONSE_SIGNATURE, digitalSignatureUtility.getDigitalSignature(res));
+			return ResponseEntity.ok().headers(headers).body(res);
 		}
 		return ResponseEntity.status(HttpStatus.OK).body(response);
 

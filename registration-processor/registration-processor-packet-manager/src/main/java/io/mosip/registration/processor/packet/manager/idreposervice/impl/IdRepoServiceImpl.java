@@ -100,7 +100,7 @@ public class IdRepoServiceImpl implements IdRepoService {
 
 		if (response.getResponse() != null) {
 			Gson gsonObj = new Gson();
-			String jsonString = gsonObj.toJson(response.getResponse());
+			String jsonString =gsonObj.toJson(response.getResponse());
 			JSONObject identityJson = JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
 			JSONObject demographicIdentity = JsonUtil.getJSONObject(identityJson, regProcessorDemographicIdentity);
 			return JsonUtil.getJSONValue(demographicIdentity, AbisConstant.UIN);

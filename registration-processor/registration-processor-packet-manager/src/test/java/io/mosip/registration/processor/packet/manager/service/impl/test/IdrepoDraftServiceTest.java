@@ -36,7 +36,7 @@ import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftExcep
 import io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ IOUtils.class, HMACUtils2.class, Gson.class })
+@PrepareForTest({ IOUtils.class, HMACUtils2.class })
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*", "javax.net.ssl.*" })
 public class IdrepoDraftServiceTest {
 

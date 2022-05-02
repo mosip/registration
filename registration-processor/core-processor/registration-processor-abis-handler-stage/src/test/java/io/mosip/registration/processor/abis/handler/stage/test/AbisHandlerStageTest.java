@@ -953,10 +953,10 @@ public class AbisHandlerStageTest {
 		
 
 		exceptionBiometrcisMap.put("applicant", applicantExceptionBiometrcisMap);
-		Gson gson = new Gson();
-        Type gsonType = new TypeToken<HashMap>(){}.getType();
+	//	Gson gson = new Gson();
+      //  Type gsonType = new TypeToken<HashMap>(){}.getType();
 		
-        String gsonString = gson.toJson(exceptionBiometrcisMap,gsonType);
+        String gsonString =mapper.writeValueAsString(exceptionBiometrcisMap);// gson.toJson(exceptionBiometrcisMap,gsonType);
         
 		metaInfoMap.put("exceptionBiometrics", gsonString);
 		Mockito.when(packetManagerService.getMetaInfo(any(), any(), any())).thenReturn(metaInfoMap);

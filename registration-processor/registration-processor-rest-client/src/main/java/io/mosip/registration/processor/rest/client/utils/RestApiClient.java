@@ -2,34 +2,19 @@ package io.mosip.registration.processor.rest.client.utils;
 
 import java.io.IOException;
 import java.net.URI;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
-import java.util.Arrays;
 import java.util.Iterator;
 
-import javax.annotation.PostConstruct;
-import javax.net.ssl.SSLContext;
-
-import io.mosip.registration.processor.core.tracing.ContextualData;
-import io.mosip.registration.processor.core.tracing.TracingConstant;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -37,14 +22,13 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
-import com.google.gson.Gson;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
@@ -52,6 +36,8 @@ import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.TokenHandlerUtil;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.tracing.ContextualData;
+import io.mosip.registration.processor.core.tracing.TracingConstant;
 import io.mosip.registration.processor.rest.client.audit.dto.Metadata;
 import io.mosip.registration.processor.rest.client.audit.dto.SecretKeyRequest;
 import io.mosip.registration.processor.rest.client.audit.dto.TokenRequestDTO;
@@ -80,6 +66,9 @@ public class RestApiClient {
 	@Autowired
 	@Qualifier("selfTokenRestTemplate")
 	RestTemplate localRestTemplate;
+	
+	@Autowired
+	ObjectMapper objMp;
 
 	/**
 	 * Gets the api. *
@@ -273,11 +262,11 @@ public class RestApiClient {
 			tokenRequestDTO.setRequest(setSecretKeyRequestDTO());
 			tokenRequestDTO.setVersion(environment.getProperty("token.request.version"));
 
-			Gson gson = new Gson();
+		
 			HttpClient httpClient = HttpClientBuilder.create().build();
 			HttpPost post = new HttpPost(environment.getProperty("KEYBASEDTOKENAPI"));
 			try {
-				StringEntity postingString = new StringEntity(gson.toJson(tokenRequestDTO));
+				StringEntity postingString = new StringEntity(objMp.writeValueAsString(tokenRequestDTO));
 				post.setEntity(postingString);
 				post.setHeader("Content-type", "application/json");
 				post.setHeader(TracingConstant.TRACE_HEADER,

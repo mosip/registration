@@ -1,9 +1,9 @@
 package io.mosip.registration.processor.packet.manager.service.impl.test;
 
 import static org.junit.Assert.assertNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Matchers.any;
 
 import javax.swing.text.Utilities;
 
@@ -15,10 +15,14 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO;
@@ -43,6 +47,10 @@ public class IdRepoServiceImplTest {
 	@InjectMocks
 	private IdRepoServiceImpl idRepoService;
 
+	@Spy
+	private ObjectMapper mapper = new ObjectMapper();
+
+	
 	/**
 	 * Sets the up.
 	 *
@@ -51,7 +59,7 @@ public class IdRepoServiceImplTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-
+		mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 		IdentityJsonValues jv = new IdentityJsonValues();
 		jv.setValue("1");
 		IdResponseDTO dto = new IdResponseDTO();
