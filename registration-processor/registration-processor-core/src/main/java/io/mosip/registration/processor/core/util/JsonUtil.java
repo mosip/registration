@@ -18,9 +18,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
-import com.google.gson.JsonIOException;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
 
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.JsonValue;
@@ -75,9 +72,7 @@ public class JsonUtil {
 	 */
 	public static Object inputStreamtoJavaObject(InputStream stream, Class<?> clazz)
 			throws UnsupportedEncodingException {
-		JsonParser jsonParser = new JsonParser();
-		//Gson gson = new Gson();
-		//JsonObject jsonObject = (JsonObject) jsonParser.parse(new InputStreamReader(stream, "UTF-8"));
+		
 		getObjectMapper();
 		try {
 			return objectMapper.readValue(new InputStreamReader(stream, "UTF-8"), clazz);

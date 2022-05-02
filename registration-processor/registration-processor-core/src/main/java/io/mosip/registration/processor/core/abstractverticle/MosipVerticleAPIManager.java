@@ -178,7 +178,7 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 	 */
 	public void setResponseWithDigitalSignature(RoutingContext ctx, Object object, String contentType) {
 		HttpServerResponse response = ctx.response();
-	//Gson gson=new GsonBuilder().serializeNulls().create();
+	
 		String res=null;
 		try {
 			res = objectMapper.writeValueAsString(object);

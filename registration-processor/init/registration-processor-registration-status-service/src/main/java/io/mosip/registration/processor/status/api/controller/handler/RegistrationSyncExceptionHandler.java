@@ -145,8 +145,6 @@ public class RegistrationSyncExceptionHandler {
 		response.setResponsetime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		response.setVersion(env.getProperty(REG_SYNC_APPLICATION_VERSION));
 		response.setResponse(null);
-	//	Gson gson = new GsonBuilder().serializeNulls().create();
-
 
 		if(isEnabled) {
 			HttpHeaders headers = new HttpHeaders();

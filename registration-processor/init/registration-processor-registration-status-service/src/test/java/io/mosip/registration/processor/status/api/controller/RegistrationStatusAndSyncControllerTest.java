@@ -151,8 +151,6 @@ public class RegistrationStatusAndSyncControllerTest {
 	
 	@Autowired
 	ObjectMapper objMp=new ObjectMapper();
-
-   // Gson gson = new GsonBuilder().serializeNulls().create();
 	private List<SyncResponseDto> syncResponseDtoList;
 	private List<SyncRegistrationDto> list;
 	SyncResponseFailureDto syncResponseFailureDto = new SyncResponseFailureDto();

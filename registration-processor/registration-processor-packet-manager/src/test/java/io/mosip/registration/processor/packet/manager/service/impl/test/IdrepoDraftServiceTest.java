@@ -20,7 +20,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 
 import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.registration.processor.core.code.ApiName;

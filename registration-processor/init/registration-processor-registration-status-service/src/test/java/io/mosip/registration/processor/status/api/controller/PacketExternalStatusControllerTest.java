@@ -104,8 +104,6 @@ public class PacketExternalStatusControllerTest {
 	private Environment env;
 
 	private String packetExternalStatusRequestToJson;
-
-//	Gson gson = new GsonBuilder().serializeNulls().create();
 	
 	PacketExternalStatusRequestDTO packetExternalStatusRequestDTO;
 

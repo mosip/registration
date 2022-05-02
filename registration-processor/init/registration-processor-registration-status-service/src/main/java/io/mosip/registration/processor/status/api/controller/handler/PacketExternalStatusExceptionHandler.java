@@ -154,8 +154,7 @@ public class PacketExternalStatusExceptionHandler {
 		response.setResponsetime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		response.setVersion(env.getProperty(PACKET_EXTERNAL_STATUS_APPLICATION_VERSION));
 		response.setResponse(null);
-		//Gson gson = new GsonBuilder().serializeNulls().create();
-
+	
 		if (isEnabled) {
 			HttpHeaders headers = new HttpHeaders();
 			String res=null;

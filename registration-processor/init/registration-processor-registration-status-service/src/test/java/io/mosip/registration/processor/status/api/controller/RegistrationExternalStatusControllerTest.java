@@ -123,7 +123,6 @@ public class RegistrationExternalStatusControllerTest {
 
 	/** The array to json. */
 	private String regStatusToJson;
-//	Gson gson = new GsonBuilder().serializeNulls().create();
 
 	@Before
 	public void setUp() throws JsonProcessingException, ApisResourceAccessException {

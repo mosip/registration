@@ -129,7 +129,7 @@ public class RegistrationExternalStatusController {
 			if (isEnabled) {
 				RegExternalStatusResponseDTO response = buildRegistrationStatusResponse(registrations,
 						registrationExternalStatusRequestDTO.getRequest());
-			//	Gson gson = new GsonBuilder().serializeNulls().create();
+	
 				HttpHeaders headers = new HttpHeaders();
 				String res=null;
 				res=objMp.writeValueAsString(response);
