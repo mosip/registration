@@ -151,7 +151,6 @@ public class RegistrationStatusController {
 			updatedConditionalStatusToProcessed(registrations);
 
 			if (isEnabled) {
-				//Gson gson = new GsonBuilder().serializeNulls().create();
 				String response = objMp.writeValueAsString(buildRegistrationStatusResponse(registrations,
 						recordsToFetch));	
 				HttpHeaders headers = new HttpHeaders();

@@ -20,8 +20,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -124,12 +122,11 @@ public class PacketExternalStatusController {
 			if (isEnabled) {
 				PacketExternalStatusResponseDTO packetExternalStatusResponseDTO = buildPacketStatusResponse(
 						packetExternalStatusDTOList, packetExternalStatusRequestDTO.getRequest());
-				Gson gson = new GsonBuilder().serializeNulls().create();
-				//objectMapper.setSerializationInclusion(Include.USE_DEFAULTS);
+				
 				HttpHeaders headers = new HttpHeaders();
 				String res=null;
 				try {
-					System.out.println("fffffffffffffffff"+gson.toJson(packetExternalStatusResponseDTO));
+					
 					res=objectMapper.writeValueAsString(packetExternalStatusResponseDTO);
 				} catch (IOException e1) {
 					e1.printStackTrace();
