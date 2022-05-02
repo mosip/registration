@@ -108,7 +108,7 @@ public class RegistrationTransactionController {
 				return ResponseEntity.status(HttpStatus.OK).body(responseDTO);
 		}catch (Exception e) {
 			if( e instanceof InvalidTokenException |e instanceof AccessDeniedException | e instanceof RegTransactionAppException
-				| e instanceof TransactionsUnavailableException | e instanceof TransactionTableNotAccessibleException ) {
+				| e instanceof TransactionsUnavailableException | e instanceof TransactionTableNotAccessibleException | e instanceof JsonProcessingException ) {
 				throw e;
 			}
 			else {
@@ -139,15 +139,17 @@ public class RegistrationTransactionController {
 	 * convert registration transaction response dto to json string
 	 * @param dto registration transaction response dto
 	 * @return
+	 * @throws JsonProcessingException 
 	 */
-	private String buildSignatureRegistrationTransactionResponse(RegTransactionResponseDTO dto) {
+	private String buildSignatureRegistrationTransactionResponse(RegTransactionResponseDTO dto) throws JsonProcessingException {
 
 		try {
 			return objMp.writeValueAsString(dto);
 		} catch (JsonProcessingException e) {
 			regProcLogger.error("Error while processing response ",e);
+			throw e;
 		}
 		
-		return null;
+		
 	}
 }
