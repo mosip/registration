@@ -137,7 +137,7 @@ public class RegistrationTransactionController {
 	 * @return
 	 */
 	private String buildSignatureRegistrationTransactionResponse(RegTransactionResponseDTO dto) {
-		objMp.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+		
 		
 		try {
 			return objMp.writeValueAsString(dto);
