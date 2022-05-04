@@ -155,7 +155,7 @@ public class RegistrationSyncExceptionHandler {
 				
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),LoggerFileConstant.APPLICATIONID.toString(),PlatformErrorMessages.RPR_RGS_JSON_MAPPING_EXCEPTION.getCode(),PlatformErrorMessages.RPR_RGS_JSON_MAPPING_EXCEPTION.getMessage());
 				RegStatusAppException reg1=new RegStatusAppException(PlatformErrorMessages.RPR_RGS_JSON_MAPPING_EXCEPTION, ex);
-				return handleRegStatusException(reg1,request);
+				return handleRegStatusException(reg1,null);
 				
 			}
 			headers.add(RESPONSE_SIGNATURE,digitalSignatureUtility.getDigitalSignature(res));
