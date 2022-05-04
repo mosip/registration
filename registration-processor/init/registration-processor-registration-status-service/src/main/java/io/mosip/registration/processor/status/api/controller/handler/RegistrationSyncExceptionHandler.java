@@ -151,8 +151,11 @@ public class RegistrationSyncExceptionHandler {
 			String res=null;
 			try {
 				res=objectMapper.writeValueAsString(response);
-			} catch (IOException e1) {
-				regProcLogger.error("Error while processing response",e1);
+			} catch (Exception e1) {
+				
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),LoggerFileConstant.APPLICATIONID.toString(),PlatformErrorMessages.RPR_RGS_JSON_MAPPING_EXCEPTION.getCode(),PlatformErrorMessages.RPR_RGS_JSON_MAPPING_EXCEPTION.getMessage());
+				RegStatusAppException reg1=new RegStatusAppException(PlatformErrorMessages.RPR_RGS_JSON_MAPPING_EXCEPTION, ex);
+				return handleRegStatusException(reg1,request);
 				
 			}
 			headers.add(RESPONSE_SIGNATURE,digitalSignatureUtility.getDigitalSignature(res));
