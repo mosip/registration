@@ -14,6 +14,8 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -57,8 +59,7 @@ public class ExceptionHandlerTest {
 	PacketReceiverResponseDTO packetReceiverResponseDTO = new PacketReceiverResponseDTO();
 	private List<ErrorDTO> errors = new ArrayList<>();
 	ErrorDTO errorDTO = new ErrorDTO("", "");
-
-	// Gson gson = new GsonBuilder().serializeNulls().create();
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	/**
 	 * Sets the up.
@@ -110,7 +111,7 @@ public class ExceptionHandlerTest {
 					objMp.writeValueAsString(packetReceiverResponseDTO1));
 		} catch (JsonProcessingException e) {
 
-			e.printStackTrace();
+			logger.error("Error while processing json",e);
 		}
 	}
 
@@ -129,7 +130,7 @@ public class ExceptionHandlerTest {
 					objMp.writeValueAsString(packetReceiverResponseDTO1));
 		} catch (JsonProcessingException e) {
 
-			e.printStackTrace();
+			logger.error("Error while processing json",e);
 		}
 	}
 
@@ -148,7 +149,7 @@ public class ExceptionHandlerTest {
 					objMp.writeValueAsString(packetReceiverResponseDTO1));
 		} catch (JsonProcessingException e) {
 
-			e.printStackTrace();
+			logger.error("Error while processing json",e);
 		}
 	}
 
@@ -167,7 +168,7 @@ public class ExceptionHandlerTest {
 					objMp.writeValueAsString(packetReceiverResponseDTO1));
 		} catch (JsonProcessingException e) {
 
-			e.printStackTrace();
+			logger.error("Error while processing json",e);
 		}
 	}
 
@@ -185,7 +186,7 @@ public class ExceptionHandlerTest {
 					objMp.writeValueAsString(packetReceiverResponseDTO1));
 		} catch (JsonProcessingException e) {
 
-			e.printStackTrace();
+			logger.error("Error while processing json",e);
 		}
 	}
 
@@ -204,7 +205,7 @@ public class ExceptionHandlerTest {
 					objMp.writeValueAsString(packetReceiverResponseDTO1));
 		} catch (JsonProcessingException e) {
 
-			e.printStackTrace();
+			logger.error("Error while processing json",e);
 		}
 	}
 
@@ -223,7 +224,7 @@ public class ExceptionHandlerTest {
 					objMp.writeValueAsString(packetReceiverResponseDTO1));
 		} catch (JsonProcessingException e) {
 
-			e.printStackTrace();
+			logger.error("Error while processing json",e);
 		}
 	}
 
@@ -239,7 +240,7 @@ public class ExceptionHandlerTest {
 					objMp.writeValueAsString(packetReceiverResponseDTO1));
 		} catch (JsonProcessingException e) {
 
-			e.printStackTrace();
+			logger.error("Error while processing json",e);
 		}
 	}
 
@@ -258,7 +259,7 @@ public class ExceptionHandlerTest {
 					objMp.writeValueAsString(packetReceiverResponseDTO1));
 		} catch (JsonProcessingException e) {
 
-			e.printStackTrace();
+			logger.error("Error while processing json",e);
 		}
 	}
 
@@ -277,7 +278,7 @@ public class ExceptionHandlerTest {
 					objMp.writeValueAsString(packetReceiverResponseDTO1));
 		} catch (JsonProcessingException e) {
 
-			e.printStackTrace();
+			logger.error("Error while processing json",e);
 		}
 	}
 
@@ -296,7 +297,7 @@ public class ExceptionHandlerTest {
 					objMp.writeValueAsString(packetReceiverResponseDTO1));
 		} catch (JsonProcessingException e) {
 
-			e.printStackTrace();
+			logger.error("Error while processing json",e);
 		}
 	}
 
@@ -315,7 +316,7 @@ public class ExceptionHandlerTest {
 					objMp.writeValueAsString(packetReceiverResponseDTO1));
 		} catch (JsonProcessingException e) {
 
-			e.printStackTrace();
+			logger.error("Error while processing json",e);
 		}
 	}
 
@@ -334,7 +335,7 @@ public class ExceptionHandlerTest {
 					objMp.writeValueAsString(packetReceiverResponseDTO1));
 		} catch (JsonProcessingException e) {
 
-			e.printStackTrace();
+			logger.error("Error while processing json",e);
 		}
 	}
 

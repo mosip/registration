@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -84,6 +86,7 @@ public class PacketExternalStatusController {
 
 	private static final String PACKET_EXTERNAL_STATUS_APPLICATION_VERSION = "mosip.registration.processor.packet.external.status.version";
 
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	/**
 	 * Packet external status.
 	 *
@@ -128,8 +131,8 @@ public class PacketExternalStatusController {
 				try {
 					
 					res=objectMapper.writeValueAsString(packetExternalStatusResponseDTO);
-				} catch (IOException e1) {
-					e1.printStackTrace();
+				} catch (Exception e1) {
+					logger.error("Error while processing dto ",e1);
 					
 				}
 				headers.add(RESPONSE_SIGNATURE,
