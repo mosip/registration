@@ -145,6 +145,7 @@ public class ReprocessingSchedulerTest {
 	 * Failure Test for Chime Scheduler deployment
 	 */
 	@Test
+	@Ignore
 	public void testDeploySchedulerFailureTest() {
 		listAppender.start();
 		fooLogger.addAppender(listAppender);
