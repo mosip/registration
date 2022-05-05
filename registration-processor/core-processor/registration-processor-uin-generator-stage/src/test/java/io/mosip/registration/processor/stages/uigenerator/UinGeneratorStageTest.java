@@ -1515,7 +1515,7 @@ public class UinGeneratorStageTest {
 		assertFalse(result.getInternalError());
 		assertTrue(result.getIsValid());
 	}
-	
+
 	@Test
 	public void testLinkSuccessForLostUinAndUpdateContactInfo() throws Exception {
 		Map<String, String> fieldMap = new HashMap<>();
@@ -1530,7 +1530,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("UIN");
 		when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn("9403107397");
 
-		
+
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
@@ -1555,7 +1555,7 @@ public class UinGeneratorStageTest {
 		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
 		idResponseDTO.setVersion("1.0");
 		when(packetManagerService.getField(any(), any(), any(),any())).thenReturn("989879234");
-		
+
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
 		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any(Class.class)))
 				.thenReturn(idResponseDTO);

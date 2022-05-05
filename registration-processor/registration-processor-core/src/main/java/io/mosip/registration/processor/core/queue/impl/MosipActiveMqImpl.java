@@ -10,6 +10,7 @@ import io.mosip.registration.processor.core.queue.factory.QueueListener;
 import io.mosip.registration.processor.core.queue.factory.QueueListenerFactory;
 import io.mosip.registration.processor.core.queue.impl.exception.ConnectionUnavailableException;
 import io.mosip.registration.processor.core.queue.impl.exception.InvalidConnectionException;
+import io.mosip.registration.processor.core.queue.impl.exception.QueueConnectionException;
 import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
@@ -69,7 +70,8 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
                             LINE_SEPERATOR + this.session);
                     if (!((ActiveMQConnection) connection).isStarted() || session == null) {
                         regProcLogger.error("Activemq connection is not created. Retrying.....");
-                        setup(mosipActiveMq);
+                        throw new QueueConnectionException("session is "+session);
+                       
                     }
                 }
             }

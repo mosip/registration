@@ -25,14 +25,6 @@ import javax.crypto.SecretKey;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.http.Header;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,12 +34,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 
 import io.mosip.kernel.biometrics.constant.BiometricFunction;
 import io.mosip.kernel.biometrics.constant.BiometricType;
@@ -59,7 +48,6 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.HMACUtils2;
-import io.mosip.kernel.core.util.TokenHandlerUtil;
 import io.mosip.kernel.keygenerator.bouncycastle.KeyGenerator;
 import io.mosip.registration.processor.core.auth.dto.AuthRequestDTO;
 import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
@@ -79,15 +67,9 @@ import io.mosip.registration.processor.core.http.RequestWrapper;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
-import io.mosip.registration.processor.core.tracing.ContextualData;
-import io.mosip.registration.processor.core.tracing.TracingConstant;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.manager.dto.CryptomanagerResponseDto;
 import io.mosip.registration.processor.packet.storage.dto.CryptoManagerEncryptDto;
-import io.mosip.registration.processor.rest.client.audit.dto.Metadata;
-import io.mosip.registration.processor.rest.client.audit.dto.SecretKeyRequest;
-import io.mosip.registration.processor.rest.client.audit.dto.TokenRequestDTO;
-import io.mosip.registration.processor.rest.client.exception.TokenGenerationFailedException;
 import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 
 /**
@@ -207,10 +189,13 @@ public class AuthUtil {
 		authRequestDTO.setRequestHMAC(CryptoUtil.encodeToURLSafeBase64(byteArray));
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), individualId,
 				"AuthUtil::authByIdAuthentication()::INTERNALAUTH POST service call started");
-		MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
-		headers.add("Authorization", getConsentToken());
-		headers.add("Cookie", AUTHORIZATION+getToken());
-		HttpEntity<AuthRequestDTO> httpEntity = new HttpEntity<>(authRequestDTO,headers);
+
+		HttpHeaders headers = new HttpHeaders();
+		String token = restApiClient.getToken().replace(AUTHORIZATION, "");
+		headers.add("cookie", restApiClient.getToken());
+		headers.add("Authorization", token);
+
+		HttpEntity<AuthRequestDTO> httpEntity = new HttpEntity<>(authRequestDTO, headers);
 
 		ResponseEntity<AuthResponseDTO> responseEntity = restTemplate.exchange(env.getProperty(ApiName.INTERNALAUTH.name()), HttpMethod.POST, httpEntity, AuthResponseDTO.class);
 		AuthResponseDTO response = responseEntity.getBody();
@@ -221,64 +206,6 @@ public class AuthUtil {
 
 		return response;
 
-	}
-	private String getConsentToken() {
-		// dummy token text 
-		return  "sample consent token";
-	}
-	public String getToken() throws IOException {
-		String token = System.getProperty("token");
-		boolean isValid = false;
-
-		if (StringUtils.isNotEmpty(token)) {
-
-			isValid = TokenHandlerUtil.isValidBearerToken(token, env.getProperty("token.request.issuerUrl"),
-					env.getProperty("token.request.clientId"));
-
-		}
-		if (!isValid) {
-			TokenRequestDTO<SecretKeyRequest> tokenRequestDTO = new TokenRequestDTO<SecretKeyRequest>();
-			tokenRequestDTO.setId(env.getProperty("token.request.id"));
-			tokenRequestDTO.setMetadata(new Metadata());
-
-			tokenRequestDTO.setRequesttime(DateUtils.getUTCCurrentDateTimeString());
-			// tokenRequestDTO.setRequest(setPasswordRequestDTO());
-			tokenRequestDTO.setRequest(setSecretKeyRequestDTO());
-			tokenRequestDTO.setVersion(env.getProperty("token.request.version"));
-
-			Gson gson = new Gson();
-			HttpClient httpClient = HttpClientBuilder.create().build();
-			HttpPost post = new HttpPost(env.getProperty("KEYBASEDTOKENAPI"));
-			try {
-				StringEntity postingString = new StringEntity(gson.toJson(tokenRequestDTO));
-				post.setEntity(postingString);
-				post.setHeader("Content-type", "application/json");
-				post.setHeader(TracingConstant.TRACE_HEADER,
-						(String) ContextualData.getOrDefault(TracingConstant.TRACE_ID_KEY));
-				HttpResponse response = httpClient.execute(post);
-				org.apache.http.HttpEntity entity = response.getEntity();
-				String responseBody = EntityUtils.toString(entity, "UTF-8");
-				Header[] cookie = response.getHeaders("Set-Cookie");
-				if (cookie.length == 0)
-					throw new TokenGenerationFailedException();
-				token = response.getHeaders("Set-Cookie")[0].getValue();
-				System.setProperty("token", token.substring(14, token.indexOf(';')));
-				return token.substring(0, token.indexOf(';'));
-			} catch (IOException e) {
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-						LoggerFileConstant.APPLICATIONID.toString(), e.getMessage() + ExceptionUtils.getStackTrace(e));
-				throw e;
-			}
-		}
-		return   token;
-	}
-
-	private SecretKeyRequest setSecretKeyRequestDTO() {
-		SecretKeyRequest request = new SecretKeyRequest();
-		request.setAppId(env.getProperty("token.request.appid"));
-		request.setClientId(env.getProperty("token.request.clientId"));
-		request.setSecretKey(env.getProperty("token.request.secretKey"));
-		return request;
 	}
 
 	private byte[] encryptRSA(final byte[] sessionKey, String refId, ObjectMapper mapper)

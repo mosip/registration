@@ -24,7 +24,7 @@ import java.util.concurrent.CompletableFuture;
 @Configuration
 public class PropertyLoaderConfig {
 
-    private static Logger regProcLogger = RegProcessorLogger.getLogger(CoreConfigBean.class);
+    private static Logger regProcLogger = RegProcessorLogger.getLogger(PropertyLoaderConfig.class);
 
     private enum HttpConstants {
         HTTP("http://"), HTTPS("https://");

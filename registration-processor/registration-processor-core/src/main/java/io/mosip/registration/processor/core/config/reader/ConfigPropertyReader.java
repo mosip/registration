@@ -10,7 +10,7 @@ import java.util.List;
 
 public class ConfigPropertyReader {
 
-    private static Logger regProcLogger = RegProcessorLogger.getLogger(CoreConfigBean.class);
+    private static Logger regProcLogger = RegProcessorLogger.getLogger(ConfigPropertyReader.class);
 
     public static String getConfig(String packageConfig) {
         AnnotationConfigApplicationContext ctx1 = new AnnotationConfigApplicationContext();
