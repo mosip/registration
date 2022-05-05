@@ -1018,6 +1018,10 @@ public enum PlatformErrorMessages {
 	/** The stage processing failed. */
 	RPR_SYS_STAGE_PROCESSING_FAILED(PlatformConstants.RPR_SYSTEM_EXCEPTION + "021",
 			"Stage processing of message failed with an exception"),
+	
+	/** The rpr sys connection exception. */
+	RPR_SYS_QUEUE_CONNECTION_EXCEPTION(PlatformConstants.RPR_SYSTEM_EXCEPTION + "022",
+			"Error while connecting to active mq"),
 
 	// Cbeff Util Exceptions
 	/** The rpr utl biometric tag match. */
