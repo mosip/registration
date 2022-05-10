@@ -316,7 +316,7 @@ public class CbeffToBiometricUtil {
 	 *             the exception
 	 */
 	public List<BIRType> getBIRTypeList(String cbeffFileString) throws Exception {
-		return cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(cbeffFileString));
+		return cbeffutil.getBIRDataFromXML(cbeffFileString.getBytes());
 	}
 	/**
 	 * Gets the BIR type list.
