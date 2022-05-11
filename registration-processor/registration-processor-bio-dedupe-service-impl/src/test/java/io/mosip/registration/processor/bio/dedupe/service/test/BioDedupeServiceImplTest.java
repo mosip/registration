@@ -195,6 +195,7 @@ public class BioDedupeServiceImplTest {
 		biometricRecord.setSegments(birTypeList);
 
 		Mockito.when(packetManagerService.getBiometrics(any(), any(),any(), any())).thenReturn(biometricRecord);
+		Mockito.when(packetManagerService.getBiometricsByMappingJsonKey(any(), any(),any(), any())).thenReturn(biometricRecord);
 		Mockito.when(cbeffutil.createXML(any())).thenReturn(fileBytes);
 
 
