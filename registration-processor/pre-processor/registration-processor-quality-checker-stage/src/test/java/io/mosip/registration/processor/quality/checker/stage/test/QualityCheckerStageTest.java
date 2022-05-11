@@ -80,6 +80,7 @@ public class QualityCheckerStageTest {
 
 	@Mock
 	private PriorityBasedPacketManagerService packetManagerService;
+	
 
 	/** The cbeff util. */
 	@Mock
@@ -326,7 +327,7 @@ public class QualityCheckerStageTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testApiNotAccessibleTest() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
-		when(packetManagerService.getBiometrics(any(),any(),any(),any())).thenThrow(new ApisResourceAccessException("message"));
+		when(packetManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenThrow(new ApisResourceAccessException("message"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO messageDTO = qualityCheckerStage.process(dto);
@@ -424,8 +425,7 @@ public class QualityCheckerStageTest {
 	@Test
 	public void testNoBiometricInPacket() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
 
-		when(packetManagerService.getBiometrics(any(),any(),any(),any())).thenReturn(null);
-
+		when(packetManagerService.getBiometricsByMappingJsonKey(any(),any(),any(),any())).thenReturn(null);
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO result = qualityCheckerStage.process(dto);
