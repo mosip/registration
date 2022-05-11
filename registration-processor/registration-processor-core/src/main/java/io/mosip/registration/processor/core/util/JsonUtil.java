@@ -9,7 +9,6 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
-import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -18,11 +17,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.google.gson.Gson;
-import com.google.gson.JsonIOException;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
+import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.JsonValue;
@@ -77,11 +72,10 @@ public class JsonUtil {
 	 */
 	public static Object inputStreamtoJavaObject(InputStream stream, Class<?> clazz)
 			throws UnsupportedEncodingException {
-		JsonParser jsonParser = new JsonParser();
-		Gson gson = new Gson();
-		JsonObject jsonObject = (JsonObject) jsonParser.parse(new InputStreamReader(stream, "UTF-8"));
+		
+		getObjectMapper();
 		try {
-			return gson.fromJson(jsonObject, clazz);
+			return objectMapper.readValue(new InputStreamReader(stream, "UTF-8"), clazz);
 		} catch (Exception e) {
 			throw new UnsupportedEncodingException(PlatformErrorMessages.RPR_CMB_UNSUPPORTED_ENCODING.getMessage());
 		}

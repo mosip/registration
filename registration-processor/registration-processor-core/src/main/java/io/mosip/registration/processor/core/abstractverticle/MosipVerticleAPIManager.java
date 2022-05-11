@@ -1,19 +1,20 @@
 package io.mosip.registration.processor.core.abstractverticle;
 
-import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
-import io.mosip.registration.processor.core.queue.factory.MosipQueue;
-import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.util.ClassUtils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import brave.Tracing;
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
 import io.mosip.registration.processor.core.constant.HealthConstant;
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.queue.factory.MosipQueue;
+import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import io.mosip.registration.processor.core.tracing.VertxWebTracingLocal;
 import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
 import io.vertx.core.Handler;
@@ -55,6 +56,10 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 
 	private static final String PROMETHEUS_ENDPOINT = "/actuator/prometheus";
 
+	
+	private static Logger regProcLogger = RegProcessorLogger.getLogger(MosipVerticleAPIManager.class);
+
+	
 	/**
 	 * This method creates a body handler for the routes
 	 *
@@ -180,13 +185,21 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 	 */
 	public void setResponseWithDigitalSignature(RoutingContext ctx, Object object, String contentType) {
 		HttpServerResponse response = ctx.response();
-	Gson gson=new GsonBuilder().serializeNulls().create();
+	
+		String res=null;
+		try {
+			res = objectMapper.writeValueAsString(object);
+		} catch (JsonProcessingException e) {
+			regProcLogger.error("Error while processing response",e);
+			
+		}
+		
 		if (isEnabled)
 			response.putHeader("Response-Signature",
-					digitalSignatureUtility.getDigitalSignature(gson.toJson(object)));
+					digitalSignatureUtility.getDigitalSignature(res));
 		response.putHeader("content-type", contentType).putHeader("Access-Control-Allow-Origin", "*")
 				.putHeader("Access-Control-Allow-Methods", "GET, POST").setStatusCode(200)
-				.end(gson.toJson(object));
+				.end(res);
 	}
 
 	// Added this method to cast all the stages to this class and invoke the deployVerticle method 

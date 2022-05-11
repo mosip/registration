@@ -2,10 +2,9 @@ package io.mosip.registration.processor.packet.receiver.builder;
 
 import java.util.List;
 import java.util.Objects;
+
 import org.springframework.stereotype.Component;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import io.mosip.kernel.core.util.DateUtils;
+
 import io.mosip.registration.processor.packet.receiver.dto.PacketReceiverResponseDTO;
 import io.mosip.registration.processor.packet.receiver.dto.ResponseDTO;
 
