@@ -4,18 +4,20 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.mosip.registration.processor.core.constant.IdType;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.constant.AbisConstant;
+import io.mosip.registration.processor.core.constant.IdType;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
@@ -99,8 +101,8 @@ public class IdRepoServiceImpl implements IdRepoService {
 				ResponseWrapper.class);
 
 		if (response.getResponse() != null) {
-			Gson gsonObj = new Gson();
-			String jsonString = gsonObj.toJson(response.getResponse());
+			//Gson gsonObj = new Gson();
+			String jsonString =mapper.writeValueAsString(response.getResponse());//gsonObj.toJson(response.getResponse());
 			JSONObject identityJson = JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
 			JSONObject demographicIdentity = JsonUtil.getJSONObject(identityJson, regProcessorDemographicIdentity);
 			return JsonUtil.getJSONValue(demographicIdentity, AbisConstant.UIN);
@@ -152,10 +154,9 @@ public class IdRepoServiceImpl implements IdRepoService {
 
 		response = (ResponseWrapper<IdResponseDTO>) restClientService.getApi(ApiName.RETRIEVEIDENTITYFROMRID, pathSegments, "", "",
 				ResponseWrapper.class);
-
+	
 		if (response.getResponse() != null) {
-			Gson gsonObj = new Gson();
-			String jsonString = gsonObj.toJson(response.getResponse());
+			String jsonString =mapper.writeValueAsString(response.getResponse());
 			JSONObject identityJson = JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
 			demographicJsonObj = JsonUtil.getJSONObject(identityJson, regProcessorDemographicIdentity);
 
