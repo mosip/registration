@@ -12,14 +12,12 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.core.env.Environment;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import brave.Tracing;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
-import io.mosip.registration.processor.core.tracing.VertxWebTracingLocal;
 import io.mosip.registration.processor.stages.demodedupe.DemoDedupeStage;
 import io.mosip.registration.processor.stages.demodedupe.DemodedupeProcessor;
 import io.vertx.core.AsyncResult;
