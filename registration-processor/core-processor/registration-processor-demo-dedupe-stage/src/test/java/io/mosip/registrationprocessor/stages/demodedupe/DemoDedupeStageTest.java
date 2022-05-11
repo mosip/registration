@@ -12,12 +12,14 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.core.env.Environment;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import brave.Tracing;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
+import io.mosip.registration.processor.core.tracing.VertxWebTracingLocal;
 import io.mosip.registration.processor.stages.demodedupe.DemoDedupeStage;
 import io.mosip.registration.processor.stages.demodedupe.DemodedupeProcessor;
 import io.vertx.core.AsyncResult;
@@ -39,6 +41,13 @@ public class DemoDedupeStageTest {
 	
 	@Mock
 	private Environment environment;
+	
+/*	@Mock
+	private Tracing tracing;
+	
+	@Mock
+	private VertxWebTracingLocal v;
+	*/
 
 	@InjectMocks
 	private DemoDedupeStage demoDedupeStage = new DemoDedupeStage() {
@@ -76,6 +85,13 @@ public class DemoDedupeStageTest {
 		public void consumeAndSend(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
 				MessageBusAddress toAddress, long messageExpiryTimeLimit) {
 		}
+		
+		@Override
+		public Router postUrl(Vertx vertx, MessageBusAddress consumeAddress, MessageBusAddress sendAddress) {
+			return null;
+		}
+		
+		
 	};
 
 	/**
@@ -105,11 +121,13 @@ public class DemoDedupeStageTest {
 		ReflectionTestUtils.setField(demoDedupeStage, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(demoDedupeStage, "port", "1080");
 		
-		Mockito.when(environment.getProperty("mosip.kernel.virus-scanner.port")).thenReturn("8000");
-		Mockito.when(environment.getProperty("server.servlet.path")).thenReturn("/test");
+	//	Mockito.when(environment.getProperty("mosip.kernel.virus-scanner.port")).thenReturn("8000");
+	//	Mockito.when(environment.getProperty("server.servlet.path")).thenReturn("/test");
 		
 		demoDedupeStage.deployVerticle();
+		
 		Mockito.doNothing().when(router).setRoute(any());
+		//Mockito.when(v.create(tracing)).thenReturn(v);
 		Router r = new RouterImpl(Vertx.vertx());
 		Mockito.when(router.getRouter()).thenReturn(r);
 		demoDedupeStage.start();
