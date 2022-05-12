@@ -39,6 +39,13 @@ public class DemoDedupeStageTest {
 	
 	@Mock
 	private Environment environment;
+	
+/*	@Mock
+	private Tracing tracing;
+	
+	@Mock
+	private VertxWebTracingLocal v;
+	*/
 
 	@InjectMocks
 	private DemoDedupeStage demoDedupeStage = new DemoDedupeStage() {
@@ -76,6 +83,13 @@ public class DemoDedupeStageTest {
 		public void consumeAndSend(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
 				MessageBusAddress toAddress, long messageExpiryTimeLimit) {
 		}
+		
+		@Override
+		public Router postUrl(Vertx vertx, MessageBusAddress consumeAddress, MessageBusAddress sendAddress) {
+			return null;
+		}
+		
+		
 	};
 
 	/**
@@ -105,11 +119,13 @@ public class DemoDedupeStageTest {
 		ReflectionTestUtils.setField(demoDedupeStage, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(demoDedupeStage, "port", "1080");
 		
-		Mockito.when(environment.getProperty("mosip.kernel.virus-scanner.port")).thenReturn("8000");
-		Mockito.when(environment.getProperty("server.servlet.path")).thenReturn("/test");
+	//	Mockito.when(environment.getProperty("mosip.kernel.virus-scanner.port")).thenReturn("8000");
+	//	Mockito.when(environment.getProperty("server.servlet.path")).thenReturn("/test");
 		
 		demoDedupeStage.deployVerticle();
+		
 		Mockito.doNothing().when(router).setRoute(any());
+		//Mockito.when(v.create(tracing)).thenReturn(v);
 		Router r = new RouterImpl(Vertx.vertx());
 		Mockito.when(router.getRouter()).thenReturn(r);
 		demoDedupeStage.start();
