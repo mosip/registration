@@ -7,20 +7,20 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import brave.Tracing;
+import io.vertx.ext.web.Router;
 import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.apache.activemq.util.ByteSequence;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatchers;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.registration.processor.abis.queue.dto.AbisQueueDetails;
@@ -57,6 +57,7 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.ext.web.Router;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ JsonUtil.class })
@@ -396,7 +397,8 @@ public class AbisMiddleWareStageTest {
 		byteSeq.setData(failedInsertResponse.getBytes());
 		amq.setContent(byteSeq);
 		Vertx vertx = Mockito.mock(Vertx.class);
-		MosipEventBus evenBus = new MosipEventBusFactory().getEventBus(vertx, "vertx");
+		//MosipEventBus evenBus = new MosipEventBusFactory().getEventBus(vertx, "vertx", "mosip.regproc.abis.middleware.");
+		MosipEventBus evenBus = Mockito.mock(MosipEventBus.class);
 		MosipQueue queue = Mockito.mock(MosipQueue.class);
 		AbisRequestDto abisCommonRequestDto = new AbisRequestDto();
 		abisCommonRequestDto.setRequestType("INSERT");
@@ -432,7 +434,8 @@ public class AbisMiddleWareStageTest {
 		byteSeq.setData(failedInsertResponse.getBytes());
 		amq.setContent(byteSeq);
 		Vertx vertx = Mockito.mock(Vertx.class);
-		MosipEventBus evenBus = new MosipEventBusFactory().getEventBus(vertx, "vertx");
+		//MosipEventBus evenBus = new MosipEventBusFactory().getEventBus(vertx, "vertx", "mosip.regproc.abis.middleware.");
+		MosipEventBus evenBus = Mockito.mock(MosipEventBus.class);
 		MosipQueue queue = Mockito.mock(MosipQueue.class);
 		AbisRequestDto abisCommonRequestDto = new AbisRequestDto();
 		abisCommonRequestDto.setRequestType("IDENTIFY");
@@ -453,14 +456,15 @@ public class AbisMiddleWareStageTest {
 		byteSeq1.setData(sucessfulResponse.getBytes());
 		amq1.setContent(byteSeq1);
 		Vertx vertx1 = Mockito.mock(Vertx.class);
-		MosipEventBus eventBus1 = new MosipEventBusFactory().getEventBus(vertx1, "vertx");
+		//MosipEventBus evenBus = new MosipEventBusFactory().getEventBus(vertx, "vertx", "mosip.regproc.abis.middleware.");
+		MosipEventBus eventBus = Mockito.mock(MosipEventBus.class);
 		MosipQueue queue1 = Mockito.mock(MosipQueue.class);
 		AbisRequestDto abisCommonRequestDto1 = new AbisRequestDto();
 		abisCommonRequestDto1.setRequestType("INSERT");
 		abisCommonRequestDto1.setAbisAppCode("Abis1");
 		//Mockito.when(packetInfoManager.getAbisRequestByRequestId(Mockito.any())).thenReturn(abisCommonRequestDto1);
 		Mockito.when(packetInfoManager.getBatchIdByRequestId(Mockito.anyString())).thenReturn(null);
-		stage.consumerListener(amq1, "abis1_inboundAddress", queue1, eventBus1, messageTTL);
+		stage.consumerListener(amq1, "abis1_inboundAddress", queue1, eventBus, messageTTL);
 
 	}
 
@@ -478,7 +482,8 @@ public class AbisMiddleWareStageTest {
 		byteSeq1.setData(identifySucessfulResponse.getBytes());
 		amq1.setContent(byteSeq1);
 		Vertx vertx1 = Mockito.mock(Vertx.class);
-		MosipEventBus evenBus1 = new MosipEventBusFactory().getEventBus(vertx1, "vertx");
+		//MosipEventBus evenBus = new MosipEventBusFactory().getEventBus(vertx, "vertx", "mosip.regproc.abis.middleware.");
+		MosipEventBus evenBus1 = Mockito.mock(MosipEventBus.class);
 		MosipQueue queue1 = Mockito.mock(MosipQueue.class);
 		AbisRequestDto abisCommonRequestDto1 = new AbisRequestDto();
 		abisCommonRequestDto1.setRequestType("IDENTIFY");
@@ -520,7 +525,8 @@ public class AbisMiddleWareStageTest {
 		byteSeq.setData(failedInsertResponse.getBytes());
 		amq.setContent(byteSeq);
 		Vertx vertx = Mockito.mock(Vertx.class);
-		MosipEventBus evenBus = new MosipEventBusFactory().getEventBus(vertx, "vertx");
+		//MosipEventBus evenBus = new MosipEventBusFactory().getEventBus(vertx, "vertx", "mosip.regproc.abis.middleware.");
+		MosipEventBus evenBus = Mockito.mock(MosipEventBus.class);
 		MosipQueue queue = Mockito.mock(MosipQueue.class);
 		AbisRequestDto abisCommonRequestDto = new AbisRequestDto();
 		abisCommonRequestDto.setRequestType("IDENTIFY");
@@ -553,7 +559,8 @@ public class AbisMiddleWareStageTest {
 		byteSeq.setData(failedInsertResponse.getBytes());
 		amq.setContent(byteSeq);
 		Vertx vertx = Mockito.mock(Vertx.class);
-		MosipEventBus evenBus = new MosipEventBusFactory().getEventBus(vertx, "vertx");
+		//MosipEventBus evenBus = new MosipEventBusFactory().getEventBus(vertx, "vertx", "mosip.regproc.abis.middleware.");
+		MosipEventBus evenBus = Mockito.mock(MosipEventBus.class);
 		MosipQueue queue = Mockito.mock(MosipQueue.class);
 		AbisRequestDto abisCommonRequestDto = new AbisRequestDto();
 		abisCommonRequestDto.setRequestType("IDENTIFY");

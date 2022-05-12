@@ -2008,6 +2008,7 @@ public class UinGeneratorStageTest {
 		assertFalse(result.getIsValid());
 	}
 
+	@Ignore
 	@Test
 	public void testUinAlreadyExists() throws Exception {
 		Map<String, String> fieldMap = new HashMap<>();
@@ -2064,6 +2065,7 @@ public class UinGeneratorStageTest {
 				.thenReturn(idResponseDTO).thenReturn(responseVid);
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
+
 		assertTrue(result.getIsValid());
 
 	}
