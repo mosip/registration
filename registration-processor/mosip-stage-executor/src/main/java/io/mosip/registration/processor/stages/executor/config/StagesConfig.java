@@ -108,6 +108,7 @@ public class StagesConfig {
 		catch (Exception e1) {
 			regProcLogger.error(ExceptionUtils.getStackTrace(e1));
 			throw new RuntimeException("Could not load config", e1);
+			//throw e1;
 		}
 	}
 	

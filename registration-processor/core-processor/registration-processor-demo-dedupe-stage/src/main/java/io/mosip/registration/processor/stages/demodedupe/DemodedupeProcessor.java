@@ -358,7 +358,7 @@ public class DemodedupeProcessor {
 			}
 			else {
 				String  demo=env.getProperty(DEMODEDUPEENABLE);
-				if (StringUtils.isNotEmpty(demo) && demo.trim().equalsIgnoreCase(TRUE)) {
+				if (null!=demo && StringUtils.isNotEmpty(demo) && demo.trim().equalsIgnoreCase(TRUE)) {
 					isDemoDedupeSkip = false;
 				duplicateDtos = performDemoDedupe(registrationStatusDto, object, description);
 				if (duplicateDtos.isEmpty())

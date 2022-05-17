@@ -86,14 +86,14 @@ public class StageClassesUtil {
 		String stageBeanBasePkgsStr = propertySourcesPropertyResolver.getProperty(
 				stageBeansBasePkgsPropertyName, defaultStageBeanBasePkgStr);
 		// Sonar detecting default value and estimating condition as always false but in our case default value can be also null
-		if(stageBeanBasePkgsStr == null) {
-			return List.of();
-		} else {
-			List<String> stageBeansBasePackages = Arrays.stream(stageBeanBasePkgsStr.split(","))
-														.map(String::trim)
-														.filter(str -> !str .isEmpty())
-														.collect(Collectors.toList());
+		if (null != stageBeanBasePkgsStr) {
+
+			List<String> stageBeansBasePackages = Arrays.stream(stageBeanBasePkgsStr.split(",")).map(String::trim)
+					.filter(str -> !str.isEmpty()).collect(Collectors.toList());
 			return stageBeansBasePackages;
+
+		} else {
+			return List.of();
 		}
 	}
 
