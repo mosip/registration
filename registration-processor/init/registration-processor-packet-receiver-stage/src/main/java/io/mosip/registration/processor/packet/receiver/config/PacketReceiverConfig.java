@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
@@ -122,6 +123,7 @@ public class PacketReceiverConfig {
 	public ObjectMapper getObjectMapper() {
 		ObjectMapper objectMapper = new ObjectMapper().registerModule(new AfterburnerModule()).registerModule(new JavaTimeModule());
 		objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+		objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
 		return objectMapper;
 	}
 	
