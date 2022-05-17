@@ -1,6 +1,8 @@
 package io.mosip.registration.processor.core.abstractverticle;
 
 import brave.Tracing;
+import io.mosip.registration.processor.core.queue.factory.MosipQueue;
+import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import io.mosip.registration.processor.core.tracing.VertxWebTracingLocal;
 import io.vertx.core.Handler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +45,10 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 
 	@Autowired
 	private Tracing tracing;
+
+	/** The mosip queue manager. */
+	@Autowired
+	private MosipQueueManager<MosipQueue, byte[]> mosipQueueManager;
 
 	/**
 	 * This method creates a body handler for the routes
@@ -117,7 +123,7 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 					future -> healthCheckHandler.senderHealthHandler(future, vertx, sendAddress));
 		}
 		if (servletPath.contains("print") || servletPath.contains("abismiddleware")) {
-			healthCheckHandler.register("queuecheck", healthCheckHandler::queueHealthChecker);
+			healthCheckHandler.register("queuecheck", future -> healthCheckHandler.queueHealthChecker(future, mosipQueueManager));
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Verticle",
 					future -> healthCheckHandler.consumerHealthHandler(future, vertx, consumeAddress));
