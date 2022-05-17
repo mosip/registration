@@ -471,7 +471,7 @@ public class AbisHandlerStageTest {
 		dto.setRid("10003100030001520190422074511");
 		MessageDTO result = abisHandlerStage.process(dto);
 
-		assertTrue(result.getInternalError());
+		assertFalse(result.getInternalError());
 		assertTrue(result.getIsValid());
 	}
 
