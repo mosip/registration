@@ -2,6 +2,8 @@ package io.mosip.registration.processor.packet.receiver.service;
 
 import org.springframework.stereotype.Service;
 
+import io.mosip.registration.processor.core.exception.ObjectStoreNotAccessibleException;
+
 /**
  * This service is used to store the registration packets to virus scanner zone,
  * check duplicate packets etc.
@@ -23,6 +25,6 @@ public interface PacketReceiverService<T, U> {
 	 */
 	public U validatePacket(T file, String stageName);
 
-	public U processPacket(T file);
+	public U processPacket(T file) throws ObjectStoreNotAccessibleException;
 
 }

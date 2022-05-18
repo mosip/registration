@@ -88,6 +88,12 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
     private static final String JSON = ".json";
     private static final String FORWARD_SLASH = "/";
 
+    @Value("${landing.zone.account.name}")
+    private String landingZoneAccount;
+	
+	@Value("${landing.zone.type:ObjectStore}")
+    private String landingZoneType;
+    
     @Value("${packet.manager.account.name}")
     private String packetManagerAccount;
 
@@ -196,7 +202,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
             dto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.UPLOAD_PACKET.toString());
             dto.setRegistrationStageName(stageName);
 
-            final byte[] encryptedByteArray = getPakcetFromDMZ(regEntity.getPacketId());
+            final byte[] encryptedByteArray = getPakcetFromDMZ(regEntity.getPacketId(),registrationId);
 
             if (encryptedByteArray != null) {
 
@@ -562,13 +568,18 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
         return maxRetryCount;
     }
 
-    private byte[] getPakcetFromDMZ(String packetId) throws ApisResourceAccessException {
+    private byte[] getPakcetFromDMZ(String packetId, String registrationId) throws ApisResourceAccessException, ObjectStoreNotAccessibleException {
         List<String> pathSegment = new ArrayList<>();
         pathSegment.add(packetId + extention);
         byte[] packet = null;
 
         try {
+        	if(landingZoneType.equalsIgnoreCase("filesystem")) {
             packet = (byte[]) restClient.getApi(ApiName.NGINXDMZURL, pathSegment, "", null, byte[].class);
+        	}
+        	else if(landingZoneType.equalsIgnoreCase("ObjectStore")) {
+        	packet=IOUtils.toByteArray(objectStoreAdapter.getObject(landingZoneAccount, registrationId, null, null, packetId));
+        	}
         } catch (ApisResourceAccessException e) {
             if (e.getCause() instanceof HttpClientErrorException) {
                 HttpClientErrorException ex = (HttpClientErrorException) e.getCause();
@@ -576,7 +587,10 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
                     throw new PacketNotFoundException(PlatformErrorMessages.RPR_PUM_PACKET_NOT_FOUND_EXCEPTION.getMessage(), ex);
             } else
                 throw e;
-        }
+        } catch (IOException e) {
+			// TODO Auto-generated catch block
+        	throw new ObjectStoreNotAccessibleException("Failed to retrieve packet : " + packetId);
+		}
         return packet;
     }
 
@@ -633,5 +647,36 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
         }
         return true;
     }
+
+	@Override
+	public void movePacketsToObjectStore()  {
+		if(landingZoneType.equalsIgnoreCase("ObjectStore")) {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+				"", "PacketUploaderServiceImpl::movePacketsToObjectStore()::entry");
+		List<String> regIdList=registrationStatusService.getAllRegistrationIds();
+		for(String regId:regIdList) {
+			List<String> packetIdList=syncRegistrationService.getAllPacketIds(regId);
+			for(String packetId:packetIdList) {
+				 List<String> pathSegment = new ArrayList<>();
+			     pathSegment.add(packetId + extention);
+				if(landingZoneType.equalsIgnoreCase("ObjectStore")) {
+					try {
+						byte[] packet = (byte[]) restClient.getApi(ApiName.NGINXDMZURL, pathSegment, "", null, byte[].class);
+						 boolean result =objectStoreAdapter.putObject(landingZoneAccount, regId, null, null, packetId, new ByteArrayInputStream(packet));
+						 if(!result) {
+							 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+									 regId, packetId+":Packet store not accesible");
+						 }
+					}catch (ApisResourceAccessException e) {    
+				           regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				        		   regId, e.getMessage());
+				       }
+					}
+			}
+		}
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+				"", "PacketUploaderServiceImpl::movePacketsToObjectStore()::exit");
+		}
+	}
 
 }

@@ -15,6 +15,7 @@ import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIMan
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.packet.uploader.service.PacketUploaderService;
+import io.vertx.core.Handler;
 
 /**
  * The Class PacketUploaderStage.
@@ -53,6 +54,8 @@ public class PacketUploaderStage extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.packet.uploader.message.expiry-time-limit}")
 	private Long messageExpiryTimeLimit;
 
+	@Value("${move.packets.to.ObjectStore.Period.milliseconds}")
+	private Integer movePacketsToObjectStorePeriod;
 	/**
 	 * The mosip event bus.
 	 */
@@ -85,6 +88,13 @@ public class PacketUploaderStage extends MosipVerticleAPIManager {
 		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.PACKET_UPLOADER_IN,
 				MessageBusAddress.PACKET_UPLOADER_OUT));
 		this.createServer(router.getRouter(), getPort());
+		long timerID = vertx.setPeriodic(movePacketsToObjectStorePeriod, new Handler<Long>() {
+
+		    @Override
+		    public void handle(Long period) {
+		    	packetUploaderService.movePacketsToObjectStore();
+		    }
+		});
 	}
 
 	/*

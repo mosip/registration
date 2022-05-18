@@ -1023,4 +1023,27 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		return result.toString();
 	}
 
+	@Override
+	public List<String> getAllPacketIds(String registrationId) {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				"SyncRegistrationServiceImpl::getAllPacketIds()::entry");
+		try {
+			if (!registrationId.isEmpty()) {
+				List<String> packetIdsList = syncRegistrationDao
+						.getAllPacketIds(registrationId);
+
+				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+						"SyncRegistrationServiceImpl::getAllPacketIds()::exit");
+				return packetIdsList;
+			}
+			return null;
+		} catch (DataAccessLayerException e) {
+
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
+			throw new TablenotAccessibleException(
+					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
+		}
+	}
+
 }

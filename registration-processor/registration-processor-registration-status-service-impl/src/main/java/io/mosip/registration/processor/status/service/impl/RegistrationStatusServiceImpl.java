@@ -129,6 +129,31 @@ public class RegistrationStatusServiceImpl
 					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
 		}
 	}
+	
+	@Override
+	public List<String> getAllRegistrationIds() {
+
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+				"", "RegistrationStatusServiceImpl::getAllRegistrationIds()::entry");
+		List<String> ids=null;
+		try {
+			 ids = registrationStatusDao.findAllIds();
+
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+					"", "RegistrationStatusServiceImpl::getAllRegistrationIds()::exit");
+
+			if(ids != null && !ids.isEmpty())
+				
+			return ids;
+		} catch (DataAccessLayerException e) {
+
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
+			throw new TablenotAccessibleException(
+					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
+		}
+		return ids;
+	}
 
 	@Override
 	public InternalRegistrationStatusDto getRegStatusForMainProcess(String registrationId) {

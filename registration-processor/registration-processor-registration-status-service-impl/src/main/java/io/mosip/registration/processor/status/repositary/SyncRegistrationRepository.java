@@ -42,5 +42,8 @@ public interface SyncRegistrationRepository<T extends BaseSyncRegistrationEntity
 	
 	@Query("SELECT registrationList FROM SyncRegistrationEntity registrationList WHERE registrationList.workflowInstanceId = :workflowInstanceId AND registrationList.isDeleted =false ")
 	public List<SyncRegistrationEntity> findByworkflowInstanceId(@Param("workflowInstanceId") String workflowInstanceId);
+	
+	@Query("SELECT registrationList.packetId FROM SyncRegistrationEntity registrationList WHERE registrationList.registrationId =:regId")
+	public List<String> findAllPacketIds(String regId);
 
 }

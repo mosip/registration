@@ -11,6 +11,7 @@ import java.util.List;
 
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.AdditionalInfoIdNotFoundException;
+import io.mosip.registration.processor.core.exception.ObjectStoreNotAccessibleException;
 import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
 import org.apache.commons.io.IOUtils;
 import org.h2.store.fs.FileUtils;
@@ -21,6 +22,7 @@ import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 
+import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.HMACUtils2;
@@ -105,11 +107,20 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 
 	@Autowired
 	private AdditionalInfoRequestService additionalInfoRequestService;
+	
+	@Autowired
+    private ObjectStoreAdapter objectStoreAdapter;
 
 	/** The packet receiver stage. */
 
 	@Value("${registration.processor.packet.ext}")
 	private String extention;
+	
+	@Value("${landing.zone.account.name}")
+    private String landingZoneAccount;
+	
+	@Value("${landing.zone.type:ObjectStore}")
+    private String landingZoneType;
 
 	/** The file size. */
 	@Value("${registration.processor.max.file.size}")
@@ -475,7 +486,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	}
 
 	@Override
-	public MessageDTO processPacket(File file) {
+	public MessageDTO processPacket(File file) throws ObjectStoreNotAccessibleException {
 		LogDescription description = new LogDescription();
 		MessageDTO messageDTO = new MessageDTO();
 		RegistrationExceptionMapperUtil registrationExceptionMapperUtil = new RegistrationExceptionMapperUtil();
@@ -506,6 +517,16 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 			scanningFlag = scanFile(encryptedByteArray, registrationExceptionMapperUtil,
 					registrationId, dto, description);
 			if (scanningFlag) {
+				if(landingZoneType.equalsIgnoreCase("filesystem")) {
+					fileManager.put(packetId, new ByteArrayInputStream(encryptedByteArray),
+							DirectoryPathDto.LANDING_ZONE);
+				}
+				else if(landingZoneType.equalsIgnoreCase("ObjectStore")) {
+					 boolean result =objectStoreAdapter.putObject(landingZoneAccount, registrationId, null, null, packetId, encryptedInputStream);
+					 if(!result) {
+						 throw new ObjectStoreNotAccessibleException("Failed to store packet : " + packetId);
+					 }
+				}
 				fileManager.put(packetId, new ByteArrayInputStream(encryptedByteArray),
 						DirectoryPathDto.LANDING_ZONE);
 				dto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
