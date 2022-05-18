@@ -109,14 +109,14 @@
 		<!-- local -->
 		<registration.status.service.version>1.1.5.6</registration.status.service.version>
 		<registration.processor.core.version>1.1.5.6</registration.processor.core.version>
-		<packet.manager.version>1.1.5.6</packet.manager.version>
+		<packet.manager.version>1.1.5.5</packet.manager.version>
 		<registration.processor.rest.client.version>1.1.5.6</registration.processor.rest.client.version>
 		<packet.info.storage.service.version>1.1.5.6</packet.info.storage.service.version>
 		<packet.bio.dedupe.service.impl.version>1.1.5.6</packet.bio.dedupe.service.impl.version>
 		<registration.processor.message.sender.version>1.1.5.6</registration.processor.message.sender.version>
 
 		<!-- Kernel -->
-		<kernel.core.version>1.1.5.6</kernel.core.version>
+		<kernel.core.version>1.1.5.5</kernel.core.version>
 		<kernel.dataaccess.hibernate.version>1.1.5</kernel.dataaccess.hibernate.version>
 		<kernel.templatemanager.velocity.version>1.1.5</kernel.templatemanager.velocity.version>
 		<kernel.idvalidator.uin.version>1.1.5</kernel.idvalidator.uin.version>
