@@ -17,14 +17,29 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
+import brave.Tracer;
+import brave.Tracing;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
+import io.mosip.registration.processor.core.eventbus.MosipEventBusFactory;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
+import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.applicantcategory.ApplicantTypeDocument;
 import io.mosip.registration.processor.core.packet.dto.packetvalidator.PacketValidationDto;
+import io.mosip.registration.processor.core.queue.factory.MosipQueueConnectionFactoryImpl;
+import io.mosip.registration.processor.core.queue.impl.MosipActiveMqImpl;
 import io.mosip.registration.processor.core.spi.packet.validator.PacketValidator;
+import io.mosip.registration.processor.core.spi.queue.MosipQueueConnectionFactory;
+import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
+import io.mosip.registration.processor.core.token.validation.TokenValidator;
+import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
+import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.message.sender.template.TemplateGenerator;
 import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 import io.mosip.registration.processor.stages.helper.RestHelper;
@@ -167,7 +182,58 @@ public class ValidatorConfig {
 			};
 		}
 	}
-	
+	@Bean
+	MosipQueueManager<?, ?> getMosipQueueManager() {
+		return new MosipActiveMqImpl();
+	}
+
+	@Bean
+	MosipQueueConnectionFactory<?> getMosipQueueConnectionFactory() {
+		return new MosipQueueConnectionFactoryImpl();
+	}
+
+	@Bean
+	public TokenValidator getTokenValidator() {
+		return new TokenValidator();
+	}
+
+	@Bean
+	public MosipRouter getMosipRouter() {
+		return new MosipRouter();
+	}
+
+	@Bean
+	public DigitalSignatureUtility getDigitalSignatureUtility() {
+		return new DigitalSignatureUtility();
+	}
+
+	@Bean
+	public LogDescription getLogDescription() {
+		return new LogDescription();
+	}
+
+	@Bean
+	public RegistrationExceptionMapperUtil getRegistrationExceptionMapperUtil() {
+		return new RegistrationExceptionMapperUtil();
+	}
+
+	@Bean
+	public MosipEventBusFactory getMosipEventBusFactory() {
+		return new MosipEventBusFactory();
+	}
+
+	@Bean
+	public Tracing tracing() {
+		return Tracing.newBuilder().build();
+	}
+
+	@Bean
+	public Tracer tracer() { return tracing().tracer(); }
+
+	@Bean
+	public ObjectMapper getObjectMapper() {
+		return new ObjectMapper().registerModule(new JavaTimeModule());
+	}
 /*	public Map<String, String> getValidationMap(){
 		Map<String, String> map=new HashMap<String, String>();
 		return map;
