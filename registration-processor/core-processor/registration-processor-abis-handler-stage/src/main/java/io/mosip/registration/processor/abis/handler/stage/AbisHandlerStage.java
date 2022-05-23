@@ -456,10 +456,6 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 			abisRequestDto.setRequestType(AbisHandlerStageConstant.INSERT);
 			abisRequestDto.setReqBatchId(batchId);
 			abisRequestDto.setRefRegtrnId(transactionId);
-
-			byte[] abisInsertRequestBytes = getInsertRequestBytes(regId, id, process, bioRefId, description);
-			abisRequestDto.setReqText(abisInsertRequestBytes);
-
 			abisRequestDto.setStatusCode(AbisStatusCode.IN_PROGRESS.toString());
 			abisRequestDto.setStatusComment(null);
 			abisRequestDto.setLangCode(AbisHandlerStageConstant.ENG);
@@ -468,15 +464,24 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 			abisRequestDto.setIsDeleted(Boolean.FALSE);
 			String moduleId = PlatformSuccessMessages.RPR_ABIS_HANDLER_STAGE_SUCCESS.getCode();
 			String moduleName = ModuleName.ABIS_HANDLER.toString();
+			byte[] abisInsertRequestBytes =null;
 			if (abisProcessedInsertAppCodeList != null && abisProcessedInsertAppCodeList.contains(appCode)) {
+
+				abisInsertRequestBytes = getInsertRequestBytes(regId, id, process, bioRefId, description,
+						AbisStatusCode.ALREADY_PROCESSED.toString());
 				abisRequestDto.setStatusCode(AbisStatusCode.ALREADY_PROCESSED.toString());
-				packetInfoManager.saveAbisRequest(abisRequestDto, moduleId, moduleName);
+			
 			} else {
+				abisInsertRequestBytes = getInsertRequestBytes(regId, id, process, bioRefId, description,
+						AbisStatusCode.IN_PROGRESS.toString());
 				abisRequestDto.setStatusCode(AbisStatusCode.IN_PROGRESS.toString());
-				packetInfoManager.saveAbisRequest(abisRequestDto, moduleId, moduleName);
 			}
+			abisRequestDto.setReqText(abisInsertRequestBytes);
+			packetInfoManager.saveAbisRequest(abisRequestDto, moduleId, moduleName);
 
 		}
+		
+		
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"AbisHandlerStage::createInsertRequest()::exit");
@@ -494,11 +499,11 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	 * @param description
 	 * @return the insert request bytes
 	 */
-	private byte[] getInsertRequestBytes(String regId, String id, String process, String bioRefId, LogDescription description) throws Exception {
+	private byte[] getInsertRequestBytes(String regId, String id, String process, String bioRefId, LogDescription description,String status) throws Exception {
 		AbisInsertRequestDto abisInsertRequestDto = new AbisInsertRequestDto();
 		abisInsertRequestDto.setId(AbisHandlerStageConstant.MOSIP_ABIS_INSERT);
 		abisInsertRequestDto.setReferenceId(bioRefId);
-		abisInsertRequestDto.setReferenceURL(getDataShareUrl(regId, process));
+		abisInsertRequestDto.setReferenceURL(status.equalsIgnoreCase(AbisStatusCode.IN_PROGRESS.toString())?getDataShareUrl(regId, process):null);
 		abisInsertRequestDto.setRequestId(id);
 		abisInsertRequestDto.setRequesttime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		abisInsertRequestDto.setVersion(AbisHandlerStageConstant.VERSION);

@@ -13,8 +13,8 @@ public enum FailureReason {
 	
 	INTERNAL_ERROR("1", "Internal error - Unknown"),
 	ABORTED("2","Aborted"),
-	UNEXPECTED_ERROR("3","Unexpected error - Unable to access biometric data"),
-	UNABLE_TO_SERVE("4","Unable to serve the request"),
+	UNEXPECTED_ERROR("3","Unexpected error "),
+	UNABLE_TO_SERVE("4","Unable to serve the request - invalid request structure"),
 	MISSING_REFERENCEID("5","missing referenceId (in request body)"),
 	MISSING_REQUESTID("6","missing requestId (in request body)"),
 	UNABLE_TO_FETCH("7","unable to fetch biometric details (using referenceURL)"),
