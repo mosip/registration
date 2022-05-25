@@ -25,6 +25,6 @@ public interface PacketReceiverService<T, U> {
 	 */
 	public U validatePacket(T file, String stageName);
 
-	public U processPacket(T file) throws ObjectStoreNotAccessibleException;
+	public U processPacket(T file) ;
 
 }

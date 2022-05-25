@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -21,8 +22,9 @@ import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
 import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService; 
-class LandinZoneUtility{
-	private static Logger regProcLogger = RegProcessorLogger.getLogger(LandinZoneUtility.class);
+@Component
+class LandingZoneUtility{
+	private static Logger regProcLogger = RegProcessorLogger.getLogger(LandingZoneUtility.class);
 	@Value("${landing.zone.account.name}")
 	private String landingZoneAccount;
 		
@@ -31,6 +33,9 @@ class LandinZoneUtility{
 	
 	@Value("${registration.processor.packet.ext}")
     private String extention;
+	
+	@Value("${landing.zone.move.schedule:0 0 0 * * *}")
+    private static  String schedule;
 	
 	 @Autowired
 	 private ObjectStoreAdapter objectStoreAdapter;
@@ -50,8 +55,10 @@ class LandinZoneUtility{
 	 @Autowired
 	 private RegistrationProcessorRestClientService restClient;
 	 
-	@Scheduled(cron = "${landing.zone.move.schedule:0 0 0 * * *}")
+	 @Scheduled(fixedDelayString = "${mosip.regproc.landing.zone.fixed.delay.millisecs:43200000}",
+	            initialDelayString = "${mosip.regproc.landing.zone.inital.delay.millisecs:300000}")
 	   public void movePacketsToObjectStore() {
+		System.out.println("in utility");
 		if(landingZoneType.equalsIgnoreCase("ObjectStore")) {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 					"", "PacketUploaderServiceImpl::movePacketsToObjectStore()::entry");
@@ -61,14 +68,24 @@ class LandinZoneUtility{
 				for(String packetId:packetIdList) {
 					 List<String> pathSegment = new ArrayList<>();
 				     pathSegment.add(packetId + extention);
-					if(landingZoneType.equalsIgnoreCase("ObjectStore")) {
+					
 						try {
 							byte[] packet = (byte[]) restClient.getApi(ApiName.NGINXDMZURL, pathSegment, "", null, byte[].class);
+							if(packet!=null) {
 							 boolean result =objectStoreAdapter.putObject(landingZoneAccount, regId, null, null, packetId, new ByteArrayInputStream(packet));
 							 if(!result) {
 								 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 										 regId, packetId+":Packet store not accesible");
 							 }
+							 else {
+								 regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+										 regId, packetId+":Packet has been moved to landing zoneobject store ");
+							 }
+							}
+							else {
+								regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+										 regId, packetId+":Packet not present in dmz server");
+							}
 						}catch (ApisResourceAccessException e) {    
 					           regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					        		   regId, e.getMessage());
@@ -79,6 +96,6 @@ class LandinZoneUtility{
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 					"", "PacketUploaderServiceImpl::movePacketsToObjectStore()::exit");
 			}
-		}
+		
 	   
 }

@@ -486,7 +486,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	}
 
 	@Override
-	public MessageDTO processPacket(File file) throws ObjectStoreNotAccessibleException {
+	public MessageDTO processPacket(File file)  {
 		LogDescription description = new LogDescription();
 		MessageDTO messageDTO = new MessageDTO();
 		RegistrationExceptionMapperUtil registrationExceptionMapperUtil = new RegistrationExceptionMapperUtil();
@@ -524,11 +524,19 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 				else if(landingZoneType.equalsIgnoreCase("ObjectStore")) {
 					 boolean result =objectStoreAdapter.putObject(landingZoneAccount, registrationId, null, null, packetId, encryptedInputStream);
 					 if(!result) {
-						 throw new ObjectStoreNotAccessibleException("Failed to store packet : " + packetId);
+						 messageDTO.setInternalError(Boolean.TRUE);
+				            dto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+				            dto.setStatusComment(StatusUtil.OBJECT_STORE_EXCEPTION.getMessage());
+				            dto.setSubStatusCode(StatusUtil.OBJECT_STORE_EXCEPTION.getCode());
+				            dto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
+				                    .getStatusCode(RegistrationExceptionTypeCode.OBJECT_STORE_EXCEPTION));
+				            description.setMessage(PlatformErrorMessages.OBJECT_STORE_NOT_ACCESSIBLE.getMessage());
+				            description.setCode(PlatformErrorMessages.OBJECT_STORE_NOT_ACCESSIBLE.getCode());
+				            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				                    registrationId, PlatformErrorMessages.OBJECT_STORE_NOT_ACCESSIBLE.name());
 					 }
 				}
-				fileManager.put(packetId, new ByteArrayInputStream(encryptedByteArray),
-						DirectoryPathDto.LANDING_ZONE);
+				
 				dto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 				dto.setStatusComment(StatusUtil.PACKET_UPLOADED_TO_LANDING_ZONE.getMessage());
 				dto.setSubStatusCode(StatusUtil.PACKET_UPLOADED_TO_LANDING_ZONE.getCode());

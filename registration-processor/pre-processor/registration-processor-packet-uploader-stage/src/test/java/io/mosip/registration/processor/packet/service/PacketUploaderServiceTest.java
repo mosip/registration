@@ -39,6 +39,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.commons.khazana.exception.FileNotFoundInDestinationException;
+import io.mosip.commons.khazana.exception.ObjectStoreAdapterException;
 import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.util.HMACUtils2;
@@ -141,7 +142,9 @@ public class PacketUploaderServiceTest {
 	@Before
 	public void setUp() throws IOException, ApisResourceAccessException, JsonProcessingException, NoSuchAlgorithmException {
 		ReflectionTestUtils.setField(packetuploaderservice, "packetNames", "id,optional,evidence");
-		ReflectionTestUtils.setField(packetuploaderservice, "isIterationAdditionEnabled", true);
+		ReflectionTestUtils.setField(packetuploaderservice, "landingZoneType", "filesystem");
+		ReflectionTestUtils.setField(packetuploaderservice, "landingZoneAccount", "LandingZoneAccount");
+		
 		file = new File("src/test/resources/1001.zip");
 		dto.setRid("1001");
 		dto.setReg_type("NEW");
@@ -177,7 +180,9 @@ public class PacketUploaderServiceTest {
 				any(), anyList(), anyString(), any(), any())).thenReturn(new byte[2]);
 		Mockito.when(objectStoreAdapter.putObject(any(), any(), any(), any(), any(), any())).thenReturn(true);
 		Mockito.when(objectStoreAdapter.addObjectMetaData(any(), any(), any(), any(), any(), any())).thenReturn(new HashMap<>());
-
+		Mockito.when(objectStoreAdapter.putObject(any(), any(), any(), any(), any(), any())).thenReturn(true);		
+		Mockito.when(objectStoreAdapter.getObject(any(), any(), any(), any(), any())).thenReturn(new FileInputStream(file));		
+		
 		AdditionalInfoRequestDto additionalInfoRequestDto = new AdditionalInfoRequestDto();
 		additionalInfoRequestDto.setAdditionalInfoReqId("1001-BIOMETRIC_CORRECTION-1");
 
@@ -495,6 +500,18 @@ public class PacketUploaderServiceTest {
 		assertTrue(result.getInternalError());
 		assertFalse(result.getIsValid());
 	}
+	@Test
+	public void testObjectStorePacketFromDMZ() throws ApisResourceAccessException, PacketDecryptionFailureException {
+		ReflectionTestUtils.setField(packetuploaderservice, "landingZoneType", "ObjectStore");
+		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any(),Mockito.any(),Mockito.any(), Mockito.any())).thenReturn(entry);
+		ReflectionTestUtils.setField(packetuploaderservice, "maxRetryCount", 3);
+
+		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class))).thenReturn(Boolean.TRUE);
+		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any(),Mockito.any())).thenReturn(is);
+		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto, "PacketUploaderStage");
+		assertTrue(result.getIsValid());
+	}
+	
 
 	@Test
 	public void testPacketNotFoundInLandingZoneButAlreadyPresentInObjectStore() throws ApisResourceAccessException {

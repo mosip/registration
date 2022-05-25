@@ -568,7 +568,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
         return maxRetryCount;
     }
 
-    private byte[] getPakcetFromDMZ(String packetId, String registrationId) throws ApisResourceAccessException, ObjectStoreNotAccessibleException {
+    private byte[] getPakcetFromDMZ(String packetId, String registrationId) throws ApisResourceAccessException, ObjectStoreNotAccessibleException, IOException {
         List<String> pathSegment = new ArrayList<>();
         pathSegment.add(packetId + extention);
         byte[] packet = null;
@@ -587,10 +587,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
                     throw new PacketNotFoundException(PlatformErrorMessages.RPR_PUM_PACKET_NOT_FOUND_EXCEPTION.getMessage(), ex);
             } else
                 throw e;
-        } catch (IOException e) {
-			// TODO Auto-generated catch block
-        	throw new ObjectStoreNotAccessibleException("Failed to retrieve packet : " + packetId);
-		}
+        } 
         return packet;
     }
 
@@ -648,35 +645,6 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
         return true;
     }
 
-	@Override
-	public void movePacketsToObjectStore()  {
-		if(landingZoneType.equalsIgnoreCase("ObjectStore")) {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-				"", "PacketUploaderServiceImpl::movePacketsToObjectStore()::entry");
-		List<String> regIdList=registrationStatusService.getAllRegistrationIds();
-		for(String regId:regIdList) {
-			List<String> packetIdList=syncRegistrationService.getAllPacketIds(regId);
-			for(String packetId:packetIdList) {
-				 List<String> pathSegment = new ArrayList<>();
-			     pathSegment.add(packetId + extention);
-				if(landingZoneType.equalsIgnoreCase("ObjectStore")) {
-					try {
-						byte[] packet = (byte[]) restClient.getApi(ApiName.NGINXDMZURL, pathSegment, "", null, byte[].class);
-						 boolean result =objectStoreAdapter.putObject(landingZoneAccount, regId, null, null, packetId, new ByteArrayInputStream(packet));
-						 if(!result) {
-							 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-									 regId, packetId+":Packet store not accesible");
-						 }
-					}catch (ApisResourceAccessException e) {    
-				           regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				        		   regId, e.getMessage());
-				       }
-					}
-			}
-		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-				"", "PacketUploaderServiceImpl::movePacketsToObjectStore()::exit");
-		}
-	}
+	
 
 }

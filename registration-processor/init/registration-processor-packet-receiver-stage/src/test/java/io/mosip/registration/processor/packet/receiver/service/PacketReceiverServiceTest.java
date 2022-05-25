@@ -45,6 +45,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
+import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.virusscanner.exception.VirusScannerException;
 import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
@@ -116,6 +117,9 @@ public class PacketReceiverServiceTest {
 	
 	@Mock
 	private AdditionalInfoRequestService additionalInfoRequestService;
+	
+	@Mock
+	private ObjectStoreAdapter objectStoreAdapter;
 
 	private String stageName = "PacketReceiverStage";
 
@@ -137,6 +141,8 @@ public class PacketReceiverServiceTest {
 		mainprocessList.add("NEW");
 		mainprocessList.add("UPDATE");
 		ReflectionTestUtils.setField(packetReceiverService, "mainProcesses", mainprocessList);
+		ReflectionTestUtils.setField(packetReceiverService, "landingZoneAccount", "landing-zone");
+		ReflectionTestUtils.setField(packetReceiverService, "landingZoneType", "filesystem");
 		ReflectionTestUtils.setField(packetReceiverService, "extention", ".zip");
 		ReflectionTestUtils.setField(packetReceiverService, "fileSize", "5");
 
@@ -158,6 +164,8 @@ public class PacketReceiverServiceTest {
 		registrations.add(registrationStatusDto);
 		Mockito.doNothing().when(description).setMessage(any());
 		Mockito.when(registrationStatusService.getByIds(anyList())).thenReturn(registrations);
+		Mockito.when(registrationStatusService.getByIds(anyList())).thenReturn(registrations);
+		Mockito.when(objectStoreAdapter.putObject(any(), any(), any(), any(), any(), any())).thenReturn(true);		
 		PowerMockito.mockStatic(ZipUtils.class);
 		PowerMockito.when(ZipUtils.unzipAndGetFile(any(), anyString()))
 				.thenReturn(new ByteArrayInputStream(new String("abc").getBytes()));
@@ -201,6 +209,37 @@ public class PacketReceiverServiceTest {
 		MessageDTO successResult = packetReceiverService.validatePacket(mockMultipartFile, stageName);
 
 		assertEquals(true, successResult.getIsValid());
+	}
+	@Test
+	public void testPacketStorageObjectStoreSuccess()
+			throws IOException, URISyntaxException, PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.registration.processor.core.exception.PacketDecryptionFailureException {
+		ReflectionTestUtils.setField(packetReceiverService, "landingZoneType", "ObjectStore");
+		Mockito.when(syncRegistrationService.findByPacketId(anyString())).thenReturn(regEntity);
+		mockDto = new InternalRegistrationStatusDto();
+		mockDto.setIteration(1);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(mockDto);
+		Mockito.doNothing().when(fileManager).put(anyString(), any(InputStream.class), any(DirectoryPathDto.class));
+		Mockito.when(virusScannerService.scanFile(any(InputStream.class))).thenReturn(Boolean.TRUE);
+		MessageDTO successResult = packetReceiverService.processPacket(mockMultipartFile);
+
+		assertEquals(true, successResult.getIsValid());
+	}
+	
+	@Test
+	public void testPacketStorageObjectStoreFailure()
+			throws IOException, URISyntaxException, PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.registration.processor.core.exception.PacketDecryptionFailureException {
+		ReflectionTestUtils.setField(packetReceiverService, "landingZoneType", "ObjectStore");
+		Mockito.when(objectStoreAdapter.putObject(any(), any(), any(), any(), any(), any())).thenReturn(false);		
+		
+		Mockito.when(syncRegistrationService.findByPacketId(anyString())).thenReturn(regEntity);
+		mockDto = new InternalRegistrationStatusDto();
+		mockDto.setIteration(1);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(mockDto);
+		Mockito.doNothing().when(fileManager).put(anyString(), any(InputStream.class), any(DirectoryPathDto.class));
+		Mockito.when(virusScannerService.scanFile(any(InputStream.class))).thenReturn(Boolean.TRUE);
+		MessageDTO successResult = packetReceiverService.processPacket(mockMultipartFile);
+
+		assertEquals(false, successResult.getIsValid());
 	}
 	
 	@Test

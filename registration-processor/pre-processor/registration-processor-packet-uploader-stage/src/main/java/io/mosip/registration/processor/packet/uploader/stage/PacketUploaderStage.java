@@ -88,13 +88,6 @@ public class PacketUploaderStage extends MosipVerticleAPIManager {
 		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.PACKET_UPLOADER_IN,
 				MessageBusAddress.PACKET_UPLOADER_OUT));
 		this.createServer(router.getRouter(), getPort());
-		long timerID = vertx.setPeriodic(movePacketsToObjectStorePeriod, new Handler<Long>() {
-
-		    @Override
-		    public void handle(Long period) {
-		    	packetUploaderService.movePacketsToObjectStore();
-		    }
-		});
 	}
 
 	/*

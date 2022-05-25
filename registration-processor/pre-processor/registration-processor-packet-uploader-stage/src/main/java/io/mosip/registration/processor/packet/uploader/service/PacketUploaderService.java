@@ -24,6 +24,6 @@ public interface PacketUploaderService<U> {
 	 */
 	public U validateAndUploadPacket(MessageDTO messageDTO, String stageName);
 	
-	public void movePacketsToObjectStore();
+	
 
 }
