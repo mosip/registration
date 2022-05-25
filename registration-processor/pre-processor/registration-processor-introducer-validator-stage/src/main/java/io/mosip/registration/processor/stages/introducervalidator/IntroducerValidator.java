@@ -37,6 +37,7 @@ import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
+import io.mosip.registration.processor.packet.storage.utils.BioSdkUtil;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -71,6 +72,9 @@ public class IntroducerValidator {
 
 	@Autowired
 	private Utilities utility;
+	
+	@Autowired
+	private BioSdkUtil bioUtil;
 
 	/**
 	 * Checks if is valid introducer.
@@ -222,7 +226,8 @@ public class IntroducerValidator {
 					StatusUtil.INTRODUCER_BIOMETRIC_FILE_NAME_NOT_FOUND.getCode());
 		}
 	}
-
+	
+	
 	/**
 	 * Validate user.
 	 *
@@ -231,47 +236,44 @@ public class IntroducerValidator {
 	 * @param list                  biometric data as BIR object
 	 * @param individualType        user type
 	 * @param registrationStatusDto
+	 * @throws Exception 
+	 * @throws  
 	 * @throws SAXException
 	 * @throws ParserConfigurationException
 	 * @throws NoSuchAlgorithmException
 	 * @throws InvalidKeySpecException
 	 * @throws IOException                  Signals that an I/O exception has
 	 *                                      occurred.
-	 * @throws BaseCheckedException
 	 * @throws BiometricException
 	 */
 
 	private void validateUserBiometric(String registrationId, String userId, List<BIR> list, String individualType,
-			InternalRegistrationStatusDto registrationStatusDto)
-			throws IOException, CertificateException, NoSuchAlgorithmException, BaseCheckedException {
+			InternalRegistrationStatusDto registrationStatusDto) throws BaseCheckedException {
+		regProcLogger.info("validateUserBiometric call started for registrationId {}", registrationId);
+		boolean status = false;
+		try {
+			status = bioUtil.authenticateBiometrics(userId, individualType, list);
+		} catch (Exception e) {
+			registrationStatusDto.setLatestTransactionStatusCode(
+					registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.AUTH_ERROR));
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 
-		AuthResponseDTO authResponseDTO = authUtil.authByIdAuthentication(userId, individualType, list);
-		if (authResponseDTO.getErrors() == null || authResponseDTO.getErrors().isEmpty()) {
-			if (!authResponseDTO.getResponse().isAuthStatus()) {
-				registrationStatusDto.setLatestTransactionStatusCode(
-						registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.AUTH_FAILED));
-				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-				throw new ValidationFailedException(StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getMessage() + userId,
-						StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getCode());
-			}
-
-		} else {
-			List<io.mosip.registration.processor.core.auth.dto.ErrorDTO> errors = authResponseDTO.getErrors();
-			if (errors.stream().anyMatch(error -> (error.getErrorCode().equalsIgnoreCase("IDA-MLC-007")
-					|| utility.isUinMissingFromIdAuth(error.getErrorCode(), userId, individualType)))) {
-				throw new AuthSystemException(PlatformErrorMessages.RPR_AUTH_SYSTEM_EXCEPTION.getMessage());
-			} else {
-				registrationStatusDto.setLatestTransactionStatusCode(
-						registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.AUTH_ERROR));
-				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-				String result = errors.stream().map(s -> s.getErrorMessage() + " ").collect(Collectors.joining());
-				regProcLogger.debug("validateUserBiometric call ended for registrationId {} {}", registrationId,
-						result);
-				throw new BaseCheckedException(result, StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getCode());
-			}
+			regProcLogger.debug("validateUserBiometric call ended for registrationId {} {}", registrationId,
+					e.getMessage());
+			throw new BaseCheckedException(e.getMessage(), StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getCode());
 
 		}
 
+		if (!status) {
+			registrationStatusDto.setLatestTransactionStatusCode(
+					registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.AUTH_FAILED));
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+			throw new ValidationFailedException(StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getMessage() + userId,
+					StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getCode());
+
+		}
+		regProcLogger.info("validateUserBiometric call ended for registrationId {}", registrationId);
 	}
 
+	
 }
