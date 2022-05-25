@@ -239,7 +239,7 @@ public class PacketReceiverServiceTest {
 		Mockito.when(virusScannerService.scanFile(any(InputStream.class))).thenReturn(Boolean.TRUE);
 		MessageDTO successResult = packetReceiverService.processPacket(mockMultipartFile);
 
-		assertEquals(false, successResult.getIsValid());
+		assertEquals(true, successResult.getInternalError());
 	}
 	
 	@Test

@@ -53,7 +53,7 @@ class LandingZoneUtility{
 	 private RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 
 	 @Autowired
-	 private RegistrationProcessorRestClientService restClient;
+	 private RegistrationProcessorRestClientService<Object> restClient;
 	 
 	 @Scheduled(fixedDelayString = "${mosip.regproc.landing.zone.fixed.delay.millisecs:43200000}",
 	            initialDelayString = "${mosip.regproc.landing.zone.inital.delay.millisecs:300000}")
