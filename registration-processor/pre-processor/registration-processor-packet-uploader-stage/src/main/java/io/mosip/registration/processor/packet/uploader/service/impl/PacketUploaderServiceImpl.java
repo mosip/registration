@@ -34,6 +34,7 @@ import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
+import io.mosip.registration.processor.core.constant.LandingZoneTypeConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.ObjectStoreNotAccessibleException;
@@ -574,10 +575,10 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
         byte[] packet = null;
 
         try {
-        	if(landingZoneType.equalsIgnoreCase("filesystem")) {
+        	if(landingZoneType.equalsIgnoreCase(LandingZoneTypeConstant.DMZ_SERVER)) {
             packet = (byte[]) restClient.getApi(ApiName.NGINXDMZURL, pathSegment, "", null, byte[].class);
         	}
-        	else if(landingZoneType.equalsIgnoreCase("ObjectStore")) {
+        	else if(landingZoneType.equalsIgnoreCase(LandingZoneTypeConstant.OBJECT_STORE)) {
         	packet=IOUtils.toByteArray(objectStoreAdapter.getObject(landingZoneAccount, registrationId, null, null, packetId));
         	}
         } catch (ApisResourceAccessException e) {

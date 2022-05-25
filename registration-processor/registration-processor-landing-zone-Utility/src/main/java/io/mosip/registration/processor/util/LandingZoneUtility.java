@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.code.ApiName;
+import io.mosip.registration.processor.core.constant.LandingZoneTypeConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
@@ -54,12 +55,14 @@ class LandingZoneUtility{
 
 	 @Autowired
 	 private RegistrationProcessorRestClientService<Object> restClient;
-	 
+	 /**
+	  *   
+	  * moves the packets from dmz server to objectstore if the landing zone has been changed to 
+      */
 	 @Scheduled(fixedDelayString = "${mosip.regproc.landing.zone.fixed.delay.millisecs:43200000}",
 	            initialDelayString = "${mosip.regproc.landing.zone.inital.delay.millisecs:300000}")
 	   public void movePacketsToObjectStore() {
-		System.out.println("in utility");
-		if(landingZoneType.equalsIgnoreCase("ObjectStore")) {
+		if(landingZoneType.equalsIgnoreCase(LandingZoneTypeConstant.DMZ_SERVER)) {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 					"", "PacketUploaderServiceImpl::movePacketsToObjectStore()::entry");
 			List<String> regIdList=registrationStatusService.getAllRegistrationIds();

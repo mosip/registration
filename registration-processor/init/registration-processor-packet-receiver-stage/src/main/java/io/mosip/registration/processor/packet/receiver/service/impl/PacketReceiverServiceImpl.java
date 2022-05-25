@@ -36,6 +36,7 @@ import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
+import io.mosip.registration.processor.core.constant.LandingZoneTypeConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
@@ -517,11 +518,11 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 			scanningFlag = scanFile(encryptedByteArray, registrationExceptionMapperUtil,
 					registrationId, dto, description);
 			if (scanningFlag) {
-				if(landingZoneType.equalsIgnoreCase("filesystem")) {
+				if(landingZoneType.equalsIgnoreCase(LandingZoneTypeConstant.DMZ_SERVER)) {
 					fileManager.put(packetId, new ByteArrayInputStream(encryptedByteArray),
 							DirectoryPathDto.LANDING_ZONE);
 				}
-				else if(landingZoneType.equalsIgnoreCase("ObjectStore")) {
+				else if(landingZoneType.equalsIgnoreCase(LandingZoneTypeConstant.OBJECT_STORE)) {
 					 boolean result =objectStoreAdapter.putObject(landingZoneAccount, registrationId, null, null, packetId, encryptedInputStream);
 					 if(!result) {
 						 messageDTO.setInternalError(Boolean.TRUE);
