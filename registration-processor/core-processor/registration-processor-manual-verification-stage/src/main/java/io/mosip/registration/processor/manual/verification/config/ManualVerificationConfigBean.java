@@ -8,6 +8,7 @@ import io.mosip.registration.processor.manual.verification.service.ManualVerific
 import io.mosip.registration.processor.manual.verification.service.impl.ManualVerificationServiceImpl;
 import io.mosip.registration.processor.manual.verification.stage.ManualVerificationStage;
 import io.mosip.registration.processor.manual.verification.util.ManualVerificationRequestValidator;
+import io.mosip.registration.processor.manual.verification.util.ManualVerificationUpdateUtility;
 
 @Configuration
 public class ManualVerificationConfigBean {
@@ -16,7 +17,10 @@ public class ManualVerificationConfigBean {
 	@Bean ManualVerificationService getManualVerificationService() {
 		return new ManualVerificationServiceImpl();
 	}
-
+	@Bean
+	ManualVerificationUpdateUtility getManualVerificationUpdateUtility() {
+		return new ManualVerificationUpdateUtility();
+	}
 	@Bean
 	public ManualVerificationStage getManualVerificationStage() {
 		return new ManualVerificationStage();
