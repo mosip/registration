@@ -73,6 +73,7 @@ import io.mosip.registration.processor.manual.verification.response.dto.Candidat
 import io.mosip.registration.processor.manual.verification.response.dto.ManualAdjudicationResponseDTO;
 import io.mosip.registration.processor.manual.verification.service.impl.ManualVerificationServiceImpl;
 import io.mosip.registration.processor.manual.verification.stage.ManualVerificationStage;
+import io.mosip.registration.processor.manual.verification.util.ManualVerificationUpdateUtility;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.entity.ManualVerificationEntity;
 import io.mosip.registration.processor.packet.storage.entity.ManualVerificationPKEntity;
@@ -83,6 +84,7 @@ import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @RunWith(PowerMockRunner.class)
@@ -107,7 +109,8 @@ public class ManualVerificationServiceTest {
 
 	@Mock
 	private Utilities utilities;
-
+	@Mock 
+	private ManualVerificationUpdateUtility manualVerificationUpdateUtility;
 	@Mock
 	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
 
@@ -235,7 +238,7 @@ public class ManualVerificationServiceTest {
 		candidateList.setCount(0);
 		manualAdjudicationResponseDTO.setCandidateList(candidateList);
 		Mockito.when(basePacketRepository.getRegistrationIdbyRequestId(anyString())).thenReturn(Lists.newArrayList(registrationStatusDto.getRegistrationId()));
-		
+		Mockito.doNothing().when(manualVerificationUpdateUtility).updateManualVerificationEntityRID(any(), any());
 	}
 
 //	@Test
