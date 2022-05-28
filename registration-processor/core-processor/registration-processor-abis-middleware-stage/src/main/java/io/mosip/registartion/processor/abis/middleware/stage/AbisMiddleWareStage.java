@@ -626,7 +626,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 		abisReqEntity.setId(abisReqPKEntity);
 		abisReqEntity.setStatusCode(isInsertSuccess(abisCommonResponseDto) ? AbisStatusCode.PROCESSED.toString()
 				: AbisStatusCode.FAILED.toString());
-		if (abisCommonResponseDto.getReturnValue().equalsIgnoreCase("1")) {
+		if (isInsertSuccess(abisCommonResponseDto)) {
 			abisReqEntity.setStatusComment(StatusUtil.INSERT_IDENTIFY_RESPONSE_SUCCESS.getMessage());
 		} else {
 			abisReqEntity.setStatusComment(io.mosip.registartion.processor.abis.middleware.constants.FailureReason

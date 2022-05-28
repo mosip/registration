@@ -89,21 +89,15 @@ public class OperatorValidator {
 	 * Checks if is valid Operator.
 	 *
 	 * @param registrationId the registration id
-	 * @throws IOException                                Signals that an I/O
-	 *                                                    exception has occurred.
 	 * @throws SAXException
 	 * @throws ParserConfigurationException
-	 * @throws NoSuchAlgorithmException
-	 * @throws InvalidKeySpecException
-	 * @throws NumberFormatException
 	 * @throws io.mosip.kernel.core.exception.IOException
-	 * @throws BaseCheckedException
+	 * @throws Exception 
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
 	 */
 	public void validate(String registrationId, InternalRegistrationStatusDto registrationStatusDto, RegOsiDto regOsi)
-			throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, NumberFormatException, JSONException,
-			CertificateException, BaseCheckedException {
+			throws Exception {
 		regProcLogger.debug("validate called for registrationId {}", registrationId);
 
 		validateOperator(registrationId, regOsi, registrationStatusDto);
@@ -179,21 +173,18 @@ public class OperatorValidator {
 	 *
 	 * @param regOsi         the reg osi
 	 * @param registrationId the registration id
-	 * @throws IOException
 	 * @throws SAXException
 	 * @throws ParserConfigurationException
 	 * @throws BiometricException
-	 * @throws NoSuchAlgorithmException
 	 * @throws InvalidKeySpecException
 	 * @throws io.mosip.kernel.core.exception.IOException
-	 * @throws BaseCheckedException
 	 * @throws PacketDecryptionFailureException
 	 * @throws Exception
 	 * 
 	 */
 	private void authenticateOperator(RegOsiDto regOsi, String registrationId,
 			InternalRegistrationStatusDto registrationStatusDto)
-			throws IOException, CertificateException, NoSuchAlgorithmException, BaseCheckedException {
+			throws Exception {
 		String officerId = regOsi.getOfficerId();
 		// officer password and otp check
 		String officerPassword = regOsi.getOfficerHashedPwd();
@@ -252,47 +243,28 @@ public class OperatorValidator {
 	 * @param list                  biometric data as BIR object
 	 * @param individualType        user type
 	 * @param registrationStatusDto
+	 * @throws Exception 
 	 * @throws SAXException
 	 * @throws ParserConfigurationException
 	 * @throws NoSuchAlgorithmException
 	 * @throws InvalidKeySpecException
-	 * @throws IOException                  Signals that an I/O exception has
-	 *                                      occurred.
-	 * @throws BaseCheckedException
 	 * @throws BiometricException
 	 */
 
 	private void validateUserBiometric(String registrationId, String userId, List<BIR> list, String individualType,
 			InternalRegistrationStatusDto registrationStatusDto)
-			throws BaseCheckedException, IOException {
+			throws Exception {
 
 		if (INDIVIDUAL_TYPE_USERID.equalsIgnoreCase(individualType)) {
 			userId = getIndividualIdByUserId(userId);
 			individualType = null;
 		}
-		boolean status=false;
-
-		try {
-			 status = bioUtil.authenticateBiometrics(userId, individualType, list);
-		} catch (Exception e) {
-
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.AUTH_ERROR));
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-			regProcLogger.debug("validateUserBiometric call ended for registrationId {} {}", registrationId,
-					e.getMessage());
-			throw new BaseCheckedException(e.getMessage(), StatusUtil.OFFICER_AUTHENTICATION_FAILED.getCode());
-
-		}
-			if (!status) {
-				registrationStatusDto.setLatestTransactionStatusCode(
-						registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.AUTH_FAILED));
-				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-				throw new ValidationFailedException(StatusUtil.OFFICER_AUTHENTICATION_FAILED.getMessage() + userId,
+		
+			bioUtil.authenticateBiometrics(userId, individualType, list,registrationStatusDto,
+						StatusUtil.OFFICER_AUTHENTICATION_FAILED.getMessage(),
 						StatusUtil.OFFICER_AUTHENTICATION_FAILED.getCode());
-
-			}
-			regProcLogger.info("validateUserBiometric call ended for registrationId {}", registrationId);
+		
+			regProcLogger.debug("validateUserBiometric call ended for registrationId {}", registrationId);
 
 	}
 
