@@ -38,8 +38,6 @@ public interface RegistrationStatusService<T, U, D> {
 	public U getRegistrationStatus(String regid, String processs, Integer iteration, String workflowInstanceId);
 
 	public List<InternalRegistrationStatusDto> getAllRegistrationStatuses(String registrationId);
-	
-	public List<String> getAllRegistrationIds();
 
 	public InternalRegistrationStatusDto getRegStatusForMainProcess(String registrationId);
 

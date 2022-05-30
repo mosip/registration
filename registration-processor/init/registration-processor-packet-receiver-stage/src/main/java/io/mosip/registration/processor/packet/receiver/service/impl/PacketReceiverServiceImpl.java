@@ -525,16 +525,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 				else if(landingZoneType.equalsIgnoreCase(LandingZoneTypeConstant.OBJECT_STORE)) {
 					 boolean result =objectStoreAdapter.putObject(landingZoneAccount, registrationId, null, null, packetId, encryptedInputStream);
 					 if(!result) {
-						 messageDTO.setInternalError(Boolean.TRUE);
-				            dto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-				            dto.setStatusComment(StatusUtil.OBJECT_STORE_EXCEPTION.getMessage());
-				            dto.setSubStatusCode(StatusUtil.OBJECT_STORE_EXCEPTION.getCode());
-				            dto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
-				                    .getStatusCode(RegistrationExceptionTypeCode.OBJECT_STORE_EXCEPTION));
-				            description.setMessage(PlatformErrorMessages.OBJECT_STORE_NOT_ACCESSIBLE.getMessage());
-				            description.setCode(PlatformErrorMessages.OBJECT_STORE_NOT_ACCESSIBLE.getCode());
-				            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				                    registrationId, PlatformErrorMessages.OBJECT_STORE_NOT_ACCESSIBLE.name());
+						 throw new ObjectStoreNotAccessibleException("Failed to store packet : " + packetId);
 					 }
 				}
 				
@@ -566,7 +557,19 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId,
 					PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage() + ExceptionUtils.getStackTrace(e));
-		} catch (DataAccessException e) {
+		}catch (ObjectStoreNotAccessibleException e) {
+        	messageDTO.setInternalError(Boolean.TRUE);
+            dto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+            dto.setStatusComment(StatusUtil.OBJECT_STORE_EXCEPTION.getMessage());
+            dto.setSubStatusCode(StatusUtil.OBJECT_STORE_EXCEPTION.getCode());
+            dto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
+                    .getStatusCode(RegistrationExceptionTypeCode.OBJECT_STORE_EXCEPTION));
+            description.setMessage(PlatformErrorMessages.OBJECT_STORE_NOT_ACCESSIBLE.getMessage());
+            description.setCode(PlatformErrorMessages.OBJECT_STORE_NOT_ACCESSIBLE.getCode());
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                    registrationId, PlatformErrorMessages.OBJECT_STORE_NOT_ACCESSIBLE.name()
+                            + ExceptionUtils.getStackTrace(e));
+        } catch (DataAccessException e) {
 			messageDTO.setInternalError(Boolean.TRUE);
 			description.setMessage(PlatformErrorMessages.RPR_PKR_DATA_ACCESS_EXCEPTION.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_PKR_DATA_ACCESS_EXCEPTION.getCode());

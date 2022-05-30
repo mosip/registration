@@ -19,6 +19,7 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.commons.khazana.exception.ObjectStoreAdapterException;
 import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -580,6 +581,9 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
         	}
         	else if(landingZoneType.equalsIgnoreCase(LandingZoneTypeConstant.OBJECT_STORE)) {
         	packet=IOUtils.toByteArray(objectStoreAdapter.getObject(landingZoneAccount, registrationId, null, null, packetId));
+        	if(packet==null) {
+        		throw new ObjectStoreNotAccessibleException("Failed to get packet : " +packetId);
+        	}
         	}
         } catch (ApisResourceAccessException e) {
             if (e.getCause() instanceof HttpClientErrorException) {
@@ -588,7 +592,9 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
                     throw new PacketNotFoundException(PlatformErrorMessages.RPR_PUM_PACKET_NOT_FOUND_EXCEPTION.getMessage(), ex);
             } else
                 throw e;
-        } 
+        } catch(ObjectStoreAdapterException e) {
+        	throw e;
+        }
         return packet;
     }
 

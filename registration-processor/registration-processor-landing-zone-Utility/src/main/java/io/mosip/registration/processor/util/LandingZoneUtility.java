@@ -70,6 +70,7 @@ class LandingZoneUtility{
 				 Files.list(Paths.get(env.getProperty(DirectoryPathDto.LANDING_ZONE.toString())))
 						    .map(Path::toFile)
 						    .filter(File::isFile)
+						    .filter(file-> file.getName().endsWith(extention))
 						    .forEach(file -> {
 						    	packetList.add(file);
 						 		if(packetList.size()>=MAX_NUMBER_OF_PACKETS) {

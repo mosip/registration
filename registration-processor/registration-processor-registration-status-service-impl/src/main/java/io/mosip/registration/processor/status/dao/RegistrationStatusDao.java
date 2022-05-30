@@ -118,11 +118,6 @@ public class RegistrationStatusDao {
 
 		return registrationStatusRepositary.findByRegId(rid);
 	}
-	
-	public List<String> findAllIds() {
-		
-		return registrationStatusRepositary.findAllRegIds();
-	}
 	/**
 	 * Gets the enrolment status by status code.
 	 *

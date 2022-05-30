@@ -114,7 +114,5 @@ public interface SyncRegistrationService<T, U> {
 	public List<SyncRegistrationEntity> getByPacketIds(List<String> packetIdList);
 
 	public List<LostRidDto> searchLostRid(SearchInfo searchInfo);
-	
-	public List<String> getAllPacketIds(String registrationId);
 
 }

@@ -210,9 +210,4 @@ public class SyncRegistrationDao {
 		return saltEntity.getSalt();
 	}
 
-	public List<String> getAllPacketIds(String registrationId) {
-		// TODO Auto-generated method stub
-		return syncRegistrationRepository.findAllPacketIds(registrationId);
-	}
-
 }

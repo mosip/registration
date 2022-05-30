@@ -54,8 +54,6 @@ public class PacketUploaderStage extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.packet.uploader.message.expiry-time-limit}")
 	private Long messageExpiryTimeLimit;
 
-	@Value("${move.packets.to.ObjectStore.Period.milliseconds}")
-	private Integer movePacketsToObjectStorePeriod;
 	/**
 	 * The mosip event bus.
 	 */
