@@ -1,36 +1,27 @@
 package io.mosip.registration.processor.util;
 
-import java.io.File;
-import java.util.List;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 
 import org.apache.commons.io.IOUtils;
-import org.assertj.core.util.Arrays;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
-
 import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.core.env.Environment;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
-import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
-import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
-import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
-import io.mosip.registration.processor.status.dto.SyncResponseDto;
-import io.mosip.registration.processor.status.service.RegistrationStatusService;
-import io.mosip.registration.processor.status.service.SyncRegistrationService;
 
 
 @RefreshScope
@@ -48,13 +39,7 @@ public class LandingZoneUtilityTest {
 	     * The sync registration service.
 	     */
 	@Mock
-	 private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationService;
-
-	    /**
-	     * The registration status service.
-	     */
-	@Mock
-	 private RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
+	Environment env;
 
 	@Mock
 	 private RegistrationProcessorRestClientService<Object> registrationProcessorRestService;
@@ -64,8 +49,7 @@ public class LandingZoneUtilityTest {
 		ReflectionTestUtils.setField(landingZoneUtility, "extention", ".zip");
 		ReflectionTestUtils.setField(landingZoneUtility, "landingZoneType", "ObjectStore");
 		ReflectionTestUtils.setField(landingZoneUtility, "landingZoneAccount", "LandingZoneAccount");
-		Mockito.when(registrationStatusService.getAllRegistrationIds()).thenReturn(List.of("1001"));
-		Mockito.when(syncRegistrationService.getAllPacketIds(any())).thenReturn(List.of("1001"));
+		Mockito.when(env.getProperty(any())).thenReturn("/mnt/regproc/landing");
 		
 		Mockito.when(registrationProcessorRestService.getApi(
 				any(), anyList(), anyString(), any(), any())).thenReturn(new byte[2]);

@@ -1,11 +1,22 @@
 package io.mosip.registration.processor.util;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -16,16 +27,13 @@ import io.mosip.registration.processor.core.constant.LandingZoneTypeConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.spi.filesystem.manager.FileManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
-import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
-import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
-import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
-import io.mosip.registration.processor.status.dto.SyncResponseDto;
-import io.mosip.registration.processor.status.service.RegistrationStatusService;
-import io.mosip.registration.processor.status.service.SyncRegistrationService; 
+import io.mosip.registration.processor.packet.manager.dto.DirectoryPathDto; 
 @Component
 class LandingZoneUtility{
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(LandingZoneUtility.class);
+	private static final int MAX_NUMBER_OF_PACKETS = 100;
 	@Value("${landing.zone.account.name}")
 	private String landingZoneAccount;
 		
@@ -35,70 +43,84 @@ class LandingZoneUtility{
 	@Value("${registration.processor.packet.ext}")
     private String extention;
 	
-	@Value("${landing.zone.move.schedule:0 0 0 * * *}")
-    private static  String schedule;
+	@Autowired
+	private FileManager<DirectoryPathDto, InputStream> fileManager;
 	
-	 @Autowired
-	 private ObjectStoreAdapter objectStoreAdapter;
-
-	    /**
-	     * The sync registration service.
-	     */
-	 @Autowired
-	 private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationService;
-
-	    /**
-	     * The registration status service.
-	     */
-	 @Autowired
-	 private RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
-
-	 @Autowired
-	 private RegistrationProcessorRestClientService<Object> restClient;
+	@Autowired
+	private ObjectStoreAdapter objectStoreAdapter;
+	
+	
+	@Autowired
+	Environment env;
 	 /**
 	  *   
 	  * moves the packets from dmz server to objectstore if the landing zone has been changed to 
       */
-	 @Scheduled(fixedDelayString = "${mosip.regproc.landing.zone.fixed.delay.millisecs:43200000}",
+	@Scheduled(fixedDelayString = "${mosip.regproc.landing.zone.fixed.delay.millisecs:43200000}",
 	            initialDelayString = "${mosip.regproc.landing.zone.inital.delay.millisecs:300000}")
-	   public void movePacketsToObjectStore() {
-		if(landingZoneType.equalsIgnoreCase(LandingZoneTypeConstant.DMZ_SERVER)) {
+	public void movePacketsToObjectStore() {
+		
+		if(landingZoneType.equalsIgnoreCase(LandingZoneTypeConstant.OBJECT_STORE)) {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 					"", "PacketUploaderServiceImpl::movePacketsToObjectStore()::entry");
-			List<String> regIdList=registrationStatusService.getAllRegistrationIds();
-			for(String regId:regIdList) {
-				List<String> packetIdList=syncRegistrationService.getAllPacketIds(regId);
-				for(String packetId:packetIdList) {
-					 List<String> pathSegment = new ArrayList<>();
-				     pathSegment.add(packetId + extention);
-					
-						try {
-							byte[] packet = (byte[]) restClient.getApi(ApiName.NGINXDMZURL, pathSegment, "", null, byte[].class);
-							if(packet!=null) {
-							 boolean result =objectStoreAdapter.putObject(landingZoneAccount, regId, null, null, packetId, new ByteArrayInputStream(packet));
-							 if(!result) {
-								 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-										 regId, packetId+":Packet store not accesible");
-							 }
-							 else {
-								 regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-										 regId, packetId+":Packet has been moved to landing zoneobject store ");
-							 }
-							}
-							else {
-								regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-										 regId, packetId+":Packet not present in dmz server");
-							}
-						}catch (ApisResourceAccessException e) {    
-					           regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					        		   regId, e.getMessage());
-					       }
-						}
+			
+			 try  {
+				
+				 List<File> packetList=new ArrayList<>(); 
+				 Files.list(Paths.get(env.getProperty(DirectoryPathDto.LANDING_ZONE.toString())))
+						    .map(Path::toFile)
+						    .filter(File::isFile)
+						    .forEach(file -> {
+						    	packetList.add(file);
+						 		if(packetList.size()>=MAX_NUMBER_OF_PACKETS) {
+						 			packetList.forEach(packet->handlePacket(packet));
+						 			packetList.clear();
+						 		}
+						    });
+				 
+				 if(packetList.size()<MAX_NUMBER_OF_PACKETS) {
+					 packetList.forEach(packet->handlePacket(packet));
+			 			packetList.clear();
+				 }
+				
+				}catch (Exception e) {    
+					     regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					        		   "", e.getMessage());
+					 }
 				}
-			}
+				
+			
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 					"", "PacketUploaderServiceImpl::movePacketsToObjectStore()::exit");
-			}
+	}
 		
-	   
+	private void handlePacket(File packet) {
+		   
+		   String regId=packet.getName().split("-")[0];
+		   String packetId=packet.getName().split("\\.")[0];
+		   if(packet.exists()) {
+			   boolean result;
+			try {
+				InputStream stream=new FileInputStream(packet);
+				result = objectStoreAdapter.putObject(landingZoneAccount,regId, null, null, packetId, stream);
+				stream.close();
+			   if(!result) {
+					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+									 regId, packetId+":Packet store not accesible");
+				}
+				else {
+					fileManager.deletePacket(DirectoryPathDto.LANDING_ZONE, packetId);
+					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+									 regId, packetId+":Packet has been moved to landing zoneobject store ");
+				}
+			} catch (Exception e) {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+						 regId, e.getMessage());
+			}
+		   }
+		   else {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+								 regId, packetId+":Packet not present in dmz server");
+		}
+	}
 }

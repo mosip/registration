@@ -1,5 +1,7 @@
 package io.mosip.registration.processor.util;
 
+import java.io.InputStream;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,16 +12,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import io.mosip.commons.khazana.impl.S3Adapter;
 import io.mosip.commons.khazana.impl.SwiftAdapter;
 import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
+import io.mosip.registration.processor.core.spi.filesystem.manager.FileManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
+import io.mosip.registration.processor.packet.manager.dto.DirectoryPathDto;
+import io.mosip.registration.processor.packet.manager.service.impl.FileManagerImpl;
 import io.mosip.registration.processor.rest.client.service.impl.RegistrationProcessorRestClientServiceImpl;
-import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
-import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
-import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
-import io.mosip.registration.processor.status.dto.SyncResponseDto;
-import io.mosip.registration.processor.status.service.RegistrationStatusService;
-import io.mosip.registration.processor.status.service.SyncRegistrationService;
-import io.mosip.registration.processor.status.service.impl.RegistrationStatusServiceImpl;
-import io.mosip.registration.processor.status.service.impl.SyncRegistrationServiceImpl;
 
 @Configuration
 @EnableAspectJAutoProxy
@@ -41,14 +38,17 @@ public class LandingZoneUtilityConfig {
 		else
 			throw new UnsupportedOperationException("No adapter implementation found for configuration: registration.processor.objectstore.adapter.name");
 	}
+	
 	@Bean
 	@Primary
-	public RegistrationProcessorRestClientService<Object> RegistrationProcessorRestClientService() {
+	public FileManager<DirectoryPathDto, InputStream> filemanager() {
+		return new FileManagerImpl();
+	}
+	
+	@Bean
+	@Primary
+	public RegistrationProcessorRestClientService<Object> getRegistrationProcessorRestClientService() {
 		return new RegistrationProcessorRestClientServiceImpl();
 	}
-	@Bean
-	@Primary
-	public SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> SyncRegistrationService() {
-		return new SyncRegistrationServiceImpl();
-	}
+
 }
