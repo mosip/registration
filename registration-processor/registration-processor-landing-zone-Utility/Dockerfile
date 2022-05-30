@@ -59,7 +59,7 @@ RUN mkdir -p ${loader_path}
 ENV loader_path_env=${loader_path}
 
 # change volume to whichever storage directory you want to use for this container.
-VOLUME ${work_dir}/logs ${work_dir}/Glowroot
+VOLUME /home/ftp1/ARCHIVE_PACKET_LOCATION /home/ftp1/LANDING_ZONE ${work_dir}/logs ${work_dir}/Glowroot
 
 ADD ./target/registration-processor-landing-zone-utility-*.jar registration-processor-landing-zone-utility.jar
 
