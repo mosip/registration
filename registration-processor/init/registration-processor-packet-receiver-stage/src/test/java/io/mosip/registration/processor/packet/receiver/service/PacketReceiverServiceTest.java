@@ -142,7 +142,7 @@ public class PacketReceiverServiceTest {
 		mainprocessList.add("UPDATE");
 		ReflectionTestUtils.setField(packetReceiverService, "mainProcesses", mainprocessList);
 		ReflectionTestUtils.setField(packetReceiverService, "landingZoneAccount", "landing-zone");
-		ReflectionTestUtils.setField(packetReceiverService, "landingZoneType", "filesystem");
+		ReflectionTestUtils.setField(packetReceiverService, "landingZoneType", "DMZServer");
 		ReflectionTestUtils.setField(packetReceiverService, "extention", ".zip");
 		ReflectionTestUtils.setField(packetReceiverService, "fileSize", "5");
 
