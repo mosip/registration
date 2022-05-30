@@ -142,7 +142,7 @@ public class PacketUploaderServiceTest {
 	@Before
 	public void setUp() throws IOException, ApisResourceAccessException, JsonProcessingException, NoSuchAlgorithmException {
 		ReflectionTestUtils.setField(packetuploaderservice, "packetNames", "id,optional,evidence");
-		ReflectionTestUtils.setField(packetuploaderservice, "landingZoneType", "filesystem");
+		ReflectionTestUtils.setField(packetuploaderservice, "landingZoneType", "DMZServer");
 		ReflectionTestUtils.setField(packetuploaderservice, "landingZoneAccount", "LandingZoneAccount");
 		
 		file = new File("src/test/resources/1001.zip");
