@@ -118,6 +118,7 @@ public class RegistrationStatusDao {
 
 		return registrationStatusRepositary.findByRegId(rid);
 	}
+	
 	/**
 	 * Gets the enrolment status by status code.
 	 *
@@ -243,6 +244,4 @@ public class RegistrationStatusDao {
 
 		return registrationStatusRepositary.getResumablePackets(RegistrationStatusCode.RESUMABLE.toString(), fetchSize);
 	}
-
-	
 }
