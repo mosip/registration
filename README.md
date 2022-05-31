@@ -1,6 +1,6 @@
 # Registration
 
-This repository contains the two components of registration:
+This repository contains below components of registration:
 1. Registration Processor.
 
 Refer to README in respective folders for details.
