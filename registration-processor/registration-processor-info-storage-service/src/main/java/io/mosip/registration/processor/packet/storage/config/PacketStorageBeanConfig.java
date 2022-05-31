@@ -11,6 +11,8 @@ import javax.crypto.SecretKey;
 import io.mosip.registration.processor.packet.storage.helper.PacketManagerHelper;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -34,6 +36,7 @@ import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.service.impl.PacketInfoManagerImpl;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
+import io.mosip.registration.processor.packet.storage.utils.BioSdkUtil;
 import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 
@@ -97,6 +100,12 @@ public class PacketStorageBeanConfig {
 	public AuthUtil getAuthUtil() {
 		return new AuthUtil();
 	}
+	
+	@Bean
+	public BioSdkUtil getBioSdkUtil() {
+		return new BioSdkUtil();
+	}
+	
 
 	@Bean
 	public KeyGenerator getKeyGenerator() {

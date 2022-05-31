@@ -48,6 +48,7 @@ import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
+import io.mosip.registration.processor.packet.storage.utils.BioSdkUtil;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -80,26 +81,23 @@ public class OperatorValidator {
 
 	@Autowired
 	private Utilities utility;
+	
+	@Autowired
+	private BioSdkUtil bioUtil;
 
 	/**
 	 * Checks if is valid Operator.
 	 *
 	 * @param registrationId the registration id
-	 * @throws IOException                                Signals that an I/O
-	 *                                                    exception has occurred.
 	 * @throws SAXException
 	 * @throws ParserConfigurationException
-	 * @throws NoSuchAlgorithmException
-	 * @throws InvalidKeySpecException
-	 * @throws NumberFormatException
 	 * @throws io.mosip.kernel.core.exception.IOException
-	 * @throws BaseCheckedException
+	 * @throws Exception 
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
 	 */
 	public void validate(String registrationId, InternalRegistrationStatusDto registrationStatusDto, RegOsiDto regOsi)
-			throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, NumberFormatException, JSONException,
-			CertificateException, BaseCheckedException {
+			throws Exception {
 		regProcLogger.debug("validate called for registrationId {}", registrationId);
 
 		validateOperator(registrationId, regOsi, registrationStatusDto);
@@ -175,21 +173,18 @@ public class OperatorValidator {
 	 *
 	 * @param regOsi         the reg osi
 	 * @param registrationId the registration id
-	 * @throws IOException
 	 * @throws SAXException
 	 * @throws ParserConfigurationException
 	 * @throws BiometricException
-	 * @throws NoSuchAlgorithmException
 	 * @throws InvalidKeySpecException
 	 * @throws io.mosip.kernel.core.exception.IOException
-	 * @throws BaseCheckedException
 	 * @throws PacketDecryptionFailureException
 	 * @throws Exception
 	 * 
 	 */
 	private void authenticateOperator(RegOsiDto regOsi, String registrationId,
 			InternalRegistrationStatusDto registrationStatusDto)
-			throws IOException, CertificateException, NoSuchAlgorithmException, BaseCheckedException {
+			throws Exception {
 		String officerId = regOsi.getOfficerId();
 		// officer password and otp check
 		String officerPassword = regOsi.getOfficerHashedPwd();
@@ -239,6 +234,7 @@ public class OperatorValidator {
 		return (opValidated != null && opValidated.equals(ISTRUE) || otpValidated != null && otpValidated.equals(ISTRUE));
 	}
 
+	
 	/**
 	 * Validate user.
 	 *
@@ -247,53 +243,28 @@ public class OperatorValidator {
 	 * @param list                  biometric data as BIR object
 	 * @param individualType        user type
 	 * @param registrationStatusDto
+	 * @throws Exception 
 	 * @throws SAXException
 	 * @throws ParserConfigurationException
 	 * @throws NoSuchAlgorithmException
 	 * @throws InvalidKeySpecException
-	 * @throws IOException                  Signals that an I/O exception has
-	 *                                      occurred.
-	 * @throws BaseCheckedException
 	 * @throws BiometricException
 	 */
 
 	private void validateUserBiometric(String registrationId, String userId, List<BIR> list, String individualType,
 			InternalRegistrationStatusDto registrationStatusDto)
-			throws IOException, CertificateException, NoSuchAlgorithmException, BaseCheckedException {
+			throws Exception {
 
 		if (INDIVIDUAL_TYPE_USERID.equalsIgnoreCase(individualType)) {
 			userId = getIndividualIdByUserId(userId);
 			individualType = null;
 		}
-
-		AuthResponseDTO authResponseDTO = authUtil.authByIdAuthentication(userId, individualType, list);
-		if (authResponseDTO.getErrors() == null || authResponseDTO.getErrors().isEmpty()) {
-			if (!authResponseDTO.getResponse().isAuthStatus()) {
-				registrationStatusDto.setLatestTransactionStatusCode(
-						registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.AUTH_FAILED));
-				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-				throw new ValidationFailedException(StatusUtil.OFFICER_AUTHENTICATION_FAILED.getMessage() + userId,
+		
+			bioUtil.authenticateBiometrics(userId, individualType, list,registrationStatusDto,
+						StatusUtil.OFFICER_AUTHENTICATION_FAILED.getMessage(),
 						StatusUtil.OFFICER_AUTHENTICATION_FAILED.getCode());
-			}
-		} else {
-			String finalUserId = userId;
-			String finalIndividualType = individualType;
-
-			List<io.mosip.registration.processor.core.auth.dto.ErrorDTO> errors = authResponseDTO.getErrors();
-			if (errors.stream().anyMatch(error -> (error.getErrorCode().equalsIgnoreCase("IDA-MLC-007")
-					|| utility.isUinMissingFromIdAuth(error.getErrorCode(), finalUserId, finalIndividualType)))) {
-				throw new AuthSystemException(PlatformErrorMessages.RPR_AUTH_SYSTEM_EXCEPTION.getMessage());
-			} else {
-				registrationStatusDto.setLatestTransactionStatusCode(
-						registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.AUTH_ERROR));
-				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-				String result = errors.stream().map(s -> s.getErrorMessage() + " ").collect(Collectors.joining());
-				regProcLogger.debug("validateUserBiometric call ended for registrationId {} {}", registrationId,
-						result);
-				throw new ValidationFailedException(result, StatusUtil.OFFICER_AUTHENTICATION_FAILED.getCode());
-			}
-
-		}
+		
+			regProcLogger.debug("validateUserBiometric call ended for registrationId {}", registrationId);
 
 	}
 
