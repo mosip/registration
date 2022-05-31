@@ -129,11 +129,6 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 	@Autowired
 	private AuditLogRequestBuilder auditLogRequestBuilder;
 	
-	/** The transaction repositary. */
-	@Autowired
-	TransactionRepository<TransactionEntity, String> transactionRepositary;
-
-
 	@Autowired
 	private PacketInfoDao packetInfoDao;
 
