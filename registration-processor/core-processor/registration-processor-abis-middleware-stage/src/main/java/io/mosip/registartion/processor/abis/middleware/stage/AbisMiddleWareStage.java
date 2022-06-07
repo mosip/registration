@@ -440,7 +440,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 					internalRegStatusDto
 							.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
 					internalRegStatusDto.setStatusComment(
-							StatusUtil.IDENTIFY_RESPONSE_FAILED.getMessage() + abisCommonRequestDto.getId()+"-"+abisInsertResponseDto.getFailureReason()+"-"+io.mosip.registartion.processor.abis.middleware.constants.FailureReason.getValueFromKey(abisInsertResponseDto.getFailureReason()));
+							StatusUtil.IDENTIFY_RESPONSE_FAILED.getMessage() + abisCommonRequestDto.getId()+"-"+abisIdentifyResponseDto.getFailureReason()+"-"+io.mosip.registartion.processor.abis.middleware.constants.FailureReason.getValueFromKey(abisIdentifyResponseDto.getFailureReason()));
 					internalRegStatusDto.setSubStatusCode(StatusUtil.SYSTEM_EXCEPTION_OCCURED.getCode());
 					moduleId = PlatformErrorMessages.SYSTEM_EXCEPTION_OCCURED.getCode();
 					registrationStatusService.updateRegistrationStatus(internalRegStatusDto, moduleId, moduleName);
