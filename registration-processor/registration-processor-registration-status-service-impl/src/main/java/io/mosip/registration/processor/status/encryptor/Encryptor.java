@@ -161,16 +161,7 @@ public class Encryptor {
 				throw new EncryptionFailureException(
 						EncryptionFailureExceptionConstant.MOSIP_ENCRYPTION_FAILURE_ERROR_CODE.getErrorCode(),
 						httpClientException.getResponseBodyAsString());
-			} else if (e.getCause() instanceof HttpServerErrorException) {
-				HttpServerErrorException httpServerException = (HttpServerErrorException) e.getCause();
-				description.setMessage(PlatformErrorMessages.RPR_PGS_ENCRYPTOR_INVLAID_DATA_EXCEPTION.getMessage()
-						+ httpServerException.getResponseBodyAsString());
-				description.setCode(PlatformErrorMessages.RPR_PGS_ENCRYPTOR_INVLAID_DATA_EXCEPTION.getCode());
-
-				throw new EncryptionFailureException(
-						EncryptionFailureExceptionConstant.MOSIP_ENCRYPTION_FAILURE_ERROR_CODE.getErrorCode(),
-						httpServerException.getResponseBodyAsString());
-			} else {
+			}  else {
 				description.setMessage(
 						PlatformErrorMessages.RPR_PGS_ENCRYPTOR_INVLAID_DATA_EXCEPTION.getMessage() + e.getMessage());
 				description.setCode(PlatformErrorMessages.RPR_PGS_ENCRYPTOR_INVLAID_DATA_EXCEPTION.getCode());

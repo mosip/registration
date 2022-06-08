@@ -176,16 +176,6 @@ public class DecryptorImpl implements Decryptor {
 						PacketDecryptionFailureExceptionConstant.MOSIP_PACKET_DECRYPTION_FAILURE_ERROR_CODE
 								.getErrorCode(),
 						httpClientException.getResponseBodyAsString());
-			} else if (e.getCause() instanceof HttpServerErrorException) {
-				HttpServerErrorException httpServerException = (HttpServerErrorException) e.getCause();
-				description.setMessage(PlatformErrorMessages.RPR_PDS_PACKET_DECRYPTION_FAILURE.getMessage()
-						+ httpServerException.getResponseBodyAsString());
-				description.setCode(PlatformErrorMessages.RPR_PDS_PACKET_DECRYPTION_FAILURE.getCode());
-
-				throw new PacketDecryptionFailureException(
-						PacketDecryptionFailureExceptionConstant.MOSIP_PACKET_DECRYPTION_FAILURE_ERROR_CODE
-								.getErrorCode(),
-						httpServerException.getResponseBodyAsString());
 			} else {
 				description.setMessage(
 						PlatformErrorMessages.RPR_PDS_PACKET_DECRYPTION_FAILURE.getMessage() + e.getMessage());

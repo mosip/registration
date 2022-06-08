@@ -118,7 +118,7 @@ public class RegistrationStatusDao {
 
 		return registrationStatusRepositary.findByRegId(rid);
 	}
-
+	
 	/**
 	 * Gets the enrolment status by status code.
 	 *

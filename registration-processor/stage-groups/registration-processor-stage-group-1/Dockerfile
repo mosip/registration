@@ -76,7 +76,7 @@ ARG regproc_jars
 ENV regproc_jars_env=${regproc_jars}
 
 # change volume to whichever storage directory you want to use for this container.
-VOLUME /home/logs
+VOLUME /home/logs /home/ftp1/ARCHIVE_PACKET_LOCATION /home/ftp1/LANDING_ZONE
 
 ENV group_name=registration-processor-stage-group-1
 
