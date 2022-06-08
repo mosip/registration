@@ -365,7 +365,37 @@ public class PacketValidateProcessor {
 					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(),
 					ExceptionUtils.getStackTrace(e));
 
-		} catch (RegistrationProcessorCheckedException e) {
+		}
+		catch (ApisResourceAccessException e) {
+			if (e.getCause() instanceof HttpClientErrorException) {
+				HttpClientErrorException httpClientException = (HttpClientErrorException) e.getCause();
+				regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+						PlatformErrorMessages.RPR_SYS_API_RESOURCE_EXCEPTION.getMessage(),
+						httpClientException.getResponseBodyAsString() + ExceptionUtils.getStackTrace(e));
+			} else if (e.getCause() instanceof HttpServerErrorException) {
+				HttpServerErrorException httpServerException = (HttpServerErrorException) e.getCause();
+				regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+						PlatformErrorMessages.RPR_SYS_API_RESOURCE_EXCEPTION.getMessage(),
+						httpServerException.getResponseBodyAsString() + ExceptionUtils.getStackTrace(e));
+			} else {
+				regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+						PlatformErrorMessages.RPR_SYS_API_RESOURCE_EXCEPTION.getMessage(), e.getMessage());
+			}
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.REPROCESS.toString());
+			registrationStatusDto.setLatestTransactionStatusCode(
+                    registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION));
+			registrationStatusDto.setStatusComment(trimMessage
+                    .trimExceptionMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage() + e.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode());
+			packetValidationDto.setTransactionSuccessful(false);
+
+			description.setMessage(PlatformErrorMessages.RPR_SYS_API_RESOURCE_EXCEPTION.getMessage());
+			description.setCode(PlatformErrorMessages.RPR_SYS_API_RESOURCE_EXCEPTION.getCode());
+			object.setIsValid(Boolean.FALSE);
+			object.setInternalError(Boolean.TRUE);
+			object.setRid(registrationStatusDto.getRegistrationId());
+        }
+		catch (RegistrationProcessorCheckedException e) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 			registrationStatusDto.setStatusComment(
 					trimMessage.trimExceptionMessage(StatusUtil.BASE_CHECKED_EXCEPTION.getMessage() + e.getMessage()));

@@ -409,7 +409,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 					internalRegStatusDto
 							.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
 					internalRegStatusDto.setStatusComment(
-							StatusUtil.INSERT_RESPONSE_FAILED.getMessage() + abisCommonRequestDto.getId());
+							StatusUtil.INSERT_RESPONSE_FAILED.getMessage() + abisCommonRequestDto.getId()+"-"+abisInsertResponseDto.getFailureReason()+"-"+io.mosip.registartion.processor.abis.middleware.constants.FailureReason.getValueFromKey(abisInsertResponseDto.getFailureReason()));
 					internalRegStatusDto.setSubStatusCode(StatusUtil.SYSTEM_EXCEPTION_OCCURED.getCode());
 					moduleId = PlatformErrorMessages.SYSTEM_EXCEPTION_OCCURED.getCode();
 					registrationStatusService.updateRegistrationStatus(internalRegStatusDto, moduleId, moduleName);
@@ -440,7 +440,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 					internalRegStatusDto
 							.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
 					internalRegStatusDto.setStatusComment(
-							StatusUtil.IDENTIFY_RESPONSE_FAILED.getMessage() + abisCommonRequestDto.getId());
+							StatusUtil.IDENTIFY_RESPONSE_FAILED.getMessage() + abisCommonRequestDto.getId()+"-"+abisIdentifyResponseDto.getFailureReason()+"-"+io.mosip.registartion.processor.abis.middleware.constants.FailureReason.getValueFromKey(abisIdentifyResponseDto.getFailureReason()));
 					internalRegStatusDto.setSubStatusCode(StatusUtil.SYSTEM_EXCEPTION_OCCURED.getCode());
 					moduleId = PlatformErrorMessages.SYSTEM_EXCEPTION_OCCURED.getCode();
 					registrationStatusService.updateRegistrationStatus(internalRegStatusDto, moduleId, moduleName);
@@ -594,6 +594,21 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 		abisReqEntity.setStatusComment(
 				abisCommonResponseDto.getReturnValue().equalsIgnoreCase("1") ? StatusUtil.INSERT_IDENTIFY_RESPONSE_SUCCESS.getMessage()
 						: io.mosip.registartion.processor.abis.middleware.constants.FailureReason.getValueFromKey(abisCommonResponseDto.getFailureReason()));
+		if(abisCommonResponseDto.getReturnValue().equalsIgnoreCase("1"))
+		{
+			abisReqEntity.setStatusComment(StatusUtil.INSERT_IDENTIFY_RESPONSE_SUCCESS.getMessage());
+		}
+		else {
+			abisReqEntity.setStatusComment(io.mosip.registartion.processor.abis.middleware.constants.FailureReason
+					.getValueFromKey(abisCommonResponseDto.getFailureReason()));
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+					"Abis response failed for "+packetInfoDao.getRegIdByBioRefId(abisCommonRequestDto.getBioRefId())+" due to " + abisCommonResponseDto.getFailureReason() + "-"
+							+ io.mosip.registartion.processor.abis.middleware.constants.FailureReason
+									.getValueFromKey(abisCommonResponseDto.getFailureReason()),
+					"AbisMiddleWareStage::updteAbisRequestProcessed()");
+			
+		}
+		
 		abisReqEntity.setAbisAppCode(abisCommonRequestDto.getAbisAppCode());
 		abisReqEntity.setRequestType(abisCommonRequestDto.getRequestType());
 		abisReqEntity.setRequestDtimes(abisCommonRequestDto.getRequestDtimes());
@@ -665,9 +680,19 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 
 		abisResponseDto.setId(RegistrationUtility.generateId());
 		abisResponseDto.setRespText(response.getBytes());
-
-		abisResponseDto.setStatusCode(isInsertSuccess(abisCommonResponseDto) ?
-				AbisStatusCode.SUCCESS.toString() : AbisStatusCode.FAILED.toString());
+		
+		if (isInsertSuccess(abisCommonResponseDto)) {
+			abisResponseDto.setStatusCode(AbisStatusCode.SUCCESS.toString());
+		} else {
+			abisResponseDto.setStatusCode(AbisStatusCode.FAILED.toString());
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+					"Abis response failed for request Id " + abisCommonResponseDto.getRequestId() + " due to "
+							+ abisCommonResponseDto.getFailureReason() + "-"
+							+ io.mosip.registartion.processor.abis.middleware.constants.FailureReason
+									.getValueFromKey(abisCommonResponseDto.getFailureReason()),
+					"AbisMiddleWareStage::updateAbisResponseEntity()");
+		}
+		
 		abisResponseDto.setStatusComment(io.mosip.registartion.processor.abis.middleware.constants.FailureReason.getValueFromKey(abisCommonResponseDto.getFailureReason()));
 		abisResponseDto.setLangCode("eng");
 		abisResponseDto.setCrBy(SYSTEM);
