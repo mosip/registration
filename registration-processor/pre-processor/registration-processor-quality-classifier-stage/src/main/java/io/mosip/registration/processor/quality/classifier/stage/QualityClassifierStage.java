@@ -442,8 +442,9 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 			BiometricType biometricType = bir.getBdbInfo().getType().get(0);
 			BIR[] birArray = new BIR[1];
 			birArray[0] = bir;
+			if(!biometricType.name().equalsIgnoreCase(BiometricType.EXCEPTION_PHOTO.name())) {
 			float[] qualityScoreresponse = getBioSdkInstance(biometricType).getSegmentQuality(birArray, null);
-
+			
 			float score = qualityScoreresponse[0];
 			String bioType = bir.getBdbInfo().getType().get(0).value();
 
@@ -452,7 +453,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 
 			bioTypeMinScoreMap.put(bioType,
 					storedMinScore == null ? score : storedMinScore > score ? score : storedMinScore);
-
+			}
 		}
 
 		for (Entry<String, Float> bioTypeMinEntry : bioTypeMinScoreMap.entrySet()) {
