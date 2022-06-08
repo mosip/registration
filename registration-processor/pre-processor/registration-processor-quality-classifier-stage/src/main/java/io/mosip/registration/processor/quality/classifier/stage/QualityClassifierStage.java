@@ -442,9 +442,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 			BiometricType biometricType = bir.getBdbInfo().getType().get(0);
 			BIR[] birArray = new BIR[1];
 			birArray[0] = bir;
-			if(biometricType.name().equalsIgnoreCase(BiometricType.IRIS.name()) ||
-					biometricType.name().equalsIgnoreCase(BiometricType.FACE.name()) ||
-					biometricType.name().equalsIgnoreCase(BiometricType.FINGER.name())) {
+			if(!biometricType.name().equalsIgnoreCase(BiometricType.EXCEPTION_PHOTO.name()) ) {
 			float[] qualityScoreresponse = getBioSdkInstance(biometricType).getSegmentQuality(birArray, null);
 
 			float score = qualityScoreresponse[0];
