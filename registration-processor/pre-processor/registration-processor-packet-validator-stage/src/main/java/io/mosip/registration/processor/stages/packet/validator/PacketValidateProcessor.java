@@ -351,16 +351,16 @@ public class PacketValidateProcessor {
 			if (e.getCause() instanceof HttpClientErrorException) {
 				HttpClientErrorException httpClientException = (HttpClientErrorException) e.getCause();
 				regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-						PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getMessage(),
+						PlatformErrorMessages.RPR_SYS_API_RESOURCE_EXCEPTION.getMessage(),
 						httpClientException.getResponseBodyAsString() + ExceptionUtils.getStackTrace(e));
 			} else if (e.getCause() instanceof HttpServerErrorException) {
 				HttpServerErrorException httpServerException = (HttpServerErrorException) e.getCause();
 				regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-						PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getMessage(),
+						PlatformErrorMessages.RPR_SYS_API_RESOURCE_EXCEPTION.getMessage(),
 						httpServerException.getResponseBodyAsString() + ExceptionUtils.getStackTrace(e));
 			} else {
 				regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-						PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getMessage(), e.getMessage());
+						PlatformErrorMessages.RPR_SYS_API_RESOURCE_EXCEPTION.getMessage(), e.getMessage());
 			}
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.REPROCESS.toString());
 			registrationStatusDto.setLatestTransactionStatusCode(
@@ -370,8 +370,8 @@ public class PacketValidateProcessor {
 			registrationStatusDto.setSubStatusCode(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode());
 			packetValidationDto.setTransactionSuccessful(false);
 
-			description.setMessage(PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getMessage());
-			description.setCode(PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getCode());
+			description.setMessage(PlatformErrorMessages.RPR_SYS_API_RESOURCE_EXCEPTION.getMessage());
+			description.setCode(PlatformErrorMessages.RPR_SYS_API_RESOURCE_EXCEPTION.getCode());
         } catch (RegistrationProcessorCheckedException e) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 			registrationStatusDto.setStatusComment(
