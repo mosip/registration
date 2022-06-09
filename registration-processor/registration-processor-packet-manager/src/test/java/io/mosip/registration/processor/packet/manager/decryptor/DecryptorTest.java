@@ -114,7 +114,7 @@ public class DecryptorTest {
 		decryptor.decrypt("84071493960000320190110145452", "refid", inputStream);
 	}
 
-	@Test(expected = PacketDecryptionFailureException.class)
+	@Test(expected = ApisResourceAccessException.class)
 	public void HttpServerErrorExceptionTest()
 			throws FileNotFoundException, ApisResourceAccessException, PacketDecryptionFailureException {
 

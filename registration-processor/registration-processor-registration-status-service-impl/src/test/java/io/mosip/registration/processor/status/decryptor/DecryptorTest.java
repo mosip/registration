@@ -101,7 +101,7 @@ public class DecryptorTest {
 		String decryptedString = decryptor.decrypt(data, "10011", "2019-05-07T05:13:55.704Z");
 	}
 
-	@Test(expected = PacketDecryptionFailureException.class)
+	@Test(expected = ApisResourceAccessException.class)
 	public void HttpServerErrorExceptionTest()
 			throws FileNotFoundException, ApisResourceAccessException, PacketDecryptionFailureException {
 
