@@ -95,7 +95,7 @@ public class EncryptorTest {
 		encryptor.encrypt(data, "10011", "2019-05-07T05:13:55.704Z");
 	}
 
-	@Test(expected = EncryptionFailureException.class)
+	@Test(expected = ApisResourceAccessException.class)
 	public void httpServerErrorExceptionTest()
 			throws FileNotFoundException, ApisResourceAccessException, EncryptionFailureException {
 
