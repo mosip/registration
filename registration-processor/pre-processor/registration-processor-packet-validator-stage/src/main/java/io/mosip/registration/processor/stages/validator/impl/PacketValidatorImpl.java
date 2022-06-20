@@ -200,7 +200,7 @@ public class PacketValidatorImpl implements PacketValidator {
 								LoggerFileConstant.REGISTRATIONID.toString(), id,
 								"ERROR =======> " + StatusUtil.XSD_VALIDATION_EXCEPTION.getMessage());
 						packetValidationDto.setPacketValidaionFailureMessage(
-								StatusUtil.XSD_VALIDATION_EXCEPTION.getMessage() + e.getMessage());
+								StatusUtil.XSD_VALIDATION_EXCEPTION.getMessage());
 						packetValidationDto.setPacketValidatonStatusCode(StatusUtil.XSD_VALIDATION_EXCEPTION.getCode());
 						return false;
 					} else if (e instanceof BiometricSignatureValidationException) {
