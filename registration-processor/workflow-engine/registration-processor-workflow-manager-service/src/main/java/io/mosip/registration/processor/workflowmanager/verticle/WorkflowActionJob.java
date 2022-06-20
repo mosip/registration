@@ -172,6 +172,7 @@ public class WorkflowActionJob extends MosipVerticleAPIManager {
 		LogDescription description = new LogDescription();
 
 		regProcLogger.debug("WorkflowActionJob::process()::entry");
+		registrationId=object.getRid();
 		try {
 			processActionablePausedPackets();
 			isTransactionSuccessful = true;
