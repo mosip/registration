@@ -421,6 +421,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 		String requestId = UUID.randomUUID().toString();
 		mar.setRequestId(requestId);
 		regProcLogger.info("Request : " + JsonUtils.javaObjectToJsonString(mar));
+		updateManualVerificationEntityRID(mves, requestId);
 		if (messageFormat.equalsIgnoreCase(TEXT_MESSAGE))
 			mosipQueueManager.send(queue, JsonUtils.javaObjectToJsonString(mar), mvRequestAddress, mvRequestMessageTTL);
 		else
@@ -428,7 +429,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				refId, "ManualVerificationServiceImpl::pushRequestToQueue()::entry");
 
-		updateManualVerificationEntityRID(mves, requestId);
+		
 	}
 
 	private String getDataShareUrl(String id, String process) throws Exception {
