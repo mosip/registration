@@ -8,6 +8,7 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
@@ -174,6 +175,12 @@ public class PacketReceiverExceptionHandler {
 	private PacketReceiverResponseDTO handleInvalidTokenException(InvalidTokenException e) {
 		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),LoggerFileConstant.APPLICATIONID.toString(),e.getErrorCode(),  e.getStackTrace()[0].toString());
 		return buildPacketReceiverExceptionResponse((Exception)e);
+	}
+
+	private PacketReceiverResponseDTO handleInvalidTokenException(AuthenticationException e) {
+		InvalidTokenException ex = new InvalidTokenException(e.getMessage());
+		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),LoggerFileConstant.APPLICATIONID.toString(), ex.getErrorCode(),  e.getStackTrace()[0].toString());
+		return buildPacketReceiverExceptionResponse((Exception)ex);
 	}
 
 	/**
@@ -347,6 +354,8 @@ public class PacketReceiverExceptionHandler {
 			return handleAccessDeniedException((AccessDeniedException)exe);
 		if(exe instanceof InvalidTokenException)
 			return handleInvalidTokenException((InvalidTokenException)exe);
+		if (exe instanceof AuthenticationException)
+			return handleInvalidTokenException((AuthenticationException)exe);
 		if(exe instanceof ValidationException)
 			return handleValidationException((ValidationException) exe);
 		if (exe instanceof UnexpectedException)

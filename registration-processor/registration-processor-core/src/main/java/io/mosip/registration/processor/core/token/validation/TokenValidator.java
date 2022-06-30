@@ -104,6 +104,20 @@ public class TokenValidator {
 		return userId;
 	}
 
+	public String getRole(String url) {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				"TokenValidator::validateAccess()::entry");
+		if (url.contains("receiver"))
+			return String.join(",", APIAuthorityList.PACKETRECEIVER.getList());
+		else if (url.contains("securezone"))
+			return String.join(",", APIAuthorityList.SECUREZONENOTIFICATION.getList());
+		else if (url.contains("workflowaction"))
+			return String.join(",", APIAuthorityList.WORKFLOWACTION.getList());
+		else if (url.contains("workflow/search"))
+			return String.join(",", APIAuthorityList.WORKFLOWSEARCH.getList());
+		return null;
+	}
+
 	public boolean validateAccess(String url, String role) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"TokenValidator::validateAccess()::entry");

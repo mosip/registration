@@ -141,7 +141,9 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 	public void failure(RoutingContext routingContext) {
 		try {
 			Entry<FileUpload,File> fileUploadEntry=getFileFromCtx(routingContext).entrySet().iterator().next();
-			deleteFile(fileUploadEntry.getValue());
+			File file = fileUploadEntry.getValue();
+			regProcLogger.error("Exception occurred for packet id : " + file.getName(), routingContext.failure());
+			deleteFile(file);
 			deleteFile(FileUtils.getFile(fileUploadEntry.getKey().uploadedFileName()));
 		} catch (IOException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -149,7 +151,6 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 		}
 		this.setResponseWithDigitalSignature(routingContext, globalExceptionHandler.handler(routingContext.failure()),
 				APPLICATION_JSON);
-
 	}
 
 
