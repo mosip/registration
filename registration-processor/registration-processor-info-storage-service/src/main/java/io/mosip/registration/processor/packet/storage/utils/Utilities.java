@@ -406,18 +406,20 @@ public class Utilities {
 	public JSONObject retrieveIdrepoJson(String uin)
 			throws ApisResourceAccessException, IdRepoAppException, IOException {
 
-		ResponseDTO idResponseDto = retrieveIdrepoResponseObj(uin,null,null);
-		String response = objMapper.writeValueAsString(idResponseDto.getIdentity());
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
-				"Utilities::retrieveIdrepoJson():: IDREPOGETIDBYUIN GET service call ended Successfully");
-		try {
-			return (JSONObject) new JSONParser().parse(response);
-		} catch (org.json.simple.parser.ParseException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
-					ExceptionUtils.getStackTrace(e));
-			throw new IdRepoAppException("Error while parsing string to JSONObject", e);
+		if (uin != null) {
+			ResponseDTO idResponseDto = retrieveIdrepoResponseObj(uin,null,null);
+			String response = objMapper.writeValueAsString(idResponseDto.getIdentity());
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
+					"Utilities::retrieveIdrepoJson():: IDREPOGETIDBYUIN GET service call ended Successfully");
+			try {
+				return (JSONObject) new JSONParser().parse(response);
+			} catch (org.json.simple.parser.ParseException e) {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
+						ExceptionUtils.getStackTrace(e));
+				throw new IdRepoAppException("Error while parsing string to JSONObject", e);
+			}
 		}
-
+		return null;
 	}
 	
 	/**
