@@ -704,10 +704,10 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 		// Set ABIS Response Text
 		if(policyMap.containsValue(ABIS_RESPONSE_TEXT) && isAbisResponseRequired) {
-			List<String> bioRefIds = regBioRefRepository.getBioRefIdByRegIds(id);
+				List<String> bioRefIds = regBioRefRepository.getBioRefIdByRegIds(id);
 			List<String> abisRequestId = abisRequestRepository.getAbisRequestIdListByBioRefId(bioRefIds, "IDENTIFY");
-			List<String> abisResponseTextList = abisResponseRepository.getAbisResponseTextByReqIds(abisRequestId);
-			requestDto.setAbisResponseData(abisResponseTextList.get(0));
+			List<byte[]> abisResponseTextList = abisResponseRepository.getAbisResponseTextByReqIds(abisRequestId);
+			requestDto.setAbisResponseData(new String(abisResponseTextList.get(0)));
 		}
 
 		String req = JsonUtils.javaObjectToJsonString(requestDto);
