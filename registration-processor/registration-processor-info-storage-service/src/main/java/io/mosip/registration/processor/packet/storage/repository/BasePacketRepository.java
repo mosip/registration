@@ -454,4 +454,27 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 
 	@Query(value ="SELECT m.reg_id FROM reg_manual_verification m WHERE m.request_id =:requestId",nativeQuery=true)
 	public List<String> getRegistrationIdbyRequestId(@Param("requestId") String requestId);
+
+	/**
+	 * Gets the ABIS Request ID list by registration id.
+	 *
+	 * @param bioRefId
+	 *            the ref Bio Ref Id
+	 * @param requestType
+	 *            the request type
+	 * @return the ABIS Request id list by registration id
+	 */
+	@Query("SELECT abisreq.id.id FROM AbisRequestEntity abisreq WHERE abisreq.bioRefId in :bioRefId and abisreq.requestType =:requestType")
+	public List<String> getAbisRequestIdListByBioRefId(@Param("bioRefId") List<String> bioRefIds,
+																	 @Param("requestType") String requestType);
+
+	/**
+	 * Gets the abis response text by abis request id's.
+	 *
+	 * @param abisRequestId
+	 *            the abis request id's
+	 * @return the abis response I ds
+	 */
+	@Query("SELECT abisresp.respText FROM AbisResponseEntity abisresp WHERE abisresp.abisRequest in :abisRequestId order by abisresp.crDtimes desc")
+	public List<String> getAbisResponseTextByReqIds(@Param("abisRequestId") List<String> abisRequestId);
 }
