@@ -63,7 +63,6 @@ public class CbeffValidateAndVerificatonService {
         Set<String> availableModalities = biometricRecord != null && !CollectionUtils.isEmpty(biometricRecord.getSegments()) ?
                 biometricRecord.getSegments().stream().map(b -> {
                 	if(!CollectionUtils.isEmpty(b.getBdbInfo().getType())) {
-                		if(!CollectionUtils.isEmpty(b.getBdbInfo().getType())) {
                 		if (b.getOthers() != null) {
                             for(Map.Entry entry : b.getOthers().entrySet()) {
                                 if(entry.getKey().equals("EXCEPTION") &&!entry.getValue().equals("true")) {
