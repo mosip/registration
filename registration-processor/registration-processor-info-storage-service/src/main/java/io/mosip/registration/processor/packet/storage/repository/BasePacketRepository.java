@@ -475,6 +475,6 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	 *            the abis request id's
 	 * @return the abis response I ds
 	 */
-	@Query("SELECT abisresp.respText FROM AbisResponseEntity abisresp WHERE abisresp.abisRequest in :abisRequestId order by abisresp.crDtimes desc")
-	public List<byte[]> getAbisResponseTextByReqIds(@Param("abisRequestId") List<String> abisRequestId);
+	@Query("SELECT abisresp.respText FROM AbisResponseEntity abisresp WHERE abisresp.abisRequest in :abisRequestId and abisresp.statusCode in :status order by abisresp.crDtimes desc")
+	public List<byte[]> getAbisResponseTextByReqIdsAndStatuses(@Param("abisRequestId") List<String> abisRequestId, @Param("status") List<String> status);
 }

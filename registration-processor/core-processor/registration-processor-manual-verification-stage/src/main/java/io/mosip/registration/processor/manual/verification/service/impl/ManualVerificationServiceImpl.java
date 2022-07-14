@@ -140,6 +140,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	private static final String META_INFO = "meta_info";
 	private static final String AUDITS = "audits";
 	private static final String ABIS_RESPONSE_TEXT = "abis_response";
+	private static final String SUCCESS="SUCCESS";
 
 	@Autowired
 	private Environment env;
@@ -704,9 +705,11 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 		// Set ABIS Response Text
 		if(policyMap.containsValue(ABIS_RESPONSE_TEXT) && isAbisResponseRequired) {
-				List<String> bioRefIds = regBioRefRepository.getBioRefIdByRegIds(id);
+			List<String> bioRefIds = regBioRefRepository.getBioRefIdByRegIds(id);
 			List<String> abisRequestId = abisRequestRepository.getAbisRequestIdListByBioRefId(bioRefIds, "IDENTIFY");
-			List<byte[]> abisResponseTextList = abisResponseRepository.getAbisResponseTextByReqIds(abisRequestId);
+			List<String> responseStatus = new ArrayList<>();
+			responseStatus.add(SUCCESS);
+			List<byte[]> abisResponseTextList = abisResponseRepository.getAbisResponseTextByReqIdsAndStatuses(abisRequestId, responseStatus);
 			requestDto.setAbisResponseData(new String(abisResponseTextList.get(0)));
 		}
 
