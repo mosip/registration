@@ -197,6 +197,7 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 		if (isEnabled)
 			response.putHeader("Response-Signature",
 					digitalSignatureUtility.getDigitalSignature(res));
+		response.removeCookie("");
 		response.putHeader("content-type", contentType).putHeader("Access-Control-Allow-Origin", "*")
 				.putHeader("Access-Control-Allow-Methods", "GET, POST").setStatusCode(200)
 				.end(res);
