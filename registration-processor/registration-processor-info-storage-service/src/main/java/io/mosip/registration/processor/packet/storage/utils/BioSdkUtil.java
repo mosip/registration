@@ -76,10 +76,10 @@ public class BioSdkUtil {
 						.debug("BioSdkUtil :: authenticateBiometrics :: BIR size fetch from ID repo " + firstMp.size());
 				regProcLogger
 						.debug("BioSdkUtil :: authenticateBiometrics :: BIR size fetch from packet " + secondMp.size());
-				for (Map.Entry<BiometricType, List<BIR>> entry : firstMp.entrySet()) {
+				for (Map.Entry<BiometricType, List<BIR>> entry : secondMp.entrySet()) {
 					iBioProviderApi bioProvider = bioApiFactory
 							.getBioProvider(BiometricType.valueOf(entry.getKey().toString()), BiometricFunction.MATCH);
-					if (null == secondMp.get(entry.getKey())) {
+					if (null == firstMp.get(entry.getKey())) {
 						status = false;
 
 					} else
