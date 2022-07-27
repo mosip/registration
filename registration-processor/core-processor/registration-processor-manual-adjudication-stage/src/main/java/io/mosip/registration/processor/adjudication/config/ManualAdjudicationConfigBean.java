@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.adjudication.config;
 
 import io.mosip.registration.processor.adjudication.util.ManualVerificationRequestValidator;
+import io.mosip.registration.processor.adjudication.util.ManualVerificationUpdateUtility;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -24,5 +25,10 @@ public class ManualAdjudicationConfigBean {
 	@Bean
 	ManualVerificationExceptionHandler getManualVerificationExceptionHandler() {
 		return new ManualVerificationExceptionHandler();
+	}
+
+	@Bean
+	ManualVerificationUpdateUtility manualVerificationUpdateUtility() {
+		return new ManualVerificationUpdateUtility();
 	}
 }
