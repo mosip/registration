@@ -68,6 +68,8 @@ public enum StatusUtil {
 	XSD_VALIDATION_EXCEPTION(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "015", "XSD validation failed."),
 	BIOMETRICS_SIGNATURE_VALIDATION_FAILURE(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "016",
 			"Biometric Signature validation failed"),
+	PACKET_CONSENT_VALIDATION(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "017",
+			"Consent is not agreed for the packet to process further"),
 
 	// packet classifier stage
 	PACKET_CLASSIFICATION_SUCCESS(StatusConstants.PACKET_CLASSIFIER_MODULE_SUCCESS + "001",
