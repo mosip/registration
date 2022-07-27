@@ -212,6 +212,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 		statusList.add(RegistrationTransactionStatusCode.IN_PROGRESS.toString());
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ReprocessorVerticle::process()::entry");
+		StringBuffer ridSb=new StringBuffer();
 		try {
 			reprocessorDtoList = registrationStatusService.getResumablePackets(fetchSize);
 			if (!CollectionUtils.isEmpty(reprocessorDtoList)) {
@@ -231,6 +232,8 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 			if (!CollectionUtils.isEmpty(reprocessorDtoList)) {
 				reprocessorDtoList.forEach(dto -> {
 					String registrationId = dto.getRegistrationId();
+					ridSb.append(registrationId);
+					ridSb.append(",");
 					MessageDTO messageDTO = new MessageDTO();
 					messageDTO.setRid(registrationId);
 					messageDTO.setReg_type(dto.getRegistrationType());
@@ -325,7 +328,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 					: description.getCode();
 			String moduleName = ModuleName.RE_PROCESSOR.toString();
 			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
-					moduleId, moduleName, "");
+					moduleId, moduleName, (ridSb.toString().length()>1?ridSb.substring(0,ridSb.length()-1):""));
 		}
 
 		return object;
