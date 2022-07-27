@@ -18,6 +18,7 @@ public class MappingJsonConstants {
 	public static final String DOCUMENT = "documents";
 	public static final String BIOMETRICS = "biometrics";
 	public static final String PREFERRED_LANGUAGE = "preferredLanguage";
+	public static final String CONSENT="consent";
 
 	public static final String INTRODUCER_BIO = "introducerBiometrics";
 	/** The Constant OFFICERBIOMETRICFILENAME. */
