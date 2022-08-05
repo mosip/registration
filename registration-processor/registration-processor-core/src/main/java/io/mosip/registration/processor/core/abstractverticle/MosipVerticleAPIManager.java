@@ -2,6 +2,7 @@ package io.mosip.registration.processor.core.abstractverticle;
 
 import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
 import io.mosip.registration.processor.core.queue.factory.MosipQueue;
+import io.mosip.registration.processor.core.spi.queue.MosipQueueConnectionFactory;
 import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,6 +40,9 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 
 	@Autowired
 	ObjectMapper objectMapper;
+
+	@Autowired
+	private MosipQueueConnectionFactory<MosipQueue> mosipConnectionFactory;
 
 	@Autowired
 	private Tracing tracing;
@@ -128,7 +132,7 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 					future -> healthCheckHandler.senderHealthHandler(future, vertx, sendAddress));
 		}
 		if (servletPath.contains("print") || servletPath.contains("abismiddleware")) {
-			healthCheckHandler.register("queuecheck", future -> healthCheckHandler.queueHealthChecker(future, mosipQueueManager));
+			healthCheckHandler.register("queuecheck", future -> healthCheckHandler.queueHealthChecker(future, mosipQueueManager, mosipConnectionFactory));
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Verticle",
 					future -> healthCheckHandler.consumerHealthHandler(future, vertx, consumeAddress));

@@ -43,6 +43,7 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
     private Session session;
     private Destination destination;
     private static final String LINE_SEPERATOR = "----------------";
+    private int retryCount = 10;
 
     /**
      * The method to set up session and destination
@@ -204,16 +205,23 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
             destination = session.createQueue(address);
             consumer = session.createConsumer(destination);
             consumer.setMessageListener(QueueListenerFactory.getListener(mosipQueue.getQueueName(), object));
-        } catch (JMSException e) {
-
+        } catch (JMSException | NullPointerException e) {
             regProcLogger.error("*******CONSUME EXCEPTION *****", "*******CONSUME EXCEPTION *****",
                     "*******CONSUME EXCEPTION *****", ExceptionUtils.getFullStackTrace(e));
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                     "", "MosipActiveMqImpl::consume():: error with error message "
                             + PlatformErrorMessages.RPR_MQI_UNABLE_TO_CONSUME_FROM_QUEUE.getMessage());
 
-            throw new ConnectionUnavailableException(
-                    PlatformErrorMessages.RPR_MQI_UNABLE_TO_CONSUME_FROM_QUEUE.getMessage());
+            if (e instanceof NullPointerException && retryCount > 0) {
+                retryCount = retryCount - 1;
+                regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                        "", "Could not obtain queue connection. System will retry for 10 times. retrycount = "
+                                + retryCount);
+                consume(mosipQueue, address, object);
+            } else {
+                throw new ConnectionUnavailableException(
+                        PlatformErrorMessages.RPR_MQI_UNABLE_TO_CONSUME_FROM_QUEUE.getMessage());
+            }
         }
         regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
                 "", "MosipActiveMqImpl::consume()::exit");
