@@ -1,5 +1,9 @@
 package io.mosip.registration.processor.core.abstractverticle;
 
+import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
+import io.mosip.registration.processor.core.queue.factory.MosipQueue;
+import io.mosip.registration.processor.core.spi.queue.MosipQueueConnectionFactory;
+import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -42,6 +46,9 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 	ObjectMapper objectMapper;
 
 	@Autowired
+	private MosipQueueConnectionFactory<MosipQueue> mosipConnectionFactory;
+
+	@Autowired
 	private Tracing tracing;
 	
 	@Autowired
@@ -56,10 +63,10 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 
 	private static final String PROMETHEUS_ENDPOINT = "/actuator/prometheus";
 
-	
+
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(MosipVerticleAPIManager.class);
 
-	
+
 	/**
 	 * This method creates a body handler for the routes
 	 *
@@ -133,7 +140,7 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 					future -> healthCheckHandler.senderHealthHandler(future, vertx, sendAddress));
 		}
 		if (servletPath.contains("print") || servletPath.contains("abismiddleware")) {
-			healthCheckHandler.register("queuecheck", future -> healthCheckHandler.queueHealthChecker(future, mosipQueueManager));
+			healthCheckHandler.register("queuecheck", future -> healthCheckHandler.queueHealthChecker(future, mosipQueueManager, mosipConnectionFactory));
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Verticle",
 					future -> healthCheckHandler.consumerHealthHandler(future, vertx, consumeAddress));
@@ -185,15 +192,15 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 	 */
 	public void setResponseWithDigitalSignature(RoutingContext ctx, Object object, String contentType) {
 		HttpServerResponse response = ctx.response();
-	
+
 		String res=null;
 		try {
 			res = objectMapper.writeValueAsString(object);
 		} catch (JsonProcessingException e) {
 			regProcLogger.error("Error while processing response",e);
-			
+
 		}
-		
+
 		if (isEnabled)
 			response.putHeader("Response-Signature",
 					digitalSignatureUtility.getDigitalSignature(res));
