@@ -15,16 +15,16 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import javax.jms.BytesMessage;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageProducer;
-import javax.jms.Queue;
-import javax.jms.Session;
+import javax.jms.*;
 
+import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
+import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.queue.factory.MosipActiveMq;
 import io.mosip.registration.processor.core.queue.factory.MosipQueue;
+import io.mosip.registration.processor.core.queue.factory.QueueListener;
 import io.mosip.registration.processor.core.queue.impl.TransportExceptionListener;
+import io.mosip.registration.processor.core.spi.queue.MosipQueueConnectionFactory;
 import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
@@ -68,6 +68,9 @@ import io.vertx.ext.web.RoutingContext;
  */
 public class StageHealthCheckHandler implements HealthCheckHandler {
 	private HealthChecks healthChecks;
+
+	MosipQueue mosipQueue = null;
+	boolean isConsumerStarted = false;
 	private final AuthProvider authProvider;
 	private ObjectMapper objectMapper;
 	private String driver;
@@ -144,38 +147,47 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	/**
 	 * @param promise
 	 */
-	public void queueHealthChecker(Promise<Status> promise, MosipQueueManager<MosipQueue, byte[]> mosipQueueManager) {
+	public void queueHealthChecker(Promise<Status> promise, MosipQueueManager<MosipQueue, byte[]> mosipQueueManager, MosipQueueConnectionFactory<MosipQueue> mosipConnectionFactory) {
+
 		try {
+			final String msg = "Ping";
 
-			String message = "Ping";
-			MosipQueue mosipQueue = new MosipActiveMq(HealthConstant.QUEUE_ADDRESS, queueUsername, queuePassword, queueBrokerUrl);
-			mosipQueueManager.send(mosipQueue, message.getBytes(), HealthConstant.QUEUE_ADDRESS);
+			if (mosipQueue == null)
+				mosipQueue = mosipConnectionFactory.createConnection("ACTIVEMQ", queueUsername,
+						queuePassword, queueBrokerUrl);
 
-			ActiveMQConnectionFactory activeMQConnectionFactory = new ActiveMQConnectionFactory(queueUsername,
-					queuePassword, queueBrokerUrl);
-			ActiveMQConnection activemQConn = (ActiveMQConnection) connection;
-			if (activemQConn == null || activemQConn.isClosed()) {
-				connection = activeMQConnectionFactory.createConnection();
-				activemQConn = (ActiveMQConnection) connection;
-				activemQConn.addTransportListener(new TransportExceptionListener());
-				if (session == null) {
-					connection.start();
-					this.session = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-					Queue destination = session.createQueue(HealthConstant.QUEUE_ADDRESS);
-					messageConsumer = session.createConsumer(destination);
-				}
+			mosipQueueManager.send(mosipQueue, msg.getBytes(), HealthConstant.QUEUE_ADDRESS);
+
+			if (!isConsumerStarted) {
+				QueueListener listener = new QueueListener() {
+					@Override
+					public void setListener(Message message) {
+						try {
+							consumerListener(message, promise, msg);
+						} catch (Exception e) {
+							LOGGER.error(LoggerFileConstant.SESSIONID.toString(),
+									LoggerFileConstant.REGISTRATIONID.toString(), "Unable to check activemq health", ExceptionUtils.getStackTrace(e));
+						}
+					}
+				};
+				mosipQueueManager.consume(mosipQueue, HealthConstant.QUEUE_ADDRESS, listener);
+				isConsumerStarted = true;
 			}
-			String res = new String(((ActiveMQBytesMessage) messageConsumer.receive()).getContent().data);
-			if (res == null || !message.equalsIgnoreCase(res)) {
-				final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, "Could not read response from queue").build();
-				promise.complete(Status.KO(result));
-			}
-			final JsonObject result = resultBuilder.create().add(HealthConstant.RESPONSE, res).build();
-			promise.complete(Status.OK(result));
 		} catch (Exception e) {
+			isConsumerStarted = false;
+			mosipQueue = null;
 			final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, e.getMessage()).build();
 			promise.complete(Status.KO(result));
 		}
+	}
+	public void consumerListener(Message message, Promise<Status> promise, String msg) {
+		String res = new String(((ActiveMQBytesMessage) message).getContent().data);
+		if (res == null || !msg.equalsIgnoreCase(res)) {
+			final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, "Could not read response from queue").build();
+			promise.complete(Status.KO(result));
+		}
+		final JsonObject result = resultBuilder.create().add(HealthConstant.RESPONSE, res).build();
+		promise.complete(Status.OK(result));
 	}
 
 	/**

@@ -80,6 +80,9 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
 	 */
 	private MosipEventBus mosipEventBus;
 
+	@Value("${securezone.routing.enabled:true}")
+	private boolean routingEnabled;
+
 	/**
 	 * After this time intervel, message should be considered as expired (In
 	 * seconds).
@@ -305,7 +308,8 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
 	 * @param messageDTO the message DTO
 	 */
 	public void sendMessage(MessageDTO messageDTO) {
-		this.send(this.mosipEventBus, MessageBusAddress.SECUREZONE_NOTIFICATION_OUT, messageDTO);
+		if (routingEnabled)
+			this.send(this.mosipEventBus, MessageBusAddress.SECUREZONE_NOTIFICATION_OUT, messageDTO);
 	}
 
 	@Override
