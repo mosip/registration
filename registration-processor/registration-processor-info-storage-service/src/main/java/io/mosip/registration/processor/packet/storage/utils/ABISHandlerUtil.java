@@ -102,7 +102,7 @@ public class ABISHandlerUtil {
 						List<String> processingRegIds = packetInfoDao.getWithoutStatusCodes(matchedRegIds,
 								RegistrationTransactionStatusCode.REJECTED.toString(), RegistrationTransactionStatusCode.PROCESSED.toString());
 						List<String> processedRegIds = packetInfoDao.getProcessedOrProcessingRegIds(matchedRegIds,
-								RegistrationTransactionStatusCode.PROCESSED.toString());
+								RegistrationTransactionStatusCode.PROCESSED.toString(),RegistrationTransactionStatusCode.PROCESSING.toString());
 						uniqueRIDs = getUniqueRegIds(processedRegIds, registrationId, registrationType, stageName);
 						uniqueRIDs.addAll(processingRegIds);
 					}
