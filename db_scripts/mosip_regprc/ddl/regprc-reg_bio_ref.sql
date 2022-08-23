@@ -13,7 +13,6 @@ CREATE TABLE regprc.reg_bio_ref(
 	is_deleted boolean DEFAULT FALSE,
 	del_dtimes timestamp,
 	workflow_instance_id character varying(36) NOT NULL,
-	source character varying,
 	process character varying,
 	iteration integer DEFAULT 1,
 	CONSTRAINT pk_regbref_id PRIMARY KEY (bio_ref_id,workflow_instance_id)
