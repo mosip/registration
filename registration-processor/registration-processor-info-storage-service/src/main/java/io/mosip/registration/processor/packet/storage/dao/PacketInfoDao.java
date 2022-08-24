@@ -581,7 +581,7 @@ public class PacketInfoDao {
 	 *            the status code
 	 * @return the processed or processing reg ids
 	 */
-	public List<String> getProcessedOrProcessingRegIds(List<String> matchedRegIds, String statusCode) {
+	public List<String> getProcessedOrProcessingRegIds(List<String> matchedRegIds, List<String> statusCode) {
 		return registrationRepositary.getProcessedOrProcessingRegIds(matchedRegIds, statusCode);
 	}
 
