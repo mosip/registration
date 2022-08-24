@@ -101,8 +101,11 @@ public class ABISHandlerUtil {
 					if (!CollectionUtils.isEmpty(matchedRegIds)) {
 						List<String> processingRegIds = packetInfoDao.getWithoutStatusCodes(matchedRegIds,
 								RegistrationTransactionStatusCode.REJECTED.toString(), RegistrationTransactionStatusCode.PROCESSED.toString());
+						List<String> statusList=new ArrayList<>();
+						statusList.add(RegistrationTransactionStatusCode.PROCESSED.toString());
+						statusList.add(RegistrationTransactionStatusCode.PROCESSING.toString());
 						List<String> processedRegIds = packetInfoDao.getProcessedOrProcessingRegIds(matchedRegIds,
-								RegistrationTransactionStatusCode.PROCESSED.toString(),RegistrationTransactionStatusCode.PROCESSING.toString());
+								statusList);
 						uniqueRIDs = getUniqueRegIds(processedRegIds, registrationId, registrationType, stageName);
 						uniqueRIDs.addAll(processingRegIds);
 					}
