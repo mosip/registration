@@ -3,6 +3,7 @@ package io.mosip.registration.processor.stages.cmdvalidator;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,7 +34,8 @@ public class CenterValidator {
 
 	private static final String VALID = "Valid";
 
-	ObjectMapper mapper = new ObjectMapper();
+	@Autowired
+	ObjectMapper mapper;
 
 	@Value("${mosip.regproc.cmd-validator.working-hour-validation-required}")
 	private Boolean isWorkingHourValidationRequired;
@@ -56,7 +58,7 @@ public class CenterValidator {
 	 */
 	private void validateRegistrationCenter(String registrationCenterId, String langCode, String effectiveDate,
 			String registrationId) throws IOException, BaseCheckedException, ApisResourceAccessException {
-		
+
 		regProcLogger.debug("validateRegistrationCenter called for registrationId {}", registrationId);
 		if (registrationCenterId == null || effectiveDate == null) {
 			throw new BaseCheckedException(StatusUtil.CENTER_ID_NOT_FOUND.getMessage(),
@@ -75,7 +77,10 @@ public class CenterValidator {
 				RegistrationCenterResponseDto.class);
 
 		if (responseWrapper.getErrors() == null) {
-			if (!rcpdto.getRegistrationCentersHistory().get(0).getIsActive()) {
+			rcpdto.setRegistrationCentersHistory(rcpdto.getRegistrationCentersHistory().stream().filter(c->
+			c!=null && c.getId()!=null && c.getIsActive()!=null && c.getIsActive() && c.getId().equalsIgnoreCase(registrationCenterId)).collect(Collectors.toList()));
+
+			if (rcpdto.getRegistrationCentersHistory()==null || rcpdto.getRegistrationCentersHistory().isEmpty()) {
 				throw new ValidationFailedException(StatusUtil.CENTER_ID_INACTIVE.getMessage(),
 						StatusUtil.CENTER_ID_INACTIVE.getCode());
 			}

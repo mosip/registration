@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.camel.bridge;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -45,10 +46,10 @@ import io.vertx.camel.CamelBridgeOptions;
  */
 @Component
 public class MosipBridgeFactory extends MosipVerticleAPIManager {
-	
+
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(MosipBridgeFactory.class);
-	
+
 	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.camel.bridge.";
 
 	@Value("${mosip.regproc.eventbus.type:vertx}")
@@ -60,10 +61,10 @@ public class MosipBridgeFactory extends MosipVerticleAPIManager {
 	Environment environment;
 	@Value("${vertx.cluster.configuration}")
 	private String clusterManagerUrl;
-	
+
 	/** The mosip event bus. */
 	MosipEventBus mosipEventBus = null;
-	
+
 	@Autowired
 	private RouteIntercepter routeIntercepter;
 
@@ -76,7 +77,7 @@ public class MosipBridgeFactory extends MosipVerticleAPIManager {
 
 	@Value("${mosip.regproc.eventbus.kafka.group.id}")
 	private String kafkaGroupId;
-	
+
 	/**
 	 * Gets the event bus.
 	 *
@@ -86,71 +87,75 @@ public class MosipBridgeFactory extends MosipVerticleAPIManager {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				"camel bridge event bus ", "MosipBridgeFactory::getEventBus()::entry");
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl);
-				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-						"MosipBridgeFactory::getEventBus()::exit", String.valueOf(mosipEventBus));
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				"MosipBridgeFactory::getEventBus()::exit", String.valueOf(mosipEventBus));
 	}
-
 
 	public void startCamelBridge() throws Exception {
 		String camelRoutesFileName;
-		JndiRegistry registry=null;
+		JndiRegistry registry = null;
 		CompletableFuture<MosipEventBus> eventBus = CompletableFuture.completedFuture(mosipEventBus);
 		CompletableFuture<Void> future = CompletableFuture.allOf(eventBus);
 		future.join();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				"MosipBridgeFactory::start()::entry::mosipEventBus ", String.valueOf(mosipEventBus));
-		
+
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				"mosipEventBus.getEventbus() ", String.valueOf(mosipEventBus.getEventbus()));
-		
+
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				"router ", String.valueOf(router));
-		
+
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				"router post url ", String.valueOf(this.postUrl(mosipEventBus.getEventbus(), null,null)));
-		
-		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), null,null));
-		
+				"router post url ", String.valueOf(this.postUrl(mosipEventBus.getEventbus(), null, null)));
+
+		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), null, null));
+
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				"router set  ", "router.setRoute()");
 		this.createServer(router.getRouter(), getPort());
-		    String[] beanNames=applicationContext.getBeanDefinitionNames();
-		    if (beanNames != null) {
-		      Map<String,String> enviroment= new HashMap<>();
-		      enviroment.put("java.naming.factory.initial", "org.apache.camel.util.jndi.CamelInitialContextFactory");
-		      registry= new JndiRegistry(enviroment);
-		      for (String name : beanNames) {
-		            registry.bind(name,applicationContext.getBean(name));
-		      }
-		    }
+		String[] beanNames = applicationContext.getBeanDefinitionNames();
+		if (beanNames != null) {
+			Map<String, String> enviroment = new HashMap<>();
+			enviroment.put("java.naming.factory.initial", "org.apache.camel.util.jndi.CamelInitialContextFactory");
+			registry = new JndiRegistry(enviroment);
+			for (String name : beanNames) {
+				registry.bind(name, applicationContext.getBean(name));
+			}
+		}
 		String zone = environment.getProperty("registration.processor.zone");
-		if(zone.equalsIgnoreCase("dmz")) {
-            camelRoutesFileName = environment.getProperty("camel.dmz.active.flows.file.names");
-        }
-        else {
-        	camelRoutesFileName = environment.getProperty("camel.secure.active.flows.file.names");
-        }
+		if (zone != null && zone.equalsIgnoreCase("dmz")) {
+			camelRoutesFileName = environment.getProperty("camel.dmz.active.flows.file.names");
+		} else {
+			camelRoutesFileName = environment.getProperty("camel.secure.active.flows.file.names");
+		}
 		CamelContext camelContext = new DefaultCamelContext(registry);
 		camelContext.setStreamCaching(true);
-		List<String> camelRoutesFilesArr = Arrays.asList(camelRoutesFileName.split(","));
-        RestTemplate restTemplate = new RestTemplate();
-        String camelRoutesBaseUrl = environment.getProperty("camel.routes.url");
-        ResponseEntity<Resource> responseEntity;
-        RoutesDefinition routes;
-        for (String camelRouteFileName : camelRoutesFilesArr) {
-			String camelRoutesUrl = camelRoutesBaseUrl + camelRouteFileName;
-			responseEntity = restTemplate.exchange(camelRoutesUrl, HttpMethod.GET, null,
-	                Resource.class);
-			routes = camelContext.loadRoutesDefinition(responseEntity.getBody().getInputStream());
-			camelContext.addRouteDefinitions(routeIntercepter.intercept(camelContext, routes.getRoutes()));
-			//camelContext.addRouteDefinitions(routes.getRoutes());
+		if (camelRoutesFileName == null) {
+			throw new RuntimeException("Property camel.secure.active.flows.file.names not found");
 		}
-		if(eventBusType.equals("vertx")) {
+		List<String> camelRoutesFilesArr = Arrays.asList(camelRoutesFileName.split(","));
+		RestTemplate restTemplate = new RestTemplate();
+		String camelRoutesBaseUrl = environment.getProperty("camel.routes.url");
+		ResponseEntity<Resource> responseEntity;
+		RoutesDefinition routes;
+		for (String camelRouteFileName : camelRoutesFilesArr) {
+			String camelRoutesUrl = camelRoutesBaseUrl + camelRouteFileName;
+			responseEntity = restTemplate.exchange(camelRoutesUrl, HttpMethod.GET, null, Resource.class);
+			Resource body=responseEntity.getBody();
+			if (body == null) {
+				throw new RuntimeException("Response for " + camelRoutesUrl + " is null");
+			}
+			routes = camelContext.loadRoutesDefinition(body.getInputStream());
+			camelContext.addRouteDefinitions(routeIntercepter.intercept(camelContext, routes.getRoutes()));
+			// camelContext.addRouteDefinitions(routes.getRoutes());
+		}
+		if (eventBusType.equals("vertx")) {
 			VertxComponent vertxComponent = new VertxComponent();
 			vertxComponent.setVertx(vertx);
 			camelContext.addComponent("eventbus", vertxComponent);
 			camelContext.addComponent("workflow-cmd", vertxComponent);
-		} else if(eventBusType.equals("kafka")) {
+		} else if (eventBusType.equals("kafka")) {
 			KafkaComponent kafkaComponent = new KafkaComponent();
 			KafkaConfiguration kafkaConfiguration = new KafkaConfiguration();
 			kafkaConfiguration.setGroupId(kafkaGroupId);
@@ -162,7 +167,7 @@ public class MosipBridgeFactory extends MosipVerticleAPIManager {
 			camelContext.setUnitOfWorkFactory(CustomMDCUnitOfWork::new);
 		} else
 			throw new UnsupportedEventBusTypeException(
-				PlatformErrorMessages.RPR_CMB_CONFIGURATION_SERVER_FAILURE_EXCEPTION);
+					PlatformErrorMessages.RPR_CMB_CONFIGURATION_SERVER_FAILURE_EXCEPTION);
 
 		camelContext.start();
 		CamelBridge.create(vertx, new CamelBridgeOptions(camelContext)).start();
@@ -173,7 +178,7 @@ public class MosipBridgeFactory extends MosipVerticleAPIManager {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
+
 	@Override
 	protected String getPropertyPrefix() {
 		return STAGE_PROPERTY_PREFIX;

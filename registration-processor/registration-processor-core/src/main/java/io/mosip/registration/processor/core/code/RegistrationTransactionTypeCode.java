@@ -28,12 +28,16 @@ public enum RegistrationTransactionTypeCode {
 	EXTERNAL_INTEGRATION,
 	/** The demographic verification. */
 	DEMOGRAPHIC_VERIFICATION,
-	/** The manual varification. */
-	MANUAL_VERIFICATION,
+	/** The manual adjudication. */
+	MANUAL_ADJUDICATION,
+	/** The verification. */
+	VERIFICATION,
 	/** The biographic verification. */
 	BIOGRAPHIC_VERIFICATION,
 	/** The uin generator. */
 	UIN_GENERATOR,
+	/** The biometric extraction. */
+	BIOMETRIC_EXTRACTION,
 	/** The notification. */
 	NOTIFICATION,
 	/** The print service. */
@@ -59,5 +63,7 @@ public enum RegistrationTransactionTypeCode {
 	INTERNAL_WORKFLOW_ACTION,
 
 	/** The workflow resume. */
-	WORKFLOW_RESUME;
+	WORKFLOW_RESUME,
+	/** The uin finalization  */
+	FINALIZATION;
 }

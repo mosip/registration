@@ -2,12 +2,14 @@ package io.mosip.registration.processor.print.stage;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
-import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -72,7 +76,9 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 @RefreshScope
 @Service
 @Configuration
-@ComponentScan(basePackages = { "io.mosip.registration.processor.core.config",
+@EnableScheduling
+@ComponentScan(basePackages = { "${mosip.auth.adapter.impl.basepackage}",
+		"io.mosip.registration.processor.core.config",
 		"io.mosip.registration.processor.stages.config", 
 		"io.mosip.registration.processor.print.config", 
 		"io.mosip.registrationprocessor.stages.config", 
@@ -85,6 +91,9 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 public class PrintingStage extends MosipVerticleAPIManager {
 	
 	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.printing.";
+	private Random sr = null;
+	private static final int max = 999999;
+	private static final int min = 100000;
 
 	/** The Constant FILE_SEPARATOR. */
 	public static final String FILE_SEPARATOR = File.separator;
@@ -363,7 +372,10 @@ public class PrintingStage extends MosipVerticleAPIManager {
 	}
 
 	public String generatePin() {
-		return RandomStringUtils.randomNumeric(6);
+		if (sr == null)
+			instantiate();
+		int randomInteger = sr.nextInt(max - min) + min;
+		return String.valueOf(randomInteger);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -420,6 +432,17 @@ public class PrintingStage extends MosipVerticleAPIManager {
 			object.setIsValid(true);
 		} else {
 			object.setIsValid(false);
+		}
+	}
+
+	@Scheduled(fixedDelayString = "${mosip.regproc.printstage.pingeneration.refresh.millisecs:1800000}",
+			initialDelayString = "${mosip.regproc.printstage.pingeneration.refresh.delay-on-startup.millisecs:5000}")
+	private void instantiate() {
+		regProcLogger.debug("Instantiating SecureRandom for credential pin generation............");
+		try {
+			sr = SecureRandom.getInstance("SHA1PRNG");
+		} catch (NoSuchAlgorithmException e) {
+			regProcLogger.error("Could not instantiate SecureRandom for credential pin generation", e);
 		}
 	}
 }

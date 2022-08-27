@@ -61,7 +61,10 @@ public final class PlatformConstants {
 	public static final String RPR_PACKET_DECRYPTION_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "PDS-";
 
 	/** The Constant RPR_MANUAL_VERIFICATION_MODULE. */
-	public static final String RPR_MANUAL_VERIFICATION_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "MVS-";
+	public static final String RPR_MANUAL_ADJUDICATION_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "MVS-";
+
+	/** The Constant RPR_MANUAL_VERIFICATION_MODULE. */
+	public static final String RPR_VERIFICATION_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "VS-";
 
 	/** The Constant RPR_REST_CLIENT_MODULE. */
 	public static final String RPR_REST_CLIENT_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "RCT-";
@@ -97,6 +100,9 @@ public final class PlatformConstants {
 
 	/** The Constant RPR_UIN_GENERATOR_STAGE. */
 	public static final String RPR_UIN_GENERATOR_STAGE = RPR_REGISTRATION_PROCESSOR_PREFIX + "UGS-";
+	
+	/** The Constant RPR_BIOMETRIC_EXTRACTION_STAGE. */
+	public static final String RPR_BIOMETRIC_EXTRACTION_STAGE = RPR_REGISTRATION_PROCESSOR_PREFIX + "BEN-";
 
 	/** The Constant RPR_UIN_GENERATOR_STAGE. */
 	public static final String RPR_AUTHENTICATION = RPR_REGISTRATION_PROCESSOR_PREFIX + "AUT-";
@@ -104,7 +110,7 @@ public final class PlatformConstants {
 	/** The Constant RPR_BIOMETRIC_AUTHENTICATION_MODULE. */
 	public static final String RPR_BIOMETRIC_AUTHENTICATION_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "BAS-";
 
-	public static final String RPR_REPROCESSOR_STAGE = RPR_REGISTRATION_PROCESSOR_PREFIX + "RS-";
+	public static final String RPR_REPROCESSOR_VERTICLE = RPR_REGISTRATION_PROCESSOR_PREFIX + "RS-";
 
 	public static final String RPR_EXTERNAL_STAGE = RPR_REGISTRATION_PROCESSOR_PREFIX + "EX-";
 
@@ -130,6 +136,8 @@ public final class PlatformConstants {
 	public static final String RPR_WORKFLOW_ACTION_SERVICE = RPR_REGISTRATION_PROCESSOR_PREFIX + "WAS-";
 
 	public static final String RPR_WORKFLOW_ACTION_JOB = RPR_REGISTRATION_PROCESSOR_PREFIX + "WAJ-";
+
+	public static final String RPR_FINALIZATION_STAGE = RPR_REGISTRATION_PROCESSOR_PREFIX + "FIN-";
 
 	/**
 	 * Instantiates a new RPR platform error codes.

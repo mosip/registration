@@ -26,6 +26,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
@@ -85,6 +86,9 @@ public class AuthUtil {
 	@Autowired
 	private KeyGenerator keyGenerator;
 
+	@Autowired
+	private ObjectMapper mapper;
+
 	/** The encryptor. */
 	@Autowired
 	private CryptoCoreSpec<byte[], byte[], SecretKey, PublicKey, PrivateKey, String> encryptor;
@@ -123,6 +127,10 @@ public class AuthUtil {
 	@Autowired
 	private Environment env;
 
+	@Autowired
+	@Qualifier("selfTokenRestTemplate")
+	RestTemplate restTemplate;
+
 	/** The bio api factory. */
 	@Autowired(required = false)
 	private BioAPIFactory bioApiFactory;
@@ -149,7 +157,7 @@ public class AuthUtil {
 		authRequestDTO.setEnv(authEnv);
 		authRequestDTO.setDomainUri(domainUrl);
 
-		String thumbprint = CryptoUtil.encodeBase64(getCertificateThumbprint(getCertificate(PARTNER_ID)));
+		String thumbprint = CryptoUtil.encodeToURLSafeBase64(getCertificateThumbprint(getCertificate(PARTNER_ID)));
 		authRequestDTO.setThumbprint(thumbprint);
 
 		AuthTypeDTO authType = new AuthTypeDTO();
@@ -164,22 +172,21 @@ public class AuthUtil {
 		RequestDTO request = new RequestDTO();
 		request.setBiometrics(biometrics);
 		request.setTimestamp(DateUtils.formatToISOString(localdatetime));
-		ObjectMapper mapper = new ObjectMapper();
 		String identityBlock = mapper.writeValueAsString(request);
 
 		final SecretKey secretKey = keyGenerator.getSymmetricKey();
 		// Encrypted request with session key
 		byte[] encryptedIdentityBlock = encryptor.symmetricEncrypt(secretKey, identityBlock.getBytes(), null);
 		// rbase64 encoded for request
-		authRequestDTO.setRequest(Base64.encodeBase64URLSafeString(encryptedIdentityBlock));
+		authRequestDTO.setRequest(CryptoUtil.encodeToURLSafeBase64(encryptedIdentityBlock));
 		// encrypted with MOSIP public key and encoded session key
 		byte[] encryptedSessionKeyByte = encryptRSA(secretKey.getEncoded(), PARTNER_ID, mapper);
-		authRequestDTO.setRequestSessionKey(Base64.encodeBase64URLSafeString(encryptedSessionKeyByte));
+		authRequestDTO.setRequestSessionKey(CryptoUtil.encodeToURLSafeBase64(encryptedSessionKeyByte));
 		// sha256 of the request block before encryption and the hash is encrypted
 		// using the requestSessionKey
 		byte[] byteArray = encryptor.symmetricEncrypt(secretKey,
 				HMACUtils2.digestAsPlainText(identityBlock.getBytes()).getBytes(), null);
-		authRequestDTO.setRequestHMAC(Base64.encodeBase64String(byteArray));
+		authRequestDTO.setRequestHMAC(CryptoUtil.encodeToURLSafeBase64(byteArray));
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), individualId,
 				"AuthUtil::authByIdAuthentication()::INTERNALAUTH POST service call started");
 
@@ -187,9 +194,10 @@ public class AuthUtil {
 		String token = restApiClient.getToken().replace(AUTHORIZATION, "");
 		headers.add("cookie", restApiClient.getToken());
 		headers.add("Authorization", token);
+
 		HttpEntity<AuthRequestDTO> httpEntity = new HttpEntity<>(authRequestDTO, headers);
 
-		ResponseEntity<AuthResponseDTO> responseEntity = new RestTemplate().exchange(env.getProperty(ApiName.INTERNALAUTH.name()), HttpMethod.POST, httpEntity, AuthResponseDTO.class);
+		ResponseEntity<AuthResponseDTO> responseEntity = restTemplate.exchange(env.getProperty(ApiName.INTERNALAUTH.name()), HttpMethod.POST, httpEntity, AuthResponseDTO.class);
 		AuthResponseDTO response = responseEntity.getBody();
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), null,
@@ -261,7 +269,7 @@ public class AuthUtil {
 				dataInfoDTO.setBioValue(splittedEncryptData.getEncryptedData());
 				dataInfoDTO.setTimestamp(timeStamp);
 				String encodedData = CryptoUtil
-						.encodeBase64String(JsonUtil.objectMapperObjectToJson(dataInfoDTO).getBytes());
+						.encodeToURLSafeBase64(JsonUtil.objectMapperObjectToJson(dataInfoDTO).getBytes());
 				bioInfo.setData(encodedData);
 				String presentHash = HMACUtils2.digestAsPlainText(JsonUtil.objectMapperObjectToJson(dataInfoDTO).getBytes());
 				StringBuilder concatenatedHash = new StringBuilder();
@@ -290,7 +298,7 @@ public class AuthUtil {
 
 	private boolean isExceptionBIR(io.mosip.kernel.biometrics.entities.BIR bir) {
 		if(bir.getOthers() != null) {
-			Optional<io.mosip.kernel.biometrics.entities.Entry> entry = bir.getOthers().stream().filter(
+			Optional<Entry<String, String>> entry = bir.getOthers().entrySet().stream().filter(
 				it -> it.getKey().equals(JsonConstant.BIOMETRICRECORDEXCEPTION)).findAny();
 			if(entry.isPresent() && entry.get().getValue().equals("true"))
 				return true;
@@ -333,9 +341,9 @@ public class AuthUtil {
 		SplittedEncryptedData splittedData = null;
 		byte[] xorBytes = BytesUtil.getXOR(timeStamp, DUMMY_TRANSACTION_ID);
 		byte[] saltLastBytes = BytesUtil.getLastBytes(xorBytes, 12);
-		String salt = CryptoUtil.encodeBase64(saltLastBytes);
+		String salt = CryptoUtil.encodeToURLSafeBase64(saltLastBytes);
 		byte[] aadLastBytes = BytesUtil.getLastBytes(xorBytes, 16);
-		String aad = CryptoUtil.encodeBase64(aadLastBytes);
+		String aad = CryptoUtil.encodeToURLSafeBase64(aadLastBytes);
 		CryptoManagerEncryptDto encryptDto = new CryptoManagerEncryptDto();
 		RequestWrapper<CryptoManagerEncryptDto> request = new RequestWrapper<>();
 		encryptDto.setAad(aad);
@@ -343,7 +351,7 @@ public class AuthUtil {
 		encryptDto.setReferenceId(PARTNER_ID);
 		encryptDto.setSalt(salt);
 		encryptDto.setTimeStamp(timeStamp);
-		encryptDto.setData(CryptoUtil.encodeBase64(data));
+		encryptDto.setData(CryptoUtil.encodeToURLSafeBase64(data));
 		encryptDto.setPrependThumbprint(isPrependThumbprintEnabled);
 
 		request.setId(authRequestId);
@@ -373,10 +381,15 @@ public class AuthUtil {
 	}
 
 	public SplittedEncryptedData splitEncryptedData(String data) {
-		byte[] dataBytes = CryptoUtil.decodeBase64(data);
+		byte[] dataBytes =null;
+		try {
+			dataBytes= CryptoUtil.decodeURLSafeBase64(data);
+		} catch (IllegalArgumentException exception) {
+			dataBytes= CryptoUtil.decodePlainBase64(data);
+		}
 		byte[][] splits = splitAtFirstOccurance(dataBytes,
 				String.valueOf(env.getProperty(KERNEL_KEY_SPLITTER)).getBytes());
-		return new SplittedEncryptedData(CryptoUtil.encodeBase64(splits[0]), CryptoUtil.encodeBase64(splits[1]));
+		return new SplittedEncryptedData(CryptoUtil.encodeToURLSafeBase64(splits[0]), CryptoUtil.encodeToURLSafeBase64(splits[1]));
 	}
 
 	private static byte[][] splitAtFirstOccurance(byte[] strBytes, byte[] sepBytes) {
@@ -419,7 +432,6 @@ public class AuthUtil {
 		// encrypt AES Session Key using RSA public key
 		ResponseWrapper<?> responseWrapper;
 		CertificateResponseDto certificateResponseDto;
-		ObjectMapper mapper = new ObjectMapper();
 		responseWrapper = (ResponseWrapper<?>) registrationProcessorRestClientService.getApi(ApiName.IDAUTHCERTIFICATE,
 				null, "applicationId,referenceId", IDA_APP_ID + ',' + refId, ResponseWrapper.class);
 		certificateResponseDto = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),

@@ -11,13 +11,16 @@ import static org.mockito.Mockito.when;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,20 +28,22 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.TestPropertySource;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.cbeffutil.exception.CbeffException;
+import io.mosip.kernel.core.exception.BiometricSignatureValidationException;
 import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
-import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.constant.JsonConstant;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
@@ -56,19 +61,18 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.dto.ValidatePacketResponse;
+import io.mosip.registration.processor.packet.storage.exception.IdRepoAppException;
 import io.mosip.registration.processor.packet.storage.exception.IdentityNotFoundException;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.stages.utils.ApplicantDocumentValidation;
 import io.mosip.registration.processor.stages.utils.BiometricsXSDValidator;
+import io.mosip.registration.processor.stages.validator.impl.BiometricsSignatureValidator;
 import io.mosip.registration.processor.stages.validator.impl.PacketValidatorImpl;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
-import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
 import io.mosip.registration.processor.status.repositary.SyncRegistrationRepository;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ JsonUtil.class, IOUtils.class, HMACUtils2.class, Utilities.class, MessageDigest.class })
-@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*", "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*" })
+@RunWith(MockitoJUnitRunner.class)
 @TestPropertySource(locations = "classpath:application.properties")
 public class PacketValidatorImplTest {
 
@@ -83,6 +87,9 @@ public class PacketValidatorImplTest {
 
 	@Mock
 	private BiometricsXSDValidator biometricsXSDValidator;
+	
+	@Mock
+	private BiometricsSignatureValidator biometricsSignatureValidator;
 
 	@Mock
 	private Environment env;
@@ -108,6 +115,9 @@ public class PacketValidatorImplTest {
 	@Mock
 	private ApplicantDocumentValidation applicantDocumentValidation;
 
+	@Mock
+	ObjectMapper mapper;
+
 	@Value("${packetmanager.name.source.default}")
 	private String source;
 
@@ -120,10 +130,14 @@ public class PacketValidatorImplTest {
 	public static final String APPROVED = "APPROVED";
 	public static final String REJECTED = "REJECTED";
 	private static final String VALIDATEAPPLICANTDOCUMENT = "mosip.regproc.packet.validator.validate-applicant-document";
+	private static final String VALIDATEAPPLICANTDOCUMENTPROCESS = "mosip.regproc.packet.validator.validate-applicant-document.processes";
 
 	private static final String PRIMARY_LANGUAGE = "mosip.primary-language";
 
 	private static final String SECONDARY_LANGUAGE = "mosip.secondary-language";
+
+	JSONObject jsonObject = Mockito.mock(JSONObject.class);
+	Map<String, String> metamap = new HashMap<>();
 
 	@Before
 	public void setup() throws Exception {
@@ -199,30 +213,11 @@ public class PacketValidatorImplTest {
 		// anyString(),anyString())).thenReturn(inputStream);
 		// when(packetReaderService.getFile(anyString(),anyString(),anyString())).thenReturn(inputStream);
 
-		PowerMockito.mockStatic(JsonUtil.class);
-		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
-				.thenReturn(packetMetaInfo);
+
 		byte[] data = "{}".getBytes();
-		PowerMockito.mockStatic(IOUtils.class);
-		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(data);
+		when(env.getProperty(anyString())).thenReturn("true").thenReturn("NEW");
 
-		when(env.getProperty(anyString())).thenReturn("gender");
-		when(env.getProperty(PRIMARY_LANGUAGE)).thenReturn("eng");
-		when(env.getProperty(SECONDARY_LANGUAGE)).thenReturn("ara");
-		when(env.getProperty(VALIDATEAPPLICANTDOCUMENT)).thenReturn("true");
-		JSONObject jsonObject = Mockito.mock(JSONObject.class);
-		Mockito.when(idObjectValidator.validateIdObject(any(), any(), any())).thenReturn(true);
-
-		PowerMockito.when(JsonUtil.getJSONObject(jsonObject, "individualBiometrics")).thenReturn(jsonObject);
-		Mockito.when(jsonObject.get("value")).thenReturn("applicantCBEF");
-
-		Mockito.when(utility.getUIn(anyString(), anyString(), any())).thenReturn("12345678l");
-		Mockito.when(utility.retrieveIdrepoJson(any())).thenReturn(jsonObject);
-		Mockito.when(utility.retrieveIdrepoJsonStatus(any())).thenReturn("ACTIVE");
-		when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
-		when(utility.getMappingJsonValue(anyString(), any())).thenReturn("value");
 		Mockito.when(utility.uinPresentInIdRepo(any())).thenReturn(true);
-		Mockito.when(idRepoService.findUinFromIdrepo(anyString(), any())).thenReturn("123456781");
 		ValidatePacketResponse validatePacketResponse = new ValidatePacketResponse();
 		validatePacketResponse.setValid(true);
 		when(packetManagerService.validate(anyString(), anyString(), any())).thenReturn(validatePacketResponse);
@@ -234,17 +229,60 @@ public class PacketValidatorImplTest {
 		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
 				.thenReturn(biometricRecord);
 		when(applicantDocumentValidation.validateDocument(any(), any())).thenReturn(true);
+
+		JSONArray jsonArray = new JSONArray();
+		org.json.JSONObject jsonObject = new org.json.JSONObject();
+		jsonObject.put(MappingJsonConstants.OFFICERBIOMETRICFILENAME, "officerBiometricFilename");
+		jsonArray.put(0, jsonObject);
+		metamap.put(JsonConstant.OPERATIONSDATA, jsonArray.toString());
+		Mockito.when(packetManagerService.getMetaInfo(anyString(), any(), any())).thenReturn(metamap);
+		Mockito.when(mapper.readValue(anyString(), any(Class.class)))
+				.thenReturn(new FieldValue(MappingJsonConstants.OFFICERBIOMETRICFILENAME, "officerBiometricFilename"));
 	}
 
 	@Test
 	public void testValidationSuccess() throws PacketValidatorException, ApisResourceAccessException,
-			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException {
+			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException,
+			BiometricSignatureValidationException, JSONException {
+		Mockito.doNothing().when(biometricsSignatureValidator).validateSignature(anyString(), anyString(), any(),
+				any());
 		assertTrue(PacketValidator.validate("123456789", "NEW", packetValidationDto));
+	}
+	
+	@Test(expected = PacketManagerException.class)
+	public void testPacketManagerException() throws PacketValidatorException, ApisResourceAccessException,
+			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException,
+			BiometricSignatureValidationException, JSONException {
+		when(packetManagerService.getField(any(), any(), any(), any())).thenThrow(new PacketManagerException("",""));
+		assertTrue(PacketValidator.validate("123456789", "NEW", packetValidationDto));
+	}
+	
+	@Test
+	public void testDocumentValidationFailure() throws PacketValidatorException, ApisResourceAccessException,
+			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException,
+			BiometricSignatureValidationException, JSONException {
+		
+		when(applicantDocumentValidation.validateDocument(any(), any())).thenReturn(false);
+		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
+	}
+
+	@Test
+	public void testdocumentValidationFailed() throws PacketValidatorException, ApisResourceAccessException,
+			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException,
+			BiometricSignatureValidationException, JSONException {
+		when(applicantDocumentValidation.validateDocument(any(), any())).thenReturn(false);
+		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
 
 	@Test
 	public void testUpdateValidationSuccess() throws PacketValidatorException, ApisResourceAccessException,
-			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException {
+			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException,
+			BiometricSignatureValidationException, JSONException {
+		Mockito.when(utility.getUIn(anyString(), anyString(), any())).thenReturn("12345678l");
+		Mockito.when(utility.retrieveIdrepoJson(any())).thenReturn(jsonObject);
+		Mockito.when(utility.retrieveIdrepoJsonStatus(any())).thenReturn("ACTIVE");
+		Mockito.doNothing().when(biometricsSignatureValidator).validateSignature(anyString(), anyString(), any(),
+				any());
 		assertTrue(PacketValidator.validate("123456789", "UPDATE", packetValidationDto));
 	}
 
@@ -252,13 +290,49 @@ public class PacketValidatorImplTest {
 	public void testUINNotPresentinIDrepo() throws PacketValidatorException, ApisResourceAccessException, IOException,
 			RegistrationProcessorCheckedException, JsonProcessingException, PacketManagerException {
 		Mockito.when(utility.uinPresentInIdRepo(any())).thenReturn(false);
-		Mockito.when(idRepoService.findUinFromIdrepo(anyString(), any())).thenReturn(null);
+		Mockito.when(utility.getUIn(anyString(), anyString(), any())).thenReturn("12345678l");
+		Mockito.when(utility.retrieveIdrepoJson(any())).thenReturn(jsonObject);
+		Mockito.when(utility.retrieveIdrepoJsonStatus(any())).thenReturn("ACTIVE");
+		
 		assertFalse(PacketValidator.validate("123456789", "UPDATE", packetValidationDto));
+	}
+
+	@Test(expected = IdRepoAppException.class)
+	public void testValidationUINNull() throws PacketValidatorException, ApisResourceAccessException,
+			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException,
+			BiometricSignatureValidationException, JSONException {
+		Mockito.when(utility.getUIn(anyString(), anyString(), any())).thenReturn(null);
+		
+		PacketValidator.validate("123456789", "UPDATE", packetValidationDto);
+	}
+
+	@Test(expected = IdRepoAppException.class)
+	public void testValidationJsonNull() throws PacketValidatorException, ApisResourceAccessException,
+			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException,
+			BiometricSignatureValidationException, JSONException {
+		Mockito.when(utility.getUIn(anyString(), anyString(), any())).thenReturn("12345678l");
+		Mockito.when(utility.retrieveIdrepoJson(any())).thenReturn(null);
+		
+		PacketValidator.validate("123456789", "UPDATE", packetValidationDto);
+	}
+
+	@Test(expected = RegistrationProcessorCheckedException.class)
+	public void testValidationStatusDeactived() throws PacketValidatorException, ApisResourceAccessException,
+			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException,
+			BiometricSignatureValidationException, JSONException {
+		Mockito.when(utility.getUIn(anyString(), anyString(), any())).thenReturn("12345678l");
+		Mockito.when(utility.retrieveIdrepoJson(any())).thenReturn(jsonObject);
+		Mockito.when(utility.retrieveIdrepoJsonStatus(any())).thenReturn("deactivated");
+		
+		PacketValidator.validate("123456789", "UPDATE", packetValidationDto);
 	}
 
 	@Test
 	public void testValidationConfigSuccess() throws PacketValidatorException, ApisResourceAccessException,
-			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException {
+			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException,
+			BiometricSignatureValidationException, JSONException {
+		Mockito.doNothing().when(biometricsSignatureValidator).validateSignature(anyString(), anyString(), any(),
+				any());
 		when(env.getProperty(VALIDATEAPPLICANTDOCUMENT)).thenReturn("false");
 		assertTrue(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
@@ -274,6 +348,13 @@ public class PacketValidatorImplTest {
 		doThrow(new CbeffException("CbeffException occurred")).when(biometricsXSDValidator).validateXSD(any());
 		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
+	
+	@Test
+	public void testBiometricsSignatureValidatonFailure() throws Exception {
+		doThrow(new BiometricSignatureValidationException("JWT signature Validation Failed"))
+				.when(biometricsSignatureValidator).validateSignature(anyString(), anyString(), any(), any());
+		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
+	}
 
 	@Test
 	public void testPacketManagerValidationFailure()
@@ -283,6 +364,23 @@ public class PacketValidatorImplTest {
 		validatePacketResponse.setValid(false);
 		when(packetManagerService.validate(anyString(), anyString(), any())).thenReturn(validatePacketResponse);
 		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
+	}
+
+	@Test(expected = PacketManagerException.class)
+	public void testPacketManagerValidationException() throws PacketManagerException, ApisResourceAccessException,
+			JsonProcessingException, IOException, RegistrationProcessorCheckedException {
+		when(packetManagerService.validate(anyString(), anyString(), any())).thenThrow(PacketManagerException.class);
+		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
+	}
+
+	@Test
+	public void testJsonException() throws PacketManagerException, ApisResourceAccessException, JsonProcessingException,
+			IOException, RegistrationProcessorCheckedException, JSONException {
+		org.json.JSONObject jsonObject = new org.json.JSONObject();
+		jsonObject.put(MappingJsonConstants.OFFICERBIOMETRICFILENAME, "officerBiometricFilename");
+		metamap.put(JsonConstant.OPERATIONSDATA, jsonObject.toString());
+		Mockito.when(packetManagerService.getMetaInfo(anyString(), any(), any())).thenReturn(metamap);
+		assertTrue(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
 
 }

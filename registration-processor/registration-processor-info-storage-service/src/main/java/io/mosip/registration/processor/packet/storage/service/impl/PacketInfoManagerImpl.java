@@ -1,9 +1,29 @@
 package io.mosip.registration.processor.packet.storage.service.impl;
 
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.stereotype.Service;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.AuditLogConstant;
@@ -19,7 +39,6 @@ import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.Identity;
-import io.mosip.registration.processor.core.packet.dto.RegAbisRefDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisApplicationDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisRequestDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisResponseDetDto;
@@ -51,24 +70,6 @@ import io.mosip.registration.processor.packet.storage.repository.BasePacketRepos
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
 
 /**
  * The Class PacketInfoManagerImpl.
@@ -95,7 +96,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	/** The reg bio ref repository. */
 	@Autowired
 	private BasePacketRepository<RegBioRefEntity, String> regBioRefRepository;
-
+	
 	/** The reg abis request repository. */
 	@Autowired
 	private BasePacketRepository<AbisRequestEntity, String> regAbisRequestRepository;
@@ -137,7 +138,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	@Autowired
 	private PriorityBasedPacketManagerService packetManagerService;
 
-	@Value("${registration.processor.demodedupe.manualverification.status}")
+	@Value("${registration.processor.demodedupe.manual.adjudication.status}")
 	private String manualVerificationStatus;
 
 	/** The Constant MATCHED_REFERENCE_TYPE. */
@@ -224,7 +225,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 					JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.EMAIL),
 					MappingJsonConstants.VALUE);
 
-			fields.add(nameKey);
+			fields.addAll(Arrays.asList(nameKey.split(",")));
 			fields.add(dob);
 			fields.add(gender);
 			fields.add(email);
@@ -1001,22 +1002,11 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 
 	}
 
-	private JsonValue[] getField(String value) throws IOException {
-		if (StringUtils.isNotEmpty(value)) {
-			Object object = objectMapper.readValue(value, Object.class);
-			if (object instanceof ArrayList) {
-				JSONArray node = objectMapper.readValue(value, JSONArray.class);
-				JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
-				return jsonValues;
-			}
-		}
-		return null;
-	}
-
 	@Override
 	public List<RegBioRefDto> getRegBioRefDataByBioRefIds(List<String> bioRefId) {
 		List<RegBioRefEntity> regBioRefList = packetInfoDao.getRegBioRefDataByBioRefIds(bioRefId);
 		return PacketInfoMapper.convertRegBioRefEntityListToDto(regBioRefList);
 	}
+
 
 }

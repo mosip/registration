@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
@@ -49,6 +50,7 @@ public class AgeGroupTagGeneratorTest {
 		ageGroupRangeMap.put("SENIOR_CITIZEN", "60-200");
 
 		Whitebox.setInternalState(ageGroupTagGenerator, "tagName", tagName);
+		Whitebox.setInternalState(ageGroupTagGenerator, "notAvailableTagValue", "--TAG_VALUE_NOT_AVAILABLE--");
 		Whitebox.setInternalState(ageGroupTagGenerator, "ageGroupRangeMap", ageGroupRangeMap);
 
 		Whitebox.invokeMethod(ageGroupTagGenerator, "generateParsedAgeGroupRangeMap");
@@ -75,11 +77,30 @@ public class AgeGroupTagGeneratorTest {
 		Map<String, String> tags = ageGroupTagGenerator.generateTags("1234", "123", "NEW", null, null, 0);
 		assertEquals(tags.get(tagName), "SENIOR_CITIZEN");
 	}
+	
+	@Test
+	public void testGenerateTagsForLostPacket() throws Exception {
+		Mockito.when(utility.getApplicantAge(anyString(), anyString(), any())).thenReturn(-1);
+		Map<String, String> tags = ageGroupTagGenerator.generateTags("1234", "123", "LOST", null, null, 0);
+		assertEquals(tags.get(tagName), "--TAG_VALUE_NOT_AVAILABLE--");
+	}
+	
+	@Test(expected = BaseCheckedException.class)
+	public void testGenerateTagsForAgeGroupNotFound() throws Exception {
+		Mockito.when(utility.getApplicantAge(anyString(), anyString(), any())).thenReturn(201);
+		ageGroupTagGenerator.generateTags("1234", "123", "LOST", null, null, 0);
+	}
 
 	@Test(expected = BaseCheckedException.class)
 	public void testGenerateTagsForUtilityThrowningIOException() throws Exception {
 		Mockito.when(utility.getApplicantAge(anyString(), anyString(), any())).thenThrow(new IOException());
 		ageGroupTagGenerator.generateTags("1234", "123", "NEW", null, null, 0);
+	}
+	
+	@Test
+	public void getRequiredIdObjectFieldNamesTest() throws Exception {
+		List<String> result = ageGroupTagGenerator.getRequiredIdObjectFieldNames();
+		assertEquals(result, null);
 	}
 	
 }

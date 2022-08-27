@@ -21,13 +21,13 @@ import javax.persistence.Table;
 public class SyncRegistrationEntity extends BaseSyncRegistrationEntity {
 
 	/** The registration id. */
-	@Column(name = "reg_id", nullable = false)
+	@Column(name = "reg_id")
 	private String registrationId;
 
-	@Column(name = "additional_info_req_id", nullable = false)
+	@Column(name = "additional_info_req_id")
 	private String additionalInfoReqId ;
 
-	@Column(name = "packet_id", nullable = false)
+	@Column(name = "packet_id")
 	private String packetId;
 
 	/** The registration type. */
@@ -38,11 +38,11 @@ public class SyncRegistrationEntity extends BaseSyncRegistrationEntity {
 	private String source;
 
 	/** The lang code. */
-	@Column(name = "packet_checksum", nullable = false)
+	@Column(name = "packet_checksum")
 	private String packetHashValue;
 
 	/** The lang code. */
-	@Column(name = "packet_size", nullable = false)
+	@Column(name = "packet_size")
 	private BigInteger packetSize;
 
 	/** The status code. */
@@ -66,11 +66,11 @@ public class SyncRegistrationEntity extends BaseSyncRegistrationEntity {
 	private String statusComment;
 
 	/** The lang code. */
-	@Column(name = "lang_code", nullable = false)
+	@Column(name = "lang_code")
 	private String langCode;
 
 	/** The created by. */
-	@Column(name = "cr_by", nullable = false)
+	@Column(name = "cr_by")
 	private String createdBy;
 
 	/** The create date time. */
@@ -113,8 +113,8 @@ public class SyncRegistrationEntity extends BaseSyncRegistrationEntity {
 	@Column(name = "registration_date")
 	private LocalDate registrationDate;
 
-	@Column(name = "postal_code")
-	private String postalCode;
+	@Column(name = "location_code")
+	private String locationCode;
 
 	/**
 	 * Instantiates a new sync registration entity.
@@ -492,11 +492,11 @@ public class SyncRegistrationEntity extends BaseSyncRegistrationEntity {
 	}
 
 	public String getPostalCode() {
-		return postalCode;
+		return locationCode;
 	}
 
-	public void setPostalCode(String postalCode) {
-		this.postalCode = postalCode;
+	public void setLocationCode(String locationCode) {
+		this.locationCode = locationCode;
 	}
 	public String getReferenceId() {
 		return referenceId;

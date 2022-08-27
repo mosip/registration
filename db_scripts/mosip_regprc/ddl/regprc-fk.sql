@@ -1,15 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_regprc
--- Table Name 	: All tables at mosip_regprc Database
--- Purpose    	: To establish FOREIGN Constrations required for entity relationship
---       
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- 
--- ------------------------------------------------------------------------------------------
+
 -- Foreign Key Constraints Same DB/Schema tables.
 -- FOREIGN KEY CONSTRAINTS : mosip_regprc database/schema.
 

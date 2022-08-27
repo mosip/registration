@@ -4,21 +4,25 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.mosip.registration.processor.core.constant.IdType;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.constant.AbisConstant;
+import io.mosip.registration.processor.core.constant.IdType;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO;
+import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
@@ -40,6 +44,9 @@ public class IdRepoServiceImpl implements IdRepoService {
 	/** The rest client service. */
 	@Autowired
 	private RegistrationProcessorRestClientService<Object> restClientService;
+	
+	@Autowired
+	private ObjectMapper mapper;
 
 	/*
 	 * (non-Javadoc)
@@ -94,8 +101,8 @@ public class IdRepoServiceImpl implements IdRepoService {
 				ResponseWrapper.class);
 
 		if (response.getResponse() != null) {
-			Gson gsonObj = new Gson();
-			String jsonString = gsonObj.toJson(response.getResponse());
+			//Gson gsonObj = new Gson();
+			String jsonString =mapper.writeValueAsString(response.getResponse());//gsonObj.toJson(response.getResponse());
 			JSONObject identityJson = JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
 			JSONObject demographicIdentity = JsonUtil.getJSONObject(identityJson, regProcessorDemographicIdentity);
 			return JsonUtil.getJSONValue(demographicIdentity, AbisConstant.UIN);
@@ -147,10 +154,9 @@ public class IdRepoServiceImpl implements IdRepoService {
 
 		response = (ResponseWrapper<IdResponseDTO>) restClientService.getApi(ApiName.RETRIEVEIDENTITYFROMRID, pathSegments, "", "",
 				ResponseWrapper.class);
-
+	
 		if (response.getResponse() != null) {
-			Gson gsonObj = new Gson();
-			String jsonString = gsonObj.toJson(response.getResponse());
+			String jsonString =mapper.writeValueAsString(response.getResponse());
 			JSONObject identityJson = JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
 			demographicJsonObj = JsonUtil.getJSONObject(identityJson, regProcessorDemographicIdentity);
 
@@ -161,4 +167,31 @@ public class IdRepoServiceImpl implements IdRepoService {
 		return demographicJsonObj;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService#
+	 * getIdResponseFromIDRepo(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public ResponseDTO getIdResponseFromIDRepo(String machedRegId) throws IOException, ApisResourceAccessException {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				machedRegId, "IdRepoServiceImpl::getIdResponseFromIDRepo()::entry");
+		ResponseDTO responseDTO=null;
+		List<String> pathSegments1 = new ArrayList<>();
+		pathSegments1.add(machedRegId);
+		@SuppressWarnings("unchecked")
+		ResponseWrapper<ResponseDTO> response=(ResponseWrapper<ResponseDTO>) restClientService.getApi(ApiName.IDREPOGETIDBYUIN, pathSegments1, "type", "ALL",
+				ResponseWrapper.class);
+
+		if (response.getResponse() != null) {
+			responseDTO=mapper.readValue(mapper.writeValueAsString(response.getResponse()), ResponseDTO.class);
+
+		}
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				machedRegId, "IdRepoServiceImpl::getIdResponseFromIDRepo()::exit");
+
+		return responseDTO;
+	}
 }

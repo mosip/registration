@@ -1,5 +1,7 @@
 package io.mosip.registration.processor.core.exception.util;
 
+import io.mosip.registration.processor.core.status.util.StatusConstants;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Enum RPRPlatformErrorMessages.
@@ -72,6 +74,10 @@ public enum PlatformErrorMessages {
 	/** The rpr rgs transaction table not accessible. */
 	RPR_RGS_TRANSACTION_TABLE_NOT_ACCESSIBLE(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "002",
 			"Unable to Access Registration Transaction Table"),
+	
+	/** The rpr rgs anonymous profile table not accessible. */
+	RPR_RGS_ANONYMOUS_PROFILE_TABLE_NOT_ACCESSIBLE(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "038",
+			"Unable to anonymous profile  Table"),
 
 	/** The rpr rgs invalid synctype. */
 	RPR_RGS_INVALID_SYNCTYPE(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "003", "Invalid Sync Type"),
@@ -342,7 +348,7 @@ public enum PlatformErrorMessages {
 
 	/** The structural validation failed. */
 	// Stages - Packet validator Exception error code and message
-	STRUCTURAL_VALIDATION_FAILED("", "Structural Validation Failed"),
+	STRUCTURAL_VALIDATION_FAILED(PlatformConstants.RPR_PACKET_VALIDATOR_MODULE + "015", "Structural Validation Failed"),
 
 	/** The rpr pvm data not available. */
 	RPR_PVM_DATA_NOT_AVAILABLE(PlatformConstants.RPR_PACKET_VALIDATOR_MODULE + "002",
@@ -400,7 +406,7 @@ public enum PlatformErrorMessages {
 			"Rejected by Supervisor"),
 
 	/** The packet classification failed. */
-	PACKET_CLASSIFICATION_FAILED("", "Packet Classification failed"),
+	PACKET_CLASSIFICATION_FAILED(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "000", "Packet Classification failed"),
 
 	/** The rpr pcm base unchecked exception. */
 	RPR_PCM_BASE_UNCHECKED_EXCEPTION(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "001",
@@ -476,13 +482,13 @@ public enum PlatformErrorMessages {
 
 	/** The unsupported encoding. */
 	// UIN check - JSON file encoding failed.
-	UNSUPPORTED_ENCODING("", "Json Object Parsing Failed"),
+	UNSUPPORTED_ENCODING(PlatformConstants.RPR_BIO_DEDUPE_SERVICE_MODULE + "005", "Json Object Parsing Failed"),
 	
 	OSI_VALIDATION_BIO_TYPE_EXCEPTION(PlatformConstants.RPR_CMD_VALIDATOR_MODULE + "007", "Bio Type Exception"),
 
 	/** The cmd validation failed. */
 	// Stages - CMD Exception error code and message
-	CMD_VALIDATION_FAILED("", "CMD Validation Failed"),
+	CMD_VALIDATION_FAILED(PlatformConstants.RPR_CMD_VALIDATOR_MODULE + "000", "CMD Validation Failed"),
 
 	/** The cmd base unchecked exception. */
 	CMD_BASE_UNCHECKED_EXCEPTION(PlatformConstants.RPR_CMD_VALIDATOR_MODULE + "001",
@@ -501,7 +507,7 @@ public enum PlatformErrorMessages {
 			"operator Validation Failed"),
 	
 	/** The Operator validation failed. */
-	OPERATOR_VALIDATION_FAILED("", "Operator Validation Failed"),
+	OPERATOR_VALIDATION_FAILED(PlatformConstants.RPR_OVM_VALIDATOR_MODULE + "000", "Operator Validation Failed"),
 	
 	LINK_FOR_USERID_INDIVIDUALID_FAILED_OVM_EXCEPTION(PlatformConstants.RPR_OVM_VALIDATOR_MODULE + "003",
 			"Unable to get the IndividualId for UserId"),
@@ -515,7 +521,7 @@ public enum PlatformErrorMessages {
 			"Supervisor Validation Failed"),
 	
 	/** The Supervisor validation failed. */
-	SUPERVISOR_VALIDATION_FAILED("", "Supervisor Validation Failed"),
+	SUPERVISOR_VALIDATION_FAILED(PlatformConstants.RPR_SVM_VALIDATOR_MODULE + "000", "Supervisor Validation Failed"),
 	
 	LINK_FOR_USERID_INDIVIDUALID_FAILED_SVM_EXCEPTION(PlatformConstants.RPR_SVM_VALIDATOR_MODULE + "003",
 			"Unable to get the IndividualId for UserId"),
@@ -529,14 +535,17 @@ public enum PlatformErrorMessages {
 			"INTRODUCER Validation Failed"),
 	
 	/** The INTRODUCER validation failed. */
-	INTRODUCER_VALIDATION_FAILED("", "INTRODUCER Validation Failed"),
+	INTRODUCER_VALIDATION_FAILED(PlatformConstants.RPR_IVM_VALIDATOR_MODULE + "000", "INTRODUCER Validation Failed"),
+
+	/** The INTRODUCER validation failed. */
+	INTRODUCER_ON_HOLD(PlatformConstants.RPR_IVM_VALIDATOR_MODULE + "001", "Packet on hold as introducer packet is not processed yet"),
 
 	/** The packet demo dedupe failed. */
 	// Stages - Demo-Dedupe error code and message
-	PACKET_DEMO_DEDUPE_FAILED("", "Demo Dedupe Failed"),
+	PACKET_DEMO_DEDUPE_FAILED(PlatformConstants.RPR_DEMO_DEDUPE_MODULE+"000", "Demo Dedupe Failed"),
 
 	/** The packet demo packet store not accessible. */
-	PACKET_DEMO_PACKET_STORE_NOT_ACCESSIBLE("", "Unable to Access Packet Store"),
+	PACKET_DEMO_PACKET_STORE_NOT_ACCESSIBLE(PlatformConstants.RPR_DEMO_DEDUPE_MODULE+"003", "Unable to Access Packet Store"),
 
 	/** The packet bio dedupe cbeff not present. */
 	PACKET_BIO_DEDUPE_CBEFF_NOT_PRESENT(PlatformConstants.RPR_BIO_DEDUPE_STAGE_MODULE + "001",
@@ -605,10 +614,7 @@ public enum PlatformErrorMessages {
 
 	/** The reverse data sync failed. */
 	// Stages - Packet-Validator error message
-	REVERSE_DATA_SYNC_FAILED("", "Reverse Data Sync Failed"),
-
-	/** The reverse data sync success. */
-	REVERSE_DATA_SYNC_SUCCESS("", "Reverse Data Sync Success"),
+	REVERSE_DATA_SYNC_FAILED(PlatformConstants.RPR_PACKET_VALIDATOR_MODULE + "016", "Reverse Data Sync Failed"),
 
 	/** The Biometric-Authentication stage failed. */
 	// stages - Biometric-Authentication stage error code and message
@@ -680,102 +686,105 @@ public enum PlatformErrorMessages {
 	RPR_RCT_UNKNOWN_RESOURCE_EXCEPTION(PlatformConstants.RPR_REST_CLIENT_MODULE + "001", "Unknown resource provided"),
 
 	/** The rpr mvs invalid file request. */
-	RPR_MVS_INVALID_FILE_REQUEST(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "001", "Invalid file requested"),
+	RPR_MVS_INVALID_FILE_REQUEST(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "001", "Invalid file requested"),
 
 	/** The rpr mvs file not present. */
-	RPR_MVS_FILE_NOT_PRESENT(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "002", "Requested file is not present"),
+	RPR_MVS_FILE_NOT_PRESENT(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "002", "Requested file is not present"),
 
 	/** The rpr mvs invalid status update. */
-	RPR_MVS_INVALID_STATUS_UPDATE(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "003", "Invalid status update"),
+	RPR_MVS_INVALID_STATUS_UPDATE(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "003", "Invalid status update"),
 
 	/** The rpr mvs invalid field. */
-	RPR_MVS_INVALID_FIELD(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "005", " fields can not be empty"),
+	RPR_MVS_INVALID_FIELD(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "005", " fields can not be empty"),
 
 	/** The rpr mvs no assigned record. */
-	RPR_MVS_NO_ASSIGNED_RECORD(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "004", "No Assigned Record Found"),
+	RPR_MVS_NO_ASSIGNED_RECORD(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "004", "No Assigned Record Found"),
 
 	/** The rpr mvs file not found in packet store. */
-	RPR_MVS_FILE_NOT_FOUND_IN_PACKET_STORE(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "018",
+	RPR_MVS_FILE_NOT_FOUND_IN_PACKET_STORE(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "018",
 			"Packet Not Found in Packet Store"),
 
 	/** The rpr mvs missing input parameter version. */
-	RPR_MVS_MISSING_INPUT_PARAMETER_VERSION(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "019",
+	RPR_MVS_MISSING_INPUT_PARAMETER_VERSION(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "019",
 			"Missing Input Parameter - version"),
 
 	/** The rpr mvs missing input parameter timestamp. */
-	RPR_MVS_MISSING_INPUT_PARAMETER_TIMESTAMP(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "006",
+	RPR_MVS_MISSING_INPUT_PARAMETER_TIMESTAMP(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "006",
 			"Missing Input Parameter - requesttime"),
 
 	/** The rpr mvs missing input parameter id. */
-	RPR_MVS_MISSING_INPUT_PARAMETER_ID(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "007",
+	RPR_MVS_MISSING_INPUT_PARAMETER_ID(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "007",
 			"Missing Input Parameter - id"),
 
 	/** The rpr mvs invalid input parameter version. */
-	RPR_MVS_INVALID_INPUT_PARAMETER_VERSION(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "008",
+	RPR_MVS_INVALID_INPUT_PARAMETER_VERSION(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "008",
 			"Invalid Input Parameter - version"),
 
 	/** The rpr mvs invalid input parameter timestamp. */
-	RPR_MVS_INVALID_INPUT_PARAMETER_TIMESTAMP(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "009",
+	RPR_MVS_INVALID_INPUT_PARAMETER_TIMESTAMP(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "009",
 			"Invalid Input Parameter - requesttime"),
 
 	/** The rpr mvs invalid input parameter id. */
-	RPR_MVS_INVALID_INPUT_PARAMETER_ID(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "010",
+	RPR_MVS_INVALID_INPUT_PARAMETER_ID(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "010",
 			"Invalid Input Parameter - id"),
 
 	/** The rpr mvs invalid argument exception. */
-	RPR_MVS_INVALID_ARGUMENT_EXCEPTION(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "011",
+	RPR_MVS_INVALID_ARGUMENT_EXCEPTION(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "011",
 			"Invalid Argument Exception"),
 
 	/** The rpr mvs unknown exception. */
-	RPR_MVS_UNKNOWN_EXCEPTION(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "012", "Unknown Exception"),
+	RPR_MVS_UNKNOWN_EXCEPTION(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "012", "Unknown Exception"),
 
 	/** The rpr mvs decode exception. */
-	RPR_MVS_DECODE_EXCEPTION(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "013", "Request Decoding Exception"),
+	RPR_MVS_DECODE_EXCEPTION(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "013", "Request Decoding Exception"),
 	/** The rpr mvs no user id present. */
-	RPR_MVS_NO_USER_ID_PRESENT(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "014",
+	RPR_MVS_NO_USER_ID_PRESENT(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "014",
 			"User Id does not exists master list"),
 
 	/** The rpr mvs no user id should not empty or null. */
-	RPR_MVS_NO_USER_ID_SHOULD_NOT_EMPTY_OR_NULL(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "017",
+	RPR_MVS_NO_USER_ID_SHOULD_NOT_EMPTY_OR_NULL(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "017",
 			"User Id should not empty or null "),
 
 	/** The rpr mvs no registration id should not empty or null. */
-	RPR_MVS_NO_RID_SHOULD_NOT_EMPTY_OR_NULL(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "022",
+	RPR_MVS_NO_RID_SHOULD_NOT_EMPTY_OR_NULL(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "022",
 			"Registration Id should not empty or null "),
 
 	/** The rpr mvs no matched ref id found for given ref id. */
-	RPR_MVS_NO_MATCHEDRID_FOUND_FOR_GIVEN_RID(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "023",
+	RPR_MVS_NO_MATCHEDRID_FOUND_FOR_GIVEN_RID(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "023",
 			"No matched reference id found for given RID"),
 	/** The rpr mvs user status not active. */
-	RPR_MVS_USER_STATUS_NOT_ACTIVE(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "015",
+	RPR_MVS_USER_STATUS_NOT_ACTIVE(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "015",
 			"User is not in ACTIVE status"),
 
 	/** The rpr mvs no match type present. */
-	RPR_MVS_NO_MATCH_TYPE_PRESENT(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "020", "Match Type is Invalid"),
+	RPR_MVS_NO_MATCH_TYPE_PRESENT(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "020", "Match Type is Invalid"),
 
 	/** The rpr mvs reg id should not empty or null. */
-	RPR_MVS_REG_ID_SHOULD_NOT_EMPTY_OR_NULL(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "016",
+	RPR_MVS_REG_ID_SHOULD_NOT_EMPTY_OR_NULL(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "016",
 			"Reg Id should not be null or empty"),
 
 	/** The rpr manual verification rejected. */
-	RPR_MANUAL_VERIFICATION_REJECTED(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "021",
+	RPR_MANUAL_VERIFICATION_REJECTED(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "021",
 			"Manual verification rejected"),
 
 	/** The rpr manual verification rejected. */
-	RPR_MANUAL_VERIFICATION_RESEND(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "025",
+	RPR_MANUAL_VERIFICATION_RESEND(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "025",
 			"Manual verification resend to queue."),
 
 	/** The rpr table not accessible. */
-	RPR_TABLE_NOT_ACCESSIBLE(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "022",
+	RPR_TABLE_NOT_ACCESSIBLE(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "022",
 			"TablenotAccessibleException in Manual verification"),
 
 	/** The rpr table not accessible. */
-	RPR_INVALID_MESSSAGE(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "023",
+	RPR_INVALID_MESSSAGE(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "023",
 			"Invalid message received from queue"),
 
 	/** The rpr table not accessible. */
-	RPR_INVALID_RID_FOUND(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "024",
+	RPR_INVALID_RID_FOUND(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "024",
 			"Multiple rids found for a reference id"),
+	
+	MANUAL_VERIFICATION_FAILED(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "025",
+			"Manual adjudication failed"),
 
 	/** The rpr tem not found. */
 	// Registration processor Message sender Exception error code
@@ -1009,6 +1018,10 @@ public enum PlatformErrorMessages {
 	/** The stage processing failed. */
 	RPR_SYS_STAGE_PROCESSING_FAILED(PlatformConstants.RPR_SYSTEM_EXCEPTION + "021",
 			"Stage processing of message failed with an exception"),
+	
+	/** The rpr sys connection exception. */
+	RPR_SYS_QUEUE_CONNECTION_EXCEPTION(PlatformConstants.RPR_SYSTEM_EXCEPTION + "022",
+			"Error while connecting to active mq"),
 
 	// Cbeff Util Exceptions
 	/** The rpr utl biometric tag match. */
@@ -1019,6 +1032,9 @@ public enum PlatformErrorMessages {
 
 	/** The rpr utl digital sign exception. */
 	RPR_UTL_DIGITAL_SIGN_EXCEPTION(PlatformConstants.RPR_UTIL + "003", "Failed to generate digital signature"),
+
+	/** The rpr utl language exception. */
+	RPR_UTL_LANGUAGE_EXCEPTION(PlatformConstants.RPR_UTIL + "004", "Failed to retrieve language details."),
 
 	/** The rpr prt pdf not generated. */
 	// Printing stage exceptions
@@ -1158,6 +1174,9 @@ public enum PlatformErrorMessages {
 
 	VID_CREATION_FAILED(PlatformConstants.RPR_UIN_GENERATOR_STAGE + "014", "VID creation failed"),
 
+
+	DRAFT_CHECK_FAILED(PlatformConstants.RPR_UIN_GENERATOR_STAGE + "015", "Could not check if draft is present or not"),
+
 	/** The rpr pgs file not present. */
 	RPR_PGS_FILE_NOT_PRESENT(PlatformConstants.RPR_PACKET_GENERATOR_MODULE + "001",
 			"The Packet store set by the System is not accessible"),
@@ -1247,6 +1266,10 @@ public enum PlatformErrorMessages {
 	RPR_PGS_IDENTITY_NOT_FOUND(PlatformConstants.RPR_PACKET_GENERATOR_MODULE + "025",
 			"Unable to Find Identity Field in ID JSON"),
 
+	/** Idrepo draft creation exception. */
+	IDREPO_DRAFT_EXCEPTION(PlatformConstants.RPR_PACKET_GENERATOR_MODULE + "026",
+			"Exception while updating idrepo draft"),
+
 	/** invalid token present in header. */
 	RPR_AUT_INVALID_TOKEN(PlatformConstants.RPR_AUTHENTICATION + "01", "Invalid Token Present"),
 
@@ -1254,7 +1277,7 @@ public enum PlatformErrorMessages {
 	RPR_AUT_ACCESS_DENIED(PlatformConstants.RPR_AUTHENTICATION + "02", "Access Denied For Role - %s"),
 
 	/** Reprocessor Stage Failed. */
-	REPROCESSOR_STAGE_FAILED("", "Reprocessor Stage Failed"),
+	REPROCESSOR_VERTICLE_FAILED(PlatformConstants.RPR_REPROCESSOR_VERTICLE + "000", "Reprocessor Verticle Failed"),
 
 	RPR_WIA_DATE_TIME_EXCEPTION(PlatformConstants.RPR_WORKFLOW_INTERNAL_ACTION + "000",
 			"Error while parsing event or resume timestamp"),
@@ -1371,7 +1394,30 @@ public enum PlatformErrorMessages {
 
 	/** The queue json validation failed. */
 	QUEUE_JSON_VALIDATION_FAILED(PlatformConstants.RPR_MA_MIDDLEWARE + "004",
-			"Unable to find Connection Properties");
+			"Unable to find Connection Properties"),
+
+	RPR_BIOMETRIC_EXTRACTION_FAILED(PlatformConstants.RPR_BIOMETRIC_EXTRACTION_STAGE + "000",
+			"biometric extraction failed"),
+
+	RPR_BIOMETRIC_EXTRACTION_DRAFT_REQUEST_UNAVAILABLE(PlatformConstants.RPR_BIOMETRIC_EXTRACTION_STAGE + "001",
+			"Draft request is unavaialble in id-repo draft repository."),
+	/** The rpr ugs api resource exception. */
+	RPR_BIOMETRIC_EXTRACTION_API_RESOURCE_EXCEPTION(PlatformConstants.RPR_BIOMETRIC_EXTRACTION_STAGE + "002",
+			"Not able to access the API resource"),
+	RPR_BIOMETRIC_EXTRACTION_NULL_RESPONSE(PlatformConstants.RPR_BIOMETRIC_EXTRACTION_STAGE + "003",
+			"null response from idrepo "),
+	RPR_PMS_BIOMETRIC_EXTRACTION_NULL_RESPONSE(PlatformConstants.RPR_BIOMETRIC_EXTRACTION_STAGE + "003",
+			"null response from partner service "),
+	/** The rpr finalization exception. */
+	RPR_FINALIZATION_FAILED(PlatformConstants.RPR_FINALIZATION_STAGE + "001",
+			"finalization failed"),
+	RPR_FINALIZATION_FAILED_NULL_RESPONSE(PlatformConstants.RPR_FINALIZATION_STAGE + "002",
+			"null response from idrepo "),
+	RPR_FINALIZATION_STAGE_DRAFT_REQUEST_UNAVAILABLE(PlatformConstants.RPR_FINALIZATION_STAGE + "003",
+			"Draft request is unavaialble in id-repo draft repository."),
+	RPR_FINALIZATION_STAGE_API_RESOURCE_EXCEPTION(PlatformConstants.RPR_FINALIZATION_STAGE + "004",
+			"Not able to access the API resource")
+	;
 
 	/** The error message. */
 	private final String errorMessage; 

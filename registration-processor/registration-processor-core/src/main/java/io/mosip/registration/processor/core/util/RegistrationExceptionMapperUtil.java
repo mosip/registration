@@ -94,6 +94,8 @@ public class RegistrationExceptionMapperUtil {
 
 		statusMap.put(RegistrationExceptionTypeCode.TABLE_NOT_ACCESSIBLE_EXCEPTION,
 				RegistrationTransactionStatusCode.REPROCESS);
+		statusMap.put(RegistrationExceptionTypeCode.NO_RECORDS_ASSIGNED,
+				RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.INTERNAL_SERVER_ERROR, RegistrationTransactionStatusCode.REPROCESS);
 		statusMap.put(RegistrationExceptionTypeCode.PACKET_NOT_FOUND_EXCEPTION,
 				RegistrationTransactionStatusCode.ERROR);
@@ -125,8 +127,14 @@ public class RegistrationExceptionMapperUtil {
 		statusMap.put(RegistrationExceptionTypeCode.PACKET_UPLOADER_FAILED, RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_FAILED,
 				RegistrationTransactionStatusCode.FAILED);
-		statusMap.put(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_RPROCESS,
+		statusMap.put(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_REPROCESS,
 				RegistrationTransactionStatusCode.REPROCESS);
+		statusMap.put(RegistrationExceptionTypeCode.BIOMETRIC_EXTRACTION_REPROCESS,
+				RegistrationTransactionStatusCode.REPROCESS);
+		statusMap.put(RegistrationExceptionTypeCode.BIOMETRIC_EXTRACTION_FAILED,
+				RegistrationTransactionStatusCode.FAILED);
+		statusMap.put(RegistrationExceptionTypeCode.DRAFT_REQUEST_UNAVAILABLE,
+				RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.BASE_UNCHECKED_EXCEPTION, RegistrationTransactionStatusCode.ERROR);
 		statusMap.put(RegistrationExceptionTypeCode.BASE_CHECKED_EXCEPTION, RegistrationTransactionStatusCode.ERROR);
 		statusMap.put(RegistrationExceptionTypeCode.EXTERNAL_INTEGRATION_FAILED,
@@ -136,7 +144,7 @@ public class RegistrationExceptionMapperUtil {
 				RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.DEMO_DEDUPE_ABIS_RESPONSE_ERROR,
 				RegistrationTransactionStatusCode.REPROCESS);
-		statusMap.put(RegistrationExceptionTypeCode.OSI_FAILED_ON_HOLD_INTRODUCER_PACKET,
+		statusMap.put(RegistrationExceptionTypeCode.ON_HOLD_INTRODUCER_PACKET,
 				RegistrationTransactionStatusCode.REPROCESS);
 		statusMap.put(RegistrationExceptionTypeCode.INTRODUCER_UIN_AND_RID_NOT_IN_PACKET,
 				RegistrationTransactionStatusCode.FAILED);
@@ -164,6 +172,12 @@ public class RegistrationExceptionMapperUtil {
 				RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.SUPERVISOR_BIOMETRIC_NOT_IN_PACKET,
 				RegistrationTransactionStatusCode.FAILED);
+		statusMap.put(RegistrationExceptionTypeCode.FINALIZATION_FAILED,
+				RegistrationTransactionStatusCode.FAILED);
+		statusMap.put(RegistrationExceptionTypeCode.IDREPO_DRAFT_EXCEPTION,
+				RegistrationTransactionStatusCode.FAILED);
+		statusMap.put(RegistrationExceptionTypeCode.FINALIZATION_REPROCESS,
+				RegistrationTransactionStatusCode.REPROCESS);
 		statusMap.put(RegistrationExceptionTypeCode.AUTH_ERROR, RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.AUTH_FAILED, RegistrationTransactionStatusCode.FAILED);
 		statusMap.put(RegistrationExceptionTypeCode.IDA_AUTHENTICATION_FAILURE,

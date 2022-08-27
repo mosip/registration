@@ -90,8 +90,11 @@ public class CMDValidationProcessor {
 	@Value("${mosip.registration.gps_device_enable_flag}")
 	private String gpsEnable;
 
-	@Value("${mosip.primary-language}")
-	private String primaryLanguagecode;
+	@Value("${mosip.mandatory-languages:#{null}}")
+	private String mandatoryLanguages;
+
+	@Value("${mosip.optional-languages:#{null}}")
+	private String optionalLanguages;
 
 	@Value("#{'${mosip.regproc.cmd-validator.center-validation.processes:NEW,UPDATE,LOST,BIOMETRIC_CORRECTION}'.split(',')}")
 	private List<String> centerValidationProcessList ;
@@ -152,11 +155,11 @@ public class CMDValidationProcessor {
 			}
 
 			if (centerValidationProcessList !=null && !centerValidationProcessList.isEmpty() && centerValidationProcessList.contains(registrationStatusDto.getRegistrationType())) {
-				centerValidator.validate(primaryLanguagecode, regOsi, registrationStatusDto.getRegistrationId());
+				centerValidator.validate(getLanguageCode(), regOsi, registrationStatusDto.getRegistrationId());
 			}
 
 			if (machineValidationProcessList !=null && ! machineValidationProcessList.isEmpty() && machineValidationProcessList.contains(registrationStatusDto.getRegistrationType())) {
-				machineValidator.validate(regOsi.getMachineId(), primaryLanguagecode, regOsi.getPacketCreationDate(),
+				machineValidator.validate(regOsi.getMachineId(), getLanguageCode(), regOsi.getPacketCreationDate(),
 						registrationStatusDto.getRegistrationId());
 			}
 
@@ -239,6 +242,18 @@ public class CMDValidationProcessor {
 			updateAudit(description, isTransactionSuccessful, moduleId, moduleName, registrationId);
 		}
 		return object;
+	}
+
+	private String getLanguageCode() throws BaseCheckedException {
+		if(mandatoryLanguages!=null && !mandatoryLanguages.isBlank()) {
+			return mandatoryLanguages.split(",")[0];
+		}
+		else if(optionalLanguages!=null && !optionalLanguages.isBlank()) {
+			return optionalLanguages.split(",")[0];
+		}else {
+			throw new BaseCheckedException(StatusUtil.CMD_LANGUAGE_NOT_SET.getCode(),StatusUtil.CMD_LANGUAGE_NOT_SET.getMessage());
+		}
+
 	}
 
 	private void updateDTOsAndLogError(InternalRegistrationStatusDto registrationStatusDto,

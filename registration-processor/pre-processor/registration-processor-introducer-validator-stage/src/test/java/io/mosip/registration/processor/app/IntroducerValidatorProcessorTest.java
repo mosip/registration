@@ -1,6 +1,5 @@
 package io.mosip.registration.processor.app;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -21,6 +20,9 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.dao.DataAccessException;
+
+import io.mosip.kernel.core.exception.BaseCheckedException;
+import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.EventId;
@@ -36,6 +38,7 @@ import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessor
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
+import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
@@ -44,6 +47,7 @@ import io.mosip.registration.processor.stages.introducervalidator.IntroducerVali
 import io.mosip.registration.processor.stages.introducervalidator.IntroducerValidator;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
+import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 
 /**
@@ -142,6 +146,7 @@ public class IntroducerValidatorProcessorTest {
 	@Test
 	public void IOExceptionTest() throws Exception {
 
+		registrationStatusDto.setRetryCount(1);
 		Mockito.doThrow(new IOException()).when(introducerValidator).validate(anyString(), any());
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.IOEXCEPTION)).thenReturn("ERROR");
@@ -210,6 +215,54 @@ public class IntroducerValidatorProcessorTest {
 				.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_EXCEPTION)).thenReturn("REPROCESS");
 		MessageDTO object = introducerValidationProcessor.process(dto, stageName);
 		assertTrue(object.getIsValid());
+		assertTrue(object.getInternalError());
+	}
+	
+	@Test
+	public void parsingExceptionTest() throws Exception {
+
+		Mockito.doThrow(new ParsingException()).when(introducerValidator).validate(anyString(),
+				any());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.PARSE_EXCEPTION)).thenReturn("FAILED");
+		MessageDTO object = introducerValidationProcessor.process(dto, stageName);
+		assertFalse(object.getIsValid());
+		assertTrue(object.getInternalError());
+	}
+	
+	@Test
+	public void TablenotAccessibleExceptionTest() throws Exception {
+
+		Mockito.doThrow(new TablenotAccessibleException()).when(introducerValidator).validate(anyString(),
+				any());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.TABLE_NOT_ACCESSIBLE_EXCEPTION)).thenReturn("REPROCESS");
+		MessageDTO object = introducerValidationProcessor.process(dto, stageName);
+		assertTrue(object.getIsValid());
+		assertTrue(object.getInternalError());
+	}
+	
+	@Test
+	public void BaseUncheckedExceptionTest() throws Exception {
+
+		Mockito.doThrow(new BaseUncheckedException()).when(introducerValidator).validate(anyString(),
+				any());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.BASE_UNCHECKED_EXCEPTION)).thenReturn("ERROR");
+		MessageDTO object = introducerValidationProcessor.process(dto, stageName);
+		assertFalse(object.getIsValid());
+		assertTrue(object.getInternalError());
+	}
+	
+	@Test
+	public void BaseCheckedExceptionTest() throws Exception {
+
+		Mockito.doThrow(new BaseCheckedException()).when(introducerValidator).validate(anyString(),
+				any());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.BASE_CHECKED_EXCEPTION)).thenReturn("ERROR");
+		MessageDTO object = introducerValidationProcessor.process(dto, stageName);
+		assertFalse(object.getIsValid());
 		assertTrue(object.getInternalError());
 	}
 }

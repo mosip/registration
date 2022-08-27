@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
@@ -53,17 +54,15 @@ import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
-import io.mosip.registration.processor.packet.storage.exception.IdRepoAppException;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.stages.app.constants.DemoDedupeConstants;
+import io.mosip.registration.processor.stages.dto.DemoDedupeStatusDTO;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
-import io.mosip.registration.processor.status.code.RegistrationType;
 import io.mosip.registration.processor.status.dao.RegistrationStatusDao;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
-import io.mosip.registration.processor.status.dto.SyncTypeDto;
 import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 
@@ -76,6 +75,7 @@ public class DemodedupeProcessor {
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(DemodedupeProcessor.class);
+	private static final String MANUAL_VERIFICATION_STATUS = "PENDING";
 
 	/** The registration status service. */
 	@Autowired
@@ -129,6 +129,9 @@ public class DemodedupeProcessor {
 	@Value("${registration.processor.infant.dedupe}")
 	private String infantDedupe;
 
+	@Value("${registration.processor.demodedupe.manual.adjudication.status}")
+	private String manualVerificationStatus;
+
 	/**
 	 * Process.
 	 *
@@ -168,13 +171,14 @@ public class DemodedupeProcessor {
 			JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 			String uinFieldCheck = utility.getUIn(registrationId, registrationStatusDto.getRegistrationType(), ProviderStageName.DEMO_DEDUPE);
 			JSONObject jsonObject = utility.retrieveIdrepoJson(uinFieldCheck);
-			if(jsonObject == null) {
-				insertDemodedupDetailsAndPerformDedup (demographicData,registrationStatusDto,duplicateDtos,
-						object,isTransactionSuccessful,moduleId,moduleName,isDemoDedupeSkip,description);
-			}
-			 else {
-				 insertDemodedupDetails(demographicData,regProcessorIdentityJson,jsonObject,
-						 registrationStatusDto,object,moduleId,moduleName);
+			if (jsonObject == null) {
+				DemoDedupeStatusDTO demoDedupeStatusDTO = insertDemodedupDetailsAndPerformDedup(demographicData, registrationStatusDto,
+						duplicateDtos, object, moduleId, moduleName, isDemoDedupeSkip, description);
+				isTransactionSuccessful=demoDedupeStatusDTO.isTransactionSuccessful();
+				duplicateDtos=demoDedupeStatusDTO.getDuplicateDtos();
+			} else {
+				insertDemodedupDetails(demographicData, regProcessorIdentityJson, jsonObject, registrationStatusDto,
+						object, moduleId, moduleName);
 			}
 
 			registrationStatusDto.setRegistrationStageName(stageName);
@@ -330,12 +334,13 @@ public class DemodedupeProcessor {
 	}
 
 
-	private void insertDemodedupDetailsAndPerformDedup(IndividualDemographicDedupe demographicData,
+	private DemoDedupeStatusDTO insertDemodedupDetailsAndPerformDedup(IndividualDemographicDedupe demographicData,
 			InternalRegistrationStatusDto registrationStatusDto, List<DemographicInfoDto> duplicateDtos,
-			MessageDTO object, boolean isTransactionSuccessful, String moduleId, String moduleName,
-			boolean isDemoDedupeSkip, LogDescription description) throws ApisResourceAccessException,
+			MessageDTO object, String moduleId, String moduleName, boolean isDemoDedupeSkip, LogDescription description)
+			throws ApisResourceAccessException,
 	JsonProcessingException, PacketManagerException, IOException, PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException {
-
+		DemoDedupeStatusDTO demoDedupeStatusDTO=new DemoDedupeStatusDTO();
+		boolean isTransactionSuccessful = false;
 		String packetStatus = abisHandlerUtil.getPacketStatus(registrationStatusDto);
 		String registrationId=registrationStatusDto.getRegistrationId();
 		if (packetStatus.equalsIgnoreCase(AbisConstant.PRE_ABIS_IDENTIFICATION)) {
@@ -352,7 +357,8 @@ public class DemodedupeProcessor {
 				}
 			}
 			else {
-				if (env.getProperty(DEMODEDUPEENABLE).trim().equalsIgnoreCase(TRUE)) {
+				String  demo=env.getProperty(DEMODEDUPEENABLE);
+				if (StringUtils.isNotEmpty(demo) && demo.trim().equalsIgnoreCase(TRUE)) {
 					isDemoDedupeSkip = false;
 				duplicateDtos = performDemoDedupe(registrationStatusDto, object, description);
 				if (duplicateDtos.isEmpty())
@@ -381,6 +387,9 @@ public class DemodedupeProcessor {
 			isTransactionSuccessful = processDemoDedupeRequesthandler(registrationStatusDto, object,
 					description);
 		}
+		demoDedupeStatusDTO.setTransactionSuccessful(isTransactionSuccessful);
+		demoDedupeStatusDTO.setDuplicateDtos(duplicateDtos);
+		return demoDedupeStatusDTO;
 
 	}
 
@@ -457,14 +466,10 @@ public class DemodedupeProcessor {
 	 *                                               exception
 	 * @throws IOException                           Signals that an I/O exception
 	 *                                               has occurred.
-	 * @throws                                       io.mosip.kernel.core.exception.IOException
-	 * @throws PacketDecryptionFailureException
-	 * @throws RegistrationProcessorCheckedException
 	 */
 	private boolean processDemoDedupeRequesthandler(InternalRegistrationStatusDto registrationStatusDto,
-			MessageDTO object, LogDescription description) throws ApisResourceAccessException, IOException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			RegistrationProcessorCheckedException, JsonProcessingException, PacketManagerException {
+			MessageDTO object, LogDescription description)
+			throws ApisResourceAccessException, IOException, JsonProcessingException, PacketManagerException {
 		boolean isTransactionSuccessful = false;
 		List<String> responsIds = new ArrayList<>();
 
@@ -513,10 +518,20 @@ public class DemodedupeProcessor {
 				description.setCode(PlatformSuccessMessages.RPR_PKR_DEMO_DE_DUP.getCode());
 				description.setMessage(PlatformSuccessMessages.RPR_PKR_DEMO_DE_DUP.getMessage());
 			} else {
-				object.setIsValid(Boolean.FALSE);
+				if (manualVerificationStatus != null && manualVerificationStatus.equalsIgnoreCase(MANUAL_VERIFICATION_STATUS)) {
+					//send message to manual adjudication
+					object.setInternalError(Boolean.FALSE);
+					object.setRid(registrationStatusDto.getRegistrationId());
+					object.setIsValid(Boolean.TRUE);
+					object.setMessageBusAddress(MessageBusAddress.MANUAL_ADJUDICATION_BUS_IN);
+					registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+				} else {
+					object.setIsValid(Boolean.FALSE);
+					registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
+				}
+
 				registrationStatusDto
 						.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
-				registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
 				registrationStatusDto.setStatusComment(StatusUtil.POTENTIAL_MATCH_FOUND_IN_ABIS.getMessage());
 				registrationStatusDto.setSubStatusCode(StatusUtil.POTENTIAL_MATCH_FOUND_IN_ABIS.getCode());
 				description.setCode(PlatformErrorMessages.RPR_DEMO_SENDING_FOR_MANUAL.getCode());

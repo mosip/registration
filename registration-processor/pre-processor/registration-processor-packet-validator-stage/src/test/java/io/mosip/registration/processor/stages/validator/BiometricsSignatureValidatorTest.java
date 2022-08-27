@@ -1,0 +1,231 @@
+package io.mosip.registration.processor.stages.validator;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+import io.mosip.kernel.core.util.JsonUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.core.env.Environment;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.mosip.kernel.biometrics.commons.BiometricsSignatureHelper;
+import io.mosip.kernel.biometrics.entities.BIR;
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.core.exception.BaseCheckedException;
+import io.mosip.kernel.core.exception.BiometricSignatureValidationException;
+import io.mosip.kernel.core.exception.ServiceError;
+import io.mosip.kernel.core.http.ResponseWrapper;
+import io.mosip.registration.processor.core.constant.JsonConstant;
+import io.mosip.registration.processor.core.packet.dto.FieldValue;
+import io.mosip.registration.processor.core.packet.dto.JWTSignatureVerifyResponseDto;
+import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
+import io.mosip.registration.processor.stages.validator.impl.BiometricsSignatureValidator;
+
+/**
+ * The Class BiometricsSignatureValidatorTest.
+ *
+ * @author Satish Gohil
+ */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({ BiometricsSignatureHelper.class, JsonUtils.class})
+@PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*", "javax.net.ssl.*" })
+public class BiometricsSignatureValidatorTest {
+
+	@InjectMocks
+	BiometricsSignatureValidator biometricsSignatureValidator;
+
+	@Mock
+	private PriorityBasedPacketManagerService packetManagerService;
+
+	@Mock
+	private RegistrationProcessorRestClientService<Object> registrationProcessorRestService;
+
+	@Mock
+	private Environment env;
+
+	@Mock
+	ObjectMapper mapper;
+
+	String id;
+	String process;
+	String constructedJwtToken;
+	BiometricRecord biometricRecord = new BiometricRecord();
+	BiometricRecord biometricRecord1 = new BiometricRecord();
+	BiometricRecord biometricRecord2 = new BiometricRecord();
+	JWTSignatureVerifyResponseDto jwtSignatureVerifyResponseDto = new JWTSignatureVerifyResponseDto();
+	JWTSignatureVerifyResponseDto jwtSignatureVerifyResponseDto1 = new JWTSignatureVerifyResponseDto();
+	ResponseWrapper<JWTSignatureVerifyResponseDto> ResponseWrapper1 = new ResponseWrapper<JWTSignatureVerifyResponseDto>();
+	Map<String, String> metamap = new HashMap<>();
+
+	@Before
+	public void setUp() throws Exception {
+		ReflectionTestUtils.setField(biometricsSignatureValidator, "regClientVersionsBeforeCbeffOthersAttritube",
+				Arrays.asList("1.1.3"));
+
+		id = "10003100240002120210722143250";
+		process = "NEW";
+		constructedJwtToken = "SUJCVEFOQmdrcWhraUc5dzBCQV.FzRkFEQmlNUXN3Q1FZRFZRUUd.Fd0pKVGpFTU1Bb0dBMVVFQ0F3RGEyRnlNUXd3Q";
+
+		BIR bir = new BIR();
+		bir.setSb(
+				"eyJ4NWMiOlsiTUlJRGtEQ0NBbmlnQXdJQkFnSUVYM1hNZFRBTkJna3Foa2lHOXcwQkFRc0ZBRENCaVRFTE1Ba0dBMVVFQmhNQ1NVNHhFakFRQmdOVkJBZ01DV3RoY201aGRHRnJZVEVZTUJZR0ExVUVCd3dQYlc5emFYQnBjbWx6Wkc5MVlteGxNUmd3RmdZRFZRUUtEQTl0YjNOcGNHbHlhWE5rYjNWaWJHVXhHREFXQmdOVkJBc01EMjF2YzJsd2FYSnBjMlJ2ZFdKc1pURVlNQllHQTFVRUF3d1BiVzl6YVhCcGNtbHpaRzkxWW14bE1CNFhEVEl3TVRBd01URXlNekkxTTFvWERUSXhNVEF3TVRFeU16STFNMW93Z1lreEN6QUpCZ05WQkFZVEFrbE9NUkl3RUFZRFZRUUlEQWxyWVhKdVlYUmhhMkV4R0RBV0JnTlZCQWNNRDIxdmMybHdhWEpwYzJSdmRXSnNaVEVZTUJZR0ExVUVDZ3dQYlc5emFYQnBjbWx6Wkc5MVlteGxNUmd3RmdZRFZRUUxEQTl0YjNOcGNHbHlhWE5rYjNWaWJHVXhHREFXQmdOVkJBTU1EMjF2YzJsd2FYSnBjMlJ2ZFdKc1pUQ0NBU0l3RFFZSktvWklodmNOQVFFQkJRQURnZ0VQQURDQ0FRb0NnZ0VCQU43YnZWOUJUMGZBWU1zWjk1Uzh3OGQ4ckFHMlRvT0dURHQzNW4wbEJXbExhR3hBVTFQbE02alMzZFBNeDZGaGRHcjBKOFV4N1kxMHhUck5DUzZTVnAvRHFKZHIrakJxclEvN3JSQitqc3k0WGJseXd6eFhnTHdEYXE1akVRMnRxV3FXZGdnMjl0Y0Q1NzFHQ0NXZnkvY0xrbkFwY3JtbGl1Z2ZvVU1GTGIvNVo1dVF5eTZrbnI4a21JQytGU3BaMStKd1BBUmxYQWhWZ1BsZFpoVCtvdTg1S0hBTUQ5TFJ6cmpZazFyYjNJUVZsejE0VTNORlArTzVhVzNjVWRYSytMN2VpVk1yc3ZhaG5PV3hiRGNWUDVxYWJyYTZQN3ppV3ljeVRCT3NLV2JqMmNPWk9Ta2VhRGtVUzFpMFdVVFhDNXBhOTFXcXlkTytYL2hRc3E0YlliTUNBd0VBQVRBTkJna3Foa2lHOXcwQkFRc0ZBQU9DQVFFQW05V1NzZEdrdmJ2YlJVT21nTjV2ZDlKZDZSNDZJYk1URlFHa3h4WVRmS0ZFM1ZwQ1cxc1hscXJyQ2NuTkVhM3l0TUJsZnBMblBDV2ZmT2VCL2NEVDRIZ3R5VERRSGg3aWtFYzNBdGNiejFjM3BiMjF5a0pzUStoVHNTSDR0ZUJ6VDlSL2VyQmxQWktyR09BNmJUZUpjV3hyVmNaOFh6R2tEWkZiYXp4ck1JV3E3dUc3QXFaSzhxL2NWTUtSb1RIWjIzNmk3MWIvb1dOVCtEbXNxQjNLUmNNUFFHTWtyanpWRk13RUszbGl2RDFlT2xzenJJdnBEbDJkR09wNHJ3eThaenBTKytQWkwyV0hXQVBXMkkzK0k0cmh4K1RaUTlYakVwSEJkRlMzS1dMcy9aVyttOWVLb3BGT1NINFpsWHIvMnlaQjh5RWlFSkE3U3NESjl1T0R3QT09Il0sImFsZyI6IlJTMjU2In0.eyJkZXZpY2VTdWJUeXBlIjoiRG91YmxlIiwic2VyaWFsTm8iOiIzNDU2Nzg5MDEyIiwibWFrZSI6Ik1PU0lQIiwibW9kZWwiOiJJUklTMDEiLCJkZXZpY2VQcm92aWRlcklkIjoiTU9TSVAuUFJPWFkuU0JJIiwiZGV2aWNlUHJvdmlkZXIiOiJNT1NJUCIsImRhdGVUaW1lIjoiMjAyMS0wNi0wNFQwNzozMTo1OS41NjFaIiwidHlwZSI6IklyaXMifQ.auo5Ej_opCIGdCxpqT17GqoEzZIBoTvjCGZvqMAYZoxdu9SMXcX-F7OtCTLomLJv3ArjGFP0gXxURjYS3TlXx5KG51nCfWiM3CIIT1R9_WLOObM4KSw2xGwktmSz04yE6_1n0Vs8v54T2gCugbSzOFYQag8MQ6erSLfuKju1G8Ypki54lXLWyeBSmuIeSxZZsZu6id9O23wpaBLNvshVpE4gb88Ig_rSSE0ENcQ7p9jjNxcbVG9ixb0i-s2zYIqqZvKSCIkdz9z7zKPK1VP7RmW_4COdB2taPvla5d6qNZHO0SfaBU53UyqYUKNsYkc4buOX_NgoRT7Yg_gR5lR4kQ..lUHJvdmlkZXIiOiJNT1NJUCIsImRhdGVUaW1lIjoiMjAyMS0wNi0wNFQwNzo"
+						.getBytes());
+		bir.setBdb("SUlSADAyMAAAACc6AAEAAQAAJyoH5AoJECYh//8Bc18wBgAAAQIDCgABlwExCA".getBytes());
+
+		HashMap<String, String> entry = new HashMap<>();
+		entry.put("PAYLOAD", "{\"deviceServiceVersion\":\"0.9.5\",\"bioValue\":\"<bioValue>\",\"qualityScore\":\"80\",\"bioType\":\"Iris\",\"requestedScore\":\"60\",\"transactionId\":\"4ca4fc4c-4279-47b4-9603-2954a038ccf9\",\"timestamp\":\"2021-06-04T07:31:59.831Z\",\"env\":\"null\",\"purpose\":\"Registration\",\"bioSubType\":\"Left\",\"digitalId\":\"eyJ4NWMiOlsiTUlJRGtEQ0NBbmlnQXdJQkFnSUVYM1hNZFRBTkJna3Foa2lHOXcwQkFRc0ZBRENCaVRFTE1Ba0dBMVVFQmhNQ1NVNHhFakFRQmdOVkJBZ01DV3RoY201aGRHRnJZVEVZTUJZR0ExVUVCd3dQYlc5emFYQnBjbWx6Wkc5MVlteGxNUmd3RmdZRFZRUUtEQTl0YjNOcGNHbHlhWE5rYjNWaWJHVXhHREFXQmdOVkJBc01EMjF2YzJsd2FYSnBjMlJ2ZFdKc1pURVlNQllHQTFVRUF3d1BiVzl6YVhCcGNtbHpaRzkxWW14bE1CNFhEVEl3TVRBd01URXlNekkxTTFvWERUSXhNVEF3TVRFeU16STFNMW93Z1lreEN6QUpCZ05WQkFZVEFrbE9NUkl3RUFZRFZRUUlEQWxyWVhKdVlYUmhhMkV4R0RBV0JnTlZCQWNNRDIxdmMybHdhWEpwYzJSdmRXSnNaVEVZTUJZR0ExVUVDZ3dQYlc5emFYQnBjbWx6Wkc5MVlteGxNUmd3RmdZRFZRUUxEQTl0YjNOcGNHbHlhWE5rYjNWaWJHVXhHREFXQmdOVkJBTU1EMjF2YzJsd2FYSnBjMlJ2ZFdKc1pUQ0NBU0l3RFFZSktvWklodmNOQVFFQkJRQURnZ0VQQURDQ0FRb0NnZ0VCQU43YnZWOUJUMGZBWU1zWjk1Uzh3OGQ4ckFHMlRvT0dURHQzNW4wbEJXbExhR3hBVTFQbE02alMzZFBNeDZGaGRHcjBKOFV4N1kxMHhUck5DUzZTVnAvRHFKZHIrakJxclEvN3JSQitqc3k0WGJseXd6eFhnTHdEYXE1akVRMnRxV3FXZGdnMjl0Y0Q1NzFHQ0NXZnkvY0xrbkFwY3JtbGl1Z2ZvVU1GTGIvNVo1dVF5eTZrbnI4a21JQytGU3BaMStKd1BBUmxYQWhWZ1BsZFpoVCtvdTg1S0hBTUQ5TFJ6cmpZazFyYjNJUVZsejE0VTNORlArTzVhVzNjVWRYSytMN2VpVk1yc3ZhaG5PV3hiRGNWUDVxYWJyYTZQN3ppV3ljeVRCT3NLV2JqMmNPWk9Ta2VhRGtVUzFpMFdVVFhDNXBhOTFXcXlkTytYL2hRc3E0YlliTUNBd0VBQVRBTkJna3Foa2lHOXcwQkFRc0ZBQU9DQVFFQW05V1NzZEdrdmJ2YlJVT21nTjV2ZDlKZDZSNDZJYk1URlFHa3h4WVRmS0ZFM1ZwQ1cxc1hscXJyQ2NuTkVhM3l0TUJsZnBMblBDV2ZmT2VCL2NEVDRIZ3R5VERRSGg3aWtFYzNBdGNiejFjM3BiMjF5a0pzUStoVHNTSDR0ZUJ6VDlSL2VyQmxQWktyR09BNmJUZUpjV3hyVmNaOFh6R2tEWkZiYXp4ck1JV3E3dUc3QXFaSzhxL2NWTUtSb1RIWjIzNmk3MWIvb1dOVCtEbXNxQjNLUmNNUFFHTWtyanpWRk13RUszbGl2RDFlT2xzenJJdnBEbDJkR09wNHJ3eThaenBTKytQWkwyV0hXQVBXMkkzK0k0cmh4K1RaUTlYakVwSEJkRlMzS1dMcy9aVyttOWVLb3BGT1NINFpsWHIvMnlaQjh5RWlFSkE3U3NESjl1T0R3QT09Il0sImFsZyI6IlJTMjU2In0.eyJkZXZpY2VTdWJUeXBlIjoiRG91YmxlIiwic2VyaWFsTm8iOiIzNDU2Nzg5MDEyIiwibWFrZSI6Ik1PU0lQIiwibW9kZWwiOiJJUklTMDEiLCJkZXZpY2VQcm92aWRlcklkIjoiTU9TSVAuUFJPWFkuU0JJIiwiZGV2aWNlUHJvdmlkZXIiOiJNT1NJUCIsImRhdGVUaW1lIjoiMjAyMS0wNi0wNFQwNzozMTo1OS41NjFaIiwidHlwZSI6IklyaXMifQ.auo5Ej_opCIGdCxpqT17GqoEzZIBoTvjCGZvqMAYZoxdu9SMXcX-F7OtCTLomLJv3ArjGFP0gXxURjYS3TlXx5KG51nCfWiM3CIIT1R9_WLOObM4KSw2xGwktmSz04yE6_1n0Vs8v54T2gCugbSzOFYQag8MQ6erSLfuKju1G8Ypki54lXLWyeBSmuIeSxZZsZu6id9O23wpaBLNvshVpE4gb88Ig_rSSE0ENcQ7p9jjNxcbVG9ixb0i-s2zYIqqZvKSCIkdz9z7zKPK1VP7RmW_4COdB2taPvla5d6qNZHO0SfaBU53UyqYUKNsYkc4buOX_NgoRT7Yg_gR5lR4kQ\",\"deviceCode\":\"b692b595-3523-iris-99fc-bd76e35f190f\"}");
+		bir.setOthers(entry);
+		biometricRecord.setSegments(Arrays.asList(bir));
+
+		// biometric record with header certificate mismatch
+		BIR bir1 = new BIR();
+		HashMap<String, String> entry1 = new HashMap<String, String>();
+		bir1.setSb(
+				"eyJ4NWMiOlsiTUlJRi96Q0NBK2VnQXdJQkFnSUJCVEFOQmdrcWhraUc5dzBCQVFzRkFEQmlNUXN3Q1FZRFZRUUdFd0pKVGpFTU1Bb0dBMVVFQ0F3RGEyRnlNUXd3Q2dZRFZRUUhEQU5pYkhJeEVUQVBCZ05WQkFvTUNIRmhNaTEwWlhOME1SRXdEd1lEVlFRTERBaHhZVEl0ZEdWemRERVJNQThHQTFVRUF3d0ljV0V5TFhSbGMzUXdIaGNOTWpFd056RTFNRFl4TmpVM1doY05NakV3T0RFME1EWXhOalUzV2pCY01Rc3dDUVlEVlFRR0V3SkpUakVNTUFvR0ExVUVDQXdEYTJGeU1Rd3dDZ1lEVlFRSERBTmliSEl4RHpBTkJnTlZCQW9NQm1SbGRtbGpaVEVQTUEwR0ExVUVDd3dHWkdWMmFXTmxNUTh3RFFZRFZRUUREQVprWlhacFkyVXdnZ0lpTUEwR0NTcUdTSWIzRFFFQkFRVUFBNElDRHdBd2dnSUtBb0lDQVFEdVlwZlhPa3cyMzBKUFQ4bGtJUXhFc25EWUFicmRsWVJlZGVLUXhmbk5HbXFuUGdyK2dHczh1R1hSOEdoc2MxeHpaSTYrSWlaK1R5SktCTnIrSzJhenB5dXo1OWRlblRDYXgyb0JMTExMQnBjMDdHK0N3UDhjalZsQ2tsaEJGNVpwMmhQd3RrWXBOV01NZ1ZuS2NlZXQ4REpSNG5sanUyRk1jUFFZc1hUN1VUKzRFMEVnc1pQRXMxRC81aWVVd1Z3dkRUOG1ZcVVDeVVaMGVHUHNkWHZUWkRQZzg2Y1diOXBnK0hHRkJnamw5OXgwNGFkZ0ZZcnFFRDFMM042K1VhWWFLMnVpTEpBUEtYa21pOTJ3cWNZckRDbjRSQnZqeXIreTFBTlc3Nnd6bGVKMjVpVHpJOWx4c3F3aTR0S3piUjZDUVFIWEVvcmF5NGpERk96ZWttZnpiNkdKdDZhV0hvczVGV3YyWXZVbFBpSGpwM2gzL2NUTy9JdHlEQlJNREVveHMwNDErVkZMczdOR0d4cmdnY2tpTHR4N0k5V3llMVJZMkNUdGJQamg1QUxOSUxPRGRwS2tSRHNNL0p1OE9CVWMrQmlVK296QjNzdWduTTB3Z1VabGlZUHhqT1ljc3lnYmVCenVFb0pRcmt5UjNiSm9wSS9wdzN0TWE0MjQ5SkZObzdKTEhDQnlkUkVXWFowNWMyaXpvWXkvVUExOWo5Tng4WU81OVN6dnVKWkIwVWV1d0pXQzdOemc0OWZRbjQ5YkZyemRGRTRmNEJ2Z29mSnFOMENLT2FhdVBiZjdIeU9LS3R6S1dIaVJ2MWtORm9WM3hKdGc1TklLU3VEUVFyQXp4b2lBK2xiZ3l6LzFkT3pRZnRtWkJZVE5EdUM4VHUxeUhhQ2dHNUN0ZXdJREFRQUJvNEhGTUlIQ01Ba0dBMVVkRXdRQ01BQXdFUVlKWUlaSUFZYjRRZ0VCQkFRREFnV2dNRE1HQ1dDR1NBR0crRUlCRFFRbUZpUlBjR1Z1VTFOTUlFZGxibVZ5WVhSbFpDQkRiR2xsYm5RZ1EyVnlkR2xtYVdOaGRHVXdIUVlEVlIwT0JCWUVGTUZUWkU3Z1RUOTVtRVRkUDJnODdsMzdIQWxxTUI4R0ExVWRJd1FZTUJhQUZFUk90SFIwb3dTc2N5T0p6VktOUVlWeXViRFBNQTRHQTFVZER3RUIvd1FFQXdJRjREQWRCZ05WSFNVRUZqQVVCZ2dyQmdFRkJRY0RBZ1lJS3dZQkJRVUhBd1F3RFFZSktvWklodmNOQVFFTEJRQURnZ0lCQUhaeFo4enJFa213MWpuM0Zxc0FYc1RtbGpxNm9CUDR5eERmNHhQdHpueGRBbG1VWUlJZE8zcFdRbjhMTFlsMU13ajIwNEx2WEtEZXlweGVzQjY2Ty9Uc2d2dDAzaDdYZndFcVNiei82eGZONnJWcWRJZ0xEdjk1R016amFSNmFFUkNEdGVmWlRlU2Z5TmRuejRmelJuUFJDWmFtVTZhdys0ZmdoRXV1NXkvTysxNzltbTNOelh3TEx0Zzl5dUhPKzRtUnVHWkhXbnVIR1pSN0M4TUpLZlR5SldJSTNqRDZCRHpJWmdtVkl1K040aitDb0VxY21PK3BNN1E5RlNkZ2grKzJQT2E4UVNodWtrWlJ0ekFTN1lqRlIwRjFvZ0tJalZ6a3FKSFFHRkRWMFpGVk90K1VIOStCMFlrK0pSeTN4MVNZNlp4WkdvTG41T1dGNzV1WjE3cGtDbVJNRlVnTDBnRGNOMWUzTlhnZCt2VFJnV3JrQUx5b2RRRlYrOE5adDdmdFlSZHgrblFmRXNvelZvYjMvSnhwZ0k3RWUvbFNWT2R6Z0UrWHA3RTJYV2kwdWNlS2pEeFhJV3Fxa214MEt2cGZiSC9NVFZEQjFqSTNWYzBTRmhrU3M2bmZxUWU5MFhjZGVEUHZKcExNQWVGYjhhSk5OZUF5c1pVU3ZSK04vcFJWTFJrSFRydzJLV1pTM3loVm9jcFhjenNkbjRreFRNTm13NXo2RnppQmxqWEVOUWlBOEVkYXNSQ0pZQ1JtSHJWOWxGdlNjd3ZnaGExaEM3SkFLZFI4MnFMdlFaYjRyREowa2p4NTg5Zkh2Z3hEc2lpM3dFUW91aXJ2RzlUSEJxZC9LT3hpeDUwK0k0R3FuajB6RHUwd3o3Y0s3UnFuV2F1dUo2ejJmRzdtIl0sImFsZyI6IlJTMjU2IiwidHlwIjoiSldUIn0..lUHJvdmlkZXIiOiJNT1NJUCIsImRhdGVUaW1lIjoiMjAyMS0wNi0wNFQwNzo"
+						.getBytes());
+		bir1.setBdb("SUlSADAyMAAAACc6AAEAAQAAJyoH5AoJECYh//8Bc18wBgAAAQIDCgABlwExCA".getBytes());
+		entry1.put("PAYLOAD", "{\"deviceServiceVersion\":\"0.9.5\",\"bioValue\":\"<bioValue>\",\"qualityScore\":\"80\",\"bioType\":\"Iris\",\"requestedScore\":\"60\",\"transactionId\":\"4ca4fc4c-4279-47b4-9603-2954a038ccf9\",\"timestamp\":\"2021-06-04T07:31:59.831Z\",\"env\":\"null\",\"purpose\":\"Registration\",\"bioSubType\":\"Left\",\"digitalId\":\"eyJ4NWMiOlsiTUlJRGtEQ0NBbmlnQXdJQkFnSUVYM1hNZFRBTkJna3Foa2lHOXcwQkFRc0ZBRENCaVRFTE1Ba0dBMVVFQmhNQ1NVNHhFakFRQmdOVkJBZ01DV3RoY201aGRHRnJZVEVZTUJZR0ExVUVCd3dQYlc5emFYQnBjbWx6Wkc5MVlteGxNUmd3RmdZRFZRUUtEQTl0YjNOcGNHbHlhWE5rYjNWaWJHVXhHREFXQmdOVkJBc01EMjF2YzJsd2FYSnBjMlJ2ZFdKc1pURVlNQllHQTFVRUF3d1BiVzl6YVhCcGNtbHpaRzkxWW14bE1CNFhEVEl3TVRBd01URXlNekkxTTFvWERUSXhNVEF3TVRFeU16STFNMW93Z1lreEN6QUpCZ05WQkFZVEFrbE9NUkl3RUFZRFZRUUlEQWxyWVhKdVlYUmhhMkV4R0RBV0JnTlZCQWNNRDIxdmMybHdhWEpwYzJSdmRXSnNaVEVZTUJZR0ExVUVDZ3dQYlc5emFYQnBjbWx6Wkc5MVlteGxNUmd3RmdZRFZRUUxEQTl0YjNOcGNHbHlhWE5rYjNWaWJHVXhHREFXQmdOVkJBTU1EMjF2YzJsd2FYSnBjMlJ2ZFdKc1pUQ0NBU0l3RFFZSktvWklodmNOQVFFQkJRQURnZ0VQQURDQ0FRb0NnZ0VCQU43YnZWOUJUMGZBWU1zWjk1Uzh3OGQ4ckFHMlRvT0dURHQzNW4wbEJXbExhR3hBVTFQbE02alMzZFBNeDZGaGRHcjBKOFV4N1kxMHhUck5DUzZTVnAvRHFKZHIrakJxclEvN3JSQitqc3k0WGJseXd6eFhnTHdEYXE1akVRMnRxV3FXZGdnMjl0Y0Q1NzFHQ0NXZnkvY0xrbkFwY3JtbGl1Z2ZvVU1GTGIvNVo1dVF5eTZrbnI4a21JQytGU3BaMStKd1BBUmxYQWhWZ1BsZFpoVCtvdTg1S0hBTUQ5TFJ6cmpZazFyYjNJUVZsejE0VTNORlArTzVhVzNjVWRYSytMN2VpVk1yc3ZhaG5PV3hiRGNWUDVxYWJyYTZQN3ppV3ljeVRCT3NLV2JqMmNPWk9Ta2VhRGtVUzFpMFdVVFhDNXBhOTFXcXlkTytYL2hRc3E0YlliTUNBd0VBQVRBTkJna3Foa2lHOXcwQkFRc0ZBQU9DQVFFQW05V1NzZEdrdmJ2YlJVT21nTjV2ZDlKZDZSNDZJYk1URlFHa3h4WVRmS0ZFM1ZwQ1cxc1hscXJyQ2NuTkVhM3l0TUJsZnBMblBDV2ZmT2VCL2NEVDRIZ3R5VERRSGg3aWtFYzNBdGNiejFjM3BiMjF5a0pzUStoVHNTSDR0ZUJ6VDlSL2VyQmxQWktyR09BNmJUZUpjV3hyVmNaOFh6R2tEWkZiYXp4ck1JV3E3dUc3QXFaSzhxL2NWTUtSb1RIWjIzNmk3MWIvb1dOVCtEbXNxQjNLUmNNUFFHTWtyanpWRk13RUszbGl2RDFlT2xzenJJdnBEbDJkR09wNHJ3eThaenBTKytQWkwyV0hXQVBXMkkzK0k0cmh4K1RaUTlYakVwSEJkRlMzS1dMcy9aVyttOWVLb3BGT1NINFpsWHIvMnlaQjh5RWlFSkE3U3NESjl1T0R3QT09Il0sImFsZyI6IlJTMjU2In0.eyJkZXZpY2VTdWJUeXBlIjoiRG91YmxlIiwic2VyaWFsTm8iOiIzNDU2Nzg5MDEyIiwibWFrZSI6Ik1PU0lQIiwibW9kZWwiOiJJUklTMDEiLCJkZXZpY2VQcm92aWRlcklkIjoiTU9TSVAuUFJPWFkuU0JJIiwiZGV2aWNlUHJvdmlkZXIiOiJNT1NJUCIsImRhdGVUaW1lIjoiMjAyMS0wNi0wNFQwNzozMTo1OS41NjFaIiwidHlwZSI6IklyaXMifQ.auo5Ej_opCIGdCxpqT17GqoEzZIBoTvjCGZvqMAYZoxdu9SMXcX-F7OtCTLomLJv3ArjGFP0gXxURjYS3TlXx5KG51nCfWiM3CIIT1R9_WLOObM4KSw2xGwktmSz04yE6_1n0Vs8v54T2gCugbSzOFYQag8MQ6erSLfuKju1G8Ypki54lXLWyeBSmuIeSxZZsZu6id9O23wpaBLNvshVpE4gb88Ig_rSSE0ENcQ7p9jjNxcbVG9ixb0i-s2zYIqqZvKSCIkdz9z7zKPK1VP7RmW_4COdB2taPvla5d6qNZHO0SfaBU53UyqYUKNsYkc4buOX_NgoRT7Yg_gR5lR4kQ\",\"deviceCode\":\"b692b595-3523-iris-99fc-bd76e35f190f\"}");
+		bir1.setOthers(entry1);
+		biometricRecord1.setSegments(Arrays.asList(bir1));
+		
+		// exception biometric
+		BIR bir2 = new BIR();
+		HashMap<String, String> entry2 = new HashMap<String, String>();
+		bir2.setSb(
+				"eyJ4NWMiOlsiTUlJRi96Q0NBK2VnQXdJQkFnSUJCVEFOQmdrcWhraUc5dzBCQVFzRkFEQmlNUXN3Q1FZRFZRUUdFd0pKVGpFTU1Bb0dBMVVFQ0F3RGEyRnlNUXd3Q2dZRFZRUUhEQU5pYkhJeEVUQVBCZ05WQkFvTUNIRmhNaTEwWlhOME1SRXdEd1lEVlFRTERBaHhZVEl0ZEdWemRERVJNQThHQTFVRUF3d0ljV0V5TFhSbGMzUXdIaGNOTWpFd056RTFNRFl4TmpVM1doY05NakV3T0RFME1EWXhOalUzV2pCY01Rc3dDUVlEVlFRR0V3SkpUakVNTUFvR0ExVUVDQXdEYTJGeU1Rd3dDZ1lEVlFRSERBTmliSEl4RHpBTkJnTlZCQW9NQm1SbGRtbGpaVEVQTUEwR0ExVUVDd3dHWkdWMmFXTmxNUTh3RFFZRFZRUUREQVprWlhacFkyVXdnZ0lpTUEwR0NTcUdTSWIzRFFFQkFRVUFBNElDRHdBd2dnSUtBb0lDQVFEdVlwZlhPa3cyMzBKUFQ4bGtJUXhFc25EWUFicmRsWVJlZGVLUXhmbk5HbXFuUGdyK2dHczh1R1hSOEdoc2MxeHpaSTYrSWlaK1R5SktCTnIrSzJhenB5dXo1OWRlblRDYXgyb0JMTExMQnBjMDdHK0N3UDhjalZsQ2tsaEJGNVpwMmhQd3RrWXBOV01NZ1ZuS2NlZXQ4REpSNG5sanUyRk1jUFFZc1hUN1VUKzRFMEVnc1pQRXMxRC81aWVVd1Z3dkRUOG1ZcVVDeVVaMGVHUHNkWHZUWkRQZzg2Y1diOXBnK0hHRkJnamw5OXgwNGFkZ0ZZcnFFRDFMM042K1VhWWFLMnVpTEpBUEtYa21pOTJ3cWNZckRDbjRSQnZqeXIreTFBTlc3Nnd6bGVKMjVpVHpJOWx4c3F3aTR0S3piUjZDUVFIWEVvcmF5NGpERk96ZWttZnpiNkdKdDZhV0hvczVGV3YyWXZVbFBpSGpwM2gzL2NUTy9JdHlEQlJNREVveHMwNDErVkZMczdOR0d4cmdnY2tpTHR4N0k5V3llMVJZMkNUdGJQamg1QUxOSUxPRGRwS2tSRHNNL0p1OE9CVWMrQmlVK296QjNzdWduTTB3Z1VabGlZUHhqT1ljc3lnYmVCenVFb0pRcmt5UjNiSm9wSS9wdzN0TWE0MjQ5SkZObzdKTEhDQnlkUkVXWFowNWMyaXpvWXkvVUExOWo5Tng4WU81OVN6dnVKWkIwVWV1d0pXQzdOemc0OWZRbjQ5YkZyemRGRTRmNEJ2Z29mSnFOMENLT2FhdVBiZjdIeU9LS3R6S1dIaVJ2MWtORm9WM3hKdGc1TklLU3VEUVFyQXp4b2lBK2xiZ3l6LzFkT3pRZnRtWkJZVE5EdUM4VHUxeUhhQ2dHNUN0ZXdJREFRQUJvNEhGTUlIQ01Ba0dBMVVkRXdRQ01BQXdFUVlKWUlaSUFZYjRRZ0VCQkFRREFnV2dNRE1HQ1dDR1NBR0crRUlCRFFRbUZpUlBjR1Z1VTFOTUlFZGxibVZ5WVhSbFpDQkRiR2xsYm5RZ1EyVnlkR2xtYVdOaGRHVXdIUVlEVlIwT0JCWUVGTUZUWkU3Z1RUOTVtRVRkUDJnODdsMzdIQWxxTUI4R0ExVWRJd1FZTUJhQUZFUk90SFIwb3dTc2N5T0p6VktOUVlWeXViRFBNQTRHQTFVZER3RUIvd1FFQXdJRjREQWRCZ05WSFNVRUZqQVVCZ2dyQmdFRkJRY0RBZ1lJS3dZQkJRVUhBd1F3RFFZSktvWklodmNOQVFFTEJRQURnZ0lCQUhaeFo4enJFa213MWpuM0Zxc0FYc1RtbGpxNm9CUDR5eERmNHhQdHpueGRBbG1VWUlJZE8zcFdRbjhMTFlsMU13ajIwNEx2WEtEZXlweGVzQjY2Ty9Uc2d2dDAzaDdYZndFcVNiei82eGZONnJWcWRJZ0xEdjk1R016amFSNmFFUkNEdGVmWlRlU2Z5TmRuejRmelJuUFJDWmFtVTZhdys0ZmdoRXV1NXkvTysxNzltbTNOelh3TEx0Zzl5dUhPKzRtUnVHWkhXbnVIR1pSN0M4TUpLZlR5SldJSTNqRDZCRHpJWmdtVkl1K040aitDb0VxY21PK3BNN1E5RlNkZ2grKzJQT2E4UVNodWtrWlJ0ekFTN1lqRlIwRjFvZ0tJalZ6a3FKSFFHRkRWMFpGVk90K1VIOStCMFlrK0pSeTN4MVNZNlp4WkdvTG41T1dGNzV1WjE3cGtDbVJNRlVnTDBnRGNOMWUzTlhnZCt2VFJnV3JrQUx5b2RRRlYrOE5adDdmdFlSZHgrblFmRXNvelZvYjMvSnhwZ0k3RWUvbFNWT2R6Z0UrWHA3RTJYV2kwdWNlS2pEeFhJV3Fxa214MEt2cGZiSC9NVFZEQjFqSTNWYzBTRmhrU3M2bmZxUWU5MFhjZGVEUHZKcExNQWVGYjhhSk5OZUF5c1pVU3ZSK04vcFJWTFJrSFRydzJLV1pTM3loVm9jcFhjenNkbjRreFRNTm13NXo2RnppQmxqWEVOUWlBOEVkYXNSQ0pZQ1JtSHJWOWxGdlNjd3ZnaGExaEM3SkFLZFI4MnFMdlFaYjRyREowa2p4NTg5Zkh2Z3hEc2lpM3dFUW91aXJ2RzlUSEJxZC9LT3hpeDUwK0k0R3FuajB6RHUwd3o3Y0s3UnFuV2F1dUo2ejJmRzdtIl0sImFsZyI6IlJTMjU2IiwidHlwIjoiSldUIn0..lUHJvdmlkZXIiOiJNT1NJUCIsImRhdGVUaW1lIjoiMjAyMS0wNi0wNFQwNzo"
+						.getBytes());
+		bir2.setBdb("SUlSADAyMAAAACc6AAEAAQAAJyoH5AoJECYh//8Bc18wBgAAAQIDCgABlwExCA".getBytes());
+		entry2.put("EXCEPTION", "true");
+		
+		bir2.setOthers(entry2);
+		biometricRecord2.setSegments(Arrays.asList(bir2));
+
+		jwtSignatureVerifyResponseDto.setMessage("signature valid");
+		jwtSignatureVerifyResponseDto.setSignatureValid(true);
+		jwtSignatureVerifyResponseDto.setTrustValid("TRUST_CERT_PATH_VALID");
+		jwtSignatureVerifyResponseDto1.setMessage("signature invalid");
+		jwtSignatureVerifyResponseDto1.setSignatureValid(false);
+		jwtSignatureVerifyResponseDto1.setTrustValid("TRUST_CERT_PATH_VALID");
+
+		Mockito.when(env.getProperty(anyString())).thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		JSONArray jsonArray = new JSONArray();
+		JSONObject jsonObject1 = new JSONObject();
+		jsonObject1.put("Registration Client Version Number", "1.2.0");
+		jsonArray.put(0, jsonObject1);
+		metamap.put(JsonConstant.METADATA, jsonArray.toString());
+		Mockito.when(packetManagerService.getMetaInfo(anyString(), any(), any())).thenReturn(metamap);
+		Mockito.when(mapper.readValue(anyString(), any(Class.class)))
+				.thenReturn(new FieldValue("Registration Client Version Number", "1.2.0"));
+	}
+
+	@Test
+	public void signatureValidationTest()
+			throws JsonProcessingException, IOException, BaseCheckedException, JSONException {
+		ResponseWrapper1.setResponse(jwtSignatureVerifyResponseDto);
+
+		PowerMockito.mockStatic(BiometricsSignatureHelper.class);
+		PowerMockito.when(BiometricsSignatureHelper.extractJWTToken(any())).thenReturn(constructedJwtToken);
+
+		Mockito.when(registrationProcessorRestService.postApi(any(), any(), anyString(), any(), any()))
+				.thenReturn(ResponseWrapper1);
+		Mockito.when(mapper.writeValueAsString(any())).thenReturn("TkJna3Foa2lHOXcwQkFRc0ZBR");
+		Mockito.when(mapper.readValue(anyString(), eq(JWTSignatureVerifyResponseDto.class)))
+				.thenReturn(jwtSignatureVerifyResponseDto);
+		biometricsSignatureValidator.validateSignature(id, process, biometricRecord, metamap);
+	}
+
+	@Test(expected = BiometricSignatureValidationException.class)
+	public void signatureValidationFailedTest()
+			throws JsonProcessingException, IOException, BaseCheckedException, JSONException {
+		ResponseWrapper1.setResponse(jwtSignatureVerifyResponseDto1);
+
+		PowerMockito.mockStatic(BiometricsSignatureHelper.class);
+		PowerMockito.when(BiometricsSignatureHelper.extractJWTToken(any())).thenReturn(constructedJwtToken);
+		PowerMockito.mockStatic(JsonUtils.class);
+		PowerMockito.when(JsonUtils.javaObjectToJsonString(any())).thenReturn("");
+
+		Mockito.when(registrationProcessorRestService.postApi(any(), any(), anyString(), any(), any()))
+				.thenReturn(ResponseWrapper1);
+		Mockito.when(mapper.writeValueAsString(any())).thenReturn("TkJna3Foa2lHOXcwQkFRc0ZBR");
+		Mockito.when(mapper.readValue(anyString(), eq(JWTSignatureVerifyResponseDto.class)))
+				.thenReturn(jwtSignatureVerifyResponseDto1);
+		biometricsSignatureValidator.validateSignature(id, process, biometricRecord, metamap);
+	}
+
+	@Test(expected = BiometricSignatureValidationException.class)
+	public void headerCertificateValidationFailedTest()
+			throws JsonProcessingException, IOException, BaseCheckedException, JSONException {
+		PowerMockito.mockStatic(BiometricsSignatureHelper.class);
+		PowerMockito.when(BiometricsSignatureHelper.extractJWTToken(any()))
+				.thenThrow(BiometricSignatureValidationException.class);
+		biometricsSignatureValidator.validateSignature(id, process, biometricRecord1, metamap);
+	}
+	
+	@Test(expected = BiometricSignatureValidationException.class)
+	public void othersInfoNullTest() throws JsonProcessingException, IOException, BaseCheckedException, JSONException {
+		BiometricRecord biometricRecord = new BiometricRecord();
+		BIR bir = new BIR();
+		bir.setOthers(null);
+		biometricRecord.setSegments(Arrays.asList(bir));
+		biometricsSignatureValidator.validateSignature(id, process, biometricRecord, metamap);
+	}
+	
+	@Test(expected = BiometricSignatureValidationException.class)
+	public void jwtVerificationFailedTest()
+			throws JsonProcessingException, IOException, BaseCheckedException, JSONException {
+		ServiceError error = new ServiceError();
+		error.setErrorCode("ERR-001");
+		error.setMessage("exception occured");
+		ResponseWrapper1.setResponse(null);
+		ResponseWrapper1.setErrors(Arrays.asList(error));
+		Mockito.when(registrationProcessorRestService.postApi(any(), any(), anyString(), any(), any()))
+				.thenReturn(ResponseWrapper1);
+		biometricsSignatureValidator.validateSignature(id, process, biometricRecord, metamap);
+	}
+	
+	@Test
+	public void backwardCompatibilityTest()
+			throws JsonProcessingException, IOException, BaseCheckedException, JSONException {
+		JSONArray jsonArray = new JSONArray();
+		JSONObject jsonObject1 = new JSONObject();
+		jsonObject1.put("Registration Client Version Number", "1.1.3");
+		jsonArray.put(0, jsonObject1);
+		metamap.put(JsonConstant.METADATA, jsonArray.toString());
+		Mockito.when(packetManagerService.getMetaInfo(anyString(), any(), any())).thenReturn(metamap);
+		Mockito.when(mapper.readValue(anyString(), any(Class.class)))
+				.thenReturn(new FieldValue("Registration Client Version Number", "1.1.3"));
+		biometricsSignatureValidator.validateSignature(id, process, biometricRecord1, metamap);
+	}
+	
+	@Test
+	public void exceptionBiometricTest()
+			throws JsonProcessingException, IOException, BaseCheckedException, JSONException {
+		PowerMockito.mockStatic(BiometricsSignatureHelper.class);
+		PowerMockito.when(BiometricsSignatureHelper.extractJWTToken(any()))
+				.thenThrow(BiometricSignatureValidationException.class);
+		biometricsSignatureValidator.validateSignature(id, process, biometricRecord2, metamap);
+	}
+
+}

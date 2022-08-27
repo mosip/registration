@@ -7,8 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,6 +15,8 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.registration.processor.core.constant.JsonConstant;
@@ -80,6 +80,22 @@ public class MetaInfoTagGeneratorTest {
 	}
 	
 	@Test
+	public void testGenerateTagsForOperationsDataNotAvailable() throws BaseCheckedException {
+		operationsDataTagLabels.add("officerId");
+		Whitebox.setInternalState(metaInfoTagGenerator, "operationsDataTagLabels", operationsDataTagLabels);
+		Whitebox.setInternalState(metaInfoTagGenerator, "metaDataTagLabels", metaDataTagLabels);
+		Whitebox.setInternalState(metaInfoTagGenerator, "capturedRegisteredDeviceTypes", 
+			capturedRegisteredDeviceTypes);
+		
+		Map<String, String> metaInfoMap = new HashMap<>();
+		metaInfoMap.put(JsonConstant.OPERATIONSDATA, "[]");
+		metaInfoMap.put(JsonConstant.METADATA, "[]");
+		metaInfoMap.put(JsonConstant.CAPTUREDREGISTEREDDEVICES, "[]");
+		Map<String, String> tags = metaInfoTagGenerator.generateTags("12345", "1234", "NEW", null, metaInfoMap, 0);
+		assertEquals(tags.get(operationsDataTagNamePrefix + "officerId"), notAvailableTagValue);
+	}
+	
+	@Test
 	public void testGenerateTagsForMetaData() throws BaseCheckedException {
 		metaDataTagLabels.add("centerId");
 		Whitebox.setInternalState(metaInfoTagGenerator, "operationsDataTagLabels", operationsDataTagLabels);
@@ -94,6 +110,15 @@ public class MetaInfoTagGeneratorTest {
 		Map<String, String> tags = metaInfoTagGenerator.generateTags("12345", "1234", "NEW", 
 			null, metaInfoMap, 0);
 		assertEquals("11016", tags.get(metaDataTagNamePrefix + "centerId"));
+	}
+	
+	@Test(expected = BaseCheckedException.class)
+	public void testGenerateTagsForMetaDataIOException() throws BaseCheckedException {
+
+		Map<String, String> metaInfoMap = new HashMap<>();
+		metaInfoMap.put(JsonConstant.OPERATIONSDATA,
+				"[ {\n  \"label\" : \"officerId\",\n  \"values\" : \"110119\"\n}]");
+		metaInfoTagGenerator.generateTags("12345", "1234", "NEW", null, metaInfoMap, 0);
 	}
 
 	@Test
@@ -216,6 +241,12 @@ public class MetaInfoTagGeneratorTest {
 		Map<String, String> tags = metaInfoTagGenerator.generateTags("12345", "1234", "NEW", 
 			null, metaInfoMap, 0);
 		assertEquals(notAvailableTagValue, tags.get(capturedRegisteredDevicesTagNamePrefix + "Face"));
+	}
+	
+	@Test
+	public void getRequiredIdObjectFieldNamesTest() throws Exception {
+		List<String> result = metaInfoTagGenerator.getRequiredIdObjectFieldNames();
+		assertEquals(result, null);
 	}
 
 }

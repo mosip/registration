@@ -61,6 +61,9 @@ public class Encryptor {
 	@Autowired
 	private Environment env;
 
+	@Autowired
+	private ObjectMapper mapper;
+
 	private static final String DECRYPT_SERVICE_ID = "mosip.registration.processor.crypto.decrypt.id";
 	private static final String REG_PROC_APPLICATION_VERSION = "mosip.registration.processor.application.version";
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
@@ -78,9 +81,8 @@ public class Encryptor {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"Encryptor::encrypt()::entry");
 		try {
-			ObjectMapper mapper = new ObjectMapper();
-			
-			String syncInfo = CryptoUtil.encodeBase64String(syncMetaInfo.getBytes());
+
+			String syncInfo = CryptoUtil.encodeToURLSafeBase64(syncMetaInfo.getBytes());
 	        
 			CryptomanagerRequestDto cryptomanagerRequestDto = new CryptomanagerRequestDto();
 			cryptomanagerRequestDto.setPrependThumbprint(isPrependThumbprintEnabled);
@@ -94,8 +96,8 @@ public class Encryptor {
 			byte[] aad = new byte[CryptomanagerConstant.GCM_AAD_LENGTH];
 			sRandom.nextBytes(nonce);
 			sRandom.nextBytes(aad);
-			cryptomanagerRequestDto.setAad(CryptoUtil.encodeBase64String(aad));
-			cryptomanagerRequestDto.setSalt(CryptoUtil.encodeBase64String(nonce));
+			cryptomanagerRequestDto.setAad(CryptoUtil.encodeToURLSafeBase64(aad));
+			cryptomanagerRequestDto.setSalt(CryptoUtil.encodeToURLSafeBase64(nonce));
 			CryptomanagerResponseDto cryptomanagerResponseDto;
 
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
@@ -116,7 +118,12 @@ public class Encryptor {
 			if (response.getResponse() != null) {
 				LinkedHashMap responseMap = mapper.readValue(mapper.writeValueAsString(response.getResponse()),
 						LinkedHashMap.class);
-				byte[] tempEncryptedData = CryptoUtil.decodeBase64(responseMap.get(KEY).toString());
+				byte[] tempEncryptedData =null;
+				try {
+					tempEncryptedData= CryptoUtil.decodeURLSafeBase64(responseMap.get(KEY).toString());
+				} catch (IllegalArgumentException exception) {
+					tempEncryptedData= CryptoUtil.decodePlainBase64(responseMap.get(KEY).toString());
+				}
 				encryptedData = mergeEncryptedData(tempEncryptedData, nonce, aad);
 			} else {
 				description.setMessage(PlatformErrorMessages.RPR_PGS_ENCRYPTOR_INVLAID_DATA_EXCEPTION.getMessage());
@@ -154,16 +161,7 @@ public class Encryptor {
 				throw new EncryptionFailureException(
 						EncryptionFailureExceptionConstant.MOSIP_ENCRYPTION_FAILURE_ERROR_CODE.getErrorCode(),
 						httpClientException.getResponseBodyAsString());
-			} else if (e.getCause() instanceof HttpServerErrorException) {
-				HttpServerErrorException httpServerException = (HttpServerErrorException) e.getCause();
-				description.setMessage(PlatformErrorMessages.RPR_PGS_ENCRYPTOR_INVLAID_DATA_EXCEPTION.getMessage()
-						+ httpServerException.getResponseBodyAsString());
-				description.setCode(PlatformErrorMessages.RPR_PGS_ENCRYPTOR_INVLAID_DATA_EXCEPTION.getCode());
-
-				throw new EncryptionFailureException(
-						EncryptionFailureExceptionConstant.MOSIP_ENCRYPTION_FAILURE_ERROR_CODE.getErrorCode(),
-						httpServerException.getResponseBodyAsString());
-			} else {
+			}  else {
 				description.setMessage(
 						PlatformErrorMessages.RPR_PGS_ENCRYPTOR_INVLAID_DATA_EXCEPTION.getMessage() + e.getMessage());
 				description.setCode(PlatformErrorMessages.RPR_PGS_ENCRYPTOR_INVLAID_DATA_EXCEPTION.getCode());

@@ -1,9 +1,9 @@
 package io.mosip.registration.processor.message.sender.test.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -16,11 +16,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.kernel.core.util.exception.JsonProcessingException;
-import io.mosip.registration.processor.core.exception.PacketManagerException;
-import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
-import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
+import io.mosip.registration.processor.core.constant.VidType;
+import io.mosip.registration.processor.core.idrepo.dto.VidInfoDTO;
+import io.mosip.registration.processor.core.idrepo.dto.VidsInfosDTO;
 import org.apache.commons.io.IOUtils;
+import org.assertj.core.util.Lists;
 import org.json.JSONException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -30,6 +30,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -42,11 +43,13 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.util.JsonUtils;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.constant.IdType;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO;
@@ -58,6 +61,7 @@ import io.mosip.registration.processor.core.spi.message.sender.MessageNotificati
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
+import io.mosip.registration.processor.core.util.LanguageUtility;
 import io.mosip.registration.processor.message.sender.exception.EmailIdNotFoundException;
 import io.mosip.registration.processor.message.sender.exception.IDRepoResponseNull;
 import io.mosip.registration.processor.message.sender.exception.PhoneNumberNotFoundException;
@@ -68,6 +72,7 @@ import io.mosip.registration.processor.message.sender.template.TemplateGenerator
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 import io.mosip.registration.processor.status.code.RegistrationType;
@@ -87,6 +92,9 @@ public class MessageNotificationServiceImplTest {
 	@Mock
 	private IdRepoService idRepoService;
 
+	@Spy
+	private ObjectMapper mapper = new ObjectMapper();
+
 	/** The template generator. */
 	@Mock
 	private TemplateGenerator templateGenerator;
@@ -94,6 +102,9 @@ public class MessageNotificationServiceImplTest {
 	/** The packet info manager. */
 	@Mock
 	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
+	
+	@Mock
+	private LanguageUtility languageUtility;
 
 	/** The utility. */
 	@Mock
@@ -113,9 +124,6 @@ public class MessageNotificationServiceImplTest {
 	/** The env. */
 	@Mock
 	private Environment env;
-
-	@Mock
-	private ObjectMapper mapper;
 
 	/** The attributes. */
 	private Map<String, Object> attributes = new HashMap<>();
@@ -156,6 +164,8 @@ public class MessageNotificationServiceImplTest {
 	@Mock
 	private PriorityBasedPacketManagerService packetManagerService;
 
+	private VidsInfosDTO vidsInfosDTO = new VidsInfosDTO();
+
 	/**
 	 * Setup.
 	 *
@@ -165,15 +175,18 @@ public class MessageNotificationServiceImplTest {
 	@Before
 	public void setup() throws Exception {
 		ReflectionTestUtils.setField(messageNotificationServiceImpl, "userPreferredLanguageAttribute", "preferredLang");
-		ReflectionTestUtils.setField(messageNotificationServiceImpl, "defaultTemplateLanguages", "eng,ara");
+		ReflectionTestUtils.setField(messageNotificationServiceImpl, "defaultTemplateLanguages", "");
 		ReflectionTestUtils.setField(messageNotificationServiceImpl, "languageType", "both");
 		Mockito.when(env.getProperty(ApiName.EMAILNOTIFIER.name())).thenReturn("https://mosip.com");
-
+		Mockito.when(languageUtility.getLangCodeFromNativeName(anyString())).thenReturn("eng");
 		Map<String, String> fieldMap = new HashMap<>();
 		fieldMap.put("name", "mono");
 		fieldMap.put("email", "mono@mono.com");
 		fieldMap.put("phone", "23456");
 		fieldMap.put("dob", "11/11/2011");
+
+		VidInfoDTO vidInfoDTO = new VidInfoDTO("123456", VidType.PERPETUAL.name(), null, 1, null);
+		vidsInfosDTO.setResponse(Lists.newArrayList(vidInfoDTO));
 
 		when(packetManagerService.getFields(anyString(),anyList(),any(), any())).thenReturn(fieldMap);
 
@@ -225,9 +238,13 @@ public class MessageNotificationServiceImplTest {
 		Object identity = identityMap;
 		response.setIdentity(identity);
 
+		Map<String,String> idValuesMap = new HashMap<String, String>();
+		String jsonArray= "[ {\"language\" : \"eng\", \"value\" : \"ghjghj\"}, { \"language\" : \"ara\", \"value\" : \"لع\"} ]";
+		idValuesMap.put("fullName", jsonArray);
 		idResponse.setResponse(response);
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(idResponse);
 		Mockito.when(packetManagerService.getField(any(), any(), anyString(), any())).thenReturn(null);
+		Mockito.when(packetManagerService.getAllFieldsByMappingJsonKeys(anyString(), anyString(), any())).thenReturn(idValuesMap);
 
 		Mockito.when(env.getProperty("mosip.registration.processor.sms.id")).thenReturn("id");
 		Mockito.when(env.getProperty("mosip.registration.processor.application.version")).thenReturn("v1.0");
@@ -258,9 +275,6 @@ public class MessageNotificationServiceImplTest {
 
 		Mockito.when(restClientService.postApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(wrapper);
-		Mockito.when(mapper.writeValueAsString(any())).thenReturn(smsResponseDto.toString());
-		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(smsResponseDto);
-
 		SmsResponseDto resultResponse = messageNotificationServiceImpl.sendSmsNotification("RPR_UIN_GEN_SMS", "12345",
 				"NEW",IdType.RID, attributes, RegistrationType.NEW.name());
 		assertEquals("Test for SMS Notification Success", "Success", resultResponse.getMessage());
@@ -280,11 +294,11 @@ public class MessageNotificationServiceImplTest {
 		wrapper.setResponse(smsResponseDto);
 		wrapper.setErrors(null);
 
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(vidsInfosDTO).thenReturn(idResponse)
+				.thenReturn(vidsInfosDTO).thenReturn(idResponse);
 		// Mockito.when(abisHandlerUtil.getUinFromIDRepo(any())).thenReturn(1234567);
 		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any()))
 				.thenReturn(wrapper);
-		Mockito.when(mapper.writeValueAsString(any())).thenReturn(smsResponseDto.toString());
-		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(smsResponseDto);
 
 		SmsResponseDto resultResponse = messageNotificationServiceImpl.sendSmsNotification("RPR_UIN_GEN_SMS",
 				"27847657360002520181208094056", "NEW", IdType.UIN, attributes, RegistrationType.ACTIVATED.name());
@@ -307,8 +321,6 @@ public class MessageNotificationServiceImplTest {
 		wrapper.setResponse(responseDto);
 
 		Mockito.when(restApiClient.postApi(any(), any(), any(), any())).thenReturn(wrapper);
-		Mockito.when(mapper.writeValueAsString(any())).thenReturn(responseDto.toString());
-		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(responseDto);
 
 		ResponseDto resultResponse = messageNotificationServiceImpl.sendEmailNotification("RPR_UIN_GEN_EMAIL", "12345",
 				"NEW", IdType.RID, attributes, mailCc, subject, null, RegistrationType.NEW.name());
@@ -375,7 +387,7 @@ public class MessageNotificationServiceImplTest {
 	@Test(expected = TemplateGenerationFailedException.class)
 	public void testTemplateGenerationFailedException() throws IOException, ApisResourceAccessException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JSONException {
-		Mockito.when(templateGenerator.getTemplate("RPR_UIN_GEN_SMS", attributes, "eng"))
+		Mockito.when(templateGenerator.getTemplate(anyString(), any(), anyString()))
 				.thenThrow(new TemplateNotFoundException());
 
 		messageNotificationServiceImpl.sendSmsNotification("RPR_UIN_GEN_SMS", "12345", "NEW", IdType.RID, attributes,
@@ -389,7 +401,7 @@ public class MessageNotificationServiceImplTest {
 	 */
 	@Test(expected = TemplateGenerationFailedException.class)
 	public void testTemplateProcessingFailureException() throws Exception {
-		Mockito.when(templateGenerator.getTemplate("RPR_UIN_GEN_EMAIL", attributes, "eng"))
+		Mockito.when(templateGenerator.getTemplate(anyString(), any(), anyString()))
 				.thenThrow(new TemplateNotFoundException());
 
 		messageNotificationServiceImpl.sendEmailNotification("RPR_UIN_GEN_EMAIL", "12345", "NEW", IdType.RID, attributes,
@@ -422,7 +434,7 @@ public class MessageNotificationServiceImplTest {
 		uinList.add(uin);
 		// Mockito.when(abisHandlerUtil.getUinFromIDRepo(any())).thenReturn(1234567);
 		ApisResourceAccessException exp = new ApisResourceAccessException("Error Message");
-		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any(Class.class))).thenThrow(exp);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any(Class.class))).thenReturn(vidsInfosDTO).thenThrow(exp);
 		messageNotificationServiceImpl.sendSmsNotification("RPR_UIN_GEN_SMS", "27847657360002520181208094056",
 				"NEW", IdType.UIN, attributes, RegistrationType.DEACTIVATED.name());
 	}

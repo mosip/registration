@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.abstractverticle;
 
 import java.net.URL;
+import java.util.ArrayList;
 
 import brave.Tracing;
 import io.mosip.registration.processor.core.tracing.EventTracingHandler;
@@ -39,6 +40,7 @@ public class ConsumerVerticle extends MosipVerticleManager {
 		this.messageDTO.setIsValid(true);
 		this.messageDTO.setInternalError(false);
 		this.messageDTO.setReg_type(RegistrationType.NEW.name());
+		this.busOutHaltAddresses = new ArrayList<String>();
 
 		//this.consume(mosipEventBus, MessageBusAddress.PACKET_VALIDATOR_BUS_IN);
 		//this.consumeAndSend(mosipEventBus, MessageBusAddress.PACKET_VALIDATOR_BUS_OUT, MessageBusAddress.RETRY_BUS);

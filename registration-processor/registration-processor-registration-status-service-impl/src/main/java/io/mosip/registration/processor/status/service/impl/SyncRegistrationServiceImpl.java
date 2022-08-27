@@ -5,15 +5,23 @@ package io.mosip.registration.processor.status.service.impl;
 
 import java.net.URI;
 import java.security.NoSuchAlgorithmException;
+import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
+import io.mosip.kernel.core.util.DateUtils;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,22 +35,26 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.util.JsonUtils;
+import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.exception.JsonMappingException;
 import io.mosip.kernel.core.util.exception.JsonParseException;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.kernel.idvalidator.rid.constant.RidExceptionProperty;
+import io.mosip.registration.processor.core.anonymous.dto.AnonymousProfileDTO;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.constant.AuditLogConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ResponseStatusCode;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 import io.mosip.registration.processor.status.code.RegistrationExternalStatusCode;
@@ -60,8 +72,9 @@ import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
 import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.dto.SyncResponseFailDto;
 import io.mosip.registration.processor.status.dto.SyncResponseFailureDto;
+import io.mosip.registration.processor.status.dto.SyncResponseFailureV2Dto;
 import io.mosip.registration.processor.status.dto.SyncResponseSuccessDto;
-import io.mosip.registration.processor.status.dto.SyncTypeDto;
+import io.mosip.registration.processor.status.dto.SyncResponseSuccessV2Dto;
 import io.mosip.registration.processor.status.encryptor.Encryptor;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.exception.EncryptionFailureException;
@@ -69,6 +82,7 @@ import io.mosip.registration.processor.status.exception.LostRidValidationExcepti
 import io.mosip.registration.processor.status.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.status.exception.RegStatusAppException;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
+import io.mosip.registration.processor.status.service.AnonymousProfileService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.mosip.registration.processor.status.utilities.RegistrationUtility;
 
@@ -92,7 +106,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	private String eventName = "";
 
 	@Value("${mosip.registration.processor.postalcode.req.url}")
-	private String postalCodeReqUrl;
+	private String locationCodeReqUrl;
 
 	@Value("${mosip.registration.processor.lostrid.iteration.max.count:10000}")
 	private int iteration;
@@ -106,6 +120,9 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	/** The sync registration dao. */
 	@Autowired
 	private SyncRegistrationDao syncRegistrationDao;
+	/** The sync AnonymousProfileService . */
+	@Autowired
+	private AnonymousProfileService anonymousProfileService;
 
 	/** The core audit request builder. */
 	@Autowired
@@ -117,6 +134,9 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 
 	@Autowired
 	ObjectMapper objectMapper;
+
+	@Autowired
+	private RegistrationUtility registrationUtility;
 
 	/** The lancode length. */
 	private int LANCODE_LENGTH = 3;
@@ -137,10 +157,17 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 
 	@Value("#{'${registration.processor.sub-processes}'.split(',')}")
 	private List<String> subProcesses;
+	
+	/** The config server file storage URL. */
+	@Value("${config.server.file.storage.uri}")
+	private String configServerFileStorageURL;
+	
+	/** The get reg processor identity json. */
+	@Value("${registration.processor.identityjson}")
+	private String getRegProcessorIdentityJson;
 
 	@Autowired
 	RestApiClient restApiClient;
-
 	/**
 	 * Instantiates a new sync registration service impl.
 	 */
@@ -217,7 +244,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		try {
 			for (SyncRegistrationDto registrationDto : resgistrationDtos) {
 				if(registrationDto.getPacketId()!=null && !registrationDto.getPacketId().isBlank()){
-					syncResponseList = validateSync(registrationDto, syncResponseList, referenceId, timeStamp);
+					syncResponseList = validateSyncV2(registrationDto, syncResponseList, referenceId, timeStamp);
 				}
 				else {
 					SyncResponseFailDto syncResponseFailureDto = new SyncResponseFailDto();
@@ -288,9 +315,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 				SyncResponseFailureDto syncResponseFailureDto = new SyncResponseFailureDto();
 				try {
 					if (ridValidator.validateId(registrationDto.getRegistrationId())) {
-
-						syncResponseList = validateRegId(registrationDto, syncResponseList, referenceId, timeStamp);
-
+						syncResponseList = syncRegistrationRecord(registrationDto, syncResponseList, referenceId, timeStamp);
 					}
 				} catch (InvalidIDException e) {
 					syncResponseFailureDto.setRegistrationId(registrationDto.getRegistrationId());
@@ -317,6 +342,42 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			}
 		}
 		return syncResponseList;
+	}
+
+
+	private List<SyncResponseDto> validateSyncV2(SyncRegistrationDto registrationDto,
+											   List<SyncResponseDto> syncResponseList, String referenceId,
+											   String timeStamp) {
+		if (validateLanguageCode(registrationDto, syncResponseList)
+				&& validateRegistrationType(registrationDto, syncResponseList)
+				&& validateHashValue(registrationDto, syncResponseList)
+				&& validateSupervisorStatus(registrationDto, syncResponseList)) {
+			if (validateRegistrationID(registrationDto, syncResponseList)) {
+				syncResponseList = syncRegistrationRecord(registrationDto, syncResponseList, referenceId, timeStamp);
+			}
+		}
+		List<SyncResponseDto> syncResponseV2List=new ArrayList<>();
+		for(SyncResponseDto dto:syncResponseList) {
+			if(dto instanceof SyncResponseFailureDto) {
+				SyncResponseFailureV2Dto v2Dto=new SyncResponseFailureV2Dto(dto.getRegistrationId(),dto.getStatus(),
+						((SyncResponseFailureDto) dto).getErrorCode(),((SyncResponseFailureDto) dto).getMessage(),
+						registrationDto.getPacketId());
+				syncResponseV2List.add(v2Dto);
+			}
+			if(dto instanceof SyncResponseSuccessDto || dto instanceof SyncResponseDto) {
+				SyncResponseSuccessV2Dto v2Dto=new SyncResponseSuccessV2Dto(dto.getRegistrationId(),dto.getStatus(),
+						registrationDto.getPacketId());
+				syncResponseV2List.add(v2Dto);
+			}
+			if(dto instanceof SyncResponseFailDto) {
+				SyncResponseFailureV2Dto v2Dto=new SyncResponseFailureV2Dto(dto.getRegistrationId(),dto.getStatus(),
+						((SyncResponseFailDto) dto).getErrorCode(),((SyncResponseFailDto) dto).getMessage(),
+						registrationDto.getPacketId());
+				syncResponseV2List.add(v2Dto);
+			}
+		}
+		
+		return syncResponseV2List;
 	}
 
 	/**
@@ -460,9 +521,9 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	 *            the sync response list
 	 * @return the list
 	 */
-	public List<SyncResponseDto> validateRegId(SyncRegistrationDto registrationDto,
-			List<SyncResponseDto> syncResponseList, String referenceId,
-			String timeStamp) {
+	public List<SyncResponseDto> syncRegistrationRecord(SyncRegistrationDto registrationDto,
+														List<SyncResponseDto> syncResponseList, String referenceId,
+														String timeStamp) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationDto.getRegistrationId(), "SyncRegistrationServiceImpl::validateRegId()::entry");
 		SyncResponseSuccessDto syncResponseDto = new SyncResponseSuccessDto();
@@ -473,6 +534,9 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			syncRegistration = convertDtoToEntity(registrationDto, referenceId, timeStamp);
 			syncRegistration.setWorkflowInstanceId(existingSyncRegistration.getWorkflowInstanceId());
 			syncRegistration.setCreateDateTime(existingSyncRegistration.getCreateDateTime());
+			if(syncRegistration.getCreateDateTime()!=null) {
+				syncRegistration.setRegistrationDate(syncRegistration.getCreateDateTime().toLocalDate());
+			}
 			syncRegistrationDao.update(syncRegistration);
 			syncResponseDto.setRegistrationId(registrationDto.getRegistrationId());
 
@@ -483,16 +547,49 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			syncRegistration = convertDtoToEntity(registrationDto, referenceId, timeStamp);
 			syncRegistration.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 			syncRegistration.setWorkflowInstanceId(RegistrationUtility.generateId());
+			if(syncRegistration.getCreateDateTime()!=null) {
+				syncRegistration.setRegistrationDate(syncRegistration.getCreateDateTime().toLocalDate());
+			}
 			syncRegistrationDao.save(syncRegistration);
 			syncResponseDto.setRegistrationId(registrationDto.getRegistrationId());
-
+			
 			eventId = EventId.RPR_407.toString();
 		}
 		syncResponseDto.setStatus(ResponseStatusCode.SUCCESS.toString());
 		syncResponseList.add(syncResponseDto);
+		saveAnonymousProfile( registrationDto,  referenceId,  timeStamp);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationDto.getRegistrationId(), "SyncRegistrationServiceImpl::validateRegId()::exit");
 		return syncResponseList;
+	}
+
+	private void saveAnonymousProfile(SyncRegistrationDto registrationDto, String referenceId, String timeStamp)  {
+		AnonymousProfileDTO dto=new AnonymousProfileDTO();
+		try{
+			dto.setProcessName(registrationDto.getRegistrationType());
+			dto.setStatus("REGISTERED");
+			dto.setStartDateTime(timeStamp);
+			dto.setDate(LocalDate.now(ZoneId.of("UTC")).toString());
+			dto.setProcessStage("SYNC");
+			List<String> channel=new ArrayList<>(); 
+			String mappingJsonString = registrationUtility.getMappingJson();
+			org.json.simple.JSONObject mappingJsonObject = objectMapper.readValue(mappingJsonString, org.json.simple.JSONObject.class);
+			org.json.simple.JSONObject regProcessorIdentityJson =JsonUtil.getJSONObject(mappingJsonObject, MappingJsonConstants.IDENTITY);
+			
+			channel.add( registrationDto.getEmail() != null ? JsonUtil.getJSONValue(
+	                JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.EMAIL),
+	                MappingJsonConstants.VALUE) : null);
+			channel.add( registrationDto.getPhone() != null ? JsonUtil.getJSONValue(
+	                JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.PHONE),
+	                MappingJsonConstants.VALUE) : null);
+			dto.setChannel(channel);
+			dto.setEnrollmentCenterId(referenceId.split("_")[0]);
+			anonymousProfileService.saveAnonymousProfile(registrationDto.getRegistrationId(),
+					"SYNC", JsonUtil.objectMapperObjectToJson(dto));
+			} catch (java.io.IOException exception) {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				"", exception.getMessage() + ExceptionUtils.getStackTrace(exception));
+			}
 	}
 
 	/*
@@ -567,7 +664,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		syncRegistrationEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 		syncRegistrationEntity.setAdditionalInfoReqId(dto.getAdditionalInfoReqId());
 		syncRegistrationEntity.setPacketId(dto.getPacketId() != null ? dto.getPacketId() : dto.getRegistrationId());
-
+		syncRegistrationEntity.setReferenceId(referenceId);
 		try {
 			RegistrationAdditionalInfoDTO regAdditionalInfo = new RegistrationAdditionalInfoDTO();
 			regAdditionalInfo.setName(dto.getName());
@@ -585,11 +682,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			syncRegistrationEntity.setCenterId(getHashCode(referenceId.split("_")[0]));
 			syncRegistrationEntity.setPhone(dto.getPhone() != null ? getHashCode(dto.getPhone()) : null);
 			syncRegistrationEntity
-					.setPostalCode(getHashCode(getPostalCode(referenceId.split("_")[0], dto.getLangCode())));
-			if (dto.getCreateDateTime() != null) {
-				syncRegistrationEntity
-						.setRegistrationDate(dto.getCreateDateTime().toLocalDate());
-			}
+					.setLocationCode(getHashCode(getLocationCode(referenceId.split("_")[0], dto.getLangCode())));
 		} catch (JsonProcessingException | RegStatusAppException | EncryptionFailureException
 				| ApisResourceAccessException exception) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -755,10 +848,27 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		syncRegistrationEntities.forEach(syncEntity -> {
 			LostRidDto lostRidDto = new LostRidDto();
 			lostRidDto.setRegistrationId(syncEntity.getRegistrationId());
-			lostRidDto.setRegistartionDate(syncEntity.getRegistrationDate().toString());
+			lostRidDto.setRegistartionDate(null!=syncEntity.getRegistrationDate()?syncEntity.getRegistrationDate().toString():null);
+			lostRidDto.setSyncDateTime(null!=syncEntity.getCreateDateTime()?syncEntity.getCreateDateTime().toString():null);
+			if(syncEntity.getOptionalValues()!=null) {
+				getAdditionalInfo(syncEntity.getReferenceId(), syncEntity.getOptionalValues(), lostRidDto.getAdditionalInfo());
+			}
 			lostRidDtos.add(lostRidDto);
 		});
-		return lostRidDtos;
+		return lostRidDtos.stream().distinct().collect(Collectors.toList());
+	}
+
+	private void getAdditionalInfo(String referenceId, byte[] optionalValues, Map<String, String> additionalInfo)  {
+		String name=null;
+		try {
+			String decryptedData=decryptor.decrypt(CryptoUtil.encodeBase64String(optionalValues),referenceId, DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+			JSONObject jsonObject=new JSONObject(decryptedData);
+			name=jsonObject.getString("name");
+			additionalInfo.put("name",name);
+
+		} catch (PacketDecryptionFailureException | ApisResourceAccessException |JSONException  e) {
+			throw new TablenotAccessibleException(
+					PlatformErrorMessages.RPR_RGS_DECRYPTION_FAILED.getMessage(),e);		}
 	}
 
 	private void validateRegistrationIds(List<LostRidDto> lostRidDtos) throws RegStatusAppException {
@@ -774,7 +884,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		for (FilterInfo filterInfo : searchInfo.getFilters()) {
 			if (filterInfo.getColumnName().equals("email") || filterInfo.getColumnName().equals("phone")
 					|| filterInfo.getColumnName().equals("centerId")
-					|| filterInfo.getColumnName().equals("postalCode")) {
+					|| filterInfo.getColumnName().equals("locationCode")) {
 
 				filterInfo.setValue(getHashCode(filterInfo.getValue()));
 			} else if (filterInfo.getColumnName().equalsIgnoreCase("name")) {
@@ -817,20 +927,20 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		return registrationStatusDto;
 	}
 
-	private String getPostalCode(String centerId, String langCode) {
-		String requestUrl = postalCodeReqUrl + "/" + centerId + "/" + langCode;
+	private String getLocationCode(String centerId, String langCode) {
+		String requestUrl = locationCodeReqUrl + "/" + centerId + "/" + langCode;
 		URI requestUri = URI.create(requestUrl);
-		String postalCode = null;
+		String locationCode = null;
 		try {
 			String response = restApiClient.getApi(requestUri, String.class);
 			JSONObject jsonObjects = new JSONObject(response);
-			postalCode = jsonObjects.getJSONObject("response") != null ? ((JSONObject) jsonObjects.getJSONObject("response").getJSONArray("registrationCenters").get(0))
+			locationCode = jsonObjects.getJSONObject("response") != null ? ((JSONObject) jsonObjects.getJSONObject("response").getJSONArray("registrationCenters").get(0))
 					.getString("locationCode") : null;
 		} catch (Exception e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
 		}
-		return postalCode;
+		return locationCode;
 	}
 
 	@Override
@@ -886,12 +996,17 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			Long hashValue = Long.parseLong(result, 16);
 			Long saltIndex = hashValue % 10000;
 			String salt = syncRegistrationDao.getSaltValue(saltIndex);
-			byte[] saltBytes = CryptoUtil.decodeBase64(salt);
+			byte[] saltBytes=null;
+			try {
+				saltBytes= CryptoUtil.decodeURLSafeBase64(salt);
+			} catch (IllegalArgumentException exception) {
+				saltBytes = CryptoUtil.decodePlainBase64(salt);
+			}
 			byte[] hashBytes = value.getBytes();
 			for (int i = 0; i <= iteration; i++) {
 				hashBytes = getHMACHashWithSalt(hashBytes, saltBytes);
 			}
-			encodedHash = CryptoUtil.encodeBase64(hashBytes);
+			encodedHash = CryptoUtil.encodeToURLSafeBase64(hashBytes);
 		} catch (NoSuchAlgorithmException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", e.getMessage() + ExceptionUtils.getStackTrace(e));

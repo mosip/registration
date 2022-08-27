@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,6 +37,7 @@ import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
+import io.mosip.registration.processor.packet.storage.utils.BioSdkUtil;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -72,26 +72,24 @@ public class IntroducerValidator {
 
 	@Autowired
 	private Utilities utility;
+	
+	@Autowired
+	private BioSdkUtil bioUtil;
 
 	/**
 	 * Checks if is valid introducer.
 	 *
 	 * @param registrationId        the registration id
 	 * @param registrationStatusDto
-	 * @throws IOException                                Signals that an I/O
-	 *                                                    exception has occurred.
 	 * @throws SAXException
 	 * @throws ParserConfigurationException
-	 * @throws NoSuchAlgorithmException
-	 * @throws InvalidKeySpecException
 	 * @throws BiometricException
 	 * @throws io.mosip.kernel.core.exception.IOException
-	 * @throws BaseCheckedException
+	 * @throws Exception 
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
 	 */
-	public void validate(String registrationId, InternalRegistrationStatusDto registrationStatusDto) throws IOException,
-			InvalidKeySpecException, NoSuchAlgorithmException, CertificateException, BaseCheckedException {
+	public void validate(String registrationId, InternalRegistrationStatusDto registrationStatusDto) throws Exception {
 
 		regProcLogger.debug("validate called for registrationId {}", registrationId);
 
@@ -163,7 +161,7 @@ public class IntroducerValidator {
 			if (introducerRegistrationStatusDto.getStatusCode().equals(RegistrationStatusCode.PROCESSING.toString())) {
 
 				registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
-						.getStatusCode(RegistrationExceptionTypeCode.OSI_FAILED_ON_HOLD_INTRODUCER_PACKET));
+						.getStatusCode(RegistrationExceptionTypeCode.ON_HOLD_INTRODUCER_PACKET));
 
 				registrationStatusDto.setStatusComment(StatusUtil.PACKET_ON_HOLD.getMessage());
 				registrationStatusDto.setSubStatusCode(StatusUtil.PACKET_ON_HOLD.getCode());
@@ -192,7 +190,7 @@ public class IntroducerValidator {
 
 		} else {
 			registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
-					.getStatusCode(RegistrationExceptionTypeCode.OSI_FAILED_ON_HOLD_INTRODUCER_PACKET));
+					.getStatusCode(RegistrationExceptionTypeCode.ON_HOLD_INTRODUCER_PACKET));
 
 			registrationStatusDto.setStatusComment(StatusUtil.PACKET_IS_ON_HOLD.getMessage());
 			registrationStatusDto.setSubStatusCode(StatusUtil.PACKET_IS_ON_HOLD.getCode());
@@ -206,7 +204,7 @@ public class IntroducerValidator {
 
 	private void validateIntroducerBiometric(String registrationId, InternalRegistrationStatusDto registrationStatusDto,
 			String introducerUIN)
-			throws IOException, CertificateException, NoSuchAlgorithmException, BaseCheckedException {
+			throws Exception {
 		BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(registrationId,
 				MappingJsonConstants.INTRODUCER_BIO, registrationStatusDto.getRegistrationType(),
 				ProviderStageName.INTRODUCER_VALIDATOR);
@@ -223,7 +221,8 @@ public class IntroducerValidator {
 					StatusUtil.INTRODUCER_BIOMETRIC_FILE_NAME_NOT_FOUND.getCode());
 		}
 	}
-
+	
+	
 	/**
 	 * Validate user.
 	 *
@@ -232,47 +231,17 @@ public class IntroducerValidator {
 	 * @param list                  biometric data as BIR object
 	 * @param individualType        user type
 	 * @param registrationStatusDto
-	 * @throws SAXException
-	 * @throws ParserConfigurationException
-	 * @throws NoSuchAlgorithmException
-	 * @throws InvalidKeySpecException
-	 * @throws IOException                  Signals that an I/O exception has
-	 *                                      occurred.
-	 * @throws BaseCheckedException
+	 * @throws Exception 
+	 * @throws  
 	 * @throws BiometricException
 	 */
 
 	private void validateUserBiometric(String registrationId, String userId, List<BIR> list, String individualType,
-			InternalRegistrationStatusDto registrationStatusDto)
-			throws IOException, CertificateException, NoSuchAlgorithmException, BaseCheckedException {
-
-		AuthResponseDTO authResponseDTO = authUtil.authByIdAuthentication(userId, individualType, list);
-		if (authResponseDTO.getErrors() == null || authResponseDTO.getErrors().isEmpty()) {
-			if (!authResponseDTO.getResponse().isAuthStatus()) {
-				registrationStatusDto.setLatestTransactionStatusCode(
-						registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.AUTH_FAILED));
-				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-				throw new ValidationFailedException(StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getMessage() + userId,
-						StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getCode());
-			}
-
-		} else {
-			List<io.mosip.registration.processor.core.auth.dto.ErrorDTO> errors = authResponseDTO.getErrors();
-			if (errors.stream().anyMatch(error -> (error.getErrorCode().equalsIgnoreCase("IDA-MLC-007")
-					|| utility.isUinMissingFromIdAuth(error.getErrorCode(), userId, individualType)))) {
-				throw new AuthSystemException(PlatformErrorMessages.RPR_AUTH_SYSTEM_EXCEPTION.getMessage());
-			} else {
-				registrationStatusDto.setLatestTransactionStatusCode(
-						registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.AUTH_ERROR));
-				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-				String result = errors.stream().map(s -> s.getErrorMessage() + " ").collect(Collectors.joining());
-				regProcLogger.debug("validateUserBiometric call ended for registrationId {} {}", registrationId,
-						result);
-				throw new BaseCheckedException(result, StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getCode());
-			}
-
-		}
-
+			InternalRegistrationStatusDto registrationStatusDto) throws Exception {
+		regProcLogger.info("validateUserBiometric call started for registrationId {}", registrationId);
+		bioUtil.authenticateBiometrics(userId, individualType, list, registrationStatusDto,StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getCode(),StatusUtil.INTRODUCER_AUTHENTICATION_FAILED.getCode());
+		regProcLogger.debug("validateUserBiometric call ended for registrationId {}", registrationId);
 	}
 
+	
 }

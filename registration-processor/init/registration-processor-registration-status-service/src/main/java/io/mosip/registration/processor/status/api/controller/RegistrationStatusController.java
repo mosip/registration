@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -18,8 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -42,17 +42,19 @@ import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.mosip.registration.processor.status.sync.response.dto.RegStatusResponseDTO;
 import io.mosip.registration.processor.status.validator.LostRidRequestValidator;
 import io.mosip.registration.processor.status.validator.RegistrationStatusRequestValidator;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * The Class RegistrationStatusController.
  */
 @RefreshScope
 @RestController
-@Api(tags = "Registration Status")
+@Tag(name = "Registration Status", description = "Registration Status Controller")
 public class RegistrationStatusController {
 
 	/** The registration status service. */
@@ -82,6 +84,9 @@ public class RegistrationStatusController {
 
 	@Value("${registration.processor.signature.isEnabled}")
 	private Boolean isEnabled;
+	
+	@Autowired
+	ObjectMapper objMp;
 
 	/** 
 	 * The comma separate list of external statuses that should be considered as processed 
@@ -90,21 +95,31 @@ public class RegistrationStatusController {
 	@Value("#{'${mosip.registration.processor.registration.status.external-statuses-to-consider-processed:UIN_GENERATED,REREGISTER,REJECTED,REPROCESS_FAILED}'.split(',')}")
 	private List<String> externalStatusesConsideredProcessed;
 
+	@Value("${registration.processor.fetch.registration.records.limit:100}")
+	private int maxLimit;
+
 	@Autowired
 	private DigitalSignatureUtility digitalSignatureUtility;
 
 	/**
 	 * Search.
 	 *
-	 * @param registrationIds the registration ids
+	 * @param registrationStatusRequestDTO the registration ids
 	 * @return the response entity
 	 * @throws RegStatusAppException
 	 */
-	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_OFFICER', 'REGISTRATION_SUPERVISOR','RESIDENT')")
+	//@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_OFFICER', 'REGISTRATION_SUPERVISOR','RESIDENT')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostsearch())")
 	@PostMapping(path = "/search", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@ApiOperation(value = "Get the registration entity", response = RegistrationExternalStatusCode.class)
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Registration Entity successfully fetched"),
-			@ApiResponse(code = 400, message = "Unable to fetch the Registration Entity") })
+	@Operation(summary = "Get the registration entity", description = "Get the registration entity", tags = { "Registration Status" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Registration Entity successfully fetched",
+					content = @Content(schema = @Schema(implementation = RegistrationExternalStatusCode.class))),
+			@ApiResponse(responseCode = "201", description = "Created" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "400", description = "Unable to fetch the Registration Entity" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<Object> search(
 			@RequestBody(required = true) RegistrationStatusRequestDTO registrationStatusRequestDTO)
 			throws RegStatusAppException {
@@ -112,31 +127,38 @@ public class RegistrationStatusController {
 		try {
 			registrationStatusRequestValidator.validate(registrationStatusRequestDTO,
 					env.getProperty(REG_STATUS_SERVICE_ID));
+
+			// if number of rids in request exceeds max limit then get status for first 100 ids.
+			List<RegistrationStatusSubRequestDto> recordsToFetch = CollectionUtils.isNotEmpty(registrationStatusRequestDTO.getRequest())
+					&& registrationStatusRequestDTO.getRequest().size() > maxLimit ?
+					registrationStatusRequestDTO.getRequest().stream().limit(maxLimit).collect(Collectors.toList()) : registrationStatusRequestDTO.getRequest();
+
 			List<RegistrationStatusDto> registrations = registrationStatusService
-					.getByIds(registrationStatusRequestDTO.getRequest());
-			
-			List<RegistrationStatusSubRequestDto> requestIdsNotAvailable = registrationStatusRequestDTO.getRequest()
+					.getByIds(recordsToFetch);
+			List<RegistrationStatusSubRequestDto> requestIdsNotAvailable = recordsToFetch
 					.stream()
 					.filter(request -> registrations.stream().noneMatch(
 							registration -> registration.getRegistrationId().equals(request.getRegistrationId())))
 					.collect(Collectors.toList());
-			List<RegistrationStatusDto> registrationsList = syncRegistrationService.getByIds(requestIdsNotAvailable);
-			if (registrationsList != null && !registrationsList.isEmpty()) {
-				registrations.addAll(syncRegistrationService.getByIds(requestIdsNotAvailable));
+
+			if (CollectionUtils.isNotEmpty(requestIdsNotAvailable)) {
+				List<RegistrationStatusDto> registrationsList = syncRegistrationService.getByIds(requestIdsNotAvailable);
+				if (registrationsList != null && !registrationsList.isEmpty()) {
+					registrations.addAll(syncRegistrationService.getByIds(requestIdsNotAvailable));
+				}
 			}
 
 			updatedConditionalStatusToProcessed(registrations);
 
 			if (isEnabled) {
-				RegStatusResponseDTO response = buildRegistrationStatusResponse(registrations,
-						registrationStatusRequestDTO.getRequest());
-				Gson gson = new GsonBuilder().serializeNulls().create();
+				String response = objMp.writeValueAsString(buildRegistrationStatusResponse(registrations,
+						recordsToFetch));	
 				HttpHeaders headers = new HttpHeaders();
-				headers.add(RESPONSE_SIGNATURE, digitalSignatureUtility.getDigitalSignature(gson.toJson(response)));
-				return ResponseEntity.status(HttpStatus.OK).headers(headers).body(gson.toJson(response));
+				headers.add(RESPONSE_SIGNATURE, digitalSignatureUtility.getDigitalSignature(response));
+				return ResponseEntity.status(HttpStatus.OK).headers(headers).body(response);
 			}
 			return ResponseEntity.status(HttpStatus.OK)
-					.body(buildRegistrationStatusResponse(registrations, registrationStatusRequestDTO.getRequest()));
+					.body(buildRegistrationStatusResponse(registrations, recordsToFetch));
 		} catch (RegStatusAppException e) {
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_DATA_VALIDATION_FAILED, e);
 		} catch (Exception e) {
@@ -151,11 +173,18 @@ public class RegistrationStatusController {
 	 * @return
 	 * @throws RegStatusAppException
 	 */
-	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_OFFICER', 'ZONAL_ADMIN','GLOBAL_ADMIN')")
+	//@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_OFFICER', 'ZONAL_ADMIN','GLOBAL_ADMIN')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostlostridsearch())")
 	@PostMapping(path = "/lostridsearch", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@ApiOperation(value = "Get the lost registration id", response = RegistrationExternalStatusCode.class)
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Registration id successfully fetched"),
-			@ApiResponse(code = 400, message = "Unable to fetch the Registration id") })
+	@Operation(summary = "Get the lost registration id", description = "Get the lost registration id", tags = { "Registration Status" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Registration id successfully fetched",
+					content = @Content(schema = @Schema(implementation = RegistrationExternalStatusCode.class))),
+			@ApiResponse(responseCode = "201", description = "Created" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "400", description = "Unable to fetch the Registration Entity" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<Object> searchLostRid(
 			@RequestBody(required = true) LostRidRequestDto lostRidRequestDto)
 			throws RegStatusAppException {

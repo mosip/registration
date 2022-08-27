@@ -1,10 +1,13 @@
 package io.mosip.registration.processor.status.api.controller;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -18,8 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -34,10 +36,12 @@ import io.mosip.registration.processor.status.exception.RegStatusAppException;
 import io.mosip.registration.processor.status.service.PacketExternalStatusService;
 import io.mosip.registration.processor.status.sync.response.dto.PacketExternalStatusResponseDTO;
 import io.mosip.registration.processor.status.validator.PacketExternalStatusRequestValidator;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 
 /**
@@ -45,7 +49,7 @@ import io.swagger.annotations.ApiResponses;
  */
 @RefreshScope
 @RestController
-@Api(tags = "Packet Status")
+@Tag(name = "Packet Status", description = "Packet External Status Controller")
 public class PacketExternalStatusController {
 
 
@@ -64,6 +68,9 @@ public class PacketExternalStatusController {
 	/** The digital signature utility. */
 	@Autowired
 	private DigitalSignatureUtility digitalSignatureUtility;
+	
+	@Autowired
+	ObjectMapper objectMapper;
 
 	/** The is enabled. */
 	@Value("${registration.processor.signature.isEnabled}")
@@ -79,6 +86,7 @@ public class PacketExternalStatusController {
 
 	private static final String PACKET_EXTERNAL_STATUS_APPLICATION_VERSION = "mosip.registration.processor.packet.external.status.version";
 
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	/**
 	 * Packet external status.
 	 *
@@ -86,11 +94,18 @@ public class PacketExternalStatusController {
 	 * @return the response entity
 	 * @throws RegStatusAppException the reg status app exception
 	 */
-	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_OFFICER', 'REGISTRATION_SUPERVISOR','RESIDENT')")
+	//@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_OFFICER', 'REGISTRATION_SUPERVISOR','RESIDENT')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostpacketexternalstatus())")
 	@PostMapping(path = "/packetexternalstatus", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@ApiOperation(value = "Get the Packet external status", response = RegistrationExternalStatusCode.class)
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Packet external status successfully fetched"),
-			@ApiResponse(code = 400, message = "Unable to fetch the Packet external status") })
+	@Operation(summary = "Get the Packet external status", description = "Get the Packet external status", tags = { "Packet Status" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Packet external status successfully fetched",
+					content = @Content(schema = @Schema(implementation = RegistrationExternalStatusCode.class))),
+			@ApiResponse(responseCode = "201", description = "Created" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "400", description = "Unable to fetch the Packet external status" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<Object> packetExternalStatus(
 			@RequestBody(required = true) PacketExternalStatusRequestDTO packetExternalStatusRequestDTO)
 			throws RegStatusAppException {
@@ -110,12 +125,20 @@ public class PacketExternalStatusController {
 			if (isEnabled) {
 				PacketExternalStatusResponseDTO packetExternalStatusResponseDTO = buildPacketStatusResponse(
 						packetExternalStatusDTOList, packetExternalStatusRequestDTO.getRequest());
-				Gson gson = new GsonBuilder().serializeNulls().create();
+				
 				HttpHeaders headers = new HttpHeaders();
+				String res=null;
+				try {
+					
+					res=objectMapper.writeValueAsString(packetExternalStatusResponseDTO);
+				} catch (Exception e1) {
+					logger.error("Error while processing dto ",e1);
+					
+				}
 				headers.add(RESPONSE_SIGNATURE,
-						digitalSignatureUtility.getDigitalSignature(gson.toJson(packetExternalStatusResponseDTO)));
+						digitalSignatureUtility.getDigitalSignature(res));
 				return ResponseEntity.status(HttpStatus.OK).headers(headers)
-						.body(gson.toJson(packetExternalStatusResponseDTO));
+						.body(res);
 			}
 			return ResponseEntity.status(HttpStatus.OK)
 					.body(buildPacketStatusResponse(packetExternalStatusDTOList, packetExternalStatusRequestDTO.getRequest()));

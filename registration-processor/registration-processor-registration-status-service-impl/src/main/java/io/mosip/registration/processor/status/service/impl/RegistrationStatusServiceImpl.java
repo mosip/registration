@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,6 +53,9 @@ import io.mosip.registration.processor.status.utilities.RegistrationExternalStat
 public class RegistrationStatusServiceImpl
 		implements RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> {
 
+	@Value("${mosip.regproc.registration.status.service.disable-audit:false}")
+	private boolean disableAudit;
+
 	/** The registration status dao. */
 	@Autowired
 	private RegistrationStatusDao registrationStatusDao;
@@ -67,7 +71,7 @@ public class RegistrationStatusServiceImpl
 	/** The regexternalstatus util. */
 	@Autowired
 	private RegistrationExternalStatusUtility regexternalstatusUtil;
-	
+
 	@Value("#{'${registration.processor.main-processes}'.split(',')}")
 	private List<String> mainProcess;
 
@@ -115,7 +119,7 @@ public class RegistrationStatusServiceImpl
 					registrationId, "RegistrationStatusServiceImpl::getAllRegistrationStatuses()::exit");
 
 			if(entities != null)
-				entities.forEach(e -> dtos.add(convertEntityToDto(e)));;
+				entities.forEach(e -> dtos.add(convertEntityToDto(e)));
 			return dtos;
 		} catch (DataAccessLayerException e) {
 
@@ -239,7 +243,8 @@ public class RegistrationStatusServiceImpl
 			String eventType = eventId.equalsIgnoreCase(EventId.RPR_407.toString()) ? EventType.BUSINESS.toString()
 					: EventType.SYSTEM.toString();
 
-			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
+			if(!disableAudit)
+				auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
 					moduleId, moduleName, registrationStatusDto.getRegistrationId());
 		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
@@ -321,7 +326,8 @@ public class RegistrationStatusServiceImpl
 			String eventType = eventId.equalsIgnoreCase(EventId.RPR_407.toString()) ? EventType.BUSINESS.toString()
 					: EventType.SYSTEM.toString();
 
-			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
+			if(!disableAudit)
+				auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
 					moduleId, moduleName, registrationStatusDto.getRegistrationId());
 
 		}
@@ -510,9 +516,15 @@ public class RegistrationStatusServiceImpl
 			}
 			registrationStatusDto.setRegistrationId(parentEntity.get().getRegId());
 		} else {
+			if(parentEntity.isPresent()) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					parentEntity.get().getReferenceRegistrationId(),
 					PlatformErrorMessages.RPR_RGS_REGISTRATION_STATUS_NOT_EXIST.getMessage());
+			}else {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						null,
+						PlatformErrorMessages.RPR_RGS_REGISTRATION_STATUS_NOT_EXIST.getMessage());
+			}
 		}
 
 		return registrationStatusDto;
@@ -624,7 +636,7 @@ public class RegistrationStatusServiceImpl
 		registrationStatusDto.setUpdateDateTime(entity.getUpdateDateTime());
 		registrationStatusDto.setResumeTimeStamp(entity.getResumeTimeStamp());
 		registrationStatusDto.setDefaultResumeAction(entity.getDefaultResumeAction());
-		registrationStatusDto.setResumeRemoveTags(entity.getResumeRemoveTags());
+		registrationStatusDto.setPauseRuleIds(entity.getPauseRuleIds());
 		registrationStatusDto.setLastSuccessStageName(entity.getLastSuccessStageName());
 		registrationStatusDto.setSource(entity.getSource());
 		registrationStatusDto.setIteration(entity.getIteration());
@@ -683,7 +695,7 @@ public class RegistrationStatusServiceImpl
 		registrationStatusEntity.setLatestTransactionTimes(LocalDateTime.now(ZoneId.of("UTC")));
 		registrationStatusEntity.setResumeTimeStamp(dto.getResumeTimeStamp());
 		registrationStatusEntity.setDefaultResumeAction(dto.getDefaultResumeAction());
-		registrationStatusEntity.setResumeRemoveTags(dto.getResumeRemoveTags());
+		registrationStatusEntity.setPauseRuleIds(dto.getPauseRuleIds());
 		if(dto.getLatestTransactionStatusCode().equals(RegistrationTransactionStatusCode.SUCCESS.toString()) 
 			|| dto.getLatestTransactionStatusCode().equals(
 				RegistrationTransactionStatusCode.PROCESSED.toString()))
@@ -729,13 +741,13 @@ public class RegistrationStatusServiceImpl
 	 * @return the un processed packets
 	 */
 	public List<InternalRegistrationStatusDto> getUnProcessedPackets(Integer fetchSize, long elapseTime,
-			Integer reprocessCount, List<String> status) {
+			Integer reprocessCount, List<String> status, List<String> excludeStageNames) {
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"RegistrationStatusServiceImpl::getReprocessPacket()::entry");
 		try {
 			List<RegistrationStatusEntity> entityList = registrationStatusDao.getUnProcessedPackets(fetchSize,
-					elapseTime, reprocessCount, status);
+					elapseTime, reprocessCount, status, excludeStageNames);
 
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 					"RegistrationStatusServiceImpl::getReprocessPacket()::exit");
@@ -759,12 +771,14 @@ public class RegistrationStatusServiceImpl
 	 * getUnProcessedPacketsCount(long, java.lang.Integer, java.util.List)
 	 */
 	@Override
-	public Integer getUnProcessedPacketsCount(long elapseTime, Integer reprocessCount, List<String> status) {
+	public Integer getUnProcessedPacketsCount(long elapseTime, Integer reprocessCount, List<String> status,
+			List<String> excludeStageNames) {
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"RegistrationStatusServiceImpl::getUnProcessedPacketsCount()::entry");
 		try {
-			int count = registrationStatusDao.getUnProcessedPacketsCount(elapseTime, reprocessCount, status);
+			int count = registrationStatusDao.getUnProcessedPacketsCount(elapseTime, reprocessCount, status,
+				excludeStageNames);
 
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 					"RegistrationStatusServiceImpl::getUnProcessedPacketsCount()::exit");
@@ -948,5 +962,5 @@ public class RegistrationStatusServiceImpl
 				"RegistrationStatusServiceImpl::updateRegistrationStatusForWorkFlow()::exit");
 
 	}
-
+	
 }

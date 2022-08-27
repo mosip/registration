@@ -1,15 +1,14 @@
-# registration-processor-bio-dedupe-stage
+# Bio Dedupe Stage
 
-This stage processes any request that comes to it based on Registration Type and the biometric uniqueness will be verified through ABIS and appropriate DB statuses will be updated.
+## About
+The Bio dedupe stage is divided into 2 parts :
+* Pre ABIS identification: functions performed before sending packet to ABIS
+	* Verifies if biometric modalities are present as per configuration. Otherwise sends packet for verification.
+* Post ABIS identification: functions performed after receiving response from ABIS
+	* Forwards request to next stage if no duplicate is found.
+	* If duplicates are found then decides if the duplicate ids should be considered based on duplicate id status in regproc db.
+	* Forwards packet for Manual Adjudication when duplicates are found.
 
-## Design
-
-[Design - Approach for Bio Dedupe](https://github.com/mosip/registration/blob/master/design/registration-processor/Approach_for_bio_dedupe.md)
-
-## Default Context Path and Port
-```
-server.port=9096
-eventbus.port=5718
-server.servlet.path=/registrationprocessor/v1/biodedupe
-```
+## Default context-path and port
+Refer [`bootstrap.properties`](src/main/resources/bootstrap.properties)
 

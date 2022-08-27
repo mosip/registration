@@ -3,6 +3,7 @@ package io.mosip.registration.processor.supervisor;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -14,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.processor.core.auth.dto.ErrorDTO;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
 import org.json.simple.JSONObject;
@@ -41,10 +43,12 @@ import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
+import io.mosip.registration.processor.core.auth.dto.IndividualIdDto;
 import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.AuthSystemException;
 import io.mosip.registration.processor.core.exception.ValidationFailedException;
 import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO;
 import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
@@ -157,16 +161,19 @@ public class SupervisorValidatorTest {
 	/** The identity. */
 	private Identity identity = new Identity();
 
-	private JSONObject demoJson = new JSONObject();
 	private UserResponseDto userResponseDto = new UserResponseDto();
 	private RidDto ridDto = new RidDto();
 	private ResponseDTO responseDTO1 = new ResponseDTO();
 	private RIDResponseDto ridResponseDto1 = new RIDResponseDto();
 	private IdResponseDTO idResponseDTO = new IdResponseDTO();
 	private io.mosip.registration.processor.core.http.ResponseWrapper<RegistrationCenterUserMachineMappingHistoryResponseDto> centerResponse = new io.mosip.registration.processor.core.http.ResponseWrapper<RegistrationCenterUserMachineMappingHistoryResponseDto>();
+	private io.mosip.registration.processor.core.http.ResponseWrapper<IndividualIdDto> individualResponse = new io.mosip.registration.processor.core.http.ResponseWrapper<IndividualIdDto>();
 	private RegistrationCenterUserMachineMappingHistoryResponseDto centerMapping = new RegistrationCenterUserMachineMappingHistoryResponseDto();
 	private List<RegistrationCenterUserMachineMappingHistoryDto> registrationCenters = new ArrayList<RegistrationCenterUserMachineMappingHistoryDto>();
 	private RegistrationCenterUserMachineMappingHistoryDto center = new RegistrationCenterUserMachineMappingHistoryDto();
+	private IndividualIdDto individualIdDto = new IndividualIdDto();
+	
+	BiometricRecord biometricRecord = new BiometricRecord();
 	
 	@Mock
 	RegistrationExceptionMapperUtil registrationExceptionMapperUtil;
@@ -186,9 +193,6 @@ public class SupervisorValidatorTest {
 	@Before
 	public void setUp() throws Exception {
 		classLoader = getClass().getClassLoader();
-
-		File idJson = new File(classLoader.getResource("ID.json").getFile());
-		InputStream ip = new FileInputStream(idJson);
 
 		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
 		File file = new File(classLoader.getResource("RegistrationProcessorIdentity.json").getFile());
@@ -258,8 +262,6 @@ public class SupervisorValidatorTest {
 		Mockito.when(restClientService.postApi(any(), anyString(), anyString(), anyString(), any()))
 				.thenReturn(authResponseDTO);
 
-		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
-
 		registrationStatusDto.setRegistrationId("reg1234");
 		registrationStatusDto.setApplicantType("Child");
 		registrationStatusDto.setRegistrationType("New");
@@ -323,6 +325,8 @@ public class SupervisorValidatorTest {
 		idResponseDTO.setResponse(responseDTO1);
 		regOsiDto.setSupervisorHashedPwd("true");
 		regOsiDto.setOfficerHashedPwd("true");
+		regOsiDto.setSupervisorBiometricFileName("supervisorBiometrics");
+		
 		center.setCntrId("10001");
 		center.setIsActive(true);
 		registrationCenters.add(center);
@@ -330,14 +334,17 @@ public class SupervisorValidatorTest {
 		centerResponse.setErrors(null);
 		centerResponse.setResponse(centerMapping);
 		
+		individualIdDto.setIndividualId("6531762");
+		individualResponse.setResponse(individualIdDto);
+		individualResponse.setErrors(null);
 		//ObjectMapper mockObjectMapper = Mockito.mock(ObjectMapper.class);
-		Mockito.when(mapper.writeValueAsString(any())).thenReturn("");
+		Mockito.when(mapper.writeValueAsString(any())).thenReturn("Qiia8saij");
+		Mockito.when(mapper.readValue(anyString(), eq(IndividualIdDto.class))).thenReturn(individualIdDto);
 		Mockito.when(mapper.readValue(anyString(),
 				Mockito.eq(RegistrationCenterUserMachineMappingHistoryResponseDto.class))).thenReturn(centerMapping);
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any()))
-				.thenReturn(userResponseDto).thenReturn(centerResponse);
+		.thenReturn(userResponseDto).thenReturn(individualResponse).thenReturn(centerResponse);
 		Mockito.when(osiUtils.getOSIDetailsFromMetaInfo(anyMap())).thenReturn(regOsiDto);
-		File cbeffFile = new File(classLoader.getResource("cbeff.xml").getFile());
 
 		BIR birType3 = new BIR.BIRBuilder().build();
 		BDBInfo bdbInfoType3 = new BDBInfo.BDBInfoBuilder().build();
@@ -361,10 +368,7 @@ public class SupervisorValidatorTest {
 		bdbInfoType4.setType(singleTypeList4);
 		birType4.setBdbInfo(bdbInfoType4);
 
-		BiometricRecord biometricRecord = new BiometricRecord();
 		biometricRecord.setSegments(Lists.newArrayList(birType3, birType4));
-		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
-				.thenReturn(biometricRecord);
 
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any()))
 				.thenReturn("field");
@@ -375,10 +379,74 @@ public class SupervisorValidatorTest {
 	 *
 	 * @throws Exception the exception
 	 */
-	@Test
+	@Test(expected = ValidationFailedException.class)
 	public void testisValidSupervisorSuccess() throws Exception {
 
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
+		registrationStatusDto.setRegistrationType("ACTIVATED");
+		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
+		.thenReturn(null);
+		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
+		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
+	}
+	
+	@Test(expected = BaseCheckedException.class)
+	public void testisValidSupervisorCreatedDateNull() throws Exception {
+
+		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
+		regOsiDto.setPacketCreationDate(null);
+		registrationStatusDto.setRegistrationType("ACTIVATED");
+		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
+	}
+	
+	@Test(expected = ValidationFailedException.class)
+	public void testisValidSupervisorBiometricfileNull() throws Exception {
+
+		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
+		regOsiDto.setSupervisorBiometricFileName(null);
+		regOsiDto.setSupervisorHashedPwd(null);
+		registrationStatusDto.setRegistrationType("ACTIVATED");
+		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
+	}
+	
+	@Test(expected = ValidationFailedException.class)
+	public void testisValidSupervisorBiometricRecordNull() throws Exception {
+
+		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
+		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
+		.thenReturn(null);
+		registrationStatusDto.setRegistrationType("ACTIVATED");
+		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
+	}
+
+	@Test(expected = ValidationFailedException.class)
+	public void testAuthByIdAuthenticationStatusInActive() throws Exception {
+
+		io.mosip.registration.processor.core.auth.dto.ResponseDTO responseDTO = new io.mosip.registration.processor.core.auth.dto.ResponseDTO();
+		responseDTO.setAuthStatus(false);
+		authResponseDTO.setResponse(responseDTO);
+		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
+		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
+		.thenReturn(null);
+		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
+		registrationStatusDto.setRegistrationType("ACTIVATED");
+		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
+	}
+
+	@Test(expected = ValidationFailedException.class)
+	public void testAuthByIdAuthenticationStatusFailed() throws Exception {
+
+		io.mosip.registration.processor.core.auth.dto.ResponseDTO responseDTO = new io.mosip.registration.processor.core.auth.dto.ResponseDTO();
+		io.mosip.registration.processor.core.auth.dto.ErrorDTO errorDTO = new io.mosip.registration.processor.core.auth.dto.ErrorDTO();
+		responseDTO.setAuthStatus(false);
+		errorDTO.setErrorCode("ERR-001");
+		errorDTO.setErrorMessage("error occured");
+		authResponseDTO.setResponse(responseDTO);
+		authResponseDTO.setErrors(Arrays.asList(errorDTO));
+		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
+		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
+		.thenReturn(null);
+		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
 		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
@@ -480,6 +548,48 @@ public class SupervisorValidatorTest {
 		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
 	
+	@Test(expected = ApisResourceAccessException.class)
+	public void testIndividualIdResponseFailed() throws Exception {
+
+		io.mosip.registration.processor.core.common.rest.dto.ErrorDTO errordto = new io.mosip.registration.processor.core.common.rest.dto.ErrorDTO();
+		errordto.setErrorCode("ERROR-001");
+		errordto.setMessage("individual Id not found");
+		individualResponse.setErrors(Arrays.asList(errordto));
+		individualIdDto.setIndividualId("6531762");
+
+		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
+		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
+				.thenReturn(biometricRecord);
+		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
+	}
+
+	@Test(expected = ValidationFailedException.class)
+	public void testSupervisorAuthSystemError() throws Exception {
+		ErrorDTO errordto = new ErrorDTO();
+		errordto.setErrorCode("IDA-MLC-007");
+		authResponseDTO.setErrors(Arrays.asList(errordto));
+		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
+				.thenReturn(null);
+		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
+		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
+	}
+
+	@Test(expected = BaseCheckedException.class)
+	public void testMappingNotFoundResponse() throws Exception {
+
+		io.mosip.registration.processor.core.common.rest.dto.ErrorDTO errordto = new io.mosip.registration.processor.core.common.rest.dto.ErrorDTO();
+		errordto.setErrorCode("ERROR-001");
+		errordto.setMessage("mapping not found");
+		centerResponse.setErrors(Arrays.asList(errordto));
+
+		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
+		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
+				.thenReturn(biometricRecord);
+		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
+		regOsiDto.setPacketCreationDate(null);
+		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
+	}
+
 	@Test(expected = ValidationFailedException.class)
 	public void testUMCValidationFailed() throws Exception {
 		
@@ -492,8 +602,11 @@ public class SupervisorValidatorTest {
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn("");
 		Mockito.when(mapper.readValue(anyString(),
 				Mockito.eq(RegistrationCenterUserMachineMappingHistoryResponseDto.class))).thenReturn(centerMapping);
+		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
+		.thenReturn(null);
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any()))
 		.thenReturn(userResponseDto).thenReturn(centerResponse);
+		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
 		supervisorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
 

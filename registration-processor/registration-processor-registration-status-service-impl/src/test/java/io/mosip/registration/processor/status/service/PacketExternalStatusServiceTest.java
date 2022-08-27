@@ -14,7 +14,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.test.context.ContextConfiguration;
@@ -26,7 +25,6 @@ import io.mosip.registration.processor.status.dto.PacketExternalStatusDTO;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
 import io.mosip.registration.processor.status.dto.SyncResponseDto;
-import io.mosip.registration.processor.status.dto.TransactionDto;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.service.impl.PacketExternalStatusServiceImpl;
 
@@ -79,6 +77,7 @@ public class PacketExternalStatusServiceTest {
 		Mockito.when(syncRegistrationService.getByPacketIds(any())).thenReturn(syncRegistrationEntities);
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(),any())).thenReturn(internalRegistrationStatusDto);
 	}
+	
 	@Test
 	public void testGetByPacketIdsSuccess() {
 		List<String> packetIdList = new ArrayList<>();
@@ -86,8 +85,21 @@ public class PacketExternalStatusServiceTest {
 		List<PacketExternalStatusDTO> packetExternalStatusDTOList=packetExternalStatusService.getByPacketIds(packetIdList);
 
 		assertEquals("RECEIVED", packetExternalStatusDTOList.get(0).getStatusCode());
-
 	}
+	
+	@Test
+	public void testGetByPacketIdsPacketReceiverSuccess() {
+		internalRegistrationStatusDto.setLatestTransactionTimes(LocalDateTime.now().minusSeconds(100));
+		internalRegistrationStatusDto
+				.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PACKET_RECEIVER.toString());
+		List<String> packetIdList = new ArrayList<>();
+		packetIdList.add("packetId1");
+		List<PacketExternalStatusDTO> packetExternalStatusDTOList = packetExternalStatusService
+				.getByPacketIds(packetIdList);
+
+		assertEquals("RESEND", packetExternalStatusDTOList.get(0).getStatusCode());
+	}
+	
 	@Test
 	public void testGetByPacketIdsWithResend() {
 		internalRegistrationStatusDto.setStatusCode("FAILED");
@@ -97,6 +109,7 @@ public class PacketExternalStatusServiceTest {
 
 		assertEquals("RESEND", packetExternalStatusDTOList.get(0).getStatusCode());
 	}
+	
 	@Test
 	public void testGetByPacketIdsWithPaused() {
 		internalRegistrationStatusDto.setStatusCode("PAUSED");

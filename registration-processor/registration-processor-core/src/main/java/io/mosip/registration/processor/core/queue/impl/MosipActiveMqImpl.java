@@ -10,6 +10,7 @@ import io.mosip.registration.processor.core.queue.factory.QueueListener;
 import io.mosip.registration.processor.core.queue.factory.QueueListenerFactory;
 import io.mosip.registration.processor.core.queue.impl.exception.ConnectionUnavailableException;
 import io.mosip.registration.processor.core.queue.impl.exception.InvalidConnectionException;
+import io.mosip.registration.processor.core.queue.impl.exception.QueueConnectionException;
 import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
@@ -67,6 +68,11 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
                             LINE_SEPERATOR + this.connection);
                     regProcLogger.debug(LINE_SEPERATOR, LINE_SEPERATOR, "-----NEW SESSION-----",
                             LINE_SEPERATOR + this.session);
+                    if (!((ActiveMQConnection) connection).isStarted() || session == null) {
+                        regProcLogger.error("Activemq connection is not created. Retrying.....");
+                        throw new QueueConnectionException("session is "+session);
+                       
+                    }
                 }
             }
 
@@ -111,7 +117,7 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
             BytesMessage byteMessage = session.createBytesMessage();
             byteMessage.writeObject(message);
             if(messageTTL > 0)
-                messageProducer.setTimeToLive(messageTTL * 1000);
+                messageProducer.setTimeToLive(messageTTL * (long)1000);
             messageProducer.send(byteMessage);
             flag = true;
         } catch (JMSException e) {
@@ -139,12 +145,15 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
         boolean flag = false;
         initialSetup(mosipQueue);
         try {
+            // fix for activemq connection issue
+            if (session == null)
+                initialSetup(mosipQueue);
             destination = session.createQueue(address);
             MessageProducer messageProducer = session.createProducer(destination);
             TextMessage textMessage = session.createTextMessage();
             textMessage.setText(message);
             if(messageTTL > 0)
-                messageProducer.setTimeToLive(messageTTL * 1000);
+                messageProducer.setTimeToLive(messageTTL * (long)1000);
             messageProducer.send(textMessage);
             flag = true;
         } catch (JMSException e) {
@@ -188,6 +197,10 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
         }
         MessageConsumer consumer;
         try {
+            if (session == null) {
+                regProcLogger.error("Session is null. System will retry to create session");
+                setup(mosipActiveMq);
+            }
             destination = session.createQueue(address);
             consumer = session.createConsumer(destination);
             consumer.setMessageListener(QueueListenerFactory.getListener(mosipQueue.getQueueName(), object));

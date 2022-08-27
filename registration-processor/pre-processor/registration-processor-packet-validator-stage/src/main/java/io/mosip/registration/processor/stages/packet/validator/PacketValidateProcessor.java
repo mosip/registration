@@ -3,6 +3,7 @@ package io.mosip.registration.processor.stages.packet.validator;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
@@ -526,7 +527,7 @@ public class PacketValidateProcessor {
 				} else {
 					packetValidationDto.setTransactionSuccessful(true);
 					regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-							PlatformErrorMessages.REVERSE_DATA_SYNC_SUCCESS.getMessage(), "");
+							PlatformSuccessMessages.REVERSE_DATA_SYNC_SUCCESS.getMessage(), "");
 				}
 
 			}
@@ -555,7 +556,7 @@ public class PacketValidateProcessor {
 						registrationId,
 						utility.getRefId(registrationId, regEntity.getReferenceId()),
 						inputStream);
-				String decryptedData = IOUtils.toString(decryptedInputStream, "UTF-8");
+				String decryptedData = IOUtils.toString(decryptedInputStream, StandardCharsets.UTF_8);
 				RegistrationAdditionalInfoDTO registrationAdditionalInfoDTO = (RegistrationAdditionalInfoDTO) JsonUtils
 						.jsonStringToJavaObject(RegistrationAdditionalInfoDTO.class, decryptedData);
 				if (isTransactionSuccessful) {

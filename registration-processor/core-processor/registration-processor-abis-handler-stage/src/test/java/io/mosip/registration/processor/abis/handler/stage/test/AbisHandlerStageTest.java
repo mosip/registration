@@ -7,7 +7,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -24,6 +23,7 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -33,30 +33,25 @@ import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.reflect.TypeToken;
-import com.google.gson.Gson;
 
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.constant.QualityType;
 import io.mosip.kernel.biometrics.entities.BDBInfo;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.mosip.kernel.biometrics.entities.Entry;
 import io.mosip.kernel.biometrics.entities.RegistryIDType;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.abis.handler.dto.DataShare;
 import io.mosip.registration.processor.abis.handler.dto.DataShareResponseDto;
-import io.mosip.registration.processor.abis.handler.dto.Filter;
-import io.mosip.registration.processor.abis.handler.dto.ShareableAttributes;
-import io.mosip.registration.processor.abis.handler.dto.Source;
 import io.mosip.registration.processor.abis.handler.stage.AbisHandlerStage;
 import io.mosip.registration.processor.abis.queue.dto.AbisQueueDetails;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
+import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.PolicyConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
@@ -70,10 +65,14 @@ import io.mosip.registration.processor.core.packet.dto.abis.AbisInsertRequestDto
 import io.mosip.registration.processor.core.packet.dto.abis.AbisRequestDto;
 import io.mosip.registration.processor.core.packet.dto.abis.RegBioRefDto;
 import io.mosip.registration.processor.core.packet.dto.abis.RegDemoDedupeListDto;
+import io.mosip.registration.processor.core.packet.dto.datashare.Filter;
+import io.mosip.registration.processor.core.packet.dto.datashare.ShareableAttributes;
+import io.mosip.registration.processor.core.packet.dto.datashare.Source;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
@@ -104,8 +103,14 @@ public class AbisHandlerStageTest {
 	@Mock
 	private Utilities utility;
 
+	@Spy
+	private ObjectMapper mapper = new ObjectMapper();
+
 	@Mock
 	private PriorityBasedPacketManagerService packetManagerService;
+	
+	@Mock
+	private PacketManagerService packetService;
 
 	@Mock
 	private LogDescription description;
@@ -117,6 +122,8 @@ public class AbisHandlerStageTest {
 	List<RegDemoDedupeListDto> regDemoDedupeListDtoList = new ArrayList<>();
 
 	List<AbisRequestDto> abisRequestDtoList = new ArrayList<>();
+	
+	Map<String, String> tags = new HashMap<String, String>();
 
 	@Mock
 	private Environment env;
@@ -183,10 +190,14 @@ public class AbisHandlerStageTest {
 				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		
 		Map<String, List<String>> biometricModalitySegmentsMap = new HashMap();
+		Map<String, List<String>> biometricModalitySegmentsMapInfant = new HashMap();
+		biometricModalitySegmentsMapInfant.put("Face", getFaceList());
 		biometricModalitySegmentsMap.put("Finger", getFingerList());
 		biometricModalitySegmentsMap.put("Iris", getIrisList());
 		biometricModalitySegmentsMap.put("Face", getFaceList());
-		ReflectionTestUtils.setField(abisHandlerStage, "biometricModalitySegmentsMap", biometricModalitySegmentsMap);
+		ReflectionTestUtils.setField(abisHandlerStage, "biometricModalitySegmentsMapInfant", biometricModalitySegmentsMapInfant);
+		ReflectionTestUtils.setField(abisHandlerStage, "biometricModalitySegmentsMapMinor", biometricModalitySegmentsMap);
+		ReflectionTestUtils.setField(abisHandlerStage, "biometricModalitySegmentsMapAdult", biometricModalitySegmentsMap);
 		ReflectionTestUtils.setField(abisHandlerStage, "exceptionSegmentsMap", getExceptionModalityMap());
 
 		Mockito.when(env.getProperty("DATASHARECREATEURL")).thenReturn("/v1/datashare/create");
@@ -316,14 +327,17 @@ public class AbisHandlerStageTest {
 	}
 
 	@Test
-	public void testDemoToAbisHandlerTOMiddlewareSuccess() {
+	public void testDemoToAbisHandlerTOMiddlewareSuccess() throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
 		registrationStatusDto.setLatestTransactionTypeCode("DEMOGRAPHIC_VERIFICATION");
 		registrationStatusDto.setLatestRegistrationTransactionId("dd7b7d20-910a-4b84-be21-c9f211318563");
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(packetInfoManager.getIdentifyByTransactionId(any(), any())).thenReturn(Boolean.FALSE);
 		Mockito.when(packetInfoManager.getAllAbisDetails()).thenReturn(abisApplicationDtos);
 
+		mockDataSharePolicy(Lists.newArrayList(BiometricType.IRIS, BiometricType.FINGER, BiometricType.FACE));
 		Mockito.when(packetInfoManager.getBioRefIdByRegId(any())).thenReturn(bioRefDtos);
+		tags.put("AGE_GROUP", "ADULT");
+		Mockito.when(packetService.getAllTags(any())).thenReturn(tags);
 
 		Mockito.doNothing().when(packetInfoManager).saveBioRef(any(), any(), any());
 		Mockito.doNothing().when(packetInfoManager).saveAbisRequest(any(), any(), any());
@@ -341,17 +355,20 @@ public class AbisHandlerStageTest {
 	}
 
 	@Test
-	public void testBioToAbisHandlerToMiddlewareSuccess() {
+	public void testBioToAbisHandlerToMiddlewareSuccess() throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
 		registrationStatusDto.setLatestTransactionTypeCode("DEMOGRAPHIC_VERIFICATION");
 		registrationStatusDto.setLatestRegistrationTransactionId("dd7b7d20-910a-4b84-be21-c9f211318563");
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(packetInfoManager.getIdentifyByTransactionId(any(), any())).thenReturn(Boolean.FALSE);
 		Mockito.when(packetInfoManager.getAllAbisDetails()).thenReturn(abisApplicationDtos);
 
+		mockDataSharePolicy(Lists.newArrayList(BiometricType.IRIS, BiometricType.FINGER, BiometricType.FACE));
 		RegBioRefDto regBioRefDto = new RegBioRefDto();
 		regBioRefDto.setBioRefId("1234567890");
 		bioRefDtos.add(regBioRefDto);
 		Mockito.when(packetInfoManager.getBioRefIdByRegId(any())).thenReturn(bioRefDtos);
+		tags.put("AGE_GROUP", "ADULT");
+		Mockito.when(packetService.getAllTags(any())).thenReturn(tags);
 
 		Mockito.doNothing().when(packetInfoManager).saveBioRef(any(), any(), any());
 		Mockito.doNothing().when(packetInfoManager).saveAbisRequest(any(), any(), any());
@@ -420,7 +437,7 @@ public class AbisHandlerStageTest {
 	}
 
 	@Test
-	public void testReprocessInsert() {
+	public void testReprocessInsert() throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
 		registrationStatusDto.setLatestTransactionTypeCode("BIOGRAPHIC_VERIFICATION");
 		registrationStatusDto.setLatestRegistrationTransactionId("dd7b7d20-910a-4b84-be21-c9f211318563");
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
@@ -443,6 +460,8 @@ public class AbisHandlerStageTest {
 		abisRequestDto.setStatusCode("IN-PROGRESS");
 		abisRequestDtoList.add(abisRequestDto);
 		Mockito.when(packetInfoManager.getAbisRequestsByBioRefId(any())).thenReturn(abisRequestDtoList);
+		tags.put("AGE_GROUP", "ADULT");
+		Mockito.when(packetService.getAllTags(any())).thenReturn(tags);
 
 		Mockito.doNothing().when(packetInfoManager).saveAbisRequest(any(), any(), any());
 
@@ -452,7 +471,8 @@ public class AbisHandlerStageTest {
 		dto.setRid("10003100030001520190422074511");
 		MessageDTO result = abisHandlerStage.process(dto);
 
-		assertTrue(result.getMessageBusAddress().getAddress().equalsIgnoreCase("abis-middle-ware-bus-in"));
+		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 	@Test
@@ -465,6 +485,218 @@ public class AbisHandlerStageTest {
 		List<AbisQueueDetails> abisQueueDetails = new ArrayList<>();
 		Mockito.when(utility.getAbisQueueDetails()).thenReturn(abisQueueDetails);
 
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("10003100030001520190422074511");
+		MessageDTO result = abisHandlerStage.process(dto);
+
+		assertTrue(result.getInternalError());
+	}
+	
+	@Test
+	public void testPotentialMatchNotFound() throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+		registrationStatusDto.setLatestTransactionTypeCode("DEMOGRAPHIC_VERIFICATION");
+		registrationStatusDto.setLatestRegistrationTransactionId("dd7b7d20-910a-4b84-be21-c9f211318563");
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
+		Mockito.when(packetInfoManager.getIdentifyByTransactionId(any(), any())).thenReturn(Boolean.FALSE);
+
+		mockDataSharePolicy(Lists.newArrayList(BiometricType.IRIS, BiometricType.FINGER, BiometricType.FACE));
+		tags.put("AGE_GROUP", "ADULT");
+		Mockito.when(packetService.getAllTags(any())).thenReturn(tags);
+
+		Mockito.doNothing().when(packetInfoManager).saveBioRef(any(), any(), any());
+		Mockito.doNothing().when(packetInfoManager).saveAbisRequest(any(), any(), any());
+
+		Mockito.when(packetInfoManager.getDemoListByTransactionId(any())).thenReturn(Arrays.asList());
+
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("10003100030001520190422074511");
+		MessageDTO result = abisHandlerStage.process(dto);
+
+		assertTrue(result.getInternalError());
+	}
+	
+	@Test
+	public void testIdentifyRequestJsonProcessingException() throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+		registrationStatusDto.setLatestTransactionTypeCode("DEMOGRAPHIC_VERIFICATION");
+		registrationStatusDto.setLatestRegistrationTransactionId("dd7b7d20-910a-4b84-be21-c9f211318563");
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
+		Mockito.when(packetInfoManager.getIdentifyByTransactionId(any(), any())).thenReturn(Boolean.FALSE);
+
+		mockDataSharePolicy(Lists.newArrayList(BiometricType.IRIS, BiometricType.FINGER, BiometricType.FACE));
+		Mockito.when(packetInfoManager.getBioRefIdByRegId(any())).thenReturn(bioRefDtos);
+		tags.put("AGE_GROUP", "ADULT");
+		Mockito.when(packetService.getAllTags(any())).thenReturn(tags);
+
+		Mockito.doNothing().when(packetInfoManager).saveBioRef(any(), any(), any());
+		Mockito.doNothing().when(packetInfoManager).saveAbisRequest(any(), any(), any());
+
+		RegDemoDedupeListDto regDemoDedupeListDto = new RegDemoDedupeListDto();
+		regDemoDedupeListDto.setMatchedRegId("10003100030001520190422074511");
+		regDemoDedupeListDtoList.add(regDemoDedupeListDto);
+		Mockito.when(packetInfoManager.getDemoListByTransactionId(any())).thenReturn(regDemoDedupeListDtoList);
+
+		PowerMockito.mockStatic(JsonUtils.class);
+		PowerMockito.when(JsonUtils.javaObjectToJsonString(any())).thenReturn("value").thenThrow(JsonProcessingException.class);
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("10003100030001520190422074511");
+		MessageDTO result = abisHandlerStage.process(dto);
+
+		assertTrue(result.getInternalError());
+	}
+	
+	@Test
+	public void testInsertRequestJsonProcessingException() throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+		registrationStatusDto.setLatestTransactionTypeCode("DEMOGRAPHIC_VERIFICATION");
+		registrationStatusDto.setLatestRegistrationTransactionId("dd7b7d20-910a-4b84-be21-c9f211318563");
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
+		Mockito.when(packetInfoManager.getIdentifyByTransactionId(any(), any())).thenReturn(Boolean.FALSE);
+
+		mockDataSharePolicy(Lists.newArrayList(BiometricType.IRIS, BiometricType.FINGER, BiometricType.FACE));
+		tags.put("AGE_GROUP", "MINOR");
+		Mockito.when(packetService.getAllTags(any())).thenReturn(tags);
+
+		Mockito.doNothing().when(packetInfoManager).saveBioRef(any(), any(), any());
+
+		PowerMockito.mockStatic(JsonUtils.class);
+		PowerMockito.when(JsonUtils.javaObjectToJsonString(any())).thenThrow(JsonProcessingException.class);
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("10003100030001520190422074511");
+		MessageDTO result = abisHandlerStage.process(dto);
+
+		assertTrue(result.getInternalError());
+	}
+	
+	@Test
+	public void testDataShareResponseNullException() throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+		registrationStatusDto.setLatestTransactionTypeCode("DEMOGRAPHIC_VERIFICATION");
+		registrationStatusDto.setLatestRegistrationTransactionId("dd7b7d20-910a-4b84-be21-c9f211318563");
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
+		Mockito.when(packetInfoManager.getIdentifyByTransactionId(any(), any())).thenReturn(Boolean.FALSE);
+
+		mockDataSharePolicy(Lists.newArrayList(BiometricType.IRIS, BiometricType.FINGER, BiometricType.FACE));
+		tags.put("AGE_GROUP", "MINOR");
+		Mockito.when(packetService.getAllTags(any())).thenReturn(tags);
+
+		Mockito.doNothing().when(packetInfoManager).saveBioRef(any(), any(), any());
+		
+		DataShareResponseDto dataShareResponseDto = new DataShareResponseDto();
+		ErrorDTO error = new ErrorDTO("ERR-001", "exception occured");
+		dataShareResponseDto.setDataShare(null);
+		dataShareResponseDto.setErrors(Arrays.asList(error));
+		Mockito.when(registrationProcessorRestClientService.postApi(anyString(), any(MediaType.class), any(), any(),
+				any(), any(), any())).thenReturn(dataShareResponseDto);
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("10003100030001520190422074511");
+		MessageDTO result = abisHandlerStage.process(dto);
+
+		assertTrue(result.getInternalError());
+	}
+
+	@Test
+	public void testCreateTypeSubtypeMappingResponseNullException()
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+		registrationStatusDto.setLatestTransactionTypeCode("DEMOGRAPHIC_VERIFICATION");
+		registrationStatusDto.setLatestRegistrationTransactionId("dd7b7d20-910a-4b84-be21-c9f211318563");
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
+				.thenReturn(registrationStatusDto);
+		Mockito.when(packetInfoManager.getIdentifyByTransactionId(any(), any())).thenReturn(Boolean.FALSE);
+		ErrorDTO error = new ErrorDTO("ERR-001", "exception occured");
+		ResponseWrapper<LinkedHashMap<String, Object>> policyResponse = new ResponseWrapper<>();
+		
+		policyResponse.setErrors(Arrays.asList(error));
+		
+		Mockito.when(registrationProcessorRestClientService.getApi(any(), any(), anyString(),
+				anyString(), any())).thenReturn(policyResponse);
+		Mockito.doNothing().when(packetInfoManager).saveBioRef(any(), any(), any());
+
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("10003100030001520190422074511");
+		MessageDTO result = abisHandlerStage.process(dto);
+
+		assertTrue(result.getInternalError());
+	}
+
+	@Test
+	public void testvalidateBiometricRecordModalitiesEmptyException()
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+		registrationStatusDto.setLatestTransactionTypeCode("DEMOGRAPHIC_VERIFICATION");
+		registrationStatusDto.setLatestRegistrationTransactionId("dd7b7d20-910a-4b84-be21-c9f211318563");
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
+				.thenReturn(registrationStatusDto);
+		Mockito.when(packetInfoManager.getIdentifyByTransactionId(any(), any())).thenReturn(Boolean.FALSE);
+		
+		mockDataSharePolicy(Lists.newArrayList(BiometricType.IRIS, BiometricType.FINGER, BiometricType.FACE));
+		tags.put("AGE_GROUP", "MINOR");
+		Mockito.when(packetService.getAllTags(any())).thenReturn(tags);
+
+		Mockito.doNothing().when(packetInfoManager).saveBioRef(any(), any(), any());
+
+		ResponseWrapper<LinkedHashMap<String, Object>> policyResponse = new ResponseWrapper<>();
+		LinkedHashMap<String, Object> response = new LinkedHashMap<String, Object>();
+		LinkedHashMap<String, Object> attributes = new LinkedHashMap<String, Object>();
+		ShareableAttributes shareableAttributes = new ShareableAttributes();
+		shareableAttributes.setSource(Arrays.asList());
+		attributes.put(PolicyConstant.SHAREABLE_ATTRIBUTES, Arrays.asList(shareableAttributes));
+		response.put(PolicyConstant.POLICIES, attributes);
+		policyResponse.setResponse(response);
+		
+		Mockito.when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), anyString(), any()))
+				.thenReturn(policyResponse);
+		
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("10003100030001520190422074511");
+		MessageDTO result = abisHandlerStage.process(dto);
+
+		assertTrue(result.getInternalError());
+	}
+	
+	@Test
+	public void testvalidateBiometricRecordSegmentEmptyException()
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+		registrationStatusDto.setLatestTransactionTypeCode("DEMOGRAPHIC_VERIFICATION");
+		registrationStatusDto.setLatestRegistrationTransactionId("dd7b7d20-910a-4b84-be21-c9f211318563");
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
+				.thenReturn(registrationStatusDto);
+		Mockito.when(packetInfoManager.getIdentifyByTransactionId(any(), any())).thenReturn(Boolean.FALSE);
+		
+		mockDataSharePolicy(Lists.newArrayList(BiometricType.IRIS, BiometricType.FINGER, BiometricType.FACE));
+		tags.put("AGE_GROUP", "ADULT");
+		Mockito.when(packetService.getAllTags(any())).thenReturn(tags);
+		BiometricRecord biometricRecord = new BiometricRecord();
+		biometricRecord.setSegments(null);
+		Mockito.when(packetManagerService.getBiometrics(any(), any(), any(), any(), any())).thenReturn(biometricRecord);
+		Mockito.doNothing().when(packetInfoManager).saveBioRef(any(), any(), any());
+		
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("10003100030001520190422074511");
+		MessageDTO result = abisHandlerStage.process(dto);
+
+		assertTrue(result.getInternalError());
+	}
+	
+	@Test
+	public void testvalidateBiometricRecordOthersMapNullException()
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+		registrationStatusDto.setLatestTransactionTypeCode("DEMOGRAPHIC_VERIFICATION");
+		registrationStatusDto.setLatestRegistrationTransactionId("dd7b7d20-910a-4b84-be21-c9f211318563");
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
+				.thenReturn(registrationStatusDto);
+		Mockito.when(packetInfoManager.getIdentifyByTransactionId(any(), any())).thenReturn(Boolean.FALSE);
+		
+		mockDataSharePolicy(Lists.newArrayList(BiometricType.IRIS, BiometricType.FINGER, BiometricType.FACE));
+		tags.put("AGE_GROUP", "ADULT");
+		Mockito.when(packetService.getAllTags(any())).thenReturn(tags);
+		BiometricRecord biometricRecord = new BiometricRecord();
+		BIR bir = new BIR.BIRBuilder().build();
+		BDBInfo bdbInfo = new BDBInfo.BDBInfoBuilder().build();
+		bdbInfo.setSubtype(Arrays.asList("Left"));
+		bdbInfo.setType(Arrays.asList(BiometricType.IRIS));
+		bir.setOthers(null);
+		bir.setBdbInfo(bdbInfo);
+		biometricRecord.setSegments(Arrays.asList(bir));
+		Mockito.when(packetManagerService.getBiometrics(any(), any(), any(), any(), any())).thenReturn(biometricRecord);
+		Mockito.doNothing().when(packetInfoManager).saveBioRef(any(), any(), any());
+		
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("10003100030001520190422074511");
 		MessageDTO result = abisHandlerStage.process(dto);
@@ -594,7 +826,7 @@ public class AbisHandlerStageTest {
 		Map<String, List<String>> biometricModalitySegmentsMap = new HashMap();
 		biometricModalitySegmentsMap.put("Finger", getFingerList());
 		biometricModalitySegmentsMap.put("Iris", getIrisList());
-		ReflectionTestUtils.setField(abisHandlerStage, "biometricModalitySegmentsMap", biometricModalitySegmentsMap);
+		ReflectionTestUtils.setField(abisHandlerStage, "biometricModalitySegmentsMapAdult", biometricModalitySegmentsMap);
 		ReflectionTestUtils.setField(abisHandlerStage, "exceptionSegmentsMap", getExceptionModalityMap());
 
 		MessageDTO dto = new MessageDTO();
@@ -604,6 +836,35 @@ public class AbisHandlerStageTest {
 		assertTrue(result.getIsValid());
 		assertTrue(result.getInternalError());
 	}
+	
+	@Test
+	public void testBiometricSegmentNotConfiguredInfant() throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+		registrationStatusDto.setLatestTransactionTypeCode("DEMOGRAPHIC_VERIFICATION");
+		registrationStatusDto.setLatestRegistrationTransactionId("dd7b7d20-910a-4b84-be21-c9f211318563");
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
+		Mockito.when(packetInfoManager.getIdentifyByTransactionId(any(), any())).thenReturn(Boolean.FALSE);
+		Mockito.when(packetInfoManager.getAllAbisDetails()).thenReturn(abisApplicationDtos);
+
+		Mockito.when(packetInfoManager.getBioRefIdByRegId(any())).thenReturn(bioRefDtos);
+		tags.put("AGE_GROUP", "INFANT");
+		Mockito.when(packetService.getAllTags(any())).thenReturn(tags);
+
+		Mockito.doNothing().when(packetInfoManager).saveBioRef(any(), any(), any());
+		Mockito.doNothing().when(packetInfoManager).saveAbisRequest(any(), any(), any());
+
+		RegDemoDedupeListDto regDemoDedupeListDto = new RegDemoDedupeListDto();
+		regDemoDedupeListDto.setMatchedRegId("10003100030001520190422074511");
+		regDemoDedupeListDtoList.add(regDemoDedupeListDto);
+		Mockito.when(packetInfoManager.getDemoListByTransactionId(any())).thenReturn(regDemoDedupeListDtoList);
+
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("10003100030001520190422074511");
+		MessageDTO result = abisHandlerStage.process(dto);
+
+		assertTrue(result.getIsValid());
+		assertFalse(result.getInternalError());
+	}
+
 
 
 	@Test
@@ -692,10 +953,7 @@ public class AbisHandlerStageTest {
 		
 
 		exceptionBiometrcisMap.put("applicant", applicantExceptionBiometrcisMap);
-		Gson gson = new Gson();
-        Type gsonType = new TypeToken<HashMap>(){}.getType();
-		
-        String gsonString = gson.toJson(exceptionBiometrcisMap,gsonType);
+        String gsonString =mapper.writeValueAsString(exceptionBiometrcisMap);
         
 		metaInfoMap.put("exceptionBiometrics", gsonString);
 		Mockito.when(packetManagerService.getMetaInfo(any(), any(), any())).thenReturn(metaInfoMap);
@@ -738,12 +996,9 @@ public class AbisHandlerStageTest {
 			if(bdb==null) {
 				Map<String, Object> others = new HashMap<>();
 				others.put("EXCEPTION", true);
-				Entry entry = new Entry();
-				entry.setKey("EXCEPTION");
-				entry.setValue("true");
-				List<Entry> entryList = new ArrayList<Entry>();
-				entryList.add(entry);
-				birType1.setOthers(entryList);
+				HashMap<String, String> entry = new HashMap<>();
+				entry.put("EXCEPTION", "true");
+				birType1.setOthers(entry);
 				
 			}
 			

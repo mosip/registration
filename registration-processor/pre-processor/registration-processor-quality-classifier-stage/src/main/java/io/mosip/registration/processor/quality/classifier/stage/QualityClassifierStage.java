@@ -67,7 +67,8 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
  */
 @Component
 @Configuration
-@ComponentScan(basePackages = { "io.mosip.registration.processor.core.config",
+@ComponentScan(basePackages = { "${mosip.auth.adapter.impl.basepackage}",
+		"io.mosip.registration.processor.core.config",
 		"io.mosip.registration.processor.quality.classifier.config", "io.mosip.registration.processor.stages.config",
 		"io.mosip.registrationprocessor.stages.config", "io.mosip.registration.processor.status.config",
 		"io.mosip.registration.processor.rest.client.config", "io.mosip.registration.processor.packet.storage.config",
@@ -335,7 +336,6 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 			description.setMessage(PlatformErrorMessages.RPR_SYS_JSON_PARSING_EXCEPTION.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_SYS_JSON_PARSING_EXCEPTION.getCode());
 			object.setInternalError(Boolean.TRUE);
-			e.printStackTrace();
 		} catch (IOException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					regId, RegistrationStatusCode.FAILED.toString() + e.getMessage()
@@ -423,9 +423,9 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 		for (BIR bir : birs) {
 
 			if (bir.getOthers() != null) {
-				List<io.mosip.kernel.biometrics.entities.Entry> othersInfo = bir.getOthers();
+				HashMap<String, String> othersInfo = bir.getOthers();
 				boolean exceptionValue = false;
-				for (io.mosip.kernel.biometrics.entities.Entry other : othersInfo) {
+				for (Map.Entry<String, String> other : othersInfo.entrySet()) {
 					if (other.getKey().equals(EXCEPTION)) {
 						if (other.getValue().equals(TRUE)) {
 							exceptionValue = true;
@@ -442,9 +442,10 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 			BiometricType biometricType = bir.getBdbInfo().getType().get(0);
 			BIR[] birArray = new BIR[1];
 			birArray[0] = bir;
+			if(!biometricType.name().equalsIgnoreCase(BiometricType.EXCEPTION_PHOTO.name())) {
 			float[] qualityScoreresponse = getBioSdkInstance(biometricType).getSegmentQuality(birArray, null);
-
-			float score = Float.valueOf(qualityScoreresponse[0]);
+			
+			float score = qualityScoreresponse[0];
 			String bioType = bir.getBdbInfo().getType().get(0).value();
 
 			// Check for entry
@@ -452,7 +453,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 
 			bioTypeMinScoreMap.put(bioType,
 					storedMinScore == null ? score : storedMinScore > score ? score : storedMinScore);
-
+			}
 		}
 
 		for (Entry<String, Float> bioTypeMinEntry : bioTypeMinScoreMap.entrySet()) {

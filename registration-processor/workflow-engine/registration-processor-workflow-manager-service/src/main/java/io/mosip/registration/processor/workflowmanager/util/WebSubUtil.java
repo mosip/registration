@@ -23,7 +23,7 @@ public class WebSubUtil {
 
 	@Autowired
 	private PublisherClient<String, WorkflowPausedForAdditionalInfoEventDTO, HttpHeaders> workflowPausedForAdditionalInfoPublisher;
-
+	
 	@Value("${mosip.regproc.workflow.complete.topic}")
 	private String workflowCompleteTopic;
 
@@ -35,6 +35,7 @@ public class WebSubUtil {
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(WebSubUtil.class);
+	
 
 	@PostConstruct
 	private void registerTopic() {
@@ -73,4 +74,6 @@ public class WebSubUtil {
 		regProcLogger.info("Publish the update successfully  for registration id {}", rid);
 
 	}
+	
+	
 }

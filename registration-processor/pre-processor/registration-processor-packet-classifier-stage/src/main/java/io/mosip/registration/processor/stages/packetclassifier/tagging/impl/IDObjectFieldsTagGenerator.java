@@ -33,7 +33,7 @@ public class IDObjectFieldsTagGenerator implements TagGenerator {
      * These field names should be as in keys of registraion-processor-identity.json file Identity segment
      * and should have proper default source configured
      */
-    @Value("#{'${mosip.regproc.packet.classifier.tagging.idobjectfields.mapping-field-names}'.split(',')}")
+    @Value("#{T(java.util.Arrays).asList('${mosip.regproc.packet.classifier.tagging.idobjectfields.mapping-field-names:}')}")
     private List<String> mappingFieldNames;
 
     /** The tag name that will be prefixed with every idobjectfield tags */
@@ -110,7 +110,7 @@ public class IDObjectFieldsTagGenerator implements TagGenerator {
     }
 
     private String getValueBasedOnType(String fieldName, FieldDTO fieldDTO) throws JSONException, BaseCheckedException {
-        if(fieldDTO == null || (fieldDTO.getValue() == null && fieldDTO.getType() != "string")) {
+        if(fieldDTO == null || (fieldDTO.getValue() == null && !fieldDTO.getType().equalsIgnoreCase("string"))) {
             regProcLogger.warn("{} --> {} Field name: {} setting value as {}", 
                 PlatformErrorMessages.RPR_PCM_FIELD_DTO_OR_NON_STRING_FIELD_IS_NULL.getCode(), 
                 PlatformErrorMessages.RPR_PCM_FIELD_DTO_OR_NON_STRING_FIELD_IS_NULL.getMessage(),

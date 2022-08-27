@@ -69,7 +69,7 @@ public enum ApiName {
 
 	/** The Cryptomaanger *. */
 	CRYPTOMANAGERDECRYPT,
-	
+
 	ENCRYPTURL,
 
 	IDAUTHENCRYPTION,
@@ -96,47 +96,14 @@ public enum ApiName {
 	/** The fullname. */
 	FULLNAME,
 
-	/** The dateofbirth. */
-	DATEOFBIRTH,
-
-	/** The age. */
-	AGE,
-
-	/** The gender. */
-	GENDER,
-
 	/** The residencestatus. */
 	RESIDENCESTATUS,
-
-	/** The addressline1. */
-	ADDRESSLINE1,
-
-	/** The addressline2. */
-	ADDRESSLINE2,
-
-	/** The addressline3. */
-	ADDRESSLINE3,
-
-	/** The region. */
-	REGION,
-
-	/** The city. */
-	CITY,
-
-	/** The postalcode. */
-	POSTALCODE,
-
-	/** The province. */
-	PROVINCE,
 
 	/** The phone. */
 	PHONE,
 
 	/** The email. */
 	EMAIL,
-
-	/** The localadministrativeauthority. */
-	LOCALADMINISTRATIVEAUTHORITY,
 
 	/** The proofofidentity. */
 	PROOFOFIDENTITY,
@@ -156,18 +123,8 @@ public enum ApiName {
 	/** The idschemaversion. */
 	IDSCHEMAVERSION,
 
-	/** The decryption api from DMZ *. */
-
-	SYNCSERVICE,
-
 	/** The encryptionservice. */
 	ENCRYPTIONSERVICE,
-
-	/** The packetreceiver. */
-	PACKETRECEIVER,
-
-	/** The AUDIT api from DMZ *. */
-	DMZAUDIT,
 
 	/** The centerdetails. */
 	CENTERDETAILS,
@@ -178,9 +135,6 @@ public enum ApiName {
 	/** The external service. */
 	EISERVICE,
 
-	/** The ridgeneration. */
-	RIDGENERATION,
-
 	/** The retrieveidentity. */
 	RETRIEVEIDENTITY,
 
@@ -189,6 +143,9 @@ public enum ApiName {
 
 	/** The digitalsignature. */
 	DIGITALSIGNATURE,
+	
+	/** The Language. */
+	LANGUAGE,
 
 	/** The Vid creation. */
 	CREATEVID,
@@ -198,7 +155,7 @@ public enum ApiName {
 
 	/** get operator rid from id. */
 	GETRIDFROMUSERID,
-	
+
 	/** get individualId from userid. */
 	GETINDIVIDUALIDFROMUSERID,
 
@@ -211,8 +168,6 @@ public enum ApiName {
 	GETUINBYVID,
 
 	DEVICEVALIDATEHISTORY,
-	
-	PDFSIGN,
 
 	NGINXDMZURL,
 
@@ -231,10 +186,17 @@ public enum ApiName {
 	PACKETMANAGER_GET_TAGS,
 	DATASHARECREATEURL,
 	PMS,
+	PARTNERGETBIOEXTRACTOR,
 	DATASHAREGETEURL,
 	CREDENTIALREQUEST, GETVIDSBYUIN,
 	JWTVERIFY,
-	DEVICEHOTLIST;
+	DEVICEHOTLIST,
+	IDREPOHASDRAFT,
+	IDREPOGETDRAFT,
+	IDREPOCREATEDRAFT,
+	IDREPOUPDATEDRAFT,
+	IDREPOPUBLISHDRAFT,
+	IDREPOEXTRACTBIOMETRICS;
 
 }
 

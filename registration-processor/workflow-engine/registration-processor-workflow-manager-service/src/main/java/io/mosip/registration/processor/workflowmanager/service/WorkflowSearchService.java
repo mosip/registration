@@ -15,7 +15,6 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.exception.WorkFlowSearchException;
 import io.mosip.registration.processor.core.exception.WorkflowActionException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
-import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.workflow.dto.FilterInfo;
 import io.mosip.registration.processor.core.workflow.dto.SearchInfo;
@@ -30,14 +29,10 @@ public class WorkflowSearchService {
 
 	/** The registration status service. */
 	@Autowired
-	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
-
-	/** The core audit request builder. */
-	@Autowired
-	AuditLogRequestBuilder auditLogRequestBuilder;
+	private RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 
 	/** The reg proc logger. */
-	private static Logger regProcLogger = RegProcessorLogger.getLogger(WorkflowActionService.class);
+	private static Logger regProcLogger = RegProcessorLogger.getLogger(WorkflowSearchService.class);
 
 	public Page<WorkflowDetail> searchRegistrationDetails(SearchInfo searchInfo)
 			throws WorkFlowSearchException {
@@ -59,7 +54,7 @@ public class WorkflowSearchService {
 		} catch (DataAccessLayerException e) {
 			regProcLogger.error(e.getMessage() + ExceptionUtils.getStackTrace(e));
 			logAndThrowError(e, PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getCode(),
-					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), null);
+					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage());
 		}
 		return new PageImpl<>(workflowDetails,
 				PageRequest.of(searchInfo.getPagination().getPageStart(), searchInfo.getPagination().getPageFetch()),
@@ -67,12 +62,10 @@ public class WorkflowSearchService {
 
 	}
 
-
-
 	private void buildSearchInfoDto(SearchInfo searchInfo) {
 		for (FilterInfo filterInfo : searchInfo.getFilters()) {
-			if (filterInfo.getColumnName().equals("workflowId")) {
-				filterInfo.setColumnName("id");
+			if (filterInfo.getColumnName().equals("id")) {
+				filterInfo.setColumnName("regId");
 			} else if (filterInfo.getColumnName().equals("workflowType")) {
 				filterInfo.setColumnName("registrationType");
 			}
@@ -86,16 +79,12 @@ public class WorkflowSearchService {
 	 * @param errorCode      the error code
 	 * @param errorMessage   the error message
 	 * @param registrationId the registration id
-	 * @param description    the description
 	 * @throws WorkFlowSearchException
 	 * @throws WorkflowActionException the workflow action exception
 	 */
-	private void logAndThrowError(Exception e, String errorCode, String errorMessage,
-			LogDescription description) throws WorkFlowSearchException {
-		description.setCode(errorCode);
-		description.setMessage(errorMessage);
-		regProcLogger.error("Error in  processWorkflowSearch",
-				errorMessage, e.getMessage(), ExceptionUtils.getStackTrace(e));
+	private void logAndThrowError(Exception e, String errorCode, String errorMessage) throws WorkFlowSearchException {
+		regProcLogger.error("Error in  processWorkflowSearch", errorMessage, e.getMessage(),
+				ExceptionUtils.getStackTrace(e));
 		throw new WorkFlowSearchException(errorCode, errorMessage);
 	}
 
@@ -106,7 +95,8 @@ public class WorkflowSearchService {
 		wfd.setCreatedBy(regSt.getCreatedBy());
 		wfd.setCurrentStageName(regSt.getRegistrationStageName());
 		wfd.setDefaultResumeAction(regSt.getDefaultResumeAction());
-		wfd.setResumeRemoveTags(regSt.getResumeRemoveTags());
+		wfd.setPauseRuleIds(regSt.getPauseRuleIds());
+		wfd.setLastSuccessStageName(regSt.getLastSuccessStageName());
 		wfd.setStatusComment(regSt.getStatusComment());
 		wfd.setStatusCode(regSt.getStatusCode());
 		if (regSt.getResumeTimeStamp() != null) {

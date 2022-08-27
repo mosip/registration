@@ -8,13 +8,12 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
-import io.mosip.kernel.core.util.exception.JsonProcessingException;
-import io.mosip.registration.processor.core.exception.PacketManagerException;
-import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
-import io.mosip.registration.processor.packet.storage.dto.ConfigEnum;
-import io.mosip.registration.processor.core.constant.ProviderStageName;
 import org.apache.commons.lang.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -28,20 +27,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.abis.queue.dto.AbisQueueDetails;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorUnCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
-import io.mosip.registration.processor.core.idrepo.dto.IdRequestDto;
-import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO;
 import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO1;
-import io.mosip.registration.processor.core.idrepo.dto.RequestDto;
+import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.packet.dto.vid.VidResponseDTO;
@@ -50,8 +49,10 @@ import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.queue.MosipQueueConnectionFactory;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
+import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.dao.PacketInfoDao;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
+import io.mosip.registration.processor.packet.storage.dto.ConfigEnum;
 import io.mosip.registration.processor.packet.storage.exception.IdRepoAppException;
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.exception.QueueConnectionNotFound;
@@ -97,9 +98,6 @@ public class Utilities {
 	/** The Constant NEW_PACKET. */
 	private static final String NEW_PACKET = "New-packet";
 
-	@Value("${IDSchema.Version}")
-	private String idschemaVersion;
-
 	@Value("${mosip.kernel.machineid.length}")
 	private int machineIdLength;
 
@@ -136,10 +134,6 @@ public class Utilities {
 	@Value("${registration.processor.demographic.identity}")
 	private String getRegProcessorDemographicIdentity;
 
-	/** The get reg processor document category. */
-	@Value("${registration.processor.document.category}")
-	private String getRegProcessorDocumentCategory;
-
 	/** The get reg processor applicant type. */
 	@Value("${registration.processor.applicant.type}")
 	private String getRegProcessorApplicantType;
@@ -155,10 +149,6 @@ public class Utilities {
 	/** The registration processor abis json. */
 	@Value("${registration.processor.abis.json}")
 	private String registrationProcessorAbisJson;
-	
-	/** The registration processor abis json. */
-	@Value("${registration.processor.print.textfile}")
-	private String registrationProcessorPrintTextFile;
 
 	/** The id repo update. */
 	@Value("${registration.processor.id.repo.update}")
@@ -282,7 +272,7 @@ public class Utilities {
 			Integer idRepoApplicantAge = JsonUtil.getJSONValue(identityJSONOject, ageKey);
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 					id, "Utilities::getApplicantAge()::exit when ID REPO applicantAge is not null");
-			return idRepoApplicantAge != null ? idRepoApplicantAge : 0;
+			return idRepoApplicantAge != null ? idRepoApplicantAge : -1;
 
 		}
 
@@ -355,6 +345,50 @@ public class Utilities {
 		}
 		return null;
 	}
+	
+	/**
+	 * retrieving  json from id repo by UIN.
+	 *
+	 * @param uin
+	 *            the uin
+	 * @return the JSON object
+	 * @throws ApisResourceAccessException
+	 *             the apis resource access exception
+	 * @throws IdRepoAppException
+	 *             the id repo app exception
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
+	private ResponseDTO retrieveIdrepoResponseObj(String uin,String queryParam,String queryParamValue) throws ApisResourceAccessException {
+		if (uin != null) {
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
+					"Utilities::retrieveIdrepoResponseObj()::entry");
+			List<String> pathSegments = new ArrayList<>();
+			pathSegments.add(uin);
+			IdResponseDTO1 idResponseDto;
+
+			idResponseDto = (IdResponseDTO1) restClientService.getApi(ApiName.IDREPOGETIDBYUIN, pathSegments, null==queryParam?"":queryParam, null==queryParamValue?"":queryParamValue,
+					IdResponseDTO1.class);
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
+					"Utilities::retrieveIdrepoDocument():: IDREPOGETIDBYUIN GET service call ended Successfully");
+		
+		
+			if (idResponseDto == null) {
+				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
+						"Utilities::retrieveIdrepoResponseObj()::exit idResponseDto is null");
+				return null;
+			}
+			if (!idResponseDto.getErrors().isEmpty()) {
+				List<ErrorDTO> error = idResponseDto.getErrors();
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
+						"Utilities::retrieveIdrepoResponseObj():: error with error message " + error.get(0).getMessage());
+				throw new IdRepoAppException(error.get(0).getMessage());
+			}
+			
+			return idResponseDto.getResponse();
+		}
+		return null;
+	}
 
 	/**
 	 * retrieving identity json ffrom id repo by UIN.
@@ -369,29 +403,12 @@ public class Utilities {
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
-	public JSONObject retrieveIdrepoJson(String uin) throws ApisResourceAccessException, IdRepoAppException, IOException {
+	public JSONObject retrieveIdrepoJson(String uin)
+			throws ApisResourceAccessException, IdRepoAppException, IOException {
 
 		if (uin != null) {
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
-					"Utilities::retrieveIdrepoJson()::entry");
-			List<String> pathSegments = new ArrayList<>();
-			pathSegments.add(uin);
-			IdResponseDTO1 idResponseDto;
-
-			idResponseDto = (IdResponseDTO1) restClientService.getApi(ApiName.IDREPOGETIDBYUIN, pathSegments, "", "",
-					IdResponseDTO1.class);
-			if (idResponseDto == null) {
-				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
-						"Utilities::retrieveIdrepoJson()::exit idResponseDto is null");
-				return null;
-			}
-			if (!idResponseDto.getErrors().isEmpty()) {
-				List<ErrorDTO> error = idResponseDto.getErrors();
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
-						"Utilities::retrieveIdrepoJson():: error with error message " + error.get(0).getMessage());
-				throw new IdRepoAppException(error.get(0).getMessage());
-			}
-			String response = objMapper.writeValueAsString(idResponseDto.getResponse().getIdentity());
+			ResponseDTO idResponseDto = retrieveIdrepoResponseObj(uin,null,null);
+			String response = objMapper.writeValueAsString(idResponseDto.getIdentity());
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 					"Utilities::retrieveIdrepoJson():: IDREPOGETIDBYUIN GET service call ended Successfully");
 			try {
@@ -399,14 +416,33 @@ public class Utilities {
 			} catch (org.json.simple.parser.ParseException e) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 						ExceptionUtils.getStackTrace(e));
-				throw new IdRepoAppException("Error while parsing string to JSONObject",e);
+				throw new IdRepoAppException("Error while parsing string to JSONObject", e);
 			}
-
-
 		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
-				"Utilities::retrieveIdrepoJson()::exit UIN is null");
 		return null;
+	}
+	
+	/**
+	 * retrieving identity json ffrom id repo by UIN.
+	 *
+	 * @param uin
+	 *            the uin
+	 * @return the JSON object
+	 * @throws ApisResourceAccessException
+	 *             the apis resource access exception
+	 * @throws IdRepoAppException
+	 *             the id repo app exception
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
+	public List<io.mosip.registration.processor.core.idrepo.dto.Documents> retrieveIdrepoDocument(String uin) throws ApisResourceAccessException
+			 {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
+				"Utilities::retrieveIdrepoDocument()::entry");
+		ResponseDTO idResponseDto = retrieveIdrepoResponseObj(uin,"type","all");
+		return idResponseDto.getDocuments();
+	
+
 	}
 
 	/**
@@ -779,64 +815,6 @@ public class Utilities {
 	}
 
 	/**
-	 * Link reg id wrt uin.
-	 *
-	 * @param registrationID
-	 *            the registration ID
-	 * @param uin
-	 *            the uin
-	 * @return true, if successful
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 */
-	@SuppressWarnings("unchecked")
-	public boolean linkRegIdWrtUin(String registrationID, String uin) throws ApisResourceAccessException, IOException {
-
-		IdResponseDTO idResponse = null;
-		RequestDto requestDto = new RequestDto();
-		if (uin != null) {
-
-			JSONObject identityObject = new JSONObject();
-			identityObject.put(UIN, uin);
-			addSchemaVersion(identityObject);
-
-			requestDto.setRegistrationId(registrationID);
-			requestDto.setIdentity(identityObject);
-
-			IdRequestDto idRequestDTO = new IdRequestDto();
-			idRequestDTO.setId(idRepoUpdate);
-			idRequestDTO.setRequest(requestDto);
-			idRequestDTO.setMetadata(null);
-			idRequestDTO.setRequesttime(DateUtils.getUTCCurrentDateTimeString());
-			idRequestDTO.setVersion(vidVersion);
-
-			idResponse = (IdResponseDTO) restClientService.patchApi(ApiName.IDREPOSITORY, null, "", "", idRequestDTO,
-					IdResponseDTO.class);
-
-			if (idResponse != null && idResponse.getResponse() != null) {
-
-				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString(), registrationID, " UIN Linked with the RegID");
-
-				return true;
-			} else {
-
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString(), registrationID,
-						" UIN not Linked with the RegID ");
-				return false;
-			}
-
-		} else {
-
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationID, " UIN is null ");
-		}
-
-		return false;
-	}
-
-	/**
 	 * Retrieve idrepo json status.
 	 *
 	 * @param uin
@@ -877,17 +855,6 @@ public class Utilities {
 		}
 
 		return response;
-	}
-
-	private void addSchemaVersion(JSONObject identityObject) throws IOException {
-
-		JSONObject regProcessorIdentityJson = getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
-		String schemaVersion = JsonUtil.getJSONValue(
-				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.IDSCHEMA_VERSION),
-				MappingJsonConstants.VALUE);
-
-		identityObject.put(schemaVersion, Float.valueOf(idschemaVersion));
-
 	}
 
 	public String getRefId(String id, String refId) {

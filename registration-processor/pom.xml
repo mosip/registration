@@ -5,12 +5,12 @@
 	<parent>
 		<groupId>io.mosip</groupId>
 		<artifactId>registration</artifactId>
-		<version>1.2.0-SNAPSHOT</version>
+		<version>1.2.1-SNAPSHOT</version>
 	</parent>
 
 	<groupId>io.mosip.registrationprocessor</groupId>
 	<artifactId>registration-processor</artifactId>
-	<version>1.2.0-SNAPSHOT</version>
+	<version>1.2.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>registration-processor</name>
@@ -18,7 +18,6 @@
 
 	<properties>
 		<doclint>none</doclint>
-		<sonar.skip>true</sonar.skip>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
@@ -44,7 +43,8 @@
 		<!-- Miscellaneous -->
 		<javax.el-api.version>3.0.0</javax.el-api.version>
 		<javax.validation-api.version>2.0.1.Final</javax.validation-api.version>
-		<jackson.version>2.9.5</jackson.version>
+		<jackson.version>2.12.0</jackson.version>
+		<jackson.afterburner.version>2.12.0</jackson.afterburner.version>
 		<hibernate.validator.version>6.0.12.Final</hibernate.validator.version>
 		<modelmapper.version>2.1.1</modelmapper.version>
 		<jcl.to.slf4j.version>1.7.25</jcl.to.slf4j.version>
@@ -108,32 +108,32 @@
 		<jsch.version>0.1.55</jsch.version>
 
 		<!-- local -->
-		<registration.status.service.version>1.2.0-SNAPSHOT</registration.status.service.version>
-		<registration.processor.core.version>1.2.0-SNAPSHOT</registration.processor.core.version>
-		<packet.manager.version>1.2.0-SNAPSHOT</packet.manager.version>
-		<registration.processor.rest.client.version>1.2.0-SNAPSHOT</registration.processor.rest.client.version>
-		<packet.info.storage.service.version>1.2.0-SNAPSHOT</packet.info.storage.service.version>
-		<packet.bio.dedupe.service.impl.version>1.2.0-SNAPSHOT</packet.bio.dedupe.service.impl.version>
-		<registration.processor.message.sender.version>1.2.0-SNAPSHOT</registration.processor.message.sender.version>
+		<registration.status.service.version>1.2.1-SNAPSHOT</registration.status.service.version>
+		<registration.processor.core.version>1.2.1-SNAPSHOT</registration.processor.core.version>
+		<packet.manager.version>1.2.1-SNAPSHOT</packet.manager.version>
+		<registration.processor.rest.client.version>1.2.1-SNAPSHOT</registration.processor.rest.client.version>
+		<packet.info.storage.service.version>1.2.1-SNAPSHOT</packet.info.storage.service.version>
+		<packet.bio.dedupe.service.impl.version>1.2.1-SNAPSHOT</packet.bio.dedupe.service.impl.version>
+		<registration.processor.message.sender.version>1.2.1-SNAPSHOT</registration.processor.message.sender.version>
 
 		<!-- Kernel -->
-		<kernel.core.version>1.2.0-SNAPSHOT</kernel.core.version>
-		<kernel.dataaccess.hibernate.version>1.2.0-SNAPSHOT</kernel.dataaccess.hibernate.version>
-		<kernel.templatemanager.velocity.version>1.2.0-SNAPSHOT</kernel.templatemanager.velocity.version>
-		<kernel.idvalidator.uin.version>1.2.0-SNAPSHOT</kernel.idvalidator.uin.version>
-		<kernel.idvalidator.rid.version>1.2.0-SNAPSHOT</kernel.idvalidator.rid.version>
-		<kernel.cbeffutil.version>1.2.0-SNAPSHOT</kernel.cbeffutil.version>
-        <kernel.bioapi.provider.version>1.2.0-SNAPSHOT</kernel.bioapi.provider.version>
-        <kernel.auth.adapter.version>1.2.0-SNAPSHOT</kernel.auth.adapter.version>
-        <kernel.pdfgenerator.itext.version>1.2.0-SNAPSHOT</kernel.pdfgenerator.itext.version>
-		<kernel.qrcodegenerator.zxing.version>1.2.0-SNAPSHOT</kernel.qrcodegenerator.zxing.version>
-		<kernel.logger.logback.version>1.2.0-SNAPSHOT</kernel.logger.logback.version>
-		<kernel.idvalidator.vid.version>1.2.0-SNAPSHOT</kernel.idvalidator.vid.version>
-		<object.store.khazana.version>1.2.0-SNAPSHOT</object.store.khazana.version>
-		<kernel.biometrics.api.version>1.2.0-SNAPSHOT</kernel.biometrics.api.version>
-		<kernel-keymanager-service.version>1.2.0-SNAPSHOT</kernel-keymanager-service.version>
-		 <kernel.websubclient.version>1.2.0-SNAPSHOT</kernel.websubclient.version>
-		 <kernel-biosdk-provider.version>1.2.0-SNAPSHOT</kernel-biosdk-provider.version>
+		<kernel.core.version>1.2.1-SNAPSHOT</kernel.core.version>
+		<kernel.dataaccess.hibernate.version>1.2.1-SNAPSHOT</kernel.dataaccess.hibernate.version>
+		<kernel.templatemanager.velocity.version>1.2.1-SNAPSHOT</kernel.templatemanager.velocity.version>
+		<kernel.idvalidator.uin.version>1.2.1-SNAPSHOT</kernel.idvalidator.uin.version>
+		<kernel.idvalidator.rid.version>1.2.1-SNAPSHOT</kernel.idvalidator.rid.version>
+		<kernel.cbeffutil.version>1.2.1-SNAPSHOT</kernel.cbeffutil.version>
+		<kernel.bioapi.provider.version>1.2.1-SNAPSHOT</kernel.bioapi.provider.version>
+		<kernel.auth.adapter.version>1.2.1-SNAPSHOT</kernel.auth.adapter.version>
+		<kernel.pdfgenerator.itext.version>1.2.1-SNAPSHOT</kernel.pdfgenerator.itext.version>
+		<kernel.qrcodegenerator.zxing.version>1.2.1-SNAPSHOT</kernel.qrcodegenerator.zxing.version>
+		<kernel.logger.logback.version>1.2.1-SNAPSHOT</kernel.logger.logback.version>
+		<kernel.idvalidator.vid.version>1.2.1-SNAPSHOT</kernel.idvalidator.vid.version>
+		<object.store.khazana.version>1.2.0.1-SNAPSHOT</object.store.khazana.version>
+		<kernel.biometrics.api.version>1.2.1-SNAPSHOT</kernel.biometrics.api.version>
+		<kernel-keymanager-service.version>1.2.1-SNAPSHOT</kernel-keymanager-service.version>
+		 <kernel.websubclient.version>1.2.1-SNAPSHOT</kernel.websubclient.version>
+		 <kernel-biosdk-provider.version>1.2.1-SNAPSHOT</kernel-biosdk-provider.version>
 			<sonar.coverage.exclusions>**/dto/**,
 			**/exception/*Exception.java,
 			**/config/*Config.java,
@@ -159,6 +159,7 @@
 			**/registration/processor/stages/*.java,
 			**/registration/processor/retry/verticle/*.java,
 			**/registration/processor/retry/verticle/stages/*.java,
+			**/registration/processor/retry/verticle/constants/*.java,
 			**/registration/processor/packet/decrypter/job/stage/*.java,
 			**/registration/processor/packet/decryptor/job/exception/constant/*.java,
 
@@ -166,6 +167,7 @@
 
 
 			**/registration/processor/stages/app/*.java,
+			**/registration/processor/stages/executor/*.java,
 			**/registration/processor/camel/bridge/processor/*.java,
 			**/registration/processor/core/constant/*.java,
 			**/registration/processor/core/packet/dto/demographicinfo/*.java,
@@ -222,9 +224,11 @@
 			**/registration/processor/core/config/CoreConfigBean.java,
 			**/registration/processor/core/kernel/beans/KernelConfig.java,
 			**/registration/processor/core/abstractverticle/MosipVerticleAPIManager.java,
+			**/registration/processor/core/abstractverticle/WorkflowInternalActionDTO.java,
 			**/registration/processor/core/http/*.java,
 			**/registration/processor/core/queue/factory/*.java,
 			**/registration/processor/core/queue/impl/*.java,
+			**/registration/processor/core/tracing/*.java,
 			**/registration/processor/message/sender/config/MsgNotificationBeanCofig.java,
 			**/registration/processor/print/exception/QueueConnectionNotFound.java,
 			**/registration/processor/stages/demodedupe/StatusMessage.java,
@@ -264,6 +268,27 @@
 			**/validator/**, **/utils/**,**/util/**,**/code/**</sonar.cpd.exclusions>
 			<doclint>none</doclint>
 	</properties>
+
+    <repositories>
+        <repository>
+            <id>ossrh</id>
+            <name>CentralRepository</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <layout>default</layout>
+            <snapshots>
+            <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>central</id>
+            <name>MavenCentral</name>
+            <layout>default</layout>
+            <url>https://repo1.maven.org/maven2</url>
+            <snapshots>
+            <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 
 	<dependencyManagement>
 		<dependencies>
@@ -308,6 +333,21 @@
 		    <artifactId>javassist</artifactId>
 		    <version>3.27.0-GA</version>
 		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+        <dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+			<version>${jackson.version}</version>
+        </dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -319,7 +359,6 @@
 		<module>registration-processor-bio-dedupe-service-impl</module>
 		<module>registration-processor-info-storage-service</module>
 		<module>registration-processor-registration-status-service-impl</module>
-        <!-- <module>registration-processor-quality-checker</module> -->
 		<module>registration-processor-message-sender-impl</module>
 		<module>registration-processor-notification-service</module>
 		<module>init</module>
@@ -329,6 +368,7 @@
 		<module>mosip-stage-executor</module>
 		<module>stage-groups</module>
         <module>workflow-engine</module>
+        <module>registration-processor-landing-zone-utility</module>
   </modules>
 	<build>
 			<plugins>

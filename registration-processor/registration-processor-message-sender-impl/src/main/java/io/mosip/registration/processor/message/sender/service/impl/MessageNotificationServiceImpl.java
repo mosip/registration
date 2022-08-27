@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.message.sender.service.impl;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,6 +15,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import io.mosip.kernel.core.exception.BaseUncheckedException;
+import io.mosip.kernel.core.exception.ServiceError;
+import io.mosip.registration.processor.core.constant.*;
+import io.mosip.registration.processor.core.idrepo.dto.VidInfoDTO;
+import io.mosip.registration.processor.core.idrepo.dto.VidsInfosDTO;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -34,13 +40,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.JsonUtils;
+import io.mosip.kernel.core.util.exception.JsonMappingException;
+import io.mosip.kernel.core.util.exception.JsonParseException;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.code.ApiName;
-import io.mosip.registration.processor.core.constant.IdType;
-import io.mosip.registration.processor.core.constant.LoggerFileConstant;
-import io.mosip.registration.processor.core.constant.MappingJsonConstants;
-import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.TemplateProcessingFailureException;
@@ -56,18 +62,25 @@ import io.mosip.registration.processor.core.packet.dto.demographicinfo.JsonValue
 import io.mosip.registration.processor.core.spi.message.sender.MessageNotificationService;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
+import io.mosip.registration.processor.core.util.LanguageUtility;
 import io.mosip.registration.processor.message.sender.exception.EmailIdNotFoundException;
 import io.mosip.registration.processor.message.sender.exception.IDRepoResponseNull;
 import io.mosip.registration.processor.message.sender.exception.PhoneNumberNotFoundException;
 import io.mosip.registration.processor.message.sender.exception.TemplateGenerationFailedException;
 import io.mosip.registration.processor.message.sender.exception.TemplateNotFoundException;
 import io.mosip.registration.processor.message.sender.template.TemplateGenerator;
+import io.mosip.registration.processor.packet.manager.decryptor.Decryptor;
 import io.mosip.registration.processor.packet.storage.dto.ConfigEnum;
 import io.mosip.registration.processor.packet.storage.exception.IdRepoAppException;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 import io.mosip.registration.processor.status.code.RegistrationType;
+import io.mosip.registration.processor.status.dto.RegistrationAdditionalInfoDTO;
+import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
+import io.mosip.registration.processor.status.dto.SyncResponseDto;
+import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
+import io.mosip.registration.processor.status.service.SyncRegistrationService;
 
 /**
  * ServiceImpl class for sending notification.
@@ -109,7 +122,11 @@ public class MessageNotificationServiceImpl
 	@Autowired
 	private Environment env;
 
-
+	@Autowired
+	private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationService;
+	
+	@Autowired
+	private Decryptor decryptor;
 	/** The template generator. */
 	@Autowired
 	private TemplateGenerator templateGenerator;
@@ -120,15 +137,18 @@ public class MessageNotificationServiceImpl
 	/** The utility. */
 	@Autowired
 	private Utilities utility;
+	
+	@Autowired
+	private LanguageUtility languageUtility;
 
 	/** The rest client service. */
 	@Autowired
 	private RegistrationProcessorRestClientService<Object> restClientService;
 	
-	@Value("${mosip.default.template-languages}")
+	@Value("${mosip.default.template-languages:#{null}}")
 	private String defaultTemplateLanguages;
 	
-	@Value("${mosip.default.user-preferred-language-attribute}")
+	@Value("${mosip.default.user-preferred-language-attribute:#{null}}")
 	private String userPreferredLanguageAttribute;
 
 	/** The resclient. */
@@ -153,35 +173,34 @@ public class MessageNotificationServiceImpl
 	@Override
 	public SmsResponseDto sendSmsNotification(String templateTypeCode, String id, String process, IdType idType,
 			Map<String, Object> attributes, String regType) throws ApisResourceAccessException, IOException,
-			JSONException {
-		SmsResponseDto response;
+			JSONException, PacketDecryptionFailureException {
+		SmsResponseDto response=new SmsResponseDto();
 		SmsRequestDto smsDto = new SmsRequestDto();
 		RequestWrapper<SmsRequestDto> requestWrapper = new RequestWrapper<>();
 		ResponseWrapper<?> responseWrapper;
 
-		StringBuilder emailId = new StringBuilder();
-		StringBuilder phoneNumber = new StringBuilder();
-
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), id,
 				"MessageNotificationServiceImpl::sendSmsNotification()::entry");
 		try {
-			setAttributes(id, process, idType, attributes, regType, phoneNumber, emailId);
 			List<String> preferredLanguages= getPreferredLanguages(id,process);
 			String artifact="";
 			for(String lang: preferredLanguages) {
-				InputStream stream = templateGenerator.getTemplate(templateTypeCode, attributes, lang);
+				StringBuilder emailId = new StringBuilder();
+				StringBuilder phoneNumber = new StringBuilder();
+				Map<String, Object> attributesLang=new HashMap<>(attributes);
+				setAttributes(id, process,lang, idType, attributesLang, regType, phoneNumber, emailId);
+				InputStream stream = templateGenerator.getTemplate(templateTypeCode, attributesLang, lang);
 				if(artifact.isBlank()) {
 				 artifact = IOUtils.toString(stream, ENCODING);
 				}else {
 				artifact = artifact + LINE_SEPARATOR + IOUtils.toString(stream, ENCODING);;
 				}
+				if (phoneNumber == null || phoneNumber.length() == 0) {
+					throw new PhoneNumberNotFoundException(PlatformErrorMessages.RPR_SMS_PHONE_NUMBER_NOT_FOUND.getCode());
+				}
+				smsDto.setNumber(phoneNumber.toString());
 			}
 			
-
-			if (phoneNumber == null || phoneNumber.length() == 0) {
-				throw new PhoneNumberNotFoundException(PlatformErrorMessages.RPR_SMS_PHONE_NUMBER_NOT_FOUND.getCode());
-			}
-			smsDto.setNumber(phoneNumber.toString());
 			smsDto.setMessage(artifact);
 
 			requestWrapper.setId(env.getProperty(SMS_SERVICE_ID));
@@ -213,6 +232,12 @@ public class MessageNotificationServiceImpl
 					id, PlatformErrorMessages.RPR_PGS_API_RESOURCE_NOT_AVAILABLE.name() + e.getMessage()
 							+ ExceptionUtils.getStackTrace(e));
 			throw new ApisResourceAccessException(PlatformErrorMessages.RPR_PGS_API_RESOURCE_NOT_AVAILABLE.name(), e);
+		} catch (JsonParseException | JsonMappingException | io.mosip.kernel.core.exception.IOException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					id, PlatformErrorMessages.RPR_PGS_API_RESOURCE_NOT_AVAILABLE.name() + e.getMessage()
+							+ ExceptionUtils.getStackTrace(e));
+			
+			
 		}
 
 		return response;
@@ -231,21 +256,23 @@ public class MessageNotificationServiceImpl
 			Map<String, Object> attributes, String[] mailCc, String subjectCode, MultipartFile[] attachment, String regType)
 			throws Exception {
 		ResponseDto response = null;
-		StringBuilder emailId = new StringBuilder();
-		StringBuilder phoneNumber = new StringBuilder();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), id,
 				"MessageNotificationServiceImpl::sendEmailNotification()::entry");
 		try {
-			setAttributes(id, process, idType, attributes, regType, phoneNumber, emailId);
 			List<String> preferredLanguages= getPreferredLanguages(id,process);
+			
 			String artifact="";
 			String subject="";
 			for(String lang: preferredLanguages) {
-				InputStream stream = templateGenerator.getTemplate(templateTypeCode, attributes, lang);	
+				StringBuilder emailId = new StringBuilder();
+				StringBuilder phoneNumber = new StringBuilder();
+				Map<String, Object> attributesLang=new HashMap<>(attributes);
+				setAttributes(id, process,lang, idType, attributesLang, regType, phoneNumber, emailId);
+				InputStream stream = templateGenerator.getTemplate(templateTypeCode, attributesLang, lang);
 				
 				artifact = IOUtils.toString(stream, ENCODING);
 				
-				InputStream subStream = templateGenerator.getTemplate(subjectCode, attributes, lang);
+				InputStream subStream = templateGenerator.getTemplate(subjectCode, attributesLang, lang);
 				
 				subject=IOUtils.toString(subStream, ENCODING);
 				if (emailId == null || emailId.length() == 0) {
@@ -279,11 +306,24 @@ public class MessageNotificationServiceImpl
 	private List<String> getPreferredLanguages(String id, String process) throws ApisResourceAccessException, 
 	PacketManagerException, JsonProcessingException, IOException {
 		if(userPreferredLanguageAttribute!=null && !userPreferredLanguageAttribute.isBlank()) {
-			String preferredLang=packetManagerService.getField(id, userPreferredLanguageAttribute, process, 
-					ProviderStageName.MESSAGE_SENDER);
-			if(preferredLang!=null && !preferredLang.isBlank()) {
-				return List.of(preferredLang.split(","));
+			try {
+				String preferredLang=packetManagerService.getField(id, userPreferredLanguageAttribute, process, 
+						ProviderStageName.MESSAGE_SENDER);
+				if(preferredLang!=null && !preferredLang.isBlank()) {
+					List<String> codes=new ArrayList<>();
+					for(String lang:preferredLang.split(",")) {
+						String langCode=languageUtility.getLangCodeFromNativeName(lang);
+						if(langCode!=null &&!langCode.isBlank())
+							codes.add(langCode);
+					}
+					if(!codes.isEmpty())return codes;
+				}
+			}catch(ApisResourceAccessException e) {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						id, PlatformErrorMessages.RPR_PGS_API_RESOURCE_NOT_AVAILABLE.name() + e.getMessage()
+								+ ExceptionUtils.getStackTrace(e));
 			}
+			
 		}
 		if(defaultTemplateLanguages!=null && !defaultTemplateLanguages.isBlank()) {
 			return List.of(defaultTemplateLanguages.split(","));
@@ -300,7 +340,6 @@ public class MessageNotificationServiceImpl
 		for( String idValue:idValues) {
 			if(idValue!=null&& !idValue.isBlank()  ) {
 				if(isJSONArrayValid(idValue)) {
-					ObjectMapper mapper=new ObjectMapper();
 					JSONArray array=mapper.readValue(idValue, JSONArray.class);
 					for(Object obj:array) {	
 						JSONObject json= new JSONObject( (Map) obj);
@@ -380,6 +419,7 @@ public class MessageNotificationServiceImpl
 	 * Gets the template json.
 	 *
 	 * @param id         the id
+	 * @param lang 
 	 * @param idType     the id type
 	 * @param attributes the attributes
 	 * @param regType    the reg typesetAttributes
@@ -388,12 +428,16 @@ public class MessageNotificationServiceImpl
 	 *                                               has occurred.
 	 * @throws ApisResourceAccessException
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
+	 * @throws io.mosip.kernel.core.exception.IOException 
+	 * @throws JsonMappingException 
+	 * @throws JsonParseException 
+	 * @throws PacketDecryptionFailureException 
 	 * @throws RegistrationProcessorCheckedException
 	 * @throws IdRepoAppException
 	 */
-	private Map<String, Object> setAttributes(String id, String process, IdType idType, Map<String, Object> attributes, String regType,
+	private Map<String, Object> setAttributes(String id, String process, String lang, IdType idType, Map<String, Object> attributes, String regType,
 			StringBuilder phoneNumber, StringBuilder emailId) throws IOException, ApisResourceAccessException,
-			JsonProcessingException, PacketManagerException, JSONException {
+			JsonProcessingException, PacketManagerException, JSONException, PacketDecryptionFailureException, JsonParseException, JsonMappingException, io.mosip.kernel.core.exception.IOException {
 
 		String uin = "";
 		if (idType.toString().equalsIgnoreCase(UIN)) {
@@ -401,6 +445,7 @@ public class MessageNotificationServiceImpl
 			uin = JsonUtil.getJSONValue(jsonObject, UIN);
 			attributes.put("RID", id);
 			attributes.put("UIN", uin);
+			attributes.put("VID", getVid(uin));
 		} else {
 			attributes.put("RID", id);
 		}
@@ -412,9 +457,9 @@ public class MessageNotificationServiceImpl
 				|| regType.equalsIgnoreCase(RegistrationType.UPDATE.name())
 				|| regType.equalsIgnoreCase(RegistrationType.RES_UPDATE.name())
 				|| regType.equalsIgnoreCase(RegistrationType.LOST.name()))) {
-			setAttributesFromIdRepo(uin, attributes, regType, phoneNumber, emailId);
+			setAttributesFromIdRepo(uin, attributes, regType,lang, phoneNumber, emailId);
 		} else {
-			setAttributesFromIdJson(id, process, attributes, regType, phoneNumber, emailId);
+			setAttributesFromIdJson(id, process, attributes, regType,lang, phoneNumber, emailId);
 		}
 
 		return attributes;
@@ -429,13 +474,14 @@ public class MessageNotificationServiceImpl
 	 *            the attributes
 	 * @param regType
 	 *            the reg type
+	 * @param lang 
 	 * @return the map
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
 	@SuppressWarnings("rawtypes")
 	private Map<String, Object> setAttributesFromIdRepo(String uin, Map<String, Object> attributes, String regType,
-			StringBuilder phoneNumber, StringBuilder emailId) throws IOException {
+			String lang,StringBuilder phoneNumber, StringBuilder emailId) throws IOException {
 		List<String> pathsegments = new ArrayList<>();
 		pathsegments.add(uin);
 		IdResponseDTO response;
@@ -456,7 +502,7 @@ public class MessageNotificationServiceImpl
 			}
 
 			String jsonString = new JSONObject((Map) response.getResponse().getIdentity()).toString();
-			setAttributes(jsonString, attributes, regType, phoneNumber, emailId);
+			setAttributes(jsonString, attributes, regType,lang, phoneNumber, emailId);
 
 		} catch (ApisResourceAccessException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -477,13 +523,14 @@ public class MessageNotificationServiceImpl
 	 *            the attribute
 	 * @param regType
 	 *            the reg type
+	 * @param lang 
 	 * @return the keysand values
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
 	@SuppressWarnings("unchecked")
 	private Map<String, Object> setAttributes(String idJsonString, Map<String, Object> attribute, String regType,
-			StringBuilder phoneNumber, StringBuilder emailId) throws IOException {
+			String lang, StringBuilder phoneNumber, StringBuilder emailId) throws IOException {
 		JSONObject demographicIdentity = null;
 
 			demographicIdentity = JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class);
@@ -505,8 +552,9 @@ public class MessageNotificationServiceImpl
 						JSONArray node = JsonUtil.getJSONArray(demographicIdentity, val);
 						JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
 						for (int count = 0; count < jsonValues.length; count++) {
-							String lang = jsonValues[count].getLanguage();
-							attribute.put(val + "_" + lang, jsonValues[count].getValue());
+							if(jsonValues[count].getLanguage().equalsIgnoreCase(lang)) {
+								attribute.put(val , jsonValues[count].getValue());
+							}
 						}
 					} else if (object instanceof LinkedHashMap) {
 						JSONObject json = JsonUtil.getJSONObject(demographicIdentity, val);
@@ -551,8 +599,8 @@ public class MessageNotificationServiceImpl
 
 	@SuppressWarnings("unchecked")
 	private Map<String, Object> setAttributesFromIdJson(String id, String process, Map<String, Object> attribute,
-			String regType, StringBuilder phoneNumber, StringBuilder emailId)
-			throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException, JSONException {
+			String regType, String lang, StringBuilder phoneNumber, StringBuilder emailId)
+			throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException, JSONException, PacketDecryptionFailureException, JsonParseException, JsonMappingException, io.mosip.kernel.core.exception.IOException {
 
 		JSONObject mapperIdentity = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 
@@ -561,46 +609,124 @@ public class MessageNotificationServiceImpl
 		mapperIdentity.keySet().forEach(key -> mapperJsonValues.add(JsonUtil.getJSONValue(JsonUtil.getJSONObject(mapperIdentity, key), VALUE)));
 
 		String source = utility.getDefaultSource(process, ConfigEnum.READER);
-		Map<String, String> fieldMap = packetManagerService.getFields(id, mapperJsonValues, process, ProviderStageName.MESSAGE_SENDER);
-
-		for (Map.Entry e : fieldMap.entrySet()) {
-			if (e.getValue() != null) {
-				String value = e.getValue().toString();
-				if (StringUtils.isNotEmpty(value)) {
-					Object json = new JSONTokener(value).nextValue();
-					if (json instanceof org.json.JSONObject) {
-						HashMap<String, Object> hashMap = new ObjectMapper().readValue(value, HashMap.class);
-						attribute.putIfAbsent(e.getKey().toString(), hashMap.get(VALUE));
-					}
-					else if (json instanceof org.json.JSONArray) {
-						org.json.JSONArray jsonArray = new org.json.JSONArray(value);
-						for (int i = 0; i < jsonArray.length(); i++) {
-							Object obj = jsonArray.get(i);
-							JsonValue jsonValue = mapper.readValue(obj.toString(), JsonValue.class);
-							attribute.putIfAbsent(e.getKey().toString() + "_" + jsonValue.getLanguage(), jsonValue.getValue());
+		Map<String, String> fieldMap =null;
+		try {
+		 fieldMap = packetManagerService.getFields(id, mapperJsonValues, process, ProviderStageName.MESSAGE_SENDER);
+		}catch(ApisResourceAccessException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					id, PlatformErrorMessages.RPR_PGS_API_RESOURCE_NOT_AVAILABLE.name() + e.getMessage()
+							+ ExceptionUtils.getStackTrace(e));
+		}
+		if(fieldMap!=null) {
+			for (Map.Entry e : fieldMap.entrySet()) {
+				if (e.getValue() != null) {
+					String value = e.getValue().toString();
+					if (StringUtils.isNotEmpty(value)) {
+						Object json = new JSONTokener(value).nextValue();
+						if (json instanceof org.json.JSONObject) {
+							HashMap<String, Object> hashMap = mapper.readValue(value, HashMap.class);
+							attribute.putIfAbsent(e.getKey().toString(), hashMap.get(VALUE));
 						}
+						else if (json instanceof org.json.JSONArray) {
+							org.json.JSONArray jsonArray = new org.json.JSONArray(value);
+							for (int i = 0; i < jsonArray.length(); i++) {
+								Object obj = jsonArray.get(i);
+								JsonValue jsonValue = mapper.readValue(obj.toString(), JsonValue.class);
+								if(jsonValue.getLanguage().equalsIgnoreCase(lang)) {
+								attribute.putIfAbsent(e.getKey().toString(), jsonValue.getValue());
+								}
+							}
+						} else
+							attribute.putIfAbsent(e.getKey().toString(), value);
 					} else
-						attribute.putIfAbsent(e.getKey().toString(), value);
-				} else
-					attribute.put(e.getKey().toString(), e.getValue());
-			}
+						attribute.put(e.getKey().toString(), e.getValue());
+				}
 
+			}
+			JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
+			String email = JsonUtil.getJSONValue(
+					JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.EMAIL),
+					MappingJsonConstants.VALUE);
+			String phone = JsonUtil.getJSONValue(
+					JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.PHONE),
+					MappingJsonConstants.VALUE);
+			String emailValue = fieldMap.get(email);
+			String phoneNumberValue = fieldMap.get(phone);
+			if (emailValue != null) {
+				emailId.append(emailValue);
+			}
+			if (phoneNumberValue != null) {
+				phoneNumber.append(phoneNumberValue);
+			}
+			}
+			else {
+				attribute=setAttributesFromSync(id, process, attribute, regType, lang, phoneNumber, emailId);
+			}
+			return attribute;
 		}
-		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
-		String email = JsonUtil.getJSONValue(
-				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.EMAIL),
-				MappingJsonConstants.VALUE);
-		String phone = JsonUtil.getJSONValue(
-				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.PHONE),
-				MappingJsonConstants.VALUE);
-		String emailValue = fieldMap.get(email);
-		String phoneNumberValue = fieldMap.get(phone);
-		if (emailValue != null) {
-			emailId.append(emailValue);
+		
+		private Map<String, Object> setAttributesFromSync(String id, String process, Map<String, Object> attribute,
+				String regType, String lang, StringBuilder phoneNumber, StringBuilder emailId) throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, JsonParseException, JsonMappingException, io.mosip.kernel.core.exception.IOException {
+			SyncRegistrationEntity regEntity = syncRegistrationService.findByRegistrationId(id).get(0);
+			if (regEntity.getOptionalValues() != null) {
+				InputStream inputStream = new ByteArrayInputStream(regEntity.getOptionalValues());
+				InputStream decryptedInputStream = decryptor.decrypt(
+						id,
+						utility.getRefId(id, regEntity.getReferenceId()),
+						inputStream);
+				String decryptedData = IOUtils.toString(decryptedInputStream, "UTF-8");
+				RegistrationAdditionalInfoDTO registrationAdditionalInfoDTO = (RegistrationAdditionalInfoDTO) JsonUtils
+						.jsonStringToJavaObject(RegistrationAdditionalInfoDTO.class, decryptedData);
+				JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
+		        String nameField = JsonUtil.getJSONValue(
+		                JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.NAME),
+		                MappingJsonConstants.VALUE);
+				attribute.put(nameField, registrationAdditionalInfoDTO.getName());
+				if (registrationAdditionalInfoDTO.getEmail() != null) {
+					emailId.append(registrationAdditionalInfoDTO.getEmail());
+				}
+				if (registrationAdditionalInfoDTO.getPhone() != null) {
+					phoneNumber.append(registrationAdditionalInfoDTO.getPhone());
+				}
+			}
+			return attribute;
+			
 		}
-		if (phoneNumberValue != null) {
-			phoneNumber.append(phoneNumberValue);
+
+	private String getVid(String uin) throws ApisResourceAccessException {
+		List<String> pathsegments = new ArrayList<>();
+		pathsegments.add(uin);
+		String vid = null;
+
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+				"MessageNotificationServiceImpl::getVid():: get GETVIDSBYUIN service call started with request data : "
+		);
+
+		VidsInfosDTO vidsInfosDTO =  (VidsInfosDTO) restClientService.getApi(ApiName.GETVIDSBYUIN,
+				pathsegments, "", "", VidsInfosDTO.class);
+
+		if (vidsInfosDTO != null) {
+			if (vidsInfosDTO.getErrors() != null && !vidsInfosDTO.getErrors().isEmpty()) {
+				ServiceError error = vidsInfosDTO.getErrors().get(0);
+				throw new BaseUncheckedException(PlatformErrorMessages.RPR_PRT_VID_NOT_AVAILABLE_EXCEPTION.getCode(),
+						error.getMessage());
+
+			} else {
+				if(vidsInfosDTO.getResponse()!=null && !vidsInfosDTO.getResponse().isEmpty()) {
+					for (VidInfoDTO VidInfoDTO : vidsInfosDTO.getResponse()) {
+						if (VidType.PERPETUAL.name().equalsIgnoreCase(VidInfoDTO.getVidType())) {
+							vid = VidInfoDTO.getVid();
+							break;
+						}
+					}
+				}
+			}
 		}
-		return attribute;
+
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+				LoggerFileConstant.REGISTRATIONID.toString(), "",
+				"MessageNotificationServiceImpl::getVid():: get GETVIDSBYUIN service call ended");
+
+		return vid;
 	}
-}
+	}

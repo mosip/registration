@@ -9,18 +9,16 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
-import com.google.gson.JsonIOException;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.JsonValue;
@@ -41,11 +39,22 @@ public class JsonUtil {
 	/** The Constant VALUE. */
 	private static final String VALUE = "value";
 
+	private static ObjectMapper objectMapper = null;
+
 	/**
 	 * Instantiates a new json util.
 	 */
 	private JsonUtil() {
 
+	}
+
+	private static ObjectMapper getObjectMapper() {
+		if (objectMapper == null) {
+			objectMapper = new ObjectMapper().registerModule(new AfterburnerModule()).registerModule(new JavaTimeModule());
+			objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+			objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+		}
+		return objectMapper;
 	}
 
 	/**
@@ -65,11 +74,10 @@ public class JsonUtil {
 	 */
 	public static Object inputStreamtoJavaObject(InputStream stream, Class<?> clazz)
 			throws UnsupportedEncodingException {
-		JsonParser jsonParser = new JsonParser();
-		Gson gson = new Gson();
-		JsonObject jsonObject = (JsonObject) jsonParser.parse(new InputStreamReader(stream, "UTF-8"));
+		
+		getObjectMapper();
 		try {
-			return gson.fromJson(jsonObject, clazz);
+			return objectMapper.readValue(new InputStreamReader(stream, "UTF-8"), clazz);
 		} catch (Exception e) {
 			throw new UnsupportedEncodingException(PlatformErrorMessages.RPR_CMB_UNSUPPORTED_ENCODING.getMessage());
 		}
@@ -176,14 +184,12 @@ public class JsonUtil {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> T objectMapperReadValue(String jsonString, Class<?> clazz) throws IOException {
-		ObjectMapper objectMapper = new ObjectMapper();
-		return (T) objectMapper.readValue(jsonString, clazz);
+		return (T) getObjectMapper().readValue(jsonString, clazz);
 	}
 
 
 	public static <T> T readValueWithUnknownProperties(String jsonString, Class<?> clazz) throws IOException {
-		ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		return (T) objectMapper.readValue(jsonString, clazz);
+		return (T) getObjectMapper().readValue(jsonString, clazz);
 	}
 
 	/**
@@ -259,8 +265,7 @@ public class JsonUtil {
 	
 	
 	public static String objectMapperObjectToJson(Object obj) throws IOException {
-		ObjectMapper objectMapper = new ObjectMapper();
-		return objectMapper.writeValueAsString(obj);
-	} 
+		return getObjectMapper().writeValueAsString(obj);
+	}
 
 }

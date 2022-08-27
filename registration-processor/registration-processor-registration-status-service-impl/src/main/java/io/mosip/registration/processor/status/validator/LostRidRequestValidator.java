@@ -14,8 +14,11 @@ import org.springframework.core.env.Environment;
 import org.springframework.format.datetime.joda.DateTimeFormatterFactory;
 import org.springframework.stereotype.Component;
 
+import com.hazelcast.util.StringUtil;
+
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.WorkFlowSearchException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -58,6 +61,10 @@ public class LostRidRequestValidator {
 	@Value("${mosip.registration.processor.grace.period}")
 	private int gracePeriod;
 
+	/** The registrationDate pattern. */
+	@Value("${mosip.registration.processor.lostrid.registrationdate.pattern}")
+	private String regDatePattern;
+
 
 	/**
 	 * Validate.
@@ -90,11 +97,12 @@ public class LostRidRequestValidator {
 	 */
 	private void validateId(String id) throws RegStatusAppException {
 		LostRidValidationException exception = new LostRidValidationException();
-
+		String lostRidService=env.getProperty(REG_LOSTRID_SERVICE_ID);
 		if (Objects.isNull(id)) {
 
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER_ID, exception);
-		} else if (!env.getProperty(REG_LOSTRID_SERVICE_ID).equals(id)) {
+			
+		} else if (StringUtils.isNotEmpty(lostRidService) && !lostRidService.equals(id)) {
 
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_INVALID_INPUT_PARAMETER_ID, exception);
 
@@ -119,7 +127,7 @@ public class LostRidRequestValidator {
 		for (FilterInfo filter : filterInfos) {
 			if (filter.getColumnName().equals("name") || filter.getColumnName().equals("email")
 					|| filter.getColumnName().equals("phone") || filter.getColumnName().equals("centerId")
-					|| filter.getColumnName().equals("postalCode")||filter.getColumnName().equals("registrationDate")) {
+					|| filter.getColumnName().equals("locationCode")||filter.getColumnName().equals("registrationDate")) {
 				validateFilterType(filter);
 			} else {
 				throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER, exception);
@@ -141,7 +149,7 @@ public class LostRidRequestValidator {
 			throws WorkFlowSearchException, RegStatusAppException {
 		LostRidValidationException exception = new LostRidValidationException();
 		if (filter.getColumnName().equals("registrationDate") && filter.getType().equalsIgnoreCase("between")) {
-			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+			DateTimeFormatter dtf = DateTimeFormatter.ofPattern(regDatePattern);
 			LocalDate dateForm = LocalDate.parse(filter.getFromValue(), dtf);
 			LocalDate dateTo = LocalDate.parse(filter.getToValue(), dtf);
 			long noOfDaysBetween = ChronoUnit.DAYS.between(dateForm, dateTo);
@@ -166,7 +174,7 @@ public class LostRidRequestValidator {
 		if (Objects.isNull(ver)) {
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER_VERSION, exception);
 
-		} else if (!version.equals(ver)) {
+		} else if (version!=null && !version.equals(ver)) {
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_INVALID_INPUT_PARAMETER_VERSION, exception);
 		}
 	}
@@ -186,7 +194,7 @@ public class LostRidRequestValidator {
 		} else if (sortInfos.get(0).getSortField().equals("name") || sortInfos.get(0).getSortField().equals("email")
 				|| sortInfos.get(0).getSortField().equals("phone") || sortInfos.get(0).getSortField().equals("centerId")
 				|| sortInfos.get(0).getSortField().equals("registrationDate")
-				|| sortInfos.get(0).getSortField().equals("postalCode")) {
+				|| sortInfos.get(0).getSortField().equals("locationCode")) {
 
 		} else {
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER, exception);

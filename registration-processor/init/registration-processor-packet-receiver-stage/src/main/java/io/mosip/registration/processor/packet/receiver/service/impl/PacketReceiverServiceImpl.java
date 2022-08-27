@@ -11,6 +11,7 @@ import java.util.List;
 
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.AdditionalInfoIdNotFoundException;
+import io.mosip.registration.processor.core.exception.ObjectStoreNotAccessibleException;
 import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
 import org.apache.commons.io.IOUtils;
 import org.h2.store.fs.FileUtils;
@@ -21,6 +22,7 @@ import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 
+import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.HMACUtils2;
@@ -34,6 +36,7 @@ import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
+import io.mosip.registration.processor.core.constant.LandingZoneTypeConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
@@ -105,11 +108,20 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 
 	@Autowired
 	private AdditionalInfoRequestService additionalInfoRequestService;
+	
+	@Autowired
+    private ObjectStoreAdapter objectStoreAdapter;
 
 	/** The packet receiver stage. */
 
 	@Value("${registration.processor.packet.ext}")
 	private String extention;
+	
+	@Value("${landing.zone.account.name}")
+    private String landingZoneAccount;
+	
+	@Value("${landing.zone.type:ObjectStore}")
+    private String landingZoneType;
 
 	/** The file size. */
 	@Value("${registration.processor.max.file.size}")
@@ -132,7 +144,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	public MessageDTO validatePacket(File file, String stageName) {
 
 		LogDescription description = new LogDescription();
-		InternalRegistrationStatusDto dto = new InternalRegistrationStatusDto();
+		InternalRegistrationStatusDto dto1 = new InternalRegistrationStatusDto();
 		MessageDTO messageDTO = new MessageDTO();
 		Boolean storageFlag = false;
 		messageDTO.setInternalError(false);
@@ -145,14 +157,17 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					packetId, "PacketReceiverServiceImpl::validatePacket()::entry");
 			regEntity = syncRegistrationService.findByPacketId(packetId);
-			String registrationId = regEntity.getRegistrationId();
+			
+			String registrationId = null;
+			validatePacketWithSync(regEntity, registrationId, description);
+			registrationId = regEntity.getRegistrationId();
+
 			messageDTO.setRid(registrationId);
 			messageDTO.setWorkflowInstanceId(regEntity.getWorkflowInstanceId());
 			try (InputStream encryptedInputStream = FileUtils.newInputStream(file.getAbsolutePath())) {
 				byte[] encryptedByteArray = IOUtils.toByteArray(encryptedInputStream);
-				validatePacketWithSync(regEntity, registrationId, description);
 				messageDTO.setReg_type(regEntity.getRegistrationType());
-				validateHashCode(new ByteArrayInputStream(encryptedByteArray), regEntity, registrationId, description);
+				validateHashCode(encryptedByteArray, regEntity, registrationId, description);
 				validatePacketFormat(fileOriginalName, registrationId, description);
 				validatePacketSize(file.length(), regEntity, registrationId, description);
 				if (isDuplicatePacket(registrationId, regEntity) && !isExternalStatusResend(registrationId)) {
@@ -166,7 +181,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
 						PlatformSuccessMessages.PACKET_RECEIVER_VALIDATION_SUCCESS.getMessage());
-				storageFlag = storePacket(stageName, regEntity, dto, description);
+				storageFlag = storePacket(stageName, regEntity,description);
 				isTransactionSuccessful = true;
 			} catch (IOException | NoSuchAlgorithmException e) {
 
@@ -249,11 +264,12 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
-	private boolean storePacket(String stageName, SyncRegistrationEntity regEntity, InternalRegistrationStatusDto dto,
+	// TODO remove InternalRegistrationStatusDto from method param and return new InternalRegistrationStatusDto,ignore for sonar
+	private boolean storePacket(String stageName, SyncRegistrationEntity regEntity,
 			LogDescription description) {
 		Boolean storageFlag = false;
 		int iteration = getIterationForSyncRecord(regEntity);
-		dto = registrationStatusService.getRegistrationStatus(regEntity.getRegistrationId(),
+		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus(regEntity.getRegistrationId(),
 				regEntity.getRegistrationType(), iteration, regEntity.getWorkflowInstanceId());
 		if (dto == null) {
 			dto = new InternalRegistrationStatusDto();
@@ -424,10 +440,9 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
-	private void validateHashCode(InputStream inputStream, SyncRegistrationEntity regEntity, String registrationId,
+	private void validateHashCode(byte[] isbytearray, SyncRegistrationEntity regEntity, String registrationId,
 			LogDescription description) throws IOException, NoSuchAlgorithmException {
 		// TO-DO testing
-		byte[] isbytearray = IOUtils.toByteArray(inputStream);
 		String hashSequence = HMACUtils2.digestAsPlainText(isbytearray);
 		String packetHashSequence = regEntity.getPacketHashValue();
 		if (!(MessageDigest.isEqual(packetHashSequence.getBytes(), hashSequence.getBytes()))) {
@@ -472,7 +487,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	}
 
 	@Override
-	public MessageDTO processPacket(File file) {
+	public MessageDTO processPacket(File file)  {
 		LogDescription description = new LogDescription();
 		MessageDTO messageDTO = new MessageDTO();
 		RegistrationExceptionMapperUtil registrationExceptionMapperUtil = new RegistrationExceptionMapperUtil();
@@ -493,7 +508,9 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 		messageDTO.setRid(registrationId);
 
 		messageDTO.setReg_type(regEntity.getRegistrationType());
-		messageDTO.setIteration(dto.getIteration());
+		if (dto != null) {
+			messageDTO.setIteration(dto.getIteration());
+		}
 		messageDTO.setSource(regEntity.getSource());
 		messageDTO.setWorkflowInstanceId(regEntity.getWorkflowInstanceId());
 		try (InputStream encryptedInputStream = FileUtils.newInputStream(file.getAbsolutePath())) {
@@ -501,8 +518,17 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 			scanningFlag = scanFile(encryptedByteArray, registrationExceptionMapperUtil,
 					registrationId, dto, description);
 			if (scanningFlag) {
-				fileManager.put(packetId, new ByteArrayInputStream(encryptedByteArray),
-						DirectoryPathDto.LANDING_ZONE);
+				if(landingZoneType.equalsIgnoreCase(LandingZoneTypeConstant.DMZ_SERVER)) {
+					fileManager.put(packetId, new ByteArrayInputStream(encryptedByteArray),
+							DirectoryPathDto.LANDING_ZONE);
+				}
+				else if(landingZoneType.equalsIgnoreCase(LandingZoneTypeConstant.OBJECT_STORE)) {
+					 boolean result =objectStoreAdapter.putObject(landingZoneAccount, registrationId, null, null, packetId, encryptedInputStream);
+					 if(!result) {
+						 throw new ObjectStoreNotAccessibleException("Failed to store packet : " + packetId);
+					 }
+				}
+				
 				dto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 				dto.setStatusComment(StatusUtil.PACKET_UPLOADED_TO_LANDING_ZONE.getMessage());
 				dto.setSubStatusCode(StatusUtil.PACKET_UPLOADED_TO_LANDING_ZONE.getCode());
@@ -522,13 +548,37 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 			messageDTO.setInternalError(Boolean.TRUE);
 			description.setMessage(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode());
+			dto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+			dto.setStatusComment(trimExpMessage.trimExceptionMessage(
+					StatusUtil.IO_EXCEPTION.getMessage() + e.getMessage()));
+			dto.setSubStatusCode(StatusUtil.IO_EXCEPTION.getCode());
+			dto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
+					.getStatusCode(RegistrationExceptionTypeCode.IOEXCEPTION));
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId,
 					PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage() + ExceptionUtils.getStackTrace(e));
-		} catch (DataAccessException e) {
+		}catch (ObjectStoreNotAccessibleException e) {
+        	messageDTO.setInternalError(Boolean.TRUE);
+            dto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+            dto.setStatusComment(StatusUtil.OBJECT_STORE_EXCEPTION.getMessage());
+            dto.setSubStatusCode(StatusUtil.OBJECT_STORE_EXCEPTION.getCode());
+            dto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
+                    .getStatusCode(RegistrationExceptionTypeCode.OBJECT_STORE_EXCEPTION));
+            description.setMessage(PlatformErrorMessages.OBJECT_STORE_NOT_ACCESSIBLE.getMessage());
+            description.setCode(PlatformErrorMessages.OBJECT_STORE_NOT_ACCESSIBLE.getCode());
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                    registrationId, PlatformErrorMessages.OBJECT_STORE_NOT_ACCESSIBLE.name()
+                            + ExceptionUtils.getStackTrace(e));
+        } catch (DataAccessException e) {
 			messageDTO.setInternalError(Boolean.TRUE);
 			description.setMessage(PlatformErrorMessages.RPR_PKR_DATA_ACCESS_EXCEPTION.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_PKR_DATA_ACCESS_EXCEPTION.getCode());
+			dto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+			dto.setStatusComment(trimExpMessage.trimExceptionMessage(
+					StatusUtil.DB_NOT_ACCESSIBLE.getMessage() + e.getMessage()));
+			dto.setSubStatusCode(StatusUtil.DB_NOT_ACCESSIBLE.getCode());
+			dto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
+					.getStatusCode(RegistrationExceptionTypeCode.DATA_ACCESS_EXCEPTION));
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId,
 					PacketReceiverConstant.ERROR_IN_PACKET_RECIVER

@@ -245,7 +245,7 @@ public class JsonConstant {
 	public static final String ITERATION = "iteration";
 
 	public static final String SOURCE = "source";
-	
+
 	public static final String PAUSE_FOR = "PAUSE_FOR";
 
 	public static final String ADDITIONAL_INFO_PROCESS = "ADDITIONAL_INFO_PROCESS";
@@ -257,4 +257,12 @@ public class JsonConstant {
 
 	/** The Constant for exception key in others attribute of biometric xml files. */
 	public static final String BIOMETRICRECORDEXCEPTION = "EXCEPTION";
+	
+	/** The Constant for RETRIES key in others attribute of biometric xml files. */
+	public static final String RETRY_COUNT = "RETRIES";
+	
+	/** The Constant for PAYLOAD key in others attribute of biometric xml files. */
+	public static final String PAYLOAD = "PAYLOAD";
+
+	public static final String PAUSERULEIMMUNITYRULEIDS = "PAUSE_IMMUNITY_RULE_IDS";
 }

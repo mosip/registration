@@ -1,21 +1,20 @@
 package io.mosip.registration.processor.status.decryptor;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
-
+import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.registration.processor.status.dto.DecryptResponseDto;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -29,11 +28,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
-import io.mosip.registration.processor.status.dto.CryptomanagerResponseDto;
+import io.mosip.registration.processor.status.dto.DecryptResponseDto;
 import io.mosip.registration.processor.status.exception.PacketDecryptionFailureException;
 
 @RunWith(PowerMockRunner.class)
@@ -65,7 +67,7 @@ public class DecryptorTest {
 		cryptomanagerResponseDto.setData(data);
 
 		LinkedHashMap linkedHashMap = new LinkedHashMap();
-		linkedHashMap.put("data", CryptoUtil.encodeBase64("mosip".getBytes()));
+		linkedHashMap.put("data", CryptoUtil.encodeToURLSafeBase64("mosip".getBytes()));
 		when(env.getProperty("mosip.registration.processor.crypto.decrypt.id"))
 				.thenReturn("mosip.cryptomanager.decrypt");
 		when(env.getProperty("mosip.registration.processor.application.version")).thenReturn("1.0");
@@ -104,14 +106,21 @@ public class DecryptorTest {
 	@Test(expected = PacketDecryptionFailureException.class)
 	public void HttpServerErrorExceptionTest()
 			throws FileNotFoundException, ApisResourceAccessException, PacketDecryptionFailureException {
-
+		List<ErrorDTO> errors=new ArrayList<>();
+		ErrorDTO e=new ErrorDTO("HttpStatus.INTERNAL_SERVER_ERROR", "KER-FSE-004:encrypted data is corrupted or not base64 encoded");
+		errors.add(e);
+		ResponseWrapper<DecryptResponseDto> response = new ResponseWrapper<>();
+		response.setResponse(null);
+		response.setErrors(errors);
+		
+		
 		ApisResourceAccessException apisResourceAccessException = Mockito.mock(ApisResourceAccessException.class);
 		HttpServerErrorException httpServerErrorException = new HttpServerErrorException(
 				HttpStatus.INTERNAL_SERVER_ERROR, "KER-FSE-004:encrypted data is corrupted or not base64 encoded");
 		Mockito.when(apisResourceAccessException.getCause()).thenReturn(httpServerErrorException);
-		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any()))
-				.thenThrow(apisResourceAccessException);
-
+			Mockito.when(restClientService.postApi(any(), any(), any(), any(), any()))
+				.thenReturn(response);
+		
 		String decryptedString = decryptor.decrypt(data, "10011", "2019-05-07T05:13:55.704Z");
 
 	}
