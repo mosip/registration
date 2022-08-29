@@ -27,6 +27,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
@@ -65,6 +66,12 @@ public class RestApiClient {
 
 	/** The logger. */
 	private final Logger logger = RegProcessorLogger.getLogger(RestApiClient.class);
+
+	@Value("${registration.processor.httpclient.connections.max.per.host:20}")
+	private int maxConnectionPerRoute;
+
+	@Value("${registration.processor.httpclient.connections.max:100}")
+	private int totalMaxConnection;
 
 	/** The builder. */
 	@Autowired
@@ -219,26 +226,14 @@ public class RestApiClient {
 
 		logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 				LoggerFileConstant.APPLICATIONID.toString(), Arrays.asList(environment.getActiveProfiles()).toString());
-		if (Arrays.stream(environment.getActiveProfiles()).anyMatch("dev-k8"::equals)) {
-			logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-					LoggerFileConstant.APPLICATIONID.toString(),
-					Arrays.asList(environment.getActiveProfiles()).toString());
-			return new RestTemplate();
-		} else {
-			TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
 
-			SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
-					.loadTrustMaterial(null, acceptingTrustStrategy).build();
+		CloseableHttpClient httpClient = HttpClients.custom()
+				.setMaxConnPerRoute(maxConnectionPerRoute).setMaxConnTotal(totalMaxConnection).build();
 
-			SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext);
+		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
 
-			CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(csf).build();
-
-			HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-
-			requestFactory.setHttpClient(httpClient);
-			return new RestTemplate(requestFactory);
-		}
+		requestFactory.setHttpClient(httpClient);
+		return new RestTemplate(requestFactory);
 
 	}
 
