@@ -27,7 +27,7 @@ import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 public interface RegistrationRepositary<T extends BaseRegistrationEntity, E> extends BaseRepository<T, E> {
 	
 
-	@Query("SELECT registration.regId FROM RegistrationStatusEntity registration WHERE registration.regId in :regIds AND registration.statusCode =:statusCode")
+	@Query("SELECT registration.regId FROM RegistrationStatusEntity registration WHERE registration.regId in :regIds AND registration.statusCode in :statusCode")
 	public List<String> getProcessedOrProcessingRegIds(@Param("regIds") List<String> regIds,
 			@Param("statusCode") List<String> statusCode);
 
