@@ -4,7 +4,6 @@ import static io.mosip.registration.processor.adjudication.constants.ManualAdjud
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,23 +16,6 @@ import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import io.mosip.registration.processor.core.constant.PolicyConstant;
-import io.mosip.registration.processor.core.constant.ProviderStageName;
-import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
-import io.mosip.registration.processor.adjudication.dto.DataShareRequestDto;
-import io.mosip.registration.processor.adjudication.dto.DataShareResponseDto;
-import io.mosip.registration.processor.adjudication.dto.ManualVerificationStatus;
-import io.mosip.registration.processor.adjudication.dto.UserDto;
-import io.mosip.registration.processor.adjudication.exception.MatchedRefNotExistsException;
-import io.mosip.registration.processor.adjudication.request.dto.Filter;
-import io.mosip.registration.processor.adjudication.request.dto.Gallery;
-import io.mosip.registration.processor.adjudication.request.dto.ManualAdjudicationRequestDTO;
-import io.mosip.registration.processor.adjudication.request.dto.ReferenceIds;
-import io.mosip.registration.processor.adjudication.request.dto.ReferenceURL;
-import io.mosip.registration.processor.adjudication.request.dto.ShareableAttributes;
-import io.mosip.registration.processor.adjudication.request.dto.Source;
-import io.mosip.registration.processor.adjudication.service.ManualAdjudicationService;
-import io.mosip.registration.processor.adjudication.stage.ManualAdjudicationStage;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
@@ -77,6 +59,7 @@ import io.mosip.registration.processor.adjudication.response.dto.Candidate;
 import io.mosip.registration.processor.adjudication.response.dto.ManualAdjudicationResponseDTO;
 import io.mosip.registration.processor.adjudication.service.ManualAdjudicationService;
 import io.mosip.registration.processor.adjudication.stage.ManualAdjudicationStage;
+import io.mosip.registration.processor.adjudication.util.ManualVerificationUpdateUtility;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.ApiName;
@@ -99,7 +82,6 @@ import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessag
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.idrepo.dto.Documents;
 import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
-import io.mosip.registration.processor.core.kernel.master.dto.UserResponseDTOWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.Identity;
@@ -111,13 +93,6 @@ import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
-import io.mosip.registration.processor.adjudication.constants.ManualAdjudicationConstants;
-import io.mosip.registration.processor.adjudication.exception.DataShareException;
-import io.mosip.registration.processor.adjudication.exception.InvalidFileNameException;
-import io.mosip.registration.processor.adjudication.exception.InvalidRidException;
-import io.mosip.registration.processor.adjudication.exception.NoRecordAssignedException;
-import io.mosip.registration.processor.adjudication.exception.UserIDNotPresentException;
-import io.mosip.registration.processor.adjudication.response.dto.ManualAdjudicationResponseDTO;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.dto.Document;
@@ -228,6 +203,9 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 
 	@Autowired
 	RegistrationExceptionMapperUtil registrationExceptionMapperUtil;
+	
+	@Autowired 
+	private ManualVerificationUpdateUtility manualVerificationUpdateUtility;
 
 	/** The Constant PROTOCOL. */
 	public static final String PROTOCOL = "https";
@@ -421,7 +399,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 		String requestId = UUID.randomUUID().toString();
 		mar.setRequestId(requestId);
 		regProcLogger.info("Request : " + JsonUtils.javaObjectToJsonString(mar));
-		updateManualVerificationEntityRID(mves, requestId);
+		manualVerificationUpdateUtility.updateManualVerificationEntityRID(mves, requestId);
 		if (messageFormat.equalsIgnoreCase(TEXT_MESSAGE))
 			mosipQueueManager.send(queue, JsonUtils.javaObjectToJsonString(mar), mvRequestAddress, mvRequestMessageTTL);
 		else
@@ -922,24 +900,6 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 				object.getRid(), "ManualVerificationServiceImpl::process()::exit");
 
 		return object;
-	}
-
-	/*
-	 * Update manual verification entity once request is pushed to queue for a given
-	 * RID
-	 */
-	private void updateManualVerificationEntityRID(List<ManualVerificationEntity> mves, String requestId) {
-		mves.stream().forEach(mve -> {
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					mve.getRegId(), "ManualVerificationServiceImpl::updateManualVerificationEntityRID()::entry");
-			mve.setStatusCode(ManualVerificationStatus.INQUEUE.name());
-			mve.setStatusComment("Sent to manual adjudication queue");
-			mve.setUpdDtimes(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
-			mve.setRequestId(requestId);
-			basePacketRepository.update(mve);
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					mve.getRegId(), "ManualVerificationServiceImpl::updateManualVerificationEntityRID()::exit");
-		});
 	}
 
 	/**
