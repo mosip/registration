@@ -16,6 +16,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
@@ -56,6 +57,12 @@ public class RestApiClient {
 
 	/** The logger. */
 	private final Logger logger = RegProcessorLogger.getLogger(RestApiClient.class);
+
+	@Value("${registration.processor.httpclient.connections.max.per.host:20}")
+	private int maxConnectionPerRoute;
+
+	@Value("${registration.processor.httpclient.connections.max:100}")
+	private int totalMaxConnection;
 
 	/** The builder. */
 	@Autowired
@@ -203,6 +210,16 @@ public class RestApiClient {
 	}
 
 	public RestTemplate getRestTemplate() {
+		logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
+				LoggerFileConstant.APPLICATIONID.toString(), Arrays.asList(environment.getActiveProfiles()).toString());
+
+		CloseableHttpClient httpClient = HttpClients.custom()
+				.setMaxConnPerRoute(maxConnectionPerRoute).setMaxConnTotal(totalMaxConnection).build();
+
+		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+
+		requestFactory.setHttpClient(httpClient);
+		localRestTemplate.setRequestFactory(requestFactory);
 		return localRestTemplate;
 	}
 
