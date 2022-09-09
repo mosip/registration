@@ -2,6 +2,8 @@ package io.mosip.registration.processor.verification.service;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.LoggingEvent;
+import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.biometrics.constant.BiometricType;
@@ -12,6 +14,7 @@ import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.entities.RegistryIDType;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.ApiName;
@@ -50,6 +53,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -68,6 +72,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*","javax.management.*", "javax.net.ssl.*" })
@@ -502,6 +509,41 @@ public class VerificationServiceTest {
 		boolean result = verificationService.updatePacketStatus(resp, stageName, queue);
 
 		assertTrue(result);
+	}
+	
+	@Test
+	public void testConsumeListener() throws JsonProcessingException {
+		ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory
+				.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
+		final Appender<ILoggingEvent> mockAppender = mock(Appender.class);
+		when(mockAppender.getName()).thenReturn("MOCK");
+		root.addAppender(mockAppender);
+
+		VerificationResponseDTO resp = new VerificationResponseDTO();
+		resp.setId("verification");
+		resp.setRequestId("e2e59a9b-ce7c-41ae-a953-effb854d1205");
+		resp.setResponsetime(DateUtils.getCurrentDateTimeString());
+		resp.setReturnValue(1);
+
+		String response = JsonUtils.javaObjectToJsonString(resp);
+
+		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
+		ByteSequence byteSeq = new ByteSequence();
+		byteSeq.setData(response.getBytes());
+		amq.setContent(byteSeq);
+
+		Mockito.when(mockManualAdjudicationService.updatePacketStatus(any(), any(), any())).thenReturn(true);
+
+		manualAdjudicationStage.consumerListener(amq);
+
+		verify(mockAppender).doAppend(argThat(new ArgumentMatcher<ILoggingEvent>() {
+
+			@Override
+			public boolean matches(ILoggingEvent argument) {
+				return ((LoggingEvent) argument).getFormattedMessage()
+						.contains("ManualVerificationStage::processDecision::success");
+			}
+		}));
 	}
 }
 
