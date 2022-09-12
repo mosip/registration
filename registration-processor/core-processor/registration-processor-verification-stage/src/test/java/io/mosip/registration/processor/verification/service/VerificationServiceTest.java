@@ -46,6 +46,8 @@ import io.mosip.registration.processor.verification.exception.InvalidRidExceptio
 import io.mosip.registration.processor.verification.response.dto.VerificationResponseDTO;
 import io.mosip.registration.processor.verification.service.impl.VerificationServiceImpl;
 import io.mosip.registration.processor.verification.stage.VerificationStage;
+import io.mosip.registration.processor.verification.util.SaveVerificationRecordUtility;
+
 import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.apache.activemq.util.ByteSequence;
 import org.json.simple.JSONObject;
@@ -163,6 +165,9 @@ public class VerificationServiceTest {
 	RegistrationExceptionMapperUtil registrationExceptionMapperUtil;
 
 	VerificationResponseDTO resp;
+	
+	@Mock
+	SaveVerificationRecordUtility saveVerificationRecordUtility;
 
 	@Before
 	public void setup() throws Exception {
@@ -511,39 +516,5 @@ public class VerificationServiceTest {
 		assertTrue(result);
 	}
 	
-	@Test
-	public void testConsumeListener() throws JsonProcessingException {
-		ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory
-				.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
-		final Appender<ILoggingEvent> mockAppender = mock(Appender.class);
-		when(mockAppender.getName()).thenReturn("MOCK");
-		root.addAppender(mockAppender);
-
-		VerificationResponseDTO resp = new VerificationResponseDTO();
-		resp.setId("verification");
-		resp.setRequestId("e2e59a9b-ce7c-41ae-a953-effb854d1205");
-		resp.setResponsetime(DateUtils.getCurrentDateTimeString());
-		resp.setReturnValue(1);
-
-		String response = JsonUtils.javaObjectToJsonString(resp);
-
-		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
-		ByteSequence byteSeq = new ByteSequence();
-		byteSeq.setData(response.getBytes());
-		amq.setContent(byteSeq);
-
-		Mockito.when(mockManualAdjudicationService.updatePacketStatus(any(), any(), any())).thenReturn(true);
-
-		manualAdjudicationStage.consumerListener(amq);
-
-		verify(mockAppender).doAppend(argThat(new ArgumentMatcher<ILoggingEvent>() {
-
-			@Override
-			public boolean matches(ILoggingEvent argument) {
-				return ((LoggingEvent) argument).getFormattedMessage()
-						.contains("ManualVerificationStage::processDecision::success");
-			}
-		}));
-	}
 }
 
