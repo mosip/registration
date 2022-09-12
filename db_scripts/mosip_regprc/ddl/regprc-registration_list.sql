@@ -16,7 +16,6 @@ CREATE TABLE regprc.registration_list(
 	upd_dtimes timestamp,
 	is_deleted boolean DEFAULT FALSE,
 	del_dtimes timestamp,
-    source character varying,
 	name character varying,
 	phone character varying,
 	email character varying,
