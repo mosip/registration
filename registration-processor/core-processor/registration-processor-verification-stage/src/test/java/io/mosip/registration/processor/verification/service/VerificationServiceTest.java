@@ -1,10 +1,51 @@
 package io.mosip.registration.processor.verification.service;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.activemq.command.ActiveMQBytesMessage;
+import org.apache.activemq.util.ByteSequence;
+import org.json.simple.JSONObject;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatcher;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.Spy;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.read.ListAppender;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.constant.QualityType;
 import io.mosip.kernel.biometrics.entities.BDBInfo;
@@ -40,40 +81,16 @@ import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequest
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
-import io.mosip.registration.processor.verification.dto.*;
+import io.mosip.registration.processor.verification.dto.ManualVerificationDTO;
+import io.mosip.registration.processor.verification.dto.ManualVerificationStatus;
+import io.mosip.registration.processor.verification.dto.MatchDetail;
+import io.mosip.registration.processor.verification.dto.UserDto;
+import io.mosip.registration.processor.verification.dto.VerificationDecisionDto;
 import io.mosip.registration.processor.verification.exception.InvalidRidException;
 import io.mosip.registration.processor.verification.response.dto.VerificationResponseDTO;
 import io.mosip.registration.processor.verification.service.impl.VerificationServiceImpl;
 import io.mosip.registration.processor.verification.stage.VerificationStage;
-import org.apache.activemq.command.ActiveMQBytesMessage;
-import org.apache.activemq.util.ByteSequence;
-import org.json.simple.JSONObject;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatcher;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.Spy;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.test.util.ReflectionTestUtils;
-
-import java.sql.Timestamp;
-import java.util.*;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import io.mosip.registration.processor.verification.util.SaveVerificationRecordUtility;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*","javax.management.*", "javax.net.ssl.*" })
@@ -126,7 +143,11 @@ public class VerificationServiceTest {
 
 	@Mock
 	private RegistrationProcessorRestClientService registrationProcessorRestClientService;
+	
+	@Mock
+	SaveVerificationRecordUtility saveVerificationRecordUtility;
 
+	
 	private InternalRegistrationStatusDto registrationStatusDto;
 	private VerificationPKEntity PKId;
 	private ManualVerificationDTO manualVerificationDTO;
@@ -510,31 +531,5 @@ public class VerificationServiceTest {
 		assertTrue(result);
 	}
 	
-	@Test
-	public void testConsumeListener() throws JsonProcessingException {
-		ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory
-				.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
-		final Appender<ILoggingEvent> mockAppender = mock(Appender.class);
-		when(mockAppender.getName()).thenReturn("MOCK");
-		root.addAppender(mockAppender);
-
-		VerificationResponseDTO resp = new VerificationResponseDTO();
-		resp.setId("verification");
-		resp.setRequestId("e2e59a9b-ce7c-41ae-a953-effb854d1205");
-		resp.setResponsetime(DateUtils.getCurrentDateTimeString());
-		resp.setReturnValue(1);
-
-		String response = JsonUtils.javaObjectToJsonString(resp);
-
-		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
-		ByteSequence byteSeq = new ByteSequence();
-		byteSeq.setData(response.getBytes());
-		amq.setContent(byteSeq);
-
-		Mockito.when(mockManualAdjudicationService.updatePacketStatus(any(), any(), any())).thenReturn(true);
-
-		manualAdjudicationStage.consumerListener(amq);
-
-	}
 }
 
