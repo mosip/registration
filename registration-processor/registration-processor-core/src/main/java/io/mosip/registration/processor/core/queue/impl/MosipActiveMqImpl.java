@@ -15,6 +15,7 @@ import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.jms.BytesMessage;
 import javax.jms.Connection;
@@ -43,6 +44,8 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
     private Session session;
     private Destination destination;
     private static final String LINE_SEPERATOR = "----------------";
+    @Value("${registration.processor.queue.connection.retry.count:10}")
+    private int retryCount;
 
     /**
      * The method to set up session and destination
@@ -204,16 +207,22 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
             destination = session.createQueue(address);
             consumer = session.createConsumer(destination);
             consumer.setMessageListener(QueueListenerFactory.getListener(mosipQueue.getQueueName(), object));
-        } catch (JMSException e) {
-
+        } catch (JMSException | NullPointerException e) {
             regProcLogger.error("*******CONSUME EXCEPTION *****", "*******CONSUME EXCEPTION *****",
                     "*******CONSUME EXCEPTION *****", ExceptionUtils.getFullStackTrace(e));
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                     "", "MosipActiveMqImpl::consume():: error with error message "
                             + PlatformErrorMessages.RPR_MQI_UNABLE_TO_CONSUME_FROM_QUEUE.getMessage());
 
-            throw new ConnectionUnavailableException(
-                    PlatformErrorMessages.RPR_MQI_UNABLE_TO_CONSUME_FROM_QUEUE.getMessage());
+            if (e instanceof NullPointerException && retryCount > 0) {
+                regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                        "", "Could not obtain queue connection. System will retry for "+ retryCount +" more times.");
+                retryCount = retryCount - 1;
+                consume(mosipQueue, address, object);
+            } else {
+                throw new ConnectionUnavailableException(
+                        PlatformErrorMessages.RPR_MQI_UNABLE_TO_CONSUME_FROM_QUEUE.getMessage());
+            }
         }
         regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
                 "", "MosipActiveMqImpl::consume()::exit");
