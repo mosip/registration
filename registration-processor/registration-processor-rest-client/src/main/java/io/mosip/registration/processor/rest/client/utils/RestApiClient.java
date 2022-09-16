@@ -207,20 +207,8 @@ public class RestApiClient {
 		}
 	}
 
-	public RestTemplate getRestTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
-		if(localRestTemplate != null)
-			return localRestTemplate;
-
-		logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-				LoggerFileConstant.APPLICATIONID.toString(), Arrays.asList(environment.getActiveProfiles()).toString());
-
-		CloseableHttpClient httpClient = HttpClients.custom()
-				.setMaxConnPerRoute(maxConnectionPerRoute).setMaxConnTotal(totalMaxConnection).build();
-
-		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-
-		requestFactory.setHttpClient(httpClient);
-		return new RestTemplate(requestFactory);
+	public RestTemplate getRestTemplate() {
+		return localRestTemplate;
 	}
 
 	/**
