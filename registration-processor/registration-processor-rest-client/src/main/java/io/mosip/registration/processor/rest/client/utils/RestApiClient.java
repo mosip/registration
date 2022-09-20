@@ -88,14 +88,6 @@ public class RestApiClient {
 	@Qualifier("selfTokenRestTemplate")
 	RestTemplate localRestTemplate;
 
-	@PostConstruct
-	private void loadRestTemplate() {
-		localRestTemplate = getRestTemplate();
-		logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-				LoggerFileConstant.APPLICATIONID.toString(), "loadRestTemplate completed successfully");
-	}
-
-
 	/**
 	 * Gets the api. *
 	 * 
@@ -225,16 +217,6 @@ public class RestApiClient {
 	}
 
 	public RestTemplate getRestTemplate() {
-		logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-				LoggerFileConstant.APPLICATIONID.toString(), Arrays.asList(environment.getActiveProfiles()).toString());
-
-		CloseableHttpClient httpClient = HttpClients.custom()
-				.setMaxConnPerRoute(maxConnectionPerRoute).setMaxConnTotal(totalMaxConnection).build();
-
-		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-
-		requestFactory.setHttpClient(httpClient);
-		localRestTemplate.setRequestFactory(requestFactory);
 		return localRestTemplate;
 	}
 
