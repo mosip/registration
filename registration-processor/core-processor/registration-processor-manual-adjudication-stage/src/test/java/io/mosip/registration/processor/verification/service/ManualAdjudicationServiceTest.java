@@ -54,7 +54,6 @@ import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.entities.RegistryIDType;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.adjudication.dto.ManualVerificationDTO;
 import io.mosip.registration.processor.adjudication.dto.ManualVerificationDecisionDto;
 import io.mosip.registration.processor.adjudication.dto.ManualVerificationStatus;
@@ -68,12 +67,9 @@ import io.mosip.registration.processor.adjudication.response.dto.ManualAdjudicat
 import io.mosip.registration.processor.adjudication.service.ManualAdjudicationService;
 import io.mosip.registration.processor.adjudication.service.impl.ManualAdjudicationServiceImpl;
 import io.mosip.registration.processor.adjudication.stage.ManualAdjudicationStage;
+import io.mosip.registration.processor.adjudication.util.ManualVerificationUpdateUtility;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
-import io.mosip.registration.processor.core.constant.ProviderStageName;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
-import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
 import io.mosip.registration.processor.core.kernel.master.dto.UserResponseDTO;
 import io.mosip.registration.processor.core.kernel.master.dto.UserResponseDTOWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
@@ -123,6 +119,9 @@ public class ManualAdjudicationServiceTest {
 
 	@Mock
 	AuditLogRequestBuilder auditLogRequestBuilder;
+	
+	@Mock 
+	private ManualVerificationUpdateUtility manualVerificationUpdateUtility;
 
 	@Mock
 	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
@@ -270,6 +269,8 @@ public class ManualAdjudicationServiceTest {
 		CandidateList candidateList=new CandidateList();
 		candidateList.setCount(0);
 		manualAdjudicationResponseDTO.setCandidateList(candidateList);
+		
+		Mockito.doNothing().when(manualVerificationUpdateUtility).updateManualVerificationEntityRID(any(), any());
 		
 	}
 
