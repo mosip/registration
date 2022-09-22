@@ -214,7 +214,7 @@ public class ManualAdjudicationStage extends MosipVerticleAPIManager {
 			}
 			ManualAdjudicationResponseDTO resp = JsonUtil.readValueWithUnknownProperties(response, ManualAdjudicationResponseDTO.class);
 			if (resp != null) {
-				boolean isProcessingSuccessful = manualAdjudicationService.updatePacketStatus(resp, this.getClass().getSimpleName(),queue);
+				boolean isProcessingSuccessful = manualAdjudicationService.updatePacketStatus(resp, getStageName(),queue);
 				
 				if (isProcessingSuccessful)
 					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
