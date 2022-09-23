@@ -258,7 +258,6 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 				description.setCode(PlatformSuccessMessages.RPR_MANUAL_VERIFICATION_RESEND.getCode());
 				messageDTO.setInternalError(true);
 				messageDTO.setIsValid(isTransactionSuccessful);
-				manualAdjudicationStage.sendMessage(messageDTO);
 			} else {
 				// call success flow and process the response received from manual verification system
 				isTransactionSuccessful = successFlow(
@@ -315,7 +314,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 					: description.getCode();
 			String moduleName = ModuleName.MANUAL_ADJUDICATION.toString();
 			registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);
-
+			manualAdjudicationStage.sendMessage(messageDTO);
 			String eventId = isTransactionSuccessful ? EventId.RPR_402.toString() : EventId.RPR_405.toString();
 			String eventName = eventId.equalsIgnoreCase(EventId.RPR_402.toString()) ? EventName.UPDATE.toString()
 					: EventName.EXCEPTION.toString();
@@ -950,7 +949,6 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 				}
 			}
 			messageDTO.setIsValid(isTransactionSuccessful);
-			manualAdjudicationStage.sendMessage(messageDTO);
 			registrationStatusDto.setStatusComment(StatusUtil.MANUAL_VERIFIER_APPROVED_PACKET.getMessage());
 			registrationStatusDto.setSubStatusCode(StatusUtil.MANUAL_VERIFIER_APPROVED_PACKET.getCode());
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
@@ -970,7 +968,6 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 			description.setMessage(PlatformErrorMessages.RPR_MANUAL_VERIFICATION_REJECTED.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_MANUAL_VERIFICATION_REJECTED.getCode());
 			messageDTO.setIsValid(Boolean.FALSE);
-			manualAdjudicationStage.sendMessage(messageDTO);
 		} else {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 			registrationStatusDto.setStatusComment(StatusUtil.RPR_MANUAL_VERIFICATION_RESEND.getMessage());
@@ -981,7 +978,6 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 			description.setMessage(PlatformErrorMessages.RPR_MANUAL_VERIFICATION_RESEND.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_MANUAL_VERIFICATION_RESEND.getCode());
 			messageDTO.setIsValid(Boolean.FALSE);
-			manualAdjudicationStage.sendMessage(messageDTO);
 		}
 		List<ManualVerificationEntity> maVerificationEntity = new ArrayList<>();
 		for(ManualVerificationEntity manualVerificationEntity: entities) {
