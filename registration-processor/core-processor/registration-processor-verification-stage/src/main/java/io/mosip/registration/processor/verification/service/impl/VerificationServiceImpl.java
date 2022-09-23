@@ -338,7 +338,7 @@ public class VerificationServiceImpl implements VerificationService {
 				description.setCode(StatusUtil.VERIFICATION_RESEND.getCode());
 				messageDTO.setInternalError(true);
 				messageDTO.setIsValid(isTransactionSuccessful);
-				verificationStage.sendMessage(messageDTO);
+				
 			} else {
 				// call success flow and process the response received from manual verification
 				// system
@@ -391,6 +391,7 @@ public class VerificationServiceImpl implements VerificationService {
 			// TODO structure to not return in finally,ignore for sonar
 			updateStatus(messageDTO, registrationStatusDto, isTransactionSuccessful, description,
 					PlatformSuccessMessages.RPR_VERIFICATION_SUCCESS);
+			verificationStage.sendMessage(messageDTO);
 		}
 		return isTransactionSuccessful;
 	}
@@ -407,7 +408,7 @@ public class VerificationServiceImpl implements VerificationService {
 		String moduleId = isTransactionSuccessful ? platformSuccessMessages.getCode() : description.getCode();
 		String moduleName = ModuleName.VERIFICATION.toString();
 		registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);
-
+		
 		String eventId = isTransactionSuccessful ? EventId.RPR_402.toString() : EventId.RPR_405.toString();
 		String eventName = eventId.equalsIgnoreCase(EventId.RPR_402.toString()) ? EventName.UPDATE.toString()
 				: EventName.EXCEPTION.toString();
@@ -712,7 +713,6 @@ public class VerificationServiceImpl implements VerificationService {
 
 		if (statusCode.equalsIgnoreCase(ManualVerificationStatus.APPROVED.name())) {
 			messageDTO.setIsValid(isTransactionSuccessful);
-			verificationStage.sendMessage(messageDTO);
 			registrationStatusDto.setStatusComment(StatusUtil.VERIFICATION_SUCCESS.getMessage());
 			registrationStatusDto.setSubStatusCode(StatusUtil.VERIFICATION_SUCCESS.getCode());
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
@@ -731,7 +731,6 @@ public class VerificationServiceImpl implements VerificationService {
 			description.setCode(PlatformErrorMessages.RPR_MANUAL_VERIFICATION_REJECTED.getCode());
 			messageDTO.setIsValid(Boolean.FALSE);
 			messageDTO.setInternalError(Boolean.FALSE);
-			verificationStage.sendMessage(messageDTO);
 		} else {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 			registrationStatusDto.setStatusComment(StatusUtil.VERIFICATION_RESEND.getMessage());
@@ -742,7 +741,6 @@ public class VerificationServiceImpl implements VerificationService {
 			description.setMessage(PlatformErrorMessages.RPR_MANUAL_VERIFICATION_RESEND.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_MANUAL_VERIFICATION_RESEND.getCode());
 			messageDTO.setIsValid(Boolean.FALSE);
-			verificationStage.sendMessage(messageDTO);
 		}
 		basePacketRepository.update(entity);
 
