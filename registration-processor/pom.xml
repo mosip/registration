@@ -43,7 +43,7 @@
 		<!-- Miscellaneous -->
 		<javax.el-api.version>3.0.0</javax.el-api.version>
 		<javax.validation-api.version>2.0.1.Final</javax.validation-api.version>
-		<jackson.version>2.12.0</jackson.version>
+		<jackson.version>2.12.6.1</jackson.version>
 		<jackson.afterburner.version>2.12.0</jackson.afterburner.version>
 		<hibernate.validator.version>6.0.12.Final</hibernate.validator.version>
 		<modelmapper.version>2.1.1</modelmapper.version>
