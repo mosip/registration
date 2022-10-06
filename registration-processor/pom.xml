@@ -107,7 +107,7 @@
 		<jsch.version>0.1.55</jsch.version>
 
 		<!-- local -->
-		<registration.status.service.version>1.1.5.5</registration.status.service.version>
+		<registration.status.service.version>1.1.5.5-p1-SNAPSHOT</registration.status.service.version>
 		<registration.processor.core.version>1.1.5.5</registration.processor.core.version>
 		<packet.manager.version>1.1.5.5</packet.manager.version>
 		<registration.processor.rest.client.version>1.1.5.5-p1-SNAPSHOT</registration.processor.rest.client.version>
@@ -314,9 +314,9 @@
 		<module>registration-processor-rest-client</module>
 		<!-- <module>registration-processor-packet-manager</module> -->
 		<module>registration-processor-common-camel-bridge</module>
-		<!-- <module>registration-processor-bio-dedupe-service-impl</module> -->
-		<!-- <module>registration-processor-info-storage-service</module> -->
-		<!-- <module>registration-processor-registration-status-service-impl</module> -->
+		<module>registration-processor-bio-dedupe-service-impl</module>
+		<module>registration-processor-info-storage-service</module>
+		<module>registration-processor-registration-status-service-impl</module>
         <!-- <module>registration-processor-quality-checker</module> -->
 		<!-- <module>registration-processor-message-sender-impl</module> -->
 		<module>init</module>
