@@ -5,28 +5,22 @@ import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Iterator;
 
 import javax.annotation.PostConstruct;
-import javax.net.ssl.SSLContext;
 
-import io.mosip.registration.processor.core.tracing.ContextualData;
-import io.mosip.registration.processor.core.tracing.TracingConstant;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
@@ -49,6 +43,8 @@ import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.TokenHandlerUtil;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.tracing.ContextualData;
+import io.mosip.registration.processor.core.tracing.TracingConstant;
 import io.mosip.registration.processor.rest.client.audit.dto.Metadata;
 import io.mosip.registration.processor.rest.client.audit.dto.PasswordRequest;
 import io.mosip.registration.processor.rest.client.audit.dto.SecretKeyRequest;
@@ -62,6 +58,12 @@ import io.mosip.registration.processor.rest.client.exception.TokenGenerationFail
  */
 @Component
 public class RestApiClient {
+	
+	@Value("${registration.processor.httpclient.connections.max.per.host:20}")
+	private int maxConnectionPerRoute;
+
+	@Value("${registration.processor.httpclient.connections.max:100}")
+	private int totalMaxConnection;
 
 	/** The logger. */
 	private final Logger logger = RegProcessorLogger.getLogger(RestApiClient.class);
@@ -225,18 +227,11 @@ public class RestApiClient {
 					Arrays.asList(environment.getActiveProfiles()).toString());
 			return new RestTemplate();
 		} else {
-			TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
-
-			SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
-					.loadTrustMaterial(null, acceptingTrustStrategy).build();
-
-			SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext);
-
-			CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(csf).build();
-
+			HttpClientBuilder httpClientBuilder = HttpClients.custom()
+					.setMaxConnPerRoute(maxConnectionPerRoute)
+					.setMaxConnTotal(totalMaxConnection).disableCookieManagement();
 			HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-
-			requestFactory.setHttpClient(httpClient);
+			requestFactory.setHttpClient(httpClientBuilder.build());
 			return new RestTemplate(requestFactory);
 		}
 
