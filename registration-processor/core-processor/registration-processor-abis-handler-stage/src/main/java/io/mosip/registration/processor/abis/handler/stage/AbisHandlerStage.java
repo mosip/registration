@@ -603,7 +603,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 					priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE));
 		}
 
-		byte[] content = cbeffutil.createXML(biometricRecord.getSegments());
+		byte[] content = cbeffutil.createXML(filterExceptionBiometrics(biometricRecord).getSegments());
 
 		MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 		map.add("name", individualBiometricsLabel);
@@ -705,6 +705,18 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 			throw new DataShareException("No Biometric Matched with Data Share Policy");
 		}
 	}
+
+	private BiometricRecord filterExceptionBiometrics(BiometricRecord biometricRecord) {
+        List<BIR> segments = biometricRecord.getSegments().stream().filter(bio -> {
+            Map<String, String> othersMap = bio.getOthers().entrySet().stream()
+                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+            return (othersMap == null || !othersMap.containsKey("EXCEPTION")) ? true
+                    : !(Boolean.parseBoolean(othersMap.get("EXCEPTION")));
+        }).collect(Collectors.toList());
+        BiometricRecord biorecord = new BiometricRecord();
+        biorecord.setSegments(segments);
+        return biorecord;
+    }
 
 	public Map<String, List<String>> createTypeSubtypeMapping() throws ApisResourceAccessException, DataShareException,
 			IOException {
