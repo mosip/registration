@@ -1,92 +1,50 @@
-### -- ---------------------------------------------------------------------------------------------------------
-### -- Script Name		: Regprc Revoke DB deploy
-### -- Deploy Module 	: MOSIP Regprc
-### -- Purpose    		: To revoke Regprc Database alter scripts for the release.       
-### -- Create By   		: Sadanandegowda
-### -- Created Date		: 25-Oct-2019
-### -- 
-### -- Modified Date        Modified By         Comments / Remarks
-### -- -----------------------------------------------------------------------------------------------------------
-
-### -- -----------------------------------------------------------------------------------------------------------
-
-#########Properties file #############
+##Properties file 
 set -e
 properties_file="$1"
 revoke_version="$2"
-     echo `date "+%m/%d/%Y %H:%M:%S"` ": $properties_file"
-	 echo `date "+%m/%d/%Y %H:%M:%S"` ": DB Revoke Version - $revoke_version"
-#properties_file="./app.properties"
+echo "Properties File Name - $properties_file"
+echo "DB Revoke Version - $revoke_version"
+
 if [ -f "$properties_file" ]
 then
-     echo `date "+%m/%d/%Y %H:%M:%S"` ": Property file \"$properties_file\" found."
+     echo "Property file \"$properties_file\" found."
     while IFS='=' read -r key value
     do
         key=$(echo $key | tr '.' '_')
          eval ${key}=\${value}
    done < "$properties_file"
 else
-     echo `date "+%m/%d/%Y %H:%M:%S"` ": Property file not found, Pass property file name as argument."
-fi
-echo `date "+%m/%d/%Y %H:%M:%S"` ": ------------------ Database server and service status check for ${MOSIP_DB_NAME}------------------------"
-
-today=`date '+%d%m%Y_%H%M%S'`;
-LOG="${LOG_PATH}${MOSIP_DB_NAME}-revoke-${today}.log"
-touch $LOG
-
-SERVICE=$(PGPASSWORD=$SU_USER_PWD  psql --username=$SU_USER --host=$DB_SERVERIP --port=$DB_PORT --dbname=$DEFAULT_DB_NAME -t -c "select count(1) from pg_roles where rolname IN('sysadmin')";exit; > /dev/null)
-  
-if [ "$SERVICE" -eq 0 ] || [ "$SERVICE" -eq 1 ]
-then
-echo `date "+%m/%d/%Y %H:%M:%S"` ": Postgres database server and service is up and running" | tee -a $LOG 2>&1
-else
-echo `date "+%m/%d/%Y %H:%M:%S"` ": Postgres database server or service is not running" | tee -a $LOG 2>&1
+     echo "Property file not found, Pass property file name as argument."
+     exit 0
 fi
 
-echo `date "+%m/%d/%Y %H:%M:%S"` ": ----------------------------------------------------------------------------------------"
-
-echo `date "+%m/%d/%Y %H:%M:%S"` ": Started sourcing the $MOSIP_DB_NAME Database Deployment Revoke scripts" | tee -a $LOG 2>&1
-
-echo `date "+%m/%d/%Y %H:%M:%S"` ": Database revoke scripts are sourcing from :$BASEPATH/$MOSIP_DB_NAME/alter-scripts" | tee -a $LOG 2>&1
-
-#========================================DB Alter Scripts deployment process begins on IDMAP DB SERVER==================================
-
-echo `date "+%m/%d/%Y %H:%M:%S"` ": Revoke scripts for DB deployment on $MOSIP_DB_NAME database is started....Revoke Version...$revoke_version" | tee -a $LOG 2>&1
-
-REVOKE_SCRIPT_FILENAME_VERSION="sql/${revoke_version}_${REVOKE_SCRIPT_FILENAME}"
-
-echo `date "+%m/%d/%Y %H:%M:%S"` ": Alter scripts file which is considered for deployment revoke - $REVOKE_SCRIPT_FILENAME_VERSION" | tee -a $LOG 2>&1
-
-cd /$BASEPATH/$MOSIP_DB_NAME/
-
-pwd | tee -a $LOG 2>&1
-
-CONN=$(PGPASSWORD=$SYSADMIN_PWD psql --username=$SYSADMIN_USER --host=$DB_SERVERIP --port=$DB_PORT --dbname=$DEFAULT_DB_NAME -t -c "SELECT count(pg_terminate_backend(pg_stat_activity.pid)) FROM pg_stat_activity WHERE datname = '$MOSIP_DB_NAME' AND pid <> pg_backend_pid()";exit; >> $LOG 2>&1)
-
-if [ ${CONN} == 0 ]
+if [ $# -ge 2 ]
 then
-    echo `date "+%m/%d/%Y %H:%M:%S"` ": No active database connections exist on ${MOSIP_DB_NAME}" | tee -a $LOG 2>&1
+     echo "DB revoke version \"$revoke_version\" found."
 else
-    echo `date "+%m/%d/%Y %H:%M:%S"` ": Active connections exist on the database server and active connection will be terminated for DB deployment." | tee -a $LOG 2>&1
-fi 
-
-if [ ${REVOKE_SCRIPT_FLAG} == 1 ]
-then
-    echo `date "+%m/%d/%Y %H:%M:%S"` ": Executing revoke scripts for ${MOSIP_DB_NAME} database" | tee -a $LOG 2>&1
-    PGPASSWORD=$SYSADMIN_PWD psql --username=$SYSADMIN_USER --host=$DB_SERVERIP --port=$DB_PORT --dbname=$DEFAULT_DB_NAME -a -b -f $REVOKE_SCRIPT_FILENAME_VERSION >> $LOG 2>&1
-else
-    echo `date "+%m/%d/%Y %H:%M:%S"` ": There are no revoke scripts available for this deployment at ${MOSIP_DB_NAME}" | tee -a $LOG 2>&1
+     echo "DB revoke version not found, Pass revoke version as argument."
+     exit 0
 fi
 
-if [ $(grep -c ERROR $LOG) -ne 0 ]
+## Terminate existing connections
+echo "Terminating active connections" 
+CONN=$(PGPASSWORD=$SU_USER_PWD psql --username=$SU_USER --host=$DB_SERVERIP --port=$DB_PORT --dbname=$DEFAULT_DB_NAME -t -c "SELECT count(pg_terminate_backend(pg_stat_activity.pid)) FROM pg_stat_activity WHERE datname = '$MOSIP_DB_NAME' AND pid <> pg_backend_pid()";exit;)
+echo "Terminated connections"
+
+## Executing DB Revoke scripts
+echo "Alter scripts deployment on $MOSIP_DB_NAME database is started. Revoke Version is $revoke_version"
+ALTER_SCRIPT_FILE="sql/${revoke_version}_${REVOKE_SCRIPT_FILENAME}"
+echo "Revoke script considered for DB changes - $ALTER_SCRIPT_FILE"
+
+## Checking If Alter scripts are present
+echo "Checking if script $ALTER_SCRIPT_FILE is present"
+if [ -f "$ALTER_SCRIPT_FILE" ]
 then
-    echo `date "+%m/%d/%Y %H:%M:%S"` ": Database deployment revoke version $revoke_version is completed with ERRORS, Please check the logs for more information" | tee -a $LOG 2>&1
-	echo `date "+%m/%d/%Y %H:%M:%S"` ": END of Alter scripts MOSIP database deployment" | tee -a $LOG 2>&1
+     echo "SQL file "$ALTER_SCRIPT_FILE" found."
 else
-    echo `date "+%m/%d/%Y %H:%M:%S"` ": Database deployment revoke version $revoke_version completed successfully, Please check the logs for more information" | tee -a $LOG 2>&1
-    echo `date "+%m/%d/%Y %H:%M:%S"` ": END of MOSIP \"${MOSIP_DB_NAME}\" database deployment revoke" | tee -a $LOG 2>&1
-fi 	
+     echo "SQL file not found, Since no SQL file present for \"$revoke_version\"  hence exiting."
+     exit 0
+fi
+echo Applying revoke changes
 
-echo "******************************************"`date "+%m/%d/%Y %H:%M:%S"` "*****************************************************" >> $LOG 2>&1
-
-
+PGPASSWORD=$SU_USER_PWD psql --username=$SU_USER --host=$DB_SERVERIP --port=$DB_PORT --dbname=$DEFAULT_DB_NAME -a -b -f $ALTER_SCRIPT_FILE
