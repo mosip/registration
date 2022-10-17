@@ -74,9 +74,6 @@ public class SupervisorValidator {
 	private PriorityBasedPacketManagerService packetManagerService;
 
 	@Autowired
-	private AuthUtil authUtil;
-
-	@Autowired
 	private ObjectMapper mapper;
 
 	@Autowired
