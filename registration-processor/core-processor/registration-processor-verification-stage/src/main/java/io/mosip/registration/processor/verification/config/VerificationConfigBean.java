@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 
 import io.mosip.registration.processor.verification.service.VerificationService;
 import io.mosip.registration.processor.verification.util.ManualVerificationRequestValidator;
+import io.mosip.registration.processor.verification.util.SaveVerificationRecordUtility;
 
 @Configuration
 public class VerificationConfigBean {
@@ -25,6 +26,11 @@ public class VerificationConfigBean {
 	@Bean
     ManualVerificationExceptionHandler getManualVerificationExceptionHandler() {
 		return new ManualVerificationExceptionHandler();
+	}
+	
+	@Bean
+	SaveVerificationRecordUtility getSaveVerificationRecordUtitlity() {
+		return new SaveVerificationRecordUtility();
 	}
 
 }
