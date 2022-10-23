@@ -78,7 +78,7 @@ public class SupervisorValidator {
 
 	@Autowired
 	private Utilities utility;
-	
+
 	@Autowired
 	private BioSdkUtil bioUtil;
 
@@ -89,7 +89,7 @@ public class SupervisorValidator {
 	 * @throws SAXException
 	 * @throws ParserConfigurationException
 	 * @throws io.mosip.kernel.core.exception.IOException
-	 * @throws Exception 
+	 * @throws Exception
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
 	 */
@@ -241,7 +241,7 @@ public class SupervisorValidator {
 	 * @param list                  biometric data as BIR object
 	 * @param individualType        user type
 	 * @param registrationStatusDto
-	 * @throws Exception 
+	 * @throws Exception
 	 * @throws SAXException
 	 * @throws ParserConfigurationException
 	 * @throws NoSuchAlgorithmException
@@ -262,7 +262,7 @@ public class SupervisorValidator {
 				StatusUtil.SUPERVISOR_AUTHENTICATION_FAILED.getMessage(),
 				StatusUtil.SUPERVISOR_AUTHENTICATION_FAILED.getCode());
 	}
-	
+
 	/**
 	 * get the individualId by userid
 	 * 

@@ -22,6 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.processor.adjudication.util.ManualVerificationUpdateUtility;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.groups.Tuple;
 import org.assertj.core.util.Lists;
@@ -109,6 +110,9 @@ public class ManualAdjudicationServiceTest {
     UserDto dto;
 
 	@Mock
+	private ManualVerificationUpdateUtility manualVerificationUpdateUtility;
+
+	@Mock
     ManualAdjudicationStage manualAdjudicationStage;
 	
 	@Mock 
@@ -119,9 +123,6 @@ public class ManualAdjudicationServiceTest {
 
 	@Mock
 	AuditLogRequestBuilder auditLogRequestBuilder;
-	
-	@Mock 
-	private ManualVerificationUpdateUtility manualVerificationUpdateUtility;
 
 	@Mock
 	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
@@ -269,6 +270,8 @@ public class ManualAdjudicationServiceTest {
 		CandidateList candidateList=new CandidateList();
 		candidateList.setCount(0);
 		manualAdjudicationResponseDTO.setCandidateList(candidateList);
+
+		Mockito.doNothing().when(manualVerificationUpdateUtility).updateManualVerificationEntityRID(any(), any());
 		
 		Mockito.doNothing().when(manualVerificationUpdateUtility).updateManualVerificationEntityRID(any(), any());
 		
