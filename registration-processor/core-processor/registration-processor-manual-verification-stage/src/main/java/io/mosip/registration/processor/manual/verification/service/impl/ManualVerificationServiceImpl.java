@@ -18,6 +18,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import io.mosip.registration.processor.packet.storage.entity.AbisRequestEntity;
+import io.mosip.registration.processor.packet.storage.entity.AbisResponseEntity;
+import io.mosip.registration.processor.packet.storage.entity.RegBioRefEntity;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -136,6 +139,8 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	private static final String URL = "url";
 	private static final String META_INFO = "meta_info";
 	private static final String AUDITS = "audits";
+	private static final String ABIS_RESPONSE_TEXT = "abis_response";
+	private static final String SUCCESS="SUCCESS";
 
 	@Autowired
 	private Environment env;
@@ -186,6 +191,18 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	/** The base packet repository. */
 	@Autowired
 	private BasePacketRepository<ManualVerificationEntity, String> basePacketRepository;
+
+	/** The abis request repository. */
+	@Autowired
+	private BasePacketRepository<AbisRequestEntity, String> abisRequestRepository;
+
+	/** The abis response repository. */
+	@Autowired
+	private BasePacketRepository<AbisResponseEntity, String> abisResponseRepository;
+
+	/** The reg bio ref repository. */
+	@Autowired
+	private BasePacketRepository<RegBioRefEntity, String> regBioRefRepository;
 
 	/** The manual verification stage. */
 	@Autowired
@@ -249,7 +266,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 			manualVerificationDTO.setRegId(entities.get(0).getId().getRegId());
 			String regProcess = registrationStatusService.getRegistrationStatus(entities.get(0).getId().getRegId()).getRegistrationType();
 			String refProcess = registrationStatusService.getRegistrationStatus(entities.get(0).getId().getMatchedRefId()).getRegistrationType();
-			manualVerificationDTO.setUrl(getDataShareUrl(entities.get(0).getId().getRegId(), regProcess));
+			manualVerificationDTO.setUrl(getDataShareUrl(entities.get(0).getId().getRegId(), regProcess, false));
 			List<MatchDetail> gallery=new ArrayList<>();
 			List<ManualVerificationEntity> mentities=entities.stream().filter(entity -> entity.getId()
 					.getRegId().equals(manualVerificationDTO.getRegId())).collect(Collectors.toList());
@@ -258,7 +275,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 				detail.setMatchedRegId(entity.getId().getMatchedRefId());
 				detail.setMatchedRefType(entity.getId().getMatchedRefType());
 				detail.setReasonCode(entity.getReasonCode());
-					detail.setUrl(getDataShareUrl(entity.getId().getMatchedRefId(), refProcess));
+					detail.setUrl(getDataShareUrl(entity.getId().getMatchedRefId(), refProcess, false));
 					gallery.add(detail);
 			}
 			manualVerificationDTO.setGallery(gallery);
@@ -286,7 +303,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 				manualVerificationDTO.setMvUsrId(dto.getUserId());
 				manualVerificationDTO.setStatusCode(ManualVerificationStatus.ASSIGNED.name());
-				manualVerificationDTO.setUrl(getDataShareUrl(entities.get(0).getId().getRegId(), regProcess));
+				manualVerificationDTO.setUrl(getDataShareUrl(entities.get(0).getId().getRegId(), regProcess, false));
 				manualVerificationDTO.setRegId(entities.get(0).getId().getRegId());
 				List<MatchDetail> gallery=new ArrayList<>();
 				List<ManualVerificationEntity> mentities=entities.stream().filter(entity -> entity.getId()
@@ -301,7 +318,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 						detail.setMatchedRegId(updatedManualVerificationEntity.getId().getMatchedRefId());
 						detail.setMatchedRefType(updatedManualVerificationEntity.getId().getMatchedRefType());
 						detail.setReasonCode(updatedManualVerificationEntity.getReasonCode());
-						detail.setUrl(getDataShareUrl(updatedManualVerificationEntity.getId().getMatchedRefId(), refProcess));
+						detail.setUrl(getDataShareUrl(updatedManualVerificationEntity.getId().getMatchedRefId(), refProcess, false));
 						gallery.add(detail);
 				}
 			}
@@ -629,7 +646,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 				refId, "ManualVerificationServiceImpl::pushRequestToQueue()::entry");
 	}
 
-	private String getDataShareUrl(String id, String process) throws Exception {
+	private String getDataShareUrl(String id, String process, boolean isAbisResponseRequired) throws Exception {
 		DataShareRequestDto requestDto = new DataShareRequestDto();
 
 		LinkedHashMap<String, Object> policy = getPolicy();
@@ -686,6 +703,15 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 			requestDto.setBiometrics(content != null ? CryptoUtil.encodeBase64(content) : null);
 		}
 
+		// Set ABIS Response Text
+		if(policyMap.containsValue(ABIS_RESPONSE_TEXT) && isAbisResponseRequired) {
+			List<String> bioRefIds = regBioRefRepository.getBioRefIdByRegIds(id);
+			List<String> abisRequestId = abisRequestRepository.getAbisRequestIdListByBioRefId(bioRefIds, "IDENTIFY");
+			List<String> responseStatus = new ArrayList<>();
+			responseStatus.add(SUCCESS);
+			List<byte[]> abisResponseTextList = abisResponseRepository.getAbisResponseTextByReqIdsAndStatuses(abisRequestId, responseStatus);
+			requestDto.setAbisResponseData(new String(abisResponseTextList.get(0)));
+		}
 
 		String req = JsonUtils.javaObjectToJsonString(requestDto);
 
@@ -810,7 +836,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		registrationStatusDto = registrationStatusService.getRegistrationStatus(mve.get(0).getId().getRegId());
 		try {
 			req.setReferenceURL(
-					getDataShareUrl(mve.get(0).getId().getRegId(), registrationStatusDto.getRegistrationType()));
+					getDataShareUrl(mve.get(0).getId().getRegId(), registrationStatusDto.getRegistrationType(), true));
 
 		} catch (PacketManagerException | ApisResourceAccessException ex) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -826,7 +852,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 			try {
 				r.setReferenceId(e.getId().getMatchedRefId());
-				r.setReferenceURL(getDataShareUrl(e.getId().getMatchedRefId(),registrationStatusDto1.getRegistrationType()));
+				r.setReferenceURL(getDataShareUrl(e.getId().getMatchedRefId(),registrationStatusDto1.getRegistrationType(), false));
 				referenceIds.add(r);
 			} catch (PacketManagerException | ApisResourceAccessException ex) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
