@@ -188,7 +188,7 @@ public class ManualAdjudicationStage extends MosipVerticleAPIManager {
 
 	@Override
 	public MessageDTO process(MessageDTO object) {
-		return manualAdjudicationService.process(object, queue);
+		return manualAdjudicationService.process(object, queue, this.getClass().getSimpleName());
 	}
 
 	private MosipQueue getQueueConnection() {
