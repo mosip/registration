@@ -16,6 +16,7 @@ import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
 import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
+import io.mosip.registration.processor.core.code.AuditLogConstant;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
@@ -219,7 +220,7 @@ public class WorkflowActionJob extends MosipVerticleAPIManager {
 					: description.getCode();
 			String moduleName = ModuleName.WORKFLOW_ACTION_JOB.toString();
 			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
-					moduleId, moduleName, registrationId);
+					moduleId, moduleName, registrationId,AuditLogConstant.NO_ID);
 		}
 
 		return object;
