@@ -803,7 +803,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 			registrationStatusDto.setSubStatusCode(StatusUtil.RPR_MANUAL_VERIFICATION_SENT_TO_QUEUE.getCode());
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 			registrationStatusDto
-					.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.PROCESSED.toString());
+					.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.IN_PROGRESS.toString());
 
 		} catch (DataShareException de) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
