@@ -69,7 +69,7 @@ public class BioSdkUtil {
 			}
 
 			if (null != data && !(data.isEmpty())) {
-				BIR bir = CbeffValidator.getBIRFromXML(CryptoUtil.decodeURLSafeBase64(data));
+				BIR bir = CbeffValidator.getBIRFromXML(CryptoUtil.decodeBase64(data.toString()));
 				Map<BiometricType, List<BIR>> firstMp = getMapFromBirList(bir.getBirs());
 				Map<BiometricType, List<BIR>> secondMp = getMapFromBirList(list);
 				regProcLogger
@@ -83,7 +83,7 @@ public class BioSdkUtil {
 						status = false;
 
 					} else
-						status = bioProvider.verify(secondMp.get(entry.getKey()),firstMp.get(entry.getKey()),
+						status = bioProvider.verify(firstMp.get(entry.getKey()), secondMp.get(entry.getKey()),
 								entry.getKey(), null);
 					if (!status) {
 						registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
