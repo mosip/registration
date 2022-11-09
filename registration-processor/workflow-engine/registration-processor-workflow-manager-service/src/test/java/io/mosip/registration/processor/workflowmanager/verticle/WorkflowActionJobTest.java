@@ -25,6 +25,7 @@ import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.code.ApiName;
+import io.mosip.registration.processor.core.code.AuditLogConstant;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
@@ -110,8 +111,8 @@ public class WorkflowActionJobTest {
 		AuditResponseDto auditResponseDto = new AuditResponseDto();
 		ResponseWrapper<AuditResponseDto> responseWrapper = new ResponseWrapper<>();
 		responseWrapper.setResponse(auditResponseDto);
-		auditLogRequestBuilder.createAuditRequestBuilder("test case description", EventId.RPR_401.toString(),
-				EventName.ADD.toString(), EventType.BUSINESS.toString(), "1234testcase", ApiName.AUDIT);
+		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),Mockito.any(),Mockito.any(AuditLogConstant.class)))
+		.thenReturn(null);
 	}
 
 	@Test

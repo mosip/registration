@@ -111,7 +111,7 @@ public class AuditLogRequestBuilder {
 
 	@SuppressWarnings("unchecked")
 	public ResponseWrapper<AuditResponseDto> createAuditRequestBuilder(String description, String eventId,
-			String eventName, String eventType, String moduleId, String moduleName, String registrationId) {
+			String eventName, String eventType, String moduleId, String moduleName, String registrationId,AuditLogConstant auditLogConstant) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId,
 				"AuditLogRequestBuilder:: createAuditRequestBuilder(String description, String eventId, String eventName, String eventType,String moduleId,String moduleName,\r\n"
@@ -135,7 +135,7 @@ public class AuditLogRequestBuilder {
 			auditRequestDto.setHostIp(ServerUtil.getServerUtilInstance().getServerIp());
 			auditRequestDto.setHostName(ServerUtil.getServerUtilInstance().getServerName());
 			auditRequestDto.setId(registrationId);
-			auditRequestDto.setIdType(AuditLogConstant.REGISTRATION_ID.toString());
+			auditRequestDto.setIdType(auditLogConstant.toString());
 			auditRequestDto.setModuleId(moduleId);
 			auditRequestDto.setModuleName(moduleName);
 			auditRequestDto.setSessionUserId(AuditLogConstant.SYSTEM.toString());
@@ -219,5 +219,11 @@ public class AuditLogRequestBuilder {
 						+ "			String registrationId)::exit");
 
 		return responseWrapper;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public ResponseWrapper<AuditResponseDto> createAuditRequestBuilder(String description, String eventId,
+			String eventName, String eventType, String moduleId, String moduleName, String registrationId) {
+		return createAuditRequestBuilder(description, eventId, eventName, eventType, moduleId, moduleName, registrationId, AuditLogConstant.REGISTRATION_ID);
 	}
 }
