@@ -796,10 +796,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 
 			registrationStatusDto = registrationStatusService
 					.getRegistrationStatus(object.getRid(), object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					object.getRid(), "Stage Name is : " + stageName);
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					object.getRid(), "Stage Name is : " + stageName);
+
 			pushRequestToQueue(object, queue);
 			isTransactionSuccessful=true;
 			registrationStatusDto.setStatusComment(StatusUtil.RPR_MANUAL_VERIFICATION_SENT_TO_QUEUE.getMessage());
