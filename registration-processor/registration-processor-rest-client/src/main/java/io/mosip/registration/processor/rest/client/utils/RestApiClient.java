@@ -63,13 +63,6 @@ public class RestApiClient {
 	Environment environment;
 
 	private static final String AUTHORIZATION = "Authorization=";
-<<<<<<< .mine
-	
-
-=======
-	
-	private static final String MOSIP_PUBLIC_URL = "mosipbox.public.url";
->>>>>>> .theirs
 
 	@Autowired
 	@Qualifier("selfTokenRestTemplate")
@@ -90,21 +83,7 @@ public class RestApiClient {
 	@SuppressWarnings("unchecked")
 	public <T> T getApi(URI uri, Class<?> responseType) throws Exception {
 		T result = null;
-<<<<<<< .mine
-		
 
-
-
-
-
-=======
-		
-		String whiteListUrl=environment.getProperty(MOSIP_PUBLIC_URL);
-        String host = uri.getHost();
-        if(!whiteListUrl.contains(host)) {
-      	  throw new IOException();
-        }
->>>>>>> .theirs
 		try {
 			result = (T) localRestTemplate.exchange(uri, HttpMethod.GET, setRequestHeader(null, null), responseType)
 					.getBody();
