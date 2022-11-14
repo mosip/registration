@@ -381,7 +381,7 @@ public class PrintingStage extends MosipVerticleAPIManager {
 		CredentialRequestDto credentialRequestDto = getCredentialRequestDto(vid, partnerId);
 		credentialRequestDto.setAdditionalData(new LinkedHashMap<>());
 		credentialRequestDto.getAdditionalData().put("registrationId", regId);
-		credentialRequestDto.getAdditionalData().put("vid", vid);
+	//	credentialRequestDto.getAdditionalData().put("vid", vid);
 		requestWrapper.setId(env.getProperty("mosip.registration.processor.credential.request.service.id"));
 		requestWrapper.setRequest(credentialRequestDto);
 		DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
