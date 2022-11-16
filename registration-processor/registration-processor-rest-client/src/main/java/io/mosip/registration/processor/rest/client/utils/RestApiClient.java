@@ -83,6 +83,7 @@ public class RestApiClient {
 	@SuppressWarnings("unchecked")
 	public <T> T getApi(URI uri, Class<?> responseType) throws Exception {
 		T result = null;
+
 		try {
 			result = (T) localRestTemplate.exchange(uri, HttpMethod.GET, setRequestHeader(null, null), responseType)
 					.getBody();

@@ -129,7 +129,7 @@
 		<kernel.qrcodegenerator.zxing.version>1.2.1-SNAPSHOT</kernel.qrcodegenerator.zxing.version>
 		<kernel.logger.logback.version>1.2.1-SNAPSHOT</kernel.logger.logback.version>
 		<kernel.idvalidator.vid.version>1.2.1-SNAPSHOT</kernel.idvalidator.vid.version>
-		<object.store.khazana.version>1.2.0.1-SNAPSHOT</object.store.khazana.version>
+		<object.store.khazana.version>1.2.1-SNAPSHOT</object.store.khazana.version>
 		<kernel.biometrics.api.version>1.2.1-SNAPSHOT</kernel.biometrics.api.version>
 		<kernel-keymanager-service.version>1.2.1-SNAPSHOT</kernel-keymanager-service.version>
 		 <kernel.websubclient.version>1.2.1-SNAPSHOT</kernel.websubclient.version>
@@ -475,7 +475,8 @@
 			<properties>
 				<sonar.sources>.</sonar.sources>
 				<sonar.inclusions>src/main/java/**,src/main/resources/**</sonar.inclusions>
-				<sonar.exclusions>${sonar.coverage.exclusions}</sonar.exclusions>
+				<sonar.exclusions>**/registration/processor/core/queue/factory/*.java,
+				${sonar.coverage.exclusions}</sonar.exclusions>
 				<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 			</properties>
 			<activation>
