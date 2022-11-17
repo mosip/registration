@@ -475,7 +475,8 @@
 			<properties>
 				<sonar.sources>.</sonar.sources>
 				<sonar.inclusions>src/main/java/**,src/main/resources/**</sonar.inclusions>
-				<sonar.exclusions>${sonar.coverage.exclusions}</sonar.exclusions>
+				<sonar.exclusions>**/registration/processor/core/queue/factory/*.java,
+				${sonar.coverage.exclusions}</sonar.exclusions>
 				<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 			</properties>
 			<activation>
