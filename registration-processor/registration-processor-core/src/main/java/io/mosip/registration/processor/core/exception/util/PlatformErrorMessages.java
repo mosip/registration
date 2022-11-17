@@ -1416,7 +1416,10 @@ public enum PlatformErrorMessages {
 	RPR_FINALIZATION_STAGE_DRAFT_REQUEST_UNAVAILABLE(PlatformConstants.RPR_FINALIZATION_STAGE + "003",
 			"Draft request is unavaialble in id-repo draft repository."),
 	RPR_FINALIZATION_STAGE_API_RESOURCE_EXCEPTION(PlatformConstants.RPR_FINALIZATION_STAGE + "004",
-			"Not able to access the API resource")
+			"Not able to access the API resource"),
+	
+	INDIVIDUAL_BIOMETRIC_AUTHENTICATION_FAILED(PlatformConstants.RPR_BIOMETRIC_EXTRACTION_STAGE + "004",
+			"Bio authentication failed")
 	;
 
 	/** The error message. */
