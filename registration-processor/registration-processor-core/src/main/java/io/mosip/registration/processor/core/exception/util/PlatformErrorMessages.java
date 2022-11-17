@@ -1418,9 +1418,11 @@ public enum PlatformErrorMessages {
 	RPR_FINALIZATION_STAGE_API_RESOURCE_EXCEPTION(PlatformConstants.RPR_FINALIZATION_STAGE + "004",
 			"Not able to access the API resource"),
 	
-	INDIVIDUAL_BIOMETRIC_AUTHENTICATION_FAILED(PlatformConstants.RPR_BIOMETRIC_EXTRACTION_STAGE + "004",
+	INDIVIDUAL_BIOMETRIC_AUTHENTICATION_FAILED(PlatformConstants.RPR_BIOMETRIC_AUTHENTICATION_MODULE + "004",
 			"Bio authentication failed")
 	;
+	
+	
 
 	/** The error message. */
 	private final String errorMessage; 
