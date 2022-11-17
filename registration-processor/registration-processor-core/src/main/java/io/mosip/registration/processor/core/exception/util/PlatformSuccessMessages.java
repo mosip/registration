@@ -59,6 +59,9 @@ public enum PlatformSuccessMessages {
 	// Biometric Authentication Success Messages
 	RPR_PKR_BIOMETRIC_AUTHENTICATION(PlatformConstants.RPR_BIOMETRIC_AUTHENTICATION_MODULE + "000",
 			"Biometric Authentication Success"),
+	
+	INDIVIDUAL_BIOMETRIC_AUTHENTICATION_FAILED(PlatformConstants.RPR_BIOMETRIC_AUTHENTICATION_MODULE + "004",
+			"Bio authentication failed")
 
 	// Bio-De-dupe Success messages
 	/** The Constant PACKET_BIODEDUPE_SUCCESS. */

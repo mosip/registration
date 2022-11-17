@@ -10,8 +10,4 @@ public class BiometricAuthenticationConstants {
 	public static final String INDIVIDUAL_TYPE_UIN = "UIN";
 	public static final String FILE_SEPERATOR = "\\";
 	public static final String ADULT = "ADULT";
-	public static final String CHILD = "CHILD";
-	public static final String NEW_PACKET_DESCRIPTION = "The packet is New and adult packet for registration id";
-	public static final String CHILD_PACKET_DESCRIPTION = "Skipped authentication as a child’s data was updated";
-	public static final String INDIVIDUAL_BIOMETRIC_NOT_IN_PACKET = "Individual biometric not in packet";
 }
