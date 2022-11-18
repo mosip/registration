@@ -66,7 +66,6 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
-import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
 import io.mosip.registration.processor.packet.storage.utils.BioSdkUtil;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
@@ -134,8 +133,7 @@ public class IntroducerValidatorTest {
 	@Mock
 	private Utilities utility;
 
-	@Mock
-	private AuthUtil authUtil;
+
 
 	/** The demographic dedupe dto list. */
 	List<DemographicInfoDto> demographicDedupeDtoList = new ArrayList<>();
