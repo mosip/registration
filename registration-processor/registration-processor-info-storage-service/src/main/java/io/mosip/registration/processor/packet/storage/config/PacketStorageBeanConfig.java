@@ -35,7 +35,6 @@ import io.mosip.registration.processor.packet.storage.dao.PacketInfoDao;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.service.impl.PacketInfoManagerImpl;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
-import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
 import io.mosip.registration.processor.packet.storage.utils.BioSdkUtil;
 import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
@@ -96,10 +95,6 @@ public class PacketStorageBeanConfig {
 		return new ABISHandlerUtil();
 	}
 
-	@Bean
-	public AuthUtil getAuthUtil() {
-		return new AuthUtil();
-	}
 	
 	@Bean
 	public BioSdkUtil getBioSdkUtil() {
