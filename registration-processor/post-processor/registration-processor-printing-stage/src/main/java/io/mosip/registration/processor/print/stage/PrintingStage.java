@@ -165,15 +165,9 @@ public class PrintingStage extends MosipVerticleAPIManager {
 	 */
 	public void deployVerticle() {
 
-//		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
-//		this.consumeAndSend(mosipEventBus, MessageBusAddress.PRINTING_BUS_IN, MessageBusAddress.PRINTING_BUS_OUT,
-//				messageExpiryTimeLimit);
-		
-		MessageDTO object=new MessageDTO();
-		object.setReg_type(RegistrationType.UPDATE.toString());
-		object.setRid("10246106711004620221115211012");
-		object.setWorkflowInstanceId("c31eb48d-ccc9-41c6-94a1-244d22be648e");
-		process(object);
+		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
+		this.consumeAndSend(mosipEventBus, MessageBusAddress.PRINTING_BUS_IN, MessageBusAddress.PRINTING_BUS_OUT,
+				messageExpiryTimeLimit);
 	}
 
 	/*
