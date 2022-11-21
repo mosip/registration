@@ -43,6 +43,7 @@ import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.IdType;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.constant.VidType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -91,9 +92,9 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 public class PrintingStage extends MosipVerticleAPIManager {
 	
 	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.printing.";
-	private Random sr = null;
-	private static final int max = 999999;
-	private static final int min = 100000;
+	private SecureRandom sr = null;
+	private static final int upperBound = 999999;
+	private static final int lowerBound = 100000;
 
 	/** The Constant FILE_SEPARATOR. */
 	public static final String FILE_SEPARATOR = File.separator;
@@ -164,9 +165,15 @@ public class PrintingStage extends MosipVerticleAPIManager {
 	 */
 	public void deployVerticle() {
 
-		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
-		this.consumeAndSend(mosipEventBus, MessageBusAddress.PRINTING_BUS_IN, MessageBusAddress.PRINTING_BUS_OUT,
-				messageExpiryTimeLimit);
+//		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
+//		this.consumeAndSend(mosipEventBus, MessageBusAddress.PRINTING_BUS_IN, MessageBusAddress.PRINTING_BUS_OUT,
+//				messageExpiryTimeLimit);
+		
+		MessageDTO object=new MessageDTO();
+		object.setReg_type(RegistrationType.UPDATE.toString());
+		object.setRid("10246106711004620221115211012");
+		object.setWorkflowInstanceId("c31eb48d-ccc9-41c6-94a1-244d22be648e");
+		process(object);
 	}
 
 	/*
@@ -374,8 +381,8 @@ public class PrintingStage extends MosipVerticleAPIManager {
 	public String generatePin() {
 		if (sr == null)
 			instantiate();
-		int randomInteger = sr.nextInt(max - min) + min;
-		return String.valueOf(randomInteger);
+		int secureRandomInteger = sr.nextInt(upperBound - lowerBound) + lowerBound;
+		return String.valueOf(secureRandomInteger);
 	}
 
 	@SuppressWarnings("unchecked")
