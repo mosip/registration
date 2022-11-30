@@ -15,6 +15,7 @@ import io.mosip.registration.processor.core.http.RequestWrapper;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
+import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.dto.BiometricRequestDto;
 import io.mosip.registration.processor.packet.storage.dto.BiometricType;
@@ -29,8 +30,10 @@ import io.mosip.registration.processor.packet.storage.dto.InfoRequestDto;
 import io.mosip.registration.processor.packet.storage.dto.InfoResponseDto;
 import io.mosip.registration.processor.packet.storage.dto.UpdateTagRequestDto;
 import io.mosip.registration.processor.packet.storage.dto.ValidatePacketResponse;
+import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -150,14 +153,21 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
 
     protected ValidatePacketResponse validate(String id, String source, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         InfoDto fieldDto = new InfoDto(id, source, process, false);
-
+        ResponseWrapper<ValidatePacketResponse> response=null;
         RequestWrapper<InfoDto> request = new RequestWrapper<>();
         request.setId(ID);
         request.setVersion(VERSION);
         request.setRequesttime(DateUtils.getUTCCurrentDateTime());
         request.setRequest(fieldDto);
-        ResponseWrapper<ValidatePacketResponse> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_VALIDATE, "", "", request, ResponseWrapper.class);
-
+		try {
+			response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_VALIDATE, "", "", request,
+					ResponseWrapper.class);
+		} catch (Exception ex) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					id, ex.getMessage());
+			throw new PacketManagerException(StatusUtil.PACKET_MANAGER_VALIDATION_FAILURE.getCode(),
+					StatusUtil.PACKET_MANAGER_VALIDATION_FAILURE.getMessage());
+		}
         if (response.getErrors() != null && response.getErrors().size() > 0) {
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
             throw new PacketManagerException(response.getErrors().get(0).getErrorCode(), response.getErrors().get(0).getMessage());
