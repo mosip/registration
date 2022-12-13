@@ -43,7 +43,6 @@ import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.IdType;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
-import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.constant.VidType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -92,9 +91,9 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 public class PrintingStage extends MosipVerticleAPIManager {
 	
 	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.printing.";
-	private SecureRandom sr = null;
-	private static final int upperBound = 999999;
-	private static final int lowerBound = 100000;
+	private Random sr = null;
+	private static final int max = 999999;
+	private static final int min = 100000;
 
 	/** The Constant FILE_SEPARATOR. */
 	public static final String FILE_SEPARATOR = File.separator;
@@ -375,8 +374,8 @@ public class PrintingStage extends MosipVerticleAPIManager {
 	public String generatePin() {
 		if (sr == null)
 			instantiate();
-		int secureRandomInteger = sr.nextInt(upperBound - lowerBound) + lowerBound;
-		return String.valueOf(secureRandomInteger);
+		int randomInteger = sr.nextInt(max - min) + min;
+		return String.valueOf(randomInteger);
 	}
 
 	@SuppressWarnings("unchecked")
