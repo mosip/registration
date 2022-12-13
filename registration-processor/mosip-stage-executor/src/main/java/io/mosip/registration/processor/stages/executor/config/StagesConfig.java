@@ -104,7 +104,11 @@ public class StagesConfig {
 			});
 			return (Map<String,Object>)configLoader.get().mapTo(Map.class);
 		}
-		// TODO change exception to catch and rethrow intruppted exception before base exception
+		catch(InterruptedException e) {
+			regProcLogger.error(ExceptionUtils.getStackTrace(e));
+			Thread.currentThread().interrupt();
+			return null;
+		}
 		catch (Exception e1) {
 			regProcLogger.error(ExceptionUtils.getStackTrace(e1));
 			throw new RuntimeException("Could not load config", e1);
