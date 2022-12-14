@@ -107,8 +107,7 @@ public class StagesConfig {
 		catch(InterruptedException e) {
 			regProcLogger.error(ExceptionUtils.getStackTrace(e));
 			Thread.currentThread().interrupt();
-			return null;
-		}
+			throw new RuntimeException("Could not load config", e);		}
 		catch (Exception e1) {
 			regProcLogger.error(ExceptionUtils.getStackTrace(e1));
 			throw new RuntimeException("Could not load config", e1);
