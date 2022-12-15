@@ -3,7 +3,6 @@ package io.mosip.registration.processor.rest.client.utils;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Iterator;
-import java.util.List;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.directory.api.util.Strings;
@@ -68,7 +67,7 @@ public class RestApiClient {
 	@Autowired
 	@Qualifier("selfTokenRestTemplate")
 	RestTemplate localRestTemplate;
-
+	
 	@Autowired
 	ObjectMapper objMp;
 
@@ -216,7 +215,7 @@ public class RestApiClient {
 	@SuppressWarnings("unchecked")
 	private HttpEntity<Object> setRequestHeader(Object requestType, MediaType mediaType) throws IOException {
 		MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
-		// headers.add("Cookie", getToken());
+		//headers.add("Cookie", getToken());
 		headers.add(TracingConstant.TRACE_HEADER, (String) ContextualData.getOrDefault(TracingConstant.TRACE_ID_KEY));
 		if (mediaType != null) {
 			headers.add("Content-Type", mediaType.toString());
@@ -228,11 +227,8 @@ public class RestApiClient {
 				Iterator<String> iterator = httpHeader.keySet().iterator();
 				while (iterator.hasNext()) {
 					String key = iterator.next();
-					List<String> collection = httpHeader.get(key);
-					if ((collection != null && !collection.isEmpty())
-							&& !(headers.containsKey("Content-Type") && key.equalsIgnoreCase("Content-Type")))
-						headers.add(key, collection.get(0));
-
+					if (!(headers.containsKey("Content-Type") && key.equalsIgnoreCase("Content-Type")) && httpHeader.get(key).size()>0)
+						headers.add(key,httpHeader.get(key).get(0));
 				}
 				return new HttpEntity<Object>(httpEntity.getBody(), headers);
 			} catch (ClassCastException e) {
@@ -268,6 +264,7 @@ public class RestApiClient {
 			tokenRequestDTO.setRequest(setSecretKeyRequestDTO());
 			tokenRequestDTO.setVersion(environment.getProperty("token.request.version"));
 
+		
 			HttpClient httpClient = HttpClientBuilder.create().build();
 			HttpPost post = new HttpPost(environment.getProperty("KEYBASEDTOKENAPI"));
 			try {

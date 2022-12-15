@@ -39,7 +39,6 @@ import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorUnCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
-import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO;
 import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO1;
 import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
@@ -110,6 +109,7 @@ public class Utilities {
 
 	@Autowired
 	private IdRepoService idRepoService;
+
 
 	/** The rest client service. */
 	@Autowired
@@ -204,7 +204,7 @@ public class Utilities {
 
 	/** The Constant RANDOMIZE_FALSE. */
 	private static final String RANDOMIZE_FALSE = ")?randomize=false";
-
+	
 	private static final String VALUE = "value";
 
 	private JSONObject mappingJsonObject = null;
@@ -217,8 +217,10 @@ public class Utilities {
 	/**
 	 * Gets the json.
 	 *
-	 * @param configServerFileStorageURL the config server file storage URL
-	 * @param uri                        the uri
+	 * @param configServerFileStorageURL
+	 *            the config server file storage URL
+	 * @param uri
+	 *            the uri
 	 * @return the json
 	 */
 	public static String getJson(String configServerFileStorageURL, String uri) {
@@ -231,48 +233,45 @@ public class Utilities {
 	 * present, if yes returns age if both dob or age are not present then retrieves
 	 * age from id repo
 	 *
-	 * @param id the registration id
+	 * @param id
+	 *            the registration id
 	 * @return the applicant age
-	 * @throws IOException                           Signals that an I/O exception
-	 *                                               has occurred.
-	 * @throws IOException                           Signals that an I/O exception
-	 *                                               has occurred.
-	 * @throws ApisResourceAccessException           the packet decryption failure
-	 *                                               exception
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 * @throws ApisResourceAccessException
+	 *             the packet decryption failure exception
 	 * @throws RegistrationProcessorCheckedException
 	 */
-	public int getApplicantAge(String id, String process, ProviderStageName stageName)
-			throws IOException, ApisResourceAccessException, JsonProcessingException, PacketManagerException {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), id,
-				"Utilities::getApplicantAge()::entry");
+	public int getApplicantAge(String id, String process, ProviderStageName stageName) throws IOException,
+			ApisResourceAccessException, JsonProcessingException, PacketManagerException {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+				id, "Utilities::getApplicantAge()::entry");
 
-		String applicantDob = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.DOB, process,
-				stageName);
-		String applicantAge = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.AGE, process,
-				stageName);
+		String applicantDob = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.DOB, process, stageName);
+	    String applicantAge = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.AGE, process, stageName);
 		if (applicantDob != null) {
 			return calculateAge(applicantDob);
 		} else if (applicantAge != null) {
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), id,
-					"Utilities::getApplicantAge()::exit when applicantAge is not null");
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+					id, "Utilities::getApplicantAge()::exit when applicantAge is not null");
 			return Integer.valueOf(applicantAge);
 		} else {
 			String uin = getUIn(id, process, stageName);
 			JSONObject identityJSONOject = retrieveIdrepoJson(uin);
 			JSONObject regProcessorIdentityJson = getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
-			String ageKey = JsonUtil
-					.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.AGE), VALUE);
-			String dobKey = JsonUtil
-					.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.DOB), VALUE);
+			String ageKey = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.AGE), VALUE);
+			String dobKey = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.DOB), VALUE);
 			String idRepoApplicantDob = JsonUtil.getJSONValue(identityJSONOject, dobKey);
 			if (idRepoApplicantDob != null) {
-				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), id,
-						"Utilities::getApplicantAge()::exit when ID REPO applicantDob is not null");
+				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+						id, "Utilities::getApplicantAge()::exit when ID REPO applicantDob is not null");
 				return calculateAge(idRepoApplicantDob);
 			}
 			Integer idRepoApplicantAge = JsonUtil.getJSONValue(identityJSONOject, ageKey);
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), id,
-					"Utilities::getApplicantAge()::exit when ID REPO applicantAge is not null");
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+					id, "Utilities::getApplicantAge()::exit when ID REPO applicantAge is not null");
 			return idRepoApplicantAge != null ? idRepoApplicantAge : -1;
 
 		}
@@ -334,6 +333,7 @@ public class Utilities {
 		return lm.get(PROVIDER);
 	}
 
+
 	public String getSourceFromIdField(String packetSegment, String process, String idField) throws IOException {
 		JSONObject jsonObject = getRegistrationProcessorMappingJson(packetSegment);
 		for (Object key : jsonObject.keySet()) {
@@ -345,19 +345,21 @@ public class Utilities {
 		}
 		return null;
 	}
-
+	
 	/**
-	 * retrieving json from id repo by UIN.
+	 * retrieving  json from id repo by UIN.
 	 *
-	 * @param uin the uin
+	 * @param uin
+	 *            the uin
 	 * @return the JSON object
-	 * @throws ApisResourceAccessException the apis resource access exception
-	 * @throws IdRepoAppException          the id repo app exception
-	 * @throws IOException                 Signals that an I/O exception has
-	 *                                     occurred.
+	 * @throws ApisResourceAccessException
+	 *             the apis resource access exception
+	 * @throws IdRepoAppException
+	 *             the id repo app exception
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
 	 */
-	private ResponseDTO retrieveIdrepoResponseObj(String uin, String queryParam, String queryParamValue)
-			throws ApisResourceAccessException {
+	private ResponseDTO retrieveIdrepoResponseObj(String uin,String queryParam,String queryParamValue) throws ApisResourceAccessException {
 		if (uin != null) {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 					"Utilities::retrieveIdrepoResponseObj()::entry");
@@ -365,12 +367,12 @@ public class Utilities {
 			pathSegments.add(uin);
 			IdResponseDTO1 idResponseDto;
 
-			idResponseDto = (IdResponseDTO1) restClientService.getApi(ApiName.IDREPOGETIDBYUIN, pathSegments,
-					null == queryParam ? "" : queryParam, null == queryParamValue ? "" : queryParamValue,
+			idResponseDto = (IdResponseDTO1) restClientService.getApi(ApiName.IDREPOGETIDBYUIN, pathSegments, null==queryParam?"":queryParam, null==queryParamValue?"":queryParamValue,
 					IdResponseDTO1.class);
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 					"Utilities::retrieveIdrepoDocument():: IDREPOGETIDBYUIN GET service call ended Successfully");
-
+		
+		
 			if (idResponseDto == null) {
 				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 						"Utilities::retrieveIdrepoResponseObj()::exit idResponseDto is null");
@@ -379,11 +381,10 @@ public class Utilities {
 			if (!idResponseDto.getErrors().isEmpty()) {
 				List<ErrorDTO> error = idResponseDto.getErrors();
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
-						"Utilities::retrieveIdrepoResponseObj():: error with error message "
-								+ error.get(0).getMessage());
+						"Utilities::retrieveIdrepoResponseObj():: error with error message " + error.get(0).getMessage());
 				throw new IdRepoAppException(error.get(0).getMessage());
 			}
-
+			
 			return idResponseDto.getResponse();
 		}
 		return null;
@@ -392,62 +393,60 @@ public class Utilities {
 	/**
 	 * retrieving identity json ffrom id repo by UIN.
 	 *
-	 * @param uin the uin
+	 * @param uin
+	 *            the uin
 	 * @return the JSON object
-	 * @throws ApisResourceAccessException the apis resource access exception
-	 * @throws IdRepoAppException          the id repo app exception
-	 * @throws IOException                 Signals that an I/O exception has
-	 *                                     occurred.
+	 * @throws ApisResourceAccessException
+	 *             the apis resource access exception
+	 * @throws IdRepoAppException
+	 *             the id repo app exception
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
 	 */
 	public JSONObject retrieveIdrepoJson(String uin)
 			throws ApisResourceAccessException, IdRepoAppException, IOException {
 
 		if (uin != null) {
-			ResponseDTO idResponseDto = retrieveIdrepoResponseObj(uin, null, null);
-			if (idResponseDto != null) {
-				String response = objMapper.writeValueAsString(idResponseDto.getIdentity());
-				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
-						"Utilities::retrieveIdrepoJson():: IDREPOGETIDBYUIN GET service call ended Successfully");
-				try {
-					return (JSONObject) new JSONParser().parse(response);
-				} catch (org.json.simple.parser.ParseException e) {
-					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
-							ExceptionUtils.getStackTrace(e));
-					throw new IdRepoAppException("Error while parsing string to JSONObject", e);
-				}
-			} else {
-				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
-						"Utilities::retrieveIdrepoJson():: IDREPOGETIDBYUIN GET service Returned NULL");
+			ResponseDTO idResponseDto = retrieveIdrepoResponseObj(uin,null,null);
+			String response = objMapper.writeValueAsString(idResponseDto.getIdentity());
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
+					"Utilities::retrieveIdrepoJson():: IDREPOGETIDBYUIN GET service call ended Successfully");
+			try {
+				return (JSONObject) new JSONParser().parse(response);
+			} catch (org.json.simple.parser.ParseException e) {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
+						ExceptionUtils.getStackTrace(e));
+				throw new IdRepoAppException("Error while parsing string to JSONObject", e);
 			}
-
 		}
 		return null;
 	}
-
+	
 	/**
 	 * retrieving identity json ffrom id repo by UIN.
 	 *
-	 * @param uin the uin
+	 * @param uin
+	 *            the uin
 	 * @return the JSON object
-	 * @throws ApisResourceAccessException the apis resource access exception
-	 * @throws IdRepoAppException          the id repo app exception
-	 * @throws IOException                 Signals that an I/O exception has
-	 *                                     occurred.
+	 * @throws ApisResourceAccessException
+	 *             the apis resource access exception
+	 * @throws IdRepoAppException
+	 *             the id repo app exception
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
 	 */
-	public List<io.mosip.registration.processor.core.idrepo.dto.Documents> retrieveIdrepoDocument(String uin)
-			throws ApisResourceAccessException {
+	public List<io.mosip.registration.processor.core.idrepo.dto.Documents> retrieveIdrepoDocument(String uin) throws ApisResourceAccessException
+			 {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 				"Utilities::retrieveIdrepoDocument()::entry");
-		ResponseDTO idResponseDto = retrieveIdrepoResponseObj(uin, "type", "all");
-		if (idResponseDto != null) {
-			return idResponseDto.getDocuments();
-		}
-		return null;
+		ResponseDTO idResponseDto = retrieveIdrepoResponseObj(uin,"type","all");
+		return idResponseDto.getDocuments();
+	
+
 	}
 
 	/**
-	 * Check if uin is present in idrepo
-	 * 
+	 * Check if uin is present in  idrepo
 	 * @param uin
 	 * @return
 	 * @throws ApisResourceAccessException
@@ -459,14 +458,14 @@ public class Utilities {
 
 	/**
 	 * Check if uin is missing from Id
-	 * 
 	 * @param errorCode
 	 * @param id
 	 * @param idType
 	 * @return
 	 */
 	public boolean isUinMissingFromIdAuth(String errorCode, String id, String idType) {
-		if (errorCode.equalsIgnoreCase("IDA-MLC-018") && idType != null && idType.equalsIgnoreCase("UIN")) {
+		if (errorCode.equalsIgnoreCase("IDA-MLC-018") &&
+				idType != null && idType.equalsIgnoreCase("UIN")) {
 			try {
 				return uinPresentInIdRepo(id);
 			} catch (IOException | ApisResourceAccessException exception) {
@@ -484,8 +483,8 @@ public class Utilities {
 	 * from abisJson Also validates the abis json fileds(null or not).
 	 *
 	 * @return the abis queue details
-	 * @throws RegistrationProcessorCheckedException the registration processor
-	 *                                               checked exception
+	 * @throws RegistrationProcessorCheckedException
+	 *             the registration processor checked exception
 	 */
 	public List<AbisQueueDetails> getAbisQueueDetails() throws RegistrationProcessorCheckedException {
 		List<AbisQueueDetails> abisQueueDetailsList = new ArrayList<>();
@@ -541,7 +540,8 @@ public class Utilities {
 	 * RegistrationProcessorIdentity java class.
 	 *
 	 * @return the registration processor identity json
-	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
 	 */
 	public JSONObject getRegistrationProcessorMappingJson(String packetSegment) throws IOException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
@@ -573,23 +573,23 @@ public class Utilities {
 	 * Get UIN from identity json (used only for update/res update/activate/de
 	 * activate packets).
 	 *
-	 * @param id the registration id
+	 * @param id
+	 *            the registration id
 	 * @return the u in
-	 * @throws IOException                           Signals that an I/O exception
-	 *                                               has occurred.
-	 * @throws IOException                           Signals that an I/O exception
-	 *                                               has occurred.
-	 * @throws ApisResourceAccessException           the apis resource access
-	 *                                               exception
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 * @throws ApisResourceAccessException
+	 *             the apis resource access exception
 	 * @throws RegistrationProcessorCheckedException
 	 */
-	public String getUIn(String id, String process, ProviderStageName stageName)
-			throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
-				"Utilities::getUIn()::entry");
+	public String getUIn(String id, String process, ProviderStageName stageName) throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				id, "Utilities::getUIn()::entry");
 		String UIN = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.UIN, process, stageName);
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
-				"Utilities::getUIn()::exit");
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				id, "Utilities::getUIn()::exit");
 
 		return UIN;
 
@@ -598,8 +598,10 @@ public class Utilities {
 	/**
 	 * Gets the elapse status.
 	 *
-	 * @param registrationStatusDto the registration status dto
-	 * @param transactionType       the transaction type
+	 * @param registrationStatusDto
+	 *            the registration status dto
+	 * @param transactionType
+	 *            the transaction type
 	 * @return the elapse status
 	 */
 	public String getElapseStatus(InternalRegistrationStatusDto registrationStatusDto, String transactionType) {
@@ -632,15 +634,14 @@ public class Utilities {
 	/**
 	 * Gets the latest transaction id.
 	 *
-	 * @param registrationId the registration id
+	 * @param registrationId
+	 *            the registration id
 	 * @return the latest transaction id
 	 */
-	public String getLatestTransactionId(String registrationId, String process, int iteration,
-			String workflowInstanceId) {
+	public String getLatestTransactionId(String registrationId, String process, int iteration, String workflowInstanceId) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Utilities::getLatestTransactionId()::entry");
-		RegistrationStatusEntity entity = registrationStatusDao.find(registrationId, process, iteration,
-				workflowInstanceId);
+		RegistrationStatusEntity entity = registrationStatusDao.find(registrationId, process, iteration, workflowInstanceId);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Utilities::getLatestTransactionId()::exit");
 		return entity != null ? entity.getLatestRegistrationTransactionId() : null;
@@ -650,12 +651,15 @@ public class Utilities {
 	/**
 	 * retrieve UIN from IDRepo by registration id.
 	 *
-	 * @param regId the reg id
+	 * @param regId
+	 *            the reg id
 	 * @return the JSON object
-	 * @throws ApisResourceAccessException the apis resource access exception
-	 * @throws IdRepoAppException          the id repo app exception
-	 * @throws IOException                 Signals that an I/O exception has
-	 *                                     occurred.
+	 * @throws ApisResourceAccessException
+	 *             the apis resource access exception
+	 * @throws IdRepoAppException
+	 *             the id repo app exception
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
 	 */
 	public JSONObject retrieveUIN(String regId) throws ApisResourceAccessException, IdRepoAppException, IOException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -688,7 +692,7 @@ public class Utilities {
 			} catch (org.json.simple.parser.ParseException e) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 						ExceptionUtils.getStackTrace(e));
-				throw new IdRepoAppException("Error while parsing string to JSONObject", e);
+				throw new IdRepoAppException("Error while parsing string to JSONObject",e);
 			}
 
 		}
@@ -701,7 +705,8 @@ public class Utilities {
 	/**
 	 * Calculate age.
 	 *
-	 * @param applicantDob the applicant dob
+	 * @param applicantDob
+	 *            the applicant dob
 	 * @return the int
 	 */
 	private int calculateAge(String applicantDob) {
@@ -731,8 +736,10 @@ public class Utilities {
 	/**
 	 * Validate abis queue json and return value.
 	 *
-	 * @param jsonObject the json object
-	 * @param key        the key
+	 * @param jsonObject
+	 *            the json object
+	 * @param key
+	 *            the key
 	 * @return the string
 	 */
 	private String validateAbisQueueJsonAndReturnValue(JSONObject jsonObject, String key) {
@@ -751,8 +758,10 @@ public class Utilities {
 	/**
 	 * Validate abis queue json and return long value.
 	 *
-	 * @param jsonObject the json object
-	 * @param key        the key
+	 * @param jsonObject
+	 *            the json object
+	 * @param key
+	 *            the key
 	 * @return the long value
 	 */
 	private int validateAbisQueueJsonAndReturnIntValue(JSONObject jsonObject, String key) {
@@ -771,10 +780,13 @@ public class Utilities {
 	/**
 	 * Gets the uin by vid.
 	 *
-	 * @param vid the vid
+	 * @param vid
+	 *            the vid
 	 * @return the uin by vid
-	 * @throws ApisResourceAccessException the apis resource access exception
-	 * @throws VidCreationException        the vid creation exception
+	 * @throws ApisResourceAccessException
+	 *             the apis resource access exception
+	 * @throws VidCreationException
+	 *             the vid creation exception
 	 */
 	@SuppressWarnings("unchecked")
 	public String getUinByVid(String vid) throws ApisResourceAccessException, VidCreationException {
@@ -805,10 +817,13 @@ public class Utilities {
 	/**
 	 * Retrieve idrepo json status.
 	 *
-	 * @param uin the uin
+	 * @param uin
+	 *            the uin
 	 * @return the string
-	 * @throws ApisResourceAccessException the apis resource access exception
-	 * @throws IdRepoAppException          the id repo app exception
+	 * @throws ApisResourceAccessException
+	 *             the apis resource access exception
+	 * @throws IdRepoAppException
+	 *             the id repo app exception
 	 */
 	public String retrieveIdrepoJsonStatus(String uin) throws ApisResourceAccessException, IdRepoAppException {
 		String response = null;
