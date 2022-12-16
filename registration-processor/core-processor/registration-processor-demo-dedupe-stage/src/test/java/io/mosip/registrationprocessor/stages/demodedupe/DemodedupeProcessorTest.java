@@ -836,5 +836,16 @@ public class DemodedupeProcessorTest {
 		assertTrue(messageDto.getIsValid());
 
 	}
+	@Test
+	public void testDemoDedupeNewDuplicatePacketSuccess() throws Exception {
+		when(env.getProperty(DEMODEDUPEENABLE)).thenReturn("true");
+		
+		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.DUPLICATE_FOR_SAME_TRANSACTION_ID);
+
+		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
+		assertTrue(messageDto.getInternalError());
+
+	}
 
 }
