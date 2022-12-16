@@ -102,7 +102,7 @@ public class LostRidRequestValidator {
 
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER_ID, exception);
 			
-		} else if (StringUtils.isNotEmpty(lostRidService) && !lostRidService.equals(id)) {
+		} else if (lostRidService!=null && !lostRidService.equals(id)) {
 
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_INVALID_INPUT_PARAMETER_ID, exception);
 
