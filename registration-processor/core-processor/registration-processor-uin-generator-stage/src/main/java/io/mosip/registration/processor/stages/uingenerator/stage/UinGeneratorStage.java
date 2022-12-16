@@ -634,14 +634,15 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		} else {
 			String statusComment = result != null && result.getErrors() != null ? result.getErrors().get(0).getMessage()
 					: UINConstants.NULL_IDREPO_RESPONSE;
+			String message = result != null && result.getErrors() != null
+					? result.getErrors().get(0).getMessage()
+					: UINConstants.NULL_IDREPO_RESPONSE;
 			description.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 			description.setStatusComment(trimExceptionMessage
 					.trimExceptionMessage(StatusUtil.UIN_DATA_UPDATION_FAILED.getMessage() + statusComment));
 			description.setSubStatusCode(StatusUtil.UIN_DATA_UPDATION_FAILED.getCode());
 			description
-					.setMessage(UINConstants.UIN_FAILURE + regId + "::" + result != null && result.getErrors() != null
-							? result.getErrors().get(0).getMessage()
-							: UINConstants.NULL_IDREPO_RESPONSE);
+					.setMessage(UINConstants.UIN_FAILURE + regId + "::" + message );
 			description.setTransactionStatusCode(RegistrationTransactionStatusCode.PROCESSING.toString());
 			object.setIsValid(Boolean.FALSE);
 		}
