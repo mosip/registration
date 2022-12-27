@@ -69,14 +69,16 @@ class LandingZoneUtility {
 			try {
 
 				List<File> packetList = new ArrayList<>();
-				Files.list(Paths.get(env.getProperty(DirectoryPathDto.LANDING_ZONE.toString()))).map(Path::toFile)
-						.filter(File::isFile).filter(file -> file.getName().endsWith(extention)).forEach(file -> {
-							packetList.add(file);
-							if (packetList.size() >= MAX_NUMBER_OF_PACKETS) {
-								packetList.forEach(packet -> handlePacket(packet));
-								packetList.clear();
-							}
-						});
+				try(Stream<Path> PathStream=Files.list(Paths.get(env.getProperty(DirectoryPathDto.LANDING_ZONE.toString())))){
+					PathStream.map(Path::toFile)
+					.filter(File::isFile).filter(file -> file.getName().endsWith(extention)).forEach(file -> {
+						packetList.add(file);
+						if (packetList.size() >= MAX_NUMBER_OF_PACKETS) {
+							packetList.forEach(packet -> handlePacket(packet));
+							packetList.clear();
+						}
+					});
+				}
 
 				if (packetList.size() < MAX_NUMBER_OF_PACKETS) {
 					packetList.forEach(packet -> handlePacket(packet));
