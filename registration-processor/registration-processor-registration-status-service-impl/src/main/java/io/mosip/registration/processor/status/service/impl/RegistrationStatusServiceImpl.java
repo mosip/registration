@@ -293,8 +293,9 @@ public class RegistrationStatusServiceImpl
 		}
 
 		transactionDto.setReferenceIdType("updated registration record");
+		System.out.println(transactionDto);
 		transcationStatusService.addRegistrationTransaction(transactionDto);
-
+		System.out.println("Transaction Table Written");
 		registrationStatusDto.setLatestRegistrationTransactionId(transactionId);
 		try {
 			InternalRegistrationStatusDto dto = getRegistrationStatus(registrationStatusDto.getRegistrationId(),
@@ -306,6 +307,10 @@ public class RegistrationStatusServiceImpl
 				if (entity.getStatusCode() == null) {
 					entity.setStatusCode(dto.getStatusCode());
 				}
+
+				System.out.println(registrationStatusDto);
+				System.out.println(entity);
+				System.out.println("Writting Registration Table");
 				registrationStatusDao.save(entity);
 				isTransactionSuccessful = true;
 				description.setMessage("Updated registration status successfully");
