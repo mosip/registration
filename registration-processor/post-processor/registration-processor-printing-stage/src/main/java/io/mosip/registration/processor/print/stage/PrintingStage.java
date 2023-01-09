@@ -6,9 +6,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
@@ -345,6 +343,7 @@ public class PrintingStage extends MosipVerticleAPIManager {
 
 	private CredentialRequestDto getCredentialRequestDto(String regId) {
 		CredentialRequestDto credentialRequestDto = new CredentialRequestDto();
+		Map<String, Object> additionalAttributes=new HashMap<>();
 
 		credentialRequestDto.setCredentialType(env.getProperty("mosip.registration.processor.credentialtype"));
 		credentialRequestDto.setEncrypt(encrypt);
@@ -354,6 +353,9 @@ public class PrintingStage extends MosipVerticleAPIManager {
 		credentialRequestDto.setIssuer(env.getProperty("mosip.registration.processor.issuer"));
 
 		credentialRequestDto.setEncryptionKey(generatePin());
+		additionalAttributes.put("credential_id",regId);
+		additionalAttributes.put("template",env.getProperty("mosip.registration.processor.uincard.template"));
+		credentialRequestDto.setAdditionalData(additionalAttributes);
 
 		return credentialRequestDto;
 	}
