@@ -150,6 +150,8 @@ public enum StatusUtil {
 	UIN_REACTIVATION_FAILED(StatusConstants.UIN_GENERATOR_MODULE_FAILED + "006", "UIN Reactivation  failed - "),
 	UIN_DEACTIVATION_FAILED(StatusConstants.UIN_GENERATOR_MODULE_FAILED + "007", "UIN Deactivation  failed - "),
 	LINK_RID_FOR_LOST_PACKET_FAILED(StatusConstants.UIN_GENERATOR_MODULE_FAILED + "008","UIn not found the the matched RID"),
+	UIN_ALREADY_EXIST_IN_IDREPO(StatusConstants.UIN_GENERATOR_MODULE_FAILED + "009", "ID record already exists after Merge"),
+	OLD_APPLICATION_ID(StatusConstants.UIN_GENERATOR_MODULE_FAILED + "010","This is an old application ID"),
 	
 	//Request handler service
 	//1)Resident UIN update
