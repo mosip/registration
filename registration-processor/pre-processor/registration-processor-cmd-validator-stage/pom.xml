@@ -6,10 +6,10 @@
 	<parent>
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>pre-processor</artifactId>
-		<version>1.2.0.1-SNAPSHOT</version>
+		<version>1.2.0.1-B1</version>
 	</parent>
 	<artifactId>registration-processor-cmd-validator-stage</artifactId>
-	<version>1.2.0.1-SNAPSHOT</version>
+	<version>1.2.0.1-B1</version>
 	<name>registration-processor-cmd-validator-stage</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

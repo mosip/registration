@@ -5,10 +5,10 @@
   <parent>
     <groupId>io.mosip.registrationprocessor</groupId>
     <artifactId>workflow-engine</artifactId>
-    <version>1.2.0.1-SNAPSHOT</version>
+    <version>1.2.0.1-B1</version>
   </parent>
   <artifactId>registration-processor-workflow-manager-service</artifactId>
-  <version>1.2.0.1-SNAPSHOT</version>
+  <version>1.2.0.1-B1</version>
   <name>registration-processor-workflow-manager-service</name>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
