@@ -7,23 +7,27 @@
 	<parent>
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>registration-processor</artifactId>
-		<version>1.2.0.1-B1</version>
+		<version>1.2.0.1-SNAPSHOT</version>
 	</parent>
-	<version>1.2.0.1-B1</version>
+	<version>1.2.0.1-SNAPSHOT</version>
 	<artifactId>pre-processor</artifactId>
 	<name>pre-processor</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<modules>
+		<!--
 		<module>registration-processor-packet-validator-stage</module>
 		<module>registration-processor-cmd-validator-stage</module>
 		<module>registration-processor-operator-validator-stage</module>
 		<module>registration-processor-supervisor-validator-stage</module>
 		<module>registration-processor-introducer-validator-stage</module>
+		-->
 		<module>registration-processor-packet-uploader-stage</module>
+		<!--
 		<module>registration-processor-quality-classifier-stage</module>
-        <module>registration-processor-securezone-notification-stage</module>
+        	<module>registration-processor-securezone-notification-stage</module>
 		<module>registration-processor-packet-classifier-stage</module>
+		-->
     </modules>
 </project>
