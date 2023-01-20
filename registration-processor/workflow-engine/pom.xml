@@ -15,6 +15,6 @@
   </properties>
   	<modules>
       <module>registration-processor-workflow-manager-service</module>
-      <module>registration-processor-reprocessor</module>
+    <!--  <module>registration-processor-reprocessor</module> -->
   </modules>
 </project>
