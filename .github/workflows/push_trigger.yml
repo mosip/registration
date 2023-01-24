@@ -403,7 +403,8 @@ jobs:
           echo VERSION=$VERSION
           docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
           docker push $IMAGE_ID:$VERSION
- 
+
+
   docker-registration-processor-abis:
     needs: build
 
