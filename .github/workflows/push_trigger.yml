@@ -813,7 +813,7 @@ jobs:
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-common-camel-bridge
-      SERVICE_LOCATION: registration-processor/init/registration-processor-common-camel-bridge
+      SERVICE_LOCATION: registration-processor/registration-processor-common-camel-bridge
 
     steps:
       - uses: actions/checkout@v2
