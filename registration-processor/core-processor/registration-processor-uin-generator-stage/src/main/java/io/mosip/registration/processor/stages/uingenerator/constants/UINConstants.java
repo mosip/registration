@@ -36,7 +36,5 @@ public class UINConstants {
 
 	/** The Constant UIN_UNASSIGNED. */
 	public static final String UIN_UNASSIGNED = "UNASSIGNED";
-	
-	public static final String ID_RECORD_EXIST_AFTER_MERGE="ID record already exists after Merge";
-	
+		
 }

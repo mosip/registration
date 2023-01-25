@@ -269,32 +269,18 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 							uinField, description);
 
 					boolean isUinAlreadyPresent = isUinAlreadyPresent(idResponseDTO, registrationId);
-					
+
 					if (isIdResponseNotNull(idResponseDTO) || isUinAlreadyPresent) {
 						
-						if(idRepoForceMergeEnabled) {
-							sendResponseToUinGenerator(registrationId, uinResponseDto.getResponse().getUin(),
-									UINConstants.UIN_UNASSIGNED);
-							String uin = idRepoService.getUinByRid(registrationId,
-									utility.getGetRegProcessorDemographicIdentity());
-
-							demographicIdentity.put("UIN", uin);
-
-							IdResponseDTO sendIdRepoWithUin = sendIdRepoWithUin(registrationId,
-									registrationStatusDto.getRegistrationType(), demographicIdentity, uin, description);
-							
-							if(isIdResponseNotNull(sendIdRepoWithUin)) {
-								handleIdRepoSuccessResponse(sendIdRepoWithUin, registrationStatusDto, registrationId, isUinAlreadyPresent, isTransactionSuccessful, uinResponseDto, object, description);
-							}else {
-								handleIdRepoErrorResponse(sendIdRepoWithUin, registrationStatusDto, registrationId, isTransactionSuccessful, uinResponseDto, object, description);		
-							}
+						if(idRepoForceMergeEnabled && isUinAlreadyPresent) {
+							handleForceMerge(object, isTransactionSuccessful, description, registrationId,
+									uinResponseDto, registrationStatusDto, demographicIdentity, isUinAlreadyPresent);
 							
 						}else {
-							handleIdRepoSuccessResponse(idResponseDTO, registrationStatusDto, registrationId, isUinAlreadyPresent, isTransactionSuccessful, uinResponseDto, object, description);
+							handleIdRepoSuccessResponse(registrationStatusDto, registrationId, isUinAlreadyPresent, isTransactionSuccessful, uinResponseDto, object, description);
 						}
 						
 					}else {
-						
 						handleIdRepoErrorResponse(idResponseDTO, registrationStatusDto, registrationId, isTransactionSuccessful, uinResponseDto, object, description);
 					}
 				   
@@ -428,6 +414,28 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		return object;
 	}
 
+	private void handleForceMerge(MessageDTO object, boolean isTransactionSuccessful, LogDescription description,
+			String registrationId, UinGenResponseDto uinResponseDto,
+			InternalRegistrationStatusDto registrationStatusDto, JSONObject demographicIdentity,
+			boolean isUinAlreadyPresent) throws ApisResourceAccessException, IOException, Exception,
+			VidCreationException, VidServiceFailedException {
+		sendResponseToUinGenerator(registrationId, uinResponseDto.getResponse().getUin(),
+				UINConstants.UIN_UNASSIGNED);
+		String uin = idRepoService.getUinByRid(registrationId,
+				utility.getGetRegProcessorDemographicIdentity());
+
+		demographicIdentity.put("UIN", uin);
+
+		IdResponseDTO sendIdRepoWithUin = sendIdRepoWithUin(registrationId,
+				registrationStatusDto.getRegistrationType(), demographicIdentity, uin, description);
+		
+		if(isIdResponseNotNull(sendIdRepoWithUin)) {
+			handleIdRepoSuccessResponse( registrationStatusDto, registrationId, isUinAlreadyPresent, isTransactionSuccessful, uinResponseDto, object, description);
+		}else {
+			handleIdRepoErrorResponse(sendIdRepoWithUin, registrationStatusDto, registrationId, isTransactionSuccessful, uinResponseDto, object, description);		
+		}
+	}
+
 	private void loadDemographicIdentity(Map<String, String> fieldMap, JSONObject demographicIdentity) throws IOException, JSONException {
 		for (Map.Entry e : fieldMap.entrySet()) {
 			if (e.getValue() != null) {
@@ -528,7 +536,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 	}
 	
-private void handleIdRepoSuccessResponse(IdResponseDTO idResponseDTO, InternalRegistrationStatusDto registrationStatusDto,
+private void handleIdRepoSuccessResponse(InternalRegistrationStatusDto registrationStatusDto,
 		String registrationId, boolean isUinAlreadyPresent, boolean isTransactionSuccessful,
 		UinGenResponseDto uinResponseDto, MessageDTO object, LogDescription description) throws ApisResourceAccessException, VidCreationException, VidServiceFailedException, IOException {
 		
@@ -555,7 +563,7 @@ private void handleIdRepoErrorResponse(IdResponseDTO idResponseDTO, InternalRegi
 		registrationStatusDto.setStatusCode(RegistrationTransactionStatusCode.ERROR.toString());
 		registrationStatusDto.setLatestTransactionStatusCode(
 				RegistrationTransactionStatusCode.IN_PROGRESS.toString());
-		registrationStatusDto.setStatusComment(UINConstants.ID_RECORD_EXIST_AFTER_MERGE);
+		registrationStatusDto.setStatusComment(StatusUtil.UIN_ALREADY_EXIST_IN_IDREPO.getMessage());
 		registrationStatusDto.setSubStatusCode(StatusUtil.UIN_ALREADY_EXIST_IN_IDREPO.getCode());
 		description.setTransactionStatusCode(RegistrationTransactionStatusCode.IN_PROGRESS.toString());
 		
@@ -590,6 +598,8 @@ private void handleIdRepoErrorResponse(IdResponseDTO idResponseDTO, InternalRegi
 	object.setInternalError(Boolean.TRUE);
 	object.setIsValid(false);
 }
+
+
 
 	/**
 	 * Gets the all documents by reg id.
