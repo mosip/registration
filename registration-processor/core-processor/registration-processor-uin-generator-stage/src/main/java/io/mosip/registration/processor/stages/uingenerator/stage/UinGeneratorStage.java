@@ -152,7 +152,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	private Long messageExpiryTimeLimit;
 	
 	@Value("${mosip.idrepo.create-identity.enable-force-merge:true}")
-	private boolean idRepoCreateIdentityFlag;
+	private boolean idRepoForceMergeEnabled;
 
 	/** The core audit request builder. */
 	@Autowired
@@ -270,12 +270,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 					boolean isUinAlreadyPresent = isUinAlreadyPresent(idResponseDTO, registrationId);
 					
-					if (isUinAlreadyPresent) {
-
-						sendResponseToUinGenerator(registrationId, uinResponseDto.getResponse().getUin(),
-								UINConstants.UIN_UNASSIGNED);
-
-						if (idRepoCreateIdentityFlag) {
+					if (isIdResponseNotNull(idResponseDTO) || isUinAlreadyPresent) {
+						
+						if(idRepoForceMergeEnabled) {
 							sendResponseToUinGenerator(registrationId, uinResponseDto.getResponse().getUin(),
 									UINConstants.UIN_UNASSIGNED);
 							String uin = idRepoService.getUinByRid(registrationId,
@@ -285,35 +282,22 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 							IdResponseDTO sendIdRepoWithUin = sendIdRepoWithUin(registrationId,
 									registrationStatusDto.getRegistrationType(), demographicIdentity, uin, description);
-
-							if (!sendIdRepoWithUin.getErrors().isEmpty()) {
-								registrationStatusDto.setStatusCode(RegistrationTransactionStatusCode.ERROR.toString());
-								registrationStatusDto.setLatestTransactionStatusCode(
-										RegistrationTransactionStatusCode.IN_PROGRESS.toString());
-								registrationStatusDto.setStatusComment(UINConstants.ID_RECORD_EXIST_AFTER_MERGE);
-								registrationStatusDto.setSubStatusCode(StatusUtil.UIN_ALREADY_EXIST_IN_IDREPO.getCode());
+							
+							if(isIdResponseNotNull(sendIdRepoWithUin)) {
+								handleIdRepoSuccessResponse(sendIdRepoWithUin, registrationStatusDto, registrationId, isUinAlreadyPresent, isTransactionSuccessful, uinResponseDto, object, description);
+							}else {
+								handleIdRepoErrorResponse(sendIdRepoWithUin, registrationStatusDto, registrationId, isTransactionSuccessful, uinResponseDto, object, description);		
 							}
-
-						} else {
-							idResponseProcessUtility(idResponseDTO, registrationStatusDto, registrationId,
-									isUinAlreadyPresent, isTransactionSuccessful, uinResponseDto, object, description);
-                         }
-					} else if (idResponseDTO.getErrors()!=null&&idResponseDTO.getErrors().get(0).getErrorCode().equalsIgnoreCase(OLD_APPLICATION_ID)) {
-						ErrorDTO errorDTO = idResponseDTO.getErrors().get(0);
-						regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-								LoggerFileConstant.REGISTRATIONID.toString() + registrationId,
-								"This is an old application ID. Error message received : " + errorDTO.getMessage());
-						registrationStatusDto.setStatusComment(errorDTO.getMessage());
-						registrationStatusDto.setStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
-						registrationStatusDto
-								.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
-						registrationStatusDto.setSubStatusCode(StatusUtil.OLD_APPLICATION_ID.getCode());
+							
+						}else {
+							handleIdRepoSuccessResponse(idResponseDTO, registrationStatusDto, registrationId, isUinAlreadyPresent, isTransactionSuccessful, uinResponseDto, object, description);
+						}
 						
-
-					} else {
-						idResponseProcessUtility(idResponseDTO, registrationStatusDto, registrationId, isUinAlreadyPresent,
-								isTransactionSuccessful, uinResponseDto, object, description);
-                     }
+					}else {
+						
+						handleIdRepoErrorResponse(idResponseDTO, registrationStatusDto, registrationId, isTransactionSuccessful, uinResponseDto, object, description);
+					}
+				   
 				}else {
 					if ((RegistrationType.ACTIVATED.toString()).equalsIgnoreCase(object.getReg_type().toString())) {
 						isTransactionSuccessful = reActivateUin(idResponseDTO, registrationId, uinField, object,
@@ -544,48 +528,68 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 	}
 	
-	private void idResponseProcessUtility(IdResponseDTO idResponseDTO, InternalRegistrationStatusDto registrationStatusDto,
-			String registrationId, boolean isUinAlreadyPresent, boolean isTransactionSuccessful,
-			UinGenResponseDto uinResponseDto, MessageDTO object, LogDescription description) throws Exception {
-
-		if (isIdResponseNotNull(idResponseDTO)) {
-			generateVid(registrationId, uinResponseDto.getResponse().getUin(), isUinAlreadyPresent);
-			registrationStatusDto.setStatusComment(StatusUtil.UIN_GENERATED_SUCCESS.getMessage());
-			registrationStatusDto.setSubStatusCode(StatusUtil.UIN_GENERATED_SUCCESS.getCode());
-			String uinStatus = isUinAlreadyPresent ? UINConstants.UIN_UNASSIGNED : UINConstants.UIN_ASSIGNED;
-			sendResponseToUinGenerator(registrationId, uinResponseDto.getResponse().getUin(), uinStatus);
-			isTransactionSuccessful = true;
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSED.toString());
-			description.setMessage(PlatformSuccessMessages.RPR_UIN_GENERATOR_STAGE_SUCCESS.getMessage());
-			description.setCode(PlatformSuccessMessages.RPR_UIN_GENERATOR_STAGE_SUCCESS.getCode());
-			description.setTransactionStatusCode(RegistrationTransactionStatusCode.PROCESSED.toString());
-
-		} else {
-			List<ErrorDTO> errors = idResponseDTO != null ? idResponseDTO.getErrors() : null;
-
-			String statusComment = errors != null ? errors.get(0).getMessage() : UINConstants.NULL_IDREPO_RESPONSE;
-			registrationStatusDto.setStatusComment(trimExceptionMessage
-					.trimExceptionMessage(StatusUtil.UIN_GENERATION_FAILED.getMessage() + statusComment));
-			registrationStatusDto.setSubStatusCode(StatusUtil.UIN_GENERATION_FAILED.getCode());
-			object.setInternalError(Boolean.TRUE);
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
-			registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
-					.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_FAILED));
-			sendResponseToUinGenerator(registrationId, uinResponseDto.getResponse().getUin(),
-					UINConstants.UIN_UNASSIGNED);
-			isTransactionSuccessful = false;
-			description.setMessage(PlatformErrorMessages.RPR_UGS_UIN_UPDATE_FAILURE.getMessage());
-			description.setCode(PlatformErrorMessages.RPR_UGS_UIN_UPDATE_FAILURE.getCode());
-			description.setTransactionStatusCode(registrationStatusMapperUtil
-					.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_FAILED));
-			String idres = idResponseDTO != null ? idResponseDTO.toString() : UINConstants.NULL_IDREPO_RESPONSE;
-
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, statusComment + "  :  " + idres);
-			object.setIsValid(false);
-		}
-
+private void handleIdRepoSuccessResponse(IdResponseDTO idResponseDTO, InternalRegistrationStatusDto registrationStatusDto,
+		String registrationId, boolean isUinAlreadyPresent, boolean isTransactionSuccessful,
+		UinGenResponseDto uinResponseDto, MessageDTO object, LogDescription description) throws ApisResourceAccessException, VidCreationException, VidServiceFailedException, IOException {
+		
+	generateVid(registrationId, uinResponseDto.getResponse().getUin(), isUinAlreadyPresent);
+	registrationStatusDto.setStatusComment(StatusUtil.UIN_GENERATED_SUCCESS.getMessage());
+	registrationStatusDto.setSubStatusCode(StatusUtil.UIN_GENERATED_SUCCESS.getCode());
+	String uinStatus = isUinAlreadyPresent ? UINConstants.UIN_UNASSIGNED : UINConstants.UIN_ASSIGNED;
+	sendResponseToUinGenerator(registrationId, uinResponseDto.getResponse().getUin(), uinStatus);
+	isTransactionSuccessful = true;
+	registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSED.toString());
+	description.setMessage(PlatformSuccessMessages.RPR_UIN_GENERATOR_STAGE_SUCCESS.getMessage());
+	description.setCode(PlatformSuccessMessages.RPR_UIN_GENERATOR_STAGE_SUCCESS.getCode());
+	description.setTransactionStatusCode(RegistrationTransactionStatusCode.PROCESSED.toString());
 	}
+
+private void handleIdRepoErrorResponse(IdResponseDTO idResponseDTO, InternalRegistrationStatusDto registrationStatusDto,
+		String registrationId,boolean isTransactionSuccessful,
+		UinGenResponseDto uinResponseDto,MessageDTO object, LogDescription description) throws ApisResourceAccessException, IOException{
+	List<ErrorDTO> errors = idResponseDTO != null ? idResponseDTO.getErrors() : null;
+
+	String statusComment = errors != null ? errors.get(0).getMessage() : UINConstants.NULL_IDREPO_RESPONSE;
+	
+	if(errors!=null && errors.get(0).getErrorCode().equalsIgnoreCase(RECORD_ALREADY_EXISTS_ERROR)) {
+		registrationStatusDto.setStatusCode(RegistrationTransactionStatusCode.ERROR.toString());
+		registrationStatusDto.setLatestTransactionStatusCode(
+				RegistrationTransactionStatusCode.IN_PROGRESS.toString());
+		registrationStatusDto.setStatusComment(UINConstants.ID_RECORD_EXIST_AFTER_MERGE);
+		registrationStatusDto.setSubStatusCode(StatusUtil.UIN_ALREADY_EXIST_IN_IDREPO.getCode());
+		description.setTransactionStatusCode(RegistrationTransactionStatusCode.IN_PROGRESS.toString());
+		
+	}else if(errors!=null && errors.get(0).getErrorCode().equalsIgnoreCase(OLD_APPLICATION_ID)) {
+		registrationStatusDto.setStatusComment(StatusUtil.OLD_APPLICATION_ID.getMessage());
+		registrationStatusDto.setStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
+		registrationStatusDto
+				.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
+		registrationStatusDto.setSubStatusCode(StatusUtil.OLD_APPLICATION_ID.getCode());
+		description.setTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
+	
+	}else {
+		registrationStatusDto.setStatusComment(trimExceptionMessage
+				.trimExceptionMessage(StatusUtil.UIN_GENERATION_FAILED.getMessage() + statusComment));
+		registrationStatusDto.setSubStatusCode(StatusUtil.UIN_GENERATION_FAILED.getCode());
+		registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
+		registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_FAILED));
+		description.setTransactionStatusCode(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_FAILED));
+		
+	}
+	description.setMessage(PlatformErrorMessages.RPR_UGS_UIN_UPDATE_FAILURE.getMessage());
+	description.setCode(PlatformErrorMessages.RPR_UGS_UIN_UPDATE_FAILURE.getCode());
+	sendResponseToUinGenerator(registrationId, uinResponseDto.getResponse().getUin(),
+			UINConstants.UIN_UNASSIGNED);
+	isTransactionSuccessful = false;
+	String idres = idResponseDTO != null ? idResponseDTO.toString() : UINConstants.NULL_IDREPO_RESPONSE;
+
+	regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+			registrationId, statusComment + "  :  " + idres);
+	object.setInternalError(Boolean.TRUE);
+	object.setIsValid(false);
+}
 
 	/**
 	 * Gets the all documents by reg id.
@@ -1280,4 +1284,6 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		}
 		return false;
 	}
+	
+	
 }
