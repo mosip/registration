@@ -151,7 +151,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.uin.generator.message.expiry-time-limit}")
 	private Long messageExpiryTimeLimit;
 	
-	@Value("${mosip.idrepo.create-identity.enable-force-merge:true}")
+	@Value("${mosip.idrepo.create-identity.enable-force-merge:false}")
 	private boolean idRepoForceMergeEnabled;
 
 	/** The core audit request builder. */
