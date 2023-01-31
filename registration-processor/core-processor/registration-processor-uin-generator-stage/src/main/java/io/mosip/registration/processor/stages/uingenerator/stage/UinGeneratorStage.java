@@ -544,7 +544,7 @@ private void handleIdRepoSuccessResponse(InternalRegistrationStatusDto registrat
 	registrationStatusDto.setStatusComment(StatusUtil.UIN_GENERATED_SUCCESS.getMessage());
 	registrationStatusDto.setSubStatusCode(StatusUtil.UIN_GENERATED_SUCCESS.getCode());
 	String uinStatus = isUinAlreadyPresent ? UINConstants.UIN_UNASSIGNED : UINConstants.UIN_ASSIGNED;
-	sendResponseToUinGenerator(registrationId, uinResponseDto.getResponse().getUin(), uinStatus);
+	//sendResponseToUinGenerator(registrationId, uinResponseDto.getResponse().getUin(), uinStatus);
 	isTransactionSuccessful = true;
 	registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSED.toString());
 	description.setMessage(PlatformSuccessMessages.RPR_UIN_GENERATOR_STAGE_SUCCESS.getMessage());
@@ -1096,6 +1096,12 @@ private void handleIdRepoErrorResponse(IdResponseDTO idResponseDTO, InternalRegi
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.UIN_GENERATION_BUS_IN,
 				MessageBusAddress.UIN_GENERATION_BUS_OUT, messageExpiryTimeLimit);
 		
+		MessageDTO msg=new MessageDTO();
+		msg.setIsValid(true);
+		msg.setInternalError(false);
+		msg.setReg_type(io.mosip.registration.processor.core.constant.RegistrationType.NEW);
+		msg.setRid("10002300071102820221214002007");
+		process(msg);
 	}
 
 	@Override
