@@ -15,8 +15,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
   	<modules>
-    	<module>registration-processor-message-sender-stage</module>
-    	<module>registration-processor-printing-stage</module>
-		<!-- <module>registration-processor-registration-transaction-service</module> -->
+    	 <module>registration-processor-message-sender-stage</module>
+    	 <module>registration-processor-printing-stage</module>
+		 <module>registration-processor-registration-transaction-service</module> 
   </modules>
 </project>
