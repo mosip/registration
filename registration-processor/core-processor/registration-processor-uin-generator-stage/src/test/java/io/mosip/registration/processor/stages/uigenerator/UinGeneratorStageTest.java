@@ -7,7 +7,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,7 +23,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.constant.QualityType;
@@ -61,9 +59,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
-
 import com.google.gson.Gson;
-
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.dataaccess.hibernate.constant.HibernateErrorCode;
@@ -81,6 +77,8 @@ import io.mosip.registration.processor.core.exception.ApisResourceAccessExceptio
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.idrepo.dto.Documents;
+import io.mosip.registration.processor.core.idrepo.dto.VidInfoDTO;
+import io.mosip.registration.processor.core.idrepo.dto.VidsInfosDTO;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.packet.dto.ApplicantDocument;
 import io.mosip.registration.processor.core.packet.dto.Identity;
@@ -2008,7 +2006,7 @@ public class UinGeneratorStageTest {
 		assertFalse(result.getIsValid());
 	}
 
-	@Ignore
+    @Ignore	
 	@Test
 	public void testUinAlreadyExists() throws Exception {
 		Map<String, String> fieldMap = new HashMap<>();
@@ -2162,6 +2160,319 @@ public class UinGeneratorStageTest {
 		messageDTO.setRid("27847657360002520181210094052");
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getInternalError());
+	}
+	
+	@Test
+	public void testIdRecordExistTrueFlagWithErrorResponse() throws Exception {
+
+		Map<String, String> fieldMap = new HashMap<>();
+		fieldMap.put("UIN", "123456");
+		fieldMap.put("name", "mono");
+		fieldMap.put("email", "mono@mono.com");
+
+		List<String> defaultFields = new ArrayList<>();
+		defaultFields.add("name");
+		defaultFields.add("dob");
+		defaultFields.add("gender");
+		defaultFields.add("UIN");
+
+		ReflectionTestUtils.setField(uinGeneratorStage, "idRepoForceMergeEnabled", true);
+
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any())).thenReturn("0.1");
+		when(packetManagerService.getFields(anyString(), anyList(), anyString(), any())).thenReturn(fieldMap);
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("10002300071102820221214002007");
+		messageDTO.setReg_type(RegistrationType.NEW);
+		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"749647632790\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
+
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.create");
+		ErrorDTO errorDTO = new ErrorDTO("IDR-IDC-012", "Record already exists in DB");
+		idResponseDTO.setErrors(Lists.newArrayList(errorDTO));
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
+
+		VidsInfosDTO vidsInfosDTO = new VidsInfosDTO();
+		List<VidInfoDTO> vidInfoDTOList = new ArrayList<VidInfoDTO>();
+		VidInfoDTO vidInfoDTO = new VidInfoDTO();
+		vidInfoDTO.setVid("565676");
+		vidInfoDTO.setVidType("PERPETUAL");
+		vidInfoDTO.setExpiryTimestamp(LocalDateTime.now());
+		vidInfoDTOList.add(vidInfoDTO);
+		vidsInfosDTO.setResponse(vidInfoDTOList);
+
+		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any(Class.class)))
+				.thenReturn(idResponseDTO);
+
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str)
+				.thenReturn(vidsInfosDTO);
+
+		String response = "{\"uin\":\"6517036426\",\"status\":\"ASSIGNED\"}";
+		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(response);
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertTrue(result.getInternalError());
+
+	}
+
+	@Test
+	public void testIdRecordExistTrueFlagWithSuccessResponse() throws Exception {
+
+		Map<String, String> fieldMap = new HashMap<>();
+		fieldMap.put("UIN", "123456");
+		fieldMap.put("name", "mono");
+		fieldMap.put("email", "mono@mono.com");
+
+		List<String> defaultFields = new ArrayList<>();
+		defaultFields.add("name");
+		defaultFields.add("dob");
+		defaultFields.add("gender");
+		defaultFields.add("UIN");
+
+		ReflectionTestUtils.setField(uinGeneratorStage, "idRepoForceMergeEnabled", true);
+
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any())).thenReturn("0.1");
+		when(packetManagerService.getFields(anyString(), anyList(), anyString(), any())).thenReturn(fieldMap);
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("10002300071102820221214002007");
+		messageDTO.setReg_type(RegistrationType.NEW);
+		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"749647632790\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
+
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.create");
+		ErrorDTO errorDTO = new ErrorDTO("IDR-IDC-012", "Record already exists in DB");
+		idResponseDTO.setErrors(Lists.newArrayList(errorDTO));
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
+
+		VidsInfosDTO vidsInfosDTO = new VidsInfosDTO();
+		List<VidInfoDTO> vidInfoDTOList = new ArrayList<VidInfoDTO>();
+		VidInfoDTO vidInfoDTO = new VidInfoDTO();
+		vidInfoDTO.setVid("565676");
+		vidInfoDTO.setVidType("PERPETUAL");
+		vidInfoDTO.setExpiryTimestamp(LocalDateTime.now());
+		vidInfoDTOList.add(vidInfoDTO);
+		vidsInfosDTO.setResponse(vidInfoDTOList);
+
+		IdResponseDTO idResponseDTO1 = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setEntity("https://dev.mosip.io/idrepo/v1.0/identity/203560486746");
+		responseDTO.setStatus("ACTIVATED");
+		idResponseDTO1.setErrors(null);
+		idResponseDTO1.setId("mosip.id.create");
+		idResponseDTO1.setResponse(responseDTO);
+		idResponseDTO1.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO1.setVersion("1.0");
+
+		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any(Class.class)))
+				.thenReturn(idResponseDTO).thenReturn(idResponseDTO1);
+
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str)
+				.thenReturn(vidsInfosDTO);
+
+		String response = "{\"uin\":\"6517036426\",\"status\":\"ASSIGNED\"}";
+		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(response);
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertFalse(result.getInternalError());
+
+	}
+
+	@Test
+	public void testIdRecordExistFalseFlagWithSuccessResponse() throws Exception {
+
+		Map<String, String> fieldMap = new HashMap<>();
+		fieldMap.put("UIN", "123456");
+		fieldMap.put("name", "mono");
+		fieldMap.put("email", "mono@mono.com");
+
+		List<String> defaultFields = new ArrayList<>();
+		defaultFields.add("name");
+		defaultFields.add("dob");
+		defaultFields.add("gender");
+		defaultFields.add("UIN");
+
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any())).thenReturn("0.1");
+		when(packetManagerService.getFields(anyString(), anyList(), anyString(), any())).thenReturn(fieldMap);
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("10002300071102820221214002007");
+		messageDTO.setReg_type(RegistrationType.NEW);
+		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"749647632790\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
+
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.create");
+		ErrorDTO errorDTO = new ErrorDTO("IDR-IDC-012", "Record already exists in DB");
+		idResponseDTO.setErrors(Lists.newArrayList(errorDTO));
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
+
+		VidsInfosDTO vidsInfosDTO = new VidsInfosDTO();
+		List<VidInfoDTO> vidInfoDTOList = new ArrayList<VidInfoDTO>();
+		VidInfoDTO vidInfoDTO = new VidInfoDTO();
+		vidInfoDTO.setVid("565676");
+		vidInfoDTO.setVidType("PERPETUAL");
+		vidInfoDTO.setExpiryTimestamp(LocalDateTime.now());
+		vidInfoDTOList.add(vidInfoDTO);
+		vidsInfosDTO.setResponse(vidInfoDTOList);
+
+		IdResponseDTO idResponseDTO1 = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setEntity("https://dev.mosip.io/idrepo/v1.0/identity/203560486746");
+		responseDTO.setStatus("ACTIVATED");
+		idResponseDTO1.setErrors(null);
+		idResponseDTO1.setId("mosip.id.create");
+		idResponseDTO1.setResponse(responseDTO);
+		idResponseDTO1.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO1.setVersion("1.0");
+
+		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any(Class.class)))
+				.thenReturn(idResponseDTO).thenReturn(idResponseDTO1);
+
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str)
+				.thenReturn(vidsInfosDTO);
+
+		String response = "{\"uin\":\"6517036426\",\"status\":\"ASSIGNED\"}";
+		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(response);
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertFalse(result.getInternalError());
+
+	}
+
+	@Test
+	public void testOldApplicationIDErrorWithErrorResponse() throws Exception {
+
+		Map<String, String> fieldMap = new HashMap<>();
+		fieldMap.put("UIN", "123456");
+		fieldMap.put("name", "mono");
+		fieldMap.put("email", "mono@mono.com");
+
+		List<String> defaultFields = new ArrayList<>();
+		defaultFields.add("name");
+		defaultFields.add("dob");
+		defaultFields.add("gender");
+		defaultFields.add("UIN");
+
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any())).thenReturn("0.1");
+		when(packetManagerService.getFields(anyString(), anyList(), anyString(), any())).thenReturn(fieldMap);
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("10002300071102820221214002007");
+		messageDTO.setReg_type(RegistrationType.NEW);
+		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"749647632790\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
+
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.create");
+		ErrorDTO errorDTO = new ErrorDTO("IDR-IDC-011", "This is an old application ID");
+		idResponseDTO.setErrors(Lists.newArrayList(errorDTO));
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
+
+		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any(Class.class)))
+				.thenReturn(idResponseDTO);
+
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertTrue(result.getInternalError());
+
+	}
+
+	@Test
+	public void testSuccessfullIdResponseWithUinAndRid() throws Exception {
+
+		Map<String, String> fieldMap = new HashMap<>();
+		fieldMap.put("UIN", "123456");
+		fieldMap.put("name", "mono");
+		fieldMap.put("email", "mono@mono.com");
+
+		List<String> defaultFields = new ArrayList<>();
+		defaultFields.add("name");
+		defaultFields.add("dob");
+		defaultFields.add("gender");
+		defaultFields.add("UIN");
+
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any())).thenReturn("0.1");
+		when(packetManagerService.getFields(anyString(), anyList(), anyString(), any())).thenReturn(fieldMap);
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("10002300071102820221214002007");
+		messageDTO.setReg_type(RegistrationType.NEW);
+		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"749647632790\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
+
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setEntity("https://dev.mosip.io/idrepo/v1.0/identity/203560486746");
+		responseDTO.setStatus("ACTIVATED");
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.create");
+		idResponseDTO.setResponse(responseDTO);
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
+
+		ResponseWrapper<VidResponseDto> responseVid = new ResponseWrapper<VidResponseDto>();
+		List<ErrorDTO> errors = new ArrayList<>();
+		responseVid.setErrors(errors);
+		responseVid.setVersion("v1");
+		responseVid.setMetadata(null);
+		DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		LocalDateTime localdatetime = LocalDateTime
+				.parse(DateUtils.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"), format);
+		responseVid.setResponsetime(localdatetime);
+		VidResponseDto vidResponseDto = new VidResponseDto();
+		vidResponseDto.setVID("123456");
+		vidResponseDto.setVidStatus("ACTIVE");
+		vidResponseDto.setRestoredVid(null);
+		vidResponseDto.setUIN(null);
+		responseVid.setResponse(vidResponseDto);
+
+		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any(Class.class)))
+				.thenReturn(idResponseDTO).thenReturn(responseVid);
+
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
+
+		String response = "{\"uin\":\"6517036426\",\"status\":\"ASSIGNED\"}";
+		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(response);
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertFalse(result.getInternalError());
+
 	}
 
 }
