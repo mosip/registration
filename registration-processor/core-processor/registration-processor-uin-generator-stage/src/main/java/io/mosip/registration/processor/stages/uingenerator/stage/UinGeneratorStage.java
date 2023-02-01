@@ -419,8 +419,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			InternalRegistrationStatusDto registrationStatusDto, JSONObject demographicIdentity,
 			boolean isUinAlreadyPresent) throws ApisResourceAccessException, IOException, Exception,
 			VidCreationException, VidServiceFailedException {
-		//sendResponseToUinGenerator(registrationId, uinResponseDto.getResponse().getUin(),
-				//UINConstants.UIN_UNASSIGNED);
+		sendResponseToUinGenerator(registrationId, uinResponseDto.getResponse().getUin(), UINConstants.UIN_UNASSIGNED);
 		String uin = idRepoService.getUinByRid(registrationId,
 				utility.getGetRegProcessorDemographicIdentity());
 

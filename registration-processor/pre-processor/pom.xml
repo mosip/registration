@@ -16,13 +16,13 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<modules>
-	   <!-- <module>registration-processor-packet-validator-stage</module>-->
-		<!--<module>registration-processor-osi-validator-stage</module>-->
-		<!--<module>registration-processor-packet-uploader-stage</module>-->
-		<!--<module>registration-processor-external-stage</module>-->
+	    <module>registration-processor-packet-validator-stage</module>
+		<module>registration-processor-osi-validator-stage</module>
+		<module>registration-processor-packet-uploader-stage</module>
+		<module>registration-processor-external-stage</module>
 		<!-- <module>registration-processor-external-integration-service</module> -->
-		<!--<module>registration-processor-quality-checker-stage</module>-->
-      <!--  <module>registration-processor-securezone-notification-stage</module>-->
-		<!--<module>registration-processor-packet-classifier-stage</module> -->
+		<module>registration-processor-quality-checker-stage</module>
+        <module>registration-processor-securezone-notification-stage</module>
+		<module>registration-processor-packet-classifier-stage</module> 
     </modules>
 </project>
