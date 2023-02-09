@@ -148,6 +148,8 @@ public class PrintingStage extends MosipVerticleAPIManager {
 
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
 
+	private static String SEMICOLON = ";";
+	private static String COLON = ":";
 
 	@Autowired
 	private Utilities utilities;
@@ -190,7 +192,7 @@ public class PrintingStage extends MosipVerticleAPIManager {
 
 		InternalRegistrationStatusDto registrationStatusDto = null;
 		RequestWrapper<CredentialRequestDto> requestWrapper = new RequestWrapper<>();
-		ResponseWrapper<?> responseWrapper;
+		ResponseWrapper<?> responseWrapper = null;
 		CredentialResponseDto credentialResponseDto;
 		try {
 			registrationStatusDto = registrationStatusService.getRegistrationStatus(
@@ -220,16 +222,28 @@ public class PrintingStage extends MosipVerticleAPIManager {
 			}
 			else {
 			String vid = getVid(uin);
-			CredentialRequestDto credentialRequestDto = getCredentialRequestDto(vid);
 			requestWrapper.setId(env.getProperty("mosip.registration.processor.credential.request.service.id"));
-			requestWrapper.setRequest(credentialRequestDto);
+			String issuers=	env.getProperty("mosip.registration.processor.issuer");
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+						.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
 			requestWrapper.setRequesttime(localdatetime);
 			requestWrapper.setVersion("1.0");
-			responseWrapper = (ResponseWrapper<?>) restClientService.postApi(ApiName.CREDENTIALREQUEST, null, null,
-					requestWrapper, ResponseWrapper.class, MediaType.APPLICATION_JSON);
+			for (String key : issuers.split(SEMICOLON)) {
+				CredentialRequestDto credentialRequestDto=null;
+				String[] parts = key.split(COLON, 3);
+				credentialRequestDto = getCredentialRequestDto(regId,parts[0],parts[1],parts[2]);
+				requestWrapper.setRequest(credentialRequestDto);
+				if(parts[0].equalsIgnoreCase("mpartner-default-print")){
+					responseWrapper = (ResponseWrapper<?>) restClientService.postApi(ApiName.CREDENTIALREQUEST, null, null,
+							requestWrapper, ResponseWrapper.class, MediaType.APPLICATION_JSON);
+				}else{
+					List<String> pathsegments=new ArrayList<>();
+					pathsegments.add(regId+"#PDF");
+					responseWrapper = (ResponseWrapper<?>) restClientService.postApi(ApiName.CREDENTIALREQUESTV2, MediaType.APPLICATION_JSON, pathsegments, null,
+							null, requestWrapper, ResponseWrapper.class);
+				}
+			}
 			if (responseWrapper.getErrors() != null && !responseWrapper.getErrors().isEmpty()) {
 				ErrorDTO error = responseWrapper.getErrors().get(0);
 				object.setIsValid(Boolean.FALSE);
@@ -341,20 +355,19 @@ public class PrintingStage extends MosipVerticleAPIManager {
 		return object;
 	}
 
-	private CredentialRequestDto getCredentialRequestDto(String regId) {
+	private CredentialRequestDto getCredentialRequestDto(String regId,String issuerId,String credentialType,String template) {
 		CredentialRequestDto credentialRequestDto = new CredentialRequestDto();
 		Map<String, Object> additionalAttributes=new HashMap<>();
 
-		credentialRequestDto.setCredentialType(env.getProperty("mosip.registration.processor.credentialtype"));
+		credentialRequestDto.setCredentialType(credentialType);
 		credentialRequestDto.setEncrypt(encrypt);
 
 		credentialRequestDto.setId(regId);
 
-		credentialRequestDto.setIssuer(env.getProperty("mosip.registration.processor.issuer"));
+		credentialRequestDto.setIssuer(env.getProperty(issuerId));
 
 		credentialRequestDto.setEncryptionKey(generatePin());
-		additionalAttributes.put("credential_id",regId);
-		additionalAttributes.put("template",env.getProperty("mosip.registration.processor.uincard.template"));
+		additionalAttributes.put("template",template);
 		credentialRequestDto.setAdditionalData(additionalAttributes);
 
 		return credentialRequestDto;
