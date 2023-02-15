@@ -206,10 +206,6 @@ public class ABISHandlerUtil {
 				filteredRegMap.put(matchedUin, machedRegId);
 			}
 
-			if (registrationType.equalsIgnoreCase(SyncTypeDto.LOST.toString()) && matchedUin != null) {
-				filteredRegMap.put(matchedUin, machedRegId);
-			}
-
 		}
 		if (!filteredRegMap.isEmpty()) {
 			filteredRIds = new ArrayList<>(filteredRegMap.values());
