@@ -42,7 +42,7 @@ jobs:
           status: ${{ job.status }}
           fields: repo,message,commit,author,job,took,ref # selectable (default: repo,message)
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }} # required
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_DEVOPS }} # required
         if: success() # Pick up events when the job is successful.
 
       # run only if not 'db_release_scripts' files were changed
@@ -50,7 +50,7 @@ jobs:
         if: needs.paths-filter.outputs.db_release_scripts != 'true'
         run: echo "Updates are not present in db_release_scripts directory"
 
-   # run only if 'db_scripts' files were changed
+  # run only if 'db_scripts' files were changed
   db_scripts_updates:
     needs: paths-filter
     if: needs.paths-filter.outputs.db_scripts == 'true'
@@ -63,7 +63,7 @@ jobs:
           status: ${{ job.status }}
           fields: repo,message,commit,author,job,took,ref # selectable (default: repo,message)
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }} # required
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_DEVOPS }}  # required
         if: success() # Pick up events when the job is successful.
 
       # run only if not 'db_scripts' files were changed
