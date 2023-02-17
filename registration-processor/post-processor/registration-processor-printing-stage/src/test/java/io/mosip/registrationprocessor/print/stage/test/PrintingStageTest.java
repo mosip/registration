@@ -171,7 +171,8 @@ public class PrintingStageTest {
 		when(env.getProperty("mosip.registration.processor.datetime.pattern"))
 				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		when(env.getProperty("mosip.regproc.printing.server.port")).thenReturn("8099");
-
+		when(env.getProperty("mosip.registration.processor.issuer"))
+				.thenReturn("mpartner-default-digitalcard:PDFCard:RPR_UIN_CARD_TEMPLATE;mpartner-default-print:euin:RPR_UIN_CARD_TEMPLATE");
 		ReflectionTestUtils.setField(stage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(stage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(stage, "clusterManagerUrl", "/dummyPath");
