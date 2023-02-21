@@ -241,7 +241,6 @@ public class PrintingStage extends MosipVerticleAPIManager {
 			requestWrapper.setVersion("1.0");
 			for (String key : issuers.split(SEMICOLON)) {
 				CredentialRequestDto credentialRequestDto=null;
-				if(key.length()<3) {
 					String[] parts = key.split(COLON, 3);
 					credentialRequestDto = getCredentialRequestDto(regId, parts[0], parts[1], parts[2]);
 					requestWrapper.setRequest(credentialRequestDto);
@@ -255,7 +254,7 @@ public class PrintingStage extends MosipVerticleAPIManager {
 								null, requestWrapper, ResponseWrapper.class);
 					}
 				}
-			}
+
 			if (responseWrapper.getErrors() != null && !responseWrapper.getErrors().isEmpty()) {
 				ErrorDTO error = responseWrapper.getErrors().get(0);
 				object.setIsValid(Boolean.FALSE);
