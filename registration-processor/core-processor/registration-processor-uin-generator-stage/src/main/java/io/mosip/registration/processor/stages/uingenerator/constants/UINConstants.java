@@ -36,5 +36,5 @@ public class UINConstants {
 
 	/** The Constant UIN_UNASSIGNED. */
 	public static final String UIN_UNASSIGNED = "UNASSIGNED";
-	
+		
 }
