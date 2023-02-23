@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.status.dao;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -258,6 +259,22 @@ public class RegistrationStatusDao {
 		params.put("ids", ids);
 		params.put(ISACTIVE, Boolean.TRUE);
 		params.put(ISDELETED, Boolean.FALSE);
+
+		return registrationStatusRepositary.createQuerySelect(queryStr, params);
+	}
+	
+	public List<RegistrationStatusEntity> getByIdsWithRegtype(List<String> ids) {
+
+		Map<String, Object> params = new HashMap<>();
+		String className = RegistrationStatusEntity.class.getSimpleName();
+		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
+		List<String> regTypes = new ArrayList<>();
+		regTypes.add("NEW");
+		regTypes.add("UPDATE");
+		String queryStr = SELECT + alias + FROM + className + EMPTY_STRING +alias + EMPTY_STRING + WHERE + alias + ".id IN :ids"+ EMPTY_STRING + AND
+				+ EMPTY_STRING +alias+".registrationType IN :regTypes";
+		params.put("ids", ids);
+		params.put("regTypes",regTypes);
 
 		return registrationStatusRepositary.createQuerySelect(queryStr, params);
 	}

@@ -554,5 +554,34 @@ public class RegistrationStatusServiceImpl
 					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
 		}
 	}
+	
+	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * io.mosip.registration.processor.status.service.RegistrationStatusService#
+	 * getByIdsAndTimestamp(java.util.List)
+	 */
+	@Override
+	public List<InternalRegistrationStatusDto> getByIdsWithRegtype(List<String> ids) {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				"RegistrationStatusServiceImpl::getByIdsWithRegtype()::entry");
+
+		try {
+			List<RegistrationStatusEntity> registrationStatusEntityList = registrationStatusDao
+					.getByIdsWithRegtype(ids);
+
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+					"RegistrationStatusServiceImpl::getByIdsWithRegtype()::exit");
+			return convertEntityListToDtoList(registrationStatusEntityList);
+		} catch (DataAccessLayerException e) {
+
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
+			throw new TablenotAccessibleException(
+					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
+		}
+	}
 
 }

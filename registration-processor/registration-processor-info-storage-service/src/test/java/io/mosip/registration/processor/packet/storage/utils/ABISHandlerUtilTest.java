@@ -15,6 +15,10 @@ import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoServic
 import io.mosip.registration.processor.packet.storage.dao.PacketInfoDao;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.mapper.PacketInfoMapper;
+import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
+import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
+import io.mosip.registration.processor.status.service.RegistrationStatusService;
+
 import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,6 +29,7 @@ import org.mockito.MockitoAnnotations;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,6 +37,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -62,14 +68,37 @@ public class ABISHandlerUtilTest {
 
 	@Mock
 	private IdRepoService idRepoService;
+	
+	@Mock
+	private RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
+	
+
 
 	@Before
 	public void setup() throws Exception {
 		MockitoAnnotations.initMocks(this);
 		when(utilities.getLatestTransactionId(registrationId)).thenReturn(latestTransactionId);
 
+		
 		List<String> regBioRefIds = new ArrayList<>();
 		regBioRefIds.add("cf1c941a-142c-44f1-9543-4606b4a7884e");
+		
+		List<InternalRegistrationStatusDto> filterdRecords = new ArrayList<>();
+		InternalRegistrationStatusDto RSD1 = new InternalRegistrationStatusDto();
+		RSD1.setRegistrationId("10002100820001420210108085100");
+		InternalRegistrationStatusDto RSD2 = new InternalRegistrationStatusDto();
+		RSD2.setRegistrationId("10002100820001420210108085101");
+		InternalRegistrationStatusDto RSD3 = new InternalRegistrationStatusDto();
+		RSD3.setRegistrationId("10002100820001420210108085102");
+		InternalRegistrationStatusDto RSD4 = new InternalRegistrationStatusDto();
+		RSD4.setRegistrationId("10002100820001420210108085103");
+		InternalRegistrationStatusDto RSD5 = new InternalRegistrationStatusDto();
+		RSD5.setRegistrationId("10002100820001420210108085104");
+		filterdRecords.add(RSD1);
+		filterdRecords.add(RSD2);
+		filterdRecords.add(RSD3);
+		filterdRecords.add(RSD4);
+		filterdRecords.add(RSD5);
 
 		when(packetInfoDao.getAbisRefMatchedRefIdByRid(registrationId)).thenReturn(regBioRefIds);
 		when(utilities.getGetRegProcessorDemographicIdentity()).thenReturn(new String());
@@ -109,6 +138,7 @@ public class ABISHandlerUtilTest {
 			when(packetInfoManager.getAbisResponseDetails(dto.getMatchedBioRefId())).thenReturn(Lists.newArrayList(responseDetDto));
 		}
 
+        when(registrationStatusService.getByIdsWithRegtype(matchedRids)).thenReturn(filterdRecords);
 		when(packetInfoDao.getAbisRefRegIdsByMatchedRefIds(matchedRids)).thenReturn(matchedRids);
 
 		when(packetInfoDao.getWithoutStatusCodes(matchedRids, RegistrationTransactionStatusCode.REJECTED.toString(),
@@ -123,8 +153,9 @@ public class ABISHandlerUtilTest {
 
 	@Test
 	public void testProcesssedWithUniqueUin() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
-
+		
 		List<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType, ProviderStageName.BIO_DEDUPE);
+	
 
 		assertEquals(matchedRids.size(), uniqueRids.size());
 	}

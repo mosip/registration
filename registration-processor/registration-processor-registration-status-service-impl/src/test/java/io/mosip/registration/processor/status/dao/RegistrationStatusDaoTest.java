@@ -110,4 +110,12 @@ public class RegistrationStatusDaoTest {
 		List<RegistrationStatusEntity> rEntityList = registrationStatusDao.getByIdsAndTimestamp(idList);
 		assertEquals(list, rEntityList);
 	}
+	
+	@Test
+	public void testGetByIdsWithRegtype() {
+		List<String> idList = new ArrayList<>();
+		idList.add("1000");
+		List<RegistrationStatusEntity> rEntityList = registrationStatusDao.getByIdsAndTimestamp(idList);
+		assertEquals(list, rEntityList);
+	}
 }

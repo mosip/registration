@@ -274,4 +274,27 @@ public class RegistrationStatusServiceTest {
 		registrationStatusService.getByIdsAndTimestamp(ids);
 
 	}
+	
+	@Test
+	public void testGetByIdsWithRegtypeSuccess() {
+
+		Mockito.when(registrationStatusDao.getByIdsWithRegtype(any())).thenReturn(entities);
+
+		List<String> ids = new ArrayList<>();
+		ids.add("1001");
+		List<InternalRegistrationStatusDto> list = registrationStatusService.getByIdsWithRegtype(ids);
+		assertEquals("PACKET_UPLOADED_TO_LANDING_ZONE", list.get(0).getStatusCode());
+	}
+
+	@Test(expected = TablenotAccessibleException.class)
+	public void getByIdsWithRegtypeFailureTest() {
+
+		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
+				"errorMessage", new Exception());
+		Mockito.when(registrationStatusDao.getByIdsWithRegtype(any())).thenThrow(exp);
+		List<String> ids = new ArrayList<>();
+		ids.add("1001");
+		registrationStatusService.getByIdsWithRegtype(ids);
+
+	}
 }

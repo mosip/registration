@@ -127,4 +127,13 @@ public interface RegistrationStatusService<T, U, D> {
 	 * @return the by ids and timestamp
 	 */
 	public List<U> getByIdsAndTimestamp(List<String> ids);
+	
+	/**
+	 * Gets the by ids and regtypes.
+	 *
+	 * @param ids
+	 *            the ids
+	 * @return the by ids and and regtypes
+	 */
+	public List<U> getByIdsWithRegtype(List<String> ids);
 }
