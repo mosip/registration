@@ -2,6 +2,8 @@ package io.mosip.registration.processor.print.stage;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
@@ -11,6 +13,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.HashMap;
 import java.util.ArrayList;
+
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -249,9 +253,9 @@ public class PrintingStage extends MosipVerticleAPIManager {
 								requestWrapper, ResponseWrapper.class, MediaType.APPLICATION_JSON);
 					} else {
 						List<String> pathsegments = new ArrayList<>();
-						pathsegments.add(regId + PDF); //  #PDF suffix is added to identify the requested credential via rid
+						pathsegments.add(URLEncoder.encode((regId + PDF), StandardCharsets.UTF_8.toString())); //  #PDF suffix is added to identify the requested credential via rid
 						responseWrapper = (ResponseWrapper<?>) restClientService.postApi(ApiName.CREDENTIALREQUESTV2, MediaType.APPLICATION_JSON, pathsegments, null,
-								null, requestWrapper, ResponseWrapper.class);
+									null, requestWrapper, ResponseWrapper.class);
 					}
 				}
 
