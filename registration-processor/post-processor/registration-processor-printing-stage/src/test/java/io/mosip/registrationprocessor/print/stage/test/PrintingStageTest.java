@@ -264,7 +264,8 @@ public class PrintingStageTest {
 		responseWrapper.setResponse(credentialResponseDto);
 		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any(), any(MediaType.class)))
 				.thenReturn(responseWrapper);
-
+		Mockito.when(restClientService.postApi((ApiName) any(), any(MediaType.class),any(),any(), any(), any(), any()))
+				.thenReturn(responseWrapper);
 		MessageDTO result = stage.process(dto);
 		assertTrue(result.getIsValid());
 		assertFalse(result.getInternalError());
