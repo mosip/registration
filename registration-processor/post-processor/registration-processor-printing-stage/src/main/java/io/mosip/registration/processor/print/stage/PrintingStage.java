@@ -160,7 +160,8 @@ public class PrintingStage extends MosipVerticleAPIManager {
 
 	private static final String ISSUERS = "mosip.registration.processor.issuer";
 
-	private static final String PDF = "#PDF";
+	@Value("${mosip.registration.processor.rid.delimiter:-PDF}")
+	private String pdfDelimiter;
 
 	private static String SEMICOLON = ";";
 	private static String COLON = ":";
@@ -177,7 +178,6 @@ public class PrintingStage extends MosipVerticleAPIManager {
 	 * Deploy verticle.
 	 */
 	public void deployVerticle() {
-
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.PRINTING_BUS_IN, MessageBusAddress.PRINTING_BUS_OUT,
 				messageExpiryTimeLimit);
@@ -253,7 +253,7 @@ public class PrintingStage extends MosipVerticleAPIManager {
 								requestWrapper, ResponseWrapper.class, MediaType.APPLICATION_JSON);
 					} else {
 						List<String> pathsegments = new ArrayList<>();
-						pathsegments.add(URLEncoder.encode((regId + PDF), StandardCharsets.UTF_8.toString())); //  #PDF suffix is added to identify the requested credential via rid
+						pathsegments.add(regId + pdfDelimiter); //  #PDF suffix is added to identify the requested credential via rid
 						responseWrapper = (ResponseWrapper<?>) restClientService.postApi(ApiName.CREDENTIALREQUESTV2, MediaType.APPLICATION_JSON, pathsegments, null,
 									null, requestWrapper, ResponseWrapper.class);
 					}
