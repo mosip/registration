@@ -2,14 +2,19 @@ package io.mosip.registration.processor.print.stage;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.HashMap;
+import java.util.ArrayList;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -130,6 +135,9 @@ public class PrintingStage extends MosipVerticleAPIManager {
 	@Value("${mosip.registration.processor.encrypt:false}")
 	private boolean encrypt;
 
+	@Value("${mosip.registration.processor.default.issuer:mpartner-default-print}")
+	private String issuer;
+
 
 	/** Mosip router for APIs */
 	@Autowired
@@ -150,6 +158,12 @@ public class PrintingStage extends MosipVerticleAPIManager {
 
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
 
+	private static final String ISSUERS = "mosip.registration.processor.issuer";
+
+	private static final String PDF = "#PDF";
+
+	private static String SEMICOLON = ";";
+	private static String COLON = ":";
 
 	@Autowired
 	private Utilities utilities;
@@ -192,7 +206,7 @@ public class PrintingStage extends MosipVerticleAPIManager {
 
 		InternalRegistrationStatusDto registrationStatusDto = null;
 		RequestWrapper<CredentialRequestDto> requestWrapper = new RequestWrapper<>();
-		ResponseWrapper<?> responseWrapper;
+		ResponseWrapper<?> responseWrapper = null;
 		CredentialResponseDto credentialResponseDto;
 		try {
 			registrationStatusDto = registrationStatusService.getRegistrationStatus(
@@ -222,16 +236,29 @@ public class PrintingStage extends MosipVerticleAPIManager {
 			}
 			else {
 			String vid = getVid(uin);
-			CredentialRequestDto credentialRequestDto = getCredentialRequestDto(vid);
 			requestWrapper.setId(env.getProperty("mosip.registration.processor.credential.request.service.id"));
-			requestWrapper.setRequest(credentialRequestDto);
+			String issuers=	env.getProperty(ISSUERS);
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+						.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
 			requestWrapper.setRequesttime(localdatetime);
 			requestWrapper.setVersion("1.0");
-			responseWrapper = (ResponseWrapper<?>) restClientService.postApi(ApiName.CREDENTIALREQUEST, null, null,
-					requestWrapper, ResponseWrapper.class, MediaType.APPLICATION_JSON);
+			for (String key : issuers.split(SEMICOLON)) {
+				CredentialRequestDto credentialRequestDto=null;
+					String[] parts = key.split(COLON, 3);
+					credentialRequestDto = getCredentialRequestDto(regId, parts[0], parts[1], parts[2]);
+					requestWrapper.setRequest(credentialRequestDto);
+					if (parts[0].equalsIgnoreCase(issuer)) { // for default issuer stage is calling v1 api and for others stage is calling v2 api for credential
+						responseWrapper = (ResponseWrapper<?>) restClientService.postApi(ApiName.CREDENTIALREQUEST, null, null,
+								requestWrapper, ResponseWrapper.class, MediaType.APPLICATION_JSON);
+					} else {
+						List<String> pathsegments = new ArrayList<>();
+						pathsegments.add(URLEncoder.encode((regId + PDF), StandardCharsets.UTF_8.toString())); //  #PDF suffix is added to identify the requested credential via rid
+						responseWrapper = (ResponseWrapper<?>) restClientService.postApi(ApiName.CREDENTIALREQUESTV2, MediaType.APPLICATION_JSON, pathsegments, null,
+									null, requestWrapper, ResponseWrapper.class);
+					}
+				}
+
 			if (responseWrapper.getErrors() != null && !responseWrapper.getErrors().isEmpty()) {
 				ErrorDTO error = responseWrapper.getErrors().get(0);
 				object.setIsValid(Boolean.FALSE);
@@ -343,17 +370,20 @@ public class PrintingStage extends MosipVerticleAPIManager {
 		return object;
 	}
 
-	private CredentialRequestDto getCredentialRequestDto(String regId) {
+	private CredentialRequestDto getCredentialRequestDto(String regId,String issuerId,String credentialType,String templateTypeCode) {
 		CredentialRequestDto credentialRequestDto = new CredentialRequestDto();
+		Map<String, Object> additionalAttributes=new HashMap<>();
 
-		credentialRequestDto.setCredentialType(env.getProperty("mosip.registration.processor.credentialtype"));
+		credentialRequestDto.setCredentialType(credentialType);
 		credentialRequestDto.setEncrypt(encrypt);
 
 		credentialRequestDto.setId(regId);
 
-		credentialRequestDto.setIssuer(env.getProperty("mosip.registration.processor.issuer"));
+		credentialRequestDto.setIssuer(issuerId);
 
 		credentialRequestDto.setEncryptionKey(generatePin());
+		additionalAttributes.put("templateTypeCode",templateTypeCode);
+		credentialRequestDto.setAdditionalData(additionalAttributes);
 
 		return credentialRequestDto;
 	}
