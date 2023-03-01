@@ -177,6 +177,7 @@ public class PrintingStageTest {
 		ReflectionTestUtils.setField(stage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(stage, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(stage, "busOutHaltAddresses", Arrays.asList());
+		ReflectionTestUtils.setField(stage, "pdfDelimiter", "-PDF");
 		ReflectionTestUtils.setField(stage, "issuer", "mpartner-default-print");
 		System.setProperty("server.port", "8099");
 
