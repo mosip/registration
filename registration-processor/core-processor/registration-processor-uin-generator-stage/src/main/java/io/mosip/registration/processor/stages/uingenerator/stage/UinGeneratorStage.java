@@ -155,6 +155,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	
 	@Value("${mosip.idrepo.create-identity.enable-force-merge:false}")
 	private boolean idRepoForceMergeEnabled;
+	
+	@Value("${mosip.regproc.uin.generator.dob.log.enable:false}")
+	private boolean dobLogEnable;
 
 	/** The core audit request builder. */
 	@Autowired
@@ -247,8 +250,8 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 				String dateOfBirth = fieldMap
 						.get(utility.getMappingJsonValue(MappingJsonConstants.DOB, MappingJsonConstants.IDENTITY));
-				if (dateOfBirth != null && !dateOfBirth.isEmpty()) {
-					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+				if ((dateOfBirth != null && !dateOfBirth.isEmpty()) && dobLogEnable)  {
+					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
 							"UinGeneratorStage::process()::Before calling ID-repo api date of birth hash: "
 									+ getHMACHashCode(dateOfBirth));
