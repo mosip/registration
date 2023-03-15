@@ -1,7 +1,7 @@
 package io.mosip.registration.processor.status.api.config;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.kernel.core.logger.spi.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,7 +20,7 @@ import io.swagger.v3.oas.models.servers.Server;
 @Configuration
 public class RegistrationStatusConfig {
 
-	private static final Logger logger = LoggerFactory.getLogger(RegistrationStatusConfig.class);
+	private static final Logger logger = RegProcessorLogger.getLogger(RegistrationStatusConfig.class);
 
 	@Autowired
 	private OpenApiProperties openApiProperties;
