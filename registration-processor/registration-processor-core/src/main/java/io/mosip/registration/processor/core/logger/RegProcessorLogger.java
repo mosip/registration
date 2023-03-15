@@ -7,6 +7,7 @@ import io.mosip.kernel.logger.logback.factory.Logfactory;
 
 
 import java.util.stream.Collectors;
+import java.util.HashMap;
 import java.util.Map;
 
 import ch.qos.logback.classic.Level;
@@ -21,7 +22,7 @@ public final class RegProcessorLogger {
 	
 	public static final String PROP_PREFIX = "logging.level.";
 	
-	public static Map<String,String> loggingLevelMap;
+	public static Map<String,String> loggingLevelMap=new HashMap<String,String>();
 	
 	/**
 	 * Instantiates a new reg processor logger.
