@@ -161,6 +161,8 @@ public class MessageNotificationServiceImpl
 
 	@Autowired
 	private ObjectMapper mapper;
+	
+	private JSONObject mapperJson = null;
 
 	/*
 	 * (non-Javadoc)
@@ -535,10 +537,12 @@ public class MessageNotificationServiceImpl
 
 			demographicIdentity = JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class);
 
-
-		String mapperJsonString = Utilities.getJson(utility.getConfigServerFileStorageURL(),
-				utility.getGetRegProcessorIdentityJson());
-		JSONObject mapperJson = JsonUtil.objectMapperReadValue(mapperJsonString, JSONObject.class);
+        if(mapperJson==null) {
+        	String mapperJsonString = Utilities.getJson(utility.getConfigServerFileStorageURL(),
+    				utility.getGetRegProcessorIdentityJson());
+    		mapperJson = JsonUtil.objectMapperReadValue(mapperJsonString, JSONObject.class);
+        }
+		
 		JSONObject mapperIdentity = JsonUtil.getJSONObject(mapperJson, utility.getGetRegProcessorDemographicIdentity());
 
 		List<String> mapperJsonKeys = new ArrayList<>(mapperIdentity.keySet());
