@@ -321,7 +321,7 @@
 		<!-- <module>registration-processor-message-sender-impl</module> -->
 		<!--<module>init</module>-->
 		<module>pre-processor</module>
-		<!--<module>core-processor</module>-->
+		<module>core-processor</module>
 		<!--<module>post-processor</module>-->
 	</modules>
 
