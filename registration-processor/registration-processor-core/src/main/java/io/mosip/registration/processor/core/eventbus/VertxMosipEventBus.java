@@ -12,9 +12,8 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.kernel.core.logger.spi.Logger;
 
 
 /**
@@ -25,7 +24,7 @@ import org.slf4j.LoggerFactory;
 public class VertxMosipEventBus implements MosipEventBus {
 
 	/** The logger. */
-	private Logger logger = LoggerFactory.getLogger(VertxMosipEventBus.class);
+	private Logger logger = RegProcessorLogger.getLogger(VertxMosipEventBus.class);
 
 	/** The vertx instance that will be used by this event bus */
 	private Vertx vertx = null;

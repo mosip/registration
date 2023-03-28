@@ -8,8 +8,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -21,6 +20,8 @@ import org.springframework.core.type.filter.TypeFilter;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.stages.executor.config.StagesConfig;
 
 /**
@@ -29,7 +30,7 @@ import io.mosip.registration.processor.stages.executor.config.StagesConfig;
 public class StageClassesUtil {
 	
 	/** The Constant regProcLogger. */
-	private static final Logger regProcLogger = LoggerFactory.getLogger(StageClassesUtil.class);
+	private static final Logger regProcLogger = RegProcessorLogger.getLogger(StageClassesUtil.class);
 	
 	/** The Constant PROP_STAGE_GROUPS_STAGE_BEANS_BASE_PACKAGES_PREFIX. */
 	private static final String PROP_STAGE_GROUPS_STAGE_BEANS_BASE_PACKAGES_PREFIX = "mosip.regproc.mosip-stage-executor.stage-beans-base-packages.";
