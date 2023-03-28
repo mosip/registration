@@ -165,9 +165,11 @@ public class MessageNotificationServiceImpl
 
 	@Autowired
 	private ObjectMapper mapper;
-	
+
 	private List<String> mapperJsonKeys = null;
-	
+
+	private JSONObject mapperIdentity=null;
+
 	private JSONObject mapperIdentity=null;
 
 	/*
