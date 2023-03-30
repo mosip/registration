@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.AuditLogConstant;
@@ -138,6 +139,63 @@ public class AuditLogRequestBuilder {
 			auditRequestDto.setModuleId(moduleId);
 			auditRequestDto.setModuleName(moduleName);
 			auditRequestDto.setSessionUserId(AuditLogConstant.SYSTEM.toString());
+			auditRequestDto.setSessionUserName(null);
+			requestWrapper.setId(env.getProperty(AUDIT_SERVICE_ID));
+			requestWrapper.setMetadata(null);
+			requestWrapper.setRequest(auditRequestDto);
+			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+			LocalDateTime localdatetime = LocalDateTime
+					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+			requestWrapper.setRequesttime(localdatetime);
+			requestWrapper.setVersion(env.getProperty(REG_PROC_APPLICATION_VERSION));
+			responseWrapper = (ResponseWrapper<AuditResponseDto>) registrationProcessorRestService
+					.postApi(ApiName.AUDIT, "", "", requestWrapper, ResponseWrapper.class);
+
+		} catch (ApisResourceAccessException arae) {
+
+			regProcLogger.error(arae.getMessage());
+
+		}
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				registrationId,
+				"AuditLogRequestBuilder:: createAuditRequestBuilder(String description, String eventId, String eventName, String eventType,String moduleId,String moduleName,\r\n"
+						+ "			String registrationId)::exit");
+
+		return responseWrapper;
+	}
+
+	@SuppressWarnings("unchecked")
+	public ResponseWrapper<AuditResponseDto> createAuditRequestBuilder(String description, String eventId,
+			String eventName, String eventType, String moduleId, String moduleName, String registrationId,
+			String userId) {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				registrationId,
+				"AuditLogRequestBuilder:: createAuditRequestBuilder(String description, String eventId, String eventName, String eventType,String moduleId,String moduleName,\r\n"
+						+ "			String registrationId)::entry");
+
+		AuditRequestDto auditRequestDto;
+		RequestWrapper<AuditRequestDto> requestWrapper = new RequestWrapper<>();
+		ResponseWrapper<AuditResponseDto> responseWrapper = new ResponseWrapper<>();
+
+		try {
+
+			auditRequestDto = new AuditRequestDto();
+			auditRequestDto.setDescription(description);
+			auditRequestDto
+					.setActionTimeStamp(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
+			auditRequestDto.setApplicationId(AuditLogConstant.MOSIP_4.toString());
+			auditRequestDto.setApplicationName(AuditLogConstant.REGISTRATION_PROCESSOR.toString());
+			auditRequestDto.setCreatedBy(AuditLogConstant.SYSTEM.toString());
+			auditRequestDto.setEventId(eventId);
+			auditRequestDto.setEventName(eventName);
+			auditRequestDto.setEventType(eventType);
+			auditRequestDto.setHostIp(ServerUtil.getServerUtilInstance().getServerIp());
+			auditRequestDto.setHostName(ServerUtil.getServerUtilInstance().getServerName());
+			auditRequestDto.setId(registrationId);
+			auditRequestDto.setIdType(AuditLogConstant.REGISTRATION_ID.toString());
+			auditRequestDto.setModuleId(moduleId);
+			auditRequestDto.setModuleName(moduleName);
+			auditRequestDto.setSessionUserId(userId);
 			auditRequestDto.setSessionUserName(null);
 			requestWrapper.setId(env.getProperty(AUDIT_SERVICE_ID));
 			requestWrapper.setMetadata(null);
