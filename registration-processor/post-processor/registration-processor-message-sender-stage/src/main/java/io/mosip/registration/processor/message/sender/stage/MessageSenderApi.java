@@ -72,7 +72,7 @@ public class MessageSenderApi extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.message.sender.api.eventbus.port}")
 	private String eventBusPort;
 
-	@Value("${mosip.regproc.message.sender.api.datetime.pattern}")
+	@Value("${mosip.registration.processor.datetime.pattern}")
 	private String dateTimePattern;
 
 	@Value("${mosip.regproc.message.sender.api.id}")
@@ -114,8 +114,6 @@ public class MessageSenderApi extends MosipVerticleAPIManager {
 	 */
 	public void deployVerticle() {
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
-
-
 	}
 
 	@Override
@@ -166,12 +164,12 @@ public class MessageSenderApi extends MosipVerticleAPIManager {
 				messageDTO.setRid(messageSenderRequestDTO.getRid());
 				messageDTO.setReg_type(RegistrationType.valueOf(messageSenderRequestDTO.getReg_type()));
 				sendMessage(messageDTO, MessageBusAddress.MESSAGE_SENDER_BUS);
-				regProcLogger.info("Request added dto queue succesfully  for rid {}",
+				regProcLogger.info("Request added to queue succesfully  for rid {}",
 						rid);
 				description.setMessage(PlatformSuccessMessages.RPR_MESSAGE_SENDER_API_SUCCESS.getMessage());
 				description.setCode(PlatformSuccessMessages.RPR_MESSAGE_SENDER_API_SUCCESS.getCode());
-				updateAudit(description, user, true, user);
-				buildResponse(ctx, user, null);
+				updateAudit(description, rid, true, user);
+				buildResponse(ctx, description.getMessage(), null);
 				regProcLogger.debug("MessageSenderApi:processURL called ended for registration id {}",
 						rid);
 			} else {
