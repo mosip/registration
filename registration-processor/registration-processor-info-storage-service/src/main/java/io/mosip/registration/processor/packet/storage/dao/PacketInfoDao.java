@@ -589,7 +589,7 @@ public class PacketInfoDao {
 	 * @return the processed or processing reg ids
 	 */
 	public List<String> getWithoutStatusCodes(List<String> matchedRegIds, String statusCode1, String statusCode2) {
-		return registrationRepositary.getWithoutStatusCodes(matchedRegIds, "REJECTED", "PROCESSED");
+		return registrationRepositary.getWithoutStatusCodes(matchedRegIds, statusCode1, statusCode2);
 	}
 
 	/**
