@@ -588,8 +588,8 @@ public class PacketInfoDao {
 	 *            the status code
 	 * @return the processed or processing reg ids
 	 */
-	public List<String> getWithStatusCode(List<String> matchedRegIds, String statusCode) {
-		return registrationRepositary.getWithStatusCode(matchedRegIds, statusCode);
+	public List<String> getWithoutStatusCodes(List<String> matchedRegIds, String statusCode1, String statusCode2) {
+		return registrationRepositary.getWithoutStatusCodes(matchedRegIds, "REJECTED", "PROCESSED");
 	}
 
 	/**
