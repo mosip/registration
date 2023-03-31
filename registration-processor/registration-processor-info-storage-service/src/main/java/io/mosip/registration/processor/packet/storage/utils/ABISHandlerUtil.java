@@ -7,19 +7,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import io.mosip.kernel.core.util.exception.JsonProcessingException;
-import io.mosip.registration.processor.core.constant.ProviderStageName;
-import io.mosip.registration.processor.core.code.AbisStatusCode;
-import io.mosip.registration.processor.core.exception.PacketManagerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.code.AbisStatusCode;
 import io.mosip.registration.processor.core.constant.AbisConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisRequestDto;
@@ -29,6 +28,7 @@ import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.dao.PacketInfoDao;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
+import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.SyncTypeDto;
 
@@ -96,11 +96,11 @@ public class ABISHandlerUtil {
 				if (!CollectionUtils.isEmpty(machedRefIds)) {
 					List<String> matchedRegIds = packetInfoDao.getAbisRefRegIdsByMatchedRefIds(machedRefIds);
 					if (!CollectionUtils.isEmpty(matchedRegIds)) {
-						List<String> processingRegIds = packetInfoDao.getWithoutStatusCodes(matchedRegIds,
-								RegistrationTransactionStatusCode.REJECTED.toString(), RegistrationTransactionStatusCode.PROCESSED.toString());
+						List<String> processingRegIds = packetInfoDao.getWithStatusCode(matchedRegIds,
+								RegistrationStatusCode.PROCESSING.toString());
 						List<String> statusList=new ArrayList<>();
-						statusList.add(RegistrationTransactionStatusCode.PROCESSED.toString());
-						statusList.add(RegistrationTransactionStatusCode.PROCESSING.toString());
+						statusList.add(RegistrationStatusCode.PROCESSED.toString());
+						statusList.add(RegistrationStatusCode.PROCESSING.toString());
 						List<String> processedRegIds = packetInfoDao.getProcessedOrProcessingRegIds(matchedRegIds,
 								statusList);
 						uniqueRIDs = getUniqueRegIds(processedRegIds, registrationId, registrationType, stageName);
