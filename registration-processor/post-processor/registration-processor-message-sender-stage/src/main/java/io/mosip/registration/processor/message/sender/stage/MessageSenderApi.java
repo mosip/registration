@@ -162,31 +162,27 @@ public class MessageSenderApi extends MosipVerticleAPIManager {
 				updateAudit(description, messageSenderRequestDTO.getRid(), false, user);
 				throw new MessageSenderException(PlatformErrorMessages.RPR_MAS_RID_NOT_FOUND.getCode(),
 						String.format(PlatformErrorMessages.RPR_MAS_RID_NOT_FOUND.getMessage(), rid));
-			} else {
-				
-				if (registrationStatusDto.getRegistrationType().equals(messageSenderRequestDTO.getRegType())) {
-					MessageDTO messageDTO = new MessageDTO();
-					messageDTO.setRid(messageSenderRequestDTO.getRid());
-					messageDTO.setReg_type(RegistrationType.valueOf(messageSenderRequestDTO.getRegType()));
-					messageDTO.setIsValid(true);
-					messageDTO.setInternalError(false);
-					messageDTO.setMessageBusAddress(MessageBusAddress.MESSAGE_SENDER_BUS);
-					sendMessage(messageDTO, MessageBusAddress.MESSAGE_SENDER_BUS);
-					regProcLogger.info("Request added to queue succesfully  for rid {}", rid);
-					description.setMessage(PlatformSuccessMessages.RPR_MESSAGE_SENDER_API_SUCCESS.getMessage());
-					description.setCode(PlatformSuccessMessages.RPR_MESSAGE_SENDER_API_SUCCESS.getCode());
-					updateAudit(description, rid, true, user);
-					buildResponse(ctx, description.getMessage(), null);
-					regProcLogger.debug("MessageSenderApi:processURL called ended for registration id {}", rid);
-
-				} else {
-					description.setMessage(PlatformErrorMessages.RPR_MAS_REGTYPE_NOT_MATCHING.getMessage());
-					description.setCode(PlatformErrorMessages.RPR_MAS_REGTYPE_NOT_MATCHING.getCode());
-   				updateAudit(description, messageSenderRequestDTO.getRid(), false, user);
-					throw new MessageSenderException(PlatformErrorMessages.RPR_MAS_REGTYPE_NOT_MATCHING.getCode(),
-							String.format(PlatformErrorMessages.RPR_MAS_REGTYPE_NOT_MATCHING.getMessage(), rid));
-               }
 			}
+			if (!registrationStatusDto.getRegistrationType().equals(messageSenderRequestDTO.getRegType())) {
+				description.setMessage(PlatformErrorMessages.RPR_MAS_REGTYPE_NOT_MATCHING.getMessage());
+				description.setCode(PlatformErrorMessages.RPR_MAS_REGTYPE_NOT_MATCHING.getCode());
+				updateAudit(description, messageSenderRequestDTO.getRid(), false, user);
+				throw new MessageSenderException(PlatformErrorMessages.RPR_MAS_REGTYPE_NOT_MATCHING.getCode(),
+						String.format(PlatformErrorMessages.RPR_MAS_REGTYPE_NOT_MATCHING.getMessage(), rid));
+				}
+				MessageDTO messageDTO = new MessageDTO();
+				messageDTO.setRid(messageSenderRequestDTO.getRid());
+				messageDTO.setReg_type(RegistrationType.valueOf(messageSenderRequestDTO.getRegType()));
+				messageDTO.setIsValid(true);
+				messageDTO.setInternalError(false);
+				messageDTO.setMessageBusAddress(MessageBusAddress.MESSAGE_SENDER_BUS);
+				sendMessage(messageDTO, MessageBusAddress.MESSAGE_SENDER_BUS);
+				regProcLogger.info("Request added to queue succesfully  for rid {}", rid);
+				description.setMessage(PlatformSuccessMessages.RPR_MESSAGE_SENDER_API_SUCCESS.getMessage());
+				description.setCode(PlatformSuccessMessages.RPR_MESSAGE_SENDER_API_SUCCESS.getCode());
+				updateAudit(description, rid, true, user);
+				buildResponse(ctx, description.getMessage(), null);
+				regProcLogger.debug("MessageSenderApi:processURL called ended for registration id {}", rid);
 
 		} catch (MessageSenderRequestValidationException e) {
 			logError(rid, e.getErrorCode(), e.getMessage(), e, ctx);
