@@ -3,6 +3,7 @@ package io.mosip.registration.processor.message.sender.validator;
 import java.util.Objects;
 import java.util.TimeZone;
 
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +17,7 @@ import io.mosip.registration.processor.core.exception.MessageSenderRequestValida
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.message.sender.dto.MessageSenderDTO;
+import io.mosip.registration.processor.core.message.sender.dto.MessageSenderRequestDTO;
 
 
 @Component
@@ -28,6 +30,12 @@ public class MessageSenderRequestValidator {
 
 	/** The Constant ID_FIELD. */
 	private static final String ID_FIELD = "id";
+
+	/** The Constant ID_FIELD. */
+	private static final String RID = "rid";
+
+	/** The Constant ID_FIELD. */
+	private static final String REGTYPE = "regType";
 
 
 	private static final String MESSAGE_SENDER_ID = "mosip.regproc.message.sender.api.id";
@@ -60,12 +68,32 @@ public class MessageSenderRequestValidator {
 		validateId(messageSenderDTO.getId());
 		validateVersion(messageSenderDTO.getVersion());
 		validateReqTime(messageSenderDTO.getRequesttime());
+		validateRid(messageSenderDTO.getRequest());
+		validateRegType(messageSenderDTO.getRequest());
 
 		regProcLogger.debug("MessageSenderRequestValidator  validate exit");
 
 	}
 
 	
+	private void validateRegType(MessageSenderRequestDTO request) throws MessageSenderRequestValidationException {
+		if (StringUtils.isEmpty(request.getRegType())) {
+			throw new MessageSenderRequestValidationException(
+					PlatformErrorMessages.RPR_MAS_MISSING_INPUT_PARAMETER.getCode(),
+					String.format(PlatformErrorMessages.RPR_MAS_MISSING_INPUT_PARAMETER.getMessage(), REGTYPE));
+
+		}
+	}
+
+	private void validateRid(MessageSenderRequestDTO request) throws MessageSenderRequestValidationException {
+		if (StringUtils.isEmpty(request.getRid())) {
+			throw new MessageSenderRequestValidationException(
+					PlatformErrorMessages.RPR_MAS_MISSING_INPUT_PARAMETER.getCode(),
+					String.format(PlatformErrorMessages.RPR_MAS_MISSING_INPUT_PARAMETER.getMessage(), RID));
+
+		}
+	}
+
 	private void validateVersion(String version)
 			throws MessageSenderRequestValidationException {
 		if (Objects.isNull(version)) {

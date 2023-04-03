@@ -6,5 +6,5 @@ import lombok.Data;
 public class MessageSenderRequestDTO {
 	
 	private String rid;
-	private String reg_type;
+	private String regType;
 }
