@@ -96,9 +96,8 @@ public class ABISHandlerUtil {
 				if (!CollectionUtils.isEmpty(machedRefIds)) {
 					List<String> matchedRegIds = packetInfoDao.getAbisRefRegIdsByMatchedRefIds(machedRefIds);
 					if (!CollectionUtils.isEmpty(matchedRegIds)) {
-						List<String> processingRegIds = packetInfoDao.getWithoutStatusCodes(matchedRegIds,
-								RegistrationStatusCode.REJECTED.toString(),
-								RegistrationStatusCode.PROCESSED.toString());
+						List<String> processingRegIds = packetInfoDao.getWithStatusCode(matchedRegIds,
+								RegistrationStatusCode.PROCESSING.toString());
 						List<String> statusList=new ArrayList<>();
 						statusList.add(RegistrationStatusCode.PROCESSED.toString());
 						statusList.add(RegistrationStatusCode.PROCESSING.toString());
