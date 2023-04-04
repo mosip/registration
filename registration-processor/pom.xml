@@ -108,9 +108,9 @@
 
 		<!-- local -->
 		<registration.status.service.version>1.1.5.5-P1</registration.status.service.version>
-		<registration.processor.core.version>1.1.5.5-P3</registration.processor.core.version>
+		<registration.processor.core.version>1.1.5.5-P4-SNAPSHOT</registration.processor.core.version>
 		<packet.manager.version>1.1.5.5</packet.manager.version>
-		<registration.processor.rest.client.version>1.1.5.5-P1</registration.processor.rest.client.version>
+		<registration.processor.rest.client.version>1.1.5.5-P4-SNAPSHOT</registration.processor.rest.client.version>
 		<packet.info.storage.service.version>1.1.5.5</packet.info.storage.service.version>
 		<packet.bio.dedupe.service.impl.version>1.1.5.5</packet.bio.dedupe.service.impl.version>
 		<registration.processor.message.sender.version>1.1.5.5</registration.processor.message.sender.version>
@@ -310,8 +310,8 @@
 	</dependencyManagement>
 
 	<modules>
-		<!--<module>registration-processor-core</module>-->
-		<!--<module>registration-processor-rest-client</module>-->
+		<module>registration-processor-core</module>
+		<module>registration-processor-rest-client</module>
 		<!-- <module>registration-processor-packet-manager</module> -->
 		<!-- <module>registration-processor-common-camel-bridge</module>-->
 		<!-- <module>registration-processor-bio-dedupe-service-impl</module>-->
@@ -322,7 +322,7 @@
 		<!--<module>init</module>-->
 		<module>pre-processor</module>
 		<module>core-processor</module>
-		<!--<module>post-processor</module>-->
+		<module>post-processor</module>
 	</modules>
 
 <!--	<profiles>

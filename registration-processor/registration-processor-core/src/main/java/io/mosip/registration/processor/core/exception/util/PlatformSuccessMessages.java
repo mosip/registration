@@ -116,7 +116,10 @@ public enum PlatformSuccessMessages {
 	RPR_SYNC_REGISTRATION_SERVICE_SUCCESS(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "000", "SYNC successfull"),
 
 	RPR_REQUEST_HANDLER_LOST_PACKET_SUCCESS(PlatformConstants.RPR_PACKET_REQUEST_HANDLER_MODULE + "000",
-			"Lost packet id value fetched successfully");
+			"Lost packet id value fetched successfully"),
+	
+	RPR_MESSAGE_SENDER_API_SUCCESS(PlatformConstants.RPR_MESSAGE_SENDER_API + "000",
+			"Request added to queue");
 
 	/** The success message. */
 	private final String successMessage;

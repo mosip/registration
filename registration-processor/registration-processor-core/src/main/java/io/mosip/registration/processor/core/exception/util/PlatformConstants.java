@@ -110,6 +110,8 @@ public final class PlatformConstants {
 	public static final String RPR_ABIS_HANDLER = RPR_REGISTRATION_PROCESSOR_PREFIX + "ABIS-HANDLER-";
 
 	public static final String RPR_MA_MIDDLEWARE = RPR_REGISTRATION_PROCESSOR_PREFIX + "MANUAL-ADJUDICATION-";
+	
+	public static final String RPR_MESSAGE_SENDER_API = RPR_REGISTRATION_PROCESSOR_PREFIX + "MSA-";
 	/**
 	 * Instantiates a new RPR platform error codes.
 	 */
