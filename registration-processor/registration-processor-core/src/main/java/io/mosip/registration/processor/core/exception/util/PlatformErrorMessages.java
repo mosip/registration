@@ -1264,7 +1264,20 @@ public enum PlatformErrorMessages {
 
 	/** The queue json validation failed. */
 	QUEUE_JSON_VALIDATION_FAILED(PlatformConstants.RPR_MA_MIDDLEWARE + "004",
-			"Unable to find Connection Properties");
+			"Unable to find Connection Properties"),
+	
+	RPR_MAS_MISSING_INPUT_PARAMETER(PlatformConstants.RPR_MESSAGE_SENDER_API + "001",
+			"Missing Input Parameter - %s"),
+
+	/** The invalid input parameter. */
+	RPR_MAS_INVALID_INPUT_PARAMETER(PlatformConstants.RPR_MESSAGE_SENDER_API + "002",
+			"Invalid Input Parameter - %s"),
+	RPR_MAS_RID_NOT_FOUND(PlatformConstants.RPR_MESSAGE_SENDER_API + "003",
+			"Rid not found in registration table"),
+	RPR_MAS_UNKNOWN_EXCEPTION(PlatformConstants.RPR_MESSAGE_SENDER_API + "004",
+			"Unknown exception occured"),
+	RPR_MAS_REGTYPE_NOT_MATCHING(PlatformConstants.RPR_MESSAGE_SENDER_API + "003",
+			"Registration type not matching");
 
 	/** The error message. */
 	private final String errorMessage; 

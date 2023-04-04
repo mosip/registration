@@ -2,6 +2,7 @@ package io.mosip.registration.processor.message.sender;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
+import io.mosip.registration.processor.message.sender.stage.MessageSenderApi;
 import io.mosip.registration.processor.message.sender.stage.MessageSenderStage;
 
 /**
@@ -36,6 +37,9 @@ public class MessageSenderApplication {
 
 		MessageSenderStage messageSenderStage = ctx.getBean(MessageSenderStage.class);
 		messageSenderStage.deployVerticle();
+
+		MessageSenderApi messageSenderApi = ctx.getBean(MessageSenderApi.class);
+		messageSenderApi.deployVerticle();
 
 	}
 
