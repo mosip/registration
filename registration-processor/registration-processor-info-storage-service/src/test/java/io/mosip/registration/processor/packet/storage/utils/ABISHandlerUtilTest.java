@@ -67,7 +67,7 @@ public class ABISHandlerUtilTest {
 	@Mock
 	private IdRepoService idRepoService;
 	
-	List<String> lst=new ArrayList<>();
+
 
 	@Before
 	public void setup() throws Exception {
@@ -97,8 +97,6 @@ public class ABISHandlerUtilTest {
 		matchedRids.add("10002100820001420210108085103");
 		matchedRids.add("10002100820001420210108085101");// REJECTED
 		matchedRids.add("10002100820001420210108085102");
-
-
 		List<AbisResponseDto> abisResponseDtoList = new ArrayList<>();
 		matchedRids.forEach(matchedRid -> {
 			AbisResponseDto abisResponseDto = new AbisResponseDto();
@@ -106,11 +104,6 @@ public class ABISHandlerUtilTest {
 			abisResponseDtoList.add(abisResponseDto);
 		});
 
-		lst.add(RegistrationStatusCode.PROCESSED.toString());
-		lst.add(RegistrationStatusCode.PROCESSING.toString());
-		lst.add(RegistrationStatusCode.FAILED.toString());
-		lst.add(RegistrationStatusCode.REPROCESS_FAILED.toString());
-		
 		when(packetInfoManager.getAbisResponseRecords(regBioRefIds.get(0),
 				latestTransactionId, AbisConstant.IDENTIFY)).thenReturn(abisResponseDtoList);
 
