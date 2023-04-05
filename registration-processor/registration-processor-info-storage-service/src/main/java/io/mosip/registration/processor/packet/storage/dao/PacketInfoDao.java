@@ -565,20 +565,6 @@ public class PacketInfoDao {
 
 	}
 
-	/**
-	 * Gets the processed or processing reg ids.
-	 *
-	 * @param matchedRegIds
-	 *            the matched reg ids
-	 * @param statusCode
-	 *            the status code
-	 * @return the processed or processing reg ids
-	 */
-	public List<String> getProcessedOrProcessingRegIds(List<String> matchedRegIds, List<String> statusCodes) {
-		return registrationRepositary.getProcessedOrProcessingRegIds(matchedRegIds, statusCodes);
-	}
-
-
 	public List<RegistrationStatusEntity> getWithoutStatusCode(List<String> matchedRegIds, String statusCode) {
 		return registrationRepositary.getWithoutStatusCode(matchedRegIds, statusCode);
 	}

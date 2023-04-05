@@ -124,8 +124,8 @@ public class ABISHandlerUtilTest {
 		// when(packetInfoDao.getWithStatusCode(matchedRids,
 		// RegistrationStatusCode.PROCESSING.toString()))
 		// .thenReturn(inprogressMatchedIds);
-		when(packetInfoDao.getProcessedOrProcessingRegIds(matchedRids,
-				lst)).thenReturn(processedMatchedIds);
+		// when(packetInfoDao.getProcessedOrProcessingRegIds(matchedRids,
+		// lst)).thenReturn(processedMatchedIds);
 
 		when(idRepoService.getUinByRid(processedMatchedIds.get(0), new String())).thenReturn("123456789");
 		when(idRepoService.getUinByRid(processedMatchedIds.get(1), new String())).thenReturn("987654321");
@@ -165,8 +165,8 @@ public class ABISHandlerUtilTest {
 	@Test
 	public void testReturnAllInprogress() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
 
-		when(packetInfoDao.getProcessedOrProcessingRegIds(matchedRids,
-				lst)).thenReturn(Lists.newArrayList());
+		// when(packetInfoDao.getProcessedOrProcessingRegIds(matchedRids,
+		// lst)).thenReturn(Lists.newArrayList());
 
 		List<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType, ProviderStageName.BIO_DEDUPE);
 		// expected not to pick rocessedMatchedIds list i.e 3 records.
