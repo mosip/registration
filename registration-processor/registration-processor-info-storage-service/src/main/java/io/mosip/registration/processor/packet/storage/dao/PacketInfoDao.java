@@ -22,6 +22,7 @@ import io.mosip.registration.processor.packet.storage.entity.RegDemoDedupeListEn
 import io.mosip.registration.processor.packet.storage.mapper.PacketInfoMapper;
 import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
 import io.mosip.registration.processor.status.entity.BaseRegistrationEntity;
+import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
 
 /**
@@ -577,19 +578,9 @@ public class PacketInfoDao {
 		return registrationRepositary.getProcessedOrProcessingRegIds(matchedRegIds, statusCodes);
 	}
 
-	/**
-	 * Gets the processed or processing reg ids.
-	 *
-	 * @param matchedRegIds
-	 *            the matched reg ids
-	 * @param statusCode1
-	 *            the status code
-	 * @param statusCode2
-	 *            the status code
-	 * @return the processed or processing reg ids
-	 */
-	public List<String> getWithStatusCode(List<String> matchedRegIds, String statusCode) {
-		return registrationRepositary.getWithStatusCode(matchedRegIds, statusCode);
+
+	public List<RegistrationStatusEntity> getWithoutStatusCode(List<String> matchedRegIds, String statusCode) {
+		return registrationRepositary.getWithoutStatusCode(matchedRegIds, statusCode);
 	}
 
 	/**

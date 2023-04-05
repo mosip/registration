@@ -31,6 +31,7 @@ import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.SyncTypeDto;
+import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 
 /**
  * The Class ABISHandlerUtil.
@@ -96,17 +97,27 @@ public class ABISHandlerUtil {
 				if (!CollectionUtils.isEmpty(machedRefIds)) {
 					List<String> matchedRegIds = packetInfoDao.getAbisRefRegIdsByMatchedRefIds(machedRefIds);
 					if (!CollectionUtils.isEmpty(matchedRegIds)) {
-						List<String> processingRegIds = packetInfoDao.getWithStatusCode(matchedRegIds,
-								RegistrationStatusCode.PROCESSING.toString());
-						List<String> statusList=new ArrayList<>();
-						statusList.add(RegistrationStatusCode.PROCESSED.toString());
-						statusList.add(RegistrationStatusCode.PROCESSING.toString());
-						statusList.add(RegistrationStatusCode.FAILED.toString());
-						statusList.add(RegistrationStatusCode.REPROCESS_FAILED.toString());
-						List<String> processedRegIds = packetInfoDao.getProcessedOrProcessingRegIds(matchedRegIds,
-								statusList);
-						uniqueRIDs = getUniqueRegIds(processedRegIds, registrationId, registrationType, stageName);
+						List<RegistrationStatusEntity> matchedRegistrationStatusEntities = packetInfoDao
+								.getWithoutStatusCode(matchedRegIds,
+								RegistrationStatusCode.REJECTED.toString());
+						List<RegistrationStatusEntity> processingRegistrationStatusEntities = matchedRegistrationStatusEntities
+								.stream()
+								.filter(e -> RegistrationStatusCode.PROCESSING.toString().equals(e.getStatusCode()))
+								.collect(Collectors.toList());
+						List<String> processingRegIds = processingRegistrationStatusEntities.stream()
+								.map(RegistrationStatusEntity::getId)
+								.collect(Collectors.toList());
+						List<String> matchedProcessedRegIds = matchedRegistrationStatusEntities.stream()
+								.map(RegistrationStatusEntity::getId).collect(Collectors.toList());
 						uniqueRIDs.addAll(processingRegIds);
+						List<String> processedRegIds = getUniqueRegIds(matchedProcessedRegIds, registrationId,
+								registrationType,
+								stageName);
+						for(String rid:processedRegIds) {
+							if(!uniqueRIDs.contains(rid))
+								uniqueRIDs.add(rid);
+						}
+
 					}
 				}
 			}
