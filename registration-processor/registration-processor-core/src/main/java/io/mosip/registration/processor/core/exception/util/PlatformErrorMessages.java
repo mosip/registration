@@ -70,6 +70,9 @@ public enum PlatformErrorMessages {
 	// Registration Status Exception error code and message
 	RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "001",
 			"Unable to Access Registration Table"),
+	
+	/** The rpr rgs io exception */
+	RPR_RGS_IOEXCEPTION(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "003" , "IO Exception"),
 
 	/** The rpr rgs transaction table not accessible. */
 	RPR_RGS_TRANSACTION_TABLE_NOT_ACCESSIBLE(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "002",
