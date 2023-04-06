@@ -8,8 +8,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.kernel.core.logger.spi.Logger;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -29,7 +29,7 @@ import io.mosip.registration.processor.stages.executor.config.StagesConfig;
 public class StageClassesUtil {
 	
 	/** The Constant regProcLogger. */
-	private static final Logger regProcLogger = LoggerFactory.getLogger(StageClassesUtil.class);
+	private static final Logger regProcLogger = RegProcessorLogger.getLogger(StageClassesUtil.class);
 	
 	/** The Constant PROP_STAGE_GROUPS_STAGE_BEANS_BASE_PACKAGES_PREFIX. */
 	private static final String PROP_STAGE_GROUPS_STAGE_BEANS_BASE_PACKAGES_PREFIX = "mosip.regproc.mosip-stage-executor.stage-beans-base-packages.";
@@ -85,8 +85,7 @@ public class StageClassesUtil {
 		String defaultStageBeanBasePkgStr = propertySourcesPropertyResolver.getProperty(PROP_DEFAULT_STAGE_GROUP_STAGE_BEANS_BASE_PACKAGE);
 		String stageBeanBasePkgsStr = propertySourcesPropertyResolver.getProperty(
 				stageBeansBasePkgsPropertyName, defaultStageBeanBasePkgStr);
-		// Sonar detecting default value and estimating condition as always false but in our case default value can be also null
-		if(stageBeanBasePkgsStr == null) {
+		if(stageBeanBasePkgsStr == null) { //NOSONAR Sonar detecting default value and estimating condition as always false but in our case default value can be also null
 			return List.of();
 		} else {
 			List<String> stageBeansBasePackages = Arrays.stream(stageBeanBasePkgsStr.split(","))
