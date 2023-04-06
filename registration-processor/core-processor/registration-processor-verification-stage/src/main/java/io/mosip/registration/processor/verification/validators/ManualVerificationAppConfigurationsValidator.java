@@ -4,15 +4,16 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;
-import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.kernel.core.logger.spi.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+
 /**
  * All the configuration validations will be done in this class
  */
 @Component
 public class ManualVerificationAppConfigurationsValidator {
 
-    private static final Logger logger = RegProcessorLogger.getLogger(ManualVerificationAppConfigurationsValidator.class);
+    private static final Logger logger = LoggerFactory.getLogger(ManualVerificationAppConfigurationsValidator.class);
 
     /**
      * This configuration will be used by reprocessor stage to reprocess the events

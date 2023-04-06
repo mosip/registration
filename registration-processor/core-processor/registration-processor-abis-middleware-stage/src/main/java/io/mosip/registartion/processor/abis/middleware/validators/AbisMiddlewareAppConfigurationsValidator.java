@@ -5,8 +5,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.kernel.core.logger.spi.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 import java.util.List;
 
 import io.mosip.registration.processor.abis.queue.dto.AbisQueueDetails;
@@ -19,7 +19,7 @@ import io.mosip.registration.processor.packet.storage.utils.Utilities;
 @Component
 public class AbisMiddlewareAppConfigurationsValidator {
 
-    private static final Logger logger = RegProcessorLogger.getLogger(AbisMiddlewareAppConfigurationsValidator.class);
+    private static final Logger logger = LoggerFactory.getLogger(AbisMiddlewareAppConfigurationsValidator.class);
 
     /**
      * This configuration will be used by reprocessor stage to reprocess the events

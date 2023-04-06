@@ -132,8 +132,6 @@ public class NotificationUtility {
 	private static final String UIN_UPDATE=NOTIFICATION_TEMPLATE_CODE+"uin.update.";
 	private static final String RES_UPDATE=NOTIFICATION_TEMPLATE_CODE+"resident.update.";
 	private static final String TECHNICAL_ISSUE=NOTIFICATION_TEMPLATE_CODE+"technical.issue.";
-	private static final String SUP_REJECT=NOTIFICATION_TEMPLATE_CODE+"supervisor.reject.";
-
 
 
 	@Autowired
@@ -141,7 +139,7 @@ public class NotificationUtility {
 
 	public void sendNotification(RegistrationAdditionalInfoDTO registrationAdditionalInfoDTO,
 			InternalRegistrationStatusDto registrationStatusDto, SyncRegistrationEntity regEntity,
-			String[] allNotificationTypes, boolean isProcessingSuccess,boolean isValidSupervisorStatus)
+			String[] allNotificationTypes, boolean isProcessingSuccess)
 			throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException, JSONException {
 		registrationId = regEntity.getRegistrationId();
 		LogDescription description = new LogDescription();
@@ -164,8 +162,6 @@ public class NotificationUtility {
 		
 		if (isProcessingSuccess) {
 			type = setNotificationTemplateType(registrationStatusDto, type);
-		} else if (!isValidSupervisorStatus) {
-			type = NotificationTemplateType.SUP_REJECT;
 		} else {
 			type = NotificationTemplateType.TECHNICAL_ISSUE;
 		}
@@ -471,11 +467,6 @@ public class NotificationUtility {
 			MessageSenderDTO.setSmsTemplateCode(env.getProperty(TECHNICAL_ISSUE+SMS));
 			MessageSenderDTO.setEmailTemplateCode(env.getProperty(TECHNICAL_ISSUE+EMAIL));
 			MessageSenderDTO.setSubjectTemplateCode(env.getProperty(TECHNICAL_ISSUE+SUB));
-			break;
-		case SUP_REJECT:
-			MessageSenderDTO.setSmsTemplateCode(env.getProperty(SUP_REJECT+SMS));
-			MessageSenderDTO.setEmailTemplateCode(env.getProperty(SUP_REJECT+EMAIL));
-			MessageSenderDTO.setSubjectTemplateCode(env.getProperty(SUP_REJECT+SUB));
 			break;
 		default:
 			break;

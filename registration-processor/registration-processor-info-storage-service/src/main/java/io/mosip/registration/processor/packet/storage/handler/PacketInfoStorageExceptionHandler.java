@@ -1,7 +1,7 @@
 package io.mosip.registration.processor.packet.storage.handler;
 
-import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.kernel.core.logger.spi.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +19,7 @@ import io.mosip.registration.processor.status.dto.ExceptionJSONInfo;
 public class PacketInfoStorageExceptionHandler {
 	
 	/** The Constant log. */
-	private static final Logger log = RegProcessorLogger.getLogger(PacketInfoStorageExceptionHandler.class);
+	private static final Logger log = LoggerFactory.getLogger(PacketInfoStorageExceptionHandler.class);
 
 	/**
 	 * Duplicateentry.

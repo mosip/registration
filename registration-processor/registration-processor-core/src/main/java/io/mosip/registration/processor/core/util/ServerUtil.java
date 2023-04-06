@@ -3,8 +3,9 @@ package io.mosip.registration.processor.core.util;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.kernel.core.logger.spi.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * This class provides Server IP and Name.
  *
@@ -16,7 +17,7 @@ public class ServerUtil {
 	private static ServerUtil serverInstance = null;
 	
 	/** The Constant LOGGER. */
-	private static final Logger LOGGER = RegProcessorLogger.getLogger(ServerUtil.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ServerUtil.class);
 	
 	/** The host not found. */
 	private String noHost  = "HOST_NOT_FOUND";

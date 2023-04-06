@@ -33,8 +33,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.security.UserGroupInformation;
-import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.kernel.core.logger.spi.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
@@ -105,7 +105,7 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	/**
 	 * The field for Logger
 	 */
-	private static final Logger LOGGER = RegProcessorLogger.getLogger(StageHealthCheckHandler.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(StageHealthCheckHandler.class);
 
 	private ResourceLoader resourceLoader = new DefaultResourceLoader();
 

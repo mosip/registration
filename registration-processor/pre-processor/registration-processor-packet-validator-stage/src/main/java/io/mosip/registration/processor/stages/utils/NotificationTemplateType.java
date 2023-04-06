@@ -24,8 +24,6 @@ public enum NotificationTemplateType {
 	RES_UPDATE,
 	
 	/** The technical issue. */
-	TECHNICAL_ISSUE,
-	
-	SUP_REJECT
+	TECHNICAL_ISSUE
 	
 }

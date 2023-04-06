@@ -343,7 +343,7 @@ public class PacketValidateProcessorTest {
 	public void notificationSendFailedTest() throws PacketValidatorException, ApisResourceAccessException,
 			PacketManagerException, JsonProcessingException, IOException, JSONException {
 		Mockito.doThrow(IOException.class).when(notificationUtility).sendNotification(any(), any(), any(), any(),
-				anyBoolean(),anyBoolean());
+				anyBoolean());
 		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
 		assertTrue(object.getIsValid());
 		assertFalse(object.getInternalError());
