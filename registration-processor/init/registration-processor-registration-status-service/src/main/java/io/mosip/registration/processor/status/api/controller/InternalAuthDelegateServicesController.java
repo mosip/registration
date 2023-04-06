@@ -17,14 +17,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.mosip.kernel.core.exception.IOException;
 import io.mosip.kernel.core.http.ResponseFilter;
 import io.mosip.registration.processor.core.auth.dto.AuthRequestDTO;
 import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
-import io.mosip.registration.processor.core.token.validation.exception.InvalidTokenException;
-import io.mosip.registration.processor.status.exception.InternalAuthDeligateAppException;
 import io.mosip.registration.processor.status.service.InternalAuthDelegateService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -67,19 +62,8 @@ public class InternalAuthDelegateServicesController {
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<AuthResponseDTO> authenticate(@Validated @RequestBody AuthRequestDTO authRequestDTO,
 			@RequestHeader HttpHeaders headers) throws Exception {
-		try {
-			return ResponseEntity.status(HttpStatus.OK)
-					.body(internalAuthDelegateService.authenticate(authRequestDTO, headers));
-		}catch (Exception e) {
-			if( e instanceof InvalidTokenException |e instanceof ApisResourceAccessException|e instanceof IOException ) {
-					throw e;
-				}
-				else {
-					throw new InternalAuthDeligateAppException(PlatformErrorMessages.RPR_RTS_UNKNOWN_EXCEPTION.getCode(), 
-							PlatformErrorMessages.RPR_RTS_UNKNOWN_EXCEPTION.getMessage()+" -->"+e.getMessage());
-				}
-			}
-		
+		return ResponseEntity.status(HttpStatus.OK)
+				.body(internalAuthDelegateService.authenticate(authRequestDTO, headers));
 	}
 
 	/**

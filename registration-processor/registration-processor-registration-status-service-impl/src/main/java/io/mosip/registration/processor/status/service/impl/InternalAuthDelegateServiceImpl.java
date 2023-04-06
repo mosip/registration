@@ -17,8 +17,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -43,19 +41,19 @@ import io.mosip.registration.processor.status.service.InternalAuthDelegateServic
  */
 @Component
 public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateService {
-
+	
 	private final Logger logger = RegProcessorLogger.getLogger(InternalAuthDelegateServiceImpl.class);
 
 	private static final String REFERENCE_ID = "referenceId";
 
 	private static final String APPLICATION_ID = "applicationId";
-
+	
 	private static final String APPID = "regproc";
 
 	/** The rest api client. */
 	@Autowired
 	private RestApiClient restApiClient;
-
+	
 	@Autowired
 	RegistrationProcessorRestClientService<Object> restClientService;
 
@@ -66,21 +64,21 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 	/** The internal auth uri. */
 	@Value("${ida-internal-auth-uri}")
 	private String internalAuthUri;
-
+	
 	/** The get certificate uri. */
 	@Value("${ida-internal-get-certificate-uri}")
 	private String getCertificateUri;
-
+	
 	@Autowired
 	ObjectMapper mapper;
-
+	
 	/**
 	 * Authenticate.
 	 *
 	 * @param authRequestDTO the auth request DTO
-	 * @param headers        the headers
+	 * @param headers the headers
 	 * @return the AuthResponseDTO
-	 * @throws Exception
+	 * @throws Exception 
 	 */
 	@Override
 	public AuthResponseDTO authenticate(AuthRequestDTO authRequestDTO, HttpHeaders headers) throws Exception {
@@ -102,21 +100,19 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 	 *
 	 * @param applicationId the application id
 	 * @param referenceId   the reference id
-	 * @param headers       the headers
+	 * @param headers the headers
 	 * @return the certificate
-	 * @throws Exception
+	 * @throws Exception 
 	 */
 	@Override
-	public Object getCertificate(String applicationId, Optional<String> referenceId, HttpHeaders headers)
-			throws Exception {
+	public Object getCertificate(String applicationId, Optional<String> referenceId, HttpHeaders headers) throws Exception {
 		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(getCertificateUri);
 		builder.queryParam(APPLICATION_ID, applicationId);
 		referenceId.ifPresent(refId -> builder.queryParam(REFERENCE_ID, refId));
 		return restApiClient.getApi(builder.build().toUri(), Object.class);
 	}
-
-	public <T> HttpEntity<T> postApi(String uri, MediaType mediaType, HttpEntity<?> requestEntity,
-			Class<T> responseClass) throws Exception {
+	
+	public <T> HttpEntity<T> postApi(String uri, MediaType mediaType, HttpEntity<?> requestEntity, Class<T> responseClass) throws Exception {
 		try {
 			logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					LoggerFileConstant.APPLICATIONID.toString(), uri);
@@ -128,7 +124,7 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 			throw e;
 		}
 	}
-
+	
 	/**
 	 * get the individualId by userid
 	 * 
@@ -146,26 +142,18 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 		pathSegments.add(userid);
 		String individualId = null;
 		ResponseWrapper<?> response = null;
-		try {
-			response = (ResponseWrapper<?>) restClientService.getApi(ApiName.GETINDIVIDUALIDFROMUSERID, pathSegments, "",
-					"", ResponseWrapper.class);
-			logger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-					"getIndividualIdByUserId called for with GETINDIVIDUALIDFROMUSERID GET service call ended successfully");
-			if (response.getErrors() != null) {
-				throw new ApisResourceAccessException(
-						PlatformErrorMessages.LINK_FOR_USERID_INDIVIDUALID_FAILED_STATUS_EXCEPTION.getMessage());
-			} else {
-				IndividualIdDto readValue = mapper.readValue(mapper.writeValueAsString(response.getResponse()),
-						IndividualIdDto.class);
-				individualId = readValue.getIndividualId();
-			}
-		} catch (ApisResourceAccessException e) {
+		response = (ResponseWrapper<?>) restClientService.getApi(ApiName.GETINDIVIDUALIDFROMUSERID, pathSegments, "",
+				"", ResponseWrapper.class);
+		logger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				"getIndividualIdByUserId called for with GETINDIVIDUALIDFROMUSERID GET service call ended successfully");
+		if (response.getErrors() != null) {
 			throw new ApisResourceAccessException(
 					PlatformErrorMessages.LINK_FOR_USERID_INDIVIDUALID_FAILED_STATUS_EXCEPTION.getMessage());
-		} catch (IOException e) {
-			throw new IOException(PlatformErrorMessages.RPR_RGS_IOEXCEPTION.getMessage());
+		} else {
+			IndividualIdDto readValue = mapper.readValue(mapper.writeValueAsString(response.getResponse()),
+					IndividualIdDto.class);
+			individualId = readValue.getIndividualId();
 		}
-		
 		logger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), userid,
 				"InternalAuthDelegateServiceImpl::getIndividualIdByUserId()::exit");
 		return individualId;

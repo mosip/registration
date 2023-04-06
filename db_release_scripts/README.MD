@@ -25,7 +25,7 @@
 * If are pulling to local system from Git repository and pushing them back to deployment server using WinSCP then make a note to modify the following encoding settings in WinSCP before pushing the files to deployment server --> Open WinSCP --> Options --> Preferences --> Transfer --> Edit --> In "Transfer mode" section --> select "Text" --> Click Ok --> Click Ok 
 
 
-## Each release database folder has the following files and folders
+## Each release database folder has the following files / folders
 
 * **mosip_<schema_name>/ddl folder:** Contains table creation scripts for the release.
 

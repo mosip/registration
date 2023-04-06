@@ -161,10 +161,6 @@ public class MessageNotificationServiceImpl
 
 	@Autowired
 	private ObjectMapper mapper;
-	
-	private List<String> mapperJsonKeys = null;
-	
-	private JSONObject mapperIdentity=null;
 
 	/*
 	 * (non-Javadoc)
@@ -536,15 +532,16 @@ public class MessageNotificationServiceImpl
 	private Map<String, Object> setAttributes(String idJsonString, Map<String, Object> attribute, String regType,
 			String lang, StringBuilder phoneNumber, StringBuilder emailId) throws IOException {
 		JSONObject demographicIdentity = null;
+
 			demographicIdentity = JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class);
 
-        if(mapperJsonKeys==null) {
-        	String mapperJsonString = Utilities.getJson(utility.getConfigServerFileStorageURL(),
-    				utility.getGetRegProcessorIdentityJson());
-        	JSONObject mapperJson = JsonUtil.objectMapperReadValue(mapperJsonString, JSONObject.class);
-		    mapperIdentity = JsonUtil.getJSONObject(mapperJson, utility.getGetRegProcessorDemographicIdentity());
-		   mapperJsonKeys = new ArrayList<>(mapperIdentity.keySet());
-        }
+
+		String mapperJsonString = Utilities.getJson(utility.getConfigServerFileStorageURL(),
+				utility.getGetRegProcessorIdentityJson());
+		JSONObject mapperJson = JsonUtil.objectMapperReadValue(mapperJsonString, JSONObject.class);
+		JSONObject mapperIdentity = JsonUtil.getJSONObject(mapperJson, utility.getGetRegProcessorDemographicIdentity());
+
+		List<String> mapperJsonKeys = new ArrayList<>(mapperIdentity.keySet());
 		for (String key : mapperJsonKeys) {
 			JSONObject jsonValue = JsonUtil.getJSONObject(mapperIdentity, key);
 			if (jsonValue.get(VALUE) != null && !jsonValue.get(VALUE).toString().isBlank()) {

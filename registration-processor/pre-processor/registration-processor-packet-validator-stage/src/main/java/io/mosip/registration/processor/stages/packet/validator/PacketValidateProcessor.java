@@ -277,7 +277,7 @@ public class PacketValidateProcessor {
 			object.setInternalError(Boolean.FALSE);
 			registrationStatusDto.setUpdatedBy(USER);
 			SyncRegistrationEntity regEntity = syncRegistrationService.findByWorkflowInstanceId(object.getWorkflowInstanceId());
-			sendNotification(regEntity, registrationStatusDto, packetValidationDto.isTransactionSuccessful(),isValidSupervisorStatus);
+			sendNotification(regEntity, registrationStatusDto, packetValidationDto.isTransactionSuccessful());
 		} catch (PacketManagerException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId,
@@ -546,7 +546,7 @@ public class PacketValidateProcessor {
 	}
 
 	private void sendNotification(SyncRegistrationEntity regEntity,
-								  InternalRegistrationStatusDto registrationStatusDto, boolean isTransactionSuccessful,boolean isValidSupervisorStatus) {
+								  InternalRegistrationStatusDto registrationStatusDto, boolean isTransactionSuccessful) {
 		try {
 			if (regEntity.getOptionalValues() != null) {
 				String[] allNotificationTypes = notificationTypes.split("\\|");
@@ -562,11 +562,11 @@ public class PacketValidateProcessor {
 				if (isTransactionSuccessful) {
 					isProcessingSuccess = true;
 					notificationUtility.sendNotification(registrationAdditionalInfoDTO, registrationStatusDto,
-							regEntity, allNotificationTypes, isProcessingSuccess,isValidSupervisorStatus);
+							regEntity, allNotificationTypes, isProcessingSuccess);
 				} else {
 					isProcessingSuccess = false;
 					notificationUtility.sendNotification(registrationAdditionalInfoDTO, registrationStatusDto,
-							regEntity, allNotificationTypes, isProcessingSuccess,isValidSupervisorStatus);
+							regEntity, allNotificationTypes, isProcessingSuccess);
 				}
 				boolean isDeleted = syncRegistrationService.deleteAdditionalInfo(regEntity);
 				if (isDeleted) {

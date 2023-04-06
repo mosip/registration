@@ -3,8 +3,8 @@ package io.mosip.registration.processor.rest.client.audit.builder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.kernel.core.logger.spi.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -30,7 +30,7 @@ import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
 public class AuditLogRequestBuilder {
 
 	/** The logger. */
-	private final Logger regProcLogger = RegProcessorLogger.getLogger(AuditLogRequestBuilder.class);
+	private final Logger regProcLogger = LoggerFactory.getLogger(AuditLogRequestBuilder.class);
 
 	/** The registration processor rest service. */
 	@Autowired
