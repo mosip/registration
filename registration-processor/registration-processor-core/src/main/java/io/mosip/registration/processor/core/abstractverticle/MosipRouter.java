@@ -1,12 +1,16 @@
 package io.mosip.registration.processor.core.abstractverticle;
 
-import brave.Tracer;
-import io.mosip.registration.processor.core.tracing.VertxWrapperHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import brave.Tracer;
 import io.mosip.registration.processor.core.token.validation.TokenValidator;
+import io.mosip.registration.processor.core.tracing.VertxWrapperHandler;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -108,7 +112,32 @@ public class MosipRouter {
 	private void validateToken(RoutingContext routingContext) {
 		String token = routingContext.request().getHeader("Cookie");
 		String url = routingContext.normalisedPath();
-		tokenValidator.validate(token, url);
+		String userId = tokenValidator.validate(token, url);
+		User user = new User() {
+
+			@Override
+			public JsonObject principal() {
+				JsonObject principal = new JsonObject();
+				principal.put("username", userId);
+				return principal;
+			}
+
+			@Override
+			public User isAuthorized(String authority, Handler<AsyncResult<Boolean>> resultHandler) {
+				return null;
+			}
+
+			@Override
+			public User clearCache() {
+				return null;
+			}
+
+			@Override
+			public void setAuthProvider(AuthProvider authProvider) {
+			}
+
+		};
+		routingContext.setUser(user);
 		routingContext.next();
 	}
 
