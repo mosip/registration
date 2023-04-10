@@ -199,8 +199,14 @@ public enum PlatformErrorMessages {
 	RPR_RGS_DATE_VALIDATION_FAILED(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "034",
 			"searching between date should be less then 30 days - %s"),
 	
+	/** The rpr rgs io exception */
+	RPR_RGS_IOEXCEPTION(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "035" , "IO Exception"),
+	
 	LINK_FOR_USERID_INDIVIDUALID_FAILED_STATUS_EXCEPTION(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "035",
 			"Unable to get the IndividualId for UserId"),
+	
+	UNABLE_TO_ACCESS_API(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "036",
+			"Unable to access API"),
 
 	/** The rpr pis registration table not accessible. */
 	// Packet Info Storage Exception error code and message
