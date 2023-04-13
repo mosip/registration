@@ -36,8 +36,8 @@ import io.vertx.kafka.client.consumer.OffsetAndMetadata;
 import io.vertx.kafka.client.consumer.impl.KafkaConsumerRecordsImpl;
 import io.vertx.kafka.client.producer.KafkaProducer;
 import io.vertx.kafka.client.producer.KafkaProducerRecord;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.kernel.core.logger.spi.Logger;
 import org.slf4j.MDC;
 
 /**
@@ -48,7 +48,7 @@ import org.slf4j.MDC;
 public class KafkaMosipEventBus implements MosipEventBus {
 
 	/** The logger. */
-	private Logger logger = LoggerFactory.getLogger(KafkaMosipEventBus.class);
+	private Logger logger = RegProcessorLogger.getLogger(KafkaMosipEventBus.class);
 
 	/** The vertx instance that will be used by this event bus */
 	private Vertx vertx = null;
