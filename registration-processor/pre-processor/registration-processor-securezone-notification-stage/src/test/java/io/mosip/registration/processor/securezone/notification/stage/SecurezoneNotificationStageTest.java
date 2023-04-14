@@ -1,8 +1,6 @@
 package io.mosip.registration.processor.securezone.notification.stage;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 
@@ -63,25 +61,27 @@ import io.vertx.ext.web.Session;
 @RunWith(SpringRunner.class)
 public class SecurezoneNotificationStageTest {
 
-	private static final int maxRetryCount = 5;
+    private static final int maxRetryCount = 5;
 
-	private static final InputStream stream = Mockito.mock(InputStream.class);
+    private static final InputStream stream = Mockito.mock(InputStream.class);
 
-	/** The registration status service. */
-	@Mock
-	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
-	
-	@Mock
+    MessageDTO messageDTO= new MessageDTO();
+
+    /** The registration status service. */
+    @Mock
+    RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
+
+    @Mock
     private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationService;
 
-	@Mock
-	private RegistrationExceptionMapperUtil registrationStatusMapperUtil;
+    @Mock
+    private RegistrationExceptionMapperUtil registrationStatusMapperUtil;
 
-	@Mock
-	private AuditLogRequestBuilder auditLogRequestBuilder;
+    @Mock
+    private AuditLogRequestBuilder auditLogRequestBuilder;
 
-	private RoutingContext ctx;
-	private Boolean responseObject;
+    private RoutingContext ctx;
+    private Boolean responseObject;
 
     @Mock
     private MosipRouter router;
@@ -422,24 +422,30 @@ public class SecurezoneNotificationStageTest {
         Mockito.when(router.post(Mockito.any())).thenReturn(null);
         Mockito.doNothing().when(router).setRoute(Mockito.any());
         Mockito.doNothing().when(router).nonSecureHandler(Mockito.any(),Mockito.any());
-        MessageDTO messageDTO= new MessageDTO();
-        messageDTO.setInternalError(Boolean.FALSE);
-        messageDTO.setIsValid(Boolean.TRUE);
         messageDTO.setRid("2018701130000410092018110735");
+        messageDTO.setIsValid(true);
+        messageDTO.setInternalError(false);
+        messageDTO.setReg_type("NEW");
+        messageDTO.setSource("REGISTRATIONCLIENT");
+        messageDTO.setIteration(1);
+        messageDTO.setWorkflowInstanceId("78fc3d34-03f5-11ec-9a03-0242ac130003");
+
         Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(),any(),any());
         Mockito.doReturn(responseWrapper).when(auditLogRequestBuilder).createAuditRequestBuilder(anyString(), anyString(), anyString(),
                 anyString(), anyString(), anyString(), anyString());
+        entities.add(entity);
         Mockito.when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("Something");
+        Mockito.when(syncRegistrationService.findByWorkflowInstanceId(anyString())).thenReturn(entity);
+        Mockito.when(syncRegistrationService.findByAdditionalInfoReqId(anyString())).thenReturn(entities);
+        Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any()))
+                .thenReturn(registrationStatusDto);
     }
 
     @Test
     public void processURLTest() {
-    	entities.add(entity);
-    	Mockito.when(syncRegistrationService.findByWorkflowInstanceId(anyString())).thenReturn(entity);
-        Mockito.when(syncRegistrationService.findByAdditionalInfoReqId(anyString())).thenReturn(entities);
-        Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any()))
-		.thenReturn(registrationStatusDto);
+
         notificationStage.processURL(ctx);
+
         assertTrue(responseObject);
     }
 
@@ -454,17 +460,17 @@ public class SecurezoneNotificationStageTest {
     @Test
     public void duplicateRidFoundTest() {
 
-    	SyncRegistrationEntity syncEntity = new SyncRegistrationEntity();
-    	syncEntity.setAdditionalInfoReqId(null);
-    	syncEntity.setRegistrationType("NEW");
-    	syncEntity.setPacketId("2018701130000410092018110735");
-    	syncEntity.setWorkflowInstanceId("78fc3d34-03f5-11ec-9a03-0242ac130004");
+        SyncRegistrationEntity syncEntity = new SyncRegistrationEntity();
+        syncEntity.setAdditionalInfoReqId(null);
+        syncEntity.setRegistrationType("NEW");
+        syncEntity.setPacketId("2018701130000410092018110735");
+        syncEntity.setWorkflowInstanceId("78fc3d34-03f5-11ec-9a03-0242ac130004");
         entities.add(syncEntity);
         entities.add(entity1);
 
         Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any()))
-		.thenReturn(registrationStatusDto).thenReturn(registrationStatusDto).thenReturn(registrationStatusDto1);
-    	Mockito.when(syncRegistrationService.findByWorkflowInstanceId(anyString())).thenReturn(syncEntity);
+                .thenReturn(registrationStatusDto).thenReturn(registrationStatusDto).thenReturn(registrationStatusDto1);
+        Mockito.when(syncRegistrationService.findByWorkflowInstanceId(anyString())).thenReturn(syncEntity);
         Mockito.when(syncRegistrationService.findByRegistrationId(any())).thenReturn(entities);
         notificationStage.processURL(ctx);
         assertTrue(responseObject);
@@ -473,16 +479,16 @@ public class SecurezoneNotificationStageTest {
     @Test
     public void duplicateAdditionalReqIdFoundTest() {
 
-    	SyncRegistrationEntity syncEntity = new SyncRegistrationEntity();
-    	syncEntity.setAdditionalInfoReqId("abc");
-    	syncEntity.setPacketId("2018701130000410092018110735");
-    	syncEntity.setWorkflowInstanceId("78fc3d34-03f5-11ec-9a03-0242ac130004");
+        SyncRegistrationEntity syncEntity = new SyncRegistrationEntity();
+        syncEntity.setAdditionalInfoReqId("abc");
+        syncEntity.setPacketId("2018701130000410092018110735");
+        syncEntity.setWorkflowInstanceId("78fc3d34-03f5-11ec-9a03-0242ac130004");
         entities.add(syncEntity);
         entities.add(entity);
 
         Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any()))
-		.thenReturn(registrationStatusDto).thenReturn(registrationStatusDto).thenReturn(registrationStatusDto1);
-    	Mockito.when(syncRegistrationService.findByWorkflowInstanceId(anyString())).thenReturn(entity);
+                .thenReturn(registrationStatusDto).thenReturn(registrationStatusDto).thenReturn(registrationStatusDto1);
+        Mockito.when(syncRegistrationService.findByWorkflowInstanceId(anyString())).thenReturn(entity);
         Mockito.when(syncRegistrationService.findByAdditionalInfoReqId(anyString())).thenReturn(entities);
         notificationStage.processURL(ctx);
         assertTrue(responseObject);
@@ -502,19 +508,31 @@ public class SecurezoneNotificationStageTest {
         inputDto.setInternalError(Boolean.FALSE);
         inputDto.setIsValid(Boolean.TRUE);
         inputDto.setRid("2018701130000410092018110735");
+        inputDto.setWorkflowInstanceId("78fc3d34-03f5-11ec-9a03-0242ac130003");
 
         Mockito.when(syncRegistrationService.findByWorkflowInstanceId(anyString())).thenReturn(entity);
         Mockito.when(syncRegistrationService.findByAdditionalInfoReqId(anyString())).thenReturn(entities);
         MessageDTO messageDTO = notificationStage.process(inputDto);
-        assertNull(messageDTO);
+        assertTrue(messageDTO.getIsValid());
     }
 
     @Test
     public void dbExceptionTest() {
         Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any())).thenThrow(new TablenotAccessibleException("exception"));
         Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.DATA_ACCESS_EXCEPTION))
-		.thenReturn("REPROCESS");
-        notificationStage.processURL(ctx);
-        assertNull(responseObject);
+                .thenReturn("REPROCESS");
+        MessageDTO result = notificationStage.process(messageDTO);
+        assertTrue(result.getInternalError());
+    }
+
+
+    @Test
+    public void genericExceptionTest() {
+        Mockito.when(syncRegistrationService
+                .findByWorkflowInstanceId(anyString())).thenThrow(new NullPointerException("exception"));
+        Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.DATA_ACCESS_EXCEPTION))
+                .thenReturn("REPROCESS");
+        MessageDTO result = notificationStage.process(messageDTO);
+        assertFalse(result.getIsValid());
     }
 }
