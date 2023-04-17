@@ -46,10 +46,10 @@ public class TokenValidator {
 	Environment env;
 
 
-	public void validate(String token, String url) {
+	public String validate(String token, String url) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"TokenValidator::validate()::entry");
-
+		String userId = "";
 		if (token == null)
 			throw new InvalidTokenException(INVALIDTOKENMESSAGE);
 		try {
@@ -87,6 +87,7 @@ public class TokenValidator {
 							ACCESSDENIEDMESSAGE + tokenResponseDTO.getResponse().getRole());
 					throw new AccessDeniedException(ACCESSDENIEDMESSAGE + tokenResponseDTO.getResponse().getRole());
 				}
+				userId = tokenResponseDTO.getResponse().getUserId();
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), VALIDATEDMESSAGE,
 						tokenResponseDTO.getResponse().getRole());
@@ -100,7 +101,7 @@ public class TokenValidator {
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"TokenValidator::validate()::exit");
-
+		return userId;
 	}
 
 	public boolean validateAccess(String url, String role) {
