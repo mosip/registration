@@ -2,7 +2,6 @@
 package io.mosip.registration.processor.packet.storage.utils;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -135,7 +134,8 @@ public class ABISHandlerUtilTest {
 	public void testProcesssedWithUniqueUin() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
 
 		List<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType, ProviderStageName.BIO_DEDUPE);
-
+		// expected to pick 2 rids from processedMatchedIds list because different uin.
+		// Total should be 1(inprogress) + 2(processed)
 		assertEquals(3, uniqueRids.size());
 	}
 
@@ -154,7 +154,7 @@ public class ABISHandlerUtilTest {
 
 		List<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType, ProviderStageName.BIO_DEDUPE);
 		// expected to pick only processingandprocessed list i.e 3 records.
-		assertNotEquals(matchedRids.size(), uniqueRids.size());
+		assertEquals(3, uniqueRids.size());
 	}
 
 	@Test
@@ -163,7 +163,7 @@ public class ABISHandlerUtilTest {
 		when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn(null);
 
 		List<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType, ProviderStageName.BIO_DEDUPE);
-		// expected not to pick processedMatchedIds list i.e 2 records.
+		// expected not to pick processedMatchedIds list i.e 1 records.
 		assertEquals(1, uniqueRids.size());
 	}
 
