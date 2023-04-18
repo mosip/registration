@@ -1,9 +1,12 @@
 package io.mosip.registration.processor.verification.stage;
 
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.util.HashSet;
@@ -11,22 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.classic.spi.LoggingEvent;
-import ch.qos.logback.core.Appender;
-import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.kernel.core.util.JsonUtils;
-import io.mosip.kernel.core.util.exception.JsonProcessingException;
-import io.mosip.registration.processor.adjudication.exception.InvalidMessageException;
-import io.mosip.registration.processor.adjudication.response.dto.ManualAdjudicationResponseDTO;
-import io.mosip.registration.processor.adjudication.stage.ManualAdjudicationStage;
-import io.mosip.registration.processor.core.exception.PacketManagerException;
-import io.mosip.registration.processor.core.queue.factory.MosipQueue;
-import io.mosip.registration.processor.core.spi.queue.MosipQueueConnectionFactory;
-import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
-import io.mosip.registration.processor.adjudication.util.ManualVerificationRequestValidator;
 import org.apache.activemq.command.ActiveMQBytesMessage;
-import org.apache.activemq.command.ActiveMQTextMessage;
 import org.apache.activemq.util.ByteSequence;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,13 +28,26 @@ import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.LoggingEvent;
+import ch.qos.logback.core.Appender;
 import io.mosip.kernel.core.signatureutil.model.SignatureResponse;
+import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.JsonUtils;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.adjudication.response.dto.ManualAdjudicationResponseDTO;
+import io.mosip.registration.processor.adjudication.service.ManualAdjudicationService;
+import io.mosip.registration.processor.adjudication.stage.ManualAdjudicationStage;
+import io.mosip.registration.processor.adjudication.util.ManualVerificationRequestValidator;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.adjudication.service.ManualAdjudicationService;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.core.queue.factory.MosipQueue;
+import io.mosip.registration.processor.core.spi.queue.MosipQueueConnectionFactory;
+import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -136,7 +137,8 @@ public class ManualAdjudicationStageTest {
 		ReflectionTestUtils.setField(manualverificationstage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(manualverificationstage, "clusterManagerUrl", "/dummyPath");
 		//Mockito.when(env.getProperty(SwaggerConstant.SERVER_SERVLET_PATH)).thenReturn("/registrationprocessor/v1/manualverification");
-		Mockito.when(mosipConnectionFactory.createConnection(any(),any(),any(),any())).thenReturn(mosipQueue);
+		Mockito.when(mosipConnectionFactory.createConnection(any(), any(), any(), any(), anyList()))
+				.thenReturn(mosipQueue);
 		Mockito.doReturn(new String("str").getBytes()).when(mosipQueueManager).consume(any(), any(), any());
 		Mockito.doNothing().when(router).setRoute(any());
 		Mockito.when(router.post(any())).thenReturn(null);

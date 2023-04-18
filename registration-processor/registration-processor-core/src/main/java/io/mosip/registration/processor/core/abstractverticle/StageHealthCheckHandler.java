@@ -14,20 +14,14 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
+import java.util.List;
 
-import javax.jms.*;
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageProducer;
+import javax.jms.Session;
 
-import io.mosip.kernel.core.exception.ExceptionUtils;
-import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
-import io.mosip.registration.processor.core.constant.LoggerFileConstant;
-import io.mosip.registration.processor.core.queue.factory.MosipActiveMq;
-import io.mosip.registration.processor.core.queue.factory.MosipQueue;
-import io.mosip.registration.processor.core.queue.factory.QueueListener;
-import io.mosip.registration.processor.core.queue.impl.TransportExceptionListener;
-import io.mosip.registration.processor.core.spi.queue.MosipQueueConnectionFactory;
-import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
-import org.apache.activemq.ActiveMQConnection;
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -44,7 +38,14 @@ import org.springframework.jdbc.support.JdbcUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
 import io.mosip.registration.processor.core.constant.HealthConstant;
+import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.queue.factory.MosipQueue;
+import io.mosip.registration.processor.core.queue.factory.QueueListener;
+import io.mosip.registration.processor.core.spi.queue.MosipQueueConnectionFactory;
+import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import io.netty.handler.codec.http.HttpResponse;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -84,6 +85,7 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	private String queueUsername;
 	private String queuePassword;
 	private String queueBrokerUrl;
+	private List<String> queueTrustedPackages;
 	private Boolean isAuthEnable;
 	private int virusScannerPort;
 	private File currentWorkingDirPath;
@@ -127,6 +129,8 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 		this.queueUsername = environment.getProperty(HealthConstant.QUEUE_USERNAME);
 		this.queuePassword = environment.getProperty(HealthConstant.QUEUE_PASSWORD);
 		this.queueBrokerUrl = environment.getProperty(HealthConstant.QUEUE_BROKER_URL);
+		this.queueTrustedPackages = Arrays
+				.asList(environment.getProperty(HealthConstant.QUEUE_TRUSTED_PACKAGE).split(","));
 		this.currentWorkingDirPath = new File(System.getProperty(HealthConstant.CURRENT_WORKING_DIRECTORY));
 		this.resultBuilder = new StageHealthCheckHandler.JSONResultBuilder();
 		this.virusScanner = virusScanner;
@@ -154,7 +158,7 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 
 			if (mosipQueue == null)
 				mosipQueue = mosipConnectionFactory.createConnection("ACTIVEMQ", queueUsername,
-						queuePassword, queueBrokerUrl);
+						queuePassword, queueBrokerUrl, queueTrustedPackages);
 
 			mosipQueueManager.send(mosipQueue, msg.getBytes(), HealthConstant.QUEUE_ADDRESS);
 

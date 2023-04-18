@@ -1,6 +1,30 @@
 package io.mosip.registration.processor.verification.stage;
 
 
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.io.File;
+
+import org.apache.activemq.command.ActiveMQBytesMessage;
+import org.apache.activemq.util.ByteSequence;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatcher;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.ReflectionTestUtils;
+
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
@@ -24,26 +48,6 @@ import io.vertx.core.Vertx;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import org.apache.activemq.command.ActiveMQBytesMessage;
-import org.apache.activemq.util.ByteSequence;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatcher;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.slf4j.LoggerFactory;
-import org.springframework.core.env.Environment;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.util.ReflectionTestUtils;
-
-import java.io.File;
-
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
 
@@ -114,7 +118,8 @@ public class VerificationStageTest {
 		ReflectionTestUtils.setField(verificationstage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(verificationstage, "clusterManagerUrl", "/dummyPath");
 		//Mockito.when(env.getProperty(SwaggerConstant.SERVER_SERVLET_PATH)).thenReturn("/registrationprocessor/v1/manualverification");
-		Mockito.when(mosipConnectionFactory.createConnection(any(),any(),any(),any())).thenReturn(mosipQueue);
+		Mockito.when(mosipConnectionFactory.createConnection(any(), any(), any(), any(), anyList()))
+				.thenReturn(mosipQueue);
 		Mockito.doReturn(new String("str").getBytes()).when(mosipQueueManager).consume(any(), any(), any());
 		Mockito.doNothing().when(router).setRoute(any());
 		Mockito.when(router.post(any())).thenReturn(null);
