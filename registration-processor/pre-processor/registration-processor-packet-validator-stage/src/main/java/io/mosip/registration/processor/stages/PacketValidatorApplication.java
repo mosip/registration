@@ -16,7 +16,7 @@ import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIMan
 @Configuration
 @EnableAutoConfiguration
 @SpringBootApplication
-@ComponentScan(basePackages = { "${app.componentscan.basepackages}","${mosip.auth.adapter.impl.basepackage}" })
+@ComponentScan(basePackages = { "${app.componentscan.basepackages}" })
 public class PacketValidatorApplication {
 
 	/**
@@ -27,16 +27,15 @@ public class PacketValidatorApplication {
 	 * @throws BeansException
 	 */
 	public static void main(String[] args) throws BeansException, ClassNotFoundException {
-		ConfigurableApplicationContext context = 
-			SpringApplication.run(PacketValidatorApplication.class, args);
+		ConfigurableApplicationContext context = SpringApplication.run(PacketValidatorApplication.class, args);
 
-		String verticleClassesString = context.getEnvironment().getProperty(
-			"mosip.regproc.verticle.deploy.classes");
-
+		String verticleClassesString = context.getEnvironment().getProperty("mosip.regproc.verticle.deploy.classes");
+		if (verticleClassesString == null) {
+			throw new RuntimeException("can not get property mosip.regproc.verticle.deploy.classes");
+		}
 		String[] verticleClasses = verticleClassesString.split(",");
-		for(String verticleClass : verticleClasses) {
-			MosipVerticleAPIManager stage = 
-				(MosipVerticleAPIManager)context.getBean(Class.forName(verticleClass));
+		for (String verticleClass : verticleClasses) {
+			MosipVerticleAPIManager stage = (MosipVerticleAPIManager) context.getBean(Class.forName(verticleClass));
 			stage.deployVerticle();
 		}
 	}
