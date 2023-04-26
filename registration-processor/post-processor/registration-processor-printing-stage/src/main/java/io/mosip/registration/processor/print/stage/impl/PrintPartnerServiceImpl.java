@@ -30,7 +30,7 @@ public class PrintPartnerServiceImpl implements PrintPartnerService {
 
     @Override
     public List<String> getPrintPartners(String regId, JSONObject identity) {
-        regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+        regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                 regId, "PrintPartnerServiceImpl::getPrintPartners()::entry");
         Map<String, String> printPartnerMap = new HashMap();
         String configuredPrintIssuers = env.getProperty(PRINT_ISSUER);
@@ -39,6 +39,9 @@ public class PrintPartnerServiceImpl implements PrintPartnerService {
                     LoggerFileConstant.REGISTRATIONID.toString(), regId,
                     PlatformErrorMessages.RPR_PRT_ISSUER_NOT_FOUND_IN_PROPERTY.name());
         }
+        regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                regId, "PrintPartnerServiceImpl::getPrintPartners()::" + configuredPrintIssuers);
+
         for (String issuer: configuredPrintIssuers.split(DELIMITER)) {
             printPartnerMap.put(issuer.split(SEPARATOR)[0], issuer.split(SEPARATOR)[1]);
         }
