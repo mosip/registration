@@ -874,7 +874,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	 */
 
 	@Override
-	public MessageDTO process(MessageDTO object, MosipQueue queue) {
+	public MessageDTO process(MessageDTO object, MosipQueue queue, String stageName) {
 		InternalRegistrationStatusDto registrationStatusDto=new InternalRegistrationStatusDto();
 		TrimExceptionMessage trimExceptionMessage = new TrimExceptionMessage();
 		LogDescription description = new LogDescription();
@@ -954,6 +954,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		}finally {
 			registrationStatusDto
 			.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.MANUAL_VERIFICATION.toString());
+			registrationStatusDto.setRegistrationStageName(stageName);
 			registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);	
 			if (object.getIsValid() && !object.getInternalError())
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
