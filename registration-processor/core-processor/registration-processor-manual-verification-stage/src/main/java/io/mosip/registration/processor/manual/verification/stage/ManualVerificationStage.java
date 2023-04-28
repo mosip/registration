@@ -1,23 +1,17 @@
 package io.mosip.registration.processor.manual.verification.stage;
 
-import javax.jms.Message;
-import javax.jms.TextMessage;
-
-import org.apache.activemq.command.ActiveMQBytesMessage;
-import org.apache.activemq.command.ActiveMQTextMessage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
-
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
 import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
+import io.mosip.registration.processor.core.common.rest.dto.BaseRestResponseDTO;
+import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.queue.factory.MosipQueue;
@@ -25,6 +19,8 @@ import io.mosip.registration.processor.core.queue.factory.QueueListener;
 import io.mosip.registration.processor.core.spi.queue.MosipQueueConnectionFactory;
 import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import io.mosip.registration.processor.core.util.JsonUtil;
+import io.mosip.registration.processor.manual.verification.constants.ManualVerificationConstants;
+import io.mosip.registration.processor.manual.verification.dto.ManualVerificationDecisionDto;
 import io.mosip.registration.processor.manual.verification.exception.InvalidMessageException;
 import io.mosip.registration.processor.manual.verification.exception.handler.ManualVerificationExceptionHandler;
 import io.mosip.registration.processor.manual.verification.response.builder.ManualVerificationResponseBuilder;
@@ -32,10 +28,21 @@ import io.mosip.registration.processor.manual.verification.response.dto.ManualAd
 import io.mosip.registration.processor.manual.verification.service.ManualVerificationService;
 import io.mosip.registration.processor.manual.verification.util.ManualVerificationRequestValidator;
 import io.mosip.registration.processor.packet.storage.exception.QueueConnectionNotFound;
+import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import org.apache.activemq.command.ActiveMQBytesMessage;
+import org.apache.activemq.command.ActiveMQTextMessage;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
+
+import javax.jms.Message;
+import javax.jms.TextMessage;
+import java.util.LinkedHashMap;
 
 /**
  * This class sends message to next stage after successful completion of manual
@@ -182,7 +189,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 
 	@Override
 	public MessageDTO process(MessageDTO object) {
-		return manualAdjudicationService.process(object, queue, this.getClass().getSimpleName());
+		return manualAdjudicationService.process(object, queue);
 	}
 
 	private MosipQueue getQueueConnection() {
