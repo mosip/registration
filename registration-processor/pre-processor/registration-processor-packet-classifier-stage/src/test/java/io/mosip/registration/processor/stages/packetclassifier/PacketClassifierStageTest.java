@@ -1,7 +1,7 @@
 package io.mosip.registration.processor.stages.packetclassifier;
 
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,6 +12,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
+import io.mosip.registration.processor.core.abstractverticle.HealthCheckDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -60,6 +61,20 @@ public class PacketClassifierStageTest {
 
 				@Override
 				public void send(MessageBusAddress toAddress, MessageDTO message) {
+				}
+
+				@Override
+				public void consumerHealthCheck(
+						EventHandler<EventDTO, Handler<AsyncResult<HealthCheckDTO>>> eventHandler, String address) {
+					// TODO Auto-generated method stub
+
+				}
+
+				@Override
+				public void sendHealthCheck(EventHandler<EventDTO, Handler<AsyncResult<HealthCheckDTO>>> eventHandler,
+						String address) {
+					// TODO Auto-generated method stub
+
 				}
 			};
 		}

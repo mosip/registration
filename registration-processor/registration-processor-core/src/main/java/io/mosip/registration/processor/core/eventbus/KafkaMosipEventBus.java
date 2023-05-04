@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.core.eventbus;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -9,18 +10,23 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import brave.Span;
-import io.mosip.registration.processor.core.tracing.EventTracingHandler;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.slf4j.MDC;
 
+import brave.Span;
+import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
+import io.mosip.registration.processor.core.abstractverticle.HealthCheckDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.exception.ConfigurationServerFailureException;
 import io.mosip.registration.processor.core.exception.MessageExpiredException;
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
+import io.mosip.registration.processor.core.tracing.EventTracingHandler;
+import io.mosip.registration.processor.core.util.JsonUtil;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
@@ -36,9 +42,6 @@ import io.vertx.kafka.client.consumer.OffsetAndMetadata;
 import io.vertx.kafka.client.consumer.impl.KafkaConsumerRecordsImpl;
 import io.vertx.kafka.client.producer.KafkaProducer;
 import io.vertx.kafka.client.producer.KafkaProducerRecord;
-import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.kernel.core.logger.spi.Logger;
-import org.slf4j.MDC;
 
 /**
  * Implementation of MosipEventBus interface for Kafka based event bus
@@ -428,5 +431,61 @@ public class KafkaMosipEventBus implements MosipEventBus {
 			else
 				promise.fail("Partition resuming failed for " + topicPartition.getPartition());
 		});
+	}
+
+	@Override
+	public void consumerHealthCheck(EventHandler<EventDTO, Handler<AsyncResult<HealthCheckDTO>>> eventHandler,
+			String address) {
+		EventDTO eventDTO = new EventDTO();
+		HealthCheckDTO healthCheckDTO = new HealthCheckDTO();
+		kafkaConsumer.listTopics(f -> {
+			if (f.succeeded()) {
+				healthCheckDTO.setEventBusConnected(true);
+
+			} else {
+				healthCheckDTO.setEventBusConnected(false);
+				healthCheckDTO.setFailureReason(f.cause().getMessage());
+			}
+			try {
+				eventDTO.setBody(new JsonObject(JsonUtil.objectMapperObjectToJson(healthCheckDTO)));
+			} catch (IOException e) {
+				healthCheckDTO.setEventBusConnected(false);
+				healthCheckDTO.setFailureReason(e.getMessage());
+				eventHandler.handle(eventDTO, res -> {
+				});
+			}
+			eventHandler.handle(eventDTO, res -> {
+
+			});
+		});
+
+	}
+
+	@Override
+	public void sendHealthCheck(EventHandler<EventDTO, Handler<AsyncResult<HealthCheckDTO>>> eventHandler,
+			String address) {
+		EventDTO eventDTO = new EventDTO();
+		HealthCheckDTO healthCheckDTO = new HealthCheckDTO();
+		kafkaConsumer.listTopics(f -> {
+			if (f.succeeded()) {
+				healthCheckDTO.setEventBusConnected(true);
+
+			} else {
+				healthCheckDTO.setEventBusConnected(false);
+				healthCheckDTO.setFailureReason(f.cause().getMessage());
+			}
+			try {
+				eventDTO.setBody(new JsonObject(JsonUtil.objectMapperObjectToJson(healthCheckDTO)));
+			} catch (IOException e) {
+				healthCheckDTO.setEventBusConnected(false);
+				healthCheckDTO.setFailureReason(e.getMessage());
+				eventHandler.handle(eventDTO, res -> {
+				});
+			}
+			eventHandler.handle(eventDTO, res -> {
+
+			});
+		});
+
 	}
 }

@@ -1,19 +1,24 @@
 package io.mosip.registration.processor.core.eventbus;
 
+import java.io.IOException;
+
+import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
+import io.mosip.registration.processor.core.abstractverticle.HealthCheckDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
+import io.mosip.registration.processor.core.constant.HealthConstant;
 import io.mosip.registration.processor.core.exception.MessageExpiredException;
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.tracing.EventTracingHandler;
 import io.mosip.registration.processor.core.tracing.MDCHelper;
+import io.mosip.registration.processor.core.util.JsonUtil;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.kernel.core.logger.spi.Logger;
 
 
 
@@ -119,6 +124,46 @@ public class VertxMosipEventBus implements MosipEventBus {
 		JsonObject jsonObject = JsonObject.mapFrom(message);
 		logger.debug("send called with toAddress {} for message {}",messageBusAddress.getAddress(), jsonObject.toString());
 		this.vertx.eventBus().send(messageBusAddress.getAddress(), jsonObject.toString());
+	}
+
+	@Override
+	public void consumerHealthCheck(EventHandler<EventDTO, Handler<AsyncResult<HealthCheckDTO>>> eventHandler,String address) {
+		Boolean isRegistered = vertx.eventBus().consumer(address).isRegistered();
+		EventDTO eventDTO = new EventDTO();
+		HealthCheckDTO healthCheckDTO = new HealthCheckDTO();
+		healthCheckDTO.setEventBusConnected(isRegistered);
+		try {
+			eventDTO.setBody(new JsonObject(JsonUtil.objectMapperObjectToJson(healthCheckDTO)));
+		} catch (IOException e) {
+			healthCheckDTO.setEventBusConnected(false);
+			healthCheckDTO.setFailureReason(e.getMessage());
+			eventHandler.handle(eventDTO, res -> {
+			});
+		}
+		eventHandler.handle(eventDTO, res -> {
+
+		});
+		
+	}
+
+	@Override
+	public void sendHealthCheck(EventHandler<EventDTO, Handler<AsyncResult<HealthCheckDTO>>> eventHandler,
+			String address) {
+		vertx.eventBus().send(address, HealthConstant.PING);
+		EventDTO eventDTO = new EventDTO();
+		HealthCheckDTO healthCheckDTO = new HealthCheckDTO();
+		healthCheckDTO.setEventBusConnected(true);
+		try {
+			eventDTO.setBody(new JsonObject(JsonUtil.objectMapperObjectToJson(healthCheckDTO)));
+		} catch (IOException e) {
+			healthCheckDTO.setEventBusConnected(false);
+			healthCheckDTO.setFailureReason(e.getMessage());
+			eventHandler.handle(eventDTO, res -> {
+			});
+		}
+		eventHandler.handle(eventDTO, res -> {
+
+		});
 	}
 
 }
