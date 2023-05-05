@@ -142,18 +142,17 @@ public class UinGeneratorStageTest {
 				}
 
 				@Override
-				public void consumerHealthCheck(
-						EventHandler<EventDTO, Handler<AsyncResult<HealthCheckDTO>>> eventHandler, String address) {
+				public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
 
 
 				}
 
 				@Override
-				public void sendHealthCheck(EventHandler<EventDTO, Handler<AsyncResult<HealthCheckDTO>>> eventHandler,
-						String address) {
-					// TODO Auto-generated method stub
+				public void senderHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
+
 
 				}
+
 			};
 		}
 

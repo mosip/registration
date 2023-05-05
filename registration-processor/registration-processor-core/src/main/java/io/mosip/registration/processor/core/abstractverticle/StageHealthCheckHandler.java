@@ -309,20 +309,15 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	 */
 	public void senderHealthHandler(Promise<Status> promise, Vertx vertx, MosipEventBus eventBus, String address) {
 		try {
-			eventBus.consumerHealthCheck((msg, handler) -> {
-				vertx.executeBlocking(future -> {
-					HealthCheckDTO healthCheckDTO = new HealthCheckDTO();
-					JsonObject jsonObject = (JsonObject) msg.getBody();
+			eventBus.senderHealthCheck((healthCheckDto) -> {
 					try {
-						healthCheckDTO = objectMapper.readValue(objectMapper.writeValueAsString(jsonObject.getMap()),
-								HealthCheckDTO.class);
-						if (healthCheckDTO.isEventBusConnected()) {
+					if (healthCheckDto.isEventBusConnected()) {
 							final JsonObject result = resultBuilder.create()
 									.add(HealthConstant.RESPONSE, HealthConstant.PING).build();
 							promise.complete(Status.OK(result));
 						} else {
 							final JsonObject result = resultBuilder.create()
-									.add(HealthConstant.ERROR, healthCheckDTO.getFailureReason()).build();
+								.add(HealthConstant.ERROR, healthCheckDto.getFailureReason()).build();
 							promise.complete(Status.KO(result));
 						}
 
@@ -331,7 +326,6 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 								.build();
 						promise.complete(Status.KO(result));
 					}
-				}, false, handler);
 			}, address);
 		} catch (Exception e) {
 			final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, e.getMessage()).build();
@@ -346,20 +340,16 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	 */
 	public void consumerHealthHandler(Promise<Status> promise, Vertx vertx, MosipEventBus eventBus, String address) {
 		try {
-			eventBus.consumerHealthCheck((msg, handler) -> {
-				vertx.executeBlocking(future -> {
-					HealthCheckDTO healthCheckDTO = new HealthCheckDTO();
-					JsonObject jsonObject = (JsonObject) msg.getBody();
+			eventBus.consumerHealthCheck((healthCheckDto) -> {
 					try {
-						healthCheckDTO = objectMapper.readValue(objectMapper.writeValueAsString(jsonObject.getMap()),
-								HealthCheckDTO.class);
-						if (healthCheckDTO.isEventBusConnected()) {
+
+					if (healthCheckDto.isEventBusConnected()) {
 							final JsonObject result = resultBuilder.create()
-									.add(HealthConstant.RESPONSE, healthCheckDTO.isEventBusConnected()).build();
+								.add(HealthConstant.RESPONSE, healthCheckDto.isEventBusConnected()).build();
 							promise.complete(Status.OK(result));
 						} else {
 							final JsonObject result = resultBuilder.create()
-									.add(HealthConstant.ERROR, healthCheckDTO.getFailureReason()).build();
+								.add(HealthConstant.ERROR, healthCheckDto.getFailureReason()).build();
 							promise.complete(Status.KO(result));
 						}
 
@@ -368,7 +358,6 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 								.add(HealthConstant.ERROR, e.getMessage()).build();
 						promise.complete(Status.KO(result));
 					}
-				}, false, handler);
 			}, address);
 		} catch (Exception e) {
 			final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, e.getMessage()).build();

@@ -1,6 +1,5 @@
 package io.mosip.registration.processor.core.eventbus;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -21,12 +20,12 @@ import io.mosip.registration.processor.core.abstractverticle.HealthCheckDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
+import io.mosip.registration.processor.core.constant.HealthConstant;
 import io.mosip.registration.processor.core.exception.ConfigurationServerFailureException;
 import io.mosip.registration.processor.core.exception.MessageExpiredException;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.tracing.EventTracingHandler;
-import io.mosip.registration.processor.core.util.JsonUtil;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
@@ -434,9 +433,8 @@ public class KafkaMosipEventBus implements MosipEventBus {
 	}
 
 	@Override
-	public void consumerHealthCheck(EventHandler<EventDTO, Handler<AsyncResult<HealthCheckDTO>>> eventHandler,
+	public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler,
 			String address) {
-		EventDTO eventDTO = new EventDTO();
 		HealthCheckDTO healthCheckDTO = new HealthCheckDTO();
 		kafkaConsumer.listTopics(f -> {
 			if (f.succeeded()) {
@@ -446,46 +444,27 @@ public class KafkaMosipEventBus implements MosipEventBus {
 				healthCheckDTO.setEventBusConnected(false);
 				healthCheckDTO.setFailureReason(f.cause().getMessage());
 			}
-			try {
-				eventDTO.setBody(new JsonObject(JsonUtil.objectMapperObjectToJson(healthCheckDTO)));
-			} catch (IOException e) {
-				healthCheckDTO.setEventBusConnected(false);
-				healthCheckDTO.setFailureReason(e.getMessage());
-				eventHandler.handle(eventDTO, res -> {
-				});
-			}
-			eventHandler.handle(eventDTO, res -> {
-
-			});
+			eventHandler.handle(healthCheckDTO);
 		});
 
 	}
 
 	@Override
-	public void sendHealthCheck(EventHandler<EventDTO, Handler<AsyncResult<HealthCheckDTO>>> eventHandler,
+	public void senderHealthCheck(Handler<HealthCheckDTO> eventHandler,
 			String address) {
-		EventDTO eventDTO = new EventDTO();
+
 		HealthCheckDTO healthCheckDTO = new HealthCheckDTO();
-		kafkaConsumer.listTopics(f -> {
-			if (f.succeeded()) {
+		KafkaProducerRecord<String, String> producerRecord = KafkaProducerRecord.create(address,
+				HealthConstant.PING, HealthConstant.PING);
+		kafkaProducer.write(producerRecord, handler -> {
+			if (handler.failed()) {
+				healthCheckDTO.setEventBusConnected(false);
+			healthCheckDTO.setFailureReason(handler.cause().getMessage());
+			}
+			else {
 				healthCheckDTO.setEventBusConnected(true);
-
-			} else {
-				healthCheckDTO.setEventBusConnected(false);
-				healthCheckDTO.setFailureReason(f.cause().getMessage());
 			}
-			try {
-				eventDTO.setBody(new JsonObject(JsonUtil.objectMapperObjectToJson(healthCheckDTO)));
-			} catch (IOException e) {
-				healthCheckDTO.setEventBusConnected(false);
-				healthCheckDTO.setFailureReason(e.getMessage());
-				eventHandler.handle(eventDTO, res -> {
-				});
-			}
-			eventHandler.handle(eventDTO, res -> {
-
-			});
+			eventHandler.handle(healthCheckDTO);
 		});
-
 	}
 }

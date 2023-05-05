@@ -139,15 +139,13 @@ public class WorkflowInternalActionVerticleTest {
 				}
 
 				@Override
-				public void consumerHealthCheck(
-						EventHandler<EventDTO, Handler<AsyncResult<HealthCheckDTO>>> eventHandler, String address) {
+				public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
 					// TODO Auto-generated method stub
 
 				}
 
 				@Override
-				public void sendHealthCheck(EventHandler<EventDTO, Handler<AsyncResult<HealthCheckDTO>>> eventHandler,
-						String address) {
+				public void senderHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
 					// TODO Auto-generated method stub
 
 				}
