@@ -8,7 +8,7 @@ public class UserNotificationException extends BaseCheckedException {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * Instantiates a new MessageSenderException.
+	 * Instantiates a new UserNotificationException.
 	 *
 	 * @param errorCode the error code
 	 * @param message   the message
@@ -18,7 +18,7 @@ public class UserNotificationException extends BaseCheckedException {
     }
 
 	/**
-	 * Instantiates a new MessageSenderException.
+	 * Instantiates a new UserNotificationException.
 	 *
 	 * @param errorCode the error code
 	 * @param message   the message
