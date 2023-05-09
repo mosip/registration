@@ -1,9 +1,5 @@
 package io.mosip.registration.processor.core.abstractverticle;
 
-import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
-import io.mosip.registration.processor.core.queue.factory.MosipQueue;
-import io.mosip.registration.processor.core.spi.queue.MosipQueueConnectionFactory;
-import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -18,6 +14,7 @@ import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
 import io.mosip.registration.processor.core.constant.HealthConstant;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.queue.factory.MosipQueue;
+import io.mosip.registration.processor.core.spi.queue.MosipQueueConnectionFactory;
 import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import io.mosip.registration.processor.core.tracing.VertxWebTracingLocal;
 import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
@@ -110,45 +107,47 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 			healthCheckHandler.register("virusscanner", healthCheckHandler::virusScanHealthChecker);
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Verticle",
-					future -> healthCheckHandler.senderHealthHandler(future, vertx, sendAddress));
+					future -> healthCheckHandler.senderHealthHandler(future, vertx, super.mosipEventBus, sendAddress));
 		}
 		if (checkServletPathContainsCoreProcessor(servletPath)) {
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Send", future -> {
-						healthCheckHandler.senderHealthHandler(future, vertx, sendAddress);
+						healthCheckHandler.senderHealthHandler(future, vertx, super.mosipEventBus, sendAddress);
 					});
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Consume",
 					future -> {
-						healthCheckHandler.consumerHealthHandler(future, vertx, consumeAddress);
+						healthCheckHandler.consumerHealthHandler(future, vertx, super.mosipEventBus, consumeAddress);
 					});
 		}
 		if (servletPath.contains("external") || servletPath.contains("bioauth")) {
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Send", future -> {
-						healthCheckHandler.senderHealthHandler(future, vertx, sendAddress);
+						healthCheckHandler.senderHealthHandler(future, vertx, super.mosipEventBus, sendAddress);
 					});
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Consume",
 					future -> {
-						healthCheckHandler.senderHealthHandler(future, vertx, consumeAddress);
+						healthCheckHandler.senderHealthHandler(future, vertx, super.mosipEventBus, consumeAddress);
 					});
 		}
 		if (servletPath.contains("manual")) {
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Verticle",
-					future -> healthCheckHandler.senderHealthHandler(future, vertx, sendAddress));
+					future -> healthCheckHandler.senderHealthHandler(future, vertx, super.mosipEventBus, sendAddress));
 		}
 		if (servletPath.contains("abismiddleware")) {
 			healthCheckHandler.register("queuecheck", future -> healthCheckHandler.queueHealthChecker(future, mosipQueueManager, mosipConnectionFactory));
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Verticle",
-					future -> healthCheckHandler.consumerHealthHandler(future, vertx, consumeAddress));
+					future -> healthCheckHandler.consumerHealthHandler(future, vertx, super.mosipEventBus,
+							consumeAddress));
 		}
 		if (servletPath.contains("sender")) {
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Verticle",
-					future -> healthCheckHandler.consumerHealthHandler(future, vertx, consumeAddress));
+					future -> healthCheckHandler.consumerHealthHandler(future, vertx, super.mosipEventBus,
+							consumeAddress));
 		}
 
 		healthCheckHandler.register("diskSpace", healthCheckHandler::dispSpaceHealthChecker);

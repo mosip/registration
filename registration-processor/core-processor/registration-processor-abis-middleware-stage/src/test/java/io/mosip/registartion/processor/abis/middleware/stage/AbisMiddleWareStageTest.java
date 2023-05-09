@@ -1,13 +1,13 @@
 package io.mosip.registartion.processor.abis.middleware.stage;
 
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.mosip.registration.processor.core.util.PropertiesUtil;
 import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.apache.activemq.util.ByteSequence;
 import org.junit.Before;
@@ -26,6 +26,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.registration.processor.abis.queue.dto.AbisQueueDetails;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
+import io.mosip.registration.processor.core.abstractverticle.HealthCheckDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -43,6 +44,7 @@ import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import io.mosip.registration.processor.core.util.JsonUtil;
+import io.mosip.registration.processor.core.util.PropertiesUtil;
 import io.mosip.registration.processor.packet.storage.dao.PacketInfoDao;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.entity.AbisRequestEntity;
@@ -132,6 +134,19 @@ public class AbisMiddleWareStageTest {
 				public void send(MessageBusAddress toAddress, MessageDTO message) {
 
 				}
+
+				@Override
+				public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
+					// TODO Auto-generated method stub
+
+				}
+
+				@Override
+				public void senderHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
+					// TODO Auto-generated method stub
+
+				}
+
 			};
 		}
 

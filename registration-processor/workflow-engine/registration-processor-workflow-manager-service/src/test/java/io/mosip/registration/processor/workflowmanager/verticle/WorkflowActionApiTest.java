@@ -19,6 +19,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.kernel.core.exception.NullPointerException;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
+import io.mosip.registration.processor.core.abstractverticle.HealthCheckDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -122,6 +123,18 @@ public class WorkflowActionApiTest {
 
 				@Override
 				public void send(MessageBusAddress toAddress, MessageDTO message) {
+
+				}
+
+				@Override
+				public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
+					// TODO Auto-generated method stub
+
+				}
+
+				@Override
+				public void senderHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
+					// TODO Auto-generated method stub
 
 				}
 			};

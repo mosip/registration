@@ -58,6 +58,7 @@ import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.kernel.dataaccess.hibernate.constant.HibernateErrorCode;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
+import io.mosip.registration.processor.core.abstractverticle.HealthCheckDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -139,6 +140,19 @@ public class UinGeneratorStageTest {
 				public void send(MessageBusAddress toAddress, MessageDTO message) {
 
 				}
+
+				@Override
+				public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
+
+
+				}
+
+				@Override
+				public void senderHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
+
+
+				}
+
 			};
 		}
 
