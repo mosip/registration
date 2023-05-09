@@ -33,11 +33,13 @@ public class PrintPartnerServiceImpl implements PrintPartnerService {
         regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                 regId, "PrintPartnerServiceImpl::getPrintPartners()::entry");
         Map<String, String> printPartnerMap = new HashMap();
+        List<String> filteredPartners = new ArrayList();
         String configuredPrintIssuers = env.getProperty(PRINT_ISSUER);
         if(configuredPrintIssuers == null) {
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
                     LoggerFileConstant.REGISTRATIONID.toString(), regId,
                     PlatformErrorMessages.RPR_PRT_ISSUER_NOT_FOUND_IN_PROPERTY.name());
+            return filteredPartners;
         }
         regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                 regId, "PrintPartnerServiceImpl::getPrintPartners()::" + configuredPrintIssuers);
@@ -47,7 +49,7 @@ public class PrintPartnerServiceImpl implements PrintPartnerService {
         }
         regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                 regId, "PrintPartnerServiceImpl::getPrintPartners()::Configured print partners are fetched and mapped");
-        List filteredPartners = new ArrayList();
+
         var identityValues = getIdJsonByAttribute(identity, env.getProperty(PRINT_ISSUER_ATTRIBUTE));
         for( String printPartner : printPartnerMap.keySet()) {
             if(printPartnerMap.get(printPartner).equals("ALL")) {

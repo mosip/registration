@@ -1,46 +1,11 @@
 package io.mosip.registration.processor.print.stage;
 
-import java.io.File;
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Random;
-
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.json.simple.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
-import org.springframework.http.MediaType;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
-import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
-import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
-import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
-import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
-import io.mosip.registration.processor.core.code.ApiName;
-import io.mosip.registration.processor.core.code.EventId;
-import io.mosip.registration.processor.core.code.EventName;
-import io.mosip.registration.processor.core.code.EventType;
-import io.mosip.registration.processor.core.code.ModuleName;
-import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
-import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
+import io.mosip.registration.processor.core.abstractverticle.*;
+import io.mosip.registration.processor.core.code.*;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.IdType;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
@@ -66,6 +31,29 @@ import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequest
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+
+import java.io.File;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Random;
 
 /**
  * The Class PrintStage.
@@ -133,10 +121,8 @@ public class PrintingStage extends MosipVerticleAPIManager {
     private Long messageExpiryTimeLimit;
     @Value("${mosip.registration.processor.encrypt:false}")
     private boolean encrypt;
-    @Value("${mosip.regproc.idencode.print.rquired:false}")
-    private Boolean idencodePrintRequired;
-    @Value("${mosip.regproc.card.print.rquired:false}")
-    private Boolean cardPrintRequired;
+    @Value("${mosip.regproc.thirdparty.print.enabled:false}")
+    private Boolean isThirdPartyPrintEnabled;
     /**
      * The core audit request builder.
      */
@@ -263,78 +249,22 @@ public class PrintingStage extends MosipVerticleAPIManager {
                             LoggerFileConstant.REGISTRATIONID.toString(), regId, "PrintStage::process()::exit");
                 }
 
-                if (idencodePrintRequired) {
-                    responseWrapper = insertCredentialTransactionEntry(vid, regId, env.getProperty("registration.processor.idencode.issuer.id"));
-                    if (responseWrapper.getErrors() != null && !responseWrapper.getErrors().isEmpty()) {
-                        ErrorDTO error = responseWrapper.getErrors().get(0);
-                        regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-                                LoggerFileConstant.REGISTRATIONID.toString(), regId, "Idencode PrintStage::Failed:: " + error.getErrorCode() + " - " + error.getMessage());
-
-                    } else {
-                        credentialResponseDto = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
-                                CredentialResponseDto.class);
-
-                        registrationStatusDto.setRefId(credentialResponseDto.getRequestId());
-                        regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-                                LoggerFileConstant.REGISTRATIONID.toString(), regId, "Idencode PrintStage::process()::exit");
-                    }
-                }
-
-                if (cardPrintRequired) {
-                    responseWrapper = insertCredentialTransactionEntry(vid, regId, env.getProperty("registration.processor.cardprint.issuer.id"));
-                    if (responseWrapper.getErrors() != null && !responseWrapper.getErrors().isEmpty()) {
-                        ErrorDTO error = responseWrapper.getErrors().get(0);
-                        regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-                                LoggerFileConstant.REGISTRATIONID.toString(), regId, "Idencode PrintStage::Failed:: " + error.getErrorCode() + " - " + error.getMessage());
-
-                    } else {
-                        credentialResponseDto = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
-                                CredentialResponseDto.class);
-
-                        registrationStatusDto.setRefId(credentialResponseDto.getRequestId());
-                        regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-                                LoggerFileConstant.REGISTRATIONID.toString(), regId, "Idencode PrintStage::process()::exit");
-                    }
-                }
-
-                List<String> partners = printPartnerService.getPrintPartners(regId, jsonObject);
-                if (!partners.isEmpty()) {
-                    for (String partnerId : partners) {
-                        responseWrapper = insertCredentialTransactionEntry(vid, regId, partnerId);
-                    }
-                    if (responseWrapper.getErrors() != null && !responseWrapper.getErrors().isEmpty()) {
-                        ErrorDTO error = responseWrapper.getErrors().get(0);
-                        object.setIsValid(Boolean.FALSE);
-                        isTransactionSuccessful = false;
-                        description.setMessage(PlatformErrorMessages.RPR_PRT_PRINT_REQUEST_FAILED.getMessage());
-                        description.setCode(PlatformErrorMessages.RPR_PRT_PRINT_REQUEST_FAILED.getCode());
-
-                        registrationStatusDto.setStatusComment(
-                                StatusUtil.PRINT_REQUEST_FAILED.getMessage() + SEPERATOR + error.getMessage());
-                        registrationStatusDto.setSubStatusCode(StatusUtil.PRINT_REQUEST_FAILED.getCode());
-                        registrationStatusDto
-                                .setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
-                        registrationStatusDto
-                                .setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PRINT_SERVICE.toString());
-                    } else {
-                        credentialResponseDto = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
-                                CredentialResponseDto.class);
-
-                        registrationStatusDto.setRefId(credentialResponseDto.getRequestId());
-                        object.setIsValid(Boolean.TRUE);
-                        isTransactionSuccessful = true;
-                        description.setMessage(PlatformSuccessMessages.RPR_PRINT_STAGE_REQUEST_SUCCESS.getMessage());
-                        description.setCode(PlatformSuccessMessages.RPR_PRINT_STAGE_REQUEST_SUCCESS.getCode());
-                        registrationStatusDto.setStatusComment(
-                                trimeExpMessage.trimExceptionMessage(StatusUtil.PRINT_REQUEST_SUCCESS.getMessage()));
-                        registrationStatusDto.setSubStatusCode(StatusUtil.PRINT_REQUEST_SUCCESS.getCode());
-                        registrationStatusDto
-                                .setLatestTransactionStatusCode(RegistrationTransactionStatusCode.PROCESSED.toString());
-                        registrationStatusDto
-                                .setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PRINT_SERVICE.toString());
-
-                        regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-                                LoggerFileConstant.REGISTRATIONID.toString(), regId, "PrintStage::process()::exit");
+                if (isThirdPartyPrintEnabled) {
+                    List<String> partners = printPartnerService.getPrintPartners(regId, jsonObject);
+                    if (!partners.isEmpty()) {
+                        for (String partnerId : partners) {
+                            responseWrapper = insertCredentialTransactionEntry(vid, regId, partnerId);
+                            if (responseWrapper.getErrors() != null && !responseWrapper.getErrors().isEmpty()) {
+                                ErrorDTO error = responseWrapper.getErrors().get(0);
+                                regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+                                        LoggerFileConstant.REGISTRATIONID.toString(), regId, "Partner Print Credential Request::Failed:: " + error.getErrorCode() + " - " + error.getMessage());
+                            } else {
+                                CredentialResponseDto credentialResDto = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
+                                        CredentialResponseDto.class);
+                                regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+                                        LoggerFileConstant.REFERENCEID.toString(), credentialResDto.getRequestId(), "Partner Print Credential Request::process()::exit");
+                            }
+                        }
                     }
                 }
             }
@@ -409,7 +339,6 @@ public class PrintingStage extends MosipVerticleAPIManager {
                     moduleId, moduleName, regId);
 
         }
-
         return object;
     }
 
