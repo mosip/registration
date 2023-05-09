@@ -20,7 +20,6 @@ import io.mosip.registration.processor.core.abstractverticle.HealthCheckDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
-import io.mosip.registration.processor.core.constant.HealthConstant;
 import io.mosip.registration.processor.core.exception.ConfigurationServerFailureException;
 import io.mosip.registration.processor.core.exception.MessageExpiredException;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
@@ -452,19 +451,16 @@ public class KafkaMosipEventBus implements MosipEventBus {
 	@Override
 	public void senderHealthCheck(Handler<HealthCheckDTO> eventHandler,
 			String address) {
-
+		// To be implemented correctly when we move to later versions of vertx and
+		// current vertx kafka client does not offer any non intrusive way to check the
+		// health of produce
 		HealthCheckDTO healthCheckDTO = new HealthCheckDTO();
-		KafkaProducerRecord<String, String> producerRecord = KafkaProducerRecord.create(address,
-				HealthConstant.PING, HealthConstant.PING);
-		kafkaProducer.write(producerRecord, handler -> {
-			if (handler.failed()) {
-				healthCheckDTO.setEventBusConnected(false);
-			healthCheckDTO.setFailureReason(handler.cause().getMessage());
-			}
-			else {
-				healthCheckDTO.setEventBusConnected(true);
-			}
-			eventHandler.handle(healthCheckDTO);
-		});
+		if (kafkaProducer != null) {
+			healthCheckDTO.setEventBusConnected(true);
+		} else {
+			healthCheckDTO.setEventBusConnected(false);
+			healthCheckDTO.setFailureReason("Failed kafkaProducer");
+		}
+		eventHandler.handle(healthCheckDTO);
 	}
 }

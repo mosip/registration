@@ -1,5 +1,7 @@
 package io.mosip.registration.processor.core.eventbus;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -17,6 +19,7 @@ import java.util.Map;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.errors.TimeoutException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,6 +34,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import brave.Tracing;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
@@ -643,6 +647,44 @@ public class KafkaMosipEventBusTest {
 		}).when(kafkaConsumer).listTopics(any());
 		kafkaMosipEventBus.consumerHealthCheck(eventHandler, MessageBusAddress.PACKET_VALIDATOR_BUS_IN.toString());
 		async.await();
+		ArgumentCaptor<HealthCheckDTO> argument = ArgumentCaptor.forClass(HealthCheckDTO.class);
+		verify(eventHandler, times(1)).handle(argument.capture());
+		assertTrue(argument.getValue().isEventBusConnected());
+		verify(kafkaConsumer, times(1)).listTopics(any());
+	}
+
+	@Test
+	public void testConsumerHealthCheckWithException(TestContext testContext) {
+		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", "batch", "100", 60000,
+				eventTracingHandler);
+		final Async async = testContext.async();
+		Handler<HealthCheckDTO> eventHandler = Mockito.mock(Handler.class);
+		AsyncResult<Map<String, List<PartitionInfo>>> asyncResult = Mockito.mock(AsyncResult.class);
+		Mockito.when(asyncResult.succeeded()).thenReturn(false);
+		Mockito.when(asyncResult.cause()).thenReturn(new Exception("kafka consumer failed"));
+		doAnswer((Answer<AsyncResult<Map<String, List<PartitionInfo>>>>) arguments -> {
+			((Handler<AsyncResult<Map<String, List<PartitionInfo>>>>) arguments.getArgument(0)).handle(asyncResult);
+			if (!async.isCompleted())
+				async.complete();
+			return null;
+		}).when(kafkaConsumer).listTopics(any());
+		kafkaMosipEventBus.consumerHealthCheck(eventHandler, MessageBusAddress.PACKET_VALIDATOR_BUS_IN.toString());
+		async.await();
+		ArgumentCaptor<HealthCheckDTO> argument = ArgumentCaptor.forClass(HealthCheckDTO.class);
+		verify(eventHandler, times(1)).handle(argument.capture());
+		assertFalse(argument.getValue().isEventBusConnected());
+		assertEquals("kafka consumer failed", argument.getValue().getFailureReason());
+		verify(kafkaConsumer, times(1)).listTopics(any());
+	}
+
+	@Test(expected = TimeoutException.class)
+	public void testConsumerHealthCheckWithTimeout(TestContext testContext) {
+		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", "batch", "100", 60000,
+				eventTracingHandler);
+		Handler<HealthCheckDTO> eventHandler = Mockito.mock(Handler.class);
+		TimeoutException timeout=new TimeoutException();
+		Mockito.when(kafkaConsumer.listTopics(any())).thenThrow(timeout);
+		kafkaMosipEventBus.consumerHealthCheck(eventHandler, MessageBusAddress.PACKET_VALIDATOR_BUS_IN.toString());
 		verify(kafkaConsumer, times(1)).listTopics(any());
 	}
 
@@ -650,19 +692,22 @@ public class KafkaMosipEventBusTest {
 	public void testSenderHealthCheck(TestContext testContext) {
 		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", "batch", "100", 60000,
 				eventTracingHandler);
-		final Async async = testContext.async();
 		Handler<HealthCheckDTO> eventHandler = Mockito.mock(Handler.class);
-		AsyncResult<Void> voidAsyncResult = Mockito.mock(AsyncResult.class);
-		Mockito.when(voidAsyncResult.succeeded()).thenReturn(true);
-		doAnswer((Answer<AsyncResult<Void>>) arguments -> {
-			((Handler<AsyncResult<Void>>) arguments.getArgument(1))
-					.handle(voidAsyncResult);
-			if (!async.isCompleted())
-				async.complete();
-			return null;
-		}).when(kafkaProducer).write(any(),any());
-		kafkaMosipEventBus.senderHealthCheck(eventHandler, MessageBusAddress.PACKET_VALIDATOR_BUS_OUT.toString());
-		verify(kafkaProducer, times(1)).write(any(KafkaProducerRecord.class),any(Handler.class));
+		kafkaMosipEventBus.senderHealthCheck(eventHandler, MessageBusAddress.PACKET_VALIDATOR_BUS_IN.toString());
+		ArgumentCaptor<HealthCheckDTO> argument = ArgumentCaptor.forClass(HealthCheckDTO.class);
+		verify(eventHandler, times(1)).handle(argument.capture());
+		assertTrue(argument.getValue().isEventBusConnected());
+	}
 
+	@Test
+	public void testSenderHealthCheckFail(TestContext testContext) {
+		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", "batch", "100", 60000,
+				eventTracingHandler);
+		ReflectionTestUtils.setField(kafkaMosipEventBus, "kafkaProducer", null);
+		Handler<HealthCheckDTO> eventHandler = Mockito.mock(Handler.class);
+		kafkaMosipEventBus.senderHealthCheck(eventHandler, MessageBusAddress.PACKET_VALIDATOR_BUS_IN.toString());
+		ArgumentCaptor<HealthCheckDTO> argument = ArgumentCaptor.forClass(HealthCheckDTO.class);
+		verify(eventHandler, times(1)).handle(argument.capture());
+		assertFalse(argument.getValue().isEventBusConnected());
 	}
 }
