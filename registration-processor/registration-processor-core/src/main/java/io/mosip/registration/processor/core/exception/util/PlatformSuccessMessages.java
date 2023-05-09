@@ -174,7 +174,7 @@ public enum PlatformSuccessMessages {
 	PACKET_ANONYMOUS_PROFILE(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "008",
 			"Packet anonymous profile flow initiated"),
 	
-	RPR_MESSAGE_SENDER_API_SUCCESS(PlatformConstants.RPR_MESSAGE_SENDER_API + "000",
+	RPR_MESSAGE_SENDER_API_SUCCESS(PlatformConstants.RPR_USER_NOTIFICATION_API + "000",
 			"Request added to queue");
 
 	/** The success message. */

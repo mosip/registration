@@ -38,7 +38,7 @@ public class UserNotificationRequestValidator {
 	private static final String REGTYPE = "regType";
 
 
-	private static final String MESSAGE_SENDER_ID = "mosip.regproc.user.notification.api.id";
+	private static final String USER_NOTIFICATION_ID = "mosip.regproc.user.notification.api.id";
 
 
 	private static final String MESSAGE_SENDER_VERSION = "mosip.regproc.user.notification.api.version";
@@ -58,7 +58,7 @@ public class UserNotificationRequestValidator {
 	@Autowired
 	private Environment env;
 
-	private static final String MESSAGE_SENDER = "userNotification";
+	private static final String USER_NOTIFICATION = "userNotification";
 
 
 	public void validate(UserNotificationDTO userNotificationDTO)
@@ -118,7 +118,7 @@ public class UserNotificationRequestValidator {
 					PlatformErrorMessages.RPR_MAS_MISSING_INPUT_PARAMETER.getCode(),
 					String.format(PlatformErrorMessages.RPR_MAS_MISSING_INPUT_PARAMETER.getMessage(), ID_FIELD));
 
-		} else if (!id.equalsIgnoreCase(env.getProperty(MESSAGE_SENDER_ID))) {
+		} else if (!id.equalsIgnoreCase(env.getProperty(USER_NOTIFICATION_ID))) {
 			throw new UserNotificationRequestValidationException(
 					PlatformErrorMessages.RPR_MAS_INVALID_INPUT_PARAMETER.getCode(),
 					String.format(PlatformErrorMessages.RPR_MAS_INVALID_INPUT_PARAMETER.getMessage(), ID_FIELD));
@@ -145,7 +145,7 @@ public class UserNotificationRequestValidator {
 							.isAfter(new DateTime().minusSeconds(gracePeriod))
 							&& DateTime.parse(requesttime, timestampFormat.createDateTimeFormatter())
 									.isBefore(new DateTime().plusSeconds(gracePeriod)))) {
-						regProcLogger.error(MESSAGE_SENDER, "userNotificationRequestValidator", "validateReqTime",
+						regProcLogger.error(USER_NOTIFICATION, "userNotificationRequestValidator", "validateReqTime",
 								"\n" + PlatformErrorMessages.RPR_MAS_INVALID_INPUT_PARAMETER.getMessage());
 
 						throw new UserNotificationRequestValidationException(
@@ -155,7 +155,7 @@ public class UserNotificationRequestValidator {
 
 				}
 			} catch (IllegalArgumentException e) {
-				regProcLogger.error(MESSAGE_SENDER, "userNotificationRequestValidator", "validateReqTime",
+				regProcLogger.error(USER_NOTIFICATION, "userNotificationRequestValidator", "validateReqTime",
 						"\n" + ExceptionUtils.getStackTrace(e));
 				throw new UserNotificationRequestValidationException(
 						PlatformErrorMessages.RPR_MAS_INVALID_INPUT_PARAMETER.getCode(),
