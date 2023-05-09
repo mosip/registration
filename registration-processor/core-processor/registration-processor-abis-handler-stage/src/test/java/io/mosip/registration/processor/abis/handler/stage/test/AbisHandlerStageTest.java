@@ -48,6 +48,7 @@ import io.mosip.registration.processor.abis.handler.dto.DataShareResponseDto;
 import io.mosip.registration.processor.abis.handler.stage.AbisHandlerStage;
 import io.mosip.registration.processor.abis.queue.dto.AbisQueueDetails;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
+import io.mosip.registration.processor.core.abstractverticle.HealthCheckDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -163,6 +164,19 @@ public class AbisHandlerStageTest {
 				public void send(MessageBusAddress toAddress, MessageDTO message) {
 
 				}
+
+				@Override
+				public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
+					// TODO Auto-generated method stub
+
+				}
+
+				@Override
+				public void senderHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
+					// TODO Auto-generated method stub
+
+				}
+
 			};
 		}
 
