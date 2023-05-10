@@ -22,6 +22,7 @@ public class PrintPartnerServiceImpl implements PrintPartnerService {
     private static final String PRINT_ISSUER_ATTRIBUTE = "mosip.registration.processor.print.issuer.identification.attribute";
     private static final String SEPARATOR = ":";
     private static final String DELIMITER = ",";
+    private static final String PERCENT_DELIMITER = "%";
 
     private static final Logger regProcLogger = RegProcessorLogger.getLogger(PrintPartnerServiceImpl.class);
 
@@ -52,12 +53,25 @@ public class PrintPartnerServiceImpl implements PrintPartnerService {
 
         var identityValues = getIdJsonByAttribute(identity, env.getProperty(PRINT_ISSUER_ATTRIBUTE));
         for( String printPartner : printPartnerMap.keySet()) {
-            if(printPartnerMap.get(printPartner).equals("ALL")) {
-                filteredPartners.add(printPartner);
-            } else {
-                for (String value : identityValues) {
-                    if(value.equals(printPartnerMap.get(printPartner))){
-                        filteredPartners.add(printPartner);
+            //Allow for multiple values to be set in configuration for set attribute
+            var filters = printPartnerMap.get(printPartner).split(PERCENT_DELIMITER);
+            if(filters.length == 0) {
+                regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+                        LoggerFileConstant.REGISTRATIONID.toString(), regId,
+                        "PrintPartnerServiceImpl::getPrintPartnerMapAttributeValues::No attribute values set for printId::" + printPartner);
+                break;
+            }
+            for(String filterValue : filters) {
+                if(filterValue.equals("ALL")) {
+                    filteredPartners.add(printPartner);
+                    break;
+                } else {
+                    //Filter through all identity values in different languages
+                    for (String value : identityValues) {
+                        if(value.equals(filterValue)){
+                            filteredPartners.add(printPartner);
+                            break;
+                        }
                     }
                 }
             }
@@ -86,6 +100,8 @@ public class PrintPartnerServiceImpl implements PrintPartnerService {
                 if (jsonObject != null)
                     identityValues.add(jsonObject.toString());
             }
+        regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                "", "PrintPartnerServiceImpl::getIdJsonByAttribute()::exit");
         return identityValues;
     }
 
