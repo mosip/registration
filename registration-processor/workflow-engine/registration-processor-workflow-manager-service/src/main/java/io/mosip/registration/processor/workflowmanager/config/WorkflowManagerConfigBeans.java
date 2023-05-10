@@ -15,8 +15,10 @@ import io.mosip.registration.processor.rest.client.service.impl.RegistrationProc
 import io.mosip.registration.processor.workflowmanager.service.WorkflowActionService;
 import io.mosip.registration.processor.workflowmanager.service.WorkflowSearchService;
 import io.mosip.registration.processor.workflowmanager.util.WebSubUtil;
+import io.mosip.registration.processor.workflowmanager.validator.UserNotificationRequestValidator;
 import io.mosip.registration.processor.workflowmanager.validator.WorkflowActionRequestValidator;
 import io.mosip.registration.processor.workflowmanager.validator.WorkflowSearchRequestValidator;
+import io.mosip.registration.processor.workflowmanager.verticle.UserNotificationApi;
 import io.mosip.registration.processor.workflowmanager.verticle.WorkflowActionApi;
 import io.mosip.registration.processor.workflowmanager.verticle.WorkflowActionJob;
 import io.mosip.registration.processor.workflowmanager.verticle.WorkflowInternalActionVerticle;
@@ -88,5 +90,15 @@ public class WorkflowManagerConfigBeans {
 	@Bean
 	public PublisherClient<String, WorkflowPausedForAdditionalInfoEventDTO, HttpHeaders> getWebPublisherClientForWorkflowPausedForAdditionalInfoEvent() {
 		return new PublisherClientImpl<WorkflowPausedForAdditionalInfoEventDTO>();
+	}
+	
+	@Bean
+	public UserNotificationApi getUserNotificationApi() {
+		return new UserNotificationApi();
+	}
+	
+	@Bean
+	public UserNotificationRequestValidator getMessageSenderRequestValidator() {
+		return new UserNotificationRequestValidator();
 	}
 }
