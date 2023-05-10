@@ -1,5 +1,21 @@
 package io.mosip.registration.processor.biodedupe.stage;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
@@ -49,21 +65,6 @@ import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.SyncTypeDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataAccessException;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * The Class BioDedupeProcessor.
@@ -527,7 +528,7 @@ public class BioDedupeProcessor {
 		if (matchedRegIds.isEmpty()) {
 			registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
 			object.setIsValid(Boolean.FALSE);
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.name());
 			registrationStatusDto.setStatusComment(StatusUtil.LOST_PACKET_BIOMETRICS_NOT_FOUND.getMessage());
 			registrationStatusDto.setSubStatusCode(StatusUtil.LOST_PACKET_BIOMETRICS_NOT_FOUND.getCode());
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
