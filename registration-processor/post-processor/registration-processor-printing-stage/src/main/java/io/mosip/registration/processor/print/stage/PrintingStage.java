@@ -9,6 +9,7 @@ import io.mosip.registration.processor.core.code.*;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.IdType;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.constant.VidType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -250,6 +251,8 @@ public class PrintingStage extends MosipVerticleAPIManager {
                 }
 
                 if (isThirdPartyPrintEnabled) {
+                    var metaInfo = utilities.getMetaInfo(regId, registrationStatusDto.getRegistrationType(), ProviderStageName.PRINTING);
+                    jsonObject.putAll(metaInfo);
                     List<String> partners = printPartnerService.getPrintPartners(regId, jsonObject);
                     if (!partners.isEmpty()) {
                         for (String partnerId : partners) {
