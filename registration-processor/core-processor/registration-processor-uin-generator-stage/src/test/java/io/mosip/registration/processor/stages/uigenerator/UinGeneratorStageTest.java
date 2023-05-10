@@ -30,7 +30,11 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -55,6 +59,7 @@ import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.kernel.dataaccess.hibernate.constant.HibernateErrorCode;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
+import io.mosip.registration.processor.core.abstractverticle.HealthCheckDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -134,6 +139,18 @@ public class UinGeneratorStageTest {
 
 				@Override
 				public void send(MessageBusAddress toAddress, MessageDTO message) {
+
+				}
+
+				@Override
+				public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
+					// TODO Auto-generated method stub
+
+				}
+
+				@Override
+				public void senderHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
+					// TODO Auto-generated method stub
 
 				}
 			};

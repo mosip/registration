@@ -1,10 +1,14 @@
 package io.mosip.registration.processor.core.eventbus;
 
+import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
+import io.mosip.registration.processor.core.abstractverticle.HealthCheckDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
+import io.mosip.registration.processor.core.constant.HealthConstant;
 import io.mosip.registration.processor.core.exception.MessageExpiredException;
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.tracing.EventTracingHandler;
 import io.mosip.registration.processor.core.tracing.MDCHelper;
@@ -12,8 +16,6 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.kernel.core.logger.spi.Logger;
 
 
 /**
@@ -120,4 +122,26 @@ public class VertxMosipEventBus implements MosipEventBus {
 		this.vertx.eventBus().send(messageBusAddress.getAddress(), jsonObject.toString());
 	}
 
+	@Override
+	public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
+		Boolean isRegistered = vertx.eventBus().consumer(address).isRegistered();
+		HealthCheckDTO healthCheckDTO = new HealthCheckDTO();
+		healthCheckDTO.setEventBusConnected(isRegistered);
+		eventHandler.handle(healthCheckDTO);
+
+	}
+
+	@Override
+	public void senderHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
+		HealthCheckDTO healthCheckDTO = new HealthCheckDTO();
+		try {
+			vertx.eventBus().send(address, HealthConstant.PING);
+			healthCheckDTO.setEventBusConnected(true);
+			eventHandler.handle(healthCheckDTO);
+		} catch (Exception e) {
+			healthCheckDTO.setEventBusConnected(false);
+			healthCheckDTO.setFailureReason(e.getMessage());
+			eventHandler.handle(healthCheckDTO);
+		}
+	}
 }

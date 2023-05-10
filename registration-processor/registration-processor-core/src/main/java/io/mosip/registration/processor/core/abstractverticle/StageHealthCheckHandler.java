@@ -15,26 +15,16 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import javax.jms.*;
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageProducer;
+import javax.jms.Session;
 
-import io.mosip.kernel.core.exception.ExceptionUtils;
-import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
-import io.mosip.registration.processor.core.constant.LoggerFileConstant;
-import io.mosip.registration.processor.core.queue.factory.MosipActiveMq;
-import io.mosip.registration.processor.core.queue.factory.MosipQueue;
-import io.mosip.registration.processor.core.queue.factory.QueueListener;
-import io.mosip.registration.processor.core.queue.impl.TransportExceptionListener;
-import io.mosip.registration.processor.core.spi.queue.MosipQueueConnectionFactory;
-import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
-import org.apache.activemq.ActiveMQConnection;
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.security.UserGroupInformation;
-import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.kernel.core.logger.spi.Logger;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
@@ -44,7 +34,16 @@ import org.springframework.jdbc.support.JdbcUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
 import io.mosip.registration.processor.core.constant.HealthConstant;
+import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.queue.factory.MosipQueue;
+import io.mosip.registration.processor.core.queue.factory.QueueListener;
+import io.mosip.registration.processor.core.spi.queue.MosipQueueConnectionFactory;
+import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import io.netty.handler.codec.http.HttpResponse;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -308,11 +307,25 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	 * @param promise {@link Promise} instance from handler
 	 * @param vertx  {@link Vertx} instance
 	 */
-	public void senderHealthHandler(Promise<Status> promise, Vertx vertx, String address) {
+	public void senderHealthHandler(Promise<Status> promise, Vertx vertx, MosipEventBus eventBus, String address) {
 		try {
-			vertx.eventBus().send(address, HealthConstant.PING);
-			final JsonObject result = resultBuilder.create().add(HealthConstant.RESPONSE, HealthConstant.PING).build();
-			promise.complete(Status.OK(result));
+			eventBus.senderHealthCheck((healthCheckDto) -> {
+				try {
+					if (healthCheckDto.isEventBusConnected()) {
+						final JsonObject result = resultBuilder.create()
+								.add(HealthConstant.RESPONSE, HealthConstant.PING).build();
+						promise.complete(Status.OK(result));
+					} else {
+						final JsonObject result = resultBuilder.create()
+								.add(HealthConstant.ERROR, healthCheckDto.getFailureReason()).build();
+						promise.complete(Status.KO(result));
+					}
+
+				} catch (Exception e) {
+					final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, e.getMessage()).build();
+					promise.complete(Status.KO(result));
+				}
+			}, address);
 		} catch (Exception e) {
 			final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, e.getMessage()).build();
 			promise.complete(Status.KO(result));
@@ -324,11 +337,26 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	 * @param vertx
 	 * @param address
 	 */
-	public void consumerHealthHandler(Promise<Status> promise, Vertx vertx, String address) {
+	public void consumerHealthHandler(Promise<Status> promise, Vertx vertx, MosipEventBus eventBus, String address) {
 		try {
-			Boolean isRegistered = vertx.eventBus().consumer(address).isRegistered();
-			final JsonObject result = resultBuilder.create().add(HealthConstant.RESPONSE, isRegistered).build();
-			promise.complete(Status.OK(result));
+			eventBus.consumerHealthCheck((healthCheckDto) -> {
+				try {
+
+					if (healthCheckDto.isEventBusConnected()) {
+						final JsonObject result = resultBuilder.create()
+								.add(HealthConstant.RESPONSE, healthCheckDto.isEventBusConnected()).build();
+						promise.complete(Status.OK(result));
+					} else {
+						final JsonObject result = resultBuilder.create()
+								.add(HealthConstant.ERROR, healthCheckDto.getFailureReason()).build();
+						promise.complete(Status.KO(result));
+					}
+
+				} catch (Exception e) {
+					final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, e.getMessage()).build();
+					promise.complete(Status.KO(result));
+				}
+			}, address);
 		} catch (Exception e) {
 			final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, e.getMessage()).build();
 			promise.complete(Status.KO(result));

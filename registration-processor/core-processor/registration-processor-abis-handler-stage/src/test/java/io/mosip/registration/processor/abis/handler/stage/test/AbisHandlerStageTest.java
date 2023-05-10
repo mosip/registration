@@ -20,12 +20,15 @@ import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.*;
+import org.mockito.ArgumentMatchers;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -45,12 +48,10 @@ import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.abis.handler.dto.DataShare;
 import io.mosip.registration.processor.abis.handler.dto.DataShareResponseDto;
-import io.mosip.registration.processor.core.packet.dto.datashare.Filter;
-import io.mosip.registration.processor.core.packet.dto.datashare.ShareableAttributes;
-import io.mosip.registration.processor.core.packet.dto.datashare.Source;
 import io.mosip.registration.processor.abis.handler.stage.AbisHandlerStage;
 import io.mosip.registration.processor.abis.queue.dto.AbisQueueDetails;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
+import io.mosip.registration.processor.core.abstractverticle.HealthCheckDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -68,6 +69,9 @@ import io.mosip.registration.processor.core.packet.dto.abis.AbisInsertRequestDto
 import io.mosip.registration.processor.core.packet.dto.abis.AbisRequestDto;
 import io.mosip.registration.processor.core.packet.dto.abis.RegBioRefDto;
 import io.mosip.registration.processor.core.packet.dto.abis.RegDemoDedupeListDto;
+import io.mosip.registration.processor.core.packet.dto.datashare.Filter;
+import io.mosip.registration.processor.core.packet.dto.datashare.ShareableAttributes;
+import io.mosip.registration.processor.core.packet.dto.datashare.Source;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
@@ -161,6 +165,18 @@ public class AbisHandlerStageTest {
 
 				@Override
 				public void send(MessageBusAddress toAddress, MessageDTO message) {
+
+				}
+
+				@Override
+				public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
+					// TODO Auto-generated method stub
+
+				}
+
+				@Override
+				public void senderHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
+					// TODO Auto-generated method stub
 
 				}
 			};
