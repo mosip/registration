@@ -34,8 +34,8 @@ public class WorkflowManagerApplication
 		workflowInternalActionVerticle.deployVerticle();
 		WorkflowActionApi workflowActionApi = ctx.getBean(WorkflowActionApi.class);
 		workflowActionApi.deployVerticle();
-//		WorkflowActionJob workflowActionJob = ctx.getBean(WorkflowActionJob.class);
-//		workflowActionJob.deployVerticle();
+		WorkflowActionJob workflowActionJob = ctx.getBean(WorkflowActionJob.class);
+		workflowActionJob.deployVerticle();
 		UserNotificationApi messageSenderApi = ctx.getBean(UserNotificationApi.class);
 		messageSenderApi.deployVerticle();
 	}

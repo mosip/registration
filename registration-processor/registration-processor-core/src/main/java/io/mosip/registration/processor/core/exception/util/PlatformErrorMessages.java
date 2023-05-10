@@ -1402,17 +1402,17 @@ public enum PlatformErrorMessages {
 	QUEUE_JSON_VALIDATION_FAILED(PlatformConstants.RPR_MA_MIDDLEWARE + "004",
 			"Unable to find Connection Properties"),
 	
-	RPR_MAS_MISSING_INPUT_PARAMETER(PlatformConstants.RPR_USER_NOTIFICATION_API + "001",
+	RPR_UNA_MISSING_INPUT_PARAMETER(PlatformConstants.RPR_USER_NOTIFICATION_API + "001",
 			"Missing Input Parameter - %s"),
 
 	/** The invalid input parameter. */
-	RPR_MAS_INVALID_INPUT_PARAMETER(PlatformConstants.RPR_USER_NOTIFICATION_API + "002",
+	RPR_UNA_INVALID_INPUT_PARAMETER(PlatformConstants.RPR_USER_NOTIFICATION_API + "002",
 			"Invalid Input Parameter - %s"),
-	RPR_MAS_RID_NOT_FOUND(PlatformConstants.RPR_USER_NOTIFICATION_API + "003",
+	RPR_UNA_RID_NOT_FOUND(PlatformConstants.RPR_USER_NOTIFICATION_API + "003",
 			"Rid not found in registration table"),
-	RPR_MAS_UNKNOWN_EXCEPTION(PlatformConstants.RPR_USER_NOTIFICATION_API + "004",
+	RPR_UNA_UNKNOWN_EXCEPTION(PlatformConstants.RPR_USER_NOTIFICATION_API + "004",
 			"Unknown exception occured"),
-	RPR_MAS_REGTYPE_NOT_MATCHING(PlatformConstants.RPR_USER_NOTIFICATION_API + "003",
+	RPR_UNA_REGTYPE_NOT_MATCHING(PlatformConstants.RPR_USER_NOTIFICATION_API + "003",
 			"Registration type not matching"),
 
 	RPR_BIOMETRIC_EXTRACTION_FAILED(PlatformConstants.RPR_BIOMETRIC_EXTRACTION_STAGE + "000",

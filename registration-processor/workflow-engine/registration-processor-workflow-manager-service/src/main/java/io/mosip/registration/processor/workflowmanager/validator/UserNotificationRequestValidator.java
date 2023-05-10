@@ -79,8 +79,8 @@ public class UserNotificationRequestValidator {
 	private void validateRegType(UserNotificationRequestDTO request) throws UserNotificationRequestValidationException {
 		if (StringUtils.isEmpty(request.getRegType())) {
 			throw new UserNotificationRequestValidationException(
-					PlatformErrorMessages.RPR_MAS_MISSING_INPUT_PARAMETER.getCode(),
-					String.format(PlatformErrorMessages.RPR_MAS_MISSING_INPUT_PARAMETER.getMessage(), REGTYPE));
+					PlatformErrorMessages.RPR_UNA_MISSING_INPUT_PARAMETER.getCode(),
+					String.format(PlatformErrorMessages.RPR_UNA_MISSING_INPUT_PARAMETER.getMessage(), REGTYPE));
 
 		}
 	}
@@ -88,8 +88,8 @@ public class UserNotificationRequestValidator {
 	private void validateRid(UserNotificationRequestDTO request) throws UserNotificationRequestValidationException {
 		if (StringUtils.isEmpty(request.getRid())) {
 			throw new UserNotificationRequestValidationException(
-					PlatformErrorMessages.RPR_MAS_MISSING_INPUT_PARAMETER.getCode(),
-					String.format(PlatformErrorMessages.RPR_MAS_MISSING_INPUT_PARAMETER.getMessage(), RID));
+					PlatformErrorMessages.RPR_UNA_MISSING_INPUT_PARAMETER.getCode(),
+					String.format(PlatformErrorMessages.RPR_UNA_MISSING_INPUT_PARAMETER.getMessage(), RID));
 
 		}
 	}
@@ -98,14 +98,14 @@ public class UserNotificationRequestValidator {
 			throws UserNotificationRequestValidationException {
 		if (Objects.isNull(version)) {
 			throw new UserNotificationRequestValidationException(
-					PlatformErrorMessages.RPR_MAS_MISSING_INPUT_PARAMETER.getCode(),
-					String.format(PlatformErrorMessages.RPR_MAS_MISSING_INPUT_PARAMETER.getMessage(), VER));
+					PlatformErrorMessages.RPR_UNA_MISSING_INPUT_PARAMETER.getCode(),
+					String.format(PlatformErrorMessages.RPR_UNA_MISSING_INPUT_PARAMETER.getMessage(), VER));
 
 
 		} else if (!version.equalsIgnoreCase(env.getProperty(MESSAGE_SENDER_VERSION))) {
 			throw new UserNotificationRequestValidationException(
-					PlatformErrorMessages.RPR_MAS_INVALID_INPUT_PARAMETER.getCode(),
-					String.format(PlatformErrorMessages.RPR_MAS_INVALID_INPUT_PARAMETER.getMessage(), VER));
+					PlatformErrorMessages.RPR_UNA_INVALID_INPUT_PARAMETER.getCode(),
+					String.format(PlatformErrorMessages.RPR_UNA_INVALID_INPUT_PARAMETER.getMessage(), VER));
 
 
 		}
@@ -115,13 +115,13 @@ public class UserNotificationRequestValidator {
 	private void validateId(String id) throws UserNotificationRequestValidationException {
 		if (Objects.isNull(id)) {
 			throw new UserNotificationRequestValidationException(
-					PlatformErrorMessages.RPR_MAS_MISSING_INPUT_PARAMETER.getCode(),
-					String.format(PlatformErrorMessages.RPR_MAS_MISSING_INPUT_PARAMETER.getMessage(), ID_FIELD));
+					PlatformErrorMessages.RPR_UNA_MISSING_INPUT_PARAMETER.getCode(),
+					String.format(PlatformErrorMessages.RPR_UNA_MISSING_INPUT_PARAMETER.getMessage(), ID_FIELD));
 
 		} else if (!id.equalsIgnoreCase(env.getProperty(USER_NOTIFICATION_ID))) {
 			throw new UserNotificationRequestValidationException(
-					PlatformErrorMessages.RPR_MAS_INVALID_INPUT_PARAMETER.getCode(),
-					String.format(PlatformErrorMessages.RPR_MAS_INVALID_INPUT_PARAMETER.getMessage(), ID_FIELD));
+					PlatformErrorMessages.RPR_UNA_INVALID_INPUT_PARAMETER.getCode(),
+					String.format(PlatformErrorMessages.RPR_UNA_INVALID_INPUT_PARAMETER.getMessage(), ID_FIELD));
 
 		}
 	}
@@ -132,8 +132,8 @@ public class UserNotificationRequestValidator {
 
 		if (Objects.isNull(requesttime)) {
 			throw new UserNotificationRequestValidationException(
-					PlatformErrorMessages.RPR_MAS_MISSING_INPUT_PARAMETER.getCode(),
-					String.format(PlatformErrorMessages.RPR_MAS_MISSING_INPUT_PARAMETER.getMessage(), TIMESTAMP));
+					PlatformErrorMessages.RPR_UNA_MISSING_INPUT_PARAMETER.getCode(),
+					String.format(PlatformErrorMessages.RPR_UNA_MISSING_INPUT_PARAMETER.getMessage(), TIMESTAMP));
 
 		} else {
 			try {
@@ -146,11 +146,11 @@ public class UserNotificationRequestValidator {
 							&& DateTime.parse(requesttime, timestampFormat.createDateTimeFormatter())
 									.isBefore(new DateTime().plusSeconds(gracePeriod)))) {
 						regProcLogger.error(USER_NOTIFICATION, "userNotificationRequestValidator", "validateReqTime",
-								"\n" + PlatformErrorMessages.RPR_MAS_INVALID_INPUT_PARAMETER.getMessage());
+								"\n" + PlatformErrorMessages.RPR_UNA_INVALID_INPUT_PARAMETER.getMessage());
 
 						throw new UserNotificationRequestValidationException(
-								PlatformErrorMessages.RPR_MAS_INVALID_INPUT_PARAMETER.getCode(), String.format(
-										PlatformErrorMessages.RPR_MAS_INVALID_INPUT_PARAMETER.getMessage(), TIMESTAMP));
+								PlatformErrorMessages.RPR_UNA_INVALID_INPUT_PARAMETER.getCode(), String.format(
+										PlatformErrorMessages.RPR_UNA_INVALID_INPUT_PARAMETER.getMessage(), TIMESTAMP));
 					}
 
 				}
@@ -158,8 +158,8 @@ public class UserNotificationRequestValidator {
 				regProcLogger.error(USER_NOTIFICATION, "userNotificationRequestValidator", "validateReqTime",
 						"\n" + ExceptionUtils.getStackTrace(e));
 				throw new UserNotificationRequestValidationException(
-						PlatformErrorMessages.RPR_MAS_INVALID_INPUT_PARAMETER.getCode(),
-						String.format(PlatformErrorMessages.RPR_MAS_INVALID_INPUT_PARAMETER.getMessage(), TIMESTAMP));
+						PlatformErrorMessages.RPR_UNA_INVALID_INPUT_PARAMETER.getCode(),
+						String.format(PlatformErrorMessages.RPR_UNA_INVALID_INPUT_PARAMETER.getMessage(), TIMESTAMP));
 			}
 		}
 	}

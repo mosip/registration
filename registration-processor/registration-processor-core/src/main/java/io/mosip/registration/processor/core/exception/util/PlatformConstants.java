@@ -139,7 +139,7 @@ public final class PlatformConstants {
 
 	public static final String RPR_FINALIZATION_STAGE = RPR_REGISTRATION_PROCESSOR_PREFIX + "FIN-";
 	
-	public static final String RPR_USER_NOTIFICATION_API = RPR_REGISTRATION_PROCESSOR_PREFIX + "MSA-";
+	public static final String RPR_USER_NOTIFICATION_API = RPR_REGISTRATION_PROCESSOR_PREFIX + "UNA-";
 	
 
 	/**

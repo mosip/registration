@@ -104,10 +104,10 @@ public class UserNotificationApi extends MosipVerticleAPIManager {
 	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 
 	/** The module id. */
-	public static String MODULE_ID = PlatformSuccessMessages.RPR_MESSAGE_SENDER_API_SUCCESS.getCode();
+	public static String MODULE_ID = PlatformSuccessMessages.RPR_USER_NOTIFICATION_API_SUCCESS.getCode();
 
 	/** The module name. */
-	public static String MODULE_NAME = ModuleName.MESSAGE_SENDER_API.toString();
+	public static String MODULE_NAME = ModuleName.USERNOTIFICATION_API.toString();
 
 	/** The core audit request builder. */
 	@Autowired
@@ -167,24 +167,24 @@ public class UserNotificationApi extends MosipVerticleAPIManager {
 
 			registrationStatusDto = registrationStatusService.getRegistrationStatus(rid,UserNotificationRequestDTO.getRegType(),1,null);
 			if (registrationStatusDto == null) {
-				description.setMessage(PlatformErrorMessages.RPR_MAS_RID_NOT_FOUND.getMessage());
-				description.setCode(PlatformErrorMessages.RPR_MAS_RID_NOT_FOUND.getCode());
+				description.setMessage(PlatformErrorMessages.RPR_UNA_RID_NOT_FOUND.getMessage());
+				description.setCode(PlatformErrorMessages.RPR_UNA_RID_NOT_FOUND.getCode());
 				updateAudit(description, UserNotificationRequestDTO.getRid(), false, user);
-				throw new UserNotificationException(PlatformErrorMessages.RPR_MAS_RID_NOT_FOUND.getCode(),
-						String.format(PlatformErrorMessages.RPR_MAS_RID_NOT_FOUND.getMessage(), rid));
+				throw new UserNotificationException(PlatformErrorMessages.RPR_UNA_RID_NOT_FOUND.getCode(),
+						String.format(PlatformErrorMessages.RPR_UNA_RID_NOT_FOUND.getMessage(), rid));
 			}
 			if (!registrationStatusDto.getRegistrationType().equals(UserNotificationRequestDTO.getRegType())) {
-				description.setMessage(PlatformErrorMessages.RPR_MAS_REGTYPE_NOT_MATCHING.getMessage());
-				description.setCode(PlatformErrorMessages.RPR_MAS_REGTYPE_NOT_MATCHING.getCode());
+				description.setMessage(PlatformErrorMessages.RPR_UNA_REGTYPE_NOT_MATCHING.getMessage());
+				description.setCode(PlatformErrorMessages.RPR_UNA_REGTYPE_NOT_MATCHING.getCode());
 				updateAudit(description, UserNotificationRequestDTO.getRid(), false, user);
-				throw new UserNotificationException(PlatformErrorMessages.RPR_MAS_REGTYPE_NOT_MATCHING.getCode(),
-						String.format(PlatformErrorMessages.RPR_MAS_REGTYPE_NOT_MATCHING.getMessage(), rid));
+				throw new UserNotificationException(PlatformErrorMessages.RPR_UNA_REGTYPE_NOT_MATCHING.getCode(),
+						String.format(PlatformErrorMessages.RPR_UNA_REGTYPE_NOT_MATCHING.getMessage(), rid));
 				}
 				
 				sendWorkflowCompletedWebSubEvent(registrationStatusDto);
 				regProcLogger.info("Request added to queue succesfully  for rid {}", rid);
-				description.setMessage(PlatformSuccessMessages.RPR_MESSAGE_SENDER_API_SUCCESS.getMessage());
-				description.setCode(PlatformSuccessMessages.RPR_MESSAGE_SENDER_API_SUCCESS.getCode());
+				description.setMessage(PlatformSuccessMessages.RPR_USER_NOTIFICATION_API_SUCCESS.getMessage());
+				description.setCode(PlatformSuccessMessages.RPR_USER_NOTIFICATION_API_SUCCESS.getCode());
 				updateAudit(description, rid, true, user);
 				buildResponse(ctx, description.getMessage(), null);
 				regProcLogger.debug("UserNotificationApi:processURL called ended for registration id {}", rid);
@@ -194,8 +194,8 @@ public class UserNotificationApi extends MosipVerticleAPIManager {
 		} catch (UserNotificationException e) {
 			logError(rid, e.getErrorCode(), e.getMessage(), e, ctx);
 		} catch (Exception e) {
-			logError(rid, PlatformErrorMessages.RPR_MAS_UNKNOWN_EXCEPTION.getCode(),
-					PlatformErrorMessages.RPR_MAS_UNKNOWN_EXCEPTION.getMessage(), e, ctx);
+			logError(rid, PlatformErrorMessages.RPR_UNA_UNKNOWN_EXCEPTION.getCode(),
+					PlatformErrorMessages.RPR_UNA_UNKNOWN_EXCEPTION.getMessage(), e, ctx);
 		}
 
 	}
