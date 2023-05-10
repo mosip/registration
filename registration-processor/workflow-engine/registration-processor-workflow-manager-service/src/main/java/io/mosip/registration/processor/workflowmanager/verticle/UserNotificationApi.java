@@ -107,7 +107,7 @@ public class UserNotificationApi extends MosipVerticleAPIManager {
 	public static String MODULE_ID = PlatformSuccessMessages.RPR_USER_NOTIFICATION_API_SUCCESS.getCode();
 
 	/** The module name. */
-	public static String MODULE_NAME = ModuleName.USERNOTIFICATION_API.toString();
+	public static String MODULE_NAME = ModuleName.USER_NOTIFICATION_API.toString();
 
 	/** The core audit request builder. */
 	@Autowired
