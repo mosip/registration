@@ -19,7 +19,8 @@ public enum  ProviderStageName {
     VERIFICATION("verification"),
     UIN_GENERATOR("uingenerator"),
     WORKFLOW_MANAGER("workflowmanager"),
-    MESSAGE_SENDER("messagesender");
+    MESSAGE_SENDER("messagesender"),
+    PRINTING("printing");
 
     private String value;
 

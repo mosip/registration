@@ -11,11 +11,15 @@ import java.time.Period;
 import java.util.*;
 
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.dto.ConfigEnum;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
+import org.json.JSONException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -108,7 +112,6 @@ public class Utilities {
 
 	@Autowired
 	private IdRepoService idRepoService;
-
 
 	/** The rest client service. */
 	@Autowired
@@ -817,6 +820,41 @@ public class Utilities {
 		String centerId = id.substring(0, centerIdLength);
 		String machineId = id.substring(centerIdLength, centerIdLength + machineIdLength);
 		return centerId + "_" + machineId;
+	}
+
+	public JSONObject getMetaInfo(String id, String process, ProviderStageName stageName) throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException, JSONException {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				id, "Utilities::getMetaInfo()::entry");
+		Map<String, String> metaInfo = packetManagerService.getMetaInfo(id, process, stageName);
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
+				"Utilities::getMetaInfo():: GET service call ended successfully");
+		return new JSONObject(getMetaMap(metaInfo));
+	}
+
+	public Map<String, String> getMetaMap(Map<String, String> metaInfo) throws java.io.IOException, JSONException {
+		Map<String, String> allMap = new HashMap<>();
+
+		if (MapUtils.isNotEmpty(metaInfo)) {
+			String operationsDataString = metaInfo.get(JsonConstant.OPERATIONSDATA);
+			String metaDataString = metaInfo.get(JsonConstant.METADATA);
+			if (io.mosip.kernel.core.util.StringUtils.isNotEmpty(operationsDataString)) {
+				org.json.JSONArray jsonArray = new org.json.JSONArray(operationsDataString);
+				addToMap(jsonArray, allMap);
+			}
+			if (io.mosip.kernel.core.util.StringUtils.isNotEmpty(metaDataString)) {
+				org.json.JSONArray jsonArray = new org.json.JSONArray(metaDataString);
+				addToMap(jsonArray, allMap);
+			}
+		}
+		return allMap;
+	}
+
+	private void addToMap(org.json.JSONArray jsonArray, Map<String, String> allMap) throws JSONException, IOException {
+		for (int i =0; i < jsonArray.length(); i++) {
+			org.json.JSONObject jsonObject = (org.json.JSONObject) jsonArray.get(i);
+			FieldValue fieldValue = objMapper.readValue(jsonObject.toString(), FieldValue.class);
+			allMap.put(fieldValue.getLabel(), fieldValue.getValue());
+		}
 	}
 
 }
