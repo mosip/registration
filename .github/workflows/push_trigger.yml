@@ -836,14 +836,14 @@ jobs:
           echo VERSION=$VERSION
           docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
           docker push $IMAGE_ID:$VERSION
-  docker-registration-processor-landing-zone-utility:
+  docker-registration-processor-landing-zone:
     needs: build
 
     runs-on: ubuntu-latest
     env:
       NAMESPACE: mosipdev
-      SERVICE_NAME: registration-processor-landing-zone-utility
-      SERVICE_LOCATION: registration-processor/registration-processor-landing-zone-utility
+      SERVICE_NAME: registration-processor-landing-zone
+      SERVICE_LOCATION: registration-processor/registration-processor-landing-zone
 
     steps:
       - uses: actions/checkout@v2
