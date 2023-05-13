@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -23,18 +22,15 @@ import org.springframework.stereotype.Component;
 
 import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.constant.LandingZoneTypeConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.spi.filesystem.manager.FileManager;
-import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.packet.manager.dto.DirectoryPathDto;
 
 @Component
-class LandingZoneUtility {
-	private static Logger regProcLogger = RegProcessorLogger.getLogger(LandingZoneUtility.class);
+class LandingZone {
+	private static Logger regProcLogger = RegProcessorLogger.getLogger(LandingZone.class);
 	private static final int MAX_NUMBER_OF_PACKETS = 100;
 	@Value("${landing.zone.account.name}")
 	private String landingZoneAccount;
@@ -114,7 +110,7 @@ class LandingZoneUtility {
 				} else {
 					fileManager.deletePacket(DirectoryPathDto.LANDING_ZONE, packetId);
 					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-							regId, packetId + ":Packet has been moved to landing zoneobject store ");
+							regId, packetId + ":Packet has been moved to landing zone object store ");
 				}
 			} catch (Exception e) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
