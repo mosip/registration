@@ -21,7 +21,7 @@ import io.mosip.registration.processor.rest.client.service.impl.RegistrationProc
 @Configuration
 @EnableAspectJAutoProxy
 @EnableScheduling
-public class LandingZoneUtilityConfig {
+public class LandingZoneConfig {
 	private static final String s3_Adapter = "S3Adapter";
 	private static final String swift_Adapter = "SwiftAdapter";
 
