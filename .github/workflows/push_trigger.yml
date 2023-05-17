@@ -111,7 +111,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-registration-transaction-service
       SERVICE_LOCATION: registration-processor/post-processor/registration-processor-registration-transaction-service
     steps:
@@ -168,7 +168,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-stage-group-1
       SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-1
 
@@ -225,7 +225,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-stage-group-2
       SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-2
 
@@ -282,7 +282,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-stage-group-3
       SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-3
 
@@ -339,7 +339,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-stage-group-4
       SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-4
 
@@ -396,7 +396,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-stage-group-5
       SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-5
 
@@ -453,7 +453,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-stage-group-6
       SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-6
 
@@ -510,7 +510,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-stage-group-7
       SERVICE_LOCATION: registration-processor/stage-groups/registration-processor-stage-group-7
 
@@ -567,7 +567,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-abis
       SERVICE_LOCATION: registration-processor/core-processor/registration-processor-abis
 
@@ -625,7 +625,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-reprocessor
       SERVICE_LOCATION: registration-processor/workflow-engine/registration-processor-reprocessor
 
@@ -682,7 +682,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-dmz-packet-server
       SERVICE_LOCATION: registration-processor/init/registration-processor-dmz-packet-server
 
@@ -728,7 +728,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-registration-status-service
       SERVICE_LOCATION: registration-processor/init/registration-processor-registration-status-service
 
@@ -785,7 +785,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-notification-service
       SERVICE_LOCATION: registration-processor/registration-processor-notification-service
 
@@ -836,14 +836,14 @@ jobs:
           echo VERSION=$VERSION
           docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
           docker push $IMAGE_ID:$VERSION
-  docker-registration-processor-landing-zone-utility:
+  docker-registration-processor-landing-zone:
     needs: build
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
-      SERVICE_NAME: registration-processor-landing-zone-utility
-      SERVICE_LOCATION: registration-processor/registration-processor-landing-zone-utility
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
+      SERVICE_NAME: registration-processor-landing-zone
+      SERVICE_LOCATION: registration-processor/registration-processor-landing-zone
 
     steps:
       - uses: actions/checkout@v2
@@ -898,7 +898,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-workflow-manager-service
       SERVICE_LOCATION: registration-processor/workflow-engine/registration-processor-workflow-manager-service
 
@@ -954,7 +954,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-common-camel-bridge
       SERVICE_LOCATION: registration-processor/registration-processor-common-camel-bridge
 
@@ -1010,7 +1010,7 @@ jobs:
   sonar_analysis:
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-client
       SERVICE_LOCATION: registration
     steps:

@@ -7,8 +7,8 @@
 		<artifactId>registration-processor</artifactId>
 		<version>1.2.1-SNAPSHOT</version>
 	</parent>
-	<artifactId>registration-processor-landing-zone-utility</artifactId>
-	<name>registration-processor-landing-zone-utility</name>
+	<artifactId>registration-processor-landing-zone</artifactId>
+	<name>registration-processor-landing-zone</name>
 	<version>1.2.1-SNAPSHOT</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
