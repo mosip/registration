@@ -9,18 +9,22 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import brave.Span;
-import io.mosip.registration.processor.core.tracing.EventTracingHandler;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.slf4j.MDC;
 
+import brave.Span;
+import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
+import io.mosip.registration.processor.core.abstractverticle.HealthCheckDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.exception.ConfigurationServerFailureException;
 import io.mosip.registration.processor.core.exception.MessageExpiredException;
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
+import io.mosip.registration.processor.core.tracing.EventTracingHandler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
@@ -36,9 +40,6 @@ import io.vertx.kafka.client.consumer.OffsetAndMetadata;
 import io.vertx.kafka.client.consumer.impl.KafkaConsumerRecordsImpl;
 import io.vertx.kafka.client.producer.KafkaProducer;
 import io.vertx.kafka.client.producer.KafkaProducerRecord;
-import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.kernel.core.logger.spi.Logger;
-import org.slf4j.MDC;
 
 /**
  * Implementation of MosipEventBus interface for Kafka based event bus
@@ -428,5 +429,36 @@ public class KafkaMosipEventBus implements MosipEventBus {
 			else
 				promise.fail("Partition resuming failed for " + topicPartition.getPartition());
 		});
+	}
+
+	@Override
+	public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
+		HealthCheckDTO healthCheckDTO = new HealthCheckDTO();
+		kafkaConsumer.listTopics(f -> {
+			if (f.succeeded()) {
+				healthCheckDTO.setEventBusConnected(true);
+
+			} else {
+				healthCheckDTO.setEventBusConnected(false);
+				healthCheckDTO.setFailureReason(f.cause().getMessage());
+			}
+			eventHandler.handle(healthCheckDTO);
+		});
+
+	}
+
+	@Override
+	public void senderHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
+		// To be implemented correctly when we move to later versions of vertx and
+		// current vertx kafka client does not offer any non intrusive way to check the
+		// health of produce
+		HealthCheckDTO healthCheckDTO = new HealthCheckDTO();
+		if (kafkaProducer != null) {
+			healthCheckDTO.setEventBusConnected(true);
+		} else {
+			healthCheckDTO.setEventBusConnected(false);
+			healthCheckDTO.setFailureReason("Failed kafkaProducer");
+		}
+		eventHandler.handle(healthCheckDTO);
 	}
 }
