@@ -28,7 +28,7 @@ ALTER TABLE regprc.registration_list RENAME COLUMN workflow_instance_id TO id;
 ALTER TABLE regprc.registration_list RENAME COLUMN process TO reg_type;
 ALTER TABLE regprc.registration_list DROP COLUMN IF EXISTS additional_info_req_id;
 ALTER TABLE regprc.registration_list DROP COLUMN IF EXISTS  packet_id;
-ALTER TABLE regprc.registration_list DROP COLUMN IF EXISTS sourc;
+ALTER TABLE regprc.registration_list DROP COLUMN IF EXISTS source;
 ALTER TABLE regprc.registration_list DROP COLUMN IF EXISTS ref_id;
 
 ALTER TABLE regprc.individual_demographic_dedup DROP COLUMN IF EXISTS workflow_instance_id;
@@ -86,10 +86,6 @@ ALTER TABLE regprc.registration DROP CONSTRAINT IF EXISTS pk_reg_id CASCADE;
 ALTER TABLE regprc.registration ALTER COLUMN id SET NOT NULL;
 ALTER TABLE regprc.registration ADD CONSTRAINT pk_reg_id PRIMARY KEY (id);
 
-ALTER TABLE regprc.registration_list DROP CONSTRAINT IF EXISTS pk_reglist_id;
-ALTER TABLE regprc.registration_list ALTER COLUMN id SET NOT NULL;
-ALTER TABLE regprc.registration_list ADD CONSTRAINT pk_reglist_id PRIMARY KEY (id);
-
 ALTER TABLE regprc.individual_demographic_dedup ADD CONSTRAINT fk_idemogd_reg FOREIGN KEY (reg_id)
 REFERENCES regprc.registration (id) MATCH SIMPLE
 ON DELETE NO ACTION ON UPDATE NO ACTION;
@@ -109,30 +105,6 @@ ON DELETE NO ACTION ON UPDATE NO ACTION;
 ALTER TABLE regprc.registration DROP COLUMN IF EXISTS resume_timestamp;
 ALTER TABLE regprc.registration DROP COLUMN IF EXISTS default_resume_action;
 ALTER TABLE regprc.registration DROP COLUMN IF EXISTS pause_rule_ids;
-
-ALTER TABLE regprc.registration_transaction DROP CONSTRAINT IF EXISTS fk_regtrn_trntyp ;
-ALTER TABLE regprc.reg_manual_verification  DROP CONSTRAINT IF EXISTS fk_rmnlver_trntyp ;
-ALTER TABLE regprc.reg_demo_dedupe_list  DROP CONSTRAINT IF EXISTS fk_regded_regtrn ;
-
-TRUNCATE TABLE regprc.transaction_type cascade ;
-
-\COPY regprc.transaction_type (code,descr,lang_code,is_active,cr_by,cr_dtimes) FROM './dml/regprc-transaction_type_rollback.csv' delimiter ',' HEADER  csv;
-
-UPDATE regprc.registration_transaction SET trn_type_code='QUALITY_CHECK' WHERE trn_type_code='QUALITY_CLASSIFIER';
-UPDATE regprc.reg_manual_verification SET trntyp_code='QUALITY_CHECK' WHERE trntyp_code='QUALITY_CLASSIFIER';
-
-ALTER TABLE regprc.registration_transaction ADD CONSTRAINT  fk_regtrn_trntyp FOREIGN KEY (trn_type_code,lang_code)
-REFERENCES regprc.transaction_type (code,lang_code) MATCH SIMPLE
-ON DELETE NO ACTION ON UPDATE NO ACTION;
-
-ALTER TABLE regprc.reg_manual_verification ADD CONSTRAINT  fk_rmnlver_trntyp FOREIGN KEY (trntyp_code,lang_code)
-REFERENCES regprc.transaction_type (code,lang_code) MATCH SIMPLE
-ON DELETE NO ACTION ON UPDATE NO ACTION;
-
-ALTER TABLE regprc.reg_demo_dedupe_list ADD CONSTRAINT  fk_regded_regtrn FOREIGN KEY (regtrn_id)
-REFERENCES regprc.registration_transaction (id) MATCH FULL
-ON DELETE NO ACTION ON UPDATE NO ACTION;
-
 ALTER TABLE regprc.registration DROP COLUMN IF EXISTS last_success_stage_name;
 -------------------------------------------------------drop columns to registration_list----------------------------------------------
 
@@ -142,3 +114,15 @@ ALTER TABLE regprc.registration_list DROP COLUMN IF EXISTS email;
 ALTER TABLE regprc.registration_list DROP COLUMN IF EXISTS center_id;
 ALTER TABLE regprc.registration_list DROP COLUMN IF EXISTS registration_date;
 ALTER TABLE regprc.registration_list DROP COLUMN IF EXISTS location_code;
+
+---------------------delete scripts keep always last if it throws error need to handle it manually--------------------------------------
+DELETE from regprc.transaction_type where code='VERIFICATION';
+DELETE from regprc.transaction_type where code='QUALITY_CLASSIFIER';
+DELETE from regprc.transaction_type where code='WORKFLOW_RESUME';
+DELETE from regprc.transaction_type where code='CMD_VALIDATION';
+DELETE from regprc.transaction_type where code='SUPERVISOR_VALIDATION';
+DELETE from regprc.transaction_type where code='OPERATOR_VALIDATION';
+DELETE from regprc.transaction_type where code='INTRODUCER_VALIDATION';
+DELETE from regprc.transaction_type where code='BIOMETRIC_EXTRACTION';
+DELETE from regprc.transaction_type where code='FINALIZATION';
+DELETE from regprc.transaction_type where code='MANUAL_ADJUDICATION';
