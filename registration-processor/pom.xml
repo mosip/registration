@@ -5,12 +5,12 @@
 	<parent>
 		<groupId>io.mosip</groupId>
 		<artifactId>registration</artifactId>
-		<version>1.2.0.1-B1</version>
+		<version>1.2.0.1-B3-SNAPSHOT</version>
 	</parent>
 
 	<groupId>io.mosip.registrationprocessor</groupId>
 	<artifactId>registration-processor</artifactId>
-	<version>1.2.0.1-B1</version>
+	<version>1.2.0.1-B3-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>registration-processor</name>
@@ -108,13 +108,13 @@
 		<jsch.version>0.1.55</jsch.version>
 
 		<!-- local -->
-		<registration.status.service.version>1.2.0.1-B1</registration.status.service.version>
-		<registration.processor.core.version>1.2.0.1-B1</registration.processor.core.version>
-		<packet.manager.version>1.2.0.1-B1</packet.manager.version>
-		<registration.processor.rest.client.version>1.2.0.1-B1</registration.processor.rest.client.version>
-		<packet.info.storage.service.version>1.2.0.1-B1</packet.info.storage.service.version>
-		<packet.bio.dedupe.service.impl.version>1.2.0.1-B1</packet.bio.dedupe.service.impl.version>
-		<registration.processor.message.sender.version>1.2.0.1-B1</registration.processor.message.sender.version>
+		<registration.status.service.version>1.2.0.1-B3-SNAPSHOT</registration.status.service.version>
+		<registration.processor.core.version>1.2.0.1-B3-SNAPSHOT</registration.processor.core.version>
+		<packet.manager.version>1.2.0.1-B3-SNAPSHOT</packet.manager.version>
+		<registration.processor.rest.client.version>1.2.0.1-B3-SNAPSHOT</registration.processor.rest.client.version>
+		<packet.info.storage.service.version>1.2.0.1-B3-SNAPSHOT</packet.info.storage.service.version>
+		<packet.bio.dedupe.service.impl.version>1.2.0.1-B3-SNAPSHOT</packet.bio.dedupe.service.impl.version>
+		<registration.processor.message.sender.version>1.2.0.1-B3-SNAPSHOT</registration.processor.message.sender.version>
 
 		<!-- Kernel -->
 		<kernel.core.version>1.2.0.1-B1</kernel.core.version>
@@ -129,7 +129,7 @@
 		<kernel.qrcodegenerator.zxing.version>1.2.0.1-B1</kernel.qrcodegenerator.zxing.version>
 		<kernel.logger.logback.version>1.2.0.1-B1</kernel.logger.logback.version>
 		<kernel.idvalidator.vid.version>1.2.0.1-B1</kernel.idvalidator.vid.version>
-		<object.store.khazana.version>1.2.0.1-B1</object.store.khazana.version>
+		<object.store.khazana.version>1.2.0.1-SNAPSHOT</object.store.khazana.version>
 		<kernel.biometrics.api.version>1.2.0.1-B1</kernel.biometrics.api.version>
 		<kernel-keymanager-service.version>1.2.0.1-B1</kernel-keymanager-service.version>
 		 <kernel.websubclient.version>1.2.0.1-B1</kernel.websubclient.version>
@@ -368,6 +368,7 @@
 		<module>mosip-stage-executor</module>
 		<module>stage-groups</module>
         <module>workflow-engine</module>
+        <module>registration-processor-landing-zone</module>
   </modules>
 	<build>
 			<plugins>

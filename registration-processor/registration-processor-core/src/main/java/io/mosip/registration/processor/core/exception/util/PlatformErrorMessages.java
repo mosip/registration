@@ -199,8 +199,14 @@ public enum PlatformErrorMessages {
 	RPR_RGS_DATE_VALIDATION_FAILED(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "034",
 			"searching between date should be less then 30 days - %s"),
 	
+	/** The rpr rgs io exception */
+	RPR_RGS_IOEXCEPTION(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "035" , "IO Exception"),
+
 	LINK_FOR_USERID_INDIVIDUALID_FAILED_STATUS_EXCEPTION(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "035",
 			"Unable to get the IndividualId for UserId"),
+
+	UNABLE_TO_ACCESS_API(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "036",
+			"Unable to access API"),
 
 	/** The rpr pis registration table not accessible. */
 	// Packet Info Storage Exception error code and message
@@ -1018,7 +1024,7 @@ public enum PlatformErrorMessages {
 	/** The stage processing failed. */
 	RPR_SYS_STAGE_PROCESSING_FAILED(PlatformConstants.RPR_SYSTEM_EXCEPTION + "021",
 			"Stage processing of message failed with an exception"),
-	
+
 	/** The rpr sys connection exception. */
 	RPR_SYS_QUEUE_CONNECTION_EXCEPTION(PlatformConstants.RPR_SYSTEM_EXCEPTION + "022",
 			"Error while connecting to active mq"),
@@ -1418,8 +1424,13 @@ public enum PlatformErrorMessages {
 	RPR_FINALIZATION_STAGE_DRAFT_REQUEST_UNAVAILABLE(PlatformConstants.RPR_FINALIZATION_STAGE + "003",
 			"Draft request is unavaialble in id-repo draft repository."),
 	RPR_FINALIZATION_STAGE_API_RESOURCE_EXCEPTION(PlatformConstants.RPR_FINALIZATION_STAGE + "004",
-			"Not able to access the API resource")
+			"Not able to access the API resource"),
+
+	INDIVIDUAL_BIOMETRIC_AUTHENTICATION_FAILED(PlatformConstants.RPR_BIOMETRIC_AUTHENTICATION_MODULE + "004",
+			"Bio authentication failed")
 	;
+
+
 
 	/** The error message. */
 	private final String errorMessage; 

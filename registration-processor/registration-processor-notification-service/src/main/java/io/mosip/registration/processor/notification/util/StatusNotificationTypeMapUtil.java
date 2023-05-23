@@ -48,7 +48,7 @@ public class StatusNotificationTypeMapUtil {
 				NotificationTemplateType.TECHNICAL_ISSUE);
 		//TODO this is put as a temp fix need to recheck the mapping
 		statusMap.put(NotificationStageStatus.PACKET_REJECTED,
-				NotificationTemplateType.DUPLICATE_UIN);
+				NotificationTemplateType.TECHNICAL_ISSUE);
 		statusMap.put(NotificationStageStatus.PACKET_FAILED, NotificationTemplateType.TECHNICAL_ISSUE);
 		return unmodifiableMap;
 	}

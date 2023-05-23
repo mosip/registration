@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.status.api.controller.handler;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -18,8 +19,7 @@ import org.springframework.web.context.request.WebRequest;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
@@ -52,6 +52,9 @@ public class RegistrationSyncExceptionHandler {
 
 	@Autowired
 	DigitalSignatureUtility digitalSignatureUtility;
+	
+	@Autowired
+	ObjectMapper objectMapper;
 
 	private static final String RESPONSE_SIGNATURE = "Response-Signature";
 
@@ -142,13 +145,21 @@ public class RegistrationSyncExceptionHandler {
 		response.setResponsetime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		response.setVersion(env.getProperty(REG_SYNC_APPLICATION_VERSION));
 		response.setResponse(null);
-		Gson gson = new GsonBuilder().serializeNulls().create();
-
 
 		if(isEnabled) {
 			HttpHeaders headers = new HttpHeaders();
-			headers.add(RESPONSE_SIGNATURE,digitalSignatureUtility.getDigitalSignature(gson.toJson(response)));
-			return ResponseEntity.ok().headers(headers).body(gson.toJson(response));
+			String res=null;
+			try {
+				res=objectMapper.writeValueAsString(response);
+			} catch (Exception e1) {
+				
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),LoggerFileConstant.APPLICATIONID.toString(),PlatformErrorMessages.RPR_RGS_JSON_MAPPING_EXCEPTION.getCode(),PlatformErrorMessages.RPR_RGS_JSON_MAPPING_EXCEPTION.getMessage());
+				RegStatusAppException reg1=new RegStatusAppException(PlatformErrorMessages.RPR_RGS_JSON_MAPPING_EXCEPTION, ex);
+				return buildRegStatusExceptionResponse(reg1);
+				
+			}
+			headers.add(RESPONSE_SIGNATURE,digitalSignatureUtility.getDigitalSignature(res));
+			return ResponseEntity.ok().headers(headers).body(res);
 		}
 		return ResponseEntity.status(HttpStatus.OK).body(response);
 

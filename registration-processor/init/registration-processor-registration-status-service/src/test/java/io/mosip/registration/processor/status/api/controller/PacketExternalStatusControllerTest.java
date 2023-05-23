@@ -21,6 +21,7 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -40,9 +41,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
@@ -95,19 +96,20 @@ public class PacketExternalStatusControllerTest {
 
 	@MockBean
 	RegistrationUtility registrationUtility;
+	
+	@Spy
+	ObjectMapper objectMapper;
 
 	@Mock
 	private Environment env;
 
 	private String packetExternalStatusRequestToJson;
-
-	Gson gson = new GsonBuilder().serializeNulls().create();
 	
 	PacketExternalStatusRequestDTO packetExternalStatusRequestDTO;
 
 	@Before
 	public void setUp() throws JsonProcessingException, ApisResourceAccessException {
-
+		objectMapper.setSerializationInclusion(Include.USE_DEFAULTS);
 		mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 		when(env.getProperty("mosip.registration.processor.packet.external.status.id"))
 				.thenReturn("mosip.registration.packet.external.status");
@@ -128,7 +130,7 @@ public class PacketExternalStatusControllerTest {
 		packetExternalStatusRequestDTO
 				.setRequesttime(DateUtils.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
 		packetExternalStatusRequestDTO.setRequest(requestList);
-		packetExternalStatusRequestToJson = gson.toJson(packetExternalStatusRequestDTO);
+		packetExternalStatusRequestToJson = objectMapper.writeValueAsString(packetExternalStatusRequestDTO);
 		PacketExternalStatusDTO packetExternalStatusDTO = new PacketExternalStatusDTO();
 		packetExternalStatusDTO.setPacketId("test1");
 		packetExternalStatusDTO.setStatusCode("PROCESSED");

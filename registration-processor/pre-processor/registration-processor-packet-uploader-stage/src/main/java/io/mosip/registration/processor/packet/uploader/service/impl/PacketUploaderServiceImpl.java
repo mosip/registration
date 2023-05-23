@@ -19,6 +19,7 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.commons.khazana.exception.ObjectStoreAdapterException;
 import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -34,6 +35,7 @@ import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
+import io.mosip.registration.processor.core.constant.LandingZoneTypeConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.ObjectStoreNotAccessibleException;
@@ -88,6 +90,12 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
     private static final String JSON = ".json";
     private static final String FORWARD_SLASH = "/";
 
+    @Value("${landing.zone.account.name}")
+    private String landingZoneAccount;
+	
+	@Value("${landing.zone.type:ObjectStore}")
+    private String landingZoneType;
+    
     @Value("${packet.manager.account.name}")
     private String packetManagerAccount;
 
@@ -196,7 +204,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
             dto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.UPLOAD_PACKET.toString());
             dto.setRegistrationStageName(stageName);
 
-            final byte[] encryptedByteArray = getPakcetFromDMZ(regEntity.getPacketId());
+            final byte[] encryptedByteArray = getPakcetFromDMZ(regEntity.getPacketId(),registrationId);
 
             if (encryptedByteArray != null) {
 
@@ -562,13 +570,21 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
         return maxRetryCount;
     }
 
-    private byte[] getPakcetFromDMZ(String packetId) throws ApisResourceAccessException {
+    private byte[] getPakcetFromDMZ(String packetId, String registrationId) throws ApisResourceAccessException, ObjectStoreNotAccessibleException, IOException {
         List<String> pathSegment = new ArrayList<>();
         pathSegment.add(packetId + extention);
         byte[] packet = null;
 
         try {
+        	if(landingZoneType.equalsIgnoreCase(LandingZoneTypeConstant.DMZ_SERVER)) {
             packet = (byte[]) restClient.getApi(ApiName.NGINXDMZURL, pathSegment, "", null, byte[].class);
+        	}
+        	else if(landingZoneType.equalsIgnoreCase(LandingZoneTypeConstant.OBJECT_STORE)) {
+        	packet=IOUtils.toByteArray(objectStoreAdapter.getObject(landingZoneAccount, registrationId, null, null, packetId));
+        	if(packet==null) {
+        		throw new ObjectStoreNotAccessibleException("Failed to get packet : " +packetId);
+        	}
+        	}
         } catch (ApisResourceAccessException e) {
             if (e.getCause() instanceof HttpClientErrorException) {
                 HttpClientErrorException ex = (HttpClientErrorException) e.getCause();
@@ -576,6 +592,8 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
                     throw new PacketNotFoundException(PlatformErrorMessages.RPR_PUM_PACKET_NOT_FOUND_EXCEPTION.getMessage(), ex);
             } else
                 throw e;
+        } catch(ObjectStoreAdapterException e) {
+        	throw e;
         }
         return packet;
     }
@@ -633,5 +651,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
         }
         return true;
     }
+
+	
 
 }

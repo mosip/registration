@@ -3,6 +3,7 @@ package io.mosip.registration.processor.stages.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import io.mosip.kernel.biosdk.provider.factory.BioAPIFactory;
 import io.mosip.registration.processor.packet.storage.utils.OSIUtils;
 import io.mosip.registration.processor.stages.operatorvalidator.OperatorValidationProcessor;
 import io.mosip.registration.processor.stages.operatorvalidator.OperatorValidator;
@@ -23,5 +24,9 @@ public class OperatorValidatorConfig {
 	@Bean
 	public OSIUtils getOSIUtils() {
 		return new OSIUtils();
+	}
+	@Bean
+	public BioAPIFactory getBioAPIFactory() {
+		return new BioAPIFactory();
 	}
 }

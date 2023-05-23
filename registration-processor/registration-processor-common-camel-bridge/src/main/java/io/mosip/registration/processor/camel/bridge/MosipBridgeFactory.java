@@ -142,10 +142,11 @@ public class MosipBridgeFactory extends MosipVerticleAPIManager {
 		for (String camelRouteFileName : camelRoutesFilesArr) {
 			String camelRoutesUrl = camelRoutesBaseUrl + camelRouteFileName;
 			responseEntity = restTemplate.exchange(camelRoutesUrl, HttpMethod.GET, null, Resource.class);
-			if (responseEntity.getBody() == null) {
+			Resource body=responseEntity.getBody();
+			if (body == null) {
 				throw new RuntimeException("Response for " + camelRoutesUrl + " is null");
 			}
-			routes = camelContext.loadRoutesDefinition(responseEntity.getBody().getInputStream());
+			routes = camelContext.loadRoutesDefinition(body.getInputStream());
 			camelContext.addRouteDefinitions(routeIntercepter.intercept(camelContext, routes.getRoutes()));
 			// camelContext.addRouteDefinitions(routes.getRoutes());
 		}

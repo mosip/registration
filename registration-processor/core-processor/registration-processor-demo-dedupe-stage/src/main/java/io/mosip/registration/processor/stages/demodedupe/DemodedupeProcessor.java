@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
@@ -181,9 +182,10 @@ public class DemodedupeProcessor {
 				insertDemodedupDetails(demographicData, regProcessorIdentityJson, jsonObject, registrationStatusDto,
 						object, moduleId, moduleName);
 			}
-			if (abisHandlerUtil.getPacketStatus(registrationStatusDto).equalsIgnoreCase(AbisConstant.DUPLICATE_FOR_SAME_TRANSACTION_ID))
+			if (abisHandlerUtil.getPacketStatus(registrationStatusDto)
+					.equalsIgnoreCase(AbisConstant.DUPLICATE_FOR_SAME_TRANSACTION_ID))
 				isDuplicateRequestForSameTransactionId = true;
-			
+
 			registrationStatusDto.setRegistrationStageName(stageName);
 			if (isTransactionSuccessful) {
 				object.setIsValid(Boolean.TRUE);
@@ -281,13 +283,12 @@ public class DemodedupeProcessor {
 
 			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
 					moduleId, moduleName, registrationId);
-			} else {
-				 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-							registrationId, "Duplicate request received for same latest transaction id. This will be ignored.");
-					object.setIsValid(false);
-					object.setInternalError(true);
-			}
-
+		} else {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId, "Duplicate request received for same latest transaction id. This will be ignored.");
+			object.setIsValid(false);
+			object.setInternalError(true);
+			 }
 		}
 
 		return object;
@@ -367,7 +368,8 @@ public class DemodedupeProcessor {
 				}
 			}
 			else {
-				if (StringUtils.isNotEmpty(env.getProperty(DEMODEDUPEENABLE)) && env.getProperty(DEMODEDUPEENABLE).trim().equalsIgnoreCase(TRUE)) {
+				String  demo=env.getProperty(DEMODEDUPEENABLE);
+				if (demo != null && demo.trim().equalsIgnoreCase(TRUE)) {
 					isDemoDedupeSkip = false;
 				duplicateDtos = performDemoDedupe(registrationStatusDto, object, description);
 				if (duplicateDtos.isEmpty())

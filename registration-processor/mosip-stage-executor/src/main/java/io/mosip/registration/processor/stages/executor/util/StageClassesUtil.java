@@ -8,7 +8,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.kernel.core.logger.spi.Logger;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -86,8 +87,7 @@ public class StageClassesUtil {
 		String defaultStageBeanBasePkgStr = propertySourcesPropertyResolver.getProperty(PROP_DEFAULT_STAGE_GROUP_STAGE_BEANS_BASE_PACKAGE);
 		String stageBeanBasePkgsStr = propertySourcesPropertyResolver.getProperty(
 				stageBeansBasePkgsPropertyName, defaultStageBeanBasePkgStr);
-		// Sonar detecting default value and estimating condition as always false but in our case default value can be also null
-		if(stageBeanBasePkgsStr == null) {
+		if(stageBeanBasePkgsStr == null) { //NOSONAR Sonar detecting default value and estimating condition as always false but in our case default value can be also null
 			return List.of();
 		} else {
 			List<String> stageBeansBasePackages = Arrays.stream(stageBeanBasePkgsStr.split(","))

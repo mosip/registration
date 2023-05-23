@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.kernel.core.logger.spi.Logger;
-
 /**
  * All the configuration validations will be done in this class
  */
