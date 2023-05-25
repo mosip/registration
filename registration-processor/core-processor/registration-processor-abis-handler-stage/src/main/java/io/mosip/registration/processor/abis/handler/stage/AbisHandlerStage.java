@@ -11,8 +11,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import com.typesafe.config.ConfigException;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -98,7 +96,6 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 
 /**
  * The Class AbisHandlerStage.
- *
  * @author M1048358 Alok
  */
 @RefreshScope
@@ -232,7 +229,6 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * io.mosip.registration.processor.core.spi.eventbus.EventBusManager#process(
 	 * java.lang.Object)
@@ -255,10 +251,13 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 					object.getIteration(), object.getWorkflowInstanceId());
 			transactionTypeCode = registrationStatusDto.getLatestTransactionTypeCode();
 			String transactionId = registrationStatusDto.getLatestRegistrationTransactionId();
+
 			Boolean isIdentifyRequestPresent = packetInfoManager.getIdentifyByTransactionId(transactionId,
 					AbisHandlerStageConstant.IDENTIFY);
 			if (!isIdentifyRequestPresent) {
+
 				List<AbisQueueDetails> abisQueueDetails = utility.getAbisQueueDetails();
+
 				if (abisQueueDetails.isEmpty()) {
 					description.setStatusComment(AbisHandlerStageConstant.DETAILS_NOT_FOUND);
 					description.setMessage(PlatformErrorMessages.RPR_DETAILS_NOT_FOUND.getMessage());
@@ -330,8 +329,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		return object;
 	}
 
-	private void createRequest(String regId, List<AbisQueueDetails> abisQueueDetails, String transactionId,
-							   String process, int iteration, String workflowInstanceId, LogDescription description, String transactionTypeCode) throws Exception {
+	private void createRequest(String regId, List<AbisQueueDetails> abisQueueDetails, String transactionId, String process, int iteration, String workflowInstanceId, LogDescription description, String transactionTypeCode) throws Exception {
 		String bioRefId = getUUID();
 		insertInBioRef(regId, bioRefId,process,iteration, workflowInstanceId);
 		createInsertRequest(abisQueueDetails, transactionId, bioRefId, regId, process, description);
@@ -347,8 +345,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	 * @param transactionTypeCode the transaction type code
 	 * @param description
 	 */
-	private void createIdentifyRequest(List<AbisQueueDetails> abisQueueDetails, String transactionId, String bioRefId,
-									   String transactionTypeCode, LogDescription description) {
+	private void createIdentifyRequest(List<AbisQueueDetails> abisQueueDetails, String transactionId, String bioRefId, String transactionTypeCode, LogDescription description) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"AbisHandlerStage::createIdentifyRequest()::entry");
 		String batchId = getUUID();
@@ -388,8 +385,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	 * @param description
 	 * @return the identify request bytes
 	 */
-	private byte[] getIdentifyRequestBytes(String transactionId, String bioRefId, String transactionTypeCode, String id,
-										   LogDescription description) {
+	private byte[] getIdentifyRequestBytes(String transactionId, String bioRefId, String transactionTypeCode, String id, LogDescription description) {
 		AbisIdentifyRequestDto abisIdentifyRequestDto = new AbisIdentifyRequestDto();
 		Flag flag = new Flag();
 		abisIdentifyRequestDto.setId(AbisHandlerStageConstant.MOSIP_ABIS_IDENTIFY);
@@ -474,8 +470,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	 * @param regId            the reg id
 	 * @param description
 	 */
-	private void createInsertRequest(List<AbisQueueDetails> abisQueueDetails, String transactionId, String bioRefId,
-									 String regId, String process, LogDescription description) throws Exception {
+	private void createInsertRequest(List<AbisQueueDetails> abisQueueDetails, String transactionId, String bioRefId, String regId, String process, LogDescription description) throws Exception {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				regId, "AbisHandlerStage::createInsertRequest()::entry");
 		String batchId = getUUID();
@@ -534,8 +529,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	 * @param status
 	 * @return the insert request bytes
 	 */
-	private byte[] getInsertRequestBytes(String regId, String id, String process, String bioRefId,
-										 LogDescription description, String status) throws Exception {
+	private byte[] getInsertRequestBytes(String regId, String id, String process, String bioRefId, LogDescription description, String status) throws Exception {
 		AbisInsertRequestDto abisInsertRequestDto = new AbisInsertRequestDto();
 		abisInsertRequestDto.setId(AbisHandlerStageConstant.MOSIP_ABIS_INSERT);
 		abisInsertRequestDto.setReferenceId(bioRefId);
@@ -635,8 +629,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	}
 
 	@SuppressWarnings("deprecation")
-	private void validateBiometricRecord(BiometricRecord biometricRecord, List<String> modalities,
-										 Map<String, List<String>> biometricModalitySegmentsMap, Map<String, String> metaInfoMap)
+	private void validateBiometricRecord(BiometricRecord biometricRecord, List<String> modalities, Map<String, List<String>> biometricModalitySegmentsMap, Map<String, String> metaInfoMap)
 			throws DataShareException, JsonParseException, JsonMappingException, IOException {
 		if (modalities == null || modalities.isEmpty()) {
 			throw new DataShareException("Data Share Policy Modalities were Empty");
