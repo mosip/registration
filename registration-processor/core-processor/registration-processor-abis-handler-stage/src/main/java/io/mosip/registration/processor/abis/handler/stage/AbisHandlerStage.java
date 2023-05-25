@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.typesafe.config.ConfigException;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -97,7 +98,7 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 
 /**
  * The Class AbisHandlerStage.
- * 
+ *
  * @author M1048358 Alok
  */
 @RefreshScope
@@ -231,7 +232,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * io.mosip.registration.processor.core.spi.eventbus.EventBusManager#process(
 	 * java.lang.Object)
@@ -269,7 +270,8 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 							AbisHandlerStageConstant.DETAILS_NOT_FOUND);
 					throw new AbisHandlerException(PlatformErrorMessages.RPR_ABIS_INTERNAL_ERROR.getCode());
 				}
-				createRequest(regId, abisQueueDetails, transactionId, registrationStatusDto.getRegistrationType(),registrationStatusDto.getIteration(),
+				createRequest(regId, abisQueueDetails, transactionId, registrationStatusDto.getRegistrationType(),
+						registrationStatusDto.getIteration(),
 						registrationStatusDto.getWorkflowInstanceId(), description, transactionTypeCode);
 				object.setMessageBusAddress(MessageBusAddress.ABIS_MIDDLEWARE_BUS_IN);
 			} else {
@@ -331,7 +333,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	}
 
 	private void createRequest(String regId, List<AbisQueueDetails> abisQueueDetails, String transactionId,
-			String process, int iteration, String workflowInstanceId, LogDescription description, String transactionTypeCode) throws Exception {
+							   String process, int iteration, String workflowInstanceId, LogDescription description, String transactionTypeCode) throws Exception {
 		String bioRefId = getUUID();
 		insertInBioRef(regId, bioRefId,process,iteration, workflowInstanceId);
 		createInsertRequest(abisQueueDetails, transactionId, bioRefId, regId, process, description);
@@ -349,7 +351,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	 * @param description
 	 */
 	private void createIdentifyRequest(List<AbisQueueDetails> abisQueueDetails, String transactionId, String bioRefId,
-			String transactionTypeCode, LogDescription description) {
+									   String transactionTypeCode, LogDescription description) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"AbisHandlerStage::createIdentifyRequest()::entry");
 		String batchId = getUUID();
@@ -393,7 +395,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	 * @return the identify request bytes
 	 */
 	private byte[] getIdentifyRequestBytes(String transactionId, String bioRefId, String transactionTypeCode, String id,
-			LogDescription description) {
+										   LogDescription description) {
 		AbisIdentifyRequestDto abisIdentifyRequestDto = new AbisIdentifyRequestDto();
 		Flag flag = new Flag();
 		abisIdentifyRequestDto.setId(AbisHandlerStageConstant.MOSIP_ABIS_IDENTIFY);
@@ -480,7 +482,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	 * @param description
 	 */
 	private void createInsertRequest(List<AbisQueueDetails> abisQueueDetails, String transactionId, String bioRefId,
-			String regId, String process, LogDescription description) throws Exception {
+									 String regId, String process, LogDescription description) throws Exception {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				regId, "AbisHandlerStage::createInsertRequest()::entry");
 		String batchId = getUUID();
@@ -502,7 +504,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 			abisRequestDto.setReqBatchId(batchId);
 			abisRequestDto.setRefRegtrnId(transactionId);
 
-		
+
 			abisRequestDto.setStatusCode(AbisStatusCode.IN_PROGRESS.toString());
 			abisRequestDto.setStatusComment(null);
 			abisRequestDto.setLangCode(AbisHandlerStageConstant.ENG);
@@ -539,11 +541,11 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	 * @param id          the id
 	 * @param bioRefId    the bio ref id
 	 * @param description
-	 * @param status 
+	 * @param status
 	 * @return the insert request bytes
 	 */
 	private byte[] getInsertRequestBytes(String regId, String id, String process, String bioRefId,
-			LogDescription description, String status) throws Exception {
+										 LogDescription description, String status) throws Exception {
 		AbisInsertRequestDto abisInsertRequestDto = new AbisInsertRequestDto();
 		abisInsertRequestDto.setId(AbisHandlerStageConstant.MOSIP_ABIS_INSERT);
 		abisInsertRequestDto.setReferenceId(bioRefId);
@@ -608,7 +610,9 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 					priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE));
 		}
 
-		byte[] content = cbeffutil.createXML(biometricRecord.getSegments());
+		byte[] content = cbeffutil.createXML(filterExceptionBiometrics(biometricRecord).getSegments());
+
+//		byte[] content = cbeffutil.createXML(biometricRecord.getSegments());
 
 		MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 		map.add("name", individualBiometricsLabel);
@@ -644,7 +648,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 	@SuppressWarnings("deprecation")
 	private void validateBiometricRecord(BiometricRecord biometricRecord, List<String> modalities,
-			Map<String, List<String>> biometricModalitySegmentsMap, Map<String, String> metaInfoMap)
+										 Map<String, List<String>> biometricModalitySegmentsMap, Map<String, String> metaInfoMap)
 			throws DataShareException, JsonParseException, JsonMappingException, IOException {
 		if (modalities == null || modalities.isEmpty()) {
 			throw new DataShareException("Data Share Policy Modalities were Empty");
@@ -655,10 +659,10 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		}
 		Map<String, Map<String, Object>> metaInfoExceptionBiometrics = metaInfoMap != null
 				&& metaInfoMap.containsKey("exceptionBiometrics")
-						? mapper.readValue(metaInfoMap.get("exceptionBiometrics"),
-								new TypeReference<Map<String, Map<String, Object>>>() {
-								})
-						: null;
+				? mapper.readValue(metaInfoMap.get("exceptionBiometrics"),
+				new TypeReference<Map<String, Map<String, Object>>>() {
+				})
+				: null;
 		Set<String> exceptionList = null;
 		if (metaInfoExceptionBiometrics != null && metaInfoExceptionBiometrics.containsKey("applicant")) {
 			exceptionList = metaInfoExceptionBiometrics.get("applicant").keySet();
@@ -680,10 +684,10 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 					optionalBIR = biometricRecord.getSegments().stream()
 							.filter(bir -> bir.getBdbInfo().getSubtype()!=null && bir.getBdbInfo().getSubtype().size() == segmentArray.length
 									? (bir.getBdbInfo().getSubtype().get(0).equalsIgnoreCase(segmentArray[0])
-											&& (segmentArray.length == 2
-													? bir.getBdbInfo().getSubtype().get(1)
-															.equalsIgnoreCase(segmentArray[1])
-													: true))
+									&& (segmentArray.length == 2
+									? bir.getBdbInfo().getSubtype().get(1)
+									.equalsIgnoreCase(segmentArray[1])
+									: true))
 									: false)
 							.findFirst();
 				}
@@ -709,6 +713,20 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		if (!isBioFound) {
 			throw new DataShareException("No Biometric Matched with Data Share Policy");
 		}
+	}
+
+
+	private BiometricRecord filterExceptionBiometrics(BiometricRecord biometricRecord) {
+		List<BIR> segments = biometricRecord.getSegments().stream().filter(bio -> {
+			Map<String, String> othersMap = bio.getOthers().entrySet().stream()
+					.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+			return (othersMap == null || !othersMap.containsKey("EXCEPTION")) ? true : !(Boolean.parseBoolean(othersMap.get("EXCEPTION")));
+		}).collect(Collectors.toList());
+		BiometricRecord biorecord = new BiometricRecord();
+
+		biorecord.setSegments(segments);
+
+		return biorecord;
 	}
 
 	public Map<String, List<String>> createTypeSubtypeMapping() throws ApisResourceAccessException, DataShareException,
