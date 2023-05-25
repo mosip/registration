@@ -255,10 +255,8 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 					object.getIteration(), object.getWorkflowInstanceId());
 			transactionTypeCode = registrationStatusDto.getLatestTransactionTypeCode();
 			String transactionId = registrationStatusDto.getLatestRegistrationTransactionId();
-
 			Boolean isIdentifyRequestPresent = packetInfoManager.getIdentifyByTransactionId(transactionId,
 					AbisHandlerStageConstant.IDENTIFY);
-
 			if (!isIdentifyRequestPresent) {
 				List<AbisQueueDetails> abisQueueDetails = utility.getAbisQueueDetails();
 				if (abisQueueDetails.isEmpty()) {
@@ -338,7 +336,6 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		insertInBioRef(regId, bioRefId,process,iteration, workflowInstanceId);
 		createInsertRequest(abisQueueDetails, transactionId, bioRefId, regId, process, description);
 		createIdentifyRequest(abisQueueDetails, transactionId, bioRefId, transactionTypeCode, description);
-
 	}
 
 	/**
@@ -364,18 +361,15 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 			abisRequestDto.setRequestType(AbisHandlerStageConstant.IDENTIFY);
 			abisRequestDto.setReqBatchId(batchId);
 			abisRequestDto.setRefRegtrnId(transactionId);
-
 			byte[] abisIdentifyRequestBytes = getIdentifyRequestBytes(transactionId, bioRefId, transactionTypeCode, id,
 					description);
 			abisRequestDto.setReqText(abisIdentifyRequestBytes);
-
 			abisRequestDto.setStatusCode(RegistrationTransactionStatusCode.IN_PROGRESS.toString());
 			abisRequestDto.setStatusComment(null);
 			abisRequestDto.setLangCode(AbisHandlerStageConstant.ENG);
 			abisRequestDto.setCrBy(AbisHandlerStageConstant.USER);
 			abisRequestDto.setUpdBy(null);
 			abisRequestDto.setIsDeleted(Boolean.FALSE);
-
 			String moduleId = PlatformSuccessMessages.RPR_ABIS_HANDLER_STAGE_SUCCESS.getCode();
 			String moduleName = ModuleName.ABIS_HANDLER.toString();
 			packetInfoManager.saveAbisRequest(abisRequestDto, moduleId, moduleName);
@@ -429,7 +423,6 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 				if (!CollectionUtils.isEmpty(regBioRefDto)) {
 					dto.setReferenceId(regBioRefDto.get(0).getBioRefId());
 				}
-
 				referenceIdDtos.add(dto);
 			}
 			AbisIdentifyRequestGalleryDto galleryDto = new AbisIdentifyRequestGalleryDto();
@@ -503,8 +496,6 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 			abisRequestDto.setRequestType(AbisHandlerStageConstant.INSERT);
 			abisRequestDto.setReqBatchId(batchId);
 			abisRequestDto.setRefRegtrnId(transactionId);
-
-
 			abisRequestDto.setStatusCode(AbisStatusCode.IN_PROGRESS.toString());
 			abisRequestDto.setStatusComment(null);
 			abisRequestDto.setLangCode(AbisHandlerStageConstant.ENG);
@@ -529,7 +520,6 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 			abisRequestDto.setReqText(abisInsertRequestBytes);
 			packetInfoManager.saveAbisRequest(abisRequestDto, moduleId, moduleName);
 		}
-
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"AbisHandlerStage::createInsertRequest()::exit");
 	}
@@ -611,8 +601,6 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		}
 
 		byte[] content = cbeffutil.createXML(filterExceptionBiometrics(biometricRecord).getSegments());
-
-//		byte[] content = cbeffutil.createXML(biometricRecord.getSegments());
 
 		MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 		map.add("name", individualBiometricsLabel);
@@ -698,7 +686,6 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 						othersMap = bir.getOthers().entrySet().stream()
 								.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
 					}
-
 					if (bir.getBdb() != null) {
 						isBioFound = true;
 					} else if ((othersMap == null || !othersMap.containsKey("EXCEPTION")) ? true
