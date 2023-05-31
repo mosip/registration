@@ -18,6 +18,7 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -35,11 +36,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.util.NestedServletException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.digital.signature.dto.SignResponseDto;
@@ -47,8 +46,6 @@ import io.mosip.registration.processor.core.exception.ApisResourceAccessExceptio
 import io.mosip.registration.processor.core.exception.WorkFlowSearchException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
-import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
-import io.mosip.registration.processor.core.util.exception.DigitalSignatureException;
 import io.mosip.registration.processor.core.workflow.dto.SortInfo;
 import io.mosip.registration.processor.status.api.config.RegistrationStatusConfigTest;
 import io.mosip.registration.processor.status.dto.FilterInfo;
@@ -151,8 +148,9 @@ public class RegistrationStatusAndSyncControllerTest {
 
 	@MockBean
 	private RegistrationSyncRequestValidator syncrequestvalidator;
-
-    Gson gson = new GsonBuilder().serializeNulls().create();
+	
+	@Autowired
+	ObjectMapper objMp=new ObjectMapper();
 	private List<SyncResponseDto> syncResponseDtoList;
 	private List<SyncRegistrationDto> list;
 	SyncResponseFailureDto syncResponseFailureDto = new SyncResponseFailureDto();
@@ -171,7 +169,7 @@ public class RegistrationStatusAndSyncControllerTest {
 	 */
 	@Before
 	public void setUp() throws JsonProcessingException, ApisResourceAccessException {
-
+		ObjectMapper objMp=new ObjectMapper();
 		mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 		when(env.getProperty("mosip.registration.processor.registration.status.id"))
 				.thenReturn("mosip.registration.status");
@@ -196,7 +194,7 @@ public class RegistrationStatusAndSyncControllerTest {
 		registrationStatusRequestDTO.setVersion("1.0");
 		registrationStatusRequestDTO
 				.setRequesttime(DateUtils.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
-		regStatusToJson = gson.toJson(registrationStatusRequestDTO);
+		regStatusToJson = objMp.writeValueAsString(registrationStatusRequestDTO);
 		registrationDtoList = new ArrayList<>();
 		registrationDtoList1 = new ArrayList<>();
 		RegistrationStatusDto registrationStatusDto1 = new RegistrationStatusDto();
@@ -250,7 +248,7 @@ public class RegistrationStatusAndSyncControllerTest {
 		sortInfos.add(sortInfo);
 		searchInfo.setFilters(filterinfos);
 		searchInfo.setSort(sortInfos);
-		lostRidReqToJson = gson.toJson(lostRidRequestDto);
+		lostRidReqToJson =objMp.writeValueAsString(lostRidRequestDto);
 
 		Mockito.doReturn(registrationDtoList).when(registrationStatusService).getByIds(ArgumentMatchers.any());
 		Mockito.doReturn(registrationDtoList1).when(syncRegistrationService).getByIds(ArgumentMatchers.any());
@@ -304,7 +302,7 @@ public class RegistrationStatusAndSyncControllerTest {
 		List<SyncRegistrationDto> request = new ArrayList<SyncRegistrationDto>();
 		SyncRegistrationDto syncRegistrationDto = new SyncRegistrationDto("45128164920495", "NEW", null, null, "eng");
 		request.add(syncRegistrationDto);
-		String requestJson = gson.toJson(request);
+		String requestJson = objMp.writeValueAsString(request);
 
 		List<SyncResponseDto> syncResponseList = new ArrayList<>();
 		SyncResponseDto syncResponseDto = new SyncResponseDto();
@@ -335,7 +333,7 @@ public class RegistrationStatusAndSyncControllerTest {
 		List<SyncRegistrationDto> request = new ArrayList<SyncRegistrationDto>();
 		SyncRegistrationDto syncRegistrationDto = new SyncRegistrationDto("45128164920495", "NEW", null, null, "eng");
 		request.add(syncRegistrationDto);
-		String requestJson = gson.toJson(request);
+		String requestJson = objMp.writeValueAsString(request);
 
 		List<SyncResponseDto> syncResponseList = new ArrayList<>();
 		SyncResponseDto syncResponseDto = new SyncResponseDto();

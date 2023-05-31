@@ -11,7 +11,6 @@ import java.util.List;
 
 import javax.servlet.http.Cookie;
 
-import io.mosip.registration.processor.core.util.exception.DigitalSignatureException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -44,8 +43,6 @@ import org.springframework.web.util.NestedServletException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
@@ -126,7 +123,6 @@ public class RegistrationExternalStatusControllerTest {
 
 	/** The array to json. */
 	private String regStatusToJson;
-	Gson gson = new GsonBuilder().serializeNulls().create();
 
 	@Before
 	public void setUp() throws JsonProcessingException, ApisResourceAccessException {
@@ -153,7 +149,7 @@ public class RegistrationExternalStatusControllerTest {
 		registrationExternalStatusRequestDTO.setVersion("1.0");
 		registrationExternalStatusRequestDTO
 				.setRequesttime(DateUtils.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
-		regStatusToJson = gson.toJson(registrationExternalStatusRequestDTO);
+		regStatusToJson =objectMapper.writeValueAsString(registrationExternalStatusRequestDTO);
 		registrationDtoList = new ArrayList<>();
 		registrationDtoList1 = new ArrayList<>();
 		RegistrationStatusDto registrationStatusDto1 = new RegistrationStatusDto();

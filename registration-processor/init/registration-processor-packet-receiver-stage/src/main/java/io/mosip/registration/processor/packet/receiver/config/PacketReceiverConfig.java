@@ -3,10 +3,6 @@ package io.mosip.registration.processor.packet.receiver.config;
 import java.io.File;
 import java.io.InputStream;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
-import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,15 +10,23 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 
+import io.mosip.commons.khazana.impl.S3Adapter;
+import io.mosip.commons.khazana.impl.SwiftAdapter;
+import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.cbeffutil.impl.CbeffImpl;
 import io.mosip.kernel.core.idvalidator.spi.RidValidator;
+import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
 import io.mosip.kernel.idvalidator.rid.impl.RidValidatorImpl;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.spi.filesystem.manager.FileManager;
 import io.mosip.registration.processor.packet.manager.decryptor.Decryptor;
 import io.mosip.registration.processor.packet.manager.decryptor.DecryptorImpl;
@@ -50,7 +54,22 @@ public class PacketReceiverConfig {
 
 	@Value("${mosip.regproc.virusscanner.provider}")
 	private String virusScannerProviderName;
+	private static final String s3_Adapter = "S3Adapter";
+	private static final String swift_Adapter = "SwiftAdapter";
 
+	@Value("${registration.processor.objectstore.adapter.name}")
+	private String adapter;
+	
+	@Bean
+	@Primary
+	public ObjectStoreAdapter objectStoreAdapter() {
+		if (adapter.equalsIgnoreCase(s3_Adapter))
+			return new S3Adapter();
+		else if (adapter.equalsIgnoreCase(swift_Adapter))
+			return new SwiftAdapter();
+		else
+			throw new UnsupportedOperationException("No adapter implementation found for configuration: registration.processor.objectstore.adapter.name");
+	}
 	/**
 	 * PacketReceiverService bean.
 	 *
@@ -122,6 +141,7 @@ public class PacketReceiverConfig {
 	public ObjectMapper getObjectMapper() {
 		ObjectMapper objectMapper = new ObjectMapper().registerModule(new AfterburnerModule()).registerModule(new JavaTimeModule());
 		objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+		objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
 		return objectMapper;
 	}
 	

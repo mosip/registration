@@ -115,10 +115,12 @@ public interface RegistrationStatusService<T, U, D> {
 	 *            the reprocess count
 	 * @param status
 	 *            the status
+	 * @param excludeStageNames
+	 *            the exclude stage names
 	 * @return the un processed packets
 	 */
 	public List<U> getUnProcessedPackets(Integer fetchSize, long elapseTime, Integer reprocessCount,
-			List<String> status);
+			List<String> status, List<String> excludeStageNames);
 
 	/**
 	 * Gets the un processed packets count.
@@ -129,9 +131,12 @@ public interface RegistrationStatusService<T, U, D> {
 	 *            the reprocess count
 	 * @param status
 	 *            the status
+	 * @param excludeStageNames
+	 *            the exclude stage names
 	 * @return the un processed packets count
 	 */
-	public Integer getUnProcessedPacketsCount(long elapseTime, Integer reprocessCount, List<String> status);
+	public Integer getUnProcessedPacketsCount(long elapseTime, Integer reprocessCount, List<String> status, 
+		List<String> excludeStageNames);
 	
 	/**
 	 * Check Rid if uin is available.

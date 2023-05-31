@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -41,6 +42,8 @@ import io.mosip.kernel.biometrics.constant.QualityType;
 import io.mosip.kernel.biometrics.entities.BDBInfo;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.biosdk.provider.factory.BioAPIFactory;
+import io.mosip.kernel.biosdk.provider.spi.iBioProviderApi;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
 import io.mosip.registration.processor.core.auth.dto.IndividualIdDto;
@@ -50,6 +53,8 @@ import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.AuthSystemException;
 import io.mosip.registration.processor.core.exception.ValidationFailedException;
+import io.mosip.registration.processor.core.http.ResponseWrapper;
+import io.mosip.registration.processor.core.idrepo.dto.Documents;
 import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO;
 import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
 import io.mosip.registration.processor.core.logger.LogDescription;
@@ -71,7 +76,7 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
-import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
+import io.mosip.registration.processor.packet.storage.utils.BioSdkUtil;
 import io.mosip.registration.processor.packet.storage.utils.OSIUtils;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
@@ -146,9 +151,19 @@ public class OperatorValidatorTest {
 
 	@Mock
 	private Utilities utility;
+	
+	
+	@Mock
+	private BioAPIFactory bio;
+	
+	@Mock 
+	private iBioProviderApi bioProvider;
 
 	@Mock
-	private AuthUtil authUtil;
+	private BioSdkUtil bioUtil;
+	
+	//@Mock
+	//private BioSdkUtil bioUtil;
 
 	private Map<String, String> metaInfo;
 
@@ -207,6 +222,7 @@ public class OperatorValidatorTest {
 		Mockito.doNothing().when(description).setMessage(any());
 		Mockito.when(utility.isUinMissingFromIdAuth(any(),any(),any())).thenReturn(false);
 		Mockito.when(registrationExceptionMapperUtil.getStatusCode(any())).thenReturn("ERROR");
+
 		regOsiDto.setOfficerId("O1234");
 		regOsiDto.setOfficerHashedPin("officerHashedPin");
 		regOsiDto.setSupervisorId("S1234");
@@ -374,6 +390,13 @@ public class OperatorValidatorTest {
 
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any()))
 				.thenReturn("field");
+		String data="adjfgJHDFKjhsdfjksdbf";
+		List<Documents> ld=new ArrayList<>();
+		io.mosip.registration.processor.core.idrepo.dto.Documents d=new io.mosip.registration.processor.core.idrepo.dto.Documents(MappingJsonConstants.INDIVIDUAL_BIOMETRICS, data);
+		ld.add(d);
+		when(utility.retrieveIdrepoDocument(Mockito.anyString())).thenReturn(ld);
+		when(bio.getBioProvider(Mockito.any(), Mockito.any())).thenReturn(bioProvider);
+		when(bioProvider.verify(Mockito.anyList(), Mockito.anyList(), Mockito.any(), Mockito.any())).thenReturn(true);
 	}
 
 	/**
@@ -381,14 +404,16 @@ public class OperatorValidatorTest {
 	 *
 	 * @throws Exception the exception
 	 */
-	@Test
+	@Test(expected = ValidationFailedException.class)
 	public void testisValidOperatorSuccess() throws Exception {
 
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
 		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
-		.thenReturn(biometricRecord);
-		registrationStatusDto.setRegistrationType("ACTIVATED");
-		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
+		.thenReturn(null);
+		registrationStatusDto.setRegistrationType("ACTIVATED"); 
+		
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(userResponseDto);
+		doNothing().when(bioUtil).authenticateBiometrics(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
 		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
 	
@@ -443,8 +468,11 @@ public class OperatorValidatorTest {
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
 		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
 		.thenReturn(biometricRecord);
-		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
+		doNothing().when(bioUtil).authenticateBiometrics(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
 		registrationStatusDto.setRegistrationType("ACTIVATED");
+		regOsiDto.setOfficerBiometricFileName(null);
+		regOsiDto.setOfficerOTPAuthentication(null);
+		regOsiDto.setOfficerHashedPwd(null);
 		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
 
@@ -460,8 +488,8 @@ public class OperatorValidatorTest {
 		authResponseDTO.setErrors(Arrays.asList(errorDTO));
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
 		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
-		.thenReturn(biometricRecord);
-		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
+		.thenReturn(null);
+		doNothing().when(bioUtil).authenticateBiometrics(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
 		registrationStatusDto.setRegistrationType("ACTIVATED");
 		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
@@ -575,7 +603,8 @@ public class OperatorValidatorTest {
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
 		when(packetManagerService.getBiometricsByMappingJsonKey(anyString(), any(), any(), any()))
 				.thenReturn(biometricRecord);
-		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
+		doNothing().when(bioUtil).authenticateBiometrics(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+		regOsiDto.setPacketCreationDate(null);
 		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
 
@@ -592,7 +621,10 @@ public class OperatorValidatorTest {
 		.thenReturn(biometricRecord);
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any()))
 		.thenReturn(userResponseDto).thenReturn(centerResponse);
-		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
+		doNothing().when(bioUtil).authenticateBiometrics(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+		regOsiDto.setOfficerBiometricFileName(null);
+		regOsiDto.setOfficerHashedPwd(null);
+		regOsiDto.setOfficerOTPAuthentication(null);
 		operatorValidator.validate("reg1234", registrationStatusDto, regOsiDto);
 	}
 

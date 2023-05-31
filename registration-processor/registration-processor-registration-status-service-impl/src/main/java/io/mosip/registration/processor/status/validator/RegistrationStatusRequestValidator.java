@@ -116,7 +116,7 @@ public class RegistrationStatusRequestValidator {
 		if (Objects.isNull(ver)) {
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER_VERSION, exception);
 
-		} else if (!version.equals(ver)) {
+		} else if (null!=version && !version.equals(ver)) {
 
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_INVALID_INPUT_PARAMETER_VERSION, exception);
 		}

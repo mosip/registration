@@ -7,7 +7,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -34,8 +33,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.reflect.TypeToken;
-import com.google.gson.Gson;
 
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.constant.QualityType;
@@ -179,6 +176,7 @@ public class AbisHandlerStageTest {
 					// TODO Auto-generated method stub
 
 				}
+
 			};
 		}
 
@@ -487,7 +485,8 @@ public class AbisHandlerStageTest {
 		dto.setRid("10003100030001520190422074511");
 		MessageDTO result = abisHandlerStage.process(dto);
 
-		assertTrue(result.getMessageBusAddress().getAddress().equalsIgnoreCase("abis-middle-ware-bus-in"));
+		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 	@Test
@@ -968,10 +967,7 @@ public class AbisHandlerStageTest {
 		
 
 		exceptionBiometrcisMap.put("applicant", applicantExceptionBiometrcisMap);
-		Gson gson = new Gson();
-        Type gsonType = new TypeToken<HashMap>(){}.getType();
-		
-        String gsonString = gson.toJson(exceptionBiometrcisMap,gsonType);
+        String gsonString =mapper.writeValueAsString(exceptionBiometrcisMap);
         
 		metaInfoMap.put("exceptionBiometrics", gsonString);
 		Mockito.when(packetManagerService.getMetaInfo(any(), any(), any())).thenReturn(metaInfoMap);

@@ -153,6 +153,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	/** After this time intervel, message should be considered as expired (In seconds). */
 	@Value("${mosip.regproc.uin.generator.message.expiry-time-limit}")
 	private Long messageExpiryTimeLimit;
+	
+	@Value("${uingenerator.lost.packet.allowed.update.fields:null}")
+	private String updateInfo;
 
 	/** The core audit request builder. */
 	@Autowired
@@ -234,8 +237,10 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			if ((RegistrationType.LOST.toString()).equalsIgnoreCase(object.getReg_type())) {
 				String lostPacketRegId = object.getRid();
 				String matchedRegId = regLostUinDetEntity.getLostUinMatchedRegIdByWorkflowId(object.getWorkflowInstanceId());
+				
 				if (matchedRegId != null) {
-					linkRegIdWrtUin(lostPacketRegId, matchedRegId, registrationStatusDto.getRegistrationType(), object, description);
+					regProcLogger.info("Match for lostPacketRegId"+lostPacketRegId +"is "+matchedRegId);
+					lostAndUpdateUin(lostPacketRegId, matchedRegId, registrationStatusDto.getRegistrationType(), object, description);
 				}
 
 			} else {
@@ -614,7 +619,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		List<Documents> documentInfo = getAllDocumentsByRegId(regId, process, demographicIdentity);
 		result = idRepoRequestBuilder(regId, uin, RegistrationType.ACTIVATED.toString().toUpperCase(), documentInfo,
 				demographicIdentity);
-		if (isIdResponseNotNull(result)) {
+		if (null!=result && isIdResponseNotNull(result)) {
 
 			if (IDREPO_STATUS.equalsIgnoreCase(result.getResponse().getStatus())) {
 				isTransactionSuccessful = true;
@@ -629,14 +634,15 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		} else {
 			String statusComment = result != null && result.getErrors() != null ? result.getErrors().get(0).getMessage()
 					: UINConstants.NULL_IDREPO_RESPONSE;
+			String message = result != null && result.getErrors() != null
+					? result.getErrors().get(0).getMessage()
+					: UINConstants.NULL_IDREPO_RESPONSE;
 			description.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 			description.setStatusComment(trimExceptionMessage
 					.trimExceptionMessage(StatusUtil.UIN_DATA_UPDATION_FAILED.getMessage() + statusComment));
 			description.setSubStatusCode(StatusUtil.UIN_DATA_UPDATION_FAILED.getCode());
 			description
-					.setMessage(UINConstants.UIN_FAILURE + regId + "::" + result != null && result.getErrors() != null
-							? result.getErrors().get(0).getMessage()
-							: UINConstants.NULL_IDREPO_RESPONSE);
+					.setMessage(UINConstants.UIN_FAILURE + regId + "::" + message );
 			description.setTransactionStatusCode(RegistrationTransactionStatusCode.PROCESSING.toString());
 			object.setIsValid(Boolean.FALSE);
 		}
@@ -1001,7 +1007,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	 *             Signals that an I/O exception has occurred.
 	 */
 	@SuppressWarnings("unchecked")
-	private IdResponseDTO linkRegIdWrtUin(String lostPacketRegId, String matchedRegId, String process, MessageDTO object,
+	private IdResponseDTO lostAndUpdateUin(String lostPacketRegId, String matchedRegId, String process, MessageDTO object,
 			LogDescription description) throws ApisResourceAccessException, IOException, io.mosip.kernel.core.util.exception.JsonProcessingException, PacketManagerException, IdrepoDraftException {
 
 		IdResponseDTO idResponse = null;
@@ -1020,7 +1026,16 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			identityObject.put(UINConstants.UIN, uin);
 			String schemaVersion = packetManagerService.getFieldByMappingJsonKey(lostPacketRegId, MappingJsonConstants.IDSCHEMA_VERSION, process, ProviderStageName.UIN_GENERATOR);
 			identityObject.put(idschemaversion, convertIdschemaToDouble ? Double.valueOf(schemaVersion) : schemaVersion);
-
+			regProcLogger.info("Fields to be updated "+updateInfo);
+			if (null != updateInfo && !updateInfo.isEmpty()) {
+				String[] upd = updateInfo.split(",");
+				for (String infoField : upd) {
+					String fldValue = packetManagerService.getField(lostPacketRegId, infoField, process,
+							ProviderStageName.UIN_GENERATOR);
+					if (null != fldValue)
+						identityObject.put(infoField, fldValue);
+				}
+			}
 			requestDto.setRegistrationId(lostPacketRegId);
 			requestDto.setIdentity(identityObject);
 

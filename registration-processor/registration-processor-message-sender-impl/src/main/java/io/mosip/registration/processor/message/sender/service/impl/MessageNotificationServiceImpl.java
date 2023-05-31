@@ -15,11 +15,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import io.mosip.kernel.core.exception.BaseUncheckedException;
-import io.mosip.kernel.core.exception.ServiceError;
-import io.mosip.registration.processor.core.constant.*;
-import io.mosip.registration.processor.core.idrepo.dto.VidInfoDTO;
-import io.mosip.registration.processor.core.idrepo.dto.VidsInfosDTO;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -38,6 +33,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.kernel.core.exception.BaseUncheckedException;
+import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
@@ -45,6 +42,11 @@ import io.mosip.kernel.core.util.exception.JsonMappingException;
 import io.mosip.kernel.core.util.exception.JsonParseException;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.code.ApiName;
+import io.mosip.registration.processor.core.constant.IdType;
+import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
+import io.mosip.registration.processor.core.constant.VidType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
@@ -54,6 +56,8 @@ import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages
 import io.mosip.registration.processor.core.http.RequestWrapper;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO;
+import io.mosip.registration.processor.core.idrepo.dto.VidInfoDTO;
+import io.mosip.registration.processor.core.idrepo.dto.VidsInfosDTO;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.notification.template.generator.dto.ResponseDto;
 import io.mosip.registration.processor.core.notification.template.generator.dto.SmsRequestDto;
@@ -161,7 +165,7 @@ public class MessageNotificationServiceImpl
 
 	@Autowired
 	private ObjectMapper mapper;
-	
+
 	private List<String> mapperJsonKeys = null;
 
 	private JSONObject mapperIdentity=null;
@@ -536,19 +540,15 @@ public class MessageNotificationServiceImpl
 	private Map<String, Object> setAttributes(String idJsonString, Map<String, Object> attribute, String regType,
 			String lang, StringBuilder phoneNumber, StringBuilder emailId) throws IOException {
 		JSONObject demographicIdentity = null;
-
 			demographicIdentity = JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class);
 
         if(mapperJsonKeys==null) {
         	String mapperJsonString = Utilities.getJson(utility.getConfigServerFileStorageURL(),
     				utility.getGetRegProcessorIdentityJson());
         	JSONObject mapperJson = JsonUtil.objectMapperReadValue(mapperJsonString, JSONObject.class);
-    	    mapperIdentity = JsonUtil.getJSONObject(mapperJson, utility.getGetRegProcessorDemographicIdentity());
-
-    		mapperJsonKeys = new ArrayList<>(mapperIdentity.keySet());
+		    mapperIdentity = JsonUtil.getJSONObject(mapperJson, utility.getGetRegProcessorDemographicIdentity());
+		   mapperJsonKeys = new ArrayList<>(mapperIdentity.keySet());
         }
-		
-	
 		for (String key : mapperJsonKeys) {
 			JSONObject jsonValue = JsonUtil.getJSONObject(mapperIdentity, key);
 			if (jsonValue.get(VALUE) != null && !jsonValue.get(VALUE).toString().isBlank()) {

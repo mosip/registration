@@ -1,7 +1,37 @@
 package io.mosip.registration.processor.verification.service.impl;
 
+import static io.mosip.registration.processor.verification.constants.VerificationConstants.DATETIME_PATTERN;
+
+import java.io.IOException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
@@ -12,7 +42,14 @@ import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
-import io.mosip.registration.processor.core.code.*;
+import io.mosip.registration.processor.core.code.ApiName;
+import io.mosip.registration.processor.core.code.EventId;
+import io.mosip.registration.processor.core.code.EventName;
+import io.mosip.registration.processor.core.code.EventType;
+import io.mosip.registration.processor.core.code.ModuleName;
+import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
+import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
+import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.PolicyConstant;
@@ -61,28 +98,7 @@ import io.mosip.registration.processor.verification.request.dto.VerificationRequ
 import io.mosip.registration.processor.verification.response.dto.VerificationResponseDTO;
 import io.mosip.registration.processor.verification.service.VerificationService;
 import io.mosip.registration.processor.verification.stage.VerificationStage;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.json.simple.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-
-import java.io.IOException;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static io.mosip.registration.processor.verification.constants.VerificationConstants.DATETIME_PATTERN;
+import io.mosip.registration.processor.verification.util.SaveVerificationRecordUtility;
 
 /**
  * The Class ManualAdjudicationServiceImpl.
@@ -177,6 +193,9 @@ public class VerificationServiceImpl implements VerificationService {
 	@Autowired
 	RegistrationExceptionMapperUtil registrationExceptionMapperUtil;
 
+	@Autowired
+	SaveVerificationRecordUtility saveVerificationRecordUtility;
+
 	/** The Constant PROTOCOL. */
 	public static final String PROTOCOL = "https";
 
@@ -205,7 +224,7 @@ public class VerificationServiceImpl implements VerificationService {
 				throw new InvalidRidException(PlatformErrorMessages.RPR_MVS_NO_RID_SHOULD_NOT_EMPTY_OR_NULL.getCode(),
 						PlatformErrorMessages.RPR_MVS_NO_RID_SHOULD_NOT_EMPTY_OR_NULL.getMessage());
 			VerificationRequestDTO mar = prepareVerificationRequest(messageDTO, registrationStatusDto);
-			saveVerificationRecord(messageDTO, mar.getRequestId(), description);
+			saveVerificationRecordUtility.saveVerificationRecord(messageDTO, mar.getRequestId(), description);
 			regProcLogger.debug("Request : " + JsonUtils.javaObjectToJsonString(mar));
 
 			if (messageFormat.equalsIgnoreCase(TEXT_MESSAGE))
@@ -319,7 +338,7 @@ public class VerificationServiceImpl implements VerificationService {
 				description.setCode(StatusUtil.VERIFICATION_RESEND.getCode());
 				messageDTO.setInternalError(true);
 				messageDTO.setIsValid(isTransactionSuccessful);
-				verificationStage.sendMessage(messageDTO);
+
 			} else {
 				// call success flow and process the response received from manual verification
 				// system
@@ -372,6 +391,7 @@ public class VerificationServiceImpl implements VerificationService {
 			// TODO structure to not return in finally,ignore for sonar
 			updateStatus(messageDTO, registrationStatusDto, isTransactionSuccessful, description,
 					PlatformSuccessMessages.RPR_VERIFICATION_SUCCESS);
+			verificationStage.sendMessage(messageDTO);
 		}
 		return isTransactionSuccessful;
 	}
@@ -693,7 +713,6 @@ public class VerificationServiceImpl implements VerificationService {
 
 		if (statusCode.equalsIgnoreCase(ManualVerificationStatus.APPROVED.name())) {
 			messageDTO.setIsValid(isTransactionSuccessful);
-			verificationStage.sendMessage(messageDTO);
 			registrationStatusDto.setStatusComment(StatusUtil.VERIFICATION_SUCCESS.getMessage());
 			registrationStatusDto.setSubStatusCode(StatusUtil.VERIFICATION_SUCCESS.getCode());
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
@@ -712,7 +731,6 @@ public class VerificationServiceImpl implements VerificationService {
 			description.setCode(PlatformErrorMessages.RPR_MANUAL_VERIFICATION_REJECTED.getCode());
 			messageDTO.setIsValid(Boolean.FALSE);
 			messageDTO.setInternalError(Boolean.FALSE);
-			verificationStage.sendMessage(messageDTO);
 		} else {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 			registrationStatusDto.setStatusComment(StatusUtil.VERIFICATION_RESEND.getMessage());
@@ -723,7 +741,6 @@ public class VerificationServiceImpl implements VerificationService {
 			description.setMessage(PlatformErrorMessages.RPR_MANUAL_VERIFICATION_RESEND.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_MANUAL_VERIFICATION_RESEND.getCode());
 			messageDTO.setIsValid(Boolean.FALSE);
-			verificationStage.sendMessage(messageDTO);
 		}
 		basePacketRepository.update(entity);
 
@@ -767,63 +784,5 @@ public class VerificationServiceImpl implements VerificationService {
 		return isResendFlow;
 	}
 
-	private boolean saveVerificationRecord(MessageDTO messageDTO, String requestId, LogDescription description) {
-		String registrationId = messageDTO.getRid();
-		boolean isTransactionSuccessful = false;
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-				registrationId, "saveVerificationRecord::entry");
-
-		try {
-			List<VerificationEntity> existingRecords = basePacketRepository
-					.getVerificationRecordByWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
-
-			if (CollectionUtils.isEmpty(existingRecords)) {
-				VerificationEntity verificationEntity = new VerificationEntity();
-				VerificationPKEntity verificationPKEntity = new VerificationPKEntity();
-				verificationPKEntity.setWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
-
-				verificationEntity.setRegId(registrationId);
-				verificationEntity.setId(verificationPKEntity);
-				verificationEntity.setReponseText(null);
-				verificationEntity.setRequestId(requestId);
-				verificationEntity.setVerificationUsrId(null);
-				verificationEntity.setReasonCode(VERIFICATION_COMMENT);
-				verificationEntity.setStatusComment(VERIFICATION_COMMENT);
-				verificationEntity.setStatusCode(ManualVerificationStatus.INQUEUE.name());
-				verificationEntity.setActive(true);
-				verificationEntity.setDeleted(false);
-				verificationEntity.setCrBy("SYSTEM");
-				verificationEntity.setCrDtimes(Timestamp.valueOf(LocalDateTime.now(ZoneId.of("UTC"))));
-				verificationEntity.setUpdDtimes(Timestamp.valueOf(LocalDateTime.now(ZoneId.of("UTC"))));
-				basePacketRepository.save(verificationEntity);
-			} else {
-				VerificationEntity existingRecord = existingRecords.iterator().next();
-				existingRecord.setReponseText(null);
-				existingRecord.setVerificationUsrId(null);
-				existingRecord.setReasonCode(VERIFICATION_COMMENT);
-				existingRecord.setStatusComment(VERIFICATION_COMMENT);
-				existingRecord.setStatusCode(ManualVerificationStatus.INQUEUE.name());
-				existingRecord.setUpdDtimes(Timestamp.valueOf(LocalDateTime.now(ZoneId.of("UTC"))));
-				basePacketRepository.update(existingRecord);
-			}
-			description.setMessage("Packet marked for Verification saved successfully");
-			isTransactionSuccessful = true;
-
-		} catch (DataAccessLayerException e) {
-			isTransactionSuccessful = false;
-			description.setMessage("DataAccessLayerException while saving Verification data for rid" + registrationId
-					+ "::" + e.getMessage());
-
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, e.getMessage() + ExceptionUtils.getStackTrace(e));
-
-			throw new UnableToInsertData(
-					PlatformErrorMessages.RPR_PIS_UNABLE_TO_INSERT_DATA.getMessage() + registrationId, e);
-		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-				registrationId, "saveVerificationRecord::exit");
-
-		return isTransactionSuccessful;
-	}
 
 }

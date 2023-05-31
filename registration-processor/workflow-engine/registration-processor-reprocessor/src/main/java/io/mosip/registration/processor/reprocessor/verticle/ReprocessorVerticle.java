@@ -82,6 +82,10 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 	@Value("${registration.processor.reprocess.attempt.count}")
 	private Integer reprocessCount;
 
+	/** Comman seperated stage names that should be excluded while reprocessing. */
+	@Value("#{T(java.util.Arrays).asList('${mosip.registration.processor.reprocessor.exclude-stage-names:PacketReceiverStage}')}")
+	private List<String> reprocessExcludeStageNames;
+
 	/** The is transaction successful. */
 	boolean isTransactionSuccessful;
 
@@ -125,7 +129,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 			regProcLogger.info("ReprocessorVerticle::schedular()::deployed");
 			cronScheduling(vertx);
 		} else {
-			regProcLogger.error("ReprocessorVerticle::schedular()::deployment failure" + res.cause().toString());
+			regProcLogger.error("ReprocessorVerticle::schedular()::deployment failure " + res.cause().getMessage());
 		}
 	}
 
@@ -218,14 +222,14 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 			if (!CollectionUtils.isEmpty(reprocessorDtoList)) {
 				if (reprocessorDtoList.size() < fetchSize) {
 					List<InternalRegistrationStatusDto>  reprocessorPacketList = registrationStatusService.getUnProcessedPackets(fetchSize - reprocessorDtoList.size(), elapseTime,
-							reprocessCount, statusList);
+							reprocessCount, statusList, reprocessExcludeStageNames);
 					if (!CollectionUtils.isEmpty(reprocessorPacketList)) {
 						reprocessorDtoList.addAll(reprocessorPacketList);
 					}
 				}
 			} else {
 				reprocessorDtoList = registrationStatusService.getUnProcessedPackets(fetchSize, elapseTime,
-						reprocessCount, statusList);
+						reprocessCount, statusList, reprocessExcludeStageNames);
 			}
 
 			

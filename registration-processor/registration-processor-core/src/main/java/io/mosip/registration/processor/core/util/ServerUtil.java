@@ -5,7 +5,6 @@ import java.net.UnknownHostException;
 
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.kernel.core.logger.spi.Logger;
-
 /**
  * This class provides Server IP and Name.
  *

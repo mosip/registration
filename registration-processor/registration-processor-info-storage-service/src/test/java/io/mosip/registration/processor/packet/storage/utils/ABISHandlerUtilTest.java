@@ -65,6 +65,8 @@ public class ABISHandlerUtilTest {
 
 	@Mock
 	private IdRepoService idRepoService;
+	
+	List<String> lst=new ArrayList<>();
 
 	@Before
 	public void setup() throws Exception {
@@ -96,6 +98,10 @@ public class ABISHandlerUtilTest {
 			abisResponseDtoList.add(abisResponseDto);
 		});
 
+	
+		lst.add(RegistrationTransactionStatusCode.PROCESSED.toString());lst.add(RegistrationTransactionStatusCode.PROCESSING.toString());
+	
+		
 		when(packetInfoManager.getAbisResponseRecords(regBioRefIds.get(0),
 				latestTransactionId, AbisConstant.IDENTIFY)).thenReturn(abisResponseDtoList);
 
@@ -117,7 +123,7 @@ public class ABISHandlerUtilTest {
 		when(packetInfoDao.getWithoutStatusCodes(matchedRids, RegistrationTransactionStatusCode.REJECTED.toString(),
 				RegistrationTransactionStatusCode.PROCESSED.toString())).thenReturn(inprogressMatchedIds);
 		when(packetInfoDao.getProcessedOrProcessingRegIds(matchedRids,
-				RegistrationTransactionStatusCode.PROCESSED.toString())).thenReturn(processedMatchedIds);
+				lst)).thenReturn(processedMatchedIds);
 
 		when(idRepoService.getUinByRid(processedMatchedIds.get(0), new String())).thenReturn("123456789");
 		when(idRepoService.getUinByRid(processedMatchedIds.get(1), new String())).thenReturn("987654321");
@@ -157,7 +163,7 @@ public class ABISHandlerUtilTest {
 	public void testReturnAllInprogress() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
 
 		when(packetInfoDao.getProcessedOrProcessingRegIds(matchedRids,
-				RegistrationTransactionStatusCode.PROCESSED.toString())).thenReturn(Lists.newArrayList());
+				lst)).thenReturn(Lists.newArrayList());
 
 		Set<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType,1, "", ProviderStageName.BIO_DEDUPE);
 		// expected not to pick rocessedMatchedIds list i.e 3 records.

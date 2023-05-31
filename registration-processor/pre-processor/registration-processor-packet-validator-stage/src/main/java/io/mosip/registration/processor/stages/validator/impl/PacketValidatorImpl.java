@@ -94,6 +94,21 @@ public class PacketValidatorImpl implements PacketValidator {
 						.setPacketValidaionFailureMessage(StatusUtil.PACKET_MANAGER_VALIDATION_FAILURE.getMessage());
 				return false;
 			}
+			
+			//Check consent
+			if(!checkConsentForPacket(id,process,ProviderStageName.PACKET_VALIDATOR))
+			{
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), id,
+						"ERROR =======>" + StatusUtil.PACKET_CONSENT_VALIDATION.getMessage());
+				packetValidationDto
+						.setPacketValidatonStatusCode(StatusUtil.PACKET_CONSENT_VALIDATION.getCode());
+				packetValidationDto
+						.setPacketValidaionFailureMessage(StatusUtil.PACKET_CONSENT_VALIDATION.getMessage());
+				return false;
+			}
+			
+			
 
 			if (process.equalsIgnoreCase(RegistrationType.UPDATE.toString())
 					|| process.equalsIgnoreCase(RegistrationType.RES_UPDATE.toString())) {
@@ -200,7 +215,7 @@ public class PacketValidatorImpl implements PacketValidator {
 								LoggerFileConstant.REGISTRATIONID.toString(), id,
 								"ERROR =======> " + StatusUtil.XSD_VALIDATION_EXCEPTION.getMessage());
 						packetValidationDto.setPacketValidaionFailureMessage(
-								StatusUtil.XSD_VALIDATION_EXCEPTION.getMessage() + e.getMessage());
+								StatusUtil.XSD_VALIDATION_EXCEPTION.getMessage());
 						packetValidationDto.setPacketValidatonStatusCode(StatusUtil.XSD_VALIDATION_EXCEPTION.getCode());
 						return false;
 					} else if (e instanceof BiometricSignatureValidationException) {
@@ -250,10 +265,12 @@ public class PacketValidatorImpl implements PacketValidator {
 	private boolean applicantDocumentValidation(String registrationId, String process,
 			PacketValidationDto packetValidationDto)
 			throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException {
-		if (StringUtils.isNotEmpty(env.getProperty(VALIDATEAPPLICANTDOCUMENT)) && env.getProperty(VALIDATEAPPLICANTDOCUMENT).trim().equalsIgnoreCase(VALIDATIONFALSE))
+		String validateApplicant=env.getProperty(VALIDATEAPPLICANTDOCUMENT);
+		if (validateApplicant!=null && validateApplicant.trim().equalsIgnoreCase(VALIDATIONFALSE))
 			return true;
 		else {
-			if(StringUtils.isNotEmpty(env.getProperty(VALIDATEAPPLICANTDOCUMENTPROCESS)) && env.getProperty(VALIDATEAPPLICANTDOCUMENTPROCESS).contains(process)) {
+			String validateApplicantDocument=env.getProperty(VALIDATEAPPLICANTDOCUMENTPROCESS);
+			if(validateApplicantDocument!=null && validateApplicantDocument.contains(process)) {
 				boolean result = applicantDocumentValidation.validateDocument(registrationId, process);
 				if (!result) {
 					packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.APPLICANT_DOCUMENT_VALIDATION_FAILED.getMessage());
@@ -264,5 +281,19 @@ public class PacketValidatorImpl implements PacketValidator {
 			return true;
 		}
 	}
+	
+	private boolean checkConsentForPacket(String id, String process, ProviderStageName stageName)
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+
+		String val = packetManagerService.getField(id, MappingJsonConstants.CONSENT, process, stageName);
+		if (null!=val && StringUtils.isNotEmpty(val)) {
+			if (val.equalsIgnoreCase("N"))
+				return false;
+		}
+		return true;
+
+	}
+	
+	
 
 }

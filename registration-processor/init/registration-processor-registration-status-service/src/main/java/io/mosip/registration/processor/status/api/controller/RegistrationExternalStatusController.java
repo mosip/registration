@@ -18,8 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -38,7 +37,6 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.mosip.registration.processor.status.sync.response.dto.RegExternalStatusResponseDTO;
 import io.mosip.registration.processor.status.validator.RegistrationExternalStatusRequestValidator;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -70,6 +68,9 @@ public class RegistrationExternalStatusController {
 	
 	@Value("${registration.processor.signature.isEnabled}")
 	private Boolean isEnabled;
+	
+	@Autowired
+	ObjectMapper objMp;
 	
 	private static final String REG_EXTERNAL_STATUS_SERVICE_ID = "mosip.registration.processor.registration.external.status.id";
 	private static final String RESPONSE_SIGNATURE = "Response-Signature";
@@ -128,10 +129,12 @@ public class RegistrationExternalStatusController {
 			if (isEnabled) {
 				RegExternalStatusResponseDTO response = buildRegistrationStatusResponse(registrations,
 						registrationExternalStatusRequestDTO.getRequest());
-				Gson gson = new GsonBuilder().serializeNulls().create();
+	
 				HttpHeaders headers = new HttpHeaders();
-				headers.add(RESPONSE_SIGNATURE, digitalSignatureUtility.getDigitalSignature(gson.toJson(response)));
-				return ResponseEntity.status(HttpStatus.OK).headers(headers).body(gson.toJson(response));
+				String res=null;
+				res=objMp.writeValueAsString(response);
+				headers.add(RESPONSE_SIGNATURE, digitalSignatureUtility.getDigitalSignature(res));
+				return ResponseEntity.status(HttpStatus.OK).headers(headers).body(res);
 			}
 			return ResponseEntity.status(HttpStatus.OK)
 					.body(buildRegistrationStatusResponse(registrations, registrationExternalStatusRequestDTO.getRequest()));

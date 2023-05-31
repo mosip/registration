@@ -533,8 +533,16 @@ public class FileManagerImpl implements FileManager<DirectoryPathDto, InputStrea
 				String.class);
 		File file = FileUtils.getFile(env.getProperty(REGPROC_PPK));
 		FileOutputStream out = new FileOutputStream(file);
+		
 		try {
+			if(null!=data)
 			out.write(data.getBytes());
+			else
+			{
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						"No content found for ",configServerFileStorageURL + env.getProperty(REGPROC_PPK));
+
+			}
 		} finally {
 			out.close();
 		}
