@@ -32,10 +32,17 @@ import io.mosip.registration.processor.packet.manager.dto.DirectoryPathDto;
 class LandingZone {
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(LandingZone.class);
 	private static final int MAX_NUMBER_OF_PACKETS = 100;
+<<<<<<< HEAD
 	@Value("${mosip.regproc.landing.zone.account.name}")
 	private String landingZoneAccount;
 
 	@Value("${mosip.regproc.landing.zone.type:ObjectStore}")
+=======
+	@Value("${landing.zone.account.name}")
+	private String landingZoneAccount;
+
+	@Value("${landing.zone.type:ObjectStore}")
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 	private String landingZoneType;
 
 	@Value("${registration.processor.packet.ext}")

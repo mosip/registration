@@ -165,7 +165,11 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 		} catch (IOException e) {
 			throw new IOException(PlatformErrorMessages.RPR_RGS_IOEXCEPTION.getMessage());
 		}
+<<<<<<< HEAD
 		
+=======
+
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 		logger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), userid,
 				"InternalAuthDelegateServiceImpl::getIndividualIdByUserId()::exit");
 		return individualId;

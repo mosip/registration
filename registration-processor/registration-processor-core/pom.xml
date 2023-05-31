@@ -8,6 +8,7 @@
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>registration-processor</artifactId>
 <<<<<<< HEAD
+<<<<<<< HEAD
 		<version>1.2.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>registration-processor-core</artifactId>
@@ -18,6 +19,12 @@
 	<artifactId>registration-processor-core</artifactId>
 	<version>1.2.0.1-B1</version>
 >>>>>>> 90f07580ac (Release Bot Pre-release changes)
+=======
+		<version>1.2.0.1-B3-SNAPSHOT</version>
+	</parent>
+	<artifactId>registration-processor-core</artifactId>
+	<version>1.2.0.1-B3-SNAPSHOT</version>
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 	<dependencies>
 		<dependency>
 			<groupId>org.mockito</groupId>
@@ -55,7 +62,11 @@
 					<groupId>org.slf4j</groupId>
 					<artifactId>slf4j-log4j12</artifactId>
 				</exclusion>
+<<<<<<< HEAD
 				
+=======
+
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 			</exclusions>
 		</dependency>
 		<dependency>
@@ -142,7 +153,11 @@
 			<artifactId>kernel-cbeffutil-api</artifactId>
 			<version>${kernel.cbeffutil.version}</version>
 		</dependency>
+<<<<<<< HEAD
 		
+=======
+
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-config-spring-config-server</artifactId>

@@ -101,6 +101,7 @@ public class ABISHandlerUtil {
 				if (!CollectionUtils.isEmpty(machedRefIds)) {
 					List<String> matchedRegIds = packetInfoDao.getAbisRefRegIdsByMatchedRefIds(machedRefIds);
 					if (!CollectionUtils.isEmpty(matchedRegIds)) {
+<<<<<<< HEAD
 						List<RegistrationStatusEntity> matchedRegistrationStatusEntities = packetInfoDao
 								.getWithoutStatusCode(matchedRegIds,
 										RegistrationStatusCode.REJECTED.toString());
@@ -113,6 +114,16 @@ public class ABISHandlerUtil {
 								.collect(Collectors.toList());
 						List<String> matchedProcessedRegIds = matchedRegistrationStatusEntities.stream()
 								.map(RegistrationStatusEntity::getRegId).collect(Collectors.toList());
+=======
+						List<String> processingRegIds = packetInfoDao.getWithoutStatusCodes(matchedRegIds,
+								RegistrationTransactionStatusCode.REJECTED.toString(), RegistrationTransactionStatusCode.PROCESSED.toString());
+						List<String> statusList=new ArrayList<>();
+						statusList.add(RegistrationTransactionStatusCode.PROCESSED.toString());
+						statusList.add(RegistrationTransactionStatusCode.PROCESSING.toString());
+						List<String> processedRegIds = packetInfoDao.getProcessedOrProcessingRegIds(matchedRegIds,
+								statusList);
+						uniqueRIDs = getUniqueRegIds(processedRegIds, registrationId, registrationType, stageName);
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 						uniqueRIDs.addAll(processingRegIds);
 						Set<String> processedRegIds = getUniqueRegIds(matchedProcessedRegIds, registrationId,
 								registrationType,

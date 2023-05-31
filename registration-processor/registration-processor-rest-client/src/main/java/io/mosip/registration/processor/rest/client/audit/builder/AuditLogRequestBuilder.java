@@ -220,7 +220,11 @@ public class AuditLogRequestBuilder {
 
 		return responseWrapper;
 	}
+<<<<<<< HEAD
 	
+=======
+
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 	@SuppressWarnings("unchecked")
 	public ResponseWrapper<AuditResponseDto> createAuditRequestBuilder(String description, String eventId,
 			String eventName, String eventType, String moduleId, String moduleName, String registrationId) {

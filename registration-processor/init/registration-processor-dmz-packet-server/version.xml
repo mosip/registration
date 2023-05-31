@@ -1,2 +1,7 @@
+<<<<<<< HEAD
 <!-- The project version used to build docker -->
 <version>1.2.1-SNAPSHOT</version>
+=======
+<!-- The project version used to build docker -->
+<version>1.2.0.1-B3-SNAPSHOT</version>
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))

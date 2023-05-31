@@ -65,8 +65,15 @@ public class ABISHandlerUtilTest {
     @Mock
     private PacketInfoDao packetInfoDao;
 
+<<<<<<< HEAD
     @Mock
     private IdRepoService idRepoService;
+=======
+	@Mock
+	private IdRepoService idRepoService;
+	
+	List<String> lst=new ArrayList<>();
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 
     List<String> lst=new ArrayList<>();
 
@@ -107,7 +114,16 @@ public class ABISHandlerUtilTest {
             abisResponseDtoList.add(abisResponseDto);
         });
 
+<<<<<<< HEAD
         lst.add(RegistrationTransactionStatusCode.PROCESSED.toString());lst.add(RegistrationTransactionStatusCode.PROCESSING.toString());
+=======
+	
+		lst.add(RegistrationTransactionStatusCode.PROCESSED.toString());lst.add(RegistrationTransactionStatusCode.PROCESSING.toString());
+	
+		
+		when(packetInfoManager.getAbisResponseRecords(regBioRefIds.get(0),
+				latestTransactionId, AbisConstant.IDENTIFY)).thenReturn(abisResponseDtoList);
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 
         when(packetInfoManager.getAbisResponseRecords(regBioRefIds.get(0),
                 latestTransactionId, AbisConstant.IDENTIFY)).thenReturn(abisResponseDtoList);
@@ -133,11 +149,18 @@ public class ABISHandlerUtilTest {
     @Test
     public void testProcesssedWithUniqueUin() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
 
+<<<<<<< HEAD
         Set<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType, 1, "", ProviderStageName.BIO_DEDUPE);
 // expected to pick 2 rids from processedMatchedIds list because different uin.
         // Total should be 1(inprogress) + 2(processed)
         assertEquals(3, uniqueRids.size());
     }
+=======
+		when(packetInfoDao.getWithoutStatusCodes(matchedRids, RegistrationTransactionStatusCode.REJECTED.toString(),
+				RegistrationTransactionStatusCode.PROCESSED.toString())).thenReturn(inprogressMatchedIds);
+		when(packetInfoDao.getProcessedOrProcessingRegIds(matchedRids,
+				lst)).thenReturn(processedMatchedIds);
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 
     @Test
     public void testProcesssedWithSameUin() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
@@ -163,9 +186,38 @@ public class ABISHandlerUtilTest {
 
         when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn(null);
 
+<<<<<<< HEAD
         Set<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType,1, "", ProviderStageName.BIO_DEDUPE);
         // expected not to pick processedMatchedIds list i.e 1 records..
         assertEquals(1, uniqueRids.size());
     }
+=======
+		Set<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType,1, "", ProviderStageName.BIO_DEDUPE);
+		// expected to pick only 1 rid from processedMatchedIds list. Total should be 3(inprogress) + 1(processed)
+		assertEquals(4, uniqueRids.size());
+	}
+
+	@Test
+	public void testDonotReturnRejected() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
+
+		when(packetInfoDao.getWithoutStatusCodes(matchedRids, RegistrationTransactionStatusCode.REJECTED.toString(),
+				RegistrationTransactionStatusCode.PROCESSED.toString())).thenReturn(Lists.newArrayList());
+
+		Set<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType,1, "", ProviderStageName.BIO_DEDUPE);
+		// expected to pick only rocessedMatchedIds list i.e 2 records.
+		assertEquals(2, uniqueRids.size());
+	}
+
+	@Test
+	public void testReturnAllInprogress() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
+
+		when(packetInfoDao.getProcessedOrProcessingRegIds(matchedRids,
+				lst)).thenReturn(Lists.newArrayList());
+
+		Set<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType,1, "", ProviderStageName.BIO_DEDUPE);
+		// expected not to pick rocessedMatchedIds list i.e 3 records.
+		assertEquals(3, uniqueRids.size());
+	}
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 
 }

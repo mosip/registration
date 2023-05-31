@@ -6,6 +6,7 @@
     <groupId>io.mosip.registrationprocessor</groupId>
     <artifactId>workflow-engine</artifactId>
 <<<<<<< HEAD
+<<<<<<< HEAD
     <version>1.2.1-SNAPSHOT</version>
   </parent>
   <artifactId>registration-processor-workflow-manager-service</artifactId>
@@ -16,6 +17,12 @@
   <artifactId>registration-processor-workflow-manager-service</artifactId>
   <version>1.2.0.1-B1</version>
 >>>>>>> 90f07580ac (Release Bot Pre-release changes)
+=======
+    <version>1.2.0.1-B3-SNAPSHOT</version>
+  </parent>
+  <artifactId>registration-processor-workflow-manager-service</artifactId>
+  <version>1.2.0.1-B3-SNAPSHOT</version>
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
   <name>registration-processor-workflow-manager-service</name>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

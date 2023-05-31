@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 package io.mosip.registration.processor.stages.uigenerator;
 
 import static org.junit.Assert.*;
@@ -2477,6 +2478,8 @@ public class UinGeneratorStageTest {
 		assertTrue(result.getIsValid());
 	}
 =======
+=======
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 package io.mosip.registration.processor.stages.uigenerator;
 
 import static org.junit.Assert.assertFalse;
@@ -2509,7 +2512,15 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+<<<<<<< HEAD
 import org.mockito.*;
+=======
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -2521,7 +2532,10 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+<<<<<<< HEAD
 import com.google.gson.Gson;
+=======
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.constant.QualityType;
@@ -2534,6 +2548,10 @@ import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.kernel.dataaccess.hibernate.constant.HibernateErrorCode;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
+<<<<<<< HEAD
+=======
+import io.mosip.registration.processor.core.abstractverticle.HealthCheckDTO;
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -2582,7 +2600,11 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 
 @RunWith(PowerMockRunner.class)
+<<<<<<< HEAD
 @PrepareForTest({ IOUtils.class, HMACUtils2.class, Utilities.class, Gson.class })
+=======
+@PrepareForTest({ IOUtils.class, HMACUtils2.class, Utilities.class})
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*", "javax.net.ssl.*" })
 public class UinGeneratorStageTest {
 
@@ -2615,6 +2637,22 @@ public class UinGeneratorStageTest {
 				public void send(MessageBusAddress toAddress, MessageDTO message) {
 
 				}
+<<<<<<< HEAD
+=======
+
+				@Override
+				public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
+					// TODO Auto-generated method stub
+
+				}
+
+				@Override
+				public void senderHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
+					// TODO Auto-generated method stub
+
+				}
+
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 			};
 		}
 
@@ -2717,7 +2755,11 @@ public class UinGeneratorStageTest {
 		ReflectionTestUtils.setField(uinGeneratorStage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(uinGeneratorStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(uinGeneratorStage, "clusterManagerUrl", "/dummyPath");
+<<<<<<< HEAD
 
+=======
+		ReflectionTestUtils.setField(uinGeneratorStage, "updateInfo", "phone");
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 		ClassLoader classLoader1 = getClass().getClassLoader();
 		File idJsonFile1 = new File(classLoader1.getResource("RegistrationProcessorIdentity.json").getFile());
 		InputStream idJsonStream1 = new FileInputStream(idJsonFile1);
@@ -3992,6 +4034,64 @@ public class UinGeneratorStageTest {
 	}
 
 	@Test
+<<<<<<< HEAD
+=======
+	public void testLinkSuccessForLostUinAndUpdateContactInfo() throws Exception {
+		Map<String, String> fieldMap = new HashMap<>();
+		fieldMap.put("UIN", "123456");
+		fieldMap.put("name", "mono");
+		fieldMap.put("email", "mono@mono.com");
+
+		List<String> defaultFields = new ArrayList<>();
+		defaultFields.add("name");
+		defaultFields.add("dob");
+		defaultFields.add("gender");
+		defaultFields.add("UIN");
+		when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn("9403107397");
+
+
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
+		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.LOST.name());
+		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
+		String response = "{\"timestamp\":1553771083721,\"status\":404,\"errors\":[{\"errorCode\":\"KER-UIG-004\",\"errorMessage\":\"Given UIN is not in ISSUED status\"}]}";
+
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(response);
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.update");
+		responseDTO.setStatus("ACTIVATED");
+		idResponseDTO.setResponse(responseDTO);
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
+		when(packetManagerService.getField(any(), any(), any(),any())).thenReturn("989879234");
+
+		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
+		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any(Class.class)))
+				.thenReturn(idResponseDTO);
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any(Class.class)))
+				.thenReturn(idResponseDTO);
+		when(
+				registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any(Class.class)))
+				.thenReturn(idResponseDTO);
+		when(packetManagerService.getFieldByMappingJsonKey(any(), any(), any(), any())).thenReturn("1.0");
+		when(regLostUinDetEntity.getLostUinMatchedRegIdByWorkflowId(any())).thenReturn("27847657360002520181210094052");
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
+	}
+
+	@Test
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 	public void updateTestSuccess() throws ApisResourceAccessException, IOException, JsonProcessingException, PacketManagerException, JSONException, IdrepoDraftException {
 		Map<String, String> fieldMap = new HashMap<>();
 		fieldMap.put("UIN", "123456");
@@ -4802,5 +4902,8 @@ public class UinGeneratorStageTest {
 		assertTrue(result.getIsValid());
 	}
 	
+<<<<<<< HEAD
 >>>>>>> 81e10c8ab0 (MOSIP-18793 : objectmapper afterburner usage (#1465))
+=======
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 }

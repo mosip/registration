@@ -4,6 +4,7 @@
     <artifactId>registration-processor</artifactId>
     <groupId>io.mosip.registrationprocessor</groupId>
 <<<<<<< HEAD
+<<<<<<< HEAD
     <version>1.2.1-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -16,6 +17,13 @@
   <artifactId>registration-processor-common-camel-bridge</artifactId>
   <version>1.2.0.1-B1</version>
 >>>>>>> 90f07580ac (Release Bot Pre-release changes)
+=======
+    <version>1.2.0.1-B3-SNAPSHOT</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>registration-processor-common-camel-bridge</artifactId>
+  <version>1.2.0.1-B3-SNAPSHOT</version>
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
   <build>
     <plugins>
       <plugin>
@@ -111,10 +119,14 @@
     <vertx.verticle>io.mosip.registration.processor.camel.bridge.MosipCamelBridge</vertx.verticle>
     <fabric8-vertx-maven-plugin.version>1.0.5</fabric8-vertx-maven-plugin.version>
 <<<<<<< HEAD
+<<<<<<< HEAD
     <registration.processor.registration.status.service.impl.version>1.2.1-SNAPSHOT</registration.processor.registration.status.service.impl.version>
 =======
     <registration.processor.registration.status.service.impl.version>1.2.0.1-B1</registration.processor.registration.status.service.impl.version>
 >>>>>>> 90f07580ac (Release Bot Pre-release changes)
+=======
+    <registration.processor.registration.status.service.impl.version>1.2.0.1-B3-SNAPSHOT</registration.processor.registration.status.service.impl.version>
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
   </properties>
 </project>
 

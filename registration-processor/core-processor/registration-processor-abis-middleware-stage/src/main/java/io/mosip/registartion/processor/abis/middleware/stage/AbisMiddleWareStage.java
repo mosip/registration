@@ -206,7 +206,11 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.ABIS_MIDDLEWARE_BUS_IN,
 				MessageBusAddress.ABIS_MIDDLEWARE_BUS_OUT));
 		this.createServer(router.getRouter(), getPort());
+<<<<<<< HEAD
 		
+=======
+
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 	}
 
 	@Override
@@ -631,7 +635,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 							+ io.mosip.registartion.processor.abis.middleware.constants.FailureReason
 									.getValueFromKey(abisCommonResponseDto.getFailureReason()),
 					"AbisMiddleWareStage::updteAbisRequestProcessed()");
-			
+
 		}
 		abisReqEntity.setAbisAppCode(abisCommonRequestDto.getAbisAppCode());
 		abisReqEntity.setRequestType(abisCommonRequestDto.getRequestType());
@@ -704,7 +708,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 
 		abisResponseDto.setId(RegistrationUtility.generateId());
 		abisResponseDto.setRespText(response.getBytes());
-		
+
 		if (isInsertSuccess(abisCommonResponseDto)) {
 			abisResponseDto.setStatusCode(AbisStatusCode.SUCCESS.toString());
 		} else {
@@ -716,7 +720,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 									.getValueFromKey(abisCommonResponseDto.getFailureReason()),
 					"AbisMiddleWareStage::updateAbisResponseEntity()");
 		}
-		
+
 		abisResponseDto.setStatusComment(io.mosip.registartion.processor.abis.middleware.constants.FailureReason.getValueFromKey(abisCommonResponseDto.getFailureReason()));
 		abisResponseDto.setLangCode("eng");
 		abisResponseDto.setCrBy(SYSTEM);

@@ -7,6 +7,7 @@
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>post-processor</artifactId>
 <<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/pom.xml
+<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/pom.xml
 		<version>1.2.1-SNAPSHOT</version>
 	</parent>
 <<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/pom.xml
@@ -21,6 +22,12 @@
 	<artifactId>registration-processor-printing-stage</artifactId>
 	 <version>1.2.0.1-B1</version>
 >>>>>>> 90f07580ac (Release Bot Pre-release changes):registration-processor/post-processor/registration-processor-printing-stage/pom.xml
+=======
+		<version>1.2.0.1-B3-SNAPSHOT</version>
+	</parent>
+	<artifactId>registration-processor-printing-stage</artifactId>
+	 <version>1.2.0.1-B3-SNAPSHOT</version>
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708)):registration-processor/post-processor/registration-processor-printing-stage/pom.xml
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>

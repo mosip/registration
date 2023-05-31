@@ -1,6 +1,10 @@
 package io.mosip.registration.processor.adjudication.util;
 
+<<<<<<< HEAD
 	
+=======
+
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 	import java.sql.Timestamp;
 import java.util.List;
 

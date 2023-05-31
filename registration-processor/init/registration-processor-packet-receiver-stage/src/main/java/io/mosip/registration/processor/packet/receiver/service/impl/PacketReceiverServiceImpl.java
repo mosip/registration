@@ -9,6 +9,13 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
+<<<<<<< HEAD
+=======
+import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.registration.processor.core.exception.AdditionalInfoIdNotFoundException;
+import io.mosip.registration.processor.core.exception.ObjectStoreNotAccessibleException;
+import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 import org.apache.commons.io.IOUtils;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.StringUtils;
@@ -117,10 +124,17 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	@Value("${registration.processor.packet.ext}")
 	private String extention;
 	
+<<<<<<< HEAD
 	@Value("${mosip.regproc.landing.zone.account.name}")
     private String landingZoneAccount;
 	
 	@Value("${mosip.regproc.landing.zone.type:ObjectStore}")
+=======
+	@Value("${landing.zone.account.name}")
+    private String landingZoneAccount;
+	
+	@Value("${landing.zone.type:ObjectStore}")
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
     private String landingZoneType;
 
 	/** The file size. */
@@ -523,8 +537,12 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 							DirectoryPathDto.LANDING_ZONE);
 				}
 				else if(landingZoneType.equalsIgnoreCase(LandingZoneTypeConstant.OBJECT_STORE)) {
+<<<<<<< HEAD
 					boolean result = objectStoreAdapter.putObject(landingZoneAccount, registrationId, null, null,
 							packetId, new ByteArrayInputStream(encryptedByteArray));
+=======
+					 boolean result =objectStoreAdapter.putObject(landingZoneAccount, registrationId, null, null, packetId, encryptedInputStream);
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 					 if(!result) {
 						 throw new ObjectStoreNotAccessibleException("Failed to store packet : " + packetId);
 					 }

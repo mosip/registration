@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 package io.mosip.registration.processor.abis.handler.stage.test;
 
 import static org.junit.Assert.assertFalse;
@@ -1032,6 +1033,8 @@ public class AbisHandlerStageTest {
 	}
 	
 =======
+=======
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 package io.mosip.registration.processor.abis.handler.stage.test;
 
 import static org.junit.Assert.assertFalse;
@@ -1041,7 +1044,10 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+<<<<<<< HEAD
 import java.lang.reflect.Type;
+=======
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -1054,19 +1060,33 @@ import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+<<<<<<< HEAD
 import org.mockito.*;
+=======
+import org.mockito.ArgumentMatchers;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.Spy;
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+<<<<<<< HEAD
 import org.springframework.beans.factory.annotation.Autowired;
+=======
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+<<<<<<< HEAD
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
+=======
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.constant.QualityType;
@@ -1079,12 +1099,19 @@ import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.abis.handler.dto.DataShare;
 import io.mosip.registration.processor.abis.handler.dto.DataShareResponseDto;
+<<<<<<< HEAD
 import io.mosip.registration.processor.core.packet.dto.datashare.Filter;
 import io.mosip.registration.processor.core.packet.dto.datashare.ShareableAttributes;
 import io.mosip.registration.processor.core.packet.dto.datashare.Source;
 import io.mosip.registration.processor.abis.handler.stage.AbisHandlerStage;
 import io.mosip.registration.processor.abis.queue.dto.AbisQueueDetails;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
+=======
+import io.mosip.registration.processor.abis.handler.stage.AbisHandlerStage;
+import io.mosip.registration.processor.abis.queue.dto.AbisQueueDetails;
+import io.mosip.registration.processor.core.abstractverticle.EventDTO;
+import io.mosip.registration.processor.core.abstractverticle.HealthCheckDTO;
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -1102,6 +1129,12 @@ import io.mosip.registration.processor.core.packet.dto.abis.AbisInsertRequestDto
 import io.mosip.registration.processor.core.packet.dto.abis.AbisRequestDto;
 import io.mosip.registration.processor.core.packet.dto.abis.RegBioRefDto;
 import io.mosip.registration.processor.core.packet.dto.abis.RegDemoDedupeListDto;
+<<<<<<< HEAD
+=======
+import io.mosip.registration.processor.core.packet.dto.datashare.Filter;
+import io.mosip.registration.processor.core.packet.dto.datashare.ShareableAttributes;
+import io.mosip.registration.processor.core.packet.dto.datashare.Source;
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
@@ -1197,6 +1230,22 @@ public class AbisHandlerStageTest {
 				public void send(MessageBusAddress toAddress, MessageDTO message) {
 
 				}
+<<<<<<< HEAD
+=======
+
+				@Override
+				public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
+					// TODO Auto-generated method stub
+
+				}
+
+				@Override
+				public void senderHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
+					// TODO Auto-generated method stub
+
+				}
+
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 			};
 		}
 
@@ -1505,7 +1554,12 @@ public class AbisHandlerStageTest {
 		dto.setRid("10003100030001520190422074511");
 		MessageDTO result = abisHandlerStage.process(dto);
 
+<<<<<<< HEAD
 		assertTrue(result.getMessageBusAddress().getAddress().equalsIgnoreCase("abis-middle-ware-bus-in"));
+=======
+		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 	}
 
 	@Test
@@ -1986,10 +2040,14 @@ public class AbisHandlerStageTest {
 		
 
 		exceptionBiometrcisMap.put("applicant", applicantExceptionBiometrcisMap);
+<<<<<<< HEAD
 		Gson gson = new Gson();
         Type gsonType = new TypeToken<HashMap>(){}.getType();
 		
         String gsonString = gson.toJson(exceptionBiometrcisMap,gsonType);
+=======
+        String gsonString =mapper.writeValueAsString(exceptionBiometrcisMap);
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
         
 		metaInfoMap.put("exceptionBiometrics", gsonString);
 		Mockito.when(packetManagerService.getMetaInfo(any(), any(), any())).thenReturn(metaInfoMap);
@@ -2044,5 +2102,8 @@ public class AbisHandlerStageTest {
 		return biometricRecord;
 	}
 	
+<<<<<<< HEAD
 >>>>>>> 81e10c8ab0 (MOSIP-18793 : objectmapper afterburner usage (#1465))
+=======
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 }

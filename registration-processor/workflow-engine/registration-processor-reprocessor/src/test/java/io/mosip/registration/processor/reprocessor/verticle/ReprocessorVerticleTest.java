@@ -121,6 +121,7 @@ public class ReprocessorVerticleTest {
          ReflectionTestUtils.setField(reprocessorVerticle, "elapseTime", 21600);
          ReflectionTestUtils.setField(reprocessorVerticle, "reprocessCount", 3);
 		 ReflectionTestUtils.setField(reprocessorVerticle, "reprocessExcludeStageNames", new ArrayList<>());
+<<<<<<< HEAD
 			List<String> reprocessRestartTriggerFilterList = new ArrayList<>();
 			reprocessRestartTriggerFilterList.add("DemodedupStage:Success");
 			reprocessRestartTriggerFilterList.add("BioDedupeStage:*");
@@ -131,6 +132,8 @@ public class ReprocessorVerticleTest {
 					reprocessRestartTriggerFilterList);
 			ReflectionTestUtils.setField(reprocessorVerticle, "reprocessRestartFromStage",
 					"SecurezoneNotificationStage");
+=======
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
          Field auditLog = AuditLogRequestBuilder.class.getDeclaredField("registrationProcessorRestService");
          auditLog.setAccessible(true);
          @SuppressWarnings("unchecked")

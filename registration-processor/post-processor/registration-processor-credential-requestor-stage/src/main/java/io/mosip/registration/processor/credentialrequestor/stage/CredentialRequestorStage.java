@@ -1,8 +1,40 @@
+<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/main/java/io/mosip/registration/processor/credentialrequestor/stage/CredentialRequestorStage.java
 <<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/main/java/io/mosip/registration/processor/credentialrequestor/stage/CredentialRequestorStage.java
 package io.mosip.registration.processor.credentialrequestor.stage;
 ========
 package io.mosip.registration.processor.eventhandler.stage;
 >>>>>>>> df41852ca0 (MOSIP-28121 : renamed print stage to event handler stage):registration-processor/post-processor/registration-processor-event-handler-stage/src/main/java/io/mosip/registration/processor/eventhandler/stage/EventHandlerStage.java
+=======
+package io.mosip.registration.processor.print.stage;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.HashMap;
+import java.util.ArrayList;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708)):registration-processor/post-processor/registration-processor-printing-stage/src/main/java/io/mosip/registration/processor/print/stage/PrintingStage.java
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
@@ -140,6 +172,13 @@ public class EventHandlerStage extends MosipVerticleAPIManager {
 	@Value("${mosip.registration.processor.encrypt:false}")
 	private boolean encrypt;
 
+<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/main/java/io/mosip/registration/processor/credentialrequestor/stage/CredentialRequestorStage.java
+=======
+	@Value("${mosip.registration.processor.default.issuer:mpartner-default-print}")
+	private String issuer;
+
+
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708)):registration-processor/post-processor/registration-processor-printing-stage/src/main/java/io/mosip/registration/processor/print/stage/PrintingStage.java
 	/** Mosip router for APIs */
 	@Autowired
 	MosipRouter router;
@@ -159,11 +198,19 @@ public class EventHandlerStage extends MosipVerticleAPIManager {
 
 	private static final String ISSUERS = "mosip.registration.processor.issuer";
 
+<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/main/java/io/mosip/registration/processor/credentialrequestor/stage/CredentialRequestorStage.java
 	@Value("#{T(java.util.Arrays).asList('${mosip.registration.processor.credential.default.partner-ids:}')}")
 	private List<String> defaultPartners;
 
 	private static String COMMA = ",";
 	private static String HASH_DELIMITER = "#";
+=======
+	@Value("${mosip.registration.processor.rid.delimiter:-PDF}")
+	private String pdfDelimiter;
+
+	private static String SEMICOLON = ";";
+	private static String COLON = ":";
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708)):registration-processor/post-processor/registration-processor-printing-stage/src/main/java/io/mosip/registration/processor/print/stage/PrintingStage.java
 
 	@Autowired
 	private Utilities utilities;
@@ -236,6 +283,49 @@ public class EventHandlerStage extends MosipVerticleAPIManager {
 				registrationStatusDto
 						.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PRINT_SERVICE.toString());
 
+<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/main/java/io/mosip/registration/processor/credentialrequestor/stage/CredentialRequestorStage.java
+=======
+			}
+			else {
+			String vid = getVid(uin);
+			requestWrapper.setId(env.getProperty("mosip.registration.processor.credential.request.service.id"));
+			String issuers=	env.getProperty(ISSUERS);
+			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+			LocalDateTime localdatetime = LocalDateTime
+						.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+			requestWrapper.setRequesttime(localdatetime);
+			requestWrapper.setVersion("1.0");
+			for (String key : issuers.split(SEMICOLON)) {
+				CredentialRequestDto credentialRequestDto=null;
+					String[] parts = key.split(COLON, 3);
+					credentialRequestDto = getCredentialRequestDto(regId, parts[0], parts[1], parts[2]);
+					requestWrapper.setRequest(credentialRequestDto);
+					if (parts[0].equalsIgnoreCase(issuer)) { // for default issuer stage is calling v1 api and for others stage is calling v2 api for credential
+						responseWrapper = (ResponseWrapper<?>) restClientService.postApi(ApiName.CREDENTIALREQUEST, null, null,
+								requestWrapper, ResponseWrapper.class, MediaType.APPLICATION_JSON);
+					} else {
+						List<String> pathsegments = new ArrayList<>();
+						pathsegments.add(regId + pdfDelimiter); //  #PDF suffix is added to identify the requested credential via rid
+						responseWrapper = (ResponseWrapper<?>) restClientService.postApi(ApiName.CREDENTIALREQUESTV2, MediaType.APPLICATION_JSON, pathsegments, null,
+									null, requestWrapper, ResponseWrapper.class);
+					}
+				}
+
+			if (responseWrapper.getErrors() != null && !responseWrapper.getErrors().isEmpty()) {
+				ErrorDTO error = responseWrapper.getErrors().get(0);
+				object.setIsValid(Boolean.FALSE);
+				isTransactionSuccessful = false;
+				description.setMessage(PlatformErrorMessages.RPR_PRT_PRINT_REQUEST_FAILED.getMessage());
+				description.setCode(PlatformErrorMessages.RPR_PRT_PRINT_REQUEST_FAILED.getCode());
+
+				registrationStatusDto.setStatusComment(
+						StatusUtil.PRINT_REQUEST_FAILED.getMessage() + SEPERATOR + error.getMessage());
+				registrationStatusDto.setSubStatusCode(StatusUtil.PRINT_REQUEST_FAILED.getCode());
+				registrationStatusDto
+							.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+				registrationStatusDto
+						.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PRINT_SERVICE.toString());
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708)):registration-processor/post-processor/registration-processor-printing-stage/src/main/java/io/mosip/registration/processor/print/stage/PrintingStage.java
 			} else {
 				requestWrapper.setId(env.getProperty("mosip.registration.processor.credential.request.service.id"));
 				DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
@@ -367,15 +457,24 @@ public class EventHandlerStage extends MosipVerticleAPIManager {
 		return object;
 	}
 
+<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/main/java/io/mosip/registration/processor/credentialrequestor/stage/CredentialRequestorStage.java
 	private CredentialRequestDto getCredentialRequestDto(String regId, String process, CredentialPartner key) {
 		CredentialRequestDto credentialRequestDto = new CredentialRequestDto();
 		Map<String, Object> additionalAttributes=new HashMap<>();
 
 		credentialRequestDto.setCredentialType(key.getCredentialType());
+=======
+	private CredentialRequestDto getCredentialRequestDto(String regId,String issuerId,String credentialType,String templateTypeCode) {
+		CredentialRequestDto credentialRequestDto = new CredentialRequestDto();
+		Map<String, Object> additionalAttributes=new HashMap<>();
+
+		credentialRequestDto.setCredentialType(credentialType);
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708)):registration-processor/post-processor/registration-processor-printing-stage/src/main/java/io/mosip/registration/processor/print/stage/PrintingStage.java
 		credentialRequestDto.setEncrypt(encrypt);
 
 		credentialRequestDto.setId(regId);
 
+<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/main/java/io/mosip/registration/processor/credentialrequestor/stage/CredentialRequestorStage.java
 		credentialRequestDto.setIssuer(key.getPartnerId());
 
 		credentialRequestDto.setEncryptionKey(generatePin());
@@ -383,6 +482,12 @@ public class EventHandlerStage extends MosipVerticleAPIManager {
 		additionalAttributes.put("registrationId", regId);
 		if (CollectionUtils.isNotEmpty(key.getMetaInfoFields()))
 			getAdditionalCredentialFields(regId, process, key.getMetaInfoFields(), additionalAttributes);
+=======
+		credentialRequestDto.setIssuer(issuerId);
+
+		credentialRequestDto.setEncryptionKey(generatePin());
+		additionalAttributes.put("templateTypeCode",templateTypeCode);
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708)):registration-processor/post-processor/registration-processor-printing-stage/src/main/java/io/mosip/registration/processor/print/stage/PrintingStage.java
 		credentialRequestDto.setAdditionalData(additionalAttributes);
 
 		return credentialRequestDto;

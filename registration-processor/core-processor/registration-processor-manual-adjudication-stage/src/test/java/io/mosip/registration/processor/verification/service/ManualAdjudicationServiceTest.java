@@ -109,6 +109,12 @@ public class ManualAdjudicationServiceTest {
     UserDto dto;
 
 	@Mock
+<<<<<<< HEAD
+=======
+	private ManualVerificationUpdateUtility manualVerificationUpdateUtility;
+
+	@Mock
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
     ManualAdjudicationStage manualAdjudicationStage;
 	
 	@Mock 
@@ -119,9 +125,13 @@ public class ManualAdjudicationServiceTest {
 
 	@Mock
 	AuditLogRequestBuilder auditLogRequestBuilder;
+<<<<<<< HEAD
 	
 	@Mock 
 	private ManualVerificationUpdateUtility manualVerificationUpdateUtility;
+=======
+
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 
 	@Mock
 	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
@@ -193,8 +203,12 @@ public class ManualAdjudicationServiceTest {
 			}
 			
 			@Override
+<<<<<<< HEAD
 			public void createConnection(String username, String password, String brokerUrl,
 					List<String> trustedPackage) {
+=======
+			public void createConnection(String username, String password, String brokerUrl) {
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 				// TODO Auto-generated method stub
 				
 			}
@@ -270,6 +284,11 @@ public class ManualAdjudicationServiceTest {
 		CandidateList candidateList=new CandidateList();
 		candidateList.setCount(0);
 		manualAdjudicationResponseDTO.setCandidateList(candidateList);
+<<<<<<< HEAD
+=======
+
+		Mockito.doNothing().when(manualVerificationUpdateUtility).updateManualVerificationEntityRID(any(), any());
+>>>>>>> 2790b0f264 (Merged changes from develop (#1708))
 		
 		Mockito.doNothing().when(manualVerificationUpdateUtility).updateManualVerificationEntityRID(any(), any());
 		
