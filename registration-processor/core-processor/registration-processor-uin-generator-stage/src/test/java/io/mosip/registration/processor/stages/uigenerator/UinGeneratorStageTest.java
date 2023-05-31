@@ -143,13 +143,13 @@ public class UinGeneratorStageTest {
 
 				@Override
 				public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
-
+					// TODO Auto-generated method stub
 
 				}
 
 				@Override
 				public void senderHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
-
+					// TODO Auto-generated method stub
 
 				}
 

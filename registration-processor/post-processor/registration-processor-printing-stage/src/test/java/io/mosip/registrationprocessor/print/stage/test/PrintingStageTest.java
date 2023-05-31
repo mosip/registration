@@ -150,8 +150,6 @@ public class PrintingStageTest {
 					// TODO Auto-generated method stub
 
 				}
-
-
 			};
 		}
 

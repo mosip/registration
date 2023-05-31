@@ -133,9 +133,7 @@ public class VertxMosipEventBus implements MosipEventBus {
 	}
 
 	@Override
-	public void senderHealthCheck(Handler<HealthCheckDTO> eventHandler,
-	String address)
-	{
+	public void senderHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
 		HealthCheckDTO healthCheckDTO = new HealthCheckDTO();
 		try {
 			vertx.eventBus().send(address, HealthConstant.PING);
@@ -147,5 +145,4 @@ public class VertxMosipEventBus implements MosipEventBus {
 			eventHandler.handle(healthCheckDTO);
 		}
 	}
-
 }

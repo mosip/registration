@@ -310,22 +310,21 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	public void senderHealthHandler(Promise<Status> promise, Vertx vertx, MosipEventBus eventBus, String address) {
 		try {
 			eventBus.senderHealthCheck((healthCheckDto) -> {
-					try {
+				try {
 					if (healthCheckDto.isEventBusConnected()) {
-							final JsonObject result = resultBuilder.create()
-									.add(HealthConstant.RESPONSE, HealthConstant.PING).build();
-							promise.complete(Status.OK(result));
-						} else {
-							final JsonObject result = resultBuilder.create()
+						final JsonObject result = resultBuilder.create()
+								.add(HealthConstant.RESPONSE, HealthConstant.PING).build();
+						promise.complete(Status.OK(result));
+					} else {
+						final JsonObject result = resultBuilder.create()
 								.add(HealthConstant.ERROR, healthCheckDto.getFailureReason()).build();
-							promise.complete(Status.KO(result));
-						}
-
-					} catch (Exception e) {
-						final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, e.getMessage())
-								.build();
 						promise.complete(Status.KO(result));
 					}
+
+				} catch (Exception e) {
+					final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, e.getMessage()).build();
+					promise.complete(Status.KO(result));
+				}
 			}, address);
 		} catch (Exception e) {
 			final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, e.getMessage()).build();
@@ -341,23 +340,22 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	public void consumerHealthHandler(Promise<Status> promise, Vertx vertx, MosipEventBus eventBus, String address) {
 		try {
 			eventBus.consumerHealthCheck((healthCheckDto) -> {
-					try {
+				try {
 
 					if (healthCheckDto.isEventBusConnected()) {
-							final JsonObject result = resultBuilder.create()
-								.add(HealthConstant.RESPONSE, healthCheckDto.isEventBusConnected()).build();
-							promise.complete(Status.OK(result));
-						} else {
-							final JsonObject result = resultBuilder.create()
-								.add(HealthConstant.ERROR, healthCheckDto.getFailureReason()).build();
-							promise.complete(Status.KO(result));
-						}
-
-					} catch (Exception e) {
 						final JsonObject result = resultBuilder.create()
-								.add(HealthConstant.ERROR, e.getMessage()).build();
+								.add(HealthConstant.RESPONSE, healthCheckDto.isEventBusConnected()).build();
+						promise.complete(Status.OK(result));
+					} else {
+						final JsonObject result = resultBuilder.create()
+								.add(HealthConstant.ERROR, healthCheckDto.getFailureReason()).build();
 						promise.complete(Status.KO(result));
 					}
+
+				} catch (Exception e) {
+					final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, e.getMessage()).build();
+					promise.complete(Status.KO(result));
+				}
 			}, address);
 		} catch (Exception e) {
 			final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, e.getMessage()).build();
