@@ -6,20 +6,13 @@ import java.net.UnknownHostException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import io.mosip.registration.processor.core.constant.LoggerFileConstant;
-import io.mosip.registration.processor.core.packet.dto.packetmanager.TagRequestDto;
-import io.mosip.registration.processor.core.packet.dto.packetmanager.TagResponseDto;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.MDC;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import io.vertx.core.http.HttpServerOptions;
-import io.vertx.micrometer.MicrometerMetricsOptions;
-import io.vertx.micrometer.VertxPrometheusOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -43,8 +36,8 @@ import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages
 import io.mosip.registration.processor.core.http.RequestWrapper;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.packet.dto.packetmanager.InfoRequestDto;
-import io.mosip.registration.processor.core.packet.dto.packetmanager.InfoResponseDto;
+import io.mosip.registration.processor.core.packet.dto.packetmanager.TagRequestDto;
+import io.mosip.registration.processor.core.packet.dto.packetmanager.TagResponseDto;
 import io.mosip.registration.processor.core.spi.eventbus.EventBusManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.PropertiesUtil;
@@ -56,6 +49,8 @@ import io.vertx.core.VertxOptions;
 import io.vertx.core.eventbus.EventBusOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.spi.cluster.ClusterManager;
+import io.vertx.micrometer.MicrometerMetricsOptions;
+import io.vertx.micrometer.VertxPrometheusOptions;
 import io.vertx.spi.cluster.hazelcast.HazelcastClusterManager;
 
 /**
@@ -104,6 +99,8 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	@Autowired
 	private MosipEventBusFactory mosipEventBusFactory;
 
+	protected MosipEventBus mosipEventBus;
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -126,7 +123,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	@Override
 	public MosipEventBus getEventBus(Object verticleName, String clusterManagerUrl, int instanceNumber) {
 		CompletableFuture<Vertx> eventBus = new CompletableFuture<>();
-		MosipEventBus mosipEventBus = null;
+		mosipEventBus = null;
 		Config config;
 		try {
 			config = new UrlXmlConfig(clusterManagerUrl);

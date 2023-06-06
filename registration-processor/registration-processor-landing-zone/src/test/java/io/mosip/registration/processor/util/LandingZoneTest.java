@@ -28,9 +28,9 @@ import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessor
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ IOUtils.class, HMACUtils2.class})
-public class LandingZoneUtilityTest {
+public class LandingZoneTest {
 	@InjectMocks
-	private LandingZoneUtility landingZoneUtility;
+	private LandingZone landingZone;
 
 	@Mock
 	 private ObjectStoreAdapter objectStoreAdapter;
@@ -46,9 +46,9 @@ public class LandingZoneUtilityTest {
 	
 	@Before
 	public void setup() throws ApisResourceAccessException {
-		ReflectionTestUtils.setField(landingZoneUtility, "extention", ".zip");
-		ReflectionTestUtils.setField(landingZoneUtility, "landingZoneType", "ObjectStore");
-		ReflectionTestUtils.setField(landingZoneUtility, "landingZoneAccount", "LandingZoneAccount");
+		ReflectionTestUtils.setField(landingZone, "extention", ".zip");
+		ReflectionTestUtils.setField(landingZone, "landingZoneType", "ObjectStore");
+		ReflectionTestUtils.setField(landingZone, "landingZoneAccount", "LandingZoneAccount");
 		Mockito.when(env.getProperty(any())).thenReturn("/mnt/regproc/landing");
 		
 		Mockito.when(registrationProcessorRestService.getApi(
@@ -58,17 +58,17 @@ public class LandingZoneUtilityTest {
 	}
 	@Test
 	public void movePacketsToObjectStoreTest() {
-		landingZoneUtility.movePacketsToObjectStore();
+		landingZone.movePacketsToObjectStore();
 	};
 	@Test
 	public void movePacketsToObjectStoreDMZServerFailuretest() throws ApisResourceAccessException {
 		Mockito.when(registrationProcessorRestService.getApi(
 				any(), anyList(), anyString(), any(), any())).thenReturn(null);
-		landingZoneUtility.movePacketsToObjectStore();
+		landingZone.movePacketsToObjectStore();
 	};
 	@Test
 	public void movePacketsToObjectStoreFailureTest() {
 		Mockito.when(objectStoreAdapter.putObject(any(), any(), any(), any(), any(), any())).thenReturn(false);		
-		landingZoneUtility.movePacketsToObjectStore();
+		landingZone.movePacketsToObjectStore();
 	};
 }

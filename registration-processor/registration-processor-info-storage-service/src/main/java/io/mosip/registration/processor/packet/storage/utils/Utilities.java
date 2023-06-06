@@ -211,6 +211,8 @@ public class Utilities {
 
 	private JSONObject mappingJsonObject = null;
 
+	private JSONObject regProcessorAbisJson = null;
+
 	public static void initialize(Map<String, String> reader, Map<String, String> writer) {
 		readerConfiguration = reader;
 		writerConfiguration = writer;
@@ -491,14 +493,15 @@ public class Utilities {
 	 */
 	public List<AbisQueueDetails> getAbisQueueDetails() throws RegistrationProcessorCheckedException {
 		List<AbisQueueDetails> abisQueueDetailsList = new ArrayList<>();
-		String registrationProcessorAbis = Utilities.getJson(configServerFileStorageURL, registrationProcessorAbisJson);
-		JSONObject regProcessorAbisJson;
+
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"Utilities::getAbisQueueDetails()::entry");
 
 		try {
-			regProcessorAbisJson = JsonUtil.objectMapperReadValue(registrationProcessorAbis, JSONObject.class);
-
+			if(regProcessorAbisJson==null) {
+				String registrationProcessorAbis = Utilities.getJson(configServerFileStorageURL, registrationProcessorAbisJson);
+				regProcessorAbisJson = JsonUtil.objectMapperReadValue(registrationProcessorAbis, JSONObject.class);
+			}
 			JSONArray regProcessorAbisArray = JsonUtil.getJSONArray(regProcessorAbisJson, ABIS);
 
 			for (Object jsonObject : regProcessorAbisArray) {
