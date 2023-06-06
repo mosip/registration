@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -136,6 +137,9 @@ public class ManualAdjudicationStageTest {
 		ReflectionTestUtils.setField(manualverificationstage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(manualverificationstage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(manualverificationstage, "clusterManagerUrl", "/dummyPath");
+		List<String> trustedPackageList=new ArrayList();
+		trustedPackageList.add("io.mosip.*");
+		ReflectionTestUtils.setField(manualverificationstage, "trustedPackages", trustedPackageList);
 		//Mockito.when(env.getProperty(SwaggerConstant.SERVER_SERVLET_PATH)).thenReturn("/registrationprocessor/v1/manualverification");
 		Mockito.when(mosipConnectionFactory.createConnection(any(), any(), any(), any(), anyList()))
 				.thenReturn(mosipQueue);

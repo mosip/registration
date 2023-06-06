@@ -10,6 +10,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.apache.activemq.util.ByteSequence;
@@ -117,6 +119,9 @@ public class VerificationStageTest {
 		ReflectionTestUtils.setField(verificationstage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(verificationstage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(verificationstage, "clusterManagerUrl", "/dummyPath");
+		List<String> trustedPackageList = new ArrayList();
+		trustedPackageList.add("io.mosip.*");
+		ReflectionTestUtils.setField(verificationstage, "trustedPackages", trustedPackageList);
 		//Mockito.when(env.getProperty(SwaggerConstant.SERVER_SERVLET_PATH)).thenReturn("/registrationprocessor/v1/manualverification");
 		Mockito.when(mosipConnectionFactory.createConnection(any(), any(), any(), any(), anyList()))
 				.thenReturn(mosipQueue);
