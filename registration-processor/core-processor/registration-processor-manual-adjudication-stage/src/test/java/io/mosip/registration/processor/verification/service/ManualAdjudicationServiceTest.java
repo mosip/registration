@@ -193,7 +193,8 @@ public class ManualAdjudicationServiceTest {
 			}
 			
 			@Override
-			public void createConnection(String username, String password, String brokerUrl) {
+			public void createConnection(String username, String password, String brokerUrl,
+					List<String> trustedPackage) {
 				// TODO Auto-generated method stub
 				
 			}

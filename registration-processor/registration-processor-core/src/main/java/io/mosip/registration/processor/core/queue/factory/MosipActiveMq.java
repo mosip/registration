@@ -17,10 +17,7 @@ public class MosipActiveMq extends MosipQueue{
 		this.username = username;
 		this.password = password;
 		this.brokerUrl = brokerUrl;
-		createConnection(username, password, brokerUrl);
-		if (activeMQConnectionFactory != null) {
-			activeMQConnectionFactory.setTrustedPackages(trustedPackages);
-		}
+		createConnection(username, password, brokerUrl, trustedPackages);
 	}
 
 	public String getUsername() {
@@ -40,8 +37,11 @@ public class MosipActiveMq extends MosipQueue{
 	}
 
 	@Override
-	public void createConnection(String username, String password, String brokerUrl) {
+	public void createConnection(String username, String password, String brokerUrl, List<String> trustedPackages) {
 		this.activeMQConnectionFactory = new ActiveMQConnectionFactory(username, password, brokerUrl);
+		if (activeMQConnectionFactory != null) {
+			activeMQConnectionFactory.setTrustedPackages(trustedPackages);
+		}
 	}
 
 	@Override
