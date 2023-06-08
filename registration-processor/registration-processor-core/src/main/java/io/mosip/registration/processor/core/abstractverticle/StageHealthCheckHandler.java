@@ -14,6 +14,8 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
@@ -83,6 +85,7 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	private String queueUsername;
 	private String queuePassword;
 	private String queueBrokerUrl;
+	private List<String> queueTrustedPackages;
 	private Boolean isAuthEnable;
 	private int virusScannerPort;
 	private File currentWorkingDirPath;
@@ -126,6 +129,8 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 		this.queueUsername = environment.getProperty(HealthConstant.QUEUE_USERNAME);
 		this.queuePassword = environment.getProperty(HealthConstant.QUEUE_PASSWORD);
 		this.queueBrokerUrl = environment.getProperty(HealthConstant.QUEUE_BROKER_URL);
+		this.queueTrustedPackages = Arrays
+				.asList(environment.getProperty(HealthConstant.QUEUE_TRUSTED_PACKAGE).split(","));
 		this.currentWorkingDirPath = new File(System.getProperty(HealthConstant.CURRENT_WORKING_DIRECTORY));
 		this.resultBuilder = new StageHealthCheckHandler.JSONResultBuilder();
 		this.virusScanner = virusScanner;
@@ -153,7 +158,7 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 
 			if (mosipQueue == null)
 				mosipQueue = mosipConnectionFactory.createConnection("ACTIVEMQ", queueUsername,
-						queuePassword, queueBrokerUrl);
+						queuePassword, queueBrokerUrl, queueTrustedPackages);
 
 			mosipQueueManager.send(mosipQueue, msg.getBytes(), HealthConstant.QUEUE_ADDRESS);
 

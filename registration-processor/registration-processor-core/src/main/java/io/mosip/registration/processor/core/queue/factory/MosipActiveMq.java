@@ -1,5 +1,7 @@
 package io.mosip.registration.processor.core.queue.factory;
 
+import java.util.List;
+
 import org.apache.activemq.ActiveMQConnectionFactory;
 
 public class MosipActiveMq extends MosipQueue{
@@ -10,12 +12,15 @@ public class MosipActiveMq extends MosipQueue{
 	private String brokerUrl;
 	private ActiveMQConnectionFactory activeMQConnectionFactory;
 
-	public MosipActiveMq(String queueName, String username, String password, String brokerUrl) {
+	public MosipActiveMq(String queueName, String username, String password, String brokerUrl, List<String> trustedPackages) {
 		this.queueName = queueName;
 		this.username = username;
 		this.password = password;
 		this.brokerUrl = brokerUrl;
 		createConnection(username, password, brokerUrl);
+		if (activeMQConnectionFactory != null) {
+			activeMQConnectionFactory.setTrustedPackages(trustedPackages);
+		}
 	}
 
 	public String getUsername() {
@@ -36,7 +41,7 @@ public class MosipActiveMq extends MosipQueue{
 
 	@Override
 	public void createConnection(String username, String password, String brokerUrl) {
-		this.activeMQConnectionFactory = new ActiveMQConnectionFactory(username, password, brokerUrl);//NOSONAR
+		this.activeMQConnectionFactory = new ActiveMQConnectionFactory(username, password, brokerUrl);
 	}
 
 	@Override
