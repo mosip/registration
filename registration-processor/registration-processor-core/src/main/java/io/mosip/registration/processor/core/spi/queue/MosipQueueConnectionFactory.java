@@ -1,5 +1,7 @@
 package io.mosip.registration.processor.core.spi.queue;
 
+import java.util.List;
+
 /**
  * @author Pranav Kumar
  *
@@ -16,6 +18,7 @@ public interface MosipQueueConnectionFactory<Q> {
 	 * @param Url         Url of installation path
 	 * @return
 	 */
-	public Q createConnection(String typeOfQueue, String username, String password, String Url);
+	public Q createConnection(String typeOfQueue, String username, String password, String Url,
+			List<String> trustedPackages);
 
 }

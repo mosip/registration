@@ -39,7 +39,6 @@ import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorUnCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
-import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO;
 import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO1;
 import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
@@ -158,6 +157,9 @@ public class Utilities {
 	@Value("${registration.processor.id.repo.vidVersion}")
 	private String vidVersion;
 
+	@Value("#{'${registration.processor.queue.trusted.packages}'.split(',')}")
+	private List<String> trustedPackages;
+
 	@Autowired
 	private PacketInfoDao packetInfoDao;
 
@@ -208,7 +210,7 @@ public class Utilities {
 	private static final String VALUE = "value";
 
 	private JSONObject mappingJsonObject = null;
-	
+
 	private JSONObject regProcessorAbisJson = null;
 
 	public static void initialize(Map<String, String> reader, Map<String, String> writer) {
@@ -515,7 +517,7 @@ public class Utilities {
 				String queueName = validateAbisQueueJsonAndReturnValue(json, NAME);
 				int inboundMessageTTL = validateAbisQueueJsonAndReturnIntValue(json, INBOUNDMESSAGETTL);
 				MosipQueue mosipQueue = mosipConnectionFactory.createConnection(typeOfQueue, userName, password,
-						failOverBrokerUrl);
+						failOverBrokerUrl, trustedPackages);
 				if (mosipQueue == null)
 					throw new QueueConnectionNotFound(
 							PlatformErrorMessages.RPR_PIS_ABIS_QUEUE_CONNECTION_NULL.getMessage());
