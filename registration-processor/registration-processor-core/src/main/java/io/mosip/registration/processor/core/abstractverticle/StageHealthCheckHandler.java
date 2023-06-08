@@ -131,7 +131,7 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 		this.queuePassword = environment.getProperty(HealthConstant.QUEUE_PASSWORD);
 		this.queueBrokerUrl = environment.getProperty(HealthConstant.QUEUE_BROKER_URL);
 		String queueTrustedPackage = environment.getProperty(HealthConstant.QUEUE_TRUSTED_PACKAGE);
-		if (StringUtils.isEmpty(queueTrustedPackage)) {
+		if (queueTrustedPackage == null) {
 			throw new RuntimeException("Property registration.processor.queue.trusted.packages not found");
 		}
 		this.queueTrustedPackages = Arrays
