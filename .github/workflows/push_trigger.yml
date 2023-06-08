@@ -10,7 +10,6 @@ on:
       - master
       - 1.*
       - develop
-      - MOSIP-24572
 jobs:
   build:
     runs-on: ubuntu-latest
