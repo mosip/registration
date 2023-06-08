@@ -38,6 +38,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
 import io.mosip.registration.processor.core.constant.HealthConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
@@ -129,8 +130,12 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 		this.queueUsername = environment.getProperty(HealthConstant.QUEUE_USERNAME);
 		this.queuePassword = environment.getProperty(HealthConstant.QUEUE_PASSWORD);
 		this.queueBrokerUrl = environment.getProperty(HealthConstant.QUEUE_BROKER_URL);
+		String queueTrustedPackage = environment.getProperty(HealthConstant.QUEUE_TRUSTED_PACKAGE);
+		if (StringUtils.isEmpty(queueTrustedPackage)) {
+			throw new RuntimeException("Property registration.processor.queue.trusted.packages not found");
+		}
 		this.queueTrustedPackages = Arrays
-				.asList(environment.getProperty(HealthConstant.QUEUE_TRUSTED_PACKAGE).split(","));
+				.asList(queueTrustedPackage.split(","));
 		this.currentWorkingDirPath = new File(System.getProperty(HealthConstant.CURRENT_WORKING_DIRECTORY));
 		this.resultBuilder = new StageHealthCheckHandler.JSONResultBuilder();
 		this.virusScanner = virusScanner;
