@@ -14,6 +14,8 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
@@ -36,6 +38,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
 import io.mosip.registration.processor.core.constant.HealthConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
@@ -83,6 +86,7 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	private String queueUsername;
 	private String queuePassword;
 	private String queueBrokerUrl;
+	private List<String> queueTrustedPackages;
 	private Boolean isAuthEnable;
 	private int virusScannerPort;
 	private File currentWorkingDirPath;
@@ -126,6 +130,12 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 		this.queueUsername = environment.getProperty(HealthConstant.QUEUE_USERNAME);
 		this.queuePassword = environment.getProperty(HealthConstant.QUEUE_PASSWORD);
 		this.queueBrokerUrl = environment.getProperty(HealthConstant.QUEUE_BROKER_URL);
+		String queueTrustedPackage = environment.getProperty(HealthConstant.QUEUE_TRUSTED_PACKAGE);
+		if (queueTrustedPackage == null) {
+			throw new RuntimeException("Property registration.processor.queue.trusted.packages not found");
+		}
+		this.queueTrustedPackages = Arrays
+				.asList(queueTrustedPackage.split(","));
 		this.currentWorkingDirPath = new File(System.getProperty(HealthConstant.CURRENT_WORKING_DIRECTORY));
 		this.resultBuilder = new StageHealthCheckHandler.JSONResultBuilder();
 		this.virusScanner = virusScanner;
@@ -153,7 +163,7 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 
 			if (mosipQueue == null)
 				mosipQueue = mosipConnectionFactory.createConnection("ACTIVEMQ", queueUsername,
-						queuePassword, queueBrokerUrl);
+						queuePassword, queueBrokerUrl, queueTrustedPackages);
 
 			mosipQueueManager.send(mosipQueue, msg.getBytes(), HealthConstant.QUEUE_ADDRESS);
 
@@ -310,21 +320,22 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	public void senderHealthHandler(Promise<Status> promise, Vertx vertx, MosipEventBus eventBus, String address) {
 		try {
 			eventBus.senderHealthCheck((healthCheckDto) -> {
-				try {
+					try {
 					if (healthCheckDto.isEventBusConnected()) {
-						final JsonObject result = resultBuilder.create()
-								.add(HealthConstant.RESPONSE, HealthConstant.PING).build();
-						promise.complete(Status.OK(result));
-					} else {
-						final JsonObject result = resultBuilder.create()
+							final JsonObject result = resultBuilder.create()
+									.add(HealthConstant.RESPONSE, HealthConstant.PING).build();
+							promise.complete(Status.OK(result));
+						} else {
+							final JsonObject result = resultBuilder.create()
 								.add(HealthConstant.ERROR, healthCheckDto.getFailureReason()).build();
+							promise.complete(Status.KO(result));
+						}
+
+					} catch (Exception e) {
+						final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, e.getMessage())
+								.build();
 						promise.complete(Status.KO(result));
 					}
-
-				} catch (Exception e) {
-					final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, e.getMessage()).build();
-					promise.complete(Status.KO(result));
-				}
 			}, address);
 		} catch (Exception e) {
 			final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, e.getMessage()).build();
@@ -340,22 +351,23 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	public void consumerHealthHandler(Promise<Status> promise, Vertx vertx, MosipEventBus eventBus, String address) {
 		try {
 			eventBus.consumerHealthCheck((healthCheckDto) -> {
-				try {
+					try {
 
 					if (healthCheckDto.isEventBusConnected()) {
-						final JsonObject result = resultBuilder.create()
+							final JsonObject result = resultBuilder.create()
 								.add(HealthConstant.RESPONSE, healthCheckDto.isEventBusConnected()).build();
-						promise.complete(Status.OK(result));
-					} else {
-						final JsonObject result = resultBuilder.create()
+							promise.complete(Status.OK(result));
+						} else {
+							final JsonObject result = resultBuilder.create()
 								.add(HealthConstant.ERROR, healthCheckDto.getFailureReason()).build();
+							promise.complete(Status.KO(result));
+						}
+
+					} catch (Exception e) {
+						final JsonObject result = resultBuilder.create()
+								.add(HealthConstant.ERROR, e.getMessage()).build();
 						promise.complete(Status.KO(result));
 					}
-
-				} catch (Exception e) {
-					final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, e.getMessage()).build();
-					promise.complete(Status.KO(result));
-				}
 			}, address);
 		} catch (Exception e) {
 			final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, e.getMessage()).build();

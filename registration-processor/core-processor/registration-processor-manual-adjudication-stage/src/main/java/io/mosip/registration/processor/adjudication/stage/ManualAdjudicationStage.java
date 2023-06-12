@@ -1,7 +1,27 @@
 package io.mosip.registration.processor.adjudication.stage;
 
+import java.util.List;
+
+import javax.jms.Message;
+import javax.jms.TextMessage;
+
+import org.apache.activemq.command.ActiveMQBytesMessage;
+import org.apache.activemq.command.ActiveMQTextMessage;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Service;
+
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.registration.processor.adjudication.exception.InvalidMessageException;
+import io.mosip.registration.processor.adjudication.exception.handler.ManualVerificationExceptionHandler;
+import io.mosip.registration.processor.adjudication.response.dto.ManualAdjudicationResponseDTO;
+import io.mosip.registration.processor.adjudication.service.ManualAdjudicationService;
+import io.mosip.registration.processor.adjudication.util.ManualVerificationRequestValidator;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -15,28 +35,11 @@ import io.mosip.registration.processor.core.queue.factory.QueueListener;
 import io.mosip.registration.processor.core.spi.queue.MosipQueueConnectionFactory;
 import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import io.mosip.registration.processor.core.util.JsonUtil;
-import io.mosip.registration.processor.adjudication.exception.InvalidMessageException;
-import io.mosip.registration.processor.adjudication.exception.handler.ManualVerificationExceptionHandler;
-import io.mosip.registration.processor.adjudication.response.dto.ManualAdjudicationResponseDTO;
-import io.mosip.registration.processor.adjudication.service.ManualAdjudicationService;
-import io.mosip.registration.processor.adjudication.util.ManualVerificationRequestValidator;
 import io.mosip.registration.processor.packet.storage.exception.QueueConnectionNotFound;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
-import org.apache.activemq.command.ActiveMQBytesMessage;
-import org.apache.activemq.command.ActiveMQTextMessage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Service;
-
-import javax.jms.Message;
-import javax.jms.TextMessage;
 
 /**
  * This class sends message to next stage after successful completion of manual
@@ -125,6 +128,9 @@ public class ManualAdjudicationStage extends MosipVerticleAPIManager {
 	@Value("${registration.processor.manual.adjudication.queue.response:adjudication-to-mosip}")
 	private String mvResponseAddress;
 
+	@Value("#{'${registration.processor.manual.adjudication.queue.trusted.packages}'.split(',')}")
+	private List<String> trustedPackages;
+
 	/** The Constant FAIL_OVER. */
 	private static final String FAIL_OVER = "failover:(";
 
@@ -193,7 +199,8 @@ public class ManualAdjudicationStage extends MosipVerticleAPIManager {
 
 	private MosipQueue getQueueConnection() {
 		String failOverBrokerUrl = FAIL_OVER + url + "," + url + RANDOMIZE_FALSE;
-		return mosipConnectionFactory.createConnection(typeOfQueue, username, password, failOverBrokerUrl);
+		return mosipConnectionFactory.createConnection(typeOfQueue, username, password, failOverBrokerUrl,
+				trustedPackages);
 	}
 
 	public void consumerListener(Message message) {

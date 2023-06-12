@@ -194,7 +194,8 @@ public class ManualAdjudicationServiceTest {
 			}
 			
 			@Override
-			public void createConnection(String username, String password, String brokerUrl) {
+			public void createConnection(String username, String password, String brokerUrl,
+					List<String> trustedPackage) {
 				// TODO Auto-generated method stub
 				
 			}
@@ -272,9 +273,9 @@ public class ManualAdjudicationServiceTest {
 		manualAdjudicationResponseDTO.setCandidateList(candidateList);
 
 		Mockito.doNothing().when(manualVerificationUpdateUtility).updateManualVerificationEntityRID(any(), any());
-		
+
 		Mockito.doNothing().when(manualVerificationUpdateUtility).updateManualVerificationEntityRID(any(), any());
-		
+
 	}
 
 	@Test

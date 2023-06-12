@@ -530,6 +530,7 @@ public class BiometricAuthenticationStageTest {
 		biometricAuthenticationStage.deployVerticle();
 	}
 
+
 	@Test
 	public void testAuthSystemException() throws ApisResourceAccessException, IOException, InvalidKeySpecException,
 			NoSuchAlgorithmException, BioTypeException, JsonProcessingException, PacketManagerException, CertificateException ,ValidationFailedException,Exception {
