@@ -1,4 +1,10 @@
-\c mosip_regprc sysadmin
+ALTER DATABASE mosip_regprc OWNER TO postgres;
+
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA regprc TO postgres;
+
+REVOKE ALL PRIVILEGES ON DATABASE mosip_regprc FROM regprcuser, sysadmin;
+
+GRANT SELECT, INSERT, TRUNCATE, REFERENCES, UPDATE, DELETE ON ALL TABLES IN SCHEMA regprc TO regprcuser;
 
 ----------------------------------------------Multiple table level changes on regprc db-------------------------------------------------------
 
