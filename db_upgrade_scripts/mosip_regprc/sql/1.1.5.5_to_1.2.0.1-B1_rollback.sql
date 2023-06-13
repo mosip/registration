@@ -1,17 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_regprc
--- Release Version 	: 1.2
--- Purpose    		: Revoking Database Alter deployement done for release in Registration ProcessorDB.
--- Create By   		: Ram Bhatt
--- Created Date		: Mar-2021
---
--- Modified Date        Modified By         Comments / Remarks
--- -------------------------------------------------------------------------------------------------
--- Apr-2021		Ram Bhatt	   Added resume_remove_tags column to registration table
------------------------------------------------------------------------------------------------------
-\c mosip_regprc sysadmin
-
---need to drop now after reverting to old columns add old constraint
+\c mosip_regprc
 
 ALTER TABLE regprc.individual_demographic_dedup DROP CONSTRAINT IF EXISTS fk_idemogd_reg CASCADE;
 ALTER TABLE regprc.reg_manual_verification DROP CONSTRAINT IF EXISTS fk_rmnlver_reg CASCADE;
