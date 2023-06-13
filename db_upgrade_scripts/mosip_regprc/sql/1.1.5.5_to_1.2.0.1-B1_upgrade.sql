@@ -291,3 +291,10 @@ UPDATE regprc.registration SET last_success_stage_name = 'PacketUploaderStage' w
 UPDATE regprc.registration SET last_success_stage_name = 'UinGeneratorStage' where latest_trn_type_code='PACKET_REPROCESS' and reg_stage_name ='PrintingStage' and process = 'DEACTIVATED';
 
 -------------------------------------------------------------------------------------------------------------------------------------
+DROP INDEX IF EXISTS regprc.idx_reg_verification_reqid;
+
+DROP INDEX IF EXISTS regprc.idx_idemogd_namedob;
+
+ALTER TABLE regprc.reg_bio_ref ALTER COLUMN process TYPE character varying COLLATE pg_catalog."default";
+
+CREATE INDEX IF NOT EXISTS idx_reglist_reg_id ON regprc.registration_list USING btree (reg_id COLLATE pg_catalog."default" ASC NULLS LAST) TABLESPACE pg_default;
