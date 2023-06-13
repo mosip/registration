@@ -30,5 +30,6 @@ public class HealthConstant {
 	public static final String QUEUE_PASSWORD = "registration.processor.queue.password";
 	public static final String QUEUE_BROKER_URL = "registration.processor.queue.url";
 	public static final String CURRENT_WORKING_DIRECTORY= "user.dir";
+	public static final String QUEUE_TRUSTED_PACKAGE = "registration.processor.queue.trusted.packages";
 	
 }
