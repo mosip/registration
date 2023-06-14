@@ -1,4 +1,14 @@
-\c mosip_regprc sysadmin
+\c mosip_regprc
+
+REASSIGN OWNED BY sysadmin TO postgres;
+
+REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA regprc FROM regprcuser;
+
+REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA regprc FROM sysadmin;
+
+GRANT SELECT, INSERT, TRUNCATE, REFERENCES, UPDATE, DELETE ON ALL TABLES IN SCHEMA regprc TO regprcuser;
+
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA regprc TO postgres;
 
 ----------------------------------------------Multiple table level changes on regprc db-------------------------------------------------------
 
