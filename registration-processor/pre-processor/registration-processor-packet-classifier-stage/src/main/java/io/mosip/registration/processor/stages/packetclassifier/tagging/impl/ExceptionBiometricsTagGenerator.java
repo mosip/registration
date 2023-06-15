@@ -1,14 +1,5 @@
 package io.mosip.registration.processor.stages.packetclassifier.tagging.impl;
 
-import io.mosip.kernel.core.exception.BaseCheckedException;
-import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.registration.processor.core.constant.JsonConstant;
-import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
-import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.packet.storage.exception.ParsingException;
-import io.mosip.registration.processor.stages.packetclassifier.dto.FieldDTO;
-import io.mosip.registration.processor.stages.packetclassifier.tagging.TagGenerator;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +10,15 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
+
+import io.mosip.kernel.core.exception.BaseCheckedException;
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.registration.processor.core.constant.JsonConstant;
+import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.packet.storage.exception.ParsingException;
+import io.mosip.registration.processor.stages.packetclassifier.dto.FieldDTO;
+import io.mosip.registration.processor.stages.packetclassifier.tagging.TagGenerator;
 
 @Component
 @ConditionalOnExpression(value = "'${mosip.regproc.packet.classifier.tag-generators}'.contains('MosipExceptionBiometrics')")
@@ -67,7 +67,7 @@ public class ExceptionBiometricsTagGenerator implements TagGenerator {
                 return tags;
             }
             JSONObject exceptionBiometricsJsonObject = new JSONObject(exceptionBiometricsString);
-            if(!exceptionBiometricsJsonObject.has(JsonConstant.EXCEPTIONBIOMETRICSAPPLICANT)) {
+			if (!exceptionBiometricsJsonObject.has(JsonConstant.INDIVIDUAL_BIOMETRICS)) {
                 regProcLogger.warn("{} --> {}, setting tag value as {}", 
                     PlatformErrorMessages.RPR_PCM_EXCEPTION_BIOMETRICS_APPLICANT_ENTRY_NOT_AVAILABLE.getCode(), 
                     PlatformErrorMessages.RPR_PCM_EXCEPTION_BIOMETRICS_APPLICANT_ENTRY_NOT_AVAILABLE.getMessage(),
@@ -76,7 +76,7 @@ public class ExceptionBiometricsTagGenerator implements TagGenerator {
                 return tags;
             }
             JSONObject applicantJsonObject = exceptionBiometricsJsonObject.getJSONObject(
-                JsonConstant.EXCEPTIONBIOMETRICSAPPLICANT);
+					JsonConstant.INDIVIDUAL_BIOMETRICS);
                 
             if (applicantJsonObject == null || applicantJsonObject.length() == 0)
                 tags.put(tagName, "");

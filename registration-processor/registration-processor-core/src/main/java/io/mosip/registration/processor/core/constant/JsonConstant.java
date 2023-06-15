@@ -265,4 +265,6 @@ public class JsonConstant {
 	public static final String PAYLOAD = "PAYLOAD";
 
 	public static final String PAUSERULEIMMUNITYRULEIDS = "PAUSE_IMMUNITY_RULE_IDS";
+
+	public static final String INDIVIDUAL_BIOMETRICS = "individualBiometrics";
 }
