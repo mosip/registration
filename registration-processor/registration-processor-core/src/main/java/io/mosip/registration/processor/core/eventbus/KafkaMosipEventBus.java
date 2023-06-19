@@ -15,6 +15,7 @@ import org.slf4j.MDC;
 
 import brave.Span;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
 import io.mosip.registration.processor.core.abstractverticle.HealthCheckDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
@@ -435,6 +436,8 @@ public class KafkaMosipEventBus implements MosipEventBus {
 	public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler,
 			String address) {
 		HealthCheckDTO healthCheckDTO = new HealthCheckDTO();
+		logger.info("Consumer health check started {} {}",
+				address + " start " + DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 		kafkaConsumer.listTopics(f -> {
 			if (f.succeeded()) {
 				healthCheckDTO.setEventBusConnected(true);
@@ -443,6 +446,8 @@ public class KafkaMosipEventBus implements MosipEventBus {
 				healthCheckDTO.setEventBusConnected(false);
 				healthCheckDTO.setFailureReason(f.cause().getMessage());
 			}
+			logger.info("Consumer health check ended {} {}",
+					address + " end " + DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 			eventHandler.handle(healthCheckDTO);
 		});
 
