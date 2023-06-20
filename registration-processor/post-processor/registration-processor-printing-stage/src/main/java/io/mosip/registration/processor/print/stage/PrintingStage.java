@@ -2,20 +2,18 @@ package io.mosip.registration.processor.print.stage;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.HashMap;
-import java.util.ArrayList;
+import java.util.*;
 
-import org.apache.commons.codec.binary.Base64;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.print.util.CredentialPartnerUtil;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -85,8 +83,8 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 @ComponentScan(basePackages = { "${mosip.auth.adapter.impl.basepackage}",
 		"io.mosip.registration.processor.core.config",
 		"io.mosip.registration.processor.stages.config", 
-		"io.mosip.registration.processor.print.config", 
-		"io.mosip.registrationprocessor.stages.config", 
+		"io.mosip.registration.processor.print.config",
+		"io.mosip.registrationprocessor.stages.config",
 		"io.mosip.registration.processor.status.config",
 		"io.mosip.registration.processor.rest.client.config", 
 		"io.mosip.registration.processor.packet.storage.config",
@@ -135,8 +133,11 @@ public class PrintingStage extends MosipVerticleAPIManager {
 	@Value("${mosip.registration.processor.encrypt:false}")
 	private boolean encrypt;
 
-	@Value("${mosip.registration.processor.default.issuer:mpartner-default-print}")
-	private String issuer;
+	@Value("${mosip.registration.processor.digitalcard.issuer:mpartner-default-digitalcard}")
+	private String digitalCardIssuer;
+
+	@Value("${mosip.registration.processor.print.share.credential:false}")
+	private Boolean isCredentialShareEnabled;
 
 
 	/** Mosip router for APIs */
@@ -164,10 +165,13 @@ public class PrintingStage extends MosipVerticleAPIManager {
 	private String pdfDelimiter;
 
 	private static String SEMICOLON = ";";
-	private static String COLON = ":";
+	private static String HASH_DELIMITER = "#";
 
 	@Autowired
 	private Utilities utilities;
+
+	@Autowired
+	private CredentialPartnerUtil credentialPartnerUtil;
 
 	@Override
 	protected String getPropertyPrefix() {
@@ -233,66 +237,71 @@ public class PrintingStage extends MosipVerticleAPIManager {
 				registrationStatusDto
 						.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PRINT_SERVICE.toString());
 
-			}
-			else {
-			String vid = getVid(uin);
-			requestWrapper.setId(env.getProperty("mosip.registration.processor.credential.request.service.id"));
-			String issuers=	env.getProperty(ISSUERS);
-			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
-			LocalDateTime localdatetime = LocalDateTime
-						.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
-			requestWrapper.setRequesttime(localdatetime);
-			requestWrapper.setVersion("1.0");
-			for (String key : issuers.split(SEMICOLON)) {
-				CredentialRequestDto credentialRequestDto=null;
-					String[] parts = key.split(COLON, 3);
-					credentialRequestDto = getCredentialRequestDto(regId, parts[0], parts[1], parts[2]);
+			} else {
+				String vid = getVid(uin);
+				requestWrapper.setId(env.getProperty("mosip.registration.processor.credential.request.service.id"));
+				String issuers=	env.getProperty(ISSUERS);
+				DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+				requestWrapper.setVersion("1.0");
+				Set<String> credentialIssuerSet = new HashSet<>();
+				credentialIssuerSet.addAll(Arrays.asList(issuers.split(SEMICOLON)));
+				if (isCredentialShareEnabled) {
+					var metaInfo = utilities.getMetaInfo(regId, registrationStatusDto.getRegistrationType(), ProviderStageName.PRINTING);
+					jsonObject.putAll(metaInfo);
+					credentialIssuerSet.addAll(credentialPartnerUtil.getCredentialPartners(regId, jsonObject));
+				}
+				for (String key : credentialIssuerSet) {
+					String[] parts = key.split(HASH_DELIMITER, 3);
+					CredentialRequestDto credentialRequestDto = getCredentialRequestDto(regId, parts[0], parts[1], parts[2]);
+					LocalDateTime localdatetime = LocalDateTime.parse(
+							DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+					requestWrapper.setRequesttime(localdatetime);
 					requestWrapper.setRequest(credentialRequestDto);
-					if (parts[0].equalsIgnoreCase(issuer)) { // for default issuer stage is calling v1 api and for others stage is calling v2 api for credential
-						responseWrapper = (ResponseWrapper<?>) restClientService.postApi(ApiName.CREDENTIALREQUEST, null, null,
-								requestWrapper, ResponseWrapper.class, MediaType.APPLICATION_JSON);
-					} else {
+					if (parts[0].equalsIgnoreCase(digitalCardIssuer)) {
 						List<String> pathsegments = new ArrayList<>();
 						pathsegments.add(regId + pdfDelimiter); //  #PDF suffix is added to identify the requested credential via rid
 						responseWrapper = (ResponseWrapper<?>) restClientService.postApi(ApiName.CREDENTIALREQUESTV2, MediaType.APPLICATION_JSON, pathsegments, null,
 									null, requestWrapper, ResponseWrapper.class);
+					} else { // for default issuer stage is calling v1 api and for others stage is calling v2 api for credential
+						responseWrapper = (ResponseWrapper<?>) restClientService.postApi(ApiName.CREDENTIALREQUEST, null, null,
+								requestWrapper, ResponseWrapper.class, MediaType.APPLICATION_JSON);
 					}
 				}
 
-			if (responseWrapper.getErrors() != null && !responseWrapper.getErrors().isEmpty()) {
-				ErrorDTO error = responseWrapper.getErrors().get(0);
-				object.setIsValid(Boolean.FALSE);
-				isTransactionSuccessful = false;
-				description.setMessage(PlatformErrorMessages.RPR_PRT_PRINT_REQUEST_FAILED.getMessage());
-				description.setCode(PlatformErrorMessages.RPR_PRT_PRINT_REQUEST_FAILED.getCode());
+				if (responseWrapper.getErrors() != null && !responseWrapper.getErrors().isEmpty()) {
+					ErrorDTO error = responseWrapper.getErrors().get(0);
+					object.setIsValid(Boolean.FALSE);
+					isTransactionSuccessful = false;
+					description.setMessage(PlatformErrorMessages.RPR_PRT_PRINT_REQUEST_FAILED.getMessage());
+					description.setCode(PlatformErrorMessages.RPR_PRT_PRINT_REQUEST_FAILED.getCode());
 
-				registrationStatusDto.setStatusComment(
-						StatusUtil.PRINT_REQUEST_FAILED.getMessage() + SEPERATOR + error.getMessage());
-				registrationStatusDto.setSubStatusCode(StatusUtil.PRINT_REQUEST_FAILED.getCode());
-				registrationStatusDto
-							.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
-				registrationStatusDto
-						.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PRINT_SERVICE.toString());
-			} else {
-				credentialResponseDto = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
-						CredentialResponseDto.class);
+					registrationStatusDto.setStatusComment(
+							StatusUtil.PRINT_REQUEST_FAILED.getMessage() + SEPERATOR + error.getMessage());
+					registrationStatusDto.setSubStatusCode(StatusUtil.PRINT_REQUEST_FAILED.getCode());
+					registrationStatusDto
+								.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+					registrationStatusDto
+							.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PRINT_SERVICE.toString());
+				} else {
+					credentialResponseDto = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
+							CredentialResponseDto.class);
 
-				registrationStatusDto.setRefId(credentialResponseDto.getRequestId());
-				object.setIsValid(Boolean.TRUE);
-				isTransactionSuccessful = true;
-				description.setMessage(PlatformSuccessMessages.RPR_PRINT_STAGE_REQUEST_SUCCESS.getMessage());
-				description.setCode(PlatformSuccessMessages.RPR_PRINT_STAGE_REQUEST_SUCCESS.getCode());
-				registrationStatusDto.setStatusComment(
-						trimeExpMessage.trimExceptionMessage(StatusUtil.PRINT_REQUEST_SUCCESS.getMessage()));
-				registrationStatusDto.setSubStatusCode(StatusUtil.PRINT_REQUEST_SUCCESS.getCode());
-				registrationStatusDto
-						.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.PROCESSED.toString());
-				registrationStatusDto
-						.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PRINT_SERVICE.toString());
+					registrationStatusDto.setRefId(credentialResponseDto.getRequestId());
+					object.setIsValid(Boolean.TRUE);
+					isTransactionSuccessful = true;
+					description.setMessage(PlatformSuccessMessages.RPR_PRINT_STAGE_REQUEST_SUCCESS.getMessage());
+					description.setCode(PlatformSuccessMessages.RPR_PRINT_STAGE_REQUEST_SUCCESS.getCode());
+					registrationStatusDto.setStatusComment(
+							trimeExpMessage.trimExceptionMessage(StatusUtil.PRINT_REQUEST_SUCCESS.getMessage()));
+					registrationStatusDto.setSubStatusCode(StatusUtil.PRINT_REQUEST_SUCCESS.getCode());
+					registrationStatusDto
+							.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.PROCESSED.toString());
+					registrationStatusDto
+							.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PRINT_SERVICE.toString());
 
-				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString(), regId, "PrintStage::process()::exit");
-			}
+					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+							LoggerFileConstant.REGISTRATIONID.toString(), regId, "PrintStage::process()::exit");
+				}
 			}
 		} catch (ApisResourceAccessException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -366,7 +375,6 @@ public class PrintingStage extends MosipVerticleAPIManager {
 					moduleId, moduleName, regId);
 
 		}
-
 		return object;
 	}
 
@@ -383,6 +391,7 @@ public class PrintingStage extends MosipVerticleAPIManager {
 
 		credentialRequestDto.setEncryptionKey(generatePin());
 		additionalAttributes.put("templateTypeCode",templateTypeCode);
+		additionalAttributes.put("registrationId", regId);
 		credentialRequestDto.setAdditionalData(additionalAttributes);
 
 		return credentialRequestDto;
