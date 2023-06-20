@@ -436,8 +436,9 @@ public class KafkaMosipEventBus implements MosipEventBus {
 	public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler,
 			String address) {
 		HealthCheckDTO healthCheckDTO = new HealthCheckDTO();
-		logger.info("Consumer health check started {} {}",
-				address + " start " + DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+		String timeStamp = address + DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime());
+		logger.debug("Consumer health check started {}",
+				timeStamp);
 		kafkaConsumer.listTopics(f -> {
 			if (f.succeeded()) {
 				healthCheckDTO.setEventBusConnected(true);
@@ -446,8 +447,8 @@ public class KafkaMosipEventBus implements MosipEventBus {
 				healthCheckDTO.setEventBusConnected(false);
 				healthCheckDTO.setFailureReason(f.cause().getMessage());
 			}
-			logger.info("Consumer health check ended {} {}",
-					address + " end " + DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+			logger.debug("Consumer health check ended {} {}",
+					timeStamp);
 			eventHandler.handle(healthCheckDTO);
 		});
 
