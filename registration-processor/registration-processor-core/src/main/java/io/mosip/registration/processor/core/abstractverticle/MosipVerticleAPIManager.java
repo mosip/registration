@@ -63,6 +63,9 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(MosipVerticleAPIManager.class);
 
+	@Value("${mosip.regproc.health-check.handler-timeout:5000}")
+	private long healthCheckTimeOut;
+
 
 	/**
 	 * This method creates a body handler for the routes
@@ -104,29 +107,34 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
                 virusScanner, environment);
 		router.get(servletPath + HealthConstant.HEALTH_ENDPOINT).handler(healthCheckHandler);
 		if (servletPath.contains("packetreceiver") || servletPath.contains("uploader")) {
-			healthCheckHandler.register("virusscanner", healthCheckHandler::virusScanHealthChecker);
+			healthCheckHandler.register("virusscanner", healthCheckTimeOut, healthCheckHandler::virusScanHealthChecker);
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Verticle",
+					healthCheckTimeOut,
 					future -> healthCheckHandler.senderHealthHandler(future, vertx, super.mosipEventBus, sendAddress));
 		}
 		if (checkServletPathContainsCoreProcessor(servletPath)) {
 			healthCheckHandler.register(
-					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Send", future -> {
+					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Send",
+					healthCheckTimeOut, future -> {
 						healthCheckHandler.senderHealthHandler(future, vertx, super.mosipEventBus, sendAddress);
 					});
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Consume",
+					healthCheckTimeOut,
 					future -> {
 						healthCheckHandler.consumerHealthHandler(future, vertx, super.mosipEventBus, consumeAddress);
 					});
 		}
 		if (servletPath.contains("external") || servletPath.contains("bioauth")) {
 			healthCheckHandler.register(
-					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Send", future -> {
+					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Send",
+					healthCheckTimeOut, future -> {
 						healthCheckHandler.senderHealthHandler(future, vertx, super.mosipEventBus, sendAddress);
 					});
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Consume",
+					healthCheckTimeOut,
 					future -> {
 						healthCheckHandler.senderHealthHandler(future, vertx, super.mosipEventBus, consumeAddress);
 					});
@@ -134,24 +142,28 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 		if (servletPath.contains("manual")) {
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Verticle",
+					healthCheckTimeOut,
 					future -> healthCheckHandler.senderHealthHandler(future, vertx, super.mosipEventBus, sendAddress));
 		}
 		if (servletPath.contains("abismiddleware")) {
-			healthCheckHandler.register("queuecheck", future -> healthCheckHandler.queueHealthChecker(future, mosipQueueManager, mosipConnectionFactory));
+			healthCheckHandler.register("queuecheck", healthCheckTimeOut,
+					future -> healthCheckHandler.queueHealthChecker(future, mosipQueueManager, mosipConnectionFactory));
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Verticle",
+					healthCheckTimeOut,
 					future -> healthCheckHandler.consumerHealthHandler(future, vertx, super.mosipEventBus,
 							consumeAddress));
 		}
 		if (servletPath.contains("sender")) {
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Verticle",
+					healthCheckTimeOut,
 					future -> healthCheckHandler.consumerHealthHandler(future, vertx, super.mosipEventBus,
 							consumeAddress));
 		}
 
-		healthCheckHandler.register("diskSpace", healthCheckHandler::dispSpaceHealthChecker);
-		healthCheckHandler.register("db", healthCheckHandler::databaseHealthChecker);
+		healthCheckHandler.register("diskSpace", healthCheckTimeOut, healthCheckHandler::dispSpaceHealthChecker);
+		healthCheckHandler.register("db", healthCheckTimeOut, healthCheckHandler::databaseHealthChecker);
 	}
 
 	private boolean checkServletPathContainsCoreProcessor(String servletPath) {
