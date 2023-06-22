@@ -1,48 +1,11 @@
 package io.mosip.registration.processor.print.stage;
 
-import java.io.File;
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-
-import io.mosip.kernel.core.util.exception.JsonProcessingException;
-import io.mosip.registration.processor.core.constant.ProviderStageName;
-import io.mosip.registration.processor.core.exception.PacketManagerException;
-import io.mosip.registration.processor.print.util.CredentialPartnerUtil;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.json.JSONException;
-import org.json.simple.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
-import org.springframework.http.MediaType;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
-import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
-import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
-import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
-import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
-import io.mosip.registration.processor.core.code.ApiName;
-import io.mosip.registration.processor.core.code.EventId;
-import io.mosip.registration.processor.core.code.EventName;
-import io.mosip.registration.processor.core.code.EventType;
-import io.mosip.registration.processor.core.code.ModuleName;
-import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
-import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
+import io.mosip.registration.processor.core.abstractverticle.*;
+import io.mosip.registration.processor.core.code.*;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.IdType;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
@@ -64,10 +27,31 @@ import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.print.stage.exception.VidNotAvailableException;
+import io.mosip.registration.processor.print.util.CredentialPartnerUtil;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+
+import java.io.File;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 /**
  * The Class PrintStage.
@@ -129,16 +113,11 @@ public class PrintingStage extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.printing.message.expiry-time-limit}")
 	private Long messageExpiryTimeLimit;
 
-
 	@Value("${mosip.registration.processor.encrypt:false}")
 	private boolean encrypt;
 
-	@Value("${mosip.registration.processor.digitalcard.issuer:mpartner-default-digitalcard}")
-	private String digitalCardIssuer;
-
-	@Value("${mosip.registration.processor.print.share.credential:false}")
-	private Boolean isCredentialShareEnabled;
-
+	@Value("#{${mosip.registration.processor.print.issuer.config-map:{}}}")
+	private Map<String, String> credentialPartnerMap;
 
 	/** Mosip router for APIs */
 	@Autowired
@@ -164,7 +143,13 @@ public class PrintingStage extends MosipVerticleAPIManager {
 	@Value("${mosip.registration.processor.rid.delimiter:-PDF}")
 	private String pdfDelimiter;
 
-	private static String SEMICOLON = ";";
+	@Value("#{T(java.util.Arrays).asList('${mosip.registration.processor.default.internal.issuers:}')}")
+	private List<String> defaultInternalIssuers;
+
+	@Value("#{T(java.util.Arrays).asList('${mosip.registration.processor.default.issuers:}')}")
+	private List<String> defaultIssuers;
+
+	private static String COMMA = ",";
 	private static String HASH_DELIMITER = "#";
 
 	@Autowired
@@ -240,15 +225,14 @@ public class PrintingStage extends MosipVerticleAPIManager {
 			} else {
 				String vid = getVid(uin);
 				requestWrapper.setId(env.getProperty("mosip.registration.processor.credential.request.service.id"));
-				String issuers=	env.getProperty(ISSUERS);
 				DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 				requestWrapper.setVersion("1.0");
 				Set<String> credentialIssuerSet = new HashSet<>();
-				credentialIssuerSet.addAll(Arrays.asList(issuers.split(SEMICOLON)));
-				if (isCredentialShareEnabled) {
-					var metaInfo = utilities.getMetaInfo(regId, registrationStatusDto.getRegistrationType(), ProviderStageName.PRINTING);
-					jsonObject.putAll(metaInfo);
-					credentialIssuerSet.addAll(credentialPartnerUtil.getCredentialPartners(regId, jsonObject));
+				credentialIssuerSet.addAll(defaultInternalIssuers);
+				credentialIssuerSet.addAll(defaultIssuers);
+				if (credentialPartnerMap != null && !credentialPartnerMap.isEmpty()) {
+					credentialIssuerSet.addAll(credentialPartnerUtil.getCredentialPartners(
+							regId, registrationStatusDto.getRegistrationType(), jsonObject));
 				}
 				for (String key : credentialIssuerSet) {
 					String[] parts = key.split(HASH_DELIMITER, 3);
@@ -257,7 +241,7 @@ public class PrintingStage extends MosipVerticleAPIManager {
 							DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
 					requestWrapper.setRequesttime(localdatetime);
 					requestWrapper.setRequest(credentialRequestDto);
-					if (parts[0].equalsIgnoreCase(digitalCardIssuer)) {
+					if (defaultInternalIssuers.contains(key)) {
 						List<String> pathsegments = new ArrayList<>();
 						pathsegments.add(regId + pdfDelimiter); //  #PDF suffix is added to identify the requested credential via rid
 						responseWrapper = (ResponseWrapper<?>) restClientService.postApi(ApiName.CREDENTIALREQUESTV2, MediaType.APPLICATION_JSON, pathsegments, null,
