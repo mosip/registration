@@ -193,7 +193,8 @@ public class PrintingStageTest {
 		ReflectionTestUtils.setField(stage, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(stage, "busOutHaltAddresses", Arrays.asList());
 		ReflectionTestUtils.setField(stage, "pdfDelimiter", "-PDF");
-		ReflectionTestUtils.setField(stage, "issuer", "mpartner-default-print");
+		ReflectionTestUtils.setField(stage, "defaultInternalIssuers", Arrays.asList("mpartner-default-digitalcard#PDFCard#RPR_UIN_CARD_TEMPLATE"));
+		ReflectionTestUtils.setField(stage, "defaultIssuers", Arrays.asList("mpartner-default-print#euin#RPR_UIN_CARD_TEMPLATE"));
 		System.setProperty("server.port", "8099");
 
 		//ReflectionTestUtils.setField(stage, "port", "8080");
