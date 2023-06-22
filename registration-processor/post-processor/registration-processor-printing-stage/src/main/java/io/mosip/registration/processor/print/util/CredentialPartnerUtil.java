@@ -18,6 +18,7 @@ import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.mvel2.MVEL;
+import org.mvel2.ParserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -47,9 +48,6 @@ public class CredentialPartnerUtil {
 
     @Value("#{T(java.util.Arrays).asList('${mosip.mandatory-languages:}')}")
     private List<String> mandatoryLanguages;
-
-    @Value("${mosip.identification.attribute}")
-    private String identityAttribute;
 
     @Value("${mosip.registration.processor.print.issuer.noMatch}")
     private String noMatchIssuer;
@@ -134,15 +132,21 @@ public class CredentialPartnerUtil {
             org.json.simple.JSONObject identityMappingJson =
                     utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
             requiredIDObjectFieldNamesMap = new HashMap<>();
-            String actualFieldName = JsonUtil.getJSONValue(
-                    JsonUtil.getJSONObject(identityMappingJson, identityAttribute),
-                    VALUE_LABEL);
-            if (actualFieldName == null) {
-                throw new BaseCheckedException(
-                        PlatformErrorMessages.RPR_PCM_FIELD_NAME_NOT_AVAILABLE_IN_MAPPING_JSON.getCode(),
-                        PlatformErrorMessages.RPR_PCM_FIELD_NAME_NOT_AVAILABLE_IN_MAPPING_JSON.getMessage());
+            for(Map.Entry<String, String> expressionEntry : credentialPartnerExpression.entrySet()) {
+                ParserContext parserContext = ParserContext.create();
+                MVEL.analysisCompile(expressionEntry.getValue(), parserContext);
+                Map<String, Class> expressionVariablesMap = parserContext.getInputs();
+                for(Map.Entry<String, Class> variableEntry: expressionVariablesMap.entrySet()) {
+                    String actualFieldName = JsonUtil.getJSONValue(
+                            JsonUtil.getJSONObject(identityMappingJson, variableEntry.getKey()),
+                            VALUE_LABEL);
+                    if(actualFieldName == null)
+                        throw new BaseCheckedException(
+                                PlatformErrorMessages.RPR_PCM_FIELD_NAME_NOT_AVAILABLE_IN_MAPPING_JSON.getCode(),
+                                PlatformErrorMessages.RPR_PCM_FIELD_NAME_NOT_AVAILABLE_IN_MAPPING_JSON.getMessage());
+                    requiredIDObjectFieldNamesMap.put(actualFieldName, variableEntry.getKey());
+                }
             }
-            requiredIDObjectFieldNamesMap.put(actualFieldName, identityAttribute);
             requiredIdObjectFieldNames = requiredIDObjectFieldNamesMap.keySet().stream().collect(Collectors.toList());
         } catch (IOException e) {
             throw new BaseCheckedException(
