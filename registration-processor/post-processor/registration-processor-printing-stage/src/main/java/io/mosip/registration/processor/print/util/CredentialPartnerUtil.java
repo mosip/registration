@@ -12,13 +12,11 @@ import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.util.JsonUtil;
-import io.mosip.registration.processor.packet.storage.exception.IdRepoAppException;
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.mvel2.MVEL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -83,17 +81,25 @@ public class CredentialPartnerUtil {
         }
 
         Map<String, String> identityFieldValueMap = utilities.getPacketManagerService().getFields(regId,
-                requiredIDObjectFieldNamesMap.values().stream().collect(Collectors.toList()), registrationType, ProviderStageName.PRINTING);
+                requiredIdObjectFieldNames, registrationType, ProviderStageName.PRINTING);
 
         Map<String, Object> context = new HashMap<>();
         for (Map.Entry<String, String> identityAttribute: identityFieldValueMap.entrySet()) {
             JSONObject attributeObject = new JSONObject(identityFieldValueMap);
             try {
-                org.json.simple.JSONArray attributeArray = (org.json.simple.JSONArray) new JSONParser().parse((String)attributeObject.get(identityAttribute.getKey()));
-                for(int i = 0; i < attributeArray.size(); i++) {
-                    JSONObject jsonObject = (JSONObject) attributeArray.get(i);
-                    if (mandatoryLanguages.get(0).equalsIgnoreCase((String) jsonObject.get(LANGUAGE))) {
-                        context.put(identityAttribute.getKey(), jsonObject.get(VALUE_LABEL));
+                JSONParser parser = new JSONParser();
+                Object obj = parser.parse((String)attributeObject.get(identityAttribute.getKey()));
+                if (obj instanceof org.json.simple.JSONArray) {
+                    org.json.simple.JSONArray attributeArray = (org.json.simple.JSONArray) obj;
+                    for (int i = 0; i < attributeArray.size(); i++) {
+                        JSONObject jsonObject = (JSONObject) attributeArray.get(i);
+                        if (mandatoryLanguages.get(0).equalsIgnoreCase((String) jsonObject.get(LANGUAGE))) {
+                            context.put(identityAttribute.getKey(), jsonObject.get(VALUE_LABEL));
+                        }
+                    }
+                } else {
+                    if (obj != null) {
+                        context.put(identityAttribute.getKey(), obj.toString());
                     }
                 }
             } catch (org.json.simple.parser.ParseException e) {
