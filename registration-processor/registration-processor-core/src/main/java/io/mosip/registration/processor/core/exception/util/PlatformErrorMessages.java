@@ -1133,6 +1133,9 @@ public enum PlatformErrorMessages {
 	RPR_PRT_VID_NOT_AVAILABLE_EXCEPTION(PlatformConstants.RPR_PRINTING_MODULE + "027",
 			"vid not available"),
 
+	/** The rpr prt print issuer not found in property. */
+	RPR_PRT_ISSUER_NOT_FOUND_IN_PROPERTY(PlatformConstants.RPR_PRINTING_MODULE + "028", "Print issuer property is not found"),
+
 	/** The rpr rgs registration connector not accessible. */
 	RPR_RGS_REGISTRATION_CONNECTOR_NOT_ACCESSIBLE("", "Registration connector stage is not accessible "),
 
