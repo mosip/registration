@@ -63,6 +63,9 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(MosipVerticleAPIManager.class);
 
+	@Value("${mosip.regproc.health-check.handler-timeout:2000}")
+	private long healthCheckTimeOut;
+
 
 	/**
 	 * This method creates a body handler for the routes
@@ -103,61 +106,74 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 		StageHealthCheckHandler healthCheckHandler = new StageHealthCheckHandler(vertx, null, objectMapper,
                 virusScanner, environment);
 		router.get(servletPath + HealthConstant.HEALTH_ENDPOINT).handler(healthCheckHandler);
-		if (servletPath.contains("packetreceiver") || servletPath.contains("uploader")) {
-			healthCheckHandler.register("virusscanner", healthCheckHandler::virusScanHealthChecker);
+		if (servletPath.contains("packetreceiver")) {
+			healthCheckHandler.register("virusscanner", healthCheckTimeOut, healthCheckHandler::virusScanHealthChecker);
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Verticle",
+					healthCheckTimeOut,
 					future -> healthCheckHandler.senderHealthHandler(future, vertx, super.mosipEventBus, sendAddress));
 		}
-		if (checkServletPathContainsCoreProcessor(servletPath)) {
-			healthCheckHandler.register(
-					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Send", future -> {
-						healthCheckHandler.senderHealthHandler(future, vertx, super.mosipEventBus, sendAddress);
-					});
+		if (servletPath.contains("uploader")) {
+			healthCheckHandler.register("virusscanner", healthCheckTimeOut, healthCheckHandler::virusScanHealthChecker);
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Consume",
-					future -> {
+					healthCheckTimeOut, future -> {
 						healthCheckHandler.consumerHealthHandler(future, vertx, super.mosipEventBus, consumeAddress);
 					});
-		}
-		if (servletPath.contains("external") || servletPath.contains("bioauth")) {
 			healthCheckHandler.register(
-					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Send", future -> {
+					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Verticle",
+					healthCheckTimeOut,
+					future -> healthCheckHandler.senderHealthHandler(future, vertx, super.mosipEventBus, sendAddress));
+		}
+		if (checkServletPath(servletPath)) {
+			healthCheckHandler.register(
+					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Send",
+					healthCheckTimeOut, future -> {
 						healthCheckHandler.senderHealthHandler(future, vertx, super.mosipEventBus, sendAddress);
 					});
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Consume",
+					healthCheckTimeOut,
 					future -> {
-						healthCheckHandler.senderHealthHandler(future, vertx, super.mosipEventBus, consumeAddress);
+						healthCheckHandler.consumerHealthHandler(future, vertx, super.mosipEventBus, consumeAddress);
 					});
 		}
 		if (servletPath.contains("manual")) {
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Verticle",
+					healthCheckTimeOut,
 					future -> healthCheckHandler.senderHealthHandler(future, vertx, super.mosipEventBus, sendAddress));
 		}
 		if (servletPath.contains("abismiddleware")) {
-			healthCheckHandler.register("queuecheck", future -> healthCheckHandler.queueHealthChecker(future, mosipQueueManager, mosipConnectionFactory));
+			healthCheckHandler.register("queuecheck", healthCheckTimeOut,
+					future -> healthCheckHandler.queueHealthChecker(future, mosipQueueManager, mosipConnectionFactory));
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Verticle",
+					healthCheckTimeOut,
 					future -> healthCheckHandler.consumerHealthHandler(future, vertx, super.mosipEventBus,
 							consumeAddress));
 		}
 		if (servletPath.contains("sender")) {
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Verticle",
+					healthCheckTimeOut,
 					future -> healthCheckHandler.consumerHealthHandler(future, vertx, super.mosipEventBus,
 							consumeAddress));
 		}
 
-		healthCheckHandler.register("diskSpace", healthCheckHandler::dispSpaceHealthChecker);
-		healthCheckHandler.register("db", healthCheckHandler::databaseHealthChecker);
+		healthCheckHandler.register("diskSpace", healthCheckTimeOut, healthCheckHandler::dispSpaceHealthChecker);
+		healthCheckHandler.register("db", healthCheckTimeOut, healthCheckHandler::databaseHealthChecker);
 	}
 
-	private boolean checkServletPathContainsCoreProcessor(String servletPath) {
+	private boolean checkServletPath(String servletPath) {
 		return servletPath.contains("packetvalidator") || servletPath.contains("osi") || servletPath.contains("demo")
 				|| servletPath.contains("bio") || servletPath.contains("uin") || servletPath.contains("quality")
-				|| servletPath.contains("abishandler") || servletPath.contains("securezone");
+				|| servletPath.contains("abishandler") || servletPath.contains("securezone")
+				|| servletPath.contains("print") || servletPath.contains("cmd") || servletPath.contains("operator")
+				|| servletPath.contains("supervisor") || servletPath.contains("introducer")
+				|| servletPath.contains("final") || servletPath.contains("biometric")
+				|| servletPath.contains("packetclassifier") || servletPath.contains("bioauth")
+				|| servletPath.contains("external");
 	}
 
 	/**
