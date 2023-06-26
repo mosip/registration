@@ -165,7 +165,7 @@ public class ExceptionBiometricsTagGeneratorTest {
 	}
 
 	@Test
-	public void testGenerateTagsForExceptionBiometricsAvailableWithBCTestWithoutversion()
+	public void testGenerateTagsForExceptionBiometricsAvailableWithoutversion()
 			throws BaseCheckedException, JsonMappingException, JsonProcessingException {
 		Map<String, String> metaInfoMap = new HashMap<>();
 		metaInfoMap.put(JsonConstant.EXCEPTIONBIOMETRICS,
@@ -174,4 +174,32 @@ public class ExceptionBiometricsTagGeneratorTest {
 				metaInfoMap, 0);
 		assertEquals("LE", tags.get(tagName));
 	}
+
+	@Test
+	public void testGenerateTagsForExceptionBiometricsNotAvailableWithBCTest()
+			throws BaseCheckedException, JsonMappingException, JsonProcessingException {
+		Map<String, String> metaInfoMap = new HashMap<>();
+		metaInfoMap.put(JsonConstant.EXCEPTIONBIOMETRICS, "{\"applicant\" : {}}");
+		metaInfoMap.put(JsonConstant.METADATA,
+				"[ {\n  \"label\" : \"registrationId\",\n  \"value\" : \"1234\"\n},{\n  \"label\" : \"Registration Client Version Number\",\n  \"value\" : \"1.1.4\"\n} ]");
+		Mockito.when(mapper.readValue(anyString(), any(Class.class)))
+				.thenReturn(new FieldValue("Registration Client Version Number", "1.1.4"));
+		Map<String, String> tags = exceptionBiometricsTagGenerator.generateTags("12345", "1234", "NEW", null,
+				metaInfoMap, 0);
+		assertEquals("", tags.get(tagName));
+	}
+
+	@Test
+	public void testGenerateTagsForExceptionBiometricsApplicantNotAvailableWithBCTest()
+			throws BaseCheckedException, JsonMappingException, JsonProcessingException {
+		Map<String, String> metaInfoMap = new HashMap<>();
+		metaInfoMap.put(JsonConstant.EXCEPTIONBIOMETRICS, "{}");
+		metaInfoMap.put(JsonConstant.METADATA,
+				"[ {\n  \"label\" : \"registrationId\",\n  \"value\" : \"1234\"\n},{\n  \"label\" : \"Registration Client Version Number\",\n  \"value\" : \"1.1.4\"\n} ]");
+		Mockito.when(mapper.readValue(anyString(), any(Class.class)))
+				.thenReturn(new FieldValue("Registration Client Version Number", "1.1.4"));
+		Map<String, String> tags = 
+			exceptionBiometricsTagGenerator.generateTags("12345", "1234", "NEW", null, metaInfoMap, 0);
+	}
+	
 }
