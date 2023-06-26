@@ -9,7 +9,7 @@
 	</parent>
 	<artifactId>registration-processor-landing-zone</artifactId>
 	<name>registration-processor-landing-zone</name>
-	<version>1.2.0.1-B3-SNAPSHOT</version>
+	<version>1.2.0.1-SNAPSHOT</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>

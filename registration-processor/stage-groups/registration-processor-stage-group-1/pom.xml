@@ -9,7 +9,7 @@
 	</parent>
 	
 	<artifactId>registration-processor-stage-group-1</artifactId>
-    <version>1.2.0.1-B3-SNAPSHOT</version>
+    <version>1.2.0.1-SNAPSHOT</version>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -21,14 +21,14 @@
 		<dependency>
 			<groupId>io.mosip.registrationprocessor</groupId>
 			<artifactId>mosip-stage-executor</artifactId>
-			<version>1.2.0.1-B3-SNAPSHOT</version>
+			<version>1.2.0.1-SNAPSHOT</version>
 		</dependency>
 		
 		<!-- Stages -->
 		<dependency>
 			<groupId>io.mosip.registrationprocessor</groupId>
 			<artifactId>registration-processor-packet-receiver-stage</artifactId>
-			<version>1.2.0.1-B3-SNAPSHOT</version>
+			<version>1.2.0.1-SNAPSHOT</version>
 		</dependency>
 		
 		<!--  -->
