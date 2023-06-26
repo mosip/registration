@@ -447,8 +447,8 @@ public class KafkaMosipEventBus implements MosipEventBus {
 				healthCheckDTO.setEventBusConnected(false);
 				healthCheckDTO.setFailureReason(f.cause().getMessage());
 			}
-			logger.debug("Consumer health check ended {} {}",
-					timeStamp);
+			logger.debug("Consumer health check ended with isEventBusConnected {} {}", timeStamp,
+					healthCheckDTO.isEventBusConnected());
 			eventHandler.handle(healthCheckDTO);
 		});
 
