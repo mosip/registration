@@ -63,7 +63,7 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(MosipVerticleAPIManager.class);
 
-	@Value("${mosip.regproc.health-check.handler-timeout:5000}")
+	@Value("${mosip.regproc.health-check.handler-timeout:2000}")
 	private long healthCheckTimeOut;
 
 
@@ -125,7 +125,7 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 					healthCheckTimeOut,
 					future -> healthCheckHandler.senderHealthHandler(future, vertx, super.mosipEventBus, sendAddress));
 		}
-		if (checkServletPathContainsCoreProcessor(servletPath)) {
+		if (checkServletPath(servletPath)) {
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Send",
 					healthCheckTimeOut, future -> {
@@ -165,7 +165,7 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 		healthCheckHandler.register("db", healthCheckTimeOut, healthCheckHandler::databaseHealthChecker);
 	}
 
-	private boolean checkServletPathContainsCoreProcessor(String servletPath) {
+	private boolean checkServletPath(String servletPath) {
 		return servletPath.contains("packetvalidator") || servletPath.contains("osi") || servletPath.contains("demo")
 				|| servletPath.contains("bio") || servletPath.contains("uin") || servletPath.contains("quality")
 				|| servletPath.contains("abishandler") || servletPath.contains("securezone")
