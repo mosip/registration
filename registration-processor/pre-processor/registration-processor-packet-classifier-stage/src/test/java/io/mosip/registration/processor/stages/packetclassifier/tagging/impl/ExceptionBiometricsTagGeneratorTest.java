@@ -1,7 +1,10 @@
 package io.mosip.registration.processor.stages.packetclassifier.tagging.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -11,13 +14,20 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.registration.processor.core.constant.JsonConstant;
+import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 
 /**
@@ -33,8 +43,16 @@ public class ExceptionBiometricsTagGeneratorTest {
 
 	private static String notAvailableTagValue = "--TAG_VALUE_NOT_AVAILABLE--";
 
+
+	private static String regClientCurrentVersion = "1.2.1-SNAPSHOT";
+
 	@InjectMocks
 	private ExceptionBiometricsTagGenerator exceptionBiometricsTagGenerator;
+
+	@Mock
+	ObjectMapper mapper;
+
+	Map<String, String> metamap = new HashMap<>();
 
 	@Before
 	public void setup() throws Exception {
@@ -55,13 +73,24 @@ public class ExceptionBiometricsTagGeneratorTest {
 		Whitebox.setInternalState(exceptionBiometricsTagGenerator, "bioValueMapping", bioValueMapping);
 		Whitebox.setInternalState(exceptionBiometricsTagGenerator, "notAvailableTagValue", 
 			notAvailableTagValue);
+		List<String> regClientVersionsBeforeExceptionbiometrics = new ArrayList();
+		regClientVersionsBeforeExceptionbiometrics.add("1.1.3");
+		regClientVersionsBeforeExceptionbiometrics.add("1.1.4");
+		Whitebox.setInternalState(exceptionBiometricsTagGenerator, "regClientVersionsBeforeExceptionbiometrics",
+				regClientVersionsBeforeExceptionbiometrics);
+		Whitebox.setInternalState(exceptionBiometricsTagGenerator, "regClientCurrentVersion", regClientCurrentVersion);
 	}
 
 	@Test
-	public void testGenerateTagsForExceptionBiometricsAvailable() throws BaseCheckedException {
+	public void testGenerateTagsForExceptionBiometricsAvailable()
+			throws BaseCheckedException, JsonMappingException, JsonProcessingException {
 		Map<String, String> metaInfoMap = new HashMap<>();
 		metaInfoMap.put(JsonConstant.EXCEPTIONBIOMETRICS, 
 				"{\"individualBiometrics\" : {\"leftEye\" : {\"type\" : \"iris\", \"missingBiometric\" : \"leftEye\",\"reason\" : \"Missing biometrics\",\"exceptionType\" : \"Permanent\",\"individualType\" : \"INDIVIDUAL\"}}}");
+		metaInfoMap.put(JsonConstant.METADATA,
+				"[ {\n  \"label\" : \"registrationId\",\n  \"value\" : \"1234\"\n},{\n  \"label\" : \"Registration Client Version Number\",\n  \"value\" : \"1.2.0.1-SNAPSHOT\"\n} ]");
+		Mockito.when(mapper.readValue(anyString(), any(Class.class)))
+				.thenReturn(new FieldValue("Registration Client Version Number", "1.2.0.1-SNAPSHOT"));
 		Map<String, String> tags = 
 			exceptionBiometricsTagGenerator.generateTags("12345", "1234", "NEW", null, metaInfoMap, 0);
 		assertEquals("LE", tags.get(tagName));
@@ -119,5 +148,30 @@ public class ExceptionBiometricsTagGeneratorTest {
 		List<String> result = exceptionBiometricsTagGenerator.getRequiredIdObjectFieldNames();
 		assertEquals(result, null);
 	}
-	
+
+	@Test
+	public void testGenerateTagsForExceptionBiometricsAvailableWithBCTest()
+			throws BaseCheckedException, JsonMappingException, JsonProcessingException {
+		Map<String, String> metaInfoMap = new HashMap<>();
+		metaInfoMap.put(JsonConstant.EXCEPTIONBIOMETRICS,
+				"{\"applicant\" : {\"leftEye\" : {\"type\" : \"iris\", \"missingBiometric\" : \"leftEye\",\"reason\" : \"Missing biometrics\",\"exceptionType\" : \"Permanent\",\"individualType\" : \"INDIVIDUAL\"}}}");
+		metaInfoMap.put(JsonConstant.METADATA,
+				"[ {\n  \"label\" : \"registrationId\",\n  \"value\" : \"1234\"\n},{\n  \"label\" : \"Registration Client Version Number\",\n  \"value\" : \"1.1.4\"\n} ]");
+		Mockito.when(mapper.readValue(anyString(), any(Class.class)))
+				.thenReturn(new FieldValue("Registration Client Version Number", "1.1.4"));
+		Map<String, String> tags = exceptionBiometricsTagGenerator.generateTags("12345", "1234", "NEW", null,
+				metaInfoMap, 0);
+		assertEquals("LE", tags.get(tagName));
+	}
+
+	@Test
+	public void testGenerateTagsForExceptionBiometricsAvailableWithBCTestWithoutversion()
+			throws BaseCheckedException, JsonMappingException, JsonProcessingException {
+		Map<String, String> metaInfoMap = new HashMap<>();
+		metaInfoMap.put(JsonConstant.EXCEPTIONBIOMETRICS,
+				"{\"individualBiometrics\" : {\"leftEye\" : {\"type\" : \"iris\", \"missingBiometric\" : \"leftEye\",\"reason\" : \"Missing biometrics\",\"exceptionType\" : \"Permanent\",\"individualType\" : \"INDIVIDUAL\"}}}");
+		Map<String, String> tags = exceptionBiometricsTagGenerator.generateTags("12345", "1234", "NEW", null,
+				metaInfoMap, 0);
+		assertEquals("LE", tags.get(tagName));
+	}
 }
