@@ -18,11 +18,60 @@ ALTER TABLE regprc.reg_bio_ref DROP CONSTRAINT IF EXISTS fk_regref_reg CASCADE;
 ALTER TABLE regprc.reg_lost_uin_det DROP CONSTRAINT IF EXISTS fk_rlostd_reg CASCADE;
 ALTER TABLE regprc.registration_transaction DROP CONSTRAINT IF EXISTS fk_regtrn_reg CASCADE;
 
-\ir ../ddl/regprc-additional_info_request.sql
+CREATE TABLE regprc.additional_info_request(
+	additional_info_process character varying(64),
+	reg_id character varying(39),
+	workflow_instance_id character varying(36),
+	timestamp timestamp,
+	additional_info_iteration integer,
+	additional_info_req_id character varying(256),
+	CONSTRAINT pk_addl_info_req PRIMARY KEY (workflow_instance_id , additional_info_req_id)
 
-\ir ../ddl/regprc-anonymous_profile.sql
+);
 
-\ir ../ddl/regprc-reg_verification.sql
+GRANT SELECT, INSERT, TRUNCATE, REFERENCES, UPDATE, DELETE
+   ON regprc.additional_info_request
+   TO regprcuser;
+
+CREATE TABLE regprc.anonymous_profile(
+	id character varying(39) NOT NULL,
+    	process_stage character varying(36) NOT NULL,
+    	profile character varying NOT NULL,
+    	cr_by character varying(256) NOT NULL,
+    	cr_dtimes timestamp NOT NULL,
+    	upd_by character varying(256),
+    	upd_dtimes timestamp,
+    	is_deleted boolean DEFAULT FALSE,
+    	del_dtimes timestamp,
+    	CONSTRAINT pk_anonymous_id PRIMARY KEY (id)
+);
+GRANT SELECT, INSERT, TRUNCATE, REFERENCES, UPDATE, DELETE
+   ON regprc.anonymous_profile
+   TO regprcuser;
+
+CREATE TABLE regprc.reg_verification(
+    workflow_instance_id character varying(36) NOT NULL,
+	reg_id character varying(39) NOT NULL,
+	verification_req_id character varying(39) NOT NULL,
+	matched_type character varying(36),
+	verification_usr_id character varying(256),
+	response_text character varying(512),
+	status_code character varying(36),
+	reason_code character varying(36),
+	status_comment character varying(256),
+	is_active boolean NOT NULL,
+	cr_by character varying(256) NOT NULL,
+	cr_dtimes timestamp NOT NULL,
+	upd_by character varying(256),
+	upd_dtimes timestamp,
+	is_deleted boolean,
+	del_dtimes timestamp,
+	CONSTRAINT pk_reg_ver_id PRIMARY KEY (workflow_instance_id)
+);
+
+GRANT SELECT, INSERT, TRUNCATE, REFERENCES, UPDATE, DELETE
+   ON regprc.reg_verification
+   TO regprcuser;
 
 ALTER TABLE regprc.registration_list RENAME COLUMN id TO workflow_instance_id;
 ALTER TABLE regprc.registration_list RENAME COLUMN reg_type TO process;
@@ -160,7 +209,18 @@ ALTER TABLE regprc.registration_list ADD COLUMN location_code character varying;
 -------------------------------------------------------------------------------------------------------------------------------------------
 -------------------------------------------------Creation of crypto salt table--------------------------------------------------------------
 
-\ir ../ddl/regprc-crypto_salt.sql
+CREATE TABLE regprc.crypto_salt(
+	id integer NOT NULL,
+	salt character varying(36) NOT NULL,
+	cr_by character varying(256) NOT NULL,
+	cr_dtimes timestamp NOT NULL,
+	upd_by character varying(256) ,
+	upd_dtimes timestamp ,
+	CONSTRAINT pk_rides PRIMARY KEY (id));
+
+GRANT SELECT, INSERT, TRUNCATE, REFERENCES, UPDATE, DELETE
+   ON regprc.crypto_salt
+   TO regprcuser;
 
 --------------------------------------------------------------------------------------------------------------------------------------------
 
