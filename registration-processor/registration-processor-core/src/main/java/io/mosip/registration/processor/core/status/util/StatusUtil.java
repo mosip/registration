@@ -158,7 +158,8 @@ public enum StatusUtil {
 			"Packet Rejected as Parent Packet is Rejected"),
 	PACKET_IS_ON_HOLD(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "007",
 			"Packet is on Hold due to parent packet processing"),
-
+	INTRODUCER_BIOMETRIC_ALL_EXCEPTION_IN_PACKET(StatusConstants.IVM_VALIDAOR_MODULE_FAILED + "008",
+			"Introducer Biometrics all exceptions"),
 	// printing stage
 	PRINT_REQUEST_SUCCESS(StatusConstants.PRINT_STAGE_MODULE_SUCCESS + "001", "Print request submitted"),
 	PDF_ADDED_TO_QUEUE_FAILED(StatusConstants.PRINT_STAGE_MODULE_FAILED + "001",
