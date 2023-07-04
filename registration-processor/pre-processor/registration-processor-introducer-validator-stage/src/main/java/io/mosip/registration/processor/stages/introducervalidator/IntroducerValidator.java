@@ -1,10 +1,7 @@
 package io.mosip.registration.processor.stages.introducervalidator;
 
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -16,22 +13,20 @@ import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.bioapi.exception.BiometricException;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.constant.RegistrationType;
-import io.mosip.registration.processor.core.exception.AuthSystemException;
-import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.IntroducerOnHoldException;
+import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.ValidationFailedException;
-import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
@@ -207,8 +202,20 @@ public class IntroducerValidator {
 				MappingJsonConstants.INTRODUCER_BIO, registrationStatusDto.getRegistrationType(),
 				ProviderStageName.INTRODUCER_VALIDATOR);
 		if (biometricRecord != null && biometricRecord.getSegments() != null) {
-			validateUserBiometric(registrationId, introducerUIN, biometricRecord.getSegments(), INDIVIDUAL_TYPE_UIN,
-					registrationStatusDto);
+			biometricRecord = filterExceptionBiometrics(biometricRecord);
+			if (biometricRecord != null && biometricRecord.getSegments() != null) {
+				validateUserBiometric(registrationId, introducerUIN, biometricRecord.getSegments(), INDIVIDUAL_TYPE_UIN,
+						registrationStatusDto);
+			} else {
+				registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
+						.getStatusCode(RegistrationExceptionTypeCode.INTRODUCER_BIOMETRIC_ALL_EXCEPTION_IN_PACKET));
+				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+				regProcLogger.debug("validateIntroducerBiometric call ended for registrationId {} {}", registrationId,
+						StatusUtil.INTRODUCER_BIOMETRIC_ALL_EXCEPTION_IN_PACKET.getMessage());
+				throw new BaseCheckedException(StatusUtil.INTRODUCER_BIOMETRIC_ALL_EXCEPTION_IN_PACKET.getMessage(),
+						StatusUtil.INTRODUCER_BIOMETRIC_ALL_EXCEPTION_IN_PACKET.getCode());
+			}
+
 		} else {
 			registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
 					.getStatusCode(RegistrationExceptionTypeCode.INTRODUCER_BIOMETRIC_NOT_IN_PACKET));
@@ -241,5 +248,20 @@ public class IntroducerValidator {
 		regProcLogger.debug("validateUserBiometric call ended for registrationId {}", registrationId);
 	}
 
+	private BiometricRecord filterExceptionBiometrics(BiometricRecord biometricRecord) {
+		List<BIR> segments = biometricRecord.getSegments().stream().filter(bio -> {
+			Map<String, String> othersMap = bio.getOthers().entrySet().stream()
+					.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+			return (othersMap == null || !othersMap.containsKey("EXCEPTION")) ? true
+					: !(Boolean.parseBoolean(othersMap.get("EXCEPTION")));
+		}).collect(Collectors.toList());
+		if (segments != null) {
+			segments = segments.stream().filter(bio -> !bio.getBdbInfo().getType().get(0).name()
+					.equalsIgnoreCase(BiometricType.EXCEPTION_PHOTO.name())).collect(Collectors.toList());
+		}
+		BiometricRecord biorecord = new BiometricRecord();
+		biorecord.setSegments(segments);
+		return biorecord;
+	}
 	
 }
