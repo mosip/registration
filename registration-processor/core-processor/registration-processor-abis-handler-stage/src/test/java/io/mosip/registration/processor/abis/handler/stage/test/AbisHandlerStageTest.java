@@ -53,6 +53,7 @@ import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
+import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.PolicyConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
@@ -216,7 +217,8 @@ public class AbisHandlerStageTest {
 
 		ReflectionTestUtils.setField(abisHandlerStage, "biometricModalitySegmentsMapforAgeGroup", biometricModalitySegmentsMapforAgeGroup);
 		ReflectionTestUtils.setField(abisHandlerStage, "exceptionSegmentsMap", getExceptionModalityMap());
-
+		ReflectionTestUtils.setField(abisHandlerStage, "regClientVersionsBeforeCbeffOthersAttritube",
+				Arrays.asList("1.1.3"));
 		Mockito.when(env.getProperty("DATASHARECREATEURL")).thenReturn("/v1/datashare/create");
 		AbisApplicationDto dto = new AbisApplicationDto();
 		dto.setCode("ABIS1");
@@ -974,6 +976,8 @@ public class AbisHandlerStageTest {
         String gsonString =mapper.writeValueAsString(exceptionBiometrcisMap);
 
 		metaInfoMap.put("exceptionBiometrics", gsonString);
+		metaInfoMap.put(JsonConstant.METADATA,
+				"[{\n  \"label\" : \"Registration Client Version Number\",\n  \"value\" : \"1.2.0\"\n}]");
 		Mockito.when(packetManagerService.getMetaInfo(any(), any(), any())).thenReturn(metaInfoMap);
 	}
 	
