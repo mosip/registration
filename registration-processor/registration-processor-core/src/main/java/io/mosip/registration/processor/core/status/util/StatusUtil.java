@@ -215,7 +215,12 @@ public enum StatusUtil {
     MESSAGE_SENDER_SMS_SUCCESS(StatusConstants.MESSAGE_SENDER_NOTIF_SUCCESS_CODE + "004","SMS Notification was sent"),
     MESSAGE_SENDER_EMAIL_FAILED(StatusConstants.MESSAGE_SENDER__FAILED_CODE + "005","Notification was not sent as the required mode of channel was not available"),
     MESSAGE_SENDER_SMS_FAILED(StatusConstants.MESSAGE_SENDER__FAILED_CODE + "006","Notification was not sent as the required mode of channel was not available"),
-    MESSAGE_SENDER_NOTIFICATION_FAILED(StatusConstants.MESSAGE_SENDER__FAILED_CODE + "006","Notification was not sent as the required mode of channel was not available");
+	MESSAGE_SENDER_NOTIFICATION_FAILED(StatusConstants.MESSAGE_SENDER__FAILED_CODE + "006",
+			"Notification was not sent as the required mode of channel was not available"),
+
+	// ABIS handler stage
+	BIOMTERIC_RECORD_VALIDAITON_FAILED(StatusConstants.ABIS_HANDLER_MODULE_FAILED + "001",
+			"Biometric record validation failed");
 
 	private final String statusComment;
 	private final String statusCode;

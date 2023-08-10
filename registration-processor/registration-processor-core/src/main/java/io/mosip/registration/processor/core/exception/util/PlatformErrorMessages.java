@@ -1250,6 +1250,23 @@ public enum PlatformErrorMessages {
 	RPR_ERROR_IN_ABIS_HANDLER_IDENTIFY_REQUEST(PlatformConstants.RPR_ABIS_HANDLER + "004",
 			"Internal Error occured in Abis Handler identify request"),
 
+	RPR_ABIS_HANDLER_STAGE_FAILED(PlatformConstants.RPR_ABIS_HANDLER + "005", "ABIS Handler Stage failed"),
+
+	RPR_BIOMETRIC_RECORD_VALIDATION_FAILED(PlatformConstants.RPR_ABIS_HANDLER + "006",
+			"Biometric record validation error"),
+
+	RPR_DATASHARE_MODALITIES_EMPTY(PlatformConstants.RPR_ABIS_HANDLER + "007",
+			"Data Share Policy Modalities were Empty"),
+
+	RPR_NO_BIOMETRICS_FOUND_WITH_DATASHARE(PlatformConstants.RPR_ABIS_HANDLER + "008",
+			"No Biometrics Found with Data Share Policy"),
+
+	RPR_BIOMETRIC_SEGMENT_NOT_CONFIGURED_FOR_MODALITY(PlatformConstants.RPR_ABIS_HANDLER + "009",
+			"Biometrics Segments Not Configured for modality : %s"),
+
+	RPR_NO_BIOMETRIC_MATCH_WTIH_DATASAHRE(PlatformConstants.RPR_ABIS_HANDLER + "010",
+			"No Biometric Matched with Data Share Policy"),
+
 	/** The rpr demo sending for manual. */
 	RPR_DEMO_SENDING_FOR_MANUAL(PlatformConstants.RPR_DEMO_DEDUPE_MODULE + "001",
 			"ABIS response Details found. Hence sending to manual adjudication"),
