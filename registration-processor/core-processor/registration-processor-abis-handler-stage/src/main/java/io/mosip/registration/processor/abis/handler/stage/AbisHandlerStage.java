@@ -257,7 +257,8 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 			}
 			registrationStatusDto.setStatusCode(statusCode);
 			registrationStatusDto.setStatusComment(trimExceptionMessage
-					.trimExceptionMessage(StatusUtil.BIOMTERIC_RECORD_VALIDAITON_FAILED.getMessage() + e.getMessage()));
+					.trimExceptionMessage(
+							StatusUtil.BIOMTERIC_RECORD_VALIDAITON_FAILED.getMessage() + "->" + e.getErrorText()));
 			String moduleId = description.getCode();
 			String moduleName = ModuleName.ABIS_HANDLER.toString();
 			registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);
