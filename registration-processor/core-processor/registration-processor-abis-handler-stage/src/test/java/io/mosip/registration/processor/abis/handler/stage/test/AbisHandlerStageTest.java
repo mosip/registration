@@ -522,23 +522,23 @@ public class AbisHandlerStageTest {
 		return biometricRecord;
 	}
 
-	private void mockDataSharePolicy(List<BiometricType> sherableBiometricList) throws ApisResourceAccessException {
+	private void mockDataSharePolicy(List<BiometricType> shareableBiometricList) throws ApisResourceAccessException {
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), anyString(), any()))
-				.thenReturn(getMockDataSharePolicy(sherableBiometricList));
+				.thenReturn(getMockDataSharePolicy(shareableBiometricList));
 	}
 
 	private ResponseWrapper<LinkedHashMap<String, Object>> getMockDataSharePolicy(
-			List<BiometricType> sherableBiometricList) {
+			List<BiometricType> shareableBiometricList) {
 
 		ObjectMapper mapper = new ObjectMapper();
 
 		List<ShareableAttributes> attr = new LinkedList<>();
-		if (sherableBiometricList != null && !sherableBiometricList.isEmpty()) {
+		if (shareableBiometricList != null && !shareableBiometricList.isEmpty()) {
 
 			ShareableAttributes shareableAttributes = new ShareableAttributes();
 			List<Source> sourceList = new ArrayList<>();
 
-			for (BiometricType bioType : sherableBiometricList) {
+			for (BiometricType bioType : shareableBiometricList) {
 				Filter filter = new Filter();
 				filter.setType(bioType.value());
 				if (BiometricType.FINGER.equals(bioType)) {
