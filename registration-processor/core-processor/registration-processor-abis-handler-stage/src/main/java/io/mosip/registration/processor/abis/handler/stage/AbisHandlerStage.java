@@ -125,12 +125,9 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 	@Value("${registration.processor.subscriber.id}")
 	private String subscriberId;
-
-	@Value("#{${mosip.regproc.abis.handler.biometric-modalities-segments-mapping}}")
-	private Map<String, List<String>> biometricModalitySegmentsMap;
 	
-	@Value("${mosip.regproc.abis.handler.status.code:REJECTED}")
-	private String statusCode;
+	@Value("${mosip.regproc.abis.handler.insufficient.biometrics.status.code:REJECTED}")
+	private String insufficentBiometricsStatusCode;
 	@Autowired
 	private RegistrationProcessorRestClientService registrationProcessorRestClientService;
 
@@ -255,7 +252,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 			} else if (transactionTypeCode.equalsIgnoreCase(AbisHandlerStageConstant.BIOGRAPHIC_VERIFICATION)) {
 				registrationStatusDto.setRegistrationStageName(AbisHandlerStageConstant.BIO_DEDUPE_STAGE);
 			}
-			registrationStatusDto.setStatusCode(statusCode);
+			registrationStatusDto.setStatusCode(insufficentBiometricsStatusCode);
 			registrationStatusDto.setStatusComment(trimExceptionMessage
 					.trimExceptionMessage(
 							StatusUtil.BIOMTERIC_RECORD_VALIDAITON_FAILED.getMessage() + "->" + e.getErrorText()));
@@ -574,7 +571,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 				MappingJsonConstants.VALUE);
 		BiometricRecord biometricRecord = priorityBasedPacketManagerService.getBiometrics(
 				id, individualBiometricsLabel, modalities, process, ProviderStageName.BIO_DEDUPE);
-		validateBiometricRecord(biometricRecord, modalities, biometricModalitySegmentsMap);
+		validateBiometricRecord(biometricRecord, modalities);
 		byte[] content = cbeffutil.createXML(BIRConverter.convertSegmentsToBIRList(biometricRecord.getSegments()));
 
 		MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
@@ -631,8 +628,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		
 	}
 
-	private void validateBiometricRecord(BiometricRecord biometricRecord, List<String> modalities,
-			Map<String, List<String>> biometricModalitySegmentsMap)
+	private void validateBiometricRecord(BiometricRecord biometricRecord, List<String> modalities)
 			throws BiometricRecordValidationException, JsonParseException, JsonMappingException, IOException {
 		if (modalities == null || modalities.isEmpty()) {
 			throw new BiometricRecordValidationException(PlatformErrorMessages.RPR_DATASHARE_MODALITIES_EMPTY.getCode(),PlatformErrorMessages.RPR_DATASHARE_MODALITIES_EMPTY.getMessage());
@@ -642,12 +638,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 			throw new BiometricRecordValidationException(PlatformErrorMessages.RPR_NO_BIOMETRICS_FOUND_WITH_DATASHARE.getCode(),PlatformErrorMessages.RPR_NO_BIOMETRICS_FOUND_WITH_DATASHARE.getMessage());
 		}
 
-		boolean isBioFound = false;
-		for (String biometricSegment : biometricModalitySegmentsMap.keySet()) {
-			if (!modalities.contains(biometricSegment)) {
-				throw new BiometricRecordValidationException(PlatformErrorMessages.RPR_BIOMETRIC_SEGMENT_NOT_CONFIGURED_FOR_MODALITY.getCode(),String.format(PlatformErrorMessages.RPR_BIOMETRIC_SEGMENT_NOT_CONFIGURED_FOR_MODALITY.getMessage(),biometricSegment));
-			}
-			for (String segment : biometricModalitySegmentsMap.get(biometricSegment)) {
+		for (String segment : modalities) {
 				Optional<BIR> optionalBIR = Optional.empty();
 				if (segment.equalsIgnoreCase("Face")) {
 					optionalBIR = biometricRecord.getSegments().stream()
@@ -669,13 +660,13 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 				if (optionalBIR.isPresent()) {
 					BIR bir = optionalBIR.get();
 					if (bir.getBdb() != null) {
-						isBioFound = true;
+						return;
 					}
 				}
 			}
-		}
-		if (!isBioFound) {
-			throw new BiometricRecordValidationException(PlatformErrorMessages.RPR_NO_BIOMETRIC_MATCH_WTIH_DATASAHRE.getCode(),PlatformErrorMessages.RPR_NO_BIOMETRIC_MATCH_WTIH_DATASAHRE.getMessage());
-		}
+
+			throw new BiometricRecordValidationException(
+					PlatformErrorMessages.RPR_NO_BIOMETRIC_MATCH_WTIH_DATASAHRE.getCode(),
+					PlatformErrorMessages.RPR_NO_BIOMETRIC_MATCH_WTIH_DATASAHRE.getMessage());
 	}
 }

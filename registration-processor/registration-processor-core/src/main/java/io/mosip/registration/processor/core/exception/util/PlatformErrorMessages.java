@@ -1261,9 +1261,6 @@ public enum PlatformErrorMessages {
 	RPR_NO_BIOMETRICS_FOUND_WITH_DATASHARE(PlatformConstants.RPR_ABIS_HANDLER + "008",
 			"No Biometrics Found with Data Share Policy"),
 
-	RPR_BIOMETRIC_SEGMENT_NOT_CONFIGURED_FOR_MODALITY(PlatformConstants.RPR_ABIS_HANDLER + "009",
-			"Biometrics Segments Not Configured for modality : %s"),
-
 	RPR_NO_BIOMETRIC_MATCH_WTIH_DATASAHRE(PlatformConstants.RPR_ABIS_HANDLER + "010",
 			"No Biometric Matched with Data Share Policy"),
 

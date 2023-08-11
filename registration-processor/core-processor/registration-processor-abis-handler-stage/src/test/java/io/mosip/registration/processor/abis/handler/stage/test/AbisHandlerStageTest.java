@@ -175,8 +175,7 @@ public class AbisHandlerStageTest {
 		biometricModalitySegmentsMap.put("Finger", getFingerList());
 		biometricModalitySegmentsMap.put("Iris", getIrisList());
 		biometricModalitySegmentsMap.put("Face", getFaceList());
-		ReflectionTestUtils.setField(abisHandlerStage, "biometricModalitySegmentsMap", biometricModalitySegmentsMap);
-		ReflectionTestUtils.setField(abisHandlerStage, "statusCode", "REJECTED");
+		ReflectionTestUtils.setField(abisHandlerStage, "insufficentBiometricsStatusCode", "REJECTED");
 		Mockito.when(env.getProperty("mosip.registration.processor.datetime.pattern"))
 				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		AbisApplicationDto dto = new AbisApplicationDto();
@@ -542,6 +541,12 @@ public class AbisHandlerStageTest {
 			for (BiometricType bioType : sherableBiometricList) {
 				Filter filter = new Filter();
 				filter.setType(bioType.value());
+				if (BiometricType.FINGER.equals(bioType)) {
+					filter.setSubType(getFingerList());
+				} else if (BiometricType.FINGER.equals(bioType)) {
+					filter.setSubType(getIrisList());
+				}
+
 				Source src = new Source();
 				src.setFilter(Lists.newArrayList(filter));
 				sourceList.add(src);
@@ -625,7 +630,7 @@ public class AbisHandlerStageTest {
 
 		Mockito.when(packetManagerService.getBiometrics(any(), any(), any(), any(), any()))
 				.thenReturn(getBiometricRecord(Arrays.asList("Left Thumb", "Right Thumb", "Face"), false));
-		mockDataSharePolicy(Lists.newArrayList(BiometricType.IRIS, BiometricType.FACE));
+		mockDataSharePolicy(Lists.newArrayList(BiometricType.IRIS));
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("10003100030001520190422074511");
