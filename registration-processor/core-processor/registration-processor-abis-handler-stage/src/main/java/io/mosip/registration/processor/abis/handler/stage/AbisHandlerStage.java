@@ -126,7 +126,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	@Value("${registration.processor.subscriber.id}")
 	private String subscriberId;
 	
-	@Value("${mosip.regproc.abis.handler.insufficient.biometrics.status.code:REJECTED}")
+	@Value("${mosip.regproc.abis.handler.insufficient-biometrics-status-code:REJECTED}")
 	private String insufficentBiometricsStatusCode;
 	@Autowired
 	private RegistrationProcessorRestClientService registrationProcessorRestClientService;

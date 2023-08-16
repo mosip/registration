@@ -1261,7 +1261,7 @@ public enum PlatformErrorMessages {
 	RPR_NO_BIOMETRICS_FOUND_WITH_DATASHARE(PlatformConstants.RPR_ABIS_HANDLER + "008",
 			"No Biometrics Found with Data Share Policy"),
 
-	RPR_NO_BIOMETRIC_MATCH_WTIH_DATASAHRE(PlatformConstants.RPR_ABIS_HANDLER + "010",
+	RPR_NO_BIOMETRIC_MATCH_WTIH_DATASAHRE(PlatformConstants.RPR_ABIS_HANDLER + "009",
 			"No Biometric Matched with Data Share Policy"),
 
 	/** The rpr demo sending for manual. */
