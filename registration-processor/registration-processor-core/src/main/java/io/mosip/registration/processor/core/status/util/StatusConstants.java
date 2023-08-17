@@ -109,6 +109,8 @@ public final class StatusConstants {
 	public static final String REQUEST_HANDLER_MODULE_SUCCESS = REQUEST_HANDLER_MODULE + SUCCESS;
 	public static final String REQUEST_HANDLER_MODULE_FAILED = REQUEST_HANDLER_MODULE + FAILED;
 
-
-
+	// Abis Handler stage
+	public static final String ABIS_HANDLER_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "ABH-";
+	public static final String ABIS_HANDLER_MODULE_SUCCESS = ABIS_HANDLER_MODULE + SUCCESS;
+	public static final String ABIS_HANDLER_MODULE_FAILED = ABIS_HANDLER_MODULE + FAILED;
 }
