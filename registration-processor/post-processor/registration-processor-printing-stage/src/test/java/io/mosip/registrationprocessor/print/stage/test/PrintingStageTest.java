@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.processor.print.util.CredentialPartnerUtil;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,7 +36,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
-import io.mosip.registration.processor.core.abstractverticle.HealthCheckDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -109,6 +109,9 @@ public class PrintingStageTest {
 	@Mock
 	private Utilities utitilites;
 
+	@Mock
+	private CredentialPartnerUtil credentialPartnerUtil;
+
 	@InjectMocks
 	private PrintingStage stage = new PrintingStage() {
 		@Override
@@ -138,20 +141,6 @@ public class PrintingStageTest {
 				public void send(MessageBusAddress toAddress, MessageDTO message) {
 
 				}
-
-				@Override
-				public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
-					// TODO Auto-generated method stub
-
-				}
-
-				@Override
-				public void senderHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
-					// TODO Auto-generated method stub
-
-				}
-
-
 			};
 		}
 
@@ -186,14 +175,10 @@ public class PrintingStageTest {
 		when(env.getProperty("mosip.registration.processor.datetime.pattern"))
 				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		when(env.getProperty("mosip.regproc.printing.server.port")).thenReturn("8099");
-		when(env.getProperty("mosip.registration.processor.issuer"))
-				.thenReturn("mpartner-default-digitalcard:PDFCard:RPR_UIN_CARD_TEMPLATE;mpartner-default-print:euin:RPR_UIN_CARD_TEMPLATE");
 		ReflectionTestUtils.setField(stage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(stage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(stage, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(stage, "busOutHaltAddresses", Arrays.asList());
-		ReflectionTestUtils.setField(stage, "pdfDelimiter", "-PDF");
-		ReflectionTestUtils.setField(stage, "defaultInternalIssuers", Arrays.asList("mpartner-default-digitalcard#PDFCard#RPR_UIN_CARD_TEMPLATE"));
 		ReflectionTestUtils.setField(stage, "defaultIssuers", Arrays.asList("mpartner-default-print#euin#RPR_UIN_CARD_TEMPLATE"));
 		System.setProperty("server.port", "8099");
 
@@ -281,13 +266,33 @@ public class PrintingStageTest {
 		responseWrapper.setResponse(credentialResponseDto);
 		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any(), any(MediaType.class)))
 				.thenReturn(responseWrapper);
-		Mockito.when(restClientService.postApi((ApiName) any(), any(MediaType.class),any(),any(), any(), any(), any()))
-				.thenReturn(responseWrapper);
 		MessageDTO result = stage.process(dto);
 		assertTrue(result.getIsValid());
 		assertFalse(result.getInternalError());
 	}
-	
+
+	@Test
+	public void testCredentialPartner()
+			throws ApisResourceAccessException, JsonParseException, JsonMappingException, IOException {
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("1234567890987654321");
+
+		dto.setReg_type(RegistrationType.NEW.name());
+		ReflectionTestUtils.setField(stage, "credentialPartnerMap", Map.of("mpartner-default-cardprint#vercred#RPR_UIN_CARD_TEMPLATE","list_of_values contains attribute_value"));
+		ResponseWrapper<CredentialResponseDto> responseWrapper = new ResponseWrapper<>();
+		CredentialResponseDto credentialResponseDto = new CredentialResponseDto();
+		credentialResponseDto.setRequestId("879664323421");
+		Mockito.when(objectMapper.readValue(response, CredentialResponseDto.class))
+				.thenReturn(credentialResponseDto);
+		responseWrapper.setResponse(credentialResponseDto);
+		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any(), any(MediaType.class)))
+				.thenReturn(responseWrapper);
+		Mockito.when(credentialPartnerUtil.getCredentialPartners(any(), any(), any()))
+				.thenReturn(Arrays.asList("mpartner-default-cardprint#vercred#RPR_UIN_CARD_TEMPLATE"));
+		MessageDTO result = stage.process(dto);
+		assertTrue(result.getIsValid());
+		assertFalse(result.getInternalError());
+	}
 
 	@Test
 	public void testPrintStageFailure() throws ApisResourceAccessException {
@@ -445,5 +450,4 @@ public class PrintingStageTest {
 		assertTrue(result.getIsValid());
 		assertTrue(result.getInternalError());
 	}
-
 }
