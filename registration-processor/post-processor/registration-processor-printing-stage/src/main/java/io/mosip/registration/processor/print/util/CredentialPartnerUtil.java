@@ -3,17 +3,16 @@ package io.mosip.registration.processor.print.util;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
-import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.mvel2.MVEL;
@@ -56,7 +55,7 @@ public class CredentialPartnerUtil {
      */
     private List<String> requiredIdObjectFieldNames;
 
-    public List<String> getCredentialPartners(String regId, String registrationType, String uin) throws PacketManagerException, JSONException, ApisResourceAccessException, IOException, JsonProcessingException {
+    public List<String> getCredentialPartners(String regId, String registrationType, String uin) {
 
         regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                 regId, "CredentialPartnerUtil::getCredentialPartners()::entry");
@@ -69,35 +68,61 @@ public class CredentialPartnerUtil {
             return filteredPartners;
         }
 
-        Map<String, String> identityFieldValueMap = utilities.getPacketManagerService().getFields(regId,
-                requiredIdObjectFieldNames, registrationType, ProviderStageName.PRINTING);
+        try {
+            Map<String, String> identityFieldValueMap = utilities.getPacketManagerService().getFields(regId,
+                    requiredIdObjectFieldNames, registrationType, ProviderStageName.PRINTING);
 
-        if (identityFieldValueMap != null && !identityFieldValueMap.isEmpty()) {
-            List<String> keys = identityFieldValueMap.entrySet().stream().filter(e -> ObjectUtils.isEmpty(e.getValue())).map(Map.Entry::getKey).collect(Collectors.toList());
-            if (keys != null && !keys.isEmpty()) {
-                JSONObject jsonObject = utilities.retrieveIdrepoJson(uin);
-                keys.forEach(key -> identityFieldValueMap.put(key, (String) jsonObject.get(key)));
+            getFieldValueInIdRepo(uin, identityFieldValueMap);
+
+            Map<String, Object> context = getContext(identityFieldValueMap);
+
+            regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                    regId, "CredentialPartnerUtil::CredentialPartnerExpression::" + credentialPartnerExpression.toString());
+
+            for (Map.Entry<String, String> entry : credentialPartnerExpression.entrySet()) {
+                Boolean result = MVEL.evalToBoolean(entry.getValue(), context);
+                if (result) {
+                    filteredPartners.add(entry.getKey());
+                }
             }
-        }
-
-        Map<String, Object> context = getContext(identityFieldValueMap);
-
-        regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-                regId, "CredentialPartnerUtil::CredentialPartnerExpression::" + credentialPartnerExpression.toString());
-
-        for(Map.Entry<String, String> entry : credentialPartnerExpression.entrySet()) {
-            Boolean result = MVEL.evalToBoolean(entry.getValue(), context);
-            if (result) {
-                filteredPartners.add(entry.getKey());
+            if (StringUtils.hasText(noMatchIssuer) && filteredPartners.isEmpty()) {
+                filteredPartners.add(noMatchIssuer);
             }
-        }
-        if (StringUtils.hasText(noMatchIssuer) && filteredPartners.isEmpty()) {
-            filteredPartners.add(noMatchIssuer);
+        } catch (Exception e) {
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+                    ExceptionUtils.getStackTrace(e));
         }
         regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                 regId, "CredentialPartnerUtil::FilteredPartners::" + filteredPartners.toString());
 
         return filteredPartners;
+    }
+
+    /**
+     * In case of demographic update the packet manager doesn't have required field values for the given RID,
+     * so for such cases fetching the registration data from ID-REPO using 'uin'.
+     * The below logic can be modified for any better approach without impacting performance.
+     * @param uin
+     * @param identityFieldValueMap
+     * @throws ApisResourceAccessException
+     * @throws IOException
+     */
+    private void getFieldValueInIdRepo(String uin, Map<String, String> identityFieldValueMap) throws ApisResourceAccessException, IOException {
+
+        if (identityFieldValueMap != null && !identityFieldValueMap.isEmpty()) {
+            List<String> keys = identityFieldValueMap.entrySet().stream().filter(e -> ObjectUtils.isEmpty(e.getValue())).map(Map.Entry::getKey).collect(Collectors.toList());
+            if (keys != null && !keys.isEmpty()) {
+                JSONObject jsonObject = utilities.retrieveIdrepoJson(uin);
+                keys.forEach(key -> {
+                    try {
+                        identityFieldValueMap.put(key, JsonUtils.javaObjectToJsonString(jsonObject.get(key)));
+                    } catch (JsonProcessingException e) {
+                        regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+                                ExceptionUtils.getStackTrace(e));
+                    }
+                });
+            }
+        }
     }
 
     private Map<String, Object> getContext(Map<String, String> identityFieldValueMap) {
