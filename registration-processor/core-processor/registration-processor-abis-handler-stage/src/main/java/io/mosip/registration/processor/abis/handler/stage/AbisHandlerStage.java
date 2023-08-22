@@ -149,14 +149,8 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.data.share.internal.domain.name}")
 	private String internalDomainName;
 
-	@Value("#{${mosip.regproc.abis.handler.biometric-modalities-segments-mapping.INFANT}}")
-	private Map<String, List<String>> biometricModalitySegmentsMapInfant;
-
-	@Value("#{${mosip.regproc.abis.handler.biometric-modalities-segments-mapping.MINOR}}")
-	private Map<String, List<String>> biometricModalitySegmentsMapMinor;
-
-	@Value("#{${mosip.regproc.abis.handler.biometric-modalities-segments-mapping.ADULT}}")
-	private Map<String, List<String>> biometricModalitySegmentsMapAdult;
+	@Value("#{${mosip.regproc.abis.handler.biometric-modalities-segments-mapping-for-age-group}}")
+	private Map<String, Map<String, List<String>>> biometricModalitySegmentsMapforAgeGroup;
 
 	@Value("#{${mosip.regproc.abis.handler.biometric-segments-exceptions-mapping}}")
 	private Map<String, String> exceptionSegmentsMap;
@@ -502,7 +496,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 			abisRequestDto.setReqBatchId(batchId);
 			abisRequestDto.setRefRegtrnId(transactionId);
 
-		
+
 			abisRequestDto.setStatusCode(AbisStatusCode.IN_PROGRESS.toString());
 			abisRequestDto.setStatusComment(null);
 			abisRequestDto.setLangCode(AbisHandlerStageConstant.ENG);
@@ -539,7 +533,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	 * @param id          the id
 	 * @param bioRefId    the bio ref id
 	 * @param description
-	 * @param status 
+	 * @param status
 	 * @return the insert request bytes
 	 */
 	private byte[] getInsertRequestBytes(String regId, String id, String process, String bioRefId,
@@ -593,20 +587,15 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 		Map<String, String> tags = packetManagerService.getAllTags(id);
 		String ageGroup = tags.get("AGE_GROUP");
-
-		if (ageGroup.equalsIgnoreCase("INFANT")) {
-			validateBiometricRecord(biometricRecord, modalities, biometricModalitySegmentsMapInfant,
-					priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE));
-		} else if (ageGroup.equalsIgnoreCase("MINOR")) {
-			validateBiometricRecord(biometricRecord, modalities, biometricModalitySegmentsMapMinor,
-					priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE));
-		} else if (ageGroup.equalsIgnoreCase("ADULT")) {
-			validateBiometricRecord(biometricRecord, modalities, biometricModalitySegmentsMapAdult,
-					priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE));
-		} else {
-			validateBiometricRecord(biometricRecord, modalities, biometricModalitySegmentsMapAdult,
-					priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE));
+		Map<String, List<String>> biometricModalitySegmentsMap;
+		if(biometricModalitySegmentsMapforAgeGroup.containsKey(ageGroup)){
+			biometricModalitySegmentsMap = biometricModalitySegmentsMapforAgeGroup.get(ageGroup);
+			}
+		else {
+			biometricModalitySegmentsMap = biometricModalitySegmentsMapforAgeGroup.get("DEFAULT");
 		}
+		validateBiometricRecord(biometricRecord, modalities, biometricModalitySegmentsMap,
+					priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE));
 
 		byte[] content = cbeffutil.createXML(filterExceptionBiometrics(biometricRecord).getSegments());
 
