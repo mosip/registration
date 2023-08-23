@@ -3,8 +3,6 @@ package io.mosip.registration.processor.print.util;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.JsonUtils;
-import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
@@ -113,14 +111,7 @@ public class CredentialPartnerUtil {
             List<String> keys = identityFieldValueMap.entrySet().stream().filter(e -> ObjectUtils.isEmpty(e.getValue())).map(Map.Entry::getKey).collect(Collectors.toList());
             if (keys != null && !keys.isEmpty()) {
                 JSONObject jsonObject = utilities.retrieveIdrepoJson(uin);
-                keys.forEach(key -> {
-                    try {
-                        identityFieldValueMap.put(key, JsonUtils.javaObjectToJsonString(jsonObject.get(key)));
-                    } catch (JsonProcessingException e) {
-                        regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-                                ExceptionUtils.getStackTrace(e));
-                    }
-                });
+                keys.forEach(key -> identityFieldValueMap.put(key, jsonObject.get(key) != null ? jsonObject.get(key).toString() : null));
             }
         }
     }
