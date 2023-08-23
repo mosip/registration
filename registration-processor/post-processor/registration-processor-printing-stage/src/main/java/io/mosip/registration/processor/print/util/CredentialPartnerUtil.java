@@ -118,14 +118,7 @@ public class CredentialPartnerUtil {
             List<String> keys = identityFieldValueMap.entrySet().stream().filter(e -> ObjectUtils.isEmpty(e.getValue())).map(Map.Entry::getKey).collect(Collectors.toList());
             if (keys != null && !keys.isEmpty()) {
                 JSONObject jsonObject = utilities.retrieveIdrepoJson(uin);
-                keys.forEach(key -> {
-                    try {
-                        identityFieldValueMap.put(key, JsonUtils.javaObjectToJsonString(jsonObject.get(key)));
-                    } catch (JsonProcessingException e) {
-                        regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-                                ExceptionUtils.getStackTrace(e));
-                    }
-                });
+                keys.forEach(key -> identityFieldValueMap.put(key, jsonObject.get(key) != null ? jsonObject.get(key).toString() : null));
             }
         }
     }
