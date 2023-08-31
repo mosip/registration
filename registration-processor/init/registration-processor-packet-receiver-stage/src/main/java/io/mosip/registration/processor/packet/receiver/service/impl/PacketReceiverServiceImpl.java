@@ -9,10 +9,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.registration.processor.core.exception.AdditionalInfoIdNotFoundException;
-import io.mosip.registration.processor.core.exception.ObjectStoreNotAccessibleException;
-import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
 import org.apache.commons.io.IOUtils;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.StringUtils;
@@ -25,6 +21,7 @@ import org.springframework.stereotype.Component;
 import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.virusscanner.exception.VirusScannerException;
 import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
@@ -38,10 +35,13 @@ import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCo
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.constant.LandingZoneTypeConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.exception.AdditionalInfoIdNotFoundException;
+import io.mosip.registration.processor.core.exception.ObjectStoreNotAccessibleException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
 import io.mosip.registration.processor.core.spi.filesystem.manager.FileManager;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
@@ -523,7 +523,8 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 							DirectoryPathDto.LANDING_ZONE);
 				}
 				else if(landingZoneType.equalsIgnoreCase(LandingZoneTypeConstant.OBJECT_STORE)) {
-					 boolean result =objectStoreAdapter.putObject(landingZoneAccount, registrationId, null, null, packetId, encryptedInputStream);
+					boolean result = objectStoreAdapter.putObject(landingZoneAccount, registrationId, null, null,
+							packetId, new ByteArrayInputStream(encryptedByteArray));
 					 if(!result) {
 						 throw new ObjectStoreNotAccessibleException("Failed to store packet : " + packetId);
 					 }
