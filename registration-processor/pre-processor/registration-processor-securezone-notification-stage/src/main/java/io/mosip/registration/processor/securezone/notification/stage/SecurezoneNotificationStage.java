@@ -132,7 +132,7 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
 
 	@Override
 	public void start() {
-		router.setRoute(this.postUrl(vertx, MessageBusAddress.SECUREZONE_NOTIFICATION_IN,
+		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.SECUREZONE_NOTIFICATION_IN,
 				MessageBusAddress.SECUREZONE_NOTIFICATION_OUT));
 		this.routes(router);
 		this.createServer(router.getRouter(), getPort());
