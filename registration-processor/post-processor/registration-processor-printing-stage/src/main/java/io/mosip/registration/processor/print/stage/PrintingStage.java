@@ -9,6 +9,7 @@ import io.mosip.registration.processor.core.code.*;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.IdType;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.constant.VidType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -33,6 +34,8 @@ import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -149,6 +152,9 @@ public class PrintingStage extends MosipVerticleAPIManager {
 	@Value("#{T(java.util.Arrays).asList('${mosip.registration.processor.default.issuers:}')}")
 	private List<String> defaultIssuers;
 
+	@Value("${mosip.registration.processor.opencrvs.credential.additionalparams}")
+	private String opencrvsAdditionalParam;
+
 	private static String COMMA = ",";
 	private static String HASH_DELIMITER = "#";
 
@@ -236,7 +242,7 @@ public class PrintingStage extends MosipVerticleAPIManager {
 				}
 				for (String key : credentialIssuerSet) {
 					String[] parts = key.split(HASH_DELIMITER, 3);
-					CredentialRequestDto credentialRequestDto = getCredentialRequestDto(regId, parts[0], parts[1], parts[2]);
+					CredentialRequestDto credentialRequestDto = getCredentialRequestDto(regId, registrationStatusDto.getRegistrationType(), parts[0], parts[1], parts[2]);
 					LocalDateTime localdatetime = LocalDateTime.parse(
 							DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
 					requestWrapper.setRequesttime(localdatetime);
@@ -362,7 +368,7 @@ public class PrintingStage extends MosipVerticleAPIManager {
 		return object;
 	}
 
-	private CredentialRequestDto getCredentialRequestDto(String regId,String issuerId,String credentialType,String templateTypeCode) {
+	private CredentialRequestDto getCredentialRequestDto(String regId, String process, String issuerId,String credentialType,String templateTypeCode) {
 		CredentialRequestDto credentialRequestDto = new CredentialRequestDto();
 		Map<String, Object> additionalAttributes=new HashMap<>();
 
@@ -376,9 +382,49 @@ public class PrintingStage extends MosipVerticleAPIManager {
 		credentialRequestDto.setEncryptionKey(generatePin());
 		additionalAttributes.put("templateTypeCode",templateTypeCode);
 		additionalAttributes.put("registrationId", regId);
+		getOpencrvsFields(regId, process, issuerId, credentialType, additionalAttributes);
 		credentialRequestDto.setAdditionalData(additionalAttributes);
 
 		return credentialRequestDto;
+	}
+
+	private void getOpencrvsFields(String regId, String process, String issuerId,
+								   String credentialType, Map<String, Object> additionalAttributes) {
+		try {
+			JSONArray jArray=new JSONArray(opencrvsAdditionalParam);
+			for(int i=0;i<jArray.length();i++) {
+				if (process.equalsIgnoreCase(jArray.getJSONObject(i).getString("process"))
+				&& credentialType.equalsIgnoreCase(jArray.getJSONObject(i).getString("credentialType"))
+				&& issuerId.equalsIgnoreCase(jArray.getJSONObject(i).getString("issuer"))) {
+					JSONArray jArray2 = jArray.getJSONObject(i).getJSONArray("fields");
+					for(int j=0;j<jArray2.length();j++) {
+						String additionalAttr = jArray2.get(j).toString();
+						String additionalAttrValue = getCrvsField(regId, process, additionalAttr);
+						additionalAttributes.put(additionalAttr, additionalAttrValue);
+					}
+				}
+			}
+		} catch (JSONException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private String getCrvsField(String regId, String process, String additionalAttr){
+		try {
+			Map<String,String> metaInfo = utilities.getPacketManagerService().getMetaInfo(regId, process, ProviderStageName.PRINTING);
+			JSONArray metadata = new JSONArray(metaInfo.get("metaData"));
+			for(int i=0;i<metadata.length();i++){
+				if(metadata.getJSONObject(i).getString("label").equalsIgnoreCase(additionalAttr)){
+					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), regId, "OpencrvsBRN obtained.");
+					return metadata.getJSONObject(i).getString("value");
+				}
+			}
+		} catch (Exception e){
+			regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), regId, "Failed opencrvsBRN obtained. Exception: " + org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
+			return null;
+		}
+		regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), regId, "Failed opencrvsBRN obtained. Not Found.");
+		return null;
 	}
 
 
