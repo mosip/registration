@@ -195,10 +195,15 @@ public class PrintingStageTest {
 		ReflectionTestUtils.setField(stage, "pdfDelimiter", "-PDF");
 		ReflectionTestUtils.setField(stage, "defaultInternalIssuers", Arrays.asList("mpartner-default-digitalcard#PDFCard#RPR_UIN_CARD_TEMPLATE"));
 		ReflectionTestUtils.setField(stage, "defaultIssuers", Arrays.asList("mpartner-default-print#euin#RPR_UIN_CARD_TEMPLATE"));
+		ReflectionTestUtils.setField(stage, "opencrvsAdditionalParam", "[{'process':'OPENCRVS_NEW','credentialType':'opencrvs','issuer':'opencrvs-partner','fields':['opencrvsBRN']}]");
+
 		System.setProperty("server.port", "8099");
 
 		//ReflectionTestUtils.setField(stage, "port", "8080");
 		ReflectionTestUtils.setField(stage, "encrypt", false);
+		registrationStatusDto.setRegistrationId("45451454520011220230523070548");
+		registrationStatusDto.setRegistrationType("NEW");
+		registrationStatusDto.setWorkflowInstanceId("33e1fb7f-8202-41dc-82a1-49e821364eb2");
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(String.class), any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(propertiesUtil.getIntegerProperty(any(), any())).thenReturn(8080);
 
