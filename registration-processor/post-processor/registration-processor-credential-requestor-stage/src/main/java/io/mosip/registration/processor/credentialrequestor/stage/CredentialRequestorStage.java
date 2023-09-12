@@ -141,6 +141,9 @@ public class CredentialRequestorStage extends MosipVerticleAPIManager {
 	@Value("#{T(java.util.Arrays).asList('${mosip.registration.processor.credential.default.partner-ids:}')}")
 	private List<String> defaultPartners;
 
+	@Value("${mosip.registration.processor.opencrvs.credential.additionalparams}")
+	private String opencrvsAdditionalParam;
+
 	private static String COMMA = ",";
 	private static String HASH_DELIMITER = "#";
 
