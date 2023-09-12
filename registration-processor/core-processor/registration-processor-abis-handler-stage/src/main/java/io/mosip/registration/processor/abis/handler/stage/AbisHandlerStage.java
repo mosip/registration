@@ -577,13 +577,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	private String getDataShareUrl(String id, String process) throws Exception {
 		Map<String, List<String>> typeAndSubtypMap = createTypeSubtypeMapping();
 		List<String> modalities = new ArrayList<>();
-		for (Map.Entry<String, List<String>> entry : typeAndSubtypMap.entrySet()) {
-			if (entry.getValue() == null) {
-				modalities.add(entry.getKey());
-			} else {
-				modalities.addAll(entry.getValue());
-			}
-		}
+		modalities.addAll(typeAndSubtypMap.keySet());
 		JSONObject regProcessorIdentityJson = utility
 				.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 		String individualBiometricsLabel = JsonUtil.getJSONValue(
@@ -602,7 +596,8 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 			biometricModalitySegmentsMap = biometricModalitySegmentsMapforAgeGroup.get("DEFAULT");
 		}
 		validateBiometricRecord(biometricRecord, modalities, biometricModalitySegmentsMap,
-					priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE));
+				priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE),
+				typeAndSubtypMap);
 
 		byte[] content = cbeffutil.createXML(filterExceptionBiometrics(biometricRecord,id,process).getSegments());
 
@@ -640,7 +635,8 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 	@SuppressWarnings("deprecation")
 	private void validateBiometricRecord(BiometricRecord biometricRecord, List<String> modalities,
-			Map<String, List<String>> biometricModalitySegmentsMap, Map<String, String> metaInfoMap)
+			Map<String, List<String>> biometricModalitySegmentsMap, Map<String, String> metaInfoMap,
+			Map<String, List<String>> typeAndSubtypMap)
 			throws DataShareException, JsonParseException, JsonMappingException, IOException {
 		if (modalities == null || modalities.isEmpty()) {
 			throw new DataShareException("Data Share Policy Modalities were Empty");
@@ -662,9 +658,16 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		boolean isBioFound = false;
 		for (String biometricSegment : biometricModalitySegmentsMap.keySet()) {
 			if (!modalities.contains(biometricSegment)) {
-				throw new DataShareException("Biometrics Segments Not Configured for modality : " + biometricSegment);
+				throw new DataShareException(
+						"Modalities  not Configured as per policy for modality : " + biometricSegment);
 			}
+			List<String> biometricModalitySegmentsMapFromPolicy = typeAndSubtypMap.get(biometricSegment);
 			for (String segment : biometricModalitySegmentsMap.get(biometricSegment)) {
+				if (biometricModalitySegmentsMapFromPolicy != null
+						&& !biometricModalitySegmentsMapFromPolicy.contains(segment)) {
+					throw new DataShareException(
+							"Biometrics Segments Not Configured as per policy for modality : " + biometricSegment);
+				}
 				Optional<BIR> optionalBIR = Optional.empty();
 				if (segment.equalsIgnoreCase("Face")) {
 					optionalBIR = biometricRecord.getSegments().stream()
