@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/main/java/io/mosip/registration/processor/credentialrequestor/util/CredentialPartnerUtil.java
 package io.mosip.registration.processor.credentialrequestor.util;
+========
+package io.mosip.registration.processor.eventhandler.util;
+>>>>>>>> df41852ca05 (MOSIP-28121 : renamed print stage to event handler stage):registration-processor/post-processor/registration-processor-event-handler-stage/src/main/java/io/mosip/registration/processor/eventhandler/util/CredentialPartnerUtil.java
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.exception.BaseCheckedException;
@@ -82,6 +86,69 @@ public class CredentialPartnerUtil {
      */
     private List<String> requiredIdObjectFieldNames;
 
+<<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/main/java/io/mosip/registration/processor/credentialrequestor/util/CredentialPartnerUtil.java
+========
+    public List<String> getCredentialPartners(String regId, String registrationType, JSONObject identity) throws PacketManagerException, JSONException, ApisResourceAccessException, IOException, JsonProcessingException {
+
+        regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                regId, "CredentialPartnerUtil::getCredentialPartners()::entry");
+
+        List<String> filteredPartners = new ArrayList<>();
+        if (credentialPartnerExpression == null || credentialPartnerExpression.isEmpty()) {
+            regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+                    LoggerFileConstant.REGISTRATIONID.toString(), regId,
+                    PlatformErrorMessages.RPR_PRT_ISSUER_NOT_FOUND_IN_PROPERTY.name());
+            return filteredPartners;
+        }
+
+        Map<String, String> identityFieldValueMap = utilities.getPacketManagerService().getFields(regId,
+                requiredIdObjectFieldNames, registrationType, ProviderStageName.EVENT_HANDLER);
+
+        Map<String, Object> context = new HashMap<>();
+        for (Map.Entry<String, String> identityAttribute: identityFieldValueMap.entrySet()) {
+            JSONObject attributeObject = new JSONObject(identityFieldValueMap);
+            try {
+                JSONParser parser = new JSONParser();
+                Object obj = parser.parse((String)attributeObject.get(identityAttribute.getKey()));
+                if (obj instanceof org.json.simple.JSONArray) {
+                    org.json.simple.JSONArray attributeArray = (org.json.simple.JSONArray) obj;
+                    for (int i = 0; i < attributeArray.size(); i++) {
+                        JSONObject jsonObject = (JSONObject) attributeArray.get(i);
+                        if (mandatoryLanguages.get(0).equalsIgnoreCase((String) jsonObject.get(LANGUAGE))) {
+                            context.put(identityAttribute.getKey(), jsonObject.get(VALUE_LABEL));
+                        }
+                    }
+                } else {
+                    if (obj != null) {
+                        context.put(identityAttribute.getKey(), obj.toString());
+                    }
+                }
+            } catch (org.json.simple.parser.ParseException e) {
+                regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+                        ExceptionUtils.getStackTrace(e));
+                throw new ParsingException(PlatformErrorMessages.RPR_BDD_JSON_PARSING_EXCEPTION.getCode(), e);
+            }
+        }
+
+        regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                regId, "CredentialPartnerUtil::CredentialPartnerExpression::" + credentialPartnerExpression.toString());
+
+        for(Map.Entry<String, String> entry : credentialPartnerExpression.entrySet()) {
+            Boolean result = (Boolean) MVEL.eval(entry.getValue(), context);
+            if (result) {
+                filteredPartners.add(entry.getKey());
+            }
+        }
+        if (StringUtils.hasText(noMatchIssuer) && filteredPartners.isEmpty()) {
+            filteredPartners.add(noMatchIssuer);
+        }
+        regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                regId, "CredentialPartnerUtil::FilteredPartners::" + filteredPartners.toString());
+
+        return filteredPartners;
+    }
+
+>>>>>>>> df41852ca05 (MOSIP-28121 : renamed print stage to event handler stage):registration-processor/post-processor/registration-processor-event-handler-stage/src/main/java/io/mosip/registration/processor/eventhandler/util/CredentialPartnerUtil.java
     @PostConstruct
     private void getIdObjectFieldNames() throws BaseCheckedException {
         regProcLogger.info( "CredentialPartnerUtil::getIdObjectFieldNames()::PostConstruct");

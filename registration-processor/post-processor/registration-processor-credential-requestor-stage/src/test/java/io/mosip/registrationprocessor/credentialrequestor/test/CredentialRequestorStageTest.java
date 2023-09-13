@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/test/java/io/mosip/registrationprocessor/credentialrequestor/test/CredentialRequestorStageTest.java
 package io.mosip.registrationprocessor.credentialrequestor.test;
+========
+package io.mosip.registrationprocessor.print.stage.test;
+>>>>>>>> df41852ca05 (MOSIP-28121 : renamed print stage to event handler stage):registration-processor/post-processor/registration-processor-event-handler-stage/src/test/java/io/mosip/registrationprocessor/print/stage/test/PrintingStageTest.java
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -14,10 +18,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+<<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/test/java/io/mosip/registrationprocessor/credentialrequestor/test/CredentialRequestorStageTest.java
 import io.mosip.registration.processor.credentialrequestor.dto.CredentialPartner;
 import io.mosip.registration.processor.credentialrequestor.dto.CredentialPartnersList;
 import io.mosip.registration.processor.credentialrequestor.util.CredentialPartnerUtil;
 import org.assertj.core.util.Lists;
+========
+>>>>>>>> df41852ca05 (MOSIP-28121 : renamed print stage to event handler stage):registration-processor/post-processor/registration-processor-event-handler-stage/src/test/java/io/mosip/registrationprocessor/print/stage/test/PrintingStageTest.java
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -61,7 +68,11 @@ import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.PropertiesUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+<<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/test/java/io/mosip/registrationprocessor/credentialrequestor/test/CredentialRequestorStageTest.java
 import io.mosip.registration.processor.credentialrequestor.stage.CredentialRequestorStage;
+========
+import io.mosip.registration.processor.eventhandler.stage.EventHandlerStage;
+>>>>>>>> df41852ca05 (MOSIP-28121 : renamed print stage to event handler stage):registration-processor/post-processor/registration-processor-event-handler-stage/src/test/java/io/mosip/registrationprocessor/print/stage/test/PrintingStageTest.java
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -78,7 +89,11 @@ import io.vertx.ext.web.RoutingContext;
 @PrepareForTest({})
 @PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*","javax.management.*", "javax.net.*" })
 @PropertySource("classpath:bootstrap.properties")
+<<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/test/java/io/mosip/registrationprocessor/credentialrequestor/test/CredentialRequestorStageTest.java
 public class CredentialRequestorStageTest {
+========
+public class PrintingStageTest {
+>>>>>>>> df41852ca05 (MOSIP-28121 : renamed print stage to event handler stage):registration-processor/post-processor/registration-processor-event-handler-stage/src/test/java/io/mosip/registrationprocessor/print/stage/test/PrintingStageTest.java
 
 	@Mock
 	private AuditLogRequestBuilder auditLogRequestBuilder;
@@ -90,9 +105,12 @@ public class CredentialRequestorStageTest {
 	protected PropertiesUtil propertiesUtil;
 
 	@Mock
+<<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/test/java/io/mosip/registrationprocessor/credentialrequestor/test/CredentialRequestorStageTest.java
 	private CredentialPartnerUtil credentialPartnerUtil;
 
 	@Mock
+========
+>>>>>>>> df41852ca05 (MOSIP-28121 : renamed print stage to event handler stage):registration-processor/post-processor/registration-processor-event-handler-stage/src/test/java/io/mosip/registrationprocessor/print/stage/test/PrintingStageTest.java
 	private ObjectMapper objectMapper;
 
 	private InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
@@ -117,7 +135,11 @@ public class CredentialRequestorStageTest {
 	private Utilities utitilites;
 
 	@InjectMocks
+<<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/test/java/io/mosip/registrationprocessor/credentialrequestor/test/CredentialRequestorStageTest.java
 	private CredentialRequestorStage stage = new CredentialRequestorStage() {
+========
+	private EventHandlerStage stage = new EventHandlerStage() {
+>>>>>>>> df41852ca05 (MOSIP-28121 : renamed print stage to event handler stage):registration-processor/post-processor/registration-processor-event-handler-stage/src/test/java/io/mosip/registrationprocessor/print/stage/test/PrintingStageTest.java
 		@Override
 		public MosipEventBus getEventBus(Object verticleName, String url, int instanceNumber) {
 			vertx = Vertx.vertx();
@@ -192,14 +214,25 @@ public class CredentialRequestorStageTest {
 	public void setup() throws Exception {
 		when(env.getProperty("mosip.registration.processor.datetime.pattern"))
 				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+<<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/test/java/io/mosip/registrationprocessor/credentialrequestor/test/CredentialRequestorStageTest.java
 		when(env.getProperty("mosip.regproc.credentialrequestor.server.port")).thenReturn("8099");
+========
+		when(env.getProperty("mosip.regproc.printing.server.port")).thenReturn("8099");
+>>>>>>>> df41852ca05 (MOSIP-28121 : renamed print stage to event handler stage):registration-processor/post-processor/registration-processor-event-handler-stage/src/test/java/io/mosip/registrationprocessor/print/stage/test/PrintingStageTest.java
 		when(env.getProperty("mosip.registration.processor.issuer"))
 				.thenReturn("mpartner-default-digitalcard:PDFCard:RPR_UIN_CARD_TEMPLATE;mpartner-default-print:euin:RPR_UIN_CARD_TEMPLATE");
 		ReflectionTestUtils.setField(stage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(stage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(stage, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(stage, "busOutHaltAddresses", Arrays.asList());
+<<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/test/java/io/mosip/registrationprocessor/credentialrequestor/test/CredentialRequestorStageTest.java
 		ReflectionTestUtils.setField(stage, "defaultPartners", Arrays.asList("digitalcardPartner", "opencrvsPartner"));
+========
+		ReflectionTestUtils.setField(stage, "pdfDelimiter", "-PDF");
+		ReflectionTestUtils.setField(stage, "defaultInternalIssuers", Arrays.asList("mpartner-default-digitalcard#PDFCard#RPR_UIN_CARD_TEMPLATE"));
+		ReflectionTestUtils.setField(stage, "defaultIssuers", Arrays.asList("mpartner-default-print#euin#RPR_UIN_CARD_TEMPLATE"));
+		ReflectionTestUtils.setField(stage, "opencrvsAdditionalParam", "[{'process':'OPENCRVS_NEW','credentialType':'opencrvs','issuer':'opencrvs-partner','fields':['opencrvsBRN']}]");
+>>>>>>>> df41852ca05 (MOSIP-28121 : renamed print stage to event handler stage):registration-processor/post-processor/registration-processor-event-handler-stage/src/test/java/io/mosip/registrationprocessor/print/stage/test/PrintingStageTest.java
 
 		System.setProperty("server.port", "8099");
 
@@ -247,6 +280,7 @@ public class CredentialRequestorStageTest {
 		Map<String, String> map1 = new HashMap<>();
 		map1.put("UIN", "4238135072");
 		JSONObject jsonObject = new JSONObject(map1);
+<<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/test/java/io/mosip/registrationprocessor/credentialrequestor/test/CredentialRequestorStageTest.java
 		Mockito.when(utitilites.idrepoRetrieveIdentityByRid(any())).thenReturn(jsonObject);
 
 		CredentialPartner partner1 = new CredentialPartner();
@@ -265,6 +299,9 @@ public class CredentialRequestorStageTest {
 		CredentialPartnersList partnersList = new CredentialPartnersList();
 		partnersList.setPartners(Lists.newArrayList(partner1, partner2));
 		when(credentialPartnerUtil.getAllCredentialPartners()).thenReturn(partnersList);
+========
+		Mockito.when(utitilites.retrieveUIN(any())).thenReturn(jsonObject);
+>>>>>>>> df41852ca05 (MOSIP-28121 : renamed print stage to event handler stage):registration-processor/post-processor/registration-processor-event-handler-stage/src/test/java/io/mosip/registrationprocessor/print/stage/test/PrintingStageTest.java
 
 
 
@@ -275,6 +312,10 @@ public class CredentialRequestorStageTest {
 		testDeployVerticle();
         testStart();
         testPrintStageSuccess();
+<<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/test/java/io/mosip/registrationprocessor/credentialrequestor/test/CredentialRequestorStageTest.java
+========
+		testPrintStageFailure();
+>>>>>>>> df41852ca05 (MOSIP-28121 : renamed print stage to event handler stage):registration-processor/post-processor/registration-processor-event-handler-stage/src/test/java/io/mosip/registrationprocessor/print/stage/test/PrintingStageTest.java
 	}
 
 	public void testStart() {
@@ -322,7 +363,11 @@ public class CredentialRequestorStageTest {
 
 		dto.setReg_type(RegistrationType.NEW.name());
 
+<<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/test/java/io/mosip/registrationprocessor/credentialrequestor/test/CredentialRequestorStageTest.java
 		ResponseWrapper<?> responseWrapper = new ResponseWrapper<>();
+========
+		ResponseWrapper<CredentialResponseDto> responseWrapper = new ResponseWrapper<>();
+>>>>>>>> df41852ca05 (MOSIP-28121 : renamed print stage to event handler stage):registration-processor/post-processor/registration-processor-event-handler-stage/src/test/java/io/mosip/registrationprocessor/print/stage/test/PrintingStageTest.java
 		ErrorDTO error = new ErrorDTO();
 		error.setErrorCode("IDR-CRG-004");
 		error.setMessage("unknown exception");
@@ -330,11 +375,20 @@ public class CredentialRequestorStageTest {
 		errors.add(error);
 		responseWrapper.setErrors(errors);
 
+<<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/test/java/io/mosip/registrationprocessor/credentialrequestor/test/CredentialRequestorStageTest.java
 		Mockito.when(restClientService.postApi(any(ApiName.class), any(), any(), any(), any(), any(MediaType.class)))
 				.thenReturn(responseWrapper);
 
 		MessageDTO result = stage.process(dto);
 		assertTrue(result.getInternalError());
+========
+		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any(), any(MediaType.class)))
+				.thenReturn(responseWrapper);
+
+		MessageDTO result = stage.process(dto);
+		assertFalse(result.getIsValid());
+		assertFalse(result.getInternalError());
+>>>>>>>> df41852ca05 (MOSIP-28121 : renamed print stage to event handler stage):registration-processor/post-processor/registration-processor-event-handler-stage/src/test/java/io/mosip/registrationprocessor/print/stage/test/PrintingStageTest.java
 	}
 
 
@@ -396,7 +450,11 @@ public class CredentialRequestorStageTest {
 		Map<String, String> map1 = new HashMap<>();
 
 		JSONObject jsonObject = new JSONObject(map1);
+<<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/test/java/io/mosip/registrationprocessor/credentialrequestor/test/CredentialRequestorStageTest.java
 		Mockito.when(utitilites.idrepoRetrieveIdentityByRid(any())).thenReturn(jsonObject);
+========
+		Mockito.when(utitilites.retrieveUIN(any())).thenReturn(jsonObject);
+>>>>>>>> df41852ca05 (MOSIP-28121 : renamed print stage to event handler stage):registration-processor/post-processor/registration-processor-event-handler-stage/src/test/java/io/mosip/registrationprocessor/print/stage/test/PrintingStageTest.java
 		MessageDTO result = stage.process(dto);
 		
 		assertFalse(result.getIsValid());
