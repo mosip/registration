@@ -20,7 +20,11 @@ public enum  ProviderStageName {
     UIN_GENERATOR("uingenerator"),
     WORKFLOW_MANAGER("workflowmanager"),
     MESSAGE_SENDER("messagesender"),
+<<<<<<< HEAD
     CREDENTIAL_REQUESTOR("credentialrequestor");
+=======
+    EVENT_HANDLER("eventhandler");
+>>>>>>> df41852ca0 (MOSIP-28121 : renamed print stage to event handler stage)
 
     private String value;
 

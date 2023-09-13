@@ -265,8 +265,14 @@
 			**/registration/processor/core/queue/impl/*.java,
 			**/registration/processor/core/tracing/*.java,
 			**/registration/processor/message/sender/config/MsgNotificationBeanCofig.java,
+<<<<<<< HEAD
 			**/registration/processor/abis/exception/QueueConnectionNotFound.java,
 			**/registration/processor/stages/demodedupe/StatusMessage.java,
+=======
+			**/registration/processor/eventhandler/exception/QueueConnectionNotFound.java,
+			**/registration/processor/stages/demodedupe/StatusMessage.java,
+			**/registration/processor/eventhandler/service/utility/UINCardConstant.java,
+>>>>>>> df41852ca0 (MOSIP-28121 : renamed print stage to event handler stage)
 			**/registration/processor/stages/demodedupe/BiometricValidation.java,
 			**/registration/processor/camel/bridge/MosipBridgeFactory.java,
 			**/registration/processor/manual/verification/stage/ManualVerificationStage.java,
@@ -280,13 +286,25 @@
 			**/registration/processor/packet/storage/dao/PacketInfoDao.java,
 			**/registration/processor/packet/uploader/constants/*.java,
 			**/registration/processor/packet/manager/constant/*.java,
+<<<<<<< HEAD
 			**/registration/processor/packet/receiver/constants/*.java,
 			**/registration/processor/credentialrequestor/stage/exception/*.java,
+=======
+			**/registration/processor/eventhandler/exception/PrintGlobalExceptionHandler.java,
+			**/registration/processor/packet/receiver/constants/*.java,
+			**/registration/processor/eventhandler/service/exception/*.java,
+			**/registration/processor/eventhandler/exception/*.java,
+>>>>>>> df41852ca0 (MOSIP-28121 : renamed print stage to event handler stage)
 			**/registration/processor/packet/uploader/constants/*.java,
 			**/registration/processor/packet/uploader/decryptor/*.java,
 			**/registration/processor/core/abstractverticle/MosipRouter.java,
 			**/registration/processor/packet/uploader/decryptor/*.java,
 
+<<<<<<< HEAD
+=======
+			**/registration/processor/eventhandler/service/impl/PrintPostServiceImpl.java,
+
+>>>>>>> df41852ca0 (MOSIP-28121 : renamed print stage to event handler stage)
 			**/registration/processor/message/sender/constants/*.java,
 			**/registration/processor/core/abstractverticle/BaseHealthCheckModel.java,
 			**/registration/processor/core/**/TokenValidator.java,

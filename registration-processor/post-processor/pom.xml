@@ -16,7 +16,11 @@
   </properties>
   	<modules>
     	<module>registration-processor-message-sender-stage</module>
+<<<<<<< HEAD
     	<module>registration-processor-credential-requestor-stage</module>
+=======
+    	<module>registration-processor-event-handler-stage</module>
+>>>>>>> df41852ca0 (MOSIP-28121 : renamed print stage to event handler stage)
 		<module>registration-processor-registration-transaction-service</module>
   </modules>
 </project>
