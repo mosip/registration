@@ -20,7 +20,7 @@ public enum  ProviderStageName {
     UIN_GENERATOR("uingenerator"),
     WORKFLOW_MANAGER("workflowmanager"),
     MESSAGE_SENDER("messagesender"),
-    PRINTING("printing");
+    EVENT_HANDLER("eventhandler");
 
     private String value;
 
