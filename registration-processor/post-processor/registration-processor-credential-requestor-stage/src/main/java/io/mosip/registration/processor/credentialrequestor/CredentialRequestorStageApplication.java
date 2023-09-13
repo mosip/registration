@@ -4,10 +4,12 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 import io.mosip.registration.processor.credentialrequestor.stage.CredentialRequestorStage;
 
+
 /**
  * @author M1048399
  *
  */
+
 public class CredentialRequestorStageApplication {
 
 	public static void main(String[] args) {
@@ -19,7 +21,9 @@ public class CredentialRequestorStageApplication {
 				"io.mosip.registration.processor.packet.storage.config");
 		ctx.refresh();
 
+
 		CredentialRequestorStage printStage = ctx.getBean(CredentialRequestorStage.class);
+
 		printStage.deployVerticle();
 
 	}

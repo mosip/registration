@@ -1,6 +1,6 @@
-package io.mosip.registration.processor.print.config;
+package io.mosip.registration.processor.eventhandler.config;
 
-import io.mosip.registration.processor.print.util.CredentialPartnerUtil;
+import io.mosip.registration.processor.eventhandler.util.CredentialPartnerUtil;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

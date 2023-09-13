@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.print.util;
+package io.mosip.registration.processor.eventhandler.util;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -79,7 +79,7 @@ public class CredentialPartnerUtil {
         }
 
         Map<String, String> identityFieldValueMap = utilities.getPacketManagerService().getFields(regId,
-                requiredIdObjectFieldNames, registrationType, ProviderStageName.PRINTING);
+                requiredIdObjectFieldNames, registrationType, ProviderStageName.EVENT_HANDLER);
 
         Map<String, Object> context = new HashMap<>();
         for (Map.Entry<String, String> identityAttribute: identityFieldValueMap.entrySet()) {
