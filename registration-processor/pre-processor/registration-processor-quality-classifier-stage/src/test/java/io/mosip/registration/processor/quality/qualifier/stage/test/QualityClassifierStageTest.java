@@ -107,10 +107,6 @@ public class QualityClassifierStageTest {
 
 	private String qualityPrefixTag = "Biometric_Quality-";
 
-	private String AVERAGE = "Average";
-
-	private String POOR = "Poor";
-
 	private String level_1 = "level-1";
 	private String level_2 = "level-2";
 	private String level_3 = "level-3";
