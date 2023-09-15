@@ -111,7 +111,16 @@ public class QualityClassifierStageTest {
 
 	private String POOR = "Poor";
 
-	private String GOOD = "Good";
+	private String level_1 = "level-1";
+	private String level_2 = "level-2";
+	private String level_3 = "level-3";
+	private String level_4 = "level-4";
+	private String level_5 = "level-5";
+	private String level_6 = "level-6";
+	private String level_7 = "level-7";
+	private String level_8 = "level-8";
+	private String level_9 = "level-9";
+	private String level_10 = "level-10";
 
 //	
 	JSONObject mappingJSONObject;
@@ -184,17 +193,33 @@ public class QualityClassifierStageTest {
 		ReflectionTestUtils.setField(qualityClassifierStage, "qualityTagPrefix", qualityPrefixTag);
 
 		Map<String, String> qualityClassificationRangeMap = new HashMap<String, String>();
-		qualityClassificationRangeMap.put(POOR, "0-29");
-		qualityClassificationRangeMap.put(AVERAGE, "30-69");
-		qualityClassificationRangeMap.put(GOOD, "70-100");
+		qualityClassificationRangeMap.put(level_1, "0-10");
+		qualityClassificationRangeMap.put(level_2, "10-20");
+		qualityClassificationRangeMap.put(level_3, "20-30");
+		qualityClassificationRangeMap.put(level_4, "30-40");
+		qualityClassificationRangeMap.put(level_5, "40-50");
+		qualityClassificationRangeMap.put(level_6, "50-60");
+		qualityClassificationRangeMap.put(level_7, "60-70");
+		qualityClassificationRangeMap.put(level_8, "70-80");
+		qualityClassificationRangeMap.put(level_9, "80-90");
+		qualityClassificationRangeMap.put(level_10, "90-101");
+
 
 		ReflectionTestUtils.setField(qualityClassifierStage, "qualityClassificationRangeMap",
 				qualityClassificationRangeMap);
 
 		Map<String, int[]> parsedMap = new HashMap<String, int[]>();
-		parsedMap.put(POOR, new int[] { 0, 29 });
-		parsedMap.put(AVERAGE, new int[] { 30, 69 });
-		parsedMap.put(GOOD, new int[] { 70, 100 });
+		parsedMap.put(level_1, new int[] { 0, 10 });
+		parsedMap.put(level_2, new int[] { 10, 20 });
+		parsedMap.put(level_3, new int[] { 20, 30 });
+		parsedMap.put(level_4, new int[] { 30, 40 });
+		parsedMap.put(level_5, new int[] { 40, 50 });
+		parsedMap.put(level_6, new int[] { 50, 60 });
+		parsedMap.put(level_7, new int[] { 60, 70 });
+		parsedMap.put(level_8, new int[] { 70, 80 });
+		parsedMap.put(level_9, new int[] { 80, 90 });
+		parsedMap.put(level_10, new int[] { 90, 101 });
+
 
 		ReflectionTestUtils.setField(qualityClassifierStage, "parsedQualityRangeMap", parsedMap);
 		ReflectionTestUtils.setField(qualityClassifierStage, "modalities", Arrays.asList("Iris", "Finger", "Face"));
@@ -327,7 +352,7 @@ public class QualityClassifierStageTest {
 
 		verify(packetManagerService, atLeastOnce()).addOrUpdateTags(any(), argument.capture());
 
-		assertQualityTags(argument.getAllValues().get(0), AVERAGE, POOR, GOOD);
+		assertQualityTags(argument.getAllValues().get(0), level_5, level_3, level_10);
 
 	}
 
@@ -350,7 +375,7 @@ public class QualityClassifierStageTest {
 
 		verify(packetManagerService, atLeastOnce()).addOrUpdateTags(any(), argument.capture());
 
-		assertQualityTags(argument.getAllValues().get(0), GOOD, GOOD, GOOD);
+		assertQualityTags(argument.getAllValues().get(0), level_10, level_10, level_10);
 
 	}
 
