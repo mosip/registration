@@ -90,7 +90,6 @@ jobs:
             BUILD_ARTIFACT: 'registration'
           - SERVICE_LOCATION: 'registration-processor/init/registration-processor-dmz-packet-server'
             SERVICE_NAME: 'registration-processor-dmz-packet-server'
-            BUILD_ARTIFACT: 'registration'
           - SERVICE_LOCATION: 'registration-processor/init/registration-processor-registration-status-service'
             SERVICE_NAME: 'registration-processor-registration-status-service'
             BUILD_ARTIFACT: 'registration'
