@@ -461,7 +461,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 			for (Entry<String, int[]> qualityRangeEntry : parsedQualityRangeMap.entrySet()) {
 
 				if (bioTypeMinEntry.getValue() >= qualityRangeEntry.getValue()[0]
-						&& bioTypeMinEntry.getValue() <= qualityRangeEntry.getValue()[1]) {
+						&& bioTypeMinEntry.getValue() < qualityRangeEntry.getValue()[1]) {
 
 					tags.put( qualityTagPrefix.concat(bioTypeMinEntry.getKey()), qualityRangeEntry.getKey());
 					break;
