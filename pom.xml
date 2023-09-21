@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
+    <groupId>io.mosip</groupId>
+    <artifactId>registration</artifactId>
+    <version>1.2.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
 
-    <parent>
-        <groupId>io.mosip</groupId>
-        <artifactId>registration</artifactId>
-        <version>1.2.1-SNAPSHOT</version>
-    </parent>
-
+    <name>MOSIP Registration Parent POM</name>
+    <description>Mosip Registration Project</description>
+    <url>https://github.com/mosip/registration</url>
     <licenses>
         <license>
             <name>MPL 2.0</name>
@@ -29,271 +31,10 @@
         </developer>
     </developers>
 
-    <groupId>io.mosip.registrationprocessor</groupId>
-    <artifactId>registration-processor</artifactId>
-    <version>1.2.1-SNAPSHOT</version>
-    <packaging>pom</packaging>
-
-    <name>registration-processor</name>
-    <description>Parent project of MOSIP Registration processor</description>
-
-    <properties>
-        <doclint>none</doclint>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <maven.compiler.version>3.8.0</maven.compiler.version>
-        <maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
-        <maven.war.plugin.version>3.1.0</maven.war.plugin.version>
-        <maven.surefire.plugin.version>2.22.0</maven.surefire.plugin.version>
-        <maven.jacoco.version>0.8.5</maven.jacoco.version>
-        <maven.sonar.plugin.version>3.7.0.1746</maven.sonar.plugin.version>
-        <maven.javadoc.version>3.2.0</maven.javadoc.version>
-        <maven.assembly.version>3.3.0</maven.assembly.version>
-
-        <!-- Core -->
-        <spring-framework.version>5.0.6.RELEASE</spring-framework.version>
-        <spring.version>5.0.4.RELEASE</spring.version>
-        <spring.boot.version>2.0.2.RELEASE</spring.boot.version>
-        <spring.data.version>2.0.9.RELEASE</spring.data.version>
-        <spring-cloud-config.version>2.0.0.RELEASE</spring-cloud-config.version>
-
-        <spring.batch.version>4.0.1.RELEASE</spring.batch.version>
-        <spring-cloud-config.version>2.0.0.RELEASE</spring-cloud-config.version>
-
-        <!-- Miscellaneous -->
-        <javax.el-api.version>3.0.0</javax.el-api.version>
-        <javax.validation-api.version>2.0.1.Final</javax.validation-api.version>
-        <jackson.version>2.12.0</jackson.version>
-        <jackson.afterburner.version>2.12.0</jackson.afterburner.version>
-        <hibernate.validator.version>6.0.12.Final</hibernate.validator.version>
-        <modelmapper.version>2.1.1</modelmapper.version>
-        <jcl.to.slf4j.version>1.7.25</jcl.to.slf4j.version>
-        <apache.httpcomponents.version>4.5.6</apache.httpcomponents.version>
-
-        <!-- Swagger -->
-        <swagger.version>2.9.2</swagger.version>
-
-        <!-- Data Access -->
-        <eclipselink.version>2.5.0</eclipselink.version>
-        <mysql.connector.version>5.1.46</mysql.connector.version>
-        <h2.version>1.4.195</h2.version>
-        <postgresql.version>42.2.2</postgresql.version>
-
-        <!-- Lombok -->
-        <lombok.version>1.18.8</lombok.version>
-
-        <!-- For Cache -->
-        <ignite.version>2.3.0</ignite.version>
-
-        <!--For Security -->
-        <bouncycastle.version>1.60</bouncycastle.version>
-        <commons.pool>1.6</commons.pool>
-
-        <!-- Support tools & utilities -->
-        <commons-math3>3.6.1</commons-math3>
-        <commons-lang3>3.7</commons-lang3>
-        <commons-io>2.6</commons-io>
-        <commons-codec>1.10</commons-codec>
-        <commons.beanutils.version>1.9.2</commons.beanutils.version>
-        <commons.configuration2.version>2.2</commons.configuration2.version>
-        <commons.io.version>2.6</commons.io.version>
-        <velocity.version>1.7</velocity.version>
-        <velocity.tools.version>2.0</velocity.tools.version>
-
-        <!-- Test & Logging -->
-        <junit.version>4.12</junit.version>
-        <logback.version>1.2.3</logback.version>
-        <slf4j.version>1.7.19</slf4j.version>
-        <mockito.version>3.4.4</mockito.version>
-        <powermock.module.junit4.version>2.0.7</powermock.module.junit4.version>
-        <powermock.api.mockito.version>2.0.7</powermock.api.mockito.version>
-        <awaitility.version>3.1.0</awaitility.version>
-        <jsonsimple.version>1.1.1</jsonsimple.version>
-        <commons.codec.version>1.9</commons.codec.version>
-        <!-- DFS adapter -->
-        <aws.javasdk.version>1.11.368</aws.javasdk.version>
-        <s3mock.version>0.2.4</s3mock.version>
-
-        <!-- Vert.x -->
-        <vertx.version>3.9.1</vertx.version>
-        <camel.vertx.version>2.23.0</camel.vertx.version>
-        <hazelcast.kubernetes.version>1.0.0</hazelcast.kubernetes.version>
-        <!-- json-simple -->
-        <jsonsimple.version>1.1.1</jsonsimple.version>
-
-        <!-- joda-time -->
-        <jodatime.version>2.8.1</jodatime.version>
-
-        <!-- jsch.version -->
-        <jsch.version>0.1.55</jsch.version>
-
-        <!-- local -->
-        <registration.status.service.version>1.2.1-SNAPSHOT</registration.status.service.version>
-        <registration.processor.core.version>1.2.1-SNAPSHOT</registration.processor.core.version>
-        <packet.manager.version>1.2.1-SNAPSHOT</packet.manager.version>
-        <registration.processor.rest.client.version>1.2.1-SNAPSHOT</registration.processor.rest.client.version>
-        <packet.info.storage.service.version>1.2.1-SNAPSHOT</packet.info.storage.service.version>
-        <packet.bio.dedupe.service.impl.version>1.2.1-SNAPSHOT</packet.bio.dedupe.service.impl.version>
-        <registration.processor.message.sender.version>1.2.1-SNAPSHOT</registration.processor.message.sender.version>
-
-        <!-- Kernel -->
-        <kernel.core.version>1.2.1-SNAPSHOT</kernel.core.version>
-        <kernel.dataaccess.hibernate.version>1.2.1-SNAPSHOT</kernel.dataaccess.hibernate.version>
-        <kernel.templatemanager.velocity.version>1.2.1-SNAPSHOT</kernel.templatemanager.velocity.version>
-        <kernel.idvalidator.uin.version>1.2.1-SNAPSHOT</kernel.idvalidator.uin.version>
-        <kernel.idvalidator.rid.version>1.2.1-SNAPSHOT</kernel.idvalidator.rid.version>
-        <kernel.cbeffutil.version>1.2.1-SNAPSHOT</kernel.cbeffutil.version>
-        <kernel.bioapi.provider.version>1.2.1-SNAPSHOT</kernel.bioapi.provider.version>
-        <kernel.auth.adapter.version>1.2.1-SNAPSHOT</kernel.auth.adapter.version>
-        <kernel.pdfgenerator.itext.version>1.2.1-SNAPSHOT</kernel.pdfgenerator.itext.version>
-        <kernel.qrcodegenerator.zxing.version>1.2.1-SNAPSHOT</kernel.qrcodegenerator.zxing.version>
-        <kernel.logger.logback.version>1.2.1-SNAPSHOT</kernel.logger.logback.version>
-        <kernel.idvalidator.vid.version>1.2.1-SNAPSHOT</kernel.idvalidator.vid.version>
-        <object.store.khazana.version>1.2.1-SNAPSHOT</object.store.khazana.version>
-        <kernel.biometrics.api.version>1.2.1-SNAPSHOT</kernel.biometrics.api.version>
-        <kernel-keymanager-service.version>1.2.1-SNAPSHOT</kernel-keymanager-service.version>
-        <kernel.websubclient.version>1.2.1-SNAPSHOT</kernel.websubclient.version>
-        <kernel-biosdk-provider.version>1.2.1-SNAPSHOT</kernel-biosdk-provider.version>
-        <sonar.coverage.exclusions>**/dto/**,
-            **/exception/*Exception.java,
-            **/config/*Config.java,
-            **/handler/*ExceptionHandler.java,
-            **/**/*Application.java,
-            **/utilities/*.java,
-            **/validator/*Validator.java,
-            **/utils/*.java,
-            **/util/*.java,
-            **/code/*.java,
-            **/entity/*.java,
-            **/config/*.java,
-
-            **/core/code/*.java,
-            **/packet/storage/entity/*.java,
-            **/manager/exception/systemexception/*.java,
-            **/registration/processor/rest/client/*.java,
-            **/registration/processor/rest/client/audit/builder/*.java,
-
-            **/registration/processor/packet/receiver/*.java,
-            **/registration/processor/packet/receiver/exception/systemexception/*.java,
-            **/registration/processor/failoverstage/*.java,
-            **/registration/processor/stages/*.java,
-            **/registration/processor/retry/verticle/*.java,
-            **/registration/processor/retry/verticle/stages/*.java,
-            **/registration/processor/retry/verticle/constants/*.java,
-            **/registration/processor/packet/decrypter/job/stage/*.java,
-            **/registration/processor/packet/decryptor/job/exception/constant/*.java,
-
-            **/registration/processor/virus/scanner/job/exceptions/*.java,
-
-
-            **/registration/processor/stages/app/*.java,
-            **/registration/processor/stages/executor/*.java,
-            **/registration/processor/camel/bridge/processor/*.java,
-            **/registration/processor/core/constant/*.java,
-            **/registration/processor/core/packet/dto/demographicinfo/*.java,
-            **/registration/processor/core/packet/dto/demographicinfo/identify/*.java,
-            **/registration/processor/core/packet/dto/regcentermachine/*.java,
-
-            **/registration/processor/quality/check/client/*.java,
-            **/registration/processor/quality/check/code/*.java,
-            **/registration/processor/quality/check/entity/*.java,
-            **/registration/processor/quality/check/exception/*.java,
-            **/registration/processor/quality/check/*.java,
-            **/registration/processor/message/sender/*.java,
-            **/registration/processor/message/sender/utility/*.java,
-            **/registration/processor/core/logger/*.java,
-            **/registration/processor/core/notification/template/mapping/*.java,
-            **/registration/processor/bio/dedupe/service/*.java,
-            **/registration/processor/bio/dedupe/exception/*.java,
-
-            **/registration/processor/packet/storage/storage/*.java,
-            **/registration/processor/packet/storage/exception/*.java,
-            **/registration/processor/status/repositary/*.java,
-            **/registration/processor/status/entity/*.java,
-            **/registration/processor/virus/scanner/job/*.java,
-
-
-            **/registration/processor/packet/uploader/*.java,
-            **/registration/processor/biodedupe/*.java,
-
-
-            **/registration/processor/abis/config/*.java,
-            **/registration/processor/abis/controller/*.java,
-            **/registration/processor/abis/exception/*.java,
-            **/registration/processor/abis/messagequeue/*.java,
-            **/registration/processor/abis/service/*.java,
-            **/registration/processor/abis/service/impl/*.java,
-
-
-            **/registration/processor/abis/handler/*.java,
-            **/registration/processor/abis/handler/config/*.java,
-
-            **/registration/processor/packet/service/**/*.java,
-            **/registration/processor/packet/upload/**/*.java,
-
-            **/registration/processor/status/code/*.java,
-            **/registration/processor/rest/client/config/RestConfigBean.java,
-            **/registration/processor/bio/dedupe/api/BioDedupeApiApp.java,
-            **/registration/processor/manual/verification/response/builder/*.java,
-            **/registration/processor/manual/verification/config/*.java,
-            **/registration/processor/stages/config/OSIConfigBean.java,
-            **/registration/processor/stages/demo/dedupe/StatusMessage.java,
-            **/registration/processor/stages/demo/dedupe/DemodedupeStage.java,
-            **/registration/processor/stages/demo/dedupe/BiometricValidation.java,
-            **/registration/processor/core/exception/ExceptionJSONInfo.java,
-            **/registration/processor/core/config/CoreConfigBean.java,
-            **/registration/processor/core/kernel/beans/KernelConfig.java,
-            **/registration/processor/core/abstractverticle/MosipVerticleAPIManager.java,
-            **/registration/processor/core/abstractverticle/WorkflowInternalActionDTO.java,
-            **/registration/processor/core/http/*.java,
-            **/registration/processor/core/queue/factory/*.java,
-            **/registration/processor/core/queue/impl/*.java,
-            **/registration/processor/core/tracing/*.java,
-            **/registration/processor/message/sender/config/MsgNotificationBeanCofig.java,
-            **/registration/processor/print/exception/QueueConnectionNotFound.java,
-            **/registration/processor/stages/demodedupe/StatusMessage.java,
-            **/registration/processor/print/service/utility/UINCardConstant.java,
-            **/registration/processor/stages/demodedupe/BiometricValidation.java,
-            **/registration/processor/camel/bridge/MosipBridgeFactory.java,
-            **/registration/processor/manual/verification/stage/ManualVerificationStage.java,
-            **/registration/processor/packet/receiver/builder/PacketReceiverResponseBuilder.java,
-            **/registration/processor/packet/receiver/stage/PacketReceiverStage.java,
-            **/registration/processor/camel/bridge/**/*.java,
-            **/registration/processor/stages/connector/stage/**/*.java,
-            **/registration/processor/stages/demodedupe/DemoDedupeStage.java,
-
-            **/registration/processor/packet/storage/mapper/PacketInfoMapper.java,
-            **/registration/processor/packet/storage/dao/PacketInfoDao.java,
-            **/registration/processor/packet/uploader/constants/*.java,
-            **/registration/processor/packet/manager/constant/*.java,
-            **/registration/processor/print/exception/PrintGlobalExceptionHandler.java,
-            **/registration/processor/packet/receiver/constants/*.java,
-            **/registration/processor/print/service/exception/*.java,
-            **/registration/processor/print/exception/*.java,
-            **/registration/processor/packet/uploader/constants/*.java,
-            **/registration/processor/packet/uploader/decryptor/*.java,
-            **/registration/processor/core/abstractverticle/MosipRouter.java,
-            **/registration/processor/packet/uploader/decryptor/*.java,
-
-            **/registration/processor/print/service/impl/PrintPostServiceImpl.java,
-
-            **/registration/processor/message/sender/constants/*.java,
-            **/registration/processor/core/abstractverticle/BaseHealthCheckModel.java,
-            **/registration/processor/core/**/TokenValidator.java,
-            **/registration/processor/core/abstractverticle/StageHealthCheckHandler.java,
-            **/registration/processor/core/abstractverticle/MessageDTO.java,
-            **/registration/processor/request/handler/**/*.java
-        </sonar.coverage.exclusions>
-        <sonar.cpd.exclusions>**/dto/**,**/entity/**,**/config/**,**/handler/**,**/utilities/**,
-            **/validator/**, **/utils/**,**/util/**,**/code/**</sonar.cpd.exclusions>
-        <doclint>none</doclint>
-    </properties>
-
     <repositories>
         <repository>
             <id>ossrh</id>
-            <name>CentralRepository</name>
+            <name>Central Repository</name>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
             <layout>default</layout>
             <snapshots>
@@ -302,7 +43,7 @@
         </repository>
         <repository>
             <id>central</id>
-            <name>MavenCentral</name>
+            <name>Maven Central</name>
             <layout>default</layout>
             <url>https://repo1.maven.org/maven2</url>
             <snapshots>
@@ -311,182 +52,80 @@
         </repository>
     </repositories>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.mockito</groupId>
-                <artifactId>mockito-core</artifactId>
-                <version>3.4.4</version>
-                <scope>test</scope>
-            </dependency>
-            <!-- https://mvnrepository.com/artifact/net.bytebuddy/byte-buddy -->
-            <dependency>
-                <groupId>net.bytebuddy</groupId>
-                <artifactId>byte-buddy</artifactId>
-                <version>1.10.13</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-dependencies</artifactId>
-                <version>${spring.boot.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.projectlombok</groupId>
-                <artifactId>lombok</artifactId>
-                <version>1.18.8</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-core</artifactId>
-                <version>2.0.7</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>javax.xml.bind</groupId>
-                <artifactId>jaxb-api</artifactId>
-                <version>2.3.1</version>
-            </dependency>
-            <dependency>
-                <groupId>org.javassist</groupId>
-                <artifactId>javassist</artifactId>
-                <version>3.27.0-GA</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-core</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-annotations</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
-    <modules>
-        <module>registration-processor-core</module>
-        <module>registration-processor-rest-client</module>
-        <module>registration-processor-packet-manager</module>
-        <module>registration-processor-common-camel-bridge</module>
-        <module>registration-processor-bio-dedupe-service-impl</module>
-        <module>registration-processor-info-storage-service</module>
-        <module>registration-processor-registration-status-service-impl</module>
-        <module>registration-processor-message-sender-impl</module>
-        <module>registration-processor-notification-service</module>
-        <module>init</module>
-        <module>pre-processor</module>
-        <module>core-processor</module>
-        <module>post-processor</module>
-        <module>mosip-stage-executor</module>
-        <module>stage-groups</module>
-        <module>workflow-engine</module>
-        <module>registration-processor-landing-zone</module>
-    </modules>
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
     <build>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${maven.surefire.plugin.version}</version>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.7</version>
+                <extensions>true</extensions>
                 <configuration>
-                    <skipTests>${skipTests}</skipTests>
-                    <skip>false</skip>
-                    <argLine>
-                        ${argLine} --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED --illegal-access=permit
-                    </argLine>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>false</autoReleaseAfterClose>
                 </configuration>
             </plugin>
+
             <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${maven.jacoco.version}</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
                 <executions>
                     <execution>
+                        <id>attach-sources</id>
                         <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>report</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>report</goal>
+                            <goal>jar-no-fork</goal>
                         </goals>
                     </execution>
                 </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven.compiler.version}</version>
-                <configuration>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>${maven.jar.plugin.version}</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <addClasspath>true</addClasspath>
-                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                        </manifest>
-                        <manifestEntries>
-                            <Project-Name>${project.name}</Project-Name>
-                            <Project-Version>${project.version}</Project-Version>
-                            <Built-By>${user.name}</Built-By>
-                            <Built-OS>${os.name}</Built-OS>
-                            <Local-Build-Date>${maven.build.timestamp}</Local-Build-Date>
-                            <Build-Number>${env.BUILD_NUMBER}</Build-Number>
-                            <Build-Date>${env.BUILD_ID}</Build-Date>
-                            <Build-URL>${env.BUILD_URL}</Build-URL>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>${maven.war.plugin.version}</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <addClasspath>true</addClasspath>
-                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                        </manifest>
-                        <manifestEntries>
-                            <Project-Name>${project.name}</Project-Name>
-                            <Project-Version>${project.version}</Project-Version>
-                            <Built-By>${user.name}</Built-By>
-                            <Built-OS>${os.name}</Built-OS>
-                            <Local-Build-Date>${maven.build.timestamp}</Local-Build-Date>
-                            <Build-Number>${env.BUILD_NUMBER}</Build-Number>
-                            <Build-Date>${env.BUILD_ID}</Build-Date>
-                            <Build-URL>${env.BUILD_URL}</Build-URL>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>${maven.javadoc.version}</version>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
                 <configuration>
-                    <aggregate>true</aggregate>
                     <doclint>none</doclint>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                        <configuration>
+                            <gpgArguments>
+                                <arg>--pinentry-mode</arg>
+                                <arg>loopback</arg>
+                            </gpgArguments>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>pl.project13.maven</groupId>
@@ -513,58 +152,11 @@
                     <!-- <format>json</format> -->
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <version>1.5</version>
-                <executions>
-                    <execution>
-                        <id>sign-artifacts</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                        <configuration>
-                            <gpgArguments>
-                                <arg>--pinentry-mode</arg>
-                                <arg>loopback</arg>
-                            </gpgArguments>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+
         </plugins>
     </build>
-    <profiles>
-        <profile>
-            <id>sonar</id>
-            <properties>
-                <sonar.sources>.</sonar.sources>
-                <sonar.inclusions>src/main/java/**,src/main/resources/**</sonar.inclusions>
-                <sonar.exclusions>**/registration/processor/core/queue/factory/*.java,
-                    ${sonar.coverage.exclusions}</sonar.exclusions>
-                <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-            </properties>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.sonarsource.scanner.maven</groupId>
-                        <artifactId>sonar-maven-plugin</artifactId>
-                        <version>${maven.sonar.plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sonar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
+
+    <modules>
+        <module>registration-processor</module>
+    </modules>
 </project>

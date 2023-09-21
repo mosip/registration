@@ -5,12 +5,7 @@ on:
     types: [published]
   pull_request:
     types: [opened]
-    branches:
-      - '!release-branch'
-      - release-1*
-      - 1.*
-      - develop
-      - MOSIP*
+
   workflow_dispatch:
     inputs:
       message:
