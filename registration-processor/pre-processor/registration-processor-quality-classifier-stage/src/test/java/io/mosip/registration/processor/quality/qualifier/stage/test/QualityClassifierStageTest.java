@@ -107,19 +107,7 @@ public class QualityClassifierStageTest {
 
 	private String qualityPrefixTag = "Biometric_Quality-";
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-	private String AVERAGE = "Average";
 
-	private String POOR = "Poor";
-
-<<<<<<< HEAD
-	private String GOOD = "Good";
-=======
-=======
->>>>>>> 26415a9a20 (Added levels to test MOSIP-29419)
-=======
->>>>>>> 8c6f440451 (Added levels to test MOSIP-29419)
 	private String level_1 = "level-1";
 	private String level_2 = "level-2";
 	private String level_3 = "level-3";
@@ -130,12 +118,8 @@ public class QualityClassifierStageTest {
 	private String level_8 = "level-8";
 	private String level_9 = "level-9";
 	private String level_10 = "level-10";
-<<<<<<< HEAD
->>>>>>> 26415a9a20 (Added levels to test MOSIP-29419)
-=======
->>>>>>> 8c6f440451 (Added levels to test MOSIP-29419)
 
-//	
+
 	JSONObject mappingJSONObject;
 
 	@InjectMocks
