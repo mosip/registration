@@ -1,4 +1,4 @@
-package io.mosip.registrationprocessor.print.stage.test;
+package io.mosip.registrationprocessor.credentialrequestor.test;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -57,7 +57,7 @@ import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.PropertiesUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
-import io.mosip.registration.processor.eventhandler.stage.EventHandlerStage;
+import io.mosip.registration.processor.credentialrequestor.stage.CredentialRequestorStage;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -74,7 +74,7 @@ import io.vertx.ext.web.RoutingContext;
 @PrepareForTest({})
 @PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*","javax.management.*", "javax.net.*" })
 @PropertySource("classpath:bootstrap.properties")
-public class PrintingStageTest {
+public class CredentialRequestorStageTest {
 
 	@Mock
 	private AuditLogRequestBuilder auditLogRequestBuilder;
@@ -110,7 +110,7 @@ public class PrintingStageTest {
 	private Utilities utitilites;
 
 	@InjectMocks
-	private EventHandlerStage stage = new EventHandlerStage() {
+	private CredentialRequestorStage stage = new CredentialRequestorStage() {
 		@Override
 		public MosipEventBus getEventBus(Object verticleName, String url, int instanceNumber) {
 			vertx = Vertx.vertx();
@@ -185,7 +185,7 @@ public class PrintingStageTest {
 	public void setup() throws Exception {
 		when(env.getProperty("mosip.registration.processor.datetime.pattern"))
 				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		when(env.getProperty("mosip.regproc.printing.server.port")).thenReturn("8099");
+		when(env.getProperty("mosip.regproc.credentialrequestor.server.port")).thenReturn("8099");
 		when(env.getProperty("mosip.registration.processor.issuer"))
 				.thenReturn("mpartner-default-digitalcard:PDFCard:RPR_UIN_CARD_TEMPLATE;mpartner-default-print:euin:RPR_UIN_CARD_TEMPLATE");
 		ReflectionTestUtils.setField(stage, "workerPoolSize", 10);
@@ -195,7 +195,7 @@ public class PrintingStageTest {
 		ReflectionTestUtils.setField(stage, "pdfDelimiter", "-PDF");
 		ReflectionTestUtils.setField(stage, "defaultInternalIssuers", Arrays.asList("mpartner-default-digitalcard#PDFCard#RPR_UIN_CARD_TEMPLATE"));
 		ReflectionTestUtils.setField(stage, "defaultIssuers", Arrays.asList("mpartner-default-print#euin#RPR_UIN_CARD_TEMPLATE"));
-		ReflectionTestUtils.setField(stage, "opencrvsAdditionalParam", "[{'process':'OPENCRVS_NEW','credentialType':'opencrvs','issuer':'opencrvs-partner','fields':['opencrvsBRN']}]");
+		ReflectionTestUtils.setField(stage, "additionalConfiguredCredentials", "[{'process':'OPENCRVS_NEW','credentialType':'opencrvs','issuer':'opencrvs-partner','fields':['opencrvsBRN']}]");
 
 		System.setProperty("server.port", "8099");
 
