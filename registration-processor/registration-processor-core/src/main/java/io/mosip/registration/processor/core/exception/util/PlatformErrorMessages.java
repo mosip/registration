@@ -1136,6 +1136,8 @@ public enum PlatformErrorMessages {
 	/** The rpr prt print issuer not found in property. */
 	RPR_PRT_ISSUER_NOT_FOUND_IN_PROPERTY(PlatformConstants.RPR_PRINTING_MODULE + "028", "Print issuer property is not found"),
 
+	RPR_PRT_PARSING_ADDITIONAL_CRED_CONFIG(PlatformConstants.RPR_PRINTING_MODULE + "029", "issue with property mosip.registration.processor.additional.credential.request"),
+
 	/** The rpr rgs registration connector not accessible. */
 	RPR_RGS_REGISTRATION_CONNECTOR_NOT_ACCESSIBLE("", "Registration connector stage is not accessible "),
 
