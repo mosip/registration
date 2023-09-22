@@ -4,7 +4,11 @@ on:
   release:
     types: [published]
   pull_request:
+<<<<<<< HEAD
     types: [opened, reopened, synchronize]
+=======
+    types: [opened]
+>>>>>>> 0830b18896 ([MOSIP-29167]added reusable workflow (#1777))
 
   workflow_dispatch:
     inputs:
@@ -35,7 +39,11 @@ jobs:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
   publish_to_nexus:
+<<<<<<< HEAD
     if: "${{ !contains(github.ref, 'master') && github.event_name != 'pull_request' && github.event_name != 'release' && github.event_name != 'prerelease' && github.event_name != 'publish' }}"
+=======
+    if: "${{ !contains(github.ref, 'master') && github.event_name != 'pull_request' }}"
+>>>>>>> 0830b18896 ([MOSIP-29167]added reusable workflow (#1777))
     needs: build-maven-registration
     uses: mosip/kattu/.github/workflows/maven-publish-to-nexus.yml@master
     with:
