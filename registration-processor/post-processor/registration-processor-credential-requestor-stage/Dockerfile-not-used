@@ -51,16 +51,16 @@ CMD if [ "$is_glowroot_env" = "present" ]; then \
     else \
     java -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -jar registration-processor-credential-requestor-stage.jar ; \
     fi
-    
+
 
 #CMD ["java","-Dspring.cloud.config.label=${spring_config_label_env}","-Dspring.profiles.active=${active_profile_env}","-Dspring.cloud.config.uri=${spring_config_url_env}","-jar","registration-processor-credential-requestor-stage.jar"]
 
     sed -i 's/<service_name>/registration-processor-printing-stage/g' glowroot/glowroot.properties ; \
     java -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -jar -javaagent:glowroot/glowroot.jar registration-processor-printing-stage.jar ; \
     else \
-    java -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -jar registration-processor-printing-stage.jar ; \
+    java -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -jar registration-processor-credential-requestor-stage.jar ; \
     fi
     
 
-#CMD ["java","-Dspring.cloud.config.label=${spring_config_label_env}","-Dspring.profiles.active=${active_profile_env}","-Dspring.cloud.config.uri=${spring_config_url_env}","-jar","registration-processor-printing-stage.jar"]
+#CMD ["java","-Dspring.cloud.config.label=${spring_config_label_env}","-Dspring.profiles.active=${active_profile_env}","-Dspring.cloud.config.uri=${spring_config_url_env}","-jar","registration-processor-credential-requestor-stage.jar"]
 

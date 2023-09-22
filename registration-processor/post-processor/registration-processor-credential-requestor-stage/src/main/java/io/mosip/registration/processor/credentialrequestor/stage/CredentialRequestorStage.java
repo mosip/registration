@@ -147,8 +147,8 @@ public class CredentialRequestorStage extends MosipVerticleAPIManager {
 	@Value("#{T(java.util.Arrays).asList('${mosip.registration.processor.credential.default.partner-ids:}')}")
 	private List<String> defaultPartners;
 
-	@Value("${mosip.registration.processor.opencrvs.credential.additionalparams}")
-	private String opencrvsAdditionalParam;
+	@Value("${mosip.registration.processor.additional.credential.request:}")
+	private String additionalConfiguredCredentials;
 
 	private static String COMMA = ",";
 	private static String HASH_DELIMITER = "#";
@@ -399,16 +399,16 @@ public class CredentialRequestorStage extends MosipVerticleAPIManager {
 	}
 	private String getCrvsField(String regId, String process, String additionalAttr){
 		try {
-			Map<String,String> metaInfo = utilities.getPacketManagerService().getMetaInfo(regId, process, ProviderStageName.EVENT_HANDLER);
+			Map<String,String> metaInfo = utilities.getPacketManagerService().getMetaInfo(regId, process, ProviderStageName.CREDENTIAL_REQUESTOR);
 			JSONArray metadata = new JSONArray(metaInfo.get("metaData"));
 			for(int i=0;i<metadata.length();i++){
 				if(metadata.getJSONObject(i).getString("label").equalsIgnoreCase(additionalAttr)){
-					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), regId, "OpencrvsBRN obtained.");
+					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), regId, additionalAttr + " obtained.");
 					return metadata.getJSONObject(i).getString("value");
 				}
 			}
 		} catch (Exception e){
-			regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), regId, "Failed opencrvsBRN obtained. Exception: " + org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
+			regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), regId, "Failed to get : " + additionalAttr + org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
 			return null;
 
 		}

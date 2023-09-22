@@ -212,7 +212,7 @@ public class CredentialRequestorStageTest {
 		ReflectionTestUtils.setField(stage, "pdfDelimiter", "-PDF");
 		ReflectionTestUtils.setField(stage, "defaultInternalIssuers", Arrays.asList("mpartner-default-digitalcard#PDFCard#RPR_UIN_CARD_TEMPLATE"));
 		ReflectionTestUtils.setField(stage, "defaultIssuers", Arrays.asList("mpartner-default-print#euin#RPR_UIN_CARD_TEMPLATE"));
-		ReflectionTestUtils.setField(stage, "opencrvsAdditionalParam", "[{'process':'OPENCRVS_NEW','credentialType':'opencrvs','issuer':'opencrvs-partner','fields':['opencrvsBRN']}]");
+		ReflectionTestUtils.setField(stage, "additionalConfiguredCredentials", "[{'process':'OPENCRVS_NEW','credentialType':'opencrvs','issuer':'opencrvs-partner','fields':['opencrvsBRN']}]");
 
 
 		System.setProperty("server.port", "8099");
