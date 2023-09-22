@@ -1,14 +1,14 @@
-package io.mosip.registration.processor.eventhandler;
+package io.mosip.registration.processor.credentialrequestor;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
-import io.mosip.registration.processor.eventhandler.stage.EventHandlerStage;
+import io.mosip.registration.processor.credentialrequestor.stage.CredentialRequestorStage;
 
 /**
  * @author M1048399
  *
  */
-public class EventHandlerStageApplication {
+public class CredentialRequestorStageApplication {
 
 	public static void main(String[] args) {
 		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
@@ -19,7 +19,7 @@ public class EventHandlerStageApplication {
 				"io.mosip.registration.processor.packet.storage.config");
 		ctx.refresh();
 
-		EventHandlerStage printStage = ctx.getBean(EventHandlerStage.class);
+		CredentialRequestorStage printStage = ctx.getBean(CredentialRequestorStage.class);
 		printStage.deployVerticle();
 
 	}
