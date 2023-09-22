@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.eventhandler.stage.exception;
+package io.mosip.registration.processor.credentialrequestor.stage.exception;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
 

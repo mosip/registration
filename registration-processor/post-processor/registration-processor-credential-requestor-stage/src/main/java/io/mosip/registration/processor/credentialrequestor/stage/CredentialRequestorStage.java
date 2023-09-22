@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.eventhandler.stage;
+package io.mosip.registration.processor.credentialrequestor.stage;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.exception.ServiceError;
@@ -26,13 +26,16 @@ import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessor
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.JsonUtil;
+import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
-import io.mosip.registration.processor.eventhandler.stage.exception.VidNotAvailableException;
-import io.mosip.registration.processor.eventhandler.util.CredentialPartnerUtil;
+import io.mosip.registration.processor.credentialrequestor.stage.exception.VidNotAvailableException;
+import io.mosip.registration.processor.credentialrequestor.util.CredentialPartnerUtil;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
+import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -70,7 +73,7 @@ import java.util.*;
 @ComponentScan(basePackages = { "${mosip.auth.adapter.impl.basepackage}",
 		"io.mosip.registration.processor.core.config",
 		"io.mosip.registration.processor.stages.config", 
-		"io.mosip.registration.processor.eventhandler.config",
+		"io.mosip.registration.processor.credentialrequestor.config",
 		"io.mosip.registrationprocessor.stages.config",
 		"io.mosip.registration.processor.status.config",
 		"io.mosip.registration.processor.rest.client.config", 
@@ -78,9 +81,9 @@ import java.util.*;
 		"io.mosip.registration.processor.packet.manager.config", 
 		"io.mosip.kernel.idobjectvalidator.config",
 		"io.mosip.registration.processor.core.kernel.beans" })
-public class EventHandlerStage extends MosipVerticleAPIManager {
+public class CredentialRequestorStage extends MosipVerticleAPIManager {
 	
-	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.printing.";
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.credentialrequestor.";
 	private Random sr = null;
 	private static final int max = 999999;
 	private static final int min = 100000;
@@ -90,7 +93,7 @@ public class EventHandlerStage extends MosipVerticleAPIManager {
 
 
 	/** The reg proc logger. */
-	private static Logger regProcLogger = RegProcessorLogger.getLogger(EventHandlerStage.class);
+	private static Logger regProcLogger = RegProcessorLogger.getLogger(CredentialRequestorStage.class);
 
 	/** The cluster manager url. */
 	@Value("${vertx.cluster.configuration}")
@@ -113,7 +116,7 @@ public class EventHandlerStage extends MosipVerticleAPIManager {
 	private Integer workerPoolSize;
 
 	/** After this time intervel, message should be considered as expired (In seconds). */
-	@Value("${mosip.regproc.printing.message.expiry-time-limit}")
+	@Value("${mosip.regproc.credentialrequestor.message.expiry-time-limit}")
 	private Long messageExpiryTimeLimit;
 
 	@Value("${mosip.registration.processor.encrypt:false}")
@@ -152,8 +155,8 @@ public class EventHandlerStage extends MosipVerticleAPIManager {
 	@Value("#{T(java.util.Arrays).asList('${mosip.registration.processor.default.issuers:}')}")
 	private List<String> defaultIssuers;
 
-	@Value("${mosip.registration.processor.opencrvs.credential.additionalparams}")
-	private String opencrvsAdditionalParam;
+	@Value("${mosip.registration.processor.additional.credential.request:}")
+	private String additionalConfiguredCredentials;
 
 	private static String COMMA = ",";
 	private static String HASH_DELIMITER = "#";
@@ -382,48 +385,55 @@ public class EventHandlerStage extends MosipVerticleAPIManager {
 		credentialRequestDto.setEncryptionKey(generatePin());
 		additionalAttributes.put("templateTypeCode",templateTypeCode);
 		additionalAttributes.put("registrationId", regId);
-		getOpencrvsFields(regId, process, issuerId, credentialType, additionalAttributes);
+		getAdditionalCredentialFields(regId, process, issuerId, credentialType, additionalAttributes);
 		credentialRequestDto.setAdditionalData(additionalAttributes);
 
 		return credentialRequestDto;
 	}
 
-	private void getOpencrvsFields(String regId, String process, String issuerId,
-								   String credentialType, Map<String, Object> additionalAttributes) {
+	private void getAdditionalCredentialFields(String regId, String process, String issuerId,
+											   String credentialType, Map<String, Object> additionalAttributes) {
+		if (StringUtils.isEmpty(additionalConfiguredCredentials))
+			return;
 		try {
-			JSONArray jArray=new JSONArray(opencrvsAdditionalParam);
+			JSONArray jArray=new JSONArray(additionalConfiguredCredentials);
 			for(int i=0;i<jArray.length();i++) {
 				if (process.equalsIgnoreCase(jArray.getJSONObject(i).getString("process"))
 				&& credentialType.equalsIgnoreCase(jArray.getJSONObject(i).getString("credentialType"))
 				&& issuerId.equalsIgnoreCase(jArray.getJSONObject(i).getString("issuer"))) {
-					JSONArray jArray2 = jArray.getJSONObject(i).getJSONArray("fields");
-					for(int j=0;j<jArray2.length();j++) {
-						String additionalAttr = jArray2.get(j).toString();
-						String additionalAttrValue = getCrvsField(regId, process, additionalAttr);
-						additionalAttributes.put(additionalAttr, additionalAttrValue);
+					if (jArray.getJSONObject(i).has("additionalMetaInfoField")) {
+						JSONArray jArray2 = jArray.getJSONObject(i).getJSONArray("additionalFieldsInCredential");
+						for(int j=0;j<jArray2.length();j++) {
+							String additionalAttr = jArray2.get(j).toString();
+							String additionalAttrValue = getCrvsField(regId, process, additionalAttr);
+							additionalAttributes.put(additionalAttr, additionalAttrValue);
+						}
 					}
 				}
 			}
 		} catch (JSONException e) {
-			throw new RuntimeException(e);
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId, RegistrationStatusCode.FAILED + e.getMessage() + ExceptionUtils.getStackTrace(e));
+			throw new ParsingException(
+					PlatformErrorMessages.RPR_PRT_PARSING_ADDITIONAL_CRED_CONFIG.getMessage(), e);
 		}
 	}
 
 	private String getCrvsField(String regId, String process, String additionalAttr){
 		try {
-			Map<String,String> metaInfo = utilities.getPacketManagerService().getMetaInfo(regId, process, ProviderStageName.EVENT_HANDLER);
+			Map<String,String> metaInfo = utilities.getPacketManagerService().getMetaInfo(regId, process, ProviderStageName.CREDENTIAL_REQUESTOR);
 			JSONArray metadata = new JSONArray(metaInfo.get("metaData"));
 			for(int i=0;i<metadata.length();i++){
 				if(metadata.getJSONObject(i).getString("label").equalsIgnoreCase(additionalAttr)){
-					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), regId, "OpencrvsBRN obtained.");
+					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), regId, additionalAttr + " obtained.");
 					return metadata.getJSONObject(i).getString("value");
 				}
 			}
 		} catch (Exception e){
-			regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), regId, "Failed opencrvsBRN obtained. Exception: " + org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
+			regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), regId, "Failed to get : " + additionalAttr + org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
 			return null;
 		}
-		regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), regId, "Failed opencrvsBRN obtained. Not Found.");
+		regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), regId, additionalAttr + " Not Found.");
 		return null;
 	}
 

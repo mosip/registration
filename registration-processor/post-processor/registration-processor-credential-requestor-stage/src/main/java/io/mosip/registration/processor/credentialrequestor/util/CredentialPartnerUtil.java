@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.eventhandler.util;
+package io.mosip.registration.processor.credentialrequestor.util;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.ExceptionUtils;
