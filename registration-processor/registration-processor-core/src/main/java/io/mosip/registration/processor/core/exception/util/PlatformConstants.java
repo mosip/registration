@@ -35,13 +35,13 @@ public final class PlatformConstants {
 
 	/** The Constant RPR_CMD_VALIDATOR_MODULE. */
 	public static final String RPR_CMD_VALIDATOR_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "CMD-";
-	
+
 	/** The Constant RPR_OVM_VALIDATOR_MODULE. */
 	public static final String RPR_OVM_VALIDATOR_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "OVM-";
-	
+
 	/** The Constant RPR_SVM_VALIDATOR_MODULE. */
 	public static final String RPR_SVM_VALIDATOR_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "SVM-";
-	
+
 	/** The Constant RPR_IVM_VALIDATOR_MODULE. */
 	public static final String RPR_IVM_VALIDATOR_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "IVM-";
 
@@ -100,7 +100,7 @@ public final class PlatformConstants {
 
 	/** The Constant RPR_UIN_GENERATOR_STAGE. */
 	public static final String RPR_UIN_GENERATOR_STAGE = RPR_REGISTRATION_PROCESSOR_PREFIX + "UGS-";
-	
+
 	/** The Constant RPR_BIOMETRIC_EXTRACTION_STAGE. */
 	public static final String RPR_BIOMETRIC_EXTRACTION_STAGE = RPR_REGISTRATION_PROCESSOR_PREFIX + "BEN-";
 
@@ -129,15 +129,16 @@ public final class PlatformConstants {
 	public static final String RPR_WORKFLOW_INTERNAL_ACTION = RPR_REGISTRATION_PROCESSOR_PREFIX + "WIA-";
 
 	public static final String RPR_WORKFLOW_ACTION_API = RPR_REGISTRATION_PROCESSOR_PREFIX + "WAA-";
-	
-	public static final String RPR_WORKFLOW_SEARCH_API = RPR_REGISTRATION_PROCESSOR_PREFIX + "WAA-";
 
+	public static final String RPR_WORKFLOW_SEARCH_API = RPR_REGISTRATION_PROCESSOR_PREFIX + "WAA-";
 
 	public static final String RPR_WORKFLOW_ACTION_SERVICE = RPR_REGISTRATION_PROCESSOR_PREFIX + "WAS-";
 
 	public static final String RPR_WORKFLOW_ACTION_JOB = RPR_REGISTRATION_PROCESSOR_PREFIX + "WAJ-";
 
 	public static final String RPR_FINALIZATION_STAGE = RPR_REGISTRATION_PROCESSOR_PREFIX + "FIN-";
+
+	public static final String RPR_USER_NOTIFICATION_API = RPR_REGISTRATION_PROCESSOR_PREFIX + "UNA-";
 
 	/**
 	 * Instantiates a new RPR platform error codes.

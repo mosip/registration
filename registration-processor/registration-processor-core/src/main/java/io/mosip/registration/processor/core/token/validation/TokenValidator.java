@@ -176,6 +176,11 @@ public class TokenValidator {
 				if (role.contains(assignedRole))
 					return true;
 			}
+		} else if (url.contains("userNotification")) {
+			for (String assignedRole : APIAuthorityList.USERNOTIFICATION.getList()) {
+				if (role.contains(assignedRole))
+					return true;
+			}
 		}
 		else if (url.contains("workflowaction")) {
 			for (String assignedRole : APIAuthorityList.WORKFLOWACTION.getList()) {

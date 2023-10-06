@@ -8,6 +8,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
+import io.mosip.registration.processor.workflowmanager.verticle.UserNotificationApi;
 import io.mosip.registration.processor.workflowmanager.verticle.WorkflowActionApi;
 import io.mosip.registration.processor.workflowmanager.verticle.WorkflowActionJob;
 import io.mosip.registration.processor.workflowmanager.verticle.WorkflowInternalActionVerticle;
@@ -35,5 +36,7 @@ public class WorkflowManagerApplication
 		workflowActionApi.deployVerticle();
 		WorkflowActionJob workflowActionJob = ctx.getBean(WorkflowActionJob.class);
 		workflowActionJob.deployVerticle();
+		UserNotificationApi messageSenderApi = ctx.getBean(UserNotificationApi.class);
+		messageSenderApi.deployVerticle();
 	}
 }
