@@ -98,7 +98,7 @@ public class WorkflowManagerConfigBeans {
 	}
 	
 	@Bean
-	public UserNotificationRequestValidator getMessageSenderRequestValidator() {
+	public UserNotificationRequestValidator getUserNotificationRequestValidator() {
 		return new UserNotificationRequestValidator();
 	}
 }

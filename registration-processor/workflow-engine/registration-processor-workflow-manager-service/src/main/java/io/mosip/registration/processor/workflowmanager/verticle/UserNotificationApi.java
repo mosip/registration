@@ -141,7 +141,7 @@ public class UserNotificationApi extends MosipVerticleAPIManager {
 	 * @param router
 	 */
 	private void routes(MosipRouter router) {
-		router.post(contextPath + "/userNotification");
+		router.post(contextPath + "/usernotification");
 		router.handler(this::processURL, this::failure);
 	}
 
@@ -158,25 +158,25 @@ public class UserNotificationApi extends MosipVerticleAPIManager {
 		try {
 			UserNotificationDTO UserNotificationDTO = JsonUtil.readValueWithUnknownProperties(obj.toString(),
 					UserNotificationDTO.class);
-			UserNotificationRequestDTO UserNotificationRequestDTO = UserNotificationDTO.getRequest();
-			rid = UserNotificationRequestDTO.getRid();
+			UserNotificationRequestDTO userNotificationRequestDTO = UserNotificationDTO.getRequest();
+			rid = userNotificationRequestDTO.getRid();
 			regProcLogger.debug("UserNotificationApi:processURL called for registration id {}",
 					UserNotificationDTO.getRequest().getRid());
 			UserNotificationRequestValidator.validate(UserNotificationDTO);
 			String user = getUser(ctx);
 
-			registrationStatusDto = registrationStatusService.getRegistrationStatus(rid,UserNotificationRequestDTO.getRegType(),1,null);
+			registrationStatusDto = registrationStatusService.getRegistrationStatus(rid,userNotificationRequestDTO.getRegType(),1,null);
 			if (registrationStatusDto == null) {
 				description.setMessage(PlatformErrorMessages.RPR_UNA_RID_NOT_FOUND.getMessage());
 				description.setCode(PlatformErrorMessages.RPR_UNA_RID_NOT_FOUND.getCode());
-				updateAudit(description, UserNotificationRequestDTO.getRid(), false, user);
+				updateAudit(description, userNotificationRequestDTO.getRid(), false, user);
 				throw new UserNotificationException(PlatformErrorMessages.RPR_UNA_RID_NOT_FOUND.getCode(),
 						String.format(PlatformErrorMessages.RPR_UNA_RID_NOT_FOUND.getMessage(), rid));
 			}
-			if (!registrationStatusDto.getRegistrationType().equals(UserNotificationRequestDTO.getRegType())) {
+			if (!registrationStatusDto.getRegistrationType().equals(userNotificationRequestDTO.getRegType())) {
 				description.setMessage(PlatformErrorMessages.RPR_UNA_REGTYPE_NOT_MATCHING.getMessage());
 				description.setCode(PlatformErrorMessages.RPR_UNA_REGTYPE_NOT_MATCHING.getCode());
-				updateAudit(description, UserNotificationRequestDTO.getRid(), false, user);
+				updateAudit(description, userNotificationRequestDTO.getRid(), false, user);
 				throw new UserNotificationException(PlatformErrorMessages.RPR_UNA_REGTYPE_NOT_MATCHING.getCode(),
 						String.format(PlatformErrorMessages.RPR_UNA_REGTYPE_NOT_MATCHING.getMessage(), rid));
 				}
@@ -190,11 +190,11 @@ public class UserNotificationApi extends MosipVerticleAPIManager {
 				regProcLogger.debug("UserNotificationApi:processURL called ended for registration id {}", rid);
 
 		} catch (UserNotificationRequestValidationException e) {
-			logError(rid, e.getErrorCode(), e.getMessage(), e, ctx);
+			logErrorAndSendNotifivation(rid, e.getErrorCode(), e.getMessage(), e, ctx);
 		} catch (UserNotificationException e) {
-			logError(rid, e.getErrorCode(), e.getMessage(), e, ctx);
+			logErrorAndSendNotifivation(rid, e.getErrorCode(), e.getMessage(), e, ctx);
 		} catch (Exception e) {
-			logError(rid, PlatformErrorMessages.RPR_UNA_UNKNOWN_EXCEPTION.getCode(),
+			logErrorAndSendNotifivation(rid, PlatformErrorMessages.RPR_UNA_UNKNOWN_EXCEPTION.getCode(),
 					PlatformErrorMessages.RPR_UNA_UNKNOWN_EXCEPTION.getMessage(), e, ctx);
 		}
 
@@ -277,7 +277,7 @@ public class UserNotificationApi extends MosipVerticleAPIManager {
 	 * @param e
 	 * @param ctx
 	 */
-	private void logError(String rid, String errorCode, String errorMessage,
+	private void logErrorAndSendNotifivation(String rid, String errorCode, String errorMessage,
 			Exception e, RoutingContext ctx) {
 		if (e != null) {
 			regProcLogger.error(

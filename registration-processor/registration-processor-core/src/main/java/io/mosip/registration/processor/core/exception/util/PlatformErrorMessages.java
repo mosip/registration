@@ -1414,7 +1414,7 @@ public enum PlatformErrorMessages {
 			"Rid not found in registration table"),
 	RPR_UNA_UNKNOWN_EXCEPTION(PlatformConstants.RPR_USER_NOTIFICATION_API + "004",
 			"Unknown exception occured"),
-	RPR_UNA_REGTYPE_NOT_MATCHING(PlatformConstants.RPR_USER_NOTIFICATION_API + "003",
+	RPR_UNA_REGTYPE_NOT_MATCHING(PlatformConstants.RPR_USER_NOTIFICATION_API + "005",
 			"Registration type not matching"),
 
 	RPR_BIOMETRIC_EXTRACTION_FAILED(PlatformConstants.RPR_BIOMETRIC_EXTRACTION_STAGE + "000",

@@ -41,7 +41,7 @@ public class UserNotificationRequestValidator {
 	private static final String USER_NOTIFICATION_ID = "mosip.regproc.user.notification.api.id";
 
 
-	private static final String MESSAGE_SENDER_VERSION = "mosip.regproc.user.notification.api.version";
+	private static final String USER_NOTIFICATION_VERSION = "mosip.regproc.user.notification.api.version";
 
 	/** The Constant DATETIME_TIMEZONE. */
 	private static final String DATETIME_TIMEZONE = "mosip.registration.processor.timezone";
@@ -102,7 +102,7 @@ public class UserNotificationRequestValidator {
 					String.format(PlatformErrorMessages.RPR_UNA_MISSING_INPUT_PARAMETER.getMessage(), VER));
 
 
-		} else if (!version.equalsIgnoreCase(env.getProperty(MESSAGE_SENDER_VERSION))) {
+		} else if (!version.equalsIgnoreCase(env.getProperty(USER_NOTIFICATION_VERSION))) {
 			throw new UserNotificationRequestValidationException(
 					PlatformErrorMessages.RPR_UNA_INVALID_INPUT_PARAMETER.getCode(),
 					String.format(PlatformErrorMessages.RPR_UNA_INVALID_INPUT_PARAMETER.getMessage(), VER));

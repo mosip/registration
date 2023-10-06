@@ -35,7 +35,6 @@ public class UserNotificationRequestValidatorTest {
 		when(env.getProperty("mosip.registration.processor.timezone"))
 		.thenReturn("GMT");
 		ReflectionTestUtils.setField(userNotificationRequestValidator, "gracePeriod", 10800);
-
 	}
 
 	@Test
@@ -62,7 +61,6 @@ public class UserNotificationRequestValidatorTest {
 		UserNotificationDTO userNotificationDTO = new UserNotificationDTO();
 		userNotificationDTO.setId("mosip.registration.processor.user.notification");
 		userNotificationRequestValidator.validate(userNotificationDTO);
-
 	}
 
 	@Test(expected = UserNotificationRequestValidationException.class)
@@ -87,7 +85,6 @@ public class UserNotificationRequestValidatorTest {
 		userNotificationDTO.setId("mosip.registration.processor.user.notification");
 		userNotificationDTO.setVersion("1.1");
 		userNotificationRequestValidator.validate(userNotificationDTO);
-
 	}
 
 	@Test(expected = UserNotificationRequestValidationException.class)
@@ -96,7 +93,6 @@ public class UserNotificationRequestValidatorTest {
 		userNotificationDTO.setId("mosip.registration.processor.user.notification");
 		userNotificationDTO.setVersion("1.0");
 		userNotificationDTO.setRequesttime("2023-04-02T12:08:00.158Z");
-
 		userNotificationRequestValidator.validate(userNotificationDTO);
 	}
 
