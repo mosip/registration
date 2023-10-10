@@ -86,7 +86,8 @@ public class UserNotificationApi extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.user.notification.api.version}")
 	private String version;
 	
-	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.reprocessor.";
+//	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.reprocessor.";
+	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.workflow-manager.";
 
 	@Autowired
 	MosipRouter router;
@@ -156,13 +157,13 @@ public class UserNotificationApi extends MosipVerticleAPIManager {
 		JsonObject obj = ctx.getBodyAsJson();
 		String rid = null;
 		try {
-			UserNotificationDTO UserNotificationDTO = JsonUtil.readValueWithUnknownProperties(obj.toString(),
+			UserNotificationDTO userNotificationDTO = JsonUtil.readValueWithUnknownProperties(obj.toString(),
 					UserNotificationDTO.class);
-			UserNotificationRequestDTO userNotificationRequestDTO = UserNotificationDTO.getRequest();
+			UserNotificationRequestDTO userNotificationRequestDTO = userNotificationDTO.getRequest();
 			rid = userNotificationRequestDTO.getRid();
 			regProcLogger.debug("UserNotificationApi:processURL called for registration id {}",
-					UserNotificationDTO.getRequest().getRid());
-			UserNotificationRequestValidator.validate(UserNotificationDTO);
+					userNotificationDTO.getRequest().getRid());
+			UserNotificationRequestValidator.validate(userNotificationDTO);
 			String user = getUser(ctx);
 
 			registrationStatusDto = registrationStatusService.getRegistrationStatus(rid,userNotificationRequestDTO.getRegType(),1,null);
