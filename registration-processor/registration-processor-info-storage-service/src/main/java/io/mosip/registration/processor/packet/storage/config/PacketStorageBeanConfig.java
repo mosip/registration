@@ -37,6 +37,7 @@ import io.mosip.registration.processor.packet.storage.service.impl.PacketInfoMan
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.BioSdkUtil;
 import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
+import io.mosip.registration.processor.packet.storage.utils.OSIUtils;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 
 @Configuration
@@ -83,6 +84,11 @@ public class PacketStorageBeanConfig {
 	@Bean
 	public Utilities getUtilities() {
 		return new Utilities();
+	}
+
+	@Bean
+	public OSIUtils getOsiUtils() {
+		return new OSIUtils();
 	}
 
 	@Bean

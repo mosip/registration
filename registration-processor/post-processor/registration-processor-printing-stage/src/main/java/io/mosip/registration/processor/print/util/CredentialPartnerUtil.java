@@ -12,7 +12,6 @@ import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.util.JsonUtil;
-import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import org.json.JSONException;
 import org.json.simple.JSONObject;
@@ -21,8 +20,8 @@ import org.mvel2.MVEL;
 import org.mvel2.ParserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
@@ -37,11 +36,8 @@ import java.util.stream.Collectors;
 public class CredentialPartnerUtil {
 
     private static final Logger regProcLogger = RegProcessorLogger.getLogger(CredentialPartnerUtil.class);
-    private static final String VALUE_LABEL = "value";
     private static final String LANGUAGE = "language";
-
-    @Autowired
-    private Environment env;
+    public static final String META_INFO = "metaInfo_";
 
     @Autowired
     private Utilities utilities;
@@ -52,7 +48,7 @@ public class CredentialPartnerUtil {
     @Value("${mosip.registration.processor.print.issuer.noMatch}")
     private String noMatchIssuer;
 
-    @Value("#{${mosip.registration.processor.print.issuer.config-map:{}}}")
+    @Value("#{${mosip.registration.processor.print.issuer.config-map:{:}}}")
     private Map<String, String> credentialPartnerExpression;
 
     /**
@@ -60,12 +56,8 @@ public class CredentialPartnerUtil {
      * configured field names as values
      */
     private Map<String, String> requiredIDObjectFieldNamesMap;
-    /**
-     * Configured Id object fields
-     */
-    private List<String> requiredIdObjectFieldNames;
 
-    public List<String> getCredentialPartners(String regId, String registrationType, JSONObject identity) throws PacketManagerException, JSONException, ApisResourceAccessException, IOException, JsonProcessingException {
+    public List<String> getCredentialPartners(String regId, String registrationType, JSONObject identityJson) {
 
         regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                 regId, "CredentialPartnerUtil::getCredentialPartners()::entry");
@@ -78,21 +70,77 @@ public class CredentialPartnerUtil {
             return filteredPartners;
         }
 
-        Map<String, String> identityFieldValueMap = utilities.getPacketManagerService().getFields(regId,
-                requiredIdObjectFieldNames, registrationType, ProviderStageName.PRINTING);
+        try {
+            Map<String, String> identityFieldValueMap = new HashMap<>();
+            if (!CollectionUtils.isEmpty(requiredIDObjectFieldNamesMap)) {
+                requiredIDObjectFieldNamesMap.entrySet().forEach(entry -> identityFieldValueMap.put(entry.getValue(),
+                        (identityJson.get(entry.getKey()) != null) ? identityJson.get(entry.getKey()).toString() : null));
+            }
+
+            getFieldValuesFromMeta(regId, registrationType, identityFieldValueMap);
+
+            Map<String, Object> context = getContext(identityFieldValueMap);
+
+            regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                    regId, "CredentialPartnerUtil::CredentialPartnerExpression::" + credentialPartnerExpression.toString());
+
+            for (Map.Entry<String, String> entry : credentialPartnerExpression.entrySet()) {
+                Boolean result = MVEL.evalToBoolean(entry.getValue(), context);
+                if (result) {
+                    filteredPartners.add(entry.getKey());
+                }
+            }
+            if (StringUtils.hasText(noMatchIssuer) && filteredPartners.isEmpty()) {
+                filteredPartners.add(noMatchIssuer);
+            }
+        } catch (Exception e) {
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+                    ExceptionUtils.getStackTrace(e));
+        }
+        regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                regId, "CredentialPartnerUtil::FilteredPartners::" + filteredPartners.toString());
+
+        return filteredPartners;
+    }
+
+    private void getFieldValuesFromMeta(String regId, String registrationType, Map<String, String> idenFieldValueMap) throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException, JSONException {
+
+        List<Map.Entry<String, String>> metaFields = requiredIDObjectFieldNamesMap.entrySet().stream().filter(entry ->
+                StringUtils.startsWithIgnoreCase( entry.getValue(), META_INFO)).collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(metaFields)) {
+            Map<String, String> metaInfo = utilities.getMetaInfo(regId, registrationType,
+                    ProviderStageName.PRINTING);
+            metaFields.stream().forEach( entry ->
+                    idenFieldValueMap.put(entry.getValue(), metaInfo.get(entry.getKey()))
+            );
+        }
+    }
+
+    private Map<String, Object> getContext(Map<String, String> identityFieldValueMap) {
 
         Map<String, Object> context = new HashMap<>();
+        JSONObject attributeObject = new JSONObject(identityFieldValueMap);
         for (Map.Entry<String, String> identityAttribute: identityFieldValueMap.entrySet()) {
-            JSONObject attributeObject = new JSONObject(identityFieldValueMap);
             try {
                 JSONParser parser = new JSONParser();
-                Object obj = parser.parse((String)attributeObject.get(identityAttribute.getKey()));
+                Object attributeValue = attributeObject.get(identityAttribute.getKey());
+                context.put(identityAttribute.getKey(), null);
+                if (attributeValue == null) {
+                    continue;
+                }
+                Object obj = parser.parse((String) attributeValue);
                 if (obj instanceof org.json.simple.JSONArray) {
                     org.json.simple.JSONArray attributeArray = (org.json.simple.JSONArray) obj;
                     for (int i = 0; i < attributeArray.size(); i++) {
                         JSONObject jsonObject = (JSONObject) attributeArray.get(i);
-                        if (mandatoryLanguages.get(0).equalsIgnoreCase((String) jsonObject.get(LANGUAGE))) {
-                            context.put(identityAttribute.getKey(), jsonObject.get(VALUE_LABEL));
+                        if (!CollectionUtils.isEmpty(mandatoryLanguages)) {
+                            if (mandatoryLanguages.get(0).equalsIgnoreCase((String) jsonObject.get(LANGUAGE))) {
+                                context.put(identityAttribute.getKey(), jsonObject.get(MappingJsonConstants.VALUE));
+                                break;
+                            }
+                        } else {
+                            context.put(identityAttribute.getKey(), jsonObject.get(MappingJsonConstants.VALUE));
+                            break;
                         }
                     }
                 } else {
@@ -103,26 +151,9 @@ public class CredentialPartnerUtil {
             } catch (org.json.simple.parser.ParseException e) {
                 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
                         ExceptionUtils.getStackTrace(e));
-                throw new ParsingException(PlatformErrorMessages.RPR_BDD_JSON_PARSING_EXCEPTION.getCode(), e);
             }
         }
-
-        regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-                regId, "CredentialPartnerUtil::CredentialPartnerExpression::" + credentialPartnerExpression.toString());
-
-        for(Map.Entry<String, String> entry : credentialPartnerExpression.entrySet()) {
-            Boolean result = (Boolean) MVEL.eval(entry.getValue(), context);
-            if (result) {
-                filteredPartners.add(entry.getKey());
-            }
-        }
-        if (StringUtils.hasText(noMatchIssuer) && filteredPartners.isEmpty()) {
-            filteredPartners.add(noMatchIssuer);
-        }
-        regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-                regId, "CredentialPartnerUtil::FilteredPartners::" + filteredPartners.toString());
-
-        return filteredPartners;
+        return context;
     }
 
     @PostConstruct
@@ -131,6 +162,8 @@ public class CredentialPartnerUtil {
         try {
             org.json.simple.JSONObject identityMappingJson =
                     utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
+            org.json.simple.JSONObject metaInfoMappingJson =
+                    utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.METAINFO);
             requiredIDObjectFieldNamesMap = new HashMap<>();
             for(Map.Entry<String, String> expressionEntry : credentialPartnerExpression.entrySet()) {
                 ParserContext parserContext = ParserContext.create();
@@ -139,15 +172,20 @@ public class CredentialPartnerUtil {
                 for(Map.Entry<String, Class> variableEntry: expressionVariablesMap.entrySet()) {
                     String actualFieldName = JsonUtil.getJSONValue(
                             JsonUtil.getJSONObject(identityMappingJson, variableEntry.getKey()),
-                            VALUE_LABEL);
-                    if(actualFieldName == null)
+                            MappingJsonConstants.VALUE);
+                    if (actualFieldName == null && StringUtils.startsWithIgnoreCase( variableEntry.getKey(), META_INFO)) {
+                        actualFieldName = JsonUtil.getJSONValue(
+                                JsonUtil.getJSONObject(metaInfoMappingJson, variableEntry.getKey().substring(META_INFO.length())),
+                                MappingJsonConstants.VALUE);
+                    }
+                    if(actualFieldName == null) {
                         throw new BaseCheckedException(
                                 PlatformErrorMessages.RPR_PCM_FIELD_NAME_NOT_AVAILABLE_IN_MAPPING_JSON.getCode(),
                                 PlatformErrorMessages.RPR_PCM_FIELD_NAME_NOT_AVAILABLE_IN_MAPPING_JSON.getMessage());
+                    }
                     requiredIDObjectFieldNamesMap.put(actualFieldName, variableEntry.getKey());
                 }
             }
-            requiredIdObjectFieldNames = requiredIDObjectFieldNamesMap.keySet().stream().collect(Collectors.toList());
         } catch (IOException e) {
             throw new BaseCheckedException(
                     PlatformErrorMessages.RPR_PCM_ACCESSING_IDOBJECT_MAPPING_FILE_FAILED.getCode(),

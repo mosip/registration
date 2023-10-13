@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.processor.print.util.CredentialPartnerUtil;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -108,6 +109,9 @@ public class PrintingStageTest {
 
 	@Mock
 	private Utilities utitilites;
+
+	@Mock
+	private CredentialPartnerUtil credentialPartnerUtil;
 
 	@InjectMocks
 	private PrintingStage stage = new PrintingStage() {
@@ -288,6 +292,29 @@ public class PrintingStageTest {
 		assertFalse(result.getInternalError());
 	}
 	
+	
+	@Test
+	public void testCredentialPartner()
+			throws ApisResourceAccessException, JsonParseException, JsonMappingException, IOException {
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("1234567890987654321");
+
+		dto.setReg_type(RegistrationType.NEW.name());
+		ReflectionTestUtils.setField(stage, "credentialPartnerMap", Map.of("mpartner-default-cardprint#vercred#RPR_UIN_CARD_TEMPLATE","list_of_values contains attribute_value"));
+		ResponseWrapper<CredentialResponseDto> responseWrapper = new ResponseWrapper<>();
+		CredentialResponseDto credentialResponseDto = new CredentialResponseDto();
+		credentialResponseDto.setRequestId("879664323421");
+		Mockito.when(objectMapper.readValue(response, CredentialResponseDto.class))
+				.thenReturn(credentialResponseDto);
+		responseWrapper.setResponse(credentialResponseDto);
+		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any(), any(MediaType.class)))
+				.thenReturn(responseWrapper);
+		Mockito.when(credentialPartnerUtil.getCredentialPartners(any(), any(), any()))
+				.thenReturn(Arrays.asList("mpartner-default-cardprint#vercred#RPR_UIN_CARD_TEMPLATE"));
+		MessageDTO result = stage.process(dto);
+		assertTrue(result.getIsValid());
+		assertFalse(result.getInternalError());
+	}
 
 	@Test
 	public void testPrintStageFailure() throws ApisResourceAccessException {

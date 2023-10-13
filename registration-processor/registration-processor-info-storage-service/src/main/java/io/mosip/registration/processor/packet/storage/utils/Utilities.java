@@ -38,6 +38,7 @@ import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 import lombok.Data;
 import org.apache.commons.lang.StringUtils;
+import org.json.JSONException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -167,6 +168,9 @@ public class Utilities {
 	/** The packet info manager. */
 	@Autowired
 	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
+
+	@Autowired
+	private OSIUtils osiUtils;
 
 	/** The Constant INBOUNDQUEUENAME. */
 	private static final String INBOUNDQUEUENAME = "inboundQueueName";
@@ -850,4 +854,24 @@ public class Utilities {
 		return centerId + "_" + machineId;
 	}
 
+	/**
+	 * Retrieves packet meta info for the given criteria.
+	 * @param id
+	 * @param process
+	 * @param stageName
+	 * @return
+	 * @throws ApisResourceAccessException
+	 * @throws IOException
+	 * @throws PacketManagerException
+	 * @throws JsonProcessingException
+	 * @throws JSONException
+	 */
+	public JSONObject getMetaInfo(String id, String process, ProviderStageName stageName) throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException, JSONException {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				id, "Utilities::getMetaInfo()::entry");
+		Map<String, String> metaInfo = packetManagerService.getMetaInfo(id, process, stageName);
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
+				"Utilities::getMetaInfo():: GET service call ended successfully");
+		return new JSONObject(osiUtils.getMetaMap(metaInfo));
+	}
 }
