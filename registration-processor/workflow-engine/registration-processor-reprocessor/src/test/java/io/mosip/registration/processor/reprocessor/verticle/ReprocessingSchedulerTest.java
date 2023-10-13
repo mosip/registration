@@ -20,7 +20,6 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
-import io.mosip.registration.processor.core.abstractverticle.HealthCheckDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -75,7 +74,6 @@ public class ReprocessingSchedulerTest {
 	public void setup() {
 		fooLogger = (Logger) LoggerFactory.getLogger(ReprocessorVerticle.class);
 		listAppender = new ListAppender<>();
-		Mockito.when(vertx.eventBus()).thenReturn(Vertx.vertx().eventBus());
 	}
 
 	/**
@@ -111,17 +109,6 @@ public class ReprocessingSchedulerTest {
 
 				@Override
 				public void send(MessageBusAddress toAddress, MessageDTO message) {
-
-				}
-				@Override
-				public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
-					// TODO Auto-generated method stub
-
-				}
-
-				@Override
-				public void senderHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
-					// TODO Auto-generated method stub
 
 				}
 			};
@@ -161,12 +148,11 @@ public class ReprocessingSchedulerTest {
 		listAppender.start();
 		fooLogger.addAppender(listAppender);
 		Mockito.when(res.succeeded()).thenReturn(false);
-		Mockito.when(res.cause()).thenReturn(new Exception("Exception"));
 		//Mockito.when(vertx.eventBus()).thenReturn(getMockEventBus());
 		reprocessorVerticle.schedulerResult(res);
 		Assertions.assertThat(listAppender.list).extracting(ILoggingEvent::getLevel, ILoggingEvent::getFormattedMessage)
 				.contains(Tuple.tuple(Level.ERROR,
-						"ReprocessorVerticle::schedular()::deployment failure Exception"));
+						"ReprocessorVerticle::schedular()::deployment failure"));
 	}
 	/**
 	 * Returns dummy eventbus instance

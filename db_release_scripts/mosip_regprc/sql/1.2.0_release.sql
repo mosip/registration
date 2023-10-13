@@ -41,6 +41,7 @@ ALTER TABLE regprc.registration_list RENAME COLUMN reg_type TO process;
 ALTER TABLE regprc.registration_list ADD COLUMN additional_info_req_id character varying(256);
 ALTER TABLE regprc.registration_list ADD COLUMN packet_id character varying;
 ALTER TABLE regprc.registration_list ADD COLUMN source character varying;
+ALTER TABLE regprc.registration_list ADD COLUMN ref_id character varying(512);
 
 ALTER TABLE regprc.registration RENAME COLUMN id TO reg_id;
 ALTER TABLE regprc.registration RENAME COLUMN reg_type TO process;

@@ -22,6 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.processor.adjudication.util.ManualVerificationUpdateUtility;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.groups.Tuple;
 import org.assertj.core.util.Lists;
@@ -54,6 +55,7 @@ import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.entities.RegistryIDType;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.adjudication.dto.ManualVerificationDTO;
 import io.mosip.registration.processor.adjudication.dto.ManualVerificationDecisionDto;
 import io.mosip.registration.processor.adjudication.dto.ManualVerificationStatus;
@@ -67,9 +69,12 @@ import io.mosip.registration.processor.adjudication.response.dto.ManualAdjudicat
 import io.mosip.registration.processor.adjudication.service.ManualAdjudicationService;
 import io.mosip.registration.processor.adjudication.service.impl.ManualAdjudicationServiceImpl;
 import io.mosip.registration.processor.adjudication.stage.ManualAdjudicationStage;
-import io.mosip.registration.processor.adjudication.util.ManualVerificationUpdateUtility;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
+import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
 import io.mosip.registration.processor.core.kernel.master.dto.UserResponseDTO;
 import io.mosip.registration.processor.core.kernel.master.dto.UserResponseDTOWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
@@ -101,12 +106,16 @@ public class ManualAdjudicationServiceTest {
 
 	private List<ManualVerificationEntity> entities;
 	private List<ManualVerificationEntity> entitiesTemp;
+	private final String stageName = "ManualAdjudicationStage";
 
 	@InjectMocks
 	private ManualAdjudicationService manualAdjudicationService = new ManualAdjudicationServiceImpl();
 
 	@Mock
     UserDto dto;
+
+	@Mock
+	private ManualVerificationUpdateUtility manualVerificationUpdateUtility;
 
 	@Mock
     ManualAdjudicationStage manualAdjudicationStage;
@@ -119,9 +128,6 @@ public class ManualAdjudicationServiceTest {
 
 	@Mock
 	AuditLogRequestBuilder auditLogRequestBuilder;
-	
-	@Mock 
-	private ManualVerificationUpdateUtility manualVerificationUpdateUtility;
 
 	@Mock
 	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
@@ -156,8 +162,6 @@ public class ManualAdjudicationServiceTest {
 	private Logger regprocLogger;
 	ClassLoader classLoader;
 
-	private String stageName = "ManualVerificationStage";
-
 	private ResponseWrapper<UserResponseDTOWrapper> responseWrapper = new ResponseWrapper<>();
 	private UserResponseDTOWrapper userResponseDTOWrapper = new UserResponseDTOWrapper();
 	private List<UserResponseDTO> userResponseDto = new ArrayList<>();
@@ -181,6 +185,7 @@ public class ManualAdjudicationServiceTest {
 	RegistrationExceptionMapperUtil registrationExceptionMapperUtil;
 
 
+
 	@Before
 	public void setup() throws SecurityException, IllegalArgumentException {
 
@@ -193,8 +198,7 @@ public class ManualAdjudicationServiceTest {
 			}
 			
 			@Override
-			public void createConnection(String username, String password, String brokerUrl,
-					List<String> trustedPackage) {
+			public void createConnection(String username, String password, String brokerUrl) {
 				// TODO Auto-generated method stub
 				
 			}
@@ -270,7 +274,7 @@ public class ManualAdjudicationServiceTest {
 		CandidateList candidateList=new CandidateList();
 		candidateList.setCount(0);
 		manualAdjudicationResponseDTO.setCandidateList(candidateList);
-		
+
 		Mockito.doNothing().when(manualVerificationUpdateUtility).updateManualVerificationEntityRID(any(), any());
 		
 	}
@@ -624,7 +628,7 @@ public class ManualAdjudicationServiceTest {
 		Mockito.when(registrationProcessorRestClientService.postApi(anyString(), any(), any(), any(), any(), any(),
 				eq(LinkedHashMap.class))).thenReturn(dataShareResponse);
 		Mockito.when(mosipQueueManager.send(any(), anyString(), anyString(), anyInt())).thenReturn(true);
-		manualAdjudicationService.process(object, queue);
+		manualAdjudicationService.process(object, queue, stageName);
 	}
 
 	public void setDataShareDetails() throws Exception {
@@ -757,7 +761,7 @@ public class ManualAdjudicationServiceTest {
 
 		setDataShareDetails();
 
-		manualAdjudicationService.process(object, queue);
+		manualAdjudicationService.process(object, queue, stageName);
 	}
 	@Test
 	public void testManualAdjudicationProcessLatest() throws Exception {
@@ -769,6 +773,6 @@ public class ManualAdjudicationServiceTest {
 		object.setWorkflowInstanceId("26fa3eff-f3b9-48f7-b365-d7f7c2e56e00");
 		setDataShareDetails();
 
-		manualAdjudicationService.process(object, queue);
+		manualAdjudicationService.process(object, queue, stageName);
 	}
 }

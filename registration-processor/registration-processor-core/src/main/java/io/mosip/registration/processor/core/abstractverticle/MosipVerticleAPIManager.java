@@ -1,21 +1,20 @@
 package io.mosip.registration.processor.core.abstractverticle;
 
+import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
+import io.mosip.registration.processor.core.queue.factory.MosipQueue;
+import io.mosip.registration.processor.core.spi.queue.MosipQueueConnectionFactory;
+import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.util.ClassUtils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import brave.Tracing;
-import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
 import io.mosip.registration.processor.core.constant.HealthConstant;
-import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.queue.factory.MosipQueue;
-import io.mosip.registration.processor.core.spi.queue.MosipQueueConnectionFactory;
-import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import io.mosip.registration.processor.core.tracing.VertxWebTracingLocal;
 import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
 import io.vertx.core.Handler;
@@ -60,13 +59,6 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 
 	private static final String PROMETHEUS_ENDPOINT = "/actuator/prometheus";
 
-
-	private static Logger regProcLogger = RegProcessorLogger.getLogger(MosipVerticleAPIManager.class);
-
-	@Value("${mosip.regproc.health-check.handler-timeout:5000}")
-	private long healthCheckTimeOut;
-
-
 	/**
 	 * This method creates a body handler for the routes
 	 *
@@ -106,76 +98,59 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 		StageHealthCheckHandler healthCheckHandler = new StageHealthCheckHandler(vertx, null, objectMapper,
                 virusScanner, environment);
 		router.get(servletPath + HealthConstant.HEALTH_ENDPOINT).handler(healthCheckHandler);
-		if (servletPath.contains("packetreceiver")) {
-			healthCheckHandler.register("virusscanner", healthCheckTimeOut, healthCheckHandler::virusScanHealthChecker);
+		if (servletPath.contains("packetreceiver") || servletPath.contains("uploader")) {
+			healthCheckHandler.register("virusscanner", healthCheckHandler::virusScanHealthChecker);
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Verticle",
-					healthCheckTimeOut,
-					future -> healthCheckHandler.senderHealthHandler(future, vertx, super.mosipEventBus, sendAddress));
+					future -> healthCheckHandler.senderHealthHandler(future, vertx, sendAddress));
 		}
-		if (servletPath.contains("uploader")) {
-			healthCheckHandler.register("virusscanner", healthCheckTimeOut, healthCheckHandler::virusScanHealthChecker);
+		if (checkServletPathContainsCoreProcessor(servletPath)) {
 			healthCheckHandler.register(
-					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Consume",
-					healthCheckTimeOut, future -> {
-						healthCheckHandler.consumerHealthHandler(future, vertx, super.mosipEventBus, consumeAddress);
-					});
-			healthCheckHandler.register(
-					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Verticle",
-					healthCheckTimeOut,
-					future -> healthCheckHandler.senderHealthHandler(future, vertx, super.mosipEventBus, sendAddress));
-		}
-		if (checkServletPath(servletPath)) {
-			healthCheckHandler.register(
-					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Send",
-					healthCheckTimeOut, future -> {
-						healthCheckHandler.senderHealthHandler(future, vertx, super.mosipEventBus, sendAddress);
+					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Send", future -> {
+						healthCheckHandler.senderHealthHandler(future, vertx, sendAddress);
 					});
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Consume",
-					healthCheckTimeOut,
 					future -> {
-						healthCheckHandler.consumerHealthHandler(future, vertx, super.mosipEventBus, consumeAddress);
+						healthCheckHandler.consumerHealthHandler(future, vertx, consumeAddress);
+					});
+		}
+		if (servletPath.contains("external") || servletPath.contains("bioauth")) {
+			healthCheckHandler.register(
+					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Send", future -> {
+						healthCheckHandler.senderHealthHandler(future, vertx, sendAddress);
+					});
+			healthCheckHandler.register(
+					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Consume",
+					future -> {
+						healthCheckHandler.senderHealthHandler(future, vertx, consumeAddress);
 					});
 		}
 		if (servletPath.contains("manual")) {
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Verticle",
-					healthCheckTimeOut,
-					future -> healthCheckHandler.senderHealthHandler(future, vertx, super.mosipEventBus, sendAddress));
+					future -> healthCheckHandler.senderHealthHandler(future, vertx, sendAddress));
 		}
 		if (servletPath.contains("abismiddleware")) {
-			healthCheckHandler.register("queuecheck", healthCheckTimeOut,
-					future -> healthCheckHandler.queueHealthChecker(future, mosipQueueManager, mosipConnectionFactory));
+			healthCheckHandler.register("queuecheck", future -> healthCheckHandler.queueHealthChecker(future, mosipQueueManager, mosipConnectionFactory));
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Verticle",
-					healthCheckTimeOut,
-					future -> healthCheckHandler.consumerHealthHandler(future, vertx, super.mosipEventBus,
-							consumeAddress));
+					future -> healthCheckHandler.consumerHealthHandler(future, vertx, consumeAddress));
 		}
 		if (servletPath.contains("sender")) {
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Verticle",
-					healthCheckTimeOut,
-					future -> healthCheckHandler.consumerHealthHandler(future, vertx, super.mosipEventBus,
-							consumeAddress));
+					future -> healthCheckHandler.consumerHealthHandler(future, vertx, consumeAddress));
 		}
 
-		healthCheckHandler.register("diskSpace", healthCheckTimeOut, healthCheckHandler::dispSpaceHealthChecker);
-		if (!servletPath.contains("camel")) {
-		healthCheckHandler.register("db", healthCheckTimeOut, healthCheckHandler::databaseHealthChecker);
-		}
+		healthCheckHandler.register("diskSpace", healthCheckHandler::dispSpaceHealthChecker);
+		healthCheckHandler.register("db", healthCheckHandler::databaseHealthChecker);
 	}
 
-	private boolean checkServletPath(String servletPath) {
+	private boolean checkServletPathContainsCoreProcessor(String servletPath) {
 		return servletPath.contains("packetvalidator") || servletPath.contains("osi") || servletPath.contains("demo")
 				|| servletPath.contains("bio") || servletPath.contains("uin") || servletPath.contains("quality")
-				|| servletPath.contains("abishandler") || servletPath.contains("securezone")
-				|| servletPath.contains("print") || servletPath.contains("cmd") || servletPath.contains("operator")
-				|| servletPath.contains("supervisor") || servletPath.contains("introducer")
-				|| servletPath.contains("final") || servletPath.contains("biometric")
-				|| servletPath.contains("packetclassifier") || servletPath.contains("bioauth")
-				|| servletPath.contains("external");
+				|| servletPath.contains("abishandler") || servletPath.contains("securezone");
 	}
 
 	/**
@@ -209,21 +184,13 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 	 */
 	public void setResponseWithDigitalSignature(RoutingContext ctx, Object object, String contentType) {
 		HttpServerResponse response = ctx.response();
-
-		String res=null;
-		try {
-			res = objectMapper.writeValueAsString(object);
-		} catch (JsonProcessingException e) {
-			regProcLogger.error("Error while processing response",e);
-
-		}
-
+	Gson gson=new GsonBuilder().serializeNulls().create();
 		if (isEnabled)
 			response.putHeader("Response-Signature",
-					digitalSignatureUtility.getDigitalSignature(res));
+					digitalSignatureUtility.getDigitalSignature(gson.toJson(object)));
 		response.putHeader("content-type", contentType).putHeader("Access-Control-Allow-Origin", "*")
 				.putHeader("Access-Control-Allow-Methods", "GET, POST").setStatusCode(200)
-				.end(res);
+				.end(gson.toJson(object));
 	}
 
 	// Added this method to cast all the stages to this class and invoke the deployVerticle method 

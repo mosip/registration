@@ -137,7 +137,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 	 * inclusive.
 	 */
 	
-	@Value("#{${mosip.regproc.quality.classifier.tagging.quality.ranges:{'level-1':'0-10','level-2':'10-20','level-3':'20-30','level-4':'30-40','level-5':'40-50','level-6':'50-60','level-7':'60-70','level-8':'70-80','level-9':'80-90','level-10':'90-101',}}}")
+	@Value("#{${mosip.regproc.quality.classifier.tagging.quality.ranges:{'Poor':'0-29','Average':'30-69','Good':'70-100'}}}")
 	private Map<String, String> qualityClassificationRangeMap;
 
 	/** Quality Tag Prefix */
@@ -442,9 +442,9 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 			BiometricType biometricType = bir.getBdbInfo().getType().get(0);
 			BIR[] birArray = new BIR[1];
 			birArray[0] = bir;
-			if(!biometricType.name().equalsIgnoreCase(BiometricType.EXCEPTION_PHOTO.name())) {
+			if(!biometricType.name().equalsIgnoreCase(BiometricType.EXCEPTION_PHOTO.name()) ) {
 			float[] qualityScoreresponse = getBioSdkInstance(biometricType).getSegmentQuality(birArray, null);
-			
+
 			float score = qualityScoreresponse[0];
 			String bioType = bir.getBdbInfo().getType().get(0).value();
 
@@ -461,7 +461,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 			for (Entry<String, int[]> qualityRangeEntry : parsedQualityRangeMap.entrySet()) {
 
 				if (bioTypeMinEntry.getValue() >= qualityRangeEntry.getValue()[0]
-						&& bioTypeMinEntry.getValue() < qualityRangeEntry.getValue()[1]) {
+						&& bioTypeMinEntry.getValue() <= qualityRangeEntry.getValue()[1]) {
 
 					tags.put( qualityTagPrefix.concat(bioTypeMinEntry.getKey()), qualityRangeEntry.getKey());
 					break;

@@ -193,9 +193,7 @@ public class RegistrationExceptionMapperUtil {
 		statusMap.put(RegistrationExceptionTypeCode.VID_CREATION_EXCEPTION,
 				RegistrationTransactionStatusCode.REPROCESS);
 		statusMap.put(RegistrationExceptionTypeCode.PACKET_REJECTED, RegistrationTransactionStatusCode.REJECTED);
-		statusMap.put(RegistrationExceptionTypeCode.INTRODUCER_BIOMETRIC_ALL_EXCEPTION_IN_PACKET,
-				RegistrationTransactionStatusCode.FAILED);
-
+		statusMap.put(RegistrationExceptionTypeCode.MANUAL_VERIFICATION_FAILED, RegistrationTransactionStatusCode.FAILED);
 		return unmodifiableMap;
 
 	}
