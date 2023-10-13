@@ -232,7 +232,7 @@ public class PrintingStage extends MosipVerticleAPIManager {
 				credentialIssuerSet.addAll(defaultIssuers);
 				if (credentialPartnerMap != null && !credentialPartnerMap.isEmpty()) {
 					credentialIssuerSet.addAll(credentialPartnerUtil.getCredentialPartners(
-							regId, registrationStatusDto.getRegistrationType(), uin));
+							regId, registrationStatusDto.getRegistrationType(), jsonObject));
 				}
 				for (String key : credentialIssuerSet) {
 					String[] parts = key.split(HASH_DELIMITER, 3);
