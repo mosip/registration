@@ -85,8 +85,7 @@ public class UserNotificationApi extends MosipVerticleAPIManager {
 
 	@Value("${mosip.regproc.user.notification.api.version}")
 	private String version;
-	
-//	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.reprocessor.";
+
 	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.workflow-manager.";
 
 	@Autowired
@@ -181,7 +180,6 @@ public class UserNotificationApi extends MosipVerticleAPIManager {
 				throw new UserNotificationException(PlatformErrorMessages.RPR_UNA_REGTYPE_NOT_MATCHING.getCode(),
 						String.format(PlatformErrorMessages.RPR_UNA_REGTYPE_NOT_MATCHING.getMessage(), rid));
 				}
-				
 				sendWorkflowCompletedWebSubEvent(registrationStatusDto);
 				regProcLogger.info("Request added to queue succesfully  for rid {}", rid);
 				description.setMessage(PlatformSuccessMessages.RPR_USER_NOTIFICATION_API_SUCCESS.getMessage());
