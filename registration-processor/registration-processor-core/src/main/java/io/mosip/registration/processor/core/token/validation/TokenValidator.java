@@ -115,6 +115,8 @@ public class TokenValidator {
 			return String.join(",", APIAuthorityList.WORKFLOWACTION.getList());
 		else if (url.contains("workflow/search"))
 			return String.join(",", APIAuthorityList.WORKFLOWSEARCH.getList());
+		else if (url.contains("/usernotification"))
+			return String.join(",", APIAuthorityList.USERNOTIFICATION.getList());
 		return null;
 	}
 
@@ -176,7 +178,7 @@ public class TokenValidator {
 				if (role.contains(assignedRole))
 					return true;
 			}
-		} else if (url.contains("userNotification")) {
+		} else if (url.contains("usernotification")) {
 			for (String assignedRole : APIAuthorityList.USERNOTIFICATION.getList()) {
 				if (role.contains(assignedRole))
 					return true;
