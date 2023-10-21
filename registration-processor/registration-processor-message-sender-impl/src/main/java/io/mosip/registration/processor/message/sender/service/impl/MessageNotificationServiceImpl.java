@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -15,11 +16,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import io.mosip.kernel.core.exception.BaseUncheckedException;
-import io.mosip.kernel.core.exception.ServiceError;
-import io.mosip.registration.processor.core.constant.*;
-import io.mosip.registration.processor.core.idrepo.dto.VidInfoDTO;
-import io.mosip.registration.processor.core.idrepo.dto.VidsInfosDTO;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -38,6 +34,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.kernel.core.exception.BaseUncheckedException;
+import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
@@ -45,6 +43,11 @@ import io.mosip.kernel.core.util.exception.JsonMappingException;
 import io.mosip.kernel.core.util.exception.JsonParseException;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.code.ApiName;
+import io.mosip.registration.processor.core.constant.IdType;
+import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
+import io.mosip.registration.processor.core.constant.VidType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
@@ -54,6 +57,8 @@ import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages
 import io.mosip.registration.processor.core.http.RequestWrapper;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO;
+import io.mosip.registration.processor.core.idrepo.dto.VidInfoDTO;
+import io.mosip.registration.processor.core.idrepo.dto.VidsInfosDTO;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.notification.template.generator.dto.ResponseDto;
 import io.mosip.registration.processor.core.notification.template.generator.dto.SmsRequestDto;
@@ -70,7 +75,6 @@ import io.mosip.registration.processor.message.sender.exception.TemplateGenerati
 import io.mosip.registration.processor.message.sender.exception.TemplateNotFoundException;
 import io.mosip.registration.processor.message.sender.template.TemplateGenerator;
 import io.mosip.registration.processor.packet.manager.decryptor.Decryptor;
-import io.mosip.registration.processor.packet.storage.dto.ConfigEnum;
 import io.mosip.registration.processor.packet.storage.exception.IdRepoAppException;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
@@ -556,7 +560,7 @@ public class MessageNotificationServiceImpl
 						JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
 						for (int count = 0; count < jsonValues.length; count++) {
 							if(jsonValues[count].getLanguage().equalsIgnoreCase(lang)) {
-								attribute.put(val , jsonValues[count].getValue());
+								attribute.put(val + "_" + lang, jsonValues[count].getValue());
 							}
 						}
 					} else if (object instanceof LinkedHashMap) {
@@ -605,13 +609,21 @@ public class MessageNotificationServiceImpl
 			String regType, String lang, StringBuilder phoneNumber, StringBuilder emailId)
 			throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException, JSONException, PacketDecryptionFailureException, JsonParseException, JsonMappingException, io.mosip.kernel.core.exception.IOException {
 
-		JSONObject mapperIdentity = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
-
+		if (mapperJsonKeys == null) {
+			String mapperJsonString = Utilities.getJson(utility.getConfigServerFileStorageURL(),
+					utility.getGetRegProcessorIdentityJson());
+			JSONObject mapperJson = JsonUtil.objectMapperReadValue(mapperJsonString, JSONObject.class);
+			mapperIdentity = JsonUtil.getJSONObject(mapperJson, utility.getGetRegProcessorDemographicIdentity());
+			mapperJsonKeys = new ArrayList<>(mapperIdentity.keySet());
+		}
 		List<String> mapperJsonValues = new ArrayList<>();
-		JsonUtil.getJSONValue(JsonUtil.getJSONObject(mapperIdentity, MappingJsonConstants.INDIVIDUAL_BIOMETRICS), VALUE);
-		mapperIdentity.keySet().forEach(key -> mapperJsonValues.add(JsonUtil.getJSONValue(JsonUtil.getJSONObject(mapperIdentity, key), VALUE)));
-
-		String source = utility.getDefaultSource(process, ConfigEnum.READER);
+		for (String key : mapperJsonKeys) {
+			JSONObject jsonValue = JsonUtil.getJSONObject(mapperIdentity, key);
+			if (jsonValue.get(VALUE) != null && !jsonValue.get(VALUE).toString().isBlank()) {
+				String[] valueArray = jsonValue.get(VALUE).toString().split(",");
+				mapperJsonValues.addAll(new ArrayList(Arrays.asList(valueArray)));
+			}
+		}
 		Map<String, String> fieldMap =null;
 		try {
 		 fieldMap = packetManagerService.getFields(id, mapperJsonValues, process, ProviderStageName.MESSAGE_SENDER);
@@ -636,7 +648,7 @@ public class MessageNotificationServiceImpl
 								Object obj = jsonArray.get(i);
 								JsonValue jsonValue = mapper.readValue(obj.toString(), JsonValue.class);
 								if(jsonValue.getLanguage().equalsIgnoreCase(lang)) {
-								attribute.putIfAbsent(e.getKey().toString(), jsonValue.getValue());
+									attribute.putIfAbsent(e.getKey().toString() + "_" + lang, jsonValue.getValue());
 								}
 							}
 						} else
