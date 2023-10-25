@@ -11,21 +11,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.mosip.kernel.core.util.StringUtils;
-import io.mosip.registration.processor.core.constant.MappingJsonConstants;
-import io.mosip.registration.processor.core.constant.ProviderStageName;
-import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.AuditLogConstant;
 import io.mosip.registration.processor.core.code.DedupeSourceName;
@@ -33,7 +30,9 @@ import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.PacketFiles;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
@@ -68,6 +67,7 @@ import io.mosip.registration.processor.packet.storage.exception.TablenotAccessib
 import io.mosip.registration.processor.packet.storage.exception.UnableToInsertData;
 import io.mosip.registration.processor.packet.storage.mapper.PacketInfoMapper;
 import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 
@@ -141,9 +141,6 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 
 	@Autowired
 	private PriorityBasedPacketManagerService packetManagerService;
-
-	@Value("${registration.processor.demodedupe.manualverification.status}")
-	private String manualVerificationStatus;
 
 	/** The Constant MATCHED_REFERENCE_TYPE. */
 	private static final String MATCHED_REFERENCE_TYPE = "rid";
@@ -466,13 +463,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 				manualVerificationEntity.setTransactionId(transactionId);
 				manualVerificationEntity.setMvUsrId(null);
 				manualVerificationEntity.setReasonCode("Potential Match");
-				if (sourceName.equals(DedupeSourceName.DEMO)) {
-					manualVerificationEntity.setStatusCode(manualVerificationStatus);
-
-				} else {
-					manualVerificationEntity.setStatusCode("PENDING");
-
-				}
+				manualVerificationEntity.setStatusCode("PENDING");
 				manualVerificationEntity.setStatusComment("Assigned to manual Adjudication");
 				manualVerificationEntity.setIsActive(true);
 				manualVerificationEntity.setIsDeleted(false);

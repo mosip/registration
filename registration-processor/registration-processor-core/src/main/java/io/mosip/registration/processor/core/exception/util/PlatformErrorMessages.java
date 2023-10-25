@@ -1271,6 +1271,23 @@ public enum PlatformErrorMessages {
 	RPR_DEMO_API_RESOUCE_ACCESS_FAILED(PlatformConstants.RPR_DEMO_DEDUPE_MODULE + "002",
 			"Unable to Access API Resource"),
 
+	RPR_DEMO_BIOMETRIC_RECORD_VALIDATION_FAILED(PlatformConstants.RPR_DEMO_DEDUPE_MODULE + "003",
+			"Biometric record validation error"),
+
+	RPR_DEMO_DATASHARE_MODALITIES_EMPTY(PlatformConstants.RPR_DEMO_DEDUPE_MODULE + "004",
+			"Data Share Policy Modalities were Empty"),
+
+	RPR_DEMO_NO_BIOMETRICS_FOUND_WITH_DATASHARE(PlatformConstants.RPR_DEMO_DEDUPE_MODULE + "005",
+			"No Biometrics Found with Data Share Policy"),
+
+	RPR_DEMO_NO_BIOMETRIC_MATCH_WTIH_DATASAHRE(PlatformConstants.RPR_DEMO_DEDUPE_MODULE + "006",
+			"No Biometric Matched with Data Share Policy"),
+
+	RPR_DEMO_DATASHARE_ERROR(PlatformConstants.RPR_DEMO_DEDUPE_MODULE + "007", "Datashare exception occured"),
+
+	RPR_DEMO_POTENTIAL_SENDING_FOR_MANUAL(PlatformConstants.RPR_DEMO_DEDUPE_MODULE + "008",
+			"Potential Demo Match was Found and Biometric record validation failed. Hence sending to manual adjudication"),
+
 	RPR_SECUREZONE_FAILURE(PlatformConstants.RPR_SECUREZONE_NOTIFICATION_MODULE + "001",
 			"Exception occured in securezone notification stage. Check logs for more info"),
 

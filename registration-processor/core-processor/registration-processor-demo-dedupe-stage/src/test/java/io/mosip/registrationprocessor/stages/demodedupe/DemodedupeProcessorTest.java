@@ -18,10 +18,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 
-import io.mosip.registration.processor.core.exception.PacketManagerException;
 import org.apache.commons.io.IOUtils;
+import org.assertj.core.util.Lists;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -37,13 +39,19 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.core.env.Environment;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.kernel.biometrics.constant.BiometricType;
+import io.mosip.kernel.biometrics.constant.QualityType;
+import io.mosip.kernel.biometrics.entities.BDBInfo;
+import io.mosip.kernel.biometrics.entities.BIR;
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.biometrics.entities.RegistryIDType;
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.AbisStatusCode;
 import io.mosip.registration.processor.core.code.ApiName;
@@ -53,7 +61,12 @@ import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.constant.AbisConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.PacketFiles;
+import io.mosip.registration.processor.core.constant.PolicyConstant;
+import io.mosip.registration.processor.core.datashare.dto.Filter;
+import io.mosip.registration.processor.core.datashare.dto.ShareableAttributes;
+import io.mosip.registration.processor.core.datashare.dto.Source;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
@@ -69,14 +82,15 @@ import io.mosip.registration.processor.core.packet.dto.demographicinfo.JsonValue
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.identify.IdentityJsonValues;
 import io.mosip.registration.processor.core.packet.dto.idjson.Document;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
+import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.entity.IndividualDemographicDedupeEntity;
 import io.mosip.registration.processor.packet.storage.entity.ManualVerificationEntity;
-import io.mosip.registration.processor.packet.storage.exception.IdRepoAppException;
 import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
@@ -165,9 +179,11 @@ public class DemodedupeProcessorTest {
 
 	@Mock
 	private Environment env;
+	@Mock
+	private RegistrationProcessorRestClientService registrationProcessorRestClientService;
 
-	private static final String DEMODEDUPEENABLE = "mosip.registration.processor.demographic.deduplication.enable";
-
+	@Mock
+	private PriorityBasedPacketManagerService packetManagerService;
 
 
 
@@ -180,14 +196,14 @@ public class DemodedupeProcessorTest {
 	@Before
 	public void setUp() throws Exception {
 		when(utility.getDefaultSource(any(), any())).thenReturn(source);
-		ReflectionTestUtils.setField(demodedupeProcessor, "infantDedupe", "Y");
-		ReflectionTestUtils.setField(demodedupeProcessor, "ageLimit", "4");
 		dto.setRid("2018701130000410092018110735");
 
 		MockitoAnnotations.initMocks(this);
 
 		DemographicInfoDto dto1 = new DemographicInfoDto();
 		DemographicInfoDto dto2 = new DemographicInfoDto();
+		dto1.setRegId("2018701130000410092018110731");
+		dto2.setRegId("2018701130000410092018110732");
 
 		duplicateDtos.add(dto1);
 		duplicateDtos.add(dto2);
@@ -305,7 +321,12 @@ public class DemodedupeProcessorTest {
 		JSONObject mappingJsonObj= new ObjectMapper().readValue(mappingJsonString, JSONObject.class);
 		
 		Mockito.when(utility.getRegistrationProcessorMappingJson(anyString())).thenReturn(JsonUtil.getJSONObject(mappingJsonObj, MappingJsonConstants.IDENTITY));
-
+		Mockito.when(packetManagerService.getBiometrics(any(), any(), any(), any(), any()))
+		.thenReturn(getBiometricRecord(Arrays.asList("Left Thumb", "Right Thumb", "Left MiddleFinger",
+				"Left RingFinger", "Left LittleFinger", "Left IndexFinger", "Right MiddleFinger",
+				"Right RingFinger", "Right LittleFinger", "Right IndexFinger", "Left", "Right", "Face"),
+				false));
+		mockDataSharePolicy(Lists.newArrayList(BiometricType.FACE, BiometricType.FINGER, BiometricType.IRIS));
 
 	}
 
@@ -316,7 +337,7 @@ public class DemodedupeProcessorTest {
 	 */
 	@Test
 	public void testDemoDedupeNewPacketSuccess() throws Exception {
-		when(env.getProperty(DEMODEDUPEENABLE)).thenReturn("true");
+
 		byte[] b = "sds".getBytes();
 		List<DemographicInfoDto> emptyDuplicateDtoSet = new ArrayList<>();
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
@@ -504,7 +525,6 @@ public class DemodedupeProcessorTest {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	@Ignore
 	public void testDemoDedupePotentialMatchWithEmpty() throws Exception {
 		List<AbisResponseDto> abisResponseDtos = new ArrayList<>();
 		List<AbisResponseDetDto> abisResponseDetDtos = new ArrayList<>();
@@ -535,12 +555,10 @@ public class DemodedupeProcessorTest {
 		Mockito.when(packetInfoManager.getAbisResponseRecords(anyString(), anyString())).thenReturn(abisResponseDtos);
 		Mockito.when(packetInfoManager.getAbisResponseDetRecordsList(any())).thenReturn(abisResponseDetDtos);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), any())).thenReturn(matchedRegIds);
-		doNothing().when(packetInfoManager).saveManualAdjudicationData(anyList(), anyString(), any(), any(), any(),null,null);
-		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
+
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 
-		assertFalse(messageDto.getIsValid());
-
+		assertEquals(MessageBusAddress.MANUAL_VERIFICATION_BUS_IN, messageDto.getMessageBusAddress());
 	}
 	
 	@Test
@@ -641,42 +659,6 @@ public class DemodedupeProcessorTest {
 
 	}
 
-	/**
-	 * Test resource exception.
-	 *
-	 * @throws ApisResourceAccessException           the apis resource access
-	 *                                               exception
-	 * @throws IOException                           Signals that an I/O exception
-	 *                                               has occurred.
-	 * @throws IntrospectionException
-	 * @throws ParseException
-	 * @throws InvocationTargetException
-	 * @throws IllegalArgumentException
-	 * @throws IllegalAccessException
-	 * @throws                                       io.mosip.kernel.core.exception.IOException
-	 * @throws RegistrationProcessorCheckedException
-	 */
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testResourceException() throws ApisResourceAccessException, IOException, JsonProcessingException, PacketManagerException {
-		when(env.getProperty(DEMODEDUPEENABLE)).thenReturn("true");
-
-		List<DemographicInfoDto> emptyDuplicateDtoSet = new ArrayList<>();
-		when(utility.getDefaultSource(any(),any())).thenReturn(source);
-		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
-
-		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
-		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.PRE_ABIS_IDENTIFICATION);
-		Mockito.when(demoDedupe.performDedupe(anyString())).thenReturn(emptyDuplicateDtoSet);
-		when(utility.getDefaultSource(any(), any())).thenReturn(source);
-		ApisResourceAccessException exp = new ApisResourceAccessException("errorMessage");
-		Mockito.doThrow(exp).when(utility).getApplicantAge(anyString(),anyString(), any());
-
-
-		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
-		assertEquals(true, messageDto.getInternalError());
-	}
-
 	@Test
 	public void testFSAdapterExceptionException()
 			throws ApisResourceAccessException, IOException, JsonProcessingException, PacketManagerException {
@@ -710,7 +692,7 @@ public class DemodedupeProcessorTest {
 	 */
 	@Test
 	public void testDemoDedupeNewPacketSkipped() throws Exception {
-		when(env.getProperty(DEMODEDUPEENABLE)).thenReturn("false");
+
 		byte[] b = "sds".getBytes();
 
 
@@ -733,7 +715,7 @@ public class DemodedupeProcessorTest {
 	 */
 	@Test
 	public void testDemoDedupeNewPacketSuccessWithDuplicates() throws Exception {
-		when(env.getProperty(DEMODEDUPEENABLE)).thenReturn("true");
+
 		byte[] b = "sds".getBytes();
 	
 
@@ -757,7 +739,7 @@ public class DemodedupeProcessorTest {
 	 */
 	@Test
 	public void testDemoDedupeNewPacketSuccessWithDuplicatesWithException() throws Exception {
-		when(env.getProperty(DEMODEDUPEENABLE)).thenReturn("true");
+
 		byte[] b = "sds".getBytes();
 	
 
@@ -776,50 +758,10 @@ public class DemodedupeProcessorTest {
 		assertFalse(messageDto.getIsValid());
 
 	}
-
-	@Test
-	public void testDemoDedupeNewChildPacketSuccess() throws Exception {
-		when(env.getProperty(DEMODEDUPEENABLE)).thenReturn("true");
-		byte[] b = "sds".getBytes();
-		List<DemographicInfoDto> emptyDuplicateDtoSet = new ArrayList<>();
-		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(2);
-		PowerMockito.mockStatic(JsonUtil.class);
-		PowerMockito.mockStatic(IOUtils.class);
-		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
-				.thenReturn(packetMetaInfo);
-		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(b);
-		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
-		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.PRE_ABIS_IDENTIFICATION);
-		Mockito.when(demoDedupe.performDedupe(anyString())).thenReturn(emptyDuplicateDtoSet);
-
-		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
-		assertTrue(messageDto.getIsValid());
-
-	}
-	
-	@Test
-	public void testDemoDedupeDisabledSuccess() throws Exception {
-		when(env.getProperty(DEMODEDUPEENABLE)).thenReturn("false");
-		byte[] b = "sds".getBytes();
-		List<DemographicInfoDto> emptyDuplicateDtoSet = new ArrayList<>();
-		Mockito.when(utility.getApplicantAge(any(),any(), any())).thenReturn(20);
-		PowerMockito.mockStatic(JsonUtil.class);
-		PowerMockito.mockStatic(IOUtils.class);
-		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
-				.thenReturn(packetMetaInfo);
-		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(b);
-		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
-		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.PRE_ABIS_IDENTIFICATION);
-		Mockito.when(demoDedupe.performDedupe(anyString())).thenReturn(emptyDuplicateDtoSet);
-
-		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
-		assertTrue(messageDto.getIsValid());
-
-	}
 	
 	@Test
 	public void testDemoDedupeSuccess() throws Exception {
-		when(env.getProperty(DEMODEDUPEENABLE)).thenReturn("true");
+
 		byte[] b = "sds".getBytes();
 		List<DemographicInfoDto> emptyDuplicateDtoSet = new ArrayList<>();
 		Mockito.when(utility.getApplicantAge(any(), any(), any())).thenReturn(20);
@@ -838,7 +780,7 @@ public class DemodedupeProcessorTest {
 	}
 	@Test
 	public void testDemoDedupeNewDuplicatePacketSuccess() throws Exception {
-		when(env.getProperty(DEMODEDUPEENABLE)).thenReturn("true");
+
 		
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.DUPLICATE_FOR_SAME_TRANSACTION_ID);
@@ -848,4 +790,143 @@ public class DemodedupeProcessorTest {
 
 	}
 
+	private void mockDataSharePolicy(List<BiometricType> shareableBiometricList) throws ApisResourceAccessException {
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), anyString(), any()))
+				.thenReturn(getMockDataSharePolicy(shareableBiometricList));
+	}
+
+	private ResponseWrapper<LinkedHashMap<String, Object>> getMockDataSharePolicy(
+			List<BiometricType> shareableBiometricList) {
+
+		ObjectMapper mapper = new ObjectMapper();
+
+		List<ShareableAttributes> attr = new LinkedList<>();
+		if (shareableBiometricList != null && !shareableBiometricList.isEmpty()) {
+
+			ShareableAttributes shareableAttributes = new ShareableAttributes();
+			List<Source> sourceList = new ArrayList<>();
+
+			for (BiometricType bioType : shareableBiometricList) {
+				Filter filter = new Filter();
+				filter.setType(bioType.value());
+				if (BiometricType.FINGER.equals(bioType)) {
+					filter.setSubType(getFingerList());
+				} else if (BiometricType.IRIS.equals(bioType)) {
+					filter.setSubType(getIrisList());
+				}
+
+				Source src = new Source();
+				src.setFilter(Lists.newArrayList(filter));
+				sourceList.add(src);
+			}
+
+			shareableAttributes.setSource(sourceList);
+			attr = Lists.newArrayList(shareableAttributes);
+		}
+
+		ResponseWrapper<LinkedHashMap<String, Object>> policy = new ResponseWrapper<>();
+		LinkedHashMap<String, Object> policies = new LinkedHashMap<>();
+		LinkedHashMap<String, Object> sharableAttributes = new LinkedHashMap<>();
+		sharableAttributes.put(PolicyConstant.SHAREABLE_ATTRIBUTES, attr);
+		policies.put(PolicyConstant.POLICIES, sharableAttributes);
+		policy.setResponse(policies);
+
+		return policy;
+	}
+
+	private List<String> getIrisList() {
+		return Arrays.asList("Left", "Right");
+
+	}
+
+	private List<String> getFingerList() {
+		return Arrays.asList("Left Thumb", "Left LittleFinger", "Left IndexFinger", "Left MiddleFinger",
+				"Left RingFinger", "Right Thumb", "Right LittleFinger", "Right IndexFinger", "Right MiddleFinger",
+				"Right RingFinger");
+	}
+
+	private List<String> getFaceList() {
+		return Arrays.asList("Face");
+	}
+
+	private BiometricRecord getBiometricRecord(List<String> bioAttributes, boolean isBdbEmpty) {
+		BiometricRecord biometricRecord = new BiometricRecord();
+
+		byte[] bdb = isBdbEmpty ? null : new byte[2048];
+		for (String bioAttribute : bioAttributes) {
+			BIR birType1 = new BIR.BIRBuilder().build();
+			BDBInfo bdbInfoType1 = new BDBInfo.BDBInfoBuilder().build();
+			io.mosip.kernel.biometrics.entities.RegistryIDType registryIDType = new RegistryIDType();
+			registryIDType.setOrganization("Mosip");
+			registryIDType.setType("257");
+			io.mosip.kernel.biometrics.constant.QualityType quality = new QualityType();
+			quality.setAlgorithm(registryIDType);
+			quality.setScore(90l);
+			bdbInfoType1.setQuality(quality);
+
+			BiometricType singleType1 = bioAttribute.equalsIgnoreCase("face") ? BiometricType.FACE
+					: bioAttribute.equalsIgnoreCase("left") || bioAttribute.equalsIgnoreCase("right")
+							? BiometricType.IRIS
+							: BiometricType.FINGER;
+			List<BiometricType> singleTypeList1 = new ArrayList<>();
+			singleTypeList1.add(singleType1);
+			bdbInfoType1.setType(singleTypeList1);
+
+			String[] bioAttributeArray = bioAttribute.split(" ");
+
+			List<String> subtype = new ArrayList<>();
+			for (String attribute : bioAttributeArray) {
+				subtype.add(attribute);
+			}
+			bdbInfoType1.setSubtype(subtype);
+
+			birType1.setBdbInfo(bdbInfoType1);
+			birType1.setBdb(bdb);
+
+			biometricRecord.getSegments().add(birType1);
+		}
+
+		return biometricRecord;
+	}
+
+	@Test
+	public void testDemoDedupeNewPacketSuccessWithDuplicatesWithNoBiometrics() throws Exception {
+
+		byte[] b = "sds".getBytes();
+
+		PowerMockito.mockStatic(JsonUtil.class);
+		PowerMockito.mockStatic(IOUtils.class);
+		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
+				.thenReturn(packetMetaInfo);
+		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(b);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.PRE_ABIS_IDENTIFICATION);
+		Mockito.when(demoDedupe.performDedupe(anyString())).thenReturn(duplicateDtos);
+		Mockito.when(packetManagerService.getBiometrics(any(), any(), any(), any(), any())).thenReturn(null);
+		mockDataSharePolicy(Lists.newArrayList(BiometricType.IRIS, BiometricType.FINGER, BiometricType.FACE));
+		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
+		assertEquals(MessageBusAddress.MANUAL_VERIFICATION_BUS_IN, messageDto.getMessageBusAddress());
+
+	}
+
+	@Test
+	public void testDemoDedupeNewPacketSuccessWithDuplicatesWithemptyBdbFound()
+			throws Exception {
+		byte[] b = "sds".getBytes();
+
+		PowerMockito.mockStatic(JsonUtil.class);
+		PowerMockito.mockStatic(IOUtils.class);
+		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
+				.thenReturn(packetMetaInfo);
+		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(b);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.PRE_ABIS_IDENTIFICATION);
+		Mockito.when(demoDedupe.performDedupe(anyString())).thenReturn(duplicateDtos);
+		Mockito.when(packetManagerService.getBiometrics(any(), any(), any(), any(), any()))
+				.thenReturn(getBiometricRecord(Arrays.asList("Left RingFinger"), true));
+		mockDataSharePolicy(Lists.newArrayList(BiometricType.FINGER));
+
+		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
+		assertEquals(MessageBusAddress.MANUAL_VERIFICATION_BUS_IN, messageDto.getMessageBusAddress());
+	}
 }
