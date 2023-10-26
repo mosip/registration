@@ -271,7 +271,7 @@ public class PacketValidateProcessorTest {
 	}
 	
 	@Test
-	public void PacketValidationSuccessTest() throws NoSuchFieldException, IllegalAccessException {
+	public void PacketValidationSuccessTest() {
 		assertTrue(packetValidateProcessor.process(messageDTO, stageName).getIsValid());
 	}
 	
