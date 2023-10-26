@@ -373,6 +373,7 @@ public class RegistrationStatusServiceImpl
 		registrationStatusDto.setLatestTransactionTypeCode(entity.getLatestTransactionTypeCode());
 		registrationStatusDto.setRegistrationStageName(entity.getRegistrationStageName());
 		registrationStatusDto.setUpdateDateTime(entity.getUpdateDateTime());
+		registrationStatusDto.setPkt_createDateTime(entity.getPkt_createDateTime());
 		return registrationStatusDto;
 	}
 
@@ -416,6 +417,7 @@ public class RegistrationStatusServiceImpl
 		registrationStatusEntity.setLatestTransactionTypeCode(dto.getLatestTransactionTypeCode());
 		registrationStatusEntity.setRegistrationStageName(dto.getRegistrationStageName());
 		registrationStatusEntity.setLatestTransactionTimes(LocalDateTime.now(ZoneId.of("UTC")));
+		registrationStatusEntity.setPkt_createDateTime(dto.getPkt_createDateTime());
 		return registrationStatusEntity;
 	}
 

@@ -3,6 +3,8 @@ package io.mosip.registration.processor.stages.packet.validator;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
@@ -160,6 +162,9 @@ public class PacketValidateProcessor {
 	@Value("${mosip.notificationtype}")
 	private String notificationTypes;
 
+	@Value("${mosip.registration.processor.datetime.pattern}")
+	private String dateformat="yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+
 	@Autowired
 	private Decryptor decryptor;
 
@@ -185,12 +190,22 @@ public class PacketValidateProcessor {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", "PacketValidateProcessor::process()::entry");
 
+
 			packetValidationDto.setTransactionSuccessful(false);
 
 			registrationStatusDto = registrationStatusService.getRegistrationStatus(registrationId);
 
+			Map<String, String> metaInfo = packetManagerService.getMetaInfo(
+					registrationId, registrationStatusDto.getRegistrationType(), ProviderStageName.PACKET_VALIDATOR);
+
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern(dateformat);
+
+			registrationStatusDto.setPkt_createDateTime(LocalDateTime.parse(metaInfo.get(JsonConstant.CREATIONDATE),formatter));
+
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.VALIDATE_PACKET.toString());
+
+
 			registrationStatusDto.setRegistrationStageName(stageName);
 			boolean isValidSupervisorStatus = isValidSupervisorStatus(registrationId);
 			if (isValidSupervisorStatus) {
@@ -459,7 +474,7 @@ public class PacketValidateProcessor {
 			String eventType = packetValidationDto.isTransactionSuccessful() ? EventType.BUSINESS.toString()
 					: EventType.SYSTEM.toString();
 
-			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
+ 			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
 					moduleId, moduleName, registrationId);
 		}
 
@@ -548,6 +563,7 @@ public class PacketValidateProcessor {
 						regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), id,
 								PlatformErrorMessages.REVERSE_DATA_SYNC_SUCCESS.getMessage(), "");
 					}
+
 
 				}
 

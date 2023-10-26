@@ -50,6 +50,10 @@ public class RegistrationStatusEntity extends BaseRegistrationEntity {
 
 	private LocalDateTime createDateTime;
 
+	/** packet created date and time */
+	@Column(name = "pkt_cr_dtimes", updatable = false)
+	private LocalDateTime pkt_createDateTime;
+
 	/** The updated by. */
 	@Column(name = "upd_by")
 	private String updatedBy;
@@ -252,6 +256,14 @@ public class RegistrationStatusEntity extends BaseRegistrationEntity {
 	 */
 	public void setCreatedBy(String createdBy) {
 		this.createdBy = createdBy;
+	}
+
+	public LocalDateTime getPkt_createDateTime() {
+		return pkt_createDateTime;
+	}
+
+	public void setPkt_createDateTime(LocalDateTime pkt_createDateTime) {
+		this.pkt_createDateTime = pkt_createDateTime;
 	}
 
 	/**

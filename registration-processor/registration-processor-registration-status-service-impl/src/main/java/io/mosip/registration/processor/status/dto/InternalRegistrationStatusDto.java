@@ -41,6 +41,16 @@ public class InternalRegistrationStatusDto implements Serializable {
 	/** The create date time. */
 	private LocalDateTime createDateTime;
 
+	private LocalDateTime pkt_createDateTime;
+
+	public LocalDateTime getPkt_createDateTime() {
+		return pkt_createDateTime;
+	}
+
+	public void setPkt_createDateTime(LocalDateTime pkt_createDateTime) {
+		this.pkt_createDateTime = pkt_createDateTime;
+	}
+
 	/** The updated by. */
 	private String updatedBy;
 

@@ -55,6 +55,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
@@ -64,7 +65,10 @@ import org.springframework.web.client.HttpServerErrorException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.security.MessageDigest;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -133,7 +137,12 @@ public class PacketValidateProcessorTest {
 	private String stageName;
 	private InternalRegistrationStatusDto registrationStatusDto ;
 	private SyncRegistrationEntity regEntity;
-	
+
+
+	@Mock
+	DateTimeFormatter dateTimeFormatter;
+
+
 	@Before
 	public void setup() throws Exception {
 		ReflectionTestUtils.setField(packetValidateProcessor, "notificationTypes", "SMS|EMAIL");
@@ -161,6 +170,7 @@ public class PacketValidateProcessorTest {
 		registrationAdditionalInfoDTO.setName("abc");
 		registrationAdditionalInfoDTO.setPhone("9898989898");
 		registrationAdditionalInfoDTO.setEmail("abc@gmail.com");
+
 		
 		PowerMockito.mockStatic(JsonUtils.class);
 		PowerMockito.when(JsonUtils.jsonStringToJavaObject(any(), any())).thenReturn(registrationAdditionalInfoDTO);
@@ -225,6 +235,9 @@ public class PacketValidateProcessorTest {
 		PowerMockito.mockStatic(JsonUtil.class);
 		Mockito.when(packetValidator.validate(any(), any(),any())).thenReturn(true);
 		Mockito.doNothing().when(auditUtility).saveAuditDetails(anyString(), anyString());
+
+
+		Mockito.when(packetManagerService.getMetaInfo(anyString(), anyString(), any())).thenReturn(new HashMap<>());
 		
 		MainResponseDTO<ReverseDatasyncReponseDTO> mainResponseDTO = new MainResponseDTO<>();
 		ReverseDatasyncReponseDTO reverseDatasyncReponseDTO = new ReverseDatasyncReponseDTO();
@@ -246,6 +259,7 @@ public class PacketValidateProcessorTest {
 		Map<String, String> metamap = new HashMap<>();
 		org.json.JSONArray jsonArray = new org.json.JSONArray();
 		org.json.JSONObject jsonObject1 = new org.json.JSONObject();
+		metamap.put("creationDate","2023-10-17T03:01:09.893Z");
 		jsonObject1.put("preRegistrationId", "12345");
 		jsonArray.put(0, jsonObject1);
 		metamap.put(JsonConstant.METADATA, jsonArray.toString());
@@ -257,7 +271,7 @@ public class PacketValidateProcessorTest {
 	}
 	
 	@Test
-	public void PacketValidationSuccessTest() {
+	public void PacketValidationSuccessTest() throws NoSuchFieldException, IllegalAccessException {
 		assertTrue(packetValidateProcessor.process(messageDTO, stageName).getIsValid());
 	}
 	
