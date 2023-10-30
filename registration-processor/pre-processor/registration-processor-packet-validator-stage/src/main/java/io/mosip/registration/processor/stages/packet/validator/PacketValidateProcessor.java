@@ -4,6 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
@@ -168,6 +170,9 @@ public class PacketValidateProcessor {
 	@Autowired
 	private NotificationUtility notificationUtility;
 
+	@Value("${mosip.registration.processor.datetime.pattern}")
+	private String dateformat;
+
 	public MessageDTO process(MessageDTO object, String stageName) {
 		TrimExceptionMessage trimMessage = new TrimExceptionMessage();
 		LogDescription description = new LogDescription();
@@ -188,7 +193,10 @@ public class PacketValidateProcessor {
 
 			registrationStatusDto = registrationStatusService.getRegistrationStatus(
 					registrationId, object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
-
+			Map<String, String> metaInfo = packetManagerService.getMetaInfo(
+					registrationId, registrationStatusDto.getRegistrationType(), ProviderStageName.PACKET_VALIDATOR);
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern(dateformat);
+			registrationStatusDto.setPacketCreateDateTime(LocalDateTime.parse(metaInfo.get(JsonConstant.CREATIONDATE),formatter));
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.VALIDATE_PACKET.toString());
 			registrationStatusDto.setRegistrationStageName(stageName);

@@ -67,6 +67,18 @@ public class RegistrationStatusEntity extends BaseRegistrationEntity<BaseRegistr
 
 	private LocalDateTime createDateTime;
 
+	public LocalDateTime getPacketCreatedDateTime() {
+		return packetCreatedDateTime;
+	}
+
+	public void setPacketCreatedDateTime(LocalDateTime packetCreatedDateTime) {
+		this.packetCreatedDateTime = packetCreatedDateTime;
+	}
+
+	/** packet created date and time */
+	@Column(name = "pkt_cr_dtimes")
+	private LocalDateTime packetCreatedDateTime;
+
 	/** The updated by. */
 	@Column(name = "upd_by")
 	private String updatedBy;
