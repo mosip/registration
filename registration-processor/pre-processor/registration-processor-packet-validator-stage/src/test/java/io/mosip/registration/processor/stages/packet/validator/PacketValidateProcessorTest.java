@@ -64,6 +64,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -127,6 +128,9 @@ public class PacketValidateProcessorTest {
 	
 	@Mock
 	private NotificationUtility notificationUtility;
+
+	@Mock
+	DateTimeFormatter dateTimeFormatter;
 	
 	private MessageDTO messageDTO;
 	private String stageName;
@@ -136,6 +140,7 @@ public class PacketValidateProcessorTest {
 	@Before
 	public void setup() throws Exception {
 		ReflectionTestUtils.setField(packetValidateProcessor, "notificationTypes", "SMS|EMAIL");
+		ReflectionTestUtils.setField(packetValidateProcessor, "dateformat", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		messageDTO=new MessageDTO();
 		messageDTO.setRid("123456789");
 		messageDTO.setInternalError(false);
@@ -245,6 +250,7 @@ public class PacketValidateProcessorTest {
 		Map<String, String> metamap = new HashMap<>();
 		org.json.JSONArray jsonArray = new org.json.JSONArray();
 		org.json.JSONObject jsonObject1 = new org.json.JSONObject();
+		metamap.put("creationDate","2023-10-17T03:01:09.893Z");
 		jsonObject1.put("preRegistrationId", "12345");
 		jsonArray.put(0, jsonObject1);
 		metamap.put(JsonConstant.METADATA, jsonArray.toString());
