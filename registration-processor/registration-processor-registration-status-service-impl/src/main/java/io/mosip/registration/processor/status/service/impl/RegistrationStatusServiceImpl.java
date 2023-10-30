@@ -641,6 +641,7 @@ public class RegistrationStatusServiceImpl
 		registrationStatusDto.setSource(entity.getSource());
 		registrationStatusDto.setIteration(entity.getIteration());
 		registrationStatusDto.setWorkflowInstanceId(entity.getId().getWorkflowInstanceId());
+		registrationStatusDto.setPacketCreateDateTime(entity.getPacketCreatedDateTime());
 		return registrationStatusDto;
 	}
 
@@ -702,6 +703,7 @@ public class RegistrationStatusServiceImpl
 			registrationStatusEntity.setLastSuccessStageName(dto.getRegistrationStageName());
 		else
 			registrationStatusEntity.setLastSuccessStageName(existingLastSuccessStageName);
+		registrationStatusEntity.setPacketCreatedDateTime(dto.getPacketCreateDateTime());
 		return registrationStatusEntity;
 	}
 
