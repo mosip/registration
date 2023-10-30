@@ -25,4 +25,5 @@ public class DemoDedupeConstants {
 	public static final String REJECTED_OR_REREGISTER = "The packet status is Rejected or Re-Register. Hence ignoring Registration Id";
 	public static final String NO_MATCH_FOUND = "No matched RegistrationId's found. Hence data is not inserting in manual adjudication table";
 	public static final String DEMO_SKIP = "Demographic Deduplication Skipped";
+	public static final String BIOMETRIC_VALIDATION_FAILED_SENDING_FOR_MANUAL = "Potential duplicates found and biometric validation failed. Hence sending to manual adjudication";
 }

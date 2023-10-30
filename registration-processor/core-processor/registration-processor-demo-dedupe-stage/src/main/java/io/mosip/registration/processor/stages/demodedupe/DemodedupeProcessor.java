@@ -269,7 +269,8 @@ public class DemodedupeProcessor {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
 			registrationStatusDto.setStatusComment(
 					trimExceptionMessage
-							.trimExceptionMessage(StatusUtil.DEMO_DEDUPE_PACKET_MANAGER_EXCEPTION + e.getMessage()));
+							.trimExceptionMessage(
+									StatusUtil.DEMO_DEDUPE_PACKET_MANAGER_EXCEPTION.getMessage() + e.getMessage()));
 			registrationStatusDto.setSubStatusCode(StatusUtil.DEMO_DEDUPE_PACKET_MANAGER_EXCEPTION.getCode());
 			registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
 					.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_EXCEPTION));
@@ -309,7 +310,8 @@ public class DemodedupeProcessor {
 		} catch (ApisResourceAccessException e) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
 			registrationStatusDto.setStatusComment(
-					trimExceptionMessage.trimExceptionMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED + e.getMessage()));
+					trimExceptionMessage
+							.trimExceptionMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage() + e.getMessage()));
 			registrationStatusDto.setSubStatusCode(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode());
 			registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
 					.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION));
@@ -432,7 +434,7 @@ public class DemodedupeProcessor {
 						.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 				registrationStatusDto.setStatusComment(trimExceptionMessage.trimExceptionMessage(
-						StatusUtil.DEMO_DEDUPE_BIOMTERIC_RECORD_VALIDAITON_FAILED + e.getMessage()));
+						StatusUtil.DEMO_DEDUPE_BIOMTERIC_RECORD_VALIDAITON_FAILED.getMessage() + e.getMessage()));
 				registrationStatusDto
 						.setSubStatusCode(StatusUtil.DEMO_DEDUPE_BIOMTERIC_RECORD_VALIDAITON_FAILED.getCode());
 				object.setMessageBusAddress(MessageBusAddress.MANUAL_VERIFICATION_BUS_IN);
@@ -441,7 +443,7 @@ public class DemodedupeProcessor {
 				saveManualAdjudicationDataForDemoDuplicates(registrationStatusDto, duplicateDtos);
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
-						DemoDedupeConstants.SENDING_FOR_MANUAL);
+						DemoDedupeConstants.BIOMETRIC_VALIDATION_FAILED_SENDING_FOR_MANUAL);
 			}
 		} else {
 			object.setIsValid(Boolean.TRUE);
