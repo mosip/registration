@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.UUID;
 
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.JsonUtils;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
@@ -373,7 +376,7 @@ public class RegistrationStatusServiceImpl
 		registrationStatusDto.setLatestTransactionTypeCode(entity.getLatestTransactionTypeCode());
 		registrationStatusDto.setRegistrationStageName(entity.getRegistrationStageName());
 		registrationStatusDto.setUpdateDateTime(entity.getUpdateDateTime());
-		registrationStatusDto.setPkt_createDateTime(entity.getPkt_createDateTime());
+		registrationStatusDto.setPktCreateDateTime(entity.getPacketCreatedDateTime());
 		return registrationStatusDto;
 	}
 
@@ -417,7 +420,7 @@ public class RegistrationStatusServiceImpl
 		registrationStatusEntity.setLatestTransactionTypeCode(dto.getLatestTransactionTypeCode());
 		registrationStatusEntity.setRegistrationStageName(dto.getRegistrationStageName());
 		registrationStatusEntity.setLatestTransactionTimes(LocalDateTime.now(ZoneId.of("UTC")));
-		registrationStatusEntity.setPkt_createDateTime(dto.getPkt_createDateTime());
+		registrationStatusEntity.setPacketCreatedDateTime(dto.getPktCreateDateTime());
 		return registrationStatusEntity;
 	}
 

@@ -34,7 +34,8 @@ public class PacketValidatorStageTest {
 	@Mock
 	MosipEventBus mosipEventBus;
 	@InjectMocks
-	private PacketValidatorStage packetValidatorStage = new PacketValidatorStage() {
+	private PacketValidatorStage packetValidatorStage = new PacketValidatorStage()
+	{
 		@Override
 		public MosipEventBus getEventBus(Object verticleName, String url, int instanceNumber) {
 			vertx = Vertx.vertx();
@@ -64,20 +65,20 @@ public class PacketValidatorStageTest {
 				}
 			};
 		}
-		
+
 		@Override
 		public void consumeAndSend(MosipEventBus eventbus, MessageBusAddress addressbus1,
 				MessageBusAddress addressbus2, long messageExpiryTimeLimit) {
 		}
-		
+
 		@Override
 		public Router postUrl(Vertx vertx, MessageBusAddress consumeAddress, MessageBusAddress sendAddress) {
 			return null;
-			
+
 		}
 		@Override
 		public void createServer(Router router, int port) {
-			
+
 		}
 	};
 	@Test

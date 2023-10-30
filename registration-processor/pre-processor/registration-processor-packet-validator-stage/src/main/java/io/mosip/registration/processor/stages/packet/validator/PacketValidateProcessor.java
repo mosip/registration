@@ -200,10 +200,14 @@ public class PacketValidateProcessor {
 
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern(dateformat);
 
-			registrationStatusDto.setPkt_createDateTime(LocalDateTime.parse(metaInfo.get(JsonConstant.CREATIONDATE),formatter));
+			registrationStatusDto.setPktCreateDateTime(LocalDateTime.parse(metaInfo.get(JsonConstant.CREATIONDATE),formatter));
 
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.VALIDATE_PACKET.toString());
+			
+			registrationStatusDto.setStatusCode("Trying to update it");
+			
+			packetValidationDto.setTransactionSuccessful(true);
 
 
 			registrationStatusDto.setRegistrationStageName(stageName);
