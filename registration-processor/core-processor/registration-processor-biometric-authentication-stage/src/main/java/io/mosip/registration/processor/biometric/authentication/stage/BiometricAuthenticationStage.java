@@ -3,8 +3,6 @@ package io.mosip.registration.processor.biometric.authentication.stage;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -17,7 +15,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
@@ -27,7 +24,6 @@ import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
 import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
-import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
@@ -60,7 +56,6 @@ import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
 import io.mosip.registration.processor.status.dto.SyncResponseDto;
-import io.mosip.registration.processor.status.dto.SyncTypeDto;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
@@ -170,7 +165,7 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 			int applicantAge = utility.getApplicantAge(registrationId, process, ProviderStageName.BIO_AUTH);
 			int childAgeLimit = Integer.parseInt(ageLimit);
 			String applicantType = BiometricAuthenticationConstants.ADULT;
-			if (applicantAge <= childAgeLimit && applicantAge > 0) {
+			if (applicantAge <= childAgeLimit && applicantAge >= 0) {
 				applicantType = BiometricAuthenticationConstants.CHILD;
 			}
 			if (isUpdateAdultPacket(registartionType, applicantType)) {

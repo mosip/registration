@@ -618,4 +618,12 @@ public class BiometricAuthenticationStageTest {
 		assertTrue(messageDto.getInternalError());
 		assertTrue(messageDto.getIsValid());
 	}
+
+	@Test
+	public void testChildPacketWithLessThanOneYear() throws ApisResourceAccessException, JsonProcessingException, io.mosip.kernel.core.exception.IOException, PacketManagerException, IOException {
+		when(regentity.getRegistrationType()).thenReturn("UPDATE");
+		when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(0);
+		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
+		assertTrue(messageDto.getIsValid());
+	}
 }
