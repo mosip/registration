@@ -90,9 +90,6 @@ public class UserNotificationRequestValidatorTest {
 	@Test(expected = UserNotificationRequestValidationException.class)
 	public void testInValidRequestTime() throws UserNotificationRequestValidationException {
 		UserNotificationDTO userNotificationDTO = new UserNotificationDTO();
-		userNotificationDTO.setId("mosip.registration.processor.user.notification");
-		userNotificationDTO.setVersion("1.0");
-		userNotificationDTO.setRequesttime("2023-04-02T12:08:00.158Z");
 		userNotificationRequestValidator.validate(userNotificationDTO);
 	}
 

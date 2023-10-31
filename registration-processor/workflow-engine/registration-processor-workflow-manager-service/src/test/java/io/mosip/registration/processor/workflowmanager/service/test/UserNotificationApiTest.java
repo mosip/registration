@@ -297,11 +297,6 @@ public class UserNotificationApiTest {
                 return null;
             }
 
-//            @Override
-//            public JsonArray getBodyAsJsonArray() {
-//                return null;
-//            }
-
             @Override
             public JsonObject getBodyAsJson() {
                 JsonObject obj = new JsonObject();
@@ -325,10 +320,6 @@ public class UserNotificationApiTest {
                 return null;
             }
 
-//            @Override
-//            public Buffer getBody() {
-//                return null;
-//            }
 
             @Override
             public String getAcceptableContentType() {
