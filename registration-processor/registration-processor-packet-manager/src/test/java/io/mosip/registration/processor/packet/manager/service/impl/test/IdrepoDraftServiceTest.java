@@ -203,5 +203,29 @@ public class IdrepoDraftServiceTest {
 
     }
 
+	@Test(expected = IdrepoDraftReprocessableException.class)
+	public void idrepoDraftReprocessableExceptionTest()
+			throws ApisResourceAccessException, IdrepoDraftException, IOException, IdrepoDraftReprocessableException {
+		RequestDto requestDto = new RequestDto();
+		requestDto.setIdentity(idResponseDTO.getResponse().getIdentity());
+		IdRequestDto idRequestDto = new IdRequestDto();
+		idRequestDto.setRequest(requestDto);
+
+		ErrorDTO errorDTO = new ErrorDTO();
+		errorDTO.setMessage("Failed to either encrypt/decrypt message using Kernel Crypto Manager");
+		errorDTO.setErrorCode("IDR-IDS-003");
+		IdResponseDTO idResponseDTO1 = new IdResponseDTO();
+		idResponseDTO1.setErrors(Lists.newArrayList(errorDTO));
+
+		when(registrationProcessorRestClientService.headApi(ApiName.IDREPOHASDRAFT, Lists.newArrayList(ID), null, null))
+				.thenReturn(200);
+		when(registrationProcessorRestClientService.getApi(ApiName.IDREPOGETDRAFT, Lists.newArrayList(ID),
+				Lists.emptyList(), null, IdResponseDTO.class)).thenReturn(idResponseDTO);
+		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
+				.thenReturn(idResponseDTO1);
+
+		idrepoDraftService.idrepoUpdateDraft(ID, null, idRequestDto);
+
+	}
 
 }
