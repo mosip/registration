@@ -1,16 +1,12 @@
 package io.mosip.registration.processor.stages.uingenerator.stage;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftException;
-import io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -32,7 +28,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
-import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
@@ -59,7 +54,6 @@ import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
-import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.idrepo.dto.Documents;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
@@ -68,7 +62,13 @@ import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
+import io.mosip.registration.processor.packet.manager.dto.IdRequestDto;
+import io.mosip.registration.processor.packet.manager.dto.IdResponseDTO;
+import io.mosip.registration.processor.packet.manager.dto.RequestDto;
+import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftException;
+import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftReprocessableException;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
+import io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService;
 import io.mosip.registration.processor.packet.storage.dto.Document;
 import io.mosip.registration.processor.packet.storage.entity.RegLostUinDetEntity;
 import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
@@ -79,12 +79,7 @@ import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.stages.uingenerator.constants.UINConstants;
 import io.mosip.registration.processor.stages.uingenerator.dto.UinGenResponseDto;
-import io.mosip.registration.processor.stages.uingenerator.dto.VidRequestDto;
-import io.mosip.registration.processor.stages.uingenerator.dto.VidResponseDto;
 import io.mosip.registration.processor.stages.uingenerator.exception.VidCreationException;
-import io.mosip.registration.processor.packet.manager.dto.IdRequestDto;
-import io.mosip.registration.processor.packet.manager.dto.IdResponseDTO;
-import io.mosip.registration.processor.packet.manager.dto.RequestDto;
 import io.mosip.registration.processor.stages.uingenerator.util.UinStatusMessage;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.code.RegistrationType;
@@ -405,6 +400,22 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			description.setCode(PlatformErrorMessages.IDREPO_DRAFT_EXCEPTION.getCode());
 			object.setInternalError(Boolean.TRUE);
 			object.setRid(registrationStatusDto.getRegistrationId());
+		} catch (IdrepoDraftReprocessableException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId,
+					RegistrationStatusCode.PROCESSING.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+			registrationStatusDto.setStatusComment(trimExceptionMessage
+					.trimExceptionMessage(
+							StatusUtil.IDREPO_DRAFT_REPROCESSABLE_EXCEPTION.getMessage() + e.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.IDREPO_DRAFT_REPROCESSABLE_EXCEPTION.getCode());
+			registrationStatusDto.setLatestTransactionStatusCode(
+					registrationStatusMapperUtil
+							.getStatusCode(RegistrationExceptionTypeCode.IDREPO_DRAFT_REPROCESSABLE_EXCEPTION));
+			description.setMessage(PlatformErrorMessages.IDREPO_DRAFT_EXCEPTION.getMessage());
+			description.setCode(PlatformErrorMessages.IDREPO_DRAFT_EXCEPTION.getCode());
+			object.setInternalError(Boolean.TRUE);
+			object.setRid(registrationStatusDto.getRegistrationId());
 		} catch (Exception ex) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
 			registrationStatusDto.setStatusComment(
@@ -652,20 +663,17 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	/**
 	 * Id repo request builder.
 	 *
-	 * @param status
-	 *            the status
-	 * @param id
-	 *            the reg id
-	 * @param demographicIdentity
-	 *            the JSONObject
-	 * @param documentInfo
-	 *            the document info
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
+	 * @param status              the status
+	 * @param id                  the reg id
+	 * @param demographicIdentity the JSONObject
+	 * @param documentInfo        the document info
+	 * @throws ApisResourceAccessException       the apis resource access exception
 	 * @throws IOException
+	 * @throws IdrepoDraftReprocessableException
 	 */
 	private IdResponseDTO idRepoRequestBuilder(String id, String uin, String status, List<Documents> documentInfo,
-			JSONObject demographicIdentity) throws ApisResourceAccessException, IdrepoDraftException, IOException {
+			JSONObject demographicIdentity)
+			throws ApisResourceAccessException, IdrepoDraftException, IOException, IdrepoDraftReprocessableException {
 		IdResponseDTO idResponseDto;
 		RequestDto requestDto = new RequestDto();
 
@@ -707,21 +715,18 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	/**
 	 * Re activate uin.
 	 *
-	 * @param id
-	 *            the reg id
-	 * @param uin
-	 *            the uin
-	 * @param object
-	 *            the object
+	 * @param id          the reg id
+	 * @param uin         the uin
+	 * @param object      the object
 	 * @param description
 	 * @return the id response DTO
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
+	 * @throws ApisResourceAccessException       the apis resource access exception
 	 * @throws IOException
+	 * @throws IdrepoDraftReprocessableException
 	 */
 	private boolean reActivateUin(IdResponseDTO idResponseDTO, String id, String uin, MessageDTO object,
 			JSONObject demographicIdentity, LogDescription description)
-			throws ApisResourceAccessException, IOException, IdrepoDraftException {
+			throws ApisResourceAccessException, IOException, IdrepoDraftException, IdrepoDraftReprocessableException {
 		IdResponseDTO result = getIdRepoDataByUIN(uin, id, description);
 		List<String> pathsegments = new ArrayList<>();
 		RequestDto requestDto = new RequestDto();
@@ -840,19 +845,18 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	/**
 	 * Deactivate uin.
 	 *
-	 * @param id
-	 *            the reg id
-	 * @param uin
-	 *            the uin
-	 * @param object
-	 *            the object
+	 * @param id          the reg id
+	 * @param uin         the uin
+	 * @param object      the object
 	 * @param description
 	 * @return the id response DTO
 	 * @throws ApisResourceAccessException
 	 * @throws IOException
+	 * @throws IdrepoDraftReprocessableException
 	 */
 	private IdResponseDTO deactivateUin(String id, String uin, MessageDTO object, JSONObject demographicIdentity,
-			LogDescription description) throws ApisResourceAccessException, IOException, IdrepoDraftException {
+			LogDescription description)
+			throws ApisResourceAccessException, IOException, IdrepoDraftException, IdrepoDraftReprocessableException {
 		IdResponseDTO idResponseDto;
 		RequestDto requestDto = new RequestDto();
 		String statusComment = "";
@@ -993,22 +997,21 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	/**
 	 * Link reg id wrt uin.
 	 *
-	 * @param lostPacketRegId
-	 *            the lost packet reg id
-	 * @param matchedRegId
-	 *            the matched reg id
-	 * @param object
-	 *            the object
+	 * @param lostPacketRegId the lost packet reg id
+	 * @param matchedRegId    the matched reg id
+	 * @param object          the object
 	 * @param description
 	 * @return the id response DTO
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
+	 * @throws ApisResourceAccessException       the apis resource access exception
+	 * @throws IOException                       Signals that an I/O exception has
+	 *                                           occurred.
+	 * @throws IdrepoDraftReprocessableException
 	 */
 	@SuppressWarnings("unchecked")
 	private IdResponseDTO lostAndUpdateUin(String lostPacketRegId, String matchedRegId, String process, MessageDTO object,
-			LogDescription description) throws ApisResourceAccessException, IOException, io.mosip.kernel.core.util.exception.JsonProcessingException, PacketManagerException, IdrepoDraftException {
+			LogDescription description) throws ApisResourceAccessException, IOException,
+			io.mosip.kernel.core.util.exception.JsonProcessingException, PacketManagerException, IdrepoDraftException,
+			IdrepoDraftReprocessableException {
 
 		IdResponseDTO idResponse = null;
 		String uin = idRepoService.getUinByRid(matchedRegId, utility.getGetRegProcessorDemographicIdentity());
