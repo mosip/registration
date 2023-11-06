@@ -304,8 +304,10 @@ public class PacketValidateProcessorTest {
 		registrationStatusDto.setRetryCount(1);
 		Mockito.when(packetValidator.validate(any(), any(),any())).thenReturn(false);
 		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
-		assertFalse(object.getIsValid());
-		assertFalse(object.getInternalError());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService,Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(),any(),any());
+		assertEquals(null, argument.getAllValues().get(0).getPacketCreateDateTime());
 	}
 	@Test
 	public void PacketValidationPacketManagerFailedTest()
