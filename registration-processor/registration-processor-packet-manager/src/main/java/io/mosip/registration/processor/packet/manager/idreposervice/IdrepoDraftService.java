@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.code.ApiName;
+import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
@@ -23,6 +24,7 @@ import io.mosip.registration.processor.packet.manager.dto.IdResponseDTO;
 import io.mosip.registration.processor.packet.manager.dto.RequestDto;
 import io.mosip.registration.processor.packet.manager.dto.ResponseDTO;
 import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftException;
+import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftReprocessableException;
 
 @Service
 public class IdrepoDraftService {
@@ -31,6 +33,7 @@ public class IdrepoDraftService {
     private static final Integer IDREPO_DRAFT_FOUND = 200;
     private static final Integer IDREPO_DRAFT_NOT_FOUND = 204;
     private static Logger regProcLogger = RegProcessorLogger.getLogger(IdrepoDraftService.class);
+	private static final String ID_REPO_KEY_MANAGER_ERROR = "IDR-IDS-003";
 
     @Autowired
     private ObjectMapper mapper;
@@ -75,7 +78,8 @@ public class IdrepoDraftService {
         return  (response.getErrors() == null || response.getErrors().isEmpty());
     }
 
-    public IdResponseDTO idrepoUpdateDraft(String id, String uin, IdRequestDto idRequestDto) throws ApisResourceAccessException, IdrepoDraftException, IOException {
+	public IdResponseDTO idrepoUpdateDraft(String id, String uin, IdRequestDto idRequestDto)
+			throws ApisResourceAccessException, IdrepoDraftException, IOException, IdrepoDraftReprocessableException {
         regProcLogger.debug("idrepoUpdateDraft entry " + id);
         if (!idrepoHasDraft(id)) {
             regProcLogger.info("Existing draft not found for id " + id + ". Creating new draft.");
@@ -100,25 +104,35 @@ public class IdrepoDraftService {
         IdResponseDTO response = (IdResponseDTO) registrationProcessorRestClientService.patchApi(
                 ApiName.IDREPOUPDATEDRAFT, Lists.newArrayList(id), null, null, idRequestDto, IdResponseDTO.class);
         if (response.getErrors() != null && !response.getErrors().isEmpty()) {
-            regProcLogger.error("Error occured while updating draft for id : " + id, response.getErrors().iterator().next().toString());
-            throw new IdrepoDraftException(response.getErrors().iterator().next().getErrorCode(),
-                    response.getErrors().iterator().next().getMessage());
+			ErrorDTO error = response.getErrors().get(0);
+			regProcLogger.error("Error occured while updating draft for id : " + id, error.toString());
+			if (response.getErrors().get(0).getErrorCode().equalsIgnoreCase(ID_REPO_KEY_MANAGER_ERROR)) {
+				throw new IdrepoDraftReprocessableException(error.getErrorCode(), error.getMessage());
+			} else {
+				throw new IdrepoDraftException(error.getErrorCode(), error.getMessage());
+			}
         }
 
         regProcLogger.debug("idrepoUpdateDraft exit " + id);
         return response;
     }
     
-    public IdResponseDTO idrepoPublishDraft(String id) throws ApisResourceAccessException, IdrepoDraftException {
+	public IdResponseDTO idrepoPublishDraft(String id)
+			throws ApisResourceAccessException, IdrepoDraftException, IdrepoDraftReprocessableException {
     	regProcLogger.debug("idrepoPublishDraft entry " + id);
     	List<String> pathsegments=new ArrayList<String>();
 		pathsegments.add(id);
 		IdResponseDTO response =  (IdResponseDTO) registrationProcessorRestClientService.
 				getApi(ApiName.IDREPOPUBLISHDRAFT, pathsegments, "", "", IdResponseDTO.class);	
 		if (response.getErrors() != null && !response.getErrors().isEmpty()) {
-            regProcLogger.error("Error occured while updating draft for id : " + id, response.getErrors().iterator().next().toString());
-            throw new IdrepoDraftException(response.getErrors().iterator().next().getErrorCode(),
-                    response.getErrors().iterator().next().getMessage());
+			ErrorDTO error = response.getErrors().get(0);
+			regProcLogger.error("Error occured while updating draft for id : " + id, error.toString());
+			if (response.getErrors().get(0).getErrorCode().equalsIgnoreCase(ID_REPO_KEY_MANAGER_ERROR)) {
+				throw new IdrepoDraftReprocessableException(error.getErrorCode(), error.getMessage());
+			} else {
+				throw new IdrepoDraftException(error.getErrorCode(), error.getMessage());
+			}
+
         }
 
         regProcLogger.debug("idrepoPublishDraft exit " + id);

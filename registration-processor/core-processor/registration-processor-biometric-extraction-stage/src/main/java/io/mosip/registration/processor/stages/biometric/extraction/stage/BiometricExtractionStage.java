@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.ws.rs.core.MediaType;
-
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -52,6 +50,7 @@ import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.manager.dto.IdResponseDTO;
 import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftException;
+import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftReprocessableException;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -76,6 +75,7 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 	/** stage properties prefix */
 	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.biometric.extraction.";
 	private static final String USER = "MOSIP_SYSTEM";
+	private static final String ID_REPO_KEY_MANAGER_ERROR = "IDR-IDS-003";
 	
 	/** The mosip event bus. */
 	MosipEventBus mosipEventBus = null;
@@ -267,10 +267,27 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 					RegistrationStatusCode.FAILED.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
 			registrationStatusDto.setStatusComment(
-					trimExceptionMessage.trimExceptionMessage(StatusUtil.IDREPO_DRAFT_EXCEPTION.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.IDREPO_DRAFT_EXCEPTION.getCode());
+					trimExceptionMessage.trimExceptionMessage(
+							StatusUtil.BIOMETRIC_EXTRACTION_IDREPO_DRAFT_EXCEPTION.getMessage() + e.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.BIOMETRIC_EXTRACTION_IDREPO_DRAFT_EXCEPTION.getCode());
 			registrationStatusDto.setLatestTransactionStatusCode(
 					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.IDREPO_DRAFT_EXCEPTION));
+			description.setMessage(PlatformErrorMessages.IDREPO_DRAFT_EXCEPTION.getMessage());
+			description.setCode(PlatformErrorMessages.IDREPO_DRAFT_EXCEPTION.getCode());
+			object.setInternalError(Boolean.TRUE);
+			object.setRid(registrationStatusDto.getRegistrationId());
+		} catch (IdrepoDraftReprocessableException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId,
+					RegistrationStatusCode.PROCESSING.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+			registrationStatusDto.setStatusComment(trimExceptionMessage.trimExceptionMessage(
+					StatusUtil.BIOMETRIC_EXTRACTION_IDREPO_DRAFT_REPROCESSABLE_EXCEPTION.getMessage()
+							+ e.getMessage()));
+			registrationStatusDto
+					.setSubStatusCode(StatusUtil.BIOMETRIC_EXTRACTION_IDREPO_DRAFT_REPROCESSABLE_EXCEPTION.getCode());
+			registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
+					.getStatusCode(RegistrationExceptionTypeCode.IDREPO_DRAFT_REPROCESSABLE_EXCEPTION));
 			description.setMessage(PlatformErrorMessages.IDREPO_DRAFT_EXCEPTION.getMessage());
 			description.setCode(PlatformErrorMessages.IDREPO_DRAFT_EXCEPTION.getCode());
 			object.setInternalError(Boolean.TRUE);
@@ -323,13 +340,17 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 
 	/**
 	 * add biometric extractions to id repo
+	 * 
 	 * @param dto
 	 * @param registrationId
 	 * @throws ApisResourceAccessException
-	 * @throws RegistrationProcessorCheckedException 
+	 * @throws IdrepoDraftReprocessableException
+	 * @throws IdrepoDraftException
+	 *
 	 */
 	private IdResponseDTO addBiometricExtractiontoIdRepository(ExtractorDto dto,
-			String registrationId) throws ApisResourceAccessException, RegistrationProcessorCheckedException {
+			String registrationId)
+			throws ApisResourceAccessException, IdrepoDraftReprocessableException, IdrepoDraftException {
 		String extractionFormat = "";
 		if(dto.getBiometric().equals("iris")) {
 			extractionFormat="irisExtractionFormat";
@@ -340,10 +361,15 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 		}
 		List<String> segments=List.of(registrationId);
 		IdResponseDTO response= (IdResponseDTO) registrationProcessorRestClientService.putApi(ApiName.IDREPOEXTRACTBIOMETRICS, segments, extractionFormat, dto.getAttributeName(), null, IdResponseDTO.class, null);
+
 		if (response.getErrors() != null && !response.getErrors().isEmpty()) {
-            regProcLogger.error("Error occured while updating draft for id : " + registrationId, response.getErrors().iterator().next().toString());
-            throw new RegistrationProcessorCheckedException(response.getErrors().iterator().next().getErrorCode(),
-            		response.getErrors().iterator().next().getMessage());
+			ErrorDTO error = response.getErrors().get(0);
+			regProcLogger.error("Error occured while updating draft for id : " + registrationId, error.toString());
+			if (response.getErrors().get(0).getErrorCode().equalsIgnoreCase(ID_REPO_KEY_MANAGER_ERROR)) {
+				throw new IdrepoDraftReprocessableException(error.getErrorCode(), error.getMessage());
+			} else {
+				throw new IdrepoDraftException(error.getErrorCode(), error.getMessage());
+			}
         }
 		return response;
 	}

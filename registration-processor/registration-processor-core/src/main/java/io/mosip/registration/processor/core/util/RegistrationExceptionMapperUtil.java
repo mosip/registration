@@ -195,6 +195,8 @@ public class RegistrationExceptionMapperUtil {
 		statusMap.put(RegistrationExceptionTypeCode.PACKET_REJECTED, RegistrationTransactionStatusCode.REJECTED);
 		statusMap.put(RegistrationExceptionTypeCode.INTRODUCER_BIOMETRIC_ALL_EXCEPTION_IN_PACKET,
 				RegistrationTransactionStatusCode.FAILED);
+		statusMap.put(RegistrationExceptionTypeCode.IDREPO_DRAFT_REPROCESSABLE_EXCEPTION,
+				RegistrationTransactionStatusCode.REPROCESS);
 
 		return unmodifiableMap;
 
