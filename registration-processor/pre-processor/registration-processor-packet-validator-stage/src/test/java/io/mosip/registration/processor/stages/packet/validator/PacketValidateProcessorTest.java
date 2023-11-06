@@ -298,7 +298,15 @@ public class PacketValidateProcessorTest {
 		Mockito.verify(registrationStatusService,Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(),any(),any());
 		assertEquals(null, argument.getAllValues().get(0).getPacketCreateDateTime());
 	}
-	
+
+	@Test
+	public void PacketValidationFailureTest() throws PacketValidatorException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException {
+		registrationStatusDto.setRetryCount(1);
+		Mockito.when(packetValidator.validate(any(), any(),any())).thenReturn(false);
+		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
+		assertFalse(object.getIsValid());
+		assertFalse(object.getInternalError());
+	}
 	@Test
 	public void PacketValidationPacketManagerFailedTest()
 			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
@@ -310,7 +318,17 @@ public class PacketValidateProcessorTest {
 		assertTrue(object.getIsValid());
 		assertTrue(object.getInternalError());
 	}
-	
+
+	@Test
+	public void invalidSupervisorStatusTest() throws PacketValidatorException {
+		registrationStatusDto.setRetryCount(1);
+		regEntity=new SyncRegistrationEntity();
+		regEntity.setSupervisorStatus("REJECTED");
+		Mockito.when(syncRegistrationService.findByWorkflowInstanceId(any())).thenReturn(regEntity);
+		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
+		assertFalse(object.getIsValid());
+		assertFalse(object.getInternalError());
+	}
 	@Test
 	public void PacketValidationParsingFailedTest()
 			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
