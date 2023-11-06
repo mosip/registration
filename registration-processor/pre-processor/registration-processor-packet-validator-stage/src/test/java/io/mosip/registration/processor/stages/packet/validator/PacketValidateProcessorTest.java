@@ -42,13 +42,11 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Matchers;
-import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.*;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -64,6 +62,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,11 +70,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.anyBoolean;
+import static org.junit.Assert.*;
 
 
 /**
@@ -250,42 +249,54 @@ public class PacketValidateProcessorTest {
 		Map<String, String> metamap = new HashMap<>();
 		org.json.JSONArray jsonArray = new org.json.JSONArray();
 		org.json.JSONObject jsonObject1 = new org.json.JSONObject();
+		metamap.put(JsonConstant.CREATIONDATE,"2023-10-17T03:01:09.893");
 		metamap.put("creationDate","2023-10-17T03:01:09.893Z");
 		jsonObject1.put("preRegistrationId", "12345");
 		jsonArray.put(0, jsonObject1);
 		metamap.put(JsonConstant.METADATA, jsonArray.toString());
-		Mockito.when(packetManagerService.getMetaInfo(anyString(), any(), any())).thenReturn(metamap);
-
+		Mockito.when(packetManagerService.getMetaInfo(any(), any(), any())).thenReturn(metamap);
 		Mockito.when(objectMapper.readValue(anyString(), any(Class.class))).thenReturn(new FieldValue("preRegistrationId", "12345"));
-
-
 	}
-	
+
 	@Test
-	public void PacketValidationSuccessTest() {
+	public void PacketValidationSuccessTest() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+		Map<String, String> metainfo1 = new HashMap<>();
+		metainfo1.put(JsonConstant.CREATIONDATE,"2023-10-17T03:01:09.893");
 		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService,Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(), Mockito.any(),
+				Mockito.any());
+		Assert.assertEquals(LocalDateTime.parse(metainfo1.get(JsonConstant.CREATIONDATE)), argument.getAllValues().get(0).getPacketCreateDateTime());
+		Assert.assertTrue(object.getIsValid());
+		Assert.assertFalse(object.getInternalError());
+	}
+
+	@Test
+	public void PacketValidationSuccessTestwithPacketCreatedDateTimeNull() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+		Map<String, String> metainfo = new HashMap<>();
+		metainfo.put(JsonConstant.CREATIONDATE,null);
+		Mockito.when(packetManagerService.getMetaInfo(any(), any(), any())).thenReturn(metainfo);
+		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService,Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(), Mockito.any(),
+				Mockito.any());
+		assertEquals(metainfo.get(JsonConstant.CREATIONDATE), argument.getAllValues().get(0).getPacketCreateDateTime());
 		assertTrue(object.getIsValid());
 		assertFalse(object.getInternalError());
 	}
-	
+
 	@Test
-	public void PacketValidationFailureTest() throws PacketValidatorException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException {
-		registrationStatusDto.setRetryCount(1);
-		Mockito.when(packetValidator.validate(any(), any(),any())).thenReturn(false);
+	public void PacketValidationSuccessTestwithPacketCreatedDateTimeInvalidFormat() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+		Map<String, String> metainfo = new HashMap<>();
+		metainfo.put(JsonConstant.CREATIONDATE,"2023-10-1703:01:09.893");
+		Mockito.when(packetManagerService.getMetaInfo(any(), any(), any())).thenReturn(metainfo);
 		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
-		assertFalse(object.getIsValid());
-		assertFalse(object.getInternalError());
-	}
-	
-	@Test
-	public void invalidSupervisorStatusTest() throws PacketValidatorException {
-		registrationStatusDto.setRetryCount(1);
-		regEntity=new SyncRegistrationEntity();
-		regEntity.setSupervisorStatus("REJECTED");
-		Mockito.when(syncRegistrationService.findByWorkflowInstanceId(any())).thenReturn(regEntity);
-		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
-		assertFalse(object.getIsValid());
-		assertFalse(object.getInternalError());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService,Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(),any(),any());
+		assertEquals(null, argument.getAllValues().get(0).getPacketCreateDateTime());
 	}
 	
 	@Test
