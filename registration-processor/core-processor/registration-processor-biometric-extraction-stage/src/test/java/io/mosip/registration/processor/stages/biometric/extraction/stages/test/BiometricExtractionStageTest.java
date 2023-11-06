@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
+import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,6 +36,8 @@ import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
+import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
+import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
@@ -330,5 +333,27 @@ public class BiometricExtractionStageTest {
 	@Test
 	public void testDeployVerticle() {
 		biometricExtractionStage.deployVerticle();
+	}
+
+	@Test
+	public void testIdrepoDraftReprocessableException() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.NEW.name());
+		messageDTO.setWorkflowInstanceId("123er");
+		messageDTO.setIteration(1);
+		when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.IDREPO_DRAFT_REPROCESSABLE_EXCEPTION))
+				.thenReturn("REPROCESS");
+		ErrorDTO errorDTO = new ErrorDTO();
+		errorDTO.setMessage("Failed to either encrypt/decrypt message using Kernel Crypto Manager");
+		errorDTO.setErrorCode("IDR-IDS-003");
+		IdResponseDTO idResponseDTO1 = new IdResponseDTO();
+		idResponseDTO1.setErrors(Lists.newArrayList(errorDTO));
+		when(registrationProcessorRestClientService.putApi(any(), any(), anyString(), anyString(), any(), any(), any()))
+				.thenReturn(idResponseDTO1);
+		MessageDTO result = biometricExtractionStage.process(messageDTO);
+		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 }
