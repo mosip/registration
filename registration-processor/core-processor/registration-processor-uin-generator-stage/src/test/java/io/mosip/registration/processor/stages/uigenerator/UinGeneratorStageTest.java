@@ -2413,5 +2413,23 @@ public class UinGeneratorStageTest {
 		assertTrue(result.getInternalError());
 		assertTrue(result.getIsValid());
 	}
-	
+
+	@Test
+	public void testUinGenerationIDRepoDraftReprocessableException() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.NEW.name());
+
+		when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.IDREPO_DRAFT_REPROCESSABLE_EXCEPTION))
+				.thenReturn("REPROCESS");
+		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any()))
+				.thenThrow(IdrepoDraftReprocessableException.class);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
+	}
 }
