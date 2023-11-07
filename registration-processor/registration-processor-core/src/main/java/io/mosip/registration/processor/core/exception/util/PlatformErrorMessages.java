@@ -379,6 +379,14 @@ public enum PlatformErrorMessages {
 
 	RPR_PVM_PACKET_REJECTED(PlatformConstants.RPR_PACKET_VALIDATOR_MODULE + "011",
 			"Rejected by Supervisor"),
+	RPR_PVM_PACKET_CREATED_DATE_TIME_EMPTY_OR_NULL(PlatformConstants.RPR_PACKET_VALIDATOR_MODULE + "015",
+			"Packet Created Date time is Null or Empty"),
+
+	RPR_PVM_PACKET_CREATED_DATE_TIME_PARSE_EXCEPTION(PlatformConstants.RPR_PACKET_VALIDATOR_MODULE + "016",
+			"Packet Created Date time is not in correct format"),
+
+	RPR_PVM_INVALID_ARGUMENT_EXCEPTION(PlatformConstants.RPR_PACKET_VALIDATOR_MODULE + "017",
+			"Invalid Argument"),
 
 	/** The packet classification failed. */
 	PACKET_CLASSIFICATION_FAILED("", "Packet Classification failed"),
