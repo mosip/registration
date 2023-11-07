@@ -155,11 +155,12 @@ public class NotificationUtility {
         String nameField = JsonUtil.getJSONValue(
                 JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.NAME),
                 MappingJsonConstants.VALUE);
+		String[] nameArray = nameField.toString().split(",");
 		for(String preferredLanguage:preferredLanguages) {
 		if (registrationAdditionalInfoDTO.getName() != null) {
-			attributes.put(nameField , registrationAdditionalInfoDTO.getName());
+			attributes.put(nameArray[0] + "_" + preferredLanguage, registrationAdditionalInfoDTO.getName());
 		} else {
-			attributes.put(nameField, "");
+			attributes.put(nameArray[0] + "_" + preferredLanguage, "");
 		}
 		
 		if (isProcessingSuccess) {
