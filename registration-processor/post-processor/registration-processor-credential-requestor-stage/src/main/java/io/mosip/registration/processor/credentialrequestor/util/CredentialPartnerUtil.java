@@ -1,24 +1,31 @@
 package io.mosip.registration.processor.credentialrequestor.util;
 
-import io.mosip.kernel.core.exception.BaseCheckedException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.core.util.JsonUtil;
+import io.mosip.registration.processor.credentialrequestor.dto.CredentialPartner;
+import io.mosip.registration.processor.credentialrequestor.dto.CredentialPartnersList;
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
+import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import org.apache.commons.collections.MapUtils;
+import org.assertj.core.util.Lists;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.mvel2.MVEL;
-import org.mvel2.ParserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -27,11 +34,7 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Component
 public class CredentialPartnerUtil {
@@ -40,20 +43,34 @@ public class CredentialPartnerUtil {
     private static final String VALUE_LABEL = "value";
     private static final String LANGUAGE = "language";
 
+    private CredentialPartnersList credentialPartners;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @Autowired
     private Environment env;
 
     @Autowired
     private Utilities utilities;
 
+    @Autowired
+    IdSchemaUtil idSchemaUtil;
+
+    @Value("${mosip.registration.processor.credential.partner-profiles}")
+    private String partnerProfileFileName;
+
     @Value("#{T(java.util.Arrays).asList('${mosip.mandatory-languages:}')}")
     private List<String> mandatoryLanguages;
 
-    @Value("${mosip.registration.processor.print.issuer.noMatch}")
+    @Value("${mosip.registration.processor.credential.conditional.no-match-partner-ids}")
     private String noMatchIssuer;
 
-    @Value("#{${mosip.registration.processor.print.issuer.config-map:{}}}")
+    @Value("#{${mosip.registration.processor.credential.conditional.partner-id-map:{}}}")
     private Map<String, String> credentialPartnerExpression;
+
+    @Value("${config.server.file.storage.uri}")
+    private String configServerFileStorageURL;
 
     /**
      * This map will hold the actual field names after resolving, using mapping JSON as keys and
@@ -65,7 +82,7 @@ public class CredentialPartnerUtil {
      */
     private List<String> requiredIdObjectFieldNames;
 
-    public List<String> getCredentialPartners(String regId, String registrationType, JSONObject identity) throws PacketManagerException, JSONException, ApisResourceAccessException, IOException, JsonProcessingException {
+    public List<CredentialPartner> getCredentialPartners(String regId, String registrationType, JSONObject identity) throws PacketManagerException, JSONException, ApisResourceAccessException, IOException, JsonProcessingException {
 
         regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                 regId, "CredentialPartnerUtil::getCredentialPartners()::entry");
@@ -75,35 +92,50 @@ public class CredentialPartnerUtil {
             regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
                     LoggerFileConstant.REGISTRATIONID.toString(), regId,
                     PlatformErrorMessages.RPR_PRT_ISSUER_NOT_FOUND_IN_PROPERTY.name());
-            return filteredPartners;
+            return Lists.emptyList();
         }
 
+        String schemaVersion = utilities.getPacketManagerService().getFieldByMappingJsonKey(regId,
+                MappingJsonConstants.IDSCHEMA_VERSION, registrationType, ProviderStageName.CREDENTIAL_REQUESTOR);
+
         Map<String, String> identityFieldValueMap = utilities.getPacketManagerService().getFields(regId,
-                requiredIdObjectFieldNames, registrationType, ProviderStageName.EVENT_HANDLER);
+                idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion)), registrationType, ProviderStageName.CREDENTIAL_REQUESTOR);
 
         Map<String, Object> context = new HashMap<>();
         for (Map.Entry<String, String> identityAttribute: identityFieldValueMap.entrySet()) {
             JSONObject attributeObject = new JSONObject(identityFieldValueMap);
             try {
-                JSONParser parser = new JSONParser();
-                Object obj = parser.parse((String)attributeObject.get(identityAttribute.getKey()));
-                if (obj instanceof org.json.simple.JSONArray) {
-                    org.json.simple.JSONArray attributeArray = (org.json.simple.JSONArray) obj;
-                    for (int i = 0; i < attributeArray.size(); i++) {
-                        JSONObject jsonObject = (JSONObject) attributeArray.get(i);
-                        if (mandatoryLanguages.get(0).equalsIgnoreCase((String) jsonObject.get(LANGUAGE))) {
-                            context.put(identityAttribute.getKey(), jsonObject.get(VALUE_LABEL));
+                if (identityAttribute.getKey() != null && identityAttribute.getValue() != null) {
+                    Object obj = attributeObject.get(identityAttribute.getKey());
+                    if (obj instanceof org.json.simple.JSONArray) {
+                        org.json.simple.JSONArray attributeArray = (org.json.simple.JSONArray) obj;
+                        for (int i = 0; i < attributeArray.size(); i++) {
+                            JSONObject jsonObject = (JSONObject) attributeArray.get(i);
+                            if (mandatoryLanguages.get(0).equalsIgnoreCase((String) jsonObject.get(LANGUAGE))) {
+                                context.put(identityAttribute.getKey(), jsonObject.get(VALUE_LABEL));
+                            }
+                        }
+                    } else {
+                        if (obj != null) {
+                            context.put(identityAttribute.getKey(), obj.toString());
                         }
                     }
-                } else {
-                    if (obj != null) {
-                        context.put(identityAttribute.getKey(), obj.toString());
-                    }
-                }
-            } catch (org.json.simple.parser.ParseException e) {
+                } else
+                    context.put(identityAttribute.getKey(), identityAttribute.getValue());
+            } catch (Exception e) {
                 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
                         ExceptionUtils.getStackTrace(e));
-                throw new ParsingException(PlatformErrorMessages.RPR_BDD_JSON_PARSING_EXCEPTION.getCode(), e);
+                throw new ParsingException(PlatformErrorMessages.RPR_PRT_DATA_VALIDATION_FAILED.getCode(), e);
+            }
+        }
+
+        // adding additional metadata so that it can be used for MVEL expression
+        Map<String, String> metaInfo = utilities.getPacketManagerService().getMetaInfo(regId, registrationType, ProviderStageName.CREDENTIAL_REQUESTOR);
+        if (MapUtils.isNotEmpty(metaInfo)) {
+            String metadata = metaInfo.get(JsonConstant.METADATA);
+            if (!StringUtils.isEmpty(metadata)) {
+                JSONArray jsonArray = new JSONArray(metadata);
+                addToMap(jsonArray, context);
             }
         }
 
@@ -122,36 +154,42 @@ public class CredentialPartnerUtil {
         regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                 regId, "CredentialPartnerUtil::FilteredPartners::" + filteredPartners.toString());
 
-        return filteredPartners;
+        List<CredentialPartner> finalList = new ArrayList<>();
+        if (!filteredPartners.isEmpty()) {
+            filteredPartners.forEach(
+                    p -> {
+                        Optional<CredentialPartner> partner = credentialPartners.getPartners()
+                                .stream().filter(pr -> pr.getId().equalsIgnoreCase(p)).findAny();
+                        if (partner.isPresent())
+                            finalList.add(partner.get());
+                    });
+        }
+        return finalList;
+    }
+
+    private void addToMap(JSONArray jsonArray, Map<String, Object> allMap) throws JSONException, IOException {
+        for (int i =0; i < jsonArray.length(); i++) {
+            org.json.JSONObject jsonObject = (org.json.JSONObject) jsonArray.get(i);
+            FieldValue fieldValue = objectMapper.readValue(jsonObject.toString(), FieldValue.class);
+            allMap.put(fieldValue.getLabel(), fieldValue.getValue());
+        }
     }
 
     @PostConstruct
-    private void getIdObjectFieldNames() throws BaseCheckedException {
-        regProcLogger.info( "CredentialPartnerUtil::getIdObjectFieldNames()::PostConstruct");
+    public void loadPartnerDetails() throws RegistrationProcessorCheckedException {
         try {
-            org.json.simple.JSONObject identityMappingJson =
-                    utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
-            requiredIDObjectFieldNamesMap = new HashMap<>();
-            for(Map.Entry<String, String> expressionEntry : credentialPartnerExpression.entrySet()) {
-                ParserContext parserContext = ParserContext.create();
-                MVEL.analysisCompile(expressionEntry.getValue(), parserContext);
-                Map<String, Class> expressionVariablesMap = parserContext.getInputs();
-                for(Map.Entry<String, Class> variableEntry: expressionVariablesMap.entrySet()) {
-                    String actualFieldName = JsonUtil.getJSONValue(
-                            JsonUtil.getJSONObject(identityMappingJson, variableEntry.getKey()),
-                            VALUE_LABEL);
-                    if(actualFieldName == null)
-                        throw new BaseCheckedException(
-                                PlatformErrorMessages.RPR_PCM_FIELD_NAME_NOT_AVAILABLE_IN_MAPPING_JSON.getCode(),
-                                PlatformErrorMessages.RPR_PCM_FIELD_NAME_NOT_AVAILABLE_IN_MAPPING_JSON.getMessage());
-                    requiredIDObjectFieldNamesMap.put(actualFieldName, variableEntry.getKey());
-                }
-            }
-            requiredIdObjectFieldNames = requiredIDObjectFieldNamesMap.keySet().stream().collect(Collectors.toList());
-        } catch (IOException e) {
-            throw new BaseCheckedException(
-                    PlatformErrorMessages.RPR_PCM_ACCESSING_IDOBJECT_MAPPING_FILE_FAILED.getCode(),
-                    PlatformErrorMessages.RPR_PCM_ACCESSING_IDOBJECT_MAPPING_FILE_FAILED.getMessage(), e);
+            String partners = Utilities.getJson(configServerFileStorageURL, partnerProfileFileName);
+            credentialPartners = JsonUtil.readValueWithUnknownProperties(partners, CredentialPartnersList.class);
+        } catch (Exception e) {
+            regProcLogger.error("Error loading credential Partners", e);
+            throw new RegistrationProcessorCheckedException(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode(),
+                    PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), e);
         }
+    }
+
+    public CredentialPartnersList getAllCredentialPartners() throws RegistrationProcessorCheckedException {
+        if (credentialPartners == null)
+            loadPartnerDetails();
+        return credentialPartners;
     }
 }

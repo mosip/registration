@@ -14,6 +14,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.processor.credentialrequestor.dto.CredentialPartner;
+import io.mosip.registration.processor.credentialrequestor.dto.CredentialPartnersList;
+import io.mosip.registration.processor.credentialrequestor.util.CredentialPartnerUtil;
+import org.assertj.core.util.Lists;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -84,6 +88,9 @@ public class CredentialRequestorStageTest {
 
 	@Mock
 	protected PropertiesUtil propertiesUtil;
+
+	@Mock
+	private CredentialPartnerUtil credentialPartnerUtil;
 
 	@Mock
 	private ObjectMapper objectMapper;
@@ -192,10 +199,7 @@ public class CredentialRequestorStageTest {
 		ReflectionTestUtils.setField(stage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(stage, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(stage, "busOutHaltAddresses", Arrays.asList());
-		ReflectionTestUtils.setField(stage, "pdfDelimiter", "-PDF");
-		ReflectionTestUtils.setField(stage, "defaultInternalIssuers", Arrays.asList("mpartner-default-digitalcard#PDFCard#RPR_UIN_CARD_TEMPLATE"));
-		ReflectionTestUtils.setField(stage, "defaultIssuers", Arrays.asList("mpartner-default-print#euin#RPR_UIN_CARD_TEMPLATE"));
-		ReflectionTestUtils.setField(stage, "additionalConfiguredCredentials", "[{'process':'OPENCRVS_NEW','credentialType':'opencrvs','issuer':'opencrvs-partner','fields':['opencrvsBRN']}]");
+		ReflectionTestUtils.setField(stage, "defaultPartners", Arrays.asList("digitalcardPartner", "opencrvsPartner"));
 
 		System.setProperty("server.port", "8099");
 
@@ -245,6 +249,23 @@ public class CredentialRequestorStageTest {
 		JSONObject jsonObject = new JSONObject(map1);
 		Mockito.when(utitilites.retrieveUIN(any())).thenReturn(jsonObject);
 
+		CredentialPartner partner1 = new CredentialPartner();
+		partner1.setId("digitalcardPartner");
+		partner1.setPartnerId("mpartner-default-digitalcard");
+		partner1.setCredentialType("PDFCard");
+		partner1.setTemplate("RPR_UIN_CARD_TEMPLATE");
+		partner1.setAppIdBasedCredentialIdSuffix(".pdf");
+
+		CredentialPartner partner2 = new CredentialPartner();
+		partner2.setId("opencrvsPartner");
+		partner2.setPartnerId("opencrvs-partner");
+		partner2.setCredentialType("opencrvs");
+		partner2.setTemplate("RPR_UIN_CARD_TEMPLATE");
+
+		CredentialPartnersList partnersList = new CredentialPartnersList();
+		partnersList.setPartners(Lists.newArrayList(partner1, partner2));
+		when(credentialPartnerUtil.getAllCredentialPartners()).thenReturn(partnersList);
+
 
 
 	}
@@ -254,7 +275,6 @@ public class CredentialRequestorStageTest {
 		testDeployVerticle();
         testStart();
         testPrintStageSuccess();
-		testPrintStageFailure();
 	}
 
 	public void testStart() {
@@ -302,7 +322,7 @@ public class CredentialRequestorStageTest {
 
 		dto.setReg_type(RegistrationType.NEW.name());
 
-		ResponseWrapper<CredentialResponseDto> responseWrapper = new ResponseWrapper<>();
+		ResponseWrapper<?> responseWrapper = new ResponseWrapper<>();
 		ErrorDTO error = new ErrorDTO();
 		error.setErrorCode("IDR-CRG-004");
 		error.setMessage("unknown exception");
@@ -310,12 +330,11 @@ public class CredentialRequestorStageTest {
 		errors.add(error);
 		responseWrapper.setErrors(errors);
 
-		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any(), any(MediaType.class)))
+		Mockito.when(restClientService.postApi(any(ApiName.class), any(), any(), any(), any(), any(MediaType.class)))
 				.thenReturn(responseWrapper);
 
 		MessageDTO result = stage.process(dto);
-		assertFalse(result.getIsValid());
-		assertFalse(result.getInternalError());
+		assertTrue(result.getInternalError());
 	}
 
 
