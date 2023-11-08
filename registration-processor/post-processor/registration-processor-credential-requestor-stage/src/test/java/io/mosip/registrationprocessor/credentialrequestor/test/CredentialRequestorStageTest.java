@@ -91,6 +91,9 @@ public class CredentialRequestorStageTest {
 	protected PropertiesUtil propertiesUtil;
 
 	@Mock
+	private CredentialPartnerUtil credentialPartnerUtil;
+
+	@Mock
 
 	private CredentialPartnerUtil credentialPartnerUtil;
 
@@ -282,6 +285,23 @@ public class CredentialRequestorStageTest {
 		when(credentialPartnerUtil.getAllCredentialPartners()).thenReturn(partnersList);
 
 		Mockito.when(utitilites.retrieveUIN(any())).thenReturn(jsonObject);
+
+		CredentialPartner partner1 = new CredentialPartner();
+		partner1.setId("digitalcardPartner");
+		partner1.setPartnerId("mpartner-default-digitalcard");
+		partner1.setCredentialType("PDFCard");
+		partner1.setTemplate("RPR_UIN_CARD_TEMPLATE");
+		partner1.setAppIdBasedCredentialIdSuffix(".pdf");
+
+		CredentialPartner partner2 = new CredentialPartner();
+		partner2.setId("opencrvsPartner");
+		partner2.setPartnerId("opencrvs-partner");
+		partner2.setCredentialType("opencrvs");
+		partner2.setTemplate("RPR_UIN_CARD_TEMPLATE");
+
+		CredentialPartnersList partnersList = new CredentialPartnersList();
+		partnersList.setPartners(Lists.newArrayList(partner1, partner2));
+		when(credentialPartnerUtil.getAllCredentialPartners()).thenReturn(partnersList);
 
 
 

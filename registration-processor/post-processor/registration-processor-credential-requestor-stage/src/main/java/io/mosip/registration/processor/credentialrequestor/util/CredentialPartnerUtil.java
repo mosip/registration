@@ -24,7 +24,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.mvel2.MVEL;
-import org.mvel2.ParserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -124,6 +123,9 @@ public class CredentialPartnerUtil {
                     PlatformErrorMessages.RPR_PRT_ISSUER_NOT_FOUND_IN_PROPERTY.name());
             return Lists.emptyList();
         }
+
+        String schemaVersion = utilities.getPacketManagerService().getFieldByMappingJsonKey(regId,
+                MappingJsonConstants.IDSCHEMA_VERSION, registrationType, ProviderStageName.CREDENTIAL_REQUESTOR);
 
         Map<String, Object> identityFieldValueMap = new HashMap<>();
                 requiredIdObjectFieldNames.forEach(field -> identityFieldValueMap.put(field, JsonUtil.getJSONValue(identity, field)));

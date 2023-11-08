@@ -60,6 +60,8 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.credentialrequestor.dto.CredentialPartner;
 import io.mosip.registration.processor.credentialrequestor.stage.exception.VidNotAvailableException;
 import io.mosip.registration.processor.credentialrequestor.util.CredentialPartnerUtil;
+import io.mosip.registration.processor.packet.storage.exception.ParsingException;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
