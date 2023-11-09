@@ -162,7 +162,11 @@ public class NotificationUtility {
 		} else {
 			attributes.put(nameArray[0] + "_" + preferredLanguage, "");
 		}
-		
+		if (nameArray.length > 1) {
+			for (int i = 1; i < nameArray.length; i++) {
+				attributes.put(nameArray[i] + "_" + preferredLanguage, "");
+			}
+		}
 		if (isProcessingSuccess) {
 			type = setNotificationTemplateType(registrationStatusDto, type);
 		} else if (!isValidSupervisorStatus) {
