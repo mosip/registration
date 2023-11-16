@@ -112,8 +112,8 @@
 		<packet.manager.version>1.1.5.5</packet.manager.version>
 		<registration.processor.rest.client.version>1.1.5.5-P6-SNAPSHOT</registration.processor.rest.client.version>
 		<packet.info.storage.service.version>1.1.5.5-P6-SNAPSHOT</packet.info.storage.service.version>
-		<packet.bio.dedupe.service.impl.version>1.1.5.5</packet.bio.dedupe.service.impl.version>
-		<registration.processor.message.sender.version>1.1.5.5</registration.processor.message.sender.version>
+		<packet.bio.dedupe.service.impl.version>1.1.5.5-P6-SNAPSHOT</packet.bio.dedupe.service.impl.version>
+		<registration.processor.message.sender.version>1.1.5.5-P6-SNAPSHOT</registration.processor.message.sender.version>
 
 		<!-- Kernel -->
 		<kernel.core.version>1.1.5.5</kernel.core.version>
