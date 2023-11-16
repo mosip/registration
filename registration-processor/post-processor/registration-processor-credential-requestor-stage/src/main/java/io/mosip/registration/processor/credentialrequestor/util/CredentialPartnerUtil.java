@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.credentialrequestor.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
@@ -26,6 +27,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.mvel2.MVEL;
+import org.mvel2.ParserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -35,6 +37,7 @@ import org.springframework.util.StringUtils;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class CredentialPartnerUtil {
@@ -82,6 +85,36 @@ public class CredentialPartnerUtil {
      */
     private List<String> requiredIdObjectFieldNames;
 
+    @PostConstruct
+    private void getIdObjectFieldNames() throws BaseCheckedException {
+        regProcLogger.info( "CredentialPartnerUtil::getIdObjectFieldNames()::PostConstruct");
+        try {
+            org.json.simple.JSONObject identityMappingJson =
+                    utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
+            requiredIDObjectFieldNamesMap = new HashMap<>();
+            for(Map.Entry<String, String> expressionEntry : credentialPartnerExpression.entrySet()) {
+                ParserContext parserContext = ParserContext.create();
+                MVEL.analysisCompile(expressionEntry.getValue(), parserContext);
+                Map<String, Class> expressionVariablesMap = parserContext.getInputs();
+                for(Map.Entry<String, Class> variableEntry: expressionVariablesMap.entrySet()) {
+                    String actualFieldName = JsonUtil.getJSONValue(
+                            JsonUtil.getJSONObject(identityMappingJson, variableEntry.getKey()),
+                            VALUE_LABEL);
+                    if(actualFieldName == null)
+                        throw new BaseCheckedException(
+                                PlatformErrorMessages.RPR_PCM_FIELD_NAME_NOT_AVAILABLE_IN_MAPPING_JSON.getCode(),
+                                PlatformErrorMessages.RPR_PCM_FIELD_NAME_NOT_AVAILABLE_IN_MAPPING_JSON.getMessage());
+                    requiredIDObjectFieldNamesMap.put(actualFieldName, variableEntry.getKey());
+                }
+            }
+            requiredIdObjectFieldNames = requiredIDObjectFieldNamesMap.keySet().stream().collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new BaseCheckedException(
+                    PlatformErrorMessages.RPR_PCM_ACCESSING_IDOBJECT_MAPPING_FILE_FAILED.getCode(),
+                    PlatformErrorMessages.RPR_PCM_ACCESSING_IDOBJECT_MAPPING_FILE_FAILED.getMessage(), e);
+        }
+    }
+
     public List<CredentialPartner> getCredentialPartners(String regId, String registrationType, JSONObject identity) throws PacketManagerException, JSONException, ApisResourceAccessException, IOException, JsonProcessingException {
 
         regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -95,11 +128,8 @@ public class CredentialPartnerUtil {
             return Lists.emptyList();
         }
 
-        String schemaVersion = utilities.getPacketManagerService().getFieldByMappingJsonKey(regId,
-                MappingJsonConstants.IDSCHEMA_VERSION, registrationType, ProviderStageName.CREDENTIAL_REQUESTOR);
-
         Map<String, String> identityFieldValueMap = utilities.getPacketManagerService().getFields(regId,
-                idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion)), registrationType, ProviderStageName.CREDENTIAL_REQUESTOR);
+                requiredIdObjectFieldNames, registrationType, ProviderStageName.CREDENTIAL_REQUESTOR);
 
         Map<String, Object> context = new HashMap<>();
         for (Map.Entry<String, String> identityAttribute: identityFieldValueMap.entrySet()) {
