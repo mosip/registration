@@ -456,7 +456,7 @@ public class PacketValidateProcessor {
 	private void setPacketCreatedDateTime(InternalRegistrationStatusDto registrationStatusDto) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
 		try {
 			Map<String, String> metaInfo = packetManagerService.getMetaInfo(
-					registrationStatusDto.getRefId(), registrationStatusDto.getRegistrationType(), ProviderStageName.PACKET_VALIDATOR);
+					registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType(), ProviderStageName.PACKET_VALIDATOR);
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern(dateformat);
 			String packetCreatedDateTime = metaInfo.get(JsonConstant.CREATIONDATE);
 			if (packetCreatedDateTime != null && !packetCreatedDateTime.isEmpty()) {
