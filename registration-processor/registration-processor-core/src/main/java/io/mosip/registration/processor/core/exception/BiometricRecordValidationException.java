@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.abis.handler.exception;
+package io.mosip.registration.processor.core.exception;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;

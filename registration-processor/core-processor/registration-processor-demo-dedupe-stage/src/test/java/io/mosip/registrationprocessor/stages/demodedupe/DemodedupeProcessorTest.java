@@ -20,12 +20,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import io.mosip.registration.processor.core.exception.PacketManagerException;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -41,9 +39,16 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.kernel.biometrics.constant.BiometricType;
+import io.mosip.kernel.biometrics.constant.QualityType;
+import io.mosip.kernel.biometrics.entities.BDBInfo;
+import io.mosip.kernel.biometrics.entities.BIR;
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.biometrics.entities.RegistryIDType;
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.AbisStatusCode;
 import io.mosip.registration.processor.core.code.ApiName;
@@ -54,6 +59,8 @@ import io.mosip.registration.processor.core.constant.AbisConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.BiometricRecordValidationException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
@@ -74,9 +81,9 @@ import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.entity.IndividualDemographicDedupeEntity;
 import io.mosip.registration.processor.packet.storage.entity.ManualVerificationEntity;
-import io.mosip.registration.processor.packet.storage.exception.IdRepoAppException;
 import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
@@ -169,7 +176,8 @@ public class DemodedupeProcessorTest {
 	private static final String DEMODEDUPEENABLE = "mosip.registration.processor.demographic.deduplication.enable";
 
 
-
+	@Mock
+	private PriorityBasedPacketManagerService packetManagerService;
 
 	/**
 	 * Sets the up.
@@ -182,13 +190,15 @@ public class DemodedupeProcessorTest {
 		when(utility.getDefaultSource(any(), any())).thenReturn(source);
 		ReflectionTestUtils.setField(demodedupeProcessor, "infantDedupe", "Y");
 		ReflectionTestUtils.setField(demodedupeProcessor, "ageLimit", "4");
+		ReflectionTestUtils.setField(demodedupeProcessor, "demodedupeMatchDecesion", "MarkAsDemodedupeFailed");
 		dto.setRid("2018701130000410092018110735");
 
 		MockitoAnnotations.initMocks(this);
 
 		DemographicInfoDto dto1 = new DemographicInfoDto();
 		DemographicInfoDto dto2 = new DemographicInfoDto();
-
+		dto1.setRegId("2018701130000410092018110731");
+		dto2.setRegId("2018701130000410092018110732");
 		duplicateDtos.add(dto1);
 		duplicateDtos.add(dto2);
 
@@ -305,8 +315,11 @@ public class DemodedupeProcessorTest {
 		JSONObject mappingJsonObj= new ObjectMapper().readValue(mappingJsonString, JSONObject.class);
 		
 		Mockito.when(utility.getRegistrationProcessorMappingJson(anyString())).thenReturn(JsonUtil.getJSONObject(mappingJsonObj, MappingJsonConstants.IDENTITY));
-
-
+		Mockito.when(packetManagerService.getBiometrics(any(), any(), any(), any(), any()))
+		.thenReturn(getBiometricRecord(Arrays.asList("Left Thumb", "Right Thumb", "Left MiddleFinger",
+				"Left RingFinger", "Left LittleFinger", "Left IndexFinger", "Right MiddleFinger",
+				"Right RingFinger", "Right LittleFinger", "Right IndexFinger", "Left", "Right", "Face"),
+				false));
 	}
 
 	/**
@@ -504,7 +517,6 @@ public class DemodedupeProcessorTest {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	@Ignore
 	public void testDemoDedupePotentialMatchWithEmpty() throws Exception {
 		List<AbisResponseDto> abisResponseDtos = new ArrayList<>();
 		List<AbisResponseDetDto> abisResponseDetDtos = new ArrayList<>();
@@ -535,16 +547,16 @@ public class DemodedupeProcessorTest {
 		Mockito.when(packetInfoManager.getAbisResponseRecords(anyString(), anyString())).thenReturn(abisResponseDtos);
 		Mockito.when(packetInfoManager.getAbisResponseDetRecordsList(any())).thenReturn(abisResponseDetDtos);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), any())).thenReturn(matchedRegIds);
-		doNothing().when(packetInfoManager).saveManualAdjudicationData(anyList(), anyString(), any(), any(), any(),null,null);
+		doNothing().when(packetInfoManager).saveManualAdjudicationData(anyList(), anyString(), any(), any(), any(),
+				any(), any());
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 
 		assertFalse(messageDto.getIsValid());
-
+		assertEquals(MessageBusAddress.MANUAL_VERIFICATION_BUS_IN, messageDto.getMessageBusAddress());
 	}
 	
 	@Test
-	@Ignore
 	public void testDemoDedupeEmptyMatch() throws Exception {
 		List<AbisResponseDto> abisResponseDtos = new ArrayList<>();
 		List<AbisResponseDetDto> abisResponseDetDtos = new ArrayList<>();
@@ -574,11 +586,12 @@ public class DemodedupeProcessorTest {
 		Mockito.when(packetInfoManager.getAbisResponseRecords(anyString(), anyString())).thenReturn(abisResponseDtos);
 		Mockito.when(packetInfoManager.getAbisResponseDetRecordsList(any())).thenReturn(abisResponseDetDtos);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), any())).thenReturn(matchedRegIds);
-		doNothing().when(packetInfoManager).saveManualAdjudicationData(anyList(), anyString(), any(), any(), any(),null,null);
+		doNothing().when(packetInfoManager).saveManualAdjudicationData(anyList(), anyString(), any(), any(), any(),
+				any(), any());
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 
-		assertFalse(messageDto.getIsValid());
+		assertTrue(messageDto.getIsValid());
 
 	}
 
@@ -746,6 +759,11 @@ public class DemodedupeProcessorTest {
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.PRE_ABIS_IDENTIFICATION);
 		Mockito.when(demoDedupe.performDedupe(anyString())).thenReturn(duplicateDtos);
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
+		List<String> uniqueRIDs = new ArrayList<>();
+		uniqueRIDs.add("2018701130000410092018110731");
+		uniqueRIDs.add("2018701130000410092018110732");
+		Mockito.when(abisHandlerUtil.getUniqueProcessedRecords(any(), any(), any(), anyList()))
+				.thenReturn(uniqueRIDs);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertFalse(messageDto.getIsValid());
 
@@ -769,6 +787,11 @@ public class DemodedupeProcessorTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.PRE_ABIS_IDENTIFICATION);
 		Mockito.when(demoDedupe.performDedupe(anyString())).thenReturn(duplicateDtos);
+		List<String> uniqueRIDs = new ArrayList<>();
+		uniqueRIDs.add("2018701130000410092018110731");
+		uniqueRIDs.add("2018701130000410092018110732");
+		Mockito.when(abisHandlerUtil.getUniqueProcessedRecords(any(), any(), any(), anyList()))
+				.thenReturn(uniqueRIDs);
 		NullPointerException exp=new NullPointerException();
 		Mockito.doThrow(exp).when(packetInfoManager).saveDemoDedupePotentialData(any(),anyString(),anyString());
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
@@ -848,4 +871,119 @@ public class DemodedupeProcessorTest {
 
 	}
 
+	private BiometricRecord getBiometricRecord(List<String> bioAttributes, boolean isBdbEmpty) {
+		BiometricRecord biometricRecord = new BiometricRecord();
+
+		byte[] bdb = isBdbEmpty ? null : new byte[2048];
+		for (String bioAttribute : bioAttributes) {
+			BIR birType1 = new BIR.BIRBuilder().build();
+			BDBInfo bdbInfoType1 = new BDBInfo.BDBInfoBuilder().build();
+			io.mosip.kernel.biometrics.entities.RegistryIDType registryIDType = new RegistryIDType();
+			registryIDType.setOrganization("Mosip");
+			registryIDType.setType("257");
+			io.mosip.kernel.biometrics.constant.QualityType quality = new QualityType();
+			quality.setAlgorithm(registryIDType);
+			quality.setScore(90l);
+			bdbInfoType1.setQuality(quality);
+
+			BiometricType singleType1 = bioAttribute.equalsIgnoreCase("face") ? BiometricType.FACE
+					: bioAttribute.equalsIgnoreCase("left") || bioAttribute.equalsIgnoreCase("right")
+							? BiometricType.IRIS
+							: BiometricType.FINGER;
+			List<BiometricType> singleTypeList1 = new ArrayList<>();
+			singleTypeList1.add(singleType1);
+			bdbInfoType1.setType(singleTypeList1);
+
+			String[] bioAttributeArray = bioAttribute.split(" ");
+
+			List<String> subtype = new ArrayList<>();
+			for (String attribute : bioAttributeArray) {
+				subtype.add(attribute);
+			}
+			bdbInfoType1.setSubtype(subtype);
+
+			birType1.setBdbInfo(bdbInfoType1);
+			birType1.setBdb(bdb);
+
+			biometricRecord.getSegments().add(birType1);
+		}
+
+		return biometricRecord;
+	}
+
+	@Test
+	public void testDemoDedupeNewPacketSuccessWithDuplicatesWithNoBiometrics() throws Exception {
+
+		byte[] b = "sds".getBytes();
+
+		PowerMockito.mockStatic(JsonUtil.class);
+		PowerMockito.mockStatic(IOUtils.class);
+		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
+				.thenReturn(packetMetaInfo);
+		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(b);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.PRE_ABIS_IDENTIFICATION);
+		Mockito.when(demoDedupe.performDedupe(anyString())).thenReturn(duplicateDtos);
+		Mockito.when(packetManagerService.getBiometrics(any(), any(), any(), any(), any())).thenReturn(null);
+		BiometricRecordValidationException e = new BiometricRecordValidationException("Biometirc validation failed");
+		Mockito.doThrow(e).when(abisHandlerUtil).validateBiometricRecord(any(), anyList());
+		List<String> uniqueRIDs = new ArrayList<>();
+		uniqueRIDs.add("2018701130000410092018110731");
+		uniqueRIDs.add("2018701130000410092018110732");
+		Mockito.when(abisHandlerUtil.getUniqueProcessedRecords(any(), any(), any(), anyList()))
+				.thenReturn(uniqueRIDs);
+		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
+		assertEquals(MessageBusAddress.MANUAL_VERIFICATION_BUS_IN, messageDto.getMessageBusAddress());
+
+	}
+
+	@Test
+	public void testDemoDedupeNewPacketSuccessWithDuplicatesWithNoBiometricsWithDemodedupeSuccess() throws Exception {
+
+		byte[] b = "sds".getBytes();
+		ReflectionTestUtils.setField(demodedupeProcessor, "demodedupeMatchDecesion", "MarkAsDemodedupeSuccess");
+		PowerMockito.mockStatic(JsonUtil.class);
+		PowerMockito.mockStatic(IOUtils.class);
+		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
+				.thenReturn(packetMetaInfo);
+		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(b);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.PRE_ABIS_IDENTIFICATION);
+		Mockito.when(demoDedupe.performDedupe(anyString())).thenReturn(duplicateDtos);
+		Mockito.when(packetManagerService.getBiometrics(any(), any(), any(), any(), any())).thenReturn(null);
+		BiometricRecordValidationException e = new BiometricRecordValidationException("Biometirc validation failed");
+		Mockito.doThrow(e).when(abisHandlerUtil).validateBiometricRecord(any(), anyList());
+		List<String> uniqueRIDs = new ArrayList<>();
+		uniqueRIDs.add("2018701130000410092018110731");
+		uniqueRIDs.add("2018701130000410092018110732");
+		Mockito.when(abisHandlerUtil.getUniqueProcessedRecords(any(), any(), any(), anyList())).thenReturn(uniqueRIDs);
+		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
+		assertTrue(messageDto.getIsValid());
+
+	}
+
+	@Test
+	public void testDemoDedupeNewPacketSuccessWithDuplicatesWithNoBiometricsWithDemodedupeRejected() throws Exception {
+
+		byte[] b = "sds".getBytes();
+		ReflectionTestUtils.setField(demodedupeProcessor, "demodedupeMatchDecesion", "MarkAsDemodedupeRejected");
+		PowerMockito.mockStatic(JsonUtil.class);
+		PowerMockito.mockStatic(IOUtils.class);
+		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
+				.thenReturn(packetMetaInfo);
+		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(b);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.PRE_ABIS_IDENTIFICATION);
+		Mockito.when(demoDedupe.performDedupe(anyString())).thenReturn(duplicateDtos);
+		Mockito.when(packetManagerService.getBiometrics(any(), any(), any(), any(), any())).thenReturn(null);
+		BiometricRecordValidationException e = new BiometricRecordValidationException("Biometirc validation failed");
+		Mockito.doThrow(e).when(abisHandlerUtil).validateBiometricRecord(any(), anyList());
+		List<String> uniqueRIDs = new ArrayList<>();
+		uniqueRIDs.add("2018701130000410092018110731");
+		uniqueRIDs.add("2018701130000410092018110732");
+		Mockito.when(abisHandlerUtil.getUniqueProcessedRecords(any(), any(), any(), anyList())).thenReturn(uniqueRIDs);
+		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
+		assertFalse(messageDto.getIsValid());
+
+	}
 }

@@ -128,6 +128,15 @@ public enum StatusUtil {
 	POTENTIAL_MATCH_FOUND_IN_ABIS(StatusConstants.DEMO_DEDUPE_MODULE_FAILED + "001","Biometric Duplicate was Found in ABIS"), 
 	POTENTIAL_MATCH_FOUND(StatusConstants.DEMO_DEDUPE_MODULE_FAILED + "002","Potential Demo Match was Found"),
 	DEMO_DEDUPE_SKIPPED(StatusConstants.DEMO_DEDUPE_MODULE_SKIPPED + "003", "Demographic Deduplication Skipped"),
+	DEMO_DEDUPE_BIOMTERIC_RECORD_VALIDAITON_FAILED(StatusConstants.DEMO_DEDUPE_MODULE_FAILED + "004",
+			"Potential Demo Match was Found and Biometric record validation failed. Hence sending to manual adjudication"),
+	DEMO_DEDUPE_PACKET_MANAGER_EXCEPTION(StatusConstants.DEMO_DEDUPE_MODULE_FAILED + "005",
+			"Exception occured in packet manager."),
+	DEMO_DEDUPE_BIOMTERIC_RECORD_VALIDAITON_FAILED_AND_PACKET_REJECTED(
+			StatusConstants.DEMO_DEDUPE_MODULE_FAILED + "006",
+			"Potential Demo Match was Found and Biometric record validation failed.Hence packet rejected"),
+	DEMO_DEDUPE_BIOMTERIC_RECORD_VALIDAITON_FAILED_AND_PACKET_SUCCESS(StatusConstants.DEMO_DEDUPE_MODULE_FAILED + "007",
+			"Potential Demo Match was Found and Biometric record validation failed.Hence packet success"),
 	
 	// Manual verification stage
 	MANUAL_VERIFIER_APPROVED_PACKET(StatusConstants.MANUAL_VERIFICATION_MODULE_SUCCESS + "001", "Match Not Found by Manual Verifier"), 

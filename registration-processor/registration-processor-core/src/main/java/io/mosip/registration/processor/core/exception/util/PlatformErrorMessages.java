@@ -1270,6 +1270,14 @@ public enum PlatformErrorMessages {
 	
 	RPR_DEMO_API_RESOUCE_ACCESS_FAILED(PlatformConstants.RPR_DEMO_DEDUPE_MODULE + "002",
 			"Unable to Access API Resource"),
+	RPR_DEMO_BIOMETRIC_RECORD_VALIDATION_FAILED(PlatformConstants.RPR_DEMO_DEDUPE_MODULE + "003",
+			"Biometric record validation error"),
+
+	RPR_DEMO_POTENTIAL_SENDING_FOR_MANUAL(PlatformConstants.RPR_DEMO_DEDUPE_MODULE + "004",
+			"Potential Demo Match was Found and Biometric record validation failed. Hence sending to manual adjudication"),
+
+	RPR_DEMO_POTENTIAL_PACKET_REJECTED(PlatformConstants.RPR_DEMO_DEDUPE_MODULE + "004",
+			"Potential Demo Match was Found and Biometric record validation failed. Hende demodedupe Rejected"),
 
 	RPR_SECUREZONE_FAILURE(PlatformConstants.RPR_SECUREZONE_NOTIFICATION_MODULE + "001",
 			"Exception occured in securezone notification stage. Check logs for more info"),

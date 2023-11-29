@@ -50,6 +50,9 @@ public enum PlatformSuccessMessages {
 
 	RPR_PKR_DEMO_DE_DUP_SKIP(PlatformConstants.RPR_DEMO_DEDUPE_MODULE + "002", "Demographic Deduplication Skipped"),
 
+	RPR_PKR_DEMO_DE_DUP_POTENTIAL_DUPLICATION_SUCCESS(PlatformConstants.RPR_DEMO_DEDUPE_MODULE + "003",
+			"Potential Demo Match was Found and Biometric record validation failed.Hence demodedupe success"),
+
 	// Biometric Authentication Success Messages
 	RPR_PKR_BIOMETRIC_AUTHENTICATION(PlatformConstants.RPR_BIOMETRIC_AUTHENTICATION_MODULE + "000",
 			"Biometric Authentication Success"),

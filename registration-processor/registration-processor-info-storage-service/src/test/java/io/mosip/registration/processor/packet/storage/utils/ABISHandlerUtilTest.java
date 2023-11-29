@@ -2,12 +2,17 @@
 package io.mosip.registration.processor.packet.storage.utils;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.assertj.core.util.Lists;
 import org.junit.Before;
@@ -20,15 +25,33 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.mosip.kernel.biometrics.constant.BiometricType;
+import io.mosip.kernel.biometrics.constant.QualityType;
+import io.mosip.kernel.biometrics.entities.BDBInfo;
+import io.mosip.kernel.biometrics.entities.BIR;
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.biometrics.entities.RegistryIDType;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.constant.AbisConstant;
+import io.mosip.registration.processor.core.constant.PolicyConstant;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.BiometricRecordValidationException;
+import io.mosip.registration.processor.core.exception.DataShareException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisResponseDetDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisResponseDto;
+import io.mosip.registration.processor.core.packet.dto.abis.Filter;
+import io.mosip.registration.processor.core.packet.dto.abis.ShareableAttributes;
+import io.mosip.registration.processor.core.packet.dto.abis.Source;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
+import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.dao.PacketInfoDao;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
@@ -66,6 +89,8 @@ public class ABISHandlerUtilTest {
 	@Mock
 	private IdRepoService idRepoService;
 	
+	@Mock
+	private RegistrationProcessorRestClientService registrationProcessorRestClientService;
 
 
 	@Before
@@ -167,4 +192,148 @@ public class ABISHandlerUtilTest {
 		assertEquals(1, uniqueRids.size());
 	}
 
+	private List<String> getIrisList() {
+		return Arrays.asList("Left", "Right");
+
+	}
+
+	private List<String> getFingerList() {
+		return Arrays.asList("Left Thumb", "Left LittleFinger", "Left IndexFinger", "Left MiddleFinger",
+				"Left RingFinger", "Right Thumb", "Right LittleFinger", "Right IndexFinger", "Right MiddleFinger",
+				"Right RingFinger");
+	}
+
+	private List<String> getFaceList() {
+		return Arrays.asList("Face");
+	}
+
+	private BiometricRecord getBiometricRecord(List<String> bioAttributes, boolean isBdbEmpty) {
+		BiometricRecord biometricRecord = new BiometricRecord();
+
+		byte[] bdb = isBdbEmpty ? null : new byte[2048];
+		for (String bioAttribute : bioAttributes) {
+			BIR birType1 = new BIR.BIRBuilder().build();
+			BDBInfo bdbInfoType1 = new BDBInfo.BDBInfoBuilder().build();
+			io.mosip.kernel.biometrics.entities.RegistryIDType registryIDType = new RegistryIDType();
+			registryIDType.setOrganization("Mosip");
+			registryIDType.setType("257");
+			io.mosip.kernel.biometrics.constant.QualityType quality = new QualityType();
+			quality.setAlgorithm(registryIDType);
+			quality.setScore(90l);
+			bdbInfoType1.setQuality(quality);
+
+			BiometricType singleType1 = bioAttribute.equalsIgnoreCase("face") ? BiometricType.FACE
+					: bioAttribute.equalsIgnoreCase("left") || bioAttribute.equalsIgnoreCase("right")
+							? BiometricType.IRIS
+							: BiometricType.FINGER;
+			List<BiometricType> singleTypeList1 = new ArrayList<>();
+			singleTypeList1.add(singleType1);
+			bdbInfoType1.setType(singleTypeList1);
+
+			String[] bioAttributeArray = bioAttribute.split(" ");
+
+			List<String> subtype = new ArrayList<>();
+			for (String attribute : bioAttributeArray) {
+				subtype.add(attribute);
+			}
+			bdbInfoType1.setSubtype(subtype);
+
+			birType1.setBdbInfo(bdbInfoType1);
+			birType1.setBdb(bdb);
+
+			biometricRecord.getSegments().add(birType1);
+		}
+
+		return biometricRecord;
+	}
+
+	private void mockDataSharePolicy(List<BiometricType> shareableBiometricList) throws ApisResourceAccessException {
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), anyString(), any()))
+				.thenReturn(getMockDataSharePolicy(shareableBiometricList));
+	}
+
+	private ResponseWrapper<LinkedHashMap<String, Object>> getMockDataSharePolicy(
+			List<BiometricType> shareableBiometricList) {
+
+		ObjectMapper mapper = new ObjectMapper();
+
+		List<ShareableAttributes> attr = new LinkedList<>();
+		if (shareableBiometricList != null && !shareableBiometricList.isEmpty()) {
+
+			ShareableAttributes shareableAttributes = new ShareableAttributes();
+			List<Source> sourceList = new ArrayList<>();
+
+			for (BiometricType bioType : shareableBiometricList) {
+				Filter filter = new Filter();
+				filter.setType(bioType.value());
+				if (BiometricType.FINGER.equals(bioType)) {
+					filter.setSubType(getFingerList());
+				} else if (BiometricType.FINGER.equals(bioType)) {
+					filter.setSubType(getIrisList());
+				}
+
+				Source src = new Source();
+				src.setFilter(Lists.newArrayList(filter));
+				sourceList.add(src);
+			}
+
+			shareableAttributes.setSource(sourceList);
+			attr = Lists.newArrayList(shareableAttributes);
+		}
+
+		ResponseWrapper<LinkedHashMap<String, Object>> policy = new ResponseWrapper<>();
+		LinkedHashMap<String, Object> policies = new LinkedHashMap<>();
+		LinkedHashMap<String, Object> sharableAttributes = new LinkedHashMap<>();
+		sharableAttributes.put(PolicyConstant.SHAREABLE_ATTRIBUTES, attr);
+		policies.put(PolicyConstant.POLICIES, sharableAttributes);
+		policy.setResponse(policies);
+
+		return policy;
+	}
+
+	@Test
+	public void testcreateTypeSubtypeMapping() throws ApisResourceAccessException, JsonParseException,
+			JsonMappingException, DataShareException, com.fasterxml.jackson.core.JsonProcessingException, IOException {
+		mockDataSharePolicy(Lists.newArrayList(BiometricType.FACE, BiometricType.FINGER, BiometricType.IRIS));
+		Map<String, List<String>> typeAndSubtypMap = abisHandlerUtil.createTypeSubtypeMapping();
+		assertEquals(3, typeAndSubtypMap.size());
+
+	}
+
+	@Test(expected = BiometricRecordValidationException.class)
+	public void testValidateBiomtericWithModalitiesNull()
+			throws JsonParseException, JsonMappingException, BiometricRecordValidationException, IOException {
+		abisHandlerUtil.validateBiometricRecord(null, null);
+
+	}
+
+	@Test(expected = BiometricRecordValidationException.class)
+	public void testValidateBiomtericWithBiometricRecordNull()
+			throws JsonParseException, JsonMappingException, BiometricRecordValidationException, IOException {
+		List<String> modalities = Arrays.asList("Left Thumb", "Right Thumb", "Left MiddleFinger", "Left RingFinger",
+				"Left LittleFinger", "Left IndexFinger", "Right MiddleFinger", "Right RingFinger", "Right LittleFinger",
+				"Right IndexFinger", "Left", "Right", "Face");
+		abisHandlerUtil.validateBiometricRecord(null, modalities);
+
+	}
+
+	@Test(expected = BiometricRecordValidationException.class)
+	public void testValidateBiometricWithEmptyBDB()
+			throws JsonParseException, JsonMappingException, BiometricRecordValidationException, IOException {
+		List<String> modalities=Arrays.asList("Left Thumb", "Right Thumb", "Left MiddleFinger",
+				"Left RingFinger", "Left LittleFinger", "Left IndexFinger", "Right MiddleFinger",
+				"Right RingFinger", "Right LittleFinger", "Right IndexFinger", "Left", "Right", "Face");
+		abisHandlerUtil.validateBiometricRecord(getBiometricRecord(modalities, true), modalities);
+
+	}
+
+	@Test
+	public void testValidateBiometricSuccess()
+			throws JsonParseException, JsonMappingException, BiometricRecordValidationException, IOException {
+		List<String> modalities = Arrays.asList("Left Thumb", "Right Thumb", "Left MiddleFinger", "Left RingFinger",
+				"Left LittleFinger", "Left IndexFinger", "Right MiddleFinger", "Right RingFinger", "Right LittleFinger",
+				"Right IndexFinger", "Left", "Right", "Face");
+		abisHandlerUtil.validateBiometricRecord(getBiometricRecord(modalities, false), modalities);
+
+	}
 }
