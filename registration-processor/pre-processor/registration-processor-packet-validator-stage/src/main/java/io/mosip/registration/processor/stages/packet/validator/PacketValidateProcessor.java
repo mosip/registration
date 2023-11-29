@@ -3,12 +3,16 @@ package io.mosip.registration.processor.stages.packet.validator;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.io.IOUtils;
@@ -160,6 +164,9 @@ public class PacketValidateProcessor {
 	@Value("${mosip.notificationtype}")
 	private String notificationTypes;
 
+	@Value("${mosip.registration.processor.datetime.pattern}")
+	private String dateformat;
+
 	@Autowired
 	private Decryptor decryptor;
 
@@ -188,6 +195,8 @@ public class PacketValidateProcessor {
 			packetValidationDto.setTransactionSuccessful(false);
 
 			registrationStatusDto = registrationStatusService.getRegistrationStatus(registrationId);
+
+			setPacketCreatedDateTime(registrationStatusDto);
 
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.VALIDATE_PACKET.toString());
@@ -465,6 +474,31 @@ public class PacketValidateProcessor {
 
 		return object;
 
+	}
+
+	private void setPacketCreatedDateTime(InternalRegistrationStatusDto registrationStatusDto) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+		try {
+			Map<String, String> metaInfo = packetManagerService.getMetaInfo(
+					registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType(), ProviderStageName.PACKET_VALIDATOR);
+			String packetCreatedDateTime = metaInfo.get(JsonConstant.CREATIONDATE);
+			if (packetCreatedDateTime != null && !packetCreatedDateTime.isEmpty()) {
+				LocalDateTime dateTime = DateUtils.parseToLocalDateTime(packetCreatedDateTime);
+				registrationStatusDto.setPacketCreateDateTime(dateTime);
+			} else {
+				regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						" -- " + registrationStatusDto.getRefId(),
+						PlatformErrorMessages.RPR_PVM_PACKET_CREATED_DATE_TIME_EMPTY_OR_NULL.getMessage());
+			}
+		} catch (DateTimeParseException e) {
+			regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					" -- " + registrationStatusDto.getRefId(),
+					PlatformErrorMessages.RPR_PVM_PACKET_CREATED_DATE_TIME_PARSE_EXCEPTION.getMessage() + e.getMessage());
+		}catch (IllegalArgumentException ex)
+		{
+			regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					" -- " + registrationStatusDto.getRefId(),
+					PlatformErrorMessages.RPR_PVM_INVALID_ARGUMENT_EXCEPTION.getMessage() + ex.getMessage());
+		}
 	}
 
 	private boolean isValidSupervisorStatus(String registrationId) {

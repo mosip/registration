@@ -41,6 +41,16 @@ public class InternalRegistrationStatusDto implements Serializable {
 	/** The create date time. */
 	private LocalDateTime createDateTime;
 
+	private LocalDateTime packetCreateDateTime;
+
+	public LocalDateTime getPacketCreateDateTime() {
+		return packetCreateDateTime;
+	}
+
+	public void setPacketCreateDateTime(LocalDateTime packetCreateDateTime) {
+		this.packetCreateDateTime = packetCreateDateTime;
+	}
+
 	/** The updated by. */
 	private String updatedBy;
 
