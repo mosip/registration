@@ -65,7 +65,6 @@ public class PriorityBasedPacketManagerService {
         String field = JsonUtil.getJSONValue(
                 JsonUtil.getJSONObject(regProcessorIdentityJson, key),
                 MappingJsonConstants.VALUE);
-
         return getField(id, field, process, stageName);
     }
 
