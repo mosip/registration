@@ -161,7 +161,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.uin.generator.dob.log.enable:false}")
 	private boolean dobLogEnable;
 
-	@Value("${mosip.regproc.max.retrycount}")
+	@Value("${registration.processor.max.retrycount}")
 	Integer maxRetrycount;
 
 	/** The core audit request builder. */
