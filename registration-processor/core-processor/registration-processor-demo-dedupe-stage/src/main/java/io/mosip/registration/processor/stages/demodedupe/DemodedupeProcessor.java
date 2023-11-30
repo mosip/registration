@@ -479,7 +479,8 @@ public class DemodedupeProcessor {
 						.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 				registrationStatusDto.setStatusComment(trimExceptionMessage.trimExceptionMessage(
-						StatusUtil.DEMO_DEDUPE_BIOMTERIC_RECORD_VALIDAITON_FAILED.getMessage() + e.getMessage()));
+						StatusUtil.DEMO_DEDUPE_BIOMTERIC_RECORD_VALIDAITON_FAILED.getMessage() + " -> "
+								+ e.getErrorText()));
 				registrationStatusDto
 						.setSubStatusCode(StatusUtil.DEMO_DEDUPE_BIOMTERIC_RECORD_VALIDAITON_FAILED.getCode());
 				description.setCode(PlatformErrorMessages.RPR_DEMO_POTENTIAL_SENDING_FOR_MANUAL.getCode());
@@ -495,7 +496,7 @@ public class DemodedupeProcessor {
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
 				registrationStatusDto.setStatusComment(trimExceptionMessage.trimExceptionMessage(
 						StatusUtil.DEMO_DEDUPE_BIOMTERIC_RECORD_VALIDAITON_FAILED_AND_PACKET_REJECTED.getMessage()
-								+ e.getMessage()));
+								+ " -> " + e.getErrorText()));
 				registrationStatusDto
 						.setSubStatusCode(StatusUtil.DEMO_DEDUPE_BIOMTERIC_RECORD_VALIDAITON_FAILED_AND_PACKET_REJECTED
 								.getCode());
