@@ -104,7 +104,7 @@ public class PacketInfoMapper {
 		if (jsonNode != null) {
 			for (int i = 0; i < jsonNode.length; i++) {
 				if (jsonNode[i].getLanguage().equals(language)) {
-					value = jsonNode[i].getValue();
+					value = jsonNode[i].getValue().trim();
 				}
 			}
 		}
