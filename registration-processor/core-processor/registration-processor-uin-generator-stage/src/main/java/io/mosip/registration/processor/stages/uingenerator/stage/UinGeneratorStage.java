@@ -113,7 +113,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	private static final String OLD_APPLICATION_ID = "IDR-IDC-011";
 	private static final String RECORD_ALREADY_EXISTS_ERROR = "IDR-IDC-012";
 
-	private static final String INVALID_INPUT_PARAMETER="IDR-IDC-002";
+	private static final String INVALID_INPUT_PARAMETER_ERROR_CODE="IDR-IDC-002";
 
 
 	@Autowired
@@ -161,7 +161,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.uin.generator.dob.log.enable:false}")
 	private boolean dobLogEnable;
 
-	@Value("${mosip.regproc.uin.generator.max.retrycount}")
+	@Value("${mosip.regproc.uin.generator.idrepo-max-retry-count}")
 	Integer maxRetrycount;
 
 	/** The core audit request builder. */
@@ -250,7 +250,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 				Map<String, String> fieldMap = packetManagerService.getFields(registrationId,
 						idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion)), registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
 				String uinField = fieldMap.get(utility.getMappingJsonValue(MappingJsonConstants.UIN, MappingJsonConstants.IDENTITY));
-
+				registrationStatusDto.setRetryCount((registrationStatusDto.getRetryCount() == null) ? 0 : registrationStatusDto.getRetryCount());
 				String dateOfBirth = fieldMap
 						.get(utility.getMappingJsonValue(MappingJsonConstants.DOB, MappingJsonConstants.IDENTITY));
 				if ((dateOfBirth != null && !dateOfBirth.isEmpty()) && dobLogEnable)  {
@@ -271,19 +271,25 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 					String test = (String) registrationProcessorRestClientService.getApi(ApiName.UINGENERATOR, null, "",
 							"", String.class);
-
 					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 							registrationId, "Received response from UINGENERATOR API");
-
 					Gson gsonObj = new Gson();
 					uinResponseDto = gsonObj.fromJson(test, UinGenResponseDto.class);
-
 					uinField = uinResponseDto.getResponse().getUin();
 					demographicIdentity.put("UIN", uinField);
-
 					idResponseDTO = sendIdRepoWithUin(registrationId, registrationStatusDto.getRegistrationType(), demographicIdentity,
 							uinField, description);
+					if(idResponseDTO.getErrors()!=null && idResponseDTO.getErrors().get(0).getErrorCode().equalsIgnoreCase(INVALID_INPUT_PARAMETER_ERROR_CODE)) {
 
+						for (int i = registrationStatusDto.getRetryCount(); i < maxRetrycount; i++) {
+
+								idResponseDTO = sendIdRepoWithUin(registrationId, registrationStatusDto.getRegistrationType(), demographicIdentity,
+										uinField, description);
+								if (idResponseDTO.getErrors()==null || idResponseDTO.getErrors().get(0).getErrorCode()!=INVALID_INPUT_PARAMETER_ERROR_CODE)
+									break;
+								registrationStatusDto.setRetryCount(registrationStatusDto.getRetryCount() + 1);
+						}
+					}
 					boolean isUinAlreadyPresent = isUinAlreadyPresent(idResponseDTO, registrationId);
 
 					if (isIdResponseNotNull(idResponseDTO) || isUinAlreadyPresent) {
@@ -568,9 +574,7 @@ private void handleIdRepoErrorResponse(IdResponseDTO idResponseDTO, InternalRegi
 		String registrationId,boolean isTransactionSuccessful,
 		UinGenResponseDto uinResponseDto,MessageDTO object, LogDescription description) throws ApisResourceAccessException, IOException{
 	List<ErrorDTO> errors = idResponseDTO != null ? idResponseDTO.getErrors() : null;
-	int retrycount = (registrationStatusDto.getRetryCount() == null) ? 0 : registrationStatusDto.getRetryCount();
 	String statusComment = errors != null ? errors.get(0).getMessage() : UINConstants.NULL_IDREPO_RESPONSE;
-
 	if(errors!=null && errors.get(0).getErrorCode().equalsIgnoreCase(RECORD_ALREADY_EXISTS_ERROR)) {
 		registrationStatusDto.setStatusCode(RegistrationTransactionStatusCode.ERROR.toString());
 		registrationStatusDto.setLatestTransactionStatusCode(
@@ -578,7 +582,6 @@ private void handleIdRepoErrorResponse(IdResponseDTO idResponseDTO, InternalRegi
 		registrationStatusDto.setStatusComment(StatusUtil.UIN_ALREADY_EXIST_IN_IDREPO.getMessage());
 		registrationStatusDto.setSubStatusCode(StatusUtil.UIN_ALREADY_EXIST_IN_IDREPO.getCode());
 		description.setTransactionStatusCode(RegistrationTransactionStatusCode.IN_PROGRESS.toString());
-		
 	}else if(errors!=null && errors.get(0).getErrorCode().equalsIgnoreCase(OLD_APPLICATION_ID)) {
 		registrationStatusDto.setStatusComment(StatusUtil.OLD_APPLICATION_ID.getMessage());
 		registrationStatusDto.setStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
@@ -587,8 +590,7 @@ private void handleIdRepoErrorResponse(IdResponseDTO idResponseDTO, InternalRegi
 		registrationStatusDto.setSubStatusCode(StatusUtil.OLD_APPLICATION_ID.getCode());
 		description.setTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
 
-	} else if (errors!=null && errors.get(0).getErrorCode().equalsIgnoreCase(INVALID_INPUT_PARAMETER ) && retrycount<maxRetrycount) {
-			registrationStatusDto.setRetryCount(retrycount+1);
+	} else if (errors!=null && errors.get(0).getErrorCode().equalsIgnoreCase(INVALID_INPUT_PARAMETER_ERROR_CODE)) {
 			registrationStatusDto.setStatusCode(RegistrationTransactionStatusCode.PROCESSING.toString());
 			registrationStatusDto.setLatestTransactionStatusCode(
 					RegistrationTransactionStatusCode.REPROCESS.toString());

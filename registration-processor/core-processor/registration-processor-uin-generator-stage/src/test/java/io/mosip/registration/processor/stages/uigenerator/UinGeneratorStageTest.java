@@ -432,6 +432,10 @@ public class UinGeneratorStageTest {
 		//assertFalse(result.getInternalError());
 	}
 
+	/**
+	 * In this method Invalid input parameter is thrown 2 time. then 3rd time will get the positive response.
+	 *
+	 */
 	@Test
 	public void testUinGenerationResponseWithInvalidInputParameterException() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
@@ -482,12 +486,85 @@ public class UinGeneratorStageTest {
 				.parse(DateUtils.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"), format);
 		responseVid.setResponsetime(localdatetime);
 
+		IdResponseDTO positiveidResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO1 = new ResponseDTO();
+		responseDTO1.setEntity("https://dev.mosip.io/idrepo/v1.0/identity/203560486746");
+		responseDTO1.setStatus("ACTIVATED");
+		positiveidResponseDTO.setErrors(null);
+		positiveidResponseDTO.setId("mosip.id.create");
+		positiveidResponseDTO.setResponse(responseDTO1);
+		positiveidResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		positiveidResponseDTO.setVersion("1.0");
 		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any(Class.class)))
-				.thenReturn(idResponseDTO);
-//		when(registrationProcessorRestClientService.postApi(ApiName.IDREPOSITORY, any(), any(), any(), any(Class.class)))
+				.thenReturn(idResponseDTO)
+				.thenReturn(idResponseDTO)
+				.thenReturn(idResponseDTO)
+				.thenReturn(positiveidResponseDTO);
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertTrue(result.getInternalError());
+	}
 
-		// Mockito.when(registrationProcessorRestClientService.postApi(any(), any(),
-		// any(), any(), any(Class.class)));
+/*
+In this test case each time when Uin_generator api is called Invalid input parameter is the responde.
+ */
+
+	@Test
+	public void testUinGenerationResponseWillExcedesRetryCount() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.NEW);
+		String str = "{\n" +
+				"  \"id\": \"mosip.id.read\",\n" +
+				"  \"version\": \"1.0\",\n" +
+				"  \"responsetime\": \"2019-04-05\",\n" +
+				"  \"metadata\": null,\n" +
+				"  \"response\": {},\n" +
+				"  \"errors\": [\n" +
+				"    {\n" +
+				"      \"errorCode\": \"IDR-IDC-002\",\n" +
+				"      \"errorMessage\": \"Invalid Input Parameter\"\n" +
+				"    }\n" +
+				"  ]\n" +
+				"}";
+		String response = "{\n" +
+				"  \"id\": \"mosip.id.read\",\n" +
+				"  \"version\": \"1.0\",\n" +
+				"  \"responsetime\": \"2019-04-05\",\n" +
+				"  \"metadata\": null,\n" +
+				"  \"response\": {},\n" +
+				"  \"errors\": [\n" +
+				"    {\n" +
+				"      \"errorCode\": \"IDR-IDC-002\",\n" +
+				"      \"errorMessage\": \"Invalid Input Parameter\"\n" +
+				"    }\n" +
+				"  ]\n" +
+				"}";
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
+		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(response);
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+
+		ResponseWrapper<VidResponseDto> responseVid = new ResponseWrapper<VidResponseDto>();
+		List<ErrorDTO> errors = new ArrayList<>();
+		ErrorDTO errorDTO=new ErrorDTO("IDR-IDC-002", StatusUtil.INVALID_INPUT_PARAMETER.getMessage());
+		errors.add(errorDTO);
+		idResponseDTO.setErrors(errors);
+		idResponseDTO.setVersion("v12");
+		idResponseDTO.setMetadata(null);
+		DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		LocalDateTime localdatetime = LocalDateTime
+				.parse(DateUtils.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"), format);
+		responseVid.setResponsetime(localdatetime);
+
+		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any(Class.class)))
+				.thenReturn(idResponseDTO)
+				.thenReturn(idResponseDTO)
+				.thenReturn(idResponseDTO)
+				.thenReturn(idResponseDTO);
+
+		when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getInternalError());
 	}
