@@ -250,7 +250,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 				Map<String, String> fieldMap = packetManagerService.getFields(registrationId,
 						idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion)), registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
 				String uinField = fieldMap.get(utility.getMappingJsonValue(MappingJsonConstants.UIN, MappingJsonConstants.IDENTITY));
-				registrationStatusDto.setRetryCount((registrationStatusDto.getRetryCount() == null) ? 0 : registrationStatusDto.getRetryCount());
+				int retrycount=(registrationStatusDto.getRetryCount() == null) ? 0 : registrationStatusDto.getRetryCount();
 				String dateOfBirth = fieldMap
 						.get(utility.getMappingJsonValue(MappingJsonConstants.DOB, MappingJsonConstants.IDENTITY));
 				if ((dateOfBirth != null && !dateOfBirth.isEmpty()) && dobLogEnable)  {
@@ -280,14 +280,13 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 					idResponseDTO = sendIdRepoWithUin(registrationId, registrationStatusDto.getRegistrationType(), demographicIdentity,
 							uinField, description);
 					if(idResponseDTO.getErrors()!=null && idResponseDTO.getErrors().get(0).getErrorCode().equalsIgnoreCase(INVALID_INPUT_PARAMETER_ERROR_CODE)) {
-
-						for (int i = registrationStatusDto.getRetryCount(); i < maxRetrycount; i++) {
+						for (int i = retrycount; i < maxRetrycount; i++) {
 
 								idResponseDTO = sendIdRepoWithUin(registrationId, registrationStatusDto.getRegistrationType(), demographicIdentity,
 										uinField, description);
 								if (idResponseDTO.getErrors()==null || idResponseDTO.getErrors().get(0).getErrorCode()!=INVALID_INPUT_PARAMETER_ERROR_CODE)
 									break;
-								registrationStatusDto.setRetryCount(registrationStatusDto.getRetryCount() + 1);
+								retrycount++;
 						}
 					}
 					boolean isUinAlreadyPresent = isUinAlreadyPresent(idResponseDTO, registrationId);
