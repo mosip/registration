@@ -2487,7 +2487,7 @@ public class UinGeneratorStageTest {
 	 *
 	 */
 	@Test
-	public void testUinGenerationResponseWithInvalidInputParameterException() throws Exception {
+	public void testUinGenerationResponseWithInvalidInputParameterExceptionForFirstThreeTimes() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
 		messageDTO.setReg_type(RegistrationType.NEW);
