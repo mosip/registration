@@ -2599,7 +2599,6 @@ In this test case each time when Uin_generator api is called Invalid input param
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
 
-		ResponseWrapper<VidResponseDto> responseVid = new ResponseWrapper<VidResponseDto>();
 		List<ErrorDTO> errors = new ArrayList<>();
 		ErrorDTO errorDTO=new ErrorDTO("IDR-IDC-002", StatusUtil.INVALID_INPUT_PARAMETER.getMessage());
 		errors.add(errorDTO);
@@ -2609,7 +2608,7 @@ In this test case each time when Uin_generator api is called Invalid input param
 		DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		LocalDateTime localdatetime = LocalDateTime
 				.parse(DateUtils.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"), format);
-		responseVid.setResponsetime(localdatetime);
+
 
 		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any(Class.class)))
 				.thenReturn(idResponseDTO)
