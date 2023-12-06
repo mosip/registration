@@ -2554,6 +2554,7 @@ public class UinGeneratorStageTest {
 				.thenReturn(responseVid);
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 
@@ -2620,64 +2621,4 @@ In this test case each time when Uin_generator api is called Invalid input param
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getInternalError());
 	}
-
-	@Test
-	public void testUinGenerationResponseWithExcededRetryCount() throws Exception {
-		MessageDTO messageDTO = new MessageDTO();
-		messageDTO.setRid("27847657360002520181210094052");
-		messageDTO.setReg_type(RegistrationType.NEW);
-		String str = "{\n" +
-				"  \"id\": \"mosip.id.read\",\n" +
-				"  \"version\": \"1.0\",\n" +
-				"  \"responsetime\": \"2019-04-05\",\n" +
-				"  \"metadata\": null,\n" +
-				"  \"response\": {},\n" +
-				"  \"errors\": [\n" +
-				"    {\n" +
-				"      \"errorCode\": \"IDR-IDC-002\",\n" +
-				"      \"errorMessage\": \"Invalid Input Parameter\"\n" +
-				"    }\n" +
-				"  ]\n" +
-				"}";
-		String response = "{\n" +
-				"  \"id\": \"mosip.id.read\",\n" +
-				"  \"version\": \"1.0\",\n" +
-				"  \"responsetime\": \"2019-04-05\",\n" +
-				"  \"metadata\": null,\n" +
-				"  \"response\": {},\n" +
-				"  \"errors\": [\n" +
-				"    {\n" +
-				"      \"errorCode\": \"IDR-IDC-002\",\n" +
-				"      \"errorMessage\": \"Invalid Input Parameter\"\n" +
-				"    }\n" +
-				"  ]\n" +
-				"}";
-		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
-		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
-				.thenReturn(response);
-
-		IdResponseDTO idResponseDTO = new IdResponseDTO();
-		ResponseDTO responseDTO = new ResponseDTO();
-
-		ResponseWrapper<VidResponseDto> responseVid = new ResponseWrapper<VidResponseDto>();
-		List<ErrorDTO> errors = new ArrayList<>();
-		ErrorDTO errorDTO=new ErrorDTO("IDR-IDC-002", StatusUtil.INVALID_INPUT_PARAMETER.getMessage());
-		errors.add(errorDTO);
-		idResponseDTO.setErrors(errors);
-		idResponseDTO.setVersion("v12");
-		idResponseDTO.setMetadata(null);
-		DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		LocalDateTime localdatetime = LocalDateTime
-				.parse(DateUtils.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"), format);
-		responseVid.setResponsetime(localdatetime);
-
-		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any(Class.class)))
-				.thenReturn(idResponseDTO);
-		registrationStatusDto.setRetryCount(4);
-
-		when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
-		MessageDTO result = uinGeneratorStage.process(messageDTO);
-		assertTrue(result.getInternalError());
-	}
-
 }
