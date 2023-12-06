@@ -38,6 +38,7 @@ import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
+import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.code.RegistrationType;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
@@ -120,6 +121,8 @@ public class ReprocessorVerticleTest {
          ReflectionTestUtils.setField(reprocessorVerticle, "elapseTime", 21600);
          ReflectionTestUtils.setField(reprocessorVerticle, "reprocessCount", 3);
 		 ReflectionTestUtils.setField(reprocessorVerticle, "reprocessExcludeStageNames", new ArrayList<>());
+			ReflectionTestUtils.setField(reprocessorVerticle, "reprocessIntiateNeededStage", "BioDedupeStage");
+			ReflectionTestUtils.setField(reprocessorVerticle, "reprocessBeginningStage", "SecurezoneNotificationStage");
          Field auditLog = AuditLogRequestBuilder.class.getDeclaredField("registrationProcessorRestService");
          auditLog.setAccessible(true);
          @SuppressWarnings("unchecked")
@@ -259,4 +262,27 @@ public class ReprocessorVerticleTest {
 		reprocessorVerticle.process(dto);
 
 	}
+
+	@Test
+	public void testProcessWithIntiateReprocessFromBeginning() throws TablenotAccessibleException,
+			PacketManagerException,
+			ApisResourceAccessException, WorkflowActionException {
+
+		List<InternalRegistrationStatusDto> dtolist = new ArrayList<>();
+		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
+
+		registrationStatusDto.setRegistrationId("2018701130000410092018110735");
+		registrationStatusDto.setRegistrationType(RegistrationType.NEW.toString());
+		registrationStatusDto.setRegistrationStageName("BioDedupeStage");
+		registrationStatusDto.setReProcessRetryCount(0);
+		registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+		dtolist.add(registrationStatusDto);
+		Mockito.when(
+				registrationStatusService.getUnProcessedPackets(anyInt(), anyLong(), anyInt(), anyList(), anyList()))
+				.thenReturn(dtolist);
+		reprocessorVerticle.process(dto);
+
+	}
+
 }
