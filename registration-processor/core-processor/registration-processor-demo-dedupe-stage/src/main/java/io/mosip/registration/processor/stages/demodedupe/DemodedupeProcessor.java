@@ -748,8 +748,4 @@ public class DemodedupeProcessor {
 		abisHandlerUtil.validateBiometricRecord(biometricRecord, segments);
 
 	}
-
-	private boolean isNotUnique(List<String> uniqueRIDs, String registrationId) {
-		return !uniqueRIDs.contains(registrationId);
-	}
 }
