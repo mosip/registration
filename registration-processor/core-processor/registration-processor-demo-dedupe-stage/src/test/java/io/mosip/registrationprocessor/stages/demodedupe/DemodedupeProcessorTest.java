@@ -26,6 +26,7 @@ import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -55,6 +56,7 @@ import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
+import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.constant.AbisConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.PacketFiles;
@@ -89,6 +91,7 @@ import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequest
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
 import io.mosip.registration.processor.stages.demodedupe.DemoDedupe;
 import io.mosip.registration.processor.stages.demodedupe.DemodedupeProcessor;
+import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.code.RegistrationType;
 import io.mosip.registration.processor.status.dao.RegistrationStatusDao;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -157,6 +160,10 @@ public class DemodedupeProcessorTest {
 
 	private InternalRegistrationStatusDto registrationStatusDto;
 
+	private InternalRegistrationStatusDto registrationStatusDto1;
+
+	private InternalRegistrationStatusDto registrationStatusDto2;
+
 	private Identity identity = new Identity();
 
 	private PacketMetaInfo packetMetaInfo;
@@ -190,7 +197,8 @@ public class DemodedupeProcessorTest {
 		when(utility.getDefaultSource(any(), any())).thenReturn(source);
 		ReflectionTestUtils.setField(demodedupeProcessor, "infantDedupe", "Y");
 		ReflectionTestUtils.setField(demodedupeProcessor, "ageLimit", "4");
-		ReflectionTestUtils.setField(demodedupeProcessor, "demodedupeMatchDecesion", "MarkAsDemodedupeFailed");
+		ReflectionTestUtils.setField(demodedupeProcessor, "demodedupeInvalidBiometricAction", "MarkAsDemodedupeFailed");
+		ReflectionTestUtils.setField(demodedupeProcessor, "demodedupeInfantInvalidBiometricAction", "MarkAsDemodedupeFailed");
 		dto.setRid("2018701130000410092018110735");
 
 		MockitoAnnotations.initMocks(this);
@@ -206,6 +214,16 @@ public class DemodedupeProcessorTest {
 		registrationStatusDto.setRegistrationType("NEW");
 		registrationStatusDto.setRegistrationId("2018701130000410092018110735");
 
+		registrationStatusDto1 = new InternalRegistrationStatusDto();
+		registrationStatusDto1.setRegistrationType("NEW");
+		registrationStatusDto1.setRegistrationId("2018701130000410092018110732");
+		registrationStatusDto1.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.IN_PROGRESS.toString());
+		registrationStatusDto1.setStatusCode("PROCESSING");
+		registrationStatusDto2 = new InternalRegistrationStatusDto();
+		registrationStatusDto2.setRegistrationType("NEW");
+		registrationStatusDto2.setRegistrationId("2018701130000410092018110731");
+		registrationStatusDto2.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REJECTED.toString());
+		registrationStatusDto2.setStatusCode("REJECTED");
 		packetMetaInfo = new PacketMetaInfo();
 
 		FieldValue registrationType = new FieldValue();
@@ -344,6 +362,11 @@ public class DemodedupeProcessorTest {
 
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService,Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(),any(),any());
+		assertEquals(RegistrationTransactionStatusCode.SUCCESS.toString(), argument.getAllValues().get(0).getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.PROCESSING.toString(), argument.getAllValues().get(0).getStatusCode());
 
 	}
 
@@ -380,6 +403,14 @@ public class DemodedupeProcessorTest {
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService, Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(),
+				any(), any());
+		assertEquals(RegistrationTransactionStatusCode.SUCCESS.toString(),
+				argument.getAllValues().get(0).getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.PROCESSING.toString(), argument.getAllValues().get(0).getStatusCode());
+
 	}
 	
 	@Test
@@ -408,6 +439,13 @@ public class DemodedupeProcessorTest {
 		Mockito.when(packetInfoManager.getIdentityKeysAndFetchValuesFromJSON(any(),any(),any())).thenReturn(individualDemoDedupe);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertFalse(messageDto.getIsValid());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService, Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(),
+				any(), any());
+		assertEquals(RegistrationTransactionStatusCode.ERROR.toString(),
+				argument.getAllValues().get(0).getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.FAILED.toString(), argument.getAllValues().get(0).getStatusCode());
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -457,12 +495,19 @@ public class DemodedupeProcessorTest {
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService, Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(),
+				any(), any());
+		assertEquals(RegistrationTransactionStatusCode.SUCCESS.toString(),
+				argument.getAllValues().get(0).getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.PROCESSING.toString(), argument.getAllValues().get(0).getStatusCode());
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testDemoDedupeSuccessNotDuplicateAfterAuth() throws Exception {
-
+		when(env.getProperty(DEMODEDUPEENABLE)).thenReturn("true");
 		byte[] b = "sds".getBytes();
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		PowerMockito.mockStatic(JsonUtil.class);
@@ -476,7 +521,14 @@ public class DemodedupeProcessorTest {
 		registrationStatusDto.setRegistrationType(RegistrationType.NEW.toString());
 		Mockito.when(registrationStatusDao.findById(any())).thenReturn(entity);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
-		assertFalse(messageDto.getIsValid());
+		assertTrue(messageDto.getIsValid());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService, Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(),
+				any(), any());
+		assertEquals(RegistrationTransactionStatusCode.SUCCESS.toString(),
+				argument.getAllValues().get(0).getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.PROCESSING.toString(), argument.getAllValues().get(0).getStatusCode());
 
 	}
 
@@ -487,7 +539,8 @@ public class DemodedupeProcessorTest {
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testDemoDedupePotentialMatchSuccess() throws Exception {
+	public void testDemoDedupePotentialMatchWithEmpty() throws Exception {
+		when(env.getProperty(DEMODEDUPEENABLE)).thenReturn("true");
 		List<AbisResponseDto> abisResponseDtos = new ArrayList<>();
 		AbisResponseDto abisResponseDto = new AbisResponseDto();
 		abisResponseDto.setId("100");
@@ -512,12 +565,19 @@ public class DemodedupeProcessorTest {
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 
 		assertTrue(messageDto.getIsValid());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService, Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(),
+				any(), any());
+		assertEquals(RegistrationTransactionStatusCode.SUCCESS.toString(),
+				argument.getAllValues().get(0).getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.PROCESSING.toString(), argument.getAllValues().get(0).getStatusCode());
 
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testDemoDedupePotentialMatchWithEmpty() throws Exception {
+	public void testDemoDedupePotentialMatchSuccess() throws Exception {
 		List<AbisResponseDto> abisResponseDtos = new ArrayList<>();
 		List<AbisResponseDetDto> abisResponseDetDtos = new ArrayList<>();
 		List<String> matchedRegIds = new ArrayList<>();
@@ -554,6 +614,13 @@ public class DemodedupeProcessorTest {
 
 		assertFalse(messageDto.getIsValid());
 		assertEquals(MessageBusAddress.MANUAL_VERIFICATION_BUS_IN, messageDto.getMessageBusAddress());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService, Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(),
+				any(), any());
+		assertEquals(RegistrationTransactionStatusCode.FAILED.toString(),
+				argument.getAllValues().get(0).getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.PROCESSING.toString(), argument.getAllValues().get(0).getStatusCode());
 	}
 	
 	@Test
@@ -592,6 +659,13 @@ public class DemodedupeProcessorTest {
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 
 		assertTrue(messageDto.getIsValid());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService, Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(),
+				any(), any());
+		assertEquals(RegistrationTransactionStatusCode.SUCCESS.toString(),
+				argument.getAllValues().get(0).getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.PROCESSING.toString(), argument.getAllValues().get(0).getStatusCode());
 
 	}
 
@@ -619,9 +693,17 @@ public class DemodedupeProcessorTest {
 		Mockito.when(registrationStatusDao.findById(any())).thenReturn(entity);
 		Mockito.when(packetInfoManager.getAbisResponseRecords(anyString(), anyString())).thenReturn(abisResponseDtos);
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
+		Mockito.when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("REPROCESS");
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 
 		assertFalse(messageDto.getIsValid());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService, Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(),
+				any(), any());
+		assertEquals(RegistrationTransactionStatusCode.REPROCESS.toString(),
+				argument.getAllValues().get(0).getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.PROCESSING.toString(), argument.getAllValues().get(0).getStatusCode());
 
 	}
 
@@ -650,7 +732,15 @@ public class DemodedupeProcessorTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
 		registrationStatusDto.setRetryCount(3);
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
-		demodedupeProcessor.process(dto, stageName);
+		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
+		assertTrue(messageDto.getInternalError());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService, Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(),
+				any(), any());
+		assertEquals(RegistrationTransactionStatusCode.ERROR.toString(),
+				argument.getAllValues().get(0).getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.FAILED.toString(), argument.getAllValues().get(0).getStatusCode());
 
 	}
 
@@ -684,10 +774,17 @@ public class DemodedupeProcessorTest {
 		when(utility.getDefaultSource(any(), any())).thenReturn(source);
 		ApisResourceAccessException exp = new ApisResourceAccessException("errorMessage");
 		Mockito.doThrow(exp).when(utility).getApplicantAge(anyString(),anyString(), any());
-
+		Mockito.when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("REPROCESS");
 
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertEquals(true, messageDto.getInternalError());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService, Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(),
+				any(), any());
+		assertEquals(RegistrationTransactionStatusCode.REPROCESS.toString(),
+				argument.getAllValues().get(0).getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.PROCESSING.toString(), argument.getAllValues().get(0).getStatusCode());
 	}
 
 	@Test
@@ -700,8 +797,16 @@ public class DemodedupeProcessorTest {
 		registrationStatusDto.setRegistrationType(RegistrationType.NEW.toString());
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
+		Mockito.when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("REPROCESS");
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertEquals(true, messageDto.getInternalError());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService, Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(),
+				any(), any());
+		assertEquals(RegistrationTransactionStatusCode.REPROCESS.toString(),
+				argument.getAllValues().get(0).getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.PROCESSING.toString(), argument.getAllValues().get(0).getStatusCode());
 	}
 
 	@Test
@@ -714,6 +819,13 @@ public class DemodedupeProcessorTest {
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertEquals(true, messageDto.getInternalError());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService, Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(),
+				any(), any());
+		assertEquals(RegistrationTransactionStatusCode.ERROR.toString(),
+				argument.getAllValues().get(0).getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.FAILED.toString(), argument.getAllValues().get(0).getStatusCode());
 	}
 
 	/**
@@ -737,6 +849,13 @@ public class DemodedupeProcessorTest {
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService, Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(),
+				any(), any());
+		assertEquals(RegistrationTransactionStatusCode.SUCCESS.toString(),
+				argument.getAllValues().get(0).getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.PROCESSING.toString(), argument.getAllValues().get(0).getStatusCode());
 
 	}
 	/**
@@ -755,17 +874,23 @@ public class DemodedupeProcessorTest {
 		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
 				.thenReturn(packetMetaInfo);
 		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(b);
-		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto).thenReturn(registrationStatusDto1).thenReturn(registrationStatusDto2);
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.PRE_ABIS_IDENTIFICATION);
 		Mockito.when(demoDedupe.performDedupe(anyString())).thenReturn(duplicateDtos);
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
-		List<String> uniqueRIDs = new ArrayList<>();
-		uniqueRIDs.add("2018701130000410092018110731");
-		uniqueRIDs.add("2018701130000410092018110732");
-		Mockito.when(abisHandlerUtil.getUniqueProcessedRecords(any(), any(), any(), anyList()))
-				.thenReturn(uniqueRIDs);
+		List<String> matchedRidsWithoutRejected = new ArrayList<>();
+		matchedRidsWithoutRejected.add("2018701130000410092018110731");
+		Mockito.when(abisHandlerUtil.removeRejectedIds(anyList()))
+				.thenReturn(matchedRidsWithoutRejected);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertFalse(messageDto.getIsValid());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService, Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(),
+				any(), any());
+		assertEquals(RegistrationTransactionStatusCode.IN_PROGRESS.toString(),
+				argument.getAllValues().get(0).getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.PROCESSING.toString(), argument.getAllValues().get(0).getStatusCode());
 
 	}
 	/**
@@ -787,16 +912,23 @@ public class DemodedupeProcessorTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.PRE_ABIS_IDENTIFICATION);
 		Mockito.when(demoDedupe.performDedupe(anyString())).thenReturn(duplicateDtos);
-		List<String> uniqueRIDs = new ArrayList<>();
-		uniqueRIDs.add("2018701130000410092018110731");
-		uniqueRIDs.add("2018701130000410092018110732");
-		Mockito.when(abisHandlerUtil.getUniqueProcessedRecords(any(), any(), any(), anyList()))
-				.thenReturn(uniqueRIDs);
+		List<String> matchedRidsWithoutRejected = new ArrayList<>();
+		matchedRidsWithoutRejected.add("2018701130000410092018110731");
+		Mockito.when(abisHandlerUtil.removeRejectedIds(anyList()))
+				.thenReturn(matchedRidsWithoutRejected);
 		NullPointerException exp=new NullPointerException();
 		Mockito.doThrow(exp).when(packetInfoManager).saveDemoDedupePotentialData(any(),anyString(),anyString());
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertFalse(messageDto.getIsValid());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService, Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(),
+				any(), any());
+		assertEquals(RegistrationTransactionStatusCode.REPROCESS.toString(),
+				argument.getAllValues().get(0).getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.PROCESSING.toString(), argument.getAllValues().get(0).getStatusCode());
+
 
 	}
 
@@ -817,6 +949,14 @@ public class DemodedupeProcessorTest {
 
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService, Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(),
+				any(), any());
+		assertEquals(RegistrationTransactionStatusCode.SUCCESS.toString(),
+				argument.getAllValues().get(0).getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.PROCESSING.toString(), argument.getAllValues().get(0).getStatusCode());
+
 
 	}
 	
@@ -837,6 +977,13 @@ public class DemodedupeProcessorTest {
 
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService, Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(),
+				any(), any());
+		assertEquals(RegistrationTransactionStatusCode.SUCCESS.toString(),
+				argument.getAllValues().get(0).getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.PROCESSING.toString(), argument.getAllValues().get(0).getStatusCode());
 
 	}
 	
@@ -857,6 +1004,13 @@ public class DemodedupeProcessorTest {
 
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService, Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(),
+				any(), any());
+		assertEquals(RegistrationTransactionStatusCode.SUCCESS.toString(),
+				argument.getAllValues().get(0).getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.PROCESSING.toString(), argument.getAllValues().get(0).getStatusCode());
 
 	}
 	@Test
@@ -913,7 +1067,7 @@ public class DemodedupeProcessorTest {
 
 	@Test
 	public void testDemoDedupeNewPacketSuccessWithDuplicatesWithNoBiometrics() throws Exception {
-
+		when(env.getProperty(DEMODEDUPEENABLE)).thenReturn("true");
 		byte[] b = "sds".getBytes();
 
 		PowerMockito.mockStatic(JsonUtil.class);
@@ -921,69 +1075,128 @@ public class DemodedupeProcessorTest {
 		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
 				.thenReturn(packetMetaInfo);
 		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(b);
-		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto).thenReturn(registrationStatusDto1).thenReturn(registrationStatusDto2);
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.PRE_ABIS_IDENTIFICATION);
 		Mockito.when(demoDedupe.performDedupe(anyString())).thenReturn(duplicateDtos);
 		Mockito.when(packetManagerService.getBiometrics(any(), any(), any(), any(), any())).thenReturn(null);
 		BiometricRecordValidationException e = new BiometricRecordValidationException("Biometirc validation failed");
 		Mockito.doThrow(e).when(abisHandlerUtil).validateBiometricRecord(any(), anyList());
-		List<String> uniqueRIDs = new ArrayList<>();
-		uniqueRIDs.add("2018701130000410092018110731");
-		uniqueRIDs.add("2018701130000410092018110732");
-		Mockito.when(abisHandlerUtil.getUniqueProcessedRecords(any(), any(), any(), anyList()))
-				.thenReturn(uniqueRIDs);
+		List<String> matchedRidsWithoutRejected = new ArrayList<>();
+		matchedRidsWithoutRejected.add("2018701130000410092018110731");
+		Mockito.when(abisHandlerUtil.removeRejectedIds(anyList()))
+				.thenReturn(matchedRidsWithoutRejected);
+		Mockito.when(utility.getApplicantAge(anyString(), anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertEquals(MessageBusAddress.MANUAL_VERIFICATION_BUS_IN, messageDto.getMessageBusAddress());
+		assertEquals(false, messageDto.getIsValid());
+		assertEquals(false, messageDto.getInternalError());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService,Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(),any(),any());
+		assertEquals(RegistrationTransactionStatusCode.FAILED.toString(), argument.getAllValues().get(0).getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.PROCESSING.toString(), argument.getAllValues().get(0).getStatusCode());
+		//Child packet Testing for same scenario
+		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto).thenReturn(registrationStatusDto1).thenReturn(registrationStatusDto2);
+		Mockito.when(utility.getApplicantAge(anyString(), anyString(), any())).thenReturn(1);
+		MessageDTO messageDto1 = demodedupeProcessor.process(dto, stageName);
+		assertEquals(MessageBusAddress.MANUAL_VERIFICATION_BUS_IN, messageDto1.getMessageBusAddress());
+		assertEquals(false, messageDto1.getIsValid());
+		assertEquals(false, messageDto1.getInternalError());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument1 = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService,Mockito.atLeastOnce()).updateRegistrationStatus(argument1.capture(),any(),any());
+		assertEquals(RegistrationTransactionStatusCode.FAILED.toString(), argument1.getAllValues().get(0).getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.PROCESSING.toString(), argument1.getAllValues().get(0).getStatusCode());
 
 	}
 
 	@Test
 	public void testDemoDedupeNewPacketSuccessWithDuplicatesWithNoBiometricsWithDemodedupeSuccess() throws Exception {
-
+		when(env.getProperty(DEMODEDUPEENABLE)).thenReturn("true");
 		byte[] b = "sds".getBytes();
-		ReflectionTestUtils.setField(demodedupeProcessor, "demodedupeMatchDecesion", "MarkAsDemodedupeSuccess");
+		ReflectionTestUtils.setField(demodedupeProcessor, "demodedupeInvalidBiometricAction",
+				"MarkAsDemodedupeSuccess");
+		ReflectionTestUtils.setField(demodedupeProcessor, "demodedupeInfantInvalidBiometricAction", "MarkAsDemodedupeSuccess");
 		PowerMockito.mockStatic(JsonUtil.class);
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
 				.thenReturn(packetMetaInfo);
 		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(b);
-		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto).thenReturn(registrationStatusDto1).thenReturn(registrationStatusDto2);
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.PRE_ABIS_IDENTIFICATION);
 		Mockito.when(demoDedupe.performDedupe(anyString())).thenReturn(duplicateDtos);
 		Mockito.when(packetManagerService.getBiometrics(any(), any(), any(), any(), any())).thenReturn(null);
 		BiometricRecordValidationException e = new BiometricRecordValidationException("Biometirc validation failed");
 		Mockito.doThrow(e).when(abisHandlerUtil).validateBiometricRecord(any(), anyList());
-		List<String> uniqueRIDs = new ArrayList<>();
-		uniqueRIDs.add("2018701130000410092018110731");
-		uniqueRIDs.add("2018701130000410092018110732");
-		Mockito.when(abisHandlerUtil.getUniqueProcessedRecords(any(), any(), any(), anyList())).thenReturn(uniqueRIDs);
+		List<String> matchedRidsWithoutRejected = new ArrayList<>();
+		matchedRidsWithoutRejected.add("2018701130000410092018110731");
+		Mockito.when(abisHandlerUtil.removeRejectedIds(anyList()))
+				.thenReturn(matchedRidsWithoutRejected);
+		Mockito.when(utility.getApplicantAge(anyString(), anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
+		assertEquals(false, messageDto.getInternalError());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService,Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(),any(),any());
+		assertEquals(RegistrationTransactionStatusCode.SUCCESS.toString(), argument.getAllValues().get(0).getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.PROCESSING.toString(), argument.getAllValues().get(0).getStatusCode());
+		//Child packet Testing for same scenario
+		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto).thenReturn(registrationStatusDto1).thenReturn(registrationStatusDto2);
+		Mockito.when(utility.getApplicantAge(anyString(), anyString(), any())).thenReturn(1);
+		MessageDTO messageDto1 = demodedupeProcessor.process(dto, stageName);
+		assertTrue(messageDto1.getIsValid());
+		assertEquals(false, messageDto1.getInternalError());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument1 = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService,Mockito.atLeastOnce()).updateRegistrationStatus(argument1.capture(),any(),any());
+		assertEquals(RegistrationTransactionStatusCode.SUCCESS.toString(), argument1.getAllValues().get(0).getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.PROCESSING.toString(), argument1.getAllValues().get(0).getStatusCode());
 
 	}
 
 	@Test
 	public void testDemoDedupeNewPacketSuccessWithDuplicatesWithNoBiometricsWithDemodedupeRejected() throws Exception {
-
+		when(env.getProperty(DEMODEDUPEENABLE)).thenReturn("true");
 		byte[] b = "sds".getBytes();
-		ReflectionTestUtils.setField(demodedupeProcessor, "demodedupeMatchDecesion", "MarkAsDemodedupeRejected");
+		ReflectionTestUtils.setField(demodedupeProcessor, "demodedupeInvalidBiometricAction",
+				"MarkAsDemodedupeRejected");
+		ReflectionTestUtils.setField(demodedupeProcessor, "demodedupeInfantInvalidBiometricAction", "MarkAsDemodedupeRejected");
 		PowerMockito.mockStatic(JsonUtil.class);
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
 				.thenReturn(packetMetaInfo);
 		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(b);
-		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto).thenReturn(registrationStatusDto1).thenReturn(registrationStatusDto2);
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.PRE_ABIS_IDENTIFICATION);
 		Mockito.when(demoDedupe.performDedupe(anyString())).thenReturn(duplicateDtos);
 		Mockito.when(packetManagerService.getBiometrics(any(), any(), any(), any(), any())).thenReturn(null);
 		BiometricRecordValidationException e = new BiometricRecordValidationException("Biometirc validation failed");
 		Mockito.doThrow(e).when(abisHandlerUtil).validateBiometricRecord(any(), anyList());
-		List<String> uniqueRIDs = new ArrayList<>();
-		uniqueRIDs.add("2018701130000410092018110731");
-		uniqueRIDs.add("2018701130000410092018110732");
-		Mockito.when(abisHandlerUtil.getUniqueProcessedRecords(any(), any(), any(), anyList())).thenReturn(uniqueRIDs);
+		List<String> matchedRidsWithoutRejected = new ArrayList<>();
+		matchedRidsWithoutRejected.add("2018701130000410092018110731");
+		Mockito.when(abisHandlerUtil.removeRejectedIds(anyList()))
+				.thenReturn(matchedRidsWithoutRejected);
+		Mockito.when(utility.getApplicantAge(anyString(), anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertFalse(messageDto.getIsValid());
+		assertEquals(false, messageDto.getInternalError());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService,Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(),any(),any());
+		assertEquals(RegistrationTransactionStatusCode.FAILED.toString(), argument.getAllValues().get(0).getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.REJECTED.toString(), argument.getAllValues().get(0).getStatusCode());
+		//Child packet Testing for same scenario
+		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto).thenReturn(registrationStatusDto1).thenReturn(registrationStatusDto2);
+		Mockito.when(utility.getApplicantAge(anyString(), anyString(), any())).thenReturn(1);
+		MessageDTO messageDto1 = demodedupeProcessor.process(dto, stageName);
+		assertFalse(messageDto1.getIsValid());
+		assertEquals(false, messageDto1.getInternalError());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument1 = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService,Mockito.atLeastOnce()).updateRegistrationStatus(argument1.capture(),any(),any());
+		assertEquals(RegistrationTransactionStatusCode.FAILED.toString(), argument1.getAllValues().get(0).getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.REJECTED.toString(), argument1.getAllValues().get(0).getStatusCode());	
 
 	}
 }

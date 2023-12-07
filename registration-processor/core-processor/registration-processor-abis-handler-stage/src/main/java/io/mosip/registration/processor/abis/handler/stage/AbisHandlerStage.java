@@ -544,7 +544,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	}
 
 	private String getDataShareUrl(String id, String process) throws Exception {
-		Map<String, List<String>> typeAndSubtypMap = abisHandlerUtil.createTypeSubtypeMapping();
+		Map<String, List<String>> typeAndSubtypMap = abisHandlerUtil.createBiometricTypeSubtypeMappingFromAbispolicy();
 		List<String> modalities=new ArrayList<>();
 		for(Map.Entry<String,List<String>> entry:typeAndSubtypMap.entrySet()) {
 			if(entry.getValue()==null) {

@@ -1286,7 +1286,7 @@ public enum PlatformErrorMessages {
 			"Potential Demo Match was Found and Biometric record validation failed. Hence sending to manual adjudication"),
 
 	RPR_DEMO_POTENTIAL_PACKET_REJECTED(PlatformConstants.RPR_DEMO_DEDUPE_MODULE + "004",
-			"Potential Demo Match was Found and Biometric record validation failed. Hende demodedupe Rejected"),
+			"Potential Demo Match was Found and Biometric record validation failed. Hence packet Rejected"),
 
 	RPR_SECUREZONE_FAILURE(PlatformConstants.RPR_SECUREZONE_NOTIFICATION_MODULE + "001",
 			"Exception occured in securezone notification stage. Check logs for more info"),

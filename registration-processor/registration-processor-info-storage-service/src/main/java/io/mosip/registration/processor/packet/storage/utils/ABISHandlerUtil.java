@@ -317,7 +317,7 @@ public class ABISHandlerUtil {
 				PlatformErrorMessages.RPR_NO_BIOMETRIC_MATCH_WTIH_DATASAHRE.getMessage());
 	}
 
-	public Map<String, List<String>> createTypeSubtypeMapping() throws ApisResourceAccessException, DataShareException,
+	public Map<String, List<String>> createBiometricTypeSubtypeMappingFromAbispolicy() throws ApisResourceAccessException, DataShareException,
 			JsonParseException, JsonMappingException, com.fasterxml.jackson.core.JsonProcessingException, IOException {
 		Map<String, List<String>> typeAndSubTypeMap = new HashMap<>();
 		ResponseWrapper<?> policyResponse = (ResponseWrapper<?>) registrationProcessorRestClientService.getApi(
@@ -351,5 +351,14 @@ public class ABISHandlerUtil {
 		}
 		return typeAndSubTypeMap;
 
+	}
+
+	public List<String> removeRejectedIds(List<String> matchedRegIds) {
+		List<String> matchedRidsWithoutRejected = new ArrayList<>();
+		List<RegistrationStatusEntity> matchedRegistrationStatusEntities = packetInfoDao
+				.getWithoutStatusCode(matchedRegIds, RegistrationStatusCode.REJECTED.toString());
+		matchedRidsWithoutRejected.addAll((matchedRegistrationStatusEntities).stream()
+				.map(RegistrationStatusEntity::getId).collect(Collectors.toList()));
+		return matchedRidsWithoutRejected;
 	}
 }

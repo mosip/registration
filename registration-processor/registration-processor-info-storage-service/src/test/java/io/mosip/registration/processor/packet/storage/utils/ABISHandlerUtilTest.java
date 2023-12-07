@@ -295,7 +295,7 @@ public class ABISHandlerUtilTest {
 	public void testcreateTypeSubtypeMapping() throws ApisResourceAccessException, JsonParseException,
 			JsonMappingException, DataShareException, com.fasterxml.jackson.core.JsonProcessingException, IOException {
 		mockDataSharePolicy(Lists.newArrayList(BiometricType.FACE, BiometricType.FINGER, BiometricType.IRIS));
-		Map<String, List<String>> typeAndSubtypMap = abisHandlerUtil.createTypeSubtypeMapping();
+		Map<String, List<String>> typeAndSubtypMap = abisHandlerUtil.createBiometricTypeSubtypeMappingFromAbispolicy();
 		assertEquals(3, typeAndSubtypMap.size());
 
 	}
