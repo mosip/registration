@@ -26,7 +26,7 @@ public class DemoDedupeConstants {
 	public static final String NO_MATCH_FOUND = "No matched RegistrationId's found. Hence data is not inserting in manual adjudication table";
 	public static final String DEMO_SKIP = "Demographic Deduplication Skipped";
 	public static final String BIOMETRIC_VALIDATION_FAILED_SENDING_FOR_MANUAL = "Potential duplicates found and biometric validation failed. Hence sending to manual adjudication";
-	public static final String MARK_AS_DEMODEDUPE_FAILED = "MarkAsDemodedupeFailed";
+	public static final String REDIRECT_TO_MANUAL_VERIFICATION = "RedirectToManualVerification";
 	public static final String MARK_AS_DEMODEDUPE_REJECTED = "MarkAsDemodedupeRejected";
 	public static final String MARK_AS_DEMODEDUPE_SUCCESS = "MarkAsDemodedupeSuccess";
 	public static final String BIOMETRIC_VALIDATION_FAILED_PACKET_REJECTED = "Potential duplicates found and biometric validation failed.  Hence demodedupe Rejected";

@@ -197,8 +197,8 @@ public class DemodedupeProcessorTest {
 		when(utility.getDefaultSource(any(), any())).thenReturn(source);
 		ReflectionTestUtils.setField(demodedupeProcessor, "infantDedupe", "Y");
 		ReflectionTestUtils.setField(demodedupeProcessor, "ageLimit", "4");
-		ReflectionTestUtils.setField(demodedupeProcessor, "demodedupeInvalidBiometricAction", "MarkAsDemodedupeFailed");
-		ReflectionTestUtils.setField(demodedupeProcessor, "demodedupeInfantInvalidBiometricAction", "MarkAsDemodedupeFailed");
+		ReflectionTestUtils.setField(demodedupeProcessor, "demodedupeInvalidBiometricAction", "RedirectToManualVerification");
+		ReflectionTestUtils.setField(demodedupeProcessor, "demodedupeInfantInvalidBiometricAction", "RedirectToManualVerification");
 		dto.setRid("2018701130000410092018110735");
 
 		MockitoAnnotations.initMocks(this);
@@ -1066,7 +1066,7 @@ public class DemodedupeProcessorTest {
 	}
 
 	@Test
-	public void testDemoDedupeNewPacketSuccessWithDuplicatesWithNoBiometrics() throws Exception {
+	public void testDemoDedupeNewPacketWithDuplicatesWithNoBiometrics() throws Exception {
 		when(env.getProperty(DEMODEDUPEENABLE)).thenReturn("true");
 		byte[] b = "sds".getBytes();
 
@@ -1111,7 +1111,7 @@ public class DemodedupeProcessorTest {
 	}
 
 	@Test
-	public void testDemoDedupeNewPacketSuccessWithDuplicatesWithNoBiometricsWithDemodedupeSuccess() throws Exception {
+	public void testDemoDedupeNewPacketWithDuplicatesWithNoBiometricsWithDemodedupeSuccess() throws Exception {
 		when(env.getProperty(DEMODEDUPEENABLE)).thenReturn("true");
 		byte[] b = "sds".getBytes();
 		ReflectionTestUtils.setField(demodedupeProcessor, "demodedupeInvalidBiometricAction",
@@ -1156,7 +1156,7 @@ public class DemodedupeProcessorTest {
 	}
 
 	@Test
-	public void testDemoDedupeNewPacketSuccessWithDuplicatesWithNoBiometricsWithDemodedupeRejected() throws Exception {
+	public void testDemoDedupeNewPacketWithDuplicatesWithNoBiometricsWithDemodedupeRejected() throws Exception {
 		when(env.getProperty(DEMODEDUPEENABLE)).thenReturn("true");
 		byte[] b = "sds".getBytes();
 		ReflectionTestUtils.setField(demodedupeProcessor, "demodedupeInvalidBiometricAction",
@@ -1188,6 +1188,97 @@ public class DemodedupeProcessorTest {
 		assertEquals(RegistrationStatusCode.REJECTED.toString(), argument.getAllValues().get(0).getStatusCode());
 		//Child packet Testing for same scenario
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto).thenReturn(registrationStatusDto1).thenReturn(registrationStatusDto2);
+		Mockito.when(utility.getApplicantAge(anyString(), anyString(), any())).thenReturn(1);
+		MessageDTO messageDto1 = demodedupeProcessor.process(dto, stageName);
+		assertFalse(messageDto1.getIsValid());
+		assertEquals(false, messageDto1.getInternalError());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument1 = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService,Mockito.atLeastOnce()).updateRegistrationStatus(argument1.capture(),any(),any());
+		assertEquals(RegistrationTransactionStatusCode.FAILED.toString(), argument1.getAllValues().get(0).getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.REJECTED.toString(), argument1.getAllValues().get(0).getStatusCode());	
+
+	}
+
+	@Test
+	public void testDemoDedupeNewInfantPacketWithDuplicatesWithNoBiometrics() throws Exception {
+		byte[] b = "sds".getBytes();
+		PowerMockito.mockStatic(JsonUtil.class);
+		PowerMockito.mockStatic(IOUtils.class);
+		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
+				.thenReturn(packetMetaInfo);
+		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(b);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto).thenReturn(registrationStatusDto1).thenReturn(registrationStatusDto2);
+		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.PRE_ABIS_IDENTIFICATION);
+		Mockito.when(demoDedupe.performDedupe(anyString())).thenReturn(duplicateDtos);
+		Mockito.when(packetManagerService.getBiometrics(any(), any(), any(), any(), any())).thenReturn(null);
+		BiometricRecordValidationException e = new BiometricRecordValidationException("Biometirc validation failed");
+		Mockito.doThrow(e).when(abisHandlerUtil).validateBiometricRecord(any(), anyList());
+		List<String> matchedRidsWithoutRejected = new ArrayList<>();
+		matchedRidsWithoutRejected.add("2018701130000410092018110731");
+		Mockito.when(abisHandlerUtil.removeRejectedIds(anyList()))
+				.thenReturn(matchedRidsWithoutRejected);
+		Mockito.when(utility.getApplicantAge(anyString(), anyString(), any())).thenReturn(1);
+		MessageDTO messageDto1 = demodedupeProcessor.process(dto, stageName);
+		assertEquals(MessageBusAddress.MANUAL_VERIFICATION_BUS_IN, messageDto1.getMessageBusAddress());
+		assertEquals(false, messageDto1.getIsValid());
+		assertEquals(false, messageDto1.getInternalError());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument1 = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService,Mockito.atLeastOnce()).updateRegistrationStatus(argument1.capture(),any(),any());
+		assertEquals(RegistrationTransactionStatusCode.FAILED.toString(), argument1.getAllValues().get(0).getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.PROCESSING.toString(), argument1.getAllValues().get(0).getStatusCode());
+
+	}
+
+	@Test
+	public void testDemoDedupeNewInfantPacketWithDuplicatesWithNoBiometricsWithDemodedupeSuccess() throws Exception {
+		byte[] b = "sds".getBytes();
+		ReflectionTestUtils.setField(demodedupeProcessor, "demodedupeInfantInvalidBiometricAction", "MarkAsDemodedupeSuccess");
+		PowerMockito.mockStatic(JsonUtil.class);
+		PowerMockito.mockStatic(IOUtils.class);
+		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
+				.thenReturn(packetMetaInfo);
+		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(b);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto).thenReturn(registrationStatusDto1).thenReturn(registrationStatusDto2);
+		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.PRE_ABIS_IDENTIFICATION);
+		Mockito.when(demoDedupe.performDedupe(anyString())).thenReturn(duplicateDtos);
+		Mockito.when(packetManagerService.getBiometrics(any(), any(), any(), any(), any())).thenReturn(null);
+		BiometricRecordValidationException e = new BiometricRecordValidationException("Biometirc validation failed");
+		Mockito.doThrow(e).when(abisHandlerUtil).validateBiometricRecord(any(), anyList());
+		List<String> matchedRidsWithoutRejected = new ArrayList<>();
+		matchedRidsWithoutRejected.add("2018701130000410092018110731");
+		Mockito.when(abisHandlerUtil.removeRejectedIds(anyList())).thenReturn(matchedRidsWithoutRejected);
+		Mockito.when(utility.getApplicantAge(anyString(), anyString(), any())).thenReturn(1);
+		MessageDTO messageDto1 = demodedupeProcessor.process(dto, stageName);
+		assertTrue(messageDto1.getIsValid());
+		assertEquals(false, messageDto1.getInternalError());
+		ArgumentCaptor<InternalRegistrationStatusDto> argument1 = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		Mockito.verify(registrationStatusService,Mockito.atLeastOnce()).updateRegistrationStatus(argument1.capture(),any(),any());
+		assertEquals(RegistrationTransactionStatusCode.SUCCESS.toString(), argument1.getAllValues().get(0).getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.PROCESSING.toString(), argument1.getAllValues().get(0).getStatusCode());
+
+	}
+
+	@Test
+	public void testDemoDedupeNewInfantPacketWithDuplicatesWithNoBiometricsWithDemodedupeRejected() throws Exception {
+		byte[] b = "sds".getBytes();
+		ReflectionTestUtils.setField(demodedupeProcessor, "demodedupeInfantInvalidBiometricAction", "MarkAsDemodedupeRejected");
+		PowerMockito.mockStatic(JsonUtil.class);
+		PowerMockito.mockStatic(IOUtils.class);
+		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
+				.thenReturn(packetMetaInfo);
+		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(b);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto).thenReturn(registrationStatusDto1).thenReturn(registrationStatusDto2);
+		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.PRE_ABIS_IDENTIFICATION);
+		Mockito.when(demoDedupe.performDedupe(anyString())).thenReturn(duplicateDtos);
+		Mockito.when(packetManagerService.getBiometrics(any(), any(), any(), any(), any())).thenReturn(null);
+		BiometricRecordValidationException e = new BiometricRecordValidationException("Biometirc validation failed");
+		Mockito.doThrow(e).when(abisHandlerUtil).validateBiometricRecord(any(), anyList());
+		List<String> matchedRidsWithoutRejected = new ArrayList<>();
+		matchedRidsWithoutRejected.add("2018701130000410092018110731");
+		Mockito.when(abisHandlerUtil.removeRejectedIds(anyList())).thenReturn(matchedRidsWithoutRejected);
 		Mockito.when(utility.getApplicantAge(anyString(), anyString(), any())).thenReturn(1);
 		MessageDTO messageDto1 = demodedupeProcessor.process(dto, stageName);
 		assertFalse(messageDto1.getIsValid());

@@ -512,24 +512,11 @@ public class DemodedupeProcessor {
 					LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
 					DemoDedupeConstants.DEMO_SUCCESS);
 		} else if ((!isInfant && demodedupeInvalidBiometricAction
-				.equalsIgnoreCase(DemoDedupeConstants.MARK_AS_DEMODEDUPE_FAILED))
+				.equalsIgnoreCase(DemoDedupeConstants.REDIRECT_TO_MANUAL_VERIFICATION))
 				|| (isInfant && demodedupeInfantInvalidBiometricAction
-				.equalsIgnoreCase(DemoDedupeConstants.MARK_AS_DEMODEDUPE_FAILED))) {
-			registrationStatusDto
-					.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-			registrationStatusDto.setStatusComment(trimExceptionMessage.trimExceptionMessage(
-					StatusUtil.DEMO_DEDUPE_BIOMTERIC_RECORD_VALIDAITON_FAILED.getMessage() + " -> "
-							+ e.getErrorText()));
-			registrationStatusDto
-					.setSubStatusCode(StatusUtil.DEMO_DEDUPE_BIOMTERIC_RECORD_VALIDAITON_FAILED.getCode());
-			description.setCode(PlatformErrorMessages.RPR_DEMO_POTENTIAL_SENDING_FOR_MANUAL.getCode());
-			description.setMessage(PlatformErrorMessages.RPR_DEMO_POTENTIAL_SENDING_FOR_MANUAL.getMessage());
-			object.setMessageBusAddress(MessageBusAddress.MANUAL_VERIFICATION_BUS_IN);
-			saveManualAdjudicationData(registrationStatusDto, matchedRidsWithoutRejected);
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-					LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
-					DemoDedupeConstants.BIOMETRIC_VALIDATION_FAILED_SENDING_FOR_MANUAL);
+						.equalsIgnoreCase(DemoDedupeConstants.REDIRECT_TO_MANUAL_VERIFICATION))) {
+			handleRedirectToManualVerification(registrationStatusDto, object, description, trimExceptionMessage,
+					matchedRidsWithoutRejected, e);
 		} else if ((!isInfant && demodedupeInvalidBiometricAction
 				.equalsIgnoreCase(DemoDedupeConstants.MARK_AS_DEMODEDUPE_REJECTED))
 				|| (isInfant && demodedupeInfantInvalidBiometricAction
@@ -548,7 +535,32 @@ public class DemodedupeProcessor {
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
 					LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
 					DemoDedupeConstants.BIOMETRIC_VALIDATION_FAILED_PACKET_REJECTED);
+		} else {
+			handleRedirectToManualVerification(registrationStatusDto, object, description, trimExceptionMessage,
+					matchedRidsWithoutRejected, e);
 		}
+	}
+
+
+	private void handleRedirectToManualVerification(InternalRegistrationStatusDto registrationStatusDto,
+			MessageDTO object, LogDescription description, TrimExceptionMessage trimExceptionMessage,
+			List<String> matchedRidsWithoutRejected, BiometricRecordValidationException e)
+			throws ApisResourceAccessException, IOException, JsonProcessingException, PacketManagerException {
+		registrationStatusDto
+				.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
+		registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+		registrationStatusDto.setStatusComment(trimExceptionMessage.trimExceptionMessage(
+				StatusUtil.DEMO_DEDUPE_BIOMTERIC_RECORD_VALIDAITON_FAILED.getMessage() + " -> "
+						+ e.getErrorText()));
+		registrationStatusDto
+				.setSubStatusCode(StatusUtil.DEMO_DEDUPE_BIOMTERIC_RECORD_VALIDAITON_FAILED.getCode());
+		description.setCode(PlatformErrorMessages.RPR_DEMO_POTENTIAL_SENDING_FOR_MANUAL.getCode());
+		description.setMessage(PlatformErrorMessages.RPR_DEMO_POTENTIAL_SENDING_FOR_MANUAL.getMessage());
+		object.setMessageBusAddress(MessageBusAddress.MANUAL_VERIFICATION_BUS_IN);
+		saveManualAdjudicationData(registrationStatusDto, matchedRidsWithoutRejected);
+		regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+				LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
+				DemoDedupeConstants.BIOMETRIC_VALIDATION_FAILED_SENDING_FOR_MANUAL);
 	}
 
 	/**
