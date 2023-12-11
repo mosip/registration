@@ -1,12 +1,8 @@
 package io.mosip.registration.processor.abis.handler.stage;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -21,13 +17,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
-
-import io.mosip.kernel.biometrics.constant.BiometricType;
-import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -36,12 +25,7 @@ import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.abis.handler.constant.AbisHandlerStageConstant;
 import io.mosip.registration.processor.abis.handler.dto.DataShareResponseDto;
-import io.mosip.registration.processor.abis.handler.dto.Filter;
-import io.mosip.registration.processor.abis.handler.dto.ShareableAttributes;
-import io.mosip.registration.processor.abis.handler.dto.Source;
 import io.mosip.registration.processor.abis.handler.exception.AbisHandlerException;
-import io.mosip.registration.processor.abis.handler.exception.BiometricRecordValidationException;
-import io.mosip.registration.processor.abis.handler.exception.DataShareException;
 import io.mosip.registration.processor.abis.queue.dto.AbisQueueDetails;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -57,12 +41,11 @@ import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
-import io.mosip.registration.processor.core.constant.PolicyConstant;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.BiometricRecordValidationException;
+import io.mosip.registration.processor.core.exception.DataShareException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
-import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.Identity;
@@ -80,6 +63,7 @@ import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
+import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.BIRConverter;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
@@ -168,6 +152,10 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	private static final String DATASHARECREATEURL = "DATASHARECREATEURL";
 
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
+
+	@Autowired
+	private ABISHandlerUtil abisHandlerUtil;
+
 	/**
 	 * Deploy verticle.
 	 */
@@ -556,7 +544,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	}
 
 	private String getDataShareUrl(String id, String process) throws Exception {
-		Map<String,List<String>> typeAndSubtypMap=createTypeSubtypeMapping();
+		Map<String, List<String>> typeAndSubtypMap = abisHandlerUtil.createBiometricTypeSubtypeMappingFromAbispolicy();
 		List<String> modalities=new ArrayList<>();
 		for(Map.Entry<String,List<String>> entry:typeAndSubtypMap.entrySet()) {
 			if(entry.getValue()==null) {
@@ -571,7 +559,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 				MappingJsonConstants.VALUE);
 		BiometricRecord biometricRecord = priorityBasedPacketManagerService.getBiometrics(
 				id, individualBiometricsLabel, modalities, process, ProviderStageName.BIO_DEDUPE);
-		validateBiometricRecord(biometricRecord, modalities);
+		abisHandlerUtil.validateBiometricRecord(biometricRecord, modalities);
 		byte[] content = cbeffutil.createXML(BIRConverter.convertSegmentsToBIRList(biometricRecord.getSegments()));
 
 		MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
@@ -596,77 +584,6 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 		return response.getDataShare().getUrl();
 	}
-	public Map<String, List<String>> createTypeSubtypeMapping() throws ApisResourceAccessException, DataShareException, JsonParseException, JsonMappingException, com.fasterxml.jackson.core.JsonProcessingException, IOException{
-		Map<String, List<String>> typeAndSubTypeMap = new HashMap<>();
-		ResponseWrapper<?> policyResponse = (ResponseWrapper<?>) registrationProcessorRestClientService.getApi(
-				ApiName.PMS, Lists.newArrayList(policyId, PolicyConstant.PARTNER_ID, subscriberId), "", "", ResponseWrapper.class);
-		if (policyResponse == null || (policyResponse.getErrors() != null && policyResponse.getErrors().size() >0)) {
-			throw new DataShareException(policyResponse == null ? "Policy Response response is null" : policyResponse.getErrors().get(0).getMessage());
-			
-		} else {
-			LinkedHashMap<String, Object> responseMap = (LinkedHashMap<String, Object>) policyResponse.getResponse();
-			LinkedHashMap<String, Object> policies = (LinkedHashMap<String, Object>) responseMap.get(PolicyConstant.POLICIES);
-			List<?> attributes = (List<?>) policies.get(PolicyConstant.SHAREABLE_ATTRIBUTES);
-			ObjectMapper mapper = new ObjectMapper();
-			ShareableAttributes shareableAttributes = mapper.readValue(mapper.writeValueAsString(attributes.get(0)),
-					ShareableAttributes.class);
-			for (Source source : shareableAttributes.getSource()) {
-				List<Filter> filterList = source.getFilter();
-				if (filterList != null && !filterList.isEmpty()) {
 
-					filterList.forEach(filter -> {
-						if (filter.getSubType() != null && !filter.getSubType().isEmpty()) {
-							typeAndSubTypeMap.put(filter.getType(), filter.getSubType());
-						} else {
-							typeAndSubTypeMap.put(filter.getType(), null);
-						}
-					});
-				}
-			}
-		}
-		return typeAndSubTypeMap;
-		
-	}
 
-	private void validateBiometricRecord(BiometricRecord biometricRecord, List<String> modalities)
-			throws BiometricRecordValidationException, JsonParseException, JsonMappingException, IOException {
-		if (modalities == null || modalities.isEmpty()) {
-			throw new BiometricRecordValidationException(PlatformErrorMessages.RPR_DATASHARE_MODALITIES_EMPTY.getCode(),PlatformErrorMessages.RPR_DATASHARE_MODALITIES_EMPTY.getMessage());
-		}
-		if (biometricRecord == null || biometricRecord.getSegments() == null
-				|| biometricRecord.getSegments().isEmpty()) {
-			throw new BiometricRecordValidationException(PlatformErrorMessages.RPR_NO_BIOMETRICS_FOUND_WITH_DATASHARE.getCode(),PlatformErrorMessages.RPR_NO_BIOMETRICS_FOUND_WITH_DATASHARE.getMessage());
-		}
-
-		for (String segment : modalities) {
-				Optional<BIR> optionalBIR = Optional.empty();
-				if (segment.equalsIgnoreCase("Face")) {
-					optionalBIR = biometricRecord.getSegments().stream()
-							.filter(bir -> bir.getBdbInfo().getType() != null
-									&& bir.getBdbInfo().getType().get(0).equals(BiometricType.FACE))
-							.findFirst();
-				} else {
-					String[] segmentArray = segment.split(" ");
-					optionalBIR = biometricRecord.getSegments().stream().filter(bir -> bir.getBdbInfo()
-							.getSubtype() != null && bir.getBdbInfo().getSubtype().size() == segmentArray.length
-									? (bir.getBdbInfo().getSubtype().get(0).equalsIgnoreCase(segmentArray[0])
-											&& (segmentArray.length == 2
-													? bir.getBdbInfo().getSubtype().get(1)
-															.equalsIgnoreCase(segmentArray[1])
-													: true))
-									: false)
-							.findFirst();
-				}
-				if (optionalBIR.isPresent()) {
-					BIR bir = optionalBIR.get();
-					if (bir.getBdb() != null) {
-						return;
-					}
-				}
-			}
-
-			throw new BiometricRecordValidationException(
-					PlatformErrorMessages.RPR_NO_BIOMETRIC_MATCH_WTIH_DATASAHRE.getCode(),
-					PlatformErrorMessages.RPR_NO_BIOMETRIC_MATCH_WTIH_DATASAHRE.getMessage());
-	}
 }
