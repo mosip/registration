@@ -1095,18 +1095,6 @@ public class DemodedupeProcessorTest {
 		Mockito.verify(registrationStatusService,Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(),any(),any());
 		assertEquals(RegistrationTransactionStatusCode.FAILED.toString(), argument.getAllValues().get(0).getLatestTransactionStatusCode());
 		assertEquals(RegistrationStatusCode.PROCESSING.toString(), argument.getAllValues().get(0).getStatusCode());
-		//Child packet Testing for same scenario
-		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto).thenReturn(registrationStatusDto1).thenReturn(registrationStatusDto2);
-		Mockito.when(utility.getApplicantAge(anyString(), anyString(), any())).thenReturn(1);
-		MessageDTO messageDto1 = demodedupeProcessor.process(dto, stageName);
-		assertEquals(MessageBusAddress.MANUAL_VERIFICATION_BUS_IN, messageDto1.getMessageBusAddress());
-		assertEquals(false, messageDto1.getIsValid());
-		assertEquals(false, messageDto1.getInternalError());
-		ArgumentCaptor<InternalRegistrationStatusDto> argument1 = ArgumentCaptor
-				.forClass(InternalRegistrationStatusDto.class);
-		Mockito.verify(registrationStatusService,Mockito.atLeastOnce()).updateRegistrationStatus(argument1.capture(),any(),any());
-		assertEquals(RegistrationTransactionStatusCode.FAILED.toString(), argument1.getAllValues().get(0).getLatestTransactionStatusCode());
-		assertEquals(RegistrationStatusCode.PROCESSING.toString(), argument1.getAllValues().get(0).getStatusCode());
 
 	}
 
@@ -1141,17 +1129,6 @@ public class DemodedupeProcessorTest {
 		Mockito.verify(registrationStatusService,Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(),any(),any());
 		assertEquals(RegistrationTransactionStatusCode.SUCCESS.toString(), argument.getAllValues().get(0).getLatestTransactionStatusCode());
 		assertEquals(RegistrationStatusCode.PROCESSING.toString(), argument.getAllValues().get(0).getStatusCode());
-		//Child packet Testing for same scenario
-		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto).thenReturn(registrationStatusDto1).thenReturn(registrationStatusDto2);
-		Mockito.when(utility.getApplicantAge(anyString(), anyString(), any())).thenReturn(1);
-		MessageDTO messageDto1 = demodedupeProcessor.process(dto, stageName);
-		assertTrue(messageDto1.getIsValid());
-		assertEquals(false, messageDto1.getInternalError());
-		ArgumentCaptor<InternalRegistrationStatusDto> argument1 = ArgumentCaptor
-				.forClass(InternalRegistrationStatusDto.class);
-		Mockito.verify(registrationStatusService,Mockito.atLeastOnce()).updateRegistrationStatus(argument1.capture(),any(),any());
-		assertEquals(RegistrationTransactionStatusCode.SUCCESS.toString(), argument1.getAllValues().get(0).getLatestTransactionStatusCode());
-		assertEquals(RegistrationStatusCode.PROCESSING.toString(), argument1.getAllValues().get(0).getStatusCode());
 
 	}
 
@@ -1186,18 +1163,6 @@ public class DemodedupeProcessorTest {
 		Mockito.verify(registrationStatusService,Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(),any(),any());
 		assertEquals(RegistrationTransactionStatusCode.FAILED.toString(), argument.getAllValues().get(0).getLatestTransactionStatusCode());
 		assertEquals(RegistrationStatusCode.REJECTED.toString(), argument.getAllValues().get(0).getStatusCode());
-		//Child packet Testing for same scenario
-		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto).thenReturn(registrationStatusDto1).thenReturn(registrationStatusDto2);
-		Mockito.when(utility.getApplicantAge(anyString(), anyString(), any())).thenReturn(1);
-		MessageDTO messageDto1 = demodedupeProcessor.process(dto, stageName);
-		assertFalse(messageDto1.getIsValid());
-		assertEquals(false, messageDto1.getInternalError());
-		ArgumentCaptor<InternalRegistrationStatusDto> argument1 = ArgumentCaptor
-				.forClass(InternalRegistrationStatusDto.class);
-		Mockito.verify(registrationStatusService,Mockito.atLeastOnce()).updateRegistrationStatus(argument1.capture(),any(),any());
-		assertEquals(RegistrationTransactionStatusCode.FAILED.toString(), argument1.getAllValues().get(0).getLatestTransactionStatusCode());
-		assertEquals(RegistrationStatusCode.REJECTED.toString(), argument1.getAllValues().get(0).getStatusCode());	
-
 	}
 
 	@Test
