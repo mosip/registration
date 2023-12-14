@@ -90,10 +90,10 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
     private static final String JSON = ".json";
     private static final String FORWARD_SLASH = "/";
 
-    @Value("${landing.zone.account.name}")
+    @Value("${mosip.regproc.landing.zone.account.name}")
     private String landingZoneAccount;
 	
-	@Value("${landing.zone.type:ObjectStore}")
+	@Value("${mosip.regproc.landing.zone.type:ObjectStore}")
     private String landingZoneType;
     
     @Value("${packet.manager.account.name}")
