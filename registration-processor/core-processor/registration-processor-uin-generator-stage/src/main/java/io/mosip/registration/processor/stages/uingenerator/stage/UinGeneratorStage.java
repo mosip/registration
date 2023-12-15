@@ -278,12 +278,21 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 					demographicIdentity.put("UIN", uinField);
 					idResponseDTO = sendIdRepoWithUin(registrationId, registrationStatusDto.getRegistrationType(), demographicIdentity,
 							uinField, description);
-					if(idResponseDTO.getErrors()!=null && idResponseDTO.getErrors().get(0).getErrorCode().equalsIgnoreCase(INVALID_INPUT_PARAMETER_ERROR_CODE)) {
+					if (idResponseDTO.getErrors() != null && !idResponseDTO.getErrors().isEmpty() && idResponseDTO
+							.getErrors().get(0).getErrorCode().equalsIgnoreCase(INVALID_INPUT_PARAMETER_ERROR_CODE)) {
 						for (int i = 0; i < maxRetrycount; i++) {
 							regProcLogger.info(StatusUtil.INVALID_INPUT_PARAMETER.getMessage()+":"+StatusUtil.INVALID_INPUT_PARAMETER.getCode()+", Retrying "+(i+1)+" times");
-								idResponseDTO = sendIdRepoWithUin(registrationId, registrationStatusDto.getRegistrationType(), demographicIdentity,
+							// This log will remove later after testing why iteration is not happening in
+							// server before this fix
+							regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+									LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+									idResponseDTO.toString());
+							idResponseDTO = sendIdRepoWithUin(registrationId,
+									registrationStatusDto.getRegistrationType(), demographicIdentity,
 										uinField, description);
-								if (idResponseDTO.getErrors()==null || idResponseDTO.getErrors().get(0).getErrorCode()!=INVALID_INPUT_PARAMETER_ERROR_CODE)
+							if (idResponseDTO.getErrors() == null || idResponseDTO.getErrors().isEmpty()
+									|| idResponseDTO.getErrors().get(0)
+											.getErrorCode() != INVALID_INPUT_PARAMETER_ERROR_CODE)
 									break;
 
 						}
