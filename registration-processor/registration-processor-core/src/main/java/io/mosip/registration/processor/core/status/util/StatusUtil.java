@@ -314,8 +314,8 @@ public enum StatusUtil {
 	RE_PROCESS_FAILED(StatusConstants.RE_PROCESS_MODULE_FAILED + "001",
 			"Reprocess count has exceeded the configured attempts"),
 	RE_PROCESS_COMPLETED(StatusConstants.RE_PROCESS_MODULE_SUCCESS + "001", "Reprocess Completed"),
-	RE_PROCESS_FROM_BEGINNING_STAGE_COMPLETED(StatusConstants.RE_PROCESS_MODULE_SUCCESS + "002",
-			"Reprocess from beginning stage Completed"),
+	RE_PROCESS_RESTART_FROM_STAGE(StatusConstants.RE_PROCESS_MODULE_SUCCESS + "002",
+			"Reprocess restart from stage Completed"),
 
 	// Message sender stage
 	NOTIFICATION_SUCESSFUL(StatusConstants.MESSAGE_SENDER_NOTIF_SUCCESS_CODE + "001", "Notification Sent Successfully"),
