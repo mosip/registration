@@ -273,6 +273,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 						String stageName;
 						if (isRestartFromStageRequired(dto, reprocessRestartTriggerMap)) {
 							stageName = MessageBusUtil.getMessageBusAdress(reprocessRestartFromStage);
+							stageName = stageName.concat(ReprocessorConstants.BUS_IN);
 								sendAndSetStatus(dto, messageDTO, stageName);
 								dto.setStatusComment(StatusUtil.RE_PROCESS_RESTART_FROM_STAGE.getMessage());
 								dto.setSubStatusCode(StatusUtil.RE_PROCESS_RESTART_FROM_STAGE.getCode());
