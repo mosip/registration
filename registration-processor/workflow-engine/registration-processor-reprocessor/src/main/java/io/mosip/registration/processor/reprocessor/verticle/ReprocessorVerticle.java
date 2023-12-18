@@ -90,7 +90,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 	@Value("#{T(java.util.Arrays).asList('${mosip.registration.processor.reprocessor.exclude-stage-names:PacketReceiverStage}')}")
 	private List<String> reprocessExcludeStageNames;
 
-	@Value("${registration.processor.reprocess.restart-from-stage }")
+	@Value("${registration.processor.reprocess.restart-from-stage}")
 	private String reprocessRestartFromStage;
 
 	@Value("#{'${registration.processor.reprocess.restart-trigger-filter}'.split(',')}")
