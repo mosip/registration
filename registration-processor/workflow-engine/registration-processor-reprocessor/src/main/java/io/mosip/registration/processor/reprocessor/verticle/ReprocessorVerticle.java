@@ -359,19 +359,20 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 	private Map<String, Set<String>> intializeReprocessRestartTriggerMapping() {
 		Map<String, Set<String>> reprocessRestartTriggerMap = new HashMap<String, Set<String>>();
 		for (String filter : reprocessRestartTriggerFilter) {
-			String[] stageAndStatus = filter.split(",");
+			String[] stageAndStatus = filter.split(":");
 			String stageName = stageAndStatus[0];
 			String latestTransactionStatusCode = stageAndStatus[1];
-			Set<String> latestTransactionStatusCodes = new HashSet<String>();
+			Set<String> latestTransactionStatusCodeSet;
 			if (reprocessRestartTriggerMap.containsKey(stageName)) {
-				latestTransactionStatusCodes = reprocessRestartTriggerMap.get(stageName);
-				if (latestTransactionStatusCodes.size() != 3) {
+				latestTransactionStatusCodeSet = reprocessRestartTriggerMap.get(stageName);
+				if (latestTransactionStatusCodeSet.size() != 3) {
 					setReprocessRestartTriggerMap(reprocessRestartTriggerMap, stageName, latestTransactionStatusCode,
-							latestTransactionStatusCodes);
+							latestTransactionStatusCodeSet);
 				}
 			} else {
-			setReprocessRestartTriggerMap(reprocessRestartTriggerMap, stageName, latestTransactionStatusCode,
-					latestTransactionStatusCodes);
+				latestTransactionStatusCodeSet = new HashSet<String>();
+				setReprocessRestartTriggerMap(reprocessRestartTriggerMap, stageName, latestTransactionStatusCode,
+					latestTransactionStatusCodeSet);
 		}
 	}
 	return reprocessRestartTriggerMap;
@@ -380,15 +381,15 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 	}
 
 	private void setReprocessRestartTriggerMap(Map<String, Set<String>> reprocessRestartTriggerMap, String stageName,
-			String latestTransactionStatusCode, Set<String> latestTransactionStatusCodes) {
+			String latestTransactionStatusCode, Set<String> latestTransactionStatusCodeSet) {
 		if (latestTransactionStatusCode.equalsIgnoreCase("*")) {
-			latestTransactionStatusCodes.add(RegistrationTransactionStatusCode.SUCCESS.toString());
-			latestTransactionStatusCodes.add(RegistrationTransactionStatusCode.IN_PROGRESS.toString());
-			latestTransactionStatusCodes.add(RegistrationTransactionStatusCode.REPROCESS.toString());
+			latestTransactionStatusCodeSet.add(RegistrationTransactionStatusCode.SUCCESS.toString());
+			latestTransactionStatusCodeSet.add(RegistrationTransactionStatusCode.IN_PROGRESS.toString());
+			latestTransactionStatusCodeSet.add(RegistrationTransactionStatusCode.REPROCESS.toString());
 		} else {
-			latestTransactionStatusCodes.add(latestTransactionStatusCode);
+			latestTransactionStatusCodeSet.add(latestTransactionStatusCode.toUpperCase());
 		}
-		reprocessRestartTriggerMap.put(stageName, latestTransactionStatusCodes);
+		reprocessRestartTriggerMap.put(stageName, latestTransactionStatusCodeSet);
 	}
 
 	private boolean isRestartFromStageRequired(InternalRegistrationStatusDto dto,

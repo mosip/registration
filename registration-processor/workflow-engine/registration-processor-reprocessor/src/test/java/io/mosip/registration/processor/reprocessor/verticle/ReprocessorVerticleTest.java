@@ -121,8 +121,16 @@ public class ReprocessorVerticleTest {
          ReflectionTestUtils.setField(reprocessorVerticle, "elapseTime", 21600);
          ReflectionTestUtils.setField(reprocessorVerticle, "reprocessCount", 3);
 		 ReflectionTestUtils.setField(reprocessorVerticle, "reprocessExcludeStageNames", new ArrayList<>());
-			ReflectionTestUtils.setField(reprocessorVerticle, "reprocessIntiateNeededStage", "BioDedupeStage");
-			ReflectionTestUtils.setField(reprocessorVerticle, "reprocessBeginningStage", "SecurezoneNotificationStage");
+			List<String> reprocessRestartTriggerFilterList = new ArrayList<>();
+			reprocessRestartTriggerFilterList.add("DemodedupStage:Success");
+			reprocessRestartTriggerFilterList.add("BioDedupeStage:*");
+			reprocessRestartTriggerFilterList.add("UinGeneratorStage:reprocess");
+			reprocessRestartTriggerFilterList.add("BioDedupeStage:reprocess");
+
+			ReflectionTestUtils.setField(reprocessorVerticle, "reprocessRestartTriggerFilter",
+					reprocessRestartTriggerFilterList);
+			ReflectionTestUtils.setField(reprocessorVerticle, "reprocessRestartFromStage",
+					"SecurezoneNotificationStage");
          Field auditLog = AuditLogRequestBuilder.class.getDeclaredField("registrationProcessorRestService");
          auditLog.setAccessible(true);
          @SuppressWarnings("unchecked")
@@ -264,7 +272,7 @@ public class ReprocessorVerticleTest {
 	}
 
 	@Test
-	public void testProcessWithIntiateReprocessFromBeginning() throws TablenotAccessibleException,
+	public void testProcessWithRestartFromStage() throws TablenotAccessibleException,
 			PacketManagerException,
 			ApisResourceAccessException, WorkflowActionException {
 
