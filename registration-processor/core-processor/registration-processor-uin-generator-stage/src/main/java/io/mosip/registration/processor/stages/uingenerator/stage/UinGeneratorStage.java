@@ -291,10 +291,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 									registrationStatusDto.getRegistrationType(), demographicIdentity,
 										uinField, description);
 							if (idResponseDTO.getErrors() == null || idResponseDTO.getErrors().isEmpty()
-									|| idResponseDTO.getErrors().get(0)
-											.getErrorCode() != INVALID_INPUT_PARAMETER_ERROR_CODE)
+									|| !idResponseDTO.getErrors().get(0)
+											.getErrorCode().equalsIgnoreCase(INVALID_INPUT_PARAMETER_ERROR_CODE))
 									break;
-
 						}
 					}
 					boolean isUinAlreadyPresent = isUinAlreadyPresent(idResponseDTO, registrationId);
@@ -487,6 +486,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			}
 		}
 	}
+
 
 	/**
 	 * Send id repo with uin.
