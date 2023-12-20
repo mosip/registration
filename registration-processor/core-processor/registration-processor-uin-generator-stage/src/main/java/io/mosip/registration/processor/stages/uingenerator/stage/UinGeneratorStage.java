@@ -291,10 +291,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 									registrationStatusDto.getRegistrationType(), demographicIdentity,
 										uinField, description);
 							if (idResponseDTO.getErrors() == null || idResponseDTO.getErrors().isEmpty()
-									|| idResponseDTO.getErrors().get(0)
-											.getErrorCode() != INVALID_INPUT_PARAMETER_ERROR_CODE)
+									|| !idResponseDTO.getErrors().get(0)
+											.getErrorCode().equalsIgnoreCase(INVALID_INPUT_PARAMETER_ERROR_CODE))
 									break;
-
 						}
 					}
 					boolean isUinAlreadyPresent = isUinAlreadyPresent(idResponseDTO, registrationId);
@@ -476,8 +475,11 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 						JSONArray jsonArray = new JSONArray(value);
 						for (int i = 0; i < jsonArray.length(); i++) {
 							Object obj = jsonArray.get(i);
-							HashMap<String, Object> hashMap = new ObjectMapper().readValue(obj.toString(), HashMap.class);
-							jsonList.add(hashMap);
+
+							if(((org.json.JSONObject) obj).get("language") instanceof String && ((org.json.JSONObject) obj).get("value") instanceof String) {
+								HashMap<String, Object> hashMap = new ObjectMapper().readValue(obj.toString().trim(), HashMap.class);
+								jsonList.add(hashMap);
+							}
 						}
 						demographicIdentity.putIfAbsent(e.getKey(), jsonList);
 					} else
@@ -487,6 +489,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			}
 		}
 	}
+
 
 	/**
 	 * Send id repo with uin.
