@@ -475,11 +475,8 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 						JSONArray jsonArray = new JSONArray(value);
 						for (int i = 0; i < jsonArray.length(); i++) {
 							Object obj = jsonArray.get(i);
-
-							if(((org.json.JSONObject) obj).get("language") instanceof String && ((org.json.JSONObject) obj).get("value") instanceof String) {
-								HashMap<String, Object> hashMap = new ObjectMapper().readValue(obj.toString().trim(), HashMap.class);
-								jsonList.add(hashMap);
-							}
+							HashMap<String, Object> hashMap = new ObjectMapper().readValue(obj.toString().trim(), HashMap.class);
+							jsonList.add(hashMap);
 						}
 						demographicIdentity.putIfAbsent(e.getKey(), jsonList);
 					} else
