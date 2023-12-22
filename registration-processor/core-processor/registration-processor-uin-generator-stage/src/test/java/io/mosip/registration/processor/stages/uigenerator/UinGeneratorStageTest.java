@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import io.mosip.registration.processor.core.status.util.StatusUtil;
+import io.mosip.registration.processor.stages.uingenerator.idrepo.dto.IdRequestDto;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
 import org.json.JSONException;
@@ -2663,5 +2664,68 @@ In this test case each time when Uin_generator api is called Invalid input param
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getInternalError());
+	}
+
+	@Test
+	public void testUinGenerationSuccessWithEmptyName() throws Exception {
+		ReflectionTestUtils.setField(uinGeneratorStage,"trimWhitespaces",true);
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
+		String response = "{\"uin\":\"6517036426\",\"status\":\"ASSIGNED\"}";
+
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
+		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(response);
+		messageDTO.setReg_type(RegistrationType.NEW);
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setEntity("https://dev.mosip.io/idrepo/v1.0/identity/203560486746");
+		responseDTO.setStatus("ACTIVATED");
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.create");
+		idResponseDTO.setResponse(responseDTO);
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
+
+		ResponseWrapper<VidResponseDto> responseVid = new ResponseWrapper<VidResponseDto>();
+		List<ErrorDTO> errors = new ArrayList<>();
+		responseVid.setErrors(errors);
+		responseVid.setVersion("v1");
+		responseVid.setMetadata(null);
+		DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		LocalDateTime localdatetime = LocalDateTime
+				.parse(DateUtils.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"), format);
+		responseVid.setResponsetime(localdatetime);
+		VidResponseDto vidResponseDto = new VidResponseDto();
+		vidResponseDto.setVID("123456");
+		vidResponseDto.setVidStatus("ACTIVE");
+		responseVid.setResponse(vidResponseDto);
+
+		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any(Class.class)))
+				.thenReturn(idResponseDTO).thenReturn(responseVid).thenReturn(response);
+
+		Map<String, String> fieldMap = new HashMap<>();
+		fieldMap.put("firstName","[ {\n" +
+				"  \"language\" : \"eng\",\n" +
+				"  \"value\" : \" \"\n" +
+				"} ]");
+		fieldMap.put("email", "mono@mono.com");
+		fieldMap.put("phone", "23456");
+		fieldMap.put("dob", "11/11/2011");
+
+		List<String> defaultFields = new ArrayList<>();
+		defaultFields.add("name");
+		defaultFields.add("dob");
+		defaultFields.add("gender");
+
+		when(packetManagerService.getFields(any(),any(),any(),any())).thenReturn(fieldMap);
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+		ArgumentCaptor<IdRequestDto> argumentCaptor = ArgumentCaptor.forClass(IdRequestDto.class);
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		verify(registrationProcessorRestClientService, atLeastOnce()).postApi(any(), any(), any(),any(), any());
+		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 }

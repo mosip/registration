@@ -1011,7 +1011,7 @@ public class PacketInfoManagerImplTest {
 		entity.setDob("2019-03-02T06:29:41.011Z");
 		applicantDemographicEntities.add(entity);
 		PowerMockito.mockStatic(PacketInfoMapper.class);
-		Mockito.when(PacketInfoMapper.converDemographicDedupeDtoToEntity(any(), any()))
+		Mockito.when(PacketInfoMapper.converDemographicDedupeDtoToEntity(any(),any(),any()))
 				.thenReturn(applicantDemographicEntities);
 		Mockito.when(demographicDedupeRepository.save(any())).thenReturn(entity);
 		packetInfoManagerImpl.saveIndividualDemographicDedupeUpdatePacket(demographicData, "1001", "", "");
@@ -1028,11 +1028,10 @@ public class PacketInfoManagerImplTest {
 		entity.setDob("2019-03-02T06:29:41.011Z");
 		applicantDemographicEntities.add(entity);
 		PowerMockito.mockStatic(PacketInfoMapper.class);
-		Mockito.when(PacketInfoMapper.converDemographicDedupeDtoToEntity(any(), any()))
+		Mockito.when(PacketInfoMapper.converDemographicDedupeDtoToEntity(any(), any(),any()))
 				.thenReturn(applicantDemographicEntities);
 		Mockito.when(demographicDedupeRepository.save(any())).thenThrow(exp);
 		packetInfoManagerImpl.saveIndividualDemographicDedupeUpdatePacket(demographicData, "1001", "", "");
-
 	}
 
 	@Test

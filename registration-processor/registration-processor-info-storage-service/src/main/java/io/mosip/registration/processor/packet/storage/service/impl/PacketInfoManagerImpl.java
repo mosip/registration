@@ -145,6 +145,9 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	@Value("${registration.processor.demodedupe.manualverification.status}")
 	private String manualVerificationStatus;
 
+	@Value("${mosip.regproc.demo.dedupe.trim-whitespaces.simpleType-value:false}")
+	private boolean trimWhitespace;
+
 	/** The Constant MATCHED_REFERENCE_TYPE. */
 	private static final String MATCHED_REFERENCE_TYPE = "rid";
 
@@ -297,7 +300,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 
 		try {
 			List<IndividualDemographicDedupeEntity> applicantDemographicEntities = PacketInfoMapper
-					.converDemographicDedupeDtoToEntity(demographicData, regId);
+					.converDemographicDedupeDtoToEntity(demographicData, regId,trimWhitespace);
 			for (IndividualDemographicDedupeEntity applicantDemographicEntity : applicantDemographicEntities) {
 				demographicDedupeRepository.save(applicantDemographicEntity);
 
@@ -343,7 +346,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 
 		try {
 			List<IndividualDemographicDedupeEntity> applicantDemographicEntities = PacketInfoMapper
-					.converDemographicDedupeDtoToEntity(demographicData, registrationId);
+					.converDemographicDedupeDtoToEntity(demographicData, registrationId,trimWhitespace);
 			for (IndividualDemographicDedupeEntity applicantDemographicEntity : applicantDemographicEntities) {
 				demographicDedupeRepository.save(applicantDemographicEntity);
 

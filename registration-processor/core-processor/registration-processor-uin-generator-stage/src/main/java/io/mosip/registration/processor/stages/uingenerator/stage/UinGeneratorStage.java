@@ -164,6 +164,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.uin.generator.idrepo-max-retry-count}")
 	Integer maxRetrycount;
 
+	@Value("${mosip.regproc.uin.generator.trim-whitespaces.simpleType-value:false}")
+	private boolean trimWhitespaces;
+
 	/** The core audit request builder. */
 	@Autowired
 	private AuditLogRequestBuilder auditLogRequestBuilder;
@@ -471,6 +474,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 						for (int i = 0; i < jsonArray.length(); i++) {
 							Object obj = jsonArray.get(i);
 							HashMap<String, Object> hashMap = new ObjectMapper().readValue(obj.toString(), HashMap.class);
+							if(trimWhitespaces && hashMap.get("value") instanceof String) {
+								hashMap.put("value",((String)hashMap.get("value")).trim());
+							}
 							jsonList.add(hashMap);
 						}
 						demographicIdentity.putIfAbsent(e.getKey(), jsonList);
