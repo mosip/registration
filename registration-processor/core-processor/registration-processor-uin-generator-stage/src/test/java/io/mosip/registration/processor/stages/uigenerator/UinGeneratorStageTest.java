@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 
 import io.mosip.registration.processor.core.status.util.StatusUtil;
-import io.mosip.registration.processor.stages.uingenerator.idrepo.dto.IdRequestDto;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
 import org.json.JSONException;
@@ -2722,7 +2721,6 @@ In this test case each time when Uin_generator api is called Invalid input param
 
 		when(packetManagerService.getFields(any(),any(),any(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
-		ArgumentCaptor<IdRequestDto> argumentCaptor = ArgumentCaptor.forClass(IdRequestDto.class);
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		verify(registrationProcessorRestClientService, atLeastOnce()).postApi(any(), any(), any(),any(), any());
 		assertFalse(result.getInternalError());
