@@ -1,9 +1,12 @@
 package io.mosip.registration.processor.reprocessor.verticle;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import io.mosip.registration.processor.reprocessor.constants.ReprocessorConstants;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +33,7 @@ import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.util.MessageBusUtil;
+import io.mosip.registration.processor.reprocessor.constants.ReprocessorConstants;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -85,6 +89,12 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 	/** Comman seperated stage names that should be excluded while reprocessing. */
 	@Value("#{T(java.util.Arrays).asList('${mosip.registration.processor.reprocessor.exclude-stage-names:PacketReceiverStage}')}")
 	private List<String> reprocessExcludeStageNames;
+
+	@Value("${registration.processor.reprocess.restart-from-stage}")
+	private String reprocessRestartFromStage;
+
+	@Value("#{'${registration.processor.reprocess.restart-trigger-filter}'.split(',')}")
+	private List<String> reprocessRestartTriggerFilter;
 
 	/** The is transaction successful. */
 	boolean isTransactionSuccessful;
@@ -218,6 +228,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 				"ReprocessorVerticle::process()::entry");
 		StringBuffer ridSb=new StringBuffer();
 		try {
+			Map<String, Set<String>> reprocessRestartTriggerMap = intializeReprocessRestartTriggerMapping();
 			reprocessorDtoList = registrationStatusService.getResumablePackets(fetchSize);
 			if (!CollectionUtils.isEmpty(reprocessorDtoList)) {
 				if (reprocessorDtoList.size() < fetchSize) {
@@ -259,27 +270,35 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 					} else {
 						messageDTO.setIsValid(true);
 						isTransactionSuccessful = true;
-						String stageName = MessageBusUtil.getMessageBusAdress(dto.getRegistrationStageName());
+						String stageName;
+						if (isRestartFromStageRequired(dto, reprocessRestartTriggerMap)) {
+							stageName = MessageBusUtil.getMessageBusAdress(reprocessRestartFromStage);
+							stageName = stageName.concat(ReprocessorConstants.BUS_IN);
+								sendAndSetStatus(dto, messageDTO, stageName);
+								dto.setStatusComment(StatusUtil.RE_PROCESS_RESTART_FROM_STAGE.getMessage());
+								dto.setSubStatusCode(StatusUtil.RE_PROCESS_RESTART_FROM_STAGE.getCode());
+								description
+										.setMessage(
+												PlatformSuccessMessages.RPR_SENT_TO_REPROCESS_RESTART_FROM_STAGE_SUCCESS
+														.getMessage());
+								description.setCode(
+										PlatformSuccessMessages.RPR_SENT_TO_REPROCESS_RESTART_FROM_STAGE_SUCCESS
+												.getCode());
+
+						} else {
+							stageName = MessageBusUtil.getMessageBusAdress(dto.getRegistrationStageName());
 						if (RegistrationTransactionStatusCode.SUCCESS.name()
 								.equalsIgnoreCase(dto.getLatestTransactionStatusCode())) {
 							stageName = stageName.concat(ReprocessorConstants.BUS_OUT);
 						} else {
 							stageName = stageName.concat(ReprocessorConstants.BUS_IN);
 						}
-						MessageBusAddress address = new MessageBusAddress(stageName);
-						sendMessage(messageDTO, address);
-						dto.setUpdatedBy(ReprocessorConstants.USER);
-						Integer reprocessRetryCount = dto.getReProcessRetryCount() != null
-								? dto.getReProcessRetryCount() + 1
-								: 1;
-						dto.setReProcessRetryCount(reprocessRetryCount);
-						dto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
-						dto.setLatestTransactionTypeCode(
-								RegistrationTransactionTypeCode.PACKET_REPROCESS.toString());
+							sendAndSetStatus(dto, messageDTO, stageName);
 						dto.setStatusComment(StatusUtil.RE_PROCESS_COMPLETED.getMessage());
 						dto.setSubStatusCode(StatusUtil.RE_PROCESS_COMPLETED.getCode());
 						description.setMessage(PlatformSuccessMessages.RPR_SENT_TO_REPROCESS_SUCCESS.getMessage());
 						description.setCode(PlatformSuccessMessages.RPR_SENT_TO_REPROCESS_SUCCESS.getCode());
+						}
 					}
 					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.REGISTRATIONID.toString(), registrationId, description.getMessage());
@@ -336,6 +355,65 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 		}
 
 		return object;
+	}
+
+	private Map<String, Set<String>> intializeReprocessRestartTriggerMapping() {
+		Map<String, Set<String>> reprocessRestartTriggerMap = new HashMap<String, Set<String>>();
+		for (String filter : reprocessRestartTriggerFilter) {
+			String[] stageAndStatus = filter.split(":");
+			String stageName = stageAndStatus[0];
+			String latestTransactionStatusCode = stageAndStatus[1];
+			Set<String> latestTransactionStatusCodeSet;
+			if (reprocessRestartTriggerMap.containsKey(stageName)) {
+				latestTransactionStatusCodeSet = reprocessRestartTriggerMap.get(stageName);
+				if (latestTransactionStatusCodeSet.size() != 3) {
+					setReprocessRestartTriggerMap(reprocessRestartTriggerMap, stageName, latestTransactionStatusCode,
+							latestTransactionStatusCodeSet);
+				}
+			} else {
+				latestTransactionStatusCodeSet = new HashSet<String>();
+				setReprocessRestartTriggerMap(reprocessRestartTriggerMap, stageName, latestTransactionStatusCode,
+					latestTransactionStatusCodeSet);
+		}
+	}
+	return reprocessRestartTriggerMap;
+
+
+	}
+
+	private void setReprocessRestartTriggerMap(Map<String, Set<String>> reprocessRestartTriggerMap, String stageName,
+			String latestTransactionStatusCode, Set<String> latestTransactionStatusCodeSet) {
+		if (latestTransactionStatusCode.equalsIgnoreCase("*")) {
+			latestTransactionStatusCodeSet.add(RegistrationTransactionStatusCode.SUCCESS.toString());
+			latestTransactionStatusCodeSet.add(RegistrationTransactionStatusCode.IN_PROGRESS.toString());
+			latestTransactionStatusCodeSet.add(RegistrationTransactionStatusCode.REPROCESS.toString());
+		} else {
+			latestTransactionStatusCodeSet.add(latestTransactionStatusCode.toUpperCase());
+		}
+		reprocessRestartTriggerMap.put(stageName, latestTransactionStatusCodeSet);
+	}
+
+	private boolean isRestartFromStageRequired(InternalRegistrationStatusDto dto,
+			Map<String, Set<String>> reprocessRestartTriggerMap) {
+		boolean isRestartFromStageRequired = false;
+		String stageName = dto.getRegistrationStageName();
+		if (reprocessRestartTriggerMap.containsKey(stageName)) {
+			Set<String> latestTransactionStatusCodes = reprocessRestartTriggerMap.get(stageName);
+			if (latestTransactionStatusCodes.contains(dto.getLatestTransactionStatusCode())) {
+				isRestartFromStageRequired = true;
+			}
+		}
+		return isRestartFromStageRequired;
+	}
+
+	private void sendAndSetStatus(InternalRegistrationStatusDto dto, MessageDTO messageDTO, String stageName) {
+		MessageBusAddress address = new MessageBusAddress(stageName);
+		sendMessage(messageDTO, address);
+		dto.setUpdatedBy(ReprocessorConstants.USER);
+		Integer reprocessRetryCount = dto.getReProcessRetryCount() != null ? dto.getReProcessRetryCount() + 1 : 1;
+		dto.setReProcessRetryCount(reprocessRetryCount);
+		dto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+		dto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PACKET_REPROCESS.toString());
 	}
 	
 	
