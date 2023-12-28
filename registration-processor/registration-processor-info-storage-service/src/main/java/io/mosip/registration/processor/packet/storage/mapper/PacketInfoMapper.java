@@ -159,61 +159,8 @@ public class PacketInfoMapper {
 
 	public static List<IndividualDemographicDedupeEntity> converDemographicDedupeDtoToEntity(
 			IndividualDemographicDedupe demoDto, String regId) throws NoSuchAlgorithmException {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
-				"PacketInfoMapper::converDemographicDedupeDtoToEntity()::entry");
-		IndividualDemographicDedupeEntity entity;
-		IndividualDemographicDedupePKEntity applicantDemographicPKEntity;
-		List<IndividualDemographicDedupeEntity> demogrphicDedupeEntities = new ArrayList<>();
-		StringBuilder languages = new StringBuilder();
-		if (demoDto.getName()!=null && !demoDto.getName().isEmpty()) {
-			for (JsonValue[] jsonValue : demoDto.getName())
-				getLanguages(jsonValue, languages);
-		}
-		String[] languageArray = getLanguages(demoDto.getGender(), languages);
-		for (int i = 0; i < languageArray.length; i++) {
-			entity = new IndividualDemographicDedupeEntity();
-			applicantDemographicPKEntity = new IndividualDemographicDedupePKEntity();
 
-			applicantDemographicPKEntity.setRegId(regId);
-			applicantDemographicPKEntity.setLangCode(languageArray[i]);
-			entity.setCrDtimes(LocalDateTime.now(ZoneId.of("UTC")));
-			entity.setUpdDtimes(LocalDateTime.now(ZoneId.of("UTC")));
-			entity.setId(applicantDemographicPKEntity);
-			entity.setIsActive(true);
-			entity.setIsDeleted(false);
-			StringBuilder applicantFullName = new StringBuilder();
-
-			if (demoDto.getName()!=null &&!demoDto.getName().isEmpty()) {
-				for (JsonValue[] jsonValue : demoDto.getName()) {
-					applicantFullName.append(getJsonValues(jsonValue, languageArray[i]));
-				}
-				entity.setName(!applicantFullName.toString().isEmpty()
-						? getHMACHashCode(applicantFullName.toString().trim().toUpperCase())
-						: null);
-			}
-
-			if (demoDto.getDateOfBirth() != null) {
-				try {
-					Date date = new SimpleDateFormat("yyyy/MM/dd").parse(demoDto.getDateOfBirth());
-
-					entity.setDob(getHMACHashCode(demoDto.getDateOfBirth()));
-				} catch (ParseException e) {
-					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), regId,
-							e.getMessage() + ExceptionUtils.getStackTrace(e));
-					throw new DateParseException(PlatformErrorMessages.RPR_SYS_PARSING_DATE_EXCEPTION.getMessage(), e);
-				}
-			}
-			entity.setGender(getHMACHashCode(getJsonValues(demoDto.getGender(), languageArray[i])));
-			entity.setPhone(getHMACHashCode(demoDto.getPhone()));
-			entity.setEmail(getHMACHashCode(demoDto.getEmail()));
-			demogrphicDedupeEntities.add(entity);
-
-		}
-
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
-				"PacketInfoMapper::converDemographicDedupeDtoToEntity()::exit");
-		return demogrphicDedupeEntities;
+		return converDemographicDedupeDtoToEntity(demoDto,regId,false);
 	}
 	public static List<IndividualDemographicDedupeEntity> converDemographicDedupeDtoToEntity(
 			IndividualDemographicDedupe demoDto, String regId,Boolean istrim) throws NoSuchAlgorithmException {
