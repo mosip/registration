@@ -100,17 +100,6 @@ public class PacketInfoMapper {
 	 * @return the json values
 	 */
 
-	private static String getJsonValues(JsonValue[] jsonNode, String language) {
-		String value = null;
-		if (jsonNode != null) {
-			for (int i = 0; i < jsonNode.length; i++) {
-				if (jsonNode[i].getLanguage().equals(language)) {
-					value = jsonNode[i].getValue();
-				}
-			}
-		}
-		return value;
-	}
 	private static String getJsonValues(JsonValue[] jsonNode, String language,boolean istrim) {
 		String value = null;
 		if (jsonNode != null) {
