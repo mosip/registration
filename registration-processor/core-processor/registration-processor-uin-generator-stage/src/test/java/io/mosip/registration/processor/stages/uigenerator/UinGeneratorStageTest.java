@@ -1,19 +1,13 @@
 package io.mosip.registration.processor.stages.uigenerator;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -25,9 +19,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.google.gson.JsonObject;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
+import io.mosip.registration.processor.stages.uingenerator.idrepo.dto.IdRequestDto;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -407,7 +406,7 @@ public class UinGeneratorStageTest {
 
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
-		
+
 		ResponseWrapper<VidResponseDto> responseVid = new ResponseWrapper<VidResponseDto>();
 		List<ErrorDTO> errors = new ArrayList<>();
 		responseVid.setErrors(errors);
@@ -524,7 +523,7 @@ public class UinGeneratorStageTest {
 		assertFalse(result.getInternalError());
 
 	}
-	
+
 	@Test
 	public void testUinReActivationifAlreadyActivatedSuccess() throws Exception {
 
@@ -576,7 +575,7 @@ public class UinGeneratorStageTest {
 		assertFalse(result.getIsValid());
 
 	}
-	
+
 	@Test
 	public void testUinReActivationResponseStatusAsActivated() throws Exception {
 		Map<String, String> fieldMap = new HashMap<>();
@@ -765,7 +764,7 @@ public class UinGeneratorStageTest {
 
 	}
 
-	
+
 
 	@Test
 	public void testUinReActivationIfNotActivatedSuccess() throws Exception {
@@ -1077,7 +1076,7 @@ public class UinGeneratorStageTest {
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getIsValid());
 	}
-	
+
 	@Test
 	public void checkIsUinDeactivatedSuccess() throws ApisResourceAccessException, IOException, JSONException, JsonProcessingException, PacketManagerException {
 
@@ -1170,7 +1169,7 @@ public class UinGeneratorStageTest {
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		//assertTrue(result.getIsValid());
 	}
-			
+
 	@Test
 	public void deactivateTestWithNullResponseDTO() throws ApisResourceAccessException, PacketManagerException, IOException, JsonProcessingException, JSONException {
 		Map<String, String> fieldMap = new HashMap<>();
@@ -1217,7 +1216,7 @@ public class UinGeneratorStageTest {
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		//assertTrue(result.getIsValid());
 	}
-	
+
 
 	@Test
 	public void deactivateTestForExistingUinTestSuccess() throws ApisResourceAccessException, PacketManagerException, IOException, JsonProcessingException, JSONException {
@@ -1351,8 +1350,8 @@ public class UinGeneratorStageTest {
 				.thenThrow(apisResourceAccessException);
 		uinGeneratorStage.process(messageDTO);
 	}
-	
-	
+
+
 	@Test
 	public void testHttpServerErrorException() throws Exception {
 
@@ -1372,7 +1371,7 @@ public class UinGeneratorStageTest {
 
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 		.thenThrow(apisResourceAccessException);
-		
+
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		//assertTrue(result.getIsValid());
 
@@ -1394,7 +1393,7 @@ public class UinGeneratorStageTest {
 
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 		.thenThrow(apisResourceAccessException);
-		
+
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		//assertTrue(result.getIsValid());
@@ -1413,7 +1412,7 @@ public class UinGeneratorStageTest {
 		when(apisResourceAccessException.getCause()).thenReturn(httpClientErrorException);
 
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
-		
+
 		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any())).thenThrow(apisResourceAccessException);
 
 		messageDTO.setReg_type(RegistrationType.NEW);
@@ -1435,7 +1434,7 @@ public class UinGeneratorStageTest {
 		when(apisResourceAccessException.getCause()).thenReturn(httpServerErrorException);
 
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
-		
+
 		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any())).thenThrow(apisResourceAccessException);
 
 		messageDTO.setReg_type(RegistrationType.NEW);
@@ -1488,7 +1487,7 @@ public class UinGeneratorStageTest {
 				.thenThrow(apisResourceAccessException);
 		uinGeneratorStage.process(messageDTO);
 	}
-	
+
 	@Test
 	public void testIOException() {
 		IOException exception = new IOException("File not found");
@@ -1924,7 +1923,7 @@ public class UinGeneratorStageTest {
 		assertFalse(result.getInternalError());
 	}
 
-	
+
 	@Test
 	public void testUpdateWithoutIdResponseDto() throws Exception {
 		Map<String, String> fieldMap = new HashMap<>();
@@ -1954,7 +1953,7 @@ public class UinGeneratorStageTest {
 				.thenReturn(responsedto);
 
 		IdResponseDTO idResponseDTO1 = new IdResponseDTO();
-		
+
 
 		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
 				.thenReturn(idResponseDTO1);
@@ -2013,7 +2012,7 @@ public class UinGeneratorStageTest {
 		assertFalse(result.getIsValid());
 	}
 
-    @Ignore	
+    @Ignore
 	@Test
 	public void testUinAlreadyExists() throws Exception {
 		Map<String, String> fieldMap = new HashMap<>();
@@ -2168,7 +2167,7 @@ public class UinGeneratorStageTest {
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getInternalError());
 	}
-	
+
 	@Test
 	public void testIdRecordExistTrueFlagWithErrorResponse() throws Exception {
 
@@ -2663,5 +2662,74 @@ In this test case each time when Uin_generator api is called Invalid input param
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getInternalError());
+	}
+
+	@Test
+	public void testUinGenerationSuccessWithEmptyName() throws Exception {
+		ReflectionTestUtils.setField(uinGeneratorStage,"trimWhitespaces",true);
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
+		String response = "{\"uin\":\"6517036426\",\"status\":\"ASSIGNED\"}";
+
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
+		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(response);
+		messageDTO.setReg_type(RegistrationType.NEW);
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setEntity("https://dev.mosip.io/idrepo/v1.0/identity/203560486746");
+		responseDTO.setStatus("ACTIVATED");
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.create");
+		idResponseDTO.setResponse(responseDTO);
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
+
+		ResponseWrapper<VidResponseDto> responseVid = new ResponseWrapper<VidResponseDto>();
+		List<ErrorDTO> errors = new ArrayList<>();
+		responseVid.setErrors(errors);
+		responseVid.setVersion("v1");
+		responseVid.setMetadata(null);
+		DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		LocalDateTime localdatetime = LocalDateTime
+				.parse(DateUtils.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"), format);
+		responseVid.setResponsetime(localdatetime);
+		VidResponseDto vidResponseDto = new VidResponseDto();
+		vidResponseDto.setVID("123456");
+		vidResponseDto.setVidStatus("ACTIVE");
+		responseVid.setResponse(vidResponseDto);
+
+		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any(Class.class)))
+				.thenReturn(idResponseDTO).thenReturn(responseVid).thenReturn(response);
+
+		Map<String, String> fieldMap = new HashMap<>();
+		fieldMap.put("firstName","[ {\n" +
+				"  \"language\" : \"eng\",\n" +
+				"  \"value\" : \" \"\n" +
+				"} ]");
+		fieldMap.put("email", "mono@mono.com");
+		fieldMap.put("phone", "23456");
+		fieldMap.put("dob", "11/11/2011");
+
+		List<String> defaultFields = new ArrayList<>();
+		defaultFields.add("name");
+		defaultFields.add("dob");
+		defaultFields.add("gender");
+
+		when(packetManagerService.getFields(any(),any(),any(),any())).thenReturn(fieldMap);
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+		ArgumentCaptor<IdRequestDto> argumentCaptor = ArgumentCaptor.forClass(IdRequestDto.class);
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		verify(registrationProcessorRestClientService,Mockito.times(2)).postApi(any(), any(), any(),argumentCaptor.capture(),any());
+		ObjectMapper objectMapper = new ObjectMapper();
+		String jsonobject=objectMapper.writeValueAsString(argumentCaptor.getAllValues().get(0).getRequest().getIdentity());
+		JsonNode jsonNode=objectMapper.readTree(jsonobject);
+
+		assertEquals("",jsonNode.get("firstName").asText());
+		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 }
