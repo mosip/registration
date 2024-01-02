@@ -30,7 +30,6 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.credentialrequestor.dto.CredentialPartner;
 import io.mosip.registration.processor.credentialrequestor.stage.exception.VidNotAvailableException;
 import io.mosip.registration.processor.credentialrequestor.util.CredentialPartnerUtil;
-import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -41,7 +40,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -198,7 +196,7 @@ public class CredentialRequestorStage extends MosipVerticleAPIManager {
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PRINT_SERVICE.toString());
 			registrationStatusDto.setRegistrationStageName(getStageName());
-			JSONObject jsonObject = utilities.retrieveUIN(regId);
+			JSONObject jsonObject = utilities.idrepoRetrieveIdentityByRid(regId);
 			uin = JsonUtil.getJSONValue(jsonObject, IdType.UIN.toString());
 			if (uin == null) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),

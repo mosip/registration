@@ -5,10 +5,7 @@ import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
-import io.mosip.registration.processor.core.constant.JsonConstant;
-import io.mosip.registration.processor.core.constant.LoggerFileConstant;
-import io.mosip.registration.processor.core.constant.MappingJsonConstants;
-import io.mosip.registration.processor.core.constant.ProviderStageName;
+import io.mosip.registration.processor.core.constant.*;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
@@ -128,11 +125,11 @@ public class CredentialPartnerUtil {
             return Lists.emptyList();
         }
 
-        Map<String, String> identityFieldValueMap = utilities.getPacketManagerService().getFields(regId,
-                requiredIdObjectFieldNames, registrationType, ProviderStageName.CREDENTIAL_REQUESTOR);
+        Map<String, Object> identityFieldValueMap = new HashMap<>();
+                requiredIdObjectFieldNames.forEach(field -> identityFieldValueMap.put(field, JsonUtil.getJSONValue(identity, field)));
 
         Map<String, Object> context = new HashMap<>();
-        for (Map.Entry<String, String> identityAttribute: identityFieldValueMap.entrySet()) {
+        for (Map.Entry<String, Object> identityAttribute: identityFieldValueMap.entrySet()) {
             JSONObject attributeObject = new JSONObject(identityFieldValueMap);
             try {
                 if (identityAttribute.getKey() != null && identityAttribute.getValue() != null) {
