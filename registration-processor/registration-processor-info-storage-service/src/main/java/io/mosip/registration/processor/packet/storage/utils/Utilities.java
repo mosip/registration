@@ -656,7 +656,7 @@ public class Utilities {
 	 * @throws IOException                 Signals that an I/O exception has
 	 *                                     occurred.
 	 */
-	public JSONObject retrieveUIN(String regId) throws ApisResourceAccessException, IdRepoAppException, IOException {
+	public JSONObject idrepoRetrieveIdentityByRid(String regId) throws ApisResourceAccessException, IdRepoAppException, IOException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				regId, "Utilities::retrieveUIN()::entry");
 

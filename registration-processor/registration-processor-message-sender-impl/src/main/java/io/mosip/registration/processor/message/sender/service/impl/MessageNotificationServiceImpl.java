@@ -449,7 +449,7 @@ public class MessageNotificationServiceImpl
 
 		String uin = "";
 		if (idType.toString().equalsIgnoreCase(UIN)) {
-			JSONObject jsonObject = utility.retrieveUIN(id);
+			JSONObject jsonObject = utility.idrepoRetrieveIdentityByRid(id);
 			uin = JsonUtil.getJSONValue(jsonObject, UIN);
 			attributes.put("RID", id);
 			attributes.put("UIN", uin);
