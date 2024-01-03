@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -592,12 +593,10 @@ public class PacketInfoDao {
 	 *            the matched reg ids
 	 * @param statusCode1
 	 *            the status code
-	 * @param statusCode2
-	 *            the status code
 	 * @return the processed or processing reg ids
 	 */
-	public List<String> getWithoutStatusCodes(List<String> matchedRegIds, String statusCode1, String statusCode2) {
-		return registrationRepositary.getWithoutStatusCodes(matchedRegIds, "REJECTED", "PROCESSED");
+	public List<RegistrationStatusEntity> getWithoutStatusCode(List<String> matchedRegIds, String statusCode) {
+		return registrationRepositary.getWithoutStatusCode(matchedRegIds, statusCode);
 	}
 
 	/**
