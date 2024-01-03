@@ -31,10 +31,8 @@ public interface RegistrationRepositary<T extends BaseRegistrationEntity, E> ext
 	public List<String> getProcessedOrProcessingRegIds(@Param("regIds") List<String> regIds,
 			@Param("statusCode") List<String> statusCode);
 
-	@Query("SELECT registration.regId FROM RegistrationStatusEntity registration WHERE registration.regId in :regIds AND registration.statusCode !=:statusCode1 AND registration.statusCode !=:statusCode2")
-	public List<String> getWithoutStatusCodes(@Param("regIds") List<String> regIds,
-													   @Param("statusCode1") String statusCode1, @Param("statusCode2") String statusCode2);
-
+	@Query("SELECT registration FROM RegistrationStatusEntity registration WHERE registration.id in :regIds and registration.statusCode !=:statusCode")
+	public List<RegistrationStatusEntity> getWithoutStatusCode(@Param("regIds") List<String> regIds, @Param("statusCode") String statusCode);
 	@Query("SELECT registration FROM RegistrationStatusEntity registration WHERE registration.regId = :regId AND registration.isDeleted =false AND registration.isActive=true")
 	public List<RegistrationStatusEntity> findByRegId(@Param("regId") String regId);
 	

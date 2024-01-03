@@ -15,6 +15,8 @@ import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoServic
 import io.mosip.registration.processor.packet.storage.dao.PacketInfoDao;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.mapper.PacketInfoMapper;
+import io.mosip.registration.processor.status.code.RegistrationStatusCode;
+import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,129 +47,125 @@ import static org.mockito.Mockito.when;
 @PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*","com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*" })
 public class ABISHandlerUtilTest {
 
-	private static final String registrationId = "10002100820001420210108085956";
-	private static final String registrationType = "NEW";
-	private static final String latestTransactionId = "123-456-789";
-	List<String> matchedRids = new ArrayList<>();
+    private static final String registrationId = "10002100820001420210108085956";
+    private static final String registrationType = "NEW";
+    private static final String latestTransactionId = "123-456-789";
+    List<String> matchedRids = new ArrayList<>();
 
 
-	@InjectMocks
-	private ABISHandlerUtil abisHandlerUtil;
+    @InjectMocks
+    private ABISHandlerUtil abisHandlerUtil;
 
-	@Mock
-	private Utilities utilities;
+    @Mock
+    private Utilities utilities;
 
-	@Mock
-	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
+    @Mock
+    private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
 
-	@Mock
-	private PacketInfoDao packetInfoDao;
+    @Mock
+    private PacketInfoDao packetInfoDao;
 
-	@Mock
-	private IdRepoService idRepoService;
-	
-	List<String> lst=new ArrayList<>();
+    @Mock
+    private IdRepoService idRepoService;
 
-	@Before
-	public void setup() throws Exception {
-		MockitoAnnotations.initMocks(this);
-		when(utilities.getLatestTransactionId(any(),any(),anyInt(), any())).thenReturn(latestTransactionId);
+    List<String> lst=new ArrayList<>();
 
-		List<String> regBioRefIds = new ArrayList<>();
-		regBioRefIds.add("cf1c941a-142c-44f1-9543-4606b4a7884e");
+    @Before
+    public void setup() throws Exception {
+        MockitoAnnotations.initMocks(this);
+        when(utilities.getLatestTransactionId(any(),any(),anyInt(), any())).thenReturn(latestTransactionId);
 
-		when(packetInfoDao.getAbisRefIdByWorkflowInstanceId(any())).thenReturn(regBioRefIds);
-		when(utilities.getGetRegProcessorDemographicIdentity()).thenReturn(new String());
+        List<String> regBioRefIds = new ArrayList<>();
+        regBioRefIds.add("cf1c941a-142c-44f1-9543-4606b4a7884e");
 
-		List<String> inprogressMatchedIds = new ArrayList<>();
-		inprogressMatchedIds.add("10002100820001420210108085100");
-		inprogressMatchedIds.add("10002100820001420210108085101");
-		inprogressMatchedIds.add("10002100820001420210108085102");
+        when(packetInfoDao.getAbisRefIdByWorkflowInstanceId(any())).thenReturn(regBioRefIds);
+        when(utilities.getGetRegProcessorDemographicIdentity()).thenReturn(new String());
 
-		List<String> processedMatchedIds = new ArrayList<>();
-		processedMatchedIds.add("10002100820001420210108085103");
-		processedMatchedIds.add("10002100820001420210108085104");
+        List<RegistrationStatusEntity> registrationStatusEntityList = new ArrayList<>();
 
-		matchedRids.addAll(inprogressMatchedIds);
-		matchedRids.addAll(processedMatchedIds);
+        RegistrationStatusEntity registrationEntity1 = new RegistrationStatusEntity();
+        registrationEntity1.setRegId("10002100820001420210108085103");
+        registrationEntity1.setStatusCode(RegistrationStatusCode.PROCESSED.toString());
+        registrationStatusEntityList.add(registrationEntity1);
+        RegistrationStatusEntity registrationEntity2 = new RegistrationStatusEntity();
+        registrationEntity2.setRegId("10002100820001420210108085100");
+        registrationEntity2.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+        registrationStatusEntityList.add(registrationEntity2);
+        RegistrationStatusEntity registrationEntity3 = new RegistrationStatusEntity();
+        registrationEntity3.setRegId("10002100820001420210108085102");
+        registrationEntity3.setStatusCode(RegistrationStatusCode.PROCESSED.toString());
+        registrationStatusEntityList.add(registrationEntity3);
+        matchedRids.add("10002100820001420210108085100");
+        matchedRids.add("10002100820001420210108085103");
+        matchedRids.add("10002100820001420210108085101");// REJECTED
+        matchedRids.add("10002100820001420210108085102");
 
-		List<AbisResponseDto> abisResponseDtoList = new ArrayList<>();
-		matchedRids.forEach(matchedRid -> {
-			AbisResponseDto abisResponseDto = new AbisResponseDto();
-			abisResponseDto.setId(matchedRid);
-			abisResponseDtoList.add(abisResponseDto);
-		});
+        List<AbisResponseDto> abisResponseDtoList = new ArrayList<>();
+        matchedRids.forEach(matchedRid -> {
+            AbisResponseDto abisResponseDto = new AbisResponseDto();
+            abisResponseDto.setId(matchedRid);
+            abisResponseDtoList.add(abisResponseDto);
+        });
 
-	
-		lst.add(RegistrationTransactionStatusCode.PROCESSED.toString());lst.add(RegistrationTransactionStatusCode.PROCESSING.toString());
-	
-		
-		when(packetInfoManager.getAbisResponseRecords(regBioRefIds.get(0),
-				latestTransactionId, AbisConstant.IDENTIFY)).thenReturn(abisResponseDtoList);
+        lst.add(RegistrationTransactionStatusCode.PROCESSED.toString());lst.add(RegistrationTransactionStatusCode.PROCESSING.toString());
 
-		List<AbisResponseDetDto> abisResponseDetDtoList = new ArrayList<>();
+        when(packetInfoManager.getAbisResponseRecords(regBioRefIds.get(0),
+                latestTransactionId, AbisConstant.IDENTIFY)).thenReturn(abisResponseDtoList);
 
-		matchedRids.forEach(matchedRid -> {
-			AbisResponseDetDto abisResponseDto = new AbisResponseDetDto();
-			abisResponseDto.setMatchedBioRefId(matchedRid);
-			abisResponseDetDtoList.add(abisResponseDto);
-		});
-		for (AbisResponseDetDto dto : abisResponseDetDtoList) {
-			AbisResponseDetDto responseDetDto = new AbisResponseDetDto();
-			responseDetDto.setMatchedBioRefId(dto.getMatchedBioRefId());
-			when(packetInfoManager.getAbisResponseDetails(dto.getMatchedBioRefId())).thenReturn(Lists.newArrayList(responseDetDto));
-		}
+        List<AbisResponseDetDto> abisResponseDetDtoList = new ArrayList<>();
+        matchedRids.forEach(matchedRid -> {
+            AbisResponseDetDto abisResponseDto = new AbisResponseDetDto();
+            abisResponseDto.setMatchedBioRefId(matchedRid);
+            abisResponseDetDtoList.add(abisResponseDto);
+        });
+        for (AbisResponseDetDto dto : abisResponseDetDtoList) {
+            AbisResponseDetDto responseDetDto = new AbisResponseDetDto();
+            responseDetDto.setMatchedBioRefId(dto.getMatchedBioRefId());
+            when(packetInfoManager.getAbisResponseDetails(dto.getMatchedBioRefId())).thenReturn(Lists.newArrayList(responseDetDto));
+        }
+        when(packetInfoDao.getAbisRefRegIdsByMatchedRefIds(matchedRids)).thenReturn(matchedRids);
+        when(packetInfoDao.getWithoutStatusCode(matchedRids, RegistrationStatusCode.REJECTED.toString()))
+                .thenReturn(registrationStatusEntityList);
+        when(idRepoService.getUinByRid("10002100820001420210108085103", new String())).thenReturn("123456789");
+        when(idRepoService.getUinByRid("10002100820001420210108085102", new String())).thenReturn("987654321");
+    }
 
-		when(packetInfoDao.getAbisRefRegIdsByMatchedRefIds(matchedRids)).thenReturn(matchedRids);
+    @Test
+    public void testProcesssedWithUniqueUin() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
 
-		when(packetInfoDao.getWithoutStatusCodes(matchedRids, RegistrationTransactionStatusCode.REJECTED.toString(),
-				RegistrationTransactionStatusCode.PROCESSED.toString())).thenReturn(inprogressMatchedIds);
-		when(packetInfoDao.getProcessedOrProcessingRegIds(matchedRids,
-				lst)).thenReturn(processedMatchedIds);
+        Set<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType, 1, "", ProviderStageName.BIO_DEDUPE);
+// expected to pick 2 rids from processedMatchedIds list because different uin.
+        // Total should be 1(inprogress) + 2(processed)
+        assertEquals(3, uniqueRids.size());
+    }
 
-		when(idRepoService.getUinByRid(processedMatchedIds.get(0), new String())).thenReturn("123456789");
-		when(idRepoService.getUinByRid(processedMatchedIds.get(1), new String())).thenReturn("987654321");
+    @Test
+    public void testProcesssedWithSameUin() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
 
-	}
+        when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn("987654321");
 
-	@Test
-	public void testProcesssedWithUniqueUin() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
+        Set<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType,1, "", ProviderStageName.BIO_DEDUPE);
+        // expected to pick only 1 rid from processedMatchedIds list because same uin. Total should be 1(inprogress) + 1(processed)
+        assertEquals(2, uniqueRids.size());
+    }
 
-		Set<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType, 1, "", ProviderStageName.BIO_DEDUPE);
+    @Test
+    public void testDonotReturnRejected() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
 
-		assertEquals(matchedRids.size(), uniqueRids.size());
-	}
+//        List<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType, ProviderStageName.BIO_DEDUPE);
+        Set<String> uniqueRids= abisHandlerUtil.getUniqueRegIds(registrationId,registrationType,1,"",ProviderStageName.BIO_DEDUPE);
+        // expected to pick only processingandprocessed list i.e 3 records.
+        assertEquals(3, uniqueRids.size());
+    }
 
-	@Test
-	public void testProcesssedWithSameUin() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
+    @Test
+    public void testReturnAllInprogress() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
 
-		when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn("987654321");
+        when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn(null);
 
-		Set<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType,1, "", ProviderStageName.BIO_DEDUPE);
-		// expected to pick only 1 rid from processedMatchedIds list. Total should be 3(inprogress) + 1(processed)
-		assertEquals(4, uniqueRids.size());
-	}
-
-	@Test
-	public void testDonotReturnRejected() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
-
-		when(packetInfoDao.getWithoutStatusCodes(matchedRids, RegistrationTransactionStatusCode.REJECTED.toString(),
-				RegistrationTransactionStatusCode.PROCESSED.toString())).thenReturn(Lists.newArrayList());
-
-		Set<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType,1, "", ProviderStageName.BIO_DEDUPE);
-		// expected to pick only rocessedMatchedIds list i.e 2 records.
-		assertEquals(2, uniqueRids.size());
-	}
-
-	@Test
-	public void testReturnAllInprogress() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
-
-		when(packetInfoDao.getProcessedOrProcessingRegIds(matchedRids,
-				lst)).thenReturn(Lists.newArrayList());
-
-		Set<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType,1, "", ProviderStageName.BIO_DEDUPE);
-		// expected not to pick rocessedMatchedIds list i.e 3 records.
-		assertEquals(3, uniqueRids.size());
-	}
+        Set<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType,1, "", ProviderStageName.BIO_DEDUPE);
+        // expected not to pick processedMatchedIds list i.e 1 records..
+        assertEquals(1, uniqueRids.size());
+    }
 
 }
