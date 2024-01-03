@@ -196,7 +196,7 @@ public class CredentialRequestorStage extends MosipVerticleAPIManager {
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PRINT_SERVICE.toString());
 			registrationStatusDto.setRegistrationStageName(getStageName());
-			JSONObject jsonObject = utilities.retrieveUIN(regId);
+			JSONObject jsonObject = utilities.idrepoRetrieveIdentityByRid(regId);
 			uin = JsonUtil.getJSONValue(jsonObject, IdType.UIN.toString());
 			if (uin == null) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
@@ -343,7 +343,6 @@ public class CredentialRequestorStage extends MosipVerticleAPIManager {
 					moduleId, moduleName, regId);
 
 		}
-
 		return object;
 	}
 
