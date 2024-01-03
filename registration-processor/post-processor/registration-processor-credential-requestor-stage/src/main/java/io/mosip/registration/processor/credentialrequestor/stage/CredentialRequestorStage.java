@@ -162,6 +162,12 @@ public class CredentialRequestorStage extends MosipVerticleAPIManager {
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.PRINTING_BUS_IN, MessageBusAddress.PRINTING_BUS_OUT,
 				messageExpiryTimeLimit);
+
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("11631114541001520240104070442");
+		messageDTO.setReg_type("NEW");
+		messageDTO.setWorkflowInstanceId("f0b9911b-0c47-4454-8c8b-98d49109de38");
+		process(messageDTO);
 	}
 
 	/*
@@ -196,7 +202,7 @@ public class CredentialRequestorStage extends MosipVerticleAPIManager {
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PRINT_SERVICE.toString());
 			registrationStatusDto.setRegistrationStageName(getStageName());
-			JSONObject jsonObject = utilities.retrieveUIN(regId);
+			JSONObject jsonObject = utilities.idrepoRetrieveIdentityByRid(regId);
 			uin = JsonUtil.getJSONValue(jsonObject, IdType.UIN.toString());
 			if (uin == null) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),

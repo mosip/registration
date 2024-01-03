@@ -245,7 +245,7 @@ public class CredentialRequestorStageTest {
 		Map<String, String> map1 = new HashMap<>();
 		map1.put("UIN", "4238135072");
 		JSONObject jsonObject = new JSONObject(map1);
-		Mockito.when(utitilites.retrieveUIN(any())).thenReturn(jsonObject);
+		Mockito.when(utitilites.idrepoRetrieveIdentityByRid(any())).thenReturn(jsonObject);
 
 		CredentialPartner partner1 = new CredentialPartner();
 		partner1.setId("digitalcardPartner");
@@ -394,7 +394,7 @@ public class CredentialRequestorStageTest {
 		Map<String, String> map1 = new HashMap<>();
 
 		JSONObject jsonObject = new JSONObject(map1);
-		Mockito.when(utitilites.retrieveUIN(any())).thenReturn(jsonObject);
+		Mockito.when(utitilites.idrepoRetrieveIdentityByRid(any())).thenReturn(jsonObject);
 		MessageDTO result = stage.process(dto);
 		
 		assertFalse(result.getIsValid());

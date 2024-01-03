@@ -26,6 +26,16 @@
 			<artifactId>registration-processor-core</artifactId>
 			<version>${registration.processor.core.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>io.mosip.registrationprocessor</groupId>
+			<artifactId>registration-processor-credential-requestor-stage</artifactId>
+			<version>1.2.0.1-B3</version>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-auth-adapter</artifactId>
+			<version>1.2.0.1-B2</version>
+		</dependency>
     </dependencies>
 
 </project>
