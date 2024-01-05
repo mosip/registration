@@ -1,14 +1,14 @@
-package io.mosip.registration.processor.print;
+package io.mosip.registration.processor.credentialrequestor;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
-import io.mosip.registration.processor.print.stage.PrintingStage;
+import io.mosip.registration.processor.credentialrequestor.stage.CredentialRequestorStage;
 
 /**
  * @author M1048399
  *
  */
-public class PrintStageApplication {
+public class CredentialRequestorStageApplication {
 
 	public static void main(String[] args) {
 		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
@@ -19,7 +19,7 @@ public class PrintStageApplication {
 				"io.mosip.registration.processor.packet.storage.config");
 		ctx.refresh();
 
-		PrintingStage printStage = ctx.getBean(PrintingStage.class);
+		CredentialRequestorStage printStage = ctx.getBean(CredentialRequestorStage.class);
 		printStage.deployVerticle();
 
 	}
