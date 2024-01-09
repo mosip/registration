@@ -201,12 +201,14 @@ public class PacketValidateProcessor {
 			if (isValidSupervisorStatus) {
 				Boolean isValid = compositePacketValidator.validate(object.getRid(),
 						registrationStatusDto.getRegistrationType(), packetValidationDto);
+
 				if (isValid) {
 					// save audit details
 					InternalRegistrationStatusDto finalRegistrationStatusDto = registrationStatusDto;
 					Runnable r = () -> {
+						String finalRegistrationId = registrationId;
 						try {
-							auditUtility.saveAuditDetails(registrationId,
+							auditUtility.saveAuditDetails(finalRegistrationId,
 									finalRegistrationStatusDto.getRegistrationType());
 						} catch (Exception e) {
 							regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
@@ -580,6 +582,7 @@ public class PacketValidateProcessor {
 	private void sendNotification(SyncRegistrationEntity regEntity,
 								  InternalRegistrationStatusDto registrationStatusDto, boolean isTransactionSuccessful,boolean isValidSupervisorStatus) {
 		try {
+			String registrationId = registrationStatusDto.getRegistrationId();
 			if (regEntity.getOptionalValues() != null) {
 				String[] allNotificationTypes = notificationTypes.split("\\|");
 				boolean isProcessingSuccess;
