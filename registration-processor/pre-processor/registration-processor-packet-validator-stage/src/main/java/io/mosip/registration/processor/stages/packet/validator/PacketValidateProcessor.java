@@ -778,7 +778,7 @@ public class PacketValidateProcessor {
 	private static final String PRE_REG_ID = "mosip.pre-registration.datasync.store";
 	private static final String VERSION = "1.0";
 
-	String registrationId = null;
+
 
 	@Autowired
 	RegistrationExceptionMapperUtil registrationStatusMapperUtil;
@@ -799,6 +799,7 @@ public class PacketValidateProcessor {
 		TrimExceptionMessage trimMessage = new TrimExceptionMessage();
 		LogDescription description = new LogDescription();
 		PacketValidationDto packetValidationDto = new PacketValidationDto();
+		String registrationId = null;
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 		try {
 			registrationStatusDto
