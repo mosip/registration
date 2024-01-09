@@ -825,8 +825,8 @@ public class PacketValidateProcessor {
 				if (isValid) {
 					// save audit details
 					InternalRegistrationStatusDto finalRegistrationStatusDto = registrationStatusDto;
+					String finalRegistrationId = registrationId;
 					Runnable r = () -> {
-						String finalRegistrationId = registrationId;
 						try {
 							auditUtility.saveAuditDetails(finalRegistrationId,
 									finalRegistrationStatusDto.getRegistrationType());
