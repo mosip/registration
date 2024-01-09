@@ -79,6 +79,9 @@ public enum PlatformSuccessMessages {
 
 	RPR_SENT_TO_REPROCESS_SUCCESS(PlatformConstants.RPR_REPROCESSOR_VERTICLE + "001", "sent to reprocess Success"),
 
+	RPR_SENT_TO_REPROCESS_RESTART_FROM_STAGE_SUCCESS(PlatformConstants.RPR_REPROCESSOR_VERTICLE + "002",
+			"sent to reprocess restart from stage Success"),
+
 	RPR_WORKFLOW_INTERNAL_ACTION_SUCCESS(PlatformConstants.RPR_WORKFLOW_INTERNAL_ACTION + "000",
 			"Workflow internal action completed successfully"),
 
@@ -172,10 +175,7 @@ public enum PlatformSuccessMessages {
 			"Packet processing completed with reject status without Parent flow"),
 
 	PACKET_ANONYMOUS_PROFILE(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "008",
-			"Packet anonymous profile flow initiated"),
-	
-	RPR_USER_NOTIFICATION_API_SUCCESS(PlatformConstants.RPR_USER_NOTIFICATION_API + "000",
-			"Request added to queue");
+			"Packet anonymous profile flow initiated");
 
 	/** The success message. */
 	private final String successMessage;
