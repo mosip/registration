@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -74,7 +75,6 @@ import io.mosip.registration.processor.message.sender.exception.TemplateGenerati
 import io.mosip.registration.processor.message.sender.exception.TemplateNotFoundException;
 import io.mosip.registration.processor.message.sender.template.TemplateGenerator;
 import io.mosip.registration.processor.packet.manager.decryptor.Decryptor;
-import io.mosip.registration.processor.packet.storage.dto.ConfigEnum;
 import io.mosip.registration.processor.packet.storage.exception.IdRepoAppException;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
@@ -449,7 +449,7 @@ public class MessageNotificationServiceImpl
 
 		String uin = "";
 		if (idType.toString().equalsIgnoreCase(UIN)) {
-			JSONObject jsonObject = utility.retrieveUIN(id);
+			JSONObject jsonObject = utility.idrepoRetrieveIdentityByRid(id);
 			uin = JsonUtil.getJSONValue(jsonObject, UIN);
 			attributes.put("RID", id);
 			attributes.put("UIN", uin);
@@ -560,7 +560,7 @@ public class MessageNotificationServiceImpl
 						JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
 						for (int count = 0; count < jsonValues.length; count++) {
 							if(jsonValues[count].getLanguage().equalsIgnoreCase(lang)) {
-								attribute.put(val , jsonValues[count].getValue());
+								attribute.put(val + "_" + lang, jsonValues[count].getValue());
 							}
 						}
 					} else if (object instanceof LinkedHashMap) {
@@ -609,13 +609,21 @@ public class MessageNotificationServiceImpl
 			String regType, String lang, StringBuilder phoneNumber, StringBuilder emailId)
 			throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException, JSONException, PacketDecryptionFailureException, JsonParseException, JsonMappingException, io.mosip.kernel.core.exception.IOException {
 
-		JSONObject mapperIdentity = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
-
+		if (mapperJsonKeys == null) {
+			String mapperJsonString = Utilities.getJson(utility.getConfigServerFileStorageURL(),
+					utility.getGetRegProcessorIdentityJson());
+			JSONObject mapperJson = JsonUtil.objectMapperReadValue(mapperJsonString, JSONObject.class);
+			mapperIdentity = JsonUtil.getJSONObject(mapperJson, utility.getGetRegProcessorDemographicIdentity());
+			mapperJsonKeys = new ArrayList<>(mapperIdentity.keySet());
+		}
 		List<String> mapperJsonValues = new ArrayList<>();
-		JsonUtil.getJSONValue(JsonUtil.getJSONObject(mapperIdentity, MappingJsonConstants.INDIVIDUAL_BIOMETRICS), VALUE);
-		mapperIdentity.keySet().forEach(key -> mapperJsonValues.add(JsonUtil.getJSONValue(JsonUtil.getJSONObject(mapperIdentity, key), VALUE)));
-
-		String source = utility.getDefaultSource(process, ConfigEnum.READER);
+		for (String key : mapperJsonKeys) {
+			JSONObject jsonValue = JsonUtil.getJSONObject(mapperIdentity, key);
+			if (jsonValue.get(VALUE) != null && !jsonValue.get(VALUE).toString().isBlank()) {
+				String[] valueArray = jsonValue.get(VALUE).toString().split(",");
+				mapperJsonValues.addAll(new ArrayList(Arrays.asList(valueArray)));
+			}
+		}
 		Map<String, String> fieldMap =null;
 		try {
 		 fieldMap = packetManagerService.getFields(id, mapperJsonValues, process, ProviderStageName.MESSAGE_SENDER);
@@ -640,7 +648,7 @@ public class MessageNotificationServiceImpl
 								Object obj = jsonArray.get(i);
 								JsonValue jsonValue = mapper.readValue(obj.toString(), JsonValue.class);
 								if(jsonValue.getLanguage().equalsIgnoreCase(lang)) {
-								attribute.putIfAbsent(e.getKey().toString(), jsonValue.getValue());
+									attribute.putIfAbsent(e.getKey().toString() + "_" + lang, jsonValue.getValue());
 								}
 							}
 						} else

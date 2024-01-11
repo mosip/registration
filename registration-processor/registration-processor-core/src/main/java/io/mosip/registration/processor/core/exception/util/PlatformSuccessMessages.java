@@ -79,6 +79,9 @@ public enum PlatformSuccessMessages {
 
 	RPR_SENT_TO_REPROCESS_SUCCESS(PlatformConstants.RPR_REPROCESSOR_VERTICLE + "001", "sent to reprocess Success"),
 
+	RPR_SENT_TO_REPROCESS_RESTART_FROM_STAGE_SUCCESS(PlatformConstants.RPR_REPROCESSOR_VERTICLE + "002",
+			"sent to reprocess restart from stage Success"),
+
 	RPR_WORKFLOW_INTERNAL_ACTION_SUCCESS(PlatformConstants.RPR_WORKFLOW_INTERNAL_ACTION + "000",
 			"Workflow internal action completed successfully"),
 
