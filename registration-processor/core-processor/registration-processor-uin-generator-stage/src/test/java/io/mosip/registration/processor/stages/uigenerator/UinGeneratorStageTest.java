@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -22,6 +24,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.registration.processor.core.status.util.StatusUtil;
+import io.mosip.registration.processor.stages.uingenerator.dto.VidResponseDto;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
 import org.json.JSONException;
@@ -291,6 +296,7 @@ public class UinGeneratorStageTest {
 				EventType.BUSINESS.toString(), "1234testcase", ApiName.AUDIT);
 
 		registrationStatusDto.setLatestTransactionStatusCode("SUCCESS");
+		registrationStatusDto.setRegistrationType("NEW");
 		when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
 
 		PowerMockito.mockStatic(Utilities.class);
@@ -345,6 +351,7 @@ public class UinGeneratorStageTest {
 		fieldMap.put("email", "mono@mono.com");
 		fieldMap.put("phone", "23456");
 		fieldMap.put("dob", "11/11/2011");
+//		fieldMap.put("UIN","11111111");
 
 		List<String> defaultFields = new ArrayList<>();
 		defaultFields.add("name");
@@ -2394,5 +2401,89 @@ public class UinGeneratorStageTest {
 		assertTrue(result.getInternalError());
 		assertTrue(result.getIsValid());
 	}
-	
+
+
+	@Test
+	public void testUinGenerationResponseWithInvalidInputParameterExceptionForFirstThreeTimes() throws Exception {
+		ReflectionTestUtils.setField(uinGeneratorStage, "maxRetrycount", 3);
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type("NEW");
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		ResponseWrapper<VidResponseDto> responseVid = new ResponseWrapper<VidResponseDto>();
+		List<ErrorDTO> errors = new ArrayList<>();
+		ErrorDTO errorDTO=new ErrorDTO("IDR-IDC-002", "INVALID_INPUT_PARAMETER");
+		errors.add(errorDTO);
+		idResponseDTO.setErrors(errors);
+		idResponseDTO.setVersion("v12");
+		idResponseDTO.setMetadata(null);
+		DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		LocalDateTime localdatetime = LocalDateTime
+				.parse(DateUtils.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"), format);
+		responseVid.setResponsetime(localdatetime);
+		documentObj = JsonUtil.getJSONObject(new ObjectMapper().readValue(identityMappingjsonString, JSONObject.class), MappingJsonConstants.DOCUMENT);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
+		IdResponseDTO positiveidResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO1 = new ResponseDTO();
+		responseDTO1.setStatus("ACTIVATED");
+		positiveidResponseDTO.setErrors(null);
+		positiveidResponseDTO.setId("mosip.id.create");
+		positiveidResponseDTO.setResponse(responseDTO1);
+		positiveidResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		positiveidResponseDTO.setVersion("1.0");
+		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).
+				thenReturn(idResponseDTO)
+				.thenReturn(idResponseDTO)
+				.thenReturn(idResponseDTO)
+				.thenReturn(positiveidResponseDTO);
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
+	}
+
+
+	/*
+    In this test case each time when Uin_generator api is called Invalid input parameter is the responde.
+     */
+	@Test
+	public void testUinGenerationResponseWillExcedesRetryCount() throws Exception {
+		ReflectionTestUtils.setField(uinGeneratorStage, "maxRetrycount", 3);
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type("NEW");
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		ResponseWrapper<VidResponseDto> responseVid = new ResponseWrapper<VidResponseDto>();
+		List<ErrorDTO> errors = new ArrayList<>();
+		ErrorDTO errorDTO=new ErrorDTO("IDR-IDC-002", "INVALID_INPUT_PARAMETER");
+		errors.add(errorDTO);
+		idResponseDTO.setErrors(errors);
+		idResponseDTO.setVersion("v12");
+		idResponseDTO.setMetadata(null);
+		DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		LocalDateTime localdatetime = LocalDateTime
+				.parse(DateUtils.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"), format);
+		responseVid.setResponsetime(localdatetime);
+		documentObj = JsonUtil.getJSONObject(new ObjectMapper().readValue(identityMappingjsonString, JSONObject.class), MappingJsonConstants.DOCUMENT);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
+		IdResponseDTO positiveidResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO1 = new ResponseDTO();
+		responseDTO1.setStatus("ACTIVATED");
+		positiveidResponseDTO.setErrors(null);
+		positiveidResponseDTO.setId("mosip.id.create");
+		positiveidResponseDTO.setResponse(responseDTO1);
+		positiveidResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		positiveidResponseDTO.setVersion("1.0");
+		when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("REPROCESS");
+		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).
+				thenReturn(idResponseDTO)
+				.thenReturn(idResponseDTO)
+				.thenReturn(idResponseDTO)
+				.thenReturn(idResponseDTO);
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertTrue(result.getInternalError());
+	}
 }
+
+

@@ -118,6 +118,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.uin.generator.";
 	private static final String UIN = "UIN";
 	private static final String IDREPO_STATUS = "DRAFTED";
+	private static final String INVALID_INPUT_PARAMETER_ERROR_CODE="IDR-IDC-002";
 
 	@Autowired
 	private Environment env;
@@ -156,6 +157,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	
 	@Value("${uingenerator.lost.packet.allowed.update.fields:null}")
 	private String updateInfo;
+
+	@Value("${mosip.regproc.uin.generator.idrepo-max-retry-count}")
+	Integer maxRetrycount;
 
 	/** The core audit request builder. */
 	@Autowired
@@ -261,7 +265,15 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 					idResponseDTO = sendIdRepoWithUin(registrationId, registrationStatusDto.getRegistrationType(), demographicIdentity,
 							uinField);
+					if(idResponseDTO.getErrors()!=null && idResponseDTO.getErrors().get(0).getErrorCode().equalsIgnoreCase(INVALID_INPUT_PARAMETER_ERROR_CODE)) {
+						for (int i = 0; i < maxRetrycount; i++) {
+							idResponseDTO = sendIdRepoWithUin(registrationId, registrationStatusDto.getRegistrationType(), demographicIdentity,
+									uinField);
+							if (idResponseDTO.getErrors()==null || idResponseDTO.getErrors().get(0).getErrorCode()!=INVALID_INPUT_PARAMETER_ERROR_CODE)
+								break;
 
+						}
+					}
 					boolean isUinAlreadyPresent = isUinAlreadyPresent(idResponseDTO, registrationId);
 
 					if (isIdResponseNotNull(idResponseDTO) || isUinAlreadyPresent) {
@@ -279,7 +291,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 								: UINConstants.NULL_IDREPO_RESPONSE;
 						int unknownErrorCount=0;
 						for(ErrorDTO dto:errors) {
-							if(dto.getErrorCode().equalsIgnoreCase("IDR-IDC-004")||dto.getErrorCode().equalsIgnoreCase("IDR-IDC-001")) {
+							if(dto.getErrorCode().equalsIgnoreCase("IDR-IDC-004")||dto.getErrorCode().equalsIgnoreCase("IDR-IDC-001")||dto.getErrorCode().equalsIgnoreCase("IDR-IDC-002")) {
 								unknownErrorCount++;
 							}
 						}

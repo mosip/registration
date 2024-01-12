@@ -30,6 +30,7 @@ public class IdrepoDraftService {
     private static final String UIN = "UIN";
     private static final Integer IDREPO_DRAFT_FOUND = 200;
     private static final Integer IDREPO_DRAFT_NOT_FOUND = 204;
+    private static final String INVALID_INPUT_PARAMETER_ERROR_CODE="IDR-IDC-002";
     private static Logger regProcLogger = RegProcessorLogger.getLogger(IdrepoDraftService.class);
 
     @Autowired
@@ -100,9 +101,13 @@ public class IdrepoDraftService {
         IdResponseDTO response = (IdResponseDTO) registrationProcessorRestClientService.patchApi(
                 ApiName.IDREPOUPDATEDRAFT, Lists.newArrayList(id), null, null, idRequestDto, IdResponseDTO.class);
         if (response.getErrors() != null && !response.getErrors().isEmpty()) {
-            regProcLogger.error("Error occured while updating draft for id : " + id, response.getErrors().iterator().next().toString());
-            throw new IdrepoDraftException(response.getErrors().iterator().next().getErrorCode(),
-                    response.getErrors().iterator().next().getMessage());
+            if(response.getErrors()!=null && response.getErrors().get(0).getErrorCode().equalsIgnoreCase(INVALID_INPUT_PARAMETER_ERROR_CODE)){
+                return response;
+            }else {
+                regProcLogger.error("Error occured while updating draft for id : " + id, response.getErrors().iterator().next().toString());
+                throw new IdrepoDraftException(response.getErrors().iterator().next().getErrorCode(),
+                        response.getErrors().iterator().next().getMessage());
+            }
         }
 
         regProcLogger.debug("idrepoUpdateDraft exit " + id);
