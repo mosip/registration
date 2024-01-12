@@ -645,7 +645,7 @@ public class KafkaMosipEventBusTest {
 				async.complete();
 			return null;
 		}).when(kafkaConsumer).listTopics(any());
-		kafkaMosipEventBus.consumerHealthCheck(eventHandler, MessageBusAddress.PACKET_VALIDATOR_BUS_IN.toString());
+		kafkaMosipEventBus.consumerHealthCheck(eventHandler, MessageBusAddress.PACKET_VALIDATOR_BUS_IN.toString(), 3);
 		async.await();
 		ArgumentCaptor<HealthCheckDTO> argument = ArgumentCaptor.forClass(HealthCheckDTO.class);
 		verify(eventHandler, times(1)).handle(argument.capture());
@@ -668,7 +668,7 @@ public class KafkaMosipEventBusTest {
 				async.complete();
 			return null;
 		}).when(kafkaConsumer).listTopics(any());
-		kafkaMosipEventBus.consumerHealthCheck(eventHandler, MessageBusAddress.PACKET_VALIDATOR_BUS_IN.toString());
+		kafkaMosipEventBus.consumerHealthCheck(eventHandler, MessageBusAddress.PACKET_VALIDATOR_BUS_IN.toString(), 3);
 		async.await();
 		ArgumentCaptor<HealthCheckDTO> argument = ArgumentCaptor.forClass(HealthCheckDTO.class);
 		verify(eventHandler, times(1)).handle(argument.capture());
@@ -684,7 +684,7 @@ public class KafkaMosipEventBusTest {
 		Handler<HealthCheckDTO> eventHandler = Mockito.mock(Handler.class);
 		TimeoutException timeout=new TimeoutException();
 		Mockito.when(kafkaConsumer.listTopics(any())).thenThrow(timeout);
-		kafkaMosipEventBus.consumerHealthCheck(eventHandler, MessageBusAddress.PACKET_VALIDATOR_BUS_IN.toString());
+		kafkaMosipEventBus.consumerHealthCheck(eventHandler, MessageBusAddress.PACKET_VALIDATOR_BUS_IN.toString(), 3);
 		verify(kafkaConsumer, times(1)).listTopics(any());
 	}
 

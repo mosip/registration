@@ -66,6 +66,9 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 	@Value("${mosip.regproc.health-check.handler-timeout:5000}")
 	private long healthCheckTimeOut;
 
+	@Value("${mosip.regproc.kafka-consumer.health-check.max.retry.count:3}")
+	private int kafkaConsumerMaxRetryCount;
+
 
 	/**
 	 * This method creates a body handler for the routes
@@ -118,7 +121,8 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Consume",
 					healthCheckTimeOut, future -> {
-						healthCheckHandler.consumerHealthHandler(future, vertx, super.mosipEventBus, consumeAddress);
+						healthCheckHandler.consumerHealthHandler(future, vertx, super.mosipEventBus, consumeAddress,
+								kafkaConsumerMaxRetryCount);
 					});
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Verticle",
@@ -135,7 +139,8 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Consume",
 					healthCheckTimeOut,
 					future -> {
-						healthCheckHandler.consumerHealthHandler(future, vertx, super.mosipEventBus, consumeAddress);
+						healthCheckHandler.consumerHealthHandler(future, vertx, super.mosipEventBus, consumeAddress,
+								kafkaConsumerMaxRetryCount);
 					});
 		}
 		if (servletPath.contains("manual")) {
@@ -151,14 +156,14 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Verticle",
 					healthCheckTimeOut,
 					future -> healthCheckHandler.consumerHealthHandler(future, vertx, super.mosipEventBus,
-							consumeAddress));
+							consumeAddress, kafkaConsumerMaxRetryCount));
 		}
 		if (servletPath.contains("sender")) {
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Verticle",
 					healthCheckTimeOut,
 					future -> healthCheckHandler.consumerHealthHandler(future, vertx, super.mosipEventBus,
-							consumeAddress));
+							consumeAddress, kafkaConsumerMaxRetryCount));
 		}
 
 		healthCheckHandler.register("diskSpace", healthCheckTimeOut, healthCheckHandler::dispSpaceHealthChecker);

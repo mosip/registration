@@ -124,7 +124,7 @@ public class VertxMosipEventBus implements MosipEventBus {
 	}
 
 	@Override
-	public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
+	public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler, String address, int retryCount) {
 		Boolean isRegistered = vertx.eventBus().consumer(address).isRegistered();
 		HealthCheckDTO healthCheckDTO = new HealthCheckDTO();
 		healthCheckDTO.setEventBusConnected(isRegistered);

@@ -434,7 +434,7 @@ public class KafkaMosipEventBus implements MosipEventBus {
 
 	@Override
 	public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler,
-			String address) {
+			String address, int retryCount) {
 		HealthCheckDTO healthCheckDTO = new HealthCheckDTO();
 		String timeStamp = address + DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime());
 		logger.debug("Consumer health check started {}",
@@ -442,14 +442,24 @@ public class KafkaMosipEventBus implements MosipEventBus {
 		kafkaConsumer.listTopics(f -> {
 			if (f.succeeded()) {
 				healthCheckDTO.setEventBusConnected(true);
+				eventHandler.handle(healthCheckDTO);
 
 			} else {
 				healthCheckDTO.setEventBusConnected(false);
 				healthCheckDTO.setFailureReason(f.cause().getMessage());
+				eventHandler.handle(healthCheckDTO);
+				// Retry logic
+				if (retryCount > 0) {
+					long backoffMillis = calculateBackoff(retryCount);
+					vertx.setTimer(backoffMillis,
+							timerId -> consumerHealthCheck(eventHandler, address, retryCount - 1));
+				} else {
+					logger.info("Maximum retry attempts reached. Aborting health check.");
+				}
 			}
 			logger.debug("Consumer health check ended {} {}",
 					timeStamp);
-			eventHandler.handle(healthCheckDTO);
+
 		});
 
 	}
@@ -468,5 +478,9 @@ public class KafkaMosipEventBus implements MosipEventBus {
 			healthCheckDTO.setFailureReason("Failed kafkaProducer");
 		}
 		eventHandler.handle(healthCheckDTO);
+	}
+
+	private long calculateBackoff(int retryCount) {
+		return (long) Math.pow(2, retryCount) * 1000;
 	}
 }

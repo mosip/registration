@@ -53,7 +53,7 @@ public interface MosipEventBus {
 	public void send(MessageBusAddress toAddress, MessageDTO message);
 
 	public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler,
-			String address);
+			String address, int retryCount);
 
 	public void senderHealthCheck(Handler<HealthCheckDTO> eventHandler,
 			String address);
