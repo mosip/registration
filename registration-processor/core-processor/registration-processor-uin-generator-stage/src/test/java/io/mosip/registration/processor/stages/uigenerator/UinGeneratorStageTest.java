@@ -142,7 +142,7 @@ public class UinGeneratorStageTest {
 				}
 
 				@Override
-				public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
+				public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler, String address, int retryCount) {
 
 
 				}

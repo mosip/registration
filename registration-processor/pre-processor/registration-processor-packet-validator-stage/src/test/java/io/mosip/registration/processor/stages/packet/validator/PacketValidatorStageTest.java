@@ -65,7 +65,7 @@ public class PacketValidatorStageTest {
 				}
 
 				@Override
-				public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
+				public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler, String address, int retryCount) {
 					// TODO Auto-generated method stub
 
 				}
