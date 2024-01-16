@@ -1,8 +1,8 @@
 package io.mosip.registration.processor.packet.manager.service.impl.test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockitoSession;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -99,19 +99,14 @@ public class IdrepoDraftServiceTest {
 
         when(registrationProcessorRestClientService.headApi
                 (ApiName.IDREPOHASDRAFT, Lists.newArrayList(ID), null, null)).thenReturn(500);
-
         idrepoDraftService.idrepoHasDraft(ID);
-
     }
 
     @Test
     public void idrepoGetDraftSuccessTest() throws ApisResourceAccessException, IdrepoDraftException {
-
         when(registrationProcessorRestClientService.getApi(
                 ApiName.IDREPOGETDRAFT, Lists.newArrayList(ID), Lists.emptyList(), null, IdResponseDTO.class)).thenReturn(idResponseDTO);
-
         ResponseDTO result = idrepoDraftService.idrepoGetDraft(ID);
-
         assertTrue(result.getRegistrationId().equals(ID));
     }
     
@@ -199,5 +194,21 @@ public class IdrepoDraftServiceTest {
 
     }
 
-
+    @Test
+    public void idrepoUpdateDraftReturnsReasonce() throws ApisResourceAccessException, IdrepoDraftException, IOException {
+        RequestDto requestDto = new RequestDto();
+        requestDto.setIdentity(idResponseDTO.getResponse().getIdentity());
+        IdRequestDto idRequestDto = new IdRequestDto();
+        idRequestDto.setRequest(requestDto);
+        ErrorDTO errorDTO=new ErrorDTO("IDR-IDC-002", "INVALID_INPUT_PARAMETER");
+        IdResponseDTO idResponseDTO1 = new IdResponseDTO();
+        idResponseDTO1.setErrors(Lists.newArrayList(errorDTO));
+        when(registrationProcessorRestClientService.headApi
+                (ApiName.IDREPOHASDRAFT, Lists.newArrayList(ID), null, null)).thenReturn(200);
+        when(registrationProcessorRestClientService.getApi(
+                ApiName.IDREPOGETDRAFT, Lists.newArrayList(ID), Lists.emptyList(), null, IdResponseDTO.class)).thenReturn(idResponseDTO);
+        when(registrationProcessorRestClientService.patchApi(any(),any(),any(),any(),any(),any())).thenReturn(idResponseDTO1);
+        IdResponseDTO responseDTO=idrepoDraftService.idrepoUpdateDraft(ID, null, idRequestDto);
+        assertEquals(responseDTO.getErrors().get(0).getMessage(),"INVALID_INPUT_PARAMETER");
+    }
 }
