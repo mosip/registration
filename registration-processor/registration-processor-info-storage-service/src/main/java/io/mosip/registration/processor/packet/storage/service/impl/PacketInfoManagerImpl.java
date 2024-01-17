@@ -141,6 +141,9 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	@Value("${registration.processor.demodedupe.manual.adjudication.status}")
 	private String manualVerificationStatus;
 
+	@Value("${mosip.regproc.demo.dedupe.trim-whitespaces.simpleType-value:false}")
+	private boolean trimWhitespace;
+
 	/** The Constant MATCHED_REFERENCE_TYPE. */
 	private static final String MATCHED_REFERENCE_TYPE = "rid";
 
@@ -293,7 +296,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 
 		try {
 			List<IndividualDemographicDedupeEntity> applicantDemographicEntities = PacketInfoMapper
-					.converDemographicDedupeDtoToEntity(demographicData, regId,process,iteration, workflowInstanceId);
+					.converDemographicDedupeDtoToEntity(demographicData, regId,process,iteration, workflowInstanceId,trimWhitespace);
 			for (IndividualDemographicDedupeEntity applicantDemographicEntity : applicantDemographicEntities) {
 				demographicDedupeRepository.save(applicantDemographicEntity);
 
@@ -339,7 +342,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 
 		try {
 			List<IndividualDemographicDedupeEntity> applicantDemographicEntities = PacketInfoMapper
-					.converDemographicDedupeDtoToEntity(demographicData, registrationId,process,iteration, workflowInstanceId);
+					.converDemographicDedupeDtoToEntity(demographicData, registrationId,process,iteration, workflowInstanceId,trimWhitespace);
 			for (IndividualDemographicDedupeEntity applicantDemographicEntity : applicantDemographicEntities) {
 				demographicDedupeRepository.save(applicantDemographicEntity);
 
