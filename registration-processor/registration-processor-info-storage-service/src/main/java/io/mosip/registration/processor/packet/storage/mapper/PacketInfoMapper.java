@@ -119,6 +119,11 @@ public class PacketInfoMapper {
 	 * @return the list
 	 */
 	public static List<IndividualDemographicDedupeEntity> converDemographicDedupeDtoToEntity(
+			IndividualDemographicDedupe demoDto, String regId,String process, int iteration, String workflowInstanceId) throws NoSuchAlgorithmException {
+
+		return converDemographicDedupeDtoToEntity(demoDto,regId,process,iteration,workflowInstanceId,false);
+	}
+	public static List<IndividualDemographicDedupeEntity> converDemographicDedupeDtoToEntity(
 			IndividualDemographicDedupe demoDto, String regId,String process, int iteration, String workflowInstanceId,Boolean istrim) throws NoSuchAlgorithmException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
 				"PacketInfoMapper::converDemographicDedupeDtoToEntity()::entry");
