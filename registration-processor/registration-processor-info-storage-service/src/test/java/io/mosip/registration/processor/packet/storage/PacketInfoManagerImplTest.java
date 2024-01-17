@@ -27,10 +27,7 @@ import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -93,6 +90,7 @@ import io.mosip.registration.processor.packet.storage.service.impl.PacketInfoMan
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * The Class PacketInfoManagerImplTest.
@@ -1057,7 +1055,7 @@ public class PacketInfoManagerImplTest {
 		entity.setDob("2019-03-02T06:29:41.011Z");
 		applicantDemographicEntities.add(entity);
 		PowerMockito.mockStatic(PacketInfoMapper.class);
-		Mockito.when(PacketInfoMapper.converDemographicDedupeDtoToEntity(Mockito.any(), Mockito.any(),Mockito.any(),Mockito.anyInt(), any()))
+		Mockito.when(PacketInfoMapper.converDemographicDedupeDtoToEntity(Mockito.any(), Mockito.any(),Mockito.any(),Mockito.anyInt(), any(),any()))
 				.thenReturn(applicantDemographicEntities);
 		Mockito.when(demographicDedupeRepository.save(any())).thenReturn(entity);
 		packetInfoManagerImpl.saveIndividualDemographicDedupeUpdatePacket(demographicData,
@@ -1075,7 +1073,7 @@ public class PacketInfoManagerImplTest {
 		entity.setDob("2019-03-02T06:29:41.011Z");
 		applicantDemographicEntities.add(entity);
 		PowerMockito.mockStatic(PacketInfoMapper.class);
-		Mockito.when(PacketInfoMapper.converDemographicDedupeDtoToEntity(Mockito.any(), Mockito.any(),Mockito.any(),Mockito.anyInt(), any()))
+		Mockito.when(PacketInfoMapper.converDemographicDedupeDtoToEntity(Mockito.any(), Mockito.any(),Mockito.any(),Mockito.anyInt(), any(),any()))
 				.thenReturn(applicantDemographicEntities);
 		Mockito.when(demographicDedupeRepository.save(any())).thenThrow(exp);
 		packetInfoManagerImpl.saveIndividualDemographicDedupeUpdatePacket(demographicData,
@@ -1153,4 +1151,21 @@ public class PacketInfoManagerImplTest {
 
 	}
 
+	@Test
+	public void testsaveIndividualDemographicDedupeWithTrim() throws NoSuchAlgorithmException {
+		ReflectionTestUtils.setField(packetInfoManagerImpl,"trimWhitespace",true);
+		IndividualDemographicDedupe demographicData = new IndividualDemographicDedupe();
+		demographicData.setDateOfBirth("2019-03-02T06:29:41.011Z");
+		List<IndividualDemographicDedupeEntity> applicantDemographicEntities = new ArrayList<>();
+		IndividualDemographicDedupeEntity entity = new IndividualDemographicDedupeEntity();
+		entity.setDob("2019-03-02T06:29:41.011Z");
+		applicantDemographicEntities.add(entity);
+		PowerMockito.mockStatic(PacketInfoMapper.class);
+		Mockito.when(PacketInfoMapper.converDemographicDedupeDtoToEntity(Mockito.any(), Mockito.any(),Mockito.any(),Mockito.anyInt(), any(),any()))
+				.thenReturn(applicantDemographicEntities);
+		Mockito.when(demographicDedupeRepository.save(any())).thenReturn(entity);
+		ArgumentCaptor<Integer> arg2 = ArgumentCaptor.forClass(Integer.class);
+		packetInfoManagerImpl.saveIndividualDemographicDedupeUpdatePacket(demographicData,
+				"1001", "","NEW", "",1, "");
+	}
 }
