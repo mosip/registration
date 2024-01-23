@@ -252,7 +252,7 @@ public enum StatusUtil {
 			"Exception occured updating idrepo draft."),
 
 	IDREPO_DRAFT_REPROCESSABLE_EXCEPTION(StatusConstants.UIN_GENERATOR_MODULE_FAILED + "009",
-			"Exception occured updating idrepo draft,Which can be reprocess"),
+			"Exception occured updating idrepo draft, which can be reprocessed"),
 
 	// Biometric extraction stage
 	BIOMETRIC_EXTRACTION_SUCCESS(StatusConstants.BIOMETRIC_EXTRACTION_MODULE_SUCCESS + "001",
@@ -264,7 +264,7 @@ public enum StatusUtil {
 
 	BIOMETRIC_EXTRACTION_IDREPO_DRAFT_REPROCESSABLE_EXCEPTION(
 			StatusConstants.BIOMETRIC_EXTRACTION_MODULE_FAILED + "003",
-			"Exception occured updating idrepo draft,Which can be reprocess"),
+			"Exception occured updating idrepo draft, which can be reprocessed"),
 
 	FINALIZATION_SUCCESS(StatusConstants.FINALIZATION_MODULE_SUCCESS + "001",
 			"idrepo draft was published  successfuly"),
@@ -276,7 +276,7 @@ public enum StatusUtil {
 			"Exception occured updating idrepo draft."),
 
 	FINALIZATION_IDREPO_DRAFT_REPROCESSABLE_EXCEPTION(StatusConstants.FINALIZATION_MODULE_FAILED + "004",
-			"Exception occured updating idrepo draft,Which can be reprocess"),
+			"Exception occured updating idrepo draft, which can be reprocessed"),
 
 	// Request handler service
 	// 1)Resident UIN update
