@@ -251,17 +251,32 @@ public enum StatusUtil {
 	IDREPO_DRAFT_EXCEPTION(StatusConstants.UIN_GENERATOR_MODULE_FAILED + "008",
 			"Exception occured updating idrepo draft."),
 
+	IDREPO_DRAFT_REPROCESSABLE_EXCEPTION(StatusConstants.UIN_GENERATOR_MODULE_FAILED + "009",
+			"Exception occured updating idrepo draft, which can be reprocessed"),
+
 	// Biometric extraction stage
 	BIOMETRIC_EXTRACTION_SUCCESS(StatusConstants.BIOMETRIC_EXTRACTION_MODULE_SUCCESS + "001",
 			"biometric extaction was successful"),
 	BIOMETRIC_EXTRACTION_DRAFT_REQUEST_UNAVAILABLE(StatusConstants.BIOMETRIC_EXTRACTION_MODULE_FAILED + "001",
 			"Draft request is unavaialble in id-repo draft repository."),
+	BIOMETRIC_EXTRACTION_IDREPO_DRAFT_EXCEPTION(StatusConstants.BIOMETRIC_EXTRACTION_MODULE_FAILED + "002",
+			"Exception occured updating idrepo draft."),
+
+	BIOMETRIC_EXTRACTION_IDREPO_DRAFT_REPROCESSABLE_EXCEPTION(
+			StatusConstants.BIOMETRIC_EXTRACTION_MODULE_FAILED + "003",
+			"Exception occured updating idrepo draft, which can be reprocessed"),
 
 	FINALIZATION_SUCCESS(StatusConstants.FINALIZATION_MODULE_SUCCESS + "001",
 			"idrepo draft was published  successfuly"),
 	FINALIZATION_FAILURE(StatusConstants.FINALIZATION_MODULE_FAILED + "001", "Draft request failed to publish."),
-	FINALIZATION_DRAFT_REQUEST_UNAVAILABLE(StatusConstants.FINALIZATION_MODULE_FAILED + "001",
+	FINALIZATION_DRAFT_REQUEST_UNAVAILABLE(StatusConstants.FINALIZATION_MODULE_FAILED + "002",
 			"Draft request is unavaialble in id-repo draft repository."),
+
+	FINALIZATION_IDREPO_DRAFT_EXCEPTION(StatusConstants.FINALIZATION_MODULE_FAILED + "003",
+			"Exception occured updating idrepo draft."),
+
+	FINALIZATION_IDREPO_DRAFT_REPROCESSABLE_EXCEPTION(StatusConstants.FINALIZATION_MODULE_FAILED + "004",
+			"Exception occured updating idrepo draft, which can be reprocessed"),
 
 	// Request handler service
 	// 1)Resident UIN update
