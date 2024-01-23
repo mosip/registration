@@ -32,6 +32,7 @@ import io.mosip.registration.processor.packet.manager.dto.IdResponseDTO;
 import io.mosip.registration.processor.packet.manager.dto.RequestDto;
 import io.mosip.registration.processor.packet.manager.dto.ResponseDTO;
 import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftException;
+import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftReprocessableException;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService;
 
 @RunWith(PowerMockRunner.class)
@@ -116,7 +117,7 @@ public class IdrepoDraftServiceTest {
     }
     
     @Test
-    public void idrepoPublishDraftSuccessTest() throws ApisResourceAccessException, IdrepoDraftException {
+    public void idrepoPublishDraftSuccessTest() throws ApisResourceAccessException, IdrepoDraftException, IdrepoDraftReprocessableException {
 
         when(registrationProcessorRestClientService.getApi(
                 ApiName.IDREPOPUBLISHDRAFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class)).thenReturn(idResponseDTO);
@@ -127,7 +128,8 @@ public class IdrepoDraftServiceTest {
     }
     
     @Test(expected = IdrepoDraftException.class)
-    public void idrepoPublishDraftExceptionTest() throws ApisResourceAccessException, IdrepoDraftException {
+	public void idrepoPublishDraftExceptionTest()
+			throws ApisResourceAccessException, IdrepoDraftException, IdrepoDraftReprocessableException {
     	RequestDto requestDto = new RequestDto();
         requestDto.setIdentity(idResponseDTO.getResponse().getIdentity());
         IdRequestDto idRequestDto = new IdRequestDto();
@@ -157,7 +159,8 @@ public class IdrepoDraftServiceTest {
     }
 
     @Test
-    public void idrepoUpdateDraftSuccessTest() throws ApisResourceAccessException, IdrepoDraftException, IOException {
+	public void idrepoUpdateDraftSuccessTest()
+			throws ApisResourceAccessException, IdrepoDraftException, IOException, IdrepoDraftReprocessableException {
         RequestDto requestDto = new RequestDto();
         requestDto.setIdentity(idResponseDTO.getResponse().getIdentity());
         IdRequestDto idRequestDto = new IdRequestDto();
@@ -176,7 +179,8 @@ public class IdrepoDraftServiceTest {
     }
 
     @Test(expected = IdrepoDraftException.class)
-    public void idrepoUpdateDraftExceptionTest() throws ApisResourceAccessException, IdrepoDraftException, IOException {
+	public void idrepoUpdateDraftExceptionTest()
+			throws ApisResourceAccessException, IdrepoDraftException, IOException, IdrepoDraftReprocessableException {
         RequestDto requestDto = new RequestDto();
         requestDto.setIdentity(idResponseDTO.getResponse().getIdentity());
         IdRequestDto idRequestDto = new IdRequestDto();
@@ -199,5 +203,29 @@ public class IdrepoDraftServiceTest {
 
     }
 
+	@Test(expected = IdrepoDraftReprocessableException.class)
+	public void idrepoDraftReprocessableExceptionTest()
+			throws ApisResourceAccessException, IdrepoDraftException, IOException, IdrepoDraftReprocessableException {
+		RequestDto requestDto = new RequestDto();
+		requestDto.setIdentity(idResponseDTO.getResponse().getIdentity());
+		IdRequestDto idRequestDto = new IdRequestDto();
+		idRequestDto.setRequest(requestDto);
+
+		ErrorDTO errorDTO = new ErrorDTO();
+		errorDTO.setMessage("Failed to either encrypt/decrypt message using Kernel Crypto Manager");
+		errorDTO.setErrorCode("IDR-IDS-003");
+		IdResponseDTO idResponseDTO1 = new IdResponseDTO();
+		idResponseDTO1.setErrors(Lists.newArrayList(errorDTO));
+
+		when(registrationProcessorRestClientService.headApi(ApiName.IDREPOHASDRAFT, Lists.newArrayList(ID), null, null))
+				.thenReturn(200);
+		when(registrationProcessorRestClientService.getApi(ApiName.IDREPOGETDRAFT, Lists.newArrayList(ID),
+				Lists.emptyList(), null, IdResponseDTO.class)).thenReturn(idResponseDTO);
+		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
+				.thenReturn(idResponseDTO1);
+
+		idrepoDraftService.idrepoUpdateDraft(ID, null, idRequestDto);
+
+	}
 
 }
