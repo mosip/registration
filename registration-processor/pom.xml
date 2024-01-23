@@ -1,13 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-
-	<parent>
-		<groupId>io.mosip</groupId>
-		<artifactId>registration</artifactId>
-		<version>1.2.1-SNAPSHOT</version>
-	</parent>
-
 	<licenses>
 		<license>
 			<name>MPL 2.0</name>
@@ -251,9 +244,8 @@
 			**/registration/processor/core/queue/impl/*.java,
 			**/registration/processor/core/tracing/*.java,
 			**/registration/processor/message/sender/config/MsgNotificationBeanCofig.java,
-			**/registration/processor/print/exception/QueueConnectionNotFound.java,
+			**/registration/processor/abis/exception/QueueConnectionNotFound.java,
 			**/registration/processor/stages/demodedupe/StatusMessage.java,
-			**/registration/processor/print/service/utility/UINCardConstant.java,
 			**/registration/processor/stages/demodedupe/BiometricValidation.java,
 			**/registration/processor/camel/bridge/MosipBridgeFactory.java,
 			**/registration/processor/manual/verification/stage/ManualVerificationStage.java,
@@ -267,16 +259,12 @@
 			**/registration/processor/packet/storage/dao/PacketInfoDao.java,
 			**/registration/processor/packet/uploader/constants/*.java,
 			**/registration/processor/packet/manager/constant/*.java,
-			**/registration/processor/print/exception/PrintGlobalExceptionHandler.java,
 			**/registration/processor/packet/receiver/constants/*.java,
-			**/registration/processor/print/service/exception/*.java,
-			**/registration/processor/print/exception/*.java,
+			**/registration/processor/credentialrequestor/stage/exception/*.java,
 			**/registration/processor/packet/uploader/constants/*.java,
 			**/registration/processor/packet/uploader/decryptor/*.java,
 			**/registration/processor/core/abstractverticle/MosipRouter.java,
 			**/registration/processor/packet/uploader/decryptor/*.java,
-
-			**/registration/processor/print/service/impl/PrintPostServiceImpl.java,
 
 			**/registration/processor/message/sender/constants/*.java,
 			**/registration/processor/core/abstractverticle/BaseHealthCheckModel.java,

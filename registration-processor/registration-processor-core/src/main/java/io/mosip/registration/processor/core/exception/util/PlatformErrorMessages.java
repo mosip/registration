@@ -411,6 +411,16 @@ public enum PlatformErrorMessages {
 	RPR_PVM_PACKET_REJECTED(PlatformConstants.RPR_PACKET_VALIDATOR_MODULE + "011",
 			"Rejected by Supervisor"),
 
+	RPR_PVM_PACKET_CREATED_DATE_TIME_EMPTY_OR_NULL(PlatformConstants.RPR_PACKET_VALIDATOR_MODULE + "017",
+			"Packet Created Date time is Null or Empty"),
+
+	RPR_PVM_PACKET_CREATED_DATE_TIME_PARSE_EXCEPTION(PlatformConstants.RPR_PACKET_VALIDATOR_MODULE + "018",
+			"Packet Created Date time is not in correct format"),
+
+	RPR_PVM_INVALID_ARGUMENT_EXCEPTION(PlatformConstants.RPR_PACKET_VALIDATOR_MODULE + "019",
+			"Invalid Argument"),
+
+
 	/** The packet classification failed. */
 	PACKET_CLASSIFICATION_FAILED(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "000", "Packet Classification failed"),
 
@@ -1135,6 +1145,8 @@ public enum PlatformErrorMessages {
 
 	/** The rpr prt print issuer not found in property. */
 	RPR_PRT_ISSUER_NOT_FOUND_IN_PROPERTY(PlatformConstants.RPR_PRINTING_MODULE + "028", "Print issuer property is not found"),
+
+	RPR_PRT_PARSING_ADDITIONAL_CRED_CONFIG(PlatformConstants.RPR_PRINTING_MODULE + "029", "issue with metaInfoFields in credential partner profiles."),
 
 	/** The rpr rgs registration connector not accessible. */
 	RPR_RGS_REGISTRATION_CONNECTOR_NOT_ACCESSIBLE("", "Registration connector stage is not accessible "),

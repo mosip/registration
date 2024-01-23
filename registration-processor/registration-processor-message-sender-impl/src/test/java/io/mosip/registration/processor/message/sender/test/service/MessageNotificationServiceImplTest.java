@@ -202,7 +202,7 @@ public class MessageNotificationServiceImplTest {
 
 		map1.put("UIN", "423072");
 		JSONObject jsonObject1 = new JSONObject(map1);
-		Mockito.when(utility.retrieveUIN(any())).thenReturn(jsonObject1);
+		Mockito.when(utility.idrepoRetrieveIdentityByRid(any())).thenReturn(jsonObject1);
 		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
 
 		InputStream in = IOUtils.toInputStream("Hi Alok, Your UIN is generated", "UTF-8");
