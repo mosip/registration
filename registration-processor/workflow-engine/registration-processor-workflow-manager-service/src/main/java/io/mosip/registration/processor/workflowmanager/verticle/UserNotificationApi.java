@@ -189,11 +189,11 @@ public class UserNotificationApi extends MosipVerticleAPIManager {
 				regProcLogger.debug("UserNotificationApi:processURL called ended for registration id {}", rid);
 
 		} catch (UserNotificationRequestValidationException e) {
-			logErrorAndSendNotifivation(rid, e.getErrorCode(), e.getMessage(), e, ctx);
+			logErrorAndSendNotification(rid, e.getErrorCode(), e.getMessage(), e, ctx);
 		} catch (UserNotificationException e) {
-			logErrorAndSendNotifivation(rid, e.getErrorCode(), e.getMessage(), e, ctx);
+			logErrorAndSendNotification(rid, e.getErrorCode(), e.getMessage(), e, ctx);
 		} catch (Exception e) {
-			logErrorAndSendNotifivation(rid, PlatformErrorMessages.RPR_UNA_UNKNOWN_EXCEPTION.getCode(),
+			logErrorAndSendNotification(rid, PlatformErrorMessages.RPR_UNA_UNKNOWN_EXCEPTION.getCode(),
 					PlatformErrorMessages.RPR_UNA_UNKNOWN_EXCEPTION.getMessage(), e, ctx);
 		}
 
@@ -276,7 +276,7 @@ public class UserNotificationApi extends MosipVerticleAPIManager {
 	 * @param e
 	 * @param ctx
 	 */
-	private void logErrorAndSendNotifivation(String rid, String errorCode, String errorMessage,
+	private void logErrorAndSendNotification(String rid, String errorCode, String errorMessage,
 			Exception e, RoutingContext ctx) {
 		if (e != null) {
 			regProcLogger.error(
