@@ -117,10 +117,10 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	@Value("${registration.processor.packet.ext}")
 	private String extention;
 	
-	@Value("${landing.zone.account.name}")
+	@Value("${mosip.regproc.landing.zone.account.name}")
     private String landingZoneAccount;
 	
-	@Value("${landing.zone.type:ObjectStore}")
+	@Value("${mosip.regproc.landing.zone.type:ObjectStore}")
     private String landingZoneType;
 
 	/** The file size. */
