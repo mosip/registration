@@ -1,12 +1,11 @@
 package io.mosip.registration.processor.stages.uigenerator;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -15,6 +14,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -22,6 +23,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.registration.processor.packet.manager.dto.IdRequestDto;
+import io.mosip.registration.processor.stages.uingenerator.dto.VidResponseDto;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
 import org.json.JSONException;
@@ -30,11 +35,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
+import org.mockito.*;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -2430,6 +2431,48 @@ public class UinGeneratorStageTest {
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
+	}
+
+	@Test
+	public void testUinGenerationSuccessWithEmptyName() throws Exception {
+		ReflectionTestUtils.setField(uinGeneratorStage,"trimWhitespaces",true);
+		Map<String, String> fieldMap = new HashMap<>();
+		fieldMap.put("firstName","[ {\n" +
+				"  \"language\" : \"eng\",\n" +
+				"  \"value\" : \" \"\n" +
+				"} ]");
+		fieldMap.put("email", "mono@mono.com");
+		fieldMap.put("phone", "23456");
+		fieldMap.put("dob", "11/11/2011");
+		when(packetManagerService.getFields(any(),any(),any(),any())).thenReturn(fieldMap);
+		ArgumentCaptor<io.mosip.registration.processor.packet.manager.dto.IdRequestDto> argumentCaptor = ArgumentCaptor.forClass(IdRequestDto.class);
+
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.NEW.name());
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setStatus("ACTIVATED");
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.update");
+		idResponseDTO.setResponse(responseDTO);
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
+
+		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		verify(idrepoDraftService).idrepoUpdateDraft(any(), any(), argumentCaptor.capture());
+		ObjectMapper objectMapper = new ObjectMapper();
+		String jsonobject=objectMapper.writeValueAsString(argumentCaptor.getAllValues().get(0).getRequest().getIdentity());
+		JsonNode jsonNode=objectMapper.readTree(jsonobject);
+
+		assertEquals("",jsonNode.get("firstName").asText());
+		assertFalse(result.getInternalError());
 		assertTrue(result.getIsValid());
 	}
 }
