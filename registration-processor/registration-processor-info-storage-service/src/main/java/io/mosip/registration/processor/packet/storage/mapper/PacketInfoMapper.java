@@ -71,12 +71,17 @@ public class PacketInfoMapper {
 	 *            the language
 	 * @return the json values
 	 */
-	private static String getJsonValues(JsonValue[] jsonNode, String language) {
+	private static String getJsonValues(JsonValue[] jsonNode, String language,Boolean istrim) {
 		String value = null;
 		if (jsonNode != null) {
 			for (int i = 0; i < jsonNode.length; i++) {
 				if (jsonNode[i].getLanguage().equals(language)) {
-					value = jsonNode[i].getValue();
+					if(istrim)
+					{
+						value = jsonNode[i].getValue().trim();
+					}else {
+						value = jsonNode[i].getValue();
+					}
 				}
 			}
 		}
@@ -115,6 +120,11 @@ public class PacketInfoMapper {
 	 */
 	public static List<IndividualDemographicDedupeEntity> converDemographicDedupeDtoToEntity(
 			IndividualDemographicDedupe demoDto, String regId,String process, int iteration, String workflowInstanceId) throws NoSuchAlgorithmException {
+
+		return converDemographicDedupeDtoToEntity(demoDto,regId,process,iteration,workflowInstanceId,false);
+	}
+	public static List<IndividualDemographicDedupeEntity> converDemographicDedupeDtoToEntity(
+			IndividualDemographicDedupe demoDto, String regId,String process, int iteration, String workflowInstanceId,Boolean istrim) throws NoSuchAlgorithmException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
 				"PacketInfoMapper::converDemographicDedupeDtoToEntity()::entry");
 		IndividualDemographicDedupeEntity entity;
@@ -144,7 +154,7 @@ public class PacketInfoMapper {
 
 			if (demoDto.getName()!=null &&!demoDto.getName().isEmpty()) {
 				for (JsonValue[] jsonValue : demoDto.getName()) {
-					applicantFullName.append(getJsonValues(jsonValue, languageArray[i]));
+					applicantFullName.append(getJsonValues(jsonValue, languageArray[i],istrim));
 				}
 				entity.setName(!applicantFullName.toString().isEmpty()
 						? getHMACHashCode(applicantFullName.toString().trim().toUpperCase())
@@ -163,7 +173,7 @@ public class PacketInfoMapper {
 					throw new DateParseException(PlatformErrorMessages.RPR_SYS_PARSING_DATE_EXCEPTION.getMessage(), e);
 				}
 			}
-			entity.setGender(getHMACHashCode(getJsonValues(demoDto.getGender(), languageArray[i])));
+			entity.setGender(getHMACHashCode(getJsonValues(demoDto.getGender(), languageArray[i],istrim)));
 			entity.setPhone(getHMACHashCode(demoDto.getPhone()));
 			entity.setEmail(getHMACHashCode(demoDto.getEmail()));
 			demogrphicDedupeEntities.add(entity);
