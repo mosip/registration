@@ -152,6 +152,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	@Value("${uingenerator.lost.packet.allowed.update.fields:null}")
 	private String updateInfo;
 
+	@Value("${mosip.regproc.uin.generator.trim-whitespaces.simpleType-value:false}")
+	private boolean trimWhitespaces;
+
 	/** The core audit request builder. */
 	@Autowired
 	private AuditLogRequestBuilder auditLogRequestBuilder;
@@ -323,7 +326,6 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 								description);
 					}
 				}
-
 			}
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId, description.getMessage());
@@ -477,6 +479,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 						for (int i = 0; i < jsonArray.length(); i++) {
 							Object obj = jsonArray.get(i);
 							HashMap<String, Object> hashMap = objectMapper.readValue(obj.toString(), HashMap.class);
+							if(trimWhitespaces && hashMap.get("value") instanceof String) {
+								hashMap.put("value",((String)hashMap.get("value")).trim());
+							}
 							jsonList.add(hashMap);
 						}
 						demographicIdentity.putIfAbsent(e.getKey(), jsonList);
