@@ -42,7 +42,7 @@ Staged architecture:
       * UIN generator
       * Biometric extraction
       * Finalization
-      * Printing
+      * [Credential requestor](registration-processor/post-processor/registration-processor-credential-requestor-stage)
 
 The control and data flow in the stages is controlled by [Workflow engine](registration-processor/workflow-engine/)
 
