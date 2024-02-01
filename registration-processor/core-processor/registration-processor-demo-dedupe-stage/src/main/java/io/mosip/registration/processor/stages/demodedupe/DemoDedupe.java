@@ -6,21 +6,21 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import io.mosip.registration.processor.core.packet.dto.Identity;
-import io.mosip.registration.processor.core.packet.dto.abis.RegBioRefDto;
-import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
-import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.packet.dto.Identity;
+import io.mosip.registration.processor.core.packet.dto.abis.RegBioRefDto;
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.DemographicInfoDto;
+import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.packet.storage.dao.PacketInfoDao;
-import io.mosip.registration.processor.stages.app.constants.DemoDedupeConstants;
+import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 
 /**
@@ -50,6 +50,9 @@ public class DemoDedupe {
 	@Autowired
 	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
 
+	@Value("${mosip.regproc.demo.dedupe.skip-refid-check-for-infant-dedupe:false}")
+	private boolean skipRefIdCheckForInfantDeduplication;
+
 	/**
 	 * Perform dedupe.
 	 *
@@ -57,7 +60,7 @@ public class DemoDedupe {
 	 *            the ref id
 	 * @return the list
 	 */
-	public List<DemographicInfoDto> performDedupe(String refId) {
+	public List<DemographicInfoDto> performDedupe(String refId, boolean isInfant) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REFFERENCEID.toString(), refId,
 				"DemoDedupe::performDedupe()::entry");
 
@@ -70,7 +73,12 @@ public class DemoDedupe {
 					demoDto.getDob(), demoDto.getLangCode()));
 		}
 		matchedIdsWithUin = getAllDemographicInfoDtosWithUin(infoDtos);
-		demographicInfoDtos = filterByRefIdAvailability(matchedIdsWithUin);
+		if (isInfant && skipRefIdCheckForInfantDeduplication) {
+			demographicInfoDtos = new ArrayList<>();
+			demographicInfoDtos.addAll(matchedIdsWithUin);
+		} else {
+			demographicInfoDtos = filterByRefIdAvailability(matchedIdsWithUin);
+		}
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REFFERENCEID.toString(), refId,
 				"DemoDedupe::performDedupe()::exit");

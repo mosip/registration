@@ -433,7 +433,8 @@ public class DemodedupeProcessor {
 			JsonProcessingException, DataShareException, IOException {
 		String registrationId = registrationStatusDto.getRegistrationId();
 		// Potential Duplicate Ids after performing demo dedupe
-		List<DemographicInfoDto> duplicateDtos = demoDedupe.performDedupe(registrationStatusDto.getRegistrationId());
+		List<DemographicInfoDto> duplicateDtos = demoDedupe.performDedupe(registrationStatusDto.getRegistrationId(),
+				isInfant);
 		List<String> matchedRidsWithoutRejected = new ArrayList<>();
 		List<String> matchedRegIds;
 		if (!duplicateDtos.isEmpty()) {
