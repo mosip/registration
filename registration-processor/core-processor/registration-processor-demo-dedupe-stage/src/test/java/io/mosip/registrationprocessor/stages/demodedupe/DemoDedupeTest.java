@@ -213,9 +213,13 @@ public class DemoDedupeTest {
 		Mockito.when(packetInfoDao.getAllDemographicInfoDtos(any(), any(), any(), any())).thenReturn(Dtos);
 		Mockito.when(packetInfoManager.getBioRefIdsByRegIds(anyList())).thenReturn(regBioRefDtos);
 
-		List<DemographicInfoDto> duplicates = demoDedupe.performDedupe(regId, true);
+		List<DemographicInfoDto> duplicatesInfant = demoDedupe.performDedupe(regId, true);
+		// expected to return only two id
+		assertEquals("Test for Dedupe Duplicate found", 2, duplicatesInfant.size());
+
+		List<DemographicInfoDto> duplicatesAdult = demoDedupe.performDedupe(regId, false);
 		// expected to return only one id
-		assertEquals("Test for Dedupe Duplicate found", 2, duplicates.size());
+		assertEquals("Test for Dedupe Duplicate found", 1, duplicatesAdult.size());
 	}
 
 }
