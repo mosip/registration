@@ -43,11 +43,8 @@ public class ExceptionBiometricsTagGenerator implements TagGenerator {
     @Value("${mosip.regproc.packet.classifier.tagging.not-available-tag-value}")
     private String notAvailableTagValue;
 
-	@Value("#{T(java.util.Arrays).asList('${mosip.regproc.packet.classifier.tagging.exceptionbiometrics.reg-client-versions:}')}")
-	private List<String> regClientVersionsBeforeExceptionbiometrics;
-
-	@Value("${mosip.regproc.packet.classifier.tagging.reg-client-current-version}")
-	private String regClientCurrentVersion;
+	@Value("#{T(java.util.Arrays).asList('${mosip.regproc.packet.classifier.tagging.exceptionbiometrics.before-exception-metainfo-change.reg-client-versions:}')}")
+	private List<String> regClientVersionsBeforeExceptionMetaInfoChange;
 
     /** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(ExceptionBiometricsTagGenerator.class);
@@ -84,11 +81,11 @@ public class ExceptionBiometricsTagGenerator implements TagGenerator {
             }
             JSONObject exceptionBiometricsJsonObject = new JSONObject(exceptionBiometricsString);
 			String regClientVersion = getRegClientVersionFromMetaInfo(registrationId, process, metaInfoMap);
-			if (regClientVersion == null) {
-				regClientVersion = regClientCurrentVersion;
-			}
 			JSONObject applicantJsonObject = null;
-			if (regClientVersionsBeforeExceptionbiometrics.contains(regClientVersion)) {
+			// if the version is not found in metainfo then consider it is as older and
+			// expect applicant to be available inside the exception biometrics
+			if (regClientVersion == null || (regClientVersion != null
+					&& regClientVersionsBeforeExceptionMetaInfoChange.contains(regClientVersion))) {
 				if (!exceptionBiometricsJsonObject.has(JsonConstant.EXCEPTIONBIOMETRICSAPPLICANT)) {
 					regProcLogger.warn("{} --> {}, setting tag value as {}",
 							PlatformErrorMessages.RPR_PCM_EXCEPTION_BIOMETRICS_APPLICANT_ENTRY_NOT_AVAILABLE.getCode(),
