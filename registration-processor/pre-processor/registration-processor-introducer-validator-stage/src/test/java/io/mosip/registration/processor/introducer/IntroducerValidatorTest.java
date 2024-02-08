@@ -2,8 +2,9 @@ package io.mosip.registration.processor.introducer;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -12,7 +13,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -31,7 +34,10 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.core.env.Environment;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.xml.sax.SAXException;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.constant.QualityType;
@@ -40,14 +46,11 @@ import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.bioapi.exception.BiometricException;
 import io.mosip.kernel.core.exception.BaseCheckedException;
-import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
-import io.mosip.registration.processor.core.auth.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.AuthSystemException;
 import io.mosip.registration.processor.core.exception.BioTypeException;
 import io.mosip.registration.processor.core.exception.IntroducerOnHoldException;
 import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO;
@@ -159,6 +162,9 @@ public class IntroducerValidatorTest {
 
 	@Mock
 	private PriorityBasedPacketManagerService packetManagerService;
+
+	@Mock
+	ObjectMapper mapper;
 
 	/**
 	 * Sets the up.
@@ -282,7 +288,14 @@ public class IntroducerValidatorTest {
 
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any()))
 				.thenReturn("field");
-		
+		ReflectionTestUtils.setField(introducerValidator, "regClientVersionsBeforeCbeffOthersAttritube",
+				Arrays.asList("1.1.3"));
+		Map<String, String> metaInfoMap = new HashMap<>();
+		metaInfoMap.put(JsonConstant.METADATA,
+				"[{\n  \"label\" : \"Registration Client Version Number\",\n  \"value\" : \"1.2.0\"\n}]");
+		Mockito.when(mapper.readValue(anyString(), any(Class.class)))
+				.thenReturn(new FieldValue("Registration Client Version Number", "1.2.0"));
+		Mockito.when(packetManagerService.getMetaInfo(any(), any(), any())).thenReturn(metaInfoMap);
 		doNothing().when(biosdk).authenticateBiometrics(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
 	}
 
