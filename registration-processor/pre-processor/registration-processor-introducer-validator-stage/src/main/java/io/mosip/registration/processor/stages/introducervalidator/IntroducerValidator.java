@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.stages.introducervalidator;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -7,7 +8,10 @@ import java.util.stream.Collectors;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.xml.sax.SAXException;
 
@@ -19,15 +23,21 @@ import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.bioapi.exception.BiometricException;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.StringUtils;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
+import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.constant.RegistrationType;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.IntroducerOnHoldException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.ValidationFailedException;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
@@ -68,6 +78,9 @@ public class IntroducerValidator {
 	
 	@Autowired
 	private BioSdkUtil bioUtil;
+
+	@Value("#{T(java.util.Arrays).asList('${mosip.regproc.common.before-cbeff-others-attibute.reg-client-versions:}')}")
+	private List<String> regClientVersionsBeforeCbeffOthersAttritube;
 
 	/**
 	 * Checks if is valid introducer.
@@ -202,7 +215,8 @@ public class IntroducerValidator {
 				MappingJsonConstants.INTRODUCER_BIO, registrationStatusDto.getRegistrationType(),
 				ProviderStageName.INTRODUCER_VALIDATOR);
 		if (biometricRecord != null && biometricRecord.getSegments() != null) {
-			biometricRecord = filterExceptionBiometrics(biometricRecord);
+			biometricRecord = filterExceptionBiometrics(biometricRecord, registrationId,
+					registrationStatusDto.getRegistrationType());
 			if (biometricRecord != null && biometricRecord.getSegments() != null) {
 				validateUserBiometric(registrationId, introducerUIN, biometricRecord.getSegments(), INDIVIDUAL_TYPE_UIN,
 						registrationStatusDto);
@@ -248,7 +262,14 @@ public class IntroducerValidator {
 		regProcLogger.debug("validateUserBiometric call ended for registrationId {}", registrationId);
 	}
 
-	private BiometricRecord filterExceptionBiometrics(BiometricRecord biometricRecord) {
+	private BiometricRecord filterExceptionBiometrics(BiometricRecord biometricRecord, String id, String process)
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException,
+			JSONException {
+		String version = getRegClientVersionFromMetaInfo(id, process,
+				packetManagerService.getMetaInfo(id, process, ProviderStageName.INTRODUCER_VALIDATOR));
+		if (regClientVersionsBeforeCbeffOthersAttritube.contains(version)) {
+			return biometricRecord;
+		}
 		List<BIR> segments = biometricRecord.getSegments().stream().filter(bio -> {
 			Map<String, String> othersMap = bio.getOthers().entrySet().stream()
 					.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
@@ -263,5 +284,25 @@ public class IntroducerValidator {
 		biorecord.setSegments(segments);
 		return biorecord;
 	}
-	
+
+	private String getRegClientVersionFromMetaInfo(String id, String process, Map<String, String> metaInfoMap)
+			throws ApisResourceAccessException, PacketManagerException, IOException, JSONException {
+		String metadata = metaInfoMap.get(JsonConstant.METADATA);
+		String version = null;
+		if (StringUtils.isNotEmpty(metadata)) {
+			JSONArray jsonArray = new JSONArray(metadata);
+
+			for (int i = 0; i < jsonArray.length(); i++) {
+				if (!jsonArray.isNull(i)) {
+					org.json.JSONObject jsonObject = (org.json.JSONObject) jsonArray.get(i);
+					FieldValue fieldValue = mapper.readValue(jsonObject.toString(), FieldValue.class);
+					if (fieldValue.getLabel().equalsIgnoreCase(JsonConstant.REGCLIENTVERSION)) {
+						version = fieldValue.getValue();
+						break;
+					}
+				}
+			}
+		}
+		return version;
+	}
 }
