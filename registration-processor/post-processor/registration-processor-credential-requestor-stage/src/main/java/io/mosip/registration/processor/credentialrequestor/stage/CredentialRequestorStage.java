@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/main/java/io/mosip/registration/processor/credentialrequestor/stage/CredentialRequestorStage.java
 package io.mosip.registration.processor.credentialrequestor.stage;
-========
-package io.mosip.registration.processor.eventhandler.stage;
->>>>>>>> df41852ca05 (MOSIP-28121 : renamed print stage to event handler stage):registration-processor/post-processor/registration-processor-event-handler-stage/src/main/java/io/mosip/registration/processor/eventhandler/stage/EventHandlerStage.java
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
@@ -35,11 +31,6 @@ import io.mosip.registration.processor.credentialrequestor.dto.CredentialPartner
 import io.mosip.registration.processor.credentialrequestor.stage.exception.VidNotAvailableException;
 import io.mosip.registration.processor.credentialrequestor.util.CredentialPartnerUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
-<<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/main/java/io/mosip/registration/processor/credentialrequestor/stage/CredentialRequestorStage.java
-========
-import io.mosip.registration.processor.eventhandler.stage.exception.VidNotAvailableException;
-import io.mosip.registration.processor.eventhandler.util.CredentialPartnerUtil;
->>>>>>>> df41852ca05 (MOSIP-28121 : renamed print stage to event handler stage):registration-processor/post-processor/registration-processor-event-handler-stage/src/main/java/io/mosip/registration/processor/eventhandler/stage/EventHandlerStage.java
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -83,11 +74,7 @@ import java.util.stream.Collectors;
 @ComponentScan(basePackages = { "${mosip.auth.adapter.impl.basepackage}",
 		"io.mosip.registration.processor.core.config",
 		"io.mosip.registration.processor.stages.config", 
-<<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/main/java/io/mosip/registration/processor/credentialrequestor/stage/CredentialRequestorStage.java
 		"io.mosip.registration.processor.credentialrequestor.config",
-========
-		"io.mosip.registration.processor.eventhandler.config",
->>>>>>>> df41852ca05 (MOSIP-28121 : renamed print stage to event handler stage):registration-processor/post-processor/registration-processor-event-handler-stage/src/main/java/io/mosip/registration/processor/eventhandler/stage/EventHandlerStage.java
 		"io.mosip.registrationprocessor.stages.config",
 		"io.mosip.registration.processor.status.config",
 		"io.mosip.registration.processor.rest.client.config", 
@@ -95,11 +82,7 @@ import java.util.stream.Collectors;
 		"io.mosip.registration.processor.packet.manager.config", 
 		"io.mosip.kernel.idobjectvalidator.config",
 		"io.mosip.registration.processor.core.kernel.beans" })
-<<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/main/java/io/mosip/registration/processor/credentialrequestor/stage/CredentialRequestorStage.java
 public class CredentialRequestorStage extends MosipVerticleAPIManager {
-========
-public class EventHandlerStage extends MosipVerticleAPIManager {
->>>>>>>> df41852ca05 (MOSIP-28121 : renamed print stage to event handler stage):registration-processor/post-processor/registration-processor-event-handler-stage/src/main/java/io/mosip/registration/processor/eventhandler/stage/EventHandlerStage.java
 	
 	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.credentialrequestor.";
 	private Random sr = null;
@@ -107,11 +90,7 @@ public class EventHandlerStage extends MosipVerticleAPIManager {
 	private static final int min = 100000;
 
 	/** The reg proc logger. */
-<<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/main/java/io/mosip/registration/processor/credentialrequestor/stage/CredentialRequestorStage.java
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(CredentialRequestorStage.class);
-========
-	private static Logger regProcLogger = RegProcessorLogger.getLogger(EventHandlerStage.class);
->>>>>>>> df41852ca05 (MOSIP-28121 : renamed print stage to event handler stage):registration-processor/post-processor/registration-processor-event-handler-stage/src/main/java/io/mosip/registration/processor/eventhandler/stage/EventHandlerStage.java
 
 	/** The cluster manager url. */
 	@Value("${vertx.cluster.configuration}")
@@ -161,9 +140,6 @@ public class EventHandlerStage extends MosipVerticleAPIManager {
 
 	@Value("#{T(java.util.Arrays).asList('${mosip.registration.processor.credential.default.partner-ids:}')}")
 	private List<String> defaultPartners;
-
-	@Value("${mosip.registration.processor.opencrvs.credential.additionalparams}")
-	private String opencrvsAdditionalParam;
 
 	private static String COMMA = ",";
 	private static String HASH_DELIMITER = "#";
@@ -404,27 +380,11 @@ public class EventHandlerStage extends MosipVerticleAPIManager {
 				}
 			}
 
-<<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/main/java/io/mosip/registration/processor/credentialrequestor/stage/CredentialRequestorStage.java
 		} catch (Exception e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					regId, RegistrationStatusCode.FAILED + e.getMessage() + ExceptionUtils.getStackTrace(e));
 			throw new BaseUncheckedException(PlatformErrorMessages.RPR_PRT_PARSING_ADDITIONAL_CRED_CONFIG.getCode(),
 					PlatformErrorMessages.RPR_PRT_PARSING_ADDITIONAL_CRED_CONFIG.getMessage(), e);
-========
-	private String getCrvsField(String regId, String process, String additionalAttr){
-		try {
-			Map<String,String> metaInfo = utilities.getPacketManagerService().getMetaInfo(regId, process, ProviderStageName.EVENT_HANDLER);
-			JSONArray metadata = new JSONArray(metaInfo.get("metaData"));
-			for(int i=0;i<metadata.length();i++){
-				if(metadata.getJSONObject(i).getString("label").equalsIgnoreCase(additionalAttr)){
-					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), regId, "OpencrvsBRN obtained.");
-					return metadata.getJSONObject(i).getString("value");
-				}
-			}
-		} catch (Exception e){
-			regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), regId, "Failed opencrvsBRN obtained. Exception: " + org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
-			return null;
->>>>>>>> df41852ca05 (MOSIP-28121 : renamed print stage to event handler stage):registration-processor/post-processor/registration-processor-event-handler-stage/src/main/java/io/mosip/registration/processor/eventhandler/stage/EventHandlerStage.java
 		}
 	}
 

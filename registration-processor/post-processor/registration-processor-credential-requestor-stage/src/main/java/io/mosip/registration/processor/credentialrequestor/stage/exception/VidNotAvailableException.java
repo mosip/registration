@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:registration-processor/post-processor/registration-processor-credential-requestor-stage/src/main/java/io/mosip/registration/processor/credentialrequestor/stage/exception/VidNotAvailableException.java
 package io.mosip.registration.processor.credentialrequestor.stage.exception;
-========
-package io.mosip.registration.processor.eventhandler.stage.exception;
->>>>>>>> df41852ca05 (MOSIP-28121 : renamed print stage to event handler stage):registration-processor/post-processor/registration-processor-event-handler-stage/src/main/java/io/mosip/registration/processor/eventhandler/stage/exception/VidNotAvailableException.java
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
 
