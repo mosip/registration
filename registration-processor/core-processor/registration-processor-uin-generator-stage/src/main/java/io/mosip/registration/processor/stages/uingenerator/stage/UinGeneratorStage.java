@@ -1180,7 +1180,11 @@ private void handleIdRepoErrorResponse(IdResponseDTO idResponseDTO, InternalRegi
 					"UinGeneratorStage::generateVid():: create Vid response :: "+JsonUtil.objectMapperObjectToJson(response));
 
 			if (!response.getErrors().isEmpty()) {
-				throw new VidCreationException(PlatformErrorMessages.RPR_UGS_VID_EXCEPTION.getMessage(),
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+						"UinGeneratorStage::generateVid():: create Vid response :: "
+								+ JsonUtil.objectMapperObjectToJson(response));
+				throw new VidCreationException(response.getErrors().get(0).getMessage(),
 						"VID creation exception");
 
 			}
