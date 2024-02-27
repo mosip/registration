@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.stages.finalization.stage;
 
+import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,6 +59,7 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 	/** stage properties prefix */
 	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.finalization.";
 	private static final String USER = "MOSIP_SYSTEM";
+	private static final String ID_REPO_KEY_MANAGER_ERROR = "IDR-IDS-003";
 	
 	/** The mosip event bus. */
 	MosipEventBus mosipEventBus = null;
