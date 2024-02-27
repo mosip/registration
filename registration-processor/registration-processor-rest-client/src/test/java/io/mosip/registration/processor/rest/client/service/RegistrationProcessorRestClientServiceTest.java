@@ -32,11 +32,15 @@ public class RegistrationProcessorRestClientServiceTest {
 
 	@InjectMocks
 	RegistrationProcessorRestClientService<Object> registrationProcessorRestClientService = new RegistrationProcessorRestClientServiceImpl();
-	/** The rest api client. */
+	/**
+	 * The rest api client.
+	 */
 	@Mock
 	private RestApiClient restApiClient;
 
-	/** The env. */
+	/**
+	 * The env.
+	 */
 	@Mock
 	private Environment env;
 	private AuditResponseDto auditResponseDto;
@@ -89,7 +93,7 @@ public class RegistrationProcessorRestClientServiceTest {
 		registrationProcessorRestClientService.postApi(ApiName.AUDIT, "query1", "12345", auditRequestDto,
 				AuditResponseDto.class);
 	}
-	
+
 	@Test
 	public void getObjectForArgListSuccessTest() throws Exception {
 
@@ -135,7 +139,7 @@ public class RegistrationProcessorRestClientServiceTest {
 		registrationProcessorRestClientService.postApi(ApiName.AUDIT, pathSegments, "query1", "12345", auditRequestDto,
 				AuditResponseDto.class);
 	}
-	
+
 	@Test
 	public void postObjectForArgListSuccessTest() throws Exception {
 		AuditRequestDto auditRequestDto = new AuditRequestDto();
@@ -162,7 +166,7 @@ public class RegistrationProcessorRestClientServiceTest {
 		registrationProcessorRestClientService.postApi(ApiName.AUDIT, null, pathSegments, Arrays.asList("query1"),
 				Arrays.asList("12345"), auditRequestDto, AuditResponseDto.class);
 	}
-	
+
 	@Test
 	public void patchObjectSuccessTest() throws Exception {
 		AuditRequestDto auditRequestDto = new AuditRequestDto();
@@ -175,7 +179,7 @@ public class RegistrationProcessorRestClientServiceTest {
 				pathSegments, "query1", "12345", auditRequestDto, AuditResponseDto.class);
 		assertEquals(true, resultDto.isStatus());
 	}
-	
+
 	@Test(expected = ApisResourceAccessException.class)
 	public void patchObjectTestFailureTest() throws Exception {
 		AuditRequestDto auditRequestDto = new AuditRequestDto();
@@ -188,20 +192,20 @@ public class RegistrationProcessorRestClientServiceTest {
 		registrationProcessorRestClientService.patchApi(ApiName.AUDIT, pathSegments, "query1", "12345", auditRequestDto,
 				AuditResponseDto.class);
 	}
-	
+
 	@Test
 	public void putObjectSuccessTest() throws Exception {
 		AuditRequestDto auditRequestDto = new AuditRequestDto();
 		Mockito.when(env.getProperty(ArgumentMatchers.any())).thenReturn("AUDIT");
-		Mockito.when(restApiClient.putApi(ArgumentMatchers.any(),ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any()))
+		Mockito.when(restApiClient.putApi(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any()))
 				.thenReturn(auditResponseDto);
 		List<String> pathSegments = new ArrayList<>();
 		pathSegments.add("test");
 		AuditResponseDto resultDto = (AuditResponseDto) registrationProcessorRestClientService.putApi(ApiName.AUDIT,
-				pathSegments, "query1", "12345", auditRequestDto, AuditResponseDto.class,null);
+				pathSegments, "query1", "12345", auditRequestDto, AuditResponseDto.class, null);
 		assertEquals(true, resultDto.isStatus());
 	}
-	
+
 	@Test(expected = ApisResourceAccessException.class)
 	public void putObjectTestFailureTest() throws Exception {
 		AuditRequestDto auditRequestDto = new AuditRequestDto();
@@ -212,9 +216,9 @@ public class RegistrationProcessorRestClientServiceTest {
 		Mockito.when(restApiClient.putApi(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any()))
 				.thenThrow(exp);
 		registrationProcessorRestClientService.putApi(ApiName.AUDIT, pathSegments, "query1", "12345", auditRequestDto,
-				AuditResponseDto.class,null);
+				AuditResponseDto.class, null);
 	}
-	
+
 	@Test
 	public void postObjectForUrlSuccessTest() throws Exception {
 		AuditRequestDto auditRequestDto = new AuditRequestDto();
@@ -261,4 +265,23 @@ public class RegistrationProcessorRestClientServiceTest {
 		registrationProcessorRestClientService.headApi(ApiName.AUDIT, pathSegments, Arrays.asList("query1"), Arrays.asList("12345"));
 	}
 
+
+	@Test
+	public void deleteObjecSuccessTest() throws Exception {
+
+		Mockito.when(env.getProperty(ArgumentMatchers.any())).thenReturn("AUDIT");
+		Mockito.when(restApiClient.deleteApi(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(auditResponseDto);
+		AuditResponseDto resultDto = (AuditResponseDto) registrationProcessorRestClientService.deleteApi(ApiName.AUDIT,
+				null, "query1", "12345", AuditResponseDto.class);
+		assertEquals(true, resultDto.isStatus());
+	}
+
+	@Test(expected = ApisResourceAccessException.class)
+	public void deleteObjecTestFailureTest() throws Exception {
+		Mockito.when(env.getProperty(ArgumentMatchers.any())).thenReturn("AUDIT");
+		ResourceAccessException exp = new ResourceAccessException("errorMessage");
+		Mockito.when(restApiClient.deleteApi(ArgumentMatchers.any(), ArgumentMatchers.any())).thenThrow(exp);
+
+		registrationProcessorRestClientService.deleteApi(ApiName.AUDIT, Arrays.asList("abc", "def"), "query1", "12345",
+				AuditResponseDto.class);	}
 }

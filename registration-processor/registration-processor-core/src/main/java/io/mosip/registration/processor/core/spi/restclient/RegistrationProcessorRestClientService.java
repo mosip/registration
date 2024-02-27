@@ -187,4 +187,7 @@ import io.mosip.registration.processor.core.exception.ApisResourceAccessExceptio
 			 T requestedData, Class<?> responseType) throws ApisResourceAccessException;
 
 	public Integer headApi(ApiName apiName, List<String> pathsegments, List<String> queryParamName, List<Object> queryParamValue) throws ApisResourceAccessException;
-}
+
+	public T deleteApi(ApiName apiName, List<String> pathsegments, String queryParam, String queryParamValue,
+					Class<?> responseType) throws ApisResourceAccessException;
+	}

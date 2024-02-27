@@ -4,7 +4,7 @@ package io.mosip.registration.processor.packet.manager.service.impl.test;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 
@@ -16,6 +16,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -102,6 +103,7 @@ public class IdrepoDraftServiceTest {
         when(registrationProcessorRestClientService.headApi
                 (ApiName.IDREPOHASDRAFT, Lists.newArrayList(ID), null, null)).thenReturn(500);
 
+
         idrepoDraftService.idrepoHasDraft(ID);
 
     }
@@ -143,8 +145,23 @@ public class IdrepoDraftServiceTest {
         idResponseDTO1.setErrors(Lists.newArrayList(errorDTO));
         when(registrationProcessorRestClientService.getApi(
                 ApiName.IDREPOPUBLISHDRAFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class)).thenReturn(idResponseDTO1);
+        ResponseDTO discardresponseDTO = new ResponseDTO();
+        discardresponseDTO.setStatus("Drafted");
+        discardresponseDTO.setRegistrationId(ID);
+
+        JSONObject jsonObject1 = new JSONObject();
+        jsonObject1.put("UIN", "1234");
+        discardresponseDTO.setIdentity(jsonObject1);
+        IdResponseDTO discardIdresponceDto=new IdResponseDTO();
+        discardIdresponceDto = new IdResponseDTO();
+        discardIdresponceDto.setErrors(null);
+        discardIdresponceDto.setId("id.uin.update");
+        discardIdresponceDto.setResponse(discardresponseDTO);
+        when(registrationProcessorRestClientService.
+                deleteApi(ApiName.IDREPODISCARDDREFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class)).thenReturn(discardIdresponceDto);
 
         idrepoDraftService.idrepoPublishDraft(ID);
+        Mockito.verify(idrepoDraftService.idrepodiscardDraft(any()),times(1));
     }
 
     @Test
@@ -155,7 +172,6 @@ public class IdrepoDraftServiceTest {
                 ApiName.IDREPOCREATEDRAFT, Lists.newArrayList(ID), null, null, null, ResponseWrapper.class)).thenReturn(responseWrapper);
 
         boolean result = idrepoDraftService.idrepoCreateDraft(ID, null);
-
         assertTrue(result);
     }
 
@@ -200,7 +216,24 @@ public class IdrepoDraftServiceTest {
         when(registrationProcessorRestClientService.patchApi(
                 any(), any(), any(), any(), any(), any())).thenReturn(idResponseDTO1);
 
-        idrepoDraftService.idrepoUpdateDraft(ID, null, idRequestDto);
+        ResponseDTO discardresponseDTO = new ResponseDTO();
+        discardresponseDTO.setStatus("Drafted");
+        discardresponseDTO.setRegistrationId(ID);
+
+        JSONObject jsonObject1 = new JSONObject();
+        jsonObject1.put("UIN", "1234");
+        discardresponseDTO.setIdentity(jsonObject1);
+        IdResponseDTO discardIdresponceDto=new IdResponseDTO();
+        discardIdresponceDto = new IdResponseDTO();
+        discardIdresponceDto.setErrors(null);
+        discardIdresponceDto.setId("id.uin.update");
+        discardIdresponceDto.setResponse(discardresponseDTO);
+        when(registrationProcessorRestClientService.
+                deleteApi(ApiName.IDREPODISCARDDREFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class)).thenReturn(discardIdresponceDto);
+
+
+        IdResponseDTO idResponseDTO2=idrepoDraftService.idrepoUpdateDraft(ID, null, idRequestDto);
+        verify(idrepoDraftService.idrepodiscardDraft(any()),times(1));
 
     }
 
@@ -224,11 +257,45 @@ public class IdrepoDraftServiceTest {
 				Lists.emptyList(), null, IdResponseDTO.class)).thenReturn(idResponseDTO);
 		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
 				.thenReturn(idResponseDTO1);
+        ResponseDTO discardresponseDTO = new ResponseDTO();
+        discardresponseDTO.setStatus("Drafted");
+        discardresponseDTO.setRegistrationId(ID);
+
+        JSONObject jsonObject1 = new JSONObject();
+        jsonObject1.put("UIN", "1234");
+        discardresponseDTO.setIdentity(jsonObject1);
+        IdResponseDTO discardIdresponceDto=new IdResponseDTO();
+        discardIdresponceDto = new IdResponseDTO();
+        discardIdresponceDto.setErrors(null);
+        discardIdresponceDto.setId("id.uin.update");
+        discardIdresponceDto.setResponse(discardresponseDTO);
+        when(registrationProcessorRestClientService.
+                deleteApi(ApiName.IDREPODISCARDDREFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class)).thenReturn(discardIdresponceDto);
 
 		idrepoDraftService.idrepoUpdateDraft(ID, null, idRequestDto);
+        Mockito.verify(idrepoDraftService.idrepodiscardDraft(any()),times(1));
 
 	}
+    @Test
+    public void discardDraftSuccessTest() throws IdrepoDraftReprocessableException, IdrepoDraftException, ApisResourceAccessException {
+        ResponseDTO discardresponseDTO = new ResponseDTO();
+        discardresponseDTO.setStatus("Drafted");
+        discardresponseDTO.setRegistrationId(ID);
 
+        JSONObject jsonObject1 = new JSONObject();
+        jsonObject1.put("UIN", "1234");
+        discardresponseDTO.setIdentity(jsonObject1);
+        IdResponseDTO discardIdresponceDto=new IdResponseDTO();
+        discardIdresponceDto = new IdResponseDTO();
+        discardIdresponceDto.setErrors(null);
+        discardIdresponceDto.setId("id.uin.update");
+        discardIdresponceDto.setResponse(discardresponseDTO);
+        when(registrationProcessorRestClientService.
+                deleteApi(ApiName.IDREPODISCARDDREFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class)).thenReturn(discardIdresponceDto);
+
+        Boolean result= idrepoDraftService.idrepodiscardDraft(ID);
+        assertTrue(result);
+    }
 }
 =======
 package io.mosip.registration.processor.packet.manager.service.impl.test;
