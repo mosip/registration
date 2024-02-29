@@ -7,7 +7,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -17,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
@@ -47,7 +47,6 @@ import io.mosip.registration.processor.core.workflow.dto.WorkflowPausedForAdditi
 import io.mosip.registration.processor.message.sender.exception.EmailIdNotFoundException;
 import io.mosip.registration.processor.message.sender.exception.PhoneNumberNotFoundException;
 import io.mosip.registration.processor.message.sender.exception.TemplateGenerationFailedException;
-import io.mosip.registration.processor.notification.service.NotificationService;
 import io.mosip.registration.processor.notification.service.impl.NotificationServiceImpl;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 
@@ -58,8 +57,7 @@ public class NotificationServiceTest {
 	@Mock
 	private MessageNotificationService<SmsResponseDto, ResponseDto, MultipartFile[]> service;
 
-	@Mock
-	private ObjectMapper mapper;
+	private ObjectMapper mapper = new ObjectMapper();
 
 	@Mock
 	private RegistrationProcessorRestClientService<Object> restClientService;
@@ -98,6 +96,7 @@ public class NotificationServiceTest {
 		subscriptionChangeResponse.setTopic(topic);
 		ReflectionTestUtils.setField(notificationService, "notificationTypes", "SMS|EMAIL");
 		ReflectionTestUtils.setField(notificationService, "notificationEmails", "abc@gmail.com");
+		ReflectionTestUtils.setField(notificationService, "mapper", mapper);
 		when(subs.subscribe(Mockito.any())).thenReturn(subscriptionChangeResponse);
 		when(authenticatedContentVerifier.verifyAuthorizedContentVerified(any(), any())).thenReturn(true);
 		Mockito.lenient().when(env.getProperty("registration.processor.additional.regtype_templatetype_map"))
