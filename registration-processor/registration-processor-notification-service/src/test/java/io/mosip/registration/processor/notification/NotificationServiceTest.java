@@ -1,8 +1,8 @@
 package io.mosip.registration.processor.notification;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -16,7 +16,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +33,7 @@ import io.mosip.kernel.websub.api.model.UnsubscriptionRequest;
 import io.mosip.kernel.websub.api.verifier.AuthenticatedContentVerifier;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.notification.template.generator.dto.ResponseDto;
 import io.mosip.registration.processor.core.notification.template.generator.dto.SmsResponseDto;
@@ -195,9 +195,16 @@ public class NotificationServiceTest {
 		completedEventDTO.setInstanceId("85425022110000120190117110505");
 		completedEventDTO.setResultCode("PROCESSED");
 		completedEventDTO.setWorkflowType("XYZ");
+		
+		when(auditLogRequestBuilder.createAuditRequestBuilder(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString()))
+		.thenAnswer(invocation -> {
+			String moduleId = (String) invocation.getArguments()[0];
+			assertEquals(PlatformErrorMessages.RPR_EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getCode(), moduleId);
+			return null;
+		});
 
 		ResponseEntity<Void> res=notificationService.process(completedEventDTO);
-		assertNotEquals(200, res.getStatusCodeValue());
+		assertEquals(200, res.getStatusCodeValue());
 	}
 
 	@Test
