@@ -1,11 +1,13 @@
 package io.mosip.registration.processor.notification;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -73,7 +75,7 @@ public class NotificationServiceTest {
 	Identity identity = new Identity();
 
 	@InjectMocks
-	private NotificationService notificationService = new NotificationServiceImpl();
+	private NotificationServiceImpl notificationService = new NotificationServiceImpl();
 	
 	@Value("${websub.hub.url}")
 	private String hubURL;
@@ -98,6 +100,9 @@ public class NotificationServiceTest {
 		ReflectionTestUtils.setField(notificationService, "notificationEmails", "abc@gmail.com");
 		when(subs.subscribe(Mockito.any())).thenReturn(subscriptionChangeResponse);
 		when(authenticatedContentVerifier.verifyAuthorizedContentVerified(any(), any())).thenReturn(true);
+		Mockito.lenient().when(env.getProperty("registration.processor.additional.regtype_templatetype_map"))
+			.thenReturn("{\"OPENCRVS_NEW\":\"UIN_CREATED\"}");
+		notificationService.postConstruct();
 	}
 
 	@Test
@@ -130,6 +135,70 @@ public class NotificationServiceTest {
 
 		ResponseEntity<Void> res=notificationService.process(completedEventDTO);
 		assertEquals(200, res.getStatusCodeValue());
+	}
+	
+	@Test
+	public void testMessageSentUINGenerated_regType_OPENCRVS_NEW() throws Exception {
+		List<TemplateDto> templates = new ArrayList<TemplateDto>();
+		TemplateDto templateEmail = new TemplateDto();
+		TemplateDto templateSMS = new TemplateDto();
+		TemplateResponseDto templateResponseDto = new TemplateResponseDto();
+		templateSMS.setTemplateTypeCode("RPR_UIN_GEN_SMS");
+		templates.add(templateSMS);
+		templateEmail.setTemplateTypeCode("RPR_UIN_GEN_EMAIL");
+		templates.add(templateEmail);
+		templateResponseDto.setTemplates(templates);
+		ResponseWrapper<TemplateResponseDto> responseWrapper=new ResponseWrapper<>();
+		responseWrapper.setResponse(templateResponseDto);
+		responseWrapper.setErrors(null);
+		SmsResponseDto smsResponse = new SmsResponseDto();
+		smsResponse.setStatus("success");
+		ResponseDto responseDto = new ResponseDto();
+		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_UIN_GEN_SMS").thenReturn("RPR_UIN_GEN_EMAIL")
+		.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
+		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
+		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(responseDto);
+        when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
+		WorkflowCompletedEventDTO completedEventDTO= new WorkflowCompletedEventDTO();
+		completedEventDTO.setInstanceId("85425022110000120190117110505");
+		completedEventDTO.setResultCode("PROCESSED");
+		completedEventDTO.setWorkflowType("OPENCRVS_NEW");
+
+		ResponseEntity<Void> res=notificationService.process(completedEventDTO);
+		assertEquals(200, res.getStatusCodeValue());
+	}
+	
+	@Test
+	public void testMessageSentUINGenerated_regType_XYZ() throws Exception {
+		List<TemplateDto> templates = new ArrayList<TemplateDto>();
+		TemplateDto templateEmail = new TemplateDto();
+		TemplateDto templateSMS = new TemplateDto();
+		TemplateResponseDto templateResponseDto = new TemplateResponseDto();
+		templateSMS.setTemplateTypeCode("RPR_UIN_GEN_SMS");
+		templates.add(templateSMS);
+		templateEmail.setTemplateTypeCode("RPR_UIN_GEN_EMAIL");
+		templates.add(templateEmail);
+		templateResponseDto.setTemplates(templates);
+		ResponseWrapper<TemplateResponseDto> responseWrapper=new ResponseWrapper<>();
+		responseWrapper.setResponse(templateResponseDto);
+		responseWrapper.setErrors(null);
+		SmsResponseDto smsResponse = new SmsResponseDto();
+		smsResponse.setStatus("success");
+		ResponseDto responseDto = new ResponseDto();
+		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_UIN_GEN_SMS").thenReturn("RPR_UIN_GEN_EMAIL")
+		.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
+		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
+		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(responseDto);
+        when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
+		WorkflowCompletedEventDTO completedEventDTO= new WorkflowCompletedEventDTO();
+		completedEventDTO.setInstanceId("85425022110000120190117110505");
+		completedEventDTO.setResultCode("PROCESSED");
+		completedEventDTO.setWorkflowType("XYZ");
+
+		ResponseEntity<Void> res=notificationService.process(completedEventDTO);
+		assertNotEquals(200, res.getStatusCodeValue());
 	}
 
 	@Test
