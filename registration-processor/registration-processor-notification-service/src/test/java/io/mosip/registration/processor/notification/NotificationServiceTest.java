@@ -199,7 +199,7 @@ public class NotificationServiceTest {
 		when(auditLogRequestBuilder.createAuditRequestBuilder(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString()))
 		.thenAnswer(invocation -> {
 			String moduleId = (String) invocation.getArguments()[0];
-			assertEquals(PlatformErrorMessages.RPR_EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getCode(), moduleId);
+			assertEquals(PlatformErrorMessages.RPR_EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getMessage(), moduleId);
 			return null;
 		});
 
