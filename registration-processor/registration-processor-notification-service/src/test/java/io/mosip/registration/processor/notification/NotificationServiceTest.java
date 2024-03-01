@@ -2,6 +2,7 @@ package io.mosip.registration.processor.notification;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -32,6 +33,7 @@ import io.mosip.kernel.websub.api.model.UnsubscriptionRequest;
 import io.mosip.kernel.websub.api.verifier.AuthenticatedContentVerifier;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.notification.template.generator.dto.ResponseDto;
 import io.mosip.registration.processor.core.notification.template.generator.dto.SmsResponseDto;
@@ -40,12 +42,12 @@ import io.mosip.registration.processor.core.notification.template.generator.dto.
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.spi.message.sender.MessageNotificationService;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
+import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventDTO;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowPausedForAdditionalInfoEventDTO;
 import io.mosip.registration.processor.message.sender.exception.EmailIdNotFoundException;
 import io.mosip.registration.processor.message.sender.exception.PhoneNumberNotFoundException;
 import io.mosip.registration.processor.message.sender.exception.TemplateGenerationFailedException;
-import io.mosip.registration.processor.notification.service.NotificationService;
 import io.mosip.registration.processor.notification.service.impl.NotificationServiceImpl;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 
@@ -56,8 +58,7 @@ public class NotificationServiceTest {
 	@Mock
 	private MessageNotificationService<SmsResponseDto, ResponseDto, MultipartFile[]> service;
 
-	@Mock
-	private ObjectMapper mapper;
+	private ObjectMapper mapper = new ObjectMapper();
 
 	@Mock
 	private RegistrationProcessorRestClientService<Object> restClientService;
@@ -73,7 +74,7 @@ public class NotificationServiceTest {
 	Identity identity = new Identity();
 
 	@InjectMocks
-	private NotificationService notificationService = new NotificationServiceImpl();
+	private NotificationServiceImpl notificationService = new NotificationServiceImpl();
 	
 	@Value("${websub.hub.url}")
 	private String hubURL;
@@ -96,8 +97,12 @@ public class NotificationServiceTest {
 		subscriptionChangeResponse.setTopic(topic);
 		ReflectionTestUtils.setField(notificationService, "notificationTypes", "SMS|EMAIL");
 		ReflectionTestUtils.setField(notificationService, "notificationEmails", "abc@gmail.com");
+		ReflectionTestUtils.setField(notificationService, "mapper", mapper);
 		when(subs.subscribe(Mockito.any())).thenReturn(subscriptionChangeResponse);
 		when(authenticatedContentVerifier.verifyAuthorizedContentVerified(any(), any())).thenReturn(true);
+		Mockito.lenient().when(env.getProperty("registration.processor.additional.regtype_templatetype_map"))
+			.thenReturn("{\"OPENCRVS_NEW\":\"UIN_CREATED\"}");
+		notificationService.postConstruct();
 	}
 
 	@Test
@@ -127,6 +132,91 @@ public class NotificationServiceTest {
 		completedEventDTO.setInstanceId("85425022110000120190117110505");
 		completedEventDTO.setResultCode("PROCESSED");
 		completedEventDTO.setWorkflowType("NEW");
+		
+		when(auditLogRequestBuilder.createAuditRequestBuilder(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString()))
+		.thenAnswer(invocation -> {
+			String moduleId = (String) invocation.getArguments()[0];
+			assertEquals(StatusUtil.MESSAGE_SENDER_NOTIF_SUCC.getMessage(), moduleId);
+			return null;
+		});
+
+		ResponseEntity<Void> res=notificationService.process(completedEventDTO);
+		assertEquals(200, res.getStatusCodeValue());
+	}
+	
+	@Test
+	public void testMessageSentUINGenerated_regType_OPENCRVS_NEW() throws Exception {
+		List<TemplateDto> templates = new ArrayList<TemplateDto>();
+		TemplateDto templateEmail = new TemplateDto();
+		TemplateDto templateSMS = new TemplateDto();
+		TemplateResponseDto templateResponseDto = new TemplateResponseDto();
+		templateSMS.setTemplateTypeCode("RPR_UIN_GEN_SMS");
+		templates.add(templateSMS);
+		templateEmail.setTemplateTypeCode("RPR_UIN_GEN_EMAIL");
+		templates.add(templateEmail);
+		templateResponseDto.setTemplates(templates);
+		ResponseWrapper<TemplateResponseDto> responseWrapper=new ResponseWrapper<>();
+		responseWrapper.setResponse(templateResponseDto);
+		responseWrapper.setErrors(null);
+		SmsResponseDto smsResponse = new SmsResponseDto();
+		smsResponse.setStatus("success");
+		ResponseDto responseDto = new ResponseDto();
+		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_UIN_GEN_SMS").thenReturn("RPR_UIN_GEN_EMAIL")
+		.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
+		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
+		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(responseDto);
+        when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
+		WorkflowCompletedEventDTO completedEventDTO= new WorkflowCompletedEventDTO();
+		completedEventDTO.setInstanceId("85425022110000120190117110505");
+		completedEventDTO.setResultCode("PROCESSED");
+		completedEventDTO.setWorkflowType("OPENCRVS_NEW");
+		
+		when(auditLogRequestBuilder.createAuditRequestBuilder(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString()))
+		.thenAnswer(invocation -> {
+			String moduleId = (String) invocation.getArguments()[0];
+			assertEquals(StatusUtil.MESSAGE_SENDER_NOTIF_SUCC.getMessage(), moduleId);
+			return null;
+		});
+
+		ResponseEntity<Void> res=notificationService.process(completedEventDTO);
+		assertEquals(200, res.getStatusCodeValue());
+	}
+	
+	@Test
+	public void testMessageSentUINGenerated_regType_XYZ() throws Exception {
+		List<TemplateDto> templates = new ArrayList<TemplateDto>();
+		TemplateDto templateEmail = new TemplateDto();
+		TemplateDto templateSMS = new TemplateDto();
+		TemplateResponseDto templateResponseDto = new TemplateResponseDto();
+		templateSMS.setTemplateTypeCode("RPR_UIN_GEN_SMS");
+		templates.add(templateSMS);
+		templateEmail.setTemplateTypeCode("RPR_UIN_GEN_EMAIL");
+		templates.add(templateEmail);
+		templateResponseDto.setTemplates(templates);
+		ResponseWrapper<TemplateResponseDto> responseWrapper=new ResponseWrapper<>();
+		responseWrapper.setResponse(templateResponseDto);
+		responseWrapper.setErrors(null);
+		SmsResponseDto smsResponse = new SmsResponseDto();
+		smsResponse.setStatus("success");
+		ResponseDto responseDto = new ResponseDto();
+		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_UIN_GEN_SMS").thenReturn("RPR_UIN_GEN_EMAIL")
+		.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
+		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
+		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(responseDto);
+        when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
+		WorkflowCompletedEventDTO completedEventDTO= new WorkflowCompletedEventDTO();
+		completedEventDTO.setInstanceId("85425022110000120190117110505");
+		completedEventDTO.setResultCode("PROCESSED");
+		completedEventDTO.setWorkflowType("XYZ");
+		
+		when(auditLogRequestBuilder.createAuditRequestBuilder(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString()))
+		.thenAnswer(invocation -> {
+			String moduleId = (String) invocation.getArguments()[0];
+			assertEquals(PlatformErrorMessages.RPR_EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getMessage(), moduleId);
+			return null;
+		});
 
 		ResponseEntity<Void> res=notificationService.process(completedEventDTO);
 		assertEquals(200, res.getStatusCodeValue());

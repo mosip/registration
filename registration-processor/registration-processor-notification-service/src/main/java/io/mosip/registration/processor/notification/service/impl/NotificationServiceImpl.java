@@ -2,17 +2,18 @@ package io.mosip.registration.processor.notification.service.impl;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.PostConstruct;
 
 import org.json.JSONException;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -93,6 +94,7 @@ public class NotificationServiceImpl implements NotificationService {
 	private static final String DUPLICATE_UIN=NOTIFICATION_TEMPLATE_CODE+"duplicate.uin.";
 	private static final String TECHNICAL_ISSUE=NOTIFICATION_TEMPLATE_CODE+"technical.issue.";
 	private static final String PAUSED_FOR_ADDITIONAL_INFO=NOTIFICATION_TEMPLATE_CODE+"paused.for.additional.info.";
+	private static final String ADDITIONAL_REGTYPE_TEMPLATETYPE_MAP = "registration.processor.additional.regtype_templatetype_map";
 
 
 	/** The core audit request builder. */
@@ -129,6 +131,8 @@ public class NotificationServiceImpl implements NotificationService {
 
 	@Value("${registration.processor.notification_service_pausedforadditonalinfo_subscriber_callback_url}")
 	private String pausedForAdditonalInfoCallbackURL;
+	
+	private Map<String,String> regtypeTemplateTypeMap;
 
 	/** The rest client service. */
 	@Autowired
@@ -143,6 +147,23 @@ public class NotificationServiceImpl implements NotificationService {
 
 	@Autowired
 	private Environment env;
+	
+	@PostConstruct
+	public void postConstruct() {
+		String property = env.getProperty(ADDITIONAL_REGTYPE_TEMPLATETYPE_MAP);
+		if(property != null) {
+			try {
+				Map<String, String> map = mapper.readValue(property.getBytes(), Map.class);
+				regtypeTemplateTypeMap = Collections.unmodifiableMap(map);
+			} catch (IOException e) {
+				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "NA",
+						"NotificationServiceImpl::postConstruct-failed to parse property value of "+ ADDITIONAL_REGTYPE_TEMPLATETYPE_MAP);
+				regtypeTemplateTypeMap = Collections.unmodifiableMap(Map.of());
+			}
+		} else {
+			regtypeTemplateTypeMap = Collections.unmodifiableMap(Map.of());
+		}
+	}
 
 	// sends init subscribe req to hub
 	@Scheduled(fixedDelayString = "${mosip.regproc.websub.resubscription.delay.millisecs:43200000}",
@@ -287,6 +308,12 @@ public class NotificationServiceImpl implements NotificationService {
 			type = NotificationTemplateType.UIN_UPDATE;
 		else if (regtype.equalsIgnoreCase(RegistrationType.DEACTIVATED.toString()))
 			type = NotificationTemplateType.UIN_UPDATE;
+		else {
+			String typeFromProp = regtypeTemplateTypeMap.get(regtype);
+			if(typeFromProp != null) {
+				type = NotificationTemplateType.valueOf(typeFromProp);
+			}
+		}
 		return type;
 	}
 
