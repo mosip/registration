@@ -34,6 +34,7 @@ import io.mosip.kernel.websub.api.verifier.AuthenticatedContentVerifier;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
+import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.notification.template.generator.dto.ResponseDto;
 import io.mosip.registration.processor.core.notification.template.generator.dto.SmsResponseDto;
@@ -131,6 +132,13 @@ public class NotificationServiceTest {
 		completedEventDTO.setInstanceId("85425022110000120190117110505");
 		completedEventDTO.setResultCode("PROCESSED");
 		completedEventDTO.setWorkflowType("NEW");
+		
+		when(auditLogRequestBuilder.createAuditRequestBuilder(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString()))
+		.thenAnswer(invocation -> {
+			String moduleId = (String) invocation.getArguments()[0];
+			assertEquals(PlatformSuccessMessages.RPR_MESSAGE_SENDER_STAGE_SUCCESS.getMessage(), moduleId);
+			return null;
+		});
 
 		ResponseEntity<Void> res=notificationService.process(completedEventDTO);
 		assertEquals(200, res.getStatusCodeValue());
@@ -163,6 +171,13 @@ public class NotificationServiceTest {
 		completedEventDTO.setInstanceId("85425022110000120190117110505");
 		completedEventDTO.setResultCode("PROCESSED");
 		completedEventDTO.setWorkflowType("OPENCRVS_NEW");
+		
+		when(auditLogRequestBuilder.createAuditRequestBuilder(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString()))
+		.thenAnswer(invocation -> {
+			String moduleId = (String) invocation.getArguments()[0];
+			assertEquals(PlatformSuccessMessages.RPR_MESSAGE_SENDER_STAGE_SUCCESS.getMessage(), moduleId);
+			return null;
+		});
 
 		ResponseEntity<Void> res=notificationService.process(completedEventDTO);
 		assertEquals(200, res.getStatusCodeValue());
