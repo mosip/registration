@@ -33,8 +33,6 @@ import io.mosip.kernel.websub.api.model.UnsubscriptionRequest;
 import io.mosip.kernel.websub.api.verifier.AuthenticatedContentVerifier;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
-import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.notification.template.generator.dto.ResponseDto;
 import io.mosip.registration.processor.core.notification.template.generator.dto.SmsResponseDto;
@@ -43,6 +41,7 @@ import io.mosip.registration.processor.core.notification.template.generator.dto.
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.spi.message.sender.MessageNotificationService;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
+import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventDTO;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowPausedForAdditionalInfoEventDTO;
 import io.mosip.registration.processor.message.sender.exception.EmailIdNotFoundException;
@@ -136,7 +135,7 @@ public class NotificationServiceTest {
 		when(auditLogRequestBuilder.createAuditRequestBuilder(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString()))
 		.thenAnswer(invocation -> {
 			String moduleId = (String) invocation.getArguments()[0];
-			assertEquals(PlatformSuccessMessages.RPR_MESSAGE_SENDER_STAGE_SUCCESS.getMessage(), moduleId);
+			assertEquals("Email and SMS Notification were sent", moduleId);
 			return null;
 		});
 
@@ -175,7 +174,7 @@ public class NotificationServiceTest {
 		when(auditLogRequestBuilder.createAuditRequestBuilder(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString()))
 		.thenAnswer(invocation -> {
 			String moduleId = (String) invocation.getArguments()[0];
-			assertEquals(PlatformSuccessMessages.RPR_MESSAGE_SENDER_STAGE_SUCCESS.getMessage(), moduleId);
+			assertEquals(StatusUtil.MESSAGE_SENDER_NOTIF_SUCC.getMessage(), moduleId);
 			return null;
 		});
 
@@ -214,7 +213,7 @@ public class NotificationServiceTest {
 		when(auditLogRequestBuilder.createAuditRequestBuilder(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString()))
 		.thenAnswer(invocation -> {
 			String moduleId = (String) invocation.getArguments()[0];
-			assertEquals(PlatformErrorMessages.RPR_EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getMessage(), moduleId);
+			assertEquals(StatusUtil.MESSAGE_SENDER_NOTIF_SUCC.getMessage(), moduleId);
 			return null;
 		});
 
