@@ -33,6 +33,7 @@ import io.mosip.kernel.websub.api.model.UnsubscriptionRequest;
 import io.mosip.kernel.websub.api.verifier.AuthenticatedContentVerifier;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.notification.template.generator.dto.ResponseDto;
 import io.mosip.registration.processor.core.notification.template.generator.dto.SmsResponseDto;
@@ -135,7 +136,7 @@ public class NotificationServiceTest {
 		when(auditLogRequestBuilder.createAuditRequestBuilder(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString()))
 		.thenAnswer(invocation -> {
 			String moduleId = (String) invocation.getArguments()[0];
-			assertEquals("Email and SMS Notification were sent", moduleId);
+			assertEquals(StatusUtil.MESSAGE_SENDER_NOTIF_SUCC.getMessage(), moduleId);
 			return null;
 		});
 
@@ -213,7 +214,7 @@ public class NotificationServiceTest {
 		when(auditLogRequestBuilder.createAuditRequestBuilder(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString()))
 		.thenAnswer(invocation -> {
 			String moduleId = (String) invocation.getArguments()[0];
-			assertEquals(StatusUtil.MESSAGE_SENDER_NOTIF_SUCC.getMessage(), moduleId);
+			assertEquals(PlatformErrorMessages.RPR_EMAIL_PHONE_TEMPLATE_NOTIFICATION_MISSING.getMessage(), moduleId);
 			return null;
 		});
 
