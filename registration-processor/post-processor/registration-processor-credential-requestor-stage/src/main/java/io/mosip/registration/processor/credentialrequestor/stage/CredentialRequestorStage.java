@@ -1,17 +1,57 @@
 package io.mosip.registration.processor.credentialrequestor.stage;
 
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.stream.Collectors;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.json.JSONArray;
+import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.registration.processor.core.abstractverticle.*;
-import io.mosip.registration.processor.core.code.*;
+import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
+import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
+import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
+import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
+import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
+import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
+import io.mosip.registration.processor.core.code.ModuleName;
+import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
+import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
-import io.mosip.registration.processor.core.constant.*;
+import io.mosip.registration.processor.core.constant.IdType;
+import io.mosip.registration.processor.core.constant.JsonConstant;
+import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
+import io.mosip.registration.processor.core.constant.VidType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
@@ -36,29 +76,6 @@ import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.json.JSONArray;
-import org.json.simple.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
-import org.springframework.http.MediaType;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * The Class PrintStage.
