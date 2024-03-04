@@ -13,7 +13,6 @@ import org.springframework.stereotype.Repository;
 import io.mosip.kernel.core.dataaccess.spi.repository.BaseRepository;
 import io.mosip.registration.processor.status.entity.BaseRegistrationEntity;
 import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
-import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 
 /**
  * The Interface RegistrationRepositary.
@@ -31,7 +30,7 @@ public interface RegistrationRepositary<T extends BaseRegistrationEntity, E> ext
 	public List<String> getProcessedOrProcessingRegIds(@Param("regIds") List<String> regIds,
 			@Param("statusCode") List<String> statusCode);
 
-	@Query("SELECT registration FROM RegistrationStatusEntity registration WHERE registration.id in :regIds and registration.statusCode !=:statusCode")
+	@Query("SELECT registration FROM RegistrationStatusEntity registration WHERE registration.regId in :regIds and registration.statusCode !=:statusCode")
 	public List<RegistrationStatusEntity> getWithoutStatusCode(@Param("regIds") List<String> regIds, @Param("statusCode") String statusCode);
 	@Query("SELECT registration FROM RegistrationStatusEntity registration WHERE registration.regId = :regId AND registration.isDeleted =false AND registration.isActive=true")
 	public List<RegistrationStatusEntity> findByRegId(@Param("regId") String regId);
