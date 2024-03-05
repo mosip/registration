@@ -28,6 +28,7 @@
 
 	<name>registration-processor</name>
 	<description>Parent project of MOSIP Registration processor</description>
+	<url>https://github.com/mosip/registration</url>
 
 	<properties>
 		<doclint>none</doclint>
