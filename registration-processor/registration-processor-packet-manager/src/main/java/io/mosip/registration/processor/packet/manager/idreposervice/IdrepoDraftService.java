@@ -60,13 +60,14 @@ public class IdrepoDraftService {
         return hasDraft;
     }
 
-    public ResponseDTO idrepoGetDraft(String id) throws ApisResourceAccessException {
+    public ResponseDTO idrepoGetDraft(String id) throws ApisResourceAccessException, IdrepoDraftException {
         regProcLogger.debug("idrepoGetDraft entry " + id);
         IdResponseDTO idResponseDTO = (IdResponseDTO) registrationProcessorRestClientService.getApi(
                 ApiName.IDREPOGETDRAFT, Lists.newArrayList(id), Lists.emptyList(), null, IdResponseDTO.class);
         if (idResponseDTO.getErrors() != null && !idResponseDTO.getErrors().isEmpty()) {
             ErrorDTO error = idResponseDTO.getErrors().get(0);
             regProcLogger.error("Error occured while getting draft for id : " + id, error.toString());
+            throw new IdrepoDraftException(error.getErrorCode(), error.getMessage());
         }
             regProcLogger.debug("idrepoGetDraft exit " + id);
             return idResponseDTO.getResponse();
@@ -109,8 +110,7 @@ public class IdrepoDraftService {
             requestDto.setUin(responseDTO.getUin());
             idRequestDto.setRequest(requestDto);
         }
-        IdResponseDTO response = new IdResponseDTO();
-            response = (IdResponseDTO) registrationProcessorRestClientService.patchApi(
+        IdResponseDTO response = (IdResponseDTO) registrationProcessorRestClientService.patchApi(
                     ApiName.IDREPOUPDATEDRAFT, Lists.newArrayList(id), null, null, idRequestDto, IdResponseDTO.class);
             if (response.getErrors() != null && !response.getErrors().isEmpty()) {
                 regProcLogger.info("Error while updating the drant " + id);
@@ -156,7 +156,7 @@ public class IdrepoDraftService {
         List<String> pathsegments = new ArrayList<String>();
         pathsegments.add(id);
         IdResponseDTO response = (IdResponseDTO) registrationProcessorRestClientService.
-                deleteApi(ApiName.IDREPODISCARDDREFT, pathsegments, "", "", IdResponseDTO.class);
+                deleteApi(ApiName.IDREPODISCARDDRAFT, pathsegments, "", "", IdResponseDTO.class);
         if (response.getErrors() != null && !response.getErrors().isEmpty()) {
             ErrorDTO error = response.getErrors().get(0);
             regProcLogger.error("Error occured while discarding draft for id : " + id, error.toString());
