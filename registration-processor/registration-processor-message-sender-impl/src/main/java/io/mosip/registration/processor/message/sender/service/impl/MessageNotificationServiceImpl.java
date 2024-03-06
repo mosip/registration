@@ -170,10 +170,6 @@ public class MessageNotificationServiceImpl
 	
 	private JSONObject mapperIdentity=null;
 
-	private List<String> mapperJsonKeys = null;
-
-	private JSONObject mapperIdentity=null;
-
 	/*
 	 * (non-Javadoc)
 	 * 

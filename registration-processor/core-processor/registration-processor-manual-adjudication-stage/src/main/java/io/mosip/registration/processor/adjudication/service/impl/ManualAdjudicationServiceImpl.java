@@ -206,9 +206,6 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 	@Autowired
 	private ManualVerificationUpdateUtility manualVerificationUpdateUtility;
 
-	@Autowired
-	private ManualVerificationUpdateUtility manualVerificationUpdateUtility;
-
 
 	/** The Constant PROTOCOL. */
 	public static final String PROTOCOL = "https";

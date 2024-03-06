@@ -1,7 +1,5 @@
 package io.mosip.registration.processor.core.exception.util;
 
-import io.mosip.registration.processor.core.status.util.StatusConstants;
-
 // TODO: Auto-generated Javadoc
 /**
  * The Enum RPRPlatformErrorMessages.
@@ -204,9 +202,6 @@ public enum PlatformErrorMessages {
 
 	LINK_FOR_USERID_INDIVIDUALID_FAILED_STATUS_EXCEPTION(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "035",
 			"Unable to get the IndividualId for UserId"),
-
-	UNABLE_TO_ACCESS_API(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "036",
-			"Unable to access API"),
 
 	UNABLE_TO_ACCESS_API(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "036",
 			"Unable to access API"),
@@ -1041,12 +1036,6 @@ public enum PlatformErrorMessages {
 	/** The rpr sys connection exception. */
 	RPR_SYS_QUEUE_CONNECTION_EXCEPTION(PlatformConstants.RPR_SYSTEM_EXCEPTION + "022",
 			"Error while connecting to active mq"),
-
-	/** The rpr sys connection exception. */
-	RPR_SYS_QUEUE_CONNECTION_EXCEPTION(PlatformConstants.RPR_SYSTEM_EXCEPTION + "022",
-			"Error while connecting to active mq"),
-
-
 
 	// Cbeff Util Exceptions
 	/** The rpr utl biometric tag match. */

@@ -123,9 +123,6 @@ public class ManualAdjudicationServiceTest {
 	@Mock
 	AuditLogRequestBuilder auditLogRequestBuilder;
 
-	@Mock
-	private ManualVerificationUpdateUtility manualVerificationUpdateUtility;
-
 
 	@Mock
 	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
