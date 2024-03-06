@@ -1,8 +1,24 @@
 package io.mosip.registration.processor.core.logger;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.slf4j.LoggerFactory;
+
 import io.mosip.kernel.core.logger.spi.Logger;
 import org.slf4j.LoggerFactory;
 import io.mosip.kernel.logger.logback.factory.Logfactory;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
+
+
+
+import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
 
 
 
@@ -21,9 +37,9 @@ import ch.qos.logback.classic.LoggerContext;
 public final class RegProcessorLogger {
 	
 	public static final String PROP_PREFIX = "logging.level.";
-	
+
 	public static Map<String,String> loggingLevelMap=new HashMap<String,String>();
-	
+
 	/**
 	 * Instantiates a new reg processor logger.
 	 */

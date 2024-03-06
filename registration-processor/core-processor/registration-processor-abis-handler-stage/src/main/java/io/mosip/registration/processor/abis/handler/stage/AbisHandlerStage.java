@@ -575,13 +575,15 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	}
 
 	private String getDataShareUrl(String id, String process) throws Exception {
-		Map<String, List<String>> typeAndSubtypMap = createTypeSubtypeMapping();
+		Map<String, List<String>> policyTypeAndSubTypeMap = createTypeSubtypeMapping();
 		List<String> modalities = new ArrayList<>();
-		for (Map.Entry<String, List<String>> entry : typeAndSubtypMap.entrySet()) {
+		List<String> policyTypeAndSubTypeList = new ArrayList<>();
+		modalities.addAll(policyTypeAndSubTypeMap.keySet());
+		for (Map.Entry<String, List<String>> entry : policyTypeAndSubTypeMap.entrySet()) {
 			if (entry.getValue() == null) {
-				modalities.add(entry.getKey());
+				policyTypeAndSubTypeList.add(entry.getKey());
 			} else {
-				modalities.addAll(entry.getValue());
+				policyTypeAndSubTypeList.addAll(entry.getValue());
 			}
 		}
 		JSONObject regProcessorIdentityJson = utility
@@ -590,19 +592,20 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
 				MappingJsonConstants.VALUE);
 		BiometricRecord biometricRecord = priorityBasedPacketManagerService.getBiometrics(id, individualBiometricsLabel,
-				modalities, process, ProviderStageName.BIO_DEDUPE);
+				policyTypeAndSubTypeList, process, ProviderStageName.BIO_DEDUPE);
 
 		Map<String, String> tags = packetManagerService.getAllTags(id);
 		String ageGroup = tags.get("AGE_GROUP");
-		Map<String, List<String>> biometricModalitySegmentsMap;
+		Map<String, List<String>> ageGroupModalitySegmentMap;
 		if(biometricModalitySegmentsMapforAgeGroup.containsKey(ageGroup)){
-			biometricModalitySegmentsMap = biometricModalitySegmentsMapforAgeGroup.get(ageGroup);
+			ageGroupModalitySegmentMap = biometricModalitySegmentsMapforAgeGroup.get(ageGroup);
 			}
 		else {
-			biometricModalitySegmentsMap = biometricModalitySegmentsMapforAgeGroup.get("DEFAULT");
+			ageGroupModalitySegmentMap = biometricModalitySegmentsMapforAgeGroup.get("DEFAULT");
 		}
-		validateBiometricRecord(biometricRecord, modalities, biometricModalitySegmentsMap,
-					priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE));
+		validateBiometricRecord(biometricRecord, modalities, ageGroupModalitySegmentMap,
+				priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE),
+				policyTypeAndSubTypeMap);
 
 		byte[] content = cbeffutil.createXML(filterExceptionBiometrics(biometricRecord,id,process).getSegments());
 
@@ -640,7 +643,8 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 	@SuppressWarnings("deprecation")
 	private void validateBiometricRecord(BiometricRecord biometricRecord, List<String> modalities,
-			Map<String, List<String>> biometricModalitySegmentsMap, Map<String, String> metaInfoMap)
+			Map<String, List<String>> ageGroupModalitySegmentMap, Map<String, String> metaInfoMap,
+			Map<String, List<String>> policyTypeAndSubTypeMap)
 			throws DataShareException, JsonParseException, JsonMappingException, IOException {
 		if (modalities == null || modalities.isEmpty()) {
 			throw new DataShareException("Data Share Policy Modalities were Empty");
@@ -660,11 +664,18 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 			exceptionList = metaInfoExceptionBiometrics.get("applicant").keySet();
 		}
 		boolean isBioFound = false;
-		for (String biometricSegment : biometricModalitySegmentsMap.keySet()) {
-			if (!modalities.contains(biometricSegment)) {
-				throw new DataShareException("Biometrics Segments Not Configured for modality : " + biometricSegment);
+		for (String biometricModality : ageGroupModalitySegmentMap.keySet()) {
+			if (!modalities.contains(biometricModality)) {
+				throw new DataShareException(
+						"Modalities  not Configured as per policy for modality : " + biometricModality);
 			}
-			for (String segment : biometricModalitySegmentsMap.get(biometricSegment)) {
+			List<String> policySegmentList = policyTypeAndSubTypeMap.get(biometricModality);
+			for (String segment : ageGroupModalitySegmentMap.get(biometricModality)) {
+				if (policySegmentList != null
+						&& !policySegmentList.contains(segment)) {
+					throw new DataShareException(
+							"Biometrics Segments Not Configured as per policy for modality : " + biometricModality);
+				}
 				Optional<BIR> optionalBIR = Optional.empty();
 				if (segment.equalsIgnoreCase("Face")) {
 					optionalBIR = biometricRecord.getSegments().stream()

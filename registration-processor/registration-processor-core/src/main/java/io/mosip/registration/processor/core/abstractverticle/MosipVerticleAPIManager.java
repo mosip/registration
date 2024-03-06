@@ -63,7 +63,7 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(MosipVerticleAPIManager.class);
 
-	@Value("${mosip.regproc.health-check.handler-timeout:5000}")
+	@Value("${mosip.regproc.health-check.handler-timeout:2000}")
 	private long healthCheckTimeOut;
 
 

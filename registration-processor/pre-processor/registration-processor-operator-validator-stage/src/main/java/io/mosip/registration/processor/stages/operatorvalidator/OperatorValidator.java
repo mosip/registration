@@ -77,7 +77,10 @@ public class OperatorValidator {
 
 	@Autowired
 	private Utilities utility;
-	
+
+	@Autowired
+	private BioSdkUtil bioUtil;
+
 	@Autowired
 	private BioSdkUtil bioUtil;
 
@@ -88,7 +91,7 @@ public class OperatorValidator {
 	 * @throws SAXException
 	 * @throws ParserConfigurationException
 	 * @throws io.mosip.kernel.core.exception.IOException
-	 * @throws Exception 
+	 * @throws Exception
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
 	 */
@@ -230,7 +233,7 @@ public class OperatorValidator {
 		return (opValidated != null && opValidated.equals(ISTRUE) || otpValidated != null && otpValidated.equals(ISTRUE));
 	}
 
-	
+
 	/**
 	 * Validate user.
 	 *
@@ -239,7 +242,7 @@ public class OperatorValidator {
 	 * @param list                  biometric data as BIR object
 	 * @param individualType        user type
 	 * @param registrationStatusDto
-	 * @throws Exception 
+	 * @throws Exception
 	 * @throws SAXException
 	 * @throws ParserConfigurationException
 	 * @throws NoSuchAlgorithmException
@@ -255,11 +258,11 @@ public class OperatorValidator {
 			userId = getIndividualIdByUserId(userId);
 			individualType = null;
 		}
-		
+
 			bioUtil.authenticateBiometrics(userId, individualType, list,registrationStatusDto,
 						StatusUtil.OFFICER_AUTHENTICATION_FAILED.getMessage(),
 						StatusUtil.OFFICER_AUTHENTICATION_FAILED.getCode());
-		
+
 			regProcLogger.debug("validateUserBiometric call ended for registrationId {}", registrationId);
 
 	}

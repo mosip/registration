@@ -192,7 +192,10 @@ public class VerificationServiceImpl implements VerificationService {
 
 	@Autowired
 	RegistrationExceptionMapperUtil registrationExceptionMapperUtil;
-	
+
+	@Autowired
+	SaveVerificationRecordUtility saveVerificationRecordUtility;
+
 	@Autowired
 	SaveVerificationRecordUtility saveVerificationRecordUtility;
 
@@ -338,7 +341,7 @@ public class VerificationServiceImpl implements VerificationService {
 				description.setCode(StatusUtil.VERIFICATION_RESEND.getCode());
 				messageDTO.setInternalError(true);
 				messageDTO.setIsValid(isTransactionSuccessful);
-				
+
 			} else {
 				// call success flow and process the response received from manual verification
 				// system
@@ -408,7 +411,7 @@ public class VerificationServiceImpl implements VerificationService {
 		String moduleId = isTransactionSuccessful ? platformSuccessMessages.getCode() : description.getCode();
 		String moduleName = ModuleName.VERIFICATION.toString();
 		registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);
-		
+
 		String eventId = isTransactionSuccessful ? EventId.RPR_402.toString() : EventId.RPR_405.toString();
 		String eventName = eventId.equalsIgnoreCase(EventId.RPR_402.toString()) ? EventName.UPDATE.toString()
 				: EventName.EXCEPTION.toString();

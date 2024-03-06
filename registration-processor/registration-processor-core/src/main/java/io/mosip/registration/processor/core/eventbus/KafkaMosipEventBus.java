@@ -433,8 +433,7 @@ public class KafkaMosipEventBus implements MosipEventBus {
 	}
 
 	@Override
-	public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler,
-			String address) {
+	public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
 		HealthCheckDTO healthCheckDTO = new HealthCheckDTO();
 		String timeStamp = address + DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime());
 		logger.debug("Consumer health check started {}",
@@ -447,16 +446,15 @@ public class KafkaMosipEventBus implements MosipEventBus {
 				healthCheckDTO.setEventBusConnected(false);
 				healthCheckDTO.setFailureReason(f.cause().getMessage());
 			}
-			logger.debug("Consumer health check ended {} {}",
-					timeStamp);
+			logger.debug("Consumer health check ended with isEventBusConnected {} {}", timeStamp,
+					healthCheckDTO.isEventBusConnected());
 			eventHandler.handle(healthCheckDTO);
 		});
 
 	}
 
 	@Override
-	public void senderHealthCheck(Handler<HealthCheckDTO> eventHandler,
-			String address) {
+	public void senderHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
 		// To be implemented correctly when we move to later versions of vertx and
 		// current vertx kafka client does not offer any non intrusive way to check the
 		// health of produce
