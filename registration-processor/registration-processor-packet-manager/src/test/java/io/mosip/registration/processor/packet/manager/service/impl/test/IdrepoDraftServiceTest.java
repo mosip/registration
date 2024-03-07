@@ -222,13 +222,13 @@ public class IdrepoDraftServiceTest {
         JSONObject jsonObject1 = new JSONObject();
         jsonObject1.put("UIN", "1234");
         discardresponseDTO.setIdentity(jsonObject1);
-        IdResponseDTO discardIdresponceDto=new IdResponseDTO();
-        discardIdresponceDto = new IdResponseDTO();
-        discardIdresponceDto.setErrors(null);
-        discardIdresponceDto.setId("id.uin.update");
-        discardIdresponceDto.setResponse(discardresponseDTO);
+        IdResponseDTO discardIdresponseDto=new IdResponseDTO();
+        discardIdresponseDto = new IdResponseDTO();
+        discardIdresponseDto.setErrors(null);
+        discardIdresponseDto.setId("id.uin.update");
+        discardIdresponseDto.setResponse(discardresponseDTO);
         when(registrationProcessorRestClientService.
-                deleteApi(ApiName.IDREPODISCARDDRAFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class)).thenReturn(discardIdresponceDto);
+                deleteApi(ApiName.IDREPODISCARDDRAFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class)).thenReturn(discardIdresponseDto);
 
 
         IdResponseDTO idResponseDTO2=idrepoDraftService.idrepoUpdateDraft(ID, null, idRequestDto);
