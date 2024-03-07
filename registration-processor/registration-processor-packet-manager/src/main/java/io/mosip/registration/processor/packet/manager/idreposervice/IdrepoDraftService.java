@@ -104,7 +104,8 @@ public class IdrepoDraftService {
             JSONObject existingIdentity = mapper.readValue(mapper.writeValueAsString(responseDTO.getIdentity()), JSONObject.class);
             JSONObject newIdentity = mapper.readValue(mapper.writeValueAsString(idRequestDto.getRequest().getIdentity()), JSONObject.class);
             newIdentity.put(UIN, existingIdentity.get(UIN));
-            idRequestDto.getRequest().setIdentity(newIdentity);
+//          setting the identity to request while updating the draft.
+            requestDto.setIdentity(newIdentity);
             requestDto.setRegistrationId(responseDTO.getRegistrationId());
             requestDto.setStatus(responseDTO.getStatus());
             requestDto.setUin(responseDTO.getUin());
