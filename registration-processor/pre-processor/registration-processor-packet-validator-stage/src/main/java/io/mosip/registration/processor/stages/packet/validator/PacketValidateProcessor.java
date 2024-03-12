@@ -13,8 +13,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
@@ -32,6 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
@@ -71,6 +70,7 @@ import io.mosip.registration.processor.packet.manager.decryptor.Decryptor;
 import io.mosip.registration.processor.packet.storage.exception.IdentityNotFoundException;
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.stages.utils.AuditUtility;
 import io.mosip.registration.processor.stages.utils.NotificationUtility;
@@ -193,10 +193,10 @@ public class PacketValidateProcessor {
 			packetValidationDto.setTransactionSuccessful(false);
 			registrationStatusDto = registrationStatusService.getRegistrationStatus(
 					registrationId, object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
-			setPacketCreatedDateTime(registrationStatusDto);
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.VALIDATE_PACKET.toString());
 			registrationStatusDto.setRegistrationStageName(stageName);
+			setPacketCreatedDateTime(registrationStatusDto);
 			boolean isValidSupervisorStatus = isValidSupervisorStatus(object);
 			if (isValidSupervisorStatus) {
 				Boolean isValid = compositePacketValidator.validate(object.getRid(),
