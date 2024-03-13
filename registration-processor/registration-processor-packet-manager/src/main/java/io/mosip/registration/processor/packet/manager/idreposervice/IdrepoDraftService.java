@@ -115,7 +115,7 @@ public class IdrepoDraftService {
                     ApiName.IDREPOUPDATEDRAFT, Lists.newArrayList(id), null, null, idRequestDto, IdResponseDTO.class);
             if (response.getErrors() != null && !response.getErrors().isEmpty()) {
                 regProcLogger.info("Error while updating the drant " + id);
-                idrepodiscardDraft(id);
+                idrepoDiscardDraft(id);
                 ErrorDTO error = response.getErrors().get(0);
                 regProcLogger.error("Error occured while updating draft for id : " + id, error.toString());
                 if (response.getErrors().get(0).getErrorCode().equalsIgnoreCase(ID_REPO_KEY_MANAGER_ERROR)) {
@@ -141,10 +141,10 @@ public class IdrepoDraftService {
         {
             ErrorDTO error=response.getErrors().get(0);
             regProcLogger.error("Error occured while publishing the Draft : " + id, error.toString());
-            idrepodiscardDraft(id);
             if (response.getErrors().get(0).getErrorCode().equalsIgnoreCase(ID_REPO_KEY_MANAGER_ERROR)) {
                 throw new IdrepoDraftReprocessableException(error.getErrorCode(), error.getMessage());
             } else {
+                idrepoDiscardDraft(id);
                 throw new IdrepoDraftException(error.getErrorCode(), error.getMessage());
             }
         }
@@ -152,7 +152,7 @@ public class IdrepoDraftService {
         return response;
     }
 
-    public Boolean idrepodiscardDraft(String id) throws ApisResourceAccessException, IdrepoDraftReprocessableException, IdrepoDraftException {
+    public Boolean idrepoDiscardDraft(String id) throws ApisResourceAccessException, IdrepoDraftReprocessableException, IdrepoDraftException {
         regProcLogger.debug("idrepoDiscardDraft entry " + id);
         List<String> pathsegments = new ArrayList<String>();
         pathsegments.add(id);

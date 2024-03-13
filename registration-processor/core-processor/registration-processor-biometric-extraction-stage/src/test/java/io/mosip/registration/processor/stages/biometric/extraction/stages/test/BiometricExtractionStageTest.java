@@ -378,7 +378,7 @@ public class BiometricExtractionStageTest {
 		segment.add(messageDTO.getRid());
 		when(registrationProcessorRestClientService.putApi(Mockito.eq(ApiName.IDREPOEXTRACTBIOMETRICS), any(), anyString(), anyString(), Mockito.isNull(),   Mockito.eq(IdResponseDTO.class), isNull())).thenReturn(idResponseDTO);
  		MessageDTO result = biometricExtractionStage.process(messageDTO);
-		verify(idrepoDraftService,atLeastOnce()).idrepodiscardDraft(anyString());
+		verify(idrepoDraftService,atLeastOnce()).idrepoDiscardDraft(anyString());
 
 		assertTrue(result.getInternalError());
 		assertFalse(result.getIsValid());
