@@ -161,7 +161,7 @@ public class IdrepoDraftServiceTest {
                 deleteApi(ApiName.IDREPODISCARDDRAFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class)).thenReturn(discardIdresponseDto);
 
         idrepoDraftService.idrepoPublishDraft(ID);
-        Mockito.verify(idrepoDraftService.idrepodiscardDraft(any()),times(1));
+        Mockito.verify(idrepoDraftService.idrepoDiscardDraft(any()),times(1));
     }
 
     @Test
@@ -233,7 +233,7 @@ public class IdrepoDraftServiceTest {
 
 
         IdResponseDTO idResponseDTO2=idrepoDraftService.idrepoUpdateDraft(ID, null, idRequestDto);
-        verify(idrepoDraftService.idrepodiscardDraft(any()),times(1));
+        verify(idrepoDraftService.idrepoDiscardDraft(any()),times(1));
 
     }
 
@@ -270,7 +270,7 @@ public class IdrepoDraftServiceTest {
                 deleteApi(ApiName.IDREPODISCARDDRAFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class)).thenReturn(discardIdresponseDto);
 
 		idrepoDraftService.idrepoUpdateDraft(ID, null, idRequestDto);
-        Mockito.verify(idrepoDraftService.idrepodiscardDraft(any()),times(1));
+        Mockito.verify(idrepoDraftService.idrepoDiscardDraft(any()),times(1));
 
 	}
     @Test
@@ -289,7 +289,7 @@ public class IdrepoDraftServiceTest {
         when(registrationProcessorRestClientService.
                 deleteApi(ApiName.IDREPODISCARDDRAFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class)).thenReturn(discardIdresponseDto);
 
-        Boolean result= idrepoDraftService.idrepodiscardDraft(ID);
+        Boolean result= idrepoDraftService.idrepoDiscardDraft(ID);
         assertTrue(result);
     }
 }
