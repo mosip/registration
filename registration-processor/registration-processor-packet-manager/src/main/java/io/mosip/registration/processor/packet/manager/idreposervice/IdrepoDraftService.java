@@ -86,7 +86,6 @@ public class IdrepoDraftService {
             List<ErrorDTO> error=response.getErrors();
             regProcLogger.error("Error while creating draft for id " + id);
             throw new IdrepoDraftException(error.get(0).getErrorCode(), error.get(0).getMessage());
-//            throw new IdrepoDraftException(PlatformErrorMessages.IDREPO_DRAFT_EXCEPTION.getCode(), PlatformErrorMessages.IDREPO_DRAFT_EXCEPTION.getMessage());
         }
         return (response.getErrors() == null || response.getErrors().isEmpty());
     }
