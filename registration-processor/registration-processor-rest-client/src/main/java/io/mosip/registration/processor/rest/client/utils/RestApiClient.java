@@ -312,4 +312,21 @@ public class RestApiClient {
 		}
 	}
 
+
+	public <T> T deleteApi(URI uri, Class<?> responseType) throws Exception {
+		T result = null;
+
+		try {
+			result = (T) localRestTemplate.exchange(uri, HttpMethod.DELETE, setRequestHeader(null, null), responseType)
+					.getBody();
+		} catch (Exception e) {
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
+					LoggerFileConstant.APPLICATIONID.toString(), e.getMessage() + ExceptionUtils.getStackTrace(e));
+			tokenExceptionHandler(e);
+			throw e;
+		}
+		return result;
+	}
+
+
 }
