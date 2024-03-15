@@ -38,7 +38,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
 import io.mosip.registration.processor.core.constant.HealthConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
@@ -330,7 +329,6 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 								.add(HealthConstant.ERROR, healthCheckDto.getFailureReason()).build();
 						promise.complete(Status.KO(result));
 					}
-
 				} catch (Exception e) {
 					final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, e.getMessage()).build();
 					promise.complete(Status.KO(result));

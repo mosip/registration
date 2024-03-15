@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.directory.api.util.Strings;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -16,10 +15,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -58,12 +54,6 @@ public class RestApiClient {
 
 	/** The logger. */
 	private final Logger logger = RegProcessorLogger.getLogger(RestApiClient.class);
-
-	@Value("${registration.processor.httpclient.connections.max.per.host:20}")
-	private int maxConnectionPerRoute;
-
-	@Value("${registration.processor.httpclient.connections.max:100}")
-	private int totalMaxConnection;
 
 	/** The builder. */
 	@Autowired
