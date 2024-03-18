@@ -3,9 +3,6 @@ package io.mosip.registration.processor.verification.service.impl;
 import static io.mosip.registration.processor.verification.constants.VerificationConstants.DATETIME_PATTERN;
 
 import java.io.IOException;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,7 +31,6 @@ import com.google.common.collect.Lists;
 
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
-import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
@@ -73,8 +69,6 @@ import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.dto.Document;
 import io.mosip.registration.processor.packet.storage.entity.VerificationEntity;
-import io.mosip.registration.processor.packet.storage.entity.VerificationPKEntity;
-import io.mosip.registration.processor.packet.storage.exception.UnableToInsertData;
 import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
@@ -192,7 +186,7 @@ public class VerificationServiceImpl implements VerificationService {
 
 	@Autowired
 	RegistrationExceptionMapperUtil registrationExceptionMapperUtil;
-	
+
 	@Autowired
 	SaveVerificationRecordUtility saveVerificationRecordUtility;
 
@@ -338,7 +332,7 @@ public class VerificationServiceImpl implements VerificationService {
 				description.setCode(StatusUtil.VERIFICATION_RESEND.getCode());
 				messageDTO.setInternalError(true);
 				messageDTO.setIsValid(isTransactionSuccessful);
-				
+
 			} else {
 				// call success flow and process the response received from manual verification
 				// system
@@ -408,7 +402,7 @@ public class VerificationServiceImpl implements VerificationService {
 		String moduleId = isTransactionSuccessful ? platformSuccessMessages.getCode() : description.getCode();
 		String moduleName = ModuleName.VERIFICATION.toString();
 		registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);
-		
+
 		String eventId = isTransactionSuccessful ? EventId.RPR_402.toString() : EventId.RPR_405.toString();
 		String eventName = eventId.equalsIgnoreCase(EventId.RPR_402.toString()) ? EventName.UPDATE.toString()
 				: EventName.EXCEPTION.toString();

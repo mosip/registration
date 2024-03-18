@@ -220,7 +220,7 @@ public class AuditLogRequestBuilder {
 
 		return responseWrapper;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public ResponseWrapper<AuditResponseDto> createAuditRequestBuilder(String description, String eventId,
 			String eventName, String eventType, String moduleId, String moduleName, String registrationId) {

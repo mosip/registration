@@ -639,8 +639,7 @@ public class KafkaMosipEventBusTest {
 		AsyncResult<Map<String, List<PartitionInfo>>> asyncResult = Mockito.mock(AsyncResult.class);
 		Mockito.when(asyncResult.succeeded()).thenReturn(true);
 		doAnswer((Answer<AsyncResult<Map<String, List<PartitionInfo>>>>) arguments -> {
-			((Handler<AsyncResult<Map<String, List<PartitionInfo>>>>) arguments.getArgument(0))
-					.handle(asyncResult);
+			((Handler<AsyncResult<Map<String, List<PartitionInfo>>>>) arguments.getArgument(0)).handle(asyncResult);
 			if (!async.isCompleted())
 				async.complete();
 			return null;
@@ -682,7 +681,7 @@ public class KafkaMosipEventBusTest {
 		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", "batch", "100", 60000,
 				eventTracingHandler);
 		Handler<HealthCheckDTO> eventHandler = Mockito.mock(Handler.class);
-		TimeoutException timeout=new TimeoutException();
+		TimeoutException timeout = new TimeoutException();
 		Mockito.when(kafkaConsumer.listTopics(any())).thenThrow(timeout);
 		kafkaMosipEventBus.consumerHealthCheck(eventHandler, MessageBusAddress.PACKET_VALIDATOR_BUS_IN.toString());
 		verify(kafkaConsumer, times(1)).listTopics(any());

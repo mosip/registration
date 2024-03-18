@@ -1,7 +1,5 @@
 package io.mosip.registration.processor.core.exception.util;
 
-import io.mosip.registration.processor.core.status.util.StatusConstants;
-
 // TODO: Auto-generated Javadoc
 /**
  * The Enum RPRPlatformErrorMessages.
@@ -201,10 +199,10 @@ public enum PlatformErrorMessages {
 	
 	/** The rpr rgs io exception */
 	RPR_RGS_IOEXCEPTION(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "035" , "IO Exception"),
-	
+
 	LINK_FOR_USERID_INDIVIDUALID_FAILED_STATUS_EXCEPTION(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "035",
 			"Unable to get the IndividualId for UserId"),
-	
+
 	UNABLE_TO_ACCESS_API(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "036",
 			"Unable to access API"),
 
@@ -1034,7 +1032,7 @@ public enum PlatformErrorMessages {
 	/** The stage processing failed. */
 	RPR_SYS_STAGE_PROCESSING_FAILED(PlatformConstants.RPR_SYSTEM_EXCEPTION + "021",
 			"Stage processing of message failed with an exception"),
-	
+
 	/** The rpr sys connection exception. */
 	RPR_SYS_QUEUE_CONNECTION_EXCEPTION(PlatformConstants.RPR_SYSTEM_EXCEPTION + "022",
 			"Error while connecting to active mq"),
@@ -1438,12 +1436,12 @@ public enum PlatformErrorMessages {
 			"Draft request is unavaialble in id-repo draft repository."),
 	RPR_FINALIZATION_STAGE_API_RESOURCE_EXCEPTION(PlatformConstants.RPR_FINALIZATION_STAGE + "004",
 			"Not able to access the API resource"),
-	
+
 	INDIVIDUAL_BIOMETRIC_AUTHENTICATION_FAILED(PlatformConstants.RPR_BIOMETRIC_AUTHENTICATION_MODULE + "004",
 			"Bio authentication failed")
 	;
-	
-	
+
+
 
 	/** The error message. */
 	private final String errorMessage; 

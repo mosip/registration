@@ -135,11 +135,10 @@ public class VerificationServiceTest {
 
 	@Mock
 	private RegistrationProcessorRestClientService registrationProcessorRestClientService;
-	
+
 	@Mock
 	SaveVerificationRecordUtility saveVerificationRecordUtility;
 
-	
 	private InternalRegistrationStatusDto registrationStatusDto;
 	private VerificationPKEntity PKId;
 	private ManualVerificationDTO manualVerificationDTO;
@@ -523,6 +522,6 @@ public class VerificationServiceTest {
 
 		assertTrue(result);
 	}
-	
+
 }
 
