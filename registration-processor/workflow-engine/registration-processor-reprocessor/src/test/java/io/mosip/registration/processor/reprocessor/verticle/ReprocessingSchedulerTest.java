@@ -113,6 +113,7 @@ public class ReprocessingSchedulerTest {
 				public void send(MessageBusAddress toAddress, MessageDTO message) {
 
 				}
+
 				@Override
 				public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
 					// TODO Auto-generated method stub

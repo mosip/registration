@@ -63,13 +63,19 @@ public class CbeffValidateAndVerificatonService {
         Set<String> availableModalities = biometricRecord != null && !CollectionUtils.isEmpty(biometricRecord.getSegments()) ?
                 biometricRecord.getSegments().stream().map(b -> {
                 	if(!CollectionUtils.isEmpty(b.getBdbInfo().getType())) {
-                		for(Map.Entry entry : b.getOthers().entrySet()) {
-                			if(entry.getKey().equals("EXCEPTION") &&!entry.getValue().equals("true")) {
-                				return b.getBdbInfo().getSubtype()!=null && !b.getBdbInfo().getSubtype().isEmpty()?
-                						String.join(" ", b.getBdbInfo().getSubtype())
-                						:b.getBdbInfo().getType().get(0).value();
-                			}
-                		}
+                		if (b.getOthers() != null) {
+                            for(Map.Entry entry : b.getOthers().entrySet()) {
+                                if(entry.getKey().equals("EXCEPTION") &&!entry.getValue().equals("true")) {
+                                    return b.getBdbInfo().getSubtype()!=null && !b.getBdbInfo().getSubtype().isEmpty()?
+                                            String.join(" ", b.getBdbInfo().getSubtype())
+                                            :b.getBdbInfo().getType().get(0).value();
+                                }
+                            }
+                        } else {
+                            return b.getBdbInfo().getSubtype()!=null && !b.getBdbInfo().getSubtype().isEmpty()?
+                                    String.join(" ", b.getBdbInfo().getSubtype())
+                                    :b.getBdbInfo().getType().get(0).value();
+                        }
                 	}
                 	return null;
                 }).collect(Collectors.toSet()) : null;

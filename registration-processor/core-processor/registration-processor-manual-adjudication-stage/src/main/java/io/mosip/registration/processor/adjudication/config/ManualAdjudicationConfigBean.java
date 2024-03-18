@@ -26,7 +26,7 @@ public class ManualAdjudicationConfigBean {
 	ManualVerificationExceptionHandler getManualVerificationExceptionHandler() {
 		return new ManualVerificationExceptionHandler();
 	}
-	
+
 	@Bean
 	ManualVerificationUpdateUtility getManualVerificationUpdateUtility() {
 		return new ManualVerificationUpdateUtility();

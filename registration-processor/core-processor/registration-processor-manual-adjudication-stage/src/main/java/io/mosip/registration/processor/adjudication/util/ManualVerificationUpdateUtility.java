@@ -1,6 +1,6 @@
 package io.mosip.registration.processor.adjudication.util;
 
-	
+
 	import java.sql.Timestamp;
 import java.util.List;
 
