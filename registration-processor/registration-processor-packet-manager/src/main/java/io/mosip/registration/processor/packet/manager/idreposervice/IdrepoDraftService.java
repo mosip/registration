@@ -116,6 +116,7 @@ public class IdrepoDraftService {
                     ApiName.IDREPOUPDATEDRAFT, Lists.newArrayList(id), null, null, idRequestDto, IdResponseDTO.class);
             if (response.getErrors() != null && !response.getErrors().isEmpty()) {
                 regProcLogger.info("Error while updating the drant " + id);
+                regProcLogger.info(id+" Discarding the draft because of "+response.getErrors().get(0).getMessage());
                 idrepoDiscardDraft(id);
                 ErrorDTO error = response.getErrors().get(0);
                 regProcLogger.error("Error occured while updating draft for id : " + id, error.toString());
