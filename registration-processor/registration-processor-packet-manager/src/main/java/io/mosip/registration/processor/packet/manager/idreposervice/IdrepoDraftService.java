@@ -83,8 +83,9 @@ public class IdrepoDraftService {
                 ApiName.IDREPOCREATEDRAFT, Lists.newArrayList(id), queryParam, queryParamValue, null, ResponseWrapper.class);
         if (response.getErrors() != null && !response.getErrors().isEmpty())
         {
+            List<ErrorDTO> error=response.getErrors();
             regProcLogger.error("Error while creating draft for id " + id);
-            throw new IdrepoDraftException(PlatformErrorMessages.IDREPO_DRAFT_EXCEPTION.getCode(), PlatformErrorMessages.IDREPO_DRAFT_EXCEPTION.getMessage());
+            throw new IdrepoDraftException(error.get(0).getErrorCode(), error.get(0).getMessage());
         }
         return (response.getErrors() == null || response.getErrors().isEmpty());
     }
@@ -115,6 +116,7 @@ public class IdrepoDraftService {
                     ApiName.IDREPOUPDATEDRAFT, Lists.newArrayList(id), null, null, idRequestDto, IdResponseDTO.class);
             if (response.getErrors() != null && !response.getErrors().isEmpty()) {
                 regProcLogger.info("Error while updating the drant " + id);
+                regProcLogger.info(id+" Discarding the draft because of "+response.getErrors().get(0).getMessage());
                 idrepoDiscardDraft(id);
                 ErrorDTO error = response.getErrors().get(0);
                 regProcLogger.error("Error occured while updating draft for id : " + id, error.toString());
