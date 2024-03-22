@@ -1,23 +1,14 @@
 package io.mosip.registration.processor.credentialrequestor.util;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.mosip.kernel.core.exception.BaseCheckedException;
-import io.mosip.kernel.core.exception.ExceptionUtils;
-import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.exception.JsonProcessingException;
-import io.mosip.registration.processor.core.constant.*;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketManagerException;
-import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
-import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
-import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.packet.dto.FieldValue;
-import io.mosip.registration.processor.core.util.JsonUtil;
-import io.mosip.registration.processor.credentialrequestor.dto.CredentialPartner;
-import io.mosip.registration.processor.credentialrequestor.dto.CredentialPartnersList;
-import io.mosip.registration.processor.packet.storage.exception.ParsingException;
-import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
-import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.collections.MapUtils;
 import org.assertj.core.util.Lists;
 import org.json.JSONArray;
@@ -31,10 +22,28 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.PostConstruct;
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.mosip.kernel.core.exception.BaseCheckedException;
+import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.constant.JsonConstant;
+import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
+import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.packet.dto.FieldValue;
+import io.mosip.registration.processor.core.util.JsonUtil;
+import io.mosip.registration.processor.credentialrequestor.dto.CredentialPartner;
+import io.mosip.registration.processor.credentialrequestor.dto.CredentialPartnersList;
+import io.mosip.registration.processor.packet.storage.exception.ParsingException;
+import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 
 @Component
 public class CredentialPartnerUtil {
@@ -63,10 +72,10 @@ public class CredentialPartnerUtil {
     @Value("#{T(java.util.Arrays).asList('${mosip.mandatory-languages:}')}")
     private List<String> mandatoryLanguages;
 
-    @Value("${mosip.registration.processor.credential.conditional.no-match-partner-ids}")
+	@Value("${mosip.registration.processor.credential.conditional.no-match-partner-ids:}")
     private String noMatchIssuer;
 
-    @Value("#{${mosip.registration.processor.credential.conditional.partner-id-map:{}}}")
+	@Value("#{${mosip.registration.processor.credential.conditional.partner-id-map:{:}}}")
     private Map<String, String> credentialPartnerExpression;
 
     @Value("${config.server.file.storage.uri}")
@@ -77,10 +86,7 @@ public class CredentialPartnerUtil {
      * configured field names as values
      */
     private Map<String, String> requiredIDObjectFieldNamesMap;
-    /**
-     * Configured Id object fields
-     */
-    private List<String> requiredIdObjectFieldNames;
+
 
     @PostConstruct
     private void getIdObjectFieldNames() throws BaseCheckedException {
@@ -104,7 +110,6 @@ public class CredentialPartnerUtil {
                     requiredIDObjectFieldNamesMap.put(actualFieldName, variableEntry.getKey());
                 }
             }
-            requiredIdObjectFieldNames = requiredIDObjectFieldNamesMap.keySet().stream().collect(Collectors.toList());
         } catch (IOException e) {
             throw new BaseCheckedException(
                     PlatformErrorMessages.RPR_PCM_ACCESSING_IDOBJECT_MAPPING_FILE_FAILED.getCode(),
@@ -125,8 +130,12 @@ public class CredentialPartnerUtil {
             return Lists.emptyList();
         }
 
+
         Map<String, Object> identityFieldValueMap = new HashMap<>();
-                requiredIdObjectFieldNames.forEach(field -> identityFieldValueMap.put(field, JsonUtil.getJSONValue(identity, field)));
+		requiredIDObjectFieldNamesMap
+				.forEach(
+						(field, fieldName) -> identityFieldValueMap.put(fieldName,
+								JsonUtil.getJSONValue(identity, field)));
 
         Map<String, Object> context = new HashMap<>();
         for (Map.Entry<String, Object> identityAttribute: identityFieldValueMap.entrySet()) {
@@ -186,7 +195,9 @@ public class CredentialPartnerUtil {
             filteredPartners.forEach(
                     p -> {
                         Optional<CredentialPartner> partner = credentialPartners.getPartners()
-                                .stream().filter(pr -> pr.getId().equalsIgnoreCase(p)).findAny();
+								.stream().filter(pr -> pr.getId().equalsIgnoreCase(p))
+								.filter(pr -> (pr.getProcess() == null) || (pr.getProcess().contains(registrationType)))
+								.findAny();
                         if (partner.isPresent())
                             finalList.add(partner.get());
                     });
