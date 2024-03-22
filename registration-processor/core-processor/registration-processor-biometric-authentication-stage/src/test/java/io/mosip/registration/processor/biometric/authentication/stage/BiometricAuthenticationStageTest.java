@@ -529,7 +529,7 @@ public class BiometricAuthenticationStageTest {
 
 		biometricAuthenticationStage.deployVerticle();
 	}
-	
+
 	@Test
 	public void testAuthSystemException() throws ApisResourceAccessException, IOException, InvalidKeySpecException,
 			NoSuchAlgorithmException, BioTypeException, JsonProcessingException, PacketManagerException, CertificateException ,ValidationFailedException,Exception {
@@ -596,7 +596,7 @@ public class BiometricAuthenticationStageTest {
 		assertTrue(messageDto.getIsValid());
 		assertFalse(messageDto.getInternalError());
 	}
-	
+
 	@Test
 	public void testJsonProcessingException() throws ApisResourceAccessException, IOException, PacketManagerException, io.mosip.kernel.core.exception.IOException, JsonProcessingException {
 

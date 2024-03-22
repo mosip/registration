@@ -13,6 +13,7 @@ import org.springframework.core.env.MutablePropertySources;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
+
 import io.mosip.registration.processor.stages.executor.config.StagesConfig;
 import io.mosip.registration.processor.stages.executor.util.StageClassesUtil;
 

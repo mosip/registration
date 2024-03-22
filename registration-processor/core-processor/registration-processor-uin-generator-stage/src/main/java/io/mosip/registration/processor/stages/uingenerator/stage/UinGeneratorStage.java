@@ -1011,12 +1011,13 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	 * @throws IOException                       Signals that an I/O exception has
 	 *                                           occurred.
 	 * @throws IdrepoDraftReprocessableException
+	 * @throws JSONException
 	 */
 	@SuppressWarnings("unchecked")
 	private IdResponseDTO lostAndUpdateUin(String lostPacketRegId, String matchedRegId, String process, MessageDTO object,
 			LogDescription description) throws ApisResourceAccessException, IOException,
 			io.mosip.kernel.core.util.exception.JsonProcessingException, PacketManagerException, IdrepoDraftException,
-			IdrepoDraftReprocessableException {
+			IdrepoDraftReprocessableException, JSONException {
 
 		IdResponseDTO idResponse = null;
 		String uin = idRepoService.getUinByRid(matchedRegId, utility.getGetRegProcessorDemographicIdentity());
@@ -1035,15 +1036,23 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			String schemaVersion = packetManagerService.getFieldByMappingJsonKey(lostPacketRegId, MappingJsonConstants.IDSCHEMA_VERSION, process, ProviderStageName.UIN_GENERATOR);
 			identityObject.put(idschemaversion, convertIdschemaToDouble ? Double.valueOf(schemaVersion) : schemaVersion);
 			regProcLogger.info("Fields to be updated "+updateInfo);
-			if (null != updateInfo && !updateInfo.isEmpty()) {
-				String[] upd = updateInfo.split(",");
-				for (String infoField : upd) {
-					String fldValue = packetManagerService.getField(lostPacketRegId, infoField, process,
-							ProviderStageName.UIN_GENERATOR);
-					if (null != fldValue)
-						identityObject.put(infoField, fldValue);
+			Map<String, String> fieldMap = new HashMap<String, String>();
+			if (StringUtils.isNotEmpty(updateInfo)) {
+				String[] updateFields = updateInfo.split(",");
+				for (String fieldName : updateFields) {
+					String actualFieldName = JsonUtil.getJSONValue(
+							JsonUtil.getJSONObject(regProcessorIdentityJson, fieldName),
+							MappingJsonConstants.VALUE);
+					if (StringUtils.isNotEmpty(actualFieldName)) {
+						String fldValue = packetManagerService.getField(lostPacketRegId, actualFieldName, process,
+								ProviderStageName.UIN_GENERATOR);
+						if (null != fldValue)
+							fieldMap.put(actualFieldName, fldValue);
+					}
+
 				}
 			}
+			loadDemographicIdentity(fieldMap, identityObject);
 			requestDto.setRegistrationId(lostPacketRegId);
 			requestDto.setIdentity(identityObject);
 
