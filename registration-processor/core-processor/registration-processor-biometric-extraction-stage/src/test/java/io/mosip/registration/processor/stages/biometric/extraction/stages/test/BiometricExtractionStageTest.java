@@ -4,13 +4,15 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.hadoop.yarn.webapp.hamlet.HamletSpec;
 import org.assertj.core.util.Lists;
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -141,8 +143,6 @@ public class BiometricExtractionStageTest {
 					// TODO Auto-generated method stub
 
 				}
-
-
 			};
 		}
 
@@ -170,8 +170,6 @@ public class BiometricExtractionStageTest {
 		dto.setReg_type("UPDATE");
 
 		MockitoAnnotations.initMocks(this);
-
-
 		ResponseWrapper<AuditResponseDto> responseWrapper = new ResponseWrapper<>();
 		Mockito.doReturn(responseWrapper).when(auditLogRequestBuilder).createAuditRequestBuilder(
 				"test case description", EventId.RPR_405.toString(), EventName.UPDATE.toString(),
@@ -355,5 +353,32 @@ public class BiometricExtractionStageTest {
 		MessageDTO result = biometricExtractionStage.process(messageDTO);
 		assertTrue(result.getInternalError());
 		assertTrue(result.getIsValid());
+	}
+	@Test
+	public void testBiometricExtractionDraftExceptionAndDiscardDreaft() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.NEW.name());
+		messageDTO.setWorkflowInstanceId("123er");
+		messageDTO.setIteration(1);
+		when(idrepoDraftService.idrepoHasDraft(anyString())).thenReturn(true);
+		IdResponseDTO idResponseDTO=new IdResponseDTO();
+		List<io.mosip.registration.processor.core.common.rest.dto.ErrorDTO> errorList=new ArrayList<>();
+		io.mosip.registration.processor.core.common.rest.dto.ErrorDTO dto=new io.mosip.registration.processor.core.common.rest.dto.ErrorDTO();
+		dto.setErrorCode("aa");
+		dto.setMessage("bb");
+		errorList.add(dto);
+		idResponseDTO.setId("mosip.id.read");
+		idResponseDTO.setResponse(null);
+		idResponseDTO.setErrors(errorList);
+		idResponseDTO.setVersion("1.0");
+		List<String> segment=new ArrayList<>();
+		segment.add(messageDTO.getRid());
+		when(registrationProcessorRestClientService.putApi(Mockito.eq(ApiName.IDREPOEXTRACTBIOMETRICS), any(), anyString(), anyString(), Mockito.isNull(),   Mockito.eq(IdResponseDTO.class), isNull())).thenReturn(idResponseDTO);
+ 		MessageDTO result = biometricExtractionStage.process(messageDTO);
+		verify(idrepoDraftService,atLeastOnce()).idrepoDiscardDraft(anyString());
+
+		assertTrue(result.getInternalError());
+		assertFalse(result.getIsValid());
 	}
 }
