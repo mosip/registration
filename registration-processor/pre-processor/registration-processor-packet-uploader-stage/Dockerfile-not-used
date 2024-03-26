@@ -33,6 +33,14 @@ ENV is_glowroot_env=${is_glowroot}
 # environment variable to pass artifactory url, at docker runtime
 ENV artifactory_url_env=${artifactory_url}
 
+ARG container_user=mosip
+ARG container_user_group=mosip
+ARG container_user_uid=1001
+ARG container_user_gid=1001
+WORKDIR /home/${container_user}
+RUN chown -R ${container_user}:${container_user} /home/${container_user}
+USER ${container_user_uid}:${container_user_gid}
+
 # change volume to whichever storage directory you want to use for this container.
 VOLUME /home/logs /home/ftp1/LANDING_ZONE /home/ftp1/ARCHIVE_PACKET_LOCATION
 
