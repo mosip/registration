@@ -35,7 +35,7 @@ RUN addgroup -g ${container_user_gid} ${container_user_group} \
     && adduser -u ${container_user_uid} -G ${container_user_group} -D ${container_user} \
     && cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak \
     && cp /home/mosip/landing/healthcheck.txt /home/mosip/landing/healthcheck.txt.bak \
-    && chown -R ${container_user}:${container_user_group} /home/${container_user} \
+    && chown -R ${container_user}:${container_user} /home/${container_user} \
     && rm /etc/nginx/nginx.conf \
     && mv /etc/nginx/nginx.conf.bak /etc/nginx/nginx.conf \
     && rm /home/mosip/landing/healthcheck.txt \
