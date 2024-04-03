@@ -9,6 +9,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.registration.processor.core.exception.AdditionalInfoIdNotFoundException;
+import io.mosip.registration.processor.core.exception.ObjectStoreNotAccessibleException;
+import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
 import org.apache.commons.io.IOUtils;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.StringUtils;
@@ -108,7 +112,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 
 	@Autowired
 	private AdditionalInfoRequestService additionalInfoRequestService;
-	
+
 	@Autowired
     private ObjectStoreAdapter objectStoreAdapter;
 
@@ -116,10 +120,10 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 
 	@Value("${registration.processor.packet.ext}")
 	private String extention;
-	
+
 	@Value("${mosip.regproc.landing.zone.account.name}")
     private String landingZoneAccount;
-	
+
 	@Value("${mosip.regproc.landing.zone.type:ObjectStore}")
     private String landingZoneType;
 
@@ -529,7 +533,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 						 throw new ObjectStoreNotAccessibleException("Failed to store packet : " + packetId);
 					 }
 				}
-				
+
 				dto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 				dto.setStatusComment(StatusUtil.PACKET_UPLOADED_TO_LANDING_ZONE.getMessage());
 				dto.setSubStatusCode(StatusUtil.PACKET_UPLOADED_TO_LANDING_ZONE.getCode());

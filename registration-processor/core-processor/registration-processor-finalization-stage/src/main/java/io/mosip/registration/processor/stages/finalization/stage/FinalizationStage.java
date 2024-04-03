@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.stages.finalization.stage;
 
+import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

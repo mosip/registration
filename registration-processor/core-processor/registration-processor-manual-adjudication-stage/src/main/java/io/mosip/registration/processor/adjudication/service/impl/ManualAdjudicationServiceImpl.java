@@ -202,9 +202,10 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 
 	@Autowired
 	RegistrationExceptionMapperUtil registrationExceptionMapperUtil;
-	
-	@Autowired 
+
+	@Autowired
 	private ManualVerificationUpdateUtility manualVerificationUpdateUtility;
+
 
 	/** The Constant PROTOCOL. */
 	public static final String PROTOCOL = "https";
@@ -555,33 +556,33 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 				HashMap docmap = (HashMap) docJson.get(doc.toString());
 				String docName = docmap != null && docmap.get(MappingJsonConstants.VALUE)!= null ? docmap.get(MappingJsonConstants.VALUE).toString() : null;
 				for(Entry<String,String> entry: policyMap.entrySet()) {
-				if (docmap != null && entry.getValue().contains(docName)) {
-					if(documents==null || documents.isEmpty()) {
-						Document document = packetManagerService.getDocument(id, docName, process, ProviderStageName.MANUAL_ADJUDICATION);
-						if (document != null) {
-							if (requestDto.getDocuments() != null)
-								requestDto.getDocuments().put(docmap.get(MappingJsonConstants.VALUE).toString(), CryptoUtil.encodeToURLSafeBase64(document.getDocument()));
-							else {
-								Map<String, String> docMap = new HashMap<>();
-								docMap.put(docmap.get(MappingJsonConstants.VALUE).toString(), CryptoUtil.encodeToURLSafeBase64(document.getDocument()));
-								requestDto.setDocuments(docMap);
-							}
-						}
-					}
-					else {
-						for(Documents docs:documents) {
-							if(docs.getCategory().equalsIgnoreCase(docName)) {
-								if (requestDto.getDocuments() != null) {
-									requestDto.getDocuments().put(docmap.get(MappingJsonConstants.VALUE).toString(), docs.getValue());
-								}else {
+					if (entry.getValue().contains(docName) && docmap!=null) {
+						if(documents==null || documents.isEmpty()) {
+							Document document = packetManagerService.getDocument(id, docName, process, ProviderStageName.MANUAL_ADJUDICATION);
+							if (document != null) {
+								if (requestDto.getDocuments() != null)
+									requestDto.getDocuments().put(docmap.get(MappingJsonConstants.VALUE).toString(), CryptoUtil.encodeToURLSafeBase64(document.getDocument()));
+								else {
 									Map<String, String> docMap = new HashMap<>();
-									docMap.put(docmap.get(MappingJsonConstants.VALUE).toString(), docs.getValue());
+									docMap.put(docmap.get(MappingJsonConstants.VALUE).toString(), CryptoUtil.encodeToURLSafeBase64(document.getDocument()));
 									requestDto.setDocuments(docMap);
 								}
 							}
 						}
+						else {
+							for(Documents docs:documents) {
+								if(docs.getCategory().equalsIgnoreCase(docName)) {
+									if (requestDto.getDocuments() != null) {
+										requestDto.getDocuments().put(docmap.get(MappingJsonConstants.VALUE).toString(), docs.getValue());
+									}else {
+										Map<String, String> docMap = new HashMap<>();
+										docMap.put(docmap.get(MappingJsonConstants.VALUE).toString(), docs.getValue());
+										requestDto.setDocuments(docMap);
+									}
+								}
+							}
+						}
 					}
-				}
 				}
 			}
 		}

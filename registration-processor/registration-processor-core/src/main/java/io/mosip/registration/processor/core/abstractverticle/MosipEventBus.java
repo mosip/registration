@@ -52,9 +52,7 @@ public interface MosipEventBus {
 	 */
 	public void send(MessageBusAddress toAddress, MessageDTO message);
 
-	public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler,
-			String address);
+	public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler, String address);
 
-	public void senderHealthCheck(Handler<HealthCheckDTO> eventHandler,
-			String address);
+	public void senderHealthCheck(Handler<HealthCheckDTO> eventHandler, String address);
 }
