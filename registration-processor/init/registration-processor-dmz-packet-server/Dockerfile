@@ -35,3 +35,5 @@ RUN groupadd -g ${container_user_gid} ${container_user_group} \
 
 # Start Nginx with daemon off
 CMD ["nginx", "-g", "daemon off;"]
+
+USER ${container_user_uid}:${container_user_gid}
