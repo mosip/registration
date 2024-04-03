@@ -22,8 +22,10 @@ ENV active_profile_env=${active_profile}
 # environment variable to pass github branch to pickup configuration from, at docker runtime
 ENV spring_config_label_env=${spring_config_label}
 
-# environment variable to pass github branch to pickup configuration from, at docker runtime
-ENV spring_config_label_env=${spring_config_label}
+ARG container_user=mosip
+ARG container_user_group=mosip
+ARG container_user_uid=1001
+ARG container_user_gid=1001
 
 # change volume to whichever storage directory you want to use for this container.
 VOLUME /home/ftp1/ARCHIVE_PACKET_LOCATION /home/ftp1/LANDING_ZONE /home/Glowroot
@@ -32,6 +34,12 @@ COPY ./target/registration-processor-packet-receiver-stage-*.jar registration-pr
 
 EXPOSE 8081
 EXPOSE 4001
+
+WORKDIR /home/${container_user}
+
+RUN chown -R ${container_user}:${container_user} /home/${container_user}
+
+USER ${container_user_uid}:${container_user_gid}
 
 CMD if [ "$active_profile_env" = "preprod" ]; then \
     wget 'http://13.71.87.138:8040/artifactory/libs-release-local/io/mosip/testing/glowroot.zip' ; \
