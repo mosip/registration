@@ -21,25 +21,17 @@ EXPOSE 8082
 # Set working directory
 WORKDIR /home/${container_user}
 
-# Switch to the specified user
-USER ${container_user_uid}:${container_user_gid}
-
 # Copy nginx configuration file
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Copy healthcheck.txt to the specified directory
-COPY healthcheck.txt /home/mosip/landing/healthcheck.txt
-
 # Ensure the user and group exist, copy files, set permissions
-RUN addgroup -g ${container_user_gid} ${container_user_group} \
-    && adduser -u ${container_user_uid} -G ${container_user_group} -D ${container_user} \
-    && cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak \
+RUN groupadd -g ${container_user_gid} ${container_user_group} \
+    && useradd -u ${container_user_uid} -g ${container_user_group} -m ${container_user} \
+    && mkdir -p /home/mosip/landing/ \
     && cp /home/mosip/landing/healthcheck.txt /home/mosip/landing/healthcheck.txt.bak \
     && chown -R ${container_user}:${container_user} /home/${container_user} \
-    && rm /etc/nginx/nginx.conf \
-    && mv /etc/nginx/nginx.conf.bak /etc/nginx/nginx.conf \
-    && rm /home/mosip/landing/healthcheck.txt \
-    && mv /home/mosip/landing/healthcheck.txt.bak /home/mosip/landing/healthcheck.txt
+    && mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak \
+    && mv /home/mosip/landing/healthcheck.txt /home/mosip/landing/healthcheck.txt.bak
 
 # Start Nginx with daemon off
 CMD ["nginx", "-g", "daemon off;"]
