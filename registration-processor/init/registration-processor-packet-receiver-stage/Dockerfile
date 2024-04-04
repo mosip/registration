@@ -1,6 +1,17 @@
 FROM openjdk:11
+
 #Uncomment below and Comment above line(i.e. FROM openjdk:8) for OS specific (e.g. Alpine OS ) docker base image
 #FROM openjdk:8-jdk-alpine
+
+ARG SOURCE
+ARG COMMIT_HASH
+ARG COMMIT_ID
+ARG BUILD_TIME
+LABEL source=${SOURCE}
+LABEL commit_hash=${COMMIT_HASH}
+LABEL commit_id=${COMMIT_ID}
+LABEL build_time=${BUILD_TIME}
+
 # setting labels for extra properties needed for this Docker image, so that it can be used at run time with docker inspect
 LABEL network=host
 LABEL privileged=true
