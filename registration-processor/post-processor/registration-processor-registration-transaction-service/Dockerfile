@@ -3,19 +3,20 @@ FROM openjdk:11
 #Uncomment below and Comment above line(i.e. FROM openjdk:8) for OS specific (e.g. Alpine OS ) docker base image
 #FROM openjdk:8-jdk-alpine
 
-# can be passed during Docker build as build time environment for github branch to pickup configuration from.
-ARG spring_config_label
+ARG SOURCE
+ARG COMMIT_HASH
+ARG COMMIT_ID
+ARG BUILD_TIME
+LABEL source=${SOURCE}
+LABEL commit_hash=${COMMIT_HASH}
+LABEL commit_id=${COMMIT_ID}
+LABEL build_time=${BUILD_TIME}
 
-# can be passed during Docker build as build time environment for spring profiles active 
+# can be passed during Docker build as build time environment for github branch to pickup configuration from | spring profiles active | config server URL | glowroot and artifactory URL respectively .
+ARG spring_config_label 
 ARG active_profile
-
-# can be passed during Docker build as build time environment for config server URL 
-ARG spring_config_url
-
-# can be passed during Docker build as build time environment for glowroot 
+ARG spring_config_url 
 ARG is_glowroot
-
-# can be passed during Docker build as build time environment for artifactory URL
 ARG artifactory_url
 
 # can be passed during Docker build as build time environment management rmi server hostname
@@ -24,34 +25,18 @@ ARG management_rmi_server_hostname
 # can be passed during Docker build as build time environment management rmi server port
 ARG management_jmxremote_rmi_port
 
-# environment variable to pass active profile such as DEV, QA etc at docker runtime
+# environment variable to pass active profile such as DEV, QA etc at docker runtime | github branch to pickup configuration from, at docker runtime | spring configuration url, at docker runtime | glowroot, at docker runtime | artifactory url, at docker runtime and iam_adapter url, at docker runtime, respectively.
 ENV active_profile_env=${active_profile}
-
-# environment variable to pass github branch to pickup configuration from, at docker runtime
 ENV spring_config_label_env=${spring_config_label}
-
-# environment variable to pass github branch to pickup configuration from, at docker runtime
-ENV spring_config_label_env=${spring_config_label}
-
-# environment variable to pass glowroot, at docker runtime
+ENV spring_config_url_env=${spring_config_url}
 ENV is_glowroot_env=${is_glowroot}
-
-# environment variable to pass artifactory url, at docker runtime
 ENV artifactory_url_env=${artifactory_url}
-
-# environment variable to pass iam_adapter url, at docker runtime
 ENV iam_adapter_url_env=${iam_adapter_url}
 
 # can be passed during Docker build as build time environment for github branch to pickup configuration from.
 ARG container_user=mosip
-
-# can be passed during Docker build as build time environment for github branch to pickup configuration from.
 ARG container_user_group=mosip
-
-# can be passed during Docker build as build time environment for github branch to pickup configuration from.
 ARG container_user_uid=1001
-
-# can be passed during Docker build as build time environment for github branch to pickup configuration from.
 ARG container_user_gid=1001
 
 RUN apt-get -y update \
