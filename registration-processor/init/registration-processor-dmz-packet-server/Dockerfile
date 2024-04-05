@@ -9,7 +9,7 @@ LABEL commit_hash=${COMMIT_HASH}
 LABEL commit_id=${COMMIT_ID}
 LABEL build_time=${BUILD_TIME}
 
-# Define arguments
+## can be passed during Docker build as build time environment 
 ARG container_user=mosip
 ARG container_user_group=mosip
 ARG container_user_uid=1001
