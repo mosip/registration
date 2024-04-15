@@ -523,7 +523,8 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 							DirectoryPathDto.LANDING_ZONE);
 				}
 				else if(landingZoneType.equalsIgnoreCase(LandingZoneTypeConstant.OBJECT_STORE)) {
-					 boolean result =objectStoreAdapter.putObject(landingZoneAccount, registrationId, null, null, packetId, encryptedInputStream);
+					boolean result = objectStoreAdapter.putObject(landingZoneAccount, registrationId, null, null,
+							packetId, new ByteArrayInputStream(encryptedByteArray));
 					 if(!result) {
 						 throw new ObjectStoreNotAccessibleException("Failed to store packet : " + packetId);
 					 }
