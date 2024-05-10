@@ -9,6 +9,7 @@ import java.util.function.Function;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManagerFactory;
 
+import org.apache.hc.core5.http.ParseException;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Ignore;
@@ -88,7 +89,7 @@ public class RestHelperTest {
 	private RestApiClient restApiClient;
 	
 	@Before
-	public void before() throws IOException {
+	public void before() throws IOException, ParseException {
 		PowerMockito.mockStatic(SslContextBuilder.class);
 		SslContextBuilder sslContextBuilder = PowerMockito.mock(SslContextBuilder.class);
 		PowerMockito.when(SslContextBuilder.forClient()).thenReturn(sslContextBuilder);

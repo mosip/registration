@@ -5,7 +5,7 @@ import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.crypto.SecretKey;
 
 import io.mosip.registration.processor.packet.storage.helper.PacketManagerHelper;

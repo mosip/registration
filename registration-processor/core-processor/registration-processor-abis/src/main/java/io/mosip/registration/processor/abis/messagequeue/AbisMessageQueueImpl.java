@@ -4,8 +4,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.jms.Message;
-import javax.jms.TextMessage;
+
 
 import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.json.simple.JSONObject;
@@ -32,6 +31,8 @@ import io.mosip.registration.processor.core.queue.factory.QueueListener;
 import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import jakarta.jms.Message;
+import jakarta.jms.TextMessage;
 
 /**
  * The AbisMessageQueueImpl class.

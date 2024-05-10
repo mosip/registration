@@ -3,8 +3,8 @@ package io.mosip.registration.processor.adjudication.response.dto;
 import lombok.Data;
 import org.json.simple.JSONObject;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @Data
 public class Candidate {

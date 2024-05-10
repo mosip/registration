@@ -6,10 +6,10 @@
 	<parent>
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>post-processor</artifactId>
-		<version>1.2.1-SNAPSHOT</version>
+		<version>1.2.1-java21-SNAPSHOT</version>
 	</parent>
 	<artifactId>registration-processor-credential-requestor-stage</artifactId>
-	 <version>1.2.1-SNAPSHOT</version>
+	 <version>1.2.1-java21-SNAPSHOT</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -89,13 +89,11 @@
 		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-module-junit4</artifactId>
-			<version>${powermock.module.junit4.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-api-mockito2</artifactId>
-			<version>${powermock.api.mockito.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

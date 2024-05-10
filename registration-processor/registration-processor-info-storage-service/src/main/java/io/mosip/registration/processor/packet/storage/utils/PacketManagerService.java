@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
 import io.mosip.registration.processor.core.packet.dto.packetmanager.TagRequestDto;

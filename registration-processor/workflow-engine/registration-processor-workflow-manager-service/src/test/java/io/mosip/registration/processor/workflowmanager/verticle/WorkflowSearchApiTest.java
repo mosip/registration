@@ -260,36 +260,6 @@ public class WorkflowSearchApiTest {
 			}
 
 			@Override
-			public RoutingContext addCookie(io.vertx.core.http.Cookie arg0) {
-				return null;
-			}
-
-			@Override
-			public int addEndHandler(Handler<AsyncResult<Void>> arg0) {
-				return 0;
-			}
-
-			@Override
-			public Map<String, io.vertx.core.http.Cookie> cookieMap() {
-				return null;
-			}
-
-			@Override
-			public void fail(int arg0, Throwable arg1) {
-
-			}
-
-			@Override
-			public boolean isSessionAccessed() {
-				return false;
-			}
-
-			@Override
-			public boolean removeEndHandler(int arg0) {
-				return false;
-			}
-
-			@Override
 			public HttpServerRequest request() {
 				// TODO Auto-generated method stub
 				return null;
