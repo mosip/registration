@@ -7,7 +7,11 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.ComponentScan.Filter;
 
+import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
+import io.mosip.registration.processor.core.kernel.beans.KernelConfig;
 import io.mosip.registration.processor.workflowmanager.verticle.WorkflowActionApi;
 import io.mosip.registration.processor.workflowmanager.verticle.WorkflowActionJob;
 import io.mosip.registration.processor.workflowmanager.verticle.WorkflowInternalActionVerticle;
@@ -21,7 +25,8 @@ import io.mosip.registration.processor.workflowmanager.verticle.WorkflowInternal
 		"io.mosip.registration.processor.status.config",
 		"io.mosip.registration.processor.core.kernel.beans",
 		"io.mosip.registration.processor.packet.storage.config",
-		"io.mosip.kernel.websub.api.config.publisher" })
+		"io.mosip.kernel.websub.api.config.publisher" }, excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = {
+				KernelConfig.class, HibernateDaoConfig.class }))
 public class WorkflowManagerApplication 
 {
 	public static void main(String[] args) {

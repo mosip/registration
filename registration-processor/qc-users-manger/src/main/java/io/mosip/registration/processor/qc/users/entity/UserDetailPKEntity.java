@@ -2,7 +2,7 @@ package io.mosip.registration.processor.qc.users.entity;
 
 import java.io.Serializable;
 
-import javax.persistence.Embeddable;
+import jakarta.persistence.Embeddable;
 
 @Embeddable
 public class UserDetailPKEntity implements Serializable {

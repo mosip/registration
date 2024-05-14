@@ -346,6 +346,36 @@ public class SecurezoneNotificationStageTest {
                 return null;
             }
 
+			@Override
+			public void fail(int statusCode, Throwable throwable) {
+
+			}
+
+			@Override
+			public RoutingContext addCookie(io.vertx.core.http.Cookie cookie) {
+				return null;
+			}
+
+			@Override
+			public Map<String, io.vertx.core.http.Cookie> cookieMap() {
+				return null;
+			}
+
+			@Override
+			public boolean isSessionAccessed() {
+				return false;
+			}
+
+			@Override
+			public int addEndHandler(Handler<AsyncResult<Void>> handler) {
+				return 0;
+			}
+
+			@Override
+			public boolean removeEndHandler(int handlerID) {
+				return false;
+			}
+
         };
     }
 

@@ -9,12 +9,12 @@ import io.mosip.registration.processor.status.utilities.RegistrationUtility;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
+
 import io.mosip.kernel.dataaccess.hibernate.repository.impl.HibernateRepositoryImpl;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.utils.RestApiClient;
@@ -42,8 +42,7 @@ import io.mosip.registration.processor.status.utilities.RegistrationExternalStat
 
 @Configuration
 @PropertySource("classpath:bootstrap.properties")
-@Import({ HibernateDaoConfig.class })
-@EnableJpaRepositories(basePackages = "io.mosip.registration.processor", repositoryBaseClass = HibernateRepositoryImpl.class)
+@EnableJpaRepositories(basePackages = "io.mosip.registration.processor.status.repositary", repositoryBaseClass = HibernateRepositoryImpl.class)
 public class RegistrationStatusBeanConfig {
 
 	@Bean

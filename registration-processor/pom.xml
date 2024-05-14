@@ -46,19 +46,13 @@
 		<maven.assembly.version>3.3.0</maven.assembly.version>
 
 		<!-- Core -->
-		<spring-framework.version>5.0.6.RELEASE</spring-framework.version>
-		<spring.version>5.0.4.RELEASE</spring.version>
-		<spring.boot.version>2.0.2.RELEASE</spring.boot.version>
-		<spring.data.version>2.0.9.RELEASE</spring.data.version>
-		<spring-cloud-config.version>2.0.0.RELEASE</spring-cloud-config.version>
+		<spring.boot.version>3.2.3</spring.boot.version>
 
-		<spring.batch.version>4.0.1.RELEASE</spring.batch.version>
-		<spring-cloud-config.version>2.0.0.RELEASE</spring-cloud-config.version>
 
 		<!-- Miscellaneous -->
 		<javax.el-api.version>3.0.0</javax.el-api.version>
 		<javax.validation-api.version>2.0.1.Final</javax.validation-api.version>
-		<jackson.version>2.12.0</jackson.version>
+		<jackson.version>2.15.4</jackson.version>
 		<jackson.afterburner.version>2.12.0</jackson.afterburner.version>
 		<hibernate.validator.version>6.0.12.Final</hibernate.validator.version>
 		<modelmapper.version>2.1.1</modelmapper.version>
@@ -352,6 +346,11 @@
 				<type>pom</type>
 			    <scope>import</scope>
 			</dependency>
+			 <dependency>
+			<groupId>com.hazelcast</groupId>
+			<artifactId>hazelcast</artifactId>
+			<version>3.9.4</version>
+		</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -384,7 +383,19 @@
 						<skipTests>${skipTests}</skipTests>
 						<skip>false</skip>
 						<argLine>
-							${argLine} --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --illegal-access=permit
+							${argLine} --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED 
+							--add-opens java.base/java.lang=ALL-UNNAMED 
+							--add-opens java.base/java.net=ALL-UNNAMED 
+							--add-opens java.base/java.util=ALL-UNNAMED 
+							--add-opens java.base/java.io=ALL-UNNAMED 
+							--add-opens java.base/java.time=ALL-UNNAMED 
+							--add-opens java.base/java.nio.charset=ALL-UNNAMED
+							--add-opens java.base/java.time.format=ALL-UNNAMED
+							--add-opens java.base/java.lang.reflect=ALL-UNNAMED
+							--add-opens java.base/sun.security.jca=ALL-UNNAMED
+							--add-opens java.base/sun.security.util=ALL-UNNAMED
+							--add-opens java.base/jdk.internal.util=ALL-UNNAMED
+							--illegal-access=permit
 						</argLine>
 					</configuration>
 				</plugin>
