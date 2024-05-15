@@ -13,6 +13,7 @@ import io.mosip.registration.processor.packet.storage.utils.PacketManagerService
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -43,31 +44,25 @@ import io.mosip.registration.processor.packet.storage.utils.Utilities;
 @PropertySource("classpath:bootstrap.properties")
 @EnableConfigurationProperties
 @Import({ HibernateDaoConfig.class })
-@EnableJpaRepositories(basePackages = "io.mosip.registration.processor", repositoryBaseClass = HibernateRepositoryImpl.class)
+//@EnableJpaRepositories(basePackages = "io.mosip.registration.processor", repositoryBaseClass = HibernateRepositoryImpl.class)
 public class PacketStorageBeanConfig {
 
-	@Bean
-	@ConfigurationProperties(prefix = "provider.packetreader")
-	public Map<String, String> readerConfiguration() {
-		return new HashMap<>();
-	}
+	@Autowired
+	@Qualifier("readerConfiguration")
+	private Map<String, String> packetReaderConfig;
 
-	@Bean
-	@ConfigurationProperties(prefix = "packetmanager.provider")
-	public Map<String, String> providerConfiguration() {
-		return new HashMap<>();
-	}
+	@Autowired
+	@Qualifier("writerConfiguration")
+	private Map<String, String> packetWriterConfig;
 
-	@Bean
-	@ConfigurationProperties(prefix = "provider.packetwriter")
-	public Map<String, String> writerConfiguration() {
-		return new HashMap<>();
-	}
+	@Autowired
+	@Qualifier("providerConfiguration")
+	private Map<String, String> packetProviderConfig;
 
 	@PostConstruct
 	public void initialize() {
-		Utilities.initialize(readerConfiguration(), writerConfiguration());
-		PriorityBasedPacketManagerService.initialize(providerConfiguration());
+		Utilities.initialize(packetReaderConfig, packetWriterConfig);
+		PriorityBasedPacketManagerService.initialize(packetProviderConfig);
 	}
 
 	@Bean
