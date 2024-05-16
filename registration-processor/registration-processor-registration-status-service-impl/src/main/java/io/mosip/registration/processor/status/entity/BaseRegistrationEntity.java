@@ -17,6 +17,7 @@ import jakarta.persistence.MappedSuperclass;
 // repository(RegistrationRepository)
 
 
+
 @MappedSuperclass
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public class BaseRegistrationEntity<C>  {

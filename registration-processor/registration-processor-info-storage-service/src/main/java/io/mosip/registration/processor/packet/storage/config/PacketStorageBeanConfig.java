@@ -39,6 +39,7 @@ import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.BioSdkUtil;
 import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.packet.storage.utils.Utility;
 
 @Configuration
 @PropertySource("classpath:bootstrap.properties")
@@ -121,5 +122,15 @@ public class PacketStorageBeanConfig {
 	@Bean
 	public IdSchemaUtil getIdSchemaUtil() {
 		return new IdSchemaUtil();
+	}
+
+	@Bean
+	public Utility getUtility() {
+		return new Utility();
+	}
+
+	@Bean
+	public PriorityBasedPacketManagerService getPriorityBasedPacketManagerService() {
+		return new PriorityBasedPacketManagerService();
 	}
 }

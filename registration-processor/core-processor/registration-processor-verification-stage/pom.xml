@@ -107,11 +107,6 @@
             <artifactId>powermock-api-mockito2</artifactId>
             <scope>test</scope>
         </dependency>
-         <dependency>
-			<groupId>org.apache.activemq</groupId>
-			<artifactId>activemq-client</artifactId>
-			<version>6.1.2</version>
-		</dependency>
     </dependencies>
 
     <build>
