@@ -84,11 +84,13 @@ public class RegistrationStatusBeanConfig {
 	}
 
 	@Bean
+	@Primary
 	public RestApiClient getRestApiClient() {
 		return new RestApiClient();
 	}
 
 	@Bean
+	@Primary
 	public SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> getSyncRegistrationService() {
 		return new SyncRegistrationServiceImpl();
 	}
