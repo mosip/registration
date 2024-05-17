@@ -55,12 +55,6 @@
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-health-check</artifactId>
-			<version>${vertx.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.activemq</groupId>
-			<artifactId>activemq-client</artifactId>
-			<version>6.1.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -187,10 +181,10 @@
 			<artifactId>vertx-config</artifactId>
 		</dependency>
 		<dependency>
-    <groupId>io.zipkin.zipkin2</groupId>
-    <artifactId>zipkin</artifactId>
-    <version>3.3.0</version>
-</dependency>
+           <groupId>io.zipkin.zipkin2</groupId>
+          <artifactId>zipkin</artifactId>
+         <version>${zipkin.version}</version>
+      </dependency>
        </dependencies>
 	<dependencyManagement>
 		<dependencies>

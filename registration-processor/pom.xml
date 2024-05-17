@@ -104,6 +104,7 @@
 		<vertx.version>3.9.1</vertx.version>
 		<camel.vertx.version>2.23.0</camel.vertx.version>
 		<hazelcast.kubernetes.version>1.0.0</hazelcast.kubernetes.version>
+		<hazelcast.version>3.9.4</hazelcast.version>
 		<!-- json-simple -->
 		<jsonsimple.version>1.1.1</jsonsimple.version>
 
@@ -112,6 +113,9 @@
 
 		<!-- jsch.version -->
 		<jsch.version>0.1.55</jsch.version>
+		
+		<zipkin.version>3.3.0</zipkin.version>
+		<activemq.client.version>6.1.2</activemq.client.version>
 
 		<!-- local -->
 		<registration.status.service.version>1.2.1-java21-SNAPSHOT</registration.status.service.version>
@@ -140,6 +144,7 @@
 		<kernel-keymanager-service.version>1.2.1-java21-SNAPSHOT</kernel-keymanager-service.version>
 		<kernel.websubclient.version>1.2.1-java21-SNAPSHOT</kernel.websubclient.version>
 		<kernel-biosdk-provider.version>1.2.1-java21-SNAPSHOT</kernel-biosdk-provider.version>
+		<kernel.bom.version>1.2.1-java21-SNAPSHOT</kernel.bom.version>
 		<sonar.coverage.exclusions>**/dto/**,
 			**/exception/*Exception.java,
 			**/config/*Config.java,
@@ -342,18 +347,18 @@
 			<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-bom</artifactId>
-				<version>1.2.1-java21-SNAPSHOT</version>
+				<version>${kernel.bom.version}</version>
 				<type>pom</type>
 			    <scope>import</scope>
 			</dependency>
 			 <dependency>
 			<groupId>com.hazelcast</groupId>
 			<artifactId>hazelcast</artifactId>
-			<version>3.9.4</version>
+			<version>${hazelcast.version}</version>
 		</dependency><dependency>
 			<groupId>org.apache.activemq</groupId>
 			<artifactId>activemq-client</artifactId>
-			<version>6.1.2</version>
+			<version>${activemq.client.version}</version>
 		</dependency>
 		</dependencies>
 	</dependencyManagement>
