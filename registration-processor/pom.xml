@@ -101,7 +101,7 @@
 		<s3mock.version>0.2.4</s3mock.version>
 
 		<!-- Vert.x -->
-		<vertx.version>3.9.1</vertx.version>
+		<vertx.version>3.9.13</vertx.version>
 		<camel.vertx.version>2.23.0</camel.vertx.version>
 		<hazelcast.kubernetes.version>1.0.0</hazelcast.kubernetes.version>
 		<hazelcast.version>3.9.4</hazelcast.version>
@@ -351,11 +351,7 @@
 				<type>pom</type>
 			    <scope>import</scope>
 			</dependency>
-			 <dependency>
-			<groupId>com.hazelcast</groupId>
-			<artifactId>hazelcast</artifactId>
-			<version>${hazelcast.version}</version>
-		</dependency><dependency>
+			<dependency>
 			<groupId>org.apache.activemq</groupId>
 			<artifactId>activemq-client</artifactId>
 			<version>${activemq.client.version}</version>
