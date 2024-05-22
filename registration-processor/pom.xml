@@ -401,6 +401,7 @@
 							--add-opens java.base/sun.security.util=ALL-UNNAMED
 							--add-opens java.base/jdk.internal.util=ALL-UNNAMED
 							--add-opens java.base/java.text=ALL-UNNAMED 
+							--add-opens java.xml/com.sun.org.apache.xerces.internal.impl=ALL-UNNAMED 
 							--illegal-access=permit
 						</argLine>
 					</configuration>

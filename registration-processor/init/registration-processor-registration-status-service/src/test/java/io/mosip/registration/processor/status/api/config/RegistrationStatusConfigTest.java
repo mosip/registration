@@ -29,7 +29,7 @@ import io.vertx.ext.web.RoutingContext;
 
 @Configuration
 @ComponentScan(basePackages = {
-		"io.mosip.registration.processor.status.*" }, excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = {
+		"io.mosip.registration.processor.status.api" }, excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = {
 				RegistrationStatusBeanConfig.class, RestConfigBean.class,
 				CoreConfigBean.class, AuthorizedRolesDto.class,
 				PacketExternalStatusServiceImpl.class }))
