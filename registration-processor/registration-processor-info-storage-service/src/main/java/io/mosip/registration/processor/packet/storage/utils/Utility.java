@@ -27,6 +27,12 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import lombok.Data;
 
+/**
+ * The Class Utility.
+ *
+ * @author Sowmya Banakar
+ */
+
 @Component
 @Data
 public class Utility {
