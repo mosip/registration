@@ -6,16 +6,16 @@
 	<parent>
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>registration-processor</artifactId>
-		<version>1.2.1-SNAPSHOT</version>
+		<version>1.2.1-java21-SNAPSHOT</version>
 	</parent>
 	<artifactId>registration-processor-common-camel-bridge</artifactId>
-	<version>1.2.1-SNAPSHOT</version>
+	<version>1.2.1-java21-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<properties>
 		<vertx.verticle>io.mosip.registration.processor.camel.bridge.MosipCamelBridge</vertx.verticle>
 		<fabric8-vertx-maven-plugin.version>1.0.5</fabric8-vertx-maven-plugin.version>
-	    <registration.processor.registration.status.service.impl.version>1.2.1-SNAPSHOT</registration.processor.registration.status.service.impl.version>
+	    <registration.processor.registration.status.service.impl.version>1.2.1-java21-SNAPSHOT</registration.processor.registration.status.service.impl.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -40,18 +40,15 @@
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-unit</artifactId>
-			<version>${vertx.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-config-spring-config-server</artifactId>
-			<version>${vertx.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-config</artifactId>
-			<version>${vertx.version}</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.apache.camel/camel-vertx -->
 		<dependency>
@@ -110,13 +107,11 @@
 		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-module-junit4</artifactId>
-			<version>${powermock.module.junit4.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-api-mockito2</artifactId>
-			<version>${powermock.api.mockito.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

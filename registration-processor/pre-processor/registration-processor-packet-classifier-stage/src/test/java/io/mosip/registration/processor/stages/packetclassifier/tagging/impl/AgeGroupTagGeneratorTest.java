@@ -22,6 +22,7 @@ import org.springframework.cloud.context.config.annotation.RefreshScope;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.packet.storage.utils.Utility;
 
 /**
  * The Class PacketValidatorStageTest.
@@ -36,7 +37,7 @@ public class AgeGroupTagGeneratorTest {
 	private AgeGroupTagGenerator ageGroupTagGenerator;
 
 	@Mock
-	private Utilities utility;
+	private Utility utility;
 
 	private static String tagName = "AGE_GROUP";
 	Map<String,String> ageGroupRangeMap;

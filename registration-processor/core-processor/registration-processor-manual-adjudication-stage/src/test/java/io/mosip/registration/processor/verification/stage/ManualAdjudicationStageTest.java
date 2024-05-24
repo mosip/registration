@@ -481,7 +481,6 @@ public class ManualAdjudicationStageTest {
 			public List<Locale> acceptableLocales() {
 				return null;
 			}
-
 			@Override
 			public void fail(int statusCode, Throwable throwable) {
 			}

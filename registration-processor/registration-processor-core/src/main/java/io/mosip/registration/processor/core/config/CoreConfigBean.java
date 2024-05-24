@@ -200,15 +200,6 @@ public class CoreConfigBean {
 	}
 
 	@Bean
-	public ObjectMapper getObjectMapper() {
-		ObjectMapper objectMapper = new ObjectMapper().registerModule(new AfterburnerModule())
-				.registerModule(new JavaTimeModule());
-		objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-		objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
-		return objectMapper;
-	}
-
-	@Bean
 	public PropertiesUtil getPropertiesUtil() {
 		return new PropertiesUtil();
 	}

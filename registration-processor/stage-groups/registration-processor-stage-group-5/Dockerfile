@@ -1,4 +1,4 @@
-FROM openjdk:11
+FROM eclipse-temurin:21-jre-alpine
 
 ARG SOURCE
 ARG COMMIT_HASH
@@ -49,7 +49,7 @@ ARG container_user=mosip
 ARG container_user_group=mosip
 
 # can be passed during Docker build as build time environment for github branch to pickup configuration from.
-ARG container_user_uid=1001
+ARG container_user_uid=1002
 
 # can be passed during Docker build as build time environment for github branch to pickup configuration from.
 ARG container_user_gid=1001
@@ -65,10 +65,11 @@ ENV biosdk_local_dir_name=${biosdk_local_dir}
 ENV biosdk_zip_file_path=${biosdk_zip_path}
 
 # install packages and create user
-RUN apt-get -y update \
-&& apt-get install -y unzip sudo \
-&& groupadd -g ${container_user_gid} ${container_user_group} \
-&& useradd -u ${container_user_uid} -g ${container_user_group} -s /bin/sh -m ${container_user} \
+RUN apk -q update \
+&& apk add -q unzip sudo \
+&& addgroup -g ${container_user_gid} ${container_user_group} \
+&& adduser -s /bin/sh -u ${container_user_uid} -G ${container_user_group} -h /home/${container_user} --disabled-password ${container_user} \
+&& addgroup sudo \
 && adduser ${container_user} sudo \
 && echo "%sudo ALL=(ALL) NOPASSWD:/home/${container_user}/${biosdk_local_dir}/install.sh" >> /etc/sudoers
 
@@ -110,8 +111,8 @@ CMD if [ "$is_glowroot_env" = "present" ]; then \
     unzip glowroot.zip ; \
     rm -rf glowroot.zip ; \
     sed -i 's/<service_name>/registration-processor-external-stage/g' glowroot/glowroot.properties ; \
-    java -Dloader.path="${loader_path_env}"  -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -Dstage-group-name=${group_name} -jar -javaagent:glowroot/glowroot.jar ${group_name}.jar ; \
+    java -Dloader.path="${loader_path_env}"  -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -Dstage-group-name=${group_name} --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.lang.stream=ALL-UNNAMED --add-opens java.base/java.time=ALL-UNNAMED --add-opens java.base/java.time.LocalDate=ALL-UNNAMED --add-opens java.base/java.time.LocalDateTime=ALL-UNNAMED --add-opens java.base/java.io.Reader=ALL-UNNAMED --add-opens java.base/java.util.Optional=ALL-UNNAMED --add-opens java.base/java.time.LocalDateTime.date=ALL-UNNAMED -jar -javaagent:glowroot/glowroot.jar ${group_name}.jar ; \
     else \
     wget "${iam_adapter_url_env}" -O "${loader_path_env}"/kernel-auth-adapter.jar; \
-    java -Dloader.path="${loader_path_env}"  -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -Dstage-group-name=${group_name} -jar ${group_name}.jar ; \
+    java -Dloader.path="${loader_path_env}"  -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -Dstage-group-name=${group_name} --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.lang.stream=ALL-UNNAMED --add-opens java.base/java.time=ALL-UNNAMED --add-opens java.base/java.time.LocalDate=ALL-UNNAMED --add-opens java.base/java.time.LocalDateTime=ALL-UNNAMED --add-opens java.base/java.io.Reader=ALL-UNNAMED --add-opens java.base/java.util.Optional=ALL-UNNAMED --add-opens java.base/java.time.LocalDateTime.date=ALL-UNNAMED -jar ${group_name}.jar ; \
     fi

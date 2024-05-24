@@ -56,6 +56,7 @@ import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventD
 import io.mosip.registration.processor.core.workflow.dto.WorkflowPausedForAdditionalInfoEventDTO;
 import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -132,6 +133,9 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 	
 	@Autowired
 	private IdSchemaUtil idSchemaUtil;
+
+	@Autowired
+	private PriorityBasedPacketManagerService priorityBasedpacketManagerService;
 
 	@Autowired
 	private PacketManagerService packetManagerService;
@@ -267,16 +271,17 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 				workflowInternalActionDTO.getWorkflowInstanceId());
 		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 		String idSchemaVersionValue = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.IDSCHEMA_VERSION), MappingJsonConstants.VALUE);
-		String schemaVersion = packetManagerService.getFieldByMappingJsonKey(registrationId,
+		String schemaVersion = priorityBasedpacketManagerService.getFieldByMappingJsonKey(registrationId,
 				idSchemaVersionValue, registrationType, ProviderStageName.WORKFLOW_MANAGER);
 		Map<String,String> fieldTypeMap = idSchemaUtil.getIdSchemaFieldTypes(
 				Double.parseDouble(schemaVersion));
-		Map<String, String> fieldMap = packetManagerService.getFields(registrationId,
+		Map<String, String> fieldMap = priorityBasedpacketManagerService.getFields(registrationId,
 				idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion)), registrationType,
 				ProviderStageName.WORKFLOW_MANAGER);
-		Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(registrationId, registrationType,
+		Map<String, String> metaInfoMap = priorityBasedpacketManagerService.getMetaInfo(registrationId,
+				registrationType,
 				ProviderStageName.WORKFLOW_MANAGER);
-		BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId,
+		BiometricRecord biometricRecord = priorityBasedpacketManagerService.getBiometrics(registrationId,
 				MappingJsonConstants.INDIVIDUAL_BIOMETRICS, registrationType, ProviderStageName.WORKFLOW_MANAGER);
 		json = anonymousProfileService.buildJsonStringFromPacketInfo(biometricRecord, fieldMap, fieldTypeMap,
 				metaInfoMap, registrationStatusDto.getStatusCode(), registrationStatusDto.getRegistrationStageName());

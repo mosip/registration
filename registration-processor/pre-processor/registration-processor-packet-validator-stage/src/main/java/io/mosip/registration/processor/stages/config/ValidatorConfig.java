@@ -6,7 +6,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import io.mosip.registration.processor.stages.packet.validator.PacketValidatorStage;
 import org.apache.commons.lang3.StringUtils;

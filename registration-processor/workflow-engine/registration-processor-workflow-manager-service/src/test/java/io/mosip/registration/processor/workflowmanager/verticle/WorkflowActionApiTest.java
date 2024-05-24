@@ -387,13 +387,13 @@ public class WorkflowActionApiTest {
 			}
 
 			@Override
-			public RoutingContext addCookie(io.vertx.core.http.Cookie arg0) {
-				return null;
+			public void fail(int statusCode, Throwable throwable) {
+
 			}
 
 			@Override
-			public int addEndHandler(Handler<AsyncResult<Void>> arg0) {
-				return 0;
+			public RoutingContext addCookie(io.vertx.core.http.Cookie cookie) {
+				return null;
 			}
 
 			@Override
@@ -402,17 +402,17 @@ public class WorkflowActionApiTest {
 			}
 
 			@Override
-			public void fail(int arg0, Throwable arg1) {
-
-			}
-
-			@Override
 			public boolean isSessionAccessed() {
 				return false;
 			}
 
 			@Override
-			public boolean removeEndHandler(int arg0) {
+			public int addEndHandler(Handler<AsyncResult<Void>> handler) {
+				return 0;
+			}
+
+			@Override
+			public boolean removeEndHandler(int handlerID) {
 				return false;
 			}
 
