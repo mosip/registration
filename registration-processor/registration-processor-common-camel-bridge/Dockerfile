@@ -69,7 +69,7 @@ ARG container_user_uid=1002
 ARG container_user_gid=1001
 
 RUN apk -q update \
-&& apk add -q unzip sudo \
+&& apk add -q unzip sudo findutils \
 && addgroup -g ${container_user_gid} ${container_user_group} \
 && adduser -s /bin/sh -u ${container_user_uid} -G ${container_user_group} -h /home/${container_user} --disabled-password ${container_user} \
 && addgroup sudo \
@@ -88,7 +88,7 @@ ENV loader_path_env=${loader_path}
 
 # copying shaded jar into docker image
 ADD ./target/*.jar ./target/
-RUN find target/ -regex '.*registration-processor-common-camel-bridge-[0-9\.]+[-A-Za-z0-9]*\.jar'  "-print0" | xargs "-0" cp -t ./ \
+RUN find target/ -regextype posix-extended -regex '.*registration-processor-common-camel-bridge-[0-9\.]+[-A-Za-z0-9]*\.jar'  "-print0" | xargs "-0" cp -t ./ \
   && rm -rf ./target \
   && rm -rf original*.jar \
   && rm -rf *-sources.jar \
