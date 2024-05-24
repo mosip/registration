@@ -1,7 +1,7 @@
 package io.mosip.registration.processor.qc.users.entity;
 
 import java.io.Serializable;
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 /**
  * @author M1048399

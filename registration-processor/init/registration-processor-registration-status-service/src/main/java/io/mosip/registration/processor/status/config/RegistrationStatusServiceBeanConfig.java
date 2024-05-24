@@ -25,6 +25,7 @@ import io.mosip.registration.processor.status.entity.BaseRegistrationPKEntity;
 import io.mosip.registration.processor.status.entity.BaseSyncRegistrationEntity;
 import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
+import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.mosip.registration.processor.status.service.TransactionService;
@@ -34,7 +35,6 @@ import io.mosip.registration.processor.status.service.impl.TransactionServiceImp
 import io.mosip.registration.processor.status.utilities.RegistrationExternalStatusUtility;
 @Configuration
 @PropertySource("classpath:bootstrap.properties")
-@Import({ HibernateDaoConfig.class })
 @EnableJpaRepositories(basePackages = "io.mosip.registration.processor", repositoryBaseClass = HibernateRepositoryImpl.class)
 public class RegistrationStatusServiceBeanConfig {
 
@@ -118,4 +118,5 @@ public class RegistrationStatusServiceBeanConfig {
 	public Encryptor encryptor() {
 		return new Encryptor();
 	}
+
 }

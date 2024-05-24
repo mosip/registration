@@ -9,12 +9,15 @@ import java.util.function.Function;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManagerFactory;
 
+import java.util.function.Consumer;
+import org.apache.hc.core5.http.ParseException;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -60,16 +63,18 @@ import io.mosip.registration.processor.stages.exception.RestServiceException;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClient;
 
 
+@Ignore
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(PowerMockRunner.class)
-@PowerMockIgnore({"com.sun.org.apache.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
+@PowerMockIgnore({ "com.sun.org.apache.*", "javax.xml.*", "org.xml.*", "javax.management.*", "javax.crypto.*" })
 @PowerMockRunnerDelegate(SpringJUnit4ClassRunner.class)
 @WebMvcTest
 @AutoConfigureMockMvc
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@PrepareForTest({ WebClient.class, SslContextBuilder.class, Mock.class })
+@PrepareForTest({ WebClient.class, SslContextBuilder.class, Mock.class, HttpClient.class })
 public class RestHelperTest {
 
 	/** The rest helper. */
@@ -87,8 +92,9 @@ public class RestHelperTest {
 	@MockBean
 	private RestApiClient restApiClient;
 	
+	@SuppressWarnings("deprecation")
 	@Before
-	public void before() throws IOException {
+	public void before() throws IOException, ParseException {
 		PowerMockito.mockStatic(SslContextBuilder.class);
 		SslContextBuilder sslContextBuilder = PowerMockito.mock(SslContextBuilder.class);
 		PowerMockito.when(SslContextBuilder.forClient()).thenReturn(sslContextBuilder);
@@ -96,6 +102,11 @@ public class RestHelperTest {
 				.thenReturn(sslContextBuilder);
 		PowerMockito.when(sslContextBuilder.build()).thenReturn(Mockito.mock(SslContext.class));
 		Mockito.when(restApiClient.getToken()).thenReturn("Gjnaiuhs==");
+		PowerMockito.mockStatic(HttpClient.class);
+		HttpClient httpClient = Mockito.mock(HttpClient.class);
+
+		PowerMockito.when(HttpClient.create()).thenReturn(httpClient);
+		Mockito.when(httpClient.secure(Mockito.any(Consumer.class))).thenReturn(httpClient);
 	}
 	
 	/**

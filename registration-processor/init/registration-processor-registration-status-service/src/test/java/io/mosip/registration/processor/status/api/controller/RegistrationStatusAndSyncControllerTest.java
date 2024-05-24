@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.servlet.http.Cookie;
+import jakarta.servlet.http.Cookie;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -49,6 +49,7 @@ import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessor
 import io.mosip.registration.processor.core.workflow.dto.SortInfo;
 import io.mosip.registration.processor.status.api.config.RegistrationStatusConfigTest;
 import io.mosip.registration.processor.status.dto.FilterInfo;
+import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.LostRidRequestDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusRequestDTO;
@@ -61,6 +62,8 @@ import io.mosip.registration.processor.status.dto.SyncResponseFailDto;
 import io.mosip.registration.processor.status.dto.SyncResponseFailureDto;
 import io.mosip.registration.processor.status.dto.SyncResponseSuccessDto;
 import io.mosip.registration.processor.status.exception.RegStatusAppException;
+import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.mosip.registration.processor.status.service.impl.RegistrationStatusServiceImpl;
 import io.mosip.registration.processor.status.service.impl.SyncRegistrationServiceImpl;
 import io.mosip.registration.processor.status.utilities.RegistrationUtility;
@@ -92,13 +95,12 @@ public class RegistrationStatusAndSyncControllerTest {
 	@InjectMocks
 	RegistrationSyncController registrationSyncController = new RegistrationSyncController();
 
-	/** The registration status service. */
 	@MockBean
-	RegistrationStatusServiceImpl registrationStatusService;
+	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 
 	/** The sync registration service. */
 	@MockBean
-	SyncRegistrationServiceImpl syncRegistrationService;
+	SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationService;
 
 	/** The sync registration dto. */
 	@MockBean

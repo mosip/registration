@@ -50,6 +50,7 @@ import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil
 import io.mosip.registration.processor.packet.storage.utils.BioSdkUtil;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.packet.storage.utils.Utility;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -77,7 +78,7 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 	AuditLogRequestBuilder auditLogRequestBuilder;
 
 	@Autowired
-	private Utilities utility;
+	private Utility utility;
 
 	/** The registration status service. */
 	@Autowired

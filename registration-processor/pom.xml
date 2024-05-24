@@ -24,7 +24,7 @@
 
 	<groupId>io.mosip.registrationprocessor</groupId>
 	<artifactId>registration-processor</artifactId>
-	<version>1.2.1-SNAPSHOT</version>
+	<version>1.2.1-java21-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>registration-processor</name>
@@ -34,31 +34,25 @@
 	<properties>
 		<doclint>none</doclint>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.source>11</maven.compiler.source>
-		<maven.compiler.target>11</maven.compiler.target>
+		<maven.compiler.source>21</maven.compiler.source>
+		<maven.compiler.target>21</maven.compiler.target>
 		<maven.compiler.version>3.8.0</maven.compiler.version>
 		<maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
 		<maven.war.plugin.version>3.1.0</maven.war.plugin.version>
 		<maven.surefire.plugin.version>2.22.0</maven.surefire.plugin.version>
-		<maven.jacoco.version>0.8.5</maven.jacoco.version>
+		<maven.jacoco.version>0.8.11</maven.jacoco.version>
 		<maven.sonar.plugin.version>3.7.0.1746</maven.sonar.plugin.version>
 		<maven.javadoc.version>3.2.0</maven.javadoc.version>
 		<maven.assembly.version>3.3.0</maven.assembly.version>
 
 		<!-- Core -->
-		<spring-framework.version>5.0.6.RELEASE</spring-framework.version>
-		<spring.version>5.0.4.RELEASE</spring.version>
-		<spring.boot.version>2.0.2.RELEASE</spring.boot.version>
-		<spring.data.version>2.0.9.RELEASE</spring.data.version>
-		<spring-cloud-config.version>2.0.0.RELEASE</spring-cloud-config.version>
+		<spring.boot.version>3.2.3</spring.boot.version>
 
-		<spring.batch.version>4.0.1.RELEASE</spring.batch.version>
-		<spring-cloud-config.version>2.0.0.RELEASE</spring-cloud-config.version>
 
 		<!-- Miscellaneous -->
 		<javax.el-api.version>3.0.0</javax.el-api.version>
 		<javax.validation-api.version>2.0.1.Final</javax.validation-api.version>
-		<jackson.version>2.12.0</jackson.version>
+		<jackson.version>2.15.4</jackson.version>
 		<jackson.afterburner.version>2.12.0</jackson.afterburner.version>
 		<hibernate.validator.version>6.0.12.Final</hibernate.validator.version>
 		<modelmapper.version>2.1.1</modelmapper.version>
@@ -99,10 +93,7 @@
 		<junit.version>4.12</junit.version>
 		<logback.version>1.2.3</logback.version>
 		<slf4j.version>1.7.19</slf4j.version>
-		<mockito.version>3.4.4</mockito.version>
-		<powermock.module.junit4.version>2.0.7</powermock.module.junit4.version>
-		<powermock.api.mockito.version>2.0.7</powermock.api.mockito.version>
-		<awaitility.version>3.1.0</awaitility.version>
+		<mockito.version>3.11.2</mockito.version>
 		<jsonsimple.version>1.1.1</jsonsimple.version>
 		<commons.codec.version>1.9</commons.codec.version>
 		<!-- DFS adapter -->
@@ -110,45 +101,50 @@
 		<s3mock.version>0.2.4</s3mock.version>
 
 		<!-- Vert.x -->
-		<vertx.version>3.9.1</vertx.version>
+		<vertx.version>3.9.13</vertx.version>
 		<camel.vertx.version>2.23.0</camel.vertx.version>
 		<hazelcast.kubernetes.version>1.0.0</hazelcast.kubernetes.version>
+		<hazelcast.version>3.9.4</hazelcast.version>
 		<!-- json-simple -->
 		<jsonsimple.version>1.1.1</jsonsimple.version>
 
 		<!-- joda-time -->
-		<jodatime.version>2.8.1</jodatime.version>
+		<jodatime.version>2.12.7</jodatime.version>
 
 		<!-- jsch.version -->
 		<jsch.version>0.1.55</jsch.version>
+		
+		<zipkin.version>3.3.0</zipkin.version>
+		<activemq.client.version>6.1.2</activemq.client.version>
 
 		<!-- local -->
-		<registration.status.service.version>1.2.1-SNAPSHOT</registration.status.service.version>
-		<registration.processor.core.version>1.2.1-SNAPSHOT</registration.processor.core.version>
-		<packet.manager.version>1.2.1-SNAPSHOT</packet.manager.version>
-		<registration.processor.rest.client.version>1.2.1-SNAPSHOT</registration.processor.rest.client.version>
-		<packet.info.storage.service.version>1.2.1-SNAPSHOT</packet.info.storage.service.version>
-		<packet.bio.dedupe.service.impl.version>1.2.1-SNAPSHOT</packet.bio.dedupe.service.impl.version>
-		<registration.processor.message.sender.version>1.2.1-SNAPSHOT</registration.processor.message.sender.version>
+		<registration.status.service.version>1.2.1-java21-SNAPSHOT</registration.status.service.version>
+		<registration.processor.core.version>1.2.1-java21-SNAPSHOT</registration.processor.core.version>
+		<packet.manager.version>1.2.1-java21-SNAPSHOT</packet.manager.version>
+		<registration.processor.rest.client.version>1.2.1-java21-SNAPSHOT</registration.processor.rest.client.version>
+		<packet.info.storage.service.version>1.2.1-java21-SNAPSHOT</packet.info.storage.service.version>
+		<packet.bio.dedupe.service.impl.version>1.2.1-java21-SNAPSHOT</packet.bio.dedupe.service.impl.version>
+		<registration.processor.message.sender.version>1.2.1-java21-SNAPSHOT</registration.processor.message.sender.version>
 
 		<!-- Kernel -->
-		<kernel.core.version>1.2.1-SNAPSHOT</kernel.core.version>
-		<kernel.dataaccess.hibernate.version>1.2.1-SNAPSHOT</kernel.dataaccess.hibernate.version>
-		<kernel.templatemanager.velocity.version>1.2.1-SNAPSHOT</kernel.templatemanager.velocity.version>
-		<kernel.idvalidator.uin.version>1.2.1-SNAPSHOT</kernel.idvalidator.uin.version>
-		<kernel.idvalidator.rid.version>1.2.1-SNAPSHOT</kernel.idvalidator.rid.version>
-		<kernel.cbeffutil.version>1.2.1-SNAPSHOT</kernel.cbeffutil.version>
-		<kernel.bioapi.provider.version>1.2.1-SNAPSHOT</kernel.bioapi.provider.version>
-		<kernel.auth.adapter.version>1.2.1-SNAPSHOT</kernel.auth.adapter.version>
-		<kernel.pdfgenerator.itext.version>1.2.1-SNAPSHOT</kernel.pdfgenerator.itext.version>
-		<kernel.qrcodegenerator.zxing.version>1.2.1-SNAPSHOT</kernel.qrcodegenerator.zxing.version>
-		<kernel.logger.logback.version>1.2.1-SNAPSHOT</kernel.logger.logback.version>
-		<kernel.idvalidator.vid.version>1.2.1-SNAPSHOT</kernel.idvalidator.vid.version>
-		<object.store.khazana.version>1.2.1-SNAPSHOT</object.store.khazana.version>
-		<kernel.biometrics.api.version>1.2.1-SNAPSHOT</kernel.biometrics.api.version>
-		<kernel-keymanager-service.version>1.2.1-SNAPSHOT</kernel-keymanager-service.version>
-		<kernel.websubclient.version>1.2.1-SNAPSHOT</kernel.websubclient.version>
-		<kernel-biosdk-provider.version>1.2.1-SNAPSHOT</kernel-biosdk-provider.version>
+		<kernel.core.version>1.2.1-java21-SNAPSHOT</kernel.core.version>
+		<kernel.dataaccess.hibernate.version>1.2.1-java21-SNAPSHOT</kernel.dataaccess.hibernate.version>
+		<kernel.templatemanager.velocity.version>1.2.1-java21-SNAPSHOT</kernel.templatemanager.velocity.version>
+		<kernel.idvalidator.uin.version>1.2.1-java21-SNAPSHOT</kernel.idvalidator.uin.version>
+		<kernel.idvalidator.rid.version>1.2.1-java21-SNAPSHOT</kernel.idvalidator.rid.version>
+		<kernel.cbeffutil.version>1.2.1-java21-SNAPSHOT</kernel.cbeffutil.version>
+		<kernel.bioapi.provider.version>1.2.1-java21-SNAPSHOT</kernel.bioapi.provider.version>
+		<kernel.auth.adapter.version>1.2.1-java21-SNAPSHOT</kernel.auth.adapter.version>
+		<kernel.pdfgenerator.itext.version>1.2.1-java21-SNAPSHOT</kernel.pdfgenerator.itext.version>
+		<kernel.qrcodegenerator.zxing.version>1.2.1-java21-SNAPSHOT</kernel.qrcodegenerator.zxing.version>
+		<kernel.logger.logback.version>1.2.1-java21-SNAPSHOT</kernel.logger.logback.version>
+		<kernel.idvalidator.vid.version>1.2.1-java21-SNAPSHOT</kernel.idvalidator.vid.version>
+		<object.store.khazana.version>1.2.1-java21-SNAPSHOT</object.store.khazana.version>
+		<kernel.biometrics.api.version>1.2.1-java21-SNAPSHOT</kernel.biometrics.api.version>
+		<kernel-keymanager-service.version>1.2.1-java21-SNAPSHOT</kernel-keymanager-service.version>
+		<kernel.websubclient.version>1.2.1-java21-SNAPSHOT</kernel.websubclient.version>
+		<kernel-biosdk-provider.version>1.2.1-java21-SNAPSHOT</kernel-biosdk-provider.version>
+		<kernel.bom.version>1.2.1-java21-SNAPSHOT</kernel.bom.version>
 		<sonar.coverage.exclusions>**/dto/**,
 			**/exception/*Exception.java,
 			**/config/*Config.java,
@@ -311,30 +307,11 @@
         </distributionManagement>
 	<dependencyManagement>
 		<dependencies>
-			<dependency>
-				<groupId>org.mockito</groupId>
-				<artifactId>mockito-core</artifactId>
-				<version>3.4.4</version>
-				<scope>test</scope>
-			</dependency>
 			<!-- https://mvnrepository.com/artifact/net.bytebuddy/byte-buddy -->
 			<dependency>
 				<groupId>net.bytebuddy</groupId>
 				<artifactId>byte-buddy</artifactId>
 				<version>1.10.13</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-dependencies</artifactId>
-				<version>${spring.boot.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.projectlombok</groupId>
-				<artifactId>lombok</artifactId>
-				<version>1.18.8</version>
-				<scope>provided</scope>
 			</dependency>
 			<dependency>
 			    <groupId>org.powermock</groupId>
@@ -367,6 +344,18 @@
 				<artifactId>jackson-annotations</artifactId>
 				<version>${jackson.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>io.mosip.kernel</groupId>
+				<artifactId>kernel-bom</artifactId>
+				<version>${kernel.bom.version}</version>
+				<type>pom</type>
+			    <scope>import</scope>
+			</dependency>
+			<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>activemq-client</artifactId>
+			<version>${activemq.client.version}</version>
+		</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -399,7 +388,21 @@
 						<skipTests>${skipTests}</skipTests>
 						<skip>false</skip>
 						<argLine>
-							${argLine} --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED --illegal-access=permit
+							${argLine} --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED 
+							--add-opens java.base/java.lang=ALL-UNNAMED 
+							--add-opens java.base/java.net=ALL-UNNAMED 
+							--add-opens java.base/java.util=ALL-UNNAMED 
+							--add-opens java.base/java.io=ALL-UNNAMED 
+							--add-opens java.base/java.time=ALL-UNNAMED 
+							--add-opens java.base/java.nio.charset=ALL-UNNAMED
+							--add-opens java.base/java.time.format=ALL-UNNAMED
+							--add-opens java.base/java.lang.reflect=ALL-UNNAMED
+							--add-opens java.base/sun.security.jca=ALL-UNNAMED
+							--add-opens java.base/sun.security.util=ALL-UNNAMED
+							--add-opens java.base/jdk.internal.util=ALL-UNNAMED
+							--add-opens java.base/java.text=ALL-UNNAMED 
+							--add-opens java.xml/com.sun.org.apache.xerces.internal.impl=ALL-UNNAMED 
+							--illegal-access=permit
 						</argLine>
 					</configuration>
 				</plugin>
@@ -429,6 +432,9 @@
 					<configuration>
 						<source>${maven.compiler.source}</source>
 						<target>${maven.compiler.target}</target>
+						<compilerArgs>
+                        <arg>--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED</arg>
+        </compilerArgs>
 					</configuration>
 				</plugin>
 				<plugin>
@@ -469,7 +475,7 @@
 					</executions>
 					<configuration>
 						<generateGitPropertiesFile>true</generateGitPropertiesFile>
-						<generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+						<generateGitPropertiesFilename>${project.build.outputDirectory}/service-git.properties</generateGitPropertiesFilename>
 						<includeOnlyProperties>
 							<includeOnlyProperty>^git.build.(time|version)$</includeOnlyProperty>
 							<includeOnlyProperty>^git.commit.id.(abbrev|full)$</includeOnlyProperty>

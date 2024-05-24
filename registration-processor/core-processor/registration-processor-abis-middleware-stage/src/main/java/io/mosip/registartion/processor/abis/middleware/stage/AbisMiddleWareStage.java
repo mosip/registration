@@ -8,8 +8,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.jms.Message;
-import javax.jms.TextMessage;
+import jakarta.jms.Message;
+import jakarta.jms.TextMessage;
 
 import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.assertj.core.util.Arrays;
