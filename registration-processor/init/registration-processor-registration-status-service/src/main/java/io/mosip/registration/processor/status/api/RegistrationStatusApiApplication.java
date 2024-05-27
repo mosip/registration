@@ -35,7 +35,7 @@ import io.mosip.registration.processor.status.config.RegistrationStatusServiceBe
 		excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = { RegistrationStatusServiceBeanConfig.class,
 				RestConfigBean.class, KafkaMosipEventBus.class, VertxMosipEventBus.class, StageHealthCheckHandler.class,
 				MosipVerticleManager.class, MosipVerticleAPIManager.class, MosipEventBus.class,
-				PropertyLoaderConfig.class }))
+				PropertyLoaderConfig.class, ActivemqConfigBean.class }))
 public class RegistrationStatusApiApplication
 {
     public static void main( String[] args )
