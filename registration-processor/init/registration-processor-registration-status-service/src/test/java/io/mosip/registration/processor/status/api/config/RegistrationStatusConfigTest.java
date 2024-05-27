@@ -8,6 +8,7 @@ import org.springframework.context.annotation.FilterType;
 
 import io.mosip.kernel.core.authmanager.authadapter.spi.VertxAuthenticationProvider;
 import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
+import io.mosip.registration.processor.core.config.ActivemqConfigBean;
 import io.mosip.registration.processor.core.config.CoreConfigBean;
 import io.mosip.registration.processor.core.config.configserverloader.PropertyLoaderConfig;
 import io.mosip.registration.processor.rest.client.config.RestConfigBean;
@@ -32,7 +33,7 @@ import io.vertx.ext.web.RoutingContext;
 		"io.mosip.registration.processor.status.api" }, excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = {
 				RegistrationStatusBeanConfig.class, RestConfigBean.class,
 				CoreConfigBean.class, AuthorizedRolesDto.class,
-				PacketExternalStatusServiceImpl.class }))
+				PacketExternalStatusServiceImpl.class, ActivemqConfigBean.class }))
 public class RegistrationStatusConfigTest {
 
 	@Bean

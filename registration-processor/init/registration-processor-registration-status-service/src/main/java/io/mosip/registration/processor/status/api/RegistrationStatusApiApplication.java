@@ -10,6 +10,7 @@ import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
 import io.mosip.registration.processor.core.abstractverticle.MosipVerticleManager;
 import io.mosip.registration.processor.core.abstractverticle.StageHealthCheckHandler;
+import io.mosip.registration.processor.core.config.ActivemqConfigBean;
 import io.mosip.registration.processor.core.config.configserverloader.PropertyLoaderConfig;
 import io.mosip.registration.processor.core.eventbus.KafkaMosipEventBus;
 import io.mosip.registration.processor.core.eventbus.VertxMosipEventBus;
@@ -32,7 +33,7 @@ import io.mosip.registration.processor.status.config.RegistrationStatusServiceBe
 		excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = { RegistrationStatusServiceBeanConfig.class,
 				RestConfigBean.class, KafkaMosipEventBus.class, VertxMosipEventBus.class, StageHealthCheckHandler.class,
 				MosipVerticleManager.class, MosipVerticleAPIManager.class, MosipEventBus.class,
-				PropertyLoaderConfig.class }))
+				PropertyLoaderConfig.class, ActivemqConfigBean.class }))
 public class RegistrationStatusApiApplication
 {
     public static void main( String[] args )
