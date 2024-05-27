@@ -2,6 +2,8 @@ package io.mosip.registration.processor.status.api;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration;
+import org.springframework.boot.autoconfigure.jms.activemq.ActiveMQAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.FilterType;
@@ -24,7 +26,7 @@ import io.mosip.registration.processor.status.config.RegistrationStatusServiceBe
  * @author Pranav Kumar
  *
  */
-@SpringBootApplication
+@SpringBootApplication(exclude = { JmsAutoConfiguration.class, ActiveMQAutoConfiguration.class })
 @ComponentScan(basePackages = { "io.mosip.registration.processor.status.*",
 		"io.mosip.registration.processor.rest.client.*", "io.mosip.registration.processor.core.token.*",
 		"io.mosip.registration.processor.core.config",
@@ -33,7 +35,7 @@ import io.mosip.registration.processor.status.config.RegistrationStatusServiceBe
 		excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = { RegistrationStatusServiceBeanConfig.class,
 				RestConfigBean.class, KafkaMosipEventBus.class, VertxMosipEventBus.class, StageHealthCheckHandler.class,
 				MosipVerticleManager.class, MosipVerticleAPIManager.class, MosipEventBus.class,
-				PropertyLoaderConfig.class, ActivemqConfigBean.class }))
+				PropertyLoaderConfig.class }))
 public class RegistrationStatusApiApplication
 {
     public static void main( String[] args )
