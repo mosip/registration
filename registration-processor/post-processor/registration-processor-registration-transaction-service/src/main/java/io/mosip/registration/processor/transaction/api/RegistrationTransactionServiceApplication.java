@@ -6,6 +6,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.FilterType;
 
+import io.mosip.registration.processor.core.config.ActivemqConfigBean;
 import io.mosip.registration.processor.core.config.configserverloader.PropertyLoaderConfig;
 import io.mosip.registration.processor.rest.client.config.RestConfigBean;
 import io.mosip.registration.processor.status.config.RegistrationStatusBeanConfig;
@@ -16,7 +17,7 @@ import io.mosip.registration.processor.status.config.RegistrationStatusBeanConfi
 		"io.mosip.registration.processor.transaction.*", "${mosip.auth.adapter.impl.basepackage}",
 		"io.mosip.registration.processor.core.kernel.beans" },
 		excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = { RestConfigBean.class,
-				PropertyLoaderConfig.class }))
+				PropertyLoaderConfig.class, ActivemqConfigBean.class }))
 public class RegistrationTransactionServiceApplication {
 
 	public static void main(String[] args) {
