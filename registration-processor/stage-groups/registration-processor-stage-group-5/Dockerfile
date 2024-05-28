@@ -71,6 +71,9 @@ ARG loader_path=${work_dir}/additional_jars/
 
 ENV loader_path_env=${loader_path}
 
+# set working directory for the user
+WORKDIR ${work_dir}
+
 ADD ./target/${group_name}-*.jar ${group_name}.jar
 
 ADD configure_start.sh configure_start.sh
@@ -88,9 +91,6 @@ RUN apt-get -y update \
 
 # change volume to whichever storage directory you want to use for this container.
 # /home/logs
-
-# set working directory for the user
-WORKDIR ${work_dir}
 
 # select container user for all tasks
 USER ${container_user_uid}:${container_user_gid}
