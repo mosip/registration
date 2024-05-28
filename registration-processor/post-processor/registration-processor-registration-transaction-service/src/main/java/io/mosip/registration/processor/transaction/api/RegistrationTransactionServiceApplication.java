@@ -2,6 +2,8 @@ package io.mosip.registration.processor.transaction.api;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration;
+import org.springframework.boot.autoconfigure.jms.activemq.ActiveMQAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.FilterType;
@@ -11,7 +13,7 @@ import io.mosip.registration.processor.core.config.configserverloader.PropertyLo
 import io.mosip.registration.processor.rest.client.config.RestConfigBean;
 import io.mosip.registration.processor.status.config.RegistrationStatusBeanConfig;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = { JmsAutoConfiguration.class, ActiveMQAutoConfiguration.class })
 @ComponentScan(basePackages= {"io.mosip.registration.processor.status.*","io.mosip.registration.processor.rest.client.*",
 		"io.mosip.registration.processor.core.token.*", "io.mosip.registration.processor.core.config",
 		"io.mosip.registration.processor.transaction.*", "${mosip.auth.adapter.impl.basepackage}",
