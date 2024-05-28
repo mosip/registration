@@ -1,8 +1,11 @@
 package io.mosip.registration.processor.workflowmanager;
 
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.actuate.jms.JmsHealthIndicator;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration;
+import org.springframework.boot.autoconfigure.jms.activemq.ActiveMQAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -16,7 +19,7 @@ import io.mosip.registration.processor.workflowmanager.verticle.WorkflowActionJo
 import io.mosip.registration.processor.workflowmanager.verticle.WorkflowInternalActionVerticle;
 
 @Configuration
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = { JmsAutoConfiguration.class, ActiveMQAutoConfiguration.class })
 @SpringBootApplication
 @ComponentScan(basePackages = { "io.mosip.registration.processor.core.config",
 		"${mosip.auth.adapter.impl.basepackage}",
@@ -24,8 +27,10 @@ import io.mosip.registration.processor.workflowmanager.verticle.WorkflowInternal
 		"io.mosip.registration.processor.status.config",
 		"io.mosip.registration.processor.core.kernel.beans",
 		"io.mosip.registration.processor.packet.storage.config",
-		"io.mosip.kernel.websub.api.config.publisher" }, excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = {
-				HibernateDaoConfig.class, PropertyLoaderConfig.class }))
+		"io.mosip.kernel.websub.api.config.publisher",
+		"io.mosip.registration.processor.packet.storage.utils.ActiveMqConnectionUtility" }, excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = {
+				HibernateDaoConfig.class, PropertyLoaderConfig.class
+}))
 public class WorkflowManagerApplication 
 {
 	public static void main(String[] args) {
