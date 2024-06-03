@@ -125,19 +125,16 @@ public class RegistrationExternalStatusController {
 			if (registrationsList != null && !registrationsList.isEmpty()) {
 				registrations.addAll(registrationsList);
 			}
-
+			RegExternalStatusResponseDTO response = buildRegistrationStatusResponse(registrations,
+					registrationExternalStatusRequestDTO.getRequest());
+			String res = objMp.writeValueAsString(response);
 			if (isEnabled) {
-				RegExternalStatusResponseDTO response = buildRegistrationStatusResponse(registrations,
-						registrationExternalStatusRequestDTO.getRequest());
-	
 				HttpHeaders headers = new HttpHeaders();
-				String res=null;
-				res=objMp.writeValueAsString(response);
 				headers.add(RESPONSE_SIGNATURE, digitalSignatureUtility.getDigitalSignature(res));
 				return ResponseEntity.status(HttpStatus.OK).headers(headers).body(res);
 			}
 			return ResponseEntity.status(HttpStatus.OK)
-					.body(buildRegistrationStatusResponse(registrations, registrationExternalStatusRequestDTO.getRequest()));
+					.body(res);
 		} catch (RegStatusAppException e) {
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_DATA_VALIDATION_FAILED, e);
 		} catch (Exception e) {
