@@ -108,15 +108,17 @@ public class RegistrationSyncController {
 					env.getProperty(REG_SYNC_SERVICE_ID), syncResponseList)) {
 				syncResponseList = syncRegistrationService.sync(registrationSyncRequestDTO.getRequest(), referenceId, timeStamp);
 			}
+			RegSyncResponseDTO responseDto = buildRegistrationSyncResponse(syncResponseList);
+			String res = objectMapper.writeValueAsString(responseDto);
 			if (isEnabled) {
-				RegSyncResponseDTO responseDto = buildRegistrationSyncResponse(syncResponseList);
+
 				HttpHeaders headers = new HttpHeaders();
 				headers.add(RESPONSE_SIGNATURE,
-						digitalSignatureUtility.getDigitalSignature(objectMapper.writeValueAsString(responseDto)));
-				return ResponseEntity.ok().headers(headers).body(responseDto);
+						digitalSignatureUtility.getDigitalSignature(res));
+				return ResponseEntity.ok().headers(headers).body(res);
 			}
 
-			return ResponseEntity.ok().body(buildRegistrationSyncResponse(syncResponseList));
+			return ResponseEntity.ok().body(res);
 
 		} catch (JsonProcessingException e) {
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_DATA_VALIDATION_FAILED, e);
@@ -155,15 +157,16 @@ public class RegistrationSyncController {
 					env.getProperty(REG_SYNC_SERVICE_ID), syncResponseList)) {
 				syncResponseList = syncRegistrationService.syncV2(registrationSyncRequestDTO.getRequest(), referenceId, timeStamp);
 			}
+			RegSyncResponseDTO responseDto = buildRegistrationSyncResponse(syncResponseList);
+			String res = objectMapper.writeValueAsString(responseDto);
 			if (isEnabled) {
-				RegSyncResponseDTO responseDto = buildRegistrationSyncResponse(syncResponseList);
 				HttpHeaders headers = new HttpHeaders();
 				headers.add(RESPONSE_SIGNATURE,
-						digitalSignatureUtility.getDigitalSignature(objectMapper.writeValueAsString(responseDto)));
-				return ResponseEntity.ok().headers(headers).body(responseDto);
+						digitalSignatureUtility.getDigitalSignature(res));
+				return ResponseEntity.ok().headers(headers).body(res);
 			}
 
-			return ResponseEntity.ok().body(buildRegistrationSyncResponse(syncResponseList));
+			return ResponseEntity.ok().body(res);
 
 		} catch (JsonProcessingException e) {
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_DATA_VALIDATION_FAILED, e);
