@@ -277,10 +277,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 
 		List<BIR> birs = biometricRecord.getSegments();
 		for (BIR bir : birs) {
-			Map<String, String> othersInfo = null;
-			if (bir.getOthers() instanceof Map<String, String>) {
-				othersInfo = (Map<String, String>) bir.getOthers();
-			}
+			HashMap<String, String> othersInfo = bir.getOthers();
 
 			if (othersInfo == null) {
 				continue;

@@ -423,10 +423,8 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 		for (BIR bir : birs) {
 
 			if (bir.getOthers() != null) {
-				Map<String, String> othersInfo = null;
-				if (bir.getOthers() instanceof Map<String, String>) {
-					othersInfo = (Map<String, String>) bir.getOthers();
-				}
+				HashMap<String, String> othersInfo = bir.getOthers();
+
 				boolean exceptionValue = false;
 				if(othersInfo!=null) {
 				for (Map.Entry<String, String> other : othersInfo.entrySet()) {
