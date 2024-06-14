@@ -73,8 +73,11 @@ public class BiometricsSignatureValidator {
 		}
 
 		List<BIR> birs = biometricRecord.getSegments();
+
 		for (BIR bir : birs) {
 			Map<String, String> othersInfo = null;
+			regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), id,
+					bir.toString());
 			if (bir.getOthers() instanceof HashMap<String, String> othersInfo1) {
 				othersInfo = othersInfo1;
 			}
