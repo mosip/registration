@@ -35,6 +35,7 @@ import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.core.packet.dto.JWTSignatureVerifyRequestDto;
 import io.mosip.registration.processor.core.packet.dto.JWTSignatureVerifyResponseDto;
@@ -76,7 +77,8 @@ public class BiometricsSignatureValidator {
 
 		for (BIR bir : birs) {
 			Map<String, String> othersInfo = null;
-			regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), id,
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					id,
 					bir.toString());
 			if (bir.getOthers() instanceof HashMap<String, String> othersInfo1) {
 				othersInfo = othersInfo1;
