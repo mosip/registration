@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -278,8 +279,8 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 		List<BIR> birs = biometricRecord.getSegments();
 		for (BIR bir : birs) {
 			Map<String, String> othersInfo = null;
-			if (bir.getOthers() instanceof Map<String, String>) {
-				othersInfo = (Map<String, String>) bir.getOthers();
+			if (bir.getOthers() instanceof HashMap<String, String> othersInfo1) {
+				othersInfo = othersInfo1;
 			}
 
 			if (othersInfo == null) {
