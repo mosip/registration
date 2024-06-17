@@ -76,7 +76,7 @@ public class BiometricsSignatureValidator {
 		List<BIR> birs = biometricRecord.getSegments();
 
 		for (BIR bir : birs) {
-			HashMap<String, String> othersInfo = bir.getOthers()
+			HashMap<String, String> othersInfo = bir.getOthers();
 			if (othersInfo == null) {
 				throw new BiometricSignatureValidationException("Others value is null inside BIR");
 			}
