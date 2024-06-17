@@ -80,6 +80,8 @@ public class BiometricsSignatureValidator {
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					id,
 					bir.toString());
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					id, bir.getOthers());
 			if (bir.getOthers() instanceof HashMap<String, String> othersInfo1) {
 				othersInfo = othersInfo1;
 			}
