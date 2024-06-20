@@ -11,7 +11,6 @@ This repository contains source code and design documents for MOSIP Registration
 The front end UI application called Registration Client is available in a separate repo [here](https://github.com/mosip/registration-client)
 
 ## Registration stages and pipeline
-
 Staged architecture:
 
   * Group 1 stages 
