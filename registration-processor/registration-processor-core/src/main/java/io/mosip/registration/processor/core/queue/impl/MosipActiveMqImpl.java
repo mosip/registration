@@ -108,16 +108,16 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
      * lang.Object, java.lang.Object, java.lang.String, long)
      */
     @Override
+	@SuppressWarnings({ "java:S2095" })
     public Boolean send(MosipQueue mosipQueue, byte[] message, String address, int messageTTL) {
         regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
                 "", "MosipActiveMqImpl::send()::entry");
 
         boolean flag = false;
         initialSetup(mosipQueue);
-		MessageProducer messageProducer = null;
         try {
             destination = session.createQueue(address);
-             messageProducer = session.createProducer(destination);
+			MessageProducer messageProducer = session.createProducer(destination);
             BytesMessage byteMessage = session.createBytesMessage();
             byteMessage.writeObject(message);
             if(messageTTL > 0)
@@ -133,26 +133,9 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
                             + PlatformErrorMessages.RPR_MQI_UNABLE_TO_SEND_TO_QUEUE.getMessage());
             throw new ConnectionUnavailableException(
                     PlatformErrorMessages.RPR_MQI_UNABLE_TO_SEND_TO_QUEUE.getMessage());
-		} finally {
-			if (messageProducer != null) {
-				try {
-					messageProducer.close();
-				} catch (JMSException e) {
-					regProcLogger.error("*******SEND EXCEPTION *****", "*******SEND EXCEPTION *****",
-							"*******SEND EXCEPTION *****", ExceptionUtils.getFullStackTrace(e));
-					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), "",
-							"MosipActiveMqImpl::send():: error with error message "
-									+ PlatformErrorMessages.RPR_MQI_UNABLE_TO_SEND_TO_QUEUE.getMessage());
-					throw new ConnectionUnavailableException(
-							PlatformErrorMessages.RPR_MQI_UNABLE_TO_SEND_TO_QUEUE.getMessage());
-				}
-			}
-
-        }
+		}
         regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
                 "", "MosipActiveMqImpl::send()::exit");
-
         return flag;
     }
 
@@ -162,16 +145,16 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
     }
 
     @Override
+	@SuppressWarnings({ "java:S2095" })
     public Boolean send(MosipQueue mosipQueue, String message, String address, int messageTTL) {
         boolean flag = false;
         initialSetup(mosipQueue);
-		MessageProducer messageProducer = null;
         try {
             // fix for activemq connection issue
             if (session == null)
                 initialSetup(mosipQueue);
             destination = session.createQueue(address);
-             messageProducer = session.createProducer(destination);
+			MessageProducer messageProducer = session.createProducer(destination);
             TextMessage textMessage = session.createTextMessage();
             textMessage.setText(message);
             if(messageTTL > 0)
@@ -186,26 +169,11 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
                             + PlatformErrorMessages.RPR_MQI_UNABLE_TO_SEND_TO_QUEUE.getMessage());
             throw new ConnectionUnavailableException(
                     PlatformErrorMessages.RPR_MQI_UNABLE_TO_SEND_TO_QUEUE.getMessage());
-        } finally {
-			if (messageProducer != null) {
-				try {
-					messageProducer.close();
-				} catch (JMSException e) {
-					regProcLogger.error("*******SEND EXCEPTION *****", "*******SEND EXCEPTION *****",
-							"*******SEND EXCEPTION *****", ExceptionUtils.getFullStackTrace(e));
-					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), "",
-							"MosipActiveMqImpl::send():: error with error message "
-									+ PlatformErrorMessages.RPR_MQI_UNABLE_TO_SEND_TO_QUEUE.getMessage());
-					throw new ConnectionUnavailableException(
-							PlatformErrorMessages.RPR_MQI_UNABLE_TO_SEND_TO_QUEUE.getMessage());
-				}
-			}
 		}
         regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
                 "", "MosipActiveMqImpl::send()::exit");
 
-        return null;
+		return flag;
     }
 
     /*
@@ -216,6 +184,7 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
      * .lang.Object, java.lang.String)
      */
     @Override
+	@SuppressWarnings({ "java:S2095" })
     public byte[] consume(MosipQueue mosipQueue, String address, QueueListener object) {
         regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
                 "", "MosipActiveMqImpl::consume()::entry");
@@ -232,16 +201,15 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
         if (destination == null) {
             setup(mosipActiveMq);
         }
-		MessageConsumer consumer = null;
+		MessageConsumer consumer;
         try {
             if (session == null) {
                 regProcLogger.error("Session is null. System will retry to create session");
                 setup(mosipActiveMq);
             }
             destination = session.createQueue(address);
-            consumer = session.createConsumer(destination);
+			consumer = session.createConsumer(destination);
             consumer.setMessageListener(QueueListenerFactory.getListener(mosipQueue.getQueueName(), object));
-			consumer.close();
         } catch (JMSException | NullPointerException e) {
             regProcLogger.error("*******CONSUME EXCEPTION *****", "*******CONSUME EXCEPTION *****",
                     "*******CONSUME EXCEPTION *****", ExceptionUtils.getFullStackTrace(e));
@@ -258,21 +226,7 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
                 throw new ConnectionUnavailableException(
                         PlatformErrorMessages.RPR_MQI_UNABLE_TO_CONSUME_FROM_QUEUE.getMessage());
             }
-        }finally{
-        	if (consumer != null) {
-					try {
-						consumer.close();
-					} catch (JMSException e) {
-						 regProcLogger.error("*******CONSUME EXCEPTION *****", "*******CONSUME EXCEPTION *****",
-				                    "*******CONSUME EXCEPTION *****", ExceptionUtils.getFullStackTrace(e));
-				            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				                    "", "MosipActiveMqImpl::consume():: error with error message "
-				                            + PlatformErrorMessages.RPR_MQI_UNABLE_TO_CONSUME_FROM_QUEUE.getMessage());
-				            throw new ConnectionUnavailableException(
-			                        PlatformErrorMessages.RPR_MQI_UNABLE_TO_CONSUME_FROM_QUEUE.getMessage());
-					}
-				}
-        }
+		}
         regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
                 "", "MosipActiveMqImpl::consume()::exit");
 
