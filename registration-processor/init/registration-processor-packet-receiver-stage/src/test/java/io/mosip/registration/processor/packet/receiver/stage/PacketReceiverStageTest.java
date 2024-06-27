@@ -471,6 +471,7 @@ public class PacketReceiverStageTest {
 			public boolean removeEndHandler(int handlerID) {
 				return false;
 			}
+
 		};
 
 	}

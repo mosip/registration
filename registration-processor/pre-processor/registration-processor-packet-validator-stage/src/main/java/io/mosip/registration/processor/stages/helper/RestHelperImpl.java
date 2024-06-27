@@ -11,9 +11,11 @@ import java.util.function.Supplier;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLException;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import io.mosip.registration.processor.rest.client.utils.RestApiClient;
+
+import org.apache.hc.core5.http.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
@@ -47,6 +49,7 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import lombok.NoArgsConstructor;
 import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClient;
 
 @Component
 @NoArgsConstructor
@@ -65,7 +68,7 @@ public class RestHelperImpl implements RestHelper {
 		try {
 			Mono<?> sendRequest = request(request, getSslContext());
 			return () -> sendRequest.block();
-		} catch (RestServiceException | IOException e) {
+		} catch (RestServiceException | IOException | ParseException e) {
 			mosipLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 					"RestHelperImpl::SslContext()::error");
 			return () -> new RestServiceException("UNABLE_TO_PROCESS", e);
@@ -82,16 +85,17 @@ public class RestHelperImpl implements RestHelper {
 		}
 	}
 
-	private Mono<?> request(AsyncRequestDTO request, SslContext sslContext) throws IOException {
+	private Mono<?> request(AsyncRequestDTO request, SslContext sslContext) throws IOException, ParseException {
 		WebClient webClient;
 		Mono<?> monoResponse;
 		RequestBodySpec uri;
 		ResponseSpec exchange;
 		RequestBodyUriSpec method;
-
+		HttpClient httpClient = HttpClient.create().secure(sslContextSpec -> sslContextSpec.sslContext(sslContext));
 		if (request.getHeaders() != null) {
+
 			org.springframework.web.reactive.function.client.WebClient.Builder webClientBuilder = WebClient.builder()
-					.clientConnector(new ReactorClientHttpConnector(builder -> builder.sslContext(sslContext)))
+					.clientConnector(new ReactorClientHttpConnector(httpClient))
 					.baseUrl(request.getUri());
 			if (request.getHeaders().getContentType() != null) {
 				webClientBuilder = webClientBuilder.defaultHeader(HttpHeaders.CONTENT_TYPE,
@@ -100,7 +104,7 @@ public class RestHelperImpl implements RestHelper {
 			webClient = webClientBuilder.build();
 		} else {
 			webClient = WebClient.builder()
-					.clientConnector(new ReactorClientHttpConnector(builder -> builder.sslContext(sslContext)))
+					.clientConnector(new ReactorClientHttpConnector(httpClient))
 					.baseUrl(request.getUri()).build();
 		}
 

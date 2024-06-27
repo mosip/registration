@@ -1,7 +1,7 @@
 package io.mosip.registration.processor.core.kernel.master.dto;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 import lombok.Data;
 

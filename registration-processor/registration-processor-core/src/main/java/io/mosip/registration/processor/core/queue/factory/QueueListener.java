@@ -1,6 +1,6 @@
 package io.mosip.registration.processor.core.queue.factory;
 
-import javax.jms.Message;
+import jakarta.jms.Message;
 
 public abstract class QueueListener {
 	

@@ -4,6 +4,7 @@ import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.packet.storage.utils.Utility;
 import io.mosip.registration.processor.stages.packetclassifier.dto.FieldDTO;
 import io.mosip.registration.processor.stages.packetclassifier.tagging.TagGenerator;
 
@@ -12,7 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,7 +39,7 @@ public class AgeGroupTagGenerator implements TagGenerator {
     
     /** Frequently used util methods are available in this bean */
     @Autowired
-    private Utilities utility;
+	private Utility utility;
 
     private static String RANGE_DELIMITER = "-";
 

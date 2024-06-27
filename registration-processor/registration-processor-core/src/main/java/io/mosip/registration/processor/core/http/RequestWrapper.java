@@ -2,8 +2,8 @@ package io.mosip.registration.processor.core.http;
 
 import java.time.LocalDateTime;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 

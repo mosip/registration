@@ -44,11 +44,5 @@ public class LandingZoneConfig {
 	public FileManager<DirectoryPathDto, InputStream> filemanager() {
 		return new FileManagerImpl();
 	}
-	
-	@Bean
-	@Primary
-	public RegistrationProcessorRestClientService<Object> getRegistrationProcessorRestClientService() {
-		return new RegistrationProcessorRestClientServiceImpl();
-	}
 
 }

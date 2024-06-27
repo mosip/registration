@@ -1,18 +1,21 @@
 package io.mosip.registration.processor.adjudication.util;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TimeZone;
 
-import org.joda.time.DateTime;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
-import org.springframework.format.datetime.joda.DateTimeFormatterFactory;
+import org.springframework.format.datetime.standard.DateTimeFormatterFactory;
 import org.springframework.stereotype.Component;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.adjudication.constants.ManualAdjudicationConstants;
@@ -118,10 +121,13 @@ public class ManualVerificationRequestValidator{
 					DateTimeFormatterFactory timestampFormat = new DateTimeFormatterFactory(
 							env.getProperty(ManualAdjudicationConstants.DATETIME_PATTERN));
 					timestampFormat.setTimeZone(TimeZone.getTimeZone(env.getProperty(ManualAdjudicationConstants.DATETIME_TIMEZONE)));
-					if (!(DateTime.parse(timestamp, timestampFormat.createDateTimeFormatter())
-							.isAfter(new DateTime().minusSeconds(gracePeriod))
-							&& DateTime.parse(timestamp, timestampFormat.createDateTimeFormatter())
-									.isBefore(new DateTime().plusSeconds(gracePeriod)))) {
+					DateTimeFormatter formatter = DateTimeFormatter
+							.ofPattern(env.getProperty(ManualAdjudicationConstants.DATETIME_PATTERN));
+					LocalDateTime localDateTime = LocalDateTime.parse(timestamp, formatter);
+					if (!(localDateTime.parse(timestamp, timestampFormat.createDateTimeFormatter())
+							.isAfter(DateUtils.getUTCCurrentDateTime().minusSeconds(gracePeriod))
+							&& localDateTime.parse(timestamp, timestampFormat.createDateTimeFormatter())
+									.isBefore(DateUtils.getUTCCurrentDateTime().plusSeconds(gracePeriod)))) {
 						
 						regProcLogger.error(ManualAdjudicationConstants.MAN_VERI_SERVICE, "ManReqRequestValidator", "validateReqTime",
 								"\n" + PlatformErrorMessages.RPR_MVS_INVALID_INPUT_PARAMETER_TIMESTAMP.getMessage());

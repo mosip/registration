@@ -122,27 +122,19 @@ public class PacketExternalStatusController {
 			}
 			List<PacketExternalStatusDTO> packetExternalStatusDTOList = packetExternalStatusService
 					.getByPacketIds(packetIdList);
-
+			PacketExternalStatusResponseDTO packetExternalStatusResponseDTO = buildPacketStatusResponse(
+					packetExternalStatusDTOList, packetExternalStatusRequestDTO.getRequest());
+			String res = objectMapper.writeValueAsString(packetExternalStatusResponseDTO);
 			if (isEnabled) {
-				PacketExternalStatusResponseDTO packetExternalStatusResponseDTO = buildPacketStatusResponse(
-						packetExternalStatusDTOList, packetExternalStatusRequestDTO.getRequest());
-				
 				HttpHeaders headers = new HttpHeaders();
-				String res=null;
-				try {
-					
-					res=objectMapper.writeValueAsString(packetExternalStatusResponseDTO);
-				} catch (Exception e1) {
-					logger.error("Error while processing dto ",e1);
-					
-				}
 				headers.add(RESPONSE_SIGNATURE,
 						digitalSignatureUtility.getDigitalSignature(res));
 				return ResponseEntity.status(HttpStatus.OK).headers(headers)
 						.body(res);
 			}
+			
 			return ResponseEntity.status(HttpStatus.OK)
-					.body(buildPacketStatusResponse(packetExternalStatusDTOList, packetExternalStatusRequestDTO.getRequest()));
+					.body(res);
 		} catch (RegStatusAppException e) {
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_DATA_VALIDATION_FAILED, e);
 		} catch (Exception e) {

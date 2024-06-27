@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.apache.commons.collections.MapUtils;
 import org.assertj.core.util.Lists;
@@ -43,6 +43,7 @@ import io.mosip.registration.processor.credentialrequestor.dto.CredentialPartner
 import io.mosip.registration.processor.credentialrequestor.dto.CredentialPartnersList;
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 
 @Component
@@ -60,8 +61,8 @@ public class CredentialPartnerUtil {
     @Autowired
     private Environment env;
 
-    @Autowired
-    private Utilities utilities;
+	@Autowired
+	private Utilities utilities;
 
     @Autowired
     IdSchemaUtil idSchemaUtil;
@@ -80,6 +81,9 @@ public class CredentialPartnerUtil {
 
     @Value("${config.server.file.storage.uri}")
     private String configServerFileStorageURL;
+
+	@Autowired
+	private PriorityBasedPacketManagerService packetManagerService;
 
     /**
      * This map will hold the actual field names after resolving, using mapping JSON as keys and
@@ -166,7 +170,8 @@ public class CredentialPartnerUtil {
         }
 
         // adding additional metadata so that it can be used for MVEL expression
-        Map<String, String> metaInfo = utilities.getPacketManagerService().getMetaInfo(regId, registrationType, ProviderStageName.CREDENTIAL_REQUESTOR);
+		Map<String, String> metaInfo = packetManagerService.getMetaInfo(regId, registrationType,
+				ProviderStageName.CREDENTIAL_REQUESTOR);
         if (MapUtils.isNotEmpty(metaInfo)) {
             String metadata = metaInfo.get(JsonConstant.METADATA);
             if (!StringUtils.isEmpty(metadata)) {

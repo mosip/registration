@@ -41,7 +41,7 @@ public class PropertyLoaderConfig {
 
     }
 
-    @Bean
+	@Bean
     public PropertySourcesPlaceholderConfigurer getPropertiesFromConfigServer(Environment environment) throws InterruptedException {
         try {
             Vertx vertx = Vertx.vertx();
@@ -91,5 +91,5 @@ public class PropertyLoaderConfig {
             regProcLogger.error(this.getClass().getName(), "", "", ExceptionUtils.getStackTrace(exception));
         }
         return new PropertySourcesPlaceholderConfigurer();
-    }
+	}
 }

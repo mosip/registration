@@ -75,6 +75,7 @@ import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.utils.BioSdkUtil;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.packet.storage.utils.Utility;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -208,7 +209,10 @@ public class BiometricAuthenticationStageTest {
 	private RegistrationProcessorRestClientService<Object> registrationProcessorRestService;
 
 	@Mock
-	private Utilities utility;
+	private Utilities utilities;
+
+	@Mock
+	private Utility utility;
 
 	@Mock
 	ObjectMapper mapIdentityJsonStringToObject;
@@ -240,7 +244,7 @@ public class BiometricAuthenticationStageTest {
 		ReflectionTestUtils.setField(biometricAuthenticationStage, "ageLimit", "5");
 
 
-		when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
+		when(utilities.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
 
 
 		list = new ArrayList<InternalRegistrationStatusDto>();
@@ -285,7 +289,7 @@ public class BiometricAuthenticationStageTest {
 
 		JSONObject jsonObject = Mockito.mock(JSONObject.class);
 		when(utility.getUIn(anyString(), anyString(), any())).thenReturn("12345678");
-		when(utility.retrieveIdrepoJson(any())).thenReturn(jsonObject);
+		when(utilities.retrieveIdrepoJson(any())).thenReturn(jsonObject);
 		FieldValue fieldValue = new FieldValue();
 		FieldValue fieldValue1 = new FieldValue();
 		fieldValue1.setLabel("authenticationBiometricFileName");
@@ -297,8 +301,8 @@ public class BiometricAuthenticationStageTest {
 		metadata.add(fieldValue1);
 
 
-		when(utility.getDefaultSource(any(), any())).thenReturn("reg-client");
-		when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(21);
+		when(utilities.getDefaultSource(any(), any())).thenReturn("reg-client");
+		when(utility.getApplicantAge(anyString(), anyString(), any())).thenReturn(21);
 
 		regentity.setRegistrationType("update");
 		when(syncRegistrationservice.findByWorkflowInstanceId(any())).thenReturn(regentity);

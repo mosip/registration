@@ -1,10 +1,11 @@
 package io.mosip.registration.processor.status.entity;
 
 
-import javax.persistence.EmbeddedId;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-import javax.persistence.MappedSuperclass;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
+import jakarta.persistence.MappedSuperclass;
 
 /**
  * The Class BaseRegistrationEntity.
@@ -14,6 +15,8 @@ import javax.persistence.MappedSuperclass;
 // Common Entity where RegistrationStatusEntity,Transaction Enity and
 // SyncRegistrationEntity extends this. This is created to implement common
 // repository(RegistrationRepository)
+
+
 
 @MappedSuperclass
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)

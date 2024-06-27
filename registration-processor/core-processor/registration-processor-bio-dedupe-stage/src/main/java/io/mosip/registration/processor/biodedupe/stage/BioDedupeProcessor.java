@@ -59,6 +59,7 @@ import io.mosip.registration.processor.packet.storage.exception.IdentityNotFound
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.packet.storage.utils.Utility;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -116,6 +117,9 @@ public class BioDedupeProcessor {
 
 	@Autowired
 	private BioDedupeService biodedupeServiceImpl;
+
+	@Autowired
+	Utility utility;
 
 	/** The config server file storage URL. */
 	@Value("${config.server.file.storage.uri}")
@@ -496,7 +500,7 @@ public class BioDedupeProcessor {
 	private boolean infantCheck(String registrationId, String registrationType) throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException {
 		boolean isInfant = false;
 		if (RegistrationType.NEW.name().equalsIgnoreCase(registrationType)) {
-			int age = utilities.getApplicantAge(registrationId, registrationType, ProviderStageName.BIO_DEDUPE);
+			int age = utility.getApplicantAge(registrationId, registrationType, ProviderStageName.BIO_DEDUPE);
 			int ageThreshold = Integer.parseInt(ageLimit);
 			isInfant = age < ageThreshold;
 		} else {

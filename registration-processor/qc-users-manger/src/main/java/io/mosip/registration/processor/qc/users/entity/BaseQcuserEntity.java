@@ -1,9 +1,9 @@
 package io.mosip.registration.processor.qc.users.entity;
 
-import javax.persistence.EmbeddedId;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-import javax.persistence.MappedSuperclass;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
+import jakarta.persistence.MappedSuperclass;
 
 
 @MappedSuperclass

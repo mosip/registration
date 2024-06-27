@@ -1,7 +1,7 @@
 package io.mosip.registration.processor.core.queue.factory;
 
-import javax.jms.Message;
-import javax.jms.MessageListener;
+import jakarta.jms.Message;
+import jakarta.jms.MessageListener;
 
 public abstract class ActiveMQMessageListener implements MessageListener {
 

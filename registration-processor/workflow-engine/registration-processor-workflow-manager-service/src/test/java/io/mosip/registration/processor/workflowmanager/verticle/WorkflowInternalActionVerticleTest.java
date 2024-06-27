@@ -25,6 +25,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -52,6 +53,7 @@ import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventD
 import io.mosip.registration.processor.core.workflow.dto.WorkflowPausedForAdditionalInfoEventDTO;
 import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -92,6 +94,9 @@ public class WorkflowInternalActionVerticleTest {
 	@Mock
 	WorkflowActionService workflowActionService;
 
+	@Mock
+	private PriorityBasedPacketManagerService priorityBasedPacketManagerService;
+	
 	@Mock
 	private PacketManagerService packetManagerService;
 	
@@ -659,7 +664,7 @@ public class WorkflowInternalActionVerticleTest {
 		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.ANONYMOUS_PROFILE.toString());
 		workflowInternalActionDTO.setActionMessage("anonymous profile event");
 
-		Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any()))
+		Mockito.when(priorityBasedPacketManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any()))
 				.thenReturn("1.0");
 		Mockito.when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(Arrays.asList(""));
 
@@ -672,14 +677,14 @@ public class WorkflowInternalActionVerticleTest {
 		fieldMap.put("postalCode", "14022");
 		fieldMap.put("dateOfBirth", "1998/01/01");
 		fieldMap.put("phone", "6666666666");
-		Mockito.when(packetManagerService.getFields(anyString(), any(), anyString(), any())).thenReturn(fieldMap);
+		Mockito.when(priorityBasedPacketManagerService.getFields(anyString(), any(), anyString(), any())).thenReturn(fieldMap);
 
 		Map<String, String> metaInfoMap = new HashedMap();
 		metaInfoMap.put("documents", "[{\"documentType\" : \"CIN\"},{\"documentType\" : \"RNC\"})]");
 		metaInfoMap.put("operationsData",
 				"[{\"label\" : \"officerId\",\"value\" : \"110024\"},{\"label\" : \"officerBiometricFileName\",\"value\" : \"null\"})]");
 		metaInfoMap.put("creationDate", "2021-09-01T03:48:49.193Z");
-		Mockito.when(packetManagerService.getMetaInfo(anyString(), anyString(), any())).thenReturn(metaInfoMap);
+		Mockito.when(priorityBasedPacketManagerService.getMetaInfo(anyString(), anyString(), any())).thenReturn(metaInfoMap);
 
 		BiometricRecord biometricRecord = new BiometricRecord();
 		BIR bir = new BIR();
@@ -689,7 +694,7 @@ public class WorkflowInternalActionVerticleTest {
 		entry.put("PAYLOAD", "{\"deviceServiceVersion\":\"0.9.5\",\"bioValue\":\"<bioValue>\",\"qualityScore\":\"80\",\"bioType\":\"Iris\"}");
 		bir.setOthers(entry);
 		biometricRecord.setSegments(Arrays.asList(bir));
-		Mockito.when(packetManagerService.getBiometrics(anyString(), anyString(), anyString(), any()))
+		Mockito.when(priorityBasedPacketManagerService.getBiometrics(anyString(), anyString(), anyString(), any()))
 				.thenReturn(biometricRecord);
 		
 		org.json.simple.JSONObject identity = new org.json.simple.JSONObject();
