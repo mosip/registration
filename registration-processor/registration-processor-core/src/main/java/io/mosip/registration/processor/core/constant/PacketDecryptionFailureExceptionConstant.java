@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.packet.uploader.constants;
+package io.mosip.registration.processor.core.constant;
 
 /**
  * The Enum PacketDecryptionFailureExceptionConstant.
