@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -425,6 +425,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 			if (bir.getOthers() != null) {
 				HashMap<String, String> othersInfo = bir.getOthers();
 				boolean exceptionValue = false;
+				if(othersInfo!=null) {
 				for (Map.Entry<String, String> other : othersInfo.entrySet()) {
 					if (other.getKey().equals(EXCEPTION)) {
 						if (other.getValue().equals(TRUE)) {
@@ -433,7 +434,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 						break;
 					}
 				}
-
+				}
 				if (exceptionValue) {
 					continue;
 				}

@@ -99,6 +99,7 @@ import io.mosip.registration.processor.packet.storage.entity.ManualVerificationE
 import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.packet.storage.utils.Utility;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -165,7 +166,10 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 	private CbeffUtil cbeffutil;
 
 	@Autowired
-	private Utilities utility;
+	private Utilities utilities;
+
+	@Autowired
+	private Utility utility;
 
 	@Autowired
 	private IdRepoService idRepoService;
@@ -433,7 +437,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 
 
 			// set biometrics
-			JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
+			JSONObject regProcessorIdentityJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 			String individualBiometricsLabel = JsonUtil.getJSONValue(
 					JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
 					MappingJsonConstants.VALUE);
@@ -470,7 +474,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 		List<Documents> documents=responseDTO.getDocuments();
 		requestDto=setDocuments(policyMap, requestDto, null, null, documents);
 
-		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
+		JSONObject regProcessorIdentityJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 		String individualBiometricsLabel = JsonUtil.getJSONValue(
 				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
 				MappingJsonConstants.VALUE);
@@ -550,7 +554,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 		return demographicMap;
 	}
 	private DataShareRequestDto setDocuments(Map<String,String> policyMap,DataShareRequestDto requestDto, String id, String process, List<Documents> documents) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException{
-		JSONObject docJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT);
+		JSONObject docJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT);
 		for (Object doc : docJson.keySet()) {
 			if (doc != null) {
 				HashMap docmap = (HashMap) docJson.get(doc.toString());
@@ -783,7 +787,8 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 			referenceURLs.add(referenceURL);
 			if(registrationStatusDto.getRegistrationType().equalsIgnoreCase(RegistrationType.UPDATE.name())
 					|| registrationStatusDto.getRegistrationType().equalsIgnoreCase(RegistrationType.RES_UPDATE.name())) {
-				String uinField = utility.getUIn(id, registrationStatusDto.getRegistrationType(), ProviderStageName.MANUAL_ADJUDICATION);
+				String uinField = utility.getUIn(id, registrationStatusDto.getRegistrationType(),
+						ProviderStageName.MANUAL_ADJUDICATION);
 				ReferenceURL referenceURL1=new ReferenceURL();
 				referenceURL1.setSource(ID_REPO);
 				referenceURL1.setStatus(PROCESSED);

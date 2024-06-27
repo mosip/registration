@@ -1,4 +1,4 @@
-FROM openjdk:11
+FROM eclipse-temurin:21-jre-alpine
 
 #Uncomment below and Comment above line(i.e. FROM openjdk:8) for OS specific (e.g. Alpine OS ) docker base image
 #FROM openjdk:8-jdk-alpine
@@ -35,7 +35,7 @@ EXPOSE 4001
 
 CMD if [ "$active_profile_env" = "preprod" ]; then \
     wget 'http://13.71.87.138:8040/artifactory/libs-release-local/io/mosip/testing/glowroot.zip' ; \
-    apt-get update && apt-get install -y unzip ; \
+    apt-get update && apk add -q unzip wget ; \
     unzip glowroot.zip ; \
     rm -rf glowroot.zip ; \
     

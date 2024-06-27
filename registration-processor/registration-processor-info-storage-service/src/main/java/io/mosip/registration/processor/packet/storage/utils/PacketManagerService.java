@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
 import io.mosip.registration.processor.core.packet.dto.packetmanager.TagRequestDto;
@@ -48,7 +48,7 @@ import io.mosip.registration.processor.packet.storage.dto.UpdateTagRequestDto;
 import io.mosip.registration.processor.packet.storage.dto.ValidatePacketResponse;
 
 @Component
-public class PacketManagerService extends PriorityBasedPacketManagerService {
+public class PacketManagerService {
 
     private static Logger regProcLogger = RegProcessorLogger.getLogger(PacketManagerService.class);
     private static final String ID = "mosip.commmons.packetmanager";
@@ -61,15 +61,13 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Autowired
-    private Utilities utilities;
-
     @PostConstruct
     private void setObjectMapper() {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 
-    protected String getField(String id, String field, String source, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+	public String getField(String id, String field, String source, String process)
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         FieldDto fieldDto = new FieldDto(id, field, source, process, false);
 
         RequestWrapper<FieldDto> request = new RequestWrapper<>();
@@ -96,7 +94,8 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
         return responseField;
     }
 
-    protected Map<String, String> getFields(String id, List<String> fields, String source, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+	public Map<String, String> getFields(String id, List<String> fields, String source, String process)
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         FieldDtos fieldDto = new FieldDtos(id, fields, source, process, false);
 
         RequestWrapper<FieldDtos> request = new RequestWrapper<>();
@@ -120,11 +119,13 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
         return fieldResponseDto.getFields();
     }
 
-    protected Document getDocument(String id, String documentName, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+	public Document getDocument(String id, String documentName, String process)
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         return getDocument(id, documentName, null, process);
     }
 
-    protected Document getDocument(String id, String documentName, String source, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+	public Document getDocument(String id, String documentName, String source, String process)
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         DocumentDto fieldDto = new DocumentDto(id, documentName, source, process);
 
         RequestWrapper<DocumentDto> request = new RequestWrapper<>();
@@ -148,7 +149,8 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
         return document;
     }
 
-    protected ValidatePacketResponse validate(String id, String source, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+	public ValidatePacketResponse validate(String id, String source, String process)
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         InfoDto fieldDto = new InfoDto(id, source, process, false);
 
         RequestWrapper<InfoDto> request = new RequestWrapper<>();
@@ -171,7 +173,8 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
         return validatePacketResponse;
     }
 
-    protected List<FieldResponseDto> getAudits(String id, String source, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+	public List<FieldResponseDto> getAudits(String id, String source, String process)
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
 
         InfoDto fieldDto = new InfoDto(id, source, process, false);
         List<FieldResponseDto> response = new ArrayList<>();
@@ -200,7 +203,9 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
         return response;
     }
 
-    protected BiometricRecord getBiometrics(String id, String person, List<String> modalities, String source, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+	public BiometricRecord getBiometrics(String id, String person, List<String> modalities, String source,
+			String process)
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
 
         BiometricRequestDto fieldDto = new BiometricRequestDto(id, person, modalities, source, process, false);
 
@@ -227,7 +232,8 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
 
     }
 
-    protected Map<String, String> getMetaInfo(String id, String source, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+	public Map<String, String> getMetaInfo(String id, String source, String process)
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         InfoDto fieldDto = new InfoDto(id, source, process, false);
 
         RequestWrapper<InfoDto> request = new RequestWrapper<>();
@@ -252,7 +258,8 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
         return fieldResponseDto.getFields();
     }
 
-    protected InfoResponseDto info(String id) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+	public InfoResponseDto info(String id)
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         InfoRequestDto infoRequestDto = new InfoRequestDto(id);
 
         RequestWrapper<InfoRequestDto> request = new RequestWrapper<>();

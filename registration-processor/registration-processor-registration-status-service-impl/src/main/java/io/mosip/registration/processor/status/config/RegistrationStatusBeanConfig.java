@@ -43,7 +43,7 @@ import io.mosip.registration.processor.status.utilities.RegistrationExternalStat
 @Configuration
 @PropertySource("classpath:bootstrap.properties")
 @Import({ HibernateDaoConfig.class })
-@EnableJpaRepositories(basePackages = "io.mosip.registration.processor", repositoryBaseClass = HibernateRepositoryImpl.class)
+//@EnableJpaRepositories(basePackages = "io.mosip.registration.processor.status.repositary", repositoryBaseClass = HibernateRepositoryImpl.class)
 public class RegistrationStatusBeanConfig {
 
 	@Bean
@@ -84,11 +84,13 @@ public class RegistrationStatusBeanConfig {
 	}
 
 	@Bean
+	@Primary
 	public RestApiClient getRestApiClient() {
 		return new RestApiClient();
 	}
 
 	@Bean
+	@Primary
 	public SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> getSyncRegistrationService() {
 		return new SyncRegistrationServiceImpl();
 	}

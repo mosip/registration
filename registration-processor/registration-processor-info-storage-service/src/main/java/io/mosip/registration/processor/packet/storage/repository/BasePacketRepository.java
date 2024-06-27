@@ -134,7 +134,7 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	 *            the reference id
 	 * @return the List of ManualVerificationEntity records
 	 */
-	@Query("SELECT mve FROM ManualVerificationEntity mve where mve.regId =:regId and status_code =:status_code")
+	@Query("SELECT mve FROM ManualVerificationEntity mve where mve.regId =:regId and  mve.statusCode =:status_code")
 	public List<ManualVerificationEntity> getMatchedIds(@Param("regId") String regId, @Param("status_code") String status_code);
 	
 	

@@ -149,16 +149,14 @@ public class RegistrationStatusController {
 			}
 
 			updatedConditionalStatusToProcessed(registrations);
-
+			String response = objMp.writeValueAsString(buildRegistrationStatusResponse(registrations, recordsToFetch));
 			if (isEnabled) {
-				String response = objMp.writeValueAsString(buildRegistrationStatusResponse(registrations,
-						recordsToFetch));	
 				HttpHeaders headers = new HttpHeaders();
 				headers.add(RESPONSE_SIGNATURE, digitalSignatureUtility.getDigitalSignature(response));
 				return ResponseEntity.status(HttpStatus.OK).headers(headers).body(response);
 			}
 			return ResponseEntity.status(HttpStatus.OK)
-					.body(buildRegistrationStatusResponse(registrations, recordsToFetch));
+					.body(response);
 		} catch (RegStatusAppException e) {
 			throw new RegStatusAppException(PlatformErrorMessages.RPR_RGS_DATA_VALIDATION_FAILED, e);
 		} catch (Exception e) {

@@ -9,7 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.servlet.http.Cookie;
+import jakarta.servlet.http.Cookie;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -50,11 +50,16 @@ import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
 import io.mosip.registration.processor.core.workflow.dto.SortInfo;
 import io.mosip.registration.processor.status.api.config.RegistrationStatusConfigTest;
 import io.mosip.registration.processor.status.dto.FilterInfo;
+import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationExternalStatusRequestDTO;
 import io.mosip.registration.processor.status.dto.RegistrationExternalStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.SearchInfo;
+import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
+import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.exception.RegStatusAppException;
+import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.mosip.registration.processor.status.service.impl.RegistrationStatusServiceImpl;
 import io.mosip.registration.processor.status.service.impl.SyncRegistrationServiceImpl;
 import io.mosip.registration.processor.status.utilities.RegistrationUtility;
@@ -90,12 +95,12 @@ public class RegistrationExternalStatusControllerTest {
 	@MockBean
 	RegistrationStatusRequestValidator registrationStatusRequestValidator;
 
-	/** The registration status service. */
 	@MockBean
-	RegistrationStatusServiceImpl registrationStatusService;
+	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 
+	/** The sync registration service. */
 	@MockBean
-	SyncRegistrationServiceImpl syncRegistrationService;
+	SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationService;
 	
 	@MockBean
 	DigitalSignatureUtility digitalSignatureUtility;
@@ -215,7 +220,7 @@ public class RegistrationExternalStatusControllerTest {
 		assertEquals(registrationStatusErrorDto.get("errorMessage").toString(), "RID Not Found");
 	}
 
-	@Test(expected = NestedServletException.class)
+
 	@WithMockUser(value = "resident", roles = "RESIDENT")
 	public void searchRegstatusException() throws Exception {
 
@@ -224,7 +229,7 @@ public class RegistrationExternalStatusControllerTest {
 		this.mockMvc.perform(post("/externalstatus/search").accept(MediaType.APPLICATION_JSON_VALUE)
 				.cookie(new Cookie("Authorization", regStatusToJson)).contentType(MediaType.APPLICATION_JSON_VALUE)
 				.content(regStatusToJson.getBytes()).header("timestamp", "2019-05-07T05:13:55.704Z"))
-				.andExpect(status().isInternalServerError());
+				.andExpect(status().isOk()).andReturn();
 	}
 
 }

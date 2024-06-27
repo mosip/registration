@@ -17,10 +17,10 @@ import java.sql.Statement;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.jms.Message;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageProducer;
-import javax.jms.Session;
+import jakarta.jms.Message;
+import jakarta.jms.MessageConsumer;
+import jakarta.jms.MessageProducer;
+import jakarta.jms.Session;
 
 import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.apache.commons.io.FileUtils;
@@ -96,7 +96,7 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	private static final String WIN_UTIL = "winutils.exe";
 	private static final String CLASSPATH_PREFIX = "classpath:";
 	private static final int THRESHOLD = 10485760;
-	javax.jms.Connection connection = null;
+	jakarta.jms.Connection connection = null;
 	private Session session = null;
 	MessageConsumer messageConsumer;
 	MessageProducer messageProducer;

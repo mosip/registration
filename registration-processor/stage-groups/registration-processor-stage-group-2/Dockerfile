@@ -1,4 +1,4 @@
-FROM openjdk:11
+FROM mosipdev/openjdk-21-jre:latest
 
 ARG SOURCE
 ARG COMMIT_HASH
@@ -64,40 +64,36 @@ ENV biosdk_local_dir_name=${biosdk_local_dir}
 #ENV bio_sdk_folder_env=${bio_sdk_folder}
 ENV biosdk_zip_file_path=${biosdk_zip_path}
 
-# install packages and create user
-RUN apt-get -y update \
-&& apt-get install -y unzip sudo \
-&& groupadd -g ${container_user_gid} ${container_user_group} \
-&& useradd -u ${container_user_uid} -g ${container_user_group} -s /bin/sh -m ${container_user} \
-&& adduser ${container_user} sudo \
-&& echo "%sudo ALL=(ALL) NOPASSWD:/home/${container_user}/${biosdk_local_dir}/install.sh" >> /etc/sudoers
+ARG stage_group_name=registration-processor-stage-group-2
 
-# set working directory for the user
-WORKDIR /home/${container_user}
+ENV group_name=${stage_group_name}
 
 ENV work_dir=/home/${container_user}
 
 ARG loader_path=${work_dir}/additional_jars/
 
-RUN mkdir -p ${loader_path}
-
 ENV loader_path_env=${loader_path}
 
-# change volume to whichever storage directory you want to use for this container.
-#VOLUME /home/logs
-
-ARG stage_group_name=registration-processor-stage-group-2
-
-ENV group_name=${stage_group_name}
+# set working directory for the user
+WORKDIR ${work_dir}
 
 ADD ./target/${group_name}-*.jar ${group_name}.jar
 
 ADD configure_start.sh configure_start.sh
 
-RUN chmod +x configure_start.sh
+# install packages and create user
+RUN apt-get -y update \
+&& apt-get install -y unzip sudo curl \
+&& groupadd -g ${container_user_gid} ${container_user_group} \
+&& useradd -u ${container_user_uid} -g ${container_user_group} -s /bin/bash -m ${container_user} \
+&& adduser ${container_user} sudo \
+&& echo "%sudo ALL=(ALL) NOPASSWD:/home/${container_user}/${biosdk_local_dir}/install.sh" >> /etc/sudoers \
+&& mkdir -p ${loader_path} \
+&& chmod +x configure_start.sh \
+&& chown -R ${container_user}:${container_user} ${work_dir}
 
-# change permissions of file inside working dir
-RUN chown -R ${container_user}:${container_user} /home/${container_user}
+# change volume to whichever storage directory you want to use for this container.
+#VOLUME /home/logs
 
 # select container user for all tasks
 USER ${container_user_uid}:${container_user_gid}
@@ -110,8 +106,8 @@ CMD if [ "$is_glowroot_env" = "present" ]; then \
     unzip glowroot.zip ; \
     rm -rf glowroot.zip ; \
     sed -i 's/<service_name>/registration-processor-external-stage/g' glowroot/glowroot.properties ; \
-    java -Dloader.path="${loader_path_env}"  -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -Dstage-group-name=${group_name} -jar -javaagent:glowroot/glowroot.jar ${group_name}.jar ; \
+    java -Dloader.path="${loader_path_env}"  -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -Dstage-group-name=${group_name}  --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.lang.stream=ALL-UNNAMED --add-opens java.base/java.time=ALL-UNNAMED --add-opens java.base/java.time.LocalDate=ALL-UNNAMED --add-opens java.base/java.time.LocalDateTime=ALL-UNNAMED --add-opens java.base/java.io.Reader=ALL-UNNAMED --add-opens java.base/java.util.Optional=ALL-UNNAMED --add-opens java.base/java.time.LocalDateTime.date=ALL-UNNAMED-jar -javaagent:glowroot/glowroot.jar ${group_name}.jar ; \
     else \
     wget "${iam_adapter_url_env}" -O "${loader_path_env}"/kernel-auth-adapter.jar; \
-    java -Dloader.path="${loader_path_env}"  -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -Dstage-group-name=${group_name} -jar ${group_name}.jar ; \
+    java -Dloader.path="${loader_path_env}"  -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -Dstage-group-name=${group_name} --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.lang.stream=ALL-UNNAMED --add-opens java.base/java.time=ALL-UNNAMED --add-opens java.base/java.time.LocalDate=ALL-UNNAMED --add-opens java.base/java.time.LocalDateTime=ALL-UNNAMED --add-opens java.base/java.io.Reader=ALL-UNNAMED --add-opens java.base/java.util.Optional=ALL-UNNAMED --add-opens java.base/java.time.LocalDateTime.date=ALL-UNNAMED  -jar ${group_name}.jar ; \
     fi
