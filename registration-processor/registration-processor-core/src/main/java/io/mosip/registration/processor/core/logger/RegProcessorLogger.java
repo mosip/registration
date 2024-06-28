@@ -34,6 +34,7 @@ public final class RegProcessorLogger {
 	 * @param clazz the clazz
 	 * @return the logger
 	 */
+	@SuppressWarnings({ "java:S4792" })
 	public static Logger getLogger(Class<?> clazz) {
 		if(loggingLevelMap.isEmpty()) {
 			loggingLevelMap = System.getProperties().entrySet().stream()
