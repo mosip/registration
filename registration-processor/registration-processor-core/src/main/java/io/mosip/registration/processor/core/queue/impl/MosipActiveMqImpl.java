@@ -108,6 +108,7 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
      * lang.Object, java.lang.Object, java.lang.String, long)
      */
     @Override
+	@SuppressWarnings({ "java:S2095" })
     public Boolean send(MosipQueue mosipQueue, byte[] message, String address, int messageTTL) {
         regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
                 "", "MosipActiveMqImpl::send()::entry");
@@ -144,6 +145,7 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
     }
 
     @Override
+	@SuppressWarnings({ "java:S2095" })
     public Boolean send(MosipQueue mosipQueue, String message, String address, int messageTTL) {
         boolean flag = false;
         initialSetup(mosipQueue);
@@ -182,6 +184,7 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
      * .lang.Object, java.lang.String)
      */
     @Override
+	@SuppressWarnings({ "java:S2095" })
     public byte[] consume(MosipQueue mosipQueue, String address, QueueListener object) {
         regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
                 "", "MosipActiveMqImpl::consume()::entry");
