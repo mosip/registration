@@ -28,6 +28,7 @@ import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.PacketDecryptionFailureExceptionConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -37,7 +38,6 @@ import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.packet.manager.dto.CryptomanagerRequestDto;
 import io.mosip.registration.processor.packet.manager.dto.CryptomanagerResponseDto;
-import io.mosip.registration.processor.packet.manager.exception.PacketDecryptionFailureExceptionConstant;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 
 /**
