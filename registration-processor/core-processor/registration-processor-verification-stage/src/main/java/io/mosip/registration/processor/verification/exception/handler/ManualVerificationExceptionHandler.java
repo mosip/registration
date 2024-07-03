@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import io.mosip.registration.processor.verification.exception.ManualVerificationAppException;
+
 import io.mosip.registration.processor.verification.exception.MatchTypeNotFoundException;
 import io.mosip.registration.processor.verification.exception.NoRecordAssignedException;
 import io.mosip.registration.processor.verification.exception.PacketNotFoundException;
@@ -22,6 +22,7 @@ import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.common.rest.dto.BaseRestResponseDTO;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.exception.ManualVerificationAppException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.token.validation.exception.InvalidTokenException;

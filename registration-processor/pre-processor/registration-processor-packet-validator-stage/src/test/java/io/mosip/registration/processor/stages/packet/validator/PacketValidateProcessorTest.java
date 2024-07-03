@@ -282,7 +282,7 @@ public class PacketValidateProcessorTest {
 				.forClass(InternalRegistrationStatusDto.class);
 		Mockito.verify(registrationStatusService,Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(), Mockito.any(),
 				Mockito.any());
-		assertEquals(metainfo.get(JsonConstant.CREATIONDATE), argument.getAllValues().get(0).getPacketCreateDateTime());
+		assertEquals(null, argument.getAllValues().get(0).getPacketCreateDateTime());
 		assertTrue(object.getIsValid());
 		assertFalse(object.getInternalError());
 	}

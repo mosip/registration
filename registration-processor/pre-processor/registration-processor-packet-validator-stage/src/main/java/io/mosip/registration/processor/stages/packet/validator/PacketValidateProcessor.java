@@ -218,7 +218,7 @@ public class PacketValidateProcessor {
 					};
 					ExecutorService es = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 					es.submit(r);
-					es.shutdown();
+					es.close();
 					registrationStatusDto
 							.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 					object.setIsValid(Boolean.TRUE);

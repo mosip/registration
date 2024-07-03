@@ -7,8 +7,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TimeZone;
 
-import io.mosip.registration.processor.verification.exception.ManualVerificationAppException;
-import io.mosip.registration.processor.verification.exception.ManualVerificationValidationException;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +16,8 @@ import org.springframework.stereotype.Component;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.registration.processor.core.exception.ManualVerificationAppException;
+import io.mosip.registration.processor.core.exception.ManualVerificationValidationException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.verification.constants.VerificationConstants;

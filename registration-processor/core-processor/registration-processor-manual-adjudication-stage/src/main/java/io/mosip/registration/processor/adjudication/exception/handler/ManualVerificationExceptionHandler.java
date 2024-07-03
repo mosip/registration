@@ -10,7 +10,6 @@ import io.mosip.registration.processor.adjudication.exception.InvalidFieldsExcep
 import io.mosip.registration.processor.adjudication.exception.InvalidFileNameException;
 import io.mosip.registration.processor.adjudication.exception.InvalidTokenHandlerException;
 import io.mosip.registration.processor.adjudication.exception.InvalidUpdateException;
-import io.mosip.registration.processor.adjudication.exception.ManualVerificationAppException;
 import io.mosip.registration.processor.adjudication.exception.MatchTypeNotFoundException;
 import io.mosip.registration.processor.adjudication.exception.NoRecordAssignedException;
 import io.mosip.registration.processor.adjudication.exception.PacketNotFoundException;
@@ -28,6 +27,7 @@ import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.common.rest.dto.BaseRestResponseDTO;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.exception.ManualVerificationAppException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.token.validation.exception.InvalidTokenException;
