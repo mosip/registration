@@ -1,0 +1,23 @@
+apiVersion: v2
+name: regproc-opencrvs
+description: A Helm chart for mosip regproc-opencrvs stage.
+type: application
+version: 0.0.1-develop
+appVersion: ""
+home: https://mosip.io
+dependencies:
+- name: common
+  repository: https://charts.bitnami.com/bitnami
+  tags:
+   - bitnami-common
+  version: 1.x.x
+keywords:
+ - mosip
+ - mosip-opencrvs-mediator
+ - opencrvs-mediator
+ - regproc-opencrvs
+ - regproc-opencrvs-stage
+ - opencrvs
+maintainers:
+ - email: info@mosip.io
+   name: MOSIP
