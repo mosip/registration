@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -131,6 +132,9 @@ public class BioDedupeProcessor {
 
 	@Value("${registration.processor.missing.biometric.verification.enabled:true}")
 	private boolean missingBiometricVerificationEnabled;
+
+	@Value("${registration.processor.biometric.autoreject.enabled:false}")
+	private boolean biometricAutorejectEnable;
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(BioDedupeProcessor.class);
@@ -435,6 +439,36 @@ public class BioDedupeProcessor {
 					registrationStatusDto.getRegistrationId(), BioDedupeConstants.ABIS_RESPONSE_NULL);
 
 		} else {
+			if (registrationType.equalsIgnoreCase(RegistrationType.UPDATE.name()) && matchedRegIds.size() == 1
+					&& biometricAutorejectEnable) {
+				Optional<String> optionalMatchedRegId = matchedRegIds.stream().findFirst();
+				String matchedRegId = optionalMatchedRegId.get();
+				String uin = idRepoService.getUinByRid(matchedRegId, utilities.getGetRegProcessorDemographicIdentity());
+				String updateUin = utilities.getUIn(registrationStatusDto.getRegistrationId(), registrationType,
+						ProviderStageName.BIO_AUTH);
+				if (StringUtils.equals(uin, updateUin)) {
+					registrationStatusDto
+							.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
+					object.setIsValid(Boolean.TRUE);
+					registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+					registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_SUCCESS.getMessage());
+					registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_SUCCESS.getCode());
+					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+							LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
+							BioDedupeConstants.ABIS_RESPONSE_MATCHING);
+				} else {
+					registrationStatusDto
+							.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
+					object.setIsValid(Boolean.FALSE);
+					registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.name());
+					registrationStatusDto.setStatusComment(StatusUtil.UPDATE_PACKET_BIOMETRICS_NOT_FOUND.getMessage());
+					registrationStatusDto.setSubStatusCode(StatusUtil.UPDATE_PACKET_BIOMETRICS_NOT_FOUND.getCode());
+					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+							LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
+							BioDedupeConstants.NO_MATCH_FOUND_FOR_UPDATE + registrationStatusDto.getRegistrationId());
+				}
+				
+			}else {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
 			registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_POTENTIAL_MATCH.getMessage());
 			registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_POTENTIAL_MATCH.getCode());
@@ -451,7 +485,7 @@ public class BioDedupeProcessor {
 
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationStatusDto.getRegistrationId(), BioDedupeConstants.ABIS_RESPONSE_NOT_NULL);
-
+			}
 		}
 	}
 
