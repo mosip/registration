@@ -42,4 +42,8 @@ public class BioDedupeConstants {
 	
 	/** The Constant INTERNAL_ERROR. */
 	private static final String INTERNAL_ERROR = "Internal error occurred in bio-dedupe stage while processing for registrationId ";
+
+	public static final String ABIS_RESPONSE_MATCHING = "ABIS response Details matching, destination stage is UIN";
+
+	public static final String NO_MATCH_FOUND_FOR_UPDATE = "No match found, rejecting the Update packet for ";
 }
