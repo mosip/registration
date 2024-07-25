@@ -185,9 +185,7 @@ public class BioDedupeProcessor {
 					newPacketPreAbisIdentification(registrationStatusDto, object);
 				} else if (packetStatus.equalsIgnoreCase(AbisConstant.POST_ABIS_IDENTIFICATION)) {
 					postAbisIdentification(registrationStatusDto, object, registrationType);
-
 				}
-
 			} else if (registrationType.equalsIgnoreCase(SyncTypeDto.UPDATE.toString())
 					|| registrationType.equalsIgnoreCase(SyncTypeDto.RES_UPDATE.toString())) {
 				String packetStatus = abisHandlerUtil.getPacketStatus(registrationStatusDto);
@@ -489,7 +487,7 @@ public class BioDedupeProcessor {
 				registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_SUCCESS.getCode());
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
-						BioDedupeConstants.ABIS_RESPONSE_MATCHING);
+						BioDedupeConstants.BIOMETRIC_MATCH_FOUND_WITH_SELF);
 			} else {
 				if (biometricsUpdateSingleMatchAutoReject) {
 					registrationStatusDto.setLatestTransactionStatusCode(
@@ -497,13 +495,13 @@ public class BioDedupeProcessor {
 					object.setIsValid(Boolean.FALSE);
 					registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.name());
 					registrationStatusDto
-							.setStatusComment(StatusUtil.UPDATE_PACKET_BIOMETRICS_NO_MATCH_FOUND.getMessage());
+							.setStatusComment(StatusUtil. UPDATE_PACKET_BIOMETRICS_MATCHED_WITH_OTHER.getMessage());
 					registrationStatusDto
-							.setSubStatusCode(StatusUtil.UPDATE_PACKET_BIOMETRICS_NO_MATCH_FOUND.getCode());
+							.setSubStatusCode(StatusUtil. UPDATE_PACKET_BIOMETRICS_MATCHED_WITH_OTHER.getCode());
 					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.REGISTRATIONID.toString(),
 							registrationStatusDto.getRegistrationId(),
-							BioDedupeConstants.NO_MATCH_FOUND_FOR_UPDATE
+							BioDedupeConstants.BIOMETRIC_MATCH_FOUND_WITH_OTHER
 									+ registrationStatusDto.getRegistrationId());
 				} else {
 					sendToManualAdjudicationStage(registrationStatusDto, object, registrationType, moduleName,

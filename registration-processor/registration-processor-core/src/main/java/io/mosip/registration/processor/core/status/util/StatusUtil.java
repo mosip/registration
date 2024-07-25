@@ -200,8 +200,8 @@ public enum StatusUtil {
 	LOST_PACKET_MULTIPLE_MATCH_FOUND(StatusConstants.BIO_DEDUPE_MODULE_FAILED + "003",
 			"Multiple Match was Found for the Biometrics Received"),
 
-	UPDATE_PACKET_BIOMETRICS_NO_MATCH_FOUND(StatusConstants.BIO_DEDUPE_MODULE_FAILED + "004",
-			"No Match was Found for the Biometrics Received"),
+    UPDATE_PACKET_BIOMETRICS_MATCHED_WITH_OTHER(StatusConstants.BIO_DEDUPE_MODULE_FAILED + "004",
+			"Biometric match found with another user"),
 
 	// Biometric authentication stage
 	BIOMETRIC_AUTHENTICATION_FAILED(StatusConstants.BIO_METRIC_AUTHENTICATION_MODULE_FAILED + "001",
