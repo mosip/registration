@@ -442,9 +442,8 @@ public class BioDedupeProcessor {
 				updatePostAbisIdentification(registrationStatusDto, object, registrationType, moduleName,
 						matchedRegIds);
 			}else {
-			sendToManualAdjudicationStage(registrationStatusDto, object, registrationType, moduleName, matchedRegIds);
-
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+			    sendToManualAdjudicationStage(registrationStatusDto, object, registrationType, moduleName, matchedRegIds);
+			    regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationStatusDto.getRegistrationId(), BioDedupeConstants.ABIS_RESPONSE_NOT_NULL);
 			}
 		}
