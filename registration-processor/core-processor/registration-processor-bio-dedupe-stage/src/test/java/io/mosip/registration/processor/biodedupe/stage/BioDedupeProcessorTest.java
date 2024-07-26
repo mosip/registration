@@ -763,7 +763,7 @@ public class BioDedupeProcessorTest {
 //    One match of RID/AID found at bio dedupe,
 //    but UIN of the duplicate match is different from update packet UIN when AutoReject is True
     @Test
-    public void oneMatchFoundWithDiffrentUinWithMatchAutoRejecAsTrue() throws ApisResourceAccessException, IOException,
+    public void oneMatchFoundWithDifferentUinWithMatchAutoRejecAsTrue() throws ApisResourceAccessException, IOException,
             PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
         registrationStatusDto.setRegistrationId("27847657360002520190320095011");
         registrationStatusDto.setRegistrationType("UPDATE");
@@ -881,7 +881,7 @@ public class BioDedupeProcessorTest {
 //    More than one match of RID/AID found at bio dedupe stage,
 //    all duplicate matches possess different UINs. Among that one UIN matches with update packet UIN
     @Test
-    public void moreThenOneMatchFoundWithDiffrentUinOnlyOneMatches() throws ApisResourceAccessException, IOException,
+    public void moreThenOneMatchFoundWithDifferentUinOnlyOneMatches() throws ApisResourceAccessException, IOException,
             PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
         registrationStatusDto.setRegistrationId("27847657360002520190320095011");
         registrationStatusDto.setRegistrationType("UPDATE");
@@ -914,7 +914,7 @@ public class BioDedupeProcessorTest {
 //    More than one match of RID/AID found at bio dedupe stage,
 //    all duplicate matches possess different UINs. Among that no UIN matches with update packet UIN
     @Test
-    public void moreThenOneMatchFoundWithDiffrentUin() throws ApisResourceAccessException, IOException,
+    public void moreThenOneMatchFoundWithDifferentUin() throws ApisResourceAccessException, IOException,
             PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
         registrationStatusDto.setRegistrationId("27847657360002520190320095011");
         registrationStatusDto.setRegistrationType("UPDATE");
