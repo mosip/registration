@@ -767,6 +767,7 @@ public class BioDedupeProcessorTest {
             PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
         registrationStatusDto.setRegistrationId("27847657360002520190320095011");
         registrationStatusDto.setRegistrationType("UPDATE");
+        registrationStatusDto.setStatusCode("PROCESSING");
         Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(), any())).thenReturn(registrationStatusDto);
         Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
 
