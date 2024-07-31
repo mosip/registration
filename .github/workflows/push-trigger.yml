@@ -20,7 +20,6 @@ on:
       - master
       - 1.*
       - develop
-      - MOSIP-34112_release
 
 jobs:
   build-maven-registration:
