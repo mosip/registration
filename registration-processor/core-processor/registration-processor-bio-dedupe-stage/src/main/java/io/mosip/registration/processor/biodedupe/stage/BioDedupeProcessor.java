@@ -469,6 +469,10 @@ public class BioDedupeProcessor {
 				uniqueUins.add(uin);
 			}
 		}
+        regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+                LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
+               "sendToManualAdjudication : " + sendToManualAdjudication + " ::uniqueUins count : " + uniqueUins.size() +
+                       " ::biometricsUpdateSingleMatchAutoReject : " + biometricsUpdateSingleMatchAutoReject);
 		if (sendToManualAdjudication || uniqueUins.size() > 1) {
 			sendToManualAdjudicationStage(registrationStatusDto, object, registrationType, moduleName,
 					matchedRegIds);
