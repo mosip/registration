@@ -1,23 +1,5 @@
 package io.mosip.registration.processor.biodedupe.stage;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataAccessException;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
@@ -26,19 +8,11 @@ import io.mosip.registration.processor.biodedupe.service.CbeffValidateAndVerific
 import io.mosip.registration.processor.biodedupe.stage.exception.CbeffNotFoundException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
-import io.mosip.registration.processor.core.code.DedupeSourceName;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
-import io.mosip.registration.processor.core.code.ModuleName;
-import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
-import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
-import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
-import io.mosip.registration.processor.core.constant.AbisConstant;
-import io.mosip.registration.processor.core.constant.LoggerFileConstant;
-import io.mosip.registration.processor.core.constant.MappingJsonConstants;
-import io.mosip.registration.processor.core.constant.ProviderStageName;
-import io.mosip.registration.processor.core.constant.RegistrationType;
+import io.mosip.registration.processor.core.code.*;
+import io.mosip.registration.processor.core.constant.*;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
@@ -67,6 +41,17 @@ import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.SyncTypeDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.io.IOException;
+import java.util.*;
 
 /**
  * The Class BioDedupeProcessor.
@@ -419,6 +404,10 @@ public class BioDedupeProcessor {
 			io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
 		String moduleId = "";
 		String moduleName = ModuleName.BIO_DEDUPE.toString();
+        /* This method returns combination of below RIDs :
+            - RIDs which are in PROCESSING state (Except current packet RID)
+            - RIDs (For which UIN is generated and it reached to RID repo) associated with UINs other than current packet UIN i.e it removes the RIDs which are associated with current packet UIN.
+         */
 		Set<String> matchedRegIds = abisHandlerUtil.getUniqueRegIds(registrationStatusDto.getRegistrationId(),
 				registrationType, registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId(), ProviderStageName.BIO_DEDUPE);
 		ArrayList<String> matchedRegIdsList = new ArrayList<String>(matchedRegIds);
@@ -456,7 +445,6 @@ public class BioDedupeProcessor {
 		boolean sendToManualAdjudication = false;
 		for(String matchedRegistrationId:matchedRegIds) {
 			String uin = idRepoService.getUinByRid(matchedRegistrationId, utilities.getGetRegProcessorDemographicIdentity());
-			// TODO need to check this condition is necessary
 			if (StringUtils.isEmpty(uin)) {
 				InternalRegistrationStatusDto matchedRegistrationStatusDto = registrationStatusService
 						.getRegistrationStatus(matchedRegistrationId, null, null, null);
@@ -477,42 +465,25 @@ public class BioDedupeProcessor {
 			sendToManualAdjudicationStage(registrationStatusDto, object, registrationType, moduleName,
 					matchedRegIds);
 		} else {
-			Optional<String> optionalMatchedUin = uniqueUins.stream().findFirst();
-			String matchedUIN = optionalMatchedUin.get();
-			String updateUin = utilities.getUIn(registrationStatusDto.getRegistrationId(), registrationType,
-					ProviderStageName.BIO_AUTH);
-			if (StringUtils.equals(matchedUIN, updateUin)) {
-				registrationStatusDto
-						.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
-				object.setIsValid(Boolean.TRUE);
-				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
-				registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_SUCCESS.getMessage());
-				registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_SUCCESS.getCode());
-				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
-						BioDedupeConstants.BIOMETRIC_MATCH_FOUND_WITH_SELF);
-			} else {
-				if (biometricsUpdateSingleMatchAutoReject) {
-					registrationStatusDto.setLatestTransactionStatusCode(
-							RegistrationTransactionStatusCode.FAILED.toString());
-					object.setIsValid(Boolean.FALSE);
-					registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.name());
-					registrationStatusDto
-							.setStatusComment(StatusUtil. UPDATE_PACKET_BIOMETRICS_MATCHED_WITH_OTHER.getMessage());
-					registrationStatusDto
-							.setSubStatusCode(StatusUtil. UPDATE_PACKET_BIOMETRICS_MATCHED_WITH_OTHER.getCode());
-					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(),
-							registrationStatusDto.getRegistrationId(),
-							BioDedupeConstants.BIOMETRIC_MATCH_FOUND_WITH_OTHER
-									+ registrationStatusDto.getRegistrationId());
-				} else {
-					sendToManualAdjudicationStage(registrationStatusDto, object, registrationType, moduleName,
-							matchedRegIds);
-				}
-
-			}
-		}
+            if (biometricsUpdateSingleMatchAutoReject) {
+                registrationStatusDto.setLatestTransactionStatusCode(
+                        RegistrationTransactionStatusCode.FAILED.toString());
+                object.setIsValid(Boolean.FALSE);
+                registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.name());
+                registrationStatusDto
+                        .setStatusComment(StatusUtil. UPDATE_PACKET_BIOMETRICS_MATCHED_WITH_OTHER.getMessage());
+                registrationStatusDto
+                        .setSubStatusCode(StatusUtil. UPDATE_PACKET_BIOMETRICS_MATCHED_WITH_OTHER.getCode());
+                regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+                        LoggerFileConstant.REGISTRATIONID.toString(),
+                        registrationStatusDto.getRegistrationId(),
+                        BioDedupeConstants.BIOMETRIC_MATCH_FOUND_WITH_OTHER
+                                + registrationStatusDto.getRegistrationId());
+            } else {
+                sendToManualAdjudicationStage(registrationStatusDto, object, registrationType, moduleName,
+                        matchedRegIds);
+            }
+        }
 	}
 
 	private void sendToManualAdjudicationStage(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object,

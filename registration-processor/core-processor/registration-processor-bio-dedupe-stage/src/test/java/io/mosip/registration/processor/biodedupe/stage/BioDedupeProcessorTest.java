@@ -695,61 +695,20 @@ public class BioDedupeProcessorTest {
         assertTrue(messageDto.getInternalError());
     }
 
+
+    /* use case 1 -> No match of RID/AID found in bio dedupe:
+        This use case is handled in noMatchedRidFound().
+
+       use case 2 -> One match of RID/AID found at bio dedupe stage. UIN of the duplicate match is same as the update packet UIN
+        This use case is handled in noMatchedRidFound() because abisHandlerUtil.getUniqueRegIds() will
+        return the empty matched rid list because it rid's associated with current packet.
+
+       use case 4 -> More than one match of RID/AID found at bio dedupe stage, all UIN of duplicate matches are same as update packet UIN:
+        This use case is handled in noMatchedRidFound() because abisHandlerUtil.getUniqueRegIds() will
+        return the empty matched rid list because it rid's associated with current packet.
+     */
     @Test
-    public void testBioDeDupUpdatePacketHandlerProcessingSuccessWithAutoRejectEnable()
-            throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
-            io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
-        registrationStatusDto.setRegistrationId("reg1234");
-        registrationStatusDto.setRegistrationType("UPDATE");
-        Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
-                .thenReturn(registrationStatusDto);
-        Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
-
-        Set<String> matchedRidList = new HashSet<>();
-        matchedRidList.add("27847657360002520190320095010");
-        Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(matchedRidList);
-        when(idRepoService.getUinByRid(any(), any())).thenReturn("9403107397");
-        Mockito.when(utility.getUIn(anyString(), anyString(), any())).thenReturn("9403107397");
-        ReflectionTestUtils.setField(bioDedupeProcessor, "biometricsUpdateSingleMatchAutoReject", true);
-        MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
-        assertTrue(messageDto.getIsValid());
-        assertFalse(messageDto.getInternalError());
-    }
-
-    @Test
-    public void testBioDeDupUpdatePacketHandlerProcessingFailWithAutoRejectEnable()
-            throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
-            io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
-        registrationStatusDto.setRegistrationId("reg1234");
-        registrationStatusDto.setRegistrationType("UPDATE");
-        Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
-                .thenReturn(registrationStatusDto);
-        Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
-
-        Set<String> matchedRidList = new HashSet<>();
-        matchedRidList.add("27847657360002520190320095010");
-        Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(matchedRidList);
-        when(idRepoService.getUinByRid(any(), any())).thenReturn("9403107397");
-        Mockito.when(utility.getUIn(anyString(), anyString(), any())).thenReturn("9403107396");
-        ReflectionTestUtils.setField(bioDedupeProcessor, "biometricsUpdateSingleMatchAutoReject", true);
-        MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
-        assertFalse(messageDto.getIsValid());
-        assertFalse(messageDto.getInternalError());
-    }
-
-//    1)No match of RID/AID found in bio dedupe:
-//    This usecase is handeled in oneMatchFoundWithSameUin(). because empty matched rid list handeled in it.
-
-//    2)One match of RID/AID found at bio dedupe stage. UIN of the duplicate match is same as the update packet UIN
-//    This usecase is handeled in oneMatchFoundWithSameUin() because abisHandlerUtil.getUniqueRegIds() will return the empty matched rid list if update uin is same as Matched rid.
-
-//    4) More than one match of RID/AID found at bio dedupe stage, all UIN of duplicate matches are same as update packet UIN:
-//    This usecase is handeled in oneMatchFoundWithSameUin() because abisHandlerUtil.getUniqueRegIds() will return the empty matched rid list if update uin is same as Matched rid.
-
-//    More than one match of RID/AID found at bio dedupe stage, all duplicate matches have the same UIN but, they does not matches with update packet UIN
-//      This usecase is handeled in oneMatchFoundWithDifferentUinWithMatchAutoRejecAsTrue(). Because abisHandlerUtil.getUniqueRegIds() will return the latest match for a particular uin.
-    @Test
-    public void oneMatchFoundWithSameUin() throws ApisResourceAccessException, IOException,
+    public void noMatchedRidFound() throws ApisResourceAccessException, IOException,
             PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
         registrationStatusDto.setRegistrationId("27847657360002520190320095011");
         registrationStatusDto.setRegistrationType("UPDATE");
@@ -757,7 +716,6 @@ public class BioDedupeProcessorTest {
         Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(), any())).thenReturn(registrationStatusDto);
         Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
         Set<String> matchedRidList = new HashSet<>();
-//        matchedRidList is empty
         Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(matchedRidList);
         ArgumentCaptor<InternalRegistrationStatusDto> argumentCaptor = ArgumentCaptor.forClass(InternalRegistrationStatusDto.class);
         MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
@@ -766,21 +724,26 @@ public class BioDedupeProcessorTest {
         assertTrue(messageDto.getIsValid());
         assertFalse(messageDto.getInternalError());
     }
+    /*
+        (when registration.processor.biometrics-update.single-match.auto-reject.enabled = true)
+        use case 3 -> One match of RID/AID found at bio dedupe, but UIN of the duplicate match is different from update packet UIN when AutoReject is True
 
-//    3) One match of RID/AID found at bio dedupe,
-//    but UIN of the duplicate match is different from update packet UIN when AutoReject is True
+        use case 5 -> More than one match of RID/AID found at bio dedupe stage, all duplicate matches have the same UIN but, they does not match with update packet UIN
+        This use case is handled in oneMatchFoundWithDifferentUinWithMatchAutoRejecAsTrue()
+        because abisHandlerUtil.getUniqueRegIds() will return the latest match for a particular uin.
+    */
+
     @Test
     public void oneMatchFoundWithDifferentUinWithMatchAutoRejecAsTrue() throws ApisResourceAccessException, IOException,
             PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
-        registrationStatusDto.setRegistrationId("27847657360002520190320095011");
+        registrationStatusDto.setRegistrationId("27847657360002520190320095012");
         registrationStatusDto.setRegistrationType("UPDATE");
         registrationStatusDto.setStatusCode("PROCESSING");
         Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(), any())).thenReturn(registrationStatusDto);
         Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
         Set<String> matchedRidList = new HashSet<>();
-        matchedRidList.add("27847657360002520190320095012");
+        matchedRidList.add("27847657360002520190320095011");
         Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(matchedRidList);
-//        Mockito.when(utility.getUIn(anyString(), anyString(), any())).thenReturn("9403107396");
         Mockito.when(idRepoService.getUinByRid(anyString(),any())).thenReturn("9403107397");
         ReflectionTestUtils.setField(bioDedupeProcessor, "biometricsUpdateSingleMatchAutoReject", true);
         ArgumentCaptor<InternalRegistrationStatusDto> argumentCaptor = ArgumentCaptor.forClass(InternalRegistrationStatusDto.class);
@@ -790,19 +753,24 @@ public class BioDedupeProcessorTest {
         assertFalse(messageDto.getInternalError());
         Assert.assertEquals(argumentCaptor.getValue().getStatusCode(), RegistrationStatusCode.REJECTED.name());
     }
+    /*
+           (when registration.processor.biometrics-update.single-match.auto-reject.enabled = false)
+           use case 3 -> One match of RID/AID found at bio dedupe, but UIN of the duplicate match is different from update packet UIN when AutoReject is True
 
-//    One match of RID/AID found at bio dedupe,
-//    but UIN of the duplicate match is different from update packet UIN with auto rejection is false
+           use case 5 -> More than one match of RID/AID found at bio dedupe stage, all duplicate matches have the same UIN but, they does not match with update packet UIN.
+           This use case is handled in oneMatchFoundWithDifferentUinWithMatchAutoRejecAsTrue().
+           Because abisHandlerUtil.getUniqueRegIds() will return the latest match for a particular uin.
+       */
     @Test
     public void oneMatchFoundWithDifferentUinWithSingleMatchAutoRejectAsFalse() throws ApisResourceAccessException, IOException,
             PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
-        registrationStatusDto.setRegistrationId("27847657360002520190320095011");
+        registrationStatusDto.setRegistrationId("27847657360002520190320095012");
         registrationStatusDto.setRegistrationType("UPDATE");
         registrationStatusDto.setStatusCode("PROCESSING");
         Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(), any())).thenReturn(registrationStatusDto);
         Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
         Set<String> matchedRidList = new HashSet<>();
-        matchedRidList.add("27847657360002520190320095012");
+        matchedRidList.add("27847657360002520190320095011");
         Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(matchedRidList);
         Mockito.when(idRepoService.getUinByRid(anyString(),any())).thenReturn("9403107397");
         ReflectionTestUtils.setField(bioDedupeProcessor, "biometricsUpdateSingleMatchAutoReject", false);
@@ -814,37 +782,17 @@ public class BioDedupeProcessorTest {
         Assert.assertEquals(argumentCaptor.getValue().getStatusCode(), RegistrationStatusCode.FAILED.name());
     }
 
+    /*
+        use case 6 -> More than one match of RID/AID found at bio dedupe stage, all duplicate matches possess different UINs.
+        Among that one UIN matches with update packet UIN
+        This is not a valid use case. because abisHandlerUtil.getUniqueRegIds() will not return rid's associated with current packet.
+    */
 
-//    More than one match of RID/AID found at bio dedupe stage,
-//    all duplicate matches possess different UINs. Among that one UIN matches with update packet UIN
-    @Test
-    public void moreThenOneMatchFoundWithDifferentUinOnlyOneMatches() throws ApisResourceAccessException, IOException,
-            PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
-        registrationStatusDto.setRegistrationId("27847657360002520190320095014");
-        registrationStatusDto.setRegistrationType("UPDATE");
-        registrationStatusDto.setStatusCode("PROCESSING");
-        Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(), any())).thenReturn(registrationStatusDto);
-        Mockito.when(abisHandlerUtil.getPacketStatus(any()))
-                .thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
-
-        Set<String> matchedRidList = new HashSet<>();
-        matchedRidList.add("27847657360002520190320095013");
-        matchedRidList.add("27847657360002520190320095012");
-        Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(matchedRidList);
-        Mockito.when(idRepoService.getUinByRid(anyString(),any()))
-                .thenReturn("9403107394")
-                .thenReturn("9403107396");
-
-        ReflectionTestUtils.setField(bioDedupeProcessor, "biometricsUpdateSingleMatchAutoReject", false);
-        ArgumentCaptor<InternalRegistrationStatusDto> argumentCaptor = ArgumentCaptor.forClass(InternalRegistrationStatusDto.class);
-        MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
-        Mockito.verify(registrationStatusService).updateRegistrationStatus(argumentCaptor.capture(),anyString(),anyString());
-        assertTrue(messageDto.getIsValid());
-        assertFalse(messageDto.getInternalError());
-        Assert.assertEquals(argumentCaptor.getValue().getStatusCode(), RegistrationStatusCode.FAILED.name());
-    }
-//    More than one match of RID/AID found at bio dedupe stage,
-//    all duplicate matches possess different UINs. Among that no UIN matches with update packet UIN
+    /*
+        use case 7 -> More than one match of RID/AID found at bio dedupe stage, all duplicate matches possess different UINs.
+        Among that no UIN matches with update packet UIN.
+        abisHandlerUtil.getUniqueRegIds() returns the latest rids associated with uin's other than current packet uin.
+   */
     @Test
     public void moreThenOneMatchFoundWithDifferentUin() throws ApisResourceAccessException, IOException,
             PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
@@ -862,9 +810,6 @@ public class BioDedupeProcessorTest {
         Mockito.when(idRepoService.getUinByRid(anyString(),any()))
                 .thenReturn("9403107397")
                 .thenReturn("9403107399");
-
-        ReflectionTestUtils.setField(bioDedupeProcessor, "biometricsUpdateSingleMatchAutoReject", false);
-
         ArgumentCaptor<InternalRegistrationStatusDto> argumentCaptor = ArgumentCaptor.forClass(InternalRegistrationStatusDto.class);
         MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
         Mockito.verify(registrationStatusService).updateRegistrationStatus(argumentCaptor.capture(),anyString(),anyString());
@@ -872,24 +817,29 @@ public class BioDedupeProcessorTest {
         assertFalse(messageDto.getInternalError());
         Assert.assertEquals(argumentCaptor.getValue().getStatusCode(), RegistrationStatusCode.FAILED.name());
     }
-
-//    One match of RID/AID found at bio dedupe stage,
-//    found AID/RID is in progress status and RID & UIN mapping is not done
-
+    /*
+        use case 8 -> One match of RID/AID found at bio dedupe stage, found AID/RID is in progress status and RID & UIN mapping is not done
+         abisHandlerUtil.getUniqueRegIds() returns RID which are in PROCESSING state (Except Update packet RID)
+   */
     @Test
     public void oneMatchFoundWithStillInProgress () throws ApisResourceAccessException, IOException,
             PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
         registrationStatusDto.setRegistrationId("27847657360002520190320095012");
         registrationStatusDto.setRegistrationType("UPDATE");
         registrationStatusDto.setStatusCode("PROCESSING");
-        Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(), any())).thenReturn(registrationStatusDto);
+        //This is existing rid which is in PROCESSING status.
+        InternalRegistrationStatusDto existingRegistrationStatusDto=new InternalRegistrationStatusDto();
+        existingRegistrationStatusDto.setRegistrationId("27847657360002520190320095011");
+        existingRegistrationStatusDto.setStatusCode("PROCESSING");
+        Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(), any()))
+                .thenReturn(registrationStatusDto).
+                thenReturn(existingRegistrationStatusDto);
         Mockito.when(abisHandlerUtil.getPacketStatus(any()))
                 .thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
-
         Set<String> matchedRidList = new HashSet<>();
-        matchedRidList.add("27847657360002520190320095011");
+        matchedRidList.add("27847657360002520190320095011"); //this rid is in processing state
         Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(matchedRidList);
-        ReflectionTestUtils.setField(bioDedupeProcessor, "biometricsUpdateSingleMatchAutoReject", false);
+        Mockito.when(idRepoService.getUinByRid(anyString(),any())).thenReturn(null);
         ArgumentCaptor<InternalRegistrationStatusDto> argumentCaptor = ArgumentCaptor.forClass(InternalRegistrationStatusDto.class);
         MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
         Mockito.verify(registrationStatusService).updateRegistrationStatus(argumentCaptor.capture(),anyString(),anyString());
@@ -897,23 +847,31 @@ public class BioDedupeProcessorTest {
         assertTrue(messageDto.getIsValid());
         assertFalse(messageDto.getInternalError());
     }
-//    More than one match of RID/AID found at bio dedupe stage,
-//    Among them one of the RID is in progress state & mapping is not done in repo
+
+    /*
+        use case 9 ->  More than one match of RID/AID found at bio dedupe stage, Among them one of the RID is in progress state & mapping is not done in repo.
+         abisHandlerUtil.getUniqueRegIds() returns RIDs (For which UIN is generated and it reached to RID repo) other than update packet UIN
+         and rid's in PROCESSING state (Except Update packet RID)
+    */
     @Test
     public void moreThenOneMatchFoundWithOneIsStillInProgress () throws ApisResourceAccessException, IOException,
             PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
         registrationStatusDto.setRegistrationId("27847657360002520190320095014");
         registrationStatusDto.setRegistrationType("UPDATE");
         registrationStatusDto.setStatusCode("PROCESSING");
-        Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(), any())).thenReturn(registrationStatusDto);
+        //This is existing rid which is in PROCESSING status.
+        InternalRegistrationStatusDto existingRegistrationStatusDto=new InternalRegistrationStatusDto();
+        existingRegistrationStatusDto.setRegistrationId("27847657360002520190320095013");
+        existingRegistrationStatusDto.setStatusCode("PROCESSING");
+        Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(), any()))
+                .thenReturn(registrationStatusDto).
+                thenReturn(existingRegistrationStatusDto);
         Mockito.when(abisHandlerUtil.getPacketStatus(any()))
                 .thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
-
         Set<String> matchedRidList = new HashSet<>();
-        matchedRidList.add("27847657360002520190320095013");
         matchedRidList.add("27847657360002520190320095012");
+        matchedRidList.add("27847657360002520190320095013");
         Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(matchedRidList);
-
         Mockito.when(idRepoService.getUinByRid(anyString(),any()))
                 .thenReturn("9403107397")
                 .thenReturn(null);
@@ -925,18 +883,31 @@ public class BioDedupeProcessorTest {
         Assert.assertEquals(argumentCaptor.getValue().getStatusCode(), RegistrationStatusCode.FAILED.name());
     }
 
-//    More than one match of RID/AID found at bio dedupe stage,
-//    All RID is in progress state & mapping is not done in repo
+    /*
+        use case 10 -> More than one match of RID/AID found at bio dedupe stage, All RID is in progress state & mapping is not done in repo.
+        abisHandlerUtil.getUniqueRegIds() returns RIDs (For which UIN is generated and it reached to RID repo) other than update packet UIN
+        and rid's in PROCESSING state (Except Update packet RID)
+     */
     @Test
     public void moreThenOneMatchFoundWithAllRidAreStillInProgress () throws ApisResourceAccessException, IOException,
             PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
         registrationStatusDto.setRegistrationId("27847657360002520190320095014");
         registrationStatusDto.setRegistrationType("UPDATE");
         registrationStatusDto.setStatusCode("PROCESSING");
-        Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(), any())).thenReturn(registrationStatusDto);
+        //This is existing rid which is in PROCESSING status.
+        InternalRegistrationStatusDto existingRegistrationStatusDto1=new InternalRegistrationStatusDto();
+        existingRegistrationStatusDto1.setRegistrationId("27847657360002520190320095013");
+        existingRegistrationStatusDto1.setStatusCode("PROCESSING");
+        //This is existing rid which is in PROCESSING status.
+        InternalRegistrationStatusDto existingRegistrationStatusDto2=new InternalRegistrationStatusDto();
+        existingRegistrationStatusDto1.setRegistrationId("27847657360002520190320095012");
+        existingRegistrationStatusDto1.setStatusCode("PROCESSING");
+        Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(), any()))
+                .thenReturn(registrationStatusDto)
+                .thenReturn(existingRegistrationStatusDto1)
+                .thenReturn(existingRegistrationStatusDto2);
         Mockito.when(abisHandlerUtil.getPacketStatus(any()))
                 .thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
-
         Set<String> matchedRidList = new HashSet<>();
         matchedRidList.add("27847657360002520190320095013");
         matchedRidList.add("27847657360002520190320095012");
