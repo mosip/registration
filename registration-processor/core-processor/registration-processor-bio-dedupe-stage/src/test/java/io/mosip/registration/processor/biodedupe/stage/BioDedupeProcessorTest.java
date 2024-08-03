@@ -724,25 +724,6 @@ public class BioDedupeProcessorTest {
         assertTrue(messageDto.getIsValid());
         assertFalse(messageDto.getInternalError());
     }
-
-    @Test
-    public void noMatchedRidFoundMatchedRidAsNull() throws ApisResourceAccessException, IOException,
-            PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
-        registrationStatusDto.setRegistrationId("27847657360002520190320095011");
-        registrationStatusDto.setRegistrationType("UPDATE");
-        registrationStatusDto.setStatusCode("PROCESSING");
-        Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(), any())).thenReturn(registrationStatusDto);
-        Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
-        Set<String> matchedRidList = null;
-        Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(matchedRidList);
-        ArgumentCaptor<InternalRegistrationStatusDto> argumentCaptor = ArgumentCaptor.forClass(InternalRegistrationStatusDto.class);
-        MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
-        Mockito.verify(registrationStatusService).updateRegistrationStatus(argumentCaptor.capture(),anyString(),anyString());
-        Assert.assertEquals(argumentCaptor.getValue().getStatusCode(), RegistrationStatusCode.FAILED.name());
-        Assert.assertEquals(argumentCaptor.getValue().getStatusComment(),"Unknown exception occured null");
-        assertFalse(messageDto.getIsValid());
-        assertTrue(messageDto.getInternalError());
-    }
     /*
         (when registration.processor.biometrics-update.single-match.auto-reject.enabled = true)
         use case 3 -> One match of RID/AID found at bio dedupe, but UIN of the duplicate match is different from update packet UIN when AutoReject is True

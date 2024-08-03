@@ -464,6 +464,7 @@ public class BioDedupeProcessor {
 			sendToManualAdjudicationStage(registrationStatusDto, object, registrationType, moduleName,
 					matchedRegIds);
 		} else {
+            //Single match of uin found which is different from update packet uin.
             if (biometricsUpdateSingleMatchAutoReject) {
                 registrationStatusDto.setLatestTransactionStatusCode(
                         RegistrationTransactionStatusCode.FAILED.toString());
