@@ -425,10 +425,9 @@ public class BioDedupeProcessor {
 			registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_SUCCESS.getCode());
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationStatusDto.getRegistrationId(), BioDedupeConstants.ABIS_RESPONSE_NULL);
-
 		} else {
 			if (registrationType.equalsIgnoreCase(RegistrationType.UPDATE.name())) {
-				updatePostAbisIdentification(registrationStatusDto, object, registrationType, moduleName,
+				handlePostAbisIdentificationForUpdate(registrationStatusDto, object, registrationType, moduleName,
 						matchedRegIds);
 			}else {
 			    sendToManualAdjudicationStage(registrationStatusDto, object, registrationType, moduleName, matchedRegIds);
@@ -438,8 +437,8 @@ public class BioDedupeProcessor {
 		}
 	}
 
-	private void updatePostAbisIdentification(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object,
-			String registrationType, String moduleName, Set<String> matchedRegIds)
+	private void handlePostAbisIdentificationForUpdate(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object,
+                                                       String registrationType, String moduleName, Set<String> matchedRegIds)
 			throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 		Set<String> uniqueUins = new HashSet<String>();
 		boolean sendToManualAdjudication = false;
