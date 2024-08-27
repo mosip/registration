@@ -101,7 +101,7 @@
 		<s3mock.version>0.2.4</s3mock.version>
 
 		<!-- Vert.x -->
-		<vertx.version>3.9.13</vertx.version>
+		<vertx.version>4.4.9</vertx.version>
 		<camel.vertx.version>4.4.0</camel.vertx.version>
 		<hazelcast.kubernetes.version>1.0.0</hazelcast.kubernetes.version>
 		<hazelcast.version>3.9.4</hazelcast.version>
