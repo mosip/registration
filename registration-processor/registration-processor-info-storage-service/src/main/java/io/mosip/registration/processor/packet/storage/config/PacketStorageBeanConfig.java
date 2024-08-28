@@ -98,10 +98,10 @@ public class PacketStorageBeanConfig {
 	}
 	
 
-	@Bean
-	public KeyGenerator getKeyGenerator() {
-		return new KeyGenerator();
-	}
+//	@Bean
+//	public KeyGenerator getKeyGenerator() {
+//		return new KeyGenerator();
+//	}
 
 	@Bean
 	@Primary
