@@ -23,10 +23,6 @@ public class BiometricAuthConfigBean {
 		return new BioSdkUtil();
 	}
 
-	@Bean
-	public KeyGenerator getKeyGenerator() {
-		return new KeyGenerator();
-	}
 
 	@Bean
 	@Primary
