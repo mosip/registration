@@ -12,7 +12,6 @@ import org.springframework.context.annotation.Primary;
 import io.mosip.kernel.biosdk.provider.factory.BioAPIFactory;
 import io.mosip.kernel.core.crypto.spi.CryptoCoreSpec;
 import io.mosip.kernel.crypto.jce.core.CryptoCore;
-import io.mosip.kernel.keygenerator.bouncycastle.KeyGenerator;
 import io.mosip.registration.processor.packet.storage.utils.BioSdkUtil;
 
 @Configuration
@@ -23,10 +22,6 @@ public class BiometricAuthConfigBean {
 		return new BioSdkUtil();
 	}
 
-	@Bean
-	public KeyGenerator getKeyGenerator() {
-		return new KeyGenerator();
-	}
 
 	@Bean
 	@Primary
