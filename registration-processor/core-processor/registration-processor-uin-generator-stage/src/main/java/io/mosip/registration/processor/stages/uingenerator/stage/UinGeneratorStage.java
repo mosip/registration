@@ -467,12 +467,12 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
     private void loadDemographicIdentity(Map<String, String> fieldMap, JSONObject demographicIdentity) throws IOException, JSONException {
         for (Map.Entry e : fieldMap.entrySet()) {
-            if(e.getValue()==null) {
+            if (e.getValue() == null) {
                 continue;
             }
 
             String value = e.getValue().toString();
-            if(value==null) {
+            if (value == null) {
                 demographicIdentity.putIfAbsent(e.getKey(), value);
                 continue;
             }
@@ -501,6 +501,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
                     }
                 }
                 demographicIdentity.putIfAbsent(e.getKey(), jsonList);
+            }
+            else {
+                demographicIdentity.putIfAbsent(e.getKey(), value);
             }
         }
     }
