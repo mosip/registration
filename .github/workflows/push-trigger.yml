@@ -20,6 +20,7 @@ on:
       - master
       - 1.*
       - develop
+      - v1*
 
 jobs:
   build-maven-registration:
