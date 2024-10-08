@@ -5,11 +5,11 @@
 	<parent>
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>registration-processor</artifactId>
-		<version>1.2.0.1</version>
+		<version>1.2.0.2</version>
 	</parent>
 	<artifactId>registration-processor-landing-zone</artifactId>
 	<name>registration-processor-landing-zone</name>
-	<version>1.2.0.1</version>
+	<version>1.2.0.2</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
