@@ -129,7 +129,7 @@
 		<!-- Kernel -->
 		<kernel.core.version>1.3.0-beta.1</kernel.core.version>
 		<kernel.dataaccess.hibernate.version>1.3.0-beta.1</kernel.dataaccess.hibernate.version>
-		<kernel.templatemanager.velocity.version>1.3.0-SNAPSHOT</kernel.templatemanager.velocity.version>
+		<kernel.templatemanager.velocity.version>1.3.0-beta.1</kernel.templatemanager.velocity.version>
 		<kernel.idvalidator.uin.version>1.3.0-beta.1</kernel.idvalidator.uin.version>
 		<kernel.idvalidator.rid.version>1.3.0-beta.1</kernel.idvalidator.rid.version>
 		<kernel.cbeffutil.version>1.3.0-SNAPSHOT</kernel.cbeffutil.version>
@@ -145,6 +145,7 @@
 		<kernel.websubclient.version>1.3.0-beta.1</kernel.websubclient.version>
 		<kernel-biosdk-provider.version>1.3.0-SNAPSHOT</kernel-biosdk-provider.version>
 		<kernel.bom.version>1.3.0-beta.1</kernel.bom.version>
+        <kernel.websubclient.api.version>1.3.0-SNAPSHOT</kernel.websubclient.api.version>
 		<sonar.coverage.exclusions>**/dto/**,
 			**/exception/*Exception.java,
 			**/config/*Config.java,
