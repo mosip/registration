@@ -140,7 +140,7 @@
 		<kernel.logger.logback.version>1.3.0-beta.1</kernel.logger.logback.version>
 		<kernel.idvalidator.vid.version>1.3.0-beta.1</kernel.idvalidator.vid.version>
 		<object.store.khazana.version>1.3.0-beta.1</object.store.khazana.version>
-		<kernel.biometrics.api.version>1.3.0-SNAPSHOT</kernel.biometrics.api.version>
+		<kernel.biometrics.api.version>1.3.0-beta.1</kernel.biometrics.api.version>
 		<kernel-keymanager-service.version>1.3.0-beta.1</kernel-keymanager-service.version>
 		<kernel.websubclient.version>1.3.0-beta.1</kernel.websubclient.version>
 		<kernel-biosdk-provider.version>1.3.0-beta.1</kernel-biosdk-provider.version>
