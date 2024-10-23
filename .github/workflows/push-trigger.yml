@@ -131,8 +131,27 @@ jobs:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
   call-trivy-scan:
+     needs: build-dockers
      uses: mosip/kattu/.github/workflows/trivy.yml@develop
-        
+     strategy:
+      matrix:
+       include:
+        - SERVICE_NAME: 'registration-processor-registration-transaction-service'   
+        - SERVICE_NAME: 'registration-processor-stage-group-1'
+        - SERVICE_NAME: 'registration-processor-stage-group-2'
+        - SERVICE_NAME: 'registration-processor-stage-group-3'
+        - SERVICE_NAME: 'registration-processor-stage-group-4'
+        - SERVICE_NAME: 'registration-processor-stage-group-5'
+        -  SERVICE_NAME: 'registration-processor-stage-group-6'
+        - SERVICE_NAME: 'registration-processor-stage-group-7'
+        - SERVICE_NAME: 'registration-processor-abis'
+        -  SERVICE_NAME: 'registration-processor-reprocessor'
+        - SERVICE_NAME: 'registration-processor-dmz-packet-server'
+        - SERVICE_NAME: 'registration-processor-registration-status-service'
+        - SERVICE_NAME: 'registration-processor-notification-service'
+        - SERVICE_NAME: 'registration-processor-landing-zone'
+        - SERVICE_NAME: 'registration-processor-workflow-manager-service'
+        - SERVICE_NAME: 'registration-processor-common-camel-bridge'
      with:
       service_name: ${{ matrix.SERVICE_NAME }}
       version: $'{{ github.ref_name }}'
