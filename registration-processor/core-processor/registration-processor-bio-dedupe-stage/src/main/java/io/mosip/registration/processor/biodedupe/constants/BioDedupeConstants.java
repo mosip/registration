@@ -42,4 +42,6 @@ public class BioDedupeConstants {
 	
 	/** The Constant INTERNAL_ERROR. */
 	private static final String INTERNAL_ERROR = "Internal error occurred in bio-dedupe stage while processing for registrationId ";
-}
+
+	public static final String BIOMETRIC_MATCH_FOUND_WITH_OTHER = "Biometric match found with other user, rejecting packet for ";
+}  
