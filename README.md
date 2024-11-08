@@ -112,7 +112,7 @@ To deploy Registration Processor services on Kubernetes cluster using Dockers re
 Refer to the [configuration guide](docs/configuration.md).
 
 ## Test
-Automated functional tests available in [DSL Automation](https://github.com/mosip/mosip-automation-tests)
+Automated functional tests available in [DSL Automation](https://docs.mosip.io/1.2.0/test-automation/dsl-test-rig-automation)
 
 ## APIs
 API documentation is available [here](https://docs.mosip.io/1.2.0/api)
