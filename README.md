@@ -39,9 +39,9 @@ Staged architecture:
       * [Packet classifier](registration-processor/pre-processor/registration-processor-packet-classifier-stage)
       * Verification
  * Group 7 stages
-      * UIN generator
-      * Biometric extraction
-      * Finalization
+      * [UIN generator](registration-processor/core-processor/registration-processor-uin-generator-stage)
+      * [Biometric extraction](registration-processor/core-processor/registration-processor-biometric-extraction-stage)
+      * [Finalization](registration-processor/core-processor/registration-processor-finalization-stage)
       * [Credential requestor](registration-processor/post-processor/registration-processor-credential-requestor-stage)
 
 The control and data flow in the stages is controlled by [Workflow engine](registration-processor/workflow-engine/)
@@ -53,7 +53,7 @@ Other services:
   * Transaction service
 
 ### Registration flows
-An overview of various enrollment scenarious (or flows) is described in [ID Lifecycle Management](https://docs.mosip.io/1.2.0/id-lifecycle-management).  Registration Processor recognises the following flows:
+An overview of various enrollment scenarios (or flows) is described in [ID Lifecycle Management](https://docs.mosip.io/1.2.0/id-lifecycle-management).  Registration Processor recognises the following flows:
 
 * New 
 * Update
