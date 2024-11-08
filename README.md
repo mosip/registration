@@ -19,7 +19,7 @@ Staged architecture:
   * Group 2 stages
       * [Securezone notification](registration-processor/pre-processor/registration-processor-securezone-notification-stage)
       * [Quality classifier](registration-processor/pre-processor/registration-processor-quality-classifier-stage)
-      * [Message sender]()
+      * [Message sender](registration-processor/registration-processor-message-sender-impl)
   * Group 3 stages
       * [ABIS handler](registration-processor/core-processor/registration-processor-abis-handler-stage)
       * [ABIS middleware ](registration-processor/core-processor/registration-processor-abis-middleware-stage)
@@ -87,7 +87,7 @@ See [DB guide](db_scripts/README.md)
 [Packetmanager](https://docs.mosip.io/1.2.0/modules/packet-manager)
 
 ## Build & run (for developers)
-The project requires JDK 1.11. 
+The project requires JDK 21.0.3  and mvn version 3.9.6
 1. To build jars:
     ```
     $ cd registration
@@ -112,7 +112,7 @@ To deploy Registration Processor services on Kubernetes cluster using Dockers re
 Refer to the [configuration guide](docs/configuration.md).
 
 ## Test
-Automated functional tests available in [Functional Tests repo](https://github.com/mosip/mosip-functional-tests)
+Automated functional tests available in [DSL Automation](https://github.com/mosip/mosip-automation-tests)
 
 ## APIs
 API documentation is available [here](https://docs.mosip.io/1.2.0/api)
