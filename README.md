@@ -106,16 +106,16 @@ The project requires JDK 21.0.3  and mvn version 3.9.6
 ## Deploy
 
 ### Registration processor in sandbox
-To deploy Registration Processor services on Kubernetes cluster using Dockers refer to [Sandbox Deployment](https://docs.mosip.io/1.2.0/deployment/sandbox-deployment).
+To deploy Registration Processor services on Kubernetes cluster using Dockers refer to [Sandbox Deployment](https://docs.mosip.io/1.2.0/deploymentnew/v3-installation).
 
 ## Configuration
 Refer to the [configuration guide](docs/configuration.md).
 
 ## Test
-Automated functional tests available in [DSL Automation](https://docs.mosip.io/1.2.0/test-automation/dsl-test-rig-automation)
+Automated functional tests available in [DSL Automation](https://github.com/mosip/mosip-automation-tests)
 
 ## APIs
-API documentation is available [here](https://docs.mosip.io/1.2.0/api)
+API documentation is available [here](https://mosip.github.io/documentation/1.2.0/1.2.0.html)
 
 ## License
 This project is licensed under the terms of [Mozilla Public License 2.0](LICENSE).
