@@ -19,7 +19,7 @@ Staged architecture:
   * Group 2 stages
       * [Securezone notification](registration-processor/pre-processor/registration-processor-securezone-notification-stage)
       * [Quality classifier](registration-processor/pre-processor/registration-processor-quality-classifier-stage)
-      * [Message sender]()
+      * [Message sender](registration-processor/registration-processor-message-sender-impl)
   * Group 3 stages
       * [ABIS handler](registration-processor/core-processor/registration-processor-abis-handler-stage)
       * [ABIS middleware ](registration-processor/core-processor/registration-processor-abis-middleware-stage)
@@ -39,9 +39,9 @@ Staged architecture:
       * [Packet classifier](registration-processor/pre-processor/registration-processor-packet-classifier-stage)
       * Verification
  * Group 7 stages
-      * UIN generator
-      * Biometric extraction
-      * Finalization
+      * [UIN generator](registration-processor/core-processor/registration-processor-uin-generator-stage)
+      * [Biometric extraction](registration-processor/core-processor/registration-processor-biometric-extraction-stage)
+      * [Finalization](registration-processor/core-processor/registration-processor-finalization-stage)
       * [Credential requestor](registration-processor/post-processor/registration-processor-credential-requestor-stage)
 
 The control and data flow in the stages is controlled by [Workflow engine](registration-processor/workflow-engine/)
@@ -53,7 +53,7 @@ Other services:
   * Transaction service
 
 ### Registration flows
-An overview of various enrollment scenarious (or flows) is described in [ID Lifecycle Management](https://docs.mosip.io/1.2.0/id-lifecycle-management).  Registration Processor recognises the following flows:
+An overview of various enrollment scenarios (or flows) is described in [ID Lifecycle Management](https://docs.mosip.io/1.2.0/id-lifecycle-management).  Registration Processor recognises the following flows:
 
 * New 
 * Update
@@ -87,7 +87,7 @@ See [DB guide](db_scripts/README.md)
 [Packetmanager](https://docs.mosip.io/1.2.0/modules/packet-manager)
 
 ## Build & run (for developers)
-The project requires JDK 1.11. 
+The project requires JDK 21.0.3  and mvn version 3.9.6
 1. To build jars:
     ```
     $ cd registration
@@ -106,16 +106,16 @@ The project requires JDK 1.11.
 ## Deploy
 
 ### Registration processor in sandbox
-To deploy Registration Processor services on Kubernetes cluster using Dockers refer to [Sandbox Deployment](https://docs.mosip.io/1.2.0/deployment/sandbox-deployment).
+To deploy Registration Processor services on Kubernetes cluster using Dockers refer to [Sandbox Deployment](https://docs.mosip.io/1.2.0/deploymentnew/v3-installation).
 
 ## Configuration
 Refer to the [configuration guide](docs/configuration.md).
 
 ## Test
-Automated functional tests available in [Functional Tests repo](https://github.com/mosip/mosip-functional-tests)
+Automated functional tests available in [DSL Automation](https://github.com/mosip/mosip-automation-tests)
 
 ## APIs
-API documentation is available [here](https://docs.mosip.io/1.2.0/api)
+API documentation is available [here](https://mosip.github.io/documentation/1.2.0/1.2.0.html)
 
 ## License
 This project is licensed under the terms of [Mozilla Public License 2.0](LICENSE).
