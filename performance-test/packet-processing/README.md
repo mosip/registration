@@ -45,85 +45,54 @@ Pre-requisite to install the plugins:
 3. After adding the plugin restart the JMeter 
 4. To download the necessary plugins, we have to click on the Plugin’s Manager. It will re-direct to list of available plugins. Choose the above mentioned plugin "jmeter-plugins-synthesis" to install and then restart the JMeter.
 
- 	   
-* Create Identities in MOSIP Authentication System (Setup) : This thread contains the authorization api's for regproc and idrepo from which the auth token will be generated. There is set of 4 api's generate RID, generate UIN, add identity and add VID. From here we will get the VID's which can be further used as individual id for required Resident Service endpoints. These 4 api's are present in the loop controller where we can define the number of samples for creating identities in which "freshIdentityCreationCount" is used as a variable. In whichever environment we are running the scripts we should have atleast few hundred VID's available handy and if not we can use this setup to create the identities as required. 
+* Auth Token Generation (Setup) - In this thread we are creating the authorization token values of Regpoc, Resident and Regproc - Using User Id which will be saved to a file in the Run Time Files in bin folder of JMeter.
 
-* Resident Id Access Token Creation (Setup) : This thread contains 4 esignet api's Oauth details, Send OTP, Authentication, Authorization Code and 1 resident Login​ Redirect URI api.  After the login is successful, the resident will be redirected to the resident portal’s logged-in page. From Login​ Redirect URI api will get the id and access token which will be used further in the headers for most of the resident service api's. So till the time id and access token are valid and not expired we can re-use it for the resident service api's. And as per the expiration time once it is not valid and expired, we need to re-run the setup as required.
+* Packet Generation (Setup) - In this thread group we will basically create the context with the help of existing center id's, machine id's & user id's present in our current environment & we will read them through a file named contextDetails.csv. Once the contexts are created we will use the same in the execution thread group where basically the packet generation happens & then the packet path gets stored in a file naming as Run Time Files in bin folder of JMeter.
 
-* For execution purpose need to modify the below mentioned properties: For Performance testing we require a specific amount of data which needs to be used further for the resident service api's and it should be valid till the time of execution. So, We have modified the below properties to increase the expiry time, so that the data prepared to be used for execution is valid until the execution is completed.
+* Sync Registration Packet - v2 (Setup) - To create encrypted data for generated packets(test data to registration processor sync API). Which will basically create a file with the encrypted data's for all the packets created.
 
-   * esignet default properties: Update the value for the properties according to the execution setup. Perform the execution for esignet api's with redis setup. So check for the redis setup accordingly.
-          mosip.esignet.cache.size - Enabled while not using the redis setup. Can keep the cache size around more than 100k.
-          mosip.esignet.cache.expire-in-seconds (authcodegenerated) - 21600
-          mosip.esignet.access-token-expire-seconds - 86400
-          mosip.esignet.id-token-expire-seconds - 86400
-          spring.cache.type=redis - check for this property and enable the redis.
-   * application default properties: Update the value for the below property.
-          mosip.kernel.otp.expiry-time - 86400
-   * id-authentication default properties: Update the value for the below properties.
-          otp.request.flooding.max-count - 100000
+* Sync And Upload Registration Packet (Preparation) : This step will sync and upload the generated packets to the registration processor.
 
-* Resident Id Access Token Creation For Logout(Setup) : We need to create the resident id access tokens seperately for the logout scenario, because we cannot re use the same tokens that are generated for the other scenario's. As the tokens will be expired as soon as the logout is executed. Based on the TPS provided for logout scenario, we can keep the access tokens ready for the test.
+*** Note: The centers, machines and users should be onboarded in the system before using as part of context_details_cellbox1.txt ***
 
-* Create Resident Services EventId (Setup) : This thread contains service history endpoint api to capture the event id's required for the test.
-          
+* From S01 to S17 thread groups will be run after the completion of the test. These are queries to the database which determine the reponse times between each stage and also the overall performance.
 
 ### Data prerequisite
 
-* List of VID's as per environment which is valid and will be prepared from the above mentioned create identities setup.
-* List of Event id's as per environment which is valid and will be prepared from the above mentioned create resident services event id setup.
-
-### Execution points for Resident Service endpoints
-
-* The id and access token generated from the Login​ Redirect URI api will be stored in a file and will be used in the headers the api and can be re-used until they are not expired.
-* Test duration is already defined as a variable and needs to be changed as per the test run duration requirement in the user defined variable section.
-* The script is designed to run for 100 users, load being distributed accordingly for each thread group based on the weightage given for each scenario.
-
-
-### Exact steps of execution
-
-Step 1: Enable only Create Identities in MOSIP Authentication System (Setup) thread group and toggle/disable the remaining thread groups in the script to create the required no of identities.
-Step 2: Enable only Resident Id Access Token Creation (Setup) thread group and toggle/disable the remaining thread groups in the script to create access tokens and id tokens.
-Step 3: Enable only Create Resident EventId (Setup) thread group and toggle/disable the remaining thread groups in the script to create the event id's.
-Step 4: Enable the rest of all the Execution based scenario thread groups and toggle/disable the first 3 setup based thread groups. 
-Step 5: Make sure test duration and ramp-up is defined in the user defined variable section. 
-Step 5: Click on Run/Excute the test.
-Step 6: Monitor the metrics during the test run using reports from jmeter, kibana, grafana and Jprofiler.
-
-
+* List of RID's as per environment which is valid and will be prepared while sync and upload to reg proc will be run
 
 ### Description of the scenario's
 
-* S01 Secure Zone To Upload Packet: 
+* S01 Secure Zone To Upload Packet: Ensuring the packet is uploaded securely.
 
-* S02 Upload Packet To Validate Packet: 
+* S02 Upload Packet To Validate Packet: Verifying the integrity and authenticity of the uploaded packet.
 
-* S03 Validate Packet To Packet Classification: 
+* S03 Validate Packet To Packet Classification: Categorizing the packet based on predefined criteria.
 
-* S04 Packet Classification To CMD Validation:
+* S04 Packet Classification To CMD Validation: Checking the packet against Command (CMD) validation rules.
 
-* S05 CMD Validation To Operator Validation: 
+* S05 CMD Validation To Operator Validation: Operator reviews and validates the packet.
 
-* S06 Operator Validation To Supervisor Validation: 
+* S06 Operator Validation To Supervisor Validation: Supervisor performs an additional layer of validation.
 
-* S07 Supervisor Validation To Quality Classifiier: 
+* S07 Supervisor Validation To Quality Classifier: Quality control checks are conducted.
 
-* S08 Quality Classifiier To Demographic Verification: 
+* S08 Quality Classifier To Demographic Verification: Verifying demographic details within the packet.
 
-* S09 Demographic Verification To Biographic Verification: 
+* S09 Demographic Verification To Biographic Verification: Confirming biographic information.
 
-* S10 Biographic Verification To UIN Generation: 
+* S10 Biographic Verification To UIN Generation: Generating a Unique Identification Number (UIN) for the packet.
 
-* S11 UIN Generation To Biometric Extraction: 
+* S11 UIN Generation To Biometric Extraction: Extracting biometric data from the packet.
 
-* S12 Biometric Extraction To Finalization: 
+* S12 Biometric Extraction To Finalization: Finalizing the packet processing.
 
-* S13 Finalization To Print Service: 
+* S13 Finalization To Print Service: Preparing the packet for printing services.
 
-* S14 Print Service To Internal Workflow Action: 
+* S14 Print Service To Internal Workflow Action: Internal actions are taken based on the printed packet.
 
-* S15 Complete Reg Proc Packet Processing 
+* S15 Complete Reg Proc Packet Processing: Completing the registration process for the packet.
 
-* S16 End to End Packet and Credential Processing 
+* S16 End to End Packet and Credential Processing: Full processing of the packet and associated credentials.
 
-* S17 Overall Status Of  The Packets
+* S17 Overall Status Of The Packets: Reporting the overall status of all packets.
