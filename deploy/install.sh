@@ -7,8 +7,12 @@ if [ $# -ge 1 ] ; then
 fi
 
 NS=regproc
+<<<<<<< HEAD
 CHART_VERSION=0.0.1-develop
 SALTGEN_CHART_VERSION=0.0.1-develop
+=======
+CHART_VERSION=1.3.0-beta.1-develop
+>>>>>>> 3adb100fdf (Updated chart versions, image and tag for release changes)
 
 echo Create $NS namespace
 kubectl create ns $NS

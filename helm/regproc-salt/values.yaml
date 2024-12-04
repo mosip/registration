@@ -24,29 +24,9 @@ extraDeploy: []
 ## Number of nodes
 ##
 replicaCount: 1
-service:
-  type: ClusterIP
-  port: 80
-  ## loadBalancerIP for the SuiteCRM Service (optional, cloud specific)
-  ## ref: http://kubernetes.io/docs/user-guide/services/#type-loadbalancer
-  ##
-  ## loadBalancerIP:
-  ##
-  ## nodePorts:
-  ##   http: <to set explicitly, choose port between 30000-32767>
-  ##   https: <to set explicitly, choose port between 30000-32767>
-  ##
-
-  nodePorts:
-    http: ""
-    https: ""
-  ## Enable client source IP preservation
-  ## ref http://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip
-  ##
-  externalTrafficPolicy: Cluster
 image:
   registry: docker.io
-  repository: mosipqa/registration-processor-stage-group-4
+  repository: mosipqa/kernel-salt-generator
   tag: 1.3.x
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
@@ -59,46 +39,6 @@ image:
   ##
   # pullSecrets:
   #   - myRegistryKeySecretName
-## Configure extra options for liveness and readiness probes
-## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
-##
-## When configuring Probe, please make sure to remove from the url paths that are not required from the probe list
-startupProbe:
-  enabled: true
-  exec:
-    command:
-      - /bin/bash
-      - -c
-      - MY_PROBE_CHECK_PATHS="http://localhost:8020/registrationprocessor/v1/bioauth/actuator/health,http://localhost:8091/registrationprocessor/v1/demodedupe/actuator/health"; for str in $(echo $MY_PROBE_CHECK_PATHS | sed "s/,/\n/g"); do curl_output="$(curl -w %{http_code} -o /dev/null -s $str)"; if ! [ "$curl_output" = "200" ]; then exit 1; fi; done
-  initialDelaySeconds: 0
-  periodSeconds: 90
-  timeoutSeconds: 60
-  failureThreshold: 30
-  successThreshold: 1
-livenessProbe:
-  enabled: true
-  exec:
-    command:
-      - /bin/bash
-      - -c
-      - MY_PROBE_CHECK_PATHS="http://localhost:8020/registrationprocessor/v1/bioauth/actuator/health,http://localhost:8091/registrationprocessor/v1/demodedupe/actuator/health"; i=1; for str in $(echo $MY_PROBE_CHECK_PATHS | sed "s/,/\n/g"); do curl_output="$(curl -w %{http_code} -o /dev/null -s $str)"; if ! [ "$curl_output" = "200" ]; then echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i; fi; ((i++)); done
-  initialDelaySeconds: 20
-  periodSeconds: 90
-  timeoutSeconds: 60
-  failureThreshold: 6
-  successThreshold: 1
-readinessProbe:
-  enabled: true
-  exec:
-    command:
-      - /bin/bash
-      - -c
-      - MY_PROBE_CHECK_PATHS="http://localhost:8020/registrationprocessor/v1/bioauth/actuator/health,http://localhost:8091/registrationprocessor/v1/demodedupe/actuator/health"; i=1; for str in $(echo $MY_PROBE_CHECK_PATHS | sed "s/,/\n/g"); do curl_output="$(curl -w %{http_code} -o /dev/null -s $str)"; if ! [ "$curl_output" = "200" ]; then echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i; fi; ((i++)); done
-  initialDelaySeconds: 0
-  periodSeconds: 90
-  timeoutSeconds: 60
-  failureThreshold: 6
-  successThreshold: 1
 ##
 # existingConfigmap:
 
@@ -117,21 +57,16 @@ resources:
   # choice for the user. This also increases chances charts run on environments with little
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  limits:
-    cpu: 500m
-    memory: 3600Mi
-  requests:
-    cpu: 100m
-    memory: 1000Mi
+  limits: {}
+  #   cpu: 200m
+  #   memory: 256Mi
+  requests: {}
+  #   cpu: 200m
+  #   memory: 10Mi
 additionalResources:
   ## Specify any JAVA_OPTS string here. These typically will be specified in conjunction with above resources
   ## Example: java_opts: "-Xms500M -Xmx500M"
-<<<<<<< HEAD
-  javaOpts: "-Xms2750M -Xmx2750M"
-
-=======
-  javaOpts: "-Xms3000M -Xmx3000M"
->>>>>>> 3adb100fdf (Updated chart versions, image and tag for release changes)
+  javaOpts: ""
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
 ## Clamav container already runs as 'mosip' user, so we may not need to enable this
 containerSecurityContext:
@@ -201,21 +136,7 @@ podAnnotations: {}
 
 ## lifecycleHooks for the  container to automate configuration before or after startup.
 ##
-<<<<<<< HEAD
-lifecycleHooks:
-  preStop:
-    exec:
-      command:
-        - sh
-        - -c
-        - sleep 30
-
-## Termination grace period : the maximum amount of time (in seconds) Kubernetes will wait for a container to gracefully shut down
-terminationGracePeriodSeconds: 60
-
-=======
 lifecycleHooks: {}
->>>>>>> 3adb100fdf (Updated chart versions, image and tag for release changes)
 ## Custom Liveness probes for
 ##
 customLivenessProbe: {}
@@ -244,12 +165,7 @@ extraEnvVarsCM:
   - artifactory-share
 ## Secret with extra environment variables
 ##
-<<<<<<< HEAD
-extraEnvVarsSecret: []
-
-=======
 extraEnvVarsSecret:
->>>>>>> 3adb100fdf (Updated chart versions, image and tag for release changes)
 ## Extra volumes to add to the deployment
 ##
 extraVolumes: []
@@ -262,7 +178,7 @@ extraVolumeMounts: []
 ##   - name: your-image-name
 ##     image: your-image
 ##     imagePullPolicy: Always
-# true #     ports:
+##     ports:
 ##       - name: portname
 ##         containerPort: 1234
 ##
@@ -292,15 +208,12 @@ persistence:
   ## the existingClaim variable
   # existingClaim: your-claim
   ## ReadWriteMany not supported by AWS gp2
-  ## We use EFS storage class as that supports ReadWriteMany. Make sure you have installed the same as given
-  ## here: https://docs.aws.amazon.com/eks/latest/userguide/efs-csi.html
-  ## Packet landing zone requires ReadWriteMany
   storageClass:
   accessModes:
-    - ReadWriteMany
-  size:
+    - ReadWriteOnce
+  size: 10M
   existingClaim:
-  reclaimPolicy:
+  # Dir where config and keys are written inside container
   mountDir:
 ## Init containers parameters:
 ## volumePermissions: Change the owner and group of the persistent volume mountpoint to runAsUser:fsGroup values from the securityContext section.
@@ -309,8 +222,8 @@ volumePermissions:
   enabled: false
   image:
     registry: docker.io
-    repository: mosipid/os-shell
-    tag: "12-debian-12-r46"
+    repository: bitnami/bitnami-shell
+    tag: "10"
     pullPolicy: Always
     ## Optionally specify an array of imagePullSecrets.
     ## Secrets must be manually created in the namespace.
@@ -347,70 +260,3 @@ serviceAccount:
   ## If not set and create is true, a name is generated using the fullname template
   ##
   name:
-## Prometheus Metrics
-##
-metrics:
-  enabled: true
-  ## Prometheus pod annotations
-  ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
-  ##
-  podAnnotations:
-    prometheus.io/scrape: "true"
-  endpointPathList:
-    - endpointPath: '/registrationprocessor/v1/bioauth/actuator/prometheus'
-      port_name: bioauth
-      port: 8020
-      targetPort: 8020
-    - endpointPath: '/registrationprocessor/v1/demodedupe/actuator/prometheus'
-      port_name: demodedupe
-      port: 8091
-      targetPort: 8091
-  ## Prometheus Service Monitor
-  ## ref: https://github.com/coreos/prometheus-operator
-  ##
-  serviceMonitor:
-    ## If the operator is installed in your cluster, set to true to create a Service Monitor Entry
-    ##
-    enabled: true
-    ## Specify the namespace in which the serviceMonitor resource will be created
-    ##
-    # namespace: ""
-    ## Specify the interval at which metrics should be scraped
-    ##
-    interval: 10s
-    ## Specify the timeout after which the scrape is ended
-    ##
-    # scrapeTimeout: 30s
-    ## Specify Metric Relabellings to add to the scrape endpoint
-    ##
-    # relabellings:
-    ## Specify honorLabels parameter to add the scrape endpoint
-    ##
-    honorLabels: false
-    ## Used to pass Labels that are used by the Prometheus installed in your cluster to select Service Monitors to work with
-    ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#prometheusspec
-    ##
-    additionalLabels: {}
-  ## Custom PrometheusRule to be defined
-  ## The value is evaluated as a template, so, for example, the value can depend on .Release or .Chart
-  ## ref: https://github.com/coreos/prometheus-operator#customresourcedefinitions
-  ##
-  prometheusRule:
-    enabled: false
-    additionalLabels: {}
-    namespace: ''
-    ## List of rules, used as template by Helm.
-    ## These are just examples rules inspired from https://awesome-prometheus-alerts.grep.to/rules.html
-    # rules:
-    #   - alert: RabbitmqDown
-    #     expr: rabbitmq_up{service="{{ template "rabbitmq.fullname" . }}"} == 0
-    #     for: 5m
-    #     labels:
-    #       severity: error
-    rules: []
-## Requires only internal access for swagger
-istio:
-  enabled: false
-  gateways:
-    - istio-system/internal
-  prefix: /registrationprocessor/v1/demodedupe

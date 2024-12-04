@@ -1,6 +1,6 @@
 apiVersion: v2
-name: regproc-notifier
-description: A Helm chart for MOSIP Registration Processor Notification Service
+name: regproc-salt
+description: A Helm chart to generate keys for Kernel
 type: application
 version: 1.3.0-beta.1-develop
 appVersion: ""
@@ -13,7 +13,7 @@ dependencies:
 home: https://mosip.io
 keywords:
   - mosip
-  - regproc-notifier
+  - regproc-salt
   - regproc
 maintainers:
   - email: info@mosip.io
