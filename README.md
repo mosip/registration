@@ -37,7 +37,7 @@ Staged architecture:
  * Group 6 stages
       * [Packet uploader](registration-processor/pre-processor/registration-processor-packet-uploader-stage)
       * [Packet classifier](registration-processor/pre-processor/registration-processor-packet-classifier-stage)
-      * Verification
+      * [Verification](registration-processor/core-processor/registration-processor-verification-stage)
  * Group 7 stages
       * [UIN generator](registration-processor/core-processor/registration-processor-uin-generator-stage)
       * [Biometric extraction](registration-processor/core-processor/registration-processor-biometric-extraction-stage)
