@@ -1,1 +1,4 @@
+Specify document path as per the file location of the document in your local setup
+
+For Ex:
 /home/ubuntu/performance-testing/performancetestingjmeter/apache-jmeter-5.3/bin/Regproc_Cellbox/document.pdf
