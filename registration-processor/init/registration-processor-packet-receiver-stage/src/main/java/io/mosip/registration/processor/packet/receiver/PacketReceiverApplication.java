@@ -22,6 +22,5 @@ public class PacketReceiverApplication {
 		configApplicationContext.refresh();
 		PacketReceiverStage packetReceiverStage = configApplicationContext.getBean(PacketReceiverStage.class);
 		packetReceiverStage.deployVerticle();
-//added for testing
 	}
 }
