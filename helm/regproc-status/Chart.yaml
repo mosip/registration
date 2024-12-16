@@ -2,7 +2,7 @@ apiVersion: v2
 name: regproc-status
 description: A Helm chart for MOSIP Registration Processor Status Service
 type: application
-version: 1.3.0-beta.1
+version: 1.3.0-beta.1-develop
 appVersion: ""
 dependencies:
   - name: common
