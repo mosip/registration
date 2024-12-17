@@ -60,7 +60,7 @@
 		<apache.httpcomponents.version>4.5.6</apache.httpcomponents.version>
 
 		<!-- Swagger -->
-		<swagger.version>2.9.2</swagger.version>
+		<swagger.version>2.10.0</swagger.version>
 
 		<!-- Data Access -->
 		<eclipselink.version>2.5.0</eclipselink.version>
@@ -101,8 +101,8 @@
 		<s3mock.version>0.2.4</s3mock.version>
 
 		<!-- Vert.x -->
-		<vertx.version>3.9.13</vertx.version>
-		<camel.vertx.version>2.23.0</camel.vertx.version>
+		<vertx.version>4.4.9</vertx.version>
+		<camel.vertx.version>4.4.0</camel.vertx.version>
 		<hazelcast.kubernetes.version>1.0.0</hazelcast.kubernetes.version>
 		<hazelcast.version>3.9.4</hazelcast.version>
 		<!-- json-simple -->
