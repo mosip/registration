@@ -4,4 +4,5 @@ updates:
     directory: "/" # Adjust if pom.xml is in a subdirectory
     schedule:
       interval: "weekly" # Options: daily, weekly, monthly
+    target-branch: "develop"
     open-pull-requests-limit: 5 # Optional: Limit the number of open PRs
