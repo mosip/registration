@@ -1,0 +1,20 @@
+apiVersion: v2
+name: regproc-status
+description: A Helm chart for MOSIP Registration Processor Status Service
+type: application
+version: 12.0.2
+appVersion: ""
+dependencies:
+  - name: common
+    repository: https://charts.bitnami.com/bitnami
+    tags:
+      - bitnami-common
+    version: 1.x.x
+home: https://mosip.io
+keywords:
+  - mosip
+  - regproc-status
+  - regproc
+maintainers:
+  - email: info@mosip.io
+    name: MOSIP
