@@ -115,7 +115,7 @@
 		<jsch.version>0.1.55</jsch.version>
 		
 		<zipkin.version>3.3.0</zipkin.version>
-		<activemq.client.version>6.1.2</activemq.client.version>
+		<activemq.client.version>6.1.5</activemq.client.version>
 
 		<!-- local -->
 		<registration.status.service.version>1.2.1-SNAPSHOT</registration.status.service.version>
