@@ -46,7 +46,7 @@
 		<maven.assembly.version>3.3.0</maven.assembly.version>
 
 		<!-- Core -->
-		<spring.boot.version>3.2.3</spring.boot.version>
+		<spring.boot.version>3.4.2</spring.boot.version>
 
 
 		<!-- Miscellaneous -->
