@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.validation.constraints.Pattern;
+
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
@@ -93,7 +95,7 @@ public class RegistrationTransactionController {
 			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
-	public ResponseEntity<RegTransactionResponseDTO> getTransactionsbyRid(@PathVariable("rid") String rid,
+	public ResponseEntity<RegTransactionResponseDTO> getTransactionsbyRid(@PathVariable("rid")  @Pattern(regexp = "^[a-zA-Z0-9-]+$", message = "Invalid rid") String rid,
 			HttpServletRequest request) throws Exception {
 		List<RegistrationTransactionDto> dtoList;
 		HttpHeaders headers = new HttpHeaders();
