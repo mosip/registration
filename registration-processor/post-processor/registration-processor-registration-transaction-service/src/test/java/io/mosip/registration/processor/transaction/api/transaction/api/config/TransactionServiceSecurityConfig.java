@@ -63,7 +63,9 @@ public class TransactionServiceSecurityConfig {
 				.exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedEntryPoint()))
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authorizeHttpRequests((authz) -> authz.anyRequest().authenticated())
-				.userDetailsService(userDetailsService());
+				.userDetailsService(userDetailsService())
+				.headers(headers -> headers.addHeaderWriter((request, response) -> 
+                		response.setHeader("X-XSS-Protection", "1; mode=block"))); // 
 
 		return http.build();
 	}
