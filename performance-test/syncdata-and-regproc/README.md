@@ -46,11 +46,11 @@ Pre-requisite to install the plugins:
 *For generating the packets, packet utility is required.
 	Step 1 - Packet utility setup.
 	Step 2 - We need device partner and device dsk partner certificate to be present in the auth certs.
-	Step 3 - For packet generation, need to create context for it. Will require api-internal.qa-platform1.mosip.net.12117.reg.key provided by the team or we can generate it from the dsl setup.
+	Step 3 - For packet generation, need to create context for it. Will require api-internal.cellbox1.mosip.net.12117.reg.key provided by the team or we can generate it from the dsl setup.
 	Step 4 - Update the secret keys for all the client's, user id, machine id and center id in create context. Also, update the mountPath and authCertsPath path variable.
 	Step 5 - Create packet.
 
-*Once the packet utility is up and running pls check this swagger link
+*Once the packet utility is up and running please check this swagger link
 	Swagger link - http://localhost:8080/v1/packetcreator/swagger-ui.html#/packet-controller
 
 *To run packet utility use following command as reference:
@@ -59,11 +59,11 @@ java -jar -Dfile.encoding=UTF-8 -Xdebug -Xrunjdwp:server=y,transport=dt_socket,a
 
 ###  Setup for packet creation
 	1. The centers, machines and users should be onboarded in the system before using as part of context_details.csv 	
-	2. Add the document path of (document.pdf) prsent in the support-files folder to the file document_path.txt
+	2. Add the document path of (document.pdf) present in the support-files folder to the file document_path.txt
 	3. The mosip-packet-creator and mount volume folders need to be present with the latest jar.
 	4. From the terminal run the command to start mosip-packet-creator as mentioned in above steps.
 	5. Open the [Packet_Creator_Script.jmx] script and run the Auth Token Generation (Setup) thread group.
-	6. Excute Packet Generation (Setup) thread group by spcifying the no of packets it need to generate.
+	6. Execute Packet Generation (Setup) thread group by specifying the no of packets it need to generate.
 	7. Sync the packets to reg client using Sync Registration Packet (Setup) thread group.
 	8. Finally Sync And Upload Registration Packet (Preparation) thread group for uploading the packets.
 
@@ -71,7 +71,7 @@ java -jar -Dfile.encoding=UTF-8 -Xdebug -Xrunjdwp:server=y,transport=dt_socket,a
 
 	* Auth Token Generation (Setup) - In this thread group we are creating the authorization token values of Syncdata, Regpoc, Resident and Regproc - Using User Id which will be saved to a file in the Run Time Files in bin folder of JMeter.
 
-	* Packet Generation (Setup) - In this thread group we will basically create the context with the help of existing center id's, machine id's & user id's present in our current environment & we will read them through a file named contextDetails.csv. Once the contexts are created we will use the same in the execution thread group where basically the packet generation happens & then the packet path gets stored in a file naming as Run Time Files in bin folder of JMeter.
+	* Packet Generation (Setup) - In this thread group we will basically create the context with the help of existing center id's, machine id's & user id's present in our current environment & we will read them through a file named context_details.csv. Once the contexts are created we will use the same in the execution thread group where basically the packet generation happens & then the packet path gets stored in a file naming as Run Time Files in bin folder of JMeter.
 
 	* Sync Registration Packet (Setup) - To create encrypted data for generated packets(test data to registration processor sync API). Which will basically create a file with the encrypted data's for all the packets created.
 

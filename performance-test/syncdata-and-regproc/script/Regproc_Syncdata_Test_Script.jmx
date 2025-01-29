@@ -329,7 +329,7 @@ String utcTime = dateFormat.format(cal.getTime());
 vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
         </BeanShellPreProcessor>
         <hashTree/>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Authentication Syncdata Endpoint " enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Generate Auth Token Syncdata Endpoint " enabled="true">
           <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments">
@@ -411,7 +411,7 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
           </BeanShellPostProcessor>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Authentication Regproc Endpoint " enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Generate Auth Token Regproc Endpoint " enabled="true">
           <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments">
@@ -493,7 +493,7 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
           </BeanShellPostProcessor>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Authentication Resident Endpoint " enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Generate Auth Token Resident Endpoint " enabled="true">
           <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments">
@@ -575,7 +575,7 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
           </BeanShellPostProcessor>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Authentication Regproc Using User Id Endpoint " enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Generate Auth Token Using User Id Endpoint " enabled="true">
           <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments">
@@ -759,7 +759,7 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
   &quot;dialect&quot;: &quot;org.hibernate.dialect.PostgreSQLDialect&quot;,&#xd;
   &quot;partner_username&quot;: &quot;${partnerUsername}&quot;,&#xd;
   &quot;DB_PORT&quot;: &quot;&quot;,&#xd;
-  &quot;audit_url&quot;: &quot;jdbc:postgresql://api-internal.dev2.mosip.net:30090/mosip_audit&quot;,&#xd;
+  &quot;audit_url&quot;: &quot;jdbc:postgresql://api-internal.cellbx1.mosip.net:30090/mosip_audit&quot;,&#xd;
   &quot;s3-account&quot;: &quot;dslreports&quot;,&#xd;
   &quot;mosip.test.persona.templatesdatapath&quot;: &quot;/profile_resource/templates_data&quot;,&#xd;
   &quot;mosip.test.persona.largedocumentpath&quot;: &quot;/profile_resource/documents_data/&quot;,&#xd;
@@ -878,7 +878,7 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
   &quot;ida_db_schema&quot;: &quot;ida&quot;,&#xd;
   &quot;user0&quot;: &quot;${user0}&quot;,&#xd;
   &quot;appendedkey&quot;: &quot;1&quot;,&#xd;
-  &quot;partner_url&quot;: &quot;jdbc:postgresql://api-internal.dev2.mosip.net:30090/mosip_ida&quot;,&#xd;
+  &quot;partner_url&quot;: &quot;jdbc:postgresql://api-internal.cellbox1.mosip.net:30090/mosip_ida&quot;,&#xd;
   &quot;licKeyGenerator&quot;: &quot;/v1/keymanager/license/generate&quot;,&#xd;
   &quot;FetchGenderType_URI&quot;: &quot;/v1/masterdata/gendertypes&quot;,&#xd;
   &quot;installation-domain&quot;: &quot;&quot;,&#xd;
