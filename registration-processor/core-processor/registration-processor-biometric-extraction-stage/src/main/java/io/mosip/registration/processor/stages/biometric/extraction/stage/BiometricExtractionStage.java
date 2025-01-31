@@ -91,7 +91,7 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 	private Long messageExpiryTimeLimit;
 	
 	/** worker pool size. */
-	@Value("${worker.pool.size}")
+	@Value("${biometric.extraction.worker.pool.size:20}")
 	private Integer workerPoolSize;
 	
 	/**partner policy ids */
