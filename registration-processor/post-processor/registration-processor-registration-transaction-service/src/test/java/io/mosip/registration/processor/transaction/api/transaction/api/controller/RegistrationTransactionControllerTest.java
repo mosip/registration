@@ -76,7 +76,7 @@ public class RegistrationTransactionControllerTest {
 	public void testSyncController() throws Exception {
 		List<RegistrationTransactionDto> dtoList = new ArrayList<>();
 		dtoList.add(new RegistrationTransactionDto("id", "registrationId", "transactionTypeCode", "parentTransactionId",
-				"statusCode", "subStatusCode", "statusComment", null));
+				"statusCode", "subStatusCode", "statusComment", null, null));
 		Mockito.when(transactionService.getTransactionByRegId(ArgumentMatchers.any()))
 				.thenReturn(dtoList);
 		this.mockMvc.perform(get("/search/27847657360002520190320095010").accept(MediaType.APPLICATION_JSON_VALUE))

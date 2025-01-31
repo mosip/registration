@@ -8,9 +8,14 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
+import io.mosip.registration.processor.core.exception.*;
+import io.mosip.registration.processor.core.tracker.dto.TrackRequestDto;
+import io.mosip.registration.processor.core.tracker.dto.TrackResponseDto;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,11 +32,6 @@ import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.constant.HealthConstant;
 import io.mosip.registration.processor.core.eventbus.MosipEventBusFactory;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.DeploymentFailureException;
-import io.mosip.registration.processor.core.exception.MessageExpiredException;
-import io.mosip.registration.processor.core.exception.PacketManagerException;
-import io.mosip.registration.processor.core.exception.UnsupportedEventBusTypeException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.http.RequestWrapper;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
@@ -55,9 +55,9 @@ import io.vertx.spi.cluster.hazelcast.HazelcastClusterManager;
 
 /**
  * This abstract class is Vert.x implementation for MOSIP.
- * 
+ *
  * This class provides functionalities to be used by MOSIP verticles.
- * 
+ *
  * @author Pranav Kumar
  * @author Mukul Puspam
  * @since 0.0.1
@@ -72,15 +72,15 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	private Logger logger = RegProcessorLogger.getLogger(MosipVerticleManager.class);
 
 	private static final String ID = "mosip.commmons.packetmanager";
-    private static final String VERSION = "v1";
+	private static final String VERSION = "v1";
 
 	private static final boolean DEFAULT_MESSAGE_TAG_LOADING_DISABLE_VALUE = false;
 
-    @Autowired
-    private RegistrationProcessorRestClientService<Object> restApi;
+	@Autowired
+	private RegistrationProcessorRestClientService<Object> restApi;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+	@Autowired
+	private ObjectMapper objectMapper;
 
 	private static final String PROMETHEUS_ENDPOINT = "/actuator/prometheus";
 
@@ -95,7 +95,13 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	 */
 	@Value("#{T(java.util.Arrays).asList('${mosip.regproc.stage-common.bus-out-halt-addresses:}')}")
 	protected List<String> busOutHaltAddresses;
-	
+
+	/*
+	 * Comma separated out bus message addresses for which skip tagging message will not be sent out from any stage
+	 */
+	@Value("#{T(java.util.Arrays).asList('${mosip.regproc.stage-common.bus-out-skip-tags:packet-receiver-bus-out,packet-uploader-bus-out,securezone-notification-bus-out}')}")
+	protected List<String> tagSkipBusOutAddress;
+
 	@Autowired
 	private MosipEventBusFactory mosipEventBusFactory;
 
@@ -103,7 +109,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * io.mosip.registration.processor.core.spi.eventbus.EventBusManager#getEventBus
 	 * (java.lang.Class, java.lang.String)
@@ -115,7 +121,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * io.mosip.registration.processor.core.spi.eventbus.EventBusManager#getEventBus
 	 * (java.lang.Class)
@@ -170,13 +176,13 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see io.mosip.registration.processor.core.spi.eventbus.EventBusManager#
 	 * consumeAndSend(java.lang.Object, java.lang.Object, java.lang.Object)
 	 */
 	@Override
 	public void consumeAndSend(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
-			MessageBusAddress toAddress, long messageExpiryTimeLimit) {
+							   MessageBusAddress toAddress, long messageExpiryTimeLimit) {
 		if(busOutHaltAddresses.contains(toAddress.getAddress())) {
 			consume(mosipEventBus, fromAddress, messageExpiryTimeLimit);
 			return;
@@ -187,24 +193,36 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 			vertx.executeBlocking(future -> {
 				MessageDTO messageDTO =new MessageDTO();
 				try {
-				MDC.setContextMap(mdc);
-				JsonObject jsonObject = (JsonObject) msg.getBody();
-				messageDTO = objectMapper.readValue(objectMapper.writeValueAsString(jsonObject.getMap()), MessageDTO.class);
-				if(isMessageExpired(messageDTO, messageExpiryTimeLimit)) {
-					future.fail(new MessageExpiredException("rid: " + messageDTO.getRid() +
-						" lastHopTimestamp " + messageDTO.getLastHopTimestamp()));
-					return;
-				}
-				
-					MessageDTO result = process(messageDTO);
-					addTagsToMessageDTO(result);
-					result.setLastHopTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
-					future.complete(result);
+					MDC.setContextMap(mdc);
+					JsonObject jsonObject = (JsonObject) msg.getBody();
+					messageDTO = objectMapper.readValue(objectMapper.writeValueAsString(jsonObject.getMap()), MessageDTO.class);
+					if(isMessageExpired(messageDTO, messageExpiryTimeLimit)) {
+						future.fail(new MessageExpiredException("rid: " + messageDTO.getRid() +
+								" lastHopTimestamp " + messageDTO.getLastHopTimestamp()));
+						return;
+					}
+
+					if(isTransactionAllowed(messageDTO.getTransactionFlowId(), messageDTO.getTransactionId(), messageDTO.getRid())) {
+						MessageDTO result = process(messageDTO);
+						addTagsToMessageDTO(result);
+						updateTransactionStatus(messageDTO.getTransactionId(), ((messageDTO.getIsValid() && !messageDTO.getInternalError()) ? RegistrationTransactionStatusCode.PROCESSED.toString() : RegistrationTransactionStatusCode.FAILED.toString()));
+						result.setLastHopTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+						result.setTransactionId(UUID.randomUUID().toString());
+						future.complete(result);
+					} else {
+						DuplicateTransactionException duplicateTransactionException = new DuplicateTransactionException("rid: " + messageDTO.getRid() +
+								" TransactionId " + messageDTO.getTransactionId() + " Transaction Flow Id " + messageDTO.getTransactionFlowId());
+						logger.error("{} -- {} {} {}",
+								PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getCode(),
+								PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getMessage(),duplicateTransactionException.getMessage(), ExceptionUtils.getStackTrace(duplicateTransactionException));
+						future.complete();
+						return;
+					}
 				} catch (Exception e) {
 					logger.error("{} -- {} {} {}",
-						PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getCode(),
-						PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getMessage(),
-						e.getMessage(), ExceptionUtils.getStackTrace(e));
+							PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getCode(),
+							PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getMessage(),
+							e.getMessage(), ExceptionUtils.getStackTrace(e));
 					messageDTO.setIsValid(false);
 					messageDTO.setInternalError(true);
 					addTagsToMessageDTO(messageDTO);
@@ -217,6 +235,9 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 		});
 	}
 
+	public boolean isTagSkipEnabled(String toAddress) {
+		return tagSkipBusOutAddress.contains(toAddress);
+	}
 	/**
 	 * Send.
 	 *
@@ -230,8 +251,12 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	public void send(MosipEventBus mosipEventBus, MessageBusAddress toAddress, MessageDTO message) {
 		if(busOutHaltAddresses.contains(toAddress.getAddress()))
 			return;
-		addTagsToMessageDTO(message);
+
+		message.setTags(new HashMap<>());
+		if(!isTagSkipEnabled(toAddress.getAddress()))
+			addTagsToMessageDTO(message);
 		message.setLastHopTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+		message.setTransactionId(UUID.randomUUID().toString());
 		mosipEventBus.send(toAddress, message);
 	}
 
@@ -246,29 +271,41 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	 * 			  The time limit in seconds, after which message should considered as expired
 	 */
 	public void consume(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
-			long messageExpiryTimeLimit) {
+						long messageExpiryTimeLimit) {
 		mosipEventBus.consume(fromAddress, (msg, handler) -> {
 			logger.debug("Received from {} {}",fromAddress.toString(), msg.getBody());
 			Map<String, String> mdc = MDC.getCopyOfContextMap();
 			vertx.executeBlocking(future -> {
 				MessageDTO messageDTO=new MessageDTO();
 				try {
-				MDC.setContextMap(mdc);
-				JsonObject jsonObject = (JsonObject) msg.getBody();
-				messageDTO = objectMapper.readValue(objectMapper.writeValueAsString(jsonObject.getMap()), MessageDTO.class);
-				if(isMessageExpired(messageDTO, messageExpiryTimeLimit)) {
-					future.fail(new MessageExpiredException("rid: " + messageDTO.getRid() +
-						" lastHopTimestamp " + messageDTO.getLastHopTimestamp()));
-					return;
-				}
-				
-					MessageDTO result = process(messageDTO);
-					future.complete(result);
+					MDC.setContextMap(mdc);
+					JsonObject jsonObject = (JsonObject) msg.getBody();
+					messageDTO = objectMapper.readValue(objectMapper.writeValueAsString(jsonObject.getMap()), MessageDTO.class);
+					if(isMessageExpired(messageDTO, messageExpiryTimeLimit)) {
+						future.fail(new MessageExpiredException("rid: " + messageDTO.getRid() +
+								" lastHopTimestamp " + messageDTO.getLastHopTimestamp()));
+						return;
+					}
+
+					if(isTransactionAllowed(messageDTO.getTransactionFlowId(), messageDTO.getTransactionId(), messageDTO.getRid())) {
+						MessageDTO result = process(messageDTO);
+						updateTransactionStatus(messageDTO.getTransactionId(), ((messageDTO.getIsValid() && !messageDTO.getInternalError()) ? RegistrationTransactionStatusCode.PROCESSED.toString() : RegistrationTransactionStatusCode.FAILED.toString()));
+						result.setTransactionId(UUID.randomUUID().toString());
+						future.complete(result);
+					} else {
+						DuplicateTransactionException duplicateTransactionException = new DuplicateTransactionException("rid: " + messageDTO.getRid() +
+								" TransactionId " + messageDTO.getTransactionId() + " Transaction Flow Id " + messageDTO.getTransactionFlowId());
+						logger.error("{} -- {} {} {}",
+								PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getCode(),
+								PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getMessage(),duplicateTransactionException.getMessage(), ExceptionUtils.getStackTrace(duplicateTransactionException));
+						future.complete();
+						return;
+					}
 				} catch (Exception e) {
 					logger.error("{} -- {} {} {}",
-						PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getCode(),
-						PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getMessage(),
-						e.getMessage(), ExceptionUtils.getStackTrace(e));
+							PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getCode(),
+							PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getMessage(),
+							e.getMessage(), ExceptionUtils.getStackTrace(e));
 					messageDTO.setIsValid(false);
 					messageDTO.setInternalError(true);
 					future.complete(messageDTO);
@@ -317,7 +354,6 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 
 	private void addTagsToMessageDTO(MessageDTO messageDTO) {
 		if(isTagLoadingDisabled()) {
-			messageDTO.setTags(new HashMap<>());
 			return;
 		}
 		try {
@@ -325,11 +361,49 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 		} catch (ApisResourceAccessException | PacketManagerException |
 				JsonProcessingException | IOException e) {
 			logger.error(PlatformErrorMessages.RPR_SYS_PACKET_TAGS_COPYING_FAILED.getCode() +
-				" -- " + PlatformErrorMessages.RPR_SYS_PACKET_TAGS_COPYING_FAILED.getMessage() +
-				e.getMessage() + ExceptionUtils.getStackTrace(e));
+					" -- " + PlatformErrorMessages.RPR_SYS_PACKET_TAGS_COPYING_FAILED.getMessage() +
+					e.getMessage() + ExceptionUtils.getStackTrace(e));
 			messageDTO.setInternalError(true);
 			messageDTO.setTags(new HashMap<>());
 		}
+	}
+
+	private boolean isTransactionAllowed(String transactionFlowId, String transactionId, String regId) throws ApisResourceAccessException, JsonProcessingException, com.fasterxml.jackson.core.JsonProcessingException {
+		TrackRequestDto trackRequestDto = new TrackRequestDto(regId, transactionId, transactionFlowId, null);
+		RequestWrapper<TrackRequestDto> request = new RequestWrapper<>();
+		request.setId(ID);
+		request.setVersion(VERSION);
+		request.setRequesttime(DateUtils.getUTCCurrentDateTime());
+		request.setRequest(trackRequestDto);
+		ResponseWrapper<TrackResponseDto> response = (ResponseWrapper<TrackResponseDto>) restApi
+				.postApi(ApiName.TRACKTRANSACTIONID, "", "",
+						request, ResponseWrapper.class);
+		logger.info("Response from API " + objectMapper.writeValueAsString(response));
+		TrackResponseDto trackResponseDto = null;
+
+		if (response.getResponse() != null)
+			trackResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), TrackResponseDto.class);
+
+		return trackResponseDto.isTransactionAllowed();
+	}
+
+	private boolean updateTransactionStatus(String transactionId, String statusCode) throws ApisResourceAccessException, JsonProcessingException, com.fasterxml.jackson.core.JsonProcessingException {
+		TrackRequestDto trackRequestDto = new TrackRequestDto();
+		trackRequestDto.setTransactionId(transactionId);
+		trackRequestDto.setStatusCode(statusCode);
+		RequestWrapper<TrackRequestDto> request = new RequestWrapper<>();
+		request.setId(ID);
+		request.setVersion(VERSION);
+		request.setRequesttime(DateUtils.getUTCCurrentDateTime());
+		request.setRequest(trackRequestDto);
+		ResponseWrapper<TrackResponseDto> response = (ResponseWrapper<TrackResponseDto>) restApi.postApi(ApiName.UPDATETRANSACTIONID, "", "",
+				request, ResponseWrapper.class);
+
+		TrackResponseDto trackResponseDto = null;
+		if (response.getResponse() != null)
+			trackResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), TrackResponseDto.class);
+
+		return trackResponseDto.isTransactionAllowed();
 	}
 
 	private Map<String, String> getTagsFromPacket(String id) throws ApisResourceAccessException,
@@ -345,7 +419,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 						request, ResponseWrapper.class);
 
 		if (response.getErrors() != null && response.getErrors().size() > 0) {
-            logger.error("Registration Id : {} response: {}", id, JsonUtils.javaObjectToJsonString(response));
+			logger.error("Registration Id : {} response: {}", id, JsonUtils.javaObjectToJsonString(response));
 			throw new PacketManagerException(response.getErrors().get(0).getErrorCode(),
 					response.getErrors().get(0).getMessage());
 		}
@@ -368,8 +442,8 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 			return true;
 		} catch(Exception e) {
 			logger.error("{} {} {} {}", PlatformErrorMessages.RPR_SYS_PARSING_DATE_EXCEPTION.getCode(),
-				PlatformErrorMessages.RPR_SYS_PARSING_DATE_EXCEPTION.getMessage(), e.getMessage(),
-				ExceptionUtils.getStackTrace(e));
+					PlatformErrorMessages.RPR_SYS_PARSING_DATE_EXCEPTION.getMessage(), e.getMessage(),
+					ExceptionUtils.getStackTrace(e));
 			return true;
 		}
 	}

@@ -222,7 +222,7 @@ public class RegistrationStatusServiceImpl
 			TransactionDto transactionDto = new TransactionDto(transactionId, registrationStatusDto.getRegistrationId(),
 					null, registrationStatusDto.getLatestTransactionTypeCode(), "Added registration status record",
 					registrationStatusDto.getLatestTransactionStatusCode(), registrationStatusDto.getStatusComment(),
-					registrationStatusDto.getSubStatusCode());
+					registrationStatusDto.getSubStatusCode(), registrationStatusDto.getLatestTransactionFlowId());
 			transactionDto.setReferenceId(registrationStatusDto.getRegistrationId());
 			transactionDto.setReferenceIdType("Added registration record");
 			transcationStatusService.addRegistrationTransaction(transactionDto);
@@ -285,7 +285,7 @@ public class RegistrationStatusServiceImpl
 		TransactionDto transactionDto = new TransactionDto(transactionId, registrationStatusDto.getRegistrationId(),
 				latestTransactionId, registrationStatusDto.getLatestTransactionTypeCode(),
 				"updated registration status record", registrationStatusDto.getLatestTransactionStatusCode(),
-				registrationStatusDto.getStatusComment(), registrationStatusDto.getSubStatusCode());
+				registrationStatusDto.getStatusComment(), registrationStatusDto.getSubStatusCode(), registrationStatusDto.getLatestTransactionFlowId());
 		if (registrationStatusDto.getRefId() == null) {
 			transactionDto.setReferenceId(registrationStatusDto.getRegistrationId());
 		} else {
@@ -642,6 +642,7 @@ public class RegistrationStatusServiceImpl
 		registrationStatusDto.setIteration(entity.getIteration());
 		registrationStatusDto.setWorkflowInstanceId(entity.getId().getWorkflowInstanceId());
 		registrationStatusDto.setPacketCreateDateTime(entity.getPacketCreatedDateTime());
+		registrationStatusDto.setLatestTransactionFlowId(entity.getLatestTransactionFlowId());
 		return registrationStatusDto;
 	}
 
@@ -704,6 +705,7 @@ public class RegistrationStatusServiceImpl
 		else
 			registrationStatusEntity.setLastSuccessStageName(existingLastSuccessStageName);
 		registrationStatusEntity.setPacketCreatedDateTime(dto.getPacketCreateDateTime());
+		registrationStatusEntity.setLatestTransactionFlowId(dto.getLatestTransactionFlowId());
 		return registrationStatusEntity;
 	}
 
@@ -918,6 +920,7 @@ public class RegistrationStatusServiceImpl
 		registrationStatusEntity.setLatestTransactionTimes(dto.getLatestTransactionTimes());
 		registrationStatusEntity.setResumeTimeStamp(dto.getResumeTimeStamp());
 		registrationStatusEntity.setDefaultResumeAction(dto.getDefaultResumeAction());
+		registrationStatusEntity.setLatestTransactionFlowId(dto.getLatestTransactionFlowId());
 		return registrationStatusEntity;
 	}
 

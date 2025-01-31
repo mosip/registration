@@ -1442,7 +1442,10 @@ public enum PlatformErrorMessages {
 			"Not able to access the API resource"),
 
 	INDIVIDUAL_BIOMETRIC_AUTHENTICATION_FAILED(PlatformConstants.RPR_BIOMETRIC_AUTHENTICATION_MODULE + "004",
-			"Bio authentication failed")
+			"Bio authentication failed"),
+	/** The message expired. */
+	RPR_SYS_DUPLICATE_TRANSACTION(PlatformConstants.RPR_SYSTEM_EXCEPTION + "039",
+			"Duplicate Transaction Request Received from Kafka. "),
 	;
 
 
