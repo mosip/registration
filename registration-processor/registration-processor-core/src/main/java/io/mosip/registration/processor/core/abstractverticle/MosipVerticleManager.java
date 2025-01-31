@@ -8,9 +8,14 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
+import io.mosip.registration.processor.core.exception.*;
+import io.mosip.registration.processor.core.tracker.dto.TrackRequestDto;
+import io.mosip.registration.processor.core.tracker.dto.TrackResponseDto;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,11 +32,6 @@ import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.constant.HealthConstant;
 import io.mosip.registration.processor.core.eventbus.MosipEventBusFactory;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.DeploymentFailureException;
-import io.mosip.registration.processor.core.exception.MessageExpiredException;
-import io.mosip.registration.processor.core.exception.PacketManagerException;
-import io.mosip.registration.processor.core.exception.UnsupportedEventBusTypeException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.http.RequestWrapper;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
@@ -95,7 +95,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	 */
 	@Value("#{T(java.util.Arrays).asList('${mosip.regproc.stage-common.bus-out-halt-addresses:}')}")
 	protected List<String> busOutHaltAddresses;
-	
+
 	@Autowired
 	private MosipEventBusFactory mosipEventBusFactory;
 
@@ -196,10 +196,22 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 					return;
 				}
 				
-					MessageDTO result = process(messageDTO);
-					addTagsToMessageDTO(result);
-					result.setLastHopTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
-					future.complete(result);
+					if(isTransactionAllowed(messageDTO.getTransactionFlowId(), messageDTO.getTransactionId(), messageDTO.getRid())) {
+						MessageDTO result = process(messageDTO);
+						addTagsToMessageDTO(result);
+						updateTransactionStatus(messageDTO.getTransactionId(), ((messageDTO.getIsValid() && !messageDTO.getInternalError()) ? RegistrationTransactionStatusCode.PROCESSED.toString() : RegistrationTransactionStatusCode.FAILED.toString()));
+						result.setLastHopTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+						result.setTransactionId(UUID.randomUUID().toString());
+						future.complete(result);
+					} else {
+						DuplicateTransactionException duplicateTransactionException = new DuplicateTransactionException("rid: " + messageDTO.getRid() +
+								" TransactionId " + messageDTO.getTransactionId() + " Transaction Flow Id " + messageDTO.getTransactionFlowId());
+						logger.error("{} -- {} {} {}",
+								PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getCode(),
+								PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getMessage(),duplicateTransactionException.getMessage(), ExceptionUtils.getStackTrace(duplicateTransactionException));
+						future.complete();
+						return;
+					}
 				} catch (Exception e) {
 					logger.error("{} -- {} {} {}",
 						PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getCode(),
@@ -232,6 +244,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 			return;
 		addTagsToMessageDTO(message);
 		message.setLastHopTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+		message.setTransactionId(UUID.randomUUID().toString());
 		mosipEventBus.send(toAddress, message);
 	}
 
@@ -262,8 +275,20 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 					return;
 				}
 				
+				if(isTransactionAllowed(messageDTO.getTransactionFlowId(), messageDTO.getTransactionId(), messageDTO.getRid())) {
 					MessageDTO result = process(messageDTO);
+					updateTransactionStatus(messageDTO.getTransactionId(), ((messageDTO.getIsValid() && !messageDTO.getInternalError()) ? RegistrationTransactionStatusCode.PROCESSED.toString() : RegistrationTransactionStatusCode.FAILED.toString()));
+					result.setTransactionId(UUID.randomUUID().toString());
 					future.complete(result);
+				} else {
+					DuplicateTransactionException duplicateTransactionException = new DuplicateTransactionException("rid: " + messageDTO.getRid() +
+							" TransactionId " + messageDTO.getTransactionId() + " Transaction Flow Id " + messageDTO.getTransactionFlowId());
+					logger.error("{} -- {} {} {}",
+							PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getCode(),
+							PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getMessage(),duplicateTransactionException.getMessage(), ExceptionUtils.getStackTrace(duplicateTransactionException));
+					future.complete();
+					return;
+				}
 				} catch (Exception e) {
 					logger.error("{} -- {} {} {}",
 						PlatformErrorMessages.RPR_SYS_STAGE_PROCESSING_FAILED.getCode(),
@@ -330,6 +355,44 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 			messageDTO.setInternalError(true);
 			messageDTO.setTags(new HashMap<>());
 		}
+	}
+
+	private boolean isTransactionAllowed(String transactionFlowId, String transactionId, String regId) throws ApisResourceAccessException, JsonProcessingException, com.fasterxml.jackson.core.JsonProcessingException {
+		TrackRequestDto trackRequestDto = new TrackRequestDto(regId, transactionId, transactionFlowId, null);
+		RequestWrapper<TrackRequestDto> request = new RequestWrapper<>();
+		request.setId(ID);
+		request.setVersion(VERSION);
+		request.setRequesttime(DateUtils.getUTCCurrentDateTime());
+		request.setRequest(trackRequestDto);
+		ResponseWrapper<TrackResponseDto> response = (ResponseWrapper<TrackResponseDto>) restApi
+				.postApi(ApiName.TRACKTRANSACTIONID, "", "",
+						request, ResponseWrapper.class);
+		logger.info("Response from API " + objectMapper.writeValueAsString(response));
+		TrackResponseDto trackResponseDto = null;
+
+		if (response.getResponse() != null)
+			trackResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), TrackResponseDto.class);
+
+		return trackResponseDto.isTransactionAllowed();
+	}
+
+	private boolean updateTransactionStatus(String transactionId, String statusCode) throws ApisResourceAccessException, JsonProcessingException, com.fasterxml.jackson.core.JsonProcessingException {
+		TrackRequestDto trackRequestDto = new TrackRequestDto();
+		trackRequestDto.setTransactionId(transactionId);
+		trackRequestDto.setStatusCode(statusCode);
+		RequestWrapper<TrackRequestDto> request = new RequestWrapper<>();
+		request.setId(ID);
+		request.setVersion(VERSION);
+		request.setRequesttime(DateUtils.getUTCCurrentDateTime());
+		request.setRequest(trackRequestDto);
+		ResponseWrapper<TrackResponseDto> response = (ResponseWrapper<TrackResponseDto>) restApi.postApi(ApiName.UPDATETRANSACTIONID, "", "",
+						request, ResponseWrapper.class);
+
+		TrackResponseDto trackResponseDto = null;
+		if (response.getResponse() != null)
+			trackResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), TrackResponseDto.class);
+
+		return trackResponseDto.isTransactionAllowed();
 	}
 
 	private Map<String, String> getTagsFromPacket(String id) throws ApisResourceAccessException,
