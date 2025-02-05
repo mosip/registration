@@ -3,12 +3,10 @@
 * This folder contains performance Test script of below API endpoint categories.
     01. Auth Token Generation (Setup)
     02. Packet Generation (Setup)
-    03. Sync Registration Packet (Setup)
-    04. S02 Sync Data To The Server (Preparation)
-    05. S03 Get Transaction Details From Reg Id (Preparation)
-    06. S01 Sync And Upload New Registration Packet (Execution)
-    07. S02 Sync Data To The Server (Execution)
-    08. S03 Get Transaction Details From Reg Id (Execution)
+    03. S01 and S03 Sync Registration Packet And Generate RID (Preparation)
+    04. S01 Sync And Upload New Registration Packet (Execution)
+    05. S02 Sync Data To The Server (Execution)
+    06. S03 Get Transaction Details From Reg Id (Execution)
 
 
 * Open source tools used,
@@ -73,11 +71,7 @@ java -jar -Dfile.encoding=UTF-8 -Xdebug -Xrunjdwp:server=y,transport=dt_socket,a
 
 	* Packet Generation (Setup) - In this thread group we will basically create the context with the help of existing center id's, machine id's & user id's present in our current environment & we will read them through a file named context_details.csv. Once the contexts are created we will use the same in the execution thread group where basically the packet generation happens & then the packet path gets stored in a file naming as Run Time Files in bin folder of JMeter.
 
-	* Sync Registration Packet (Setup) - To create encrypted data for generated packets(test data to registration processor sync API). Which will basically create a file with the encrypted data's for all the packets created.
-
-	* S02 Sync Data To The Server (Preparation) - In this thread group auth token details encrypted based On machine key is generated and stored in a file
-
-	* S03 Get Transaction Details From Reg Id (Preparation) - In this thread group, we prepare the reg id's required for the execution of S03 to get the transaction details.
+	* S01 and S03 Sync Registration Packet And Generate RID (Preparation) - To create encrypted data for generated packets(test data to registration processor sync API). Which will basically create a file with the encrypted data's for all the packets created. Also, we prepare the reg id's required for the execution of S03 to get the transaction details.
 
 	* S01 Sync And Upload Registration Packet (Execution) : 
 		* S01 T01 Sync Registration Packet : This API endpoint will sync the packets.
