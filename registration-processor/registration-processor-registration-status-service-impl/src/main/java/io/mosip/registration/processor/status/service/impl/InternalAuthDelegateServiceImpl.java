@@ -68,6 +68,9 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 	@Qualifier("selfTokenRestTemplate")
 	private RestTemplate restTemplate;
 
+	@Autowired
+	private WebClient webClient;
+
 	/** The internal auth uri. */
 	@Value("${ida-internal-auth-uri}")
 	private String internalAuthUri;
@@ -123,8 +126,6 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 	public <T> HttpEntity<T> postApi(String uri, MediaType mediaType, HttpEntity<?> requestEntity,
 			Class<T> responseClass) throws Exception {
 		try {
-			WebClient webClient = WebClient.create(); // Use WebClient bean if using Spring
-
 			return (HttpEntity<T>) webClient.post()
 					.uri(uri)
 					.headers(httpHeaders -> {
