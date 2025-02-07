@@ -148,14 +148,4 @@ public class RegistrationStatusBeanConfig {
 		return new RegistrationUtility();
 	}
 
-	@Bean
-	public WebClient webClient() {
-		return WebClient.builder()
-				.exchangeStrategies(ExchangeStrategies.builder()
-						.codecs(configurer ->
-								configurer.defaultCodecs().maxInMemorySize(20 * 1024 * 1024) // 50MB limit
-						)
-						.build())
-				.build();
-	}
 }

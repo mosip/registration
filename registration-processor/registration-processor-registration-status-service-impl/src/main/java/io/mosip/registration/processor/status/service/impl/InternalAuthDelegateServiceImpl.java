@@ -69,6 +69,7 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 	private RestTemplate restTemplate;
 
 	@Autowired
+	@Qualifier("selfTokenWebClient")
 	private WebClient webClient;
 
 	/** The internal auth uri. */
