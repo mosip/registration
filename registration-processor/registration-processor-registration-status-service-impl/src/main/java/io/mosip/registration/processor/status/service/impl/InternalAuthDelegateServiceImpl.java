@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Optional;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.util.Timeout;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,8 +16,10 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -118,9 +123,17 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 	public <T> HttpEntity<T> postApi(String uri, MediaType mediaType, HttpEntity<?> requestEntity,
 			Class<T> responseClass) throws Exception {
 		try {
-			logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-					LoggerFileConstant.APPLICATIONID.toString(), uri);
-			return restTemplate.exchange(uri, HttpMethod.POST, requestEntity, responseClass);
+			WebClient webClient = WebClient.create(); // Use WebClient bean if using Spring
+
+			return (HttpEntity<T>) webClient.post()
+					.uri(uri)
+					.headers(httpHeaders -> {
+						requestEntity.getHeaders().forEach(httpHeaders::addAll);
+					})
+					.bodyValue(requestEntity.getBody())  // Sends large JSON payload efficiently
+					.retrieve()
+					.bodyToMono(responseClass)
+					.block();  // Blocking call to get response (for synchronous behavior)
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					LoggerFileConstant.APPLICATIONID.toString(), e.getMessage() + ExceptionUtils.getStackTrace(e));

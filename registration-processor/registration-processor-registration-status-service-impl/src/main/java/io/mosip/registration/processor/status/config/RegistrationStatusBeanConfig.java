@@ -39,6 +39,8 @@ import io.mosip.registration.processor.status.service.impl.RegistrationStatusSer
 import io.mosip.registration.processor.status.service.impl.SyncRegistrationServiceImpl;
 import io.mosip.registration.processor.status.service.impl.TransactionServiceImpl;
 import io.mosip.registration.processor.status.utilities.RegistrationExternalStatusUtility;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
+import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
 @PropertySource("classpath:bootstrap.properties")
@@ -144,5 +146,16 @@ public class RegistrationStatusBeanConfig {
 	@Bean
 	public RegistrationUtility registrationUtility() {
 		return new RegistrationUtility();
+	}
+
+	@Bean
+	public WebClient webClient() {
+		return WebClient.builder()
+				.exchangeStrategies(ExchangeStrategies.builder()
+						.codecs(configurer ->
+								configurer.defaultCodecs().maxInMemorySize(20 * 1024 * 1024) // 50MB limit
+						)
+						.build())
+				.build();
 	}
 }
