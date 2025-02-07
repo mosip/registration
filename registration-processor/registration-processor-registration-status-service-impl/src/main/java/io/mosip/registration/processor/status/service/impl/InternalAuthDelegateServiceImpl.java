@@ -96,14 +96,12 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 
 		// get individualId from userId
 		String individualId = getIndividualIdByUserId(authRequestDTO.getIndividualId());
-
 		authRequestDTO.setIndividualId(individualId);
 		authRequestDTO.setIndividualIdType(null);
 
 		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(internalAuthUri);
 		HttpEntity<?> httpRequestEntity = new HttpEntity<Object>(authRequestDTO, headers);
-		return postApi(builder.toUriString(), MediaType.APPLICATION_JSON, httpRequestEntity, AuthResponseDTO.class)
-				.getBody();
+		return postApi(builder.toUriString(), MediaType.APPLICATION_JSON, httpRequestEntity, AuthResponseDTO.class);
 	}
 
 	/**
@@ -124,10 +122,10 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 		return restApiClient.getApi(builder.build().toUri(), Object.class);
 	}
 
-	public <T> HttpEntity<T> postApi(String uri, MediaType mediaType, HttpEntity<?> requestEntity,
+	public <T> T postApi(String uri, MediaType mediaType, HttpEntity<?> requestEntity,
 			Class<T> responseClass) throws Exception {
 		try {
-			return (HttpEntity<T>) webClient.post()
+			return webClient.post()
 					.uri(uri)
 					.headers(httpHeaders -> {
 						requestEntity.getHeaders().forEach(httpHeaders::addAll);
