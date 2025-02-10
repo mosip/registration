@@ -23,6 +23,12 @@ Pre-requisite to install the plugins:
 * We need some jmeter plugin files that needs to be installed before opening of this script, PFA dependency links for your reference : 
 	* jmeter-plugins-synthesis-2.2.jar
 	* <!-- https://jmeter-plugins.org/files/packages/jpgc-synthesis-2.2.zip -->
+* We need some dependent jar files that needs to be in the lib folder of jmeter/bin, following are the dependent jar files:
+	1. mock-mds-1.2.1-SNAPSHOT.jar
+	2. kernel-syncdata-service-1.2.0.1.jar
+	3. kernel-logger-logback-1.2.0.1.jar
+	4. kernel-core-1.2.0.1.jar
+	5. kernel-keymanager-service-1.2.0.1-lib.jar
 
 ### How to run performance scripts using Apache JMeter tool
 * Download Apache JMeter from https://jmeter.apache.org/download_jmeter.cgi
