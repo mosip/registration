@@ -15,6 +15,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -63,6 +64,10 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 	@Qualifier("selfTokenRestTemplate")
 	private RestTemplate restTemplate;
 
+	@Autowired
+	@Qualifier("selfTokenWebClient")
+	private WebClient webClient;
+
 	/** The internal auth uri. */
 	@Value("${ida-internal-auth-uri}")
 	private String internalAuthUri;
@@ -93,8 +98,7 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 
 		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(internalAuthUri);
 		HttpEntity<?> httpRequestEntity = new HttpEntity<Object>(authRequestDTO, headers);
-		return postApi(builder.toUriString(), MediaType.APPLICATION_JSON, httpRequestEntity, AuthResponseDTO.class)
-				.getBody();
+		return postApi(builder.toUriString(), MediaType.APPLICATION_JSON, httpRequestEntity, AuthResponseDTO.class);
 	}
 
 	/**
@@ -115,12 +119,18 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 		return restApiClient.getApi(builder.build().toUri(), Object.class);
 	}
 
-	public <T> HttpEntity<T> postApi(String uri, MediaType mediaType, HttpEntity<?> requestEntity,
-			Class<T> responseClass) throws Exception {
+	public <T> T postApi(String uri, MediaType mediaType, HttpEntity<?> requestEntity,
+						 Class<T> responseClass) throws Exception {
 		try {
-			logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-					LoggerFileConstant.APPLICATIONID.toString(), uri);
-			return restTemplate.exchange(uri, HttpMethod.POST, requestEntity, responseClass);
+			return webClient.post()
+					.uri(uri)
+					.headers(httpHeaders -> {
+						requestEntity.getHeaders().forEach(httpHeaders::addAll);
+					})
+					.bodyValue(requestEntity.getBody())  // Sends large JSON payload efficiently
+					.retrieve()
+					.bodyToMono(responseClass)
+					.block();  // Blocking call to get response (for synchronous behavior)
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					LoggerFileConstant.APPLICATIONID.toString(), e.getMessage() + ExceptionUtils.getStackTrace(e));
