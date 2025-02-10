@@ -12,7 +12,6 @@ import java.util.List;
 import jakarta.servlet.http.Cookie;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
@@ -71,6 +70,7 @@ import io.mosip.registration.processor.status.utilities.RegistrationUtility;
 import io.mosip.registration.processor.status.validator.LostRidRequestValidator;
 import io.mosip.registration.processor.status.validator.RegistrationStatusRequestValidator;
 import io.mosip.registration.processor.status.validator.RegistrationSyncRequestValidator;
+import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * The Class RegistrationStatusControllerTest.
@@ -89,6 +89,10 @@ public class RegistrationStatusAndSyncControllerTest {
 	@MockBean
 	@Qualifier("selfTokenRestTemplate")
 	private RestTemplate restTemplate;
+
+	@MockBean
+	@Qualifier("selfTokenWebClient")
+	private WebClient webClient;
 
 	/** The registration status controller. */
 	@InjectMocks
