@@ -36,6 +36,7 @@ import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessor
 import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 import io.mosip.registration.processor.status.service.impl.InternalAuthDelegateServiceImpl;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 public class InternalAuthDelegateServiceImplTest {
@@ -52,8 +53,7 @@ public class InternalAuthDelegateServiceImplTest {
 	@Mock
 	RestTemplate restTemplate;
 
-	@MockBean
-	@Qualifier("selfTokenWebClient")
+	@Mock
 	private WebClient webClient;
 
 	@Mock
@@ -84,6 +84,7 @@ public class InternalAuthDelegateServiceImplTest {
 		ResponseEntity<AuthResponseDTO> entity = new ResponseEntity<AuthResponseDTO>(authResponse, HttpStatus.OK);
 		Mockito.when(restApiClient.getRestTemplate()).thenReturn(restTemplate);
 		Mockito.when(restTemplate.exchange(anyString(), any(), any(), eq(AuthResponseDTO.class))).thenReturn(entity);
+		Mockito.when(webClient.post().uri(anyString()).body(any()).retrieve().bodyToMono(AuthResponseDTO.class)).thenReturn(Mono.just(authResponse));
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn("");
 		Mockito.when(mapper.readValue(anyString(), eq(IndividualIdDto.class))).thenReturn(individualIdDto);
 	}
