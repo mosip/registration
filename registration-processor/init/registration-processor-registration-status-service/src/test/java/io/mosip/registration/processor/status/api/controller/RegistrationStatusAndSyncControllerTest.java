@@ -70,12 +70,14 @@ import io.mosip.registration.processor.status.utilities.RegistrationUtility;
 import io.mosip.registration.processor.status.validator.LostRidRequestValidator;
 import io.mosip.registration.processor.status.validator.RegistrationStatusRequestValidator;
 import io.mosip.registration.processor.status.validator.RegistrationSyncRequestValidator;
+import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * The Class RegistrationStatusControllerTest.
  *
  * @author M1047487
  */
+
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -87,6 +89,10 @@ public class RegistrationStatusAndSyncControllerTest {
 	@MockBean
 	@Qualifier("selfTokenRestTemplate")
 	private RestTemplate restTemplate;
+
+	@MockBean
+	@Qualifier("selfTokenWebClient")
+	private WebClient webClient;
 
 	/** The registration status controller. */
 	@InjectMocks
@@ -327,6 +333,7 @@ public class RegistrationStatusAndSyncControllerTest {
 				.andExpect(status().isOk());
 	}
 
+
 	@Test
 	@WithMockUser(value = "resident", roles = "RESIDENT")
 	public void testSyncV2Controller() throws Exception {
@@ -382,6 +389,7 @@ public class RegistrationStatusAndSyncControllerTest {
 
 	}
 
+
 	@Test
 	@WithMockUser(value = "admin", roles = "REGISTRATION_ADMIN")
 	public void lostRidSuccessTest() throws Exception {
@@ -403,7 +411,7 @@ public class RegistrationStatusAndSyncControllerTest {
 				.content(lostRidReqToJson.getBytes()).header("timestamp", "2019-05-07T05:13:55.704Z"))
 				.andExpect(status().isOk());
 	}
-	
+
 	@Test
 	@WithMockUser(value = "admin", roles = "REGISTRATION_ADMIN")
 	public void lostRidWorkFlowSearchException() throws Exception {
