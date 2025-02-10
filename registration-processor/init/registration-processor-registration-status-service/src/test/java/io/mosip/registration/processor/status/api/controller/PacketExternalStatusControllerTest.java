@@ -141,7 +141,6 @@ public class PacketExternalStatusControllerTest {
 				.getByPacketIds(ArgumentMatchers.any());
 	}
 
-	@Ignore
 	@Test
 	@WithMockUser(value = "resident", roles = "RESIDENT")
 	public void packetExternalStatusSuccessTest() throws Exception {

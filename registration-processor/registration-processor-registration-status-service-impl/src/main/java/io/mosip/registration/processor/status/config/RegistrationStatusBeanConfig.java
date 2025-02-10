@@ -39,8 +39,6 @@ import io.mosip.registration.processor.status.service.impl.RegistrationStatusSer
 import io.mosip.registration.processor.status.service.impl.SyncRegistrationServiceImpl;
 import io.mosip.registration.processor.status.service.impl.TransactionServiceImpl;
 import io.mosip.registration.processor.status.utilities.RegistrationExternalStatusUtility;
-import org.springframework.web.reactive.function.client.ExchangeStrategies;
-import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
 @PropertySource("classpath:bootstrap.properties")
@@ -147,5 +145,4 @@ public class RegistrationStatusBeanConfig {
 	public RegistrationUtility registrationUtility() {
 		return new RegistrationUtility();
 	}
-
 }

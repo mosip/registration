@@ -194,7 +194,6 @@ public class RegistrationExternalStatusControllerTest {
 	 * Search success test.
 	 *
 	 */
-	@Ignore
 	@Test
 	@WithMockUser(value = "resident", roles = "RESIDENT")
 	public void searchSuccessTest() throws Exception {

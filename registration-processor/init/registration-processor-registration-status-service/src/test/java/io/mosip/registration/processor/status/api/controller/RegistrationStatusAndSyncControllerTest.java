@@ -274,7 +274,6 @@ public class RegistrationStatusAndSyncControllerTest {
 	 * @throws Exception
 	 *             the exception
 	 */
-	@Ignore
 	@Test
 	@WithMockUser(value = "resident", roles = "RESIDENT")
 	public void searchSuccessTest() throws Exception {
@@ -287,7 +286,6 @@ public class RegistrationStatusAndSyncControllerTest {
 				.andExpect(status().isOk());
 	}
 
-	@Ignore
 	@Test
 	@WithMockUser(value = "resident", roles = "RESIDENT")
 	public void searchRegstatusException() throws Exception {
@@ -300,7 +298,6 @@ public class RegistrationStatusAndSyncControllerTest {
 				.andExpect(status().isOk());
 	}
 
-	@Ignore
 	@Test
 	@WithMockUser(value = "resident", roles = "RESIDENT")
 	public void testSyncController() throws Exception {
@@ -332,7 +329,7 @@ public class RegistrationStatusAndSyncControllerTest {
 				.andExpect(status().isOk());
 	}
 
-	@Ignore
+
 	@Test
 	@WithMockUser(value = "resident", roles = "RESIDENT")
 	public void testSyncV2Controller() throws Exception {
@@ -364,7 +361,6 @@ public class RegistrationStatusAndSyncControllerTest {
 				.andExpect(status().isOk());
 	}
 
-	@Ignore
 	@Test
 	public void testBuildRegistrationSyncResponse() throws JsonProcessingException {
 		List<SyncResponseDto> syncResponseDtoList = new ArrayList<>();
@@ -374,7 +370,6 @@ public class RegistrationStatusAndSyncControllerTest {
 
 	}
 
-	@Ignore
 	@Test
 	public void testBuildRegistrationSyncResponse1() throws JsonProcessingException {
 		List<SyncResponseDto> syncResponseDtoList = new ArrayList<>();
@@ -390,7 +385,7 @@ public class RegistrationStatusAndSyncControllerTest {
 
 	}
 
-	@Ignore
+
 	@Test
 	@WithMockUser(value = "admin", roles = "REGISTRATION_ADMIN")
 	public void lostRidSuccessTest() throws Exception {
@@ -402,7 +397,6 @@ public class RegistrationStatusAndSyncControllerTest {
 				.andExpect(status().isOk());
 	}
 
-	@Ignore
 	@Test
 	@WithMockUser(value = "admin", roles = "REGISTRATION_ADMIN")
 	public void lostRidRegstatusException() throws Exception {
@@ -414,7 +408,6 @@ public class RegistrationStatusAndSyncControllerTest {
 				.andExpect(status().isOk());
 	}
 
-	@Ignore
 	@Test
 	@WithMockUser(value = "admin", roles = "REGISTRATION_ADMIN")
 	public void lostRidWorkFlowSearchException() throws Exception {
