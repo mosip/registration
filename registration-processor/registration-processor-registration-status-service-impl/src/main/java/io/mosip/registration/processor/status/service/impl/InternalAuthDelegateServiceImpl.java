@@ -122,6 +122,8 @@ public class InternalAuthDelegateServiceImpl implements InternalAuthDelegateServ
 	public <T> T postApi(String uri, MediaType mediaType, HttpEntity<?> requestEntity,
 						 Class<T> responseClass) throws Exception {
 		try {
+			logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
+					LoggerFileConstant.APPLICATIONID.toString(), uri);
 			return webClient.post()
 					.uri(uri)
 					.headers(httpHeaders -> {
