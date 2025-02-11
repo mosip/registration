@@ -3,7 +3,8 @@
 * This folder contains performance Test script of below API endpoint categories.
     01. Auth Token Generation (Setup)
     02. Packet Generation (Setup)
-    03. S01 and S03 Sync Registration Packet And Generate RID (Preparation)
+    03. S01 Packet Creator Rid Sync (Preparation)
+    04. S03 Generate RID (Preparation)
     04. S01 Sync And Upload New Registration Packet (Execution)
     05. S02 Sync Data To The Server (Execution)
     06. S03 Get Transaction Details From Reg Id (Execution)
@@ -23,7 +24,7 @@ Pre-requisite to install the plugins:
 * We need some jmeter plugin files that needs to be installed before opening of this script, PFA dependency links for your reference : 
 	* jmeter-plugins-synthesis-2.2.jar
 	* <!-- https://jmeter-plugins.org/files/packages/jpgc-synthesis-2.2.zip -->
-* We need some dependent jar files that needs to be in the lib folder of jmeter/bin, following are the dependent jar files:
+* We need some dependent jar files that needs to be in the lib folder of jmeter, following are the dependent jar files:
 	1. mock-mds-1.2.1-SNAPSHOT.jar
 	2. kernel-syncdata-service-1.2.0.1.jar
 	3. kernel-logger-logback-1.2.0.1.jar
@@ -77,7 +78,9 @@ java -jar -Dfile.encoding=UTF-8 -Xdebug -Xrunjdwp:server=y,transport=dt_socket,a
 
 	* Packet Generation (Setup) - In this thread group we will basically create the context with the help of existing center id's, machine id's & user id's present in our current environment & we will read them through a file named context_details.csv. Once the contexts are created we will use the same in the execution thread group where basically the packet generation happens & then the packet path gets stored in a file naming as Run Time Files in bin folder of JMeter.
 
-	* S01 and S03 Sync Registration Packet And Generate RID (Preparation) - To create encrypted data for generated packets(test data to registration processor sync API). Which will basically create a file with the encrypted data's for all the packets created. Also, we prepare the reg id's required for the execution of S03 to get the transaction details.
+	* S01 Packet Creator Rid Sync (Preparation) -  To create encrypted data for generated packets(test data to registration processor sync API). Which will basically create a file with the encrypted data's for all the packets created.
+
+	* S03 Generate RID (Preparation) -  In this thread group we prepare the reg id's required for the execution of S03 to get the transaction details.
 
 	* S01 Sync And Upload Registration Packet (Execution) : 
 		* S01 T01 Sync Registration Packet : This API endpoint will sync the packets.
