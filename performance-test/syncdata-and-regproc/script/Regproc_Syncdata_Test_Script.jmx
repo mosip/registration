@@ -2244,7 +2244,7 @@ vars.put(&quot;requestToken&quot;,completeCrypto);
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
       </ThreadGroup>
       <hashTree>
-        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Load Reg_Id From File" enabled="true">
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Load Reg Id From File" enabled="true">
           <stringProp name="filename">${runTimeFilePath}/reg_id.txt</stringProp>
           <stringProp name="fileEncoding"></stringProp>
           <stringProp name="variableNames">regId</stringProp>
