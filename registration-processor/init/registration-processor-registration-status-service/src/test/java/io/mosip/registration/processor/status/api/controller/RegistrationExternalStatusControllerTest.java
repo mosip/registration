@@ -39,6 +39,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.NestedServletException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -79,6 +80,10 @@ public class RegistrationExternalStatusControllerTest {
 	@MockBean
 	@Qualifier("selfTokenRestTemplate")
 	private RestTemplate restTemplate;
+
+	@MockBean
+	@Qualifier("selfTokenWebClient")
+	private WebClient webClient;
 
 	@Autowired
 	private MockMvc mockMvc;
