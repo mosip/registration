@@ -102,7 +102,7 @@
 
 		<!-- Vert.x -->
 		<vertx.version>3.9.13</vertx.version>
-		<camel.vertx.version>2.23.0</camel.vertx.version>
+		<camel.vertx.version>4.10.0</camel.vertx.version>
 		<hazelcast.kubernetes.version>1.0.0</hazelcast.kubernetes.version>
 		<hazelcast.version>3.9.4</hazelcast.version>
 		<!-- json-simple -->
