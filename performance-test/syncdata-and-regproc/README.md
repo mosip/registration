@@ -30,6 +30,10 @@ Pre-requisite to install the plugins:
 	3. kernel-logger-logback-1.2.0.1.jar
 	4. kernel-core-1.2.0.1.jar
 	5. kernel-keymanager-service-1.2.0.1-lib.jar
+	6. jackson-databind-2.17.1.jar
+	7. jackson-module-afterburner-2.17.1.jar
+	8. TSS.Java-0.3.0.jar
+	9. spring-context-6.1.9.jar
 
 ### How to run performance scripts using Apache JMeter tool
 * Download Apache JMeter from https://jmeter.apache.org/download_jmeter.cgi
