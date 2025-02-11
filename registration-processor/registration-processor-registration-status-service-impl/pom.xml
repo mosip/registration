@@ -227,6 +227,10 @@
 			<version>${powermock.api.mockito.version}</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webflux</artifactId>
+		</dependency>
 	</dependencies>
 </project>
 >>>>>>> 2790b0f264 (Merged changes from develop (#1708))
