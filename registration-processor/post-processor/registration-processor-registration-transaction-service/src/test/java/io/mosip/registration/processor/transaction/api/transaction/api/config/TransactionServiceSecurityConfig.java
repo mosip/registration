@@ -2,6 +2,7 @@ package io.mosip.registration.processor.transaction.api.transaction.api.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -62,7 +63,13 @@ public class TransactionServiceSecurityConfig {
 		http.csrf(csrf -> csrf.disable())
 				.exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedEntryPoint()))
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.authorizeHttpRequests((authz) -> authz.anyRequest().authenticated())
+				.authorizeHttpRequests(authz -> authz
+				            .requestMatchers(HttpMethod.GET, "/registrationprocessor/v1/registrationtransaction/**").authenticated() // Allow GET for transactions
+				            .requestMatchers(HttpMethod.POST, "/registrationprocessor/v1/registrationtransaction/**").authenticated()  // Require authentication for POST
+				            .requestMatchers(HttpMethod.PUT, "/registrationprocessor/v1/registrationtransaction/**").authenticated()  // Require authentication for PUT
+				            .requestMatchers(HttpMethod.DELETE, "/transactions/**").denyAll()  // Block DELETE globally
+				            .anyRequest().authenticated() // Secure all other requests
+				        )
 				.userDetailsService(userDetailsService());
 
 		return http.build();
