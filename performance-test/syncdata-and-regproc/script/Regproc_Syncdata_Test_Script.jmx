@@ -200,7 +200,7 @@
       <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Load App And Machine Details From File" enabled="true">
         <stringProp name="filename">./support-files/app_machine_details.csv</stringProp>
         <stringProp name="fileEncoding"></stringProp>
-        <stringProp name="variableNames">appId,refId,machineName,publicKey,signPublicKey,keyIndex</stringProp>
+        <stringProp name="variableNames">appId,refId,name,publicKey,signPublicKey</stringProp>
         <boolProp name="ignoreFirstLine">true</boolProp>
         <stringProp name="delimiter">,</stringProp>
         <boolProp name="quotedData">false</boolProp>
@@ -1864,6 +1864,15 @@ vars.put(&quot;requestToken&quot;,completeCrypto);
               <intProp name="Assertion.test_type">2</intProp>
             </ResponseAssertion>
             <hashTree/>
+            <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="Extract Auth Token" enabled="true">
+              <stringProp name="RegexExtractor.useHeaders">false</stringProp>
+              <stringProp name="RegexExtractor.refname">keyIndex</stringProp>
+              <stringProp name="RegexExtractor.regex">&quot;keyIndex&quot;:&quot;(.*?)&quot;</stringProp>
+              <stringProp name="RegexExtractor.template">$1$</stringProp>
+              <stringProp name="RegexExtractor.default">keyIndex_not_found</stringProp>
+              <stringProp name="RegexExtractor.match_number">1</stringProp>
+            </RegexExtractor>
+            <hashTree/>
           </hashTree>
         </hashTree>
         <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="S02 T03 Get Certificate" enabled="true">
@@ -1879,7 +1888,7 @@ vars.put(&quot;requestToken&quot;,completeCrypto);
             <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
             <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
             <stringProp name="HTTPSampler.contentEncoding">UTF-8</stringProp>
-            <stringProp name="HTTPSampler.path">v1/syncdata/getCertificate?applicationId=${appID}&amp;referenceId=${refID}</stringProp>
+            <stringProp name="HTTPSampler.path">v1/syncdata/getCertificate?applicationId=${appId}&amp;referenceId=${refId}</stringProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -2023,7 +2032,7 @@ vars.put(&quot;requestToken&quot;,completeCrypto);
             <hashTree/>
             <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
               <collectionProp name="Asserion.test_strings">
-                <stringProp name="-215313763">{&quot;entityName&quot;:&quot;AppAuthenticationMethod&quot;</stringProp>
+                <stringProp name="1506913836">&quot;errors&quot;:null</stringProp>
               </collectionProp>
               <stringProp name="Assertion.custom_message"></stringProp>
               <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
@@ -2056,7 +2065,7 @@ vars.put(&quot;requestToken&quot;,completeCrypto);
             <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
             <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
             <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-            <stringProp name="HTTPSampler.path">v1/syncdata/configs/${name}</stringProp>
+            <stringProp name="HTTPSampler.path">v1/syncdata/configs/${keyIndex}</stringProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
