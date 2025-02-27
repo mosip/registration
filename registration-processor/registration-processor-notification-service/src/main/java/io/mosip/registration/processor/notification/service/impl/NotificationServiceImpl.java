@@ -130,6 +130,9 @@ public class NotificationServiceImpl implements NotificationService {
 	@Value("${registration.processor.notification_service_pausedforadditonalinfo_subscriber_callback_url}")
 	private String pausedForAdditonalInfoCallbackURL;
 
+    @Value("${registration.processor.multi-step-main-process}")
+    private String multiStepMainProcess;
+
 	/** The rest client service. */
 	@Autowired
 	private RegistrationProcessorRestClientService<Object> restClientService;
@@ -278,7 +281,8 @@ public class NotificationServiceImpl implements NotificationService {
 		NotificationTemplateType type=null;
 		if (regtype.equalsIgnoreCase(RegistrationType.LOST.toString()))
 			type = NotificationTemplateType.LOST_UIN;
-		else if (regtype.equalsIgnoreCase(RegistrationType.NEW.toString()))
+        else if (regtype.equalsIgnoreCase(RegistrationType.NEW.toString()) ||
+                regtype.equalsIgnoreCase(multiStepMainProcess))
 			type = NotificationTemplateType.UIN_CREATED;
 		else if (regtype.equalsIgnoreCase(RegistrationType.UPDATE.toString())
 				|| regtype.equalsIgnoreCase(RegistrationType.RES_UPDATE.toString()))

@@ -443,16 +443,36 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 			BIR[] birArray = new BIR[1];
 			birArray[0] = bir;
 			if(!biometricType.name().equalsIgnoreCase(BiometricType.EXCEPTION_PHOTO.name())) {
-			float[] qualityScoreresponse = getBioSdkInstance(biometricType).getSegmentQuality(birArray, null);
+                iBioProviderApi instance = null;
+                regProcLogger.error("BiometricType :: " + biometricType.name());
+                try {
+                    try {
+                        instance =  getBioSdkInstance(biometricType);
+                    }catch (Exception e) {
+                        regProcLogger.error("INSIDE getQualityTags :: Error Occured while getting iBioProviderApi for " + bir.getBdbInfo().getType().get(0) + " with birArray " + (birArray.length > 0 ? "Valid birArray" :"Not valid birArray") + e.getMessage());
+                    }
 
-			float score = qualityScoreresponse[0];
-			String bioType = bir.getBdbInfo().getType().get(0).value();
+                    float[] qualityScoreresponse = null;
+                    try {
+                        qualityScoreresponse = instance.getSegmentQuality(birArray, null);
+                    }catch (Exception e) {
+                        e.printStackTrace();
+                        regProcLogger.error("INSIDE getQualityTags :: Error Occured while getSegmentQuality for " + bir.getBdbInfo().getType().get(0) + " with birArray " + (birArray.length > 0 ? "Valid birArray" :"Not valid birArray") + " qualityScoreresponse "  + qualityScoreresponse + e.getMessage() );
+                        regProcLogger.error("BIOINSTANCE :: " + instance.getClass().getName());
+                    }
 
-			// Check for entry
-			Float storedMinScore = bioTypeMinScoreMap.get(bioType);
+                    float score = qualityScoreresponse[0];
+                    String bioType = bir.getBdbInfo().getType().get(0).value();
 
-			bioTypeMinScoreMap.put(bioType,
-					storedMinScore == null ? score : storedMinScore > score ? score : storedMinScore);
+                    // Check for entry
+                    Float storedMinScore = bioTypeMinScoreMap.get(bioType);
+
+                    bioTypeMinScoreMap.put(bioType,
+                            storedMinScore == null ? score : storedMinScore > score ? score : storedMinScore);
+                }catch(Exception e) {
+                    e.printStackTrace();
+                    regProcLogger.error("INSIDE getQualityTags :: BiometricType " + bir.getBdbInfo().getType().get(0) + "with birArray " + (birArray.length > 0 ? "Valid birArray" :"Not valid birArray") + e.getMessage());
+                }
 			}
 		}
 
