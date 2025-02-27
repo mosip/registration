@@ -196,11 +196,8 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 			else {
 				ExtractorsDto extractorsDto=getExtractors(registrationStatusDto.getRegistrationId());
 				if(extractorsDto.getExtractors()!=null && !extractorsDto.getExtractors().isEmpty()) {
-				for(ExtractorDto dto:extractorsDto.getExtractors()) {
-					addBiometricExtractiontoIdRepository(dto,registrationStatusDto.getRegistrationId());	
-				}
-				}
-				else {
+					addBiometricExtractiontoIdRepository(extractorsDto.getExtractors(),registrationStatusDto.getRegistrationId());
+				} else {
 					throw new RegistrationProcessorCheckedException(PlatformErrorMessages.RPR_PMS_BIOMETRIC_EXTRACTION_NULL_RESPONSE.getCode(),
 							PlatformErrorMessages.RPR_PMS_BIOMETRIC_EXTRACTION_NULL_RESPONSE.getMessage());
 				}
@@ -348,19 +345,27 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 	 * @throws IdrepoDraftException
 	 *
 	 */
-	private IdResponseDTO addBiometricExtractiontoIdRepository(ExtractorDto dto,
+	private IdResponseDTO addBiometricExtractiontoIdRepository(List<ExtractorDto> dtoList,
 			String registrationId)
 			throws ApisResourceAccessException, IdrepoDraftReprocessableException, IdrepoDraftException {
-		String extractionFormat = "";
+		List<String> queryParmeter = new ArrayList<>();
+		List<String> queryValue = new ArrayList<>();
+
+		for(ExtractorDto dto : dtoList) {
 		if(dto.getBiometric().equals("iris")) {
-			extractionFormat="irisExtractionFormat";
+				queryParmeter.add("irisExtractionFormat");
+				queryValue.add(dto.getAttributeName());
 		}if(dto.getBiometric().equals("face")) {
-			extractionFormat="faceExtractionFormat";
+				queryParmeter.add("faceExtractionFormat");
+				queryValue.add(dto.getAttributeName());
 		}if(dto.getBiometric().equals("finger")) {
-			extractionFormat="fingerExtractionFormat";
+				queryParmeter.add("fingerExtractionFormat");
+				queryValue.add(dto.getAttributeName());
 		}
+		}
+
 		List<String> segments=List.of(registrationId);
-		IdResponseDTO response= (IdResponseDTO) registrationProcessorRestClientService.putApi(ApiName.IDREPOEXTRACTBIOMETRICS, segments, extractionFormat, dto.getAttributeName(), null, IdResponseDTO.class, null);
+		IdResponseDTO response= (IdResponseDTO) registrationProcessorRestClientService.putApi(ApiName.IDREPOEXTRACTBIOMETRICS, segments, queryParmeter, queryValue, null, IdResponseDTO.class, null);
 
 		if (response.getErrors() != null && !response.getErrors().isEmpty()) {
 			ErrorDTO error = response.getErrors().get(0);
