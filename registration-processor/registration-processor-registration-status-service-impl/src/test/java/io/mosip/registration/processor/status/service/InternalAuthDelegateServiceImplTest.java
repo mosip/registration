@@ -86,7 +86,6 @@ public class InternalAuthDelegateServiceImplTest {
 		Mockito.when(mapper.readValue(anyString(), eq(IndividualIdDto.class))).thenReturn(individualIdDto);
 	}
 
-	@Ignore //TODO: ignored test case should be removed after the testing
 	@Test
 	public void authenticateSuccessTest() throws Exception {
 
