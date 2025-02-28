@@ -394,11 +394,10 @@ public class NotificationUtility {
 		String apiHost = env.getProperty(ApiName.EMAILNOTIFIER.name());
 		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(apiHost);
 
-		builder.queryParam("mailTo", mailTo);
 
-		builder.queryParam("mailSubject", subjectArtifact);
-		builder.queryParam("mailContent", artifact);
-
+		params.add("mailTo", mailTo);
+		params.add("mailSubject", subjectArtifact);
+		params.add("mailContent", artifact);
 		params.add("attachments", null);
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
