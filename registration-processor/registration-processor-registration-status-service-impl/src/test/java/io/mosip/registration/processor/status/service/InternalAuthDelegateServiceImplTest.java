@@ -15,6 +15,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +35,8 @@ import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 import io.mosip.registration.processor.status.service.impl.InternalAuthDelegateServiceImpl;
+import reactor.core.publisher.Mono;
+
 import org.springframework.web.reactive.function.client.WebClient;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -52,6 +55,7 @@ public class InternalAuthDelegateServiceImplTest {
 	RestTemplate restTemplate;
 
 	@Mock
+	@Qualifier("selfTokenWebClient")
 	WebClient webClient;
 
 	@Mock
@@ -75,17 +79,32 @@ public class InternalAuthDelegateServiceImplTest {
 		authRequestDTO.setIndividualId("45128164920495");
 		authRequestDTO.setIndividualIdType("UIN");
 		authRequestDTO.setRequest("BFijjscahGoaaol");
+		
 
 		responseDto.setAuthStatus(true);
 		authResponse.setId("");
-		authResponse.setResponse(responseDto);
+		authResponse.setResponse(responseDto); AuthResponseDTO mockAuthResponse = new AuthResponseDTO();
+	   
 		ResponseEntity<AuthResponseDTO> entity = new ResponseEntity<AuthResponseDTO>(authResponse, HttpStatus.OK);
 		Mockito.when(restApiClient.getRestTemplate()).thenReturn(restTemplate);
 		Mockito.when(restTemplate.exchange(anyString(), any(), any(), eq(AuthResponseDTO.class))).thenReturn(entity);
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn("");
 		Mockito.when(mapper.readValue(anyString(), eq(IndividualIdDto.class))).thenReturn(individualIdDto);
+	   
+		WebClient.RequestBodyUriSpec requestBodyUriSpec = Mockito.mock(WebClient.RequestBodyUriSpec.class);
+	    WebClient.RequestHeadersUriSpec requestHeadersUriSpec = Mockito.mock(WebClient.RequestHeadersUriSpec.class);
+	    WebClient.RequestBodySpec requestBodySpec = Mockito.mock(WebClient.RequestBodySpec.class);
+	    WebClient.ResponseSpec responseSpec = Mockito.mock(WebClient.ResponseSpec.class);
+
+	    Mockito.when(webClient.post()).thenReturn(requestBodyUriSpec);
+	    Mockito.when(requestBodyUriSpec.uri(anyString())).thenReturn(requestBodySpec);
+	    Mockito.when(requestBodySpec.headers(any())).thenReturn(requestBodySpec);
+	    Mockito.when(requestBodySpec.bodyValue(any())).thenReturn(requestHeadersUriSpec);
+	    Mockito.when(requestHeadersUriSpec.retrieve()).thenReturn(responseSpec);
+	    Mockito.when(responseSpec.bodyToMono(AuthResponseDTO.class)).thenReturn(Mono.just(mockAuthResponse));
 	}
 
+	
 	@Test
 	public void authenticateSuccessTest() throws Exception {
 
