@@ -83,6 +83,7 @@ public final class StatusConstants {
 	public static final String BIO_DEDUPE_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "BDP-";
 	public static final String BIO_DEDUPE_MODULE_SUCCESS = BIO_DEDUPE_MODULE + SUCCESS;
 	public static final String BIO_DEDUPE_MODULE_FAILED = BIO_DEDUPE_MODULE + FAILED;
+    public static final String BIO_DEDUPE_ALL_BIOMETRIC_EXCEPTION_FAILED = BIO_DEDUPE_MODULE + FAILED;
 
 	// Biometric authentication stage
 	public static final String BIO_METRIC_AUTHENTICATION_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "BAU-";

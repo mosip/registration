@@ -195,6 +195,8 @@ public enum StatusUtil {
 	BIO_DEDUPE_SUCCESS(StatusConstants.BIO_DEDUPE_MODULE_SUCCESS + "002", "Biometric Deduplication is Successful"),
 	BIO_DEDUPE_POTENTIAL_MATCH(StatusConstants.BIO_DEDUPE_MODULE_FAILED + "001",
 			"Potential Biometric Match Found while Processing Packet"),
+    BIO_DEDUPE_ALL_BIOMETRIC_EXCEPTION(StatusConstants.BIO_DEDUPE_ALL_BIOMETRIC_EXCEPTION_FAILED + "002",
+            "ALl Biometrich having Exception"),
 	LOST_PACKET_BIOMETRICS_NOT_FOUND(StatusConstants.BIO_DEDUPE_MODULE_FAILED + "002",
 			"No Match was Found for the Biometrics Received"),
 	LOST_PACKET_UNIQUE_MATCH_FOUND(StatusConstants.BIO_DEDUPE_MODULE_SUCCESS + "003",

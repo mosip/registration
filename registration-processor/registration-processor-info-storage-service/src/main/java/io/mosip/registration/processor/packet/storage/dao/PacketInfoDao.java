@@ -522,7 +522,7 @@ public class PacketInfoDao {
 		List<AbisResponseEntity> abisResponseEntities = new ArrayList<>();
 		List<AbisResponseDto> abisResponseDto = new ArrayList<>();
 		List<AbisRequestEntity> abisRequestEntities = abisRequestRepository.getInsertOrIdentifyRequest(abisRefId,
-				latestTransactionId, requestType);
+                latestTransactionId, requestType);
 		for (AbisRequestEntity abisRequestEntity : abisRequestEntities) {
 			abisResponseEntities.addAll(abisResponseRepository.getAbisResponseIDs(abisRequestEntity.getId().getId()));
 		}

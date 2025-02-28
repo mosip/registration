@@ -1,26 +1,22 @@
 package io.mosip.registration.processor.packet.storage.utils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.code.AbisStatusCode;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.core.packet.dto.abis.UniqueRegIdsMethodResponse;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.constant.AbisConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
@@ -52,6 +48,9 @@ public class ABISHandlerUtil {
 	@Autowired
 	Utilities utilities;
 
+	@Autowired
+	Utility utility;
+
 	/** The packet info manager. */
 	@Autowired
 	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
@@ -62,6 +61,9 @@ public class ABISHandlerUtil {
 
 	@Autowired
 	private IdRepoService idRepoService;
+
+    @Autowired
+    private PriorityBasedPacketManagerService basedPacketManagerService;
 
 	/**
 	 * Gets the unique reg ids.
@@ -75,8 +77,8 @@ public class ABISHandlerUtil {
 	 *                                               has occurred.
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 */
-	public Set<String> getUniqueRegIds(String registrationId, String registrationType,
-										int iteration, String workflowInstanceId, ProviderStageName stageName) throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException {
+	public UniqueRegIdsMethodResponse getUniqueRegIds(String registrationId, String registrationType,
+                                                      int iteration, String workflowInstanceId, ProviderStageName stageName) throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationId, "ABISHandlerUtil::getUniqueRegIds()::entry");
 		
@@ -86,11 +88,16 @@ public class ABISHandlerUtil {
 
 		List<String> machedRefIds = new ArrayList<>();
 		Set<String> uniqueRIDs = new HashSet<>();
+        UniqueRegIdsMethodResponse uniqueRegIdsMethodResponse=new UniqueRegIdsMethodResponse();
 		List<AbisResponseDetDto> abisResponseDetDtoList = new ArrayList<>();
 
 		if (!regBioRefIds.isEmpty()) {
 			List<AbisResponseDto> abisResponseDtoList = packetInfoManager.getAbisResponseRecords(regBioRefIds.get(0),
 					latestTransactionId, AbisConstant.IDENTIFY);
+            if (abisResponseDtoList.isEmpty()){
+                uniqueRegIdsMethodResponse.setIsResponceNull(true);
+                return uniqueRegIdsMethodResponse;
+            }
 			for (AbisResponseDto abisResponseDto : abisResponseDtoList) {
 				abisResponseDetDtoList.addAll(packetInfoManager.getAbisResponseDetails(abisResponseDto.getId()));
 			}
@@ -121,14 +128,18 @@ public class ABISHandlerUtil {
 							if(!uniqueRIDs.contains(rid))
 								uniqueRIDs.add(rid);
 						}
+                        if (registrationType.equalsIgnoreCase(SyncTypeDto.UPDATE.toString()))
+                            uniqueRIDs.add("No_Match");
 					}
 				}
 			}
 		}
+
+
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationId, "ABISHandlerUtil::getUniqueRegIds()::exit");
-		
-		return uniqueRIDs;
+		uniqueRegIdsMethodResponse.setResponse(uniqueRIDs);
+		return uniqueRegIdsMethodResponse;
 
 	}
 
@@ -217,7 +228,7 @@ public class ABISHandlerUtil {
 					utilities.getGetRegProcessorDemographicIdentity());
 
 			if (registrationType.equalsIgnoreCase(SyncTypeDto.UPDATE.toString())) {
-				String packetUin = utilities.getUIn(registrationId, registrationType, stageName);
+				String packetUin = utility.getUIn(registrationId, registrationType, stageName);
 				if (matchedUin != null && !packetUin.equals(matchedUin)) {
 					filteredRegMap.put(matchedUin, machedRegId);
 				}
@@ -239,4 +250,6 @@ public class ABISHandlerUtil {
 
 	}
 
+
 }
+

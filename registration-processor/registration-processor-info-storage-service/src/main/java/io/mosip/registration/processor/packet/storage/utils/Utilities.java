@@ -4,22 +4,21 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.*;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Period;
+import java.util.*;
 
-import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
-import io.mosip.kernel.core.idvalidator.spi.VidValidator;
-import io.mosip.registration.processor.core.constant.AbisConstant;
-import io.mosip.registration.processor.core.exception.*;
+import io.mosip.kernel.biometrics.entities.BIR;
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.core.bioapi.exception.BiometricException;
+import io.mosip.registration.processor.core.idrepo.dto.Documents;
 import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO;
-import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
-import io.mosip.registration.processor.core.workflow.dto.WorkflowInstanceRequestDTO;
-import io.mosip.registration.processor.status.service.AdditionalInfoRequestService;
+import io.mosip.registration.processor.packet.storage.entity.BasePacketEntity;
+import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
 import org.apache.commons.lang.StringUtils;
+import org.joda.time.DateTime;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -39,6 +38,10 @@ import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
+import io.mosip.registration.processor.core.exception.RegistrationProcessorUnCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO1;
 import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
@@ -80,6 +83,8 @@ public class Utilities {
 	private static final String SOURCE = "source";
 	private static final String PROCESS = "process";
 	private static final String PROVIDER = "provider";
+    public static final String EXCEPTION = "EXCEPTION";
+    public static final String TRUE = "TRUE";
 
 	private static Map<String, String> readerConfiguration;
 	private static Map<String, String> writerConfiguration;
@@ -104,6 +109,12 @@ public class Utilities {
 
 	@Value("${mosip.kernel.registrationcenterid.length}")
 	private int centerIdLength;
+
+    @Value("${mosip.bio-deduped.max_age_limit:100}")
+    private int MaxAgeLimit;
+
+    @Value("${mosip.bio-deduped.min_age_limit:0}")
+    private int MinAgeLimit;
 
 	@Autowired
 	private ObjectMapper objMapper;
@@ -138,10 +149,6 @@ public class Utilities {
 	@Value("${registration.processor.applicant.type}")
 	private String getRegProcessorApplicantType;
 
-	/** The dob format. */
-	@Value("${registration.processor.applicant.dob.format}")
-	private String dobFormat;
-
 	/** The elapse time. */
 	@Value("${registration.processor.reprocess.elapse.time}")
 	private long elapseTime;
@@ -161,33 +168,15 @@ public class Utilities {
 	@Value("#{'${registration.processor.queue.trusted.packages}'.split(',')}")
 	private List<String> trustedPackages;
 
-	@Value("#{'${registration.processor.main-processes}'.split(',')}")
-	private List<String> mainProcesses;
-
-	@Value("${registration.processor.vid-support-for-update:false}")
-	private Boolean isVidSupportedForUpdate;
-
-	@Autowired
-	private PacketInfoDao packetInfoDao;
-
-	@Autowired
-	private PriorityBasedPacketManagerService packetManagerService;
-
 	/** The registration status dao. */
 	@Autowired
 	private RegistrationStatusDao registrationStatusDao;
 
-	/** The packet info manager. */
-	@Autowired
-	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
 
-	@Autowired
-	private AdditionalInfoRequestService additionalInfoRequestService;
 
-	/** The vid validator. */
-	@Autowired
-	private VidValidator<String> vidValidator;
 
+    @Autowired
+    private PacketManagerService packetManagerService;
 
 	/** The Constant INBOUNDQUEUENAME. */
 	private static final String INBOUNDQUEUENAME = "inboundQueueName";
@@ -224,6 +213,8 @@ public class Utilities {
 
 	private static final String VALUE = "value";
 
+    private static final String DATEOFBIRTH = "dateOfBirth";
+
 	private JSONObject mappingJsonObject = null;
 
 	private JSONObject regProcessorAbisJson = null;
@@ -245,58 +236,7 @@ public class Utilities {
 		return restTemplate.getForObject(configServerFileStorageURL + uri, String.class);
 	}
 
-	/**
-	 * get applicant age by registration id. Checks the id json if dob or age
-	 * present, if yes returns age if both dob or age are not present then retrieves
-	 * age from id repo
-	 *
-	 * @param id the registration id
-	 * @return the applicant age
-	 * @throws IOException                           Signals that an I/O exception
-	 *                                               has occurred.
-	 * @throws IOException                           Signals that an I/O exception
-	 *                                               has occurred.
-	 * @throws ApisResourceAccessException           the packet decryption failure
-	 *                                               exception
-	 * @throws RegistrationProcessorCheckedException
-	 */
-	public int getApplicantAge(String id, String process, ProviderStageName stageName)
-			throws IOException, ApisResourceAccessException, JsonProcessingException, PacketManagerException {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), id,
-				"Utilities::getApplicantAge()::entry");
 
-		String applicantDob = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.DOB, process,
-				stageName);
-		String applicantAge = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.AGE, process,
-				stageName);
-		if (applicantDob != null) {
-			return calculateAge(applicantDob);
-		} else if (applicantAge != null) {
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), id,
-					"Utilities::getApplicantAge()::exit when applicantAge is not null");
-			return Integer.valueOf(applicantAge);
-		} else {
-			String uin = getUIn(id, process, stageName);
-			JSONObject identityJSONOject = retrieveIdrepoJson(uin);
-			JSONObject regProcessorIdentityJson = getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
-			String ageKey = JsonUtil
-					.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.AGE), VALUE);
-			String dobKey = JsonUtil
-					.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.DOB), VALUE);
-			String idRepoApplicantDob = JsonUtil.getJSONValue(identityJSONOject, dobKey);
-			if (idRepoApplicantDob != null) {
-				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), id,
-						"Utilities::getApplicantAge()::exit when ID REPO applicantDob is not null");
-				return calculateAge(idRepoApplicantDob);
-			}
-			Integer idRepoApplicantAge = JsonUtil.getJSONValue(identityJSONOject, ageKey);
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), id,
-					"Utilities::getApplicantAge()::exit when ID REPO applicantAge is not null");
-			return idRepoApplicantAge != null ? idRepoApplicantAge : -1;
-
-		}
-
-	}
 
 	public String getDefaultSource(String process, ConfigEnum config) {
 		Map<String, String> configMap = null;
@@ -453,7 +393,7 @@ public class Utilities {
 	 * @throws IOException                 Signals that an I/O exception has
 	 *                                     occurred.
 	 */
-	public List<io.mosip.registration.processor.core.idrepo.dto.Documents> retrieveIdrepoDocument(String uin)
+	public List<Documents> retrieveIdrepoDocument(String uin)
 			throws ApisResourceAccessException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 				"Utilities::retrieveIdrepoDocument()::entry");
@@ -590,37 +530,6 @@ public class Utilities {
 	}
 
 	/**
-	 * Get UIN from identity json (used only for update/res update/activate/de
-	 * activate packets).
-	 *
-	 * @param id the registration id
-	 * @return the u in
-	 * @throws IOException                           Signals that an I/O exception
-	 *                                               has occurred.
-	 * @throws IOException                           Signals that an I/O exception
-	 *                                               has occurred.
-	 * @throws ApisResourceAccessException           the apis resource access
-	 *                                               exception
-	 * @throws RegistrationProcessorCheckedException
-	 */
-	public String getUIn(String id, String process, ProviderStageName stageName)
-			throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
-				"Utilities::getUIn()::entry");
-		String UIN = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.UIN, process, stageName);
-		if(isVidSupportedForUpdate && StringUtils.isNotEmpty(UIN) && validateVid(UIN)) {
-			regProcLogger.debug("VID structure validated successfully");
-			JSONObject responseJson = retrieveIdrepoJson(UIN);
-			if (responseJson != null) {
-				UIN = JsonUtil.getJSONValue(responseJson, AbisConstant.UIN);
-			}
-		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
-				"Utilities::getUIn()::exit");
-		return UIN;
-	}
-
-	/**
 	 * Gets the elapse status.
 	 *
 	 * @param registrationStatusDto the registration status dto
@@ -723,35 +632,7 @@ public class Utilities {
 		return null;
 	}
 
-	/**
-	 * Calculate age.
-	 *
-	 * @param applicantDob the applicant dob
-	 * @return the int
-	 */
-	private int calculateAge(String applicantDob) {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-				"Utilities::calculateAge():: entry");
 
-		DateFormat sdf = new SimpleDateFormat(dobFormat);
-		Date birthDate = null;
-		try {
-			birthDate = sdf.parse(applicantDob);
-
-		} catch (ParseException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					"", "Utilities::calculateAge():: error with error message "
-							+ PlatformErrorMessages.RPR_SYS_PARSING_DATE_EXCEPTION.getMessage());
-			throw new ParsingException(PlatformErrorMessages.RPR_SYS_PARSING_DATE_EXCEPTION.getCode(), e);
-		}
-		LocalDate ld = new java.sql.Date(birthDate.getTime()).toLocalDate();
-		Period p = Period.between(ld, LocalDate.now());
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-				"Utilities::calculateAge():: exit");
-
-		return p.getYears();
-
-	}
 
 	/**
 	 * Validate abis queue json and return value.

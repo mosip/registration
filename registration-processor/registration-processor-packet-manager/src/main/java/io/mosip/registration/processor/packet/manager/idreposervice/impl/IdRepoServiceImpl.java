@@ -1,9 +1,13 @@
 package io.mosip.registration.processor.packet.manager.idreposervice.impl;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.core.util.CryptoUtil;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -194,4 +198,27 @@ public class IdRepoServiceImpl implements IdRepoService {
 
 		return responseDTO;
 	}
+
+
+//    public BiometricRecord getIdResponseFromIDRepoWithType(String uin, String type) throws JsonProcessingException {
+//        regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+//                uin, "IdRepoServiceImpl::getBiometricsFromIdrRepoByUin()::entry");
+//        ResponseDTO responseDTO=null;
+//        List<String> pathSegments1 = new ArrayList<>();
+//        pathSegments1.add(uin);
+//        @SuppressWarnings("unchecked")
+//        ResponseWrapper<ResponseDTO> response=(ResponseWrapper<ResponseDTO>) restClientService.getApi(ApiName.IDREPOGETIDBYUIN, pathSegments1, "type", type,
+//                ResponseWrapper.class);
+//
+//        if (response.getResponse() != null) {
+//            responseDTO=mapper.readValue(mapper.writeValueAsString(response.getResponse()), ResponseDTO.class);
+//
+//        }
+//        String data =responseDTO.getDocuments().get("value");
+//        byte[] bio= CryptoUtil.decodeURLSafeBase64(data);
+//        regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+//                uin, "IdRepoServiceImpl::getBiometricsFromIdrRepoByUin()::exit");
+//
+//        return new ByteArrayInputStream(bio);
+//    }
 }

@@ -26,6 +26,12 @@
 			<artifactId>registration-processor-core</artifactId>
 			<version>${registration.processor.core.version}</version>
 		</dependency>
+
+        <dependency>
+            <groupId>io.mosip.registrationprocessor</groupId>
+            <artifactId>registration-processor-bio-dedupe-stage</artifactId>
+            <version>1.2.1-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
 </project>

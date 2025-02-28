@@ -62,9 +62,14 @@ public class BioDedupeStage extends MosipVerticleAPIManager {
 	 * Deploy verticle.
 	 */
 	public void deployVerticle() {
-		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
-		this.consumeAndSend(mosipEventBus, MessageBusAddress.BIO_DEDUPE_BUS_IN, 
-			MessageBusAddress.BIO_DEDUPE_BUS_OUT, messageExpiryTimeLimit);
+//		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
+//		this.consumeAndSend(mosipEventBus, MessageBusAddress.BIO_DEDUPE_BUS_IN,
+//			MessageBusAddress.BIO_DEDUPE_BUS_OUT, messageExpiryTimeLimit);
+        MessageDTO messageDTO=new MessageDTO();
+        messageDTO.setWorkflowInstanceId("02a60771-e75f-4993-82ca-c41092012b64");
+        messageDTO.setReg_type("UPDATE");
+        messageDTO.setRid("15656156001250520250214025728");
+        process(messageDTO);
 	}
 
 	@Override

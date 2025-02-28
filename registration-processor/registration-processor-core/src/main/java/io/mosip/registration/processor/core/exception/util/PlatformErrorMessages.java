@@ -245,9 +245,6 @@ public enum PlatformErrorMessages {
 	PACKET_MANAGER_EXCEPTION(PlatformConstants.RPR_PACKET_INFO_STORAGE_MODULE + "012",
 			"Exception occured in packet manager."),
 
-	PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION(PlatformConstants.RPR_PACKET_INFO_STORAGE_MODULE + "013",
-			"Non recoverable error occurred in packet manager."),
-
 	/** The rpr fac connection not available. */
 	// File adaptor Exception error code and message
 	RPR_FAC_CONNECTION_NOT_AVAILABLE(PlatformConstants.RPR_FILESYSTEM_ADAPTOR_CEPH_MODULE + "001",
@@ -699,6 +696,10 @@ public enum PlatformErrorMessages {
 	RPR_PDS_DATE_TIME_EXCEPTION(PlatformConstants.RPR_PACKET_DECRYPTION_MODULE + "005",
 			"Error while parsing packet timestamp"),
 
+    /** The rpr pds Age invalid exception. */
+    RPR_PDS_AGE_INVALID_EXCEPTION(PlatformConstants.RPR_PACKET_DECRYPTION_MODULE + "006",
+            "Invalid Age"),
+
 	/** The rpr rct unknown resource exception. */
 	RPR_RCT_UNKNOWN_RESOURCE_EXCEPTION(PlatformConstants.RPR_REST_CLIENT_MODULE + "001", "Unknown resource provided"),
 
@@ -1040,8 +1041,6 @@ public enum PlatformErrorMessages {
 	RPR_SYS_QUEUE_CONNECTION_EXCEPTION(PlatformConstants.RPR_SYSTEM_EXCEPTION + "022",
 			"Error while connecting to active mq"),
 
-
-
 	// Cbeff Util Exceptions
 	/** The rpr utl biometric tag match. */
 	RPR_UTL_BIOMETRIC_TAG_MATCH(PlatformConstants.RPR_UTIL + "001", "Both Files have same biometrics"),
@@ -1323,15 +1322,7 @@ public enum PlatformErrorMessages {
 	RPR_WAA_INVALID_INPUT_PARAMETER(PlatformConstants.RPR_WORKFLOW_ACTION_API + "001",
 			"Invalid Request Value - %s"),
 
-    RPR_WIN_MISSING_INPUT_PARAMETER(PlatformConstants.RPR_WORKFLOW_INSTANCE_API + "000",
-            "Missing Request Value - %s"),
-
-    RPR_WIN_INVALID_INPUT_PARAMETER(PlatformConstants.RPR_WORKFLOW_INSTANCE_API + "001",
-            "Invalid Request Value - %s"),
-
 	RPR_WAA_UNKNOWN_EXCEPTION(PlatformConstants.RPR_WORKFLOW_ACTION_API + "002", "Unknown Exception"),
-
-    RPR_WIN_UNKNOWN_EXCEPTION(PlatformConstants.RPR_WORKFLOW_INSTANCE_API + "002", "Unknown Exception"),
 
 	RPR_WAS_UNKNOWN_WORKFLOW_ACTION(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "000",
 			"Workflow Action not supported"),
@@ -1344,18 +1335,11 @@ public enum PlatformErrorMessages {
 
 	RPR_WAS_UNKNOWN_EXCEPTION(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "003", "Unknown Exception"),
 
-    RPR_WIS_UNKNOWN_EXCEPTION(PlatformConstants.RPR_WORKFLOW_INSTANCE_SERVICE + "000", "Unknown Exception"),
-
-	RPR_WIS_ALREADY_PRESENT_EXCEPTION(PlatformConstants.RPR_WORKFLOW_INSTANCE_SERVICE + "001", "WorkflowInstance already present"),
-
 	RPR_WAS_REPROCESS_FAILED(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "004",
 			"When REPROCESS_FAILED then Resume should not occur"),
 
-
 	RPR_WAA_NOT_PAUSED(PlatformConstants.RPR_WORKFLOW_ACTION_API + "004",
 			"Workflow id  %s is not PAUSED"),
-
-    RPR_WIN_VALIDATION_SUCCESS(PlatformConstants.RPR_WORKFLOW_INSTANCE_API + "002", "Workflow instance request validated successfully"),
 
 	RPR_WAA_VALIDATION_SUCCESS(PlatformConstants.RPR_WORKFLOW_ACTION_API + "005", "Workflow id validated successfully"),
 
