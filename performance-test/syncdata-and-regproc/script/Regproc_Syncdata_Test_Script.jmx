@@ -532,7 +532,265 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Packet Generation (Setup)" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Create Centers And Machines (Setup)" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">1</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">1</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+        <stringProp name="ThreadGroup.duration">600</stringProp>
+        <stringProp name="ThreadGroup.delay"></stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Load Machine Details From File" enabled="true">
+          <stringProp name="filename">./support-files/machineDetails.csv</stringProp>
+          <stringProp name="fileEncoding"></stringProp>
+          <stringProp name="variableNames">machineSpecId,regId,zoneCode</stringProp>
+          <boolProp name="ignoreFirstLine">true</boolProp>
+          <stringProp name="delimiter">,</stringProp>
+          <boolProp name="quotedData">false</boolProp>
+          <boolProp name="recycle">false</boolProp>
+          <boolProp name="stopThread">true</boolProp>
+          <stringProp name="shareMode">shareMode.all</stringProp>
+        </CSVDataSet>
+        <hashTree/>
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Load Registration Center Request Values From File" enabled="true">
+          <stringProp name="filename">./regCenters.csv</stringProp>
+          <stringProp name="fileEncoding"></stringProp>
+          <stringProp name="variableNames">id,name,centerTypeCode,addressLine1,addressLine2,addressLine3,latitude,longitude,locationCode,holidayLocationCode,contactPhone,workingHours,langCode,numberOfKiosks,perKioskProcessTime,centerStartTime,centerEndTime,timeZone,contactPerson,lunchStartTime,lunchEndTime,isActive,zoneCode</stringProp>
+          <boolProp name="ignoreFirstLine">true</boolProp>
+          <stringProp name="delimiter">,</stringProp>
+          <boolProp name="quotedData">false</boolProp>
+          <boolProp name="recycle">true</boolProp>
+          <boolProp name="stopThread">false</boolProp>
+          <stringProp name="shareMode">shareMode.all</stringProp>
+        </CSVDataSet>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create Machines Endpoint" enabled="true">
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&#xd;
+  &quot;id&quot;: &quot;string&quot;,&#xd;
+  &quot;version&quot;: &quot;string&quot;,&#xd;
+  &quot;requesttime&quot;: &quot;${__time(yyyy-MM-dd&apos;T&apos;HH:mm:ss.SSS&apos;Z&apos;,)}&quot;,&#xd;
+  &quot;metadata&quot;: {},&#xd;
+  &quot;request&quot;: {&#xd;
+    &quot;name&quot;: &quot;Machine${__time(yyyyMMddHHmmssSSS,)}${__threadNum}&quot;,&#xd;
+    &quot;serialNum&quot;: &quot;${serialNum}&quot;,&#xd;
+    &quot;macAddress&quot;: &quot;${macAddress}&quot;,&#xd;
+    &quot;ipAddress&quot;: &quot;${ipAddress}&quot;,&#xd;
+    &quot;machineSpecId&quot;: &quot;${machineSpecId}&quot;,&#xd;
+    &quot;isActive&quot;: true,&#xd;
+    &quot;validityDateTime&quot;: &quot;${__timeShift(yyyy-MM-dd&apos;T&apos;HH:mm:ss.SSS&apos;Z&apos;,,PD,,)}&quot;,&#xd;
+    &quot;zoneCode&quot;: &quot;${zoneCode}&quot;,&#xd;
+    &quot;regCenterId&quot;: &quot;${regId}&quot;,&#xd;
+    &quot;publicKey&quot;: &quot;AAEACwACAHIAIINxl2dEhLP4GpDMjUal1yT9UtduBlILZPKh2hszFGmqABAAFwALCAAAAQABAQDOJruYRFaiMQlJf7tYC4jwgmF8hNtGTegxCfUNPNOUA9u5t-ZtX3E4FhXHQoebBLnq-wFuiXvJw1dbbO0wr7ZQUMXJW0fXAIqVyAwt5K8XU3WBM2NNqBlYhY2NWnNnELwKyoiEX-Uvt6TvqKGS4QryGHVQZVDpfVGhRKsXQ7fC3lji151qm7_Pzpgj8VV6kE-vD-RxZ1ESXODJaFNDeECS1NrkAb4MnE7cniCplbTdB83ONH9fWGbID2liyaGt49cwxFQccqf3sj_OqXSix0_rPGoldgilFvn0D0YWCytR0WFTiZ29vvIF583${__RandomString(9,zxcvbnmQWERTYUIOP,)}_kOynKE4${__RandomString(12,qwertyuiopASDFGHJKL,)}&quot;,&#xd;
+    &quot;signPublicKey&quot;: &quot;AAEABAAEAHIAAAAQABQACwgAAAEAAQEAzia7mERWojEJSX-7WAuI8IJhfITbRk3oMQn1DTzTlAPbubfmbV9xOBYVx0KHmwS56vsBbol7ycNXW2ztMK-2UFDFyVtH1wCKlcgMLeSvF1N1gTNjTagZWIWNjVpzZxC8CsqIhF_lL7ek76ihkuEK8hh1UGVQ6X1RoUSrF0O3wt5Y4tedapu_z86YI_FVepBPrw_kcWdRElzgyWhTQ3hAktTa5AG-DJxO3J4gqZW03QfNzjR_X1hmyA9pYsmhrePXMMRUHHKn97I_zql0osdP6zxqJXYIpRb59A9GFgsrUdFhU4mdvb7${__RandomString(9,zxcvbnmQWERTYUIOP,)}45LELP5DspyhOA${__RandomString(12,qwertyuiopASDFGHJKL,)}&quot;&#xd;
+  }&#xd;
+}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${serverIP}</stringProp>
+          <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
+          <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
+          <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+          <stringProp name="HTTPSampler.path">v1/masterdata/machines</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+          <stringProp name="HTTPSampler.response_timeout"></stringProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="Content-Type" elementType="Header">
+                <stringProp name="Header.name">Content-Type</stringProp>
+                <stringProp name="Header.value">application/json</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Cookie</stringProp>
+                <stringProp name="Header.value">Authorization=${authTokenRegproc}</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="-1402285814">errors&quot;:null</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">16</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion - Response Code" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="49586">200</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">2</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="Extract Machine Id" enabled="true">
+            <stringProp name="RegexExtractor.useHeaders">false</stringProp>
+            <stringProp name="RegexExtractor.refname">machineID</stringProp>
+            <stringProp name="RegexExtractor.regex">&quot;machineid&quot;:&quot;(.*?)&quot;</stringProp>
+            <stringProp name="RegexExtractor.template">$1$</stringProp>
+            <stringProp name="RegexExtractor.default">Center Not Found</stringProp>
+            <stringProp name="RegexExtractor.match_number">1</stringProp>
+          </RegexExtractor>
+          <hashTree/>
+          <BeanShellPostProcessor guiclass="TestBeanGUI" testclass="BeanShellPostProcessor" testname="Store Machine To File" enabled="true">
+            <stringProp name="filename"></stringProp>
+            <stringProp name="parameters"></stringProp>
+            <boolProp name="resetInterpreter">false</boolProp>
+            <stringProp name="script">${__StringToFile(${runTimeFilePath}/machine_id.txt,${machineId}\n,true,)}</stringProp>
+          </BeanShellPostProcessor>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create Registration Center Endpoint" enabled="true">
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&#xd;
+  &quot;id&quot;: &quot;null&quot;,&#xd;
+  &quot;metadata&quot;: {},&#xd;
+  &quot;request&quot;: {&#xd;
+    &quot;addressLine1&quot;: &quot;${addressLine1}&quot;,&#xd;
+    &quot;addressLine2&quot;: &quot;${addressLine2}&quot;,&#xd;
+    &quot;addressLine3&quot;: &quot;${addressLine3}&quot;,&#xd;
+    &quot;centerEndTime&quot;: &quot;${centerEndTime}&quot;,&#xd;
+    &quot;centerStartTime&quot;: &quot;${centerStartTime}&quot;,&#xd;
+    &quot;centerTypeCode&quot;: &quot;${centerTypeCode}&quot;,&#xd;
+    &quot;contactPerson&quot;: &quot;${contactPerson}&quot;,&#xd;
+    &quot;contactPhone&quot;: &quot;${contactPhone}&quot;,&#xd;
+    &quot;exceptionalHolidayPutPostDto&quot;: [&#xd;
+      {&#xd;
+        &quot;exceptionHolidayDate&quot;: &quot;${__time(yyyy-MM-dd,)}&quot;,&#xd;
+        &quot;exceptionHolidayName&quot;: &quot;string&quot;,&#xd;
+        &quot;exceptionHolidayReson&quot;: &quot;string&quot;&#xd;
+      }&#xd;
+    ],&#xd;
+    &quot;holidayLocationCode&quot;: &quot;${holidayLocationCode}&quot;,&#xd;
+    &quot;id&quot;: &quot;${id}&quot;,&#xd;
+    &quot;isActive&quot;: ${isActive},&#xd;
+    &quot;langCode&quot;: &quot;${langCode}&quot;,&#xd;
+    &quot;latitude&quot;: &quot;${latitude}&quot;,&#xd;
+    &quot;locationCode&quot;: &quot;${locationCode}&quot;,&#xd;
+    &quot;longitude&quot;: &quot;${longitude}&quot;,&#xd;
+    &quot;lunchEndTime&quot;: &quot;${lunchEndTime}&quot;,&#xd;
+    &quot;lunchStartTime&quot;: &quot;${lunchStartTime}&quot;,&#xd;
+    &quot;name&quot;: &quot;${name}&quot;,&#xd;
+    &quot;perKioskProcessTime&quot;: &quot;${perKioskProcessTime}&quot;,&#xd;
+    &quot;timeZone&quot;: &quot;${timeZone}&quot;,&#xd;
+    &quot;workingHours&quot;: &quot;${workingHours}&quot;,&#xd;
+    &quot;workingNonWorkingDays&quot;: {&#xd;
+      &quot;fri&quot;: true,&#xd;
+      &quot;mon&quot;: true,&#xd;
+      &quot;sat&quot;: true,&#xd;
+      &quot;sun&quot;: true,&#xd;
+      &quot;thu&quot;: true,&#xd;
+      &quot;tue&quot;: true,&#xd;
+      &quot;wed&quot;: true&#xd;
+    },&#xd;
+    &quot;zoneCode&quot;: &quot;${zoneCode}&quot;&#xd;
+  },&#xd;
+  &quot;requesttime&quot;: &quot;${utcTime}Z&quot;,&#xd;
+  &quot;version&quot;: &quot;null&quot;&#xd;
+}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${serverIP}</stringProp>
+          <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
+          <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
+          <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+          <stringProp name="HTTPSampler.path">v1/masterdata/registrationcenters</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+          <stringProp name="HTTPSampler.response_timeout"></stringProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="Content-Type" elementType="Header">
+                <stringProp name="Header.name">Content-Type</stringProp>
+                <stringProp name="Header.value">application/json</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Cookie</stringProp>
+                <stringProp name="Header.value">Authorization=${authTokenRegproc}</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="-1599944197">&quot;response&quot;:</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">16</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <BeanShellPreProcessor guiclass="TestBeanGUI" testclass="BeanShellPreProcessor" testname="Generate UTC Time" enabled="true">
+            <stringProp name="filename"></stringProp>
+            <stringProp name="parameters"></stringProp>
+            <boolProp name="resetInterpreter">false</boolProp>
+            <stringProp name="script">import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.TimeZone;//Set the format for the date-time
+SimpleDateFormat dateFormat = new SimpleDateFormat(&quot;yyyy-MM-dd&apos;T&apos;HH:mm:ss.sss&quot;);
+dateFormat.setTimeZone(TimeZone.getTimeZone(&quot;UTC&quot;));// Get the current time in UTC
+Calendar cal = Calendar.getInstance();
+String utcTime = dateFormat.format(cal.getTime());
+vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
+          </BeanShellPreProcessor>
+          <hashTree/>
+          <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="Extract Registration Id" enabled="true">
+            <stringProp name="RegexExtractor.useHeaders">false</stringProp>
+            <stringProp name="RegexExtractor.refname">centerID</stringProp>
+            <stringProp name="RegexExtractor.regex">&quot;center&quot;:&quot;(.*?)&quot;</stringProp>
+            <stringProp name="RegexExtractor.template">$1$</stringProp>
+            <stringProp name="RegexExtractor.default">Center Not Found</stringProp>
+            <stringProp name="RegexExtractor.match_number">1</stringProp>
+          </RegexExtractor>
+          <hashTree/>
+          <BeanShellPostProcessor guiclass="TestBeanGUI" testclass="BeanShellPostProcessor" testname="Store Center To File" enabled="true">
+            <stringProp name="filename"></stringProp>
+            <stringProp name="parameters"></stringProp>
+            <boolProp name="resetInterpreter">false</boolProp>
+            <stringProp name="script">${__StringToFile(${runTimeFilePath}/center_id.txt,${centerId}\n,true,)}</stringProp>
+          </BeanShellPostProcessor>
+          <hashTree/>
+        </hashTree>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="S01 Packet Creation (Preparation)" enabled="true">
         <stringProp name="ThreadGroup.on_sample_error">startnextloop</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
@@ -1134,33 +1392,6 @@ vars.put(&quot;newPath&quot;, path);</stringProp>
             <hashTree/>
           </hashTree>
         </hashTree>
-      </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="S01 Packet Creator Rid Sync (Preparation)" enabled="true">
-        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
-        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
-          <boolProp name="LoopController.continue_forever">false</boolProp>
-          <stringProp name="LoopController.loops">1</stringProp>
-        </elementProp>
-        <stringProp name="ThreadGroup.num_threads">1</stringProp>
-        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
-        <boolProp name="ThreadGroup.scheduler">false</boolProp>
-        <stringProp name="ThreadGroup.duration"></stringProp>
-        <stringProp name="ThreadGroup.delay"></stringProp>
-        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
-      </ThreadGroup>
-      <hashTree>
-        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Load Generate Packet Path From File" enabled="true">
-          <stringProp name="filename">${runTimeFilePath}/store_packet_path.txt</stringProp>
-          <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="variableNames">loadpacketPath,process</stringProp>
-          <boolProp name="ignoreFirstLine">true</boolProp>
-          <stringProp name="delimiter">,</stringProp>
-          <boolProp name="quotedData">false</boolProp>
-          <boolProp name="recycle">true</boolProp>
-          <boolProp name="stopThread">false</boolProp>
-          <stringProp name="shareMode">shareMode.group</stringProp>
-        </CSVDataSet>
-        <hashTree/>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Packet Creator Rid Sync Req Endpoint" enabled="true">
           <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
@@ -1187,6 +1418,18 @@ vars.put(&quot;newPath&quot;, path);</stringProp>
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
         </HTTPSamplerProxy>
         <hashTree>
+          <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Load Generate Packet Path From File" enabled="true">
+            <stringProp name="filename">${runTimeFilePath}/store_packet_path.txt</stringProp>
+            <stringProp name="fileEncoding">UTF-8</stringProp>
+            <stringProp name="variableNames">loadpacketPath,process</stringProp>
+            <boolProp name="ignoreFirstLine">true</boolProp>
+            <stringProp name="delimiter">,</stringProp>
+            <boolProp name="quotedData">false</boolProp>
+            <boolProp name="recycle">true</boolProp>
+            <boolProp name="stopThread">false</boolProp>
+            <stringProp name="shareMode">shareMode.group</stringProp>
+          </CSVDataSet>
+          <hashTree/>
           <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
             <collectionProp name="HeaderManager.headers">
               <elementProp name="Content-Type" elementType="Header">
@@ -1255,33 +1498,6 @@ vars.put(&quot;newPath&quot;, path);</stringProp>
           </BeanShellPostProcessor>
           <hashTree/>
         </hashTree>
-      </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="S03 Generate RID (Preparation)" enabled="true">
-        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
-        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
-          <boolProp name="LoopController.continue_forever">false</boolProp>
-          <stringProp name="LoopController.loops">1</stringProp>
-        </elementProp>
-        <stringProp name="ThreadGroup.num_threads">1</stringProp>
-        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
-        <boolProp name="ThreadGroup.scheduler">false</boolProp>
-        <stringProp name="ThreadGroup.duration"></stringProp>
-        <stringProp name="ThreadGroup.delay"></stringProp>
-        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
-      </ThreadGroup>
-      <hashTree>
-        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Read Request Details From File" enabled="true">
-          <stringProp name="filename">${runTimeFilePath}/request_body_sync_packet.txt</stringProp>
-          <stringProp name="fileEncoding"></stringProp>
-          <stringProp name="variableNames">machineRefId,encryptedData,timeStamp,uploadLoadpacketPath</stringProp>
-          <boolProp name="ignoreFirstLine">true</boolProp>
-          <stringProp name="delimiter">&amp;</stringProp>
-          <boolProp name="quotedData">false</boolProp>
-          <boolProp name="recycle">true</boolProp>
-          <boolProp name="stopThread">false</boolProp>
-          <stringProp name="shareMode">shareMode.all</stringProp>
-        </CSVDataSet>
-        <hashTree/>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Sync Registration Packet Endpoint" enabled="true">
           <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
@@ -1308,6 +1524,18 @@ vars.put(&quot;newPath&quot;, path);</stringProp>
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
         </HTTPSamplerProxy>
         <hashTree>
+          <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Read Request Details From File" enabled="true">
+            <stringProp name="filename">${runTimeFilePath}/request_body_sync_packet.txt</stringProp>
+            <stringProp name="fileEncoding"></stringProp>
+            <stringProp name="variableNames">machineRefId,encryptedData,timeStamp,uploadLoadpacketPath</stringProp>
+            <boolProp name="ignoreFirstLine">true</boolProp>
+            <stringProp name="delimiter">&amp;</stringProp>
+            <boolProp name="quotedData">false</boolProp>
+            <boolProp name="recycle">true</boolProp>
+            <boolProp name="stopThread">false</boolProp>
+            <stringProp name="shareMode">shareMode.all</stringProp>
+          </CSVDataSet>
+          <hashTree/>
           <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
             <collectionProp name="HeaderManager.headers">
               <elementProp name="content-type" elementType="Header">
@@ -2239,7 +2467,7 @@ vars.put(&quot;requestToken&quot;,completeCrypto);
         </ConstantThroughputTimer>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="S03 Get Transaction Details From Reg Id (Execution)" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="S03 Get Transaction Details From AID (Execution)" enabled="true">
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
