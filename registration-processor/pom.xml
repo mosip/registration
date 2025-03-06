@@ -119,7 +119,7 @@
 
 		<!-- local -->
 		<registration.status.service.version>1.3.0-beta.1</registration.status.service.version>
-		<registration.processor.core.version>1.3.0-beta.1</registration.processor.core.version>
+		<registration.processor.core.version>1.3.0-SNAPSHOT</registration.processor.core.version>
 		<packet.manager.version>1.3.0-beta.1</packet.manager.version>
 		<registration.processor.rest.client.version>1.3.0-beta.1</registration.processor.rest.client.version>
 		<packet.info.storage.service.version>1.3.0-beta.1</packet.info.storage.service.version>
