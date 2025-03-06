@@ -90,8 +90,6 @@ public class InternalAuthDelegateServiceImplTest {
         Mockito.when(requestBodyUriSpec.headers(any())).thenReturn(requestBodyUriSpec);
         Mockito.when(requestBodyUriSpec.bodyValue(any())).thenReturn(requestHeadersSpec);
         Mockito.when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-
-        // ✅ This is the missing part: Mock `bodyToMono(responseClass)`
         AuthResponseDTO mockResponse = new AuthResponseDTO();
         ResponseDTO responseDTO = new ResponseDTO();
         responseDTO.setAuthStatus(true);
