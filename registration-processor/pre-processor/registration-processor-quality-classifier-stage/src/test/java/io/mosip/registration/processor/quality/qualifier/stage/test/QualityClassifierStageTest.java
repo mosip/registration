@@ -519,12 +519,13 @@ public class QualityClassifierStageTest {
 		assertTrue(result.getInternalError());
 	}
 
-//	@Test
+	@Test
 	public void testBiometricException() throws BiometricException {
 		Mockito.when(bioApiFactory.getBioProvider(any(), any()))
 				.thenThrow(new BiometricException("", "error from provider"));
 		Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BIOMETRIC_EXCEPTION))
 		.thenReturn("REPROCESS");
+//		Mockito.when(instance.getSegmentQuality(birArray, null))
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO result = qualityClassifierStage.process(dto);
@@ -533,7 +534,7 @@ public class QualityClassifierStageTest {
 		assertTrue(result.getInternalError());
 	}
 
-//	@Test
+	@Test
 	public void testQualityCheckfailureException() throws BiometricException {
 		Mockito.when(bioApiFactory.getBioProvider(any(), any())).thenReturn(null);
 		when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.EXCEPTION))
