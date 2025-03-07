@@ -525,7 +525,6 @@ public class QualityClassifierStageTest {
 				.thenThrow(new BiometricException("", "error from provider"));
 		Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BIOMETRIC_EXCEPTION))
 		.thenReturn("REPROCESS");
-//		Mockito.when(instance.getSegmentQuality(birArray, null))
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO result = qualityClassifierStage.process(dto);
