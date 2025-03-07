@@ -9,7 +9,9 @@ import java.util.Map.Entry;
 
 import javax.annotation.PostConstruct;
 
+import io.mosip.kernel.biosdk.provider.util.ErrorCode;
 import org.apache.commons.lang.StringUtils;
+import org.assertj.core.internal.bytebuddy.implementation.bytecode.Throw;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.ComponentScan;
@@ -405,7 +407,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 		return bioProvider;
 	}
 	
-	private Map<String, String> getQualityTags(List<BIR> birs) throws BiometricException{
+	private Map<String, String> getQualityTags(List<BIR> birs) throws Exception {
 		
 		Map<String, String> tags = new HashMap<String, String>();
 
@@ -445,34 +447,34 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 			if(!biometricType.name().equalsIgnoreCase(BiometricType.EXCEPTION_PHOTO.name())) {
                 iBioProviderApi instance = null;
                 regProcLogger.error("BiometricType :: " + biometricType.name());
-                try {
-                    try {
-                        instance =  getBioSdkInstance(biometricType);
-                    }catch (Exception e) {
-                        regProcLogger.error("INSIDE getQualityTags :: Error Occured while getting iBioProviderApi for " + bir.getBdbInfo().getType().get(0) + " with birArray " + (birArray.length > 0 ? "Valid birArray" :"Not valid birArray") + e.getMessage());
-                    }
+				instance =  getBioSdkInstance(biometricType);
+				if (instance==null) {
+					throw new Exception(ErrorCode.SDK_REGISTRY_EMPTY.getErrorMessage());
+				}
+				try {
+					float[] qualityScoreresponse = null;
+					try {
+						qualityScoreresponse =instance.getSegmentQuality(birArray, null);
+					} catch (Exception e) {
+							e.printStackTrace();
+							regProcLogger.error("INSIDE getQualityTags :: Error Occured while getSegmentQuality for " + bir.getBdbInfo().getType().get(0) + " with birArray " + (birArray.length > 0 ? "Valid birArray" : "Not valid birArray") + " qualityScoreresponse " + qualityScoreresponse + e.getMessage());
+							regProcLogger.error("BIOINSTANCE :: " + instance.getClass().getName());
+					}
 
-                    float[] qualityScoreresponse = null;
-                    try {
-                        qualityScoreresponse = instance.getSegmentQuality(birArray, null);
-                    }catch (Exception e) {
-                        e.printStackTrace();
-                        regProcLogger.error("INSIDE getQualityTags :: Error Occured while getSegmentQuality for " + bir.getBdbInfo().getType().get(0) + " with birArray " + (birArray.length > 0 ? "Valid birArray" :"Not valid birArray") + " qualityScoreresponse "  + qualityScoreresponse + e.getMessage() );
-                        regProcLogger.error("BIOINSTANCE :: " + instance.getClass().getName());
-                    }
+					float score = qualityScoreresponse[0];
+					String bioType = bir.getBdbInfo().getType().get(0).value();
 
-                    float score = qualityScoreresponse[0];
-                    String bioType = bir.getBdbInfo().getType().get(0).value();
+					// Check for entry
+					Float storedMinScore = bioTypeMinScoreMap.get(bioType);
 
-                    // Check for entry
-                    Float storedMinScore = bioTypeMinScoreMap.get(bioType);
+					bioTypeMinScoreMap.put(bioType,
+							storedMinScore == null ? score : storedMinScore > score ? score : storedMinScore);
 
-                    bioTypeMinScoreMap.put(bioType,
-                            storedMinScore == null ? score : storedMinScore > score ? score : storedMinScore);
-                }catch(Exception e) {
-                    e.printStackTrace();
-                    regProcLogger.error("INSIDE getQualityTags :: BiometricType " + bir.getBdbInfo().getType().get(0) + "with birArray " + (birArray.length > 0 ? "Valid birArray" :"Not valid birArray") + e.getMessage());
-                }
+				} catch (Exception e) {
+					e.printStackTrace();
+					regProcLogger.error("INSIDE getQualityTags :: BiometricType " + bir.getBdbInfo().getType().get(0) + "with birArray " + (birArray.length > 0 ? "Valid birArray" : "Not valid birArray") + e.getMessage());
+				}
+
 			}
 		}
 
