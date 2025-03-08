@@ -43,20 +43,12 @@ public class WorkflowInstanceServiceTest {
     @Mock
     RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 
-    /** The packet manager service. */
-    @Mock
-    private PacketManagerService packetManagerService;
-
     /** The core audit request builder. */
     @Mock
     AuditLogRequestBuilder auditLogRequestBuilder;
 
     @Mock
     private SyncRegistrationDao syncRegistrationDao;
-
-    /** The web sub util. */
-    @Mock
-    WebSubUtil webSubUtil;
 
     @InjectMocks
     WorkflowInstanceService workflowInstanceService;
@@ -67,7 +59,6 @@ public class WorkflowInstanceServiceTest {
     @Mock
     private Utilities utility;
 
-    private InternalRegistrationStatusDto registrationStatusDto;
 
     private WorkflowInstanceRequestDTO workflowInstanceRequestDto;
 
@@ -90,7 +81,7 @@ public class WorkflowInstanceServiceTest {
         Mockito.when(utility.getRefId(anyString(),anyString())).thenReturn("");
         ReflectionTestUtils.setField(workflowInstanceService, "beginningStage", "PacketValidatorStage");
         ReflectionTestUtils.setField(workflowInstanceService, "mainProcesses", Arrays.asList("NEW"));
-        Mockito.doNothing().when(registrationStatusService).addRegistrationStatusV2(any(), anyString(),
+        Mockito.doNothing().when(registrationStatusService).addRegistrationStatus(any(), anyString(),
                 anyString());
         Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(null);
@@ -98,7 +89,7 @@ public class WorkflowInstanceServiceTest {
 
     @Test
     public void testAddRegistrationProcess() throws WorkflowInstanceException {
-        workflowInstanceService.addRegistrationProcess(workflowInstanceRequestDto, "USER");
+        workflowInstanceService.createWorkflowInstance(workflowInstanceRequestDto, "USER");
     }
 
     @Test(expected = WorkflowInstanceException.class)
@@ -106,9 +97,9 @@ public class WorkflowInstanceServiceTest {
         TablenotAccessibleException tablenotAccessibleException = new TablenotAccessibleException(
                 PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage());
         Mockito.doThrow(tablenotAccessibleException).when(registrationStatusService)
-                .addRegistrationStatusV2(any(), anyString(),
+                .addRegistrationStatus(any(), anyString(),
                         anyString());
-        workflowInstanceService.addRegistrationProcess(workflowInstanceRequestDto, "USER");
+        workflowInstanceService.createWorkflowInstance(workflowInstanceRequestDto, "USER");
     }
 
 }

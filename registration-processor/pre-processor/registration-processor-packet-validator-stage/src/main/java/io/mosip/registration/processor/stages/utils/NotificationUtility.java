@@ -96,8 +96,7 @@ public class NotificationUtility {
 	@Value("${mosip.default.user-preferred-language-attribute:#{null}}")
 	private String userPreferredLanguageAttribute;
 
-    @Value("${registration.processor.multi-step-main-process}")
-    private String multiStepMainProcess;
+
 	/** The env. */
 	@Autowired
 	private Environment env;
@@ -419,13 +418,15 @@ public class NotificationUtility {
 	}
 
 	private NotificationTemplateType setNotificationTemplateType(InternalRegistrationStatusDto registrationStatusDto,
-			NotificationTemplateType type) {
+			NotificationTemplateType type) throws IOException {
+		String externalProcess=utility.returnExternalProcess(registrationStatusDto.getRegistrationType());
 		if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.LOST.getValue()))
 			type = NotificationTemplateType.LOST_UIN;
 		else if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.NEW.getValue()) ||
-                registrationStatusDto.getRegistrationType().equalsIgnoreCase(multiStepMainProcess))
+				externalProcess.equalsIgnoreCase(SyncTypeDto.NEW.getValue()))
 			type = NotificationTemplateType.NEW_REG;
-		else if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.UPDATE.getValue()))
+		else if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.UPDATE.getValue())||
+				externalProcess.equalsIgnoreCase(SyncTypeDto.UPDATE.getValue()))
 			type = NotificationTemplateType.UIN_UPDATE;
 		else if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.RES_REPRINT.getValue()))
 			type = NotificationTemplateType.REPRINT_UIN;

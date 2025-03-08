@@ -14,10 +14,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.core.JsonParser;
 import org.apache.commons.lang.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -159,6 +161,10 @@ public class Utilities {
 
 	@Value("#{'${registration.processor.queue.trusted.packages}'.split(',')}")
 	private List<String> trustedPackages;
+
+
+	@Value("#{${registration.processor.external-integration-process:{}}}")
+	private Map<String,String> externalIntegrationProcess;
 
 	@Autowired
 	private PacketInfoDao packetInfoDao;
@@ -854,6 +860,16 @@ public class Utilities {
 		String centerId = id.substring(0, centerIdLength);
 		String machineId = id.substring(centerIdLength, centerIdLength + machineIdLength);
 		return centerId + "_" + machineId;
+	}
+
+	public String returnExternalProcess(String pktProcess) throws IOException {
+		if (pktProcess==null) return "";
+		Map<String,String> externalProcess=objMapper.readValue((JsonParser) externalIntegrationProcess, new TypeReference<Map<String, String>>() {});
+		String process=externalProcess.get(pktProcess);
+		if (process!=null)
+			return process;
+		return "";
+
 	}
 
 }

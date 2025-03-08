@@ -253,64 +253,7 @@ public class RegistrationStatusServiceImpl
 
 	}
 
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * io.mosip.registration.processor.status.service.RegistrationStatusService#
-     * addRegistrationStatusV2(java.lang.Object)
-     */
-    @Override
-    public void addRegistrationStatusV2(InternalRegistrationStatusDto registrationStatusDto, String moduleId,
-                                        String moduleName) {
-        boolean isTransactionSuccessful = false;
-        LogDescription description = new LogDescription();
-        regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-                registrationStatusDto.getRegistrationId(),
-                "RegistrationStatusServiceImpl::addRegistrationStatusV2()::entry");
-        try {
-            String transactionId = generateId();
-            registrationStatusDto.setLatestRegistrationTransactionId(transactionId);
-            registrationStatusDto.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
-            RegistrationStatusEntity entity = convertDtoToEntity(registrationStatusDto, null, false);
-            entity.setStatusCode(registrationStatusDto.getStatusCode());
-            registrationStatusDao.save(entity);
-            isTransactionSuccessful = true;
-            description.setMessage("Registration status added successfully");
-            TransactionDto transactionDto = new TransactionDto(transactionId, registrationStatusDto.getRegistrationId(),
-                    null, registrationStatusDto.getLatestTransactionTypeCode(), "Added registration status record",
-                    registrationStatusDto.getLatestTransactionStatusCode(), registrationStatusDto.getStatusComment(),
-                    registrationStatusDto.getSubStatusCode());
-            transactionDto.setReferenceId(registrationStatusDto.getRegistrationId());
-            transactionDto.setReferenceIdType("Added registration record");
-            transcationStatusService.addRegistrationTransaction(transactionDto);
-
-        } catch (DataAccessException | DataAccessLayerException e) {
-            description.setMessage("DataAccessLayerException while adding Registration status for Registration Id : "
-                    + registrationStatusDto.getRegistrationId() + "::" + e.getMessage());
-
-            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-                    registrationStatusDto.getRegistrationId(), e.getMessage() + ExceptionUtils.getStackTrace(e));
-            throw new TablenotAccessibleException(
-                    PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
-        } finally {
-
-            String eventId = isTransactionSuccessful ? EventId.RPR_407.toString() : EventId.RPR_405.toString();
-            String eventName = eventId.equalsIgnoreCase(EventId.RPR_407.toString()) ? EventName.ADD.toString()
-                    : EventName.EXCEPTION.toString();
-            String eventType = eventId.equalsIgnoreCase(EventId.RPR_407.toString()) ? EventType.BUSINESS.toString()
-                    : EventType.SYSTEM.toString();
-
-            if(!disableAudit)
-                auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
-                        moduleId, moduleName, registrationStatusDto.getRegistrationId());
-        }
-        regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-                registrationStatusDto.getRegistrationId(),
-                "RegistrationStatusServiceImpl::addRegistrationStatusV2()::exit");
-
-    }	/*
+	/*
 	 * (non-Javadoc)
 	 *
 	 * @see

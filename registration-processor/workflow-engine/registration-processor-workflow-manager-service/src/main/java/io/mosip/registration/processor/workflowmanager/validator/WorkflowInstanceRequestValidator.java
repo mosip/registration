@@ -76,14 +76,14 @@ public class WorkflowInstanceRequestValidator {
             throws WorkflowInstanceRequestValidationException {
         if (Objects.isNull(version)) {
             throw new WorkflowInstanceRequestValidationException(
-                    PlatformErrorMessages.RPR_WIA_MISSING_INPUT_PARAMETER.getCode(),
-                    String.format(PlatformErrorMessages.RPR_WIA_MISSING_INPUT_PARAMETER.getMessage(), VER));
+                    PlatformErrorMessages.RPR_WIN_MISSING_INPUT_PARAMETER.getCode(),
+                    String.format(PlatformErrorMessages.RPR_WIN_MISSING_INPUT_PARAMETER.getMessage(), VER));
 
 
         } else if (!version.equalsIgnoreCase(env.getProperty(WORKFLOW_INSTANCE_VERSION))) {
             throw new WorkflowInstanceRequestValidationException(
-                    PlatformErrorMessages.RPR_WIA_INVALID_INPUT_PARAMETER.getCode(),
-                    String.format(PlatformErrorMessages.RPR_WIA_INVALID_INPUT_PARAMETER.getMessage(), VER));
+                    PlatformErrorMessages.RPR_WIN_INVALID_INPUT_PARAMETER.getCode(),
+                    String.format(PlatformErrorMessages.RPR_WIN_INVALID_INPUT_PARAMETER.getMessage(), VER));
 
 
         }
@@ -100,13 +100,13 @@ public class WorkflowInstanceRequestValidator {
     private void validateId(String id) throws WorkflowInstanceRequestValidationException {
         if (Objects.isNull(id)) {
             throw new WorkflowInstanceRequestValidationException(
-                    PlatformErrorMessages.RPR_WIA_MISSING_INPUT_PARAMETER.getCode(),
-                    String.format(PlatformErrorMessages.RPR_WIA_MISSING_INPUT_PARAMETER.getMessage(), ID_FIELD));
+                    PlatformErrorMessages.RPR_WIN_MISSING_INPUT_PARAMETER.getCode(),
+                    String.format(PlatformErrorMessages.RPR_WIN_MISSING_INPUT_PARAMETER.getMessage(), ID_FIELD));
 
         } else if (!id.equalsIgnoreCase(env.getProperty(WORKFLOW_INSTANCE_ID))) {
             throw new WorkflowInstanceRequestValidationException(
-                    PlatformErrorMessages.RPR_WIA_INVALID_INPUT_PARAMETER.getCode(),
-                    String.format(PlatformErrorMessages.RPR_WIA_INVALID_INPUT_PARAMETER.getMessage(), ID_FIELD));
+                    PlatformErrorMessages.RPR_WIN_INVALID_INPUT_PARAMETER.getCode(),
+                    String.format(PlatformErrorMessages.RPR_WIN_INVALID_INPUT_PARAMETER.getMessage(), ID_FIELD));
 
         }
     }
@@ -124,8 +124,8 @@ public class WorkflowInstanceRequestValidator {
 
         if (Objects.isNull(requesttime)) {
             throw new WorkflowInstanceRequestValidationException(
-                    PlatformErrorMessages.RPR_WIA_MISSING_INPUT_PARAMETER.getCode(),
-                    String.format(PlatformErrorMessages.RPR_WIA_MISSING_INPUT_PARAMETER.getMessage(), TIMESTAMP));
+                    PlatformErrorMessages.RPR_WIN_MISSING_INPUT_PARAMETER.getCode(),
+                    String.format(PlatformErrorMessages.RPR_WIN_MISSING_INPUT_PARAMETER.getMessage(), TIMESTAMP));
 
         } else {
             try {
@@ -135,8 +135,8 @@ public class WorkflowInstanceRequestValidator {
             } catch (Exception e) {
                 regProcLogger.error("Exception while parsing date {}", ExceptionUtils.getStackTrace(e));
                 throw new WorkflowInstanceRequestValidationException(
-                        PlatformErrorMessages.RPR_WIA_INVALID_INPUT_PARAMETER.getCode(),
-                        String.format(PlatformErrorMessages.RPR_WIA_INVALID_INPUT_PARAMETER.getMessage(), TIMESTAMP));
+                        PlatformErrorMessages.RPR_WIN_INVALID_INPUT_PARAMETER.getCode(),
+                        String.format(PlatformErrorMessages.RPR_WIN_INVALID_INPUT_PARAMETER.getMessage(), TIMESTAMP));
 
             }
         }

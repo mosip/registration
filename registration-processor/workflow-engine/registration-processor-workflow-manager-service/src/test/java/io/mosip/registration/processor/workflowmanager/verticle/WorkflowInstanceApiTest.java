@@ -370,7 +370,7 @@ public class WorkflowInstanceApiTest {
 
         Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(null);
-        Mockito.when(workflowInstanceService.addRegistrationProcess(Mockito.any(), Mockito.anyString()))
+        Mockito.when(workflowInstanceService.createWorkflowInstance(Mockito.any(), Mockito.anyString()))
                 .thenReturn(registrationStatusDto);
     }
 
@@ -383,8 +383,8 @@ public class WorkflowInstanceApiTest {
     @Test
     public void testWorkflowInstanceRequestValidationException() throws WorkflowInstanceRequestValidationException {
         Mockito.doThrow(new WorkflowInstanceRequestValidationException(
-                PlatformErrorMessages.RPR_WIA_INVALID_INPUT_PARAMETER.getCode(),
-                PlatformErrorMessages.RPR_WIA_INVALID_INPUT_PARAMETER.getMessage())).when(validator).validate(any());
+                PlatformErrorMessages.RPR_WIN_INVALID_INPUT_PARAMETER.getCode(),
+                PlatformErrorMessages.RPR_WIN_INVALID_INPUT_PARAMETER.getMessage())).when(validator).validate(any());
 
         workflowInstanceApi.processURL(ctx);
         assertTrue(responseObject);
@@ -395,7 +395,7 @@ public class WorkflowInstanceApiTest {
 
         Mockito.doThrow(new WorkflowInstanceException(PlatformErrorMessages.RPR_WIS_UNKNOWN_EXCEPTION.getCode(),
                         PlatformErrorMessages.RPR_WIS_UNKNOWN_EXCEPTION.getMessage())).when(workflowInstanceService)
-                .addRegistrationProcess(any(), any());
+                .createWorkflowInstance(any(), any());
 
         workflowInstanceApi.processURL(ctx);
         assertTrue(responseObject);

@@ -101,18 +101,18 @@ public class WorkflowInstanceApi extends MosipRouter {
         String regId = null;
         boolean isTransactionSuccessful = false;
         LogDescription description = new LogDescription();
+        String user = null;
         try {
             JsonObject obj = ctx.getBodyAsJson();
-
             WorkflowInstanceDTO workflowInstanceDTO = JsonUtil.readValueWithUnknownProperties(obj.toString(),
                     WorkflowInstanceDTO.class);
             regId = workflowInstanceDTO.getRequest().getRegistrationId();
             regProcLogger.debug("WorkflowInstanceApi:processURL called for registration id {}", regId);
             validator.validate(workflowInstanceDTO);
-            String user = getUser(ctx);
+            user = getUser(ctx);
 
             InternalRegistrationStatusDto dto = workflowInstanceService
-                    .addRegistrationProcess(workflowInstanceDTO.getRequest(), user);
+                    .createWorkflowInstance(workflowInstanceDTO.getRequest(), user);
 
             isTransactionSuccessful = true;
             description.setMessage(PlatformErrorMessages.RPR_WIA_VALIDATION_SUCCESS.getMessage());
@@ -125,12 +125,22 @@ public class WorkflowInstanceApi extends MosipRouter {
             regProcLogger.debug("WorkflowInstanceApi:processURL ended for registration id {}", regId);
 
         } catch (WorkflowInstanceException e) {
-            logError(regId, e.getErrorCode(), e.getMessage(), e, ctx);
+            description.setMessage(e.getMessage());
+            description.setCode(e.getErrorCode());
+            updateAudit(description, "", isTransactionSuccessful, user);
+            logError(regId,e.getErrorCode(), e.getMessage(), e, ctx);
+
         } catch (WorkflowInstanceRequestValidationException e) {
+            description.setMessage(PlatformErrorMessages.RPR_WAA_UNKNOWN_EXCEPTION.getMessage());
+            description.setCode(PlatformErrorMessages.RPR_WAA_UNKNOWN_EXCEPTION.getCode());
+            updateAudit(description, "", isTransactionSuccessful, user);
             logError(regId, e.getErrorCode(), e.getMessage(), e, ctx);
         } catch (Exception e) {
-            logError(regId, PlatformErrorMessages.RPR_WIA_UNKNOWN_EXCEPTION.getCode(),
-                    PlatformErrorMessages.RPR_WIA_UNKNOWN_EXCEPTION.getMessage(), e, ctx);
+            description.setMessage(PlatformErrorMessages.RPR_WIN_UNKNOWN_EXCEPTION.getMessage());
+            description.setCode(PlatformErrorMessages.RPR_WIN_UNKNOWN_EXCEPTION.getCode());
+            updateAudit(description, "", isTransactionSuccessful, user);
+            logError(regId, PlatformErrorMessages.RPR_WIN_UNKNOWN_EXCEPTION.getCode(),
+                    PlatformErrorMessages.RPR_WIN_UNKNOWN_EXCEPTION.getMessage(), e, ctx);
         }
     }
 

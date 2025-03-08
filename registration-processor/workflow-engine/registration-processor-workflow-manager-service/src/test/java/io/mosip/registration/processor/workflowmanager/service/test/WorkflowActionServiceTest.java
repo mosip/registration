@@ -62,9 +62,6 @@ public class WorkflowActionServiceTest {
 	@Mock
 	WebSubUtil webSubUtil;
 
-    @Mock
-    WorkflowInstanceApi workflowInstanceApi;
-
 	@InjectMocks
 	WorkflowActionService workflowActionService;
 

@@ -6,6 +6,7 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
+import io.mosip.registration.processor.status.service.impl.SyncRegistrationServiceImpl;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -67,7 +68,7 @@ public class WorkflowInstanceService {
     private AdditionalInfoRequestService additionalInfoRequestService;
 
     /** The resume from beginning stage. */
-    @Value("${mosip.regproc.workflow-manager.instance-beginning-stage}")
+    @Value("${mosip.regproc.workflow-manager.instance-beginning-stage:PacketValidatorStage}")
     private String beginningStage;
 
     @Value("#{'${registration.processor.main-processes}'.split(',')}")
@@ -75,6 +76,9 @@ public class WorkflowInstanceService {
 
     @Autowired
     private Utilities utility;
+
+    @Autowired
+    private SyncRegistrationServiceImpl syncRegistrationService;
 
     /** The module name. */
     public static String MODULE_NAME = ModuleName.WORKFLOW_INSTANCE_SERVICE.toString();
@@ -89,8 +93,8 @@ public class WorkflowInstanceService {
      * Add record to registration table
      * @throws WorkflowInstanceException
      */
-    public InternalRegistrationStatusDto addRegistrationProcess(WorkflowInstanceRequestDTO regRequest, String user) throws WorkflowInstanceException {
-        regProcLogger.debug("addRegistrationProcess called for request {}", regRequest.toString());
+    public InternalRegistrationStatusDto createWorkflowInstance(WorkflowInstanceRequestDTO regRequest, String user) throws WorkflowInstanceException {
+        regProcLogger.debug("createWorkflowInstance called for request {}", regRequest.toString());
         LogDescription description = new LogDescription();
         boolean isTransactionSuccessful = false;
         String rid = regRequest.getRegistrationId();
@@ -104,6 +108,7 @@ public class WorkflowInstanceService {
 
             String workflowInstanceId = UUID.randomUUID().toString();
             SyncRegistrationEntity syncRegistrationEntity = new SyncRegistrationEntity();
+//            syncRegistrationEntity =syncRegistrationService.convertDtoToEntity()
             syncRegistrationEntity.setWorkflowInstanceId(workflowInstanceId);
             syncRegistrationEntity.setRegistrationId(rid);
             syncRegistrationEntity.setSupervisorStatus("APPROVED");
@@ -136,7 +141,7 @@ public class WorkflowInstanceService {
             dto.setIteration(iteration);
             dto.setWorkflowInstanceId(workflowInstanceId);
 
-            registrationStatusService.addRegistrationStatusV2(dto, MODULE_ID, MODULE_NAME);
+            registrationStatusService.addRegistrationStatus(dto, MODULE_ID, MODULE_NAME);
             description
                     .setMessage(PlatformSuccessMessages.RPR_WORKFLOW_INSTANCE_SERVICE_SUCCESS.getMessage());
             isTransactionSuccessful = true;
@@ -152,7 +157,7 @@ public class WorkflowInstanceService {
             updateAudit(description, rid, isTransactionSuccessful);
         }
 
-        regProcLogger.debug("addRegistrationProcess call ended for request {}", regRequest.toString());
+        regProcLogger.debug("createWorkflowInstance call ended for request {}", regRequest.toString());
         return dto;
     }
 
@@ -189,7 +194,7 @@ public class WorkflowInstanceService {
                                   LogDescription description) throws WorkflowInstanceException {
         description.setCode(errorCode);
         description.setMessage(errorMessage);
-        regProcLogger.error("Error in  addRegistrationProcess  for registration id  {} {} {} {}", registrationId,
+        regProcLogger.error("Error in  createWorkflowInstance  for registration id  {} {} {} {}", registrationId,
                 errorMessage, e.getMessage(), ExceptionUtils.getStackTrace(e));
         throw new WorkflowInstanceException(errorCode, errorMessage);
     }

@@ -86,6 +86,9 @@ public class WorkflowActionApiTest {
 	@Mock
 	WorkflowSearchApi workflowSearchApi;
 
+	@Mock
+	WorkflowInstanceApi workflowInstanceApi;
+
 	@InjectMocks
 	WorkflowActionApi workflowActionApi = new WorkflowActionApi() {
 
@@ -449,7 +452,7 @@ public class WorkflowActionApiTest {
 		workflowActionApi.deployVerticle();
 	}
 
-//	@Test
+	@Test
 	public void testStart() {
 		ReflectionTestUtils.setField(workflowActionApi, "port", "2333");
 		Mockito.doNothing().when(router).setRoute(any());
