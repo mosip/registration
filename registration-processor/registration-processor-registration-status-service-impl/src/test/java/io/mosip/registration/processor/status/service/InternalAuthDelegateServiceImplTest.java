@@ -50,6 +50,13 @@ public class InternalAuthDelegateServiceImplTest {
     WebClient webClient;
 
     @Mock
+    WebClient.RequestBodyUriSpec requestBodyUriSpec;
+    @Mock
+    WebClient.RequestHeadersSpec requestHeadersSpec;
+    @Mock
+    WebClient.ResponseSpec responseSpec;
+
+    @Mock
     ObjectMapper mapper;
 
     AuthRequestDTO authRequestDTO = new AuthRequestDTO();
@@ -81,22 +88,15 @@ public class InternalAuthDelegateServiceImplTest {
         Mockito.when(mapper.readValue(anyString(), eq(IndividualIdDto.class))).thenReturn(individualIdDto);
 
 
-        WebClient.RequestBodyUriSpec requestBodyUriSpec = Mockito.mock(WebClient.RequestBodyUriSpec.class);
-        WebClient.RequestHeadersSpec requestHeadersSpec = Mockito.mock(WebClient.RequestHeadersSpec.class);
-        WebClient.ResponseSpec responseSpec = Mockito.mock(WebClient.ResponseSpec.class);
-
         Mockito.when(webClient.post()).thenReturn(requestBodyUriSpec);
         Mockito.when(requestBodyUriSpec.uri(anyString())).thenReturn(requestBodyUriSpec);
         Mockito.when(requestBodyUriSpec.headers(any())).thenReturn(requestBodyUriSpec);
         Mockito.when(requestBodyUriSpec.bodyValue(any())).thenReturn(requestHeadersSpec);
         Mockito.when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-        AuthResponseDTO mockResponse = new AuthResponseDTO();
-        ResponseDTO responseDTO = new ResponseDTO();
-        responseDTO.setAuthStatus(true);
-        mockResponse.setResponse(responseDTO);
 
+        authResponse.setResponse(responseDto);
         Mockito.when(responseSpec.bodyToMono(AuthResponseDTO.class))
-                .thenReturn(Mono.just(mockResponse));
+                .thenReturn(Mono.just(authResponse));
     }
 
     @Test
