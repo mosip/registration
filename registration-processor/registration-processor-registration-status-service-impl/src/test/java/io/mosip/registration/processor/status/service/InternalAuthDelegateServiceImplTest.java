@@ -93,8 +93,7 @@ public class InternalAuthDelegateServiceImplTest {
         Mockito.when(requestBodyUriSpec.headers(any())).thenReturn(requestBodyUriSpec);
         Mockito.when(requestBodyUriSpec.bodyValue(any())).thenReturn(requestHeadersSpec);
         Mockito.when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-
-        authResponse.setResponse(responseDto);
+        
         Mockito.when(responseSpec.bodyToMono(AuthResponseDTO.class))
                 .thenReturn(Mono.just(authResponse));
     }
