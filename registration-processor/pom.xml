@@ -45,8 +45,7 @@
 		<maven.javadoc.version>3.2.0</maven.javadoc.version>
 		<maven.assembly.version>3.3.0</maven.assembly.version>
 
-		<!-- Core -->
-		<spring.boot.version>3.2.3</spring.boot.version>
+		
 
 
 		<!-- Miscellaneous -->
