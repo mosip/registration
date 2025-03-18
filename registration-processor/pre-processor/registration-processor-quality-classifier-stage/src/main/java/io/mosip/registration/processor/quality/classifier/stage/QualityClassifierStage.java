@@ -445,36 +445,16 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 			BIR[] birArray = new BIR[1];
 			birArray[0] = bir;
 			if(!biometricType.name().equalsIgnoreCase(BiometricType.EXCEPTION_PHOTO.name())) {
-                iBioProviderApi instance = null;
-                regProcLogger.error("BiometricType :: " + biometricType.name());
-				instance =  getBioSdkInstance(biometricType);
-				if (instance==null) {
-					throw new Exception(ErrorCode.SDK_REGISTRY_EMPTY.getErrorMessage());
-				}
-				try {
-					float[] qualityScoreresponse = null;
-					try {
-						qualityScoreresponse =instance.getSegmentQuality(birArray, null);
-					} catch (Exception e) {
-							e.printStackTrace();
-							regProcLogger.error("INSIDE getQualityTags :: Error Occured while getSegmentQuality for " + bir.getBdbInfo().getType().get(0) + " with birArray " + (birArray.length > 0 ? "Valid birArray" : "Not valid birArray") + " qualityScoreresponse " + qualityScoreresponse + e.getMessage());
-							regProcLogger.error("BIOINSTANCE :: " + instance.getClass().getName());
-					}
+				float[] qualityScoreresponse = getBioSdkInstance(biometricType).getSegmentQuality(birArray, null);
 
-					float score = qualityScoreresponse[0];
-					String bioType = bir.getBdbInfo().getType().get(0).value();
+				float score = qualityScoreresponse[0];
+				String bioType = bir.getBdbInfo().getType().get(0).value();
 
-					// Check for entry
-					Float storedMinScore = bioTypeMinScoreMap.get(bioType);
+				// Check for entry
+				Float storedMinScore = bioTypeMinScoreMap.get(bioType);
 
-					bioTypeMinScoreMap.put(bioType,
-							storedMinScore == null ? score : storedMinScore > score ? score : storedMinScore);
-
-				} catch (Exception e) {
-					e.printStackTrace();
-					regProcLogger.error("INSIDE getQualityTags :: BiometricType " + bir.getBdbInfo().getType().get(0) + "with birArray " + (birArray.length > 0 ? "Valid birArray" : "Not valid birArray") + e.getMessage());
-				}
-
+				bioTypeMinScoreMap.put(bioType,
+						storedMinScore == null ? score : storedMinScore > score ? score : storedMinScore);
 			}
 		}
 

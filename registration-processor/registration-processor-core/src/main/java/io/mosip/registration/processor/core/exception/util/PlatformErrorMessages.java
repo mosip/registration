@@ -1,7 +1,5 @@
 package io.mosip.registration.processor.core.exception.util;
 
-import io.mosip.registration.processor.core.status.util.StatusConstants;
-
 // TODO: Auto-generated Javadoc
 /**
  * The Enum RPRPlatformErrorMessages.
@@ -1345,13 +1343,16 @@ public enum PlatformErrorMessages {
 
     RPR_WIS_UNKNOWN_EXCEPTION(PlatformConstants.RPR_WORKFLOW_INSTANCE_SERVICE + "000", "Unknown Exception"),
 
+	RPR_WIS_ENTRY_ALREADY_PRESENT(PlatformConstants.RPR_WORKFLOW_INSTANCE_SERVICE + "001", "Entry Already present"),
+
 	RPR_WAS_REPROCESS_FAILED(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "004",
 			"When REPROCESS_FAILED then Resume should not occur"),
+
 
 	RPR_WAA_NOT_PAUSED(PlatformConstants.RPR_WORKFLOW_ACTION_API + "004",
 			"Workflow id  %s is not PAUSED"),
 
-    RPR_WIA_VALIDATION_SUCCESS(PlatformConstants.RPR_WORKFLOW_INSTANCE_API + "002", "Workflow instance request validated successfully"),
+    RPR_WIN_VALIDATION_SUCCESS(PlatformConstants.RPR_WORKFLOW_INSTANCE_API + "002", "Workflow instance request validated successfully"),
 
 	RPR_WAA_VALIDATION_SUCCESS(PlatformConstants.RPR_WORKFLOW_ACTION_API + "005", "Workflow id validated successfully"),
 

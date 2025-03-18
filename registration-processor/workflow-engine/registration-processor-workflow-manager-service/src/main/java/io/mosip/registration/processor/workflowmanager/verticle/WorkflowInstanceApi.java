@@ -115,7 +115,7 @@ public class WorkflowInstanceApi extends MosipRouter {
                     .createWorkflowInstance(workflowInstanceDTO.getRequest(), user);
 
             isTransactionSuccessful = true;
-            description.setMessage(PlatformErrorMessages.RPR_WIA_VALIDATION_SUCCESS.getMessage());
+            description.setMessage(PlatformErrorMessages.RPR_WIN_VALIDATION_SUCCESS.getMessage());
             updateAudit(description, regId, isTransactionSuccessful,
                     user);
 

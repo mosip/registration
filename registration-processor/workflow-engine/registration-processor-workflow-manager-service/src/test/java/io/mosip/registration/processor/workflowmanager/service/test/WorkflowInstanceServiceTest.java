@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 
 import java.util.Arrays;
 
+import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -59,6 +60,9 @@ public class WorkflowInstanceServiceTest {
     @Mock
     private Utilities utility;
 
+    @Mock
+    private SyncRegistrationService syncRegistrationService;
+
 
     private WorkflowInstanceRequestDTO workflowInstanceRequestDto;
 
@@ -72,15 +76,17 @@ public class WorkflowInstanceServiceTest {
         workflowInstanceRequestDto.setSource("REGISTRATION_CLIENT");
         workflowInstanceRequestDto.setAdditionalInfoReqId("");
         NotificationInfoDTO notificationInfoDto = new NotificationInfoDTO();
-        notificationInfoDto.setName("");
-        notificationInfoDto.setEmail("");
-        notificationInfoDto.setPhone("");
+        notificationInfoDto.setName("testName");
+        notificationInfoDto.setEmail("Email");
+        notificationInfoDto.setPhone("123456789");
         workflowInstanceRequestDto.setNotificationInfo(notificationInfoDto);
         Mockito.when(syncRegistrationDao.save(any())).thenReturn(null);
+        Mockito.when(syncRegistrationDao.findByRegistrationIdIdAndRegType(anyString(),any())).thenReturn(null);
         Mockito.when(encryptor.encrypt(anyString(),anyString(),anyString())).thenReturn(null);
         Mockito.when(utility.getRefId(anyString(),anyString())).thenReturn("");
         ReflectionTestUtils.setField(workflowInstanceService, "beginningStage", "PacketValidatorStage");
         ReflectionTestUtils.setField(workflowInstanceService, "mainProcesses", Arrays.asList("NEW"));
+        Mockito.when(utility.returnExternalProcess(any())).thenReturn("NEW");
         Mockito.doNothing().when(registrationStatusService).addRegistrationStatus(any(), anyString(),
                 anyString());
         Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
@@ -88,15 +94,24 @@ public class WorkflowInstanceServiceTest {
     }
 
     @Test
-    public void testAddRegistrationProcess() throws WorkflowInstanceException {
+    public void testAddRegistrationProcess() throws Exception {
         workflowInstanceService.createWorkflowInstance(workflowInstanceRequestDto, "USER");
     }
 
     @Test(expected = WorkflowInstanceException.class)
-    public void testAddRegistrationProcessTablenotAccessibleException() throws WorkflowInstanceException {
+    public void testAddRegistrationProcessTablenotAccessibleException() throws Exception {
         TablenotAccessibleException tablenotAccessibleException = new TablenotAccessibleException(
                 PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage());
         Mockito.doThrow(tablenotAccessibleException).when(registrationStatusService)
+                .addRegistrationStatus(any(), anyString(),
+                        anyString());
+        workflowInstanceService.createWorkflowInstance(workflowInstanceRequestDto, "USER");
+    }
+
+    @Test(expected = Exception.class)
+    public void testAddRegistrationProcessException() throws Exception {
+        Exception exp=new Exception(PlatformErrorMessages.UNKNOWN_EXCEPTION.getMessage());
+        Mockito.doThrow(exp).when(registrationStatusService)
                 .addRegistrationStatus(any(), anyString(),
                         anyString());
         workflowInstanceService.createWorkflowInstance(workflowInstanceRequestDto, "USER");

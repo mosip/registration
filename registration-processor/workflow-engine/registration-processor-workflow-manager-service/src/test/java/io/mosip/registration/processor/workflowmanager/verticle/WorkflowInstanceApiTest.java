@@ -363,7 +363,7 @@ public class WorkflowInstanceApiTest {
     }
 
     @Before
-    public void setup() throws WorkflowInstanceException {
+    public void setup() throws Exception {
         ReflectionTestUtils.setField(workflowInstanceApi, "dateTimePattern", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         ctx = setContext();
         registrationStatusDto = new InternalRegistrationStatusDto();
@@ -391,7 +391,7 @@ public class WorkflowInstanceApiTest {
     }
 
     @Test
-    public void testWorkflowInstanceException() throws WorkflowInstanceRequestValidationException, WorkflowInstanceException {
+    public void testWorkflowInstanceException() throws Exception {
 
         Mockito.doThrow(new WorkflowInstanceException(PlatformErrorMessages.RPR_WIS_UNKNOWN_EXCEPTION.getCode(),
                         PlatformErrorMessages.RPR_WIS_UNKNOWN_EXCEPTION.getMessage())).when(workflowInstanceService)
