@@ -1343,7 +1343,7 @@ public enum PlatformErrorMessages {
 
     RPR_WIS_UNKNOWN_EXCEPTION(PlatformConstants.RPR_WORKFLOW_INSTANCE_SERVICE + "000", "Unknown Exception"),
 
-	RPR_WIS_ENTRY_ALREADY_PRESENT(PlatformConstants.RPR_WORKFLOW_INSTANCE_SERVICE + "001", "Entry Already present"),
+	RPR_WIS_ALREADY_PRESENT_EXCEPTION(PlatformConstants.RPR_WORKFLOW_INSTANCE_SERVICE + "001", "WorkflowInstance already present"),
 
 	RPR_WAS_REPROCESS_FAILED(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "004",
 			"When REPROCESS_FAILED then Resume should not occur"),

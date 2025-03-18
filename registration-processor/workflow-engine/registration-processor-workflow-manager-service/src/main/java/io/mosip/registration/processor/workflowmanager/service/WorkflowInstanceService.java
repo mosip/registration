@@ -108,11 +108,10 @@ public class WorkflowInstanceService {
         InternalRegistrationStatusDto dto = new InternalRegistrationStatusDto();
         try {
             String workflowInstanceId = UUID.randomUUID().toString();
-            SyncRegistrationEntity syncRegistrationEntity = new SyncRegistrationEntity();
-            idEntrypresent(rid,regRequest.getProcess());
-            syncRegistrationEntity=createSyncRegistrationEntity(regRequest,workflowInstanceId,rid,user);
+            validateWorkflowInstanceAlreadyAvailable(rid, regRequest.getProcess());
+            SyncRegistrationEntity syncRegistrationEntity = createSyncRegistrationEntity(regRequest, workflowInstanceId, rid, user);
             syncRegistrationDao.save(syncRegistrationEntity);
-            dto=getInternalRegistrationStatusDto(regRequest,user,workflowInstanceId);
+            dto = getInternalRegistrationStatusDto(regRequest, user, workflowInstanceId);
             registrationStatusService.addRegistrationStatus(dto, MODULE_ID, MODULE_NAME);
             description
                     .setMessage(PlatformSuccessMessages.RPR_WORKFLOW_INSTANCE_SERVICE_SUCCESS.getMessage());
@@ -120,11 +119,10 @@ public class WorkflowInstanceService {
         } catch (TablenotAccessibleException e) {
             logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
         }
-        catch (WorkflowInstanceException e)
-        {
+        catch (WorkflowInstanceException e){
             logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
         }
-        catch (Exception e) {
+        catch (Exception e){
             logAndThrowError(e, PlatformErrorMessages.RPR_WIS_UNKNOWN_EXCEPTION.getCode(),
                     PlatformErrorMessages.RPR_WIS_UNKNOWN_EXCEPTION.getMessage(), rid, description);
         } finally {
@@ -173,7 +171,7 @@ public class WorkflowInstanceService {
     }
 
     private int getIterationForSyncRecord(WorkflowInstanceRequestDTO regEntity) throws IOException {
-        if (mainProcesses.contains(regEntity.getProcess()))
+        if(utility.getInternalProcess(regEntity.getProcess())!=null)
             return 1;
         AdditionalInfoRequestDto additionalInfoRequestDto = additionalInfoRequestService
                 .getAdditionalInfoRequestByReqId(regEntity.getAdditionalInfoReqId());
@@ -185,8 +183,7 @@ public class WorkflowInstanceService {
 
     private InternalRegistrationStatusDto getInternalRegistrationStatusDto(WorkflowInstanceRequestDTO regRequest, String user,String workflowInstanceId) throws IOException {
         regProcLogger.debug("getInternalRegistrationStatusDto :: entry {}", regRequest.toString());
-        InternalRegistrationStatusDto dto=new InternalRegistrationStatusDto();
-        int iteration = getIterationForSyncRecord(regRequest);
+        InternalRegistrationStatusDto dto = new InternalRegistrationStatusDto();
         dto.setRegistrationId(regRequest.getRegistrationId());
         dto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.WORKFLOW_RESUME.toString());
         dto.setRegistrationStageName(beginningStage);
@@ -203,7 +200,7 @@ public class WorkflowInstanceService {
         dto.setUpdatedBy(user);
         dto.setIsDeleted(false);
         dto.setSource(regRequest.getSource());
-        dto.setIteration(iteration);
+        dto.setIteration(getIterationForSyncRecord(regRequest));
         dto.setWorkflowInstanceId(workflowInstanceId);
         regProcLogger.debug("getInternalRegistrationStatusDto ::exit {}", regRequest.toString());
         return dto;
@@ -211,10 +208,10 @@ public class WorkflowInstanceService {
 
     public SyncRegistrationEntity createSyncRegistrationEntity(WorkflowInstanceRequestDTO regRequest,String workflowInstanceId,String rid, String user) throws EncryptionFailureException, ApisResourceAccessException, JsonProcessingException {
         regProcLogger.debug("createSyncRegistrationEntity :: entry {}", regRequest.toString());
-        String referenceId=null;
+        String referenceId = utility.getRefId(regRequest.getRegistrationId(), null);
         String timeStamp=DateUtils.formatToISOString(LocalDateTime.now());
         String additionalInfo = JsonUtils.javaObjectToJsonString(regRequest.getNotificationInfo());
-        byte[] encryptedInfo = encryptor.encrypt(additionalInfo, utility.getRefId(regRequest.getRegistrationId(), referenceId), timeStamp);
+        byte[] encryptedInfo = encryptor.encrypt(additionalInfo, referenceId, timeStamp);
         SyncRegistrationEntity syncRegistrationEntity = new SyncRegistrationEntity();
         syncRegistrationEntity.setWorkflowInstanceId(workflowInstanceId);
         syncRegistrationEntity.setRegistrationId(rid);
@@ -232,13 +229,13 @@ public class WorkflowInstanceService {
         return syncRegistrationEntity;
     }
 
-    public void idEntrypresent(String regId,String type) throws WorkflowInstanceException {
-        regProcLogger.debug("idEntrypresent :: entry {}", regId);
-        SyncRegistrationEntity syncRegistrationEntity=syncRegistrationDao.findByRegistrationIdIdAndRegType(regId,type);
-        if (syncRegistrationEntity!=null) {
-            throw new WorkflowInstanceException(PlatformErrorMessages.RPR_WIS_ENTRY_ALREADY_PRESENT.getCode(),PlatformErrorMessages.RPR_WIS_ENTRY_ALREADY_PRESENT.getMessage());
+    public void validateWorkflowInstanceAlreadyAvailable(String regId, String type) throws WorkflowInstanceException {
+        regProcLogger.debug("validateWorkflowInstanceAlreadyAvailable :: entry {}", regId);
+        SyncRegistrationEntity syncRegistrationEntity = syncRegistrationDao.findByRegistrationIdIdAndRegType(regId, type);
+        if (syncRegistrationEntity != null) {
+            throw new WorkflowInstanceException(PlatformErrorMessages.RPR_WIS_ALREADY_PRESENT_EXCEPTION.getCode(), PlatformErrorMessages.RPR_WIS_ALREADY_PRESENT_EXCEPTION.getMessage());
         }
-        regProcLogger.debug("idEntrypresent :: exit {}",regId);
+        regProcLogger.debug("validateWorkflowInstanceAlreadyAvailable :: exit {}", regId);
     }
 
 }

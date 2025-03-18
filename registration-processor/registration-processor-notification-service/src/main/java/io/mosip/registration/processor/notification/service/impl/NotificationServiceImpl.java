@@ -280,7 +280,7 @@ public class NotificationServiceImpl implements NotificationService {
 
 	private NotificationTemplateType setNotificationTemplateType(String regtype) throws IOException {
 		NotificationTemplateType type=null;
-		String externalProcess= utilities.returnExternalProcess(regtype);
+		String externalProcess= utilities.getInternalProcess(regtype);
 		if (regtype.equalsIgnoreCase(RegistrationType.LOST.toString()))
 			type = NotificationTemplateType.LOST_UIN;
         else if (regtype.equalsIgnoreCase(RegistrationType.NEW.toString()) ||

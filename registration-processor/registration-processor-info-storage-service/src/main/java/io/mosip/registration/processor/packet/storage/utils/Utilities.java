@@ -165,8 +165,8 @@ public class Utilities {
 	private List<String> trustedPackages;
 
 
-	@Value("#{${registration.processor.external-integration-process:{}}}")
-	private Map<String,String> externalIntegrationProcess;
+	@Value("#{${registration.processor.external-internal-process-mapping:{}}}")
+	private Map<String,String> externalInternalProcessMap;
 
 	@Autowired
 	private PacketInfoDao packetInfoDao;
@@ -865,9 +865,9 @@ public class Utilities {
 		return centerId + "_" + machineId;
 	}
 
-	public String returnExternalProcess(String pktProcess) throws IOException {
-		if (pktProcess==null) return "";
-		String process=externalIntegrationProcess.get(pktProcess);
-		return process!=null ? process:"";
+	public String getInternalProcess(String externalProcess){
+		if (externalProcess == null) return "";
+		String internalProcess = externalInternalProcessMap.get(externalProcess);
+		return internalProcess != null ? internalProcess : "";
 	}
 }
