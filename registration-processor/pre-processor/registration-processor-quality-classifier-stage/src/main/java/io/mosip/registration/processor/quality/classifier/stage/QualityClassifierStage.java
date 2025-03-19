@@ -9,9 +9,7 @@ import java.util.Map.Entry;
 
 import javax.annotation.PostConstruct;
 
-import io.mosip.kernel.biosdk.provider.util.ErrorCode;
 import org.apache.commons.lang.StringUtils;
-import org.assertj.core.internal.bytebuddy.implementation.bytecode.Throw;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.ComponentScan;
@@ -407,7 +405,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 		return bioProvider;
 	}
 	
-	private Map<String, String> getQualityTags(List<BIR> birs) throws BiometricException{ {
+	private Map<String, String> getQualityTags(List<BIR> birs) throws BiometricException{
 		
 		Map<String, String> tags = new HashMap<String, String>();
 
