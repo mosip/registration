@@ -4,16 +4,14 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.Period;
+import java.time.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.processor.core.exception.*;
 import org.apache.commons.lang.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -34,10 +32,6 @@ import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketManagerException;
-import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
-import io.mosip.registration.processor.core.exception.RegistrationProcessorUnCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO1;
 import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
@@ -156,9 +150,22 @@ public class Utilities {
 	@Value("#{'${registration.processor.queue.trusted.packages}'.split(',')}")
 	private List<String> trustedPackages;
 
+	@Value("#{${registration.processor.external-internal-process-mapping:{:}}}")
+	private Map<String,String> externalInternalProcessMap;
+
+	@Autowired
+	private PacketInfoDao packetInfoDao;
+
+	@Autowired
+	private PriorityBasedPacketManagerService packetManagerService;
+
 	/** The registration status dao. */
 	@Autowired
 	private RegistrationStatusDao registrationStatusDao;
+
+	/** The packet info manager. */
+	@Autowired
+	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
 
 	/** The Constant INBOUNDQUEUENAME. */
 	private static final String INBOUNDQUEUENAME = "inboundQueueName";
@@ -737,4 +744,9 @@ public class Utilities {
 		return centerId + "_" + machineId;
 	}
 
+	public String getInternalProcess(String externalProcess){
+		if (externalProcess == null) return "";
+		String internalProcess = externalInternalProcessMap.get(externalProcess);
+		return internalProcess != null ? internalProcess : "";
+	}
 }
