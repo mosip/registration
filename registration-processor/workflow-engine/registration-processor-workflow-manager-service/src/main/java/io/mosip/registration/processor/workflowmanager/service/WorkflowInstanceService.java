@@ -84,8 +84,6 @@ public class WorkflowInstanceService {
     @Autowired
     private Encryptor encryptor;
 
-    @Value("#{'${registration.processor.main-processes}'.split(',')}")
-    private List<String> mainProcesses;
 
     /** The module name. */
     public static String MODULE_NAME = ModuleName.WORKFLOW_INSTANCE_SERVICE.toString();
