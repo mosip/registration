@@ -364,6 +364,9 @@ public enum StatusUtil {
 
 	WORKFLOW_ACTION_SERVICE_SUCCESS(StatusConstants.WORKFLOW_ACTION_SERVICE + "001",
 			"Packet workflow resume  successfully"),
+
+    WORKFLOW_INSTANCE_SERVICE_SUCCESS(StatusConstants.WORKFLOW_INSTANCE_SERVICE + "001",
+            "Packet workflow instance created successfully"),
 	MANUAL_ADJUDICATION_FAILED(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "000",
 			"manual verification failed -"),
 	MANUAL_ADJUDICATION_RID_SHOULD_NOT_EMPTY_OR_NULL(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "001",

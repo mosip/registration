@@ -215,7 +215,7 @@ public class RegistrationStatusServiceImpl
 			registrationStatusDto.setLatestRegistrationTransactionId(transactionId);
 			registrationStatusDto.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 			RegistrationStatusEntity entity = convertDtoToEntity(registrationStatusDto, null, false);
-			entity.setStatusCode(RegistrationTransactionStatusCode.PROCESSING.toString());
+			entity.setStatusCode(registrationStatusDto.getStatusCode());
 			registrationStatusDao.save(entity);
 			isTransactionSuccessful = true;
 			description.setMessage("Registration status added successfully");

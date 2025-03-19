@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import org.json.JSONException;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,14 +94,15 @@ public class NotificationServiceImpl implements NotificationService {
 	private static final String DUPLICATE_UIN=NOTIFICATION_TEMPLATE_CODE+"duplicate.uin.";
 	private static final String TECHNICAL_ISSUE=NOTIFICATION_TEMPLATE_CODE+"technical.issue.";
 	private static final String PAUSED_FOR_ADDITIONAL_INFO=NOTIFICATION_TEMPLATE_CODE+"paused.for.additional.info.";
-
-
 	/** The core audit request builder. */
 	@Autowired
 	private AuditLogRequestBuilder auditLogRequestBuilder;
 
 	@Autowired
 	private ObjectMapper mapper;
+
+	@Autowired
+	Utilities utilities;
 
 	/** The notification emails. */
 	@Value("${registration.processor.notification.emails}")
@@ -274,14 +276,17 @@ public class NotificationServiceImpl implements NotificationService {
 
 	}
 
-	private NotificationTemplateType setNotificationTemplateType(String regtype) {
+	private NotificationTemplateType setNotificationTemplateType(String regtype){
 		NotificationTemplateType type=null;
+		String internalProcess= utilities.getInternalProcess(regtype);
 		if (regtype.equalsIgnoreCase(RegistrationType.LOST.toString()))
 			type = NotificationTemplateType.LOST_UIN;
-		else if (regtype.equalsIgnoreCase(RegistrationType.NEW.toString()))
+        else if (regtype.equalsIgnoreCase(RegistrationType.NEW.toString())||
+				internalProcess.equalsIgnoreCase(RegistrationType.NEW.toString()))
 			type = NotificationTemplateType.UIN_CREATED;
 		else if (regtype.equalsIgnoreCase(RegistrationType.UPDATE.toString())
-				|| regtype.equalsIgnoreCase(RegistrationType.RES_UPDATE.toString()))
+				|| regtype.equalsIgnoreCase(RegistrationType.RES_UPDATE.toString())
+				||internalProcess.equalsIgnoreCase(RegistrationType.UPDATE.toString()))
 			type = NotificationTemplateType.UIN_UPDATE;
 		else if (regtype.equalsIgnoreCase(RegistrationType.ACTIVATED.toString()))
 			type = NotificationTemplateType.UIN_UPDATE;
