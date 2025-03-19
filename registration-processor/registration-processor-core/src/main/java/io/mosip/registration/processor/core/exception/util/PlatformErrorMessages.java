@@ -1,7 +1,5 @@
 package io.mosip.registration.processor.core.exception.util;
 
-import io.mosip.registration.processor.core.status.util.StatusConstants;
-
 // TODO: Auto-generated Javadoc
 /**
  * The Enum RPRPlatformErrorMessages.
@@ -1322,7 +1320,15 @@ public enum PlatformErrorMessages {
 	RPR_WAA_INVALID_INPUT_PARAMETER(PlatformConstants.RPR_WORKFLOW_ACTION_API + "001",
 			"Invalid Request Value - %s"),
 
+    RPR_WIN_MISSING_INPUT_PARAMETER(PlatformConstants.RPR_WORKFLOW_INSTANCE_API + "000",
+            "Missing Request Value - %s"),
+
+    RPR_WIN_INVALID_INPUT_PARAMETER(PlatformConstants.RPR_WORKFLOW_INSTANCE_API + "001",
+            "Invalid Request Value - %s"),
+
 	RPR_WAA_UNKNOWN_EXCEPTION(PlatformConstants.RPR_WORKFLOW_ACTION_API + "002", "Unknown Exception"),
+
+    RPR_WIN_UNKNOWN_EXCEPTION(PlatformConstants.RPR_WORKFLOW_INSTANCE_API + "002", "Unknown Exception"),
 
 	RPR_WAS_UNKNOWN_WORKFLOW_ACTION(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "000",
 			"Workflow Action not supported"),
@@ -1335,11 +1341,18 @@ public enum PlatformErrorMessages {
 
 	RPR_WAS_UNKNOWN_EXCEPTION(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "003", "Unknown Exception"),
 
+    RPR_WIS_UNKNOWN_EXCEPTION(PlatformConstants.RPR_WORKFLOW_INSTANCE_SERVICE + "000", "Unknown Exception"),
+
+	RPR_WIS_ALREADY_PRESENT_EXCEPTION(PlatformConstants.RPR_WORKFLOW_INSTANCE_SERVICE + "001", "WorkflowInstance already present"),
+
 	RPR_WAS_REPROCESS_FAILED(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "004",
 			"When REPROCESS_FAILED then Resume should not occur"),
 
+
 	RPR_WAA_NOT_PAUSED(PlatformConstants.RPR_WORKFLOW_ACTION_API + "004",
 			"Workflow id  %s is not PAUSED"),
+
+    RPR_WIN_VALIDATION_SUCCESS(PlatformConstants.RPR_WORKFLOW_INSTANCE_API + "002", "Workflow instance request validated successfully"),
 
 	RPR_WAA_VALIDATION_SUCCESS(PlatformConstants.RPR_WORKFLOW_ACTION_API + "005", "Workflow id validated successfully"),
 
