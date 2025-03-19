@@ -281,7 +281,8 @@ public class NotificationServiceImpl implements NotificationService {
 		String internalProcess= utilities.getInternalProcess(regtype);
 		if (regtype.equalsIgnoreCase(RegistrationType.LOST.toString()))
 			type = NotificationTemplateType.LOST_UIN;
-        else if (regtype.equalsIgnoreCase(RegistrationType.NEW.toString()) ||
+        else if (regtype.equalsIgnoreCase(RegistrationType.NEW.toString())
+				|| regtype.equalsIgnoreCase(RegistrationType.RES_UPDATE.toString())||
 				internalProcess.equalsIgnoreCase(RegistrationType.NEW.toString()))
 			type = NotificationTemplateType.UIN_CREATED;
 		else if (regtype.equalsIgnoreCase(RegistrationType.UPDATE.toString())

@@ -53,16 +53,16 @@ public interface RegistrationStatusService<T, U, D> {
 	 */
 	public void addRegistrationStatus(U registrationStatusDto, String moduleId, String moduleName);
 
-    /**
-     * Adds the registration status.
-     *
-     * @param registrationStatusDto
-     *            the registration status dto
-     * @param moduleId
-     *            the module id
-     * @param moduleName
-     *            the module name
-     */
+	/**
+	 * Update registration status.
+	 *
+	 * @param registrationStatusDto
+	 *            the registration status dto
+	 * @param moduleId
+	 *            the module id
+	 * @param moduleName
+	 *            the module name
+	 */
 	public void updateRegistrationStatus(U registrationStatusDto, String moduleId, String moduleName);
 
 	/**
