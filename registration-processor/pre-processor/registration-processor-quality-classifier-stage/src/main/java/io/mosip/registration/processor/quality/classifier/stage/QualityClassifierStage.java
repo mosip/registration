@@ -407,7 +407,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 		return bioProvider;
 	}
 	
-	private Map<String, String> getQualityTags(List<BIR> birs) throws Exception {
+	private Map<String, String> getQualityTags(List<BIR> birs) throws BiometricException{ {
 		
 		Map<String, String> tags = new HashMap<String, String>();
 
