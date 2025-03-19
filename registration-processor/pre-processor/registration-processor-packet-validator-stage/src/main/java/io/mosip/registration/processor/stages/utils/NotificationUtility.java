@@ -419,14 +419,14 @@ public class NotificationUtility {
 
 	private NotificationTemplateType setNotificationTemplateType(InternalRegistrationStatusDto registrationStatusDto,
 			NotificationTemplateType type) throws IOException {
-		String externalProcess=utility.getInternalProcess(registrationStatusDto.getRegistrationType());
+		String internalProcess=utility.getInternalProcess(registrationStatusDto.getRegistrationType());
 		if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.LOST.getValue()))
 			type = NotificationTemplateType.LOST_UIN;
 		else if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.NEW.getValue()) ||
-				externalProcess.equalsIgnoreCase(SyncTypeDto.NEW.getValue()))
+				internalProcess.equalsIgnoreCase(SyncTypeDto.NEW.getValue()))
 			type = NotificationTemplateType.NEW_REG;
 		else if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.UPDATE.getValue())||
-				externalProcess.equalsIgnoreCase(SyncTypeDto.UPDATE.getValue()))
+				internalProcess.equalsIgnoreCase(SyncTypeDto.UPDATE.getValue()))
 			type = NotificationTemplateType.UIN_UPDATE;
 		else if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.RES_REPRINT.getValue()))
 			type = NotificationTemplateType.REPRINT_UIN;

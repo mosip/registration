@@ -94,8 +94,6 @@ public class NotificationServiceImpl implements NotificationService {
 	private static final String DUPLICATE_UIN=NOTIFICATION_TEMPLATE_CODE+"duplicate.uin.";
 	private static final String TECHNICAL_ISSUE=NOTIFICATION_TEMPLATE_CODE+"technical.issue.";
 	private static final String PAUSED_FOR_ADDITIONAL_INFO=NOTIFICATION_TEMPLATE_CODE+"paused.for.additional.info.";
-
-
 	/** The core audit request builder. */
 	@Autowired
 	private AuditLogRequestBuilder auditLogRequestBuilder;
@@ -278,16 +276,16 @@ public class NotificationServiceImpl implements NotificationService {
 
 	}
 
-	private NotificationTemplateType setNotificationTemplateType(String regtype) throws IOException {
+	private NotificationTemplateType setNotificationTemplateType(String regtype){
 		NotificationTemplateType type=null;
-		String externalProcess= utilities.getInternalProcess(regtype);
+		String internalProcess= utilities.getInternalProcess(regtype);
 		if (regtype.equalsIgnoreCase(RegistrationType.LOST.toString()))
 			type = NotificationTemplateType.LOST_UIN;
         else if (regtype.equalsIgnoreCase(RegistrationType.NEW.toString()) ||
-				externalProcess.equalsIgnoreCase(RegistrationType.NEW.toString()))
+				internalProcess.equalsIgnoreCase(RegistrationType.NEW.toString()))
 			type = NotificationTemplateType.UIN_CREATED;
 		else if (regtype.equalsIgnoreCase(RegistrationType.UPDATE.toString())
-				||externalProcess.equalsIgnoreCase(RegistrationType.UPDATE.toString()))
+				||internalProcess.equalsIgnoreCase(RegistrationType.UPDATE.toString()))
 			type = NotificationTemplateType.UIN_UPDATE;
 		else if (regtype.equalsIgnoreCase(RegistrationType.ACTIVATED.toString()))
 			type = NotificationTemplateType.UIN_UPDATE;
