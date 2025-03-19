@@ -418,7 +418,7 @@ public class NotificationUtility {
 	}
 
 	private NotificationTemplateType setNotificationTemplateType(InternalRegistrationStatusDto registrationStatusDto,
-			NotificationTemplateType type) throws IOException {
+			NotificationTemplateType type)  {
 		String internalProcess=utility.getInternalProcess(registrationStatusDto.getRegistrationType());
 		if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.LOST.getValue()))
 			type = NotificationTemplateType.LOST_UIN;
