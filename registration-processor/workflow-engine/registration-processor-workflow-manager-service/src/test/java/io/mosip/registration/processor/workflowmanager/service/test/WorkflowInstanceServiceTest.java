@@ -85,7 +85,6 @@ public class WorkflowInstanceServiceTest {
         Mockito.when(encryptor.encrypt(anyString(),anyString(),anyString())).thenReturn(null);
         Mockito.when(utility.getRefId(anyString(),anyString())).thenReturn("");
         ReflectionTestUtils.setField(workflowInstanceService, "beginningStage", "PacketValidatorStage");
-        ReflectionTestUtils.setField(workflowInstanceService, "mainProcesses", Arrays.asList("NEW"));
         Mockito.when(utility.getInternalProcess(any())).thenReturn("NEW");
         Mockito.doNothing().when(registrationStatusService).addRegistrationStatus(any(), anyString(),
                 anyString());
