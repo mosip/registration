@@ -365,6 +365,8 @@ public class WorkflowInstanceApiTest {
     @Before
     public void setup() throws Exception {
         ReflectionTestUtils.setField(workflowInstanceApi, "dateTimePattern", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        ReflectionTestUtils.setField(workflowInstanceApi, "version", "v1'");
+        ReflectionTestUtils.setField(workflowInstanceApi, "id", "mosip.registration.processor.workflow.instance");
         ctx = setContext();
         registrationStatusDto = new InternalRegistrationStatusDto();
 
