@@ -443,16 +443,16 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 			BIR[] birArray = new BIR[1];
 			birArray[0] = bir;
 			if(!biometricType.name().equalsIgnoreCase(BiometricType.EXCEPTION_PHOTO.name())) {
-				float[] qualityScoreresponse = getBioSdkInstance(biometricType).getSegmentQuality(birArray, null);
+			float[] qualityScoreresponse = getBioSdkInstance(biometricType).getSegmentQuality(birArray, null);
 
-				float score = qualityScoreresponse[0];
-				String bioType = bir.getBdbInfo().getType().get(0).value();
+			float score = qualityScoreresponse[0];
+			String bioType = bir.getBdbInfo().getType().get(0).value();
 
-				// Check for entry
-				Float storedMinScore = bioTypeMinScoreMap.get(bioType);
+			// Check for entry
+			Float storedMinScore = bioTypeMinScoreMap.get(bioType);
 
-				bioTypeMinScoreMap.put(bioType,
-						storedMinScore == null ? score : storedMinScore > score ? score : storedMinScore);
+			bioTypeMinScoreMap.put(bioType,
+					storedMinScore == null ? score : storedMinScore > score ? score : storedMinScore);
 			}
 		}
 
