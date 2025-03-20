@@ -106,12 +106,12 @@ public class WorkflowInstanceService {
         String rid = regRequest.getRegistrationId();
         InternalRegistrationStatusDto dto = new InternalRegistrationStatusDto();
         try {
-            int iteration = utility.getIterationForSyncRecord(additionalProcessCategoryMapping,regRequest.getProcess(),regRequest.getAdditionalInfoReqId());
+            int iteration = utility.getIterationForSyncRecord(additionalProcessCategoryMapping, regRequest.getProcess(), regRequest.getAdditionalInfoReqId());
             String workflowInstanceId = UUID.randomUUID().toString();
-            validateWorkflowInstanceAlreadyAvailable(rid, regRequest.getProcess(),iteration);
+            validateWorkflowInstanceAlreadyAvailable(rid, regRequest.getProcess(), iteration);
             SyncRegistrationEntity syncRegistrationEntity = createSyncRegistrationEntity(regRequest, workflowInstanceId, rid, user);
             syncRegistrationDao.save(syncRegistrationEntity);
-            dto = getInternalRegistrationStatusDto(regRequest, user, workflowInstanceId,iteration);
+            dto = getInternalRegistrationStatusDto(regRequest, user, workflowInstanceId, iteration);
             registrationStatusService.addRegistrationStatus(dto, MODULE_ID, MODULE_NAME);
             description
                     .setMessage(PlatformSuccessMessages.RPR_WORKFLOW_INSTANCE_SERVICE_SUCCESS.getMessage());

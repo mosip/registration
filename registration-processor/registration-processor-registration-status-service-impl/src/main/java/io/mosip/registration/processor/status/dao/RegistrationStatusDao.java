@@ -245,6 +245,6 @@ public class RegistrationStatusDao {
 
 	public List<RegistrationStatusEntity> findByIdAndProcessAndIteration(String id, String process, int iteration)
 	{
-		return registrationStatusRepositary.getByIdAndProcessAndIteration(id,process,iteration);
+		return registrationStatusRepositary.getByIdAndProcessAndIteration(id, process, iteration);
 	}
 }
