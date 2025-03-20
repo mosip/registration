@@ -155,8 +155,8 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.uin.generator.trim-whitespaces.simpleType-value:false}")
 	private boolean trimWhitespaces;
 
-	@Value("#{${mosip.regproc.uin.generator.external-internal-process-mapping:{:}}}")
-	private Map<String,String> externalInternalProcessMap;
+	@Value("#{${registration.processor.additional-process.category-mapping:{:}}}")
+	private Map<String,String> additionalProcessCategoryMapping;
 
 	/** The core audit request builder. */
 	@Autowired
@@ -324,7 +324,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 								description);
 					} else if (RegistrationType.UPDATE.toString().equalsIgnoreCase(object.getReg_type())
 							|| (RegistrationType.RES_UPDATE.toString().equalsIgnoreCase(object.getReg_type()))
-							|| (RegistrationType.UPDATE.toString().equalsIgnoreCase(getInternalMappedProcess(object.getReg_type())))) {
+							|| (RegistrationType.UPDATE.toString().equalsIgnoreCase(utility.getInternalProcess(additionalProcessCategoryMapping, object.getReg_type())))) {
 						isTransactionSuccessful = uinUpdate(registrationId, registrationStatusDto.getRegistrationType(), uinField, object, demographicIdentity,
 								description);
 					}
@@ -1135,10 +1135,10 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		}
 	}
 
-	public String getInternalMappedProcess(String externalProcess){
-		if (externalProcess == null) return "";
-		String internalProcess = externalInternalProcessMap.get(externalProcess);
-		regProcLogger.debug("External Process : {}, Internal Process : {}", externalProcess, internalProcess);
-		return internalProcess != null ? internalProcess : "";
-	}
+//	public String getInternalMappedProcess(String externalProcess){
+//		if (externalProcess == null) return "";
+//		String internalProcess = externalInternalProcessMap.get(externalProcess);
+//		regProcLogger.debug("External Process : {}, Internal Process : {}", externalProcess, internalProcess);
+//		return internalProcess != null ? internalProcess : "";
+//	}
 }

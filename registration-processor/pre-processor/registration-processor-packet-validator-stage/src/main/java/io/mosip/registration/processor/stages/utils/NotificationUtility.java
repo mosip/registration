@@ -96,6 +96,8 @@ public class NotificationUtility {
 	@Value("${mosip.default.user-preferred-language-attribute:#{null}}")
 	private String userPreferredLanguageAttribute;
 
+	@Value("#{${registration.processor.notification.additional-process.category-mapping:{:}}}")
+	private Map<String,String> additionalProcessCategoryForNotification;
 
 	/** The env. */
 	@Autowired
@@ -419,7 +421,7 @@ public class NotificationUtility {
 
 	private NotificationTemplateType setNotificationTemplateType(InternalRegistrationStatusDto registrationStatusDto,
 			NotificationTemplateType type)  {
-		String internalProcess=utility.getInternalProcess(registrationStatusDto.getRegistrationType());
+		String internalProcess = utility.getInternalProcess(additionalProcessCategoryForNotification, registrationStatusDto.getRegistrationType());
 		if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.LOST.getValue()))
 			type = NotificationTemplateType.LOST_UIN;
 		else if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.NEW.getValue()) ||

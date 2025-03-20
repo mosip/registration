@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.Map;
 
 import io.mosip.registration.processor.core.exception.*;
+import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
+import io.mosip.registration.processor.core.workflow.dto.WorkflowInstanceRequestDTO;
+import io.mosip.registration.processor.status.service.AdditionalInfoRequestService;
 import org.apache.commons.lang.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -154,9 +157,8 @@ public class Utilities {
 	@Value("#{'${registration.processor.queue.trusted.packages}'.split(',')}")
 	private List<String> trustedPackages;
 
-
-	@Value("#{${registration.processor.notification-external-internal-process-mapping:{:}}}")
-	private Map<String,String> externalInternalProcessMap;
+	@Value("#{'${registration.processor.main-processes}'.split(',')}")
+	private List<String> mainProcesses;
 
 	@Autowired
 	private PacketInfoDao packetInfoDao;
@@ -171,6 +173,9 @@ public class Utilities {
 	/** The packet info manager. */
 	@Autowired
 	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
+
+	@Autowired
+	private AdditionalInfoRequestService additionalInfoRequestService;
 
 
 	/** The Constant INBOUNDQUEUENAME. */
@@ -855,9 +860,20 @@ public class Utilities {
 		return centerId + "_" + machineId;
 	}
 
-	public String getInternalProcess(String externalProcess){
+public String getInternalProcess(Map<String, String> additionalProcessMap, String externalProcess){
 		if (externalProcess == null) return "";
-		String internalProcess = externalInternalProcessMap.get(externalProcess);
+		String internalProcess = additionalProcessMap.get(externalProcess);
 		return internalProcess != null ? internalProcess : "";
+	}
+
+	public int getIterationForSyncRecord(Map<String, String> additionalProcessMap, String process, String additionalRequestId) throws IOException {
+		if(mainProcesses.contains(process) || mainProcesses.contains(getInternalProcess(additionalProcessMap, process)))
+			return 1;
+		AdditionalInfoRequestDto additionalInfoRequestDto = additionalInfoRequestService
+				.getAdditionalInfoRequestByReqId(additionalRequestId);
+		if (additionalInfoRequestDto == null)
+			throw new AdditionalInfoIdNotFoundException();
+
+		return additionalInfoRequestDto.getAdditionalInfoIteration();
 	}
 }

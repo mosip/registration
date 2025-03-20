@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 
@@ -26,13 +27,11 @@ import org.springframework.stereotype.Component;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
-import io.mosip.registration.processor.core.exception.AdditionalInfoIdNotFoundException;
 import io.mosip.registration.processor.core.exception.WorkflowInstanceException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowInstanceRequestDTO;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
@@ -72,6 +71,9 @@ public class WorkflowInstanceService {
     private String beginningStage;
 
 
+    @Value("#{${registration.processor.additional-process.category-mapping:{:}}}")
+    private Map<String,String> additionalProcessCategoryMapping;
+
 
     @Autowired
     private Utilities utility;
@@ -104,7 +106,7 @@ public class WorkflowInstanceService {
         String rid = regRequest.getRegistrationId();
         InternalRegistrationStatusDto dto = new InternalRegistrationStatusDto();
         try {
-            int iteration = getIterationForSyncRecord(regRequest);
+            int iteration = utility.getIterationForSyncRecord(additionalProcessCategoryMapping,regRequest.getProcess(),regRequest.getAdditionalInfoReqId());
             String workflowInstanceId = UUID.randomUUID().toString();
             validateWorkflowInstanceAlreadyAvailable(rid, regRequest.getProcess(),iteration);
             SyncRegistrationEntity syncRegistrationEntity = createSyncRegistrationEntity(regRequest, workflowInstanceId, rid, user);
@@ -166,17 +168,6 @@ public class WorkflowInstanceService {
         regProcLogger.error("Error in  createWorkflowInstance  for registration id  {} {} {} {}", registrationId,
                 errorMessage, e.getMessage(), ExceptionUtils.getStackTrace(e));
         throw new WorkflowInstanceException(errorCode, errorMessage);
-    }
-
-    private int getIterationForSyncRecord(WorkflowInstanceRequestDTO regEntity) throws IOException {
-        if(utility.getInternalProcess(regEntity.getProcess())!=null)
-            return 1;
-        AdditionalInfoRequestDto additionalInfoRequestDto = additionalInfoRequestService
-                .getAdditionalInfoRequestByReqId(regEntity.getAdditionalInfoReqId());
-        if (additionalInfoRequestDto == null)
-            throw new AdditionalInfoIdNotFoundException();
-
-        return additionalInfoRequestDto.getAdditionalInfoIteration();
     }
 
     private InternalRegistrationStatusDto getInternalRegistrationStatusDto(WorkflowInstanceRequestDTO regRequest, String user,String workflowInstanceId, int iteration) throws IOException {

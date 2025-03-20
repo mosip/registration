@@ -84,7 +84,7 @@ public class WorkflowInstanceServiceTest {
         workflowInstanceRequestDto.setNotificationInfo(notificationInfoDto);
         Mockito.when(syncRegistrationDao.save(any())).thenReturn(null);
         ReflectionTestUtils.setField(workflowInstanceService, "beginningStage", "PacketValidatorStage");
-        Mockito.when(utility.getInternalProcess(any())).thenReturn("NEW");
+        Mockito.when(utility.getInternalProcess(any(),any())).thenReturn("NEW");
         Mockito.doNothing().when(registrationStatusService).addRegistrationStatus(any(), anyString(),
                 anyString());
         Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
