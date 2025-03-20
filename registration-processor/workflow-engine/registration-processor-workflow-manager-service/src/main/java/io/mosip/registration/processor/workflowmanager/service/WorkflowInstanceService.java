@@ -104,12 +104,12 @@ public class WorkflowInstanceService {
         String rid = regRequest.getRegistrationId();
         InternalRegistrationStatusDto dto = new InternalRegistrationStatusDto();
         try {
-            int itration =getIterationForSyncRecord(regRequest);
+            int iteration = getIterationForSyncRecord(regRequest);
             String workflowInstanceId = UUID.randomUUID().toString();
-            validateWorkflowInstanceAlreadyAvailable(rid, regRequest.getProcess(),itration);
+            validateWorkflowInstanceAlreadyAvailable(rid, regRequest.getProcess(),iteration);
             SyncRegistrationEntity syncRegistrationEntity = createSyncRegistrationEntity(regRequest, workflowInstanceId, rid, user);
             syncRegistrationDao.save(syncRegistrationEntity);
-            dto = getInternalRegistrationStatusDto(regRequest, user, workflowInstanceId,itration);
+            dto = getInternalRegistrationStatusDto(regRequest, user, workflowInstanceId,iteration);
             registrationStatusService.addRegistrationStatus(dto, MODULE_ID, MODULE_NAME);
             description
                     .setMessage(PlatformSuccessMessages.RPR_WORKFLOW_INSTANCE_SERVICE_SUCCESS.getMessage());
@@ -179,7 +179,7 @@ public class WorkflowInstanceService {
         return additionalInfoRequestDto.getAdditionalInfoIteration();
     }
 
-    private InternalRegistrationStatusDto getInternalRegistrationStatusDto(WorkflowInstanceRequestDTO regRequest, String user,String workflowInstanceId, int itration) throws IOException {
+    private InternalRegistrationStatusDto getInternalRegistrationStatusDto(WorkflowInstanceRequestDTO regRequest, String user,String workflowInstanceId, int iteration) throws IOException {
         regProcLogger.debug("getInternalRegistrationStatusDto :: entry {}", regRequest.toString());
         InternalRegistrationStatusDto dto = new InternalRegistrationStatusDto();
         dto.setRegistrationId(regRequest.getRegistrationId());
@@ -198,7 +198,7 @@ public class WorkflowInstanceService {
         dto.setUpdatedBy(user);
         dto.setIsDeleted(false);
         dto.setSource(regRequest.getSource());
-        dto.setIteration(itration);
+        dto.setIteration(iteration);
         dto.setWorkflowInstanceId(workflowInstanceId);
         regProcLogger.debug("getInternalRegistrationStatusDto ::exit {}", regRequest.toString());
         return dto;
@@ -227,13 +227,18 @@ public class WorkflowInstanceService {
         return syncRegistrationEntity;
     }
 
-    public void validateWorkflowInstanceAlreadyAvailable(String regId, String type,int itration) throws WorkflowInstanceException {
+    public void validateWorkflowInstanceAlreadyAvailable(String regId, String type, int iteration) throws WorkflowInstanceException {
         regProcLogger.debug("validateWorkflowInstanceAlreadyAvailable :: entry {}", regId);
-        List<RegistrationStatusEntity> registrationStatusEntities=registrationStatusDao.findByIdAndProcessAndIteration(regId,type,itration);
-        SyncRegistrationEntity syncRegistrationEntity = syncRegistrationDao.findByRegistrationIdIdAndRegType(regId, type);
-        if ( !registrationStatusEntities.isEmpty() || syncRegistrationEntity != null ) {
-            throw new WorkflowInstanceException(PlatformErrorMessages.RPR_WIS_ALREADY_PRESENT_EXCEPTION.getCode(), PlatformErrorMessages.RPR_WIS_ALREADY_PRESENT_EXCEPTION.getMessage());
-        }
+        List<RegistrationStatusEntity> registrationStatusEntities = registrationStatusDao.findByIdAndProcessAndIteration(regId, type, iteration);
+       if (!registrationStatusEntities.isEmpty()) {
+           regProcLogger.error("RegistrationStatus Entities found for RID {}", regId);
+           throw new WorkflowInstanceException(PlatformErrorMessages.RPR_WIS_ALREADY_PRESENT_EXCEPTION.getCode(), PlatformErrorMessages.RPR_WIS_ALREADY_PRESENT_EXCEPTION.getMessage());
+       }
+       SyncRegistrationEntity syncRegistrationEntity = syncRegistrationDao.findByRegistrationIdIdAndRegType(regId, type);
+       if (syncRegistrationEntity != null) {
+           regProcLogger.error("SyncRegistration Entity found for RID {}", regId);
+           throw new WorkflowInstanceException(PlatformErrorMessages.RPR_WIS_ALREADY_PRESENT_EXCEPTION.getCode(), PlatformErrorMessages.RPR_WIS_ALREADY_PRESENT_EXCEPTION.getMessage());
+       }
         regProcLogger.debug("validateWorkflowInstanceAlreadyAvailable :: exit {}", regId);
     }
 

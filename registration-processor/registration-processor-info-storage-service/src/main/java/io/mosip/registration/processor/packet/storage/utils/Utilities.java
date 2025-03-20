@@ -155,7 +155,7 @@ public class Utilities {
 	private List<String> trustedPackages;
 
 
-	@Value("#{${registration.processor.external-internal-process-mapping:{:}}}")
+	@Value("#{${registration.processor.notification-external-internal-process-mapping:{:}}}")
 	private Map<String,String> externalInternalProcessMap;
 
 	@Autowired

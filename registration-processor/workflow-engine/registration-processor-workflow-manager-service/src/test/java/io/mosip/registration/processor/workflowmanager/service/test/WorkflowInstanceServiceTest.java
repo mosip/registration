@@ -38,7 +38,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.*;
 
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(SpringRunner.class)
 @WebMvcTest
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 public class WorkflowInstanceServiceTest {
@@ -52,8 +52,6 @@ public class WorkflowInstanceServiceTest {
 
     @Mock
     private SyncRegistrationDao syncRegistrationDao;
-
-
 
     @InjectMocks
     WorkflowInstanceService workflowInstanceService;
@@ -119,17 +117,25 @@ public class WorkflowInstanceServiceTest {
     }
 
     @Test(expected = WorkflowInstanceException.class)
-    public void testvalidateWorkflowInstanceAlreadyAvailable() throws Exception {
+    public void testValidateWorkflowInstanceAlreadyAvailableForRegistrationStatusEntity() throws Exception {
         RegistrationStatusEntity  registrationStatusEntity=new RegistrationStatusEntity();
         registrationStatusEntity.setRegId("10007100070014420250319152546");
         List<RegistrationStatusEntity> registrationStatusEntities=new ArrayList<RegistrationStatusEntity>();
         registrationStatusEntities.add(registrationStatusEntity);
         SyncRegistrationEntity syncRegistrationEntity = new SyncRegistrationEntity();
+        Mockito.when(registrationStatusDao.findByIdAndProcessAndIteration(any(),any(),anyInt())).thenReturn(registrationStatusEntities);
+        Mockito.when(syncRegistrationDao.findByRegistrationIdIdAndRegType(anyString(),any())).thenReturn(syncRegistrationEntity);
+        workflowInstanceService.createWorkflowInstance(workflowInstanceRequestDto, "USER");
+    }
+
+    @Test(expected = WorkflowInstanceException.class)
+    public void testValidateWorkflowInstanceAlreadyAvailableForSyncRegistrationEntity() throws Exception {
+        List<RegistrationStatusEntity> registrationStatusEntities=new ArrayList<RegistrationStatusEntity>();
+        SyncRegistrationEntity syncRegistrationEntity = new SyncRegistrationEntity();
         syncRegistrationEntity.setRegistrationId("10007100070014420250319152546");
         Mockito.when(registrationStatusDao.findByIdAndProcessAndIteration(any(),any(),anyInt())).thenReturn(registrationStatusEntities);
         Mockito.when(syncRegistrationDao.findByRegistrationIdIdAndRegType(anyString(),any())).thenReturn(syncRegistrationEntity);
         workflowInstanceService.createWorkflowInstance(workflowInstanceRequestDto, "USER");
-
     }
 
 }
