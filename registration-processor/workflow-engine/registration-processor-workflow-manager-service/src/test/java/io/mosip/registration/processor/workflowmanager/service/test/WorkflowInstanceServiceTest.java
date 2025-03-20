@@ -1,10 +1,8 @@
 package io.mosip.registration.processor.workflowmanager.service.test;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-
-import java.util.Arrays;
-
+import io.mosip.registration.processor.status.dao.RegistrationStatusDao;
+import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
+import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,6 +10,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
@@ -23,7 +22,6 @@ import io.mosip.registration.processor.core.exception.WorkflowInstanceException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.workflow.dto.NotificationInfoDTO;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowInstanceRequestDTO;
-import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.dao.SyncRegistrationDao;
@@ -33,10 +31,14 @@ import io.mosip.registration.processor.status.encryptor.Encryptor;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.workflowmanager.service.WorkflowInstanceService;
-import io.mosip.registration.processor.workflowmanager.util.WebSubUtil;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.mockito.ArgumentMatchers.*;
 
 
-@RunWith(SpringRunner.class)
+@RunWith(MockitoJUnitRunner.class)
 @WebMvcTest
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 public class WorkflowInstanceServiceTest {
@@ -51,6 +53,8 @@ public class WorkflowInstanceServiceTest {
     @Mock
     private SyncRegistrationDao syncRegistrationDao;
 
+
+
     @InjectMocks
     WorkflowInstanceService workflowInstanceService;
 
@@ -61,7 +65,7 @@ public class WorkflowInstanceServiceTest {
     private Utilities utility;
 
     @Mock
-    private SyncRegistrationService syncRegistrationService;
+    private RegistrationStatusDao registrationStatusDao;
 
 
     private WorkflowInstanceRequestDTO workflowInstanceRequestDto;
@@ -81,15 +85,13 @@ public class WorkflowInstanceServiceTest {
         notificationInfoDto.setPhone("123456789");
         workflowInstanceRequestDto.setNotificationInfo(notificationInfoDto);
         Mockito.when(syncRegistrationDao.save(any())).thenReturn(null);
-        Mockito.when(syncRegistrationDao.findByRegistrationIdIdAndRegType(anyString(),any())).thenReturn(null);
-        Mockito.when(encryptor.encrypt(anyString(),anyString(),anyString())).thenReturn(null);
-        Mockito.when(utility.getRefId(anyString(),anyString())).thenReturn("");
         ReflectionTestUtils.setField(workflowInstanceService, "beginningStage", "PacketValidatorStage");
         Mockito.when(utility.getInternalProcess(any())).thenReturn("NEW");
         Mockito.doNothing().when(registrationStatusService).addRegistrationStatus(any(), anyString(),
                 anyString());
         Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(null);
+        Mockito.when(registrationStatusDao.findByIdAndProcessAndIteration(any(),any(),anyInt())).thenReturn(new ArrayList<RegistrationStatusEntity>());
     }
 
     @Test
@@ -114,6 +116,20 @@ public class WorkflowInstanceServiceTest {
                 .addRegistrationStatus(any(), anyString(),
                         anyString());
         workflowInstanceService.createWorkflowInstance(workflowInstanceRequestDto, "USER");
+    }
+
+    @Test(expected = WorkflowInstanceException.class)
+    public void testvalidateWorkflowInstanceAlreadyAvailable() throws Exception {
+        RegistrationStatusEntity  registrationStatusEntity=new RegistrationStatusEntity();
+        registrationStatusEntity.setRegId("10007100070014420250319152546");
+        List<RegistrationStatusEntity> registrationStatusEntities=new ArrayList<RegistrationStatusEntity>();
+        registrationStatusEntities.add(registrationStatusEntity);
+        SyncRegistrationEntity syncRegistrationEntity = new SyncRegistrationEntity();
+        syncRegistrationEntity.setRegistrationId("10007100070014420250319152546");
+        Mockito.when(registrationStatusDao.findByIdAndProcessAndIteration(any(),any(),anyInt())).thenReturn(registrationStatusEntities);
+        Mockito.when(syncRegistrationDao.findByRegistrationIdIdAndRegType(anyString(),any())).thenReturn(syncRegistrationEntity);
+        workflowInstanceService.createWorkflowInstance(workflowInstanceRequestDto, "USER");
+
     }
 
 }
