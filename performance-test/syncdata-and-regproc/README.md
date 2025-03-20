@@ -2,9 +2,8 @@
 ### Contains
 * This folder contains performance Test script of below API endpoint categories.
     01. Auth Token Generation (Setup)
-    02. Packet Generation (Setup)
-    03. S01 Packet Creator Rid Sync (Preparation)
-    04. S03 Generate RID (Preparation)
+    02. Create Centers And Machines (Setup)
+    03. S01 Packet Creation (Preparation)
     04. S01 Sync And Upload New Registration Packet (Execution)
     05. S02 Sync Data To The Server (Execution)
     06. S03 Get Transaction Details From Reg Id (Execution)
@@ -80,11 +79,10 @@ java -jar -Dfile.encoding=UTF-8 -Xdebug -Xrunjdwp:server=y,transport=dt_socket,a
 
 	* Auth Token Generation (Setup) - In this thread group we are creating the authorization token values of Syncdata, Regpoc, Resident and Regproc - Using User Id which will be saved to a file in the Run Time Files in bin folder of JMeter.
 
-	* Packet Generation (Setup) - In this thread group we will basically create the context with the help of existing center id's, machine id's & user id's present in our current environment & we will read them through a file named context_details.csv. Once the contexts are created we will use the same in the execution thread group where basically the packet generation happens & then the packet path gets stored in a file naming as Run Time Files in bin folder of JMeter.
+	* Create Centers And Machines (Setup) - In this thread group we create centres and machines before starting the test, basedata setup for any new environment.
 
-	* S01 Packet Creator Rid Sync (Preparation) -  To create encrypted data for generated packets(test data to registration processor sync API). Which will basically create a file with the encrypted data's for all the packets created.
+	* Packet Creation (Preparation) - In this thread group we will basically create the context with the help of existing center id's, machine id's & user id's present in our current environment & we will read them through a file named context_details.csv. Once the contexts are created we will use the same in the execution thread group where basically the packet generation happens & then the packet path gets stored in a file naming as Run Time Files in bin folder of JMeter. This step also includes rid sync request to packet creator and sync, upload to reg proc to create preparatory test data for us.
 
-	* S03 Generate RID (Preparation) -  In this thread group we prepare the reg id's required for the execution of S03 to get the transaction details.
 
 	* S01 Sync And Upload Registration Packet (Execution) : 
 		* S01 T01 Sync Registration Packet : This API endpoint will sync the packets.
