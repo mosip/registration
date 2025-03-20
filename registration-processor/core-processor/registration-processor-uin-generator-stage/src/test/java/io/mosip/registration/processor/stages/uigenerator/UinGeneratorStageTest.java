@@ -2569,7 +2569,7 @@ public class UinGeneratorStageTest {
 			PacketManagerException, JSONException, IdrepoDraftException, IdrepoDraftReprocessableException {
 		Map<String ,String> externalInternalMap = new HashMap<>();
 		externalInternalMap.put("CRVS_UPDATE", "UPDATE");
-		ReflectionTestUtils.setField(uinGeneratorStage, "externalInternalProcessMap", externalInternalMap);
+		ReflectionTestUtils.setField(uinGeneratorStage, "additionalProcessCategoryMapping", externalInternalMap);
 		Map<String, String> fieldMap = new HashMap<>();
 		fieldMap.put("UIN", "123456");
 		fieldMap.put("name", "mono");
