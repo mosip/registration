@@ -1134,11 +1134,4 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			object.setIsValid(false);
 		}
 	}
-
-//	public String getInternalMappedProcess(String externalProcess){
-//		if (externalProcess == null) return "";
-//		String internalProcess = externalInternalProcessMap.get(externalProcess);
-//		regProcLogger.debug("External Process : {}, Internal Process : {}", externalProcess, internalProcess);
-//		return internalProcess != null ? internalProcess : "";
-//	}
 }
