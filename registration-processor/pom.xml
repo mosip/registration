@@ -24,7 +24,7 @@
 
 	<groupId>io.mosip.registrationprocessor</groupId>
 	<artifactId>registration-processor</artifactId>
-	<version>1.3.0-SNAPSHOT</version>
+	<version>1.3.0-RC</version>
 	<packaging>pom</packaging>
 
 	<name>registration-processor</name>
