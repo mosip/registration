@@ -57,6 +57,7 @@ import io.mosip.registration.processor.status.service.impl.RegistrationStatusSer
 import io.mosip.registration.processor.status.service.impl.SyncRegistrationServiceImpl;
 import io.mosip.registration.processor.status.utilities.RegistrationUtility;
 import io.mosip.registration.processor.status.validator.PacketExternalStatusRequestValidator;
+import org.springframework.web.reactive.function.client.WebClient;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -69,6 +70,10 @@ public class PacketExternalStatusControllerTest {
 	@MockBean
 	@Qualifier("selfTokenRestTemplate")
 	private RestTemplate restTemplate;
+
+	@MockBean
+	@Qualifier("selfTokenWebClient")
+	private WebClient webClient;
 
 	@InjectMocks
 	PacketExternalStatusController packetExternalStatusController = new PacketExternalStatusController();

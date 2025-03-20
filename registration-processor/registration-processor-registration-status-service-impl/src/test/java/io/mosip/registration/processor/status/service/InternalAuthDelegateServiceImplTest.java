@@ -1,13 +1,15 @@
 package io.mosip.registration.processor.status.service;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-
-import java.util.Optional;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mosip.registration.processor.core.auth.dto.AuthRequestDTO;
+import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
+import io.mosip.registration.processor.core.auth.dto.IndividualIdDto;
+import io.mosip.registration.processor.core.auth.dto.ResponseDTO;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.http.ResponseWrapper;
+import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
+import io.mosip.registration.processor.rest.client.utils.RestApiClient;
+import io.mosip.registration.processor.status.service.impl.InternalAuthDelegateServiceImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,95 +22,110 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Optional;
 
-import io.mosip.kernel.core.exception.NoSuchAlgorithmException;
-import io.mosip.registration.processor.core.auth.dto.AuthRequestDTO;
-import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
-import io.mosip.registration.processor.core.auth.dto.IndividualIdDto;
-import io.mosip.registration.processor.core.auth.dto.ResponseDTO;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.http.ResponseWrapper;
-import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
-import io.mosip.registration.processor.rest.client.utils.RestApiClient;
-import io.mosip.registration.processor.status.service.impl.InternalAuthDelegateServiceImpl;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 public class InternalAuthDelegateServiceImplTest {
 
-	@InjectMocks
-	InternalAuthDelegateServiceImpl internalAuthDelegateServiceImpl = new InternalAuthDelegateServiceImpl();
+    @InjectMocks
+    InternalAuthDelegateServiceImpl internalAuthDelegateServiceImpl = new InternalAuthDelegateServiceImpl();
 
-	@Mock
-	RegistrationProcessorRestClientService<Object> restClientService;
+    @Mock
+    RegistrationProcessorRestClientService<Object> restClientService;
 
-	@Mock
-	private RestApiClient restApiClient;
+    @Mock
+    private RestApiClient restApiClient;
 
-	@Mock
-	RestTemplate restTemplate;
+    @Mock
+    RestTemplate restTemplate;
 
-	@Mock
-	ObjectMapper mapper;
+    @Mock
+    WebClient webClient;
 
-	AuthRequestDTO authRequestDTO = new AuthRequestDTO();
-	AuthResponseDTO authResponse = new AuthResponseDTO();
-	ResponseDTO responseDto = new ResponseDTO();
+    @Mock
+    WebClient.RequestBodyUriSpec requestBodyUriSpec;
+    @Mock
+    WebClient.RequestHeadersSpec requestHeadersSpec;
+    @Mock
+    WebClient.ResponseSpec responseSpec;
 
-	IndividualIdDto individualIdDto = new IndividualIdDto();
-	ResponseWrapper<IndividualIdDto> response = new ResponseWrapper<IndividualIdDto>();
+    @Mock
+    ObjectMapper mapper;
 
-	@Before
-	public void setup() throws Exception {
+    AuthRequestDTO authRequestDTO = new AuthRequestDTO();
+    AuthResponseDTO authResponse = new AuthResponseDTO();
+    ResponseDTO responseDto = new ResponseDTO();
 
-		ReflectionTestUtils.setField(internalAuthDelegateServiceImpl, "internalAuthUri",
-				"https://dev.mosip.net/idauthentication/v1/internal/auth");
-		ReflectionTestUtils.setField(internalAuthDelegateServiceImpl, "getCertificateUri",
-				"https://dev.mosip.net/idauthentication/v1/internal/getCertificate");
-		authRequestDTO.setEnv("Staging");
-		authRequestDTO.setIndividualId("45128164920495");
-		authRequestDTO.setIndividualIdType("UIN");
-		authRequestDTO.setRequest("BFijjscahGoaaol");
+    IndividualIdDto individualIdDto = new IndividualIdDto();
+    ResponseWrapper<IndividualIdDto> response = new ResponseWrapper<IndividualIdDto>();
 
-		responseDto.setAuthStatus(true);
-		authResponse.setId("");
-		authResponse.setResponse(responseDto);
-		ResponseEntity<AuthResponseDTO> entity = new ResponseEntity<AuthResponseDTO>(authResponse, HttpStatus.OK);
-		Mockito.when(restApiClient.getRestTemplate()).thenReturn(restTemplate);
-		Mockito.when(restTemplate.exchange(anyString(), any(), any(), eq(AuthResponseDTO.class))).thenReturn(entity);
-		Mockito.when(mapper.writeValueAsString(any())).thenReturn("");
-		Mockito.when(mapper.readValue(anyString(), eq(IndividualIdDto.class))).thenReturn(individualIdDto);
-	}
+    @Before
+    public void setup() throws Exception {
 
-	@Test
-	public void authenticateSuccessTest() throws Exception {
+        ReflectionTestUtils.setField(internalAuthDelegateServiceImpl, "internalAuthUri",
+                "https://dev.mosip.net/idauthentication/v1/internal/auth");
+        ReflectionTestUtils.setField(internalAuthDelegateServiceImpl, "getCertificateUri",
+                "https://dev.mosip.net/idauthentication/v1/internal/getCertificate");
+        authRequestDTO.setEnv("Staging");
+        authRequestDTO.setIndividualId("45128164920495");
+        authRequestDTO.setIndividualIdType("UIN");
+        authRequestDTO.setRequest("BFijjscahGoaaol");
 
-		individualIdDto.setIndividualId("84953741281492");
-		response.setResponse(individualIdDto);
-		response.setErrors(null);
-		Mockito.when(restClientService.getApi(any(), any(), anyString(), anyString(), any())).thenReturn(response);
-		AuthResponseDTO result = internalAuthDelegateServiceImpl.authenticate(authRequestDTO, new HttpHeaders());
-		assertEquals(result.getResponse().isAuthStatus(), true);
-	}
+        responseDto.setAuthStatus(true);
+        authResponse.setId("");
+        authResponse.setResponse(responseDto);
+        ResponseEntity<AuthResponseDTO> entity = new ResponseEntity<AuthResponseDTO>(authResponse, HttpStatus.OK);
+        Mockito.when(restApiClient.getRestTemplate()).thenReturn(restTemplate);
+        Mockito.when(restTemplate.exchange(anyString(), any(), any(), eq(AuthResponseDTO.class))).thenReturn(entity);
+        Mockito.when(mapper.writeValueAsString(any())).thenReturn("");
+        Mockito.when(mapper.readValue(anyString(), eq(IndividualIdDto.class))).thenReturn(individualIdDto);
 
-	@Test(expected = ApisResourceAccessException.class)
-	public void authenticateIndividualIdNotFoundFailureTest() throws Exception {
 
-		individualIdDto.setIndividualId("84953741281491");
-		response.setResponse(individualIdDto);
-		Mockito.when(restClientService.getApi(any(), any(), anyString(), anyString(), any())).thenReturn(response);
-		internalAuthDelegateServiceImpl.authenticate(authRequestDTO, new HttpHeaders());
-	}
+        Mockito.when(webClient.post()).thenReturn(requestBodyUriSpec);
+        Mockito.when(requestBodyUriSpec.uri(anyString())).thenReturn(requestBodyUriSpec);
+        Mockito.when(requestBodyUriSpec.headers(any())).thenReturn(requestBodyUriSpec);
+        Mockito.when(requestBodyUriSpec.bodyValue(any())).thenReturn(requestHeadersSpec);
+        Mockito.when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
+        
+        Mockito.when(responseSpec.bodyToMono(AuthResponseDTO.class))
+                .thenReturn(Mono.just(authResponse));
+    }
 
-	@Test
-	public void getCertificateSuccessTest() throws Exception {
+    @Test
+    public void authenticateSuccessTest() throws Exception {
 
-		Optional<String> referenceId = Optional.of("PROCESSOR");
-		Mockito.when(restApiClient.getApi(any(), eq(Object.class))).thenReturn(new Object());
-		Object result = internalAuthDelegateServiceImpl.getCertificate("REGISTRATIONCLIENT",
-				referenceId, new HttpHeaders());
-		assertNotNull(result);
-	}
+        individualIdDto.setIndividualId("84953741281492");
+        response.setResponse(individualIdDto);
+        response.setErrors(null);
+        Mockito.when(restClientService.getApi(any(), any(), anyString(), anyString(), any())).thenReturn(response);
+        AuthResponseDTO result = internalAuthDelegateServiceImpl.authenticate(authRequestDTO, new HttpHeaders());
+        assertEquals(result.getResponse().isAuthStatus(), true);
+    }
+
+    @Test(expected = ApisResourceAccessException.class)
+    public void authenticateIndividualIdNotFoundFailureTest() throws Exception {
+
+        individualIdDto.setIndividualId("84953741281491");
+        response.setResponse(individualIdDto);
+        Mockito.when(restClientService.getApi(any(), any(), anyString(), anyString(), any())).thenReturn(response);
+        internalAuthDelegateServiceImpl.authenticate(authRequestDTO, new HttpHeaders());
+    }
+
+    @Test
+    public void getCertificateSuccessTest() throws Exception {
+
+        Optional<String> referenceId = Optional.of("PROCESSOR");
+        Mockito.when(restApiClient.getApi(any(), eq(Object.class))).thenReturn(new Object());
+        Object result = internalAuthDelegateServiceImpl.getCertificate("REGISTRATIONCLIENT",
+                referenceId, new HttpHeaders());
+        assertNotNull(result);
+    }
 
 }
