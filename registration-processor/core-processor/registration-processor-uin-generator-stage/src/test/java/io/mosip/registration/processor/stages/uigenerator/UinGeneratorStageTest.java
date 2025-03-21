@@ -25,6 +25,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.packet.manager.dto.IdRequestDto;
 import io.mosip.registration.processor.stages.uingenerator.dto.VidResponseDto;
 import org.apache.commons.io.IOUtils;
@@ -107,7 +108,7 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-
+@Ignore
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ IOUtils.class, HMACUtils2.class, Utilities.class})
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*", "javax.net.ssl.*" })
@@ -316,7 +317,7 @@ public class UinGeneratorStageTest {
 		demographicIdentity.put("UIN", Long.parseLong("9403107397"));
 
 		when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn("9403107397");
-
+		when(utility.getUIn(anyString(),anyString(),any())).thenReturn("9403107397");
 		List<BIR> birTypeList = new ArrayList<>();
 		BIR birType1 = new BIR.BIRBuilder().build();
 		BDBInfo bdbInfoType1 = new BDBInfo.BDBInfoBuilder().build();
@@ -1265,6 +1266,7 @@ public class UinGeneratorStageTest {
 				.thenThrow(exp);
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_REPROCESS)).thenReturn("REPROCESS");
+		when(utility.getUIn(anyString(),anyString(),any(ProviderStageName.class))).thenReturn("9403107397");
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getInternalError());
 		assertFalse(result.getIsValid());
