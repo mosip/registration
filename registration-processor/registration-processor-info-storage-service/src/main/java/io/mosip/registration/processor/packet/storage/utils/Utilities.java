@@ -608,9 +608,9 @@ public class Utilities {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
 				"Utilities::getUIn()::entry");
 		String UIN = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.UIN, process, stageName);
-		if(isVidSupportedForUpdate && validateVid(UIN)) {
+		if(isVidSupportedForUpdate && StringUtils.isNotEmpty(UIN) && validateVid(UIN)) {
 			regProcLogger.info("Vid structure validated successfully");
-			JSONObject responseJson = retrieveIdrepoJson(id);
+			JSONObject responseJson = retrieveIdrepoJson(UIN);
 			regProcLogger.info("Idrepo responce for getUinByVid : {}",responseJson.toString());
 			if (responseJson != null) {
 				JSONObject demographicIdentity = JsonUtil.getJSONObject(responseJson, getGetRegProcessorDemographicIdentity());
