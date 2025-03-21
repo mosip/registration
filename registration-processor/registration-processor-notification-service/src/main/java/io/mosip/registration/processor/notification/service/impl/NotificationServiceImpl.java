@@ -132,6 +132,10 @@ public class NotificationServiceImpl implements NotificationService {
 	@Value("${registration.processor.notification_service_pausedforadditonalinfo_subscriber_callback_url}")
 	private String pausedForAdditonalInfoCallbackURL;
 
+
+	@Value("#{${registration.processor.notification.additional-process.category-mapping:{:}}}")
+	private Map<String,String> additionalProcessCategoryForNotification;
+
 	/** The rest client service. */
 	@Autowired
 	private RegistrationProcessorRestClientService<Object> restClientService;
@@ -278,7 +282,7 @@ public class NotificationServiceImpl implements NotificationService {
 
 	private NotificationTemplateType setNotificationTemplateType(String regtype){
 		NotificationTemplateType type=null;
-		String internalProcess= utilities.getInternalProcess(regtype);
+		String internalProcess= utilities.getInternalProcess(additionalProcessCategoryForNotification, regtype);
 		if (regtype.equalsIgnoreCase(RegistrationType.LOST.toString()))
 			type = NotificationTemplateType.LOST_UIN;
         else if (regtype.equalsIgnoreCase(RegistrationType.NEW.toString())||

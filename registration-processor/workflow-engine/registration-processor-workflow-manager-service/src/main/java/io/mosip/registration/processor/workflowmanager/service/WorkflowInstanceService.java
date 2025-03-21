@@ -5,24 +5,21 @@ import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.code.*;
-import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
+import io.mosip.registration.processor.status.dao.RegistrationStatusDao;
 import io.mosip.registration.processor.status.dto.*;
+import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 import io.mosip.registration.processor.status.exception.EncryptionFailureException;
-import io.mosip.registration.processor.status.exception.RegStatusAppException;
-import io.mosip.registration.processor.status.service.SyncRegistrationService;
-import io.mosip.registration.processor.status.service.impl.SyncRegistrationServiceImpl;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.json.JSONObject;
-import org.json.simple.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -30,13 +27,11 @@ import org.springframework.stereotype.Component;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
-import io.mosip.registration.processor.core.exception.AdditionalInfoIdNotFoundException;
 import io.mosip.registration.processor.core.exception.WorkflowInstanceException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowInstanceRequestDTO;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
@@ -61,6 +56,9 @@ public class WorkflowInstanceService {
     @Autowired
     private SyncRegistrationDao syncRegistrationDao;
 
+    @Autowired
+    private RegistrationStatusDao registrationStatusDao;
+
     /** The core audit request builder. */
     @Autowired
     AuditLogRequestBuilder auditLogRequestBuilder;
@@ -72,6 +70,9 @@ public class WorkflowInstanceService {
     @Value("${mosip.regproc.workflow-manager.instance-beginning-stage:PacketValidatorStage}")
     private String beginningStage;
 
+
+    @Value("#{${registration.processor.additional-process.category-mapping:{:}}}")
+    private Map<String,String> additionalProcessCategoryMapping;
 
 
     @Autowired
@@ -105,11 +106,12 @@ public class WorkflowInstanceService {
         String rid = regRequest.getRegistrationId();
         InternalRegistrationStatusDto dto = new InternalRegistrationStatusDto();
         try {
+            int iteration = utility.getIterationForSyncRecord(additionalProcessCategoryMapping, regRequest.getProcess(), regRequest.getAdditionalInfoReqId());
             String workflowInstanceId = UUID.randomUUID().toString();
-            validateWorkflowInstanceAlreadyAvailable(rid, regRequest.getProcess());
+            validateWorkflowInstanceAlreadyAvailable(rid, regRequest.getProcess(), iteration);
             SyncRegistrationEntity syncRegistrationEntity = createSyncRegistrationEntity(regRequest, workflowInstanceId, rid, user);
             syncRegistrationDao.save(syncRegistrationEntity);
-            dto = getInternalRegistrationStatusDto(regRequest, user, workflowInstanceId);
+            dto = getInternalRegistrationStatusDto(regRequest, user, workflowInstanceId, iteration);
             registrationStatusService.addRegistrationStatus(dto, MODULE_ID, MODULE_NAME);
             description
                     .setMessage(PlatformSuccessMessages.RPR_WORKFLOW_INSTANCE_SERVICE_SUCCESS.getMessage());
@@ -168,18 +170,7 @@ public class WorkflowInstanceService {
         throw new WorkflowInstanceException(errorCode, errorMessage);
     }
 
-    private int getIterationForSyncRecord(WorkflowInstanceRequestDTO regEntity) throws IOException {
-        if(utility.getInternalProcess(regEntity.getProcess())!=null)
-            return 1;
-        AdditionalInfoRequestDto additionalInfoRequestDto = additionalInfoRequestService
-                .getAdditionalInfoRequestByReqId(regEntity.getAdditionalInfoReqId());
-        if (additionalInfoRequestDto == null)
-            throw new AdditionalInfoIdNotFoundException();
-
-        return additionalInfoRequestDto.getAdditionalInfoIteration();
-    }
-
-    private InternalRegistrationStatusDto getInternalRegistrationStatusDto(WorkflowInstanceRequestDTO regRequest, String user,String workflowInstanceId) throws IOException {
+    private InternalRegistrationStatusDto getInternalRegistrationStatusDto(WorkflowInstanceRequestDTO regRequest, String user,String workflowInstanceId, int iteration) throws IOException {
         regProcLogger.debug("getInternalRegistrationStatusDto :: entry {}", regRequest.toString());
         InternalRegistrationStatusDto dto = new InternalRegistrationStatusDto();
         dto.setRegistrationId(regRequest.getRegistrationId());
@@ -198,7 +189,7 @@ public class WorkflowInstanceService {
         dto.setUpdatedBy(user);
         dto.setIsDeleted(false);
         dto.setSource(regRequest.getSource());
-        dto.setIteration(getIterationForSyncRecord(regRequest));
+        dto.setIteration(iteration);
         dto.setWorkflowInstanceId(workflowInstanceId);
         regProcLogger.debug("getInternalRegistrationStatusDto ::exit {}", regRequest.toString());
         return dto;
@@ -227,12 +218,18 @@ public class WorkflowInstanceService {
         return syncRegistrationEntity;
     }
 
-    public void validateWorkflowInstanceAlreadyAvailable(String regId, String type) throws WorkflowInstanceException {
+    public void validateWorkflowInstanceAlreadyAvailable(String regId, String type, int iteration) throws WorkflowInstanceException {
         regProcLogger.debug("validateWorkflowInstanceAlreadyAvailable :: entry {}", regId);
-        SyncRegistrationEntity syncRegistrationEntity = syncRegistrationDao.findByRegistrationIdIdAndRegType(regId, type);
-        if (syncRegistrationEntity != null) {
-            throw new WorkflowInstanceException(PlatformErrorMessages.RPR_WIS_ALREADY_PRESENT_EXCEPTION.getCode(), PlatformErrorMessages.RPR_WIS_ALREADY_PRESENT_EXCEPTION.getMessage());
-        }
+        List<RegistrationStatusEntity> registrationStatusEntities = registrationStatusDao.findByIdAndProcessAndIteration(regId, type, iteration);
+       if (!registrationStatusEntities.isEmpty()) {
+           regProcLogger.error("RegistrationStatus Entities found for RID {}", regId);
+           throw new WorkflowInstanceException(PlatformErrorMessages.RPR_WIS_ALREADY_PRESENT_EXCEPTION.getCode(), PlatformErrorMessages.RPR_WIS_ALREADY_PRESENT_EXCEPTION.getMessage());
+       }
+       SyncRegistrationEntity syncRegistrationEntity = syncRegistrationDao.findByRegistrationIdIdAndRegType(regId, type);
+       if (syncRegistrationEntity != null) {
+           regProcLogger.error("SyncRegistration Entity found for RID {}", regId);
+           throw new WorkflowInstanceException(PlatformErrorMessages.RPR_WIS_ALREADY_PRESENT_EXCEPTION.getCode(), PlatformErrorMessages.RPR_WIS_ALREADY_PRESENT_EXCEPTION.getMessage());
+       }
         regProcLogger.debug("validateWorkflowInstanceAlreadyAvailable :: exit {}", regId);
     }
 
