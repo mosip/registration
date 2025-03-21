@@ -147,6 +147,7 @@
 		<kernel-keymanager-service.version>1.2.0.1</kernel-keymanager-service.version>
 		 <kernel.websubclient.version>1.2.0.1</kernel.websubclient.version>
 		 <kernel-biosdk-provider.version>1.2.0.1</kernel-biosdk-provider.version>
+		<kernel-idvalidator-vid.version>1.2.0.1</kernel-idvalidator-vid.version>
 			<sonar.coverage.exclusions>**/dto/**,
 			**/exception/*Exception.java,
 			**/config/*Config.java,

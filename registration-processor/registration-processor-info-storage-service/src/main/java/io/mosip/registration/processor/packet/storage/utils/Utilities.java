@@ -11,7 +11,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
+import io.mosip.kernel.core.idvalidator.spi.VidValidator;
+import io.mosip.registration.processor.core.constant.AbisConstant;
 import io.mosip.registration.processor.core.exception.*;
+import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO;
 import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowInstanceRequestDTO;
 import io.mosip.registration.processor.status.service.AdditionalInfoRequestService;
@@ -160,6 +164,9 @@ public class Utilities {
 	@Value("#{'${registration.processor.main-processes}'.split(',')}")
 	private List<String> mainProcesses;
 
+	@Value("${registration.processor.vid-support-for-update:false}")
+	private Boolean isVidSupportedForUpdate;
+
 	@Autowired
 	private PacketInfoDao packetInfoDao;
 
@@ -176,6 +183,10 @@ public class Utilities {
 
 	@Autowired
 	private AdditionalInfoRequestService additionalInfoRequestService;
+
+	/** The vid validator. */
+	@Autowired
+	private VidValidator<String> vidValidator;
 
 
 	/** The Constant INBOUNDQUEUENAME. */
@@ -597,11 +608,17 @@ public class Utilities {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
 				"Utilities::getUIn()::entry");
 		String UIN = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.UIN, process, stageName);
+		if(isVidSupportedForUpdate && validateVid(UIN)) {
+			regProcLogger.info("Vid structure validated successfully");
+			JSONObject responseJson = retrieveIdrepoJson(id);
+			if (responseJson != null) {
+				JSONObject demographicIdentity = JsonUtil.getJSONObject(responseJson, getGetRegProcessorDemographicIdentity());
+				UIN = JsonUtil.getJSONValue(demographicIdentity, AbisConstant.UIN);
+			}
+		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
 				"Utilities::getUIn()::exit");
-
 		return UIN;
-
 	}
 
 	/**
@@ -875,5 +892,15 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 			throw new AdditionalInfoIdNotFoundException();
 
 		return additionalInfoRequestDto.getAdditionalInfoIteration();
+	}
+
+	public boolean validateVid(String vid) {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				"Utilities::validateVid()::entry");
+		try {
+			return vidValidator.validateId(vid);
+		} catch (InvalidIDException e) {
+			return false;
+		}
 	}
 }
