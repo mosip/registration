@@ -155,6 +155,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.uin.generator.trim-whitespaces.simpleType-value:false}")
 	private boolean trimWhitespaces;
 
+	@Value("#{${registration.processor.additional-process.category-mapping:{:}}}")
+	private Map<String,String> additionalProcessCategoryMapping;
+
 	/** The core audit request builder. */
 	@Autowired
 	private AuditLogRequestBuilder auditLogRequestBuilder;
@@ -320,8 +323,8 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 						idResponseDTO = deactivateUin(registrationId, uinField, object, demographicIdentity,
 								description);
 					} else if (RegistrationType.UPDATE.toString().equalsIgnoreCase(object.getReg_type())
-							|| (RegistrationType.RES_UPDATE.toString()
-									.equalsIgnoreCase(object.getReg_type()))) {
+							|| (RegistrationType.RES_UPDATE.toString().equalsIgnoreCase(object.getReg_type()))
+							|| (RegistrationType.UPDATE.toString().equalsIgnoreCase(utility.getInternalProcess(additionalProcessCategoryMapping, object.getReg_type())))) {
 						isTransactionSuccessful = uinUpdate(registrationId, registrationStatusDto.getRegistrationType(), uinField, object, demographicIdentity,
 								description);
 					}
