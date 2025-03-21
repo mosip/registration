@@ -611,6 +611,7 @@ public class Utilities {
 		if(isVidSupportedForUpdate && validateVid(UIN)) {
 			regProcLogger.info("Vid structure validated successfully");
 			JSONObject responseJson = retrieveIdrepoJson(id);
+			regProcLogger.info("Idrepo responce for getUinByVid : {}",responseJson.toString());
 			if (responseJson != null) {
 				JSONObject demographicIdentity = JsonUtil.getJSONObject(responseJson, getGetRegProcessorDemographicIdentity());
 				UIN = JsonUtil.getJSONValue(demographicIdentity, AbisConstant.UIN);
