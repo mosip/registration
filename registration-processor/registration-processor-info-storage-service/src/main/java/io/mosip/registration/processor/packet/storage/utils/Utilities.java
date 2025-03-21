@@ -613,8 +613,7 @@ public class Utilities {
 			JSONObject responseJson = retrieveIdrepoJson(UIN);
 			regProcLogger.info("Idrepo responce for getUinByVid : {}",responseJson.toString());
 			if (responseJson != null) {
-				JSONObject demographicIdentity = JsonUtil.getJSONObject(responseJson, getGetRegProcessorDemographicIdentity());
-				UIN = JsonUtil.getJSONValue(demographicIdentity, AbisConstant.UIN);
+				UIN = JsonUtil.getJSONValue(responseJson, AbisConstant.UIN);
 			}
 		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
