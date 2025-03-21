@@ -611,7 +611,6 @@ public class Utilities {
 		if(isVidSupportedForUpdate && StringUtils.isNotEmpty(UIN) && validateVid(UIN)) {
 			regProcLogger.info("Vid structure validated successfully");
 			JSONObject responseJson = retrieveIdrepoJson(UIN);
-			regProcLogger.info("Idrepo responce for getUinByVid : {}",responseJson.toString());
 			if (responseJson != null) {
 				UIN = JsonUtil.getJSONValue(responseJson, AbisConstant.UIN);
 			}
