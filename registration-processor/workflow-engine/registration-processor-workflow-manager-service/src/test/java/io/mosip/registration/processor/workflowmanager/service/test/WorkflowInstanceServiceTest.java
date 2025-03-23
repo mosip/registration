@@ -134,7 +134,7 @@ public class WorkflowInstanceServiceTest {
         SyncRegistrationEntity syncRegistrationEntity = new SyncRegistrationEntity();
         syncRegistrationEntity.setRegistrationId("10007100070014420250319152546");
         Mockito.when(registrationStatusDao.findByIdAndProcessAndIteration(any(),any(),anyInt())).thenReturn(registrationStatusEntities);
-        Mockito.when(syncRegistrationDao.findByRegistrationIdIdAndRegType(anyString(),any())).thenReturn(syncRegistrationEntity);
+        Mockito.when(syncRegistrationDao.findByRegistrationIdIdANDRegTypeAndAdditionalInfoReqId(anyString(),any(), anyString())).thenReturn(syncRegistrationEntity);
         workflowInstanceService.createWorkflowInstance(workflowInstanceRequestDto, "USER");
     }
 
