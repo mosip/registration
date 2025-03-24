@@ -8,10 +8,10 @@
     <parent>
         <groupId>io.mosip.registrationprocessor</groupId>
         <artifactId>core-processor</artifactId>
-        <version>1.3.0-SNAPSHOT</version>
+        <version>1.3.0-RC</version>
     </parent>
     <artifactId>registration-processor-abis</artifactId>
-    <version>1.3.0-SNAPSHOT</version>
+    <version>1.3.0-RC</version>
     <name>registration-processor-abis</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -87,10 +87,10 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
         </dependency>
-		     <dependency>
-			<groupId>org.apache.activemq</groupId>
-			<artifactId>activemq-client</artifactId>
-		</dependency>
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-client</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
