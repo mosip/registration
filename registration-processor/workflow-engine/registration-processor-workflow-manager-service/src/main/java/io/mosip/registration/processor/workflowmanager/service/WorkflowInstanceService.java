@@ -225,7 +225,7 @@ public class WorkflowInstanceService {
            regProcLogger.error("RegistrationStatus Entities found for RID {}", regId);
            throw new WorkflowInstanceException(PlatformErrorMessages.RPR_WIS_ALREADY_PRESENT_EXCEPTION.getCode(), PlatformErrorMessages.RPR_WIS_ALREADY_PRESENT_EXCEPTION.getMessage());
        }
-       SyncRegistrationEntity syncRegistrationEntity = syncRegistrationDao.findByRegistrationIdIdAndRegTypeAndAdditionalInfoReqId(regId, type,additionalInfoReqId);
+       SyncRegistrationEntity syncRegistrationEntity = syncRegistrationDao.findByRegistrationIdAndRegTypeAndAdditionalInfoReqId(regId, type,additionalInfoReqId);
        if (syncRegistrationEntity != null) {
            regProcLogger.error("SyncRegistration Entity found for RID {}", regId);
            throw new WorkflowInstanceException(PlatformErrorMessages.RPR_WIS_ALREADY_PRESENT_EXCEPTION.getCode(), PlatformErrorMessages.RPR_WIS_ALREADY_PRESENT_EXCEPTION.getMessage());
