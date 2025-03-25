@@ -3,14 +3,12 @@ package io.mosip.registration.processor.workflowmanager.service.test;
 import io.mosip.registration.processor.status.dao.RegistrationStatusDao;
 import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
-import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
@@ -124,7 +122,7 @@ public class WorkflowInstanceServiceTest {
         registrationStatusEntities.add(registrationStatusEntity);
         SyncRegistrationEntity syncRegistrationEntity = new SyncRegistrationEntity();
         Mockito.when(registrationStatusDao.findByIdAndProcessAndIteration(any(),any(),anyInt())).thenReturn(registrationStatusEntities);
-        Mockito.when(syncRegistrationDao.findByRegistrationIdIdAndRegType(anyString(),any())).thenReturn(syncRegistrationEntity);
+        Mockito.when(syncRegistrationDao.findByRegistrationIdIdAndRegTypeAndAdditionalInfoReqId(anyString(),any(),any())).thenReturn(syncRegistrationEntity);
         workflowInstanceService.createWorkflowInstance(workflowInstanceRequestDto, "USER");
     }
 
@@ -134,7 +132,7 @@ public class WorkflowInstanceServiceTest {
         SyncRegistrationEntity syncRegistrationEntity = new SyncRegistrationEntity();
         syncRegistrationEntity.setRegistrationId("10007100070014420250319152546");
         Mockito.when(registrationStatusDao.findByIdAndProcessAndIteration(any(),any(),anyInt())).thenReturn(registrationStatusEntities);
-        Mockito.when(syncRegistrationDao.findByRegistrationIdIdAndRegType(anyString(),any())).thenReturn(syncRegistrationEntity);
+        Mockito.when(syncRegistrationDao.findByRegistrationIdIdAndRegTypeAndAdditionalInfoReqId(anyString(),any(), anyString())).thenReturn(syncRegistrationEntity);
         workflowInstanceService.createWorkflowInstance(workflowInstanceRequestDto, "USER");
     }
 
