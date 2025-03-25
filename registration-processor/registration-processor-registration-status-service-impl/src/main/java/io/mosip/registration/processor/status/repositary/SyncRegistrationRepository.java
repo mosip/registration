@@ -43,6 +43,6 @@ public interface SyncRegistrationRepository<T extends BaseSyncRegistrationEntity
 	public List<SyncRegistrationEntity> findByworkflowInstanceId(@Param("workflowInstanceId") String workflowInstanceId);
 
 	@Query("SELECT registrationList FROM SyncRegistrationEntity registrationList WHERE registrationList.registrationId = :registrationId AND registrationList.registrationType = :registrationType AND registrationList.additionalInfoReqId = :additionalInfoReqId AND  registrationList.isDeleted =false ")
-	public List<SyncRegistrationEntity> findByRegistrationIdIdAndRegTypeAndAdditionalInfoReqId(@Param("registrationId") String registrationId, @Param("registrationType") String registrationType, @Param("additionalInfoReqId") String additionalInfoReqId);
+	public List<SyncRegistrationEntity> findByRegistrationIdAndRegTypeAndAdditionalInfoReqId(@Param("registrationId") String registrationId, @Param("registrationType") String registrationType, @Param("additionalInfoReqId") String additionalInfoReqId);
 
 }
