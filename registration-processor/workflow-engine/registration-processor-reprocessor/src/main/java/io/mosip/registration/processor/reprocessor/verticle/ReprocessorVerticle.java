@@ -1,12 +1,8 @@
 package io.mosip.registration.processor.reprocessor.verticle;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import io.mosip.registration.processor.status.utilities.RegistrationUtility;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -114,6 +110,10 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 	/** The port. */
 	@Value("${server.port}")
 	private String port;
+
+	/** Module-Id can be Both Success/Error code */
+	private String moduleId = PlatformSuccessMessages.RPR_SENT_TO_REPROCESS_SUCCESS.getCode();
+	private String moduleName = ModuleName.RE_PROCESSOR.toString();
 
 	/**
 	 * Deploy verticle.
@@ -274,9 +274,12 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 						if (isRestartFromStageRequired(dto, reprocessRestartTriggerMap)) {
 							stageName = MessageBusUtil.getMessageBusAdress(reprocessRestartFromStage);
 							stageName = stageName.concat(ReprocessorConstants.BUS_IN);
-								sendAndSetStatus(dto, messageDTO, stageName);
 								dto.setStatusComment(StatusUtil.RE_PROCESS_RESTART_FROM_STAGE.getMessage());
 								dto.setSubStatusCode(StatusUtil.RE_PROCESS_RESTART_FROM_STAGE.getCode());
+								dto.setLatestTransactionFlowId(RegistrationUtility.generateId());
+								messageDTO.setTransactionFlowId(dto.getLatestTransactionFlowId());
+								messageDTO.setTransactionId(UUID.randomUUID().toString());
+								sendAndSetStatus(dto, messageDTO, stageName);
 								description
 										.setMessage(
 												PlatformSuccessMessages.RPR_SENT_TO_REPROCESS_RESTART_FROM_STAGE_SUCCESS
@@ -293,9 +296,15 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 						} else {
 							stageName = stageName.concat(ReprocessorConstants.BUS_IN);
 						}
-							sendAndSetStatus(dto, messageDTO, stageName);
 						dto.setStatusComment(StatusUtil.RE_PROCESS_COMPLETED.getMessage());
 						dto.setSubStatusCode(StatusUtil.RE_PROCESS_COMPLETED.getCode());
+						if(dto.getLatestTransactionFlowId() == null || dto.getLatestTransactionFlowId().isBlank()) {
+							dto.setLatestTransactionFlowId(RegistrationUtility.generateId());
+						}
+						messageDTO.setTransactionFlowId(dto.getLatestTransactionFlowId());
+						messageDTO.setTransactionId(UUID.randomUUID().toString());
+
+						sendAndSetStatus(dto, messageDTO, stageName);
 						description.setMessage(PlatformSuccessMessages.RPR_SENT_TO_REPROCESS_SUCCESS.getMessage());
 						description.setCode(PlatformSuccessMessages.RPR_SENT_TO_REPROCESS_SUCCESS.getCode());
 						}
@@ -303,10 +312,6 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.REGISTRATIONID.toString(), registrationId, description.getMessage());
 
-					/** Module-Id can be Both Success/Error code */
-					String moduleId = PlatformSuccessMessages.RPR_SENT_TO_REPROCESS_SUCCESS.getCode();
-					String moduleName = ModuleName.RE_PROCESSOR.toString();
-					registrationStatusService.updateRegistrationStatusForWorkflowEngine(dto, moduleId, moduleName);
 					String eventId = EventId.RPR_402.toString();
 					String eventName = EventName.UPDATE.toString();
 					String eventType = EventType.BUSINESS.toString();
@@ -347,11 +352,10 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 			String eventType = isTransactionSuccessful ? EventType.BUSINESS.toString() : EventType.SYSTEM.toString();
 
 			/** Module-Id can be Both Success/Error code */
-			String moduleId = isTransactionSuccessful ? PlatformSuccessMessages.RPR_RE_PROCESS_SUCCESS.getCode()
+			String moduleId1= isTransactionSuccessful ? PlatformSuccessMessages.RPR_RE_PROCESS_SUCCESS.getCode()
 					: description.getCode();
-			String moduleName = ModuleName.RE_PROCESSOR.toString();
 			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
-					moduleId, moduleName, (ridSb.toString().length()>1?ridSb.substring(0,ridSb.length()-1):""));
+					moduleId1, moduleName, (ridSb.toString().length()>1?ridSb.substring(0,ridSb.length()-1):""));
 		}
 
 		return object;
@@ -408,12 +412,13 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 
 	private void sendAndSetStatus(InternalRegistrationStatusDto dto, MessageDTO messageDTO, String stageName) {
 		MessageBusAddress address = new MessageBusAddress(stageName);
-		sendMessage(messageDTO, address);
 		dto.setUpdatedBy(ReprocessorConstants.USER);
 		Integer reprocessRetryCount = dto.getReProcessRetryCount() != null ? dto.getReProcessRetryCount() + 1 : 1;
 		dto.setReProcessRetryCount(reprocessRetryCount);
 		dto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
 		dto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PACKET_REPROCESS.toString());
+		registrationStatusService.updateRegistrationStatusForWorkflowEngine(dto, moduleId, moduleName);
+		sendMessage(messageDTO, address);
 	}
 	
 	

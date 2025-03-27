@@ -5,6 +5,9 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
+import io.mosip.registration.processor.status.entity.TrackerEntity;
+import io.mosip.registration.processor.status.repositary.TrackerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -35,6 +38,11 @@ public class TransactionServiceImpl implements TransactionService<TransactionDto
 	/** The transaction repositary. */
 	@Autowired
 	TransactionRepository<TransactionEntity, String> transactionRepositary;
+
+	@Autowired
+	TrackerRepository trackerRepository;
+
+
 
 	/*
 	 * (non-Javadoc)
@@ -79,6 +87,7 @@ public class TransactionServiceImpl implements TransactionService<TransactionDto
 		transcationEntity.setLangCode("eng");
 		transcationEntity.setReferenceId(dto.getReferenceId());
 		transcationEntity.setReferenceIdType(dto.getReferenceIdType());
+		transcationEntity.setTransactionFlowId(dto.getTransactionFlowId());
 		return transcationEntity;
 	}
 
@@ -129,6 +138,55 @@ public class TransactionServiceImpl implements TransactionService<TransactionDto
 		return dtoList;
 	}
 
+	@Override
+	public TrackerEntity isTransactionExist(String regId, String transactionId, String latestTrnFlowId) {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
+				"TransactionServiceImpl::isTransactionExist()::entry");
+		TrackerEntity entity = trackerRepository.findByRegIdAndTransactionIdAndFlowId(regId, transactionId, latestTrnFlowId);
+		regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
+				"TransactionServiceImpl::isTransactionExist()::Record Found");
+		if(entity == null) {
+			entity = new TrackerEntity();
+			entity.setRegistrationId(regId);
+			entity.setTransactionId(transactionId);
+			entity.setTransactionFlowId(latestTrnFlowId);
+			entity.setStatusCode(RegistrationTransactionStatusCode.IN_PROGRESS.toString());
+			entity.setCreateDateTime(LocalDateTime.now());
+			trackerRepository.save(entity);
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
+					"TransactionServiceImpl::isTransactionExist()::Writing Record");
+
+			entity.setStatusCode(RegistrationTransactionStatusCode.PROCESSING.toString());
+		}
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
+				"TransactionServiceImpl::isTransactionExist()::exist");
+
+		return entity;
+	}
+
+	@Override
+	public TrackerEntity updateTransactionComplete(String transactionId, String StatusCode) throws TransactionsUnavailableException {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), transactionId,
+				"TransactionServiceImpl::updateTransactionComplete()::entry");
+		TrackerEntity entity = trackerRepository.findByTransactionId(transactionId);
+		if(entity != null) {
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), transactionId,
+					"TransactionServiceImpl::updateTransactionComplete()::Entity Found Updating same for Transaction Id " + transactionId);
+			entity.setStatusCode(StatusCode);
+			entity.setUpdatedBy("MOSIP");
+			entity.setUpdateDateTime(LocalDateTime.now());
+			trackerRepository.save(entity);
+		} else {
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), transactionId,
+					"TransactionServiceImpl::updateTransactionComplete()::Entity not Found for Transaction Id" + transactionId);
+			throw new TransactionsUnavailableException(PlatformErrorMessages.RPR_PGS_NO_RECORDS_EXCEPTION.getCode(), "Record Not Found for the Transaction Id : " + transactionId);
+		}
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), transactionId,
+				"TransactionServiceImpl::updateTransactionComplete()::exist");
+
+		return entity;
+	}
+
 	/**
 	 * Convert entity to dto.
 	 *
@@ -139,13 +197,13 @@ public class TransactionServiceImpl implements TransactionService<TransactionDto
 	private TransactionDto convertEntityToDto(TransactionEntity entity) {
 		return new TransactionDto(entity.getId(), entity.getRegistrationId(), entity.getParentid(),
 				entity.getTrntypecode(), entity.getRemarks(), entity.getStatusCode(), entity.getStatusComment(),
-				entity.getSubStatusCode());
+				entity.getSubStatusCode(), entity.getTransactionFlowId());
 
 	}
 
 	private RegistrationTransactionDto convertEntityToRegistrationTransactionDto(TransactionEntity entity) {
 		return new RegistrationTransactionDto(entity.getId(), entity.getRegistrationId(), entity.getTrntypecode(),
 				entity.getParentid(), entity.getStatusCode(), entity.getSubStatusCode(), entity.getStatusComment(),
-				entity.getCreateDateTime());
+				entity.getCreateDateTime(), entity.getTransactionFlowId());
 	}
 }
