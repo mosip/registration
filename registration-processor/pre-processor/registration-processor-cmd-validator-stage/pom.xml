@@ -9,7 +9,7 @@
 		<version>1.2.1.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>registration-processor-cmd-validator-stage</artifactId>
-	<version>1.2.0.3-SNAPSHOT</version>
+	<version>1.2.1.0-SNAPSHOT</version>
 	<name>registration-processor-cmd-validator-stage</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
