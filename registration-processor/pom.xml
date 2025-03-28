@@ -23,7 +23,7 @@
 	</developers>
 	<groupId>io.mosip.registrationprocessor</groupId>
 	<artifactId>registration-processor</artifactId>
-	<version>1.2.0.3-SNAPSHOT</version>
+	<version>1.2.1.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>registration-processor</name>
@@ -122,13 +122,13 @@
 		<jsch.version>0.1.55</jsch.version>
 
 		<!-- local -->
-		<registration.status.service.version>1.2.0.3-SNAPSHOT</registration.status.service.version>
-		<registration.processor.core.version>1.2.0.3-SNAPSHOT</registration.processor.core.version>
-		<packet.manager.version>1.2.0.3-SNAPSHOT</packet.manager.version>
-		<registration.processor.rest.client.version>1.2.0.3-SNAPSHOT</registration.processor.rest.client.version>
-		<packet.info.storage.service.version>1.2.0.3-SNAPSHOT</packet.info.storage.service.version>
-		<packet.bio.dedupe.service.impl.version>1.2.0.3-SNAPSHOT</packet.bio.dedupe.service.impl.version>
-		<registration.processor.message.sender.version>1.2.0.3-SNAPSHOT</registration.processor.message.sender.version>
+		<registration.status.service.version>1.2.1.0-SNAPSHOT</registration.status.service.version>
+		<registration.processor.core.version>1.2.1.0-SNAPSHOT</registration.processor.core.version>
+		<packet.manager.version>1.2.1.0-SNAPSHOT</packet.manager.version>
+		<registration.processor.rest.client.version>1.2.1.0-SNAPSHOT</registration.processor.rest.client.version>
+		<packet.info.storage.service.version>1.2.1.0-SNAPSHOT</packet.info.storage.service.version>
+		<packet.bio.dedupe.service.impl.version>1.2.1.0-SNAPSHOT</packet.bio.dedupe.service.impl.version>
+		<registration.processor.message.sender.version>1.2.1.0-SNAPSHOT</registration.processor.message.sender.version>
 
 		<!-- Kernel -->
 		<kernel.core.version>1.2.0.1</kernel.core.version>
