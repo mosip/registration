@@ -118,7 +118,7 @@ jobs:
   sonar_analysis:
     needs: build-maven-registration
     if: "${{  github.event_name != 'pull_request' }}"
-    uses: mosip/kattu/.github/workflows/maven-sonar-analysis.yml@master
+    uses: mosip/kattu/.github/workflows/maven-sonar-analysis.yml@master-java21
     with:
       SERVICE_LOCATION: ./registration-processor
     secrets:
