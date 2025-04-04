@@ -609,7 +609,7 @@ public class Utilities {
 				"Utilities::getUIn()::entry");
 		String UIN = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.UIN, process, stageName);
 		if(isVidSupportedForUpdate && StringUtils.isNotEmpty(UIN) && validateVid(UIN)) {
-			regProcLogger.info("Vid structure validated successfully");
+			regProcLogger.debug("VID structure validated successfully");
 			JSONObject responseJson = retrieveIdrepoJson(UIN);
 			if (responseJson != null) {
 				UIN = JsonUtil.getJSONValue(responseJson, AbisConstant.UIN);
