@@ -144,6 +144,7 @@
 		<kernel-biosdk-provider.version>1.3.0-SNAPSHOT</kernel-biosdk-provider.version>
 		<kernel.bom.version>1.3.0-SNAPSHOT</kernel.bom.version>
         <kernel.websubclient.api.version>1.3.0-SNAPSHOT</kernel.websubclient.api.version>
+        <kernel-idvalidator-vid.version>1.3.0-SNAPSHOT</kernel-idvalidator-vid.version>
 		<sonar.coverage.exclusions>**/dto/**,
 			**/exception/*Exception.java,
 			**/config/*Config.java,

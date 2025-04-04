@@ -27,6 +27,8 @@ import io.mosip.kernel.core.crypto.spi.CryptoCoreSpec;
 import io.mosip.kernel.crypto.jce.core.CryptoCore;
 import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
 import io.mosip.kernel.dataaccess.hibernate.repository.impl.HibernateRepositoryImpl;
+import io.mosip.kernel.core.idvalidator.spi.VidValidator;
+import io.mosip.kernel.idvalidator.vid.impl.VidValidatorImpl;
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
@@ -47,85 +49,87 @@ import io.mosip.registration.processor.packet.storage.utils.Utility;
 //@EnableJpaRepositories(basePackages = "io.mosip.registration.processor", repositoryBaseClass = HibernateRepositoryImpl.class)
 public class PacketStorageBeanConfig {
 
-	@Autowired
-	@Qualifier("readerConfiguration")
-	private Map<String, String> packetReaderConfig;
+    @Autowired
+    @Qualifier("readerConfiguration")
+    private Map<String, String> packetReaderConfig;
 
-	@Autowired
-	@Qualifier("writerConfiguration")
-	private Map<String, String> packetWriterConfig;
+    @Autowired
+    @Qualifier("writerConfiguration")
+    private Map<String, String> packetWriterConfig;
 
-	@Autowired
-	@Qualifier("providerConfiguration")
-	private Map<String, String> packetProviderConfig;
+    @Autowired
+    @Qualifier("providerConfiguration")
+    private Map<String, String> packetProviderConfig;
 
-	@PostConstruct
-	public void initialize() {
-		Utilities.initialize(packetReaderConfig, packetWriterConfig);
-		PriorityBasedPacketManagerService.initialize(packetProviderConfig);
-	}
+    @PostConstruct
+    public void initialize() {
+        Utilities.initialize(packetReaderConfig, packetWriterConfig);
+        PriorityBasedPacketManagerService.initialize(packetProviderConfig);
+    }
 
-	@Bean
-	public PacketInfoManager<Identity, ApplicantInfoDto> getPacketInfoManager() {
-		return new PacketInfoManagerImpl();
-	}
+    @Bean
+    public PacketInfoManager<Identity, ApplicantInfoDto> getPacketInfoManager() {
+        return new PacketInfoManagerImpl();
+    }
 
-	@Bean
-	public PacketInfoDao getPacketInfoDao() {
-		return new PacketInfoDao();
-	}
+    @Bean
+    public PacketInfoDao getPacketInfoDao() {
+        return new PacketInfoDao();
+    }
 
-	@Bean
-	public Utilities getUtilities() {
-		return new Utilities();
-	}
+    @Bean
+    public Utilities getUtilities() {
+        return new Utilities();
+    }
 
-	@Bean
-	public PacketManagerService packetManagerService() {
-		return new PacketManagerService();
-	}
+    @Bean
+    public PacketManagerService packetManagerService() {
+        return new PacketManagerService();
+    }
 
-	@Bean
-	public ABISHandlerUtil getABISHandlerUtil() {
-		return new ABISHandlerUtil();
-	}
-
-	
-	@Bean
-	public BioSdkUtil getBioSdkUtil() {
-		return new BioSdkUtil();
-	}
-	
+    @Bean
+    public ABISHandlerUtil getABISHandlerUtil() {
+        return new ABISHandlerUtil();
+    }
 
 
-	@Bean
-	@Primary
-	public CryptoCoreSpec<byte[], byte[], SecretKey, PublicKey, PrivateKey, String> getEncryptor() {
-		return new CryptoCore();
-	}
+    @Bean
+    public BioSdkUtil getBioSdkUtil() {
+        return new BioSdkUtil();
+    }
 
-	@Bean
-	public IdRepoService getIdRepoService() {
-		return new IdRepoServiceImpl();
-	}
 
-	@Bean
-	public PacketManagerHelper packetManagerHelper() {
-		return new PacketManagerHelper();
-	}
+    @Bean
+    @Primary
+    public CryptoCoreSpec<byte[], byte[], SecretKey, PublicKey, PrivateKey, String> getEncryptor() {
+        return new CryptoCore();
+    }
 
-	@Bean
-	public IdSchemaUtil getIdSchemaUtil() {
-		return new IdSchemaUtil();
-	}
+    @Bean
+    public IdRepoService getIdRepoService() {
+        return new IdRepoServiceImpl();
+    }
 
-	@Bean
-	public Utility getUtility() {
-		return new Utility();
-	}
+    @Bean
+    public PacketManagerHelper packetManagerHelper() {
+        return new PacketManagerHelper();
+    }
 
-	@Bean
-	public PriorityBasedPacketManagerService getPriorityBasedPacketManagerService() {
-		return new PriorityBasedPacketManagerService();
-	}
+    @Bean
+    public IdSchemaUtil getIdSchemaUtil() {
+        return new IdSchemaUtil();
+    }
+
+    @Bean
+    public Utility getUtility() {
+        return new Utility();
+    }
+
+    @Bean
+    public PriorityBasedPacketManagerService getPriorityBasedPacketManagerService() {
+        return new PriorityBasedPacketManagerService();
+    }
+
+    @Bean
+    public VidValidator<String> vidValidator(){return new VidValidatorImpl();}
 }

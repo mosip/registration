@@ -11,7 +11,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
+import io.mosip.kernel.core.idvalidator.spi.VidValidator;
+import io.mosip.registration.processor.core.constant.AbisConstant;
 import io.mosip.registration.processor.core.exception.*;
+import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO;
 import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowInstanceRequestDTO;
 import io.mosip.registration.processor.status.service.AdditionalInfoRequestService;
@@ -156,6 +160,9 @@ public class Utilities {
 	@Value("#{'${registration.processor.main-processes}'.split(',')}")
 	private List<String> mainProcesses;
 
+	@Value("${registration.processor.vid-support-for-update:false}")
+	private Boolean isVidSupportedForUpdate;
+
 	@Autowired
 	private PacketInfoDao packetInfoDao;
 
@@ -172,6 +179,10 @@ public class Utilities {
 
 	@Autowired
 	private AdditionalInfoRequestService additionalInfoRequestService;
+
+	/** The vid validator. */
+	@Autowired
+	private VidValidator<String> vidValidator;
 
 	/** The Constant INBOUNDQUEUENAME. */
 	private static final String INBOUNDQUEUENAME = "inboundQueueName";
@@ -523,6 +534,37 @@ public class Utilities {
 	}
 
 	/**
+	 * Get UIN from identity json (used only for update/res update/activate/de
+	 * activate packets).
+	 *
+	 * @param id the registration id
+	 * @return the u in
+	 * @throws IOException                           Signals that an I/O exception
+	 *                                               has occurred.
+	 * @throws IOException                           Signals that an I/O exception
+	 *                                               has occurred.
+	 * @throws ApisResourceAccessException           the apis resource access
+	 *                                               exception
+	 * @throws RegistrationProcessorCheckedException
+	 */
+	public String getUIn(String id, String process, ProviderStageName stageName)
+			throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
+				"Utilities::getUIn()::entry");
+		String UIN = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.UIN, process, stageName);
+		if(isVidSupportedForUpdate && StringUtils.isNotEmpty(UIN) && validateVid(UIN)) {
+			regProcLogger.debug("VID structure validated successfully");
+			JSONObject responseJson = retrieveIdrepoJson(UIN);
+			if (responseJson != null) {
+				UIN = JsonUtil.getJSONValue(responseJson, AbisConstant.UIN);
+			}
+		}
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
+				"Utilities::getUIn()::exit");
+		return UIN;
+	}
+
+	/**
 	 * Gets the elapse status.
 	 *
 	 * @param registrationStatusDto the registration status dto
@@ -765,5 +807,15 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 			throw new AdditionalInfoIdNotFoundException();
 
 		return additionalInfoRequestDto.getAdditionalInfoIteration();
+	}
+
+	public boolean validateVid(String vid) {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				"Utilities::validateVid()::entry");
+		try {
+			return vidValidator.validateId(vid);
+		} catch (InvalidIDException e) {
+			return false;
+		}
 	}
 }
