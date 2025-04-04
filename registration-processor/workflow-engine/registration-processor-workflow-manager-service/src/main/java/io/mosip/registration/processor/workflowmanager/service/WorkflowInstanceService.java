@@ -108,7 +108,7 @@ public class WorkflowInstanceService {
         try {
             int iteration = utility.getIterationForSyncRecord(additionalProcessCategoryMapping, regRequest.getProcess(), regRequest.getAdditionalInfoReqId());
             String workflowInstanceId = UUID.randomUUID().toString();
-            validateWorkflowInstanceAlreadyAvailable(rid, regRequest.getProcess(), iteration);
+            validateWorkflowInstanceAlreadyAvailable(rid, regRequest.getProcess(), regRequest.getAdditionalInfoReqId(), iteration);
             SyncRegistrationEntity syncRegistrationEntity = createSyncRegistrationEntity(regRequest, workflowInstanceId, rid, user);
             syncRegistrationDao.save(syncRegistrationEntity);
             dto = getInternalRegistrationStatusDto(regRequest, user, workflowInstanceId, iteration);
@@ -218,14 +218,14 @@ public class WorkflowInstanceService {
         return syncRegistrationEntity;
     }
 
-    public void validateWorkflowInstanceAlreadyAvailable(String regId, String type, int iteration) throws WorkflowInstanceException {
+    public void validateWorkflowInstanceAlreadyAvailable(String regId, String type, String additionalInfoReqId, int iteration) throws WorkflowInstanceException {
         regProcLogger.debug("validateWorkflowInstanceAlreadyAvailable :: entry {}", regId);
         List<RegistrationStatusEntity> registrationStatusEntities = registrationStatusDao.findByIdAndProcessAndIteration(regId, type, iteration);
        if (!registrationStatusEntities.isEmpty()) {
            regProcLogger.error("RegistrationStatus Entities found for RID {}", regId);
            throw new WorkflowInstanceException(PlatformErrorMessages.RPR_WIS_ALREADY_PRESENT_EXCEPTION.getCode(), PlatformErrorMessages.RPR_WIS_ALREADY_PRESENT_EXCEPTION.getMessage());
        }
-       SyncRegistrationEntity syncRegistrationEntity = syncRegistrationDao.findByRegistrationIdIdAndRegType(regId, type);
+       SyncRegistrationEntity syncRegistrationEntity = syncRegistrationDao.findByRegistrationIdAndRegTypeAndAdditionalInfoReqId(regId, type,additionalInfoReqId);
        if (syncRegistrationEntity != null) {
            regProcLogger.error("SyncRegistration Entity found for RID {}", regId);
            throw new WorkflowInstanceException(PlatformErrorMessages.RPR_WIS_ALREADY_PRESENT_EXCEPTION.getCode(), PlatformErrorMessages.RPR_WIS_ALREADY_PRESENT_EXCEPTION.getMessage());
