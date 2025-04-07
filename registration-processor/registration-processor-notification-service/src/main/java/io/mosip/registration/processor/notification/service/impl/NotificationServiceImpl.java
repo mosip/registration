@@ -459,6 +459,7 @@ public class NotificationServiceImpl implements NotificationService {
 	 */
 	private void setTemplateAndSubject(NotificationTemplateType templatetype, String regType,
 			MessageSenderDto messageSenderDto) {
+		String internalProcess= utilities.getInternalProcess(additionalProcessCategoryForNotification, regType);
 		switch (templatetype) {
 		case LOST_UIN:
 			messageSenderDto.setSmsTemplateCode(env.getProperty(LOST_UIN+SMS));
@@ -489,7 +490,8 @@ public class NotificationServiceImpl implements NotificationService {
 				messageSenderDto.setIdType(IdType.UIN);
 				messageSenderDto.setSubjectCode(env.getProperty(UIN_DEACTIVATE+SUB));
 			} else if (regType.equalsIgnoreCase(RegistrationType.UPDATE.name())
-					|| regType.equalsIgnoreCase(RegistrationType.RES_UPDATE.name())) {
+					|| regType.equalsIgnoreCase(RegistrationType.RES_UPDATE.name())
+					|| internalProcess.equalsIgnoreCase(RegistrationType.UPDATE.toString())){
 				messageSenderDto.setSmsTemplateCode(env.getProperty(UIN_UPDATE+SMS));
 				messageSenderDto.setEmailTemplateCode(env.getProperty(UIN_UPDATE+EMAIL));
 				messageSenderDto.setIdType(IdType.UIN);
