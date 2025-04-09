@@ -8,4 +8,3 @@ Helm chart for installing Regproc Workflow Manager
 $ helm repo add mosip https://mosip.github.io
 $ helm install my-release mosip/regproc-workflow
 ```
-
