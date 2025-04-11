@@ -46,8 +46,8 @@ service:
   externalTrafficPolicy: Cluster
 image:
   registry: docker.io
-  repository: mosipid/registration-processor-workflow-manager-service
-  tag: 1.2.0.2
+  repository: mosipqa/registration-processor-workflow-manager-service
+  tag: release-1.2.1.x
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
   ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
@@ -381,3 +381,5 @@ istio:
         prefix: /registrationprocessor/v1/workflowmanager/workflowaction
     - uri:
         prefix: /registrationprocessor/v1/workflowmanager/workflow/search
+    - uri:
+        prefix: /registrationprocessor/v1/workflowmanager/workflowinstance
