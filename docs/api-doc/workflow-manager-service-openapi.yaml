@@ -7,7 +7,7 @@ info:
     url: https://docs.mosip.io/platform/license
   version: '1.0'
 servers:
-  - url: https://stoplight.io/registrationprocessor/v1/workflowmanager
+  - url: http://localhost:3000/registrationprocessor/v1/workflowmanager
 tags:
   - name: WorkflowInstanceApi
     description: Workflow Instance APIs
@@ -37,6 +37,13 @@ paths:
                   phone: "+1234567890"
                   email: "crvs_user@example.com"
         required: true
+      parameters:
+        - schema:
+            type: string
+          in: cookie
+          name: Authorization
+          required: true
+          description: Authorization token is used to validate the permissions carried by the user.
       responses:
         '200':
           description: Workflow instance created successfully
