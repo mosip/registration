@@ -2,7 +2,7 @@ apiVersion: v2
 name: regproc-opencrvs
 description: A Helm chart for mosip regproc-opencrvs stage.
 type: application
-version: 12.1.0
+version: 12.1.0-develop
 appVersion: ""
 home: https://mosip.io
 dependencies:
