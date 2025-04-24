@@ -114,6 +114,8 @@
 	</dependencies>
 
 	<build>
+		<plugins>
+		</plugins>
 	</build>
 
 
