@@ -122,7 +122,7 @@ public class WorkflowInstanceServiceTest {
         registrationStatusEntities.add(registrationStatusEntity);
         SyncRegistrationEntity syncRegistrationEntity = new SyncRegistrationEntity();
         Mockito.when(registrationStatusDao.findByIdAndProcessAndIteration(any(),any(),anyInt())).thenReturn(registrationStatusEntities);
-        Mockito.when(syncRegistrationDao.findByRegistrationIdAndRegTypeAndAdditionalInfoReqId(anyString(),any(),any())).thenReturn(syncRegistrationEntity);
+        Mockito.when(syncRegistrationDao.findByRegistrationIdIdAndRegTypeAndAdditionalInfoReqId(anyString(),any(),any())).thenReturn(syncRegistrationEntity);
         workflowInstanceService.createWorkflowInstance(workflowInstanceRequestDto, "USER");
     }
 
@@ -132,7 +132,7 @@ public class WorkflowInstanceServiceTest {
         SyncRegistrationEntity syncRegistrationEntity = new SyncRegistrationEntity();
         syncRegistrationEntity.setRegistrationId("10007100070014420250319152546");
         Mockito.when(registrationStatusDao.findByIdAndProcessAndIteration(any(),any(),anyInt())).thenReturn(registrationStatusEntities);
-        Mockito.when(syncRegistrationDao.findByRegistrationIdAndRegTypeAndAdditionalInfoReqId(anyString(),any(), anyString())).thenReturn(syncRegistrationEntity);
+        Mockito.when(syncRegistrationDao.findByRegistrationIdIdAndRegTypeAndAdditionalInfoReqId(anyString(),any(), anyString())).thenReturn(syncRegistrationEntity);
         workflowInstanceService.createWorkflowInstance(workflowInstanceRequestDto, "USER");
     }
 
