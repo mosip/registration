@@ -7,11 +7,11 @@
 	<parent>
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>init</artifactId>
-		<version>1.3.0-SNAPSHOT</version>
+		<version>1.3.0-RC</version>
 	</parent>
 
 	<artifactId>registration-processor-packet-receiver-stage</artifactId>
-	<version>1.3.0-SNAPSHOT</version>
+	<version>1.3.0-RC</version>
 	<packaging>jar</packaging>
 	<name>registration-processor-packet-receiver-stage</name>
 
@@ -135,7 +135,7 @@
 
 	<build>
 		<plugins>
-	
+
 		</plugins>
 	</build>
 </project>
