@@ -82,6 +82,8 @@ public class WorkflowInstanceApiTest {
     @Mock
     AuditLogRequestBuilder auditLogRequestBuilder;
 
+    @Mock
+    WorkflowSearchApi workflowSearchApi;
 
     @InjectMocks
     WorkflowInstanceApi workflowInstanceApi = new WorkflowInstanceApi() {
