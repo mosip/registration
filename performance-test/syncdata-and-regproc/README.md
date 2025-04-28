@@ -14,7 +14,7 @@
 
 Pre-requisite to install the plugins:
 1. Download JMeter Plugin Manager jar file with following link. "https://jmeter-plugins.org/get/"
-2. Place the jar file under following JMeter folder path.
+2. Place the jar file under following JMeter folder path (bin/lib/ext).
 3. After adding the plugin restart the JMeter 
 4. To download the necessary plugins, we have to click on the Plugin’s Manager. It will re-direct to list of available plugins. Choose the above mentioned plugin "jmeter-plugins-synthesis" to install and then restart the JMeter.
 
@@ -24,7 +24,7 @@ Pre-requisite to install the plugins:
 	* jmeter-plugins-synthesis-2.2.jar
 	* <!-- https://jmeter-plugins.org/files/packages/jpgc-synthesis-2.2.zip -->
 * We need some dependent jar files that needs to be in the lib folder of jmeter, following are the dependent jar files:
-	1. mock-mds-1.2.1-SNAPSHOT.jar
+	1. mock-mds-1.2.1.jar
 	2. kernel-syncdata-service-1.2.0.1.jar
 	3. kernel-logger-logback-1.2.0.1.jar
 	4. kernel-core-1.2.0.1.jar
@@ -36,8 +36,8 @@ Pre-requisite to install the plugins:
 
 ### How to run performance scripts using Apache JMeter tool
 * Download Apache JMeter from https://jmeter.apache.org/download_jmeter.cgi
-* Download scripts for the required module.
-* Place the support files in the bin folder of the jmeter, the paths in the scripts are defined to fetch the testdata from the bin folder.
+* Download scripts for the required module from the respective module repo's.
+* Place the scripts and the support files in the jemter bin folder.
 * Start JMeter by running the jmeter.bat file for Windows or jmeter file for Unix. 
 * Validate the scripts for one user.
 * Execute a dry run for 10 min.
@@ -54,8 +54,8 @@ Pre-requisite to install the plugins:
 *For generating the packets, packet utility is required.
 	Step 1 - Packet utility setup.
 	Step 2 - We need device partner and device dsk partner certificate to be present in the auth certs.
-	Step 3 - For packet generation, need to create context for it. Will require api-internal.cellbox1.mosip.net.12117.reg.key provided by the team or we can generate it from the dsl setup.
-	Step 4 - Update the secret keys for all the client's, user id, machine id and center id in create context. Also, update the mountPath and authCertsPath path variable.
+	Step 3 - For packet generation, we need to create context for it and also a private key. Example for a private key would be something like this(api-internal.cellbox1.mosip.net.12117.reg.key). This can be generated from the dsl setup.
+	Step 4 - Update the secret keys for all the client's, user id, machine id and center id in create context. Also, update the mountPath and authCertsPath path variable in the JMeter script.
 	Step 5 - Create packet.
 
 *Once the packet utility is up and running please check this swagger link
@@ -66,14 +66,13 @@ Pre-requisite to install the plugins:
 java -jar -Dfile.encoding=UTF-8 -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=9999,suspend=n -jar dslrig-packetcreator-1.2.1-develop-SNAPSHOT.jar --spring.config.location=file:///C:\Users\61091460\Documents\centralized\mosip-packet-creator\config\application.properties>>C:\Users\61091460\Documents\centralized\mosip-packet-creator\PacketUtilityRunlog.txt
 
 ###  Setup for packet creation
-	1. The centers, machines and users should be onboarded in the system before using as part of context_details.csv 	
-	2. Add the document path of (document.pdf) present in the support-files folder to the file document_path.txt
-	3. The mosip-packet-creator and mount volume folders need to be present with the latest jar.
-	4. From the terminal run the command to start mosip-packet-creator as mentioned in above steps.
-	5. Open the [Packet_Creator_Script.jmx] script and run the Auth Token Generation (Setup) thread group.
-	6. Execute Packet Generation (Setup) thread group by specifying the no of packets it need to generate.
-	7. Sync the packets to reg client using Sync Registration Packet (Setup) thread group.
-	8. Finally Sync And Upload Registration Packet (Preparation) thread group for uploading the packets.
+	1. The centers, machines and users should be onboarded in the platform before using them as part of context_details.csv 	
+	2. The mosip-packet-creator and mount volume folders need to be present with the latest jar.
+	3. From the terminal run the command to start mosip-packet-creator as mentioned in above steps.
+	4. Open the [Regproc_Syncdata_Test_Script.jmx] script and run the Auth Token Generation (Setup) thread group.
+	5. Execute Packet Generation (Setup) thread group by specifying the no of packets it needs to generate.
+	6. Sync the packets to reg client using Sync Registration Packet (Setup) thread group.
+	7. Finally Sync And Upload Registration Packet (Execution) thread group for uploading the packets.
 
 ### Script execution steps:
 
@@ -122,9 +121,12 @@ java -jar -Dfile.encoding=UTF-8 -Xdebug -Xrunjdwp:server=y,transport=dt_socket,a
 * Applying little's law
 	* Users = TPS * (SLA of transaction + think time + pacing)
 	* TPS --> Transaction per second.
+	* SLA --> Service level agreement
+	* Think time --> Time pause given between transactions to simulate realistic user behaviour	
+	* Pacing --> Used to control rate of iteration's during the test.
 	
 * For the realistic approach we can keep (Think time + Pacing) = 1 second for API testing
-	* Calculating number of users for 10 TPS
+	* Calculating number of users for 100 TPS
 		* Users= 100 X (SLA of transaction + 1)
 		       = 100 X (1 + 1)
 			   = 200
@@ -137,7 +139,7 @@ java -jar -Dfile.encoding=UTF-8 -Xdebug -Xrunjdwp:server=y,transport=dt_socket,a
 	* Value = 10 X 60
 			= 600
 
-* Dropdown option in Constant Throughput Timer
+* Dropdown option in Constant Throughput Timer (There are options in the Constant Throughput Timer based on what we want to achieve like throughput for each thread or for the complete thread group. Find the calculations for all active threads and for any given single thread )
 	* Calculate Throughput based on as = All active threads in current thread group
 		* If we are performing load test with 10TPS as hits / sec in one thread group. Then we need to provide value hits / minute as in Constant Throughput Timer
 	 			Value = 10 X 60
@@ -147,3 +149,10 @@ java -jar -Dfile.encoding=UTF-8 -Xdebug -Xrunjdwp:server=y,transport=dt_socket,a
 		* If we are performing scalability testing we need to calculate throughput for 10 TPS as 
           Value = (10 * 60 )/(Number of users)
 
+
+### Support files
+
+1. app_machine_details.csv - This support file contains test data like appId, refId, machineName, public key and sign public key.
+2. context_details.csv - This support file contains userId, password, center and machine details.
+3. machine_details.csv - This support file contains all the information needed to create machines.
+4. reg_centers.csv - This support file contains data needed to create new centers.
