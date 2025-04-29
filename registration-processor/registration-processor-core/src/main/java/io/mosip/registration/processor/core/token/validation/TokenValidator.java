@@ -115,8 +115,6 @@ public class TokenValidator {
 			return String.join(",", APIAuthorityList.WORKFLOWACTION.getList());
 		else if (url.contains("workflow/search"))
 			return String.join(",", APIAuthorityList.WORKFLOWSEARCH.getList());
-		else if (url.contains("workflowinstance"))
-			return String.join(",", APIAuthorityList.WORKFLOWINSTANCE.getList());
 		return null;
 	}
 
@@ -189,14 +187,7 @@ public class TokenValidator {
 				if (role.contains(assignedRole))
 					return true;
 			}
-		}
-        else if (url.contains("workflowinstance")) {
-            for (String assignedRole : APIAuthorityList.WORKFLOWINSTANCE.getList()) {
-                if (role.contains(assignedRole))
-                    return true;
-            }
-        }
-        else if (url.contains("packetexternalstatus")) {
+		} else if (url.contains("packetexternalstatus")) {
 			for (String assignedRole : APIAuthorityList.PACKETEXTERNALSTATUS.getList()) {
 				if (role.contains(assignedRole))
 					return true;

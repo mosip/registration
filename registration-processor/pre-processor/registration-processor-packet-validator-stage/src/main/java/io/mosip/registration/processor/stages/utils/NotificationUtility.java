@@ -95,10 +95,6 @@ public class NotificationUtility {
 
 	@Value("${mosip.default.user-preferred-language-attribute:#{null}}")
 	private String userPreferredLanguageAttribute;
-
-	@Value("#{${registration.processor.notification.additional-process.category-mapping:{:}}}")
-	private Map<String,String> additionalProcessCategoryForNotification;
-
 	/** The env. */
 	@Autowired
 	private Environment env;
@@ -420,15 +416,12 @@ public class NotificationUtility {
 	}
 
 	private NotificationTemplateType setNotificationTemplateType(InternalRegistrationStatusDto registrationStatusDto,
-			NotificationTemplateType type)  {
-		String internalProcess = utility.getInternalProcess(additionalProcessCategoryForNotification, registrationStatusDto.getRegistrationType());
+			NotificationTemplateType type) {
 		if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.LOST.getValue()))
 			type = NotificationTemplateType.LOST_UIN;
-		else if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.NEW.getValue()) ||
-				internalProcess.equalsIgnoreCase(SyncTypeDto.NEW.getValue()))
+		else if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.NEW.getValue()))
 			type = NotificationTemplateType.NEW_REG;
-		else if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.UPDATE.getValue())||
-				internalProcess.equalsIgnoreCase(SyncTypeDto.UPDATE.getValue()))
+		else if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.UPDATE.getValue()))
 			type = NotificationTemplateType.UIN_UPDATE;
 		else if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.RES_REPRINT.getValue()))
 			type = NotificationTemplateType.REPRINT_UIN;
