@@ -193,6 +193,11 @@ public class MessageNotificationServiceImplTest {
 				"  \"language\" : \"ara\",\n" +
 				"  \"value\" : \" \"\n" +
 				"} ]");
+		fieldMap.put("individualBiometrics","{\n" +
+				"        \"format\": \"cbeff\",\n" +
+				"        \"value\": \"individualBiometrics_bio_CBEFF\",\n" +
+				"        \"version\": 1\n" +
+				"      }");
 
 		VidInfoDTO vidInfoDTO = new VidInfoDTO("123456", VidType.PERPETUAL.name(), null, 1, null);
 		vidsInfosDTO.setResponse(Lists.newArrayList(vidInfoDTO));

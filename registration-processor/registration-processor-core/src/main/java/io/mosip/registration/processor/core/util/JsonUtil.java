@@ -295,7 +295,6 @@ public class JsonUtil {
 
 					return jsonNodeElement;
 				}
-//			}
 		} catch (InstantiationException | IllegalAccessException e) {
 
 			throw new InstantanceCreationException(PlatformErrorMessages.RPR_SYS_INSTANTIATION_EXCEPTION.getMessage(),

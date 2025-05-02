@@ -575,7 +575,6 @@ public class MessageNotificationServiceImpl
 								if (jsonValueObj.getLanguage().equalsIgnoreCase(lang)) {
 									attribute.put(val + "_" + lang, jsonValueObj.getValue());
 								}
-								jsonList.add(jsonValueObj);
 							}
 						}
 						if (!jsonList.isEmpty()) {
