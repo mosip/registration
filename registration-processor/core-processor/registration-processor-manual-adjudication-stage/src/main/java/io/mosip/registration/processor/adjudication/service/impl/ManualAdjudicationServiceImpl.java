@@ -244,6 +244,8 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 			messageDTO.setIsValid(false);
 			messageDTO.setRid(regId);
 			messageDTO.setReg_type(registrationStatusDto.getRegistrationType());
+			messageDTO.setTransactionFlowId(registrationStatusDto.getLatestTransactionFlowId());
+			messageDTO.setTransactionId(UUID.randomUUID().toString());
 
 			List<ManualVerificationEntity> entities = retrieveInqueuedRecordsByRid(regId);
 

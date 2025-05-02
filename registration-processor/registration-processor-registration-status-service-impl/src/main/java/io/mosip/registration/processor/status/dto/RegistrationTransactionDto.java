@@ -31,9 +31,11 @@ public class RegistrationTransactionDto {
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
 	private LocalDateTime createdDateTimes;
 
+	private String transactionFlowId;
+
 	public RegistrationTransactionDto(String id, String registrationId, String transactionTypeCode,
 			String parentTransactionId, String statusCode, String subStatusCode, String statusComment,
-			LocalDateTime createdDateTimes) {
+			LocalDateTime createdDateTimes, String transactionFlowId) {
 
 		this.id = id;
 		this.registrationId = registrationId;
@@ -43,6 +45,7 @@ public class RegistrationTransactionDto {
 		this.subStatusCode = subStatusCode;
 		this.statusComment = statusComment;
 		this.createdDateTimes = createdDateTimes;
+		this.transactionFlowId = transactionFlowId;
 	}
 
 	public String getId() {

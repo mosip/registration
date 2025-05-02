@@ -325,6 +325,8 @@ public class KafkaMosipEventBus implements MosipEventBus {
 			} else if(!res.succeeded()) {
 				logger.error("Event handling failed {}", res.cause());
 				promise.fail(res.cause());
+			} else if(res.succeeded() && res.result() == null){
+				promise.complete();
 			} else {
 				if(toAddress != null) {
 					MessageDTO messageDTO = res.result();

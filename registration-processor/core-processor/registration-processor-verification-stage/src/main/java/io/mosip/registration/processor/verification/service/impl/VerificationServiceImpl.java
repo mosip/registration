@@ -324,6 +324,8 @@ public class VerificationServiceImpl implements VerificationService {
 			messageDTO.setIsValid(false);
 			messageDTO.setRid(regId);
 			messageDTO.setReg_type(registrationStatusDto.getRegistrationType());
+			messageDTO.setTransactionFlowId(registrationStatusDto.getLatestTransactionFlowId());
+			messageDTO.setTransactionId(UUID.randomUUID().toString());
 
 			List<VerificationEntity> entities = retrieveInqueuedRecordsByRid(regId);
 
