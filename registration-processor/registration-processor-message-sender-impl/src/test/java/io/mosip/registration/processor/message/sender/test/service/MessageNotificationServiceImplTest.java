@@ -184,6 +184,20 @@ public class MessageNotificationServiceImplTest {
 		fieldMap.put("email", "mono@mono.com");
 		fieldMap.put("phone", "23456");
 		fieldMap.put("dob", "11/11/2011");
+		fieldMap.put("selectedHandles","[\n" +
+				"        \"nrcId\",\n" +
+				"        \"email\",\n" +
+				"        \"phoneNumber\"\n" +
+				"      ]");
+		fieldMap.put("firstName","[ {\n" +
+				"  \"language\" : \"ara\",\n" +
+				"  \"value\" : \" \"\n" +
+				"} ]");
+		fieldMap.put("individualBiometrics","{\n" +
+				"        \"format\": \"cbeff\",\n" +
+				"        \"value\": \"individualBiometrics_bio_CBEFF\",\n" +
+				"        \"version\": 1\n" +
+				"      }");
 
 		VidInfoDTO vidInfoDTO = new VidInfoDTO("123456", VidType.PERPETUAL.name(), null, 1, null);
 		vidsInfosDTO.setResponse(Lists.newArrayList(vidInfoDTO));
@@ -221,6 +235,10 @@ public class MessageNotificationServiceImplTest {
 		JSONArray array = new JSONArray();
 		array.add(j1);
 		array.add(j2);
+		List<String > selectedHandles = new ArrayList<>();
+		selectedHandles.add("nrcId");
+		selectedHandles.add("email");
+		selectedHandles.add("phoneNumber");
 		identityMap.put("fullName", array);
 		identityMap.put("gender", array);
 		identityMap.put("addressLine1", array);
@@ -234,7 +252,7 @@ public class MessageNotificationServiceImplTest {
 		identityMap.put("email", "raghavdce@gmail.com");
 		identityMap.put("postalCode", "900900");
 		identityMap.put("proofOfAddress", j2);
-
+		identityMap.put("selectedHandles", selectedHandles);
 		Object identity = identityMap;
 		response.setIdentity(identity);
 
