@@ -549,6 +549,14 @@ public class MessageNotificationServiceImpl
 		    mapperIdentity = JsonUtil.getJSONObject(mapperJson, utility.getGetRegProcessorDemographicIdentity());
 		   mapperJsonKeys = new ArrayList<>(mapperIdentity.keySet());
         }
+		getMappedIdentity(attribute, lang, demographicIdentity);
+
+		setEmailAndPhone(demographicIdentity, phoneNumber, emailId);
+
+		return attribute;
+	}
+
+	private void getMappedIdentity(Map<String, Object> attribute, String lang, JSONObject demographicIdentity) throws com.fasterxml.jackson.core.JsonProcessingException {
 		for (String key : mapperJsonKeys) {
 			JSONObject jsonValue = JsonUtil.getJSONObject(mapperIdentity, key);
 			if (jsonValue.get(VALUE) != null && !jsonValue.get(VALUE).toString().isBlank()) {
@@ -556,12 +564,21 @@ public class MessageNotificationServiceImpl
 				for (String val : valueArray) {
 					Object object = JsonUtil.getJSONValue(demographicIdentity, val);
 					if (object instanceof ArrayList) {
+						List jsonList = new ArrayList<>();
 						JSONArray node = JsonUtil.getJSONArray(demographicIdentity, val);
-						JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
-						for (int count = 0; count < jsonValues.length; count++) {
-							if(jsonValues[count].getLanguage().equalsIgnoreCase(lang)) {
-								attribute.put(val + "_" + lang, jsonValues[count].getValue());
+						for (int i = 0; i < node.size(); i++) {
+							Object obj = node.get(i);
+							if (obj instanceof String) {
+								jsonList.add(obj);
+							} else {
+								JsonValue jsonValueObj = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class,  new JSONObject((Map) obj));
+								if (jsonValueObj.getLanguage().equalsIgnoreCase(lang)) {
+									attribute.put(val + "_" + lang, jsonValueObj.getValue());
+								}
 							}
+						}
+						if (!jsonList.isEmpty()) {
+							attribute.putIfAbsent(val, jsonList);
 						}
 					} else if (object instanceof LinkedHashMap) {
 						JSONObject json = JsonUtil.getJSONObject(demographicIdentity, val);
@@ -572,10 +589,6 @@ public class MessageNotificationServiceImpl
 				}
 			}
 		}
-
-		setEmailAndPhone(demographicIdentity, phoneNumber, emailId);
-
-		return attribute;
 	}
 
 	/**
@@ -633,31 +646,7 @@ public class MessageNotificationServiceImpl
 							+ ExceptionUtils.getStackTrace(e));
 		}
 		if(fieldMap!=null) {
-			for (Map.Entry e : fieldMap.entrySet()) {
-				if (e.getValue() != null) {
-					String value = e.getValue().toString();
-					if (StringUtils.isNotEmpty(value)) {
-						Object json = new JSONTokener(value).nextValue();
-						if (json instanceof org.json.JSONObject) {
-							HashMap<String, Object> hashMap = mapper.readValue(value, HashMap.class);
-							attribute.putIfAbsent(e.getKey().toString(), hashMap.get(VALUE));
-						}
-						else if (json instanceof org.json.JSONArray) {
-							org.json.JSONArray jsonArray = new org.json.JSONArray(value);
-							for (int i = 0; i < jsonArray.length(); i++) {
-								Object obj = jsonArray.get(i);
-								JsonValue jsonValue = mapper.readValue(obj.toString(), JsonValue.class);
-								if(jsonValue.getLanguage().equalsIgnoreCase(lang)) {
-									attribute.putIfAbsent(e.getKey().toString() + "_" + lang, jsonValue.getValue());
-								}
-							}
-						} else
-							attribute.putIfAbsent(e.getKey().toString(), value);
-					} else
-						attribute.put(e.getKey().toString(), e.getValue());
-				}
-
-			}
+			getMappedAttribute(attribute, lang, fieldMap);
 			JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 			String email = JsonUtil.getJSONValue(
 					JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.EMAIL),
@@ -680,7 +669,44 @@ public class MessageNotificationServiceImpl
 			return attribute;
 		}
 
-		private Map<String, Object> setAttributesFromSync(String id, String process, Map<String, Object> attribute,
+	private void getMappedAttribute(Map<String, Object> attribute, String lang, Map<String, String> fieldMap) throws JSONException, com.fasterxml.jackson.core.JsonProcessingException {
+		for (Entry e : fieldMap.entrySet()) {
+			if (e.getValue() != null) {
+				String value = e.getValue().toString();
+				if (StringUtils.isNotEmpty(value)) {
+					Object json = new JSONTokener(value).nextValue();
+					if (json instanceof org.json.JSONObject) {
+						HashMap<String, Object> hashMap = mapper.readValue(value, HashMap.class);
+						attribute.putIfAbsent(e.getKey().toString(), hashMap.get(VALUE));
+					}
+					else if (json instanceof org.json.JSONArray) {
+						org.json.JSONArray jsonArray = new org.json.JSONArray(value);
+						List jsonList = new ArrayList<>();
+						for (int i = 0; i < jsonArray.length(); i++) {
+							Object obj = jsonArray.get(i);
+							if (obj instanceof String){
+								jsonList.add(obj);
+							}
+							else {
+								JsonValue jsonValue = mapper.readValue(obj.toString(), JsonValue.class);
+								if (jsonValue.getLanguage().equalsIgnoreCase(lang)) {
+									attribute.putIfAbsent(e.getKey().toString() + "_" + lang, jsonValue.getValue());
+								}
+							}
+						}
+						if (!jsonList.isEmpty()) {
+							attribute.putIfAbsent(e.getKey().toString(), jsonList);
+						}
+					} else
+						attribute.putIfAbsent(e.getKey().toString(), value);
+				} else
+					attribute.put(e.getKey().toString(), e.getValue());
+			}
+
+		}
+	}
+
+	private Map<String, Object> setAttributesFromSync(String id, String process, Map<String, Object> attribute,
 				String regType, String lang, StringBuilder phoneNumber, StringBuilder emailId) throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, JsonParseException, JsonMappingException, io.mosip.kernel.core.exception.IOException {
 			SyncRegistrationEntity regEntity = syncRegistrationService.findByRegistrationId(id).get(0);
 			if (regEntity.getOptionalValues() != null) {
