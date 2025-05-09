@@ -1,9 +1,7 @@
 package io.mosip.registration.processor.message.sender.test.service;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -465,6 +463,27 @@ public class MessageNotificationServiceImplTest {
 		messageNotificationServiceImpl.sendEmailNotification("RPR_UIN_GEN_EMAIL", "12345", "NEW", IdType.RID, attributes,
 				mailCc, subject, null, RegistrationType.NEW.name());
 
+	}
+
+	@Test
+	public void testSendSmsNotificationSuccessWithExternalType() throws ApisResourceAccessException, IOException,
+			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JSONException {
+		Map<String,String> map1 = new HashMap<>();
+		map1.put("CRVS_NEW","NEW");
+		map1.put("CRVS_DEATH","UPDATE");
+		ReflectionTestUtils.setField(messageNotificationServiceImpl, "additionalProcessCategoryMapping", map1);
+		ResponseWrapper<SmsResponseDto> wrapper = new ResponseWrapper<>();
+		smsResponseDto = new SmsResponseDto();
+		smsResponseDto.setMessage("Success");
+		wrapper.setResponse(smsResponseDto);
+		wrapper.setErrors(null);
+
+		Mockito.when(restClientService.postApi(any(), any(), anyString(), any(), any()))
+				.thenReturn(wrapper);
+		when(utility.getInternalProcess(anyMap(),any())).thenReturn("UPDATE");
+		SmsResponseDto resultResponse = messageNotificationServiceImpl.sendSmsNotification("RPR_UIN_GEN_SMS", "12345",
+				"CRVS_DEATH",IdType.RID, attributes, "CRVS_DEATH");
+		assertEquals("Test for SMS Notification Success", "Success", resultResponse.getMessage());
 	}
 
 }
