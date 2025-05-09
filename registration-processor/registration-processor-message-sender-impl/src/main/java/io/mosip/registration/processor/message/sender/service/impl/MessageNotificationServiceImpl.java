@@ -155,6 +155,9 @@ public class MessageNotificationServiceImpl
 	@Value("${mosip.default.user-preferred-language-attribute:#{null}}")
 	private String userPreferredLanguageAttribute;
 
+	@Value("#{${registration.processor.additional-process.category-mapping:{:}}}")
+	private Map<String,String> additionalProcessCategoryMapping;
+
 	/** The resclient. */
 	@Autowired
 	private RestApiClient resclient;
@@ -457,14 +460,15 @@ public class MessageNotificationServiceImpl
 		} else {
 			attributes.put("RID", id);
 		}
-
+		String internalProcess = utility.getInternalProcess(additionalProcessCategoryMapping, regType);
 
 
 		if (idType.toString().equalsIgnoreCase(UIN) && (regType.equalsIgnoreCase(RegistrationType.ACTIVATED.name())
 				|| regType.equalsIgnoreCase(RegistrationType.DEACTIVATED.name())
 				|| regType.equalsIgnoreCase(RegistrationType.UPDATE.name())
 				|| regType.equalsIgnoreCase(RegistrationType.RES_UPDATE.name())
-				|| regType.equalsIgnoreCase(RegistrationType.LOST.name()))) {
+				|| regType.equalsIgnoreCase(RegistrationType.LOST.name()))
+				|| internalProcess.equalsIgnoreCase(RegistrationType.UPDATE.name())) {
 			setAttributesFromIdRepo(uin, attributes, regType,lang, phoneNumber, emailId);
 		} else {
 			setAttributesFromIdJson(id, process, attributes, regType,lang, phoneNumber, emailId);
