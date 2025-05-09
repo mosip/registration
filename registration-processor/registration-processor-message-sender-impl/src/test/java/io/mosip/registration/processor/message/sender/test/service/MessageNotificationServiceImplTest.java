@@ -2,6 +2,7 @@ package io.mosip.registration.processor.message.sender.test.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -175,6 +176,10 @@ public class MessageNotificationServiceImplTest {
 		ReflectionTestUtils.setField(messageNotificationServiceImpl, "userPreferredLanguageAttribute", "preferredLang");
 		ReflectionTestUtils.setField(messageNotificationServiceImpl, "defaultTemplateLanguages", "");
 		ReflectionTestUtils.setField(messageNotificationServiceImpl, "languageType", "both");
+		Map<String,String> typemap = new HashMap<>();
+		typemap.put("CRVS_NEW","NEW");
+		typemap.put("CRVS_DEATH","UPDATE");
+		ReflectionTestUtils.setField(messageNotificationServiceImpl, "additionalProcessCategoryMapping", typemap);
 		Mockito.when(env.getProperty(ApiName.EMAILNOTIFIER.name())).thenReturn("https://mosip.com");
 		Mockito.when(languageUtility.getLangCodeFromNativeName(anyString())).thenReturn("eng");
 		Map<String, String> fieldMap = new HashMap<>();
@@ -266,6 +271,7 @@ public class MessageNotificationServiceImplTest {
 		Mockito.when(env.getProperty("mosip.registration.processor.application.version")).thenReturn("v1.0");
 		Mockito.when(env.getProperty("mosip.registration.processor.datetime.pattern"))
 				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		Mockito.when(utility.getInternalProcess(anyMap(),anyString())).thenReturn("");
 	}
 
 	/**
@@ -468,10 +474,6 @@ public class MessageNotificationServiceImplTest {
 	@Test
 	public void testSendSmsNotificationSuccessWithExternalType() throws ApisResourceAccessException, IOException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JSONException {
-		Map<String,String> map1 = new HashMap<>();
-		map1.put("CRVS_NEW","NEW");
-		map1.put("CRVS_DEATH","UPDATE");
-		ReflectionTestUtils.setField(messageNotificationServiceImpl, "additionalProcessCategoryMapping", map1);
 		ResponseWrapper<SmsResponseDto> wrapper = new ResponseWrapper<>();
 		smsResponseDto = new SmsResponseDto();
 		smsResponseDto.setMessage("Success");
