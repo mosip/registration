@@ -155,8 +155,8 @@ public class MessageNotificationServiceImpl
 	@Value("${mosip.default.user-preferred-language-attribute:#{null}}")
 	private String userPreferredLanguageAttribute;
 
-	@Value("#{${registration.processor.additional-process.category-mapping:{:}}}")
-	private Map<String,String> additionalProcessCategoryMapping;
+	@Value("#{${registration.processor.notification.additional-process.category-mapping:{:}}}")
+	private Map<String,String> additionalProcessCategoryForNotification;
 
 	/** The resclient. */
 	@Autowired
@@ -460,7 +460,7 @@ public class MessageNotificationServiceImpl
 		} else {
 			attributes.put("RID", id);
 		}
-		String internalProcess = utility.getInternalProcess(additionalProcessCategoryMapping, regType);
+		String internalProcess = utility.getInternalProcess(additionalProcessCategoryForNotification, regType);
 
 
 		if (idType.toString().equalsIgnoreCase(UIN) && (regType.equalsIgnoreCase(RegistrationType.ACTIVATED.name())

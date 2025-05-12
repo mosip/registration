@@ -2,8 +2,7 @@ package io.mosip.registration.processor.message.sender.test.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -176,10 +175,10 @@ public class MessageNotificationServiceImplTest {
 		ReflectionTestUtils.setField(messageNotificationServiceImpl, "userPreferredLanguageAttribute", "preferredLang");
 		ReflectionTestUtils.setField(messageNotificationServiceImpl, "defaultTemplateLanguages", "");
 		ReflectionTestUtils.setField(messageNotificationServiceImpl, "languageType", "both");
-		Map<String,String> typemap = new HashMap<>();
-		typemap.put("CRVS_NEW","NEW");
-		typemap.put("CRVS_DEATH","UPDATE");
-		ReflectionTestUtils.setField(messageNotificationServiceImpl, "additionalProcessCategoryMapping", typemap);
+		Map<String,String> typeMap = new HashMap<>();
+		typeMap.put("CRVS_NEW","NEW");
+		typeMap.put("CRVS_DEATH","UPDATE");
+		ReflectionTestUtils.setField(messageNotificationServiceImpl, "additionalProcessCategoryForNotification", typeMap);
 		Mockito.when(env.getProperty(ApiName.EMAILNOTIFIER.name())).thenReturn("https://mosip.com");
 		Mockito.when(languageUtility.getLangCodeFromNativeName(anyString())).thenReturn("eng");
 		Map<String, String> fieldMap = new HashMap<>();
@@ -479,13 +478,14 @@ public class MessageNotificationServiceImplTest {
 		smsResponseDto.setMessage("Success");
 		wrapper.setResponse(smsResponseDto);
 		wrapper.setErrors(null);
-
-		Mockito.when(restClientService.postApi(any(), any(), anyString(), any(), any()))
-				.thenReturn(wrapper);
+		when(restClientService.postApi(any(), any(), anyString(), any(), any())).thenReturn(wrapper);
 		when(utility.getInternalProcess(anyMap(),any())).thenReturn("UPDATE");
+		when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(vidsInfosDTO).thenReturn(idResponse)
+				.thenReturn(vidsInfosDTO).thenReturn(idResponse);
 		SmsResponseDto resultResponse = messageNotificationServiceImpl.sendSmsNotification("RPR_UIN_GEN_SMS", "12345",
-				"CRVS_DEATH",IdType.RID, attributes, "CRVS_DEATH");
+				"CRVS_DEATH",IdType.UIN, attributes, "CRVS_DEATH");
 		assertEquals("Test for SMS Notification Success", "Success", resultResponse.getMessage());
+		verify(restClientService,times(2)).getApi(eq(ApiName.IDREPOGETIDBYUIN), any(), anyString(), any(), eq(IdResponseDTO.class));
 	}
 
 }
