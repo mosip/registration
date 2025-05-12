@@ -17,6 +17,7 @@ import java.util.Map;
 import io.mosip.registration.processor.core.constant.VidType;
 import io.mosip.registration.processor.core.idrepo.dto.VidInfoDTO;
 import io.mosip.registration.processor.core.idrepo.dto.VidsInfosDTO;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
 import org.json.JSONException;
@@ -472,7 +473,7 @@ public class MessageNotificationServiceImplTest {
 
 	@Test
 	public void testSendSmsNotificationSuccessWithExternalType() throws ApisResourceAccessException, IOException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JSONException {
+            PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JSONException, PacketManagerException, JsonProcessingException {
 		ResponseWrapper<SmsResponseDto> wrapper = new ResponseWrapper<>();
 		smsResponseDto = new SmsResponseDto();
 		smsResponseDto.setMessage("Success");
@@ -485,7 +486,7 @@ public class MessageNotificationServiceImplTest {
 		SmsResponseDto resultResponse = messageNotificationServiceImpl.sendSmsNotification("RPR_UIN_GEN_SMS", "12345",
 				"CRVS_DEATH",IdType.UIN, attributes, "CRVS_DEATH");
 		assertEquals("Test for SMS Notification Success", "Success", resultResponse.getMessage());
-		verify(restClientService,times(2)).getApi(eq(ApiName.IDREPOGETIDBYUIN), any(), anyString(), any(), eq(IdResponseDTO.class));
+		verify(packetManagerService,never()).getFields(anyString(),anyList(),anyString(),any());
 	}
 
 }
