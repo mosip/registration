@@ -473,7 +473,7 @@ public class MessageNotificationServiceImplTest {
 
 	@Test
 	public void testSendSmsNotificationSuccessWithExternalType() throws ApisResourceAccessException, IOException,
-            PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JSONException, PacketManagerException, JsonProcessingException {
+            PacketDecryptionFailureException, JSONException, PacketManagerException, JsonProcessingException {
 		ResponseWrapper<SmsResponseDto> wrapper = new ResponseWrapper<>();
 		smsResponseDto = new SmsResponseDto();
 		smsResponseDto.setMessage("Success");
