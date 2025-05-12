@@ -24,7 +24,11 @@
 
 	<groupId>io.mosip.registrationprocessor</groupId>
 	<artifactId>registration-processor</artifactId>
+<<<<<<< HEAD
 	<version>1.2.1-SNAPSHOT</version>
+=======
+	<version>1.2.1.1-SNAPSHOT</version>
+>>>>>>> e4237e40fb ([MOSIP-41413] version change (#2081))
 	<packaging>pom</packaging>
 
 	<name>registration-processor</name>
@@ -116,6 +120,7 @@
 		<activemq.client.version>6.1.2</activemq.client.version>
 
 		<!-- local -->
+<<<<<<< HEAD
 		<registration.status.service.version>1.2.1-SNAPSHOT</registration.status.service.version>
 		<registration.processor.core.version>1.2.1-SNAPSHOT</registration.processor.core.version>
 		<packet.manager.version>1.2.1-SNAPSHOT</packet.manager.version>
@@ -123,6 +128,15 @@
 		<packet.info.storage.service.version>1.2.1-SNAPSHOT</packet.info.storage.service.version>
 		<packet.bio.dedupe.service.impl.version>1.2.1-SNAPSHOT</packet.bio.dedupe.service.impl.version>
 		<registration.processor.message.sender.version>1.2.1-SNAPSHOT</registration.processor.message.sender.version>
+=======
+		<registration.status.service.version>1.2.1.1-SNAPSHOT</registration.status.service.version>
+		<registration.processor.core.version>1.2.1.1-SNAPSHOT</registration.processor.core.version>
+		<packet.manager.version>1.2.1.1-SNAPSHOT</packet.manager.version>
+		<registration.processor.rest.client.version>1.2.1.1-SNAPSHOT</registration.processor.rest.client.version>
+		<packet.info.storage.service.version>1.2.1.1-SNAPSHOT</packet.info.storage.service.version>
+		<packet.bio.dedupe.service.impl.version>1.2.1.1-SNAPSHOT</packet.bio.dedupe.service.impl.version>
+		<registration.processor.message.sender.version>1.2.1.1-SNAPSHOT</registration.processor.message.sender.version>
+>>>>>>> e4237e40fb ([MOSIP-41413] version change (#2081))
 
 		<!-- Kernel -->
 		<kernel.core.version>1.2.1-SNAPSHOT</kernel.core.version>
