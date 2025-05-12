@@ -2,12 +2,13 @@ package io.mosip.registration.processor.packet.storage.utils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
-import com.fasterxml.jackson.databind.SerializationFeature;
+import io.mosip.registration.processor.core.exception.PacketManagerFailureException;
 import io.mosip.registration.processor.core.packet.dto.packetmanager.TagRequestDto;
 import io.mosip.registration.processor.core.packet.dto.packetmanager.TagResponseDto;
 import io.mosip.registration.processor.packet.storage.exception.ObjectDoesnotExistsException;
@@ -54,6 +55,7 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
     private static final String ID = "mosip.commmons.packetmanager";
     private static final String VERSION = "v1";
     private static final String OBJECT_DOESNOT_EXISTS_ERROR_CODE = "KER-PUT-027";
+    private List<String> PACKET_INTIGRETI_FAILURE_EXCEPTION = Arrays.asList("KER-PUT-019");;
 
     @Autowired
     private RegistrationProcessorRestClientService<Object> restApi;
@@ -84,6 +86,8 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
             ErrorDTO errorDTO = response.getErrors().iterator().next();
             if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
                 throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
+            if(PACKET_INTIGRETI_FAILURE_EXCEPTION.contains(errorDTO.getErrorCode()))
+                throw new PacketManagerFailureException(errorDTO.getErrorCode(), errorDTO.getMessage());
             else
                 throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
         }
@@ -111,6 +115,8 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
             ErrorDTO errorDTO = response.getErrors().iterator().next();
             if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
                 throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
+            if(PACKET_INTIGRETI_FAILURE_EXCEPTION.contains(errorDTO.getErrorCode()))
+                throw new PacketManagerFailureException(errorDTO.getErrorCode(), errorDTO.getMessage());
             else
                 throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
         }
@@ -139,6 +145,8 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
             ErrorDTO errorDTO = response.getErrors().iterator().next();
             if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
                 throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
+            if(PACKET_INTIGRETI_FAILURE_EXCEPTION.contains(errorDTO.getErrorCode()))
+                throw new PacketManagerFailureException(errorDTO.getErrorCode(), errorDTO.getMessage());
             else
                 throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
         }
@@ -163,6 +171,8 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
             ErrorDTO errorDTO = response.getErrors().iterator().next();
             if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
                 throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
+            if(PACKET_INTIGRETI_FAILURE_EXCEPTION.contains(errorDTO.getErrorCode()))
+                throw new PacketManagerFailureException(errorDTO.getErrorCode(), errorDTO.getMessage());
             else
                 throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
         }
@@ -188,6 +198,8 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
             ErrorDTO errorDTO = responseObj.getErrors().iterator().next();
             if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
                 throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
+            if(PACKET_INTIGRETI_FAILURE_EXCEPTION.contains(errorDTO.getErrorCode()))
+                throw new PacketManagerFailureException(errorDTO.getErrorCode(), errorDTO.getMessage());
             else
                 throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
         }
@@ -216,6 +228,8 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
             ErrorDTO errorDTO = response.getErrors().iterator().next();
             if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
                 throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
+            if(PACKET_INTIGRETI_FAILURE_EXCEPTION.contains(errorDTO.getErrorCode()))
+                throw new PacketManagerFailureException(errorDTO.getErrorCode(), errorDTO.getMessage());
             else
                 throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
         }
@@ -243,6 +257,8 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
             ErrorDTO errorDTO = response.getErrors().iterator().next();
             if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
                 throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
+            if(PACKET_INTIGRETI_FAILURE_EXCEPTION.contains(errorDTO.getErrorCode()))
+                throw new PacketManagerFailureException(errorDTO.getErrorCode(), errorDTO.getMessage());
             else
                 throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
         }
@@ -267,6 +283,8 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
             ErrorDTO errorDTO = response.getErrors().iterator().next();
             if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
                 throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
+            if(PACKET_INTIGRETI_FAILURE_EXCEPTION.contains(errorDTO.getErrorCode()))
+                throw new PacketManagerFailureException(errorDTO.getErrorCode(), errorDTO.getMessage());
             else
                 throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
         }
@@ -291,6 +309,8 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
             ErrorDTO errorDTO = response.getErrors().iterator().next();
             if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
                 throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
+            if(PACKET_INTIGRETI_FAILURE_EXCEPTION.contains(errorDTO.getErrorCode()))
+                throw new PacketManagerFailureException(errorDTO.getErrorCode(), errorDTO.getMessage());
             else
                 throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
         }
@@ -315,6 +335,8 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
             ErrorDTO errorDTO = response.getErrors().iterator().next();
             if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
                 throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
+            if(PACKET_INTIGRETI_FAILURE_EXCEPTION.contains(errorDTO.getErrorCode()))
+                throw new PacketManagerFailureException(errorDTO.getErrorCode(), errorDTO.getMessage());
             else
                 throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
 		}
@@ -348,6 +370,8 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
                 ErrorDTO errorDTO = response.getErrors().iterator().next();
                 if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
                     throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
+                if(PACKET_INTIGRETI_FAILURE_EXCEPTION.contains(errorDTO.getErrorCode()))
+                    throw new PacketManagerFailureException(errorDTO.getErrorCode(), errorDTO.getMessage());
                 else
                     throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
             }

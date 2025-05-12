@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 
 import javax.annotation.PostConstruct;
 
+import io.mosip.registration.processor.core.exception.PacketManagerFailureException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -349,6 +350,18 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 			description.setMessage(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode());
 			object.setInternalError(Boolean.TRUE);
+		}catch (PacketManagerFailureException exc) {
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+			registrationStatusDto.setStatusComment(
+					trimExpMessage.trimExceptionMessage(StatusUtil.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION.getMessage() + exc.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION.getCode() );
+			registrationStatusDto.setLatestTransactionStatusCode(
+					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_EXCEPTION));
+			description.setMessage(PlatformErrorMessages.PACKET_MANAGER_NON_RECOVERABLE_ERROR_CODES.getMessage());
+			description.setCode(PlatformErrorMessages.PACKET_MANAGER_NON_RECOVERABLE_ERROR_CODES.getCode());
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					description.getCode() + " -- " + regId,
+					PlatformErrorMessages.PACKET_MANAGER_NON_RECOVERABLE_ERROR_CODES.getMessage() + org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(exc));
 		} catch (PacketManagerException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					regId, RegistrationStatusCode.FAILED.toString() + e.getMessage()

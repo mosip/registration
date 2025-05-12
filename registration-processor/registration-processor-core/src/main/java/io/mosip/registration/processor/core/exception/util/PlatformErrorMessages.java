@@ -418,6 +418,10 @@ public enum PlatformErrorMessages {
 	RPR_PVM_INVALID_ARGUMENT_EXCEPTION(PlatformConstants.RPR_PACKET_VALIDATOR_MODULE + "019",
 			"Invalid Argument"),
 
+	PACKET_MANAGER_NON_RECOVERABLE_ERROR_CODES(PlatformConstants.RPR_PACKET_MANAGER_MODULE + "020",
+			"Packet Manager Non Recoverable Error"),
+
+
 
 	/** The packet classification failed. */
 	PACKET_CLASSIFICATION_FAILED(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "000", "Packet Classification failed"),
