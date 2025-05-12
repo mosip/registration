@@ -293,7 +293,7 @@ public class PacketValidateProcessor {
 					trimMessage.trimExceptionMessage(StatusUtil.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION.getMessage() + exc.getMessage()));
 			registrationStatusDto.setSubStatusCode(StatusUtil.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION.getCode() );
 			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_EXCEPTION));
+					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION));
 			packetValidationDto.setTransactionSuccessful(false);
 			description.setMessage(PlatformErrorMessages.PACKET_MANAGER_NON_RECOVERABLE_ERROR_CODES.getMessage());
 			description.setCode(PlatformErrorMessages.PACKET_MANAGER_NON_RECOVERABLE_ERROR_CODES.getCode());
