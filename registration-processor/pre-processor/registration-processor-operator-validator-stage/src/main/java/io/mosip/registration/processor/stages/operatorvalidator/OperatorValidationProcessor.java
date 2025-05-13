@@ -124,10 +124,10 @@ public class OperatorValidationProcessor {
 			object.setIsValid(Boolean.TRUE);
 			object.setInternalError(Boolean.FALSE);
 			isTransactionSuccessful = true;
-		} catch(PacketManagerFailureException e){
-			updateDTOsAndLogError(registrationStatusDto, RegistrationStatusCode.PROCESSING,
-					StatusUtil.PACKET_MANAGER_EXCEPTION, RegistrationExceptionTypeCode.PACKET_MANAGER_EXCEPTION,
-					description, PlatformErrorMessages.PACKET_MANAGER_EXCEPTION, e);
+		}catch(PacketManagerNonRecoverableException e){
+			updateDTOsAndLogError(registrationStatusDto, RegistrationStatusCode.FAILED,
+					StatusUtil.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION, RegistrationExceptionTypeCode.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION,
+					description, PlatformErrorMessages.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION, e);
 		}catch (PacketManagerException e) {
 			updateDTOsAndLogError(registrationStatusDto, RegistrationStatusCode.PROCESSING,
 					StatusUtil.PACKET_MANAGER_EXCEPTION, RegistrationExceptionTypeCode.PACKET_MANAGER_EXCEPTION,

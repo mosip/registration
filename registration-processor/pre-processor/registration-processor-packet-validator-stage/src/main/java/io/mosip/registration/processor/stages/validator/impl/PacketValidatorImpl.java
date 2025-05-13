@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.registration.processor.core.exception.PacketManagerFailureException;
+import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -163,7 +163,7 @@ public class PacketValidatorImpl implements PacketValidator {
 			if (!biometricsXSDValidation(id, process, packetValidationDto)) {
 				return false;
 			}
-		}catch(PacketManagerFailureException e){
+		}catch(PacketManagerNonRecoverableException e){
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					id, RegistrationStatusCode.FAILED.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));
 			throw e;

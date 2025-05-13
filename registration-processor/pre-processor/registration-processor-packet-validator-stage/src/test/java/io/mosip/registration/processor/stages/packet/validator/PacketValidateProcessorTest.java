@@ -480,10 +480,8 @@ public class PacketValidateProcessorTest {
 	public void PacketValidationPacketManagerFailureFailedTest()
 			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
 		Mockito.when(packetManagerService.getMetaInfo(anyString(), any(), any()))
-				.thenThrow(PacketManagerFailureException.class);
-		Mockito.when(registrationStatusMapperUtil
-				.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_EXCEPTION)).thenReturn("REPROCESS");
-		Mockito.when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("FAILED");
+				.thenThrow(PacketManagerNonRecoverableException.class);
+		Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION)).thenReturn("FAILED");
 		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
 		assertFalse((object.getIsValid()));
 		assertTrue(object.getInternalError());

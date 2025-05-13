@@ -3,10 +3,7 @@ package io.mosip.registration.processor.verification.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,6 +19,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.groups.Tuple;
 import org.assertj.core.util.Lists;
@@ -773,5 +771,17 @@ public class ManualAdjudicationServiceTest {
 		setDataShareDetails();
 
 		manualAdjudicationService.process(object, queue);
+	}
+
+	@Test(expected = PacketManagerNonRecoverableException.class)
+	public void testPrepareManualAdjudicationRequest() throws Exception {
+		Mockito.when(packetManagerService.getFields(anyString(), any(), anyString(), any())).thenThrow(new PacketManagerNonRecoverableException("errorCode","message"));
+		MessageDTO object = new MessageDTO();
+		object.setReg_type("NEW");
+		object.setRid("92379526572940");
+		object.setIteration(1);
+		object.setWorkflowInstanceId("26fa3eff-f3b9-48f7-b365-d7f7c2e56e00");
+		setDataShareDetails();
+		manualAdjudicationService.process(object,queue);
 	}
 }

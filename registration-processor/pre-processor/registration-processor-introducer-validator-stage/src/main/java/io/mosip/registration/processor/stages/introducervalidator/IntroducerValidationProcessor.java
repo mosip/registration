@@ -98,7 +98,7 @@ public class IntroducerValidationProcessor {
 			object.setIsValid(Boolean.TRUE);
 			object.setInternalError(Boolean.FALSE);
 			isTransactionSuccessful = true;
-		} catch (PacketManagerFailureException e){
+		} catch (PacketManagerNonRecoverableException e){
 			updateDTOsAndLogError(registrationStatusDto, RegistrationStatusCode.FAILED,
 					StatusUtil.PACKET_MANAGER_EXCEPTION, RegistrationExceptionTypeCode.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION,
 					description, PlatformErrorMessages.PACKET_MANAGER_EXCEPTION, e);
