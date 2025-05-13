@@ -15,6 +15,7 @@ import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
@@ -673,6 +674,10 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 			req.setReferenceURL(
 					getDataShareUrl(mve.get(0).getRegId(), registrationStatusDto.getRegistrationType()));
 
+		}catch (PacketManagerNonRecoverableException ex){
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					ex.getErrorCode(), ex.getErrorText());
+			throw ex;
 		} catch (PacketManagerException | ApisResourceAccessException ex) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					ex.getErrorCode(), ex.getErrorText());
@@ -689,6 +694,11 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 			try {
 				r.setReferenceId(e.getId().getMatchedRefId());
 				r.setReferenceURL(getDataShareUrl(e.getId().getMatchedRefId(),registrationStatusDto1.getRegistrationType()));
+				referenceIds.add(r);
+			} catch(PacketManagerNonRecoverableException ex){
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), ex.getErrorCode(), ex.getErrorText());
+				r.setReferenceURL(null);
 				referenceIds.add(r);
 			} catch (PacketManagerException | ApisResourceAccessException ex) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
@@ -729,7 +739,11 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 			req.setReferenceURL(
 					JsonUtil.objectMapperObjectToJson(addReferenceURLs(mve.get(0).getRegId(), registrationStatusDto)));
 
-		} catch (PacketManagerException | ApisResourceAccessException ex) {
+		} catch(PacketManagerNonRecoverableException ex){
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					ex.getErrorCode(), ex.getErrorText());
+			throw ex;
+		}catch (PacketManagerException | ApisResourceAccessException ex) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					ex.getErrorCode(), ex.getErrorText());
 			throw ex;
@@ -746,7 +760,12 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 				r.setReferenceId(e.getId().getMatchedRefId());
 				r.setReferenceURL(JsonUtil.objectMapperObjectToJson(addReferenceURLs(e.getId().getMatchedRefId(),registrationStatusDto1)));
 				referenceIds.add(r);
-			} catch (PacketManagerException | ApisResourceAccessException ex) {
+			} catch(PacketManagerNonRecoverableException ex){
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), ex.getErrorCode(), ex.getErrorText());
+				r.setReferenceURL(null);
+				referenceIds.add(r);
+			}catch (PacketManagerException | ApisResourceAccessException ex) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), ex.getErrorCode(), ex.getErrorText());
 				r.setReferenceURL(null);

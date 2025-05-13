@@ -245,6 +245,9 @@ public enum PlatformErrorMessages {
 	PACKET_MANAGER_EXCEPTION(PlatformConstants.RPR_PACKET_INFO_STORAGE_MODULE + "012",
 			"Exception occured in packet manager."),
 
+	PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION(PlatformConstants.RPR_PACKET_INFO_STORAGE_MODULE + "013",
+			"Non recoverable error occurred in packet manager."),
+
 	/** The rpr fac connection not available. */
 	// File adaptor Exception error code and message
 	RPR_FAC_CONNECTION_NOT_AVAILABLE(PlatformConstants.RPR_FILESYSTEM_ADAPTOR_CEPH_MODULE + "001",

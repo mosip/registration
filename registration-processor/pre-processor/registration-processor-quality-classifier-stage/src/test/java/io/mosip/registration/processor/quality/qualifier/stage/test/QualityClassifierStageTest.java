@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -598,6 +599,19 @@ public class QualityClassifierStageTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any())).thenReturn(registrationStatusDto);
 		when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.JSON_PROCESSING_EXCEPTION))
 		.thenReturn("ERROR");
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("1234567890");
+		MessageDTO result = qualityClassifierStage.process(dto);
+		assertFalse(result.getIsValid());
+		assertTrue(result.getInternalError());
+	}
+
+	@Test
+	public void PacketManagerNonRecoverableExceptionTest() throws PacketManagerException, IOException, ApisResourceAccessException, JsonProcessingException {
+		when(basedPacketManagerService.getFieldByMappingJsonKey(any(), any(), any(), any()))
+				.thenThrow(new PacketManagerNonRecoverableException("code","message"));
+		when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION))
+				.thenReturn("Failed");
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO result = qualityClassifierStage.process(dto);

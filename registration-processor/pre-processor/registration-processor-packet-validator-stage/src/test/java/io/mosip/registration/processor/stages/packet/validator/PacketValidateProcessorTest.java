@@ -10,10 +10,7 @@ import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.constant.RegistrationType;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketManagerException;
-import io.mosip.registration.processor.core.exception.PacketValidatorException;
-import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
+import io.mosip.registration.processor.core.exception.*;
 import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.core.packet.dto.FieldValueArray;
 import io.mosip.registration.processor.core.packet.dto.idjson.Document;
@@ -411,7 +408,7 @@ public class PacketValidateProcessorTest {
 	}
 	
 	@Test
-	public void ReverseDataSyncAPIResourceEsxceptionClientTest() throws ApisResourceAccessException {
+	public void ReverseDataSyncAPIResourceExceptionClientTest() throws ApisResourceAccessException {
 		
 		Mockito.when(restClientService.postApi(any(), any(), any(), any(),
 				any())).thenThrow(new ApisResourceAccessException("",new HttpClientErrorException(HttpStatus.GATEWAY_TIMEOUT, "")));
@@ -423,7 +420,7 @@ public class PacketValidateProcessorTest {
 	}
 	
 	@Test
-	public void ReverseDataSyncAPIResourceEsxceptionServerTest() throws ApisResourceAccessException {
+	public void ReverseDataSyncAPIResourceExceptionServerTest() throws ApisResourceAccessException {
 		
 		Mockito.when(restClientService.postApi(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any(),
 				Matchers.any())).thenThrow(new ApisResourceAccessException("",new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "")));
@@ -435,7 +432,7 @@ public class PacketValidateProcessorTest {
 	}
 	
 	@Test
-	public void ReverseDataSyncAPIResourceExceptionest() throws ApisResourceAccessException {
+	public void ReverseDataSyncAPIResourceExceptionTest() throws ApisResourceAccessException {
 		
 		Mockito.when(restClientService.postApi(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any(),
 				Matchers.any())).thenThrow(new ApisResourceAccessException(""));
@@ -476,6 +473,17 @@ public class PacketValidateProcessorTest {
 				.getStatusCode(RegistrationExceptionTypeCode.BASE_UNCHECKED_EXCEPTION)).thenReturn("ERROR");
 		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
 		assertFalse(object.getIsValid());
+		assertTrue(object.getInternalError());
+	}
+
+	@Test
+	public void packetManagerNonRecoverableExceptionTest()
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+		Mockito.when(packetManagerService.getMetaInfo(anyString(), any(), any()))
+				.thenThrow(PacketManagerNonRecoverableException.class);
+		Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION)).thenReturn("FAILED");
+		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
+		assertFalse((object.getIsValid()));
 		assertTrue(object.getInternalError());
 	}
 	

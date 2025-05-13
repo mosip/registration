@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import io.mosip.registration.processor.core.exception.*;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -57,10 +58,6 @@ import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.BioTypeException;
-import io.mosip.registration.processor.core.exception.PacketManagerException;
-import io.mosip.registration.processor.core.exception.ValidationFailedException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.packet.dto.FieldValue;
@@ -625,5 +622,15 @@ public class BiometricAuthenticationStageTest {
 		when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(0);
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 		assertTrue(messageDto.getIsValid());
+	}
+
+	@Test
+	public void PacketManagerNonRecoverableExceptionTest() throws ApisResourceAccessException, IOException, PacketManagerException, io.mosip.kernel.core.exception.IOException, JsonProcessingException {
+
+		when(utility.getApplicantAge(any(),anyString(), any())).thenThrow(new PacketManagerNonRecoverableException("errorcode","IOException"));
+		Mockito.when(packetManagerService.getFieldByMappingJsonKey(any(),any(),any(),any())).thenThrow(new PacketManagerNonRecoverableException("errorcode","IOException"));
+		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
+		assertTrue(messageDto.getInternalError());
+		assertFalse(messageDto.getIsValid());
 	}
 }

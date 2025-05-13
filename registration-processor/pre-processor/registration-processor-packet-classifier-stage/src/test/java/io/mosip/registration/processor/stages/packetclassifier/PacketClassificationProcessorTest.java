@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.junit.Before;
 import org.junit.Test;
@@ -276,6 +277,18 @@ public class PacketClassificationProcessorTest {
 		Mockito.when(tagGenerator.generateTags(any(), any(), any(), any(), any(), anyInt())).thenThrow(exc);
 		Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BASE_CHECKED_EXCEPTION))
 		.thenReturn("ERROR");
+		MessageDTO object = packetClassificationProcessor.process(messageDTO, stageName);
+		assertFalse(object.getIsValid());
+		assertTrue(object.getInternalError());
+	}
+
+	@Test
+	public void PacketManagerNonRecoverableExceptionTest() throws Exception {
+		PacketManagerNonRecoverableException exc = new PacketManagerNonRecoverableException("", "");
+		Whitebox.invokeMethod(packetClassificationProcessor, "collectRequiredIdObjectFieldNames");
+		Mockito.when(tagGenerator.generateTags(any(), any(), any(), any(), any(), anyInt())).thenThrow(exc);
+		Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION))
+				.thenReturn("Failed");
 		MessageDTO object = packetClassificationProcessor.process(messageDTO, stageName);
 		assertFalse(object.getIsValid());
 		assertTrue(object.getInternalError());
