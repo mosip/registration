@@ -283,7 +283,7 @@ public class PacketClassificationProcessorTest {
 	}
 
 	@Test
-	public void packetClassificationPacketManagerFailureExceptionTest() throws Exception {
+	public void PacketManagerNonRecoverableExceptionTest() throws Exception {
 		PacketManagerNonRecoverableException exc = new PacketManagerNonRecoverableException("", "");
 		Whitebox.invokeMethod(packetClassificationProcessor, "collectRequiredIdObjectFieldNames");
 		Mockito.when(tagGenerator.generateTags(any(), any(), any(), any(), any(), anyInt())).thenThrow(exc);

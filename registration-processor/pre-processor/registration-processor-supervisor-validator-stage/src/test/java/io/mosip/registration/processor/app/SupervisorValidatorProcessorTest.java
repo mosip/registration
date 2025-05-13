@@ -337,7 +337,7 @@ public class SupervisorValidatorProcessorTest {
 	}
 
 	@Test
-	public void packetManagerFailureExceptionTest() throws Exception {
+	public void PacketManagerNonRecoverableExceptionTest() throws Exception {
 		Mockito.doThrow(new PacketManagerNonRecoverableException("code","message")).when(supervisorValidator).validate(anyString(),
 				any(), any());
 		Mockito.when(registrationStatusMapperUtil

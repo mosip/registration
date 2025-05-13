@@ -341,7 +341,7 @@ public class OperatorValidatorProcessorTest {
 	}
 
 	@Test
-	public void packetManagerFailureExceptionTest() throws Exception {
+	public void PacketManagerNonRecoverableExceptionTest() throws Exception {
 
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION)).thenReturn("failed");

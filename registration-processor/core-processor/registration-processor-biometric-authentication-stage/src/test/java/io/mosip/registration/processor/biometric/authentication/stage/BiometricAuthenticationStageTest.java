@@ -625,7 +625,7 @@ public class BiometricAuthenticationStageTest {
 	}
 
 	@Test
-	public void testPacketManagerFailureException() throws ApisResourceAccessException, IOException, PacketManagerException, io.mosip.kernel.core.exception.IOException, JsonProcessingException {
+	public void PacketManagerNonRecoverableExceptionTest() throws ApisResourceAccessException, IOException, PacketManagerException, io.mosip.kernel.core.exception.IOException, JsonProcessingException {
 
 		when(utility.getApplicantAge(any(),anyString(), any())).thenThrow(new PacketManagerNonRecoverableException("errorcode","IOException"));
 		Mockito.when(packetManagerService.getFieldByMappingJsonKey(any(),any(),any(),any())).thenThrow(new PacketManagerNonRecoverableException("errorcode","IOException"));

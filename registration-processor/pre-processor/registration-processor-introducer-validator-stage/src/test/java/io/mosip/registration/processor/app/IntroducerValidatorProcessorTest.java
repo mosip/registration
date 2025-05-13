@@ -268,7 +268,7 @@ public class IntroducerValidatorProcessorTest {
 	}
 
 	@Test
-	public void packetManagerFailureExceptionTest() throws Exception {
+	public void PacketManagerNonRecoverableExceptionTest() throws Exception {
 
 		Mockito.doThrow(new PacketManagerNonRecoverableException("id", "message")).when(introducerValidator).validate(anyString(),
 				any());

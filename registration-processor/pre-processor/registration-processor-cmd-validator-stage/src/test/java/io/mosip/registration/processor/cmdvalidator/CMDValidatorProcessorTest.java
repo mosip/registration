@@ -352,7 +352,7 @@ public class CMDValidatorProcessorTest {
 	}
 
 	@Test
-	public void packetManagerFailureExceptionTest() throws Exception {
+	public void PacketManagerNonRecoverableExceptionTest() throws Exception {
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION)).thenReturn("Failed");
 		Mockito.doNothing().when(centerValidator).validate(anyString(), any(), anyString());

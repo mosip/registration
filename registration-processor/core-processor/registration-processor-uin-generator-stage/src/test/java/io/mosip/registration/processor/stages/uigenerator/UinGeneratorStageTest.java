@@ -2567,7 +2567,7 @@ public class UinGeneratorStageTest {
 	}
 
 	@Test
-	public void TestforPacketManagerFailureException() throws ApisResourceAccessException, IOException, JsonProcessingException,
+	public void PacketManagerNonRecoverableExceptionTest() throws ApisResourceAccessException, IOException, JsonProcessingException,
 			PacketManagerException {
 		when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("FAILED");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenThrow(new PacketManagerNonRecoverableException("errorCode","message"));

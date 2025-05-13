@@ -607,7 +607,7 @@ public class QualityClassifierStageTest {
 	}
 
 	@Test
-	public void testPacketManagerFailureException() throws PacketManagerException, IOException, ApisResourceAccessException, JsonProcessingException {
+	public void PacketManagerNonRecoverableExceptionTest() throws PacketManagerException, IOException, ApisResourceAccessException, JsonProcessingException {
 		when(basedPacketManagerService.getFieldByMappingJsonKey(any(), any(), any(), any()))
 				.thenThrow(new PacketManagerNonRecoverableException("code","message"));
 		when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION))

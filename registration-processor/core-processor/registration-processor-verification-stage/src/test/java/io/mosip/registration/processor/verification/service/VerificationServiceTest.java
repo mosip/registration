@@ -529,7 +529,7 @@ public class VerificationServiceTest {
 
 
 	@Test
-	public void testPacketManagerFailureException() throws ApisResourceAccessException, PacketManagerException, IOException, JsonProcessingException {
+	public void PacketManagerNonRecoverableExceptionTest() throws ApisResourceAccessException, PacketManagerException, IOException, JsonProcessingException {
 		Mockito.when(packetManagerService.getFields(anyString(), any(), anyString(), any())).thenThrow(new PacketManagerNonRecoverableException("exceptionCode","messahe"));
 		MessageDTO response = verificationService.process(object, queue, stageName);
 		assertFalse(response.getIsValid());
