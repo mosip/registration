@@ -70,7 +70,7 @@ public enum StatusUtil {
 			"Biometric Signature validation failed"),
 	PACKET_CONSENT_VALIDATION(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "017",
 			"Consent is not agreed for the packet to process further"),
-	PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION(PlatformConstants.RPR_PACKET_MANAGER_MODULE + "020",
+	PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION(PlatformConstants.RPR_PACKET_MANAGER_MODULE + "018",
 			"Packet manager non recoverable exception"),
 
 	// packet classifier stage
