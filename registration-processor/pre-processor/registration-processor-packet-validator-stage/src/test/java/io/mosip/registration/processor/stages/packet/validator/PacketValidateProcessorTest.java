@@ -477,7 +477,7 @@ public class PacketValidateProcessorTest {
 	}
 
 	@Test
-	public void PacketValidationPacketManagerFailureFailedTest()
+	public void packetManagerNonRecoverableExceptionTest()
 			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
 		Mockito.when(packetManagerService.getMetaInfo(anyString(), any(), any()))
 				.thenThrow(PacketManagerNonRecoverableException.class);
