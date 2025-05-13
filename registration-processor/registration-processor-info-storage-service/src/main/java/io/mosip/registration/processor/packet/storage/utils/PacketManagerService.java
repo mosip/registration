@@ -55,7 +55,7 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
     private static final String ID = "mosip.commmons.packetmanager";
     private static final String VERSION = "v1";
     private static final String OBJECT_DOESNOT_EXISTS_ERROR_CODE = "KER-PUT-027";
-    private static final List<String> PACKET_MANAGER_NON_RECOVERABLE_ERROR_CODES = Arrays.asList("KER-PUT-019");;
+    private static final List<String> PACKET_MANAGER_NON_RECOVERABLE_ERROR_CODES = Arrays.asList("KER-PUT-019");
 
     @Autowired
     private RegistrationProcessorRestClientService<Object> restApi;
