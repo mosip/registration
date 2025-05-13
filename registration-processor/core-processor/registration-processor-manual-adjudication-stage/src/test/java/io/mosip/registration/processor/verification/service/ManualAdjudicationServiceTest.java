@@ -774,7 +774,7 @@ public class ManualAdjudicationServiceTest {
 	}
 
 	@Test(expected = PacketManagerNonRecoverableException.class)
-	public void testPrepareManualAdjudicationRequest() throws Exception {
+	public void PacketManagerNonRecoverableExceptionTest() throws Exception {
 		Mockito.when(packetManagerService.getFields(anyString(), any(), anyString(), any())).thenThrow(new PacketManagerNonRecoverableException("errorCode","message"));
 		MessageDTO object = new MessageDTO();
 		object.setReg_type("NEW");
