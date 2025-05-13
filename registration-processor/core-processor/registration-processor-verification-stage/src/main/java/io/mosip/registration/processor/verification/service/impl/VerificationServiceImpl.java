@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
@@ -661,7 +662,11 @@ public class VerificationServiceImpl implements VerificationService {
 		try {
 			req.setReferenceURL(getDataShareUrl(messageDTO.getRid(), registrationStatusDto.getRegistrationType()));
 
-		} catch (PacketManagerException | ApisResourceAccessException ex) {
+		} catch(PacketManagerNonRecoverableException ex){
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					ex.getErrorCode(), ex.getErrorText());
+			throw ex;
+		}catch (PacketManagerException | ApisResourceAccessException ex) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					ex.getErrorCode(), ex.getErrorText());
 			throw ex;

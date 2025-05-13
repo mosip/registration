@@ -25,8 +25,9 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.registration.processor.core.code.*;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
+import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
 import io.mosip.registration.processor.packet.manager.dto.IdRequestDto;
 import io.mosip.registration.processor.packet.storage.utils.Utility;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
@@ -73,11 +74,6 @@ import io.mosip.registration.processor.core.abstractverticle.HealthCheckDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
-import io.mosip.registration.processor.core.code.ApiName;
-import io.mosip.registration.processor.core.code.EventId;
-import io.mosip.registration.processor.core.code.EventName;
-import io.mosip.registration.processor.core.code.EventType;
-import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.RegistrationType;
@@ -2643,4 +2639,17 @@ public class UinGeneratorStageTest {
         assertTrue(result.getIsValid());
         assertFalse(result.getInternalError());
     }
+
+	@Test
+	public void PacketManagerNonRecoverableExceptionTest() throws ApisResourceAccessException, IOException, JsonProcessingException,
+			PacketManagerException {
+		when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("FAILED");
+		when(packetManagerService.getFields(any(), any(), any(), any())).thenThrow(new PacketManagerNonRecoverableException("errorCode","message"));
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("10031100110005020190313110030");
+		messageDTO.setReg_type("CRVS_UPDATE");
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertFalse(result.getIsValid());
+		assertTrue(result.getInternalError());
+	}
 }
