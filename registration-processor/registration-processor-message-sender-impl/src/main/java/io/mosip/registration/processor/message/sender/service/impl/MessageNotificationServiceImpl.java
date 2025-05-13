@@ -467,8 +467,8 @@ public class MessageNotificationServiceImpl
 				|| regType.equalsIgnoreCase(RegistrationType.DEACTIVATED.name())
 				|| regType.equalsIgnoreCase(RegistrationType.UPDATE.name())
 				|| regType.equalsIgnoreCase(RegistrationType.RES_UPDATE.name())
-				|| regType.equalsIgnoreCase(RegistrationType.LOST.name()))
-				|| internalProcess.equalsIgnoreCase(RegistrationType.UPDATE.name())) {
+				|| regType.equalsIgnoreCase(RegistrationType.LOST.name())
+				|| internalProcess.equalsIgnoreCase(RegistrationType.UPDATE.name()))) {
 			setAttributesFromIdRepo(uin, attributes, regType,lang, phoneNumber, emailId);
 		} else {
 			setAttributesFromIdJson(id, process, attributes, regType,lang, phoneNumber, emailId);
