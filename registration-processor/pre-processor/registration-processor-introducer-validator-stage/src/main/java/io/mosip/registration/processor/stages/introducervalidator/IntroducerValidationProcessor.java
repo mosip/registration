@@ -100,8 +100,8 @@ public class IntroducerValidationProcessor {
 			isTransactionSuccessful = true;
 		} catch (PacketManagerNonRecoverableException e){
 			updateDTOsAndLogError(registrationStatusDto, RegistrationStatusCode.FAILED,
-					StatusUtil.PACKET_MANAGER_EXCEPTION, RegistrationExceptionTypeCode.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION,
-					description, PlatformErrorMessages.PACKET_MANAGER_EXCEPTION, e);
+					StatusUtil.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION, RegistrationExceptionTypeCode.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION,
+					description, PlatformErrorMessages.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION, e);
 		}catch (PacketManagerException e) {
 			updateDTOsAndLogError(registrationStatusDto, RegistrationStatusCode.PROCESSING,
 					StatusUtil.PACKET_MANAGER_EXCEPTION, RegistrationExceptionTypeCode.PACKET_MANAGER_EXCEPTION,
