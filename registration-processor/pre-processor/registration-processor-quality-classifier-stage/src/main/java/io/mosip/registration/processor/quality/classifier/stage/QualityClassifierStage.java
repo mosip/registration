@@ -25,6 +25,7 @@ import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biosdk.provider.factory.BioAPIFactory;
 import io.mosip.kernel.biosdk.provider.spi.iBioProviderApi;
+import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
 import io.mosip.kernel.core.bioapi.exception.BiometricException;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -359,7 +360,20 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 			description.setMessage(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode());
 			object.setInternalError(Boolean.TRUE);
-		} catch (PacketManagerException e) {
+		} catch (PacketManagerNonRecoverableException e) {
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                    regId, RegistrationStatusCode.FAILED.toString() + e.getMessage()
+                            + org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
+            registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
+            registrationStatusDto.setStatusComment(trimExceptionMsg
+                    .trimExceptionMessage(StatusUtil.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION.getMessage() + e.getMessage()));
+            registrationStatusDto.setSubStatusCode(StatusUtil.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION.getCode());
+            registrationStatusDto.setLatestTransactionStatusCode(
+                    registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION));
+            description.setMessage(PlatformErrorMessages.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION.getMessage());
+            description.setCode(PlatformErrorMessages.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION.getCode());
+            object.setInternalError(Boolean.TRUE);
+        } catch (PacketManagerException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					regId, RegistrationStatusCode.FAILED.toString() + e.getMessage()
 							+ org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));

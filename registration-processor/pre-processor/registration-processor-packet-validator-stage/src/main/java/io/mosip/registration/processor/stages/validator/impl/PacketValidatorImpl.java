@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -40,7 +41,6 @@ import io.mosip.registration.processor.packet.storage.dto.ValidatePacketResponse
 import io.mosip.registration.processor.packet.storage.exception.IdRepoAppException;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
-import io.mosip.registration.processor.packet.storage.utils.Utility;
 import io.mosip.registration.processor.stages.utils.ApplicantDocumentValidation;
 import io.mosip.registration.processor.stages.utils.BiometricsXSDValidator;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -60,10 +60,7 @@ public class PacketValidatorImpl implements PacketValidator {
 	private PriorityBasedPacketManagerService packetManagerService;
 
 	@Autowired
-	private Utilities utililites;
-
-	@Autowired
-	private Utility utility;
+	private Utilities utility;
 
 	@Autowired
 	private Environment env;
@@ -123,14 +120,14 @@ public class PacketValidatorImpl implements PacketValidator {
 							"ERROR =======>" + PlatformErrorMessages.RPR_PVM_INVALID_UIN.getMessage());
 					throw new IdRepoAppException(PlatformErrorMessages.RPR_PVM_INVALID_UIN.getMessage());
 				}
-				JSONObject jsonObject = utililites.retrieveIdrepoJson(uin);
+				JSONObject jsonObject = utility.retrieveIdrepoJson(uin);
 				if (jsonObject == null) {
 					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.REGISTRATIONID.toString(), id,
 							"ERROR =======>" + PlatformErrorMessages.RPR_PIS_IDENTITY_NOT_FOUND.getMessage());
 					throw new IdRepoAppException(PlatformErrorMessages.RPR_PIS_IDENTITY_NOT_FOUND.getMessage());
 				}
-				String status = utililites.retrieveIdrepoJsonStatus(uin);
+				String status = utility.retrieveIdrepoJsonStatus(uin);
 				if (process.equalsIgnoreCase(RegistrationType.UPDATE.toString())
 						&& status.equalsIgnoreCase(RegistrationType.DEACTIVATED.toString())) {
 					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
@@ -153,7 +150,7 @@ public class PacketValidatorImpl implements PacketValidator {
 			if (RegistrationType.UPDATE.name().equalsIgnoreCase(process)
 					|| RegistrationType.RES_UPDATE.name().equalsIgnoreCase(process)) {
 
-				if (!utililites.uinPresentInIdRepo(String.valueOf(uin))) {
+				if (!utility.uinPresentInIdRepo(String.valueOf(uin))) {
 					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.REGISTRATIONID.toString(), id,
 							"ERROR =======>" + StatusUtil.UIN_NOT_FOUND_IDREPO.getMessage());
@@ -166,7 +163,11 @@ public class PacketValidatorImpl implements PacketValidator {
 			if (!biometricsXSDValidation(id, process, packetValidationDto)) {
 				return false;
 			}
-		} catch (PacketManagerException e) {
+		}catch(PacketManagerNonRecoverableException e){
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					id, RegistrationStatusCode.FAILED.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));
+			throw e;
+		}catch (PacketManagerException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					id, RegistrationStatusCode.FAILED.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));
 			throw e;

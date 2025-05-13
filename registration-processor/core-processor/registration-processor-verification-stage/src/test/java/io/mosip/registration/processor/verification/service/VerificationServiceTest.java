@@ -16,6 +16,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
 import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.apache.activemq.util.ByteSequence;
 import org.json.simple.JSONObject;
@@ -521,6 +523,15 @@ public class VerificationServiceTest {
 		boolean result = verificationService.updatePacketStatus(resp, stageName, queue);
 
 		assertTrue(result);
+	}
+
+
+	@Test
+	public void PacketManagerNonRecoverableExceptionTest() throws ApisResourceAccessException, PacketManagerException, IOException, JsonProcessingException {
+		Mockito.when(packetManagerService.getFields(anyString(), any(), anyString(), any())).thenThrow(new PacketManagerNonRecoverableException("exceptionCode","messahe"));
+		MessageDTO response = verificationService.process(object, queue, stageName);
+		assertFalse(response.getIsValid());
+		assertTrue(response.getInternalError());
 	}
 
 }

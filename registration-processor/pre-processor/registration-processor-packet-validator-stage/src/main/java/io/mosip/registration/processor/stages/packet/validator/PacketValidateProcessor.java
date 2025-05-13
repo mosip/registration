@@ -11,8 +11,10 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 
+import io.mosip.kernel.core.util.DateUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,7 +30,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
@@ -68,7 +69,6 @@ import io.mosip.registration.processor.packet.manager.decryptor.Decryptor;
 import io.mosip.registration.processor.packet.storage.exception.IdentityNotFoundException;
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
-import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.stages.utils.AuditUtility;
 import io.mosip.registration.processor.stages.utils.NotificationUtility;
@@ -192,7 +192,6 @@ public class PacketValidateProcessor {
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.VALIDATE_PACKET.toString());
 			registrationStatusDto.setRegistrationStageName(stageName);
-			setPacketCreatedDateTime(registrationStatusDto);
 			boolean isValidSupervisorStatus = isValidSupervisorStatus(object);
 			if (isValidSupervisorStatus) {
 				Boolean isValid = compositePacketValidator.validate(object.getRid(),
@@ -278,7 +277,20 @@ public class PacketValidateProcessor {
 			registrationStatusDto.setUpdatedBy(USER);
 			SyncRegistrationEntity regEntity = syncRegistrationService.findByWorkflowInstanceId(object.getWorkflowInstanceId());
 			sendNotification(regEntity, registrationStatusDto, packetValidationDto.isTransactionSuccessful(),isValidSupervisorStatus);
-		} catch (PacketManagerException e) {
+		} catch (PacketManagerNonRecoverableException exc) {
+            registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+            registrationStatusDto.setStatusComment(
+                    trimMessage.trimExceptionMessage(StatusUtil.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION.getMessage() + exc.getMessage()));
+            registrationStatusDto.setSubStatusCode(StatusUtil.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION.getCode() );
+            registrationStatusDto.setLatestTransactionStatusCode(
+                    registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION));
+            packetValidationDto.setTransactionSuccessful(false);
+            description.setMessage(PlatformErrorMessages.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION.getMessage());
+            description.setCode(PlatformErrorMessages.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION.getCode());
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                    description.getCode() + " -- " + registrationId,
+                    PlatformErrorMessages.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION.getMessage() + ExceptionUtils.getStackTrace(exc));
+        } catch (PacketManagerException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId,
 					RegistrationStatusCode.FAILED.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));

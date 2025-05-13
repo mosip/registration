@@ -209,6 +209,9 @@ public enum RegistrationExceptionTypeCode {
 	/** Exception in packet manager. */
 	PACKET_MANAGER_EXCEPTION,
 
+	/** The packet manager non-recoverable exception. */
+	PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION,
+
 	/** Exception in IDREPO draft. */
 	IDREPO_DRAFT_EXCEPTION,
 	
