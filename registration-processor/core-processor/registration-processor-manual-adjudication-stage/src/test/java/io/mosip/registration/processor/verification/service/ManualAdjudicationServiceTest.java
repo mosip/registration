@@ -778,30 +778,25 @@ public class ManualAdjudicationServiceTest {
 
 	@Test
 	public void PacketManagerNonRecoverableExceptionTest() throws Exception {
-		List<LinkedHashMap> attributeList = new ArrayList<LinkedHashMap>();
-		LinkedHashMap attribute1 = new LinkedHashMap();
-		attribute1.put("encrypted", "true");
-		attribute1.put("attributeName", "fullName");
-		LinkedHashMap source = new LinkedHashMap();
-		source.put("attribute", "fullName");
-		attribute1.put("source", Arrays.asList(source));
-		attributeList.add(attribute1);
 		ShareableAttributes shareableAttributes1 = new ShareableAttributes();
 		shareableAttributes1.setAttributeName("fullName");
 		shareableAttributes1.setEncrypted(true);
+
 		List<Source> sourceList = new ArrayList<>();
 		Source source1 = new Source();
 		source1.setAttribute("fullName");
-		Filter filter11 = new Filter();
 		List<Filter> filterlist = new ArrayList<>();
-		filterlist.add(filter11);
+		Filter filter11 = new Filter();
 		filter11.setLanguage("lang");
 		filter11.setType("type");
+		filterlist.add(filter11);
 		source1.setFilter(filterlist);
 		sourceList.add(source1);
+
 		shareableAttributes1.setSource(sourceList);
 		shareableAttributes1.setFormat("");
 		shareableAttributes1.setGroup("");
+
 		MessageDTO object = new MessageDTO();
 		object.setReg_type("NEW");
 		object.setRid("92379526572940");
