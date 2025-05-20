@@ -19,6 +19,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.processor.adjudication.request.dto.Filter;
+import io.mosip.registration.processor.adjudication.request.dto.ShareableAttributes;
+import io.mosip.registration.processor.adjudication.request.dto.Source;
 import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.groups.Tuple;
@@ -773,15 +776,43 @@ public class ManualAdjudicationServiceTest {
 		manualAdjudicationService.process(object, queue);
 	}
 
-	@Test(expected = PacketManagerNonRecoverableException.class)
+	@Test
 	public void PacketManagerNonRecoverableExceptionTest() throws Exception {
-		Mockito.when(packetManagerService.getFields(anyString(), any(), anyString(), any())).thenThrow(new PacketManagerNonRecoverableException("errorCode","message"));
+		List<LinkedHashMap> attributeList = new ArrayList<LinkedHashMap>();
+		LinkedHashMap attribute1 = new LinkedHashMap();
+		attribute1.put("encrypted", "true");
+		attribute1.put("attributeName", "fullName");
+		LinkedHashMap source = new LinkedHashMap();
+		source.put("attribute", "fullName");
+		attribute1.put("source", Arrays.asList(source));
+		attributeList.add(attribute1);
+		ShareableAttributes shareableAttributes1 = new ShareableAttributes();
+		shareableAttributes1.setAttributeName("fullName");
+		shareableAttributes1.setEncrypted(true);
+		List<Source> sourceList = new ArrayList<>();
+		Source source1 = new Source();
+		source1.setAttribute("fullName");
+		Filter filter11 = new Filter();
+		List<Filter> filterlist = new ArrayList<>();
+		filterlist.add(filter11);
+		filter11.setLanguage("lang");
+		filter11.setType("type");
+		source1.setFilter(filterlist);
+		sourceList.add(source1);
+		shareableAttributes1.setSource(sourceList);
+		shareableAttributes1.setFormat("");
+		shareableAttributes1.setGroup("");
 		MessageDTO object = new MessageDTO();
 		object.setReg_type("NEW");
 		object.setRid("92379526572940");
 		object.setIteration(1);
 		object.setWorkflowInstanceId("26fa3eff-f3b9-48f7-b365-d7f7c2e56e00");
 		setDataShareDetails();
-		manualAdjudicationService.process(object,queue);
+		Mockito.when(packetManagerService.getFields(anyString(), any(), anyString(), any())).thenThrow(new PacketManagerNonRecoverableException("errorCode","message"));
+		Mockito.when(mapper.writeValueAsString(any())).thenReturn("");
+		Mockito.when(mapper.readValue(anyString(),any(Class.class))).thenReturn(shareableAttributes1).thenReturn(shareableAttributes1).thenReturn(shareableAttributes1);
+		MessageDTO messageDTO=manualAdjudicationService.process(object,queue);
+		assertFalse(messageDTO.getIsValid());
+		assertTrue(messageDTO.getInternalError());
 	}
 }
