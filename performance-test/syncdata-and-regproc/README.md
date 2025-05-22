@@ -67,7 +67,7 @@ java -jar -Dfile.encoding=UTF-8 -Xdebug -Xrunjdwp:server=y,transport=dt_socket,a
 
 ###  Setup for packet creation
 	1. The centers, machines and users should be onboarded in the platform before using them as part of context_details.csv 	
-	2. The mosip-packet-creator and mount volume folders need to be present with the latest jar.
+	2. The mosip-packet-creator and mount volume folders need to be present with the latest packet creator jar.
 	3. From the terminal run the command to start mosip-packet-creator as mentioned in above steps.
 	4. Open the [Regproc_Syncdata_Test_Script.jmx] script and run the Auth Token Generation (Setup) thread group.
 	5. Execute Packet Generation (Setup) thread group by specifying the no of packets it needs to generate.
@@ -80,7 +80,7 @@ java -jar -Dfile.encoding=UTF-8 -Xdebug -Xrunjdwp:server=y,transport=dt_socket,a
 
 	* Create Centers And Machines (Setup) - In this thread group we create centres and machines before starting the test, basedata setup for any new environment.
 
-	* Packet Creation (Preparation) - In this thread group we will basically create the context with the help of existing center id's, machine id's & user id's present in our current environment & we will read them through a file named context_details.csv. Once the contexts are created we will use the same in the execution thread group where basically the packet generation happens & then the packet path gets stored in a file naming as Run Time Files in bin folder of JMeter. This step also includes rid sync request to packet creator and sync, upload to reg proc to create preparatory test data for us.
+	* Packet Creation (Preparation) - In this thread group we will basically create the context with the help of existing center id's, machine id's & user id's present in our current environment & we will read them through a file named context_details.csv. Once the contexts are created we will use the same in the execution thread group where basically the packet generation happens & then the packet path gets stored in a file naming as Run Time Files in bin folder of JMeter. This step also includes rid sync request to packet creator and sync, upload to reg proc to create preparatory test data for us. This step is also for the RID search scenario as a pre-requisite.
 
 
 	* S01 Sync And Upload Registration Packet (Execution) : 
@@ -140,17 +140,14 @@ java -jar -Dfile.encoding=UTF-8 -Xdebug -Xrunjdwp:server=y,transport=dt_socket,a
 			= 600
 
 * Dropdown option in Constant Throughput Timer (There are options in the Constant Throughput Timer based on what we want to achieve like throughput for each thread or for the complete thread group. Find the calculations for all active threads and for any given single thread )
-	* Calculate Throughput based on as = All active threads in current thread group
-		* If we are performing load test with 10TPS as hits / sec in one thread group. Then we need to provide value hits / minute as in Constant Throughput Timer
+
+* Calculate Throughput based on as = All active threads in current thread group (This is a dropdown option in the Constant Throughput Timer)
+	* If we are performing load test with 10TPS as hits / sec in one thread group. Then we need to provide value hits / minute as in Constant Throughput Timer
 	 			Value = 10 X 60
-					  = 600
-		  
-	* Calculate Throughput based on as = this thread
-		* If we are performing scalability testing we need to calculate throughput for 10 TPS as 
-          Value = (10 * 60 )/(Number of users)
+					= 600
 
 
-### Support files
+### Support files required for this test execution:
 
 1. app_machine_details.csv - This support file contains test data like appId, refId, machineName, public key and sign public key.
 2. context_details.csv - This support file contains userId, password, center and machine details.
