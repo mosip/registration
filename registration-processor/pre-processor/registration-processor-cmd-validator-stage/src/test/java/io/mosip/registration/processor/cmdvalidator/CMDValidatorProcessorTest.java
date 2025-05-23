@@ -355,10 +355,7 @@ public class CMDValidatorProcessorTest {
 	public void PacketManagerNonRecoverableExceptionTest() throws Exception {
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION)).thenReturn("Failed");
-		Mockito.doNothing().when(centerValidator).validate(anyString(), any(), anyString());
-		Mockito.doNothing().when(deviceValidator).validate(any(), anyString(),anyString());
-		Mockito.doThrow(new PacketManagerNonRecoverableException("id", "message")).when(machineValidator).validate(anyString(),
-				anyString(), anyString(), anyString());
+		Mockito.when(packetManagerService.getMetaInfo(anyString(), anyString(), any())).thenThrow(new PacketManagerNonRecoverableException("id", "message"));
 		MessageDTO object = cmdValidationProcessor.process(dto, stageName);
 		assertFalse(object.getIsValid());
 		assertTrue(object.getInternalError());
