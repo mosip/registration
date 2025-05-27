@@ -2,7 +2,7 @@ apiVersion: v2
 name: regproc-reprocess
 description: A Helm chart for MOSIP Registration Processor Reprocess stage
 type: application
-version: 12.1.1
+version: 12.1.1-develop
 appVersion: ""
 dependencies:
   - name: common
