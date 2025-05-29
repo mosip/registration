@@ -202,7 +202,7 @@ public class IdRepoServiceImpl implements IdRepoService {
 		List<String> pathSegments1 = new ArrayList<>();
 		pathSegments1.add(uin);
 		@SuppressWarnings("unchecked")
-		ResponseWrapper<ResponseDTO> response=(ResponseWrapper<ResponseDTO>) restClientService.getApi(ApiName.GETINDIVIDUALIDFROMUSERID, pathSegments1, "type", "ALL",
+		ResponseWrapper<ResponseDTO> response=(ResponseWrapper<ResponseDTO>) restClientService.getApi(ApiName.IDREPOINDIVIDUALID, pathSegments1, "type", "ALL",
 				ResponseWrapper.class);
 
 		if (response.getResponse() != null) {

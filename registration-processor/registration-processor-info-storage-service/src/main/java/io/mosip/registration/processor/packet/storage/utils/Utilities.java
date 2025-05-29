@@ -1035,13 +1035,6 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		return null;
 	}
 
-	public String getDateFromatedString(String dt) throws ParseException {
-		DateFormat sdf = new SimpleDateFormat(dobFormat);
-		SimpleDateFormat inputFormat = new SimpleDateFormat("yyyyMMddHHmmss");
-		Date date = inputFormat.parse(dt);
-		return sdf.format(date);
-	}
-
 	public Date convertToDate(String dateStr) throws ParseException {
 		if (dateStr == null)
 			return null;
