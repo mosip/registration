@@ -620,6 +620,10 @@ public enum PlatformErrorMessages {
 	PACKET_BDD_PACKET_STORE_NOT_ACCESSIBLE(PlatformConstants.RPR_BIO_DEDUPE_SERVICE_MODULE + "002",
 			"Unable to Access Packet from Packet Store"),
 
+	/** The rpr bio dedupe no biometric found. */
+	RPR_BIO_DEDUPE_NO_BIOMETRIC_FOUND(PlatformConstants.RPR_BIO_DEDUPE_STAGE_MODULE + "004",
+			"Not Even Single Match Found for Biometric from ABIS"),
+
 	/** The rpr bio biometric insertion to abis. */
 	RPR_BIO_BIOMETRIC_INSERTION_TO_ABIS(PlatformConstants.RPR_BIO_DEDUPE_SERVICE_MODULE + "003",
 			"Biometric Insertion Failed in ABIS"),
@@ -694,6 +698,10 @@ public enum PlatformErrorMessages {
 	/** The rpr pdj packet decryption failure. */
 	RPR_PDS_IO_EXCEPTION(PlatformConstants.RPR_PACKET_DECRYPTION_MODULE + "004",
 			"Exception while reading packet inputStream"),
+
+	/** The rpr pds Age invalid exception. */
+	RPR_PDS_AGE_INVALID_EXCEPTION(PlatformConstants.RPR_PACKET_DECRYPTION_MODULE + "006",
+			"Invalid Age"),
 
 	/** The rpr pds date time exception. */
 	RPR_PDS_DATE_TIME_EXCEPTION(PlatformConstants.RPR_PACKET_DECRYPTION_MODULE + "005",
@@ -903,6 +911,10 @@ public enum PlatformErrorMessages {
 	RPR_BDD_ABIS_INTERNAL_ERROR(PlatformConstants.RPR_BIO_DEDUPE_SERVICE_MODULE + "001",
 			"ABIS for the Reference ID and Request ID threw an Internal Error"),
 
+	/** The rpr bdd packet created date null. */
+	RPR_BDD_PACKET_CREATED_DATE_NULL(PlatformConstants.RPR_BIO_DEDUPE_SERVICE_MODULE + "005",
+			"Packet Created Date is Null"),
+
 	/** The rpr bdd abis abort. */
 	RPR_BDD_ABIS_ABORT(PlatformConstants.RPR_BIO_DEDUPE_SERVICE_MODULE + "002",
 			"ABIS for the Reference ID and Request ID was Abort"),
@@ -964,6 +976,9 @@ public enum PlatformErrorMessages {
 
 	/** The rpr mvs file not present. */
 	RPR_BDD_FILE_NOT_PRESENT(PlatformConstants.RPR_BIO_DEDUPE_SERVICE_MODULE + "011", "Requested file is not present"),
+
+	/** The rpr bdd invalid age. */
+	RPR_BDD_INVALID_AGE(PlatformConstants.RPR_BIO_DEDUPE_SERVICE_MODULE + "012", "Invalid Age"),
 
 	/** *** System Exception ****. */
 

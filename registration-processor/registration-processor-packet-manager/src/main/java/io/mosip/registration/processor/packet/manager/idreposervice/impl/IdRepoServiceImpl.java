@@ -4,15 +4,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.mosip.registration.processor.core.packet.dto.RidDto;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.code.ApiName;
@@ -193,5 +191,26 @@ public class IdRepoServiceImpl implements IdRepoService {
 				machedRegId, "IdRepoServiceImpl::getIdResponseFromIDRepo()::exit");
 
 		return responseDTO;
+	}
+
+
+	@Override
+	public RidDto getRidByIndividualId(String uin) throws IOException, ApisResourceAccessException {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				uin, "IdRepoServiceImpl::getRidbyIndividualId()::entry");
+		RidDto ridDto=null;
+		List<String> pathSegments1 = new ArrayList<>();
+		pathSegments1.add(uin);
+		@SuppressWarnings("unchecked")
+		ResponseWrapper<ResponseDTO> response=(ResponseWrapper<ResponseDTO>) restClientService.getApi(ApiName.GETINDIVIDUALIDFROMUSERID, pathSegments1, "type", "ALL",
+				ResponseWrapper.class);
+
+		if (response.getResponse() != null) {
+			ridDto=mapper.readValue(mapper.writeValueAsString(response.getResponse()), RidDto.class);
+		}
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				uin, "IdRepoServiceImpl::getRidbyIndividualId()::exit");
+
+		return ridDto;
 	}
 }
