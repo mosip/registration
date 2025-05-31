@@ -363,7 +363,7 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 			} if(dto.getBiometric().equals("face")) {
 					queryParmeter += "faceExtractionFormat";
 					queryValue += dto.getAttributeName();
-			}if (dto.getBiometric().equals("finger")) {
+			} if (dto.getBiometric().equals("finger")) {
 					queryParmeter += "fingerExtractionFormat";
 					queryValue += dto.getAttributeName();
 			}
