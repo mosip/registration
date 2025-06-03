@@ -203,7 +203,7 @@ public class MessageBusAddress implements Serializable {
 	public static final MessageBusAddress CREDENTIAL_REQUESTOR_BUS_IN = new MessageBusAddress("credential-requestor-bus-in");
 
 	/** The Constant PRINTING_BUS_OUT. */
-	public static final MessageBusAddress CREDENTIAL_REQUESTOR_OUT = new MessageBusAddress("credential-requestor-bus-out");
+	public static final MessageBusAddress CREDENTIAL_REQUESTOR_BUS_OUT = new MessageBusAddress("credential-requestor-bus-out");
 
 	/** The Constant PRINTING_BUS_RESEND. */
 	public static final MessageBusAddress PRINTING_BUS_RESEND = new MessageBusAddress("printing-bus-resend");
