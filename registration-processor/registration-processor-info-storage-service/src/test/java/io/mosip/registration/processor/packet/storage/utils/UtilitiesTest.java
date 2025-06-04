@@ -3,14 +3,11 @@ package io.mosip.registration.processor.packet.storage.utils;
 
 import io.mosip.kernel.biometrics.commons.CbeffValidator;
 import io.mosip.kernel.biometrics.entities.BIR;
-import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.bioapi.exception.BiometricException;
-import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
-import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
 import io.mosip.registration.processor.core.packet.dto.RidDto;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
@@ -18,34 +15,23 @@ import io.mosip.registration.processor.packet.storage.exception.IdentityNotFound
 import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.json.JSONString;
 import org.json.simple.JSONObject;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 import javax.xml.bind.JAXBContext;
@@ -74,14 +60,10 @@ public class UtilitiesTest {
     @Mock
     private BasePacketRepository basePacketRepository;
 
-    @Mock
-    private CbeffValidator cbeffValidator;
-
 
     private InternalRegistrationStatusDto registrationStatusDto;
     private RidDto ridDto;
     private SimpleDateFormat sdf;
-    private ObjectMapper objectMapper = new ObjectMapper();
 
     @Before
     public void setUp() {
@@ -226,10 +208,8 @@ public class UtilitiesTest {
     public void testParseDate_FromRidSuccess() throws Exception {
         // Setup
         String packetCreatedDate = "20250319064824";
-
         // Execute
         String result = utilities.parseDate(packetCreatedDate);
-
         // Verify
         assertEquals("2025-03-19T06:48:24.000Z", result);
     }
@@ -238,10 +218,8 @@ public class UtilitiesTest {
     public void testParseDate_FromIdRepoSuccess() throws Exception {
         // Setup
         String packetCreatedDate = "2025-03-19T06:48:24.000Z";
-
         // Execute
         String result = utilities.parseDate(packetCreatedDate);
-
         // Verify
         assertEquals("2025-03-19T06:48:24.000Z", result);
     }
@@ -250,10 +228,8 @@ public class UtilitiesTest {
     public void testIsValidDate_ValidDate() throws ParseException {
         // Setup
         Date date= Date.from(Instant.parse("2025-03-19T06:48:24.000Z"));
-
         // Execute
         boolean result = utilities.isValidDate(date);
-
         // Verify
         assertTrue(result);
     }
@@ -262,9 +238,7 @@ public class UtilitiesTest {
     public void testIsValidDate_ValidDate_failed() throws ParseException {
         // Execute
         String date  = utilities.parseDate("2026-03-19T06:48:24.000Z");
-
-
-//       Verify
+        // Verify
         assertNull(date);
 
     }
@@ -274,12 +248,8 @@ public class UtilitiesTest {
         // Setup
         Date dob = sdf.parse("2020/01/01");
         Date registeredDate = utilities.convertToDate("2024-03-19T06:48:24.000Z");
-
-
-
         // Execute
         int age = utilities.calculateAgeAtTheTimeOfRegistration(dob, registeredDate);
-
         // Verify
         assertEquals(4, age);
     }
@@ -305,7 +275,6 @@ public class UtilitiesTest {
         // Setup
         RidDto ridDto1=new RidDto();
         ridDto1.setUpd_dtimes("2025-03-19T06:48:24.000Z");
-
         when(basePacketRepository.getPacketIdfromRegprcList(anyString())).thenReturn("10049100271000420250319064824");
 
         // Execute
@@ -349,116 +318,52 @@ public class UtilitiesTest {
         assertEquals(packetCreatedDate,res);
     }
 
+    @Test
+    public void TestisALLBiometricHaveExceptionWithOutOthersAllExceptionAsFalse() throws JAXBException, IOException, BiometricException, PacketManagerException, ApisResourceAccessException, JsonProcessingException {
+        //without other tag and all of BDB exception is marked as false(No exception)
+        String pathString= "BIRWithOutOther.xml";
+        ClassPathResource resource1 = new ClassPathResource(pathString);
+        JAXBContext jaxbContext = JAXBContext.newInstance(BIR.class);
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+        BIR bir = (BIR) unmarshaller.unmarshal(resource1.getFile());
+        Boolean res=  utilities.allBiometricHaveException(bir.getBirs());
+        assertFalse(res);
+    }
+
+    /**     with other tag and all of BDB exception is marked as true(All exception)**/
+    @Test
+    public void TestisALLBiometricHaveExceptionWithOthersSuccessMarkedAllExceptionAsFalse() throws JAXBException, IOException, BiometricException, PacketManagerException, ApisResourceAccessException, JsonProcessingException {
+        String pathString= "BIRWithOther.xml";
+        ClassPathResource resource1 = new ClassPathResource(pathString);
+        JAXBContext jaxbContext = JAXBContext.newInstance(BIR.class);
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+        BIR bir = (BIR) unmarshaller.unmarshal(resource1.getFile());
+        Boolean res=  utilities.allBiometricHaveException(bir.getBirs());
+        assertFalse(res);
+    }
+
+    /** with other tag and all of BDB exception is marked as true(All exception) **/
+    @Test
+    public void TestisALLBiometricHaveExceptionWithOthersSuccessAllExceptionAsTrue() throws JAXBException, IOException, BiometricException, PacketManagerException, ApisResourceAccessException, JsonProcessingException {
+        String pathString= "BIRWithOtherAllException.xml";
+        ClassPathResource resource1 = new ClassPathResource(pathString);
+        JAXBContext jaxbContext = JAXBContext.newInstance(BIR.class);
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+        BIR bir = (BIR) unmarshaller.unmarshal(resource1.getFile());
+        Boolean res=  utilities.allBiometricHaveException(bir.getBirs());
+        assertTrue(res);
+    }
+
+    @Test
+    public void TestisALLBiometricHaveExceptionWithOutOthersSuccessAllExceptionAsTrue() throws JAXBException, IOException, BiometricException, PacketManagerException, ApisResourceAccessException, JsonProcessingException {
+        String pathString= "BIRWithOutOtherAllException.xml";
+        ClassPathResource resource1 = new ClassPathResource(pathString);
+        JAXBContext jaxbContext = JAXBContext.newInstance(BIR.class);
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+        BIR bir = (BIR) unmarshaller.unmarshal(resource1.getFile());
+        Boolean res=  utilities.allBiometricHaveException(bir.getBirs());
+        assertTrue(res);
+    }
 
 
-
-//    @Test
-//    public void testGetBiometricRecordFromIdrepo() throws Exception {
-//        String uin="1122334455";
-//        String filePath= "IdrepoResponceForBiometricWithOther.json";
-//        ClassPathResource resource = new ClassPathResource(filePath);
-//        String jsonString = new String(Files.readAllBytes(resource.getFile().toPath()), StandardCharsets.UTF_8);
-//        ResponseDTO response = objectMapper.readValue(jsonString, ResponseDTO.class);
-//        when(idRepoService.getIdResponseFromIDRepo(anyString())).thenReturn(response);
-//        BiometricRecord br= utilities.getBiometricRecordfromIdrepo(uin);
-//        assertEquals(13, br.getSegments());
-//    }
-
-
-//    @Test
-//    public void testGetBiometricRecordFromIdrepo() throws Exception {
-//        String uin="1122334455";
-//        String filePath= "IdrepoResponceForBiometricWithOther.json";
-//        ClassPathResource resource = new ClassPathResource(filePath);
-//        String jsonString = new String(Files.readAllBytes(resource.getFile().toPath()), StandardCharsets.UTF_8);
-//        ResponseDTO response = objectMapper.readValue(jsonString, ResponseDTO.class);
-//        when(idRepoService.getIdResponseFromIDRepo(anyString())).thenReturn(response);
-//        BiometricRecord br= utilities.getBiometricRecordfromIdrepo(uin);
-//        assertEquals(13, br.getSegments());
-//    }
-
-//    @Test
-//    public void TestisALLBiometricHaveExceptionWithOthersFailure() throws JAXBException, IOException, BiometricException, PacketManagerException, ApisResourceAccessException, JsonProcessingException, io.mosip.kernel.core.util.exception.JsonProcessingException {
-//        //with other tag and some of BDB exception is marked as false (No all exception)
-//        String pathString= "BIRWithOther.xml";
-//        ClassPathResource resource1 = new ClassPathResource(pathString);
-//        JAXBContext jaxbContext = JAXBContext.newInstance(BIR.class);
-//        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-//        BIR bir = (BIR) unmarshaller.unmarshal(resource1.getFile());
-//        Boolean res=  utilities.allBiometricHaveException(bir.getBirs());
-//        assertFalse(res);
-//    }
-
-
-//    @Test
-//    public void testAllBiometricHaveExceptionTrueCase() throws Exception {
-//        // Load the XML file from test resources
-//        InputStream inputStream = getClass().getClassLoader().getResourceAsStream("BIRWithOutOther.xml");
-//        assertNotNull("Test XML file not found in resources",inputStream);
-//
-//        // Unmarshal the XML into Java objects
-//        JAXBContext context = JAXBContext.newInstance(BIR.class);
-//        Unmarshaller unmarshaller = context.createUnmarshaller();
-//        BIR bir = (BIR) unmarshaller.unmarshal(inputStream);
-//
-//        List<BIR> birList = bir.getBirs();
-//        assertNotNull("BIR list should not be null",birList);
-//
-//        // Call the method under test
-//        boolean result = utilities.allBiometricHaveException(birList);
-//
-//        // Validate expected outcome
-//        assertTrue(result);
-//    }
-
-//    @Test
-//    public void TestisALLBiometricHaveExceptionWithOthersFailure() throws JAXBException, IOException, BiometricException, PacketManagerException, ApisResourceAccessException, JsonProcessingException, io.mosip.kernel.core.util.exception.JsonProcessingException {
-//        //with other tag and some of BDB exception is marked as false (No all exception)
-////        String pathString= "BIRWithOther.xml";
-////        ClassPathResource resource1 = new ClassPathResource(pathString);
-////        JAXBContext jaxbContext = JAXBContext.newInstance(BIR.class);
-////        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-////        BIR bir = (BIR) unmarshaller.unmarshal(resource1.getFile());
-//        JAXBContext context = JAXBContext.newInstance(BIR.class);
-//        Unmarshaller unmarshaller = context.createUnmarshaller();
-//        File xmlFile = new File("src/test/resources/BIRWithOther.xml"); // Adjust path
-//        BIR bir = (BIR) unmarshaller.unmarshal(xmlFile);
-//        Boolean res=  utilities.allBiometricHaveException(bir.getBirs());
-//        assertFalse(res);
-//    }
-
-//    @Test
-//    public void TestisALLBiometricHaveExceptionWithOutOthersFailure() throws JAXBException, IOException, BiometricException, PacketManagerException, ApisResourceAccessException, JsonProcessingException, io.mosip.kernel.core.util.exception.JsonProcessingException {
-//        String pathString= "BIRWithOutOther.xml";
-//        ClassPathResource resource1 = new ClassPathResource(pathString);
-//        JAXBContext jaxbContext = JAXBContext.newInstance(BIR.class);
-//        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-//        BIR bir = (BIR) unmarshaller.unmarshal(resource1.getFile());
-//        Boolean res=  utilities.allBiometricHaveException(bir.getBirs());
-//        assertFalse(res);
-//    }
-//
-//
-//    @Test
-//    public void TestisALLBiometricHaveExceptionWithOutOthersSuccess() throws JAXBException, IOException, BiometricException, PacketManagerException, ApisResourceAccessException, JsonProcessingException, io.mosip.kernel.core.util.exception.JsonProcessingException {
-//        //with other tag and all of BDB exception is marked as true(All exception)
-//        String pathString= "BIRWithOtherAllExceptions.xml";
-//        ClassPathResource resource1 = new ClassPathResource(pathString);
-//        JAXBContext jaxbContext = JAXBContext.newInstance(BIR.class);
-//        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-//        BIR bir = (BIR) unmarshaller.unmarshal(resource1.getFile());
-//        Boolean res=  utilities.allBiometricHaveException(bir.getBirs());
-//        assertTrue(res);
-//    }
-//
-//    @Test
-//    public void TestisALLBiometricHaveExceptionWithOutOthers() throws JAXBException, IOException, BiometricException, PacketManagerException, ApisResourceAccessException, JsonProcessingException, io.mosip.kernel.core.util.exception.JsonProcessingException {
-//        String pathString= "BIRWithOutOther.xml";
-//        ClassPathResource resource1 = new ClassPathResource(pathString);
-//        JAXBContext jaxbContext = JAXBContext.newInstance(BIR.class);
-//        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-//        BIR bir = (BIR) unmarshaller.unmarshal(resource1.getFile());
-//        Boolean res=  utilities.allBiometricHaveException(bir.getBirs());
-//        assertFalse(res);
-//    }
 }

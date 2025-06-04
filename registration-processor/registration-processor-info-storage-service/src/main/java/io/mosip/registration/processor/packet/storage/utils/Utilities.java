@@ -5,7 +5,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.*;
-import java.time.format.DateTimeParseException;
 import java.util.*;
 
 import io.mosip.kernel.biometrics.commons.CbeffValidator;
@@ -14,13 +13,10 @@ import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.bioapi.exception.BiometricException;
 import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
 import io.mosip.kernel.core.idvalidator.spi.VidValidator;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.constant.*;
 import io.mosip.registration.processor.core.exception.*;
-import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO;
 import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
 import io.mosip.registration.processor.core.packet.dto.RidDto;
-import io.mosip.registration.processor.core.workflow.dto.WorkflowInstanceRequestDTO;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.registration.processor.packet.storage.exception.*;
 import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
@@ -1155,9 +1151,8 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		if (isBiometricHavingOthers(birs)) {
 			// get individual biometrics file name from id.json
 			for (BIR bir : birs) {
-				String st =bir.getBdbInfo().getType().get(0).toString();
 				if (!(bir.getBdbInfo().getType().get(0) == BiometricType.FACE || bir.getBdbInfo().getType().get(0) == BiometricType.EXCEPTION_PHOTO)) {
-					if(bir.getOthers().get(EXCEPTION).equals(false)){
+					if(bir.getOthers().get(EXCEPTION).equalsIgnoreCase("false")){
 						return false;
 					}
 				}
