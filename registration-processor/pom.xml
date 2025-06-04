@@ -42,7 +42,7 @@
 		<maven.surefire.plugin.version>2.22.0</maven.surefire.plugin.version>
 		<maven.jacoco.version>0.8.11</maven.jacoco.version>
 		<maven.sonar.plugin.version>3.7.0.1746</maven.sonar.plugin.version>
-		<maven.javadoc.version>3.2.0</maven.javadoc.version>
+		<maven.javadoc.version>3.11.2</maven.javadoc.version>
 		<maven.assembly.version>3.3.0</maven.assembly.version>
 		<maven.deploy.plugin.version>3.1.1</maven.deploy.plugin.version>
 		<nexus.staging.maven.plugin.version>1.6.14</nexus.staging.maven.plugin.version>
@@ -564,7 +564,7 @@
                 <plugin>
                   <groupId>org.apache.maven.plugins</groupId>
                   <artifactId>maven-javadoc-plugin</artifactId>
-                  <version>3.2.0</version>
+                  <version>3.11.2</version>
                   <executions>
                         <execution>
                           <id>attach-javadocs</id>
