@@ -352,21 +352,25 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 		StringBuilder queryValue = new StringBuilder();
 
 		for(ExtractorDto dto : dtoList) {
+			String param = null;
+
+			if (dto.getBiometric().equals("iris")) {
+				param = "irisExtractionFormat";
+			} else if (dto.getBiometric().equals("face")) {
+				param = "faceExtractionFormat";
+			} else if (dto.getBiometric().equals("finger")) {
+				param = "fingerExtractionFormat";
+			}
+
+			if(param == null) continue;
+
 			if(queryParmeter.length() > 0) {
 				queryParmeter.append(",");
 				queryValue.append(",");
 			}
 
-			if(dto.getBiometric().equals("iris")) {
-					queryParmeter.append("irisExtractionFormat");
-					queryValue.append(dto.getAttributeName());
-			} if(dto.getBiometric().equals("face")) {
-					queryParmeter.append("faceExtractionFormat");
-					queryValue.append(dto.getAttributeName());
-			} if (dto.getBiometric().equals("finger")) {
-					queryParmeter.append("fingerExtractionFormat");
-					queryValue.append(dto.getAttributeName());
-			}
+			queryParmeter.append(param);
+			queryValue.append(dto.getAttributeName());
 		}
 
 		List<String> segments=List.of(registrationId);
