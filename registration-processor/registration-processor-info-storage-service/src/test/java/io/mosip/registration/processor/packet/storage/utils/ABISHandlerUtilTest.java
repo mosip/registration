@@ -10,6 +10,7 @@ import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisResponseDetDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisResponseDto;
+import io.mosip.registration.processor.core.packet.dto.abis.UniqueRegIdsResponse;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.dao.PacketInfoDao;
@@ -133,10 +134,10 @@ public class ABISHandlerUtilTest {
     @Test
     public void testProcesssedWithUniqueUin() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
 
-        Set<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType, 1, "", ProviderStageName.BIO_DEDUPE);
+        UniqueRegIdsResponse uniqueRegIdsResponse = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType, 1, "", ProviderStageName.BIO_DEDUPE);
 // expected to pick 2 rids from processedMatchedIds list because different uin.
         // Total should be 1(inprogress) + 2(processed)
-        assertEquals(3, uniqueRids.size());
+        assertEquals(3, uniqueRegIdsResponse.getResponse().size());
     }
 
     @Test
@@ -144,18 +145,18 @@ public class ABISHandlerUtilTest {
 
         when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn("987654321");
 
-        Set<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType,1, "", ProviderStageName.BIO_DEDUPE);
+        UniqueRegIdsResponse uniqueRegIdsResponse = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType,1, "", ProviderStageName.BIO_DEDUPE);
         // expected to pick only 1 rid from processedMatchedIds list because same uin. Total should be 1(inprogress) + 1(processed)
-        assertEquals(2, uniqueRids.size());
+        assertEquals(2, uniqueRegIdsResponse.getResponse().size());
     }
 
     @Test
     public void testDonotReturnRejected() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
 
 //        List<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType, ProviderStageName.BIO_DEDUPE);
-        Set<String> uniqueRids= abisHandlerUtil.getUniqueRegIds(registrationId,registrationType,1,"",ProviderStageName.BIO_DEDUPE);
+        UniqueRegIdsResponse uniqueRegIdsResponse= abisHandlerUtil.getUniqueRegIds(registrationId,registrationType,1,"",ProviderStageName.BIO_DEDUPE);
         // expected to pick only processingandprocessed list i.e 3 records.
-        assertEquals(3, uniqueRids.size());
+        assertEquals(3, uniqueRegIdsResponse.getResponse().size());
     }
 
     @Test
@@ -163,9 +164,9 @@ public class ABISHandlerUtilTest {
 
         when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn(null);
 
-        Set<String> uniqueRids = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType,1, "", ProviderStageName.BIO_DEDUPE);
+        UniqueRegIdsResponse uniqueRegIdsResponse = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType,1, "", ProviderStageName.BIO_DEDUPE);
         // expected not to pick processedMatchedIds list i.e 1 records..
-        assertEquals(1, uniqueRids.size());
+        assertEquals(1, uniqueRegIdsResponse.getResponse().size());
     }
 
 }
