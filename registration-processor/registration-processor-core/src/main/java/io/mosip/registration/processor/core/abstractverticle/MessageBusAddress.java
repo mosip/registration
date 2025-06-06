@@ -200,10 +200,10 @@ public class MessageBusAddress implements Serializable {
 			"registration-connector-bus-out");
 
 	/** The Constant PRINTING_BUS_IN. */
-	public static final MessageBusAddress PRINTING_BUS_IN = new MessageBusAddress("printing-bus-in");
+	public static final MessageBusAddress CREDENTIAL_REQUESTOR_BUS_IN = new MessageBusAddress("credential-requestor-bus-in");
 
 	/** The Constant PRINTING_BUS_OUT. */
-	public static final MessageBusAddress PRINTING_BUS_OUT = new MessageBusAddress("printing-bus-out");
+	public static final MessageBusAddress CREDENTIAL_REQUESTOR_BUS_OUT = new MessageBusAddress("credential-requestor-bus-out");
 
 	/** The Constant PRINTING_BUS_RESEND. */
 	public static final MessageBusAddress PRINTING_BUS_RESEND = new MessageBusAddress("printing-bus-resend");
