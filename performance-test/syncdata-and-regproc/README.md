@@ -53,7 +53,7 @@ Pre-requisite to install the plugins:
 
 *For generating the packets, packet utility is required.
 	Step 1 - Packet utility setup.
-	Step 2 - We need device partner and device dsk partner certificate to be present in the auth certs.
+	Step 2 - We need environment specific auth certs to be present in the packet creator folder
 	Step 3 - For packet generation, we need to create context for it and also a private key. Example for a private key would be something like this(api-internal.cellbox1.mosip.net.12117.reg.key). This can be generated from the dsl setup.
 	Step 4 - Update the secret keys for all the client's, user id, machine id and center id in create context. Also, update the mountPath and authCertsPath path variable in the JMeter script.
 	Step 5 - Create packet.
