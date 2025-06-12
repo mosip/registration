@@ -105,6 +105,9 @@ public class Utilities {
 	@Value("${mosip.kernel.registrationcenterid.length}")
 	private int centerIdLength;
 
+	@Value("${get.packet.created.date.value.from.config.for.testing:'2025-06-11T10:20:21.743Z'}")
+	private String packetCreatedDateValueFromConfig;
+
 	@Autowired
 	private ObjectMapper objMapper;
 
@@ -922,6 +925,8 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		}
 	}
 
+
+
 	// Infant Age limit taken from config.
 	public boolean wasApplicantInfant(InternalRegistrationStatusDto registrationStatusDto) throws Exception {
 		//Fetching the packet created date and time
@@ -936,7 +941,8 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 			if (packetCeatedDate==null) {
 				packetCeatedDate=getPacketCreatedDateTimeFromRid(ridDto.getRid());
 				if (packetCeatedDate==null){
-					packetCeatedDate= getPacketUpdateDateFromIdRepo(ridDto);
+					packetCeatedDate =convertToDate(packetCreatedDateValueFromConfig);
+//					packetCeatedDate= getPacketUpdateDateFromIdRepo(ridDto);
 					if(packetCeatedDate==null) {
 						regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 								"Unable to get Packet Created Date and Time");
