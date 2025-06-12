@@ -126,8 +126,6 @@ public class ABISHandlerUtil {
 							if(!uniqueRIDs.contains(rid))
 								uniqueRIDs.add(rid);
 						}
-						if (registrationType.equalsIgnoreCase(SyncTypeDto.UPDATE.toString()))
-							uniqueRIDs.add("No_Match");
 					}
 				}
 			}
