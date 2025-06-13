@@ -71,7 +71,7 @@ java -jar -Dfile.encoding=UTF-8 -Xdebug -Xrunjdwp:server=y,transport=dt_socket,a
 	3. From the terminal run the command to start mosip-packet-creator as mentioned in above steps.
 	4. Open the [Regproc_Syncdata_Test_Script.jmx] script and run the Auth Token Generation (Setup) thread group.
 	5. Execute Packet Generation (Setup) thread group by specifying the no of packets it needs to generate.
-	6. Sync the packets to reg client using Sync Registration Packet (Setup) thread group.
+	6. Sync the packets to mosip-packet-creator using Sync Registration Packet (Setup) thread group.
 	7. Finally Sync And Upload Registration Packet (Execution) thread group for uploading the packets.
 
 ### Script execution steps:
