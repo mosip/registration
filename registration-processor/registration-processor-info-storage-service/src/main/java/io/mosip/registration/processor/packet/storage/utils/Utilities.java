@@ -934,9 +934,8 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 				"utility::wasApplicantInfant()::entry");
 		Date packetCeatedDate=getPacketcreatedDateAndtimesFromIdrepo(registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType());
 		if (packetCeatedDate==null){
-			RidDto ridDto=new RidDto();
 			//Getting the Last Interacted Rid From Idrepo.
-			ridDto= getIndividualIdResponceFromIdrepo(registrationStatusDto.getRegistrationId(),registrationStatusDto.getRegistrationType());
+			RidDto ridDto= getIndividualIdResponceFromIdrepo(registrationStatusDto.getRegistrationId(),registrationStatusDto.getRegistrationType());
 			packetCeatedDate=getPacketCreationDateTimeFromRegList(ridDto.getRid());
 			if (packetCeatedDate==null) {
 				packetCeatedDate=getPacketCreatedDateTimeFromRid(ridDto.getRid());
