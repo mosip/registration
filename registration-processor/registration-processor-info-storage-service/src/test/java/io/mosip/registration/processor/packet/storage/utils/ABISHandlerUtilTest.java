@@ -180,7 +180,7 @@ public class ABISHandlerUtilTest {
                 latestTransactionId, AbisConstant.IDENTIFY)).thenReturn(abisResponseDtoList);
         when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn(null);
 
-        UniqueRegIdsResponse uniqueRegIdsResponse = abisHandlerUtil.getUniqueRegIds(registrationId, registrationType,1, "", ProviderStageName.BIO_DEDUPE);
+        UniqueRegIdsResponse uniqueRegIdsResponse = abisHandlerUtil.getUniqueRegIds(registrationId, "UPDATE",1, "", ProviderStageName.BIO_DEDUPE);
         // expected not to pick processedMatchedIds list i.e 1 records..
         assertTrue( uniqueRegIdsResponse.getIsResponceNull());
     }
