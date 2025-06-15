@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.stages.uingenerator.stage;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -257,7 +258,8 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 				loadDemographicIdentity(fieldMap, demographicIdentity);
 
 				if (StringUtils.isEmpty(uinField) || uinField.equalsIgnoreCase("null") ) {
-
+					String  packetCreatedOn=utility.getPacketCreatedDateFromPacketManager(registrationId,registrationStatusDto.getRegistrationType(),ProviderStageName.UIN_GENERATOR);
+					demographicIdentity.put(MappingJsonConstants.PACKET_CREATED_ON,packetCreatedOn);
 					idResponseDTO = sendIdRepoWithUin(registrationId, registrationStatusDto.getRegistrationType(), demographicIdentity,
 							uinField);
 
