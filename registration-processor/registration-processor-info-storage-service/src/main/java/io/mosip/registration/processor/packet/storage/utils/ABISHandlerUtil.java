@@ -92,7 +92,7 @@ public class ABISHandlerUtil {
 		if (!regBioRefIds.isEmpty()) {
 			List<AbisResponseDto> abisResponseDtoList = packetInfoManager.getAbisResponseRecords(regBioRefIds.get(0),
 					latestTransactionId, AbisConstant.IDENTIFY);
-			if (abisResponseDtoList.isEmpty()){
+			if (!regBioRefIds.isEmpty() && registrationType.equalsIgnoreCase(SyncTypeDto.UPDATE.toString())) {
 				uniqueRegIdsResponse.setIsResponceNull(true);
 				return uniqueRegIdsResponse;
 			}
