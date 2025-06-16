@@ -146,7 +146,14 @@ java -jar -Dfile.encoding=UTF-8 -Xdebug -Xrunjdwp:server=y,transport=dt_socket,a
 	 			Value = 10 X 60
 					= 600
 
-
+* Calculate Throughput based on as = each thread in current thread group (This is a dropdown option in the Constant Throughput Timer)
+	* If we are performing load test with 10TPS as hits / sec in one thread group. Then we need to provide value hits / minute as in Constant Throughput Timer
+	 			Transaction per minute(TPM) = 10 X 60 = 600
+				No of threads in thread group = 10 
+				Distributed TPM for each thread = 600 / 10 = 6
+				
+Note: Use the option (All active threads in current thread group) option from the dropdown.				
+					
 ### Support files required for this test execution:
 
 1. app_machine_details.csv - This support file contains test data like appId, refId, machineName, public key and sign public key.
