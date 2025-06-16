@@ -5,7 +5,7 @@
     02. Create Centers And Machines (Setup)
     03. S01 Packet Creation (Preparation)
     04. S01 Sync And Upload New Registration Packet (Execution)
-    05. S02 Sync Data To The Server (Execution)
+    05. S02 Reg-client Sync Data (Execution)
     06. S03 Get Transaction Details From Reg Id (Execution)
 
 
@@ -87,7 +87,7 @@ java -jar -Dfile.encoding=UTF-8 -Xdebug -Xrunjdwp:server=y,transport=dt_socket,a
 		* S01 T01 Sync Registration Packet : This API endpoint will sync the packets.
 		* S01 T02 Upload Registration Packet : This API endpoint will upload the packets to registration processor.
 	
-	* S02 Sync Data To The Server (Execution) :
+	* S02 Reg-client Sync Data (Execution) :
 		* S02 T01 Auth Token Details Encrypted Based On Machine Key : This API endpoint sync the auth token details based on machine key.
 		* S02 T02 Public Key Verify : This API endpoint verifies the public key generated.
 		* S02 T03 Get Certificate : This API endpoint gets the certificates.
