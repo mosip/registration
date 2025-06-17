@@ -267,6 +267,19 @@ public class BioDedupeProcessor {
 					description.getCode() + " -- " + LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
 					description.getMessage() + "\n" + ExceptionUtils.getStackTrace(ex));
 			object.setInternalError(Boolean.TRUE);
+		}catch (BiometricNotFoundException ex) {
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
+			registrationStatusDto.setStatusComment(trimExceptionMessage
+					.trimExceptionMessage(ex.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_NO_BIOMETRICS_FOUND.getCode());
+			registrationStatusDto.setLatestTransactionStatusCode(
+					registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.DUPLICATE_UPLOAD_REQUEST_EXCEPTION));
+			description.setCode(PlatformErrorMessages.PACKET_BIO_DEDUPE_FAILED.getCode());
+			description.setMessage(PlatformErrorMessages.PACKET_BIO_DEDUPE_FAILED.getMessage());
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+					description.getCode() + " -- " + LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+					description.getMessage() + "\n" + ExceptionUtils.getStackTrace(ex));
+			object.setInternalError(Boolean.TRUE);
 		} catch (Exception ex) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
 			registrationStatusDto.setStatusComment(trimExceptionMessage
@@ -452,10 +465,11 @@ public class BioDedupeProcessor {
 					//Not Infant and NO Biometric exception in last Interaction
 					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 							registrationStatusDto.getRegistrationId(), BioDedupeConstants.NO_BIOMETRIC_FOUND);
-					throw new BiometricNotFoundException();
+					throw new BiometricNotFoundException(StatusUtil.BIO_DEDUPE_NO_BIOMETRICS_FOUND.getMessage());
 				}
 			}
-		}		ArrayList<String> matchedRegIdsList = new ArrayList<String>(matchedRegIds);
+		}
+		ArrayList<String> matchedRegIdsList = new ArrayList<String>(matchedRegIds);
 		// TODO : temporary fix. Need to analyze more.
 		if (matchedRegIds != null && !matchedRegIds.isEmpty()
 				&& matchedRegIds.contains(registrationStatusDto.getRegistrationId())) {

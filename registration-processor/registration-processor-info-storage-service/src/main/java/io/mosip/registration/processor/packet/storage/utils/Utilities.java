@@ -188,6 +188,9 @@ public class Utilities {
 	@Value("${registration.processor.packetProcessing.buffer-in-months}")
 	private int bufferInMonthes;
 
+	@Value("${mosip.kernel.applicant.type.age.limit}")
+	private String ageLimit;
+
 
 	@Autowired
 	private PacketInfoDao packetInfoDao;
@@ -954,7 +957,8 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		int age=calculateAgeAtTheTimeOfRegistration(dobOfApplicant, packetCeatedDate);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 				"utility::wasApplicantInfant()::exit with age: "+age);
-		return true;
+		int ageThreshold = Integer.parseInt(ageLimit);
+		return age < ageThreshold;
 	}
 
 
@@ -976,8 +980,6 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 			}
 		}
 		else {return null;}
-		String[] str=packetCreatedDate.split("T");
-//        return str[0].replace("-","/");
 		Date date=convertToDate(parseDate(packetCreatedDate));
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 				"utility::getPacketcreatedDateAndtimesFromIdrepo()::exit");
