@@ -164,7 +164,7 @@ public enum RegistrationExceptionTypeCode {
 
 	/** The packet osi validation failed. */
 	PACKET_OSI_VALIDATION_FAILED,
-	
+
 	/** The packet cmd validation failed. */
 	PACKET_CMD_VALIDATION_FAILED,
 
@@ -185,7 +185,7 @@ public enum RegistrationExceptionTypeCode {
 
 	/** The introspection exception. */
 	INTROSPECTION_EXCEPTION,
-	
+
 	VALIDATION_FAILED_EXCEPTION,
 
 	/** The base unchecked exception. */
@@ -211,7 +211,7 @@ public enum RegistrationExceptionTypeCode {
 
 	/** Exception in IDREPO draft. */
 	IDREPO_DRAFT_EXCEPTION,
-	
+
 	/**Retry count has exceeded the maximum limit specified */
 	PACKET_UPLOAD_FAILED_ON_MAX_RETRY_CNT,
 
@@ -220,7 +220,7 @@ public enum RegistrationExceptionTypeCode {
 
 	/** Packet hash failed in uploader stage */
 	PACKET_HASH_VALIDATION_FAILED,
-	
+
 	/** The introducer uin and rid not in packet. */
 	INTRODUCER_UIN_AND_RID_NOT_IN_PACKET,
 
@@ -235,10 +235,10 @@ public enum RegistrationExceptionTypeCode {
 
 	/** The supervisorid and officerid not present in packet. */
 	SUPERVISORID_AND_OFFICERID_NOT_PRESENT_IN_PACKET,
-	
+
 	/** The officerid not present in packet. */
 	OFFICERID_NOT_PRESENT_IN_PACKET,
-	
+
 	/** The supervisorid not present in packet. */
 	SUPERVISORID_NOT_PRESENT_IN_PACKET,
 
@@ -247,10 +247,10 @@ public enum RegistrationExceptionTypeCode {
 
 	/** The supervisor or officer was inactive. */
 	SUPERVISOR_OR_OFFICER_WAS_INACTIVE,
-	
+
 	/** officer was inactive. */
 	OFFICER_WAS_INACTIVE,
-	
+
 	/** The officer was inactive. */
 	SUPERVISOR_WAS_INACTIVE,
 
@@ -271,10 +271,10 @@ public enum RegistrationExceptionTypeCode {
 
 	/** The password otp failure. */
 	PASSWORD_OTP_FAILURE,
-	
+
 	/** The password otp failure. */
 	OPERATOR_PASSWORD_OTP_FAILURE,
-	
+
 	/** The password otp failure. */
 	SUPERVISOR_PASSWORD_OTP_FAILURE,
 
@@ -282,19 +282,19 @@ public enum RegistrationExceptionTypeCode {
 	BIOMETRIC_EXCEPTION,
 
 	BIOMETRIC_TYPE_EXCEPTION,
-	
+
 	AUTH_SYSTEM_EXCEPTION,
 
 	PACKET_REJECTED,
-	
-	VID_CREATION_EXCEPTION, 
-	
+
+	VID_CREATION_EXCEPTION,
+
 	PACKET_UIN_GENERATION_REPROCESS,
-	
+
 	BIOMETRIC_EXTRACTION_REPROCESS,
-	
+
 	BIOMETRIC_EXTRACTION_FAILED,
-	
+
 	DRAFT_REQUEST_UNAVAILABLE,
 
 	PACKET_FAILED, FINALIZATION_FAILED,FINALIZATION_REPROCESS,
@@ -304,6 +304,7 @@ public enum RegistrationExceptionTypeCode {
 	INTRODUCER_BIOMETRIC_ALL_EXCEPTION_IN_PACKET,
 
 
-	IDREPO_DRAFT_REPROCESSABLE_EXCEPTION;
+	IDREPO_DRAFT_REPROCESSABLE_EXCEPTION,
+	PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION;
 
 }

@@ -72,7 +72,7 @@ public enum PlatformErrorMessages {
 	/** The rpr rgs transaction table not accessible. */
 	RPR_RGS_TRANSACTION_TABLE_NOT_ACCESSIBLE(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "002",
 			"Unable to Access Registration Transaction Table"),
-	
+
 	/** The rpr rgs anonymous profile table not accessible. */
 	RPR_RGS_ANONYMOUS_PROFILE_TABLE_NOT_ACCESSIBLE(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "038",
 			"Unable to anonymous profile  Table"),
@@ -184,7 +184,7 @@ public enum PlatformErrorMessages {
 			"DataAccessLayerException while syncing Registartion Id's"),
 	/** The rpr rgs rid not found. */
 	RPR_RGS_RID_NOT_FOUND(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "031", "RID Not Found"),
-	
+
 	RPR_RGS_INVALID_ADDITIONAL_INFORMATION(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "036", "additionalInfoReqId is invalid"),
 
 	RPR_RGS_PACKETID_NOT_FOUND(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "037", "PacketId Not Found"),
@@ -196,7 +196,7 @@ public enum PlatformErrorMessages {
 
 	RPR_RGS_DATE_VALIDATION_FAILED(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "034",
 			"searching between date should be less then 30 days - %s"),
-	
+
 	/** The rpr rgs io exception */
 	RPR_RGS_IOEXCEPTION(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "035" , "IO Exception"),
 
@@ -244,6 +244,8 @@ public enum PlatformErrorMessages {
 
 	PACKET_MANAGER_EXCEPTION(PlatformConstants.RPR_PACKET_INFO_STORAGE_MODULE + "012",
 			"Exception occured in packet manager."),
+	PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION(PlatformConstants.RPR_PACKET_INFO_STORAGE_MODULE + "013",
+			"Non recoverable error occurred in packet manager."),
 
 	/** The rpr fac connection not available. */
 	// File adaptor Exception error code and message
@@ -497,7 +499,7 @@ public enum PlatformErrorMessages {
 	/** The unsupported encoding. */
 	// UIN check - JSON file encoding failed.
 	UNSUPPORTED_ENCODING(PlatformConstants.RPR_BIO_DEDUPE_SERVICE_MODULE + "005", "Json Object Parsing Failed"),
-	
+
 	OSI_VALIDATION_BIO_TYPE_EXCEPTION(PlatformConstants.RPR_CMD_VALIDATOR_MODULE + "007", "Bio Type Exception"),
 
 	/** The cmd validation failed. */
@@ -511,7 +513,7 @@ public enum PlatformErrorMessages {
 	/** The cmd base checked exception. */
 	CMD_BASE_CHECKED_EXCEPTION(PlatformConstants.RPR_CMD_VALIDATOR_MODULE + "002",
 			"CMD Validation Failed"),
-	
+
 	/** The operator base unchecked exception. */
 	OPERATOR_BASE_UNCHECKED_EXCEPTION(PlatformConstants.RPR_OVM_VALIDATOR_MODULE + "001",
 			"operator Validation Failed"),
@@ -519,10 +521,10 @@ public enum PlatformErrorMessages {
 	/** The operator base checked exception. */
 	OPERATOR_BASE_CHECKED_EXCEPTION(PlatformConstants.RPR_OVM_VALIDATOR_MODULE + "002",
 			"operator Validation Failed"),
-	
+
 	/** The Operator validation failed. */
 	OPERATOR_VALIDATION_FAILED(PlatformConstants.RPR_OVM_VALIDATOR_MODULE + "000", "Operator Validation Failed"),
-	
+
 	LINK_FOR_USERID_INDIVIDUALID_FAILED_OVM_EXCEPTION(PlatformConstants.RPR_OVM_VALIDATOR_MODULE + "003",
 			"Unable to get the IndividualId for UserId"),
 
@@ -533,10 +535,10 @@ public enum PlatformErrorMessages {
 	/** The Supervisor base checked exception. */
 	SUPERVISOR_BASE_CHECKED_EXCEPTION(PlatformConstants.RPR_SVM_VALIDATOR_MODULE + "002",
 			"Supervisor Validation Failed"),
-	
+
 	/** The Supervisor validation failed. */
 	SUPERVISOR_VALIDATION_FAILED(PlatformConstants.RPR_SVM_VALIDATOR_MODULE + "000", "Supervisor Validation Failed"),
-	
+
 	LINK_FOR_USERID_INDIVIDUALID_FAILED_SVM_EXCEPTION(PlatformConstants.RPR_SVM_VALIDATOR_MODULE + "003",
 			"Unable to get the IndividualId for UserId"),
 
@@ -547,7 +549,7 @@ public enum PlatformErrorMessages {
 	/** The INTRODUCER base checked exception. */
 	INTRODUCER_BASE_CHECKED_EXCEPTION(PlatformConstants.RPR_IVM_VALIDATOR_MODULE + "002",
 			"INTRODUCER Validation Failed"),
-	
+
 	/** The INTRODUCER validation failed. */
 	INTRODUCER_VALIDATION_FAILED(PlatformConstants.RPR_IVM_VALIDATOR_MODULE + "000", "INTRODUCER Validation Failed"),
 
@@ -641,10 +643,10 @@ public enum PlatformErrorMessages {
 	/** The Biometric-Authentication api resource exception. */
 	BIOMETRIC_AUTHENTICATION_API_RESOURCE_EXCEPTION(PlatformConstants.RPR_BIOMETRIC_AUTHENTICATION_MODULE + "002",
 			"Unable to Access API Resource"),
-	
+
 	BIOMETRIC_AUTHENTICATION_TABLE_NOT_ACCESSIBLE(PlatformConstants.RPR_BIOMETRIC_AUTHENTICATION_MODULE + "004",
 			"Unable to Access Registration Table"),
-	
+
 	BIOMETRIC_AUTHENTICATION_AUTH_SYSTEM_EXCEPTION(PlatformConstants.RPR_BIOMETRIC_AUTHENTICATION_MODULE + "003",
 			"Request could not be processed. Please try again"),
 
@@ -796,7 +798,7 @@ public enum PlatformErrorMessages {
 	/** The rpr table not accessible. */
 	RPR_INVALID_RID_FOUND(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "024",
 			"Multiple rids found for a reference id"),
-	
+
 	MANUAL_VERIFICATION_FAILED(PlatformConstants.RPR_MANUAL_ADJUDICATION_MODULE + "025",
 			"Manual adjudication failed"),
 
@@ -892,7 +894,7 @@ public enum PlatformErrorMessages {
 	/** The rpr pum packet not found exception. */
 	RPR_PUM_PACKET_UPLOAD_FAILURE(PlatformConstants.RPR_PACKET_UPLOADER_MODULE + "011",
 			"Failure in uploading the packet to Packet Store"),
-    
+
 	RPR_PUM_PACKET_RETRY_CNT_FAILURE(PlatformConstants.RPR_PACKET_UPLOADER_MODULE + "012",
             "packet upload failed due to Retry count has exceeded the max limit specified"),
 
@@ -1131,7 +1133,7 @@ public enum PlatformErrorMessages {
 
 
 	RPR_PRT_PDF_SIGNATURE_EXCEPTION(PlatformConstants.RPR_PRINTING_MODULE + "024", "PDF Signature error"),
-	
+
 	RPR_PRT_PRINT_REQUEST_FAILED(PlatformConstants.RPR_PRINTING_MODULE + "025", "Print request failed"),
 
 	RPR_PRT_API_RESOUCE_ACCESS_FAILED(PlatformConstants.RPR_PRINTING_MODULE + "026",
@@ -1399,7 +1401,7 @@ public enum PlatformErrorMessages {
 	/** The rpr demo sending for manual. */
 	RPR_DEMO_SENDING_FOR_MANUAL(PlatformConstants.RPR_DEMO_DEDUPE_MODULE + "001",
 			"ABIS response Details found. Hence sending to manual adjudication"),
-	
+
 	RPR_DEMO_API_RESOUCE_ACCESS_FAILED(PlatformConstants.RPR_DEMO_DEDUPE_MODULE + "002",
 			"Unable to Access API Resource"),
 
@@ -1444,7 +1446,7 @@ public enum PlatformErrorMessages {
 
 
 	/** The error message. */
-	private final String errorMessage; 
+	private final String errorMessage;
 
 	/** The error code. */
 	private final String errorCode;
