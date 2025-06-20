@@ -935,7 +935,9 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		//Fetching the packet created date and time
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 				"utility::wasApplicantInfant()::entry");
-		Date packetCeatedDate=getPacketcreatedDateAndtimesFromIdrepo(registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType());
+		Date packetCeatedDate= null;
+		try{
+		packetCeatedDate=getPacketcreatedDateAndtimesFromIdrepo(registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType());
 		if (packetCeatedDate==null){
 			//Getting the Last Interacted Rid From Idrepo.
 			RidDto ridDto= getIndividualIdResponceFromIdrepo(registrationStatusDto.getRegistrationId(),registrationStatusDto.getRegistrationType());
@@ -943,8 +945,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 			if (packetCeatedDate==null) {
 				packetCeatedDate=getPacketCreatedDateTimeFromRid(ridDto.getRid());
 				if (packetCeatedDate==null){
-					packetCeatedDate =convertToDate(packetCreatedDateValueFromConfig);
-//					packetCeatedDate= getPacketUpdateDateFromIdRepo(ridDto);
+					packetCeatedDate= getPacketUpdateDateFromIdRepo(ridDto);
 					if(packetCeatedDate==null) {
 						regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 								"Unable to get Packet Created Date and Time");
@@ -952,6 +953,10 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 					}
 				}
 			}
+		}}catch (Exception e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
+					"utility::getPacketcreatedDateAndtimesFromIdrepo()::error with error message: " + e.getMessage());
+			throw new IOException(PlatformErrorMessages.RPR_BDD_PACKET_CREATED_DATE_NULL.getCode(), e);
 		}
 		Date dobOfApplicant=convertToDate(getDateOfBirthFromIdrepo(registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType()));
 		int age=calculateAgeAtTheTimeOfRegistration(dobOfApplicant, packetCeatedDate);
@@ -972,9 +977,9 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		String packetCreatedDate="";
 		regProcLogger.debug("Uin = ",uin);
 		JSONObject responseDTO= idRepoService.getIdJsonFromIDRepo(uin,getGetRegProcessorDemographicIdentity());
-		if (responseDTO != null) {
+		if (!responseDTO.isEmpty()) {
 			packetCreatedDate=JsonUtil.getJSONValue(responseDTO,PACKETCREATEDDATE);
-			if (packetCreatedDate==null || packetCreatedDate=="")
+			if (packetCreatedDate.isEmpty())
 			{
 				return null;
 			}
@@ -992,7 +997,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 				"utility::getDateOfBirthFromIdrepo()::entry");
 		String uin=packetManagerService.getField(rid,MappingJsonConstants.UIN,type,ProviderStageName.BIO_DEDUPE);
 		JSONObject responseDTO= idRepoService.getIdJsonFromIDRepo(uin,getGetRegProcessorDemographicIdentity());
-		if (responseDTO != null) {
+		if (!responseDTO.isEmpty()) {
 			String dob= dateOfBirthFormatter(JsonUtil.getJSONValue(responseDTO,DATEOFBIRTH));
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 					"utility::getDateOfBirthFromIdrepo()::exit with dob: "+dob);
@@ -1199,13 +1204,12 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 			String convertedDate = targetFormatter.format(inputdate);
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					"Converted date: " + convertedDate, "");
-//            Date date=convertToDate(parseDate(convertedDate));
 			return convertedDate;
 		} catch (ParseException e) {
-		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-				"Failed to parse or convert date: " + dateStr, e.getMessage());
-		throw e;
-	}
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
+					"Failed to parse or convert date: " + dateStr, e.getMessage());
+			throw e;
+		}
 	}
 
 	public String getPacketCreatedDateFromPacketManager(String rid, String process, ProviderStageName stageName) throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
@@ -1213,17 +1217,16 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 			Map<String, String> metaInfo = packetManagerService.getMetaInfo(
 					rid, process, stageName);
 			String packetCreatedDateTime = metaInfo.get(JsonConstant.CREATIONDATE);
-			if (packetCreatedDateTime != null && !packetCreatedDateTime.isEmpty()) {
-//				LocalDateTime dateTime = DateUtils.parseToLocalDateTime(packetCreatedDateTime);
+			if (packetCreatedDateTime != null && !packetCreatedDateTime.isEmpty()) {\
 				return packetCreatedDateTime;
 			} else {
-				regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 						" -- " + rid,
 						PlatformErrorMessages.RPR_PVM_PACKET_CREATED_DATE_TIME_EMPTY_OR_NULL.getMessage());
 			}
 		} catch (IllegalArgumentException ex)
 		{
-			regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					" -- " +rid,
 					PlatformErrorMessages.RPR_PVM_INVALID_ARGUMENT_EXCEPTION.getMessage() + ex.getMessage());
 		}

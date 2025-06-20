@@ -267,7 +267,8 @@ public class BioDedupeProcessor {
 					description.getCode() + " -- " + LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
 					description.getMessage() + "\n" + ExceptionUtils.getStackTrace(ex));
 			object.setInternalError(Boolean.TRUE);
-		}catch (BiometricNotFoundException ex) {
+		}
+		catch (BiometricNotFoundException ex) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
 			registrationStatusDto.setStatusComment(trimExceptionMessage
 					.trimExceptionMessage(ex.getMessage()));
@@ -457,7 +458,7 @@ public class BioDedupeProcessor {
 					object.setRid(registrationStatusDto.getRegistrationId());
 					object.setIsValid(Boolean.TRUE);
 					object.setReg_type(registrationType);
-					object.setMessageBusAddress(MessageBusAddress.MANUAL_ADJUDICATION_BUS_IN);
+					object.setMessageBusAddress(MessageBusAddress.VERIFICATION_BUS_IN);
 
 					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 							registrationStatusDto.getRegistrationId(), BioDedupeConstants.ALL_BIOMETRIC_EXCEPTION);
@@ -468,41 +469,42 @@ public class BioDedupeProcessor {
 					throw new BiometricNotFoundException(StatusUtil.BIO_DEDUPE_NO_BIOMETRICS_FOUND.getMessage());
 				}
 			}
-		}
-		ArrayList<String> matchedRegIdsList = new ArrayList<String>(matchedRegIds);
-		// TODO : temporary fix. Need to analyze more.
-		if (matchedRegIds != null && !matchedRegIds.isEmpty()
-				&& matchedRegIds.contains(registrationStatusDto.getRegistrationId())) {
-			matchedRegIds.remove(registrationStatusDto.getRegistrationId());
-			matchedRegIdsList.remove(registrationStatusDto.getRegistrationId());
-		}
-		if (matchedRegIds == null || matchedRegIds.isEmpty()) {
-			registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
-			object.setIsValid(Boolean.TRUE);
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
-			registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_SUCCESS.getMessage());
-			registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_SUCCESS.getCode());
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationStatusDto.getRegistrationId(), BioDedupeConstants.ABIS_RESPONSE_NULL);
+		}else {
+			ArrayList<String> matchedRegIdsList = new ArrayList<String>(matchedRegIds);
+			// TODO : temporary fix. Need to analyze more.
+			if (matchedRegIds != null && !matchedRegIds.isEmpty()
+					&& matchedRegIds.contains(registrationStatusDto.getRegistrationId())) {
+				matchedRegIds.remove(registrationStatusDto.getRegistrationId());
+				matchedRegIdsList.remove(registrationStatusDto.getRegistrationId());
+			}
+			if (matchedRegIds == null || matchedRegIds.isEmpty()) {
+				registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
+				object.setIsValid(Boolean.TRUE);
+				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+				registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_SUCCESS.getMessage());
+				registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_SUCCESS.getCode());
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						registrationStatusDto.getRegistrationId(), BioDedupeConstants.ABIS_RESPONSE_NULL);
 
-		} else {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
-			registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_POTENTIAL_MATCH.getMessage());
-			registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_POTENTIAL_MATCH.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
-			moduleId = PlatformSuccessMessages.RPR_BIO_METRIC_POTENTIAL_MATCH.getCode();
-			packetInfoManager.saveManualAdjudicationData(matchedRegIds, object,
-					DedupeSourceName.BIO, moduleId, moduleName,null,null);
-			//send message to manual adjudication
-			object.setInternalError(Boolean.FALSE);
-			object.setRid(registrationStatusDto.getRegistrationId());
-			object.setIsValid(Boolean.TRUE);
-			object.setReg_type(registrationType);
-			object.setMessageBusAddress(MessageBusAddress.MANUAL_ADJUDICATION_BUS_IN);
+			} else {
+				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
+				registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_POTENTIAL_MATCH.getMessage());
+				registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_POTENTIAL_MATCH.getCode());
+				registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
+				moduleId = PlatformSuccessMessages.RPR_BIO_METRIC_POTENTIAL_MATCH.getCode();
+				packetInfoManager.saveManualAdjudicationData(matchedRegIds, object,
+						DedupeSourceName.BIO, moduleId, moduleName, null, null);
+				//send message to manual adjudication
+				object.setInternalError(Boolean.FALSE);
+				object.setRid(registrationStatusDto.getRegistrationId());
+				object.setIsValid(Boolean.TRUE);
+				object.setReg_type(registrationType);
+				object.setMessageBusAddress(MessageBusAddress.MANUAL_ADJUDICATION_BUS_IN);
 
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationStatusDto.getRegistrationId(), BioDedupeConstants.ABIS_RESPONSE_NOT_NULL);
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						registrationStatusDto.getRegistrationId(), BioDedupeConstants.ABIS_RESPONSE_NOT_NULL);
 
+			}
 		}
 	}
 
