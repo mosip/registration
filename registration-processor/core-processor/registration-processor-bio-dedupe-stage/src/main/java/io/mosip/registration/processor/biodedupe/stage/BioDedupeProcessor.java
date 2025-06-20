@@ -461,11 +461,11 @@ public class BioDedupeProcessor {
 					object.setMessageBusAddress(MessageBusAddress.VERIFICATION_BUS_IN);
 
 					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-							registrationStatusDto.getRegistrationId(), BioDedupeConstants.ALL_BIOMETRIC_EXCEPTION);
+							registrationStatusDto.getRegistrationId(), BioDedupeConstants.ALL_BIOMETRICS_HAVE_EXCEPTION);
 				}else{
 					//Not Infant and NO Biometric exception in last Interaction
 					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-							registrationStatusDto.getRegistrationId(), BioDedupeConstants.NO_BIOMETRIC_FOUND);
+							registrationStatusDto.getRegistrationId(), BioDedupeConstants.NO_BIOMETRIC_MATCH_FOUND);
 					throw new BiometricNotFoundException(StatusUtil.BIO_DEDUPE_NO_BIOMETRICS_FOUND.getMessage());
 				}
 			}
