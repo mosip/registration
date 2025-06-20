@@ -620,13 +620,13 @@ public enum PlatformErrorMessages {
 	PACKET_BDD_PACKET_STORE_NOT_ACCESSIBLE(PlatformConstants.RPR_BIO_DEDUPE_SERVICE_MODULE + "002",
 			"Unable to Access Packet from Packet Store"),
 
-	/** The rpr bio dedupe no biometric found. */
-	RPR_BIO_DEDUPE_NO_BIOMETRIC_FOUND(PlatformConstants.RPR_BIO_DEDUPE_STAGE_MODULE + "004",
-			"Not Even Single Match Found for Biometric from ABIS"),
-
 	/** The rpr bio biometric insertion to abis. */
 	RPR_BIO_BIOMETRIC_INSERTION_TO_ABIS(PlatformConstants.RPR_BIO_DEDUPE_SERVICE_MODULE + "003",
 			"Biometric Insertion Failed in ABIS"),
+
+	/** The rpr bio dedupe no biometric found. */
+	RPR_BIO_DEDUPE_NO_BIOMETRIC_FOUND(PlatformConstants.RPR_BIO_DEDUPE_STAGE_MODULE + "004",
+			"Not Even Single Match Found for Biometric from ABIS"),
 
 	/** The rpr abis internal error. */
 	RPR_ABIS_INTERNAL_ERROR(PlatformConstants.RPR_BIO_DEDUPE_SERVICE_MODULE + "004", "ABIS Internal Error Occurred"),
@@ -699,13 +699,13 @@ public enum PlatformErrorMessages {
 	RPR_PDS_IO_EXCEPTION(PlatformConstants.RPR_PACKET_DECRYPTION_MODULE + "004",
 			"Exception while reading packet inputStream"),
 
-	/** The rpr pds Age invalid exception. */
-	RPR_PDS_AGE_INVALID_EXCEPTION(PlatformConstants.RPR_PACKET_DECRYPTION_MODULE + "006",
-			"Invalid Age"),
-
 	/** The rpr pds date time exception. */
 	RPR_PDS_DATE_TIME_EXCEPTION(PlatformConstants.RPR_PACKET_DECRYPTION_MODULE + "005",
 			"Error while parsing packet timestamp"),
+
+	/** The rpr pds Age invalid exception. */
+	RPR_PDS_AGE_INVALID_EXCEPTION(PlatformConstants.RPR_ABIS_HANDLER + "006",
+			"Invalid Age"),
 
 	/** The rpr rct unknown resource exception. */
 	RPR_RCT_UNKNOWN_RESOURCE_EXCEPTION(PlatformConstants.RPR_REST_CLIENT_MODULE + "001", "Unknown resource provided"),

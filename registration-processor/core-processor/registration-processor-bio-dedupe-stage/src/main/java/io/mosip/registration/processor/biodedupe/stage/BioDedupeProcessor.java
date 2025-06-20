@@ -438,14 +438,14 @@ public class BioDedupeProcessor {
 		//For update flow, when we get 0 match from abis.
 		if (res.getIsResponceNull() &&
 				registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.UPDATE.toString())) {
-			regProcLogger.info("No match Found for the Biometric : ", registrationStatusDto.getRegistrationId());
+			regProcLogger.debug("No match Found for the Biometric : ", registrationStatusDto.getRegistrationId());
 			//Checking when UIN generated applicant was infant
 			if (!utilities.wasApplicantInfant(registrationStatusDto)) {
 				//Not infant. checking for biometric Exception.
-				regProcLogger.info("found last packet as infant packet so Proceed to update: ", registrationStatusDto.getRegistrationId());
+				regProcLogger.debug("Found last processed packet as adult packet so checking for Biometric Exception: ", registrationStatusDto.getRegistrationId());
 				if (utilities.isAllBioWithException(registrationStatusDto)) {
 					//applicant Biometrics has Exception
-					regProcLogger.info("All exception biometric. send to MANUAL_ADJUDICATION : ", registrationStatusDto.getRegistrationId());
+					regProcLogger.debug("All exception biometric. send to MANUAL_ADJUDICATION : ", registrationStatusDto.getRegistrationId());
 					registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
 					registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_ALL_BIOMETRIC_EXCEPTION.getMessage());
 					registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_ALL_BIOMETRIC_EXCEPTION.getCode());

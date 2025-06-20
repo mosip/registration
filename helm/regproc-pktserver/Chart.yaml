@@ -2,7 +2,7 @@ apiVersion: v2
 name: regproc-pktserver
 description: A Helm chart for MOSIP Registration Processor Packet Server
 type: application
-version: 12.1.0-develop
+version: 12.1.1-develop
 appVersion: ""
 dependencies:
   - name: common
