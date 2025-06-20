@@ -976,11 +976,10 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		String uin=packetManagerService.getField(rid,UIN,process,ProviderStageName.BIO_DEDUPE);
 		//Get created date and time from idrepo using above UIN */
 		String packetCreatedDate="";
-		regProcLogger.debug("Uin = ",uin);
 		JSONObject responseDTO= idRepoService.getIdJsonFromIDRepo(uin,getGetRegProcessorDemographicIdentity());
-		if (!responseDTO.isEmpty()) {
+		if (responseDTO!=null) {
 			packetCreatedDate=JsonUtil.getJSONValue(responseDTO,PACKETCREATEDDATE);
-			if (packetCreatedDate.isEmpty())
+			if (packetCreatedDate== null)
 			{
 				return null;
 			}

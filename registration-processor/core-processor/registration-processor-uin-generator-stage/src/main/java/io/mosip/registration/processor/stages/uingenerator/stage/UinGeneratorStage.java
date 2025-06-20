@@ -258,8 +258,8 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 				loadDemographicIdentity(fieldMap, demographicIdentity);
 
 				if (StringUtils.isEmpty(uinField) || uinField.equalsIgnoreCase("null") ) {
-					String  packetCreatedOn=utility.getPacketCreatedDateFromPacketManager(registrationId,registrationStatusDto.getRegistrationType(),ProviderStageName.UIN_GENERATOR);
-					demographicIdentity.put(MappingJsonConstants.PACKET_CREATED_ON,packetCreatedOn);
+					String  packetCreatedTimestamp=utility.getPacketCreatedDateFromPacketManager(registrationId,registrationStatusDto.getRegistrationType(),ProviderStageName.UIN_GENERATOR);
+					demographicIdentity.put(MappingJsonConstants.PACKET_CREATED_ON,packetCreatedTimestamp);
 					idResponseDTO = sendIdRepoWithUin(registrationId, registrationStatusDto.getRegistrationType(), demographicIdentity,
 							uinField);
 

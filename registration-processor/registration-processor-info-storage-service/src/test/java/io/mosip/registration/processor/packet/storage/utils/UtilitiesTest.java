@@ -144,6 +144,7 @@ public class UtilitiesTest {
                 .thenReturn(uin);
         Map<String, String> response = new HashMap<>();
         response.put("dateOfBirth", dob);
+        response.put("packet_created_on", "2025-03-19T06:48:24.000Z");
         RidDto ridDto1=new RidDto();
         ridDto1.setRid("10049100271000420250319064824");
         String jsonString = new ObjectMapper().writeValueAsString(response);
@@ -285,7 +286,7 @@ public class UtilitiesTest {
         verify(basePacketRepository, times(1)).getPacketIdfromRegprcList(anyString());
     }
 
-    @Test(expected = IdentityNotFoundException.class)
+    @Test(expected = IOException.class)
     public void testWasApplicantInfant_failure() throws Exception {
         // Setup
         String uin = "12345";
@@ -293,15 +294,16 @@ public class UtilitiesTest {
         String packetCreatedDate = "2025-04-30T07:04:49.681Z";
         Map<String, String> response = new HashMap<>();
         response.put("dateOfBirth", dob);
-        response.put("packet_created_on", packetCreatedDate);
-        Mockito.when(idRepoService.getIdJsonFromIDRepo(anyString(), any())).thenReturn(null);
         RidDto ridDto1=new RidDto();
         ridDto1.setUpd_dtimes("");
         ridDto1.setRid("10049100271000420260319064824");
         when(idRepoService.getRidByIndividualId(anyString())).thenReturn(ridDto1);
         when(packetManagerService.getField(anyString(), anyString(), anyString(), any(ProviderStageName.class)))
                 .thenReturn(uin);
-        when(idRepoService.getIdJsonFromIDRepo(anyString(), any())).thenReturn(null).thenReturn(null);
+        String jsonString = new ObjectMapper().writeValueAsString(response);
+        JSONObject identityJson = JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
+        when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
+                .thenReturn(identityJson);
         when(basePacketRepository.getPacketIdfromRegprcList(anyString())).thenReturn(ridDto1.getRid());
 
         // Execute
