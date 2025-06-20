@@ -937,23 +937,24 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 				"utility::wasApplicantInfant()::entry");
 		Date packetCeatedDate= null;
 		try{
-		packetCeatedDate=getPacketcreatedDateAndtimesFromIdrepo(registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType());
-		if (packetCeatedDate==null){
-			//Getting the Last Interacted Rid From Idrepo.
-			RidDto ridDto= getIndividualIdResponceFromIdrepo(registrationStatusDto.getRegistrationId(),registrationStatusDto.getRegistrationType());
-			packetCeatedDate=getPacketCreationDateTimeFromRegList(ridDto.getRid());
-			if (packetCeatedDate==null) {
-				packetCeatedDate=getPacketCreatedDateTimeFromRid(ridDto.getRid());
-				if (packetCeatedDate==null){
-					packetCeatedDate= getPacketUpdateDateFromIdRepo(ridDto);
-					if(packetCeatedDate==null) {
-						regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
-								"Unable to get Packet Created Date and Time");
-						throw new IdentityNotFoundException(PlatformErrorMessages.RPR_BDD_PACKET_CREATED_DATE_NULL.getMessage()+PlatformErrorMessages.RPR_BDD_PACKET_CREATED_DATE_NULL.getCode());
+			packetCeatedDate=getPacketcreatedDateAndtimesFromIdrepo(registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType());
+			if (packetCeatedDate==null){
+				//Getting the Last Interacted Rid From Idrepo.
+				RidDto ridDto= getIndividualIdResponceFromIdrepo(registrationStatusDto.getRegistrationId(),registrationStatusDto.getRegistrationType());
+				packetCeatedDate=getPacketCreationDateTimeFromRegList(ridDto.getRid());
+				if (packetCeatedDate==null) {
+					packetCeatedDate=getPacketCreatedDateTimeFromRid(ridDto.getRid());
+					if (packetCeatedDate==null){
+						packetCeatedDate= getPacketUpdateDateFromIdRepo(ridDto);
+						if(packetCeatedDate==null) {
+							regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
+									"Unable to get Packet Created Date and Time");
+							throw new IdentityNotFoundException(PlatformErrorMessages.RPR_BDD_PACKET_CREATED_DATE_NULL.getMessage()+PlatformErrorMessages.RPR_BDD_PACKET_CREATED_DATE_NULL.getCode());
+						}
 					}
 				}
 			}
-		}}catch (Exception e) {
+		}catch (Exception e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 					"utility::getPacketcreatedDateAndtimesFromIdrepo()::error with error message: " + e.getMessage());
 			throw new IOException(PlatformErrorMessages.RPR_BDD_PACKET_CREATED_DATE_NULL.getCode(), e);
@@ -1217,7 +1218,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 			Map<String, String> metaInfo = packetManagerService.getMetaInfo(
 					rid, process, stageName);
 			String packetCreatedDateTime = metaInfo.get(JsonConstant.CREATIONDATE);
-			if (packetCreatedDateTime != null && !packetCreatedDateTime.isEmpty()) {\
+			if (packetCreatedDateTime != null && !packetCreatedDateTime.isEmpty()) {
 				return packetCreatedDateTime;
 			} else {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
