@@ -24,7 +24,7 @@
 
 	<groupId>io.mosip.registrationprocessor</groupId>
 	<artifactId>registration-processor</artifactId>
-	<version>1.2.1-SNAPSHOT</version>
+	<version>1.2.1-rc1</version>
 	<packaging>pom</packaging>
 
 	<name>registration-processor</name>
@@ -45,7 +45,7 @@
 		<maven.javadoc.version>3.2.0</maven.javadoc.version>
 		<maven.assembly.version>3.3.0</maven.assembly.version>
 		<maven.deploy.plugin.version>3.1.1</maven.deploy.plugin.version>
-		<nexus.staging.maven.plugin.version>1.6.14</nexus.staging.maven.plugin.version>
+		<central.publishing.maven.plugin.version>0.7.0</central.publishing.maven.plugin.version>
 
 		<!-- Miscellaneous -->
 		<javax.el-api.version>3.0.0</javax.el-api.version>
@@ -116,13 +116,14 @@
 		<activemq.client.version>6.1.2</activemq.client.version>
 
 		<!-- local -->
-		<registration.status.service.version>1.2.1-SNAPSHOT</registration.status.service.version>
-		<registration.processor.core.version>1.2.1-SNAPSHOT</registration.processor.core.version>
+		<registration.status.service.version>1.2.1-rc1</registration.status.service.version>
+		<registration.processor.core.version>1.2.1-rc1</registration.processor.core.version>
 		<packet.manager.version>1.2.1-SNAPSHOT</packet.manager.version>
-		<registration.processor.rest.client.version>1.2.1-SNAPSHOT</registration.processor.rest.client.version>
-		<packet.info.storage.service.version>1.2.1-SNAPSHOT</packet.info.storage.service.version>
-		<packet.bio.dedupe.service.impl.version>1.2.1-SNAPSHOT</packet.bio.dedupe.service.impl.version>
-		<registration.processor.message.sender.version>1.2.1-SNAPSHOT</registration.processor.message.sender.version>
+		<registration.processor.rest.client.version>1.2.1-rc1</registration.processor.rest.client.version>
+		<packet.info.storage.service.version>1.2.1-rc1</packet.info.storage.service.version>
+		<packet.bio.dedupe.service.impl.version>1.2.1-rc1</packet.bio.dedupe.service.impl.version>
+		<registration.processor.message.sender.version>1.2.1-rc1</registration.processor.message.sender.version>
+		<registration.processor.message.sender.version>1.2.1-rc1</registration.processor.message.sender.version>
 
 		<!-- Kernel -->
 		<kernel.core.version>1.2.1-SNAPSHOT</kernel.core.version>
@@ -295,15 +296,15 @@
         </repository>
     </repositories>
 	<distributionManagement>
-                <snapshotRepository>
-                        <id>ossrh</id>
-                        <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-                </snapshotRepository>
-                <repository>
-                        <id>ossrh</id>
-                        <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-                </repository>
-        </distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://central.sonatype.com/repository/maven-snapshots/</url>
+		</snapshotRepository>
+		<repository>
+			<id>ossrh</id>
+			<url>https://central.sonatype.com/api/v1/publisher</url>
+		</repository>
+	</distributionManagement>
 	<dependencyManagement>
 		<dependencies>
 			<!-- https://mvnrepository.com/artifact/net.bytebuddy/byte-buddy -->
@@ -536,17 +537,16 @@
 					<doclint>none</doclint>
 				</configuration>
 			</plugin>
-				                <plugin>
-                  <groupId>org.sonatype.plugins</groupId>
-                  <artifactId>nexus-staging-maven-plugin</artifactId>
-                  <version>1.6.7</version>
-                  <extensions>true</extensions>
-                  <configuration>
-                        <serverId>ossrh</serverId>
-                        <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                        <autoReleaseAfterClose>false</autoReleaseAfterClose>
-                  </configuration>
-                </plugin>
+				<plugin>
+					<groupId>org.sonatype.central</groupId>
+					<artifactId>central-publishing-maven-plugin</artifactId>
+					<version>${central.publishing.maven.plugin.version}</version>
+					<extensions>true</extensions>
+					<configuration>
+						<publishingServerId>ossrh</publishingServerId>
+						<autoPublish>false</autoPublish>
+					</configuration>
+				</plugin>
 
 		<plugin>
                   <groupId>org.apache.maven.plugins</groupId>
