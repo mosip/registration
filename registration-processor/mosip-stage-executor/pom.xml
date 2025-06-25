@@ -10,6 +10,7 @@
 	
 	<artifactId>mosip-stage-executor</artifactId>
     <version>1.2.1-rc1</version>
+	<name>mosip-stage-executor</name>
     
     <dependencies>
     	<dependency>

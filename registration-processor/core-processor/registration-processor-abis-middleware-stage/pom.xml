@@ -9,6 +9,7 @@
   </parent>
   <artifactId>registration-processor-abis-middleware-stage</artifactId>
   <version>1.2.1-rc1</version>
+  <name>registration-processor-abis-middleware-stage</name>
   <packaging>jar</packaging>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

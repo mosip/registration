@@ -11,6 +11,7 @@
 	</parent>
 	<artifactId>registration-processor-core</artifactId>
 	<version>1.2.1-rc1</version>
+	<name>registration-processor-core</name>
 	<dependencies>
 		<dependency>
 			<groupId>org.mockito</groupId>

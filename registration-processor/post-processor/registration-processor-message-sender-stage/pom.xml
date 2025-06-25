@@ -12,6 +12,7 @@
 
 	<artifactId>registration-processor-message-sender-stage</artifactId>
      <version>1.2.1-rc1</version>
+	<name>registration-processor-message-sender-stage</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>

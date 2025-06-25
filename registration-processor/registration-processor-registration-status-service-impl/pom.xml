@@ -11,7 +11,8 @@
 		<version>1.2.1-rc1</version>
 	</parent>
 	<artifactId>registration-processor-registration-status-service-impl</artifactId>
-	 <version>1.2.1-rc1</version>
+	<version>1.2.1-rc1</version>
+	<name>registration-processor-registration-status-service-impl</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

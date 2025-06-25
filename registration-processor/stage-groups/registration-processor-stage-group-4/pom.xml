@@ -10,7 +10,7 @@
 	
 	<artifactId>registration-processor-stage-group-4</artifactId>
     <version>1.2.1-rc1</version>
-
+	<name>registration-processor-stage-group-4</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>

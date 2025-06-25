@@ -13,6 +13,7 @@
 
     <artifactId>registration-processor-verification-stage</artifactId>
     <version>1.2.1-rc1</version>
+    <name>registration-processor-verification-stage</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>

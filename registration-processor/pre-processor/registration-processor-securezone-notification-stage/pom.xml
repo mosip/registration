@@ -9,6 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <version>1.2.1-rc1</version>
+    <name>registration-processor-securezone-notification-stage</name>
 
     <artifactId>registration-processor-securezone-notification-stage</artifactId>
 
