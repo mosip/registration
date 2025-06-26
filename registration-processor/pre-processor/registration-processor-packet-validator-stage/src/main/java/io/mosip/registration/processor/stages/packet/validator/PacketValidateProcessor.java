@@ -10,8 +10,6 @@ import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -204,7 +202,7 @@ public class PacketValidateProcessor {
 					// save audit details
 					InternalRegistrationStatusDto finalRegistrationStatusDto = registrationStatusDto;
 					String finalRegistrationId = registrationId;
-					Runnable r = () -> {
+					
 						try {
 							auditUtility.saveAuditDetails(finalRegistrationId,
 									finalRegistrationStatusDto.getRegistrationType());
@@ -214,10 +212,7 @@ public class PacketValidateProcessor {
 									description.getCode() + " Inside Runnable ", "");
 
 						}
-					};
-					ExecutorService es = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-					es.submit(r);
-					es.close();
+					
 					registrationStatusDto
 							.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 					object.setIsValid(Boolean.TRUE);
