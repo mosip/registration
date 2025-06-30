@@ -21,7 +21,7 @@ on:
       - 1.*
       - develop*
       - MOSIP*
-      - *
+      - mosip*
 
 jobs:
   build-maven-registration:
