@@ -62,6 +62,9 @@ public class MosipBridgeFactory extends MosipVerticleAPIManager {
 	@Value("${vertx.cluster.configuration}")
 	private String clusterManagerUrl;
 
+	@Value("${mosip.regproc.camel.bridge.eventbus.kafka.max.poll.records:5}")
+	private Integer maxPollRecords;
+
 	/** The mosip event bus. */
 	MosipEventBus mosipEventBus = null;
 
@@ -160,6 +163,7 @@ public class MosipBridgeFactory extends MosipVerticleAPIManager {
 			KafkaConfiguration kafkaConfiguration = new KafkaConfiguration();
 			kafkaConfiguration.setGroupId(kafkaGroupId);
 			kafkaConfiguration.setBrokers(kafkaBootstrapServers);
+			kafkaConfiguration.setMaxPollRecords(maxPollRecords);
 			kafkaComponent.setConfiguration(kafkaConfiguration);
 			camelContext.addComponent("eventbus", kafkaComponent);
 			camelContext.addComponent("workflow-cmd", kafkaComponent);

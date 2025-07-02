@@ -103,7 +103,7 @@ public class KafkaMosipEventBusTest {
 	@Test
 	public void testSend(TestContext testContext) {
 		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", 
-			"auto", "100", 60000, eventTracingHandler);
+			"auto", "100", "30000", 60000, eventTracingHandler);
 
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("1001");
@@ -117,7 +117,7 @@ public class KafkaMosipEventBusTest {
 	public void testConsumeAndSendWithAutoCommitType(TestContext testContext) {
 		int testDataCount = 20;
 		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", 
-			"auto", "100", 60000, eventTracingHandler);
+			"auto", "100", "30000", 60000, eventTracingHandler);
 		final Async async = testContext.async();
 		
 		AsyncResult<KafkaConsumerRecords<String, String>> asyncResult = 
@@ -163,7 +163,7 @@ public class KafkaMosipEventBusTest {
 	public void testConsumeAndSendWithSingleBatchType(TestContext testContext) {
 		int testDataCount = 20;
 		kafkaMosipEventBus = new KafkaMosipEventBus(Vertx.vertx(), "localhost:9091", "group_1", 
-			"batch", "100", 60000, eventTracingHandler);
+			"batch", "100", "30000", 60000, eventTracingHandler);
 		final Async async = testContext.async();
 			
 		AsyncResult<KafkaConsumerRecords<String, String>> asyncResult = 
@@ -228,7 +228,7 @@ public class KafkaMosipEventBusTest {
 	public void testConsumeAndSendWithSingleCommitType(TestContext testContext) {
 		int testDataCount = 20;
 		kafkaMosipEventBus = new KafkaMosipEventBus(Vertx.vertx(), "localhost:9091", "group_1", 
-			"single", "100", 60000, eventTracingHandler);
+			"single", "100", "30000", 60000, eventTracingHandler);
 		final Async async = testContext.async();
 			
 		AsyncResult<KafkaConsumerRecords<String, String>> asyncResult = 
@@ -306,7 +306,7 @@ public class KafkaMosipEventBusTest {
 	public void testConsumeWithAutoCommitType(TestContext testContext) {
 		int testDataCount = 20;
 		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", 
-			"auto", "100", 60000, eventTracingHandler);
+			"auto", "100", "30000", 60000, eventTracingHandler);
 		final Async async = testContext.async();
 		
 		AsyncResult<KafkaConsumerRecords<String, String>> asyncResult = 
@@ -351,7 +351,7 @@ public class KafkaMosipEventBusTest {
 	public void testConsumeWithSingleBatchType(TestContext testContext) {
 		int testDataCount = 20;
 		kafkaMosipEventBus = new KafkaMosipEventBus(Vertx.vertx(), "localhost:9091", "group_1", 
-			"batch", "100", 60000, eventTracingHandler);
+			"batch", "100", "30000", 60000, eventTracingHandler);
 		final Async async = testContext.async();
 			
 		AsyncResult<KafkaConsumerRecords<String, String>> asyncResult = 
@@ -415,7 +415,7 @@ public class KafkaMosipEventBusTest {
 	public void testConsumeWithSingleCommitType(TestContext testContext) {
 		int testDataCount = 20;
 		kafkaMosipEventBus = new KafkaMosipEventBus(Vertx.vertx(), "localhost:9091", "group_1", 
-			"single", "100", 60000, eventTracingHandler);
+			"single", "100", "30000", 60000, eventTracingHandler);
 		final Async async = testContext.async();
 			
 		AsyncResult<KafkaConsumerRecords<String, String>> asyncResult = 
@@ -492,7 +492,7 @@ public class KafkaMosipEventBusTest {
 	public void testConsumeAndSendWithMessageExpiredException(TestContext testContext) {
 		int testDataCount = 20;
 		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", 
-			"batch", "100", 60000, eventTracingHandler);
+			"batch", "100", "30000", 60000, eventTracingHandler);
 		final Async async = testContext.async();
 		
 		AsyncResult<KafkaConsumerRecords<String, String>> asyncResult = 
@@ -554,7 +554,7 @@ public class KafkaMosipEventBusTest {
 	public void testConsumeWithMessageExpiredException(TestContext testContext) {
 		int testDataCount = 20;
 		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", 
-			"batch", "100", 60000, eventTracingHandler);
+			"batch", "100", "30000", 60000, eventTracingHandler);
 		final Async async = testContext.async();
 		
 		AsyncResult<KafkaConsumerRecords<String, String>> asyncResult = 
@@ -632,7 +632,7 @@ public class KafkaMosipEventBusTest {
 
 	@Test
 	public void testConsumerHealthCheck(TestContext testContext) {
-		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", "batch", "100", 60000,
+		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", "batch", "100", "30000", 60000,
 				eventTracingHandler);
 		final Async async = testContext.async();
 		Handler<HealthCheckDTO> eventHandler = Mockito.mock(Handler.class);
@@ -654,7 +654,7 @@ public class KafkaMosipEventBusTest {
 
 	@Test
 	public void testConsumerHealthCheckWithException(TestContext testContext) {
-		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", "batch", "100", 60000,
+		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", "batch", "100", "30000", 60000,
 				eventTracingHandler);
 		final Async async = testContext.async();
 		Handler<HealthCheckDTO> eventHandler = Mockito.mock(Handler.class);
@@ -678,7 +678,7 @@ public class KafkaMosipEventBusTest {
 
 	@Test(expected = TimeoutException.class)
 	public void testConsumerHealthCheckWithTimeout(TestContext testContext) {
-		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", "batch", "100", 60000,
+		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", "batch", "100", "30000", 60000,
 				eventTracingHandler);
 		Handler<HealthCheckDTO> eventHandler = Mockito.mock(Handler.class);
 		TimeoutException timeout = new TimeoutException();
@@ -689,7 +689,7 @@ public class KafkaMosipEventBusTest {
 
 	@Test
 	public void testSenderHealthCheck(TestContext testContext) {
-		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", "batch", "100", 60000,
+		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", "batch", "100", "30000", 60000,
 				eventTracingHandler);
 		Handler<HealthCheckDTO> eventHandler = Mockito.mock(Handler.class);
 		kafkaMosipEventBus.senderHealthCheck(eventHandler, MessageBusAddress.PACKET_VALIDATOR_BUS_IN.toString());
@@ -700,7 +700,7 @@ public class KafkaMosipEventBusTest {
 
 	@Test
 	public void testSenderHealthCheckFail(TestContext testContext) {
-		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", "batch", "100", 60000,
+		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", "batch", "100", "30000", 60000,
 				eventTracingHandler);
 		ReflectionTestUtils.setField(kafkaMosipEventBus, "kafkaProducer", null);
 		Handler<HealthCheckDTO> eventHandler = Mockito.mock(Handler.class);
