@@ -123,7 +123,6 @@
 		<packet.info.storage.service.version>1.2.1-SNAPSHOT</packet.info.storage.service.version>
 		<packet.bio.dedupe.service.impl.version>1.2.1-SNAPSHOT</packet.bio.dedupe.service.impl.version>
 		<registration.processor.message.sender.version>1.2.1-SNAPSHOT</registration.processor.message.sender.version>
-		<registration.processor.message.sender.version>1.2.1-SNAPSHOT</registration.processor.message.sender.version>
 
 		<!-- Kernel -->
 		<kernel.core.version>1.2.1-SNAPSHOT</kernel.core.version>
