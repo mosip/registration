@@ -179,7 +179,7 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 						}
 					}
 				};
-				mosipQueueManager.consume(mosipQueue, HealthConstant.QUEUE_ADDRESS, listener);
+				mosipQueueManager.consume(mosipQueue, HealthConstant.QUEUE_ADDRESS, listener, 1);
 				isConsumerStarted = true;
 			}
 		} catch (Exception e) {

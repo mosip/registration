@@ -59,6 +59,6 @@ public interface MosipQueueManager<T, V>{
 	 * @param address    The address
 	 * @return the original message
 	 */
-	public V consume(T mosipQueue, String address, QueueListener object);
+	public V consume(T mosipQueue, String address, QueueListener object, Integer consumerCount);
 
 }
