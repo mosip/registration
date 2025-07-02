@@ -118,7 +118,7 @@
 		<!-- local -->
 		<registration.status.service.version>1.2.1-SNAPSHOT</registration.status.service.version>
 		<registration.processor.core.version>1.2.1-SNAPSHOT</registration.processor.core.version>
-		<packet.manager.version>1.3.0-beta.1</packet.manager.version>
+		<packet.manager.version>1.2.1-SNAPSHOT</packet.manager.version>
 		<registration.processor.rest.client.version>1.2.1-SNAPSHOT</registration.processor.rest.client.version>
 		<packet.info.storage.service.version>1.2.1-SNAPSHOT</packet.info.storage.service.version>
 		<packet.bio.dedupe.service.impl.version>1.2.1-SNAPSHOT</packet.bio.dedupe.service.impl.version>
@@ -126,24 +126,24 @@
 		<registration.processor.message.sender.version>1.2.1-SNAPSHOT</registration.processor.message.sender.version>
 
 		<!-- Kernel -->
-		<kernel.core.version>1.3.0-beta.1</kernel.core.version>
-		<kernel.dataaccess.hibernate.version>1.3.0-beta.1</kernel.dataaccess.hibernate.version>
-		<kernel.templatemanager.velocity.version>1.3.0-beta.1</kernel.templatemanager.velocity.version>
-		<kernel.idvalidator.uin.version>1.3.0-beta.1</kernel.idvalidator.uin.version>
-		<kernel.idvalidator.rid.version>1.3.0-beta.1</kernel.idvalidator.rid.version>
-		<kernel.cbeffutil.version>1.3.0-beta.1</kernel.cbeffutil.version>
-		<kernel.bioapi.provider.version>1.3.0-beta.1</kernel.bioapi.provider.version>
-		<kernel.auth.adapter.version>1.3.0-beta.1</kernel.auth.adapter.version>
-		<kernel.pdfgenerator.itext.version>1.3.0-beta.1</kernel.pdfgenerator.itext.version>
-		<kernel.qrcodegenerator.zxing.version>1.3.0-beta.1</kernel.qrcodegenerator.zxing.version>
-		<kernel.logger.logback.version>1.3.0-beta.1</kernel.logger.logback.version>
-		<kernel.idvalidator.vid.version>1.3.0-beta.1</kernel.idvalidator.vid.version>
-		<object.store.khazana.version>1.3.0-beta.1</object.store.khazana.version>
-		<kernel.biometrics.api.version>1.3.0-beta.1</kernel.biometrics.api.version>
-		<kernel-keymanager-service.version>1.3.0-beta.1</kernel-keymanager-service.version>
-		<kernel.websubclient.version>1.3.0-beta.1</kernel.websubclient.version>
-		<kernel-biosdk-provider.version>1.3.0-beta.1</kernel-biosdk-provider.version>
-		<kernel.bom.version>1.3.0-beta.1</kernel.bom.version>
+		<kernel.core.version>1.2.1-SNAPSHOT</kernel.core.version>
+		<kernel.dataaccess.hibernate.version>1.2.1-SNAPSHOT</kernel.dataaccess.hibernate.version>
+		<kernel.templatemanager.velocity.version>1.2.1-SNAPSHOT</kernel.templatemanager.velocity.version>
+		<kernel.idvalidator.uin.version>1.2.1-SNAPSHOT</kernel.idvalidator.uin.version>
+		<kernel.idvalidator.rid.version>1.2.1-SNAPSHOT</kernel.idvalidator.rid.version>
+		<kernel.cbeffutil.version>1.2.1-SNAPSHOT</kernel.cbeffutil.version>
+		<kernel.bioapi.provider.version>1.2.1-SNAPSHOT</kernel.bioapi.provider.version>
+		<kernel.auth.adapter.version>1.2.1-SNAPSHOT</kernel.auth.adapter.version>
+		<kernel.pdfgenerator.itext.version>1.2.1-SNAPSHOT</kernel.pdfgenerator.itext.version>
+		<kernel.qrcodegenerator.zxing.version>1.2.1-SNAPSHOT</kernel.qrcodegenerator.zxing.version>
+		<kernel.logger.logback.version>1.2.1-SNAPSHOT</kernel.logger.logback.version>
+		<kernel.idvalidator.vid.version>1.2.1-SNAPSHOT</kernel.idvalidator.vid.version>
+		<object.store.khazana.version>1.2.1-SNAPSHOT</object.store.khazana.version>
+		<kernel.biometrics.api.version>1.2.1-SNAPSHOT</kernel.biometrics.api.version>
+		<kernel-keymanager-service.version>1.2.1-SNAPSHOT</kernel-keymanager-service.version>
+		<kernel.websubclient.version>1.2.1-SNAPSHOT</kernel.websubclient.version>
+		<kernel-biosdk-provider.version>1.2.1-SNAPSHOT</kernel-biosdk-provider.version>
+		<kernel.bom.version>1.2.1-SNAPSHOT</kernel.bom.version>
 		<sonar.coverage.exclusions>**/dto/**,
 			**/exception/*Exception.java,
 			**/config/*Config.java,
