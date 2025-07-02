@@ -13,6 +13,7 @@
 
 	<artifactId>registration-processor-notification-service</artifactId>
 	<version>1.2.1-SNAPSHOT</version>
+	<name>registration-processor-notification-service</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -116,6 +117,9 @@
 							<goal>build-info</goal>
 							<goal>repackage</goal>
 						</goals>
+						<configuration>
+							<attach>false</attach>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
@@ -139,23 +143,13 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>org.sonatype.plugins</groupId>
-				<artifactId>nexus-staging-maven-plugin</artifactId>
-				<version>${nexus.staging.maven.plugin.version}</version>
+				<groupId>org.sonatype.central</groupId>
+				<artifactId>central-publishing-maven-plugin</artifactId>
+				<version>${central.publishing.maven.plugin.version}</version>
 				<extensions>true</extensions>
-				<executions>
-					<execution>
-						<id>default-deploy</id>
-						<phase>none</phase>
-						<goals>
-							<goal>deploy</goal>
-						</goals>
-					</execution>
-				</executions>
 				<configuration>
-					<serverId>ossrh</serverId>
-					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
-					<autoReleaseAfterClose>false</autoReleaseAfterClose>
+					<publishingServerId>ossrh</publishingServerId>
+					<autoPublish>false</autoPublish>
 				</configuration>
 			</plugin>
 		</plugins>
