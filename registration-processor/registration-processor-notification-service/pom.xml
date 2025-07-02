@@ -8,16 +8,16 @@
 	<parent>
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>registration-processor</artifactId>
-		<version>1.2.1-rc1</version>
+		<version>1.2.1-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>registration-processor-notification-service</artifactId>
-	<version>1.2.1-rc1</version>
+	<version>1.2.1-SNAPSHOT</version>
 	<name>registration-processor-notification-service</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<kernel.websubclient.api.version>1.2.1-rc1</kernel.websubclient.api.version>
+		<kernel.websubclient.api.version>1.2.1-SNAPSHOT</kernel.websubclient.api.version>
 	</properties>
 
 	<dependencyManagement>

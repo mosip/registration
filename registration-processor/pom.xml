@@ -24,7 +24,7 @@
 
 	<groupId>io.mosip.registrationprocessor</groupId>
 	<artifactId>registration-processor</artifactId>
-	<version>1.2.1-rc1</version>
+	<version>1.2.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>registration-processor</name>
@@ -116,14 +116,14 @@
 		<activemq.client.version>6.1.2</activemq.client.version>
 
 		<!-- local -->
-		<registration.status.service.version>1.2.1-rc1</registration.status.service.version>
-		<registration.processor.core.version>1.2.1-rc1</registration.processor.core.version>
+		<registration.status.service.version>1.2.1-SNAPSHOT</registration.status.service.version>
+		<registration.processor.core.version>1.2.1-SNAPSHOT</registration.processor.core.version>
 		<packet.manager.version>1.3.0-beta.1</packet.manager.version>
-		<registration.processor.rest.client.version>1.2.1-rc1</registration.processor.rest.client.version>
-		<packet.info.storage.service.version>1.2.1-rc1</packet.info.storage.service.version>
-		<packet.bio.dedupe.service.impl.version>1.2.1-rc1</packet.bio.dedupe.service.impl.version>
-		<registration.processor.message.sender.version>1.2.1-rc1</registration.processor.message.sender.version>
-		<registration.processor.message.sender.version>1.2.1-rc1</registration.processor.message.sender.version>
+		<registration.processor.rest.client.version>1.2.1-SNAPSHOT</registration.processor.rest.client.version>
+		<packet.info.storage.service.version>1.2.1-SNAPSHOT</packet.info.storage.service.version>
+		<packet.bio.dedupe.service.impl.version>1.2.1-SNAPSHOT</packet.bio.dedupe.service.impl.version>
+		<registration.processor.message.sender.version>1.2.1-SNAPSHOT</registration.processor.message.sender.version>
+		<registration.processor.message.sender.version>1.2.1-SNAPSHOT</registration.processor.message.sender.version>
 
 		<!-- Kernel -->
 		<kernel.core.version>1.3.0-beta.1</kernel.core.version>

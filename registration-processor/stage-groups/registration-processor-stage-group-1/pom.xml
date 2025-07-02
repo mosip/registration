@@ -5,11 +5,11 @@
 	<parent>
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>stage-groups</artifactId>
-		<version>1.2.1-rc1</version>
+		<version>1.2.1-SNAPSHOT</version>
 	</parent>
 	
 	<artifactId>registration-processor-stage-group-1</artifactId>
-    <version>1.2.1-rc1</version>
+    <version>1.2.1-SNAPSHOT</version>
 	<name>registration-processor-stage-group-1</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -21,14 +21,14 @@
 		<dependency>
 			<groupId>io.mosip.registrationprocessor</groupId>
 			<artifactId>mosip-stage-executor</artifactId>
-			<version>1.2.1-rc1</version>
+			<version>1.2.1-SNAPSHOT</version>
 		</dependency>
 		
 		<!-- Stages -->
 		<dependency>
 			<groupId>io.mosip.registrationprocessor</groupId>
 			<artifactId>registration-processor-packet-receiver-stage</artifactId>
-			<version>1.2.1-rc1</version>
+			<version>1.2.1-SNAPSHOT</version>
 		</dependency>
 		
 		<!--  -->

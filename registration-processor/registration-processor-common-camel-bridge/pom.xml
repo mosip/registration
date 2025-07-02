@@ -6,17 +6,17 @@
 	<parent>
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>registration-processor</artifactId>
-		<version>1.2.1-rc1</version>
+		<version>1.2.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>registration-processor-common-camel-bridge</artifactId>
-	<version>1.2.1-rc1</version>
+	<version>1.2.1-SNAPSHOT</version>
 	<name>registration-processor-common-camel-bridge</name>
 	<packaging>jar</packaging>
 
 	<properties>
 		<vertx.verticle>io.mosip.registration.processor.camel.bridge.MosipCamelBridge</vertx.verticle>
 		<fabric8-vertx-maven-plugin.version>1.0.5</fabric8-vertx-maven-plugin.version>
-	    <registration.processor.registration.status.service.impl.version>1.2.1-rc1</registration.processor.registration.status.service.impl.version>
+	    <registration.processor.registration.status.service.impl.version>1.2.1-SNAPSHOT</registration.processor.registration.status.service.impl.version>
 	</properties>
 	<dependencies>
 		<dependency>
