@@ -9,6 +9,7 @@
 	</parent>
 	<artifactId>registration-processor-demo-dedupe-stage</artifactId>
     <version>1.2.1.2-SNAPSHOT</version>
+	<name>registration-processor-demo-dedupe-stage</name>
     <packaging>jar</packaging>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
