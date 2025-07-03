@@ -131,23 +131,23 @@
 		<registration.processor.message.sender.version>1.2.1.2-SNAPSHOT</registration.processor.message.sender.version>
 
 		<!-- Kernel -->
-		<kernel.core.version>1.2.0.2-SNAPSHOT</kernel.core.version>
-		<kernel.dataaccess.hibernate.version>1.2.0.2-SNAPSHOT</kernel.dataaccess.hibernate.version>
-		<kernel.templatemanager.velocity.version>1.2.0.2-SNAPSHOT</kernel.templatemanager.velocity.version>
-		<kernel.idvalidator.uin.version>1.2.0.2-SNAPSHOT</kernel.idvalidator.uin.version>
-		<kernel.idvalidator.rid.version>1.2.0.2-SNAPSHOT</kernel.idvalidator.rid.version>
-		<kernel.cbeffutil.version>1.2.0.2-SNAPSHOT</kernel.cbeffutil.version>
-                <kernel.auth.adapter.version>1.2.0.2-SNAPSHOT</kernel.auth.adapter.version>
-                <kernel.pdfgenerator.itext.version>1.2.0.2-SNAPSHOT</kernel.pdfgenerator.itext.version>
-		<kernel.qrcodegenerator.zxing.version>1.2.0.2-SNAPSHOT</kernel.qrcodegenerator.zxing.version>
-		<kernel.logger.logback.version>1.2.0.2-SNAPSHOT</kernel.logger.logback.version>
-		<kernel.idvalidator.vid.version>1.2.0.2-SNAPSHOT</kernel.idvalidator.vid.version>
-		<object.store.khazana.version>1.2.0.2-SNAPSHOT</object.store.khazana.version>
-		<kernel.biometrics.api.version>1.2.0.2-SNAPSHOT</kernel.biometrics.api.version>
-		<kernel-keymanager-service.version>1.2.0.2-SNAPSHOT</kernel-keymanager-service.version>
-		 <kernel.websubclient.version>1.2.0.2-SNAPSHOT</kernel.websubclient.version>
-		 <kernel-biosdk-provider.version>1.2.0.2-SNAPSHOT</kernel-biosdk-provider.version>
-		<kernel-idvalidator-vid.version>1.2.0.2-SNAPSHOT</kernel-idvalidator-vid.version>
+		<kernel.core.version>1.2.0.1</kernel.core.version>
+		<kernel.dataaccess.hibernate.version>1.2.0.1</kernel.dataaccess.hibernate.version>
+		<kernel.templatemanager.velocity.version>1.2.0.1</kernel.templatemanager.velocity.version>
+		<kernel.idvalidator.uin.version>1.2.0.1</kernel.idvalidator.uin.version>
+		<kernel.idvalidator.rid.version>1.2.0.1</kernel.idvalidator.rid.version>
+		<kernel.cbeffutil.version>1.2.0.1</kernel.cbeffutil.version>
+                <kernel.auth.adapter.version>1.2.0.1</kernel.auth.adapter.version>
+                <kernel.pdfgenerator.itext.version>1.2.0.1</kernel.pdfgenerator.itext.version>
+		<kernel.qrcodegenerator.zxing.version>1.2.0.1</kernel.qrcodegenerator.zxing.version>
+		<kernel.logger.logback.version>1.2.0.1</kernel.logger.logback.version>
+		<kernel.idvalidator.vid.version>1.2.0.1</kernel.idvalidator.vid.version>
+		<object.store.khazana.version>1.2.0.1</object.store.khazana.version>
+		<kernel.biometrics.api.version>1.2.0.1</kernel.biometrics.api.version>
+		<kernel-keymanager-service.version>1.2.0.1</kernel-keymanager-service.version>
+		 <kernel.websubclient.version>1.2.0.1</kernel.websubclient.version>
+		 <kernel-biosdk-provider.version>1.2.0.1</kernel-biosdk-provider.version>
+		<kernel-idvalidator-vid.version>1.2.0.1</kernel-idvalidator-vid.version>
 			<sonar.coverage.exclusions>**/dto/**,
 			**/exception/*Exception.java,
 			**/config/*Config.java,
