@@ -6,12 +6,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.apache.camel.com.github.benmanes.caffeine.cache.Cache;
-import org.apache.camel.com.github.benmanes.caffeine.cache.Caffeine;
+import io.mosip.registration.processor.core.cache.CaffeineCacheManager;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.slf4j.MDC;
@@ -68,7 +66,7 @@ public class KafkaMosipEventBus implements MosipEventBus {
 
 	private EventTracingHandler eventTracingHandler;
 
-	private final Cache<String, String> cache;
+	private CaffeineCacheManager caffeineCacheManager;
 
 	/**
 	 * Instantiates a new kafka mosip event bus.
@@ -85,13 +83,9 @@ public class KafkaMosipEventBus implements MosipEventBus {
 	 * @param eventTracingHandler
 	 */
 	public KafkaMosipEventBus(Vertx vertx, String bootstrapServers, String groupId,
-			String commitType, String maxPollRecords, String maxPollinterval, int pollFrequency, EventTracingHandler eventTracingHandler) {
-
+			String commitType, String maxPollRecords, String maxPollInterval, int pollFrequency, EventTracingHandler eventTracingHandler) {
+		caffeineCacheManager = new CaffeineCacheManager();
 		validateCommitType(commitType);
-		this.cache = Caffeine.newBuilder()
-				.expireAfterWrite(15, TimeUnit.MINUTES)
-				.maximumSize(100000) // optional: set a size limit
-				.build();
 		this.vertx = vertx;
 		this.commitType = commitType;
 		this.pollFrequency = pollFrequency;
@@ -106,7 +100,7 @@ public class KafkaMosipEventBus implements MosipEventBus {
 		consumerConfig.put("group.id", groupId);
 		consumerConfig.put("auto.offset.reset", "latest");
 		consumerConfig.put("max.poll.records", maxPollRecords);
-		consumerConfig.put("max.poll.interval.ms", maxPollinterval);
+		consumerConfig.put("max.poll.interval.ms", maxPollInterval);
 		if (commitType.equals("auto"))
 			consumerConfig.put("enable.auto.commit", "true");
 		else
@@ -123,7 +117,7 @@ public class KafkaMosipEventBus implements MosipEventBus {
 		this.kafkaProducer = KafkaProducer.create(vertx, producerConfig);
 
 		logger.info("KafkaMosipEventBus loaded with configuration: bootstrapServers: {} groupId: {} commitType: {} maxPollInterval: {}",
-				bootstrapServers , groupId , commitType, maxPollinterval);
+				bootstrapServers , groupId , commitType, maxPollInterval);
 	}
 
 	/*
@@ -272,7 +266,7 @@ public class KafkaMosipEventBus implements MosipEventBus {
 					.mapToObj(consumerRecords::recordAt)
 						.filter(record -> {
 							String key = record.key();
-							if (key != null && isCacheExist(key)) {
+							if (key != null && caffeineCacheManager.checkAndPutIfAbsent(key)) {
 								logger.error("Duplicate record with key '{}' found. Skipping processing.", key);
 								return false;
 							}
@@ -343,8 +337,6 @@ public class KafkaMosipEventBus implements MosipEventBus {
 			} else if(!res.succeeded()) {
 				logger.error("Event handling failed {}", res.cause());
 				promise.fail(res.cause());
-			} else if(res.succeeded() && res.result() == null){
-				promise.complete();
 			} else {
 				if(toAddress != null) {
 					MessageDTO messageDTO = res.result();
@@ -486,45 +478,5 @@ public class KafkaMosipEventBus implements MosipEventBus {
 			healthCheckDTO.setFailureReason("Failed kafkaProducer");
 		}
 		eventHandler.handle(healthCheckDTO);
-	}
-
-	/**
-	 * Adds a string to the cache with a specific key.
-	 *
-	 * @param key   The key for the cache entry.
-	 * @param value The string value to be cached.
-	 */
-	public void addToCache(String key, String value) {
-		cache.put(key, value);
-	}
-
-	/**
-	 * Gets a value from the cache by key.
-	 *
-	 * @param key The key to retrieve.
-	 * @return The cached string or null if not present or expired.
-	 */
-	public String getFromCache(String key) {
-		return cache.getIfPresent(key);
-	}
-
-	/**
-	 * Removes a key from the cache immediately.
-	 *
-	 * @param key The key to remove.
-	 */
-	public void removeFromCache(String key) {
-		cache.invalidate(key);
-	}
-
-	public boolean isCacheExist(String rid) {
-		String val = getFromCache(rid);
-		if(val != null) {
-			logger.info("Caffine Cache Value is " + val);
-			return true;
-		} else {
-			addToCache(rid, "1");
-			return false;
-		}
 	}
 }

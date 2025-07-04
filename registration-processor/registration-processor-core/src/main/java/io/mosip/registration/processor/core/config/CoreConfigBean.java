@@ -8,6 +8,7 @@ import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
+import io.mosip.registration.processor.core.cache.CaffeineCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -211,5 +212,10 @@ public class CoreConfigBean {
 	@Bean
 	public PropertiesUtil getPropertiesUtil() {
 		return new PropertiesUtil();
+	}
+
+	@Bean
+	public CaffeineCacheManager caffeineCacheManager() {
+		return new CaffeineCacheManager();
 	}
 }

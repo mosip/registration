@@ -301,7 +301,8 @@ public class BioDedupeProcessor {
 			} else {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 						registrationId, "Duplicate request received for same latest transaction id. This will be ignored.");
-				object=null;
+				object.setIsValid(false);
+				object.setInternalError(true);
 			}
 		}
 		return object;

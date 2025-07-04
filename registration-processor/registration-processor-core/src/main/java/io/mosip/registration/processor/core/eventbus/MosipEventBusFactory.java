@@ -22,7 +22,7 @@ public class MosipEventBusFactory {
 
 	private static final String EVENTBUS_KAFKA_MAX_POLL_RECORDS = "eventbus.kafka.max.poll.records";
 
-    private static final String EVENTBUS_KAFKA_MAX_POLL_INTERVALS = "eventbus.kafka.max.poll.interval";
+    private static final String EVENTBUS_KAFKA_MAX_POLL_INTERVAL = "eventbus.kafka.max.poll.interval";
 
 	private static final String EVENTBUS_KAFKA_GROUP_ID = "eventbus.kafka.group.id";
 
@@ -55,7 +55,7 @@ public class MosipEventBusFactory {
                 		getKafkaGroupId(propertyPrefix), 
                 		getKafkaCommitType(propertyPrefix), 
                 		getMaxPollRecords(propertyPrefix),
-                        getMaxPollIntervals(propertyPrefix),
+                        getMaxPollInterval(propertyPrefix),
                         getPollFrequency(propertyPrefix),
                 		eventTracingHandler);
             /*case "amqp":
@@ -89,8 +89,8 @@ public class MosipEventBusFactory {
 		return propertiesUtil.getProperty(propertyPrefix + EVENTBUS_KAFKA_MAX_POLL_RECORDS);
 	}
 
-    public String getMaxPollIntervals(String propertyPrefix) {
-        return propertiesUtil.getProperty(EVENTBUS_KAFKA_MAX_POLL_INTERVALS, String.class, "300000");
+    public String getMaxPollInterval(String propertyPrefix) {
+        return propertiesUtil.getProperty(propertyPrefix + EVENTBUS_KAFKA_MAX_POLL_INTERVAL, String.class, "300000");
     }
 
 	public int getPollFrequency(String propertyPrefix) {
