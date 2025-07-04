@@ -25,6 +25,10 @@ public class CaffeineCacheManager {
 
     private Cache<String, String> cache;
 
+    public CaffeineCacheManager() {
+        init();
+    }
+
     @PostConstruct
     public void init() {
         this.cache = Caffeine.newBuilder()
