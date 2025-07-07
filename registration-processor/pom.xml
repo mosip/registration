@@ -531,16 +531,16 @@
 					<doclint>none</doclint>
 				</configuration>
 			</plugin>
-				<plugin>
-                  <groupId>org.sonatype.central</groupId>
-                  <artifactId>central-publishing-maven-plugin</artifactId>
-                  <version>${central.publishing.maven.plugin.version}</version>
-                  <extensions>true</extensions>
-                  <configuration>
-					  <publishingServerId>ossrh</publishingServerId>
-					  <autoPublish>false</autoPublish>
-                  </configuration>
-                </plugin>
+			<plugin>
+				<groupId>org.sonatype.central</groupId>
+				<artifactId>central-publishing-maven-plugin</artifactId>
+				<version>${central.publishing.maven.plugin.version}</version>
+				<extensions>true</extensions>
+				<configuration>
+					<publishingServerId>ossrh</publishingServerId>
+					<autoPublish>false</autoPublish>
+				</configuration>
+			</plugin>
 
 		<plugin>
                   <groupId>org.apache.maven.plugins</groupId>
