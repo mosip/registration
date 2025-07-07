@@ -531,7 +531,7 @@
 					<doclint>none</doclint>
 				</configuration>
 			</plugin>
-				                <plugin>
+				<plugin>
                   <groupId>org.sonatype.central</groupId>
                   <artifactId>central-publishing-maven-plugin</artifactId>
                   <version>${central.publishing.maven.plugin.version}</version>
