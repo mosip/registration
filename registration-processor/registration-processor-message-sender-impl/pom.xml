@@ -13,6 +13,7 @@
 
 	<artifactId>registration-processor-message-sender-impl</artifactId>
 	 <version>1.2.1.2-SNAPSHOT</version>
+	<name>registration-processor-message-sender-impl</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
