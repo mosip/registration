@@ -24,6 +24,9 @@ ARG spring_config_url
 # can be passed during Docker build as build time environment for glowroot 
 ARG is_glowroot
 
+#can be passed during Docker build as build time environment for iam_adapter url
+ARG iam_adapter_url
+
 # can be passed during Docker build as build time environment for artifactory URL
 ARG artifactory_url
 
