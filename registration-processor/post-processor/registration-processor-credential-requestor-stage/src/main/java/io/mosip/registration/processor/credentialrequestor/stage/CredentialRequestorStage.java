@@ -30,6 +30,7 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.credentialrequestor.dto.CredentialPartner;
 import io.mosip.registration.processor.credentialrequestor.stage.exception.VidNotAvailableException;
 import io.mosip.registration.processor.credentialrequestor.util.CredentialPartnerUtil;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -146,6 +147,9 @@ public class CredentialRequestorStage extends MosipVerticleAPIManager {
 
 	@Autowired
 	private Utilities utilities;
+
+	@Autowired
+	private PriorityBasedPacketManagerService packetManagerService;
 
 	@Autowired
 	private CredentialPartnerUtil credentialPartnerUtil;
@@ -371,7 +375,8 @@ public class CredentialRequestorStage extends MosipVerticleAPIManager {
 											   List<String> metaInfoFields,
 											   Map<String, Object> additionalAttributes) {
 		try {
-			Map<String,String> metaInfo = utilities.getPacketManagerService().getMetaInfo(regId, process, ProviderStageName.CREDENTIAL_REQUESTOR);
+			Map<String, String> metaInfo = packetManagerService.getMetaInfo(regId, process,
+					ProviderStageName.CREDENTIAL_REQUESTOR);
 			JSONArray metadata = new JSONArray(metaInfo.get(JsonConstant.METADATA));
 			for(int i=0; i<metadata.length(); i++){
 				org.json.JSONObject jsonObject = metadata.getJSONObject(i);
