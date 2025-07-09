@@ -84,8 +84,8 @@ public class KafkaMosipEventBus implements MosipEventBus {
 	 * @param eventTracingHandler
 	 */
 	public KafkaMosipEventBus(Vertx vertx, String bootstrapServers, String groupId,
-			String commitType, String maxPollRecords, String maxPollInterval, int pollFrequency, EventTracingHandler eventTracingHandler) {
-		caffeineCacheManager = new CaffeineCacheManager();
+			String commitType, String maxPollRecords, String maxPollInterval, int pollFrequency, EventTracingHandler eventTracingHandler, CaffeineCacheManager caffeineCacheManager) {
+		this.caffeineCacheManager = caffeineCacheManager;
 		validateCommitType(commitType);
 		this.vertx = vertx;
 		this.commitType = commitType;

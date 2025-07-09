@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.core.eventbus;
 
+import io.mosip.registration.processor.core.cache.CaffeineCacheManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,6 +37,9 @@ public class MosipEventBusFactory {
     @Autowired
     private PropertiesUtil propertiesUtil;
 
+    @Autowired
+    private CaffeineCacheManager caffeineCacheManager;
+
     /**
      * Instantiate and return event bus of a particular type
      * @param vertx The vertx instance to which this event bus object should be attached
@@ -57,7 +61,8 @@ public class MosipEventBusFactory {
                 		getMaxPollRecords(propertyPrefix),
                         getMaxPollInterval(propertyPrefix),
                         getPollFrequency(propertyPrefix),
-                		eventTracingHandler);
+                		eventTracingHandler,
+                        caffeineCacheManager);
             /*case "amqp":
                 return new AmqpMosipEventBus(vertx);*/
             default:

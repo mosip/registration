@@ -24,12 +24,9 @@ public class CaffeineCacheManager {
 
     private Cache<String, String> cache;
 
-    public CaffeineCacheManager() {
-        init();
-    }
-
     @PostConstruct
     public void init() {
+        logger.debug("Caffeine Cache Expiry Time : {} min, Max Size : {}", expireAfterWrite, maximumSize);
         this.cache = Caffeine.newBuilder()
                 .expireAfterWrite(expireAfterWrite,TimeUnit.MINUTES)
                 .maximumSize(maximumSize) // optional: set a size limit
