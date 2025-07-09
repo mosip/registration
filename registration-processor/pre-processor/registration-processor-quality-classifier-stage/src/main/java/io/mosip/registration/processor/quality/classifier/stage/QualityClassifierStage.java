@@ -441,19 +441,14 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 		HashMap<String, Float> bioTypeMinScoreMap = new HashMap<String, Float>();
 		ConcurrentHashMap<String, List<Float>> bioTypeScoreMap = new ConcurrentHashMap<String, List<Float>>();
 
-		// setting biometricNotAvailableTagValue for each modality in case biometrics are not available
-		if (birs == null) {
-			modalities.forEach(modality -> {
-				tags.put(qualityTagPrefix.concat(modality), biometricNotAvailableTagValue);
-			});
-			return tags;
-		} else if(!birs.isEmpty()) {
+		if(birs != null && !birs.isEmpty()) {
 			// get individual biometrics file name from id.json
 			ForkJoinTask<Void> task = forkJoinPool.submit(() ->  {
 				getBIRStream(birs).forEach(bir -> {
-							boolean exceptionValue = false;
 
 							if (bir.getOthers() != null) {
+								boolean exceptionValue = false;
+
 								for (Map.Entry<String, String> other : bir.getOthers().entrySet()) {
 									if (other.getKey().equals(EXCEPTION)) {
 										if (other.getValue().equals(TRUE)) {
@@ -484,7 +479,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 							} catch (BiometricException e) {
 								regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 										regId,
-										RegistrationStatusCode.FAILED.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));
+										"BiometricException occured : " + ExceptionUtils.getStackTrace(e));
 								throw new RuntimeException(e);
 							}
 						});
@@ -497,7 +492,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 			} catch (RuntimeException e) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 						regId,
-						RegistrationStatusCode.FAILED.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));
+						"Exception occurred while joining task : " + ExceptionUtils.getStackTrace(e));
 				throw unwrapBiometricException(e);
 			}
 
@@ -506,7 +501,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 				Throwable ex = task.getException();
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 						regId,
-						RegistrationStatusCode.FAILED.toString() + ex.getMessage() + ExceptionUtils.getStackTrace(ex));
+						"Abnormal task completion : " + ExceptionUtils.getStackTrace(ex));
 				throw unwrapBiometricException(ex);
 			}
 		}
@@ -535,7 +530,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 
 			}
 		}
-		
+
 		// setting biometricNotAvailableTagValue for modalities those are not available in BIRs
 		modalities.forEach(modality -> {
 			if (!tags.containsKey(qualityTagPrefix.concat(modality))) {
@@ -550,11 +545,11 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 		Throwable current = ex;
 		while (current != null) {
 			if (current instanceof BiometricException) {
-				return (Exception) current;
+				return (BiometricException) current;
 			}
 			current = current.getCause();
 		}
-		return (Exception) ex;
+		throw new RuntimeException("Exception occurred in getQualityTags() method", ex);
 	}
 
 	private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
