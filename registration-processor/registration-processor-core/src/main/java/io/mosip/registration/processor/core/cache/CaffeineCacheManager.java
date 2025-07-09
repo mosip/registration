@@ -1,7 +1,6 @@
 package io.mosip.registration.processor.core.cache;
 
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.registration.processor.core.eventbus.KafkaMosipEventBus;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import org.apache.camel.com.github.benmanes.caffeine.cache.Cache;
 import org.apache.camel.com.github.benmanes.caffeine.cache.Caffeine;
@@ -15,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 public class CaffeineCacheManager {
 
     /** The logger. */
-    private Logger logger = RegProcessorLogger.getLogger(KafkaMosipEventBus.class);
+    private Logger logger = RegProcessorLogger.getLogger(CaffeineCacheManager.class);
 
     @Value("${mosip.regproc.caffeine.cache.expiry:15}")
     private long expireAfterWrite;

@@ -66,6 +66,7 @@ public class KafkaMosipEventBus implements MosipEventBus {
 
 	private EventTracingHandler eventTracingHandler;
 
+	//Added the caffeine cache to control the propagation of duplicate packet to next stage if duplicate packet is received to the same pod due to kafka rebalancing.
 	private CaffeineCacheManager caffeineCacheManager;
 
 	/**
