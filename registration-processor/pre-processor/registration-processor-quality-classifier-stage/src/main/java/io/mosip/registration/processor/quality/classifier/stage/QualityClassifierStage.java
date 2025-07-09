@@ -436,75 +436,81 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 			return  birs.stream();
 	}
 
-	private Map<String, String> getQualityTags(String regId, List<BIR> birs) throws Exception {
+	private Map<String, String> getQualityTags(String regId, List<BIR> birs) throws BiometricException {
 		Map<String, String> tags = new HashMap<String, String>();
 		HashMap<String, Float> bioTypeMinScoreMap = new HashMap<String, Float>();
 		ConcurrentHashMap<String, List<Float>> bioTypeScoreMap = new ConcurrentHashMap<String, List<Float>>();
 
-		if(birs != null && !birs.isEmpty()) {
-			// get individual biometrics file name from id.json
-			ForkJoinTask<Void> task = forkJoinPool.submit(() ->  {
-				getBIRStream(birs).forEach(bir -> {
-
-							if (bir.getOthers() != null) {
-								boolean exceptionValue = false;
-
-								for (Map.Entry<String, String> other : bir.getOthers().entrySet()) {
-									if (other.getKey().equals(EXCEPTION)) {
-										if (other.getValue().equals(TRUE)) {
-											exceptionValue = true;
-										}
-										break;
-									}
-								}
-
-								if (exceptionValue) {
-									return;
-								}
-							}
-
-							try {
-								BiometricType biometricType = bir.getBdbInfo().getType().get(0);
-								BIR[] birArray = new BIR[1];
-								birArray[0] = bir;
-								if(!biometricType.name().equalsIgnoreCase(BiometricType.EXCEPTION_PHOTO.name())) {
-									float[] qualityScoreresponse = getBioSdkInstance(biometricType).getSegmentQuality(birArray, null);
-									float score = qualityScoreresponse[0];
-									String bioType = bir.getBdbInfo().getType().get(0).value();
-
-									bioTypeScoreMap
-											.computeIfAbsent(bioType, k -> Collections.synchronizedList(new ArrayList<>()))
-											.add(score);
-								}
-							} catch (BiometricException e) {
-								regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-										regId,
-										"BiometricException occured : " + ExceptionUtils.getStackTrace(e));
-								throw new RuntimeException(e);
-							}
-						});
-					return null;
-				}
-			);
-
-			try {
-				task.join();
-			} catch (RuntimeException e) {
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-						regId,
-						"Exception occurred while joining task : " + ExceptionUtils.getStackTrace(e));
-				throw unwrapBiometricException(e);
-			}
-
-
-			if(task.isCompletedAbnormally()) {
-				Throwable ex = task.getException();
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-						regId,
-						"Abnormal task completion : " + ExceptionUtils.getStackTrace(ex));
-				throw unwrapBiometricException(ex);
-			}
+		// setting biometricNotAvailableTagValue for each modality in case biometrics are not available
+		if (birs == null || birs.isEmpty()) {
+			modalities.forEach(modality -> {
+				tags.put(qualityTagPrefix.concat(modality), biometricNotAvailableTagValue);
+			});
+			return tags;
 		}
+
+		// get individual biometrics file name from id.json
+		ForkJoinTask<Void> task = forkJoinPool.submit(() ->  {
+			getBIRStream(birs).forEach(bir -> {
+
+						if (bir.getOthers() != null) {
+							boolean exceptionValue = false;
+							for (Map.Entry<String, String> other : bir.getOthers().entrySet()) {
+								if (other.getKey().equals(EXCEPTION)) {
+									if (other.getValue().equals(TRUE)) {
+										exceptionValue = true;
+									}
+									break;
+								}
+							}
+
+							if (exceptionValue) {
+								return;
+							}
+						}
+
+						try {
+							BiometricType biometricType = bir.getBdbInfo().getType().get(0);
+							BIR[] birArray = new BIR[1];
+							birArray[0] = bir;
+							if(!biometricType.name().equalsIgnoreCase(BiometricType.EXCEPTION_PHOTO.name())) {
+								float[] qualityScoreresponse = getBioSdkInstance(biometricType).getSegmentQuality(birArray, null);
+								float score = qualityScoreresponse[0];
+								String bioType = bir.getBdbInfo().getType().get(0).value();
+
+								bioTypeScoreMap
+										.computeIfAbsent(bioType, k -> Collections.synchronizedList(new ArrayList<>()))
+										.add(score);
+							}
+						} catch (BiometricException e) {
+							regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+									regId,
+									"BiometricException occurred : " + ExceptionUtils.getStackTrace(e));
+							throw new RuntimeException(e);
+						}
+					});
+				return null;
+			}
+		);
+
+		try {
+			task.join();
+		} catch (RuntimeException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId,
+					"Exception occurred while joining task : " + ExceptionUtils.getStackTrace(e));
+			throw unwrapBiometricException(e);
+		}
+
+
+		if(task.isCompletedAbnormally()) {
+			Throwable ex = task.getException();
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId,
+					"Abnormal task completion : " + ExceptionUtils.getStackTrace(ex));
+			throw unwrapBiometricException(ex);
+		}
+
 
 		//Check Minimum Score for Each Modality
 		for (Map.Entry<String, List<Float>> entry : bioTypeScoreMap.entrySet()) {
@@ -541,7 +547,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 		return tags;
 	}
 
-	private Exception unwrapBiometricException(Throwable ex) {
+	private BiometricException unwrapBiometricException(Throwable ex) {
 		Throwable current = ex;
 		while (current != null) {
 			if (current instanceof BiometricException) {
