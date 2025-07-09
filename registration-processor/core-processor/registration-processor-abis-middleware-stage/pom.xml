@@ -8,6 +8,7 @@
     <version>1.2.1.2-SNAPSHOT</version>
   </parent>
   <artifactId>registration-processor-abis-middleware-stage</artifactId>
+  <name>registration-processor-abis-middleware-stage</name>
   <version>1.2.1.2-SNAPSHOT</version>
   <packaging>jar</packaging>
 	<properties>
