@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 public class CaffeineCacheManager {
 
     /** The logger. */
-    private Logger logger = RegProcessorLogger.getLogger(CaffeineCacheManager.class);
+    private final Logger logger = RegProcessorLogger.getLogger(CaffeineCacheManager.class);
 
     @Value("${mosip.regproc.caffeine.cache.expiry:15}")
     private long expireAfterWrite;
@@ -22,15 +22,20 @@ public class CaffeineCacheManager {
     @Value("${mosip.regproc.caffeine.cache.size:100000}")
     private long maximumSize;
 
+    @Value("${mosip.regproc.caffeine.cache.enable:true}")
+    private boolean enableCache;
+
     private Cache<String, String> cache;
 
     @PostConstruct
     public void init() {
-        logger.debug("Caffeine Cache Expiry Time : {} min, Max Size : {}", expireAfterWrite, maximumSize);
-        this.cache = Caffeine.newBuilder()
-                .expireAfterWrite(expireAfterWrite,TimeUnit.MINUTES)
-                .maximumSize(maximumSize) // optional: set a size limit
-                .build();
+        if(enableCache) {
+            logger.debug("Caffeine Cache Expiry Time : {} min, Max Size : {}", expireAfterWrite, maximumSize);
+            this.cache = Caffeine.newBuilder()
+                    .expireAfterWrite(expireAfterWrite,TimeUnit.MINUTES)
+                    .maximumSize(maximumSize) // optional: set a size limit
+                    .build();
+        }
     }
 
     /**
@@ -40,7 +45,8 @@ public class CaffeineCacheManager {
      * @param value The string value to be cached.
      */
     public void addToCache(String key, String value) {
-        cache.put(key, value);
+        if(enableCache)
+            cache.put(key, value);
     }
 
     /**
@@ -50,7 +56,7 @@ public class CaffeineCacheManager {
      * @return The cached string or null if not present or expired.
      */
     public String getFromCache(String key) {
-        return cache.getIfPresent(key);
+        return enableCache ? cache.getIfPresent(key) : null;
     }
 
     /**
@@ -59,7 +65,8 @@ public class CaffeineCacheManager {
      * @param key The key to remove.
      */
     public void removeFromCache(String key) {
-        cache.invalidate(key);
+        if(enableCache)
+            cache.invalidate(key);
     }
 
 
@@ -70,6 +77,10 @@ public class CaffeineCacheManager {
      @return true if the key already existed in the cache, false if the default was inserted.
      */
     public boolean checkAndPutIfAbsent(String key, String defaultValue) {
+        if(!enableCache) {
+            return false;
+        }
+
         String val = getFromCache(key);
         if(val != null) {
             logger.debug("Caffeine Cache Hit - Key: {}, Value: {}", key, val);
