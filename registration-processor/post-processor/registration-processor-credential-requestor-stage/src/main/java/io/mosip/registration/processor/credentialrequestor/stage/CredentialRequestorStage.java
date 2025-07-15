@@ -784,7 +784,7 @@ public class PrintingStage extends MosipVerticleAPIManager {
 	 */
 	public void deployVerticle() {
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
-		this.consumeAndSend(mosipEventBus, MessageBusAddress.PRINTING_BUS_IN, MessageBusAddress.PRINTING_BUS_OUT,
+		this.consumeAndSend(mosipEventBus, MessageBusAddress.CREDENTIAL_REQUESTOR_BUS_IN, MessageBusAddress.CREDENTIAL_REQUESTOR_BUS_OUT,
 				messageExpiryTimeLimit);
 	}
 
@@ -798,7 +798,7 @@ public class PrintingStage extends MosipVerticleAPIManager {
 	@Override
 	public MessageDTO process(MessageDTO object) {
 		TrimExceptionMessage trimeExpMessage = new TrimExceptionMessage();
-		object.setMessageBusAddress(MessageBusAddress.PRINTING_BUS_IN);
+		object.setMessageBusAddress(MessageBusAddress.CREDENTIAL_REQUESTOR_BUS_IN);
 		object.setInternalError(Boolean.FALSE);
 		object.setIsValid(Boolean.FALSE);
 		LogDescription description = new LogDescription();
@@ -988,7 +988,7 @@ public class PrintingStage extends MosipVerticleAPIManager {
 	@Override
 	public void start() {
 		router.setRoute(this.postUrl(getVertx(), 
-				MessageBusAddress.PRINTING_BUS_IN, MessageBusAddress.PRINTING_BUS_OUT));
+				MessageBusAddress.CREDENTIAL_REQUESTOR_BUS_IN, MessageBusAddress.CREDENTIAL_REQUESTOR_BUS_OUT));
 		this.createServer(router.getRouter(), getPort());
 	}
 
