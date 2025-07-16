@@ -2,10 +2,12 @@ package io.mosip.registration.processor.quality.classifier.stage;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
+import java.util.stream.Stream;
 
 import jakarta.annotation.PostConstruct;
 
@@ -62,432 +64,539 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 
 /**
  * The Class QualityCheckerStage.
- * 
+ *
  * @author M1048358 Alok Ranjan
  */
 @Component
 @Configuration
-@ComponentScan(basePackages = { "${mosip.auth.adapter.impl.basepackage}",
-		"io.mosip.registration.processor.core.config",
-		"io.mosip.registration.processor.quality.classifier.config", "io.mosip.registration.processor.stages.config",
-		"io.mosip.registrationprocessor.stages.config", "io.mosip.registration.processor.status.config",
-		"io.mosip.registration.processor.rest.client.config", "io.mosip.registration.processor.packet.storage.config",
-		"io.mosip.registration.processor.packet.manager.config", "io.mosip.kernel.idobjectvalidator.config",
-		"io.mosip.registration.processor.core.kernel.beans", "io.mosip.kernel.biosdk.provider.impl" })
+@ComponentScan(basePackages = {"${mosip.auth.adapter.impl.basepackage}",
+        "io.mosip.registration.processor.core.config",
+        "io.mosip.registration.processor.quality.classifier.config", "io.mosip.registration.processor.stages.config",
+        "io.mosip.registrationprocessor.stages.config", "io.mosip.registration.processor.status.config",
+        "io.mosip.registration.processor.rest.client.config", "io.mosip.registration.processor.packet.storage.config",
+        "io.mosip.registration.processor.packet.manager.config", "io.mosip.kernel.idobjectvalidator.config",
+        "io.mosip.registration.processor.core.kernel.beans", "io.mosip.kernel.biosdk.provider.impl"})
 public class QualityClassifierStage extends MosipVerticleAPIManager {
 
-	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.quality.classifier.";
+    private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.quality.classifier.";
 
 
-	/** The Constant UTF_8. */
-	public static final String UTF_8 = "UTF-8";
+    /**
+     * The Constant UTF_8.
+     */
+    public static final String UTF_8 = "UTF-8";
 
-	/** The Constant VALUE. */
-	public static final String VALUE = "value";
+    /**
+     * The Constant VALUE.
+     */
+    public static final String VALUE = "value";
 
-	/** The Constant TRUE. */
-	public static final String TRUE = "true";
+    /**
+     * The Constant TRUE.
+     */
+    public static final String TRUE = "true";
 
-	/** The Constant EXCEPTION. */
-	public static final String EXCEPTION = "EXCEPTION";
+    /**
+     * The Constant EXCEPTION.
+     */
+    public static final String EXCEPTION = "EXCEPTION";
 
-	private TrimExceptionMessage trimExceptionMsg = new TrimExceptionMessage();
+    private TrimExceptionMessage trimExceptionMsg = new TrimExceptionMessage();
 
-	/** The cluster manager url. */
-	@Value("${vertx.cluster.configuration}")
-	private String clusterManagerUrl;
+    /**
+     * The cluster manager url.
+     */
+    @Value("${vertx.cluster.configuration}")
+    private String clusterManagerUrl;
 
-	/** worker pool size. */
-	@Value("${worker.pool.size}")
-	private Integer workerPoolSize;
+    /**
+     * worker pool size.
+     */
+    @Value("${worker.pool.size}")
+    private Integer workerPoolSize;
 
-	/**
-	 * After this time intervel, message should be considered as expired (In
-	 * seconds).
-	 */
-	@Value("${mosip.regproc.quality.classifier.message.expiry-time-limit}")
-	private Long messageExpiryTimeLimit;
+    /**
+     * After this time intervel, message should be considered as expired (In
+     * seconds).
+     */
+    @Value("${mosip.regproc.quality.classifier.message.expiry-time-limit}")
+    private Long messageExpiryTimeLimit;
 
-	/** The core audit request builder. */
-	@Autowired
-	private AuditLogRequestBuilder auditLogRequestBuilder;
+    /**
+     * The core audit request builder.
+     */
+    @Autowired
+    private AuditLogRequestBuilder auditLogRequestBuilder;
 
-	/** The registration status service. */
-	@Autowired
-	private RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
+    /**
+     * The registration status service.
+     */
+    @Autowired
+    private RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 
-	/** Mosip router for APIs */
-	@Autowired
-	private MosipRouter router;
+    /**
+     * Mosip router for APIs
+     */
+    @Autowired
+    private MosipRouter router;
 
-	@Autowired
-	private PriorityBasedPacketManagerService basedPacketManagerService;
+    @Autowired
+    private PriorityBasedPacketManagerService basedPacketManagerService;
 
-	@Autowired
-	private PacketManagerService packetManagerService;
+    @Autowired
+    private PacketManagerService packetManagerService;
 
-	/** The registration status mapper util. */
-	@Autowired
-	private RegistrationExceptionMapperUtil registrationStatusMapperUtil;
+    /**
+     * The registration status mapper util.
+     */
+    @Autowired
+    private RegistrationExceptionMapperUtil registrationStatusMapperUtil;
 
-	/**
-	 * Below quality classifications map should contain proper quality
-	 * classification name and quality range, any overlap of the quality range will
-	 * result in a random behaviour of tagging. In range, upper and lower values are
-	 * inclusive.
-	 */
-	
-	@Value("#{${mosip.regproc.quality.classifier.tagging.quality.ranges:{'level-1':'0-10','level-2':'10-20','level-3':'20-30','level-4':'30-40','level-5':'40-50','level-6':'50-60','level-7':'60-70','level-8':'70-80','level-9':'80-90','level-10':'90-101',}}}")
-	private Map<String, String> qualityClassificationRangeMap;
+    /**
+     * Below quality classifications map should contain proper quality
+     * classification name and quality range, any overlap of the quality range will
+     * result in a random behaviour of tagging. In range, upper and lower values are
+     * inclusive.
+     */
 
-	/** Quality Tag Prefix */
-	@Value("${mosip.regproc.quality.classifier.tagging.quality.prefix:Biometric_Quality-}")
-	private String qualityTagPrefix;
+    @Value("#{${mosip.regproc.quality.classifier.tagging.quality.ranges:{'level-1':'0-10','level-2':'10-20','level-3':'20-30','level-4':'30-40','level-5':'40-50','level-6':'50-60','level-7':'60-70','level-8':'70-80','level-9':'80-90','level-10':'90-101',}}}")
+    private Map<String, String> qualityClassificationRangeMap;
 
-    /** The tag value that will be used by default when the packet does not have value for the biometric tag field */
+    /**
+     * Quality Tag Prefix
+     */
+    @Value("${mosip.regproc.quality.classifier.tagging.quality.prefix:Biometric_Quality-}")
+    private String qualityTagPrefix;
+
+    /**
+     * The tag value that will be used by default when the packet does not have value for the biometric tag field
+     */
     @Value("${mosip.regproc.quality.classifier.tagging.quality.biometric-not-available-tag-value}")
     private String biometricNotAvailableTagValue;
 
-    /** modality arrays that needs to be tagged */
+    /**
+     * modality arrays that needs to be tagged
+     */
     @Value("#{'${mosip.regproc.quality.classifier.tagging.quality.modalities}'.split(',')}")
     private List<String> modalities;
 
-	private static String RANGE_DELIMITER = "-";
+    private static String RANGE_DELIMITER = "-";
 
-	/**
-	 * Filter qualityClassficaticationsRangeMap using delimiter and store into
-	 * parsedQualityRangemap using @PostConstruct
-	 */
-	private Map<String, int[]> parsedQualityRangeMap;
+    /**
+     * Filter qualityClassficaticationsRangeMap using delimiter and store into
+     * parsedQualityRangemap using @PostConstruct
+     */
+    private Map<String, int[]> parsedQualityRangeMap;
 
-	/** The reg proc logger. */
-	private static Logger regProcLogger = RegProcessorLogger.getLogger(QualityClassifierStage.class);
+    /**
+     * The reg proc logger.
+     */
+    private static Logger regProcLogger = RegProcessorLogger.getLogger(QualityClassifierStage.class);
 
-	/** The Constant FILE_SEPARATOR. */
-	public static final String FILE_SEPARATOR = File.separator;
+    /**
+     * The Constant FILE_SEPARATOR.
+     */
+    public static final String FILE_SEPARATOR = File.separator;
 
-	private MosipEventBus mosipEventBus = null;
+    private MosipEventBus mosipEventBus = null;
 
-	private TrimExceptionMessage trimExpMessage = new TrimExceptionMessage();
+    private TrimExceptionMessage trimExpMessage = new TrimExceptionMessage();
 
-	@Autowired
-	private BioAPIFactory bioApiFactory;
+    private ForkJoinPool forkJoinPool;
 
-	@PostConstruct
-	private void generateParsedQualityRangeMap() {
-		parsedQualityRangeMap = new HashMap<>();
-		for (Map.Entry<String, String> entry : qualityClassificationRangeMap.entrySet()) {
-			String[] range = entry.getValue().split(RANGE_DELIMITER);
-			int[] rangeArray = new int[2];
-			rangeArray[0] = Integer.parseInt(range[0]);
-			rangeArray[1] = Integer.parseInt(range[1]);
-			parsedQualityRangeMap.put(entry.getKey(), rangeArray);
-		}
-	}
+    // The pool size must be calculated as : workerThread * segments. Example : If stage is running with 20 workers and dealing processing 13 segments then the maxPoolSize should 20 * 13 = 260
+    @Value("${mosip.regproc.quality.classifier.max.pool.size:0}")
+    private Integer maxPoolSize;
 
-	/**
-	 * Deploy verticle.
-	 */
-	public void deployVerticle() {
-		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
-		this.consumeAndSend(mosipEventBus, MessageBusAddress.QUALITY_CLASSIFIER_BUS_IN,
-				MessageBusAddress.QUALITY_CLASSIFIER_BUS_OUT, messageExpiryTimeLimit);
-	}
+    @Autowired
+    private BioAPIFactory bioApiFactory;
 
-	@Override
-	protected String getPropertyPrefix() {
-		return STAGE_PROPERTY_PREFIX;
-	}
+    @PostConstruct
+    private void generateParsedQualityRangeMap() {
+        parsedQualityRangeMap = new HashMap<>();
+        //If maxPoolSize is not provided then ForkJoinPool will be created with workerPoolSize, so that each work thread utilizes one thread from pool for task execution i.e. equivalent to execute task sequentially inside a worker thread.
+        forkJoinPool = new ForkJoinPool((maxPoolSize > 0 ? maxPoolSize : workerPoolSize));
+        for (Map.Entry<String, String> entry : qualityClassificationRangeMap.entrySet()) {
+            String[] range = entry.getValue().split(RANGE_DELIMITER);
+            int[] rangeArray = new int[2];
+            rangeArray[0] = Integer.parseInt(range[0]);
+            rangeArray[1] = Integer.parseInt(range[1]);
+            parsedQualityRangeMap.put(entry.getKey(), rangeArray);
+        }
+    }
 
-	@Override
-	public void start() {
-		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.QUALITY_CLASSIFIER_BUS_IN,
-				MessageBusAddress.QUALITY_CLASSIFIER_BUS_OUT));
-		this.createServer(router.getRouter(), getPort());
-	}
+    /**
+     * Deploy verticle.
+     */
+    public void deployVerticle() {
+        mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
+        this.consumeAndSend(mosipEventBus, MessageBusAddress.QUALITY_CLASSIFIER_BUS_IN,
+                MessageBusAddress.QUALITY_CLASSIFIER_BUS_OUT, messageExpiryTimeLimit);
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * io.mosip.registration.processor.core.spi.eventbus.EventBusManager#process(
-	 * java.lang.Object)
-	 */
-	@Override
-	public MessageDTO process(MessageDTO object) {
-		object.setMessageBusAddress(MessageBusAddress.QUALITY_CLASSIFIER_BUS_IN);
-		String regId = object.getRid();
-		LogDescription description = new LogDescription();
-		object.setInternalError(Boolean.FALSE);
-		object.setIsValid(Boolean.FALSE);
-		Boolean isTransactionSuccessful = Boolean.FALSE;
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
-				"QualityCheckerStage::process()::entry");
+    @Override
+    protected String getPropertyPrefix() {
+        return STAGE_PROPERTY_PREFIX;
+    }
 
-		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(regId,
-				object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
+    @Override
+    public void start() {
+        router.setRoute(this.postUrl(getVertx(), MessageBusAddress.QUALITY_CLASSIFIER_BUS_IN,
+                MessageBusAddress.QUALITY_CLASSIFIER_BUS_OUT));
+        this.createServer(router.getRouter(), getPort());
+    }
 
-		try {
-			String individualBiometricsObject = basedPacketManagerService.getFieldByMappingJsonKey(regId,
-					MappingJsonConstants.INDIVIDUAL_BIOMETRICS, registrationStatusDto.getRegistrationType(),
-					ProviderStageName.QUALITY_CHECKER);
-			if (StringUtils.isEmpty(individualBiometricsObject)) {
-				packetManagerService.addOrUpdateTags(regId, getQualityTags(null));
-				description.setCode(PlatformErrorMessages.INDIVIDUAL_BIOMETRIC_NOT_FOUND.getCode());
-				description.setMessage(PlatformErrorMessages.INDIVIDUAL_BIOMETRIC_NOT_FOUND.getMessage());
-				object.setIsValid(Boolean.TRUE);
-				isTransactionSuccessful = Boolean.TRUE;
-				registrationStatusDto
-						.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
-				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-				registrationStatusDto.setStatusComment(StatusUtil.INDIVIDUAL_BIOMETRIC_NOT_FOUND.getMessage());
-				registrationStatusDto.setSubStatusCode(StatusUtil.INDIVIDUAL_BIOMETRIC_NOT_FOUND.getCode());
-				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
-						"Individual Biometric parameter is not present in ID Json");
-			} else {
-				BiometricRecord biometricRecord = basedPacketManagerService.getBiometricsByMappingJsonKey(regId,
-						MappingJsonConstants.INDIVIDUAL_BIOMETRICS, registrationStatusDto.getRegistrationType(),
-						ProviderStageName.QUALITY_CHECKER);
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * io.mosip.registration.processor.core.spi.eventbus.EventBusManager#process(
+     * java.lang.Object)
+     */
+    @Override
+    public MessageDTO process(MessageDTO object) {
+        object.setMessageBusAddress(MessageBusAddress.QUALITY_CLASSIFIER_BUS_IN);
+        String regId = object.getRid();
+        LogDescription description = new LogDescription();
+        object.setInternalError(Boolean.FALSE);
+        object.setIsValid(Boolean.FALSE);
+        Boolean isTransactionSuccessful = Boolean.FALSE;
+        regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
+                "QualityCheckerStage::process()::entry");
 
-				if (biometricRecord == null || CollectionUtils.isEmpty(biometricRecord.getSegments())) {
-					biometricRecord = basedPacketManagerService.getBiometricsByMappingJsonKey(regId,
-							MappingJsonConstants.AUTHENTICATION_BIOMETRICS, registrationStatusDto.getRegistrationType(),
-							ProviderStageName.QUALITY_CHECKER);
-				}
+        InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(regId,
+                object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
 
-				if (biometricRecord == null || biometricRecord.getSegments() == null
-						|| biometricRecord.getSegments().size() == 0) {
-					description.setCode(PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getCode());
-					description.setMessage(PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getMessage());
-					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), regId,
-							PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getMessage());
-					throw new FileMissingException(PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getCode(),
-							PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getMessage());
-				}
+        try {
+            String individualBiometricsObject = basedPacketManagerService.getFieldByMappingJsonKey(regId,
+                    MappingJsonConstants.INDIVIDUAL_BIOMETRICS, registrationStatusDto.getRegistrationType(),
+                    ProviderStageName.QUALITY_CHECKER);
+            if (StringUtils.isEmpty(individualBiometricsObject)) {
+                packetManagerService.addOrUpdateTags(regId, getQualityTags(regId, null));
+                description.setCode(PlatformErrorMessages.INDIVIDUAL_BIOMETRIC_NOT_FOUND.getCode());
+                description.setMessage(PlatformErrorMessages.INDIVIDUAL_BIOMETRIC_NOT_FOUND.getMessage());
+                object.setIsValid(Boolean.TRUE);
+                isTransactionSuccessful = Boolean.TRUE;
+                registrationStatusDto
+                        .setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
+                registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+                registrationStatusDto.setStatusComment(StatusUtil.INDIVIDUAL_BIOMETRIC_NOT_FOUND.getMessage());
+                registrationStatusDto.setSubStatusCode(StatusUtil.INDIVIDUAL_BIOMETRIC_NOT_FOUND.getCode());
+                regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
+                        "Individual Biometric parameter is not present in ID Json");
+            } else {
+                BiometricRecord biometricRecord = basedPacketManagerService.getBiometricsByMappingJsonKey(regId,
+                        MappingJsonConstants.INDIVIDUAL_BIOMETRICS, registrationStatusDto.getRegistrationType(),
+                        ProviderStageName.QUALITY_CHECKER);
+
+                if (biometricRecord == null || CollectionUtils.isEmpty(biometricRecord.getSegments())) {
+                    biometricRecord = basedPacketManagerService.getBiometricsByMappingJsonKey(regId,
+                            MappingJsonConstants.AUTHENTICATION_BIOMETRICS, registrationStatusDto.getRegistrationType(),
+                            ProviderStageName.QUALITY_CHECKER);
+                }
+
+                if (biometricRecord == null || biometricRecord.getSegments() == null
+                        || biometricRecord.getSegments().size() == 0) {
+                    description.setCode(PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getCode());
+                    description.setMessage(PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getMessage());
+                    regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+                            LoggerFileConstant.REGISTRATIONID.toString(), regId,
+                            PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getMessage());
+                    throw new FileMissingException(PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getCode(),
+                            PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getMessage());
+                }
+
+
+                packetManagerService.addOrUpdateTags(regId, getQualityTags(regId, biometricRecord.getSegments()));
+
+                regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
+                        "UpdatingTags::success ");
+
+                object.setIsValid(Boolean.TRUE);
+                description.setCode(PlatformSuccessMessages.RPR_QUALITY_CHECK_SUCCESS.getCode());
+                description.setMessage(PlatformSuccessMessages.RPR_QUALITY_CHECK_SUCCESS.getMessage());
+                isTransactionSuccessful = Boolean.TRUE;
+                registrationStatusDto
+                        .setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
+                registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+                registrationStatusDto.setStatusComment(StatusUtil.BIOMETRIC_QUALITY_CHECK_SUCCESS.getMessage());
+                registrationStatusDto.setSubStatusCode(StatusUtil.BIOMETRIC_QUALITY_CHECK_SUCCESS.getCode());
+                regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+                        LoggerFileConstant.REGISTRATIONID.toString(), regId, "QualityCheckerImpl::success");
+            }
+
+        } catch (ApisResourceAccessException e) {
+            registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
+                    .getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION));
+            registrationStatusDto.setStatusComment(trimExpMessage
+                    .trimExceptionMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage() + e.getMessage()));
+            registrationStatusDto.setSubStatusCode(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode());
+            object.setInternalError(Boolean.TRUE);
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                    regId, PlatformErrorMessages.RPR_PUM_NGINX_ACCESS_FAILED.name() + ExceptionUtils.getStackTrace(e));
+
+            description.setMessage(PlatformErrorMessages.RPR_PUM_NGINX_ACCESS_FAILED.getMessage());
+            description.setCode(PlatformErrorMessages.RPR_PUM_NGINX_ACCESS_FAILED.getCode());
+        } catch (FileMissingException e) {
+            registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+            registrationStatusDto.setStatusComment(StatusUtil.BIO_METRIC_FILE_MISSING.getMessage());
+            registrationStatusDto.setSubStatusCode(StatusUtil.BIO_METRIC_FILE_MISSING.getCode());
+            registrationStatusDto.setLatestTransactionStatusCode(
+                    registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BIOMETRIC_EXCEPTION));
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                    regId,
+                    PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getMessage() + ExceptionUtils.getStackTrace(e));
+            object.setInternalError(Boolean.TRUE);
+            description.setCode(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getCode());
+            description.setMessage(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getMessage());
+
+        } catch (BiometricException e) {
+            registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+            registrationStatusDto.setStatusComment(trimExceptionMsg
+                    .trimExceptionMessage(StatusUtil.BIO_METRIC_EXCEPTION.getMessage() + e.getMessage()));
+            registrationStatusDto.setSubStatusCode(StatusUtil.BIO_METRIC_EXCEPTION.getCode());
+            registrationStatusDto.setLatestTransactionStatusCode(
+                    registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BIOMETRIC_EXCEPTION));
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                    regId,
+                    PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getMessage() + ExceptionUtils.getStackTrace(e));
+            object.setInternalError(Boolean.TRUE);
+            description.setCode(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getCode());
+            description.setMessage(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getMessage());
+        } catch (JsonProcessingException e) {
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                    regId, RegistrationStatusCode.FAILED.toString() + e.getMessage()
+                            + org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
+            registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+            registrationStatusDto.setStatusComment(trimExceptionMsg
+                    .trimExceptionMessage(StatusUtil.JSON_PARSING_EXCEPTION.getMessage() + e.getMessage()));
+            registrationStatusDto.setSubStatusCode(StatusUtil.JSON_PARSING_EXCEPTION.getCode());
+            registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
+                    .getStatusCode(RegistrationExceptionTypeCode.JSON_PROCESSING_EXCEPTION));
+            description.setMessage(PlatformErrorMessages.RPR_SYS_JSON_PARSING_EXCEPTION.getMessage());
+            description.setCode(PlatformErrorMessages.RPR_SYS_JSON_PARSING_EXCEPTION.getCode());
+            object.setInternalError(Boolean.TRUE);
+        } catch (IOException e) {
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                    regId, RegistrationStatusCode.FAILED.toString() + e.getMessage()
+                            + org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
+            registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+            registrationStatusDto.setStatusComment(
+                    trimExceptionMsg.trimExceptionMessage(StatusUtil.IO_EXCEPTION.getMessage() + e.getMessage()));
+            registrationStatusDto.setSubStatusCode(StatusUtil.IO_EXCEPTION.getCode());
+            registrationStatusDto.setLatestTransactionStatusCode(
+                    registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.IOEXCEPTION));
+            description.setMessage(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage());
+            description.setCode(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode());
+            object.setInternalError(Boolean.TRUE);
+        } catch (PacketManagerException e) {
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                    regId, RegistrationStatusCode.FAILED.toString() + e.getMessage()
+                            + org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
+            registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+            registrationStatusDto.setStatusComment(trimExceptionMsg
+                    .trimExceptionMessage(StatusUtil.PACKET_MANAGER_EXCEPTION.getMessage() + e.getMessage()));
+            registrationStatusDto.setSubStatusCode(StatusUtil.PACKET_MANAGER_EXCEPTION.getCode());
+            registrationStatusDto.setLatestTransactionStatusCode(
+                    registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_EXCEPTION));
+            description.setMessage(PlatformErrorMessages.PACKET_MANAGER_EXCEPTION.getMessage());
+            description.setCode(PlatformErrorMessages.PACKET_MANAGER_EXCEPTION.getCode());
+            object.setInternalError(Boolean.TRUE);
+        } catch (Exception ex) {
+            registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
+            registrationStatusDto.setStatusComment(trimExceptionMsg
+                    .trimExceptionMessage(StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getMessage() + ex.getMessage()));
+            registrationStatusDto.setSubStatusCode(StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getCode());
+            registrationStatusDto.setLatestTransactionStatusCode(
+                    registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.EXCEPTION));
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                    regId,
+                    RegistrationStatusCode.FAILED.toString() + ex.getMessage() + ExceptionUtils.getStackTrace(ex));
+            object.setInternalError(Boolean.TRUE);
+            description.setCode(PlatformErrorMessages.RPR_BDD_UNKNOWN_EXCEPTION.getCode());
+            description.setMessage(PlatformErrorMessages.RPR_BDD_UNKNOWN_EXCEPTION.getMessage());
+        } finally {
+            if (object.getInternalError()) {
+                updateErrorFlags(registrationStatusDto, object);
+            }
+            object.setRid(registrationStatusDto.getRegistrationId());
+            registrationStatusDto.setRegistrationStageName(getStageName());
+            registrationStatusDto
+                    .setLatestTransactionTypeCode(RegistrationTransactionTypeCode.QUALITY_CLASSIFIER.toString());
+            String moduleId = isTransactionSuccessful ? PlatformSuccessMessages.RPR_QUALITY_CHECK_SUCCESS.getCode()
+                    : description.getCode();
+            String moduleName = ModuleName.QUALITY_CLASSIFIER.toString();
+            registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);
+            String eventId = isTransactionSuccessful ? EventId.RPR_402.toString() : EventId.RPR_405.toString();
+            String eventName = isTransactionSuccessful ? EventName.UPDATE.toString() : EventName.EXCEPTION.toString();
+            String eventType = isTransactionSuccessful ? EventType.BUSINESS.toString() : EventType.SYSTEM.toString();
+
+            auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
+                    moduleId, moduleName, regId);
+
+        }
+
+        return object;
+    }
+
+
+    private iBioProviderApi getBioSdkInstance(BiometricType biometricType) throws BiometricException {
+        iBioProviderApi bioProvider = bioApiFactory.getBioProvider(biometricType, BiometricFunction.QUALITY_CHECK);
+        return bioProvider;
+    }
+
+    private Stream<BIR> getBIRStream(List<BIR> birs) {
+        if (maxPoolSize > 0)
+            return birs.parallelStream();
+        else
+            return birs.stream();
+    }
+
+    private Map<String, String> getQualityTags(String regId, List<BIR> birs) throws BiometricException {
+
+        Map<String, String> tags = new HashMap<String, String>();
+        HashMap<String, Float> bioTypeMinScoreMap = new HashMap<String, Float>();
+        ConcurrentHashMap<String, List<Float>> bioTypeScoreMap = new ConcurrentHashMap<String, List<Float>>();
+
+        // setting biometricNotAvailableTagValue for each modality in case biometrics are not available
+        if (birs == null || birs.isEmpty()) {
+            modalities.forEach(modality -> {
+                tags.put(qualityTagPrefix.concat(modality), biometricNotAvailableTagValue);
+            });
+            return tags;
+        }
+
+        // get individual biometrics file name from id.json
+        ForkJoinTask<Void> task = forkJoinPool.submit(() -> {
+            getBIRStream(birs).forEach(bir -> {
+
+                if (bir.getOthers() != null) {
+                    boolean exceptionValue = false;
+                    for (Map.Entry<String, String> other : bir.getOthers().entrySet()) {
+                        if (other.getKey().equals(EXCEPTION)) {
+                            if (other.getValue().equals(TRUE)) {
+                                exceptionValue = true;
+                            }
+                            break;
+                        }
+                    }
+
+                    if (exceptionValue) {
+                        return;
+                    }
+                }
 				
+				try {
+                BiometricType biometricType = bir.getBdbInfo().getType().get(0);
+                BIR[] birArray = new BIR[1];
+                birArray[0] = bir;
+                if (!biometricType.name().equalsIgnoreCase(BiometricType.EXCEPTION_PHOTO.name())) {
+                    float[] qualityScoreresponse = getBioSdkInstance(biometricType).getSegmentQuality(birArray, null);
+                    float score = qualityScoreresponse[0];
+                    String bioType = bir.getBdbInfo().getType().get(0).value();
 
-				packetManagerService.addOrUpdateTags(regId, getQualityTags(biometricRecord.getSegments()));
+                    bioTypeScoreMap
+                            .computeIfAbsent(bioType, k -> Collections.synchronizedList(new ArrayList<>()))
+                            .add(score);
+                }
+            } catch(BiometricException e){
+                regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                        regId,
+                        "BiometricException occurred : " + ExceptionUtils.getStackTrace(e));
+                throw new RuntimeException(e);
+            }
+        });
+        return null;
+    }
+		);
 
-				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
-						"UpdatingTags::success ");
+		try
 
-				object.setIsValid(Boolean.TRUE);
-				description.setCode(PlatformSuccessMessages.RPR_QUALITY_CHECK_SUCCESS.getCode());
-				description.setMessage(PlatformSuccessMessages.RPR_QUALITY_CHECK_SUCCESS.getMessage());
-				isTransactionSuccessful = Boolean.TRUE;
-				registrationStatusDto
-						.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
-				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-				registrationStatusDto.setStatusComment(StatusUtil.BIOMETRIC_QUALITY_CHECK_SUCCESS.getMessage());
-				registrationStatusDto.setSubStatusCode(StatusUtil.BIOMETRIC_QUALITY_CHECK_SUCCESS.getCode());
-				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString(), regId, "QualityCheckerImpl::success");
-			}
+    {
+        task.join();
+    } catch(
+    RuntimeException e)
 
-		} catch (ApisResourceAccessException e) {
-			registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
-					.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION));
-			registrationStatusDto.setStatusComment(trimExpMessage
-					.trimExceptionMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode());
-			object.setInternalError(Boolean.TRUE);
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					regId, PlatformErrorMessages.RPR_PUM_NGINX_ACCESS_FAILED.name() + ExceptionUtils.getStackTrace(e));
-
-			description.setMessage(PlatformErrorMessages.RPR_PUM_NGINX_ACCESS_FAILED.getMessage());
-			description.setCode(PlatformErrorMessages.RPR_PUM_NGINX_ACCESS_FAILED.getCode());
-		} catch (FileMissingException e) {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
-			registrationStatusDto.setStatusComment(StatusUtil.BIO_METRIC_FILE_MISSING.getMessage());
-			registrationStatusDto.setSubStatusCode(StatusUtil.BIO_METRIC_FILE_MISSING.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BIOMETRIC_EXCEPTION));
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					regId,
-					PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getMessage() + ExceptionUtils.getStackTrace(e));
-			object.setInternalError(Boolean.TRUE);
-			description.setCode(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getCode());
-			description.setMessage(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getMessage());
-
-		} catch (BiometricException e) {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
-			registrationStatusDto.setStatusComment(trimExceptionMsg
-					.trimExceptionMessage(StatusUtil.BIO_METRIC_EXCEPTION.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.BIO_METRIC_EXCEPTION.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BIOMETRIC_EXCEPTION));
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					regId,
-					PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getMessage() + ExceptionUtils.getStackTrace(e));
-			object.setInternalError(Boolean.TRUE);
-			description.setCode(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getCode());
-			description.setMessage(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getMessage());
-		} catch (JsonProcessingException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					regId, RegistrationStatusCode.FAILED.toString() + e.getMessage()
-							+ org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-			registrationStatusDto.setStatusComment(trimExceptionMsg
-					.trimExceptionMessage(StatusUtil.JSON_PARSING_EXCEPTION.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.JSON_PARSING_EXCEPTION.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
-					.getStatusCode(RegistrationExceptionTypeCode.JSON_PROCESSING_EXCEPTION));
-			description.setMessage(PlatformErrorMessages.RPR_SYS_JSON_PARSING_EXCEPTION.getMessage());
-			description.setCode(PlatformErrorMessages.RPR_SYS_JSON_PARSING_EXCEPTION.getCode());
-			object.setInternalError(Boolean.TRUE);
-		} catch (IOException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					regId, RegistrationStatusCode.FAILED.toString() + e.getMessage()
-							+ org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-			registrationStatusDto.setStatusComment(
-					trimExceptionMsg.trimExceptionMessage(StatusUtil.IO_EXCEPTION.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.IO_EXCEPTION.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.IOEXCEPTION));
-			description.setMessage(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage());
-			description.setCode(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode());
-			object.setInternalError(Boolean.TRUE);
-		} catch (PacketManagerException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					regId, RegistrationStatusCode.FAILED.toString() + e.getMessage()
-							+ org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
-			registrationStatusDto.setStatusComment(trimExceptionMsg
-					.trimExceptionMessage(StatusUtil.PACKET_MANAGER_EXCEPTION.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.PACKET_MANAGER_EXCEPTION.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_EXCEPTION));
-			description.setMessage(PlatformErrorMessages.PACKET_MANAGER_EXCEPTION.getMessage());
-			description.setCode(PlatformErrorMessages.PACKET_MANAGER_EXCEPTION.getCode());
-			object.setInternalError(Boolean.TRUE);
-		} catch (Exception ex) {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
-			registrationStatusDto.setStatusComment(trimExceptionMsg
-					.trimExceptionMessage(StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getMessage() + ex.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.EXCEPTION));
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					regId,
-					RegistrationStatusCode.FAILED.toString() + ex.getMessage() + ExceptionUtils.getStackTrace(ex));
-			object.setInternalError(Boolean.TRUE);
-			description.setCode(PlatformErrorMessages.RPR_BDD_UNKNOWN_EXCEPTION.getCode());
-			description.setMessage(PlatformErrorMessages.RPR_BDD_UNKNOWN_EXCEPTION.getMessage());
-		} finally {
-			if(object.getInternalError()) {
-				updateErrorFlags(registrationStatusDto, object);
-			}
-			object.setRid(registrationStatusDto.getRegistrationId());
-			registrationStatusDto.setRegistrationStageName(getStageName());
-			registrationStatusDto
-					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.QUALITY_CLASSIFIER.toString());
-			String moduleId = isTransactionSuccessful ? PlatformSuccessMessages.RPR_QUALITY_CHECK_SUCCESS.getCode()
-					: description.getCode();
-			String moduleName = ModuleName.QUALITY_CLASSIFIER.toString();
-			registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);
-			String eventId = isTransactionSuccessful ? EventId.RPR_402.toString() : EventId.RPR_405.toString();
-			String eventName = isTransactionSuccessful ? EventName.UPDATE.toString() : EventName.EXCEPTION.toString();
-			String eventType = isTransactionSuccessful ? EventType.BUSINESS.toString() : EventType.SYSTEM.toString();
-
-			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
-					moduleId, moduleName, regId);
-
-		}
-
-		return object;
-	}
+    {
+        regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                regId,
+                "Exception occurred while joining task : " + ExceptionUtils.getStackTrace(e));
+        throw unwrapBiometricException(e);
+    }
 
 
-	private iBioProviderApi getBioSdkInstance(BiometricType biometricType) throws BiometricException {
-		iBioProviderApi bioProvider = bioApiFactory.getBioProvider(biometricType, BiometricFunction.QUALITY_CHECK);
-		return bioProvider;
-	}
-	
-	private Map<String, String> getQualityTags(List<BIR> birs) throws BiometricException{
-		
-		Map<String, String> tags = new HashMap<String, String>();
+		if(task.isCompletedAbnormally())
 
-		// setting biometricNotAvailableTagValue for each modality in case biometrics are not available
-		if (birs == null) {
-			modalities.forEach(modality -> {
-				tags.put(qualityTagPrefix.concat(modality), biometricNotAvailableTagValue);
-			});
-			return tags;
-		}
+    {
+        Throwable ex = task.getException();
+        regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                regId,
+                "Abnormal task completion : " + ExceptionUtils.getStackTrace(ex));
+        throw unwrapBiometricException(ex);
+    }
 
-		HashMap<String, Float> bioTypeMinScoreMap = new HashMap<String, Float>();
 
-		// get individual biometrics file name from id.json
-		for (BIR bir : birs) {
+    //Check Minimum Score for Each Modality
+		for(
+    Map.Entry<String, List<Float>> entry :bioTypeScoreMap.entrySet())
 
-			if (bir.getOthers() != null) {
-				HashMap<String, String> othersInfo = bir.getOthers();
-				boolean exceptionValue = false;
-				if(othersInfo!=null) {
-				for (Map.Entry<String, String> other : othersInfo.entrySet()) {
-					if (other.getKey().equals(EXCEPTION)) {
-						if (other.getValue().equals(TRUE)) {
-							exceptionValue = true;
-						}
-						break;
-					}
-				}
-				}
-				if (exceptionValue) {
-					continue;
-				}
-			}
+    {
+        String bioType = entry.getKey();
+        List<Float> scores = entry.getValue();
 
-			BiometricType biometricType = bir.getBdbInfo().getType().get(0);
-			BIR[] birArray = new BIR[1];
-			birArray[0] = bir;
-			if(!biometricType.name().equalsIgnoreCase(BiometricType.EXCEPTION_PHOTO.name())) {
-			float[] qualityScoreresponse = getBioSdkInstance(biometricType).getSegmentQuality(birArray, null);
-			
-			float score = qualityScoreresponse[0];
-			String bioType = bir.getBdbInfo().getType().get(0).value();
+        if (scores != null && !scores.isEmpty()) {
+            float min = Collections.min(scores);
+            bioTypeMinScoreMap.put(bioType, min);
+        }
+    }
 
-			// Check for entry
-			Float storedMinScore = bioTypeMinScoreMap.get(bioType);
+		for(
+    Entry<String, Float> bioTypeMinEntry :bioTypeMinScoreMap.entrySet())
 
-			bioTypeMinScoreMap.put(bioType,
-					storedMinScore == null ? score : storedMinScore > score ? score : storedMinScore);
-			}
-		}
+    {
 
-		for (Entry<String, Float> bioTypeMinEntry : bioTypeMinScoreMap.entrySet()) {
+        for (Entry<String, int[]> qualityRangeEntry : parsedQualityRangeMap.entrySet()) {
 
-			for (Entry<String, int[]> qualityRangeEntry : parsedQualityRangeMap.entrySet()) {
+            if (bioTypeMinEntry.getValue() >= qualityRangeEntry.getValue()[0]
+                    && bioTypeMinEntry.getValue() < qualityRangeEntry.getValue()[1]) {
 
-				if (bioTypeMinEntry.getValue() >= qualityRangeEntry.getValue()[0]
-						&& bioTypeMinEntry.getValue() < qualityRangeEntry.getValue()[1]) {
+                tags.put(qualityTagPrefix.concat(bioTypeMinEntry.getKey()), qualityRangeEntry.getKey());
+                break;
+            }
 
-					tags.put( qualityTagPrefix.concat(bioTypeMinEntry.getKey()), qualityRangeEntry.getKey());
-					break;
-				}
+        }
+    }
 
-			}
-		}
-		
-		// setting biometricNotAvailableTagValue for modalities those are not available in BIRs
-		modalities.forEach(modality -> {
-			if (!tags.containsKey(qualityTagPrefix.concat(modality))) {
-				tags.put(qualityTagPrefix.concat(modality), biometricNotAvailableTagValue);
-			}
-		});
+    // setting biometricNotAvailableTagValue for modalities those are not available in BIRs
+		modalities.forEach(modality ->
+
+    {
+        if (!tags.containsKey(qualityTagPrefix.concat(modality))) {
+            tags.put(qualityTagPrefix.concat(modality), biometricNotAvailableTagValue);
+        }
+    });
 
 		return tags;
-	}
+}
 
-	private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
-		object.setInternalError(true);
-		if (registrationStatusDto.getLatestTransactionStatusCode()
-				.equalsIgnoreCase(RegistrationTransactionStatusCode.REPROCESS.toString())) {
-			object.setIsValid(true);
-		} else {
-			object.setIsValid(false);
-		}
-	}
+private BiometricException unwrapBiometricException(Throwable ex) {
+    Throwable current = ex;
+    while (current != null) {
+        if (current instanceof BiometricException) {
+            return (BiometricException) current;
+        }
+        current = current.getCause();
+    }
+    throw new RuntimeException("Exception occurred in getQualityTags() method", ex);
+}
+
+private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
+    object.setInternalError(true);
+    if (registrationStatusDto.getLatestTransactionStatusCode()
+            .equalsIgnoreCase(RegistrationTransactionStatusCode.REPROCESS.toString())) {
+        object.setIsValid(true);
+    } else {
+        object.setIsValid(false);
+    }
+}
 }
