@@ -7,10 +7,10 @@
 	<parent>
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>workflow-engine</artifactId>
-		<version>1.2.1.1-SNAPSHOT</version>
+		<version>1.2.1.2-SNAPSHOT</version>
 	</parent>
 	<artifactId>registration-processor-reprocessor</artifactId>
-	 <version>1.2.1.1-SNAPSHOT</version>
+	 <version>1.2.1.2-SNAPSHOT</version>
 	<name>registration-processor-reprocessor</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -119,9 +119,23 @@
 							<goal>build-info</goal>
 							<goal>repackage</goal>
 						</goals>
+						<configuration>
+							<attach>false</attach>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.sonatype.central</groupId>
+				<artifactId>central-publishing-maven-plugin</artifactId>
+				<version>${central.publishing.maven.plugin.version}</version>
+				<extensions>true</extensions>
+				<configuration>
+					<publishingServerId>ossrh</publishingServerId>
+					<autoPublish>false</autoPublish>
+				</configuration>
+			</plugin>
+
 		</plugins>
 	</build>
 </project>

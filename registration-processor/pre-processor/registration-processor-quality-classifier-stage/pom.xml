@@ -5,11 +5,12 @@
     <parent>
         <groupId>io.mosip.registrationprocessor</groupId>
         <artifactId>pre-processor</artifactId>
-        <version>1.2.1.1-SNAPSHOT</version>
+        <version>1.2.1.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>registration-processor-quality-classifier-stage</artifactId>
-    <version>1.2.1.1-SNAPSHOT</version>
+    <version>1.2.1.2-SNAPSHOT</version>
+    <name>registration-processor-quality-classifier-stage</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -90,6 +91,16 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://central.sonatype.com/api/v1/publisher</url>
+        </repository>
+    </distributionManagement>
     <build>
         <plugins>
         </plugins>

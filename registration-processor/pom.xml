@@ -23,7 +23,7 @@
 	</developers>
 	<groupId>io.mosip.registrationprocessor</groupId>
 	<artifactId>registration-processor</artifactId>
-	<version>1.2.1.1-SNAPSHOT</version>
+	<version>1.2.1.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>registration-processor</name>
@@ -43,6 +43,7 @@
 		<maven.sonar.plugin.version>3.7.0.1746</maven.sonar.plugin.version>
 		<maven.javadoc.version>3.2.0</maven.javadoc.version>
 		<maven.assembly.version>3.3.0</maven.assembly.version>
+		<central.publishing.maven.plugin.version>0.7.0</central.publishing.maven.plugin.version>
 
 		<!-- Core -->
 		<spring-framework.version>5.0.6.RELEASE</spring-framework.version>
@@ -122,13 +123,13 @@
 		<jsch.version>0.1.55</jsch.version>
 
 		<!-- local -->
-		<registration.status.service.version>1.2.1.1-SNAPSHOT</registration.status.service.version>
-		<registration.processor.core.version>1.2.1.1-SNAPSHOT</registration.processor.core.version>
-		<packet.manager.version>1.2.1.1-SNAPSHOT</packet.manager.version>
-		<registration.processor.rest.client.version>1.2.1.1-SNAPSHOT</registration.processor.rest.client.version>
-		<packet.info.storage.service.version>1.2.1.1-SNAPSHOT</packet.info.storage.service.version>
-		<packet.bio.dedupe.service.impl.version>1.2.1.1-SNAPSHOT</packet.bio.dedupe.service.impl.version>
-		<registration.processor.message.sender.version>1.2.1.1-SNAPSHOT</registration.processor.message.sender.version>
+		<registration.status.service.version>1.2.1.2-SNAPSHOT</registration.status.service.version>
+		<registration.processor.core.version>1.2.1.2-SNAPSHOT</registration.processor.core.version>
+		<packet.manager.version>1.2.1.2-SNAPSHOT</packet.manager.version>
+		<registration.processor.rest.client.version>1.2.1.2-SNAPSHOT</registration.processor.rest.client.version>
+		<packet.info.storage.service.version>1.2.1.2-SNAPSHOT</packet.info.storage.service.version>
+		<packet.bio.dedupe.service.impl.version>1.2.1.2-SNAPSHOT</packet.bio.dedupe.service.impl.version>
+		<registration.processor.message.sender.version>1.2.1.2-SNAPSHOT</registration.processor.message.sender.version>
 
 		<!-- Kernel -->
 		<kernel.core.version>1.2.0.1</kernel.core.version>
@@ -301,11 +302,11 @@
 	<distributionManagement>
                 <snapshotRepository>
                         <id>ossrh</id>
-                        <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                        <url>https://central.sonatype.com/repository/maven-snapshots/</url>
                 </snapshotRepository>
                 <repository>
                         <id>ossrh</id>
-                        <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+                        <url>https://central.sonatype.com/api/v1/publisher</url>
                 </repository>
         </distributionManagement>
 	<dependencyManagement>
@@ -530,17 +531,16 @@
 					<doclint>none</doclint>
 				</configuration>
 			</plugin>
-				                <plugin>
-                  <groupId>org.sonatype.plugins</groupId>
-                  <artifactId>nexus-staging-maven-plugin</artifactId>
-                  <version>1.6.7</version>
-                  <extensions>true</extensions>
-                  <configuration>
-                        <serverId>ossrh</serverId>
-                        <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                        <autoReleaseAfterClose>false</autoReleaseAfterClose>
-                  </configuration>
-                </plugin>
+			<plugin>
+				<groupId>org.sonatype.central</groupId>
+				<artifactId>central-publishing-maven-plugin</artifactId>
+				<version>${central.publishing.maven.plugin.version}</version>
+				<extensions>true</extensions>
+				<configuration>
+					<publishingServerId>ossrh</publishingServerId>
+					<autoPublish>false</autoPublish>
+				</configuration>
+			</plugin>
 
 		<plugin>
                   <groupId>org.apache.maven.plugins</groupId>

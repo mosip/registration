@@ -6,16 +6,17 @@
 	<parent>
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>registration-processor</artifactId>
-		<version>1.2.1.1-SNAPSHOT</version>
+		<version>1.2.1.2-SNAPSHOT</version>
 	</parent>
 	<artifactId>registration-processor-common-camel-bridge</artifactId>
-	<version>1.2.1.1-SNAPSHOT</version>
+	<version>1.2.1.2-SNAPSHOT</version>
+	<name>registration-processor-common-camel-bridge</name>
 	<packaging>jar</packaging>
 
 	<properties>
 		<vertx.verticle>io.mosip.registration.processor.camel.bridge.MosipCamelBridge</vertx.verticle>
 		<fabric8-vertx-maven-plugin.version>1.0.5</fabric8-vertx-maven-plugin.version>
-	    <registration.processor.registration.status.service.impl.version>1.2.1.1-SNAPSHOT</registration.processor.registration.status.service.impl.version>
+	    <registration.processor.registration.status.service.impl.version>1.2.1.2-SNAPSHOT</registration.processor.registration.status.service.impl.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -129,6 +130,16 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://central.sonatype.com/repository/maven-snapshots/</url>
+		</snapshotRepository>
+		<repository>
+			<id>ossrh</id>
+			<url>https://central.sonatype.com/api/v1/publisher</url>
+		</repository>
+	</distributionManagement>
 
 	<build>
 		<plugins>
@@ -147,8 +158,21 @@
 							<goal>build-info</goal>
 							<goal>repackage</goal>
 						</goals>
+						<configuration>
+							<attach>false</attach>
+						</configuration>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.sonatype.central</groupId>
+				<artifactId>central-publishing-maven-plugin</artifactId>
+				<version>${central.publishing.maven.plugin.version}</version>
+				<extensions>true</extensions>
+				<configuration>
+					<publishingServerId>ossrh</publishingServerId>
+					<autoPublish>false</autoPublish>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

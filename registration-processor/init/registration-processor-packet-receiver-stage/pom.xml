@@ -7,11 +7,11 @@
 	<parent>
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>init</artifactId>
-		<version>1.2.1.1-SNAPSHOT</version>
+		<version>1.2.1.2-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>registration-processor-packet-receiver-stage</artifactId>
-	<version>1.2.1.1-SNAPSHOT</version>
+	<version>1.2.1.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>registration-processor-packet-receiver-stage</name>
 
@@ -138,7 +138,36 @@
 
 	<build>
 		<plugins>
-	
+			<plugin>
+				<groupId>org.sonatype.central</groupId>
+				<artifactId>central-publishing-maven-plugin</artifactId>
+				<version>${central.publishing.maven.plugin.version}</version>
+				<extensions>true</extensions>
+				<configuration>
+					<publishingServerId>ossrh</publishingServerId>
+					<autoPublish>false</autoPublish>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>${spring.boot.version}</version>
+				<configuration>
+					<executable>true</executable>
+					<layout>ZIP</layout>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>build-info</goal>
+							<goal>repackage</goal>
+						</goals>
+						<configuration>
+							<attach>false</attach>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 </project>
