@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import io.mosip.registration.processor.core.cache.CaffeineCacheManager;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.slf4j.MDC;
@@ -65,6 +66,9 @@ public class KafkaMosipEventBus implements MosipEventBus {
 
 	private EventTracingHandler eventTracingHandler;
 
+	//Added the caffeine cache to control the propagation of duplicate packet to next stage if duplicate packet is received to the same pod due to kafka rebalancing.
+	private CaffeineCacheManager caffeineCacheManager;
+
 	/**
 	 * Instantiates a new kafka mosip event bus.
 	 *
@@ -80,8 +84,8 @@ public class KafkaMosipEventBus implements MosipEventBus {
 	 * @param eventTracingHandler
 	 */
 	public KafkaMosipEventBus(Vertx vertx, String bootstrapServers, String groupId,
-			String commitType, String maxPollRecords, int pollFrequency, EventTracingHandler eventTracingHandler) {
-
+			String commitType, String maxPollRecords, String maxPollInterval, int pollFrequency, EventTracingHandler eventTracingHandler, CaffeineCacheManager caffeineCacheManager) {
+		this.caffeineCacheManager = caffeineCacheManager;
 		validateCommitType(commitType);
 		this.vertx = vertx;
 		this.commitType = commitType;
@@ -97,6 +101,7 @@ public class KafkaMosipEventBus implements MosipEventBus {
 		consumerConfig.put("group.id", groupId);
 		consumerConfig.put("auto.offset.reset", "latest");
 		consumerConfig.put("max.poll.records", maxPollRecords);
+		consumerConfig.put("max.poll.interval.ms", maxPollInterval);
 		if (commitType.equals("auto"))
 			consumerConfig.put("enable.auto.commit", "true");
 		else
@@ -112,8 +117,8 @@ public class KafkaMosipEventBus implements MosipEventBus {
 		producerConfig.put("acks", "1");
 		this.kafkaProducer = KafkaProducer.create(vertx, producerConfig);
 
-		logger.info("KafkaMosipEventBus loaded with configuration: bootstrapServers: {} groupId: {} commitType: {}",
-				bootstrapServers , groupId , commitType);
+		logger.info("KafkaMosipEventBus loaded with configuration: bootstrapServers: {} groupId: {} commitType: {} maxPollInterval: {}",
+				bootstrapServers , groupId , commitType, maxPollInterval);
 	}
 
 	/*
@@ -260,6 +265,14 @@ public class KafkaMosipEventBus implements MosipEventBus {
 			.compose((Void) -> {
 				List<Future<Void>> futures = IntStream.range(0, consumerRecords.size())
 					.mapToObj(consumerRecords::recordAt)
+						.filter(record -> {
+							String key = record.key();
+							if (key != null && caffeineCacheManager.checkAndPutIfAbsent(key)) {
+								logger.error("Duplicate record with key '{}' found. Skipping processing.", key);
+								return false;
+							}
+							return true;
+						})
 					.map(record -> processRecord(toAddress, eventHandler, record, false))
 					.collect(Collectors.toList());
 
@@ -333,7 +346,7 @@ public class KafkaMosipEventBus implements MosipEventBus {
 					JsonObject jsonObject = JsonObject.mapFrom(messageDTO);
 					KafkaProducerRecord<String, String> producerRecord = 
 						KafkaProducerRecord.create(messageBusToAddress.getAddress(), 
-							messageDTO.getRid(), jsonObject.toString());
+							messageDTO.getRid()+ "_" + messageBusToAddress.getAddress(), jsonObject.toString());
 					this.eventTracingHandler.writeHeaderOnKafkaProduce(producerRecord, span);
 					kafkaProducer.write(producerRecord, handler -> {
 						MDC.setContextMap(mdc);

@@ -212,7 +212,7 @@ public class PacketValidateProcessor {
 									description.getCode() + " Inside Runnable ", "");
 
 						}
-					
+
 					registrationStatusDto
 							.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 					object.setIsValid(Boolean.TRUE);
