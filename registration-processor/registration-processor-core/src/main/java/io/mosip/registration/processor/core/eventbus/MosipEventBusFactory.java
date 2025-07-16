@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.core.eventbus;
 
+import io.mosip.registration.processor.core.cache.CaffeineCacheManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +23,8 @@ public class MosipEventBusFactory {
 
 	private static final String EVENTBUS_KAFKA_MAX_POLL_RECORDS = "eventbus.kafka.max.poll.records";
 
+    private static final String EVENTBUS_KAFKA_MAX_POLL_INTERVAL = "eventbus.kafka.max.poll.interval";
+
 	private static final String EVENTBUS_KAFKA_GROUP_ID = "eventbus.kafka.group.id";
 
 	private static final String EVENTBUS_KAFKA_COMMIT_TYPE = "eventbus.kafka.commit.type";
@@ -33,6 +36,9 @@ public class MosipEventBusFactory {
     
     @Autowired
     private PropertiesUtil propertiesUtil;
+
+    @Autowired
+    private CaffeineCacheManager caffeineCacheManager;
 
     /**
      * Instantiate and return event bus of a particular type
@@ -52,9 +58,11 @@ public class MosipEventBusFactory {
                 		getKafkaBootstrapServers(), 
                 		getKafkaGroupId(propertyPrefix), 
                 		getKafkaCommitType(propertyPrefix), 
-                		getMaxPollRecords(propertyPrefix), 
-                		getPollFrequency(propertyPrefix), 
-                		eventTracingHandler);
+                		getMaxPollRecords(propertyPrefix),
+                        getMaxPollInterval(propertyPrefix),
+                        getPollFrequency(propertyPrefix),
+                		eventTracingHandler,
+                        caffeineCacheManager);
             /*case "amqp":
                 return new AmqpMosipEventBus(vertx);*/
             default:
@@ -85,7 +93,11 @@ public class MosipEventBusFactory {
     public String getMaxPollRecords(String propertyPrefix) {
 		return propertiesUtil.getProperty(propertyPrefix + EVENTBUS_KAFKA_MAX_POLL_RECORDS);
 	}
-    
+
+    public String getMaxPollInterval(String propertyPrefix) {
+        return propertiesUtil.getProperty(propertyPrefix + EVENTBUS_KAFKA_MAX_POLL_INTERVAL, String.class, "300000");
+    }
+
 	public int getPollFrequency(String propertyPrefix) {
 		return propertiesUtil.getProperty(propertyPrefix + EVENTBUS_KAFKA_POLL_FREQUENCY, Integer.class, 0);
 	}
