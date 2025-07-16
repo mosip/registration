@@ -272,7 +272,8 @@
 		</sonar.coverage.exclusions>
 		<sonar.cpd.exclusions>**/dto/**,**/entity/**,**/config/**,**/handler/**,**/utilities/**,
 			**/validator/**, **/utils/**,**/util/**,**/code/**</sonar.cpd.exclusions>
-		<doclint>none</doclint>
+			<doclint>none</doclint>
+		<caffeine.cache.version>3.2.0</caffeine.cache.version>
 	</properties>
 
     <repositories>
