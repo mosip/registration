@@ -171,19 +171,10 @@
 			<artifactId>jackson-module-afterburner</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>io.vertx</groupId>
-			<artifactId>vertx-core</artifactId>
-			<version>${vertx.version}</version>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>caffeine</artifactId>
+			<version>${caffeine.cache.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>io.vertx</groupId>
-			<artifactId>vertx-config</artifactId>
-		</dependency>
-		<dependency>
-           <groupId>io.zipkin.zipkin2</groupId>
-          <artifactId>zipkin</artifactId>
-         <version>${zipkin.version}</version>
-      </dependency>
        </dependencies>
 	<dependencyManagement>
 		<dependencies>
