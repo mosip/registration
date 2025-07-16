@@ -187,6 +187,11 @@
 			<artifactId>jackson-module-afterburner</artifactId>
 			<version>${jackson.afterburner.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>caffeine</artifactId>
+			<version>${caffeine.cache.version}</version>
+		</dependency>
        </dependencies>
 	<dependencyManagement>
 		<dependencies>
