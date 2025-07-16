@@ -63,19 +63,20 @@ public class RouteIntercepter {
 		return routeDefinitions;
 	}
 
-	private String getKey(Exchange exchange) {
+	/* Add the actionCode to the key specifically for workflow manager because multiple commands
+	are being sent to workflow manager for the same RID which result in same key.
+	Hence actionCode is added to the key in order to differentiate the same so that it won't cause
+	issue in caffeine cache implementation.
+	 */
+	private String getKey(Exchange exchange) throws JsonProcessingException {
 		StringBuilder keyBuilder = new StringBuilder();
 
-		try {
-			WorkflowInternalActionDTO workflowInternalActionDTO  = objectMapper.readValue(exchange.getMessage().getBody().toString(), new TypeReference<WorkflowInternalActionDTO>() {});
-			String currentKey = exchange.getIn().getHeader("RID", String.class);
-			keyBuilder.append(currentKey);
-			if (workflowInternalActionDTO.getActionCode() != null && !workflowInternalActionDTO.getActionCode().isEmpty()) {
-				keyBuilder.append("_").append(workflowInternalActionDTO.getActionCode().toLowerCase());
-			}
-		} catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+		WorkflowInternalActionDTO workflowInternalActionDTO  = objectMapper.readValue(exchange.getMessage().getBody().toString(), new TypeReference<WorkflowInternalActionDTO>() {});
+		String currentKey = exchange.getIn().getHeader("RID", String.class);
+		keyBuilder.append(currentKey);
+		if (workflowInternalActionDTO.getActionCode() != null && !workflowInternalActionDTO.getActionCode().isEmpty()) {
+			keyBuilder.append("_").append(workflowInternalActionDTO.getActionCode().toLowerCase());
+		}
 
         return keyBuilder.toString();
 	}
