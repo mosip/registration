@@ -5,10 +5,10 @@
 	<parent>
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>post-processor</artifactId>
-		<version>1.2.1.1</version>
+		<version>1.2.1.2-SNAPSHOT</version>
 	</parent>
 	<artifactId>registration-processor-registration-transaction-service</artifactId>
-	 <version>1.2.1.1</version>
+	 <version>1.2.1.2-SNAPSHOT</version>
 	<name>registration-processor-registration-transaction-service</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -69,6 +69,16 @@
 			<optional>true</optional>
 		</dependency>
 	</dependencies>
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://central.sonatype.com/repository/maven-snapshots/</url>
+		</snapshotRepository>
+		<repository>
+			<id>ossrh</id>
+			<url>https://central.sonatype.com/api/v1/publisher</url>
+		</repository>
+	</distributionManagement>
 	<build>
 		<plugins>
 			<plugin>
@@ -85,6 +95,9 @@
 							<goal>build-info</goal>
 							<goal>repackage</goal>
 						</goals>
+						<configuration>
+							<attach>false</attach>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
@@ -112,8 +125,22 @@
 							<layout>ZIP</layout>
 						</configuration>
 						<executions>
+							<!-- Build info and repackage -->
+							<execution>
+								<id>build-info-repackage</id>
+								<goals>
+									<goal>build-info</goal>
+									<goal>repackage</goal>
+								</goals>
+								<configuration>
+									<attach>false</attach>
+								</configuration>
+							</execution>
+
+							<!-- Integration test startup -->
 							<execution>
 								<id>pre-integration-test</id>
+								<phase>pre-integration-test</phase>
 								<goals>
 									<goal>start</goal>
 								</goals>
@@ -130,16 +157,12 @@
 									</arguments>
 								</configuration>
 							</execution>
+							<!-- Integration test shutdown -->
 							<execution>
 								<id>post-integration-test</id>
+								<phase>post-integration-test</phase>
 								<goals>
 									<goal>stop</goal>
-								</goals>
-							</execution>
-							<execution>
-								<goals>
-									<goal>build-info</goal>
-									<goal>repackage</goal>
 								</goals>
 							</execution>
 						</executions>
@@ -162,6 +185,16 @@
 
 							<outputDir>${project.build.directory}</outputDir>
 							<skip>false</skip>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.sonatype.central</groupId>
+						<artifactId>central-publishing-maven-plugin</artifactId>
+						<version>${central.publishing.maven.plugin.version}</version>
+						<extensions>true</extensions>
+						<configuration>
+							<publishingServerId>ossrh</publishingServerId>
+							<autoPublish>false</autoPublish>
 						</configuration>
 					</plugin>
 				</plugins>

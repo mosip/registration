@@ -10,8 +10,6 @@ import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
@@ -208,20 +206,16 @@ public class PacketValidateProcessor {
 					// save audit details
 					InternalRegistrationStatusDto finalRegistrationStatusDto = registrationStatusDto;
 					String finalRegistrationId = registrationId;
-					Runnable r = () -> {
-						try {
-							auditUtility.saveAuditDetails(finalRegistrationId,
-									finalRegistrationStatusDto.getRegistrationType());
-						} catch (Exception e) {
-							regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-									LoggerFileConstant.REGISTRATIONID.toString(),
-									description.getCode() + " Inside Runnable ", "");
+					try {
+						auditUtility.saveAuditDetails(finalRegistrationId,
+								finalRegistrationStatusDto.getRegistrationType());
+					} catch (Exception e) {
+						regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+								LoggerFileConstant.REGISTRATIONID.toString(),
+								description.getCode() + " Inside Runnable ", "");
 
-						}
-					};
-					ExecutorService es = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-					es.submit(r);
-					es.shutdown();
+					}
+
 					registrationStatusDto
 							.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 					object.setIsValid(Boolean.TRUE);
