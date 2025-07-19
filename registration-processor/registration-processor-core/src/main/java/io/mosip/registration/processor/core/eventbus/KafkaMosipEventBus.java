@@ -346,7 +346,7 @@ public class KafkaMosipEventBus implements MosipEventBus {
 					JsonObject jsonObject = JsonObject.mapFrom(messageDTO);
 					KafkaProducerRecord<String, String> producerRecord = 
 						KafkaProducerRecord.create(messageBusToAddress.getAddress(), 
-							messageDTO.getRid()+ "_" + messageBusToAddress.getAddress() + (messageDTO.getMessageBusAddress().getAddress() != null ? "_"  + messageDTO.getMessageBusAddress().getAddress() : "") , jsonObject.toString());
+							messageDTO.getRid()+ "_" + messageBusToAddress.getAddress(), jsonObject.toString());
 					this.eventTracingHandler.writeHeaderOnKafkaProduce(producerRecord, span);
 					kafkaProducer.write(producerRecord, handler -> {
 						MDC.setContextMap(mdc);
