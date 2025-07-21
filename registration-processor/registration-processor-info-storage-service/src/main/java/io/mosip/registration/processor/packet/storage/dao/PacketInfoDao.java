@@ -227,7 +227,7 @@ public class PacketInfoDao {
 			query.append("(e.name = :name").append(i)
 					.append(" AND e.gender = :gender").append(i)
 					.append(" AND e.dob = :dob").append(i)
-					.append(" AND e.langCode = :langCode").append(i).append(")");
+					.append(" AND e.id.langCode = :langCode").append(i).append(")");
 			if (i < params.size() - 1) query.append(" OR ");
 
 			paramMap.put("name" + i, p.getName());
