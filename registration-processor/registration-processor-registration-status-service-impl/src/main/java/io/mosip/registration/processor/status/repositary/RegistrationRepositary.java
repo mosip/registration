@@ -46,7 +46,7 @@ public interface RegistrationRepositary<T extends BaseRegistrationEntity, E> ext
 	
 	@Query("SELECT registration FROM RegistrationStatusEntity registration WHERE registration.regId = :regId AND registration.statusCode = :statusCode ")
 	public List<RegistrationStatusEntity> findByRegIdANDByStatusCode(@Param("regId") String regId,@Param("statusCode") String statusCode);
-	
+
 	@Query("SELECT registration FROM RegistrationStatusEntity registration WHERE registration.id.workflowInstanceId = :workflowInstanceId AND registration.isDeleted =false AND registration.isActive=true")
 	public List<RegistrationStatusEntity> findByWorkflowInstanceId(@Param("workflowInstanceId") String workflowInstanceId);
 	
@@ -61,5 +61,8 @@ public interface RegistrationRepositary<T extends BaseRegistrationEntity, E> ext
 
 	@Query(value ="SELECT * FROM registration r WHERE r.status_code =:statusCode  order by r.upd_dtimes LIMIT :fetchSize ", nativeQuery = true)
 	public List<RegistrationStatusEntity> getResumablePackets(@Param("statusCode") String statusCode,@Param("fetchSize") Integer fetchSize);
+
+	@Query("SELECT r.regId FROM RegistrationStatusEntity r WHERE r.regId IN :rids AND r.statusCode = :statusCode")
+	List<String> findProcessedRegIds(@Param("rids") List<String> rids, @Param("statusCode") String statusCode);
 }
 
