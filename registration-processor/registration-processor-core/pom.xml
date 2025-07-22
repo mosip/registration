@@ -188,7 +188,7 @@
 			<artifactId>caffeine</artifactId>
 			<version>${caffeine.cache.version}</version>
 		</dependency>
-       </dependencies>
+    </dependencies>
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
