@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 package io.mosip.registration.processor.core.config;
 
 import java.util.ArrayList;
