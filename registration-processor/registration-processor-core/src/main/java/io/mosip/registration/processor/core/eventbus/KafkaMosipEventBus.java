@@ -345,8 +345,8 @@ public class KafkaMosipEventBus implements MosipEventBus {
 						new MessageBusAddress(toAddress, messageDTO.getReg_type());
 					JsonObject jsonObject = JsonObject.mapFrom(messageDTO);
 					KafkaProducerRecord<String, String> producerRecord = 
-						KafkaProducerRecord.create(messageBusToAddress.getAddress(), 
-							messageDTO.getRid()+ "_" + messageBusToAddress.getAddress(), jsonObject.toString());
+						KafkaProducerRecord.create(messageBusToAddress.getAddress(),
+								getKafkaKey(messageDTO, messageBusToAddress), jsonObject.toString());
 					this.eventTracingHandler.writeHeaderOnKafkaProduce(producerRecord, span);
 					kafkaProducer.write(producerRecord, handler -> {
 						MDC.setContextMap(mdc);
@@ -479,5 +479,19 @@ public class KafkaMosipEventBus implements MosipEventBus {
 			healthCheckDTO.setFailureReason("Failed kafkaProducer");
 		}
 		eventHandler.handle(healthCheckDTO);
+	}
+	
+	// Kafka key to be created for sending to the message to topic and will be used by caffeine to avoid kafka rebalancing
+	private String getKafkaKey(MessageDTO messageDTO, MessageBusAddress messageBusToAddress) {
+		StringBuilder keyBuilder = new StringBuilder();
+		keyBuilder.append(messageDTO.getRid())
+				.append('_')
+				.append(messageBusToAddress.getAddress());
+
+		if (messageDTO.getMessageBusAddress() != null && messageDTO.getMessageBusAddress().getAddress() != null) {
+			keyBuilder.append('_').append(messageDTO.getMessageBusAddress().getAddress());
+		}
+
+		return keyBuilder.toString();
 	}
 }
