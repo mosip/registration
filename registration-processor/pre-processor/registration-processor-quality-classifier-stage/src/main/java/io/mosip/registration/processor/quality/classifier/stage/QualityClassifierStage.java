@@ -182,6 +182,9 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 	@Autowired
 	private BioAPIFactory bioApiFactory;
 
+	@Value("#{${mosip.regproc.quality.classifier.sdk.flags:null}}")
+	private Map<String, String> flags;
+
 	@PostConstruct
 	private void generateParsedQualityRangeMap() {
 		parsedQualityRangeMap = new HashMap<>();
@@ -474,7 +477,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 							BIR[] birArray = new BIR[1];
 							birArray[0] = bir;
 							if(!biometricType.name().equalsIgnoreCase(BiometricType.EXCEPTION_PHOTO.name())) {
-								float[] qualityScoreresponse = getBioSdkInstance(biometricType).getSegmentQuality(birArray, null);
+								float[] qualityScoreresponse = getBioSdkInstance(biometricType).getSegmentQuality(birArray, flags);
 								float score = qualityScoreresponse[0];
 								String bioType = bir.getBdbInfo().getType().get(0).value();
 
