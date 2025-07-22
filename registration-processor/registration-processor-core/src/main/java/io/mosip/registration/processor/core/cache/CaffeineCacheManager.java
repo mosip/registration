@@ -2,12 +2,12 @@ package io.mosip.registration.processor.core.cache;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import jakarta.annotation.PostConstruct;
 import org.apache.camel.com.github.benmanes.caffeine.cache.Cache;
 import org.apache.camel.com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.util.concurrent.TimeUnit;
 
 @Component
