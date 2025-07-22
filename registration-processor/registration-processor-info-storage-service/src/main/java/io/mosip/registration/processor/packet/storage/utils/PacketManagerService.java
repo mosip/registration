@@ -113,33 +113,33 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
         request.setRequest(fieldDto);
 
         // Step 3: Print request data
-        System.out.println("=== API Request Start ===");
-        System.out.println("Registration ID: " + id);
-        System.out.println("Fields Requested: " + fields);
-        System.out.println("Source: " + source);
-        System.out.println("Process: " + process);
-        System.out.println("API Name Enum: " + ApiName.PACKETMANAGER_SEARCH_FIELDS);
+        regProcLogger.info("=== API Request Start ===");
+        regProcLogger.info("Registration ID: " + id);
+        regProcLogger.info("Fields Requested: " + fields);
+        regProcLogger.info("Source: " + source);
+        regProcLogger.info("Process: " + process);
+        regProcLogger.info("API Name Enum: " + ApiName.PACKETMANAGER_SEARCH_FIELDS);
 
 //        // Get actual API URL from enum if possible
 //        String apiUrl = restApi.getApiUrl(ApiName.PACKETMANAGER_SEARCH_FIELDS); // Add this helper in restApi if not available
-//        System.out.println("Resolved API URL: " + apiUrl);
+//        regProcLogger.info("Resolved API URL: " + apiUrl);
 
-        System.out.println("Request Payload: " + JsonUtils.javaObjectToJsonString(request));
-        System.out.println("=== API Request End ===");
+        regProcLogger.info("Request Payload: " + JsonUtils.javaObjectToJsonString(request));
+        regProcLogger.info("=== API Request End ===");
 
         // Step 4: Call the API
         ResponseWrapper<FieldResponseDto> response = (ResponseWrapper) restApi.postApi(
                 ApiName.PACKETMANAGER_SEARCH_FIELDS, "", "", request, ResponseWrapper.class);
 
         // Step 5: Print raw response
-        System.out.println("=== API Response Start ===");
-        System.out.println("Raw Response: " + JsonUtils.javaObjectToJsonString(response));
-        System.out.println("=== API Response End ===");
+        regProcLogger.info("=== API Response Start ===");
+        regProcLogger.info("Raw Response: " + JsonUtils.javaObjectToJsonString(response));
+        regProcLogger.info("=== API Response End ===");
 
         // Step 6: Error Handling
         if (response.getErrors() != null && !response.getErrors().isEmpty()) {
             ErrorDTO errorDTO = response.getErrors().iterator().next();
-            System.out.println("Error Received - Code: " + errorDTO.getErrorCode() + ", Message: " + errorDTO.getMessage());
+            regProcLogger.info("Error Received - Code: " + errorDTO.getErrorCode() + ", Message: " + errorDTO.getMessage());
 
             if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
                 throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
@@ -152,7 +152,7 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
         FieldResponseDto fieldResponseDto = objectMapper.readValue(
                 JsonUtils.javaObjectToJsonString(response.getResponse()), FieldResponseDto.class);
 
-        System.out.println("Final Extracted Fields: " + fieldResponseDto.getFields());
+        regProcLogger.info("Final Extracted Fields: " + fieldResponseDto.getFields());
 
         return fieldResponseDto.getFields();
     }
