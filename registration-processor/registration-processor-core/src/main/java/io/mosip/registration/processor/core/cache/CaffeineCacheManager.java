@@ -1,103 +1,213 @@
-package io.mosip.registration.processor.core.cache;
+<?xml version="1.0" encoding="UTF-8"?>
 
-import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import org.apache.camel.com.github.benmanes.caffeine.cache.Cache;
-import org.apache.camel.com.github.benmanes.caffeine.cache.Caffeine;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-import javax.annotation.PostConstruct;
-import java.util.concurrent.TimeUnit;
+	<parent>
+		<groupId>io.mosip.registrationprocessor</groupId>
+		<artifactId>registration-processor</artifactId>
+		<version>1.3.0-SNAPSHOT</version>
+	</parent>
+	<artifactId>registration-processor-core</artifactId>
+	<version>1.3.0-SNAPSHOT</version>
+	<dependencies>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-junit4</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-api-mockito2</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-client</artifactId>
+			<version>2.8.1</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+				
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-health-check</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-activemq</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-camel-bridge</artifactId>
+			<version>${vertx.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-hazelcast</artifactId>
+			<version>${vertx.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-kafka-client</artifactId>
+			<version>${vertx.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.hazelcast</groupId>
+			<artifactId>hazelcast-kubernetes</artifactId>
+			<version>${hazelcast.kubernetes.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-core</artifactId>
+			<version>${kernel.core.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-idvalidator-rid</artifactId>
+			<version>${kernel.idvalidator.rid.version}</version>
+		</dependency>
 
-@Component
-public class CaffeineCacheManager {
+		<!-- Kernel Logback Impl -->
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-logger-logback</artifactId>
+			<version>${kernel.logger.logback.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-templatemanager-velocity</artifactId>
+			<version>${kernel.templatemanager.velocity.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.servlet</groupId>
+					<artifactId>servlet-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>dom4j</groupId>
+					<artifactId>dom4j</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-cbeffutil-api</artifactId>
+			<version>${kernel.cbeffutil.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-config-spring-config-server</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-unit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger-ui</artifactId>
+			<version>${swagger.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger2</artifactId>
+			<version>${swagger.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-biometrics-api</artifactId>
+			<version>${kernel.biometrics.api.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-micrometer-metrics</artifactId>
+			<version>${vertx.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.module</groupId>
+			<artifactId>jackson-module-afterburner</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-core</artifactId>
+			<version>${vertx.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-config</artifactId>
+		</dependency>
+		<dependency>
+           <groupId>io.zipkin.zipkin2</groupId>
+          <artifactId>zipkin</artifactId>
+         <version>${zipkin.version}</version>
+      </dependency>
+       </dependencies>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-core</artifactId>
+				<version>${mockito.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>com.h2database</groupId>
+				<artifactId>h2</artifactId>
+				<version>${h2.version}</version>
+			</dependency>
+            <dependency>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>caffeine</artifactId>
+			<version>${caffeine.cache.version}</version>
+		    </dependency>
+		</dependencies>
+	</dependencyManagement>
 
-    /** The logger. */
-    private final Logger logger = RegProcessorLogger.getLogger(CaffeineCacheManager.class);
-
-    @Value("${mosip.regproc.caffeine.cache.expiry:15}")
-    private long expireAfterWrite;
-
-    @Value("${mosip.regproc.caffeine.cache.size:100000}")
-    private long maximumSize;
-
-    @Value("${mosip.regproc.caffeine.cache.enable:true}")
-    private boolean enableCache;
-
-    private Cache<String, String> cache;
-
-    @PostConstruct
-    public void init() {
-        if(enableCache) {
-            logger.debug("Caffeine Cache Expiry Time : {} min, Max Size : {}", expireAfterWrite, maximumSize);
-            this.cache = Caffeine.newBuilder()
-                    .expireAfterWrite(expireAfterWrite,TimeUnit.MINUTES)
-                    .maximumSize(maximumSize) // optional: set a size limit
-                    .build();
-        }
-    }
-
-    /**
-     * Adds a string to the cache with a specific key.
-     *
-     * @param key   The key for the cache entry.
-     * @param value The string value to be cached.
-     */
-    public void addToCache(String key, String value) {
-        if(enableCache)
-            cache.put(key, value);
-    }
-
-    /**
-     * Gets a value from the cache by key.
-     *
-     * @param key The key to retrieve.
-     * @return The cached string or null if not present or expired.
-     */
-    public String getFromCache(String key) {
-        return enableCache ? cache.getIfPresent(key) : null;
-    }
-
-    /**
-     * Removes a key from the cache immediately.
-     *
-     * @param key The key to remove.
-     */
-    public void removeFromCache(String key) {
-        if(enableCache)
-            cache.invalidate(key);
-    }
-
-
-    /**
-     Checks if a key exists in the cache. If not, stores the provided default value.
-     @param key The key to check.
-     @param defaultValue The value to store if the key is missing.
-     @return true if the key already existed in the cache, false if the default was inserted.
-     */
-    public boolean checkAndPutIfAbsent(String key, String defaultValue) {
-        if(!enableCache) {
-            return false;
-        }
-
-        String val = getFromCache(key);
-        if(val != null) {
-            logger.debug("Caffeine Cache Hit - Key: {}, Value: {}", key, val);
-            return true;
-        } else {
-            addToCache(key, defaultValue);
-            logger.debug("Caffeine Cache Miss - Key: {}, inserted default value: {}", key, defaultValue);
-            return false;
-        }
-    }
-
-    /**
-     Overloaded method that inserts a default value of "1" if the key is missing.
-     @param key The key to check and possibly insert.
-     @return true if the key was already present, false otherwise.
-     */
-    public boolean checkAndPutIfAbsent(String key) {
-        return checkAndPutIfAbsent(key, "1");
-    }
-}
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<io.micrometer.prometheus.version>1.1.0</io.micrometer.prometheus.version>
+	</properties>
+</project>
