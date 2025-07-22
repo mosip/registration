@@ -99,27 +99,60 @@ public class PacketManagerService extends PriorityBasedPacketManagerService {
         return responseField;
     }
 
-    protected Map<String, String> getFields(String id, List<String> fields, String source, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+    protected Map<String, String> getFields(String id, List<String> fields, String source, String process)
+            throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+
+        // Step 1: Build the request DTO
         FieldDtos fieldDto = new FieldDtos(id, fields, source, process, false);
 
+        // Step 2: Wrap it in a RequestWrapper
         RequestWrapper<FieldDtos> request = new RequestWrapper<>();
         request.setId(ID);
         request.setVersion(VERSION);
         request.setRequesttime(DateUtils.getUTCCurrentDateTime());
         request.setRequest(fieldDto);
-        ResponseWrapper<FieldResponseDto> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_SEARCH_FIELDS, "", "", request, ResponseWrapper.class);
 
-        if (response.getErrors() != null && response.getErrors().size() > 0) {
-            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
+        // Step 3: Print request data
+        System.out.println("=== API Request Start ===");
+        System.out.println("Registration ID: " + id);
+        System.out.println("Fields Requested: " + fields);
+        System.out.println("Source: " + source);
+        System.out.println("Process: " + process);
+        System.out.println("API Name Enum: " + ApiName.PACKETMANAGER_SEARCH_FIELDS);
+
+//        // Get actual API URL from enum if possible
+//        String apiUrl = restApi.getApiUrl(ApiName.PACKETMANAGER_SEARCH_FIELDS); // Add this helper in restApi if not available
+//        System.out.println("Resolved API URL: " + apiUrl);
+
+        System.out.println("Request Payload: " + JsonUtils.javaObjectToJsonString(request));
+        System.out.println("=== API Request End ===");
+
+        // Step 4: Call the API
+        ResponseWrapper<FieldResponseDto> response = (ResponseWrapper) restApi.postApi(
+                ApiName.PACKETMANAGER_SEARCH_FIELDS, "", "", request, ResponseWrapper.class);
+
+        // Step 5: Print raw response
+        System.out.println("=== API Response Start ===");
+        System.out.println("Raw Response: " + JsonUtils.javaObjectToJsonString(response));
+        System.out.println("=== API Response End ===");
+
+        // Step 6: Error Handling
+        if (response.getErrors() != null && !response.getErrors().isEmpty()) {
             ErrorDTO errorDTO = response.getErrors().iterator().next();
+            System.out.println("Error Received - Code: " + errorDTO.getErrorCode() + ", Message: " + errorDTO.getMessage());
+
             if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
                 throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
-            if(PACKET_MANAGER_NON_RECOVERABLE_ERROR_CODES.contains(errorDTO.getErrorCode()))
+            if (PACKET_MANAGER_NON_RECOVERABLE_ERROR_CODES.contains(errorDTO.getErrorCode()))
                 throw new PacketManagerNonRecoverableException(errorDTO.getErrorCode(), errorDTO.getMessage());
             throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
         }
 
-        FieldResponseDto fieldResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), FieldResponseDto.class);
+        // Step 7: Deserialize and return
+        FieldResponseDto fieldResponseDto = objectMapper.readValue(
+                JsonUtils.javaObjectToJsonString(response.getResponse()), FieldResponseDto.class);
+
+        System.out.println("Final Extracted Fields: " + fieldResponseDto.getFields());
 
         return fieldResponseDto.getFields();
     }
