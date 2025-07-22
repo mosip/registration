@@ -143,7 +143,7 @@ public class ManualAdjudicationStageTest {
 		//Mockito.when(env.getProperty(SwaggerConstant.SERVER_SERVLET_PATH)).thenReturn("/registrationprocessor/v1/manualverification");
 		Mockito.when(mosipConnectionFactory.createConnection(any(), any(), any(), any(), anyList()))
 				.thenReturn(mosipQueue);
-		Mockito.doReturn(new String("str").getBytes()).when(mosipQueueManager).consume(any(), any(), any());
+		Mockito.doReturn(new String("str").getBytes()).when(mosipQueueManager).consume(any(), any(), any(), any());
 		Mockito.doNothing().when(router).setRoute(any());
 		Mockito.when(router.post(any())).thenReturn(null);
 		Mockito.when(router.get(any())).thenReturn(null);

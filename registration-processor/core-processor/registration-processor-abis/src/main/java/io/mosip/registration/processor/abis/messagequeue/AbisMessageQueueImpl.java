@@ -75,6 +75,9 @@ public class AbisMessageQueueImpl {
 	/** The is connection. */
 	boolean isConnection = false;
 
+	/** consumer Count */
+	private Integer consumerCoint = 1;
+
 	/**
 	 * Run abis queue.
 	 *
@@ -96,7 +99,7 @@ public class AbisMessageQueueImpl {
 					}
 				};
 				mosipQueueManager.consume(abisQueueDetails.get(i).getMosipQueue(),
-						abisQueueDetails.get(i).getInboundQueueName(), listener);
+						abisQueueDetails.get(i).getInboundQueueName(), listener, consumerCoint);
 			}
 
 			isConnection = true;

@@ -163,6 +163,10 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 	private static final String ABIS_QUEUE_NOT_FOUND = "ABIS_QUEUE_NOT_FOUND";
 	private static final String TEXT_MESSAGE = "text";
 
+	/** Set the Consumer Count which required to listen and process message parallel. */
+	@Value("${mosip.regproc.abis.middleware.activemq.consumer.count:1}")
+	private Integer consumerCount;
+
 	/**
 	 * Get all the abis queue details,register listener to outbound queue's
 	 */
@@ -189,7 +193,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 						}
 					}
 				};
-				mosipQueueManager.consume(queue, abisQueue.getOutboundQueueName(), listener);
+				mosipQueueManager.consume(queue, abisQueue.getOutboundQueueName(), listener, consumerCount);
 			}
 
 		} catch (Exception e) {

@@ -152,6 +152,10 @@ public class VerificationStage extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.verification.message.expiry-time-limit}")
 	private Long messageExpiryTimeLimit;
 
+	/** Set the Consumer Count which required to listen and process message parallel. */
+	@Value("${mosip.regproc.verification.activemq.consumer.count:1}")
+	private Integer consumerCount;
+
 	private static final String APPLICATION_JSON = "application/json";
 
 	/**
@@ -170,7 +174,7 @@ public class VerificationStage extends MosipVerticleAPIManager {
 				}
 			};
 
-			mosipQueueManager.consume(queue, mvResponseAddress, listener);
+			mosipQueueManager.consume(queue, mvResponseAddress, listener,consumerCount);
 
 		} else {
 			throw new QueueConnectionNotFound(PlatformErrorMessages.RPR_PRT_QUEUE_CONNECTION_NULL.getMessage());
