@@ -30,6 +30,7 @@ import io.mosip.registration.processor.core.token.validation.TokenValidator;
 import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
 import io.mosip.registration.processor.core.util.PropertiesUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
+import io.mosip.registration.processor.core.cache.CaffeineCacheManager;
 import io.vertx.config.ConfigRetriever;
 import io.vertx.config.ConfigRetrieverOptions;
 import io.vertx.config.ConfigStoreOptions;
@@ -189,5 +190,10 @@ public class CoreConfigBean {
 	@Bean
 	public PropertiesUtil getPropertiesUtil() {
 		return new PropertiesUtil();
+	}
+	
+	@Bean
+	public CaffeineCacheManager caffeineCacheManager() {
+		return new CaffeineCacheManager();
 	}
 }
