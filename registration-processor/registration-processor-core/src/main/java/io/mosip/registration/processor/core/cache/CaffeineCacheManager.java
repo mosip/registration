@@ -16,9 +16,9 @@ public class CaffeineCacheManager {
     private Cache<String, String> cache;
 
     public CaffeineCacheManager(long caffeineCacheExpiry, long caffeineCacheSize, boolean enableCache) {
-        logger.debug("Caffeine Cache Expiry Time : {} min, Max Size : {}, Enabled : {} ",
-                caffeineCacheExpiry, caffeineCacheSize, enableCache);
         this.enableCache = enableCache;
+        logger.debug("Caffeine Cache Expiry Time : {} min, Max Size : {}, Enabled : {} ",
+                caffeineCacheExpiry, caffeineCacheSize, this.enableCache);
         if(this.enableCache) {
             this.cache = Caffeine.newBuilder()
                     .expireAfterWrite(caffeineCacheExpiry,TimeUnit.MINUTES)
