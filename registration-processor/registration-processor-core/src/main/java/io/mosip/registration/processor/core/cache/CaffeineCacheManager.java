@@ -4,36 +4,25 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import org.apache.camel.com.github.benmanes.caffeine.cache.Cache;
 import org.apache.camel.com.github.benmanes.caffeine.cache.Caffeine;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 import java.util.concurrent.TimeUnit;
 
-@Component
 public class CaffeineCacheManager {
 
     /** The logger. */
     private final Logger logger = RegProcessorLogger.getLogger(CaffeineCacheManager.class);
 
-    @Value("${mosip.regproc.caffeine.cache.expiry:15}")
-    private long expireAfterWrite;
-
-    @Value("${mosip.regproc.caffeine.cache.size:100000}")
-    private long maximumSize;
-
-    @Value("${mosip.regproc.caffeine.cache.enable:true}")
-    private boolean enableCache;
+    private final boolean enableCache;
 
     private Cache<String, String> cache;
 
-    @PostConstruct
-    public void init() {
-        if(enableCache) {
-            logger.debug("Caffeine Cache Expiry Time : {} min, Max Size : {}", expireAfterWrite, maximumSize);
+    public CaffeineCacheManager(long caffeineCacheExpiry, long caffeineCacheSize, boolean enableCache) {
+        this.enableCache = enableCache;
+        logger.debug("Caffeine Cache Expiry Time : {} min, Max Size : {}, Enabled : {} ",
+                caffeineCacheExpiry, caffeineCacheSize, this.enableCache);
+        if(this.enableCache) {
             this.cache = Caffeine.newBuilder()
-                    .expireAfterWrite(expireAfterWrite,TimeUnit.MINUTES)
-                    .maximumSize(maximumSize) // optional: set a size limit
+                    .expireAfterWrite(caffeineCacheExpiry,TimeUnit.MINUTES)
+                    .maximumSize(caffeineCacheSize) // optional: set a size limit
                     .build();
         }
     }
