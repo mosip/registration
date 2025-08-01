@@ -30,7 +30,6 @@ import io.mosip.registration.processor.core.token.validation.TokenValidator;
 import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
 import io.mosip.registration.processor.core.util.PropertiesUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
-import io.mosip.registration.processor.core.cache.CaffeineCacheManager;
 import io.vertx.config.ConfigRetriever;
 import io.vertx.config.ConfigRetrieverOptions;
 import io.vertx.config.ConfigStoreOptions;
@@ -191,9 +190,155 @@ public class CoreConfigBean {
 	public PropertiesUtil getPropertiesUtil() {
 		return new PropertiesUtil();
 	}
-	
+
 	@Bean
-	public CaffeineCacheManager caffeineCacheManager() {
-		return new CaffeineCacheManager();
+	public PropertySourcesPlaceholderConfigurer getPropertiesFromConfigServer(Environment environment) throws InterruptedException {
+		try {
+			Vertx vertx = Vertx.vertx();
+			List<ConfigStoreOptions> configStores = new ArrayList<>();
+			List<String> configUrls = CoreConfigBean.getUrls(environment);
+			configUrls.forEach(url -> {
+				if (url.startsWith(HttpConstants.HTTP.getUrl()))
+					configStores.add(new ConfigStoreOptions().setType(ConfigurationUtil.CONFIG_SERVER_TYPE)
+							.setConfig(new JsonObject().put("url", url).put("timeout",
+									Long.parseLong(ConfigurationUtil.CONFIG_SERVER_TIME_OUT))));
+				else
+					configStores.add(new ConfigStoreOptions().setType(ConfigurationUtil.CONFIG_SERVER_TYPE)
+							.setConfig(new JsonObject().put("url", url)
+									.put("timeout", Long.parseLong(ConfigurationUtil.CONFIG_SERVER_TIME_OUT))
+									.put("httpClientConfiguration",
+											new JsonObject().put("trustAll", true).put("ssl", true))));
+			});
+			ConfigRetrieverOptions configRetrieverOptions = new ConfigRetrieverOptions();
+			configStores.forEach(configRetrieverOptions::addStore);
+			ConfigRetriever retriever = ConfigRetriever.create(vertx, configRetrieverOptions.setScanPeriod(0));
+			regProcLogger.info(this.getClass().getName(), "", "", "Getting values from config Server");
+			CompletableFuture<JsonObject> configLoader = new CompletableFuture<JsonObject>();
+			retriever.getConfig(json -> {
+				if (json.succeeded()) {
+					JsonObject jsonObject = json.result();
+					if (jsonObject != null) {
+						jsonObject.iterator().forEachRemaining(sourceValue -> System.setProperty(sourceValue.getKey(),
+								sourceValue.getValue().toString()));
+					}
+					configLoader.complete(json.result());
+					json.mapEmpty();
+					retriever.close();
+					vertx.close();
+				} else {
+					regProcLogger.info(this.getClass().getName(), "", json.cause().getLocalizedMessage(),
+							json.cause().getMessage());
+					json.otherwiseEmpty();
+					retriever.close();
+					vertx.close();
+				}
+			});
+			configLoader.get();
+		} catch (InterruptedException interruptedException) {
+			regProcLogger.error(this.getClass().getName(), "", "", ExceptionUtils.getStackTrace(interruptedException));
+			throw interruptedException;
+		} catch (Exception exception) {
+			regProcLogger.error(this.getClass().getName(), "", "", ExceptionUtils.getStackTrace(exception));
+		}
+		return new PropertySourcesPlaceholderConfigurer();
+	}
+
+	private static List<String> getAppNames(Environment env) {
+		String names = env.getProperty(ConfigurationUtil.APPLICATION_NAMES);
+		if(names==null) {
+			throw new RuntimeException(ConfigurationUtil.APPLICATION_NAMES+" property not found in env");
+		}
+		return Stream.of(names.split(",")).collect(Collectors.toList());
+	}
+
+	private static List<String> getProfiles(Environment env) {
+		String names = env.getProperty(ConfigurationUtil.ACTIVE_PROFILES);
+		if(names==null) {
+			throw new RuntimeException(ConfigurationUtil.ACTIVE_PROFILES+" property not found in env");
+		}
+		return Stream.of(names.split(",")).collect(Collectors.toList());
+	}
+
+	public static List<String> getUrls(Environment environment) {
+		List<String> configUrls = new ArrayList<>();
+		List<String> appNames = getAppNames(environment);
+		String uri = environment.getProperty(ConfigurationUtil.CLOUD_CONFIG_URI);
+		String label = environment.getProperty(ConfigurationUtil.CLOUD_CONFIG_LABEL);
+		List<String> profiles = getProfiles(environment);
+		profiles.forEach(profile -> {
+			appNames.forEach(app -> {
+				String url = uri + "/" + app + "/" + profile + "/" + label;
+				configUrls.add(url);
+			});
+		});
+		appNames.forEach(appName -> {
+		});
+		
+		return configUrls;
+	}
+
+	@Bean
+	MosipQueueManager<?, ?> getMosipQueueManager() {
+		return new MosipActiveMqImpl();
+	}
+
+	@Bean
+	MosipQueueConnectionFactory<?> getMosipQueueConnectionFactory() {
+		return new MosipQueueConnectionFactoryImpl();
+	}
+
+	@Bean
+	public TokenValidator getTokenValidator() {
+		return new TokenValidator();
+	}
+
+	@Primary
+	@Bean
+	public MosipRouter getMosipRouter() {
+		return new MosipRouter();
+	}
+
+	@Bean
+	public DigitalSignatureUtility getDigitalSignatureUtility() {
+		return new DigitalSignatureUtility();
+	}
+
+	@Bean
+	public LogDescription getLogDescription() {
+		return new LogDescription();
+	}
+
+	@Bean
+	public RegistrationExceptionMapperUtil getRegistrationExceptionMapperUtil() {
+		return new RegistrationExceptionMapperUtil();
+	}
+
+	@Bean
+	public MosipEventBusFactory getMosipEventBusFactory() {
+		return new MosipEventBusFactory();
+	}
+
+	@Bean
+	public Tracing tracing() {
+		return Tracing.newBuilder().build();
+	}
+
+	@Bean
+	public Tracer tracer() {
+		return tracing().tracer();
+	}
+
+	@Bean
+	public ObjectMapper getObjectMapper() {
+		ObjectMapper objectMapper = new ObjectMapper().registerModule(new AfterburnerModule())
+				.registerModule(new JavaTimeModule());
+		objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+		objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+		return objectMapper;
+	}
+
+	@Bean
+	public PropertiesUtil getPropertiesUtil() {
+		return new PropertiesUtil();
 	}
 }
