@@ -10,7 +10,7 @@
 	
 	<artifactId>mosip-stage-executor</artifactId>
     <version>1.3.0-SNAPSHOT</version>
-    
+	<name>mosip-stage-executor</name>
     <dependencies>
     	<dependency>
 			<groupId>org.springframework.cloud</groupId>
