@@ -189,8 +189,12 @@ public class CoreConfigBean {
 	@Bean
 	public PropertiesUtil getPropertiesUtil() {
 		return new PropertiesUtil();
+
 	}
 
+	
+	
+	
 	@Bean
 	public PropertySourcesPlaceholderConfigurer getPropertiesFromConfigServer(Environment environment) throws InterruptedException {
 		try {
