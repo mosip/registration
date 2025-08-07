@@ -138,10 +138,10 @@
 		<kernel.logger.logback.version>1.3.0-SNAPSHOT</kernel.logger.logback.version>
 		<kernel.idvalidator.vid.version>1.3.0-SNAPSHOT</kernel.idvalidator.vid.version>
 		<object.store.khazana.version>1.3.0-SNAPSHOT</object.store.khazana.version>
-		<kernel.biometrics.api.version>1.2.1-SNAPSHOT</kernel.biometrics.api.version>
+		<kernel.biometrics.api.version>1.3.0-SNAPSHOT</kernel.biometrics.api.version>
 		<kernel-keymanager-service.version>1.3.0-SNAPSHOT</kernel-keymanager-service.version>
 		<kernel.websubclient.version>1.3.0-SNAPSHOT</kernel.websubclient.version>
-		<kernel-biosdk-provider.version>1.2.1-SNAPSHOT</kernel-biosdk-provider.version>
+		<kernel-biosdk-provider.version>1.3.0-SNAPSHOT</kernel-biosdk-provider.version>
 		<kernel.bom.version>1.3.0-SNAPSHOT</kernel.bom.version>
         <kernel.websubclient.api.version>1.3.0-SNAPSHOT</kernel.websubclient.api.version>
 		<sonar.coverage.exclusions>**/dto/**,
@@ -612,4 +612,5 @@
 		</profile>
 	</profiles>
 </project>
+
 
