@@ -1,6 +1,8 @@
 package io.mosip.registration.processor.core.eventbus;
 
+import io.mosip.registration.processor.core.cache.CaffeineCacheManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import brave.Tracing;
@@ -22,9 +24,13 @@ public class MosipEventBusFactory {
 
 	private static final String EVENTBUS_KAFKA_MAX_POLL_RECORDS = "eventbus.kafka.max.poll.records";
 
+    private static final String EVENTBUS_KAFKA_MAX_POLL_INTERVAL = "eventbus.kafka.max.poll.interval";
+
 	private static final String EVENTBUS_KAFKA_GROUP_ID = "eventbus.kafka.group.id";
 
 	private static final String EVENTBUS_KAFKA_COMMIT_TYPE = "eventbus.kafka.commit.type";
+
+    private static final String CAFFEINE_CACHE_ENABLE = "caffeine.cache.enable";
 
 	private static final String MOSIP_REGPROC_EVENTBUS_KAFKA_BOOTSTRAP_SERVERS = "mosip.regproc.eventbus.kafka.bootstrap.servers";
 
@@ -34,11 +40,17 @@ public class MosipEventBusFactory {
     @Autowired
     private PropertiesUtil propertiesUtil;
 
+    @Value("${mosip.regproc.caffeine.cache.expiry:15}")
+    private long caffeineCacheExpiry;
+
+    @Value("${mosip.regproc.caffeine.cache.size:100000}")
+    private long caffeineCacheMaximumSize;
+
     /**
      * Instantiate and return event bus of a particular type
      * @param vertx The vertx instance to which this event bus object should be attached
      * @param eventBusType String representation of event bus types, currently supports vertx and amqp
-     * @param string 
+     * @param propertyPrefix string representing unique property prefix for the stage
      * @return Any one implementation of MosipEventBus interface
      * @throws UnsupportedEventBusTypeException - Will be thrown when the eventBusType is not recognized
      */
@@ -52,9 +64,12 @@ public class MosipEventBusFactory {
                 		getKafkaBootstrapServers(), 
                 		getKafkaGroupId(propertyPrefix), 
                 		getKafkaCommitType(propertyPrefix), 
-                		getMaxPollRecords(propertyPrefix), 
-                		getPollFrequency(propertyPrefix), 
-                		eventTracingHandler);
+                		getMaxPollRecords(propertyPrefix),
+                        getMaxPollInterval(propertyPrefix),
+                        getPollFrequency(propertyPrefix),
+                		eventTracingHandler,
+                        new CaffeineCacheManager(caffeineCacheExpiry, caffeineCacheMaximumSize,
+                                isCaffeineCacheEnabled(propertyPrefix)));
             /*case "amqp":
                 return new AmqpMosipEventBus(vertx);*/
             default:
@@ -85,8 +100,16 @@ public class MosipEventBusFactory {
     public String getMaxPollRecords(String propertyPrefix) {
 		return propertiesUtil.getProperty(propertyPrefix + EVENTBUS_KAFKA_MAX_POLL_RECORDS);
 	}
-    
+
+    public String getMaxPollInterval(String propertyPrefix) {
+        return propertiesUtil.getProperty(propertyPrefix + EVENTBUS_KAFKA_MAX_POLL_INTERVAL, String.class, "300000");
+    }
+
 	public int getPollFrequency(String propertyPrefix) {
 		return propertiesUtil.getProperty(propertyPrefix + EVENTBUS_KAFKA_POLL_FREQUENCY, Integer.class, 0);
 	}
+
+    public Boolean isCaffeineCacheEnabled(String propertyPrefix) {
+        return propertiesUtil.getProperty(propertyPrefix + CAFFEINE_CACHE_ENABLE, Boolean.class, true);
+    }
 }

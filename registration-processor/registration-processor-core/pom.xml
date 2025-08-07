@@ -7,10 +7,11 @@
 	<parent>
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>registration-processor</artifactId>
-		<version>1.2.1.1</version>
+		<version>1.2.1.2-SNAPSHOT</version>
 	</parent>
 	<artifactId>registration-processor-core</artifactId>
-	<version>1.2.1.1</version>
+	<version>1.2.1.2-SNAPSHOT</version>
+	<name>registration-processor-core</name>
 	<dependencies>
 		<dependency>
 			<groupId>org.mockito</groupId>
@@ -185,6 +186,11 @@
 			<groupId>com.fasterxml.jackson.module</groupId>
 			<artifactId>jackson-module-afterburner</artifactId>
 			<version>${jackson.afterburner.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>caffeine</artifactId>
+			<version>${caffeine.cache.version}</version>
 		</dependency>
        </dependencies>
 	<dependencyManagement>

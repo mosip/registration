@@ -5,10 +5,11 @@
   <parent>
     <groupId>io.mosip.registrationprocessor</groupId>
     <artifactId>core-processor</artifactId>
-    <version>1.2.1.1</version>
+    <version>1.2.1.2-SNAPSHOT</version>
   </parent>
   <artifactId>registration-processor-abis-middleware-stage</artifactId>
-  <version>1.2.1.1</version>
+  <name>registration-processor-abis-middleware-stage</name>
+  <version>1.2.1.2-SNAPSHOT</version>
   <packaging>jar</packaging>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

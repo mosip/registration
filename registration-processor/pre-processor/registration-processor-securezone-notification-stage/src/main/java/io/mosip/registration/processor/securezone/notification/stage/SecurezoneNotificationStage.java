@@ -214,6 +214,8 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 		TrimExceptionMessage trimMessage = new TrimExceptionMessage();
 		LogDescription description = new LogDescription();
+		messageDTO.setInternalError(Boolean.FALSE);
+		messageDTO.setIsValid(Boolean.FALSE);
 		boolean isTransactionSuccessful = false;
 		try {
 			registrationStatusDto = registrationStatusService.getRegistrationStatus(messageDTO.getRid(),
@@ -281,6 +283,7 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
 					description.getCode() + " -- " + messageDTO.getRid(),
 					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage() + e.getMessage()
 							+ ExceptionUtils.getStackTrace(e));
+			messageDTO.setIsValid(Boolean.TRUE);
 			messageDTO.setInternalError(Boolean.TRUE);
 			messageDTO.setRid(registrationStatusDto.getRegistrationId());
 		} catch (Exception e) {

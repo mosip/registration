@@ -28,6 +28,7 @@ CREATE TABLE regprc.abis_request(
 -- index creation starts--
 CREATE INDEX IF NOT EXISTS idx_user_detail_cntr_id ON regprc.abis_request USING btree (bio_ref_id);
 CREATE INDEX IF NOT EXISTS idx_abis_req_regtrn_id ON regprc.abis_request USING btree (ref_regtrn_id);
+CREATE INDEX idx_abis_search on regprc.abis_request(bio_ref_id, ref_regtrn_id);
 -- index creation ends--
 COMMENT ON TABLE regprc.abis_request IS 'ABIS Request: Stores all the requests that were sent to ABIS systems';
 -- ddl-end --
