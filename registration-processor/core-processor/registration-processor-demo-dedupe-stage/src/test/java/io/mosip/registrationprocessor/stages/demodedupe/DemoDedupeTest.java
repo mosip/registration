@@ -120,7 +120,6 @@ public class DemoDedupeTest {
 	/**
 	 * Test dedupe duplicate found.
 	 */
-	@Ignore
 	@Test
 	public void testDedupeDuplicateFound() {
 		String regId = "1234567890";
@@ -142,7 +141,6 @@ public class DemoDedupeTest {
 	/**
 	 * Test demodedupe empty.
 	 */
-	@Ignore
 	@Test
 	public void testDemodedupeEmpty() {
 
