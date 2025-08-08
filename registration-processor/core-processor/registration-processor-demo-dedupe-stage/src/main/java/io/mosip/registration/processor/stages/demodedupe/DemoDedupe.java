@@ -2,10 +2,7 @@ package io.mosip.registration.processor.stages.demodedupe;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-import io.mosip.registration.processor.status.dao.RegistrationStatusDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -40,9 +37,6 @@ public class DemoDedupe {
 	@Autowired
 	private PacketInfoDao packetInfoDao;
 
-	@Autowired
-	private RegistrationStatusDao registrationStatusDao;
-
 	/**
 	 * Perform dedupe.
 	 *
@@ -50,7 +44,7 @@ public class DemoDedupe {
 	 *            the ref id
 	 * @return the list
 	 */
-	/*public List<DemographicInfoDto> performDedupe(String refId) {
+	public List<DemographicInfoDto> performDedupe(String refId) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REFERENCEID.toString(), refId,
 				"DemoDedupe::performDedupe()::entry");
 
@@ -65,37 +59,19 @@ public class DemoDedupe {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REFERENCEID.toString(), refId,
 				"DemoDedupe::performDedupe()::exit");
 		return demographicInfoDtos;
-	}*/
-	public List<DemographicInfoDto> performDedupe(String refId) {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REFERENCEID.toString(), refId,
-				"DemoDedupe::performDedupe()::entry");
-
-		List<DemographicInfoDto> applicantDemoDto = packetInfoDao.findDemoById(refId);
-
-		// Collect all unique parameter sets
-		List<PacketInfoDao.NameGenderDobLangCode> params = applicantDemoDto.stream()
-				.map(dto -> new PacketInfoDao.NameGenderDobLangCode(dto.getName(), dto.getGenderCode(), dto.getDob(), dto.getLangCode()))
-				.distinct()
-				.collect(Collectors.toList());
-
-		// Batch query for all demographic infos matching any of the parameter sets
-		List<DemographicInfoDto> infoDtos = packetInfoDao.getAllDemographicInfoDtosBatch(params);
-
-		List<DemographicInfoDto> demographicInfoDtos = getAllDemographicInfoDtosWithUin(infoDtos);
-
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REFERENCEID.toString(), refId,
-				"DemoDedupe::performDedupe()::exit");
-		return demographicInfoDtos;
 	}
 
-	private List<DemographicInfoDto> getAllDemographicInfoDtosWithUin(List<DemographicInfoDto> duplicateDemographicDtos) {
-		List<String> regIds = duplicateDemographicDtos.stream()
-				.map(DemographicInfoDto::getRegId)
-				.collect(Collectors.toList());
-		List<String> availableUins = registrationStatusDao.getProcessedRegIds(regIds); // new batch method
-		return duplicateDemographicDtos.stream()
-				.filter(dto -> availableUins.contains(dto.getRegId()))
-				.collect(Collectors.toList());
+	private List<DemographicInfoDto> getAllDemographicInfoDtosWithUin(
+			List<DemographicInfoDto> duplicateDemographicDtos) {
+		List<DemographicInfoDto> demographicInfoDtosWithUin = new ArrayList<>();
+		for (DemographicInfoDto demographicDto : duplicateDemographicDtos) {
+			if (registrationStatusService.checkUinAvailabilityForRid(demographicDto.getRegId())) {
+				demographicInfoDtosWithUin.add(demographicDto);
+			}
+
+		}
+		return demographicInfoDtosWithUin;
 	}
+
 
 }

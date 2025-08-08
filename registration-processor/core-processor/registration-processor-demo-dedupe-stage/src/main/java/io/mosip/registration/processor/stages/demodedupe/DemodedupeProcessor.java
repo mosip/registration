@@ -579,41 +579,41 @@ public class DemodedupeProcessor {
 		String moduleId = PlatformSuccessMessages.RPR_PKR_DEMO_DE_DUP.getCode();
 
 		String moduleName = ModuleName.DEMO_DEDUPE.toString();
-
-		duplicateDtos.parallelStream().forEach(demographicInfoDto -> {
-				InternalRegistrationStatusDto potentialMatchRegistrationDto = registrationStatusService
-						.getRegistrationStatus(demographicInfoDto.getRegId(),
-								registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId());
-				if (potentialMatchRegistrationDto.getLatestTransactionStatusCode()
-						.equalsIgnoreCase(RegistrationTransactionStatusCode.REPROCESS.toString())
-						|| potentialMatchRegistrationDto.getLatestTransactionStatusCode()
-						.equalsIgnoreCase(AbisConstant.RE_REGISTER)) {
-					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
-							DemoDedupeConstants.REJECTED_OR_REREGISTER);
-				} else if (potentialMatchRegistrationDto.getLatestTransactionStatusCode()
-						.equalsIgnoreCase(RegistrationTransactionStatusCode.IN_PROGRESS.toString())
-						|| potentialMatchRegistrationDto.getLatestTransactionStatusCode()
-						.equalsIgnoreCase(RegistrationTransactionStatusCode.PROCESSED.toString())) {
-					String latestTransactionId = getLatestTransactionId(registrationStatusDto.getRegistrationId(),
+		for (DemographicInfoDto demographicInfoDto : duplicateDtos) {
+			InternalRegistrationStatusDto potentialMatchRegistrationDto = registrationStatusService
+					.getRegistrationStatus(demographicInfoDto.getRegId(),
 							registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId());
-					RegDemoDedupeListDto regDemoDedupeListDto = new RegDemoDedupeListDto();
-					regDemoDedupeListDto.setRegId(registrationStatusDto.getRegistrationId());
-					regDemoDedupeListDto.setMatchedRegId(demographicInfoDto.getRegId());
-					regDemoDedupeListDto.setRegtrnId(latestTransactionId);
-					regDemoDedupeListDto.setIsDeleted(Boolean.FALSE);
-					regDemoDedupeListDto.setCrBy(DemoDedupeConstants.CREATED_BY);
-					packetInfoManager.saveDemoDedupePotentialData(regDemoDedupeListDto, moduleId, moduleName);
-					// You may need to handle isDataSaved and numberOfProcessedPackets in a thread-safe way
-				} else {
-					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
-							"The packet status is something different");
-				}
-			});
+			if (potentialMatchRegistrationDto.getLatestTransactionStatusCode()
+					.equalsIgnoreCase(RegistrationTransactionStatusCode.REPROCESS.toString())
+					|| potentialMatchRegistrationDto.getLatestTransactionStatusCode()
+							.equalsIgnoreCase(AbisConstant.RE_REGISTER)) {
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
+						DemoDedupeConstants.REJECTED_OR_REREGISTER);
+			} else if (potentialMatchRegistrationDto.getLatestTransactionStatusCode()
+					.equalsIgnoreCase(RegistrationTransactionStatusCode.IN_PROGRESS.toString())
+					|| potentialMatchRegistrationDto.getLatestTransactionStatusCode()
+							.equalsIgnoreCase(RegistrationTransactionStatusCode.PROCESSED.toString())) {
+				String latestTransactionId = getLatestTransactionId(registrationStatusDto.getRegistrationId(),
+						registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId());
+				RegDemoDedupeListDto regDemoDedupeListDto = new RegDemoDedupeListDto();
+				regDemoDedupeListDto.setRegId(registrationStatusDto.getRegistrationId());
+				regDemoDedupeListDto.setMatchedRegId(demographicInfoDto.getRegId());
+				regDemoDedupeListDto.setRegtrnId(latestTransactionId);
+				regDemoDedupeListDto.setIsDeleted(Boolean.FALSE);
+				regDemoDedupeListDto.setCrBy(DemoDedupeConstants.CREATED_BY);
+				packetInfoManager.saveDemoDedupePotentialData(regDemoDedupeListDto, moduleId, moduleName);
+				isDataSaved = true;
+				numberOfProcessedPackets++;
+			} else {
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
+						"The packet status is something different");
+			}
 			if (numberOfProcessedPackets == 0) {
 				object.setIsValid(Boolean.TRUE);
 			}
+		}
 		return isDataSaved;
 	}
 

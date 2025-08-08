@@ -4,11 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -211,53 +208,6 @@ public class PacketInfoDao {
 		query.append(alias + ".isActive=:isActive");
 		params.put("isActive", IS_ACTIVE_TRUE);
 		return demographicDedupeRepository.createQuerySelect(query.toString(), params);
-	}
-	public List<DemographicInfoDto> getAllDemographicInfoDtosBatch(List<NameGenderDobLangCode> params) {
-		if (params == null || params.isEmpty()) {
-			return List.of();
-		}
-
-		// Build JPQL query with OR blocks for each param set
-		StringBuilder query = new StringBuilder();
-		query.append("SELECT e FROM IndividualDemographicDedupeEntity e WHERE e.isActive = true AND (");
-
-		Map<String, Object> paramMap = new HashMap<>();
-		for (int i = 0; i < params.size(); i++) {
-			NameGenderDobLangCode p = params.get(i);
-			query.append("(e.name = :name").append(i)
-					.append(" AND e.gender = :gender").append(i)
-					.append(" AND e.dob = :dob").append(i)
-					.append(" AND e.id.langCode = :langCode").append(i).append(")");
-			if (i < params.size() - 1) query.append(" OR ");
-
-			paramMap.put("name" + i, p.getName());
-			paramMap.put("gender" + i, p.getGenderCode());
-			paramMap.put("dob" + i, p.getDob());
-			paramMap.put("langCode" + i, p.getLangCode());
-		}
-		query.append(")");
-
-		List<IndividualDemographicDedupeEntity> entities =
-				demographicDedupeRepository.createQuerySelect(query.toString(), paramMap);
-
-		// Convert entities to DTOs
-		return entities.stream().map(this::convertEntityToDemographicDto).collect(Collectors.toList());
-	}
-
-	@Data
-	@NoArgsConstructor
-	public static class NameGenderDobLangCode {
-		private String name;
-		private String genderCode;
-		private String dob;
-		private String langCode;
-
-		public NameGenderDobLangCode(String name, String genderCode, String dob, String langCode) {
-			this.name = name;
-			this.genderCode = genderCode;
-			this.dob = dob;
-			this.langCode = langCode;
-		}
 	}
 
 	/**
