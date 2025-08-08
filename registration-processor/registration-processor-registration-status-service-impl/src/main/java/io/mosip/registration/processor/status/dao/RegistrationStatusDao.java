@@ -219,10 +219,6 @@ public class RegistrationStatusDao {
 
 	}
 
-	public List<String> getProcessedRegIds(List<String> regIds) {
-		return registrationStatusRepositary.findProcessedRegIds(regIds, RegistrationStatusCode.PROCESSED.toString());
-	}
-
 	/**
 	 * Gets the by ids.
 	 *
