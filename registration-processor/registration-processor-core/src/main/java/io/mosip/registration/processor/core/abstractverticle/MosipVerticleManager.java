@@ -147,14 +147,14 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 				.setHAEnabled(false).setWorkerPoolSize(instanceNumber)
 				.setEventBusOptions(new EventBusOptions().setPort(getEventBusPort()).setHost(address))
 				.setMetricsOptions(micrometerMetricsOptions);
-		Vertx.clusteredVertx(options, result -> {
-			if (result.succeeded()) {
-				result.result().deployVerticle((Verticle) verticleName,
-						new DeploymentOptions().setHa(false).setWorker(true).setWorkerPoolSize(instanceNumber));
-				eventBus.complete(result.result());
-				logger.debug(verticleName + " deployed successfully");
+		Vertx.clusteredVertx(options,deployResult -> {
+            if (deployResult.succeeded()) {
+                logger.debug("verticle deployed, id=" + deployResult.result());
+                eventBus.complete(vertx); // only complete after deploy succeeded
 			} else {
-				throw new DeploymentFailureException(PlatformErrorMessages.RPR_CMB_DEPLOYMENT_FAILURE.getMessage());
+                logger.error("verticle deployment failed", deployResult.cause());
+                eventBus.completeExceptionally(
+                        new DeploymentFailureException("failed to deploy verticle", deployResult.cause()));
 			}
 		});
 
