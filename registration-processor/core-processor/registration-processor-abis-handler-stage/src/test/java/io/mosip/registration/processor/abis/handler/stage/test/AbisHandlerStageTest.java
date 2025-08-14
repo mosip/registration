@@ -91,6 +91,7 @@ import io.vertx.core.Vertx;
 @PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*", "javax.net.ssl.*" })
 public class AbisHandlerStageTest {
 
+	// Mocks
 	@Mock
 	private AuditLogRequestBuilder auditLogRequestBuilder;
 
