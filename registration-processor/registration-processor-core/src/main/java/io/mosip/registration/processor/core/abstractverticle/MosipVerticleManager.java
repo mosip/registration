@@ -147,14 +147,21 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 				.setHAEnabled(false).setWorkerPoolSize(instanceNumber)
 				.setEventBusOptions(new EventBusOptions().setPort(getEventBusPort()).setHost(address))
 				.setMetricsOptions(micrometerMetricsOptions);
-		Vertx.clusteredVertx(options,deployResult -> {
-            if (deployResult.succeeded()) {
-                logger.debug("verticle deployed, id=" + deployResult.result());
-                eventBus.complete(vertx); // only complete after deploy succeeded
+		Vertx.clusteredVertx(options, result -> {
+			if (result.succeeded()) {
+				result.result().deployVerticle((Verticle) verticleName,
+						new DeploymentOptions().setHa(false).setWorker(true).setWorkerPoolSize(instanceNumber), deployResult -> {
+                            if (deployResult.succeeded()) {
+                                eventBus.complete(result.result());
+                                logger.debug(verticleName + " deployed successfully");
+                            } else {
+                                logger.error("verticle deployment failed", deployResult.cause());
+                                eventBus.completeExceptionally(
+                                        new DeploymentFailureException("failed to deploy verticle", deployResult.cause()));
+                            }
+                });
 			} else {
-                logger.error("verticle deployment failed", deployResult.cause());
-                eventBus.completeExceptionally(
-                        new DeploymentFailureException("failed to deploy verticle", deployResult.cause()));
+				throw new DeploymentFailureException(PlatformErrorMessages.RPR_CMB_DEPLOYMENT_FAILURE.getMessage());
 			}
 		});
 
