@@ -16,6 +16,7 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -41,7 +42,6 @@ import io.mosip.registration.processor.status.exception.PacketDecryptionFailureE
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ DecryptorTest.class })
-@Ignore
 public class DecryptorTest {
 
 	@InjectMocks
@@ -80,6 +80,7 @@ public class DecryptorTest {
 	}
 
 	@Test
+    @Ignore
 	public void decryptTest() throws PacketDecryptionFailureException, ApisResourceAccessException, IOException {
 
 		DecryptResponseDto cryptomanagerResponseDto = new DecryptResponseDto();
@@ -94,6 +95,7 @@ public class DecryptorTest {
 	}
 
 	@Test(expected = PacketDecryptionFailureException.class)
+    @Ignore
 	public void HttpClientErrorExceptionTest()
 			throws FileNotFoundException, ApisResourceAccessException, PacketDecryptionFailureException {
 		ApisResourceAccessException apisResourceAccessException = Mockito.mock(ApisResourceAccessException.class);
@@ -106,6 +108,7 @@ public class DecryptorTest {
 	}
 
 	@Test(expected = PacketDecryptionFailureException.class)
+    @Ignore
 	public void HttpServerErrorExceptionTest()
 			throws FileNotFoundException, ApisResourceAccessException, PacketDecryptionFailureException {
 		List<ErrorDTO> errors=new ArrayList<>();
@@ -128,6 +131,7 @@ public class DecryptorTest {
 	}
 
 	@Test(expected = ApisResourceAccessException.class)
+    @Ignore
 	public void PacketDecryptionFailureExceptionTest()
 			throws FileNotFoundException, ApisResourceAccessException, PacketDecryptionFailureException {
 
