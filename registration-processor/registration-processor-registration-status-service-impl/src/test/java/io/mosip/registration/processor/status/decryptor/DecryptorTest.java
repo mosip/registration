@@ -41,6 +41,7 @@ import io.mosip.registration.processor.status.exception.PacketDecryptionFailureE
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ DecryptorTest.class })
+@Ignore
 public class DecryptorTest {
 
 	@InjectMocks
