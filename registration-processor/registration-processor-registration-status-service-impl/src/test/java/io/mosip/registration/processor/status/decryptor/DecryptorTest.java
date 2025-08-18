@@ -75,6 +75,7 @@ public class DecryptorTest {
 				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		when(mapper.writeValueAsString(any())).thenReturn(new String("decrypted str"));
 		when(mapper.readValue(anyString(), any(Class.class))).thenReturn(linkedHashMap);
+        
 	}
 
 	@Test
