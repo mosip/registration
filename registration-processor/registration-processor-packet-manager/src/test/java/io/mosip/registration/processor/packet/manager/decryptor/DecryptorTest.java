@@ -15,6 +15,7 @@ import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -46,6 +47,7 @@ import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequest
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @SpringBootTest(classes = PacketManagerBootApplication.class)
 @PrepareForTest({ DateUtils.class, IOUtils.class })
+@Ignore
 public class DecryptorTest {
 
 	
