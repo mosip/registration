@@ -16,17 +16,14 @@
             <pattern>%msg%n</pattern>
         </encoder>
     </appender>
-
     <!-- Send Brave span logs only to BRAVE -->
     <logger name="brave.Tracing$LogSpanHandler" level="INFO" additivity="false">
         <appender-ref ref="BRAVE"/>
     </logger>
-
     <!-- Optional: keep Tracer clean  -->
     <logger name="brave.Tracer" level="INFO" additivity="false">
         <appender-ref ref="BRAVE"/>
     </logger>
-
     <!-- Root app logs -->
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
