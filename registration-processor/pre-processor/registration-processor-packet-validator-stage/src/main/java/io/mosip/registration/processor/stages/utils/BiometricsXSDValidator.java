@@ -30,14 +30,8 @@ public class BiometricsXSDValidator {
                 xsd =  IOUtils.toByteArray(inputStream);
             }
         }
-        System.out.println("--start xsd---");
-        System.out.println("xsd="+ new String(xsd, StandardCharsets.UTF_8));
-        System.out.println("--end xsd---");
             CbeffContainerImpl cbeffContainer = new CbeffContainerImpl();
 			BIR bir = cbeffContainer.createBIRType(biometricRecord.getSegments());
-            System.out.println("--start bir---");
-            System.out.println("bir="+bir);
-            System.out.println("end bir---");
         CbeffValidator.createXMLBytes(bir, xsd);//validates XSD
     } 
 
