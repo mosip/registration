@@ -7,6 +7,8 @@ import static org.mockito.ArgumentMatchers.any;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 
 import io.mosip.kernel.core.util.DateUtils;
 import org.apache.commons.io.IOUtils;
@@ -99,7 +101,11 @@ public class PacketArchiverTest {
 		AuditRequestDto auditRequestDto = new AuditRequestDto();
 		auditRequestDto = new AuditRequestDto();
 		auditRequestDto.setDescription("description");
-		auditRequestDto.setActionTimeStamp(String.valueOf(DateUtils.getUTCCurrentDateTime()));
+		LocalDateTime utcNow = DateUtils.getUTCCurrentDateTime();
+		String formatted = utcNow
+				.truncatedTo(ChronoUnit.MILLIS)
+				.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
+		auditRequestDto.setActionTimeStamp(formatted);
 		auditRequestDto.setApplicationId(AuditLogConstant.MOSIP_4.toString());
 		auditRequestDto.setApplicationName(AuditLogConstant.REGISTRATION_PROCESSOR.toString());
 		auditRequestDto.setCreatedBy(AuditLogConstant.SYSTEM.toString());
