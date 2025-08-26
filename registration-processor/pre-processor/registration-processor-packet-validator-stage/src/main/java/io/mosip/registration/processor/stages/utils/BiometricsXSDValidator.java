@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 @Component
@@ -29,11 +30,14 @@ public class BiometricsXSDValidator {
                 xsd =  IOUtils.toByteArray(inputStream);
             }
         }
-        System.out.println("--start---");
-        System.out.println("xsd="+ Arrays.toString(xsd));
-        System.out.println("--end---");
+        System.out.println("--start xsd---");
+        System.out.println("xsd="+ new String(xsd, StandardCharsets.UTF_8));
+        System.out.println("--end xsd---");
             CbeffContainerImpl cbeffContainer = new CbeffContainerImpl();
 			BIR bir = cbeffContainer.createBIRType(biometricRecord.getSegments());
+            System.out.println("--start bir---");
+            System.out.println("bir="+bir);
+            System.out.println("end bir---");
         CbeffValidator.createXMLBytes(bir, xsd);//validates XSD
     } 
 
