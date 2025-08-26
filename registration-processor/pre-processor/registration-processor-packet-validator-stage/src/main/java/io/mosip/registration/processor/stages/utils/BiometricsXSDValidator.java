@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Arrays;
 
 @Component
 public class BiometricsXSDValidator {
@@ -28,6 +29,9 @@ public class BiometricsXSDValidator {
                 xsd =  IOUtils.toByteArray(inputStream);
             }
         }
+        System.out.println("--start---");
+        System.out.println("xsd="+ Arrays.toString(xsd));
+        System.out.println("--end---");
             CbeffContainerImpl cbeffContainer = new CbeffContainerImpl();
 			BIR bir = cbeffContainer.createBIRType(biometricRecord.getSegments());
         CbeffValidator.createXMLBytes(bir, xsd);//validates XSD
