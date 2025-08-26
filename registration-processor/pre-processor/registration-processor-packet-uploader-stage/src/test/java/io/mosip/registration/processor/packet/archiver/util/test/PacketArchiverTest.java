@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 
+import io.mosip.kernel.core.util.DateUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -98,7 +99,7 @@ public class PacketArchiverTest {
 		AuditRequestDto auditRequestDto = new AuditRequestDto();
 		auditRequestDto = new AuditRequestDto();
 		auditRequestDto.setDescription("description");
-		auditRequestDto.setActionTimeStamp(LocalDateTime.now().toString());
+		auditRequestDto.setActionTimeStamp(String.valueOf(DateUtils.getUTCCurrentDateTime()));
 		auditRequestDto.setApplicationId(AuditLogConstant.MOSIP_4.toString());
 		auditRequestDto.setApplicationName(AuditLogConstant.REGISTRATION_PROCESSOR.toString());
 		auditRequestDto.setCreatedBy(AuditLogConstant.SYSTEM.toString());

@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.stages.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.packet.dto.AuditDTO;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.stages.helper.RestHelperImpl;
@@ -54,7 +55,7 @@ public class AuditUtilityTest {
 		
 		AuditDTO audit =  new AuditDTO();
 		audit.setCreatedAt(LocalDateTime.now());
-		audit.setActionTimeStamp(LocalDateTime.now());
+		audit.setActionTimeStamp(DateUtils.getUTCCurrentDateTime());
 		List<AuditDTO> regClientAuditDTOs= new ArrayList<>();
 		regClientAuditDTOs.add(audit);
 		//Mockito.when(packetReaderService.getFile(anyString(), anyString(), anyString())).thenReturn(auditStream);
