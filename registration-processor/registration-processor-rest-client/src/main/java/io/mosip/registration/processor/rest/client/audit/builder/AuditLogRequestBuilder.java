@@ -71,7 +71,7 @@ public class AuditLogRequestBuilder {
 		ResponseWrapper<AuditResponseDto> responseWrapper = new ResponseWrapper<>();
 		try {
 			auditRequestDto.setDescription(description);
-			auditRequestDto.setActionTimeStamp(DateUtils.getUTCCurrentDateTimeWithZString());
+			auditRequestDto.setActionTimeStamp(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 			auditRequestDto.setApplicationId(AuditLogConstant.MOSIP_4.toString());
 			auditRequestDto.setApplicationName(AuditLogConstant.REGISTRATION_PROCESSOR.toString());
 			auditRequestDto.setCreatedBy(AuditLogConstant.SYSTEM.toString());
