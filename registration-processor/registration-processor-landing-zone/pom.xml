@@ -23,6 +23,12 @@
 			<groupId>io.mosip.commons</groupId>
 			<artifactId>khazana</artifactId>
 			<version>${object.store.khazana.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>io.mosip.kernel</groupId>
+					<artifactId>kernel-core</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
