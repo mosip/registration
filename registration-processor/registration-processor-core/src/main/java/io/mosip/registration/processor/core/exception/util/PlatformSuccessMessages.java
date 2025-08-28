@@ -70,6 +70,9 @@ public enum PlatformSuccessMessages {
 	RPR_BIO_METRIC_POTENTIAL_MATCH(PlatformConstants.RPR_BIO_DEDUPE_STAGE_MODULE + "000",
 			"Potential match found while processing bio dedupe"),
 
+	RPR_BIO_DEDUPE_ALL_BIOMETRIC_EXCEPTION(PlatformConstants.RPR_BIO_DEDUPE_STAGE_MODULE + "001",
+			"All Biometric having Exception"),
+
 	RPR_BIO_LOST_PACKET_UNIQUE_MATCH_FOUND(PlatformConstants.RPR_BIO_DEDUPE_STAGE_MODULE + "001",
 			"Unique Match was Found for the Biometrics Received"),
 
