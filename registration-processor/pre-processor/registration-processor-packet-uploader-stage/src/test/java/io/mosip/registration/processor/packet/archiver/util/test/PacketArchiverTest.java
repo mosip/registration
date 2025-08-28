@@ -39,6 +39,7 @@ import io.mosip.registration.processor.packet.uploader.exception.PacketNotFoundE
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditRequestDto;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
+import io.mosip.kernel.core.util.DateUtils;
 
 /**
  * @author M1039285
