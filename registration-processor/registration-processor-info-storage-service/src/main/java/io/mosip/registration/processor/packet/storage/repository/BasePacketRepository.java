@@ -481,4 +481,7 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 
 	@Query(value ="SELECT m FROM VerificationEntity m WHERE m.id.workflowInstanceId =:workflowInstanceId")
 	public List<VerificationEntity> getVerificationRecordByWorkflowInstanceId(@Param("workflowInstanceId") String workflowInstanceId);
+
+	@Query(value = "SELECT packetId FROM SyncRegistrationEntity m where m.registrationId =:regid")
+	public String getPacketIdfromRegprcList(@Param("regid") String regid);
 }
