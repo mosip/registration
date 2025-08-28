@@ -137,8 +137,6 @@ public class PacketArchiverTest {
 	 *             the no such field exception
 	 * @throws SecurityException
 	 *             the security exception
-	 * @throws UnableToAccessPathException
-	 *             the unable to access path exception
 	 * @throws PacketNotFoundException
 	 *             the packet not found exception
 	 * @throws SftpFileOperationException
