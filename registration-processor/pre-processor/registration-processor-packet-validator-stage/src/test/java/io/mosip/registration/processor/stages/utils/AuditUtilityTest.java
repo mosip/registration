@@ -54,7 +54,7 @@ public class AuditUtilityTest {
 		
 		AuditDTO audit =  new AuditDTO();
 		audit.setCreatedAt(LocalDateTime.now());
-		audit.setActionTimeStamp(LocalDateTime.now());
+		audit.setActionTimeStamp(DateUtils.getUTCCurrentDateTime());
 		List<AuditDTO> regClientAuditDTOs= new ArrayList<>();
 		regClientAuditDTOs.add(audit);
 		//Mockito.when(packetReaderService.getFile(anyString(), anyString(), anyString())).thenReturn(auditStream);

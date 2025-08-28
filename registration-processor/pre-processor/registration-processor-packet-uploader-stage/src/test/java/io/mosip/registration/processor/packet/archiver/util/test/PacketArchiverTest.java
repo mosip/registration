@@ -98,7 +98,7 @@ public class PacketArchiverTest {
 		AuditRequestDto auditRequestDto = new AuditRequestDto();
 		auditRequestDto = new AuditRequestDto();
 		auditRequestDto.setDescription("description");
-		auditRequestDto.setActionTimeStamp(LocalDateTime.now().toString());
+		auditRequestDto.setActionTimeStamp(DateUtils.getUTCCurrentDateTime());
 		auditRequestDto.setApplicationId(AuditLogConstant.MOSIP_4.toString());
 		auditRequestDto.setApplicationName(AuditLogConstant.REGISTRATION_PROCESSOR.toString());
 		auditRequestDto.setCreatedBy(AuditLogConstant.SYSTEM.toString());
