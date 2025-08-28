@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.any;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.LocalDateTime;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -39,6 +38,7 @@ import io.mosip.registration.processor.packet.uploader.exception.PacketNotFoundE
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditRequestDto;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
+import io.mosip.kernel.core.util.DateUtils;
 
 /**
  * @author M1039285
@@ -98,7 +98,7 @@ public class PacketArchiverTest {
 		AuditRequestDto auditRequestDto = new AuditRequestDto();
 		auditRequestDto = new AuditRequestDto();
 		auditRequestDto.setDescription("description");
-		auditRequestDto.setActionTimeStamp(LocalDateTime.now().toString());
+		auditRequestDto.setActionTimeStamp(DateUtils.getUTCCurrentDateTimeWithZString());
 		auditRequestDto.setApplicationId(AuditLogConstant.MOSIP_4.toString());
 		auditRequestDto.setApplicationName(AuditLogConstant.REGISTRATION_PROCESSOR.toString());
 		auditRequestDto.setCreatedBy(AuditLogConstant.SYSTEM.toString());
@@ -137,8 +137,6 @@ public class PacketArchiverTest {
 	 *             the no such field exception
 	 * @throws SecurityException
 	 *             the security exception
-	 * @throws UnableToAccessPathException
-	 *             the unable to access path exception
 	 * @throws PacketNotFoundException
 	 *             the packet not found exception
 	 * @throws SftpFileOperationException
