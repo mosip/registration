@@ -2,7 +2,7 @@ apiVersion: v2
 name: regproc-group1
 description: A Helm chart for MOSIP Registration Processor Group 1
 type: application
-version: 12.1.1-develop
+version: 12.1.2-develop
 appVersion: ""
 dependencies:
   - name: common
