@@ -1,11 +1,5 @@
 package io.mosip.registration.processor.core.tracing;
 
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import brave.Span;
 import brave.Tracer;
 import brave.Tracing;
@@ -18,12 +12,19 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import io.vertx.kafka.client.producer.KafkaProducerRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Handler to trace events,
  * currently methods are written to handle vertx eventbus and kafka
  * Note: For events, We use single line b3 header
- *      <traceid>-<spanid>-<samplingflag>
+ * <traceid>-<spanid>-<samplingflag>
  */
 public class EventTracingHandler {
 
@@ -49,6 +50,7 @@ public class EventTracingHandler {
     /**
      * creates TraceContext based on the provided eventbus Message,
      * creates new traceContext if b3 headers are not found else starts the span with existing span
+     *
      * @param carrier
      * @return
      */
@@ -64,6 +66,7 @@ public class EventTracingHandler {
     /**
      * creates TraceContext based on the provided Kafka Header,
      * creates new traceContext if b3 headers are not found else starts the span with existing span
+     *
      * @param carrier
      * @return
      */
@@ -97,8 +100,8 @@ public class EventTracingHandler {
         public String get(List<KafkaHeader> headers, String key) {
             String value = null;
             for (KafkaHeader header : headers) {
-                if(key.equalsIgnoreCase(header.key()))
-                    value= header.value().toString(StandardCharsets.UTF_8);
+                if (key.equalsIgnoreCase(header.key()))
+                    value = header.value().toString(StandardCharsets.UTF_8);
             }
             return value;
         }
@@ -112,8 +115,10 @@ public class EventTracingHandler {
         eventBus.addInboundInterceptor(deliveryContext -> {
             Span span = nextSpan(deliveryContext.message());
             JsonObject body = new JsonObject((String) deliveryContext.message().body());
-            initializeContextWithTracing(span, body == null ? "-" : (body.getString("rid", "-")));
+            String rid = body == null ? "-" : body.getString("rid", "-");
+            initializeContextWithTracing(span, rid);
             MDCHelper.addHeadersToMDC();
+            logSpanStructured(span, rid);
             deliveryContext.next();
         });
     }
@@ -121,8 +126,8 @@ public class EventTracingHandler {
     public void writeHeaderOnProduce(EventBus eventBus) {
         eventBus.addOutboundInterceptor(deliveryContext -> {
             Object tracer = ContextualData.getOrDefault(TracingConstant.TRACER);
-            Span span = (tracer instanceof TracingHandler) ? ((TracingHandler)tracer).span : (Span)tracer;
-            if(span == null) {
+            Span span = (tracer instanceof TracingHandler) ? ((TracingHandler) tracer).span : (Span) tracer;
+            if (span == null) {
                 span = nextSpan(deliveryContext.message());
                 JsonObject body = new JsonObject((String) deliveryContext.message().body());
                 initializeContextWithTracing(span, body == null ? "-" : (body.getString("rid", "-")));
@@ -146,29 +151,29 @@ public class EventTracingHandler {
 
     public void writeHeaderOnKafkaProduce(KafkaProducerRecord<String, String> producerRecord) {
         Object tracer = ContextualData.getOrDefault(TracingConstant.TRACER);
-        Span span = (tracer instanceof TracingHandler) ? ((TracingHandler)tracer).span : (Span)tracer;
-        if(span == null) {
+        Span span = (tracer instanceof TracingHandler) ? ((TracingHandler) tracer).span : (Span) tracer;
+        if (span == null) {
             span = nextSpan(producerRecord.headers());
             initializeContextWithTracing(span, producerRecord.key());
             MDCHelper.addHeadersToMDC();
         }
         producerRecord.addHeader(TracingConstant.SINGLE_LINE_B3_HEADER,
                 String.format("%s-%s", span.context().traceIdString(),
-                span.context().spanIdString()));
+                        span.context().spanIdString()));
         producerRecord.addHeader(TracingConstant.RID_KEY, producerRecord.key());
     }
 
     public void writeHeaderOnKafkaProduce(KafkaProducerRecord<String, String> producerRecord, Span span) {
-       producerRecord.addHeader(TracingConstant.SINGLE_LINE_B3_HEADER,
+        producerRecord.addHeader(TracingConstant.SINGLE_LINE_B3_HEADER,
                 String.format("%s-%s", span.context().traceIdString(),
                         span.context().spanIdString()));
-       producerRecord.addHeader(TracingConstant.RID_KEY, producerRecord.key());
+        producerRecord.addHeader(TracingConstant.RID_KEY, producerRecord.key());
     }
 
     public void closeSpan() {
         Object tracer = ContextualData.getOrDefault(TracingConstant.TRACER);
-        if(tracer instanceof Span) {
-            ((Span)tracer).finish(System.currentTimeMillis());
+        if (tracer instanceof Span) {
+            ((Span) tracer).finish(System.currentTimeMillis());
         }
     }
 
@@ -180,12 +185,20 @@ public class EventTracingHandler {
     private void initializeContextWithTracing(Span span, String rid) {
         ContextualData.put(TracingConstant.TRACER, span);
         ContextualData.put(TracingConstant.TRACE_ID_KEY, span.context().traceIdString());
-		if (rid == null) {
-			ContextualData.put(TracingConstant.RID_KEY, "-");
-		} else {
-			ContextualData.put(TracingConstant.RID_KEY, rid);
-		}
+        if (rid == null) {
+            ContextualData.put(TracingConstant.RID_KEY, "-");
+        } else {
+            ContextualData.put(TracingConstant.RID_KEY, rid);
+        }
 
+    }
+
+    private void logSpanStructured(Span span, String rid) {
+        Map<String, Object> spanMap = new HashMap<>();
+        spanMap.put("traceId", span.context().traceIdString());
+        spanMap.put("spanId", span.context().spanIdString());
+        spanMap.put("rid", rid);
+        logger.info("{}", spanMap);  // LogstashEncoder will serialize this as real JSON
     }
 
 }
