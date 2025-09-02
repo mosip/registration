@@ -15,6 +15,9 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * This is the copy from brave instrumentation
  * In this local implementation, we have added Tracer and TraceId into ContextInternal
@@ -22,7 +25,7 @@ import io.vertx.ext.web.RoutingContext;
  */
 final class TracingRoutingContextHandlerLocal implements Handler<RoutingContext> {
 
-	private static Logger regProcLogger = RegProcessorLogger.getLogger(TracingRoutingContextHandlerLocal.class);
+    private static Logger regProcLogger = RegProcessorLogger.getLogger(TracingRoutingContextHandlerLocal.class);
     static final Propagation.Getter<HttpServerRequest, String> GETTER = new Propagation.Getter<HttpServerRequest, String>() {
         public String get(HttpServerRequest carrier, String key) {
             return carrier.getHeader(key);
@@ -46,7 +49,7 @@ final class TracingRoutingContextHandlerLocal implements Handler<RoutingContext>
     }
 
     public void handle(RoutingContext context) {
-        TracingHandler tracingHandler = (TracingHandler)context.get(TracingHandler.class.getName());
+        TracingHandler tracingHandler = (TracingHandler) context.get(TracingHandler.class.getName());
         if (tracingHandler != null) {
             if (!context.failed())
                 context.addHeadersEndHandler(tracingHandler);
@@ -58,6 +61,7 @@ final class TracingRoutingContextHandlerLocal implements Handler<RoutingContext>
         context.put(TracingHandler.class.getName(), handler);
         ContextualData.put(TracingConstant.TRACER, handler);
         ContextualData.put(TracingConstant.TRACE_ID_KEY, handler.span.context().traceIdString());
+        logSpanStructured(span, context);
         context.addHeadersEndHandler(handler);
         Tracer.SpanInScope ws = this.tracer.withSpanInScope(span);
         try {
@@ -65,19 +69,35 @@ final class TracingRoutingContextHandlerLocal implements Handler<RoutingContext>
             if (ws != null)
                 ws.close();
         } catch (Throwable throwable) {
-        	regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-					LoggerFileConstant.REGISTRATIONID.toString(), "",
-					throwable.getMessage() + ExceptionUtils.getStackTrace(throwable));
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+                    LoggerFileConstant.REGISTRATIONID.toString(), "",
+                    throwable.getMessage() + ExceptionUtils.getStackTrace(throwable));
             if (ws != null)
                 try {
                     ws.close();
                 } catch (Throwable throwable1) {
-                	regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-        					LoggerFileConstant.REGISTRATIONID.toString(), "",
-        					throwable1.getMessage() + ExceptionUtils.getStackTrace(throwable1));
+                    regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+                            LoggerFileConstant.REGISTRATIONID.toString(), "",
+                            throwable1.getMessage() + ExceptionUtils.getStackTrace(throwable1));
                     throwable.addSuppressed(throwable1);
                 }
             throw throwable;
         }
+    }
+
+    private void logSpanStructured(Span span, RoutingContext context) {
+        Map<String, Object> spanMap = new HashMap<>();
+        spanMap.put("traceId", span.context().traceIdString());
+        spanMap.put("spanId", span.context().spanIdString());
+        spanMap.put("parentId", span.context().parentIdString() != null ? span.context().parentIdString() : "-");
+        spanMap.put("path", context.normalisedPath());
+        spanMap.put("method", context.request().method().name());
+
+        // Optional: include HTTP status if already available
+        if (context.response().ended()) {
+            spanMap.put("statusCode", context.response().getStatusCode());
+        }
+
+        regProcLogger.info("{}", spanMap); // LogstashEncoder will output structured JSON
     }
 }

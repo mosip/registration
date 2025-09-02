@@ -16,9 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Handler to trace events,
@@ -115,10 +113,8 @@ public class EventTracingHandler {
         eventBus.addInboundInterceptor(deliveryContext -> {
             Span span = nextSpan(deliveryContext.message());
             JsonObject body = new JsonObject((String) deliveryContext.message().body());
-            String rid = body == null ? "-" : body.getString("rid", "-");
-            initializeContextWithTracing(span, rid);
+            initializeContextWithTracing(span, body == null ? "-" : (body.getString("rid", "-")));
             MDCHelper.addHeadersToMDC();
-            logSpanStructured(span, rid);
             deliveryContext.next();
         });
     }
@@ -191,14 +187,6 @@ public class EventTracingHandler {
             ContextualData.put(TracingConstant.RID_KEY, rid);
         }
 
-    }
-
-    private void logSpanStructured(Span span, String rid) {
-        Map<String, Object> spanMap = new HashMap<>();
-        spanMap.put("traceId", span.context().traceIdString());
-        spanMap.put("spanId", span.context().spanIdString());
-        spanMap.put("rid", rid);
-        logger.info("{}", spanMap);  // LogstashEncoder will serialize this as real JSON
     }
 
 }
