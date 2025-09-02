@@ -26,7 +26,7 @@ import io.mosip.registration.processor.stages.packetclassifier.tagging.TagGenera
 import io.mosip.registration.processor.stages.packetclassifier.utility.PacketClassifierUtility;
 
 @Component
-@ConditionalOnExpression(value = "'${mosip.regproc.packet.classifier.tag-generators}'.contains('MosipIDObjectFields')")
+@ConditionalOnExpression(value = "'${mosip.regproc.packet.classifier.tag-generators}'.contains('mosipqaObjectFields')")
 public class IDObjectFieldsTagGenerator implements TagGenerator {
 
     /**

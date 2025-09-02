@@ -2,7 +2,7 @@ apiVersion: v2
 name: regproc-workflow
 description: A Helm chart for MOSIP Registration Processor Workflow Manager
 type: application
-version: 12.1.1-develop
+version: 12.1.2-develop
 appVersion: ""
 dependencies:
   - name: common
