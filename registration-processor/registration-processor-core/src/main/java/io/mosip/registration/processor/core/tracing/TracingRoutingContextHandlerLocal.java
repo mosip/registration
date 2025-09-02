@@ -15,9 +15,6 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * This is the copy from brave instrumentation
  * In this local implementation, we have added Tracer and TraceId into ContextInternal
@@ -61,7 +58,6 @@ final class TracingRoutingContextHandlerLocal implements Handler<RoutingContext>
         context.put(TracingHandler.class.getName(), handler);
         ContextualData.put(TracingConstant.TRACER, handler);
         ContextualData.put(TracingConstant.TRACE_ID_KEY, handler.span.context().traceIdString());
-        logSpanStructured(span, context);
         context.addHeadersEndHandler(handler);
         Tracer.SpanInScope ws = this.tracer.withSpanInScope(span);
         try {
@@ -83,21 +79,5 @@ final class TracingRoutingContextHandlerLocal implements Handler<RoutingContext>
                 }
             throw throwable;
         }
-    }
-
-    private void logSpanStructured(Span span, RoutingContext context) {
-        Map<String, Object> spanMap = new HashMap<>();
-        spanMap.put("traceId", span.context().traceIdString());
-        spanMap.put("spanId", span.context().spanIdString());
-        spanMap.put("parentId", span.context().parentIdString() != null ? span.context().parentIdString() : "-");
-        spanMap.put("path", context.normalisedPath());
-        spanMap.put("method", context.request().method().name());
-
-        // Optional: include HTTP status if already available
-        if (context.response().ended()) {
-            spanMap.put("statusCode", context.response().getStatusCode());
-        }
-
-        regProcLogger.info("{}", spanMap); // LogstashEncoder will output structured JSON
     }
 }
