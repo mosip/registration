@@ -2,7 +2,7 @@ apiVersion: v2
 name: regproc-notifier
 description: A Helm chart for MOSIP Registration Processor Notification Service
 type: application
-version: 12.1.2-develop
+version: 12.1.2
 appVersion: ""
 dependencies:
   - name: common

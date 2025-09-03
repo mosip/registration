@@ -2,7 +2,7 @@ apiVersion: v2
 name: regproc-salt
 description: A Helm chart to generate keys for Kernel
 type: application
-version: 12.1.2-develop
+version: 12.1.2
 appVersion: ""
 dependencies:
   - name: common
