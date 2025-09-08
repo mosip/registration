@@ -514,6 +514,9 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
                             getFinalKey(regEntity, entry.getKey().replace(ZIP, ""), object)
                             :
                             entry.getKey().replace(ZIP, "");
+                    System.out.println("objectstoreKey "+objStoreKey);
+                    System.out.println("registrationId"+registrationId);
+                    System.out.println("entry key "+entry.getKey());
                     boolean result = objectStoreAdapter.putObject(packetManagerAccount, registrationId,
                             null, null, objStoreKey, entry.getValue());
                     if (!result)
