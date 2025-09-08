@@ -84,16 +84,21 @@ public class RegistrationProcessorRestClientServiceImpl implements RegistrationP
 			try {
 
 				uriComponents = builder.build(false).encode();
-				regProcLogger.debug(uriComponents.toUri().toString(), "URI", "", "");
+				regProcLogger.info(uriComponents.toUri().toString(), "URI", "", "");
 				obj = restApiClient.getApi(uriComponents.toUri(), responseType);
 
 			} catch (Exception e) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), "",
 						e.getMessage() + ExceptionUtils.getStackTrace(e));
-
+                System.out.println("inside first catch start");
+                System.out.println("uri in first catch"+uriComponents.toUri().toString());
+                System.out.println("e.getMessage()"+e.getMessage());
+                e.printStackTrace();
+                System.out.println("inside first catch end");
 				throw new ApisResourceAccessException(
 						PlatformErrorMessages.RPR_RCT_UNKNOWN_RESOURCE_EXCEPTION.getCode(), e);
+                
 
 			}
 		}
@@ -142,6 +147,12 @@ public class RegistrationProcessorRestClientServiceImpl implements RegistrationP
 						LoggerFileConstant.REGISTRATIONID.toString(), "",
 						e.getMessage() + ExceptionUtils.getStackTrace(e));
 
+                System.out.println("inside second catch start");
+                System.out.println("uri in second catch"+uriComponents.toUri().toString());
+                System.out.println("e.getMessage()"+e.getMessage());
+                e.printStackTrace();
+                System.out.println("inside second catch end");
+
 				throw new ApisResourceAccessException(
 						PlatformErrorMessages.RPR_RCT_UNKNOWN_RESOURCE_EXCEPTION.getCode(), e);
 
@@ -180,7 +191,11 @@ public class RegistrationProcessorRestClientServiceImpl implements RegistrationP
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), "",
 						e.getMessage() + ExceptionUtils.getStackTrace(e));
-
+                System.out.println("inside third catch start");
+                System.out.println("uri in third catch"+builder.toUriString());
+                System.out.println("e.getMessage()"+e.getMessage());
+                e.printStackTrace();
+                System.out.println("inside third catch end");
 				throw new ApisResourceAccessException(
 						PlatformErrorMessages.RPR_RCT_UNKNOWN_RESOURCE_EXCEPTION.getMessage(), e);
 
@@ -251,7 +266,11 @@ public class RegistrationProcessorRestClientServiceImpl implements RegistrationP
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), "",
 						e.getMessage() + ExceptionUtils.getStackTrace(e));
-
+                System.out.println("inside fourth catch start");
+                System.out.println("uri in fourth catch"+builder.toUriString());
+                System.out.println("e.getMessage()"+e.getMessage());
+                e.printStackTrace();
+                System.out.println("inside fourth catch end");
 				throw new ApisResourceAccessException(
 						PlatformErrorMessages.RPR_RCT_UNKNOWN_RESOURCE_EXCEPTION.getMessage(), e);
 
@@ -297,7 +316,11 @@ public class RegistrationProcessorRestClientServiceImpl implements RegistrationP
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), "",
 						e.getMessage() + ExceptionUtils.getStackTrace(e));
-
+                System.out.println("inside fifth catch start");
+                System.out.println("uri in fifth catch"+builder.toUriString());
+                System.out.println("e.getMessage()"+e.getMessage());
+                e.printStackTrace();
+                System.out.println("inside first catch end");
 				throw new ApisResourceAccessException(
 						PlatformErrorMessages.RPR_RCT_UNKNOWN_RESOURCE_EXCEPTION.getMessage(), e);
 
@@ -352,7 +375,11 @@ public class RegistrationProcessorRestClientServiceImpl implements RegistrationP
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), "",
 						e.getMessage() + ExceptionUtils.getStackTrace(e));
-
+                System.out.println("inside sixth catch start");
+                System.out.println("uri in sixth catch"+builder.toUriString());
+                System.out.println("e.getMessage()"+e.getMessage());
+                e.printStackTrace();
+                System.out.println("inside sixth catch end");
 				throw new ApisResourceAccessException(
 						PlatformErrorMessages.RPR_RCT_UNKNOWN_RESOURCE_EXCEPTION.getMessage(), e);
 
@@ -407,7 +434,11 @@ public class RegistrationProcessorRestClientServiceImpl implements RegistrationP
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), "",
 						e.getMessage() + ExceptionUtils.getStackTrace(e));
-
+                System.out.println("inside sevent catch start");
+                System.out.println("uri in sevent catch"+builder.toUriString());
+                System.out.println("e.getMessage()"+e.getMessage());
+                e.printStackTrace();
+                System.out.println("inside sevent catch end");
 				throw new ApisResourceAccessException(
 						PlatformErrorMessages.RPR_RCT_UNKNOWN_RESOURCE_EXCEPTION.getMessage(), e);
 			}
@@ -461,7 +492,11 @@ public class RegistrationProcessorRestClientServiceImpl implements RegistrationP
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), "",
 						e.getMessage() + ExceptionUtils.getStackTrace(e));
-
+                System.out.println("inside eigth catch start");
+                System.out.println("uri in eigth catch"+builder.toUriString());
+                System.out.println("e.getMessage()"+e.getMessage());
+                e.printStackTrace();
+                System.out.println("inside eigth catch end");
 				throw new ApisResourceAccessException(
 						PlatformErrorMessages.RPR_RCT_UNKNOWN_RESOURCE_EXCEPTION.getMessage(), e);
 
@@ -510,7 +545,11 @@ public class RegistrationProcessorRestClientServiceImpl implements RegistrationP
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), "",
 						e.getMessage() + ExceptionUtils.getStackTrace(e));
-
+                System.out.println("inside ninth catch start");
+                System.out.println("uri in ninth catch"+builder.toUriString());
+                System.out.println("e.getMessage()"+e.getMessage());
+                e.printStackTrace();
+                System.out.println("inside ninth catch end");
 				throw new ApisResourceAccessException(
 						PlatformErrorMessages.RPR_RCT_UNKNOWN_RESOURCE_EXCEPTION.getCode(), e);
 
@@ -564,7 +603,11 @@ public class RegistrationProcessorRestClientServiceImpl implements RegistrationP
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), "",
 						e.getMessage() + ExceptionUtils.getStackTrace(e));
-
+                System.out.println("inside tenth catch start");
+                System.out.println("uri in tenth catch"+builder.toUriString());
+                System.out.println("e.getMessage()"+e.getMessage());
+                e.printStackTrace();
+                System.out.println("inside tenth catch end");
 				throw new ApisResourceAccessException(
 						PlatformErrorMessages.RPR_RCT_UNKNOWN_RESOURCE_EXCEPTION.getCode(), e);
 

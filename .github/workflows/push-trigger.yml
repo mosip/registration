@@ -20,6 +20,7 @@ on:
       - master
       - 1.*
       - develop*
+      - MOSIP*
 
 jobs:
   build-maven-registration:
