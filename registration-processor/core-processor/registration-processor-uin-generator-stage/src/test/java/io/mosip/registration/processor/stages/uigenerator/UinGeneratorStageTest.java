@@ -361,7 +361,7 @@ public class UinGeneratorStageTest {
 
 		when(packetManagerService.getBiometrics(anyString(),any(), any(), any())).thenReturn(biometricRecord);
 		when(cbeffutil.createXML(any())).thenReturn("String".getBytes());
-		when(utility.getPacketCreatedDateFromPacketManager(anyString(),anyString(),any())).thenReturn("2019-01-17T06:29:01.940Z");
+		when(utility.retrieveCreatedDateFromPacket(anyString(),anyString(),any())).thenReturn("2019-01-17T06:29:01.940Z");
 
 	}
 

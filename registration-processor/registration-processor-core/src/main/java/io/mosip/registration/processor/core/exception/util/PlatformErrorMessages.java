@@ -703,10 +703,6 @@ public enum PlatformErrorMessages {
 	RPR_PDS_DATE_TIME_EXCEPTION(PlatformConstants.RPR_PACKET_DECRYPTION_MODULE + "005",
 			"Error while parsing packet timestamp"),
 
-	/** The rpr pds Age invalid exception. */
-	RPR_PDS_AGE_INVALID_EXCEPTION(PlatformConstants.RPR_ABIS_HANDLER + "006",
-			"Invalid Age"),
-
 	/** The rpr rct unknown resource exception. */
 	RPR_RCT_UNKNOWN_RESOURCE_EXCEPTION(PlatformConstants.RPR_REST_CLIENT_MODULE + "001", "Unknown resource provided"),
 
@@ -1473,7 +1469,14 @@ public enum PlatformErrorMessages {
 			"Not able to access the API resource"),
 
 	INDIVIDUAL_BIOMETRIC_AUTHENTICATION_FAILED(PlatformConstants.RPR_BIOMETRIC_AUTHENTICATION_MODULE + "004",
-			"Bio authentication failed")
+			"Bio authentication failed"),
+	RPR_PKR_UNABLE_TO_COMPUTE_CREATION_DATE(PlatformConstants.RPR_BIO_DEDUPE_SERVICE_MODULE + "023",
+			"Unable to compute the creation date of the last processed packet"),
+	UPDATE_PACKET_BIOMETRICS_NOT_FOUND(
+			PlatformConstants.RPR_BIO_DEDUPE_SERVICE_MODULE + "024",
+			"Biometrics not found for the packet. Action depends on configuration: REJECTED or sent to MV");
+
+
 	;
 
 

@@ -1,14 +1,9 @@
 package io.mosip.registration.processor.biodedupe.stage;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import io.mosip.registration.processor.core.packet.dto.abis.UniqueRegIdsResponse;
-import io.mosip.registration.processor.packet.storage.exception.BiometricNotFoundException;
+import io.mosip.registration.processor.core.packet.dto.abis.UniqueRegistrationIds;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -90,6 +85,9 @@ public class BioDedupeProcessor {
 	@Value("#{'${registration.processor.sub-processes}'.split(',')}")
 	private List<String> subProcesses;
 
+	@Value("${bio.dedupe.missing-biometrics-action:REJECTED}")
+	private String missingBiometricsAction;
+
 	@Autowired
 	private CbeffValidateAndVerificatonService cbeffValidateAndVerificatonService;
 
@@ -133,6 +131,10 @@ public class BioDedupeProcessor {
 
 	@Value("${registration.processor.missing.biometric.verification.enabled:true}")
 	private boolean missingBiometricVerificationEnabled;
+
+	@Value("${mosip.regproc.bio.dedupe.non-infant-not-all-biometric-exception-decision:MV}")
+	private String nonInfantBioDedupe;
+
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(BioDedupeProcessor.class);
@@ -201,10 +203,10 @@ public class BioDedupeProcessor {
 				if (packetStatus.equalsIgnoreCase(AbisConstant.PRE_ABIS_IDENTIFICATION)) {
 					lostPacketPreAbisIdentification(registrationStatusDto, object);
 				} else if (packetStatus.equalsIgnoreCase(AbisConstant.POST_ABIS_IDENTIFICATION)) {
-					UniqueRegIdsResponse uniqueRegIdsResponse = abisHandlerUtil
+					UniqueRegistrationIds uniqueRegIds = abisHandlerUtil
 							.getUniqueRegIds(registrationStatusDto.getRegistrationId(),
 									registrationType, object.getIteration(), object.getWorkflowInstanceId(), ProviderStageName.BIO_DEDUPE);
-					Set<String> matchedRegIds= uniqueRegIdsResponse.getResponse();
+					Set<String> matchedRegIds= uniqueRegIds.getRegistrationIds();
 					lostPacketPostAbisIdentification(registrationStatusDto, object, matchedRegIds);
 				}
 
@@ -261,20 +263,6 @@ public class BioDedupeProcessor {
 			registrationStatusDto.setSubStatusCode(StatusUtil.SYSTEM_EXCEPTION_OCCURED.getCode());
 			registrationStatusDto.setLatestTransactionStatusCode(
 					registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.IOEXCEPTION));
-			description.setCode(PlatformErrorMessages.PACKET_BIO_DEDUPE_FAILED.getCode());
-			description.setMessage(PlatformErrorMessages.PACKET_BIO_DEDUPE_FAILED.getMessage());
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-					description.getCode() + " -- " + LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-					description.getMessage() + "\n" + ExceptionUtils.getStackTrace(ex));
-			object.setInternalError(Boolean.TRUE);
-		}
-		catch (BiometricNotFoundException ex) {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
-			registrationStatusDto.setStatusComment(trimExceptionMessage
-					.trimExceptionMessage(ex.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_NO_BIOMETRICS_FOUND.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.DUPLICATE_UPLOAD_REQUEST_EXCEPTION));
 			description.setCode(PlatformErrorMessages.PACKET_BIO_DEDUPE_FAILED.getCode());
 			description.setMessage(PlatformErrorMessages.PACKET_BIO_DEDUPE_FAILED.getMessage());
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
@@ -432,44 +420,73 @@ public class BioDedupeProcessor {
 			String registrationType) throws Exception {
 		String moduleId = "";
 		String moduleName = ModuleName.BIO_DEDUPE.toString();
-		UniqueRegIdsResponse res = abisHandlerUtil.getUniqueRegIds(registrationStatusDto.getRegistrationId(),
+		UniqueRegistrationIds res = abisHandlerUtil.getUniqueRegIds(registrationStatusDto.getRegistrationId(),
 				registrationType, registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId(), ProviderStageName.BIO_DEDUPE);
-		Set<String> matchedRegIds = res.getResponse();
-		//For update flow, when we get 0 match from abis.
-		if (res.getIsResponceNull() &&
-				registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.UPDATE.toString())) {
-			regProcLogger.debug("No match Found for the Biometric : ", registrationStatusDto.getRegistrationId());
-			//Checking when UIN generated applicant was infant
-			if (!utilities.wasApplicantInfant(registrationStatusDto)) {
-				//Not infant. checking for biometric Exception.
-				regProcLogger.debug("Found last processed packet as adult packet so checking for Biometric Exception: ", registrationStatusDto.getRegistrationId());
-				if (utilities.isAllBioWithException(registrationStatusDto)) {
-					//applicant Biometrics has Exception
-					regProcLogger.debug("All exception biometric. send to MANUAL_ADJUDICATION : ", registrationStatusDto.getRegistrationId());
-					registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
-					registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_ALL_BIOMETRIC_EXCEPTION.getMessage());
-					registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_ALL_BIOMETRIC_EXCEPTION.getCode());
-					registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
-					moduleId = PlatformSuccessMessages.RPR_BIO_DEDUPE_ALL_BIOMETRIC_EXCEPTION.getCode();
-					packetInfoManager.saveManualAdjudicationData(matchedRegIds, object,
-							DedupeSourceName.BIO, moduleId, moduleName, null, null);
-					//send message to manual adjudication
-					object.setInternalError(Boolean.FALSE);
-					object.setRid(registrationStatusDto.getRegistrationId());
-					object.setIsValid(Boolean.TRUE);
-					object.setReg_type(registrationType);
-					object.setMessageBusAddress(MessageBusAddress.VERIFICATION_BUS_IN);
 
-					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-							registrationStatusDto.getRegistrationId(), BioDedupeConstants.ALL_BIOMETRICS_HAVE_EXCEPTION);
-				}else{
-					//Not Infant and NO Biometric exception in last Interaction
-					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-							registrationStatusDto.getRegistrationId(), BioDedupeConstants.NO_BIOMETRIC_MATCH_FOUND);
-					throw new BiometricNotFoundException(StatusUtil.BIO_DEDUPE_NO_BIOMETRICS_FOUND.getMessage());
+		Set<String> matchedRegIds = new HashSet<>(
+				Optional.ofNullable(res.getRegistrationIds()).orElse(Collections.emptySet())
+		);
+
+		boolean isUpdatePacket = registrationStatusDto.getRegistrationType()
+				.equalsIgnoreCase(SyncTypeDto.UPDATE.toString());
+
+		boolean isPacketUINAvailable = res.getIsPacketUINMatched();
+
+		// Remove current registration ID from matches (temporary fix)
+		matchedRegIds.remove(registrationStatusDto.getRegistrationId());
+
+		// Check for update packet with no packetUIN from ABIS
+		if (isUpdatePacket && !isPacketUINAvailable && matchedRegIds.isEmpty()) {
+			boolean wasApplicantInfant = utilities.wasInfantWhenLastPacketProcessed(registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType(),
+					ProviderStageName.valueOf(registrationStatusDto.getRegistrationStageName()));
+			regProcLogger.debug("Was applicant infant? {}", wasApplicantInfant);
+
+			if (!wasApplicantInfant) {
+				// Not infant: check if all biometrics had exceptions
+				regProcLogger.debug("Was applicant infant? {}", wasApplicantInfant);
+				if (!utilities.allBiometricHaveException(registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType(),
+						ProviderStageName.valueOf(registrationStatusDto.getRegistrationStageName()), registrationStatusDto.getModalities())) {
+					regProcLogger.error("No biometric match found for registrationId: {}", registrationStatusDto.getRegistrationId());
+
+					if ("REJECTED".equalsIgnoreCase(nonInfantBioDedupe)) {
+						registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.name());
+						registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_NO_BIOMETRICS_FOUND.getMessage());
+						registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_NO_BIOMETRICS_FOUND.getCode());
+						registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
+						regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+								registrationStatusDto.getRegistrationId(), "Registration rejected based on non-infant no biometric match found");
+					} else {
+						// Send to MV stage
+						object.setInternalError(Boolean.FALSE);
+						object.setRid(registrationStatusDto.getRegistrationId());
+						object.setIsValid(Boolean.TRUE);
+						object.setReg_type(registrationType);
+						object.setMessageBusAddress(MessageBusAddress.VERIFICATION_BUS_IN);
+						registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+						registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_INPROGRESS.getMessage());
+						registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_INPROGRESS.getCode());
+						registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.IN_PROGRESS.toString());
+						regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+								registrationStatusDto.getRegistrationId(), "Registration sent to MV stage due to no biometric match found");
+					}
+				} else {
+					// All Biometric Exception
+					regProcLogger.error("All biometric exception found for registrationId: {}", registrationStatusDto.getRegistrationId());
+						// Send to MV stage
+						object.setInternalError(Boolean.FALSE);
+						object.setRid(registrationStatusDto.getRegistrationId());
+						object.setIsValid(Boolean.TRUE);
+						object.setReg_type(registrationType);
+						object.setMessageBusAddress(MessageBusAddress.VERIFICATION_BUS_IN);
+						registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+						registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_INPROGRESS.getMessage());
+						registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_INPROGRESS.getCode());
+						registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.IN_PROGRESS.toString());
+						regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+								registrationStatusDto.getRegistrationId(), "Registration sent to MV stage due to all biometric exceptions");
 				}
 			}
-		}else {
+		}
 			ArrayList<String> matchedRegIdsList = new ArrayList<String>(matchedRegIds);
 			// TODO : temporary fix. Need to analyze more.
 			if (matchedRegIds != null && !matchedRegIds.isEmpty()
@@ -505,7 +522,7 @@ public class BioDedupeProcessor {
 						registrationStatusDto.getRegistrationId(), BioDedupeConstants.ABIS_RESPONSE_NOT_NULL);
 
 			}
-		}
+
 	}
 
 	/**

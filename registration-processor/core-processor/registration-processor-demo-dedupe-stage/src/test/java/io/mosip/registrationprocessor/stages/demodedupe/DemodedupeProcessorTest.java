@@ -23,7 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import io.mosip.registration.processor.core.packet.dto.abis.UniqueRegIdsResponse;
+import io.mosip.registration.processor.core.packet.dto.abis.UniqueRegistrationIds;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -540,8 +540,8 @@ public class DemodedupeProcessorTest {
 
 		Set<String> set = new HashSet<>();
 		set.add("reg1234");
-		UniqueRegIdsResponse uniqueRegIdsResponse =new UniqueRegIdsResponse();
-		uniqueRegIdsResponse.setResponse(set);
+		UniqueRegistrationIds uniqueRegIdsResponse =new UniqueRegistrationIds();
+		uniqueRegIdsResponse.setRegistrationIds(set);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(uniqueRegIdsResponse);
 		doNothing().when(packetInfoManager).saveManualAdjudicationData(anySet(), any(), any(), any(), any(),any(),any());
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
@@ -583,8 +583,8 @@ public class DemodedupeProcessorTest {
 		Mockito.when(packetInfoManager.getAbisResponseDetRecordsList(any())).thenReturn(abisResponseDetDtos);
 		Set<String> set = new HashSet<>();
 		set.add("reg1234");
-		UniqueRegIdsResponse uniqueRegIdsResponse =new UniqueRegIdsResponse();
-		uniqueRegIdsResponse.setResponse(set);
+		UniqueRegistrationIds uniqueRegIdsResponse =new UniqueRegistrationIds();
+		uniqueRegIdsResponse.setRegistrationIds(set);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(uniqueRegIdsResponse);
 		doNothing().when(packetInfoManager).saveManualAdjudicationData(anySet(), any(), any(), any(), any(),any(),any());
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
@@ -621,8 +621,8 @@ public class DemodedupeProcessorTest {
 		Mockito.when(packetInfoManager.getAbisResponseDetRecordsList(any())).thenReturn(abisResponseDetDtos);
 		Set<String> set = new HashSet<>();
 		set.add("reg1234");
-		UniqueRegIdsResponse uniqueRegIdsResponse =new UniqueRegIdsResponse();
-		uniqueRegIdsResponse.setResponse(set);
+		UniqueRegistrationIds uniqueRegIdsResponse =new UniqueRegistrationIds();
+		uniqueRegIdsResponse.setRegistrationIds(set);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(uniqueRegIdsResponse);
 		doNothing().when(packetInfoManager).saveManualAdjudicationData(anySet(), any(), any(), any(), any(),any(),any());
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);

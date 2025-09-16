@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.mosip.registration.processor.core.idrepo.dto.RidDTO;
 import io.mosip.registration.processor.core.packet.dto.RidDto;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -195,22 +196,22 @@ public class IdRepoServiceImpl implements IdRepoService {
 
 
 	@Override
-	public RidDto getRidByIndividualId(String uin) throws IOException, ApisResourceAccessException {
+	public RidDTO searchIdVidMetadata(String uin) throws IOException, ApisResourceAccessException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				uin, "IdRepoServiceImpl::getRidbyIndividualId()::entry");
-		RidDto ridDto=null;
+				uin, "IdRepoServiceImpl::searchIdVidMetadata()::entry");
+		RidDTO ridDTO = null;
 		List<String> pathSegments1 = new ArrayList<>();
 		pathSegments1.add(uin);
 		@SuppressWarnings("unchecked")
-		ResponseWrapper<ResponseDTO> response=(ResponseWrapper<ResponseDTO>) restClientService.getApi(ApiName.IDREPOINDIVIDUALID, pathSegments1, "type", "ALL",
+		ResponseWrapper<ResponseDTO> response=(ResponseWrapper<ResponseDTO>) restClientService.getApi(ApiName.IDREPOIDVIDMETADATASEARCH, pathSegments1, "type", "ALL",
 				ResponseWrapper.class);
 
 		if (response.getResponse() != null) {
-			ridDto=mapper.readValue(mapper.writeValueAsString(response.getResponse()), RidDto.class);
+			ridDTO = mapper.readValue(mapper.writeValueAsString(response.getResponse()), RidDTO.class);
 		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				uin, "IdRepoServiceImpl::getRidbyIndividualId()::exit");
+				uin, "IdRepoServiceImpl::searchIdVidMetadata()::exit");
 
-		return ridDto;
+		return ridDTO;
 	}
 }

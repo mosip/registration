@@ -258,8 +258,29 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 				loadDemographicIdentity(fieldMap, demographicIdentity);
 
 				if (StringUtils.isEmpty(uinField) || uinField.equalsIgnoreCase("null") ) {
-					String  packetCreatedTimestamp=utility.getPacketCreatedDateFromPacketManager(registrationId,registrationStatusDto.getRegistrationType(),ProviderStageName.UIN_GENERATOR);
-					demographicIdentity.put(MappingJsonConstants.PACKET_CREATED_ON,packetCreatedTimestamp);
+					// Only for NEW and UPDATE registrations, capture packetCreatedOn
+					if (RegistrationType.NEW.toString().equalsIgnoreCase(registrationStatusDto.getRegistrationType())
+							|| RegistrationType.UPDATE.toString().equalsIgnoreCase(registrationStatusDto.getRegistrationType())) {
+
+						// Try to fetch directly from packet via mapping
+						String packetCreatedOn = utility.getMappedFieldName(
+								registrationId,
+								MappingJsonConstants.PACKET_CREATED_ON,
+								registrationStatusDto.getRegistrationType(),
+								ProviderStageName.UIN_GENERATOR
+						);
+
+						// Fallback to metaInfo if not present in packet
+						if (StringUtils.isEmpty(packetCreatedOn)) {
+							packetCreatedOn = utility.retrieveCreatedDateFromPacket(
+									registrationId,
+									registrationStatusDto.getRegistrationType(),
+									ProviderStageName.UIN_GENERATOR
+							);
+						}
+
+						demographicIdentity.put(MappingJsonConstants.PACKET_CREATED_ON, packetCreatedOn);
+					}
 					idResponseDTO = sendIdRepoWithUin(registrationId, registrationStatusDto.getRegistrationType(), demographicIdentity,
 							uinField);
 

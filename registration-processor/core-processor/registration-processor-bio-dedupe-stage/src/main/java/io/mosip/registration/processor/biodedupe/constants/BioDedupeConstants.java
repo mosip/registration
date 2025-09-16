@@ -45,5 +45,7 @@ public class BioDedupeConstants {
 
 	public static final String NO_BIOMETRIC_MATCH_FOUND = "Not Even Single Match Found for Biometric from Abis";
 
-	public static final String ALL_BIOMETRICS_HAVE_EXCEPTION = "All Biometric Having Exception";
+	public static final String ALL_BIOMETRICS_HAVE_EXCEPTION = "All biometrics for the applicant were marked as exceptions";
+
+	public static final String PACKET_CREATION_DATE_UNABLE_TO_COMPUTE = "Unable to compute the creation date of the last processed packet";
 }

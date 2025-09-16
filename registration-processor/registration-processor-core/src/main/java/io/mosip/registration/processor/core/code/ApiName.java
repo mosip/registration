@@ -62,7 +62,7 @@ public enum ApiName {
 	IDREPOGETIDBYUIN,
 
 	/** The idrepository get individual by rid. */
-	IDREPOINDIVIDUALID,
+	IDREPOIDVIDMETADATASEARCH,
 
 	/** The uingenerator. */
 	UINGENERATOR,
