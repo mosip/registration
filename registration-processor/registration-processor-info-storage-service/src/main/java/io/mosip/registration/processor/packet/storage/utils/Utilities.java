@@ -192,9 +192,6 @@ public class Utilities {
 	@Value("${registration.processor.vid-support-for-update:false}")
 	private Boolean isVidSupportedForUpdate;
 
-	@Value("${registration.processor.expected-life-span}")
-	private int expectedLifeSpan;
-
 	@Value("${mosip.kernel.applicant.type.age.limit}")
 	private String ageLimit;
 
