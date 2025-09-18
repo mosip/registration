@@ -468,6 +468,7 @@ public class BioDedupeProcessor {
 						registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.IN_PROGRESS.toString());
 						regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 								registrationStatusDto.getRegistrationId(), "Registration sent to MV stage due to no biometric match found");
+						return;
 					}
 				} else {
 					// All Biometric Exception
