@@ -654,7 +654,7 @@ public class Utilities {
 		return UIN;
 	}
 
-	public String getUIn(String id, String process, String stageName)
+	public String getUInFromStringStage(String id, String process, String stageName)
 			throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 		return getUIn(id, process, safeConvertStage(stageName));
 	}
@@ -1011,7 +1011,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
 				"utility::getLastProcessedPacketCreatedDate()::entry");
 		//Get the UIN from the packet
-		String packetUin = getUIn(rid, process, stageName);
+		String packetUin = getUInFromStringStage(rid, process, stageName);
 		if (packetUin == null || packetUin.trim().isEmpty()) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 					LoggerFileConstant.REGISTRATIONID.toString(),
