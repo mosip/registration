@@ -438,7 +438,7 @@ public class BioDedupeProcessor {
 		// Check for update packet with no packetUIN from ABIS
 		if (isUpdatePacket && !isPacketUINAvailable && matchedRegIds.isEmpty()) {
 			boolean wasApplicantInfant = utilities.wasInfantWhenLastPacketProcessed(registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType(),
-					ProviderStageName.valueOf(registrationStatusDto.getRegistrationStageName()));
+					registrationStatusDto.getRegistrationStageName());
 			regProcLogger.debug("Was applicant infant? {}", wasApplicantInfant);
 
 			if (!wasApplicantInfant) {
