@@ -654,21 +654,6 @@ public class Utilities {
 		return UIN;
 	}
 
-	public String getUInFromStringStage(String id, String process, String stageName)
-			throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
-		return getUIn(id, process, safeConvertStage(stageName));
-	}
-
-	private ProviderStageName safeConvertStage(String stageName) {
-		try {
-			return ProviderStageName.valueOf(stageName);
-		} catch (IllegalArgumentException e) {
-			regProcLogger.warn("Unknown stageName '{}', defaulting to null-safe handling", stageName);
-			return null; // or maybe a default like ProviderStageName.DEFAULT_STAGE
-		}
-	}
-
-
 	/**
 	 * Gets the elapse status.
 	 *
@@ -953,7 +938,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	}
 
 	// Determines whether the applicant was an infant at the time their last packet was processed in the system.
-	public boolean wasInfantWhenLastPacketProcessed(String registrationId, String registrationType, String stageName) throws Exception {
+	public boolean wasInfantWhenLastPacketProcessed(String registrationId, String registrationType, ProviderStageName stageName) throws Exception {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "utility::wasInfantWhenLastPacketProcessed()::entry");
 
@@ -978,7 +963,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	/**
 	 * Attempts to resolve the last packet processed date using multiple strategies in order.
 	 */
-	private LocalDate resolveLastPacketProcessedDate(String registrationId, String registrationType, String stageName) throws Exception {
+	private LocalDate resolveLastPacketProcessedDate(String registrationId, String registrationType, ProviderStageName stageName) throws Exception {
 		// 1. Try direct lookup
 		LocalDate date = getLastProcessedPacketCreatedDate(registrationId, registrationType, stageName);
 		if (date != null) return date;
@@ -1005,20 +990,20 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	}
 
 	// Retrieves the created date of the last packet that was processed for the applicant.
-	public LocalDate getLastProcessedPacketCreatedDate(String rid, String process, String stageName) throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException, ParseException {
+	public LocalDate getLastProcessedPacketCreatedDate(String rid, String process, ProviderStageName stageName) throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException, ParseException {
 
 		String packetCreatedDateTimeIsoFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
 				"utility::getLastProcessedPacketCreatedDate()::entry");
 		//Get the UIN from the packet
-		String packetUin = getUInFromStringStage(rid, process, stageName);
+		String packetUin = getUIn(rid, process, stageName);
 		if (packetUin == null || packetUin.trim().isEmpty()) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 					LoggerFileConstant.REGISTRATIONID.toString(),
 					rid,
 					"UIN not found in the packet for stage: " + stageName);
 		}
-		String createdOn = getMappedFieldName(rid, MappingJsonConstants.PACKET_CREATED_ON, process, safeConvertStage(stageName));
+		String createdOn = getMappedFieldName(rid, MappingJsonConstants.PACKET_CREATED_ON, process, stageName);
 		//Get created date and time from idrepo using above UIN */
 		String packetCreatedOn="";
 		JSONObject responseDTO = idRepoService.getIdJsonFromIDRepo(packetUin,getGetRegProcessorDemographicIdentity());
@@ -1060,14 +1045,14 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	/**
 	 * Extract Date of Birth from IDRepo using RID.
 	 */
-	public LocalDate getDateOfBirthFromIdrepo(String rid, String type, String stageName) throws Exception {
+	public LocalDate getDateOfBirthFromIdrepo(String rid, String type, ProviderStageName stageName) throws Exception {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 				"utility::getDateOfBirthFromIdrepo()::entry");
 
-		String uin = packetManagerService.getField(rid, MappingJsonConstants.UIN, type, safeConvertStage(stageName));
+		String uin = packetManagerService.getField(rid, MappingJsonConstants.UIN, type, stageName);
 
 		// Step 2: Fetch DOB dynamically via mapping
-		String dobValue = packetManagerService.getFieldByMappingJsonKey(uin, MappingJsonConstants.DOB, type, safeConvertStage(stageName));
+		String dobValue = packetManagerService.getFieldByMappingJsonKey(uin, MappingJsonConstants.DOB, type, stageName);
 
 		if (dobValue != null && !dobValue.isBlank()) {
 			LocalDate dob = parseToLocalDate(dobValue, dobFormat);
@@ -1100,9 +1085,9 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	}
 
 	//Obtain the last processed RID for the applicant
-	public RidDTO getLastProcessedRidForApplicant(String rid, String process, String stageName) throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
+	public RidDTO getLastProcessedRidForApplicant(String rid, String process, ProviderStageName stageName) throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 		//getting Uin from packetmanager from update packet */
-		String uin = packetManagerService.getField(rid,UIN,process, safeConvertStage(stageName));
+		String uin = packetManagerService.getField(rid,UIN,process, stageName);
 		// getting Last processed Rid from Idrepo */
 		RidDTO ridDTO = idRepoService.searchIdVidMetadata(uin);
 		return ridDTO;
