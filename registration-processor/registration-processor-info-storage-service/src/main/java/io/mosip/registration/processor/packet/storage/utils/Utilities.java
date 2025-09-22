@@ -74,8 +74,7 @@ import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 import lombok.Data;
 
-import static io.mosip.kernel.core.util.DateUtils.after;
-import static io.mosip.kernel.core.util.DateUtils.before;
+import static io.mosip.kernel.core.util.DateUtils.*;
 
 /**
  * The Class Utilities.
@@ -1065,9 +1064,19 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	}
 
 	// Calculates the age of an applicant at the time of the last packet processing.
-	public int calculateAgeAtLastPacketProcessing(LocalDate dateOfBirth, LocalDate lastPacketProcessingDate) throws Exception {
+	public int calculateAgeAtLastPacketProcessing(LocalDate dateOfBirth, LocalDate lastPacketProcessingDate) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"utility::calculateAgeAtLastPacketProcessing():: entry");
+
+		if (dateOfBirth == null || lastPacketProcessingDate == null) {
+			regProcLogger.debug("Date of birth or last packet processing date is null. dob={}, lastDate={}", dateOfBirth, lastPacketProcessingDate);
+			throw new IllegalArgumentException("Date of birth and last packet processing date must not be null");
+		}
+
+		if (lastPacketProcessingDate.isBefore(dateOfBirth)) {
+			regProcLogger.debug("Last packet processing date cannot be before date of birth. dob={}, lastDate={}", dateOfBirth, lastPacketProcessingDate);
+			throw new IllegalArgumentException("Last packet processing date cannot be before date of birth");
+		}
 
 		// Calculate the period between the two dates
 		Period period = Period.between(dateOfBirth, lastPacketProcessingDate);
@@ -1129,31 +1138,10 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	}
 
 	/**
-	 * Parses a date string to LocalDateTime using the provided format.
-	 * Returns null if parsing fails.
-	 */
-	public static LocalDateTime parseToLocalDateTime(String dateString, String dateFormat) {
-		if (dateString == null || dateString.isEmpty()) {
-			return null;
-		}
-
-		try {
-			DateTimeFormatter formatter = DateTimeFormatter.ofPattern(dateFormat);
-			return LocalDateTime.parse(dateString, formatter);
-		} catch (Exception e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-					LoggerFileConstant.UIN.toString(),
-					"",
-					"Failed to parse date: " + dateString + " with format: " + dateFormat, e);
-			return null; // return null if parsing fails
-		}
-	}
-
-	/**
 	 * Wrapper that returns LocalDate only (ignores time).
 	 */
 	public static LocalDate parseToLocalDate(String dateString, String dateFormat) {
-		LocalDateTime ldt = parseToLocalDateTime(dateString, dateFormat);
+		LocalDateTime ldt = parseUTCToLocalDateTime(dateString, dateFormat);
 
 		// Perform validation if parsing was successful
 		if (ldt != null) {
@@ -1204,9 +1192,9 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 
 
 	// Computes the approximate packet creation date (for the packet that updated the identity)
-	public LocalDateTime computePacketCreatedFromIdentityUpdate(RidDTO ridDTO) throws ParseException {
+	public LocalDateTime computePacketCreatedFromIdentityUpdate(RidDTO ridDTO) {
 		String packetCreatedDateTimeIsoFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
-		LocalDateTime updatedOn = parseToLocalDateTime(
+		LocalDateTime updatedOn = parseUTCToLocalDateTime(
 				ridDTO.getUpd_dtimes(), packetCreatedDateTimeIsoFormat
 		);
 
