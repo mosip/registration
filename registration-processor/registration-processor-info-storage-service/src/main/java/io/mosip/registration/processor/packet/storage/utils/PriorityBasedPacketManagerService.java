@@ -10,6 +10,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import org.assertj.core.util.Lists;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +34,8 @@ import io.mosip.registration.processor.packet.storage.helper.PacketManagerHelper
 
 @Component
 public class PriorityBasedPacketManagerService {
+
+    private static Logger regProcLogger = RegProcessorLogger.getLogger(PriorityBasedPacketManagerService.class);
 
     @Autowired
     private Utilities utilities;
@@ -63,6 +67,7 @@ public class PriorityBasedPacketManagerService {
      */
     public String getFieldByMappingJsonKey(String id, String key, String process, ProviderStageName stageName) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         JSONObject regProcessorIdentityJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
+        regProcLogger.debug("Mapping JSON for identity: {}", regProcessorIdentityJson);
         String field = JsonUtil.getJSONValue(
                 JsonUtil.getJSONObject(regProcessorIdentityJson, key),
                 MappingJsonConstants.VALUE);

@@ -1046,6 +1046,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 
 		// Step 2: Fetch DOB dynamically via mapping
 		String dobValue = packetManagerService.getFieldByMappingJsonKey(rid, MappingJsonConstants.DOB, type, stageName);
+		regProcLogger.debug("Fetched DOB value for RID {}: {}", rid, dobValue);
 
 		if (dobValue != null && !dobValue.isBlank()) {
 			LocalDate dob = parseToLocalDate(dobValue, dobFormat);
