@@ -1049,10 +1049,8 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 				"utility::getDateOfBirthFromIdrepo()::entry");
 
-		String uin = packetManagerService.getField(rid, MappingJsonConstants.UIN, type, stageName);
-
 		// Step 2: Fetch DOB dynamically via mapping
-		String dobValue = packetManagerService.getFieldByMappingJsonKey(uin, MappingJsonConstants.DOB, type, stageName);
+		String dobValue = packetManagerService.getFieldByMappingJsonKey(rid, MappingJsonConstants.DOB, type, stageName);
 
 		if (dobValue != null && !dobValue.isBlank()) {
 			LocalDate dob = parseToLocalDate(dobValue, dobFormat);
