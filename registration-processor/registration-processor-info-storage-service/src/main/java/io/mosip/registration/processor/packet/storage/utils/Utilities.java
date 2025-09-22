@@ -5,9 +5,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.*;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.common.collect.Lists;
 import io.mosip.kernel.biometrics.commons.CbeffValidator;
@@ -95,9 +93,7 @@ public class Utilities {
 	private static final String PROVIDER = "provider";
 	public static final String EXCEPTION = "EXCEPTION";
 	public static final String TRUE = "TRUE";
-	public static final String DATEOFBIRTH="dateOfBirth";
 	public static final String PACKETCREATEDDATE="packetCreatedOn";
-	public static final String IDREPODATEFORMAT= "yyyy/MM/dd";
 
 	private static Map<String, String> readerConfiguration;
 	private static Map<String, String> writerConfiguration;
