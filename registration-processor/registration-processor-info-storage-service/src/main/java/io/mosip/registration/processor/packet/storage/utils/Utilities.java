@@ -598,12 +598,30 @@ public class Utilities {
 
 		if (mappingJsonObject == null) {
 			String mappingJsonString = Utilities.getJson(configServerFileStorageURL, getRegProcessorIdentityJson);
+			// Log if mapping JSON is empty or null
+			if (mappingJsonString == null || mappingJsonString.isEmpty()) {
+				regProcLogger.error("Received empty or null mapping JSON string for segment: {}", packetSegment);
+				throw new IOException("Failed to fetch valid mapping JSON from the server.");
+			}
+
 			mappingJsonObject = objMapper.readValue(mappingJsonString, JSONObject.class);
+			// Log if the mapping JSON object is empty or null after parsing
+			if (mappingJsonObject == null || mappingJsonObject.isEmpty()) {
+				regProcLogger.error("Parsed mapping JSON object is empty for segment: {}", packetSegment);
+				throw new IOException("Parsed mapping JSON is empty.");
+			}
 
 		}
+
+		// Attempt to retrieve the specific segment from the mapping JSON
+		JSONObject segmentJson = JsonUtil.getJSONObject(mappingJsonObject, packetSegment);
+		// Log if the segment is not found
+		if (segmentJson == null) {
+			regProcLogger.error("Mapping segment '{}' not found.", packetSegment);
+		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-				"Utilities::getRegistrationProcessorMappingJson()::exit");
-		return JsonUtil.getJSONObject(mappingJsonObject, packetSegment);
+	"Utilities::getRegistrationProcessorMappingJson()::exit");
+		return segmentJson;
 
 	}
 
