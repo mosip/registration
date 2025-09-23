@@ -962,7 +962,10 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 					registrationId,
 					"UIN not found in the packet for stage: " + stageName);
 		}
-		LocalDate lastPacketProcessedDate = resolveLastPacketProcessedDate(registrationId, packetUin, registrationType, stageName);
+		// Get created date and time from idrepo using above UIN
+		JSONObject responseDTO = idRepoService.getIdJsonFromIDRepo(packetUin, getGetRegProcessorDemographicIdentity());
+
+		LocalDate lastPacketProcessedDate = resolveLastPacketProcessedDate(registrationId, packetUin, responseDTO, registrationType, stageName);
 
 		if (lastPacketProcessedDate == null) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
@@ -971,7 +974,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 					PlatformErrorMessages.RPR_BDD_PACKET_CREATED_DATE_NULL.getCode());
 		}
 
-		LocalDate dobOfApplicant = getDateOfBirthFromIdrepo(registrationId, registrationType, stageName, packetUin);
+		LocalDate dobOfApplicant = getDateOfBirthFromIdrepo(registrationId, responseDTO, registrationType, stageName);
 		int age = calculateAgeAtLastPacketProcessing(dobOfApplicant, lastPacketProcessedDate);
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -983,9 +986,9 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	/**
 	 * Attempts to resolve the last packet processed date using multiple strategies in order.
 	 */
-	private LocalDate resolveLastPacketProcessedDate(String registrationId, String packetUin, String registrationType, ProviderStageName stageName) throws Exception {
+	private LocalDate resolveLastPacketProcessedDate(String registrationId, String packetUin, JSONObject responseDTO, String registrationType, ProviderStageName stageName) throws Exception {
 		// 1. Try direct lookup
-		LocalDate date = getLastProcessedPacketCreatedDate(registrationId, packetUin, registrationType, stageName);
+		LocalDate date = getLastProcessedPacketCreatedDate(registrationId, packetUin, responseDTO, registrationType, stageName);
 		if (date != null) return date;
 
 		// 2. Use last processed RID
@@ -1010,7 +1013,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	}
 
 	// Retrieves the created date of the last packet that was processed for the applicant.
-	public LocalDate getLastProcessedPacketCreatedDate(String rid, String process, String packetUin, ProviderStageName stageName) throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException, ParseException {
+	public LocalDate getLastProcessedPacketCreatedDate(String rid, String packetUin, JSONObject responseDTO, String process, ProviderStageName stageName) throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException, ParseException {
 
 		String packetCreatedDateTimeIsoFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
@@ -1025,17 +1028,15 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		String createdOn = getMappedFieldName(rid, MappingJsonConstants.PACKET_CREATED_ON, process, stageName);
 		//Get created date and time from idrepo using above UIN */
 		String packetCreatedOn="";
-		JSONObject responseDTO = idRepoService.getIdJsonFromIDRepo(packetUin,getGetRegProcessorDemographicIdentity());
-
 		// Check if the response object itself is null
 		if (responseDTO == null) {
-			regProcLogger.debug("responseDTO is null");
+			regProcLogger.debug("responseDTO ::getLastProcessedPacketCreatedDate() is null");
 			return null;
 		}
 
 		// Check if the key exists in the response
 		if (!responseDTO.containsKey(PACKETCREATEDDATE)) {
-			regProcLogger.debug("Key '{}' does not exist in responseDTO", PACKETCREATEDDATE);
+			regProcLogger.debug("Key '{}' does not exist in responseDTO ::getLastProcessedPacketCreatedDate()", PACKETCREATEDDATE);
 			return null;
 		}
 
@@ -1044,7 +1045,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 
 		// Check if the value itself is null
 		if (packetCreatedOn == null) {
-			regProcLogger.debug("Value for key '{}' is null in responseDTO", createdOn);
+			regProcLogger.debug("Value for key '{}' is null in responseDTO ::getLastProcessedPacketCreatedDate()", createdOn);
 			return null;
 		}
 		LocalDate packetCreatedDate = parseToLocalDate(packetCreatedOn, packetCreatedDateTimeIsoFormat);
@@ -1064,24 +1065,21 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	/**
 	 * Extract Date of Birth from IDRepo using RID.
 	 */
-	public LocalDate getDateOfBirthFromIdrepo(String rid, String type, ProviderStageName stageName, String packetUin) throws Exception {
+	public LocalDate getDateOfBirthFromIdrepo(String rid, JSONObject responseDTO, String type, ProviderStageName stageName) throws Exception {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 				"utility::getDateOfBirthFromIdrepo()::entry");
 
 		// Step 2: Fetch DOB dynamically via mapping
 		String dateOfBirth = getMappedFieldName(rid, MappingJsonConstants.DOB, type, stageName);
-		//Get  date Of birth from idrepo using above UIN */
-		JSONObject responseDTO = idRepoService.getIdJsonFromIDRepo(packetUin,getGetRegProcessorDemographicIdentity());
-
 		// Check if the response object itself is null
 		if (responseDTO == null) {
-			regProcLogger.debug("responseDTO is null");
+			regProcLogger.debug("responseDTO utility::getDateOfBirthFromIdrepo() is null");
 			return null;
 		}
 
 		// Check if the key exists in the response
 		if (!responseDTO.containsKey(dateOfBirth)) {
-			regProcLogger.debug("Key '{}' does not exist in responseDTO", dateOfBirth);
+			regProcLogger.debug("Key '{}' does not exist in responseDTO utility::getDateOfBirthFromIdrepo()", dateOfBirth);
 			return null;
 		}
 
@@ -1090,7 +1088,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 
 		// Check if the value itself is null
 		if (dobValue == null) {
-			regProcLogger.debug("Value for key '{}' is null in responseDTO", dateOfBirth);
+			regProcLogger.debug("Value for key '{}' is null in responseDTO utility::getDateOfBirthFromIdrepo()", dateOfBirth);
 			return null;
 		}
 
