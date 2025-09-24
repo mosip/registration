@@ -132,7 +132,7 @@ public class BioDedupeProcessor {
 	@Value("${registration.processor.missing.biometric.verification.enabled:true}")
 	private boolean missingBiometricVerificationEnabled;
 
-	@Value("${mosip.regproc.bio.dedupe.non-infant-not-all-biometric-exception-decision:MV}")
+	@Value("${mosip.regproc.bio.dedupe.non-infant-not-all-biometric-exception-decision:REJECTED}")
 	private String nonInfantBioDedupe;
 
 
@@ -145,6 +145,8 @@ public class BioDedupeProcessor {
 	private String infantDedupe;
 
 	public static final String GLOBAL_CONFIG_TRUE_VALUE = "Y";
+
+	public static final String REJECTED = "REJECTED";
 
 
 
@@ -448,7 +450,10 @@ public class BioDedupeProcessor {
 						ProviderStageName.BIO_DEDUPE, registrationStatusDto.getModalities())) {
 					regProcLogger.error("No biometric match found for registrationId: {}", registrationStatusDto.getRegistrationId());
 
-					if ("REJECTED".equalsIgnoreCase(nonInfantBioDedupe)) {
+					if (REJECTED.equalsIgnoreCase(nonInfantBioDedupe)) {
+						object.setInternalError(Boolean.FALSE);
+						object.setRid(registrationStatusDto.getRegistrationId());
+						object.setIsValid(Boolean.FALSE);
 						registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.name());
 						registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_NO_BIOMETRICS_FOUND.getMessage());
 						registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_NO_BIOMETRICS_FOUND.getCode());
