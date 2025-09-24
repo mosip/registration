@@ -777,14 +777,4 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 
 		return additionalInfoRequestDto.getAdditionalInfoIteration();
 	}
-
-	public boolean validateVid(String vid) {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				"Utilities::validateVid()::entry");
-		try {
-			return vidValidator.validateId(vid);
-		} catch (InvalidIDException e) {
-			return false;
-		}
-	}
 }

@@ -8,6 +8,8 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.Date;
 
+import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
+import io.mosip.registration.processor.core.constant.AbisConstant;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +27,8 @@ import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
+import io.mosip.kernel.core.util.StringUtils;
+import io.mosip.kernel.core.idvalidator.spi.VidValidator;
 import lombok.Data;
 
 /**
@@ -44,6 +48,13 @@ public class Utility {
 
 	@Autowired
 	private Utilities utilities;
+
+    @Value("${registration.processor.vid-support-for-update:false}")
+    private Boolean isVidSupportedForUpdate;
+
+    /** The vid validator. */
+    @Autowired
+    private VidValidator<String> vidValidator;
 
 	/** The dob format. */
 	@Value("${registration.processor.applicant.dob.format}")
@@ -158,7 +169,7 @@ public class Utility {
 
 			regProcLogger.debug("VID structure validated successfully");
 
-			JSONObject responseJson = retrieveIdrepoJson(UIN);
+			JSONObject responseJson = utilities.retrieveIdrepoJson(UIN);
 
 			if (responseJson != null) {
 
@@ -173,4 +184,14 @@ public class Utility {
 		return UIN;
 
 	}
+
+    public boolean validateVid(String vid) {
+        regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                "Utilities::validateVid()::entry");
+        try {
+            return vidValidator.validateId(vid);
+        } catch (InvalidIDException e) {
+            return false;
+        }
+    }
 }
