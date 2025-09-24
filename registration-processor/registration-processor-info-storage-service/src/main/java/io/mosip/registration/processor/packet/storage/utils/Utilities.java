@@ -1133,7 +1133,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	}
 
 	//Obtain the last processed RID for the applicant
-	public RidDTO getLastProcessedRidForApplicant(String rid, String uin, String process, ProviderStageName stageName) throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
+	public RidDTO getLastProcessedRidForApplicant(String rid, String uin, String process, ProviderStageName stageName) throws IOException, ApisResourceAccessException {
 		//getting Uin from packetmanager from update packet */
 		//String uin = packetManagerService.getField(rid, UIN, process, stageName);
 		// getting Last processed Rid from Idrepo */
@@ -1142,8 +1142,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	}
 
 	//Retrieves the packet creation date for the given RID from the sync registration table.
-	public LocalDate getPacketCreatedDateFromSyncRegistration(String rid)
-			throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException, ParseException {
+	public LocalDate getPacketCreatedDateFromSyncRegistration(String rid) {
 
 		String packetCreatedDateFormat = "yyyyMMddHHmmss";
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
@@ -1213,7 +1212,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	}
 
 	//Extracts the packet creation date from the given Registration ID (RID) by interpreting its last 14 digits as a timestamp in the format {@code yyyyMMddHHmmss}
-	public LocalDate getPacketCreatedDateFromRid(String rid) throws ParseException {
+	public LocalDate getPacketCreatedDateFromRid(String rid) {
 
 		String packetCreatedDateFormat = "yyyyMMddHHmmss";
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
@@ -1252,7 +1251,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	}
 
 	// Get the BiometricRecord from the IdRepo for a given UIN.
-	public BiometricRecord getBiometricRecordfromIdrepo(String uin, List<String> modalities) throws Exception {
+	public BiometricRecord getBiometricRecordfromIdrepo(String uin) throws Exception {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), uin,
 				"utility::getBiometricRecordfromIdrepo():: entry");
 
@@ -1311,7 +1310,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 				biometricRecord.setOthers(others);
 			}
 
-			biometricRecord.setSegments(filterByModalities(modalities, birs.getBirs()));
+			biometricRecord.setSegments(birs.getBirs());
 
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), uin,
 					"utility::getBiometricRecordfromIdrepo():: exit");
@@ -1330,41 +1329,8 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		}
 	}
 
-	public List<BIR> filterByModalities(List<String> modalities,
-										List<BIR> birList) {
-		List<BIR> segments = new ArrayList<>();
-		if (CollectionUtils.isEmpty(modalities)) {
-			return birList;
-		} else {
-			// first search modalities in subtype and if not present search in type
-			for (BIR bir : birList) {
-				if (CollectionUtils.isNotEmpty(bir.getBdbInfo().getSubtype())
-						&& isModalityPresentInTypeSubtype(bir.getBdbInfo().getSubtype(), modalities)) {
-					segments.add(bir);
-				} else {
-					for (BiometricType type : bir.getBdbInfo().getType()) {
-						if (isModalityPresentInTypeSubtype(Lists.newArrayList(type.value()), modalities))
-							segments.add(bir);
-					}
-				}
-			}
-		}
-		return segments;
-	}
-
-	private boolean isModalityPresentInTypeSubtype(List<String> typeSubtype, List<String> modalities) {
-		boolean isPresent = false;
-		for (String modality : modalities) {
-			String[] modalityArray = modality.split(" ");
-			if (ArrayUtils.isNotEmpty(modalityArray) && ListUtils.isEqualList(typeSubtype, Arrays.asList(modalityArray)))
-				isPresent = true;
-		}
-		return isPresent;
-	}
-
 	// Checks whether all biometric segments are marked as exceptions excluding FACE and EXCEPTION_PHOTO types, which cannot be marked as exceptions.
-	public boolean allBiometricHaveException(List<BIR> birs)
-			throws PacketManagerException, IOException, ApisResourceAccessException, JsonProcessingException, BiometricException {
+	public boolean allBiometricHaveException(List<BIR> birs) throws BiometricException {
 
 		String rid = ""; // Default, in case we can't resolve RID
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
@@ -1426,10 +1392,10 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	}
 
 	//Checks whether all biometric segments are marked as exceptions for a registration Id
-	public boolean allBiometricHaveException(String rid, String registrationType, ProviderStageName stageName, List<String> modalities) throws BiometricClassificationException {
+	public boolean allBiometricHaveException(String rid, String registrationType, ProviderStageName stageName) throws BiometricClassificationException {
 		try {
 			String uin = packetManagerService.getField(rid, MappingJsonConstants.UIN, registrationType, stageName);
-			BiometricRecord bm = getBiometricRecordfromIdrepo(uin, modalities);
+			BiometricRecord bm = getBiometricRecordfromIdrepo(uin);
 			return allBiometricHaveException(bm.getSegments());
 		} catch (Exception e) {
 			throw new BiometricClassificationException("Error while classifying biometric exceptions for RID: " + rid, e);

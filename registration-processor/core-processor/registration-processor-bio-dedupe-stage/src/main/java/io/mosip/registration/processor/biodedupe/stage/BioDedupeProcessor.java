@@ -447,7 +447,7 @@ public class BioDedupeProcessor {
 				// Not infant: check if all biometrics had exceptions
 				regProcLogger.debug("Was applicant infant? {}", wasApplicantInfant);
 				if (!utilities.allBiometricHaveException(registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType(),
-						ProviderStageName.BIO_DEDUPE, registrationStatusDto.getModalities())) {
+						ProviderStageName.BIO_DEDUPE)) {
 					regProcLogger.error("No biometric match found for registrationId: {}", registrationStatusDto.getRegistrationId());
 
 					if (REJECTED.equalsIgnoreCase(nonInfantBioDedupe)) {
@@ -457,7 +457,7 @@ public class BioDedupeProcessor {
 						registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.name());
 						registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_NO_BIOMETRICS_FOUND.getMessage());
 						registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_NO_BIOMETRICS_FOUND.getCode());
-						registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
+						registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REJECTED.toString());
 						regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 								registrationStatusDto.getRegistrationId(), "Registration rejected based on non-infant no biometric match found");
 						return;
