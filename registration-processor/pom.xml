@@ -41,7 +41,7 @@
 		<maven.war.plugin.version>3.1.0</maven.war.plugin.version>
 		<maven.surefire.plugin.version>2.22.0</maven.surefire.plugin.version>
 		<maven.jacoco.version>0.8.11</maven.jacoco.version>
-		<maven.sonar.plugin.version>3.7.0.1746</maven.sonar.plugin.version>
+		<maven.sonar.plugin.version>5.1.0.4751</maven.sonar.plugin.version>
 		<maven.javadoc.version>3.2.0</maven.javadoc.version>
 		<maven.assembly.version>3.3.0</maven.assembly.version>
 		<maven.deploy.plugin.version>3.1.1</maven.deploy.plugin.version>
