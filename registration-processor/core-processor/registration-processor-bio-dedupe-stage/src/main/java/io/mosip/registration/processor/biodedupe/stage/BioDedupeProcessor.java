@@ -455,6 +455,7 @@ public class BioDedupeProcessor {
 						registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
 						regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 								registrationStatusDto.getRegistrationId(), "Registration rejected based on non-infant no biometric match found");
+						return;
 					} else {
 						// Send to MV stage
 						object.setInternalError(Boolean.FALSE);

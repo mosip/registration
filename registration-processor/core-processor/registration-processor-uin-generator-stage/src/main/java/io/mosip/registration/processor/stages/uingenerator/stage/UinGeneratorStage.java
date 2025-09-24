@@ -262,10 +262,18 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 					if (RegistrationType.NEW.toString().equalsIgnoreCase(registrationStatusDto.getRegistrationType())
 							|| RegistrationType.UPDATE.toString().equalsIgnoreCase(registrationStatusDto.getRegistrationType())) {
 
-						// Try to fetch directly from packet via mapping
-						String packetCreatedOn = utility.getMappedFieldName(
+						// // Try to fetch the key using getMappedFieldName
+						String packetCreatedOnKey = utility.getMappedFieldName(
 								registrationId,
 								MappingJsonConstants.PACKET_CREATED_ON,
+								registrationStatusDto.getRegistrationType(),
+								ProviderStageName.UIN_GENERATOR
+						);
+
+						// Use packetManagerService to fetch the value associated with the key
+						String packetCreatedOn = packetManagerService.getFieldByMappingJsonKey(
+								registrationId,
+								packetCreatedOnKey,
 								registrationStatusDto.getRegistrationType(),
 								ProviderStageName.UIN_GENERATOR
 						);

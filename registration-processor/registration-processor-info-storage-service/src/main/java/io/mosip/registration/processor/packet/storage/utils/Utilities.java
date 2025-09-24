@@ -1182,6 +1182,11 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	 * Wrapper that returns LocalDate only (ignores time).
 	 */
 	public static LocalDate parseToLocalDate(String dateString, String dateFormat) {
+
+		// Log the incoming parameters for debugging
+		regProcLogger.debug("Attempting to parse date: {} with format: {}", dateString, dateFormat);
+
+		// Parse the date string into LocalDateTime
 		LocalDateTime ldt = parseUTCToLocalDateTime(dateString, dateFormat);
 
 		// Perform validation if parsing was successful
@@ -1198,9 +1203,12 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 			if (before(ldt, hundredYearsAgo)) {
 				regProcLogger.debug("Date is older than 100 years : {}", ldt);
 			}
+		} else {
+		// Log the case where parsing fails
+		regProcLogger.warn("Failed to parse date: {} with format: {}", dateString, dateFormat);
 		}
 
-		// Return only the date part
+		// Return only the date part (null if parsing failed)
 		return (ldt != null) ? ldt.toLocalDate() : null;
 	}
 
