@@ -79,15 +79,11 @@ public interface IdRepoService {
 	ResponseDTO getIdResponseFromIDRepo(String machedRegId) throws IOException, ApisResourceAccessException;
 
 	/**
-	 * Gets the uin by rid.
+	 * Retrieves the id vid metadata information for a given uin
+	 * based on the provided ID.
 	 *
-	 * @param uin
-	 *            the uin provided
-	 * @return the rid by uin
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
+	 * @param uin the identifier of the individual whose metadata is to be fetched.
+	 * @return an {@code RidDTO} containing rid, createdOn, and updatedOn
 	 */
 	RidDTO searchIdVidMetadata(String uin) throws IOException, ApisResourceAccessException;
 }

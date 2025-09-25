@@ -2,7 +2,9 @@ package io.mosip.registration.processor.packet.manager.idreposervice.impl;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import io.mosip.registration.processor.core.idrepo.dto.RidDTO;
 import io.mosip.registration.processor.core.packet.dto.RidDto;
@@ -200,11 +202,22 @@ public class IdRepoServiceImpl implements IdRepoService {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				uin, "IdRepoServiceImpl::searchIdVidMetadata()::entry");
 		RidDTO ridDTO = null;
-		List<String> pathSegments1 = new ArrayList<>();
-		pathSegments1.add(uin);
+
+		// Build request wrapper
+		Map<String, Object> requestBody = new HashMap<>();
+
+		Map<String, Object> requestData = new HashMap<>();
+		requestData.put("uin", uin);
+
+		requestBody.put("request", requestData);
 		@SuppressWarnings("unchecked")
-		ResponseWrapper<ResponseDTO> response=(ResponseWrapper<ResponseDTO>) restClientService.getApi(ApiName.IDREPOIDVIDMETADATASEARCH, pathSegments1, "type", "ALL",
-				ResponseWrapper.class);
+		ResponseWrapper<ResponseDTO> response=(ResponseWrapper<ResponseDTO>) restClientService
+				.postApi(ApiName.IDREPOIDVIDMETADATASEARCH,
+						null,                // no path segments
+						null,                // no query param name
+						null,                // no query param value
+						requestBody,         // request body
+						ResponseWrapper.class);
 
 		if (response.getResponse() != null) {
 			ridDTO = mapper.readValue(mapper.writeValueAsString(response.getResponse()), RidDTO.class);
