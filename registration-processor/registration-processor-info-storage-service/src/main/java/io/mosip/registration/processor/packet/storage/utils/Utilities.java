@@ -196,6 +196,9 @@ public class Utilities {
 	@Value("${registration.processor.expected-packet-processing-duration:0}")
 	private int expectedPacketProcessingDurationHours;
 
+	@Value("${mosip.regproc.static-last-packet-processed-date}")
+	private String staticPacketCreatedOn;
+
 	@Autowired
 	private PacketInfoDao packetInfoDao;
 
@@ -975,7 +978,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		}
 
 		LocalDate dobOfApplicant = getDateOfBirthFromIdrepo(registrationId, responseDTO, registrationType, stageName);
-		int age = calculateAgeAtLastPacketProcessing(dobOfApplicant, lastPacketProcessedDate);
+		int age = calculateAgeAtLastPacketProcessing(dobOfApplicant, LocalDate.parse(staticPacketCreatedOn));
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "utility::wasInfantWhenLastPacketProcessed()::exit with age: " + age);

@@ -479,19 +479,19 @@ public class BioDedupeProcessor {
 				} else {
 					// All Biometric Exception
 					regProcLogger.error("All biometric exception found for registrationId: {}", registrationStatusDto.getRegistrationId());
-						// Send to MV stage
-						object.setInternalError(Boolean.FALSE);
-						object.setRid(registrationStatusDto.getRegistrationId());
-						object.setIsValid(Boolean.TRUE);
-						object.setReg_type(registrationType);
-						object.setMessageBusAddress(MessageBusAddress.VERIFICATION_BUS_IN);
-						registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-						registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_INPROGRESS.getMessage());
-						registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_INPROGRESS.getCode());
-						registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.IN_PROGRESS.toString());
-						regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-								registrationStatusDto.getRegistrationId(), "Registration sent to MV stage due to all biometric exceptions");
-						return;
+					// Send to MV stage
+					object.setInternalError(Boolean.FALSE);
+					object.setRid(registrationStatusDto.getRegistrationId());
+					object.setIsValid(Boolean.TRUE);
+					object.setReg_type(registrationType);
+					object.setMessageBusAddress(MessageBusAddress.VERIFICATION_BUS_IN);
+					registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+					registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_INPROGRESS.getMessage());
+					registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_INPROGRESS.getCode());
+					registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.IN_PROGRESS.toString());
+					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+							registrationStatusDto.getRegistrationId(), "Registration sent to MV stage due to all biometric exceptions");
+					return;
 				}
 			}
 		}
