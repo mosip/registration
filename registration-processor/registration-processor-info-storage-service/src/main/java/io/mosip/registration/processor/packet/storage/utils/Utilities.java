@@ -1137,7 +1137,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 
 	//Obtain the last processed RID for the applicant
 	public RidDTO getLastProcessedRidForApplicant(String rid, String uin, String process, ProviderStageName stageName) throws IOException, ApisResourceAccessException {
-		// getting Last processed Rid from Idrepo */
+		// getting Last processed Rid from Idrepo
 		RidDTO ridDTO = idRepoService.searchIdVidMetadata(uin);
 		return ridDTO;
 	}

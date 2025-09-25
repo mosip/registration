@@ -199,7 +199,7 @@ public class IdRepoServiceImpl implements IdRepoService {
 
 	@Override
 	public RidDTO searchIdVidMetadata(String uin) throws IOException, ApisResourceAccessException {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				uin, "IdRepoServiceImpl::searchIdVidMetadata()::entry");
 		RidDTO ridDTO = null;
 
@@ -219,10 +219,18 @@ public class IdRepoServiceImpl implements IdRepoService {
 						requestBody,         // request body
 						ResponseWrapper.class);
 
+		if (response.getResponse() == null) {
+			regProcLogger.error("IDRepo returned null response for UIN: {}", uin);
+		} else {
+			regProcLogger.error("IDRepo returned response for UIN: {} -> {}", uin, response.getResponse());
+		}
+
 		if (response.getResponse() != null) {
 			ridDTO = mapper.readValue(mapper.writeValueAsString(response.getResponse()), RidDTO.class);
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					uin, "ridDTO success", ridDTO);
 		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				uin, "IdRepoServiceImpl::searchIdVidMetadata()::exit");
 
 		return ridDTO;
