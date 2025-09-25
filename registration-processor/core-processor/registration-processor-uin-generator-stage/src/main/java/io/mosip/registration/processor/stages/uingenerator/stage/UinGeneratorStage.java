@@ -262,10 +262,11 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 				if (StringUtils.isEmpty(uinField) || uinField.equalsIgnoreCase("null") ) {
 					// Only for NEW and UPDATE registrations, capture packetCreatedOn
-					if (disableFlag & RegistrationType.NEW.toString().equalsIgnoreCase(registrationStatusDto.getRegistrationType())
-							|| RegistrationType.UPDATE.toString().equalsIgnoreCase(registrationStatusDto.getRegistrationType())) {
+					if (disableFlag
+							&& (RegistrationType.NEW.toString().equalsIgnoreCase(registrationStatusDto.getRegistrationType())
+							|| RegistrationType.UPDATE.toString().equalsIgnoreCase(registrationStatusDto.getRegistrationType()))) {
 
-						// // Try to fetch the key using getMappedFieldName
+						// Try to fetch the key using getMappedFieldName
 						String packetCreatedOnKey = utility.getMappedFieldName(
 								registrationId,
 								MappingJsonConstants.PACKET_CREATED_ON,
