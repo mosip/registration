@@ -978,7 +978,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		}
 
 		LocalDate dobOfApplicant = getDateOfBirthFromIdrepo(registrationId, responseDTO, registrationType, stageName);
-		int age = calculateAgeAtLastPacketProcessing(dobOfApplicant, LocalDate.parse(staticPacketCreatedOn));
+		int age = calculateAgeAtLastPacketProcessing(dobOfApplicant, lastPacketProcessedDate);
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "utility::wasInfantWhenLastPacketProcessed()::exit with age: " + age);
