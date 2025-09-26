@@ -8,6 +8,8 @@ import java.util.Map;
 import jakarta.annotation.PostConstruct;
 import javax.crypto.SecretKey;
 
+import io.mosip.kernel.core.idvalidator.spi.VidValidator;
+import io.mosip.kernel.idvalidator.vid.impl.VidValidatorImpl;
 import io.mosip.registration.processor.packet.storage.helper.PacketManagerHelper;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
@@ -128,4 +130,7 @@ public class PacketStorageBeanConfig {
 	public PriorityBasedPacketManagerService getPriorityBasedPacketManagerService() {
 		return new PriorityBasedPacketManagerService();
 	}
+	
+	@Bean
+	public VidValidator<String> vidValidator(){return new VidValidatorImpl();}
 }

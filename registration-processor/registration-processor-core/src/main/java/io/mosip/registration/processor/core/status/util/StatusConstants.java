@@ -136,6 +136,8 @@ public final class StatusConstants {
 
 	public static final String WORKFLOW_ACTION_SERVICE = RPR_REGISTRATION_PROCESSOR_PREFIX + "WAS-";
 
+    public static final String WORKFLOW_INSTANCE_SERVICE = RPR_REGISTRATION_PROCESSOR_PREFIX + "WIS-";
+
 	public static final String VERIFICATION_STAGE = RPR_REGISTRATION_PROCESSOR_PREFIX + "VER-";
 
 

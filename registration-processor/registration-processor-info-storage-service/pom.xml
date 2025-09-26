@@ -291,6 +291,11 @@
 		  <artifactId>kernel-biosdk-provider</artifactId>
 		  <version>${kernel-biosdk-provider.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-idvalidator-vid</artifactId>
+			<version>${kernel-idvalidator-vid.version}</version>
+		</dependency>
 	</dependencies>
 </project>
 >>>>>>> 2790b0f264 (Merged changes from develop (#1708))

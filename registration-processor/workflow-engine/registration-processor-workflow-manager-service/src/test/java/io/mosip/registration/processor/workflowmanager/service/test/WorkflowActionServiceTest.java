@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.processor.workflowmanager.verticle.WorkflowInstanceApi;
 import org.apache.commons.collections.map.HashedMap;
 import org.junit.Before;
 import org.junit.Test;
