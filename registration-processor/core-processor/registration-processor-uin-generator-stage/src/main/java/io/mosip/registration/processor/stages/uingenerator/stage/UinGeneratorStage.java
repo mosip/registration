@@ -155,6 +155,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.uin.generator.trim-whitespaces.simpleType-value:false}")
 	private boolean trimWhitespaces;
 
+    @Value("#{${registration.processor.additional-process.category-mapping:{:}}}")
+    private Map<String,String> additionalProcessCategoryMapping;
+
 	/** The core audit request builder. */
 	@Autowired
 	private AuditLogRequestBuilder auditLogRequestBuilder;

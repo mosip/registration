@@ -55,6 +55,8 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 	@Autowired
 	WorkflowSearchApi workflowSearchApi;
 
+    @Autowired
+    WorkflowInstanceApi workflowInstanceApi;
 	/** worker pool size. */
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
@@ -121,6 +123,7 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 		// like workflowSearchApi and call both setApiRoute method from the common
 		// verticle class
 		workflowSearchApi.setApiRoute(router.getRouter());
+        workflowInstanceApi.setApiRoute(router.getRouter());
 		this.createServer(router.getRouter(), Integer.parseInt(port));
 	}
 

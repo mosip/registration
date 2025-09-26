@@ -8,7 +8,6 @@ import org.springframework.stereotype.Repository;
 
 import io.mosip.kernel.core.dataaccess.spi.repository.BaseRepository;
 import io.mosip.registration.processor.status.entity.BaseSyncRegistrationEntity;
-import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 
 @Repository
@@ -42,5 +41,8 @@ public interface SyncRegistrationRepository<T extends BaseSyncRegistrationEntity
 	
 	@Query("SELECT registrationList FROM SyncRegistrationEntity registrationList WHERE registrationList.workflowInstanceId = :workflowInstanceId AND registrationList.isDeleted =false ")
 	public List<SyncRegistrationEntity> findByworkflowInstanceId(@Param("workflowInstanceId") String workflowInstanceId);
+
+	@Query("SELECT registrationList FROM SyncRegistrationEntity registrationList WHERE registrationList.registrationId = :registrationId AND registrationList.registrationType = :registrationType AND registrationList.additionalInfoReqId = :additionalInfoReqId AND  registrationList.isDeleted =false ")
+	public List<SyncRegistrationEntity> findByRegistrationIdAndRegTypeAndAdditionalInfoReqId(@Param("registrationId") String registrationId, @Param("registrationType") String registrationType, @Param("additionalInfoReqId") String additionalInfoReqId);
 
 }
