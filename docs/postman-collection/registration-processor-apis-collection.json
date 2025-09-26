@@ -1,0 +1,40 @@
+{
+	"info": {
+		"_postman_id": "922ceeef-1c71-42a2-ac40-8bf56aa3cabe",
+		"name": "Registration Processor APIs Collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "21896995"
+	},
+	"item": [
+		{
+			"name": "Workflow Manager Service",
+			"item": [
+				{
+					"name": "workflowinstance",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": {
+								"value": "Authorization={{token}}",
+								"key": "Cookie"
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": \"mosip.registration.processor.workflow.instance\",\r\n    \"version\": \"v1\",\r\n    \"requesttime\": \"{{current_time}}\",\r\n    \"request\": {\r\n        \"registrationId\": \"{{regId}}\",\r\n        \"process\": \"{{process}}\",\r\n        \"source\": \"{{source}}\",\r\n        \"additionalInfoReqId\": \"\",\r\n        \"notificationInfo\": {\r\n            \"name\": \"{{name}}\",\r\n            \"phone\": \"{{phone}}\",\r\n            \"email\": \"{{email}}\"\r\n        }\r\n   }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{url}}/registrationprocessor/v1/workflowmanager/workflowinstance"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

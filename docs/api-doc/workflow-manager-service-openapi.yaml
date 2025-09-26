@@ -1,0 +1,152 @@
+openapi: 3.0.1
+info:
+  title: Workflow Manager API documentation
+  description: Workflow Manager Service contains the APIs used by Workflow Manager module.
+  license:
+    name: Mosip
+    url: https://docs.mosip.io/platform/license
+  version: '1.0'
+servers:
+  - url: http://localhost:3000/registrationprocessor/v1/workflowmanager
+tags:
+  - name: WorkflowInstanceApi
+    description: Workflow Instance APIs
+paths:
+  /workflowinstance:
+    post:
+      tags:
+        - WorkflowInstanceApi
+      summary: Create workflow instance for packet processing.
+      description: Create workflow instance for packet processing.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkflowInstanceDTO'
+            example:
+              id: "mosip.registration.processor.workflow.instance"
+              version: "v1"
+              requesttime: "2025-04-08T12:34:56Z"
+              request:
+                registrationId: "10035100081001720250110061144"
+                process: "CRVS_NEW"
+                source: "CRVS1"
+                additionalInfoReqId: ""
+                notificationInfo:
+                  name: "crvs_user"
+                  phone: "+1234567890"
+                  email: "crvs_user@example.com"
+        required: true
+      parameters:
+        - schema:
+            type: string
+          in: cookie
+          name: Authorization
+          required: true
+          description: Authorization token is used to validate the permissions carried by the user.
+      responses:
+        '200':
+          description: Workflow instance created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowInstanceResponseDTO'
+              example:
+                id: "mosip.registration.processor.workflow.instance"
+                version: "v1"
+                responsetime: "2025-04-08T12:35:56Z"
+                response:
+                  workflowInstanceId: "95d09502-a548-413f-9c01-f15a7c8b08af"
+                errors: null
+        '201':
+          description: Created
+        '400':
+          description: Unable to create workflow instance
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+components:
+  schemas:
+    WorkflowInstanceDTO:
+      type: object
+      properties:
+        id:
+          type: string
+          description: "Unique identification for API"
+        version:
+          type: string
+          description: "API version"
+        requesttime:
+          type: string
+          format: date-time
+          description: "Date time when request sent"
+        request:
+          $ref: '#/components/schemas/WorkflowInstanceRequestDTO'
+    WorkflowInstanceRequestDTO:
+      type: object
+      properties:
+        registrationId:
+          type: string
+          description: "Registration Id"
+        process:
+          type: string
+          description: "Process name"
+        source:
+          type: string
+          description: "Packet source"
+        additionalInfoReqId:
+          type: string
+          description: "Addition information requested for packet during correction flow"
+        notificationInfo:
+         $ref: '#/components/schemas/NotificationInfoDTO'
+    NotificationInfoDTO:
+      type: object
+      description: "Notification details used for triggering notification once packet validation passes"
+      properties:
+        name:
+          type: string
+          description: "Resident name for notification"
+        phone:
+          type: string
+          description: "Resident phone for notification"
+        email:
+          type: string
+          description: "Resident email for notification"
+    WorkflowInstanceResponseDTO:
+      type: object
+      properties:
+        id:
+          type: string
+          description: "Unique identification for API"
+        version:
+          type: string
+          description: "API version"
+        responsetime:
+          type: string
+          format: date-time
+          description: "Date time when response sent"
+        response:
+          $ref: '#/components/schemas/WorkflowInstanceResponse'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDTO'
+    WorkflowInstanceResponse:
+      type: object
+      properties:
+        workflowInstanceId:
+          type: string
+          description: "Unique identification for created workflow instance"
+    ErrorDTO:
+      type: object
+      properties:
+        errorCode:
+          type: string
+          description: "Error code"
+        message:
+          type: string
+          description: "Error message"
+    
