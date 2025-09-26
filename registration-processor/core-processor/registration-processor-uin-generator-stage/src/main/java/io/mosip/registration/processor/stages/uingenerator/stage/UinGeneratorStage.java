@@ -155,6 +155,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.uin.generator.trim-whitespaces.simpleType-value:false}")
 	private boolean trimWhitespaces;
 
+	@Value("#{${registration.processor.additional-process.category-mapping:{:}}}")
+	private Map<String,String> additionalProcessCategoryMapping;
+
 	/** The core audit request builder. */
 	@Autowired
 	private AuditLogRequestBuilder auditLogRequestBuilder;
@@ -181,9 +184,13 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	@Autowired
 	private RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 
-	/** The utility. */
+	/** The utilities. */
 	@Autowired
-	private Utilities utility;
+	private Utilities utilities;
+
+    /** The utility. */
+    @Autowired
+    private Utility utility;
 
 	@Autowired
 	private CbeffUtil cbeffutil;
@@ -240,16 +247,13 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 					regProcLogger.info("Match for lostPacketRegId"+lostPacketRegId +"is "+matchedRegId);
 					lostAndUpdateUin(lostPacketRegId, matchedRegId, registrationStatusDto.getRegistrationType(), object, description);
 				}
-
 			} else {
-
 				IdResponseDTO idResponseDTO = new IdResponseDTO();
 				String schemaVersion = packetManagerService.getFieldByMappingJsonKey(registrationId, MappingJsonConstants.IDSCHEMA_VERSION, registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
 
 				Map<String, String> fieldMap = packetManagerService.getFields(registrationId,
 						idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion)), registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
-				String uinField = fieldMap.get(utility.getMappingJsonValue(MappingJsonConstants.UIN, MappingJsonConstants.IDENTITY));
-
+				String uinField = utility.getUIn(registrationId, registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
 				JSONObject demographicIdentity = new JSONObject();
 				demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, convertIdschemaToDouble ? Double.valueOf(schemaVersion) : schemaVersion);
 
@@ -320,8 +324,8 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 						idResponseDTO = deactivateUin(registrationId, uinField, object, demographicIdentity,
 								description);
 					} else if (RegistrationType.UPDATE.toString().equalsIgnoreCase(object.getReg_type())
-							|| (RegistrationType.RES_UPDATE.toString()
-									.equalsIgnoreCase(object.getReg_type()))) {
+							|| (RegistrationType.RES_UPDATE.toString().equalsIgnoreCase(object.getReg_type()))
+							|| (RegistrationType.UPDATE.toString().equalsIgnoreCase(utilities.getInternalProcess(additionalProcessCategoryMapping, object.getReg_type())))) {
 						isTransactionSuccessful = uinUpdate(registrationId, registrationStatusDto.getRegistrationType(), uinField, object, demographicIdentity,
 								description);
 					}
@@ -579,8 +583,8 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		List<Documents> applicantDocuments = new ArrayList<>();
 
 		JSONObject idJSON = demographicIdentity;
-		JSONObject  docJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT);
-		JSONObject  identityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
+		JSONObject  docJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT);
+		JSONObject  identityJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 
 		String applicantBiometricLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(identityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS), MappingJsonConstants.VALUE);
 
@@ -621,7 +625,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		byte[] xml = cbeffutil.createXML(biometricRecord.getSegments());
 		Documents documentsInfoDto = new Documents();
 		documentsInfoDto.setValue(CryptoUtil.encodeToURLSafeBase64(xml));
-		documentsInfoDto.setCategory(utility.getMappingJsonValue(idDocLabel, MappingJsonConstants.IDENTITY));
+		documentsInfoDto.setCategory(utilities.getMappingJsonValue(idDocLabel, MappingJsonConstants.IDENTITY));
 		return documentsInfoDto;
 
 	}
@@ -1033,7 +1037,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			IdrepoDraftReprocessableException, JSONException {
 
 		IdResponseDTO idResponse = null;
-		String uin = idRepoService.getUinByRid(matchedRegId, utility.getGetRegProcessorDemographicIdentity());
+		String uin = idRepoService.getUinByRid(matchedRegId, utilities.getGetRegProcessorDemographicIdentity());
 
 
 		RequestDto requestDto = new RequestDto();
@@ -1041,7 +1045,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 		if (uin != null) {
 
-			JSONObject  regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
+			JSONObject  regProcessorIdentityJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 			String idschemaversion = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.IDSCHEMA_VERSION), MappingJsonConstants.VALUE);
 
 			JSONObject identityObject = new JSONObject();

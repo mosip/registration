@@ -88,8 +88,15 @@ public enum PlatformSuccessMessages {
 	RPR_WORKFLOW_ACTION_SERVICE_SUCCESS(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "000",
 			"Processed the workflow action - %s"),
 
+    RPR_WORKFLOW_INSTANCE_SERVICE_SUCCESS(PlatformConstants.RPR_WORKFLOW_INSTANCE_SERVICE + "000",
+            "Processed the workflow instance"),
+
 	RPR_WORKFLOW_ACTION_API_SUCCESS(PlatformConstants.RPR_WORKFLOW_ACTION_API + "000",
 			"Process the workflow action success"),
+
+    RPR_WORKFLOW_INSTANCE_API_SUCCESS(PlatformConstants.RPR_WORKFLOW_INSTANCE_API + "000",
+            "Process the workflow instance success"),
+
 	RPR_WORKFLOW_SEARCH_API_SUCCESS(PlatformConstants.RPR_WORKFLOW_SEARCH_API + "000",
 			"Process the workflow search success"),
 	RPR_WORKFLOW_ACTION_JOB_SUCCESS(PlatformConstants.RPR_WORKFLOW_ACTION_JOB + "000", "Workflow action job success"),
