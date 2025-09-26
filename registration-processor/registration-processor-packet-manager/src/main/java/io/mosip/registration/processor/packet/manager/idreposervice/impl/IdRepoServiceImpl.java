@@ -207,7 +207,7 @@ public class IdRepoServiceImpl implements IdRepoService {
 		Map<String, Object> requestBody = new HashMap<>();
 
 		Map<String, Object> requestData = new HashMap<>();
-		requestData.put("uin", uin);
+		requestData.put("individualId", uin);
 
 		requestBody.put("request", requestData);
 		@SuppressWarnings("unchecked")
@@ -220,7 +220,9 @@ public class IdRepoServiceImpl implements IdRepoService {
 						ResponseWrapper.class);
 
 		if (response.getResponse() == null) {
-			regProcLogger.error("IDRepo returned null response for UIN: {}", uin);
+			// Added: log IDRepo errors too, not just null response
+			regProcLogger.error("IDRepo returned null response for UIN: {}, errors: {}",
+					uin, response.getErrors());
 		} else {
 			regProcLogger.error("IDRepo returned response for UIN: {} -> {}", uin, response.getResponse());
 		}
