@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import org.json.JSONException;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,14 +94,15 @@ public class NotificationServiceImpl implements NotificationService {
 	private static final String DUPLICATE_UIN=NOTIFICATION_TEMPLATE_CODE+"duplicate.uin.";
 	private static final String TECHNICAL_ISSUE=NOTIFICATION_TEMPLATE_CODE+"technical.issue.";
 	private static final String PAUSED_FOR_ADDITIONAL_INFO=NOTIFICATION_TEMPLATE_CODE+"paused.for.additional.info.";
-
-
 	/** The core audit request builder. */
 	@Autowired
 	private AuditLogRequestBuilder auditLogRequestBuilder;
 
 	@Autowired
 	private ObjectMapper mapper;
+
+	@Autowired
+	Utilities utilities;
 
 	/** The notification emails. */
 	@Value("${registration.processor.notification.emails}")
@@ -129,6 +131,10 @@ public class NotificationServiceImpl implements NotificationService {
 
 	@Value("${registration.processor.notification_service_pausedforadditonalinfo_subscriber_callback_url}")
 	private String pausedForAdditonalInfoCallbackURL;
+
+
+	@Value("#{${registration.processor.notification.additional-process.category-mapping:{:}}}")
+	private Map<String,String> additionalProcessCategoryForNotification;
 
 	/** The rest client service. */
 	@Autowired
@@ -274,14 +280,17 @@ public class NotificationServiceImpl implements NotificationService {
 
 	}
 
-	private NotificationTemplateType setNotificationTemplateType(String regtype) {
+	private NotificationTemplateType setNotificationTemplateType(String regtype){
 		NotificationTemplateType type=null;
+		String internalProcess= utilities.getInternalProcess(additionalProcessCategoryForNotification, regtype);
 		if (regtype.equalsIgnoreCase(RegistrationType.LOST.toString()))
 			type = NotificationTemplateType.LOST_UIN;
-		else if (regtype.equalsIgnoreCase(RegistrationType.NEW.toString()))
+        else if (regtype.equalsIgnoreCase(RegistrationType.NEW.toString())||
+				internalProcess.equalsIgnoreCase(RegistrationType.NEW.toString()))
 			type = NotificationTemplateType.UIN_CREATED;
 		else if (regtype.equalsIgnoreCase(RegistrationType.UPDATE.toString())
-				|| regtype.equalsIgnoreCase(RegistrationType.RES_UPDATE.toString()))
+				|| regtype.equalsIgnoreCase(RegistrationType.RES_UPDATE.toString())
+				||internalProcess.equalsIgnoreCase(RegistrationType.UPDATE.toString()))
 			type = NotificationTemplateType.UIN_UPDATE;
 		else if (regtype.equalsIgnoreCase(RegistrationType.ACTIVATED.toString()))
 			type = NotificationTemplateType.UIN_UPDATE;
@@ -450,6 +459,7 @@ public class NotificationServiceImpl implements NotificationService {
 	 */
 	private void setTemplateAndSubject(NotificationTemplateType templatetype, String regType,
 			MessageSenderDto messageSenderDto) {
+		String internalProcess= utilities.getInternalProcess(additionalProcessCategoryForNotification, regType);
 		switch (templatetype) {
 		case LOST_UIN:
 			messageSenderDto.setSmsTemplateCode(env.getProperty(LOST_UIN+SMS));
@@ -480,7 +490,8 @@ public class NotificationServiceImpl implements NotificationService {
 				messageSenderDto.setIdType(IdType.UIN);
 				messageSenderDto.setSubjectCode(env.getProperty(UIN_DEACTIVATE+SUB));
 			} else if (regType.equalsIgnoreCase(RegistrationType.UPDATE.name())
-					|| regType.equalsIgnoreCase(RegistrationType.RES_UPDATE.name())) {
+					|| regType.equalsIgnoreCase(RegistrationType.RES_UPDATE.name())
+					|| internalProcess.equalsIgnoreCase(RegistrationType.UPDATE.toString())){
 				messageSenderDto.setSmsTemplateCode(env.getProperty(UIN_UPDATE+SMS));
 				messageSenderDto.setEmailTemplateCode(env.getProperty(UIN_UPDATE+EMAIL));
 				messageSenderDto.setIdType(IdType.UIN);
