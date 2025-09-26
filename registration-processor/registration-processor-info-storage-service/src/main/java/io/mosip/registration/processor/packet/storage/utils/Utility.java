@@ -166,17 +166,11 @@ public class Utility {
 				"Utility::getUIn()::entry");
 		String UIN = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.UIN, process, stageName);
 		if(isVidSupportedForUpdate && StringUtils.isNotEmpty(UIN) && validateVid(UIN)) {
-
 			regProcLogger.debug("VID structure validated successfully");
-
 			JSONObject responseJson = utilities.retrieveIdrepoJson(UIN);
-
 			if (responseJson != null) {
-
 				UIN = JsonUtil.getJSONValue(responseJson, AbisConstant.UIN);
-
 			}
-
 		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
 				"Utility::getUIn()::exit");
