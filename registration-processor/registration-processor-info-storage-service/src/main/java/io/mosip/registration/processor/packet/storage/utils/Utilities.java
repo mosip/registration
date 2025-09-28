@@ -194,7 +194,7 @@ public class Utilities {
 	private String ageLimitBuffer;
 
 	@Value("${registration.processor.expected-packet-processing-duration:0}")
-	private int expectedPacketProcessingDurationHours;
+	private String expectedPacketProcessingDurationHours;
 
 	@Value("${mosip.regproc.static-last-packet-processed-date}")
 	private String staticPacketCreatedOn;
@@ -1203,7 +1203,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 			if (before(ldt, hundredYearsAgo)) {
 				regProcLogger.debug("Date is older than 100 years : {}", ldt);
 			}
-		} else {
+		}else{
 		// Log the case where parsing fails
 		regProcLogger.warn("Failed to parse date: {} with format: {}", dateString, dateFormat);
 		}
@@ -1248,7 +1248,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		);
 
 		//Subtract expected packet processing duration from identity's last update time to approximate the packet creation time.
-		return updatedOn.minusHours(expectedPacketProcessingDurationHours);
+		return updatedOn.minusHours(Long.parseLong(expectedPacketProcessingDurationHours));
 	}
 
 	// Get the BiometricRecord from the IdRepo for a given UIN.
