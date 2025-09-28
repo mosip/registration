@@ -109,8 +109,6 @@ public class InternalRegistrationStatusDto implements Serializable {
 
 	private String workflowInstanceId;
 
-	private List<String> modalities;
-
 	/**
 	 * Gets the ref id.
 	 *
@@ -646,14 +644,6 @@ public class InternalRegistrationStatusDto implements Serializable {
 
 	public void setWorkflowInstanceId(String workflowInstanceId) {
 		this.workflowInstanceId = workflowInstanceId;
-	}
-
-	public void setModalities(List<String> modalities) {
-		this.modalities = modalities;
-	}
-
-	public List<String> getModalities() {
-		return modalities;
 	}
 
 	@Override
