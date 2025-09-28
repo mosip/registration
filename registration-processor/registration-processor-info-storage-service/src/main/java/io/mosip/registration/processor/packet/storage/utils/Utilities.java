@@ -977,9 +977,8 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 					PlatformErrorMessages.RPR_BDD_PACKET_CREATED_DATE_NULL.getCode());
 		}
 
-		regProcLogger.debug("staticPacketCreatedOn value: " +staticPacketCreatedOn);
 		LocalDate dobOfApplicant = getDateOfBirthFromIdrepo(registrationId, responseDTO, registrationType, stageName);
-		int age = calculateAgeAtLastPacketProcessing(dobOfApplicant, LocalDate.parse(staticPacketCreatedOn));
+		int age = calculateAgeAtLastPacketProcessing(dobOfApplicant, lastPacketProcessedDate);
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "utility::wasInfantWhenLastPacketProcessed()::exit with age: " + age);
@@ -1014,7 +1013,6 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 
 	public int getEffectiveAgeLimit() {
 		return Integer.parseInt(ageLimit) + Integer.parseInt(ageLimitBuffer);
-		//
 	}
 
 	// Retrieves the created date of the last packet that was processed for the applicant.
