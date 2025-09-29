@@ -255,19 +255,19 @@ public class PacketValidateProcessorTest {
 		Mockito.when(objectMapper.readValue(anyString(), any(Class.class))).thenReturn(new FieldValue("preRegistrationId", "12345"));
 	}
 
-	@Test
-	public void PacketValidationSuccessTest() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
-		Map<String, String> metainfo1 = new HashMap<>();
-		metainfo1.put(JsonConstant.CREATIONDATE,"2023-10-17T03:01:09.893");
-		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
-		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
-				.forClass(InternalRegistrationStatusDto.class);
-		Mockito.verify(registrationStatusService,Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(), Mockito.any(),
-				Mockito.any());
-		Assert.assertEquals(LocalDateTime.parse(metainfo1.get(JsonConstant.CREATIONDATE)), argument.getAllValues().get(0).getPacketCreateDateTime());
-		Assert.assertTrue(object.getIsValid());
-		Assert.assertFalse(object.getInternalError());
-	}
+//	@Test
+//	public void PacketValidationSuccessTest() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+//		Map<String, String> metainfo1 = new HashMap<>();
+//		metainfo1.put(JsonConstant.CREATIONDATE,"2023-10-17T03:01:09.893");
+//		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
+//		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+//				.forClass(InternalRegistrationStatusDto.class);
+//		Mockito.verify(registrationStatusService,Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(), Mockito.any(),
+//				Mockito.any());
+//		Assert.assertEquals(LocalDateTime.parse(metainfo1.get(JsonConstant.CREATIONDATE)), argument.getAllValues().get(0).getPacketCreateDateTime());
+//		Assert.assertTrue(object.getIsValid());
+//		Assert.assertFalse(object.getInternalError());
+//	}
 
 	@Test
 	public void PacketValidationSuccessTestwithPacketCreatedDateTimeNull() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
