@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.Map;
 
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
