@@ -6,12 +6,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
 
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
+import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
