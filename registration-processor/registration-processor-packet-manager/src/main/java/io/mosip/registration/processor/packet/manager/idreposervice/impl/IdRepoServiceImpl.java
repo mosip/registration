@@ -203,7 +203,6 @@ public class IdRepoServiceImpl implements IdRepoService {
 				uin, "IdRepoServiceImpl::searchIdVidMetadata()::entry");
 		RidDTO ridDTO = null;
 
-		// Build request wrapper
 		Map<String, Object> requestBody = new HashMap<>();
 
 		Map<String, Object> requestData = new HashMap<>();
@@ -213,10 +212,10 @@ public class IdRepoServiceImpl implements IdRepoService {
 		@SuppressWarnings("unchecked")
 		ResponseWrapper<ResponseDTO> response=(ResponseWrapper<ResponseDTO>) restClientService
 				.postApi(ApiName.IDREPOIDVIDMETADATASEARCH,
-						null,                // no path segments
-						null,                // no query param name
-						null,                // no query param value
-						requestBody,         // request body
+						null,
+						null,
+						null,
+						requestBody,
 						ResponseWrapper.class);
 
 		if (response.getResponse() == null) {
