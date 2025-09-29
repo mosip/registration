@@ -259,6 +259,7 @@ public class PacketValidateProcessorTest {
 	public void PacketValidationSuccessTest() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
 		Map<String, String> metainfo1 = new HashMap<>();
 		metainfo1.put(JsonConstant.CREATIONDATE,"2023-10-17T03:01:09.893");
+        Mockito.when(packetManagerService.getMetaInfo(any(), any(), any())).thenReturn(metainfo1);
 		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
 		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
 				.forClass(InternalRegistrationStatusDto.class);
