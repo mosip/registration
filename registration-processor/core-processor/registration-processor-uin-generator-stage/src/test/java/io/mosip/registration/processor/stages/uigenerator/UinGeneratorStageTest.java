@@ -29,12 +29,11 @@ import io.mosip.registration.processor.core.code.*;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
 import io.mosip.registration.processor.packet.manager.dto.IdRequestDto;
-<<<<<<< HEAD
+
 import io.mosip.registration.processor.packet.storage.utils.Utility;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.stages.uingenerator.dto.VidResponseDto;
-=======
->>>>>>> e6506763bc ([MPSOP-41276] Release 1.2.1.x integrity failure1 (#2080))
+
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
 import org.json.JSONException;
@@ -2589,7 +2588,6 @@ public class UinGeneratorStageTest {
 		assertTrue(result.getIsValid());
 	}
 
-<<<<<<< HEAD
     @Test
     public void updateTestWithAdditionalProcess() throws ApisResourceAccessException, IOException, JsonProcessingException,
             PacketManagerException, JSONException, IdrepoDraftException, IdrepoDraftReprocessableException {
@@ -2643,7 +2641,7 @@ public class UinGeneratorStageTest {
         assertTrue(result.getIsValid());
         assertFalse(result.getInternalError());
     }
-=======
+	
 	@Test
 	public void PacketManagerNonRecoverableExceptionTest() throws ApisResourceAccessException, IOException, JsonProcessingException,
 			PacketManagerException {
@@ -2656,5 +2654,4 @@ public class UinGeneratorStageTest {
 		assertFalse(result.getIsValid());
 		assertTrue(result.getInternalError());
 	}
->>>>>>> e6506763bc ([MPSOP-41276] Release 1.2.1.x integrity failure1 (#2080))
 }
