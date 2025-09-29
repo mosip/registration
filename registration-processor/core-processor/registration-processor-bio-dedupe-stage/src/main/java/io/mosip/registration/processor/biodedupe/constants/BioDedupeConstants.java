@@ -43,9 +43,4 @@ public class BioDedupeConstants {
 	/** The Constant INTERNAL_ERROR. */
 	private static final String INTERNAL_ERROR = "Internal error occurred in bio-dedupe stage while processing for registrationId ";
 
-	public static final String NO_BIOMETRIC_MATCH_FOUND = "Not Even Single Match Found for Biometric from Abis";
-
-	public static final String ALL_BIOMETRICS_HAVE_EXCEPTION = "All biometrics for the applicant were marked as exceptions";
-
-	public static final String PACKET_CREATION_DATE_UNABLE_TO_COMPUTE = "Unable to compute the creation date of the last processed packet";
 }
