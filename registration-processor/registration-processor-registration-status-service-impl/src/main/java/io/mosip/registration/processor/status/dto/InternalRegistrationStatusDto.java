@@ -2,7 +2,6 @@ package io.mosip.registration.processor.status.dto;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.List;
 
 // TODO: Auto-generated Javadoc
 /**
