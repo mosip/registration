@@ -1227,8 +1227,10 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	public LocalDateTime computePacketCreatedFromIdentityUpdate(RidDTO ridDTO) {
 		String packetCreatedDateTimeIsoFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
-		String updatedOnStr = ridDTO.getUpd_dtimes();
-		regProcLogger.debug("UpdatedOn string from RidDTO: {}", updatedOnStr);
+		if (ridDTO.getUpd_dtimes() == null) {
+			regProcLogger.debug("upd_dtimes is null for RID: {}", ridDTO.getRid());
+			return null;
+		}
 
 		LocalDateTime updatedOn = parseUTCToLocalDateTime(
 				ridDTO.getUpd_dtimes(), packetCreatedDateTimeIsoFormat
