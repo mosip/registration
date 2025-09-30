@@ -101,7 +101,8 @@ public class PacketValidatorImpl implements PacketValidator {
             }
 
             //Check consent
-            if (!checkConsentForPacket(id, process, ProviderStageName.PACKET_VALIDATOR)) {
+            if(!checkConsentForPacket(id,process,ProviderStageName.PACKET_VALIDATOR))
+			{
                 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
                         LoggerFileConstant.REGISTRATIONID.toString(), id,
                         "ERROR =======>" + StatusUtil.PACKET_CONSENT_VALIDATION.getMessage());
