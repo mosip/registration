@@ -10,7 +10,7 @@ import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
-import io.mosip.registration.processor.core.idrepo.dto.RidDTO;
+import io.mosip.registration.processor.core.idrepo.dto.IdVidMetadataDTO;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.exception.BiometricClassificationException;
@@ -55,7 +55,7 @@ public class UtilitiesTest {
     private SyncRegistrationRepository syncRegistrationRepository;
 
     private InternalRegistrationStatusDto registrationStatusDto;
-    private RidDTO ridDto;
+    private IdVidMetadataDTO idVidMetadataDto;
     private SimpleDateFormat sdf;
 
     @Before
@@ -64,9 +64,9 @@ public class UtilitiesTest {
         registrationStatusDto = new InternalRegistrationStatusDto();
         registrationStatusDto.setRegistrationId("10049100271000420250319064824");
         registrationStatusDto.setRegistrationType("UPDATE");
-        ridDto = new RidDTO();
-        ridDto.setRid("10049100271000420240319064824");
-        ridDto.setUpd_dtimes("2024-01-01T12:00:00");
+        idVidMetadataDto = new IdVidMetadataDTO();
+        idVidMetadataDto.setRid("10049100271000420240319064824");
+        idVidMetadataDto.setUpd_dtimes("2024-01-01T12:00:00");
         sdf = new SimpleDateFormat("yyyy/MM/dd");
         ReflectionTestUtils.setField(utilities, "dobFormat", "yyyy/MM/dd");
         ReflectionTestUtils.setField(utilities, "ageLimit", "5");
@@ -107,7 +107,15 @@ public class UtilitiesTest {
     }
 
     @Test
-    public void testCalculateAgeAtLastPacketProcessing() throws Exception {
+    public void testParseToLocalDate_ShouldEnterCatchBlock_ForInvalidDate() {
+        String invalidDate = "abccdefgh";
+        String pattern = "yyyy-MM-dd'T'HH:mm:ss";
+        LocalDate result = Utilities.parseToLocalDate(invalidDate, pattern);
+        assertNull("Expected null for invalid date string", result);
+    }
+
+    @Test
+    public void testCalculateAgeAtLastPacketProcessing() {
         LocalDate dob = LocalDate.of(2010, 1, 1);
         LocalDate packetDate = LocalDate.of(2020, 1, 1);
 
@@ -218,7 +226,7 @@ public class UtilitiesTest {
         when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
                 .thenReturn(identityJson);
 
-        when(idRepoService.searchIdVidMetadata(anyString())).thenReturn(ridDto);
+        when(idRepoService.searchIdVidMetadata(anyString())).thenReturn(idVidMetadataDto);
 
         SyncRegistrationEntity syncRegistration = new SyncRegistrationEntity();
         syncRegistration.setRegistrationId("10049100271000420240319064824");
@@ -254,7 +262,7 @@ public class UtilitiesTest {
         when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
                 .thenReturn(null);
 
-        when(idRepoService.searchIdVidMetadata(anyString())).thenReturn(ridDto);
+        when(idRepoService.searchIdVidMetadata(anyString())).thenReturn(idVidMetadataDto);
 
         SyncRegistrationEntity syncRegistration = new SyncRegistrationEntity();
         syncRegistration.setRegistrationId("10049100271000420240319064824");
@@ -290,7 +298,7 @@ public class UtilitiesTest {
         when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
                 .thenReturn(identityJson);
 
-        when(idRepoService.searchIdVidMetadata(anyString())).thenReturn(ridDto);
+        when(idRepoService.searchIdVidMetadata(anyString())).thenReturn(idVidMetadataDto);
 
         SyncRegistrationEntity syncRegistration = new SyncRegistrationEntity();
         syncRegistration.setRegistrationId("10049100271000420240319064824");
@@ -327,11 +335,11 @@ public class UtilitiesTest {
         when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
                 .thenReturn(identityJson);
 
-        ridDto = new RidDTO();
-        ridDto.setRid(null);
-        ridDto.setUpd_dtimes("2025-09-26T11:09:22.477Z");
+        idVidMetadataDto = new IdVidMetadataDTO();
+        idVidMetadataDto.setRid(null);
+        idVidMetadataDto.setUpd_dtimes("2025-09-26T11:09:22.477Z");
 
-        when(idRepoService.searchIdVidMetadata(anyString())).thenReturn(ridDto);
+        when(idRepoService.searchIdVidMetadata(anyString())).thenReturn(idVidMetadataDto);
 
         SyncRegistrationEntity syncRegistration = new SyncRegistrationEntity();
         syncRegistration.setRegistrationId(null);

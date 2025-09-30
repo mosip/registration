@@ -2,8 +2,7 @@ package io.mosip.registration.processor.packet.manager.idreposervice;
 
 import java.io.IOException;
 
-import io.mosip.registration.processor.core.idrepo.dto.RidDTO;
-import io.mosip.registration.processor.core.packet.dto.RidDto;
+import io.mosip.registration.processor.core.idrepo.dto.IdVidMetadataDTO;
 import org.json.simple.JSONObject;
 
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
@@ -85,5 +84,5 @@ public interface IdRepoService {
 	 * @param uin the identifier of the individual whose metadata is to be fetched.
 	 * @return an {@code RidDTO} containing rid, createdOn, and updatedOn
 	 */
-	RidDTO searchIdVidMetadata(String uin) throws IOException, ApisResourceAccessException;
+	IdVidMetadataDTO searchIdVidMetadata(String uin) throws IOException, ApisResourceAccessException;
 }

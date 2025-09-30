@@ -7,7 +7,6 @@ import java.text.SimpleDateFormat;
 import java.time.*;
 import java.util.*;
 
-import com.google.common.collect.Lists;
 import io.mosip.kernel.biometrics.commons.CbeffValidator;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
@@ -17,7 +16,7 @@ import io.mosip.kernel.core.idvalidator.spi.VidValidator;
 import io.mosip.registration.processor.core.constant.*;
 import io.mosip.registration.processor.core.exception.*;
 import io.mosip.registration.processor.core.idrepo.dto.Documents;
-import io.mosip.registration.processor.core.idrepo.dto.RidDTO;
+import io.mosip.registration.processor.core.idrepo.dto.IdVidMetadataDTO;
 import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.registration.processor.packet.storage.exception.*;
@@ -25,9 +24,6 @@ import io.mosip.registration.processor.packet.storage.repository.BasePacketRepos
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.repositary.SyncRegistrationRepository;
 import io.mosip.registration.processor.status.service.AdditionalInfoRequestService;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.ListUtils;
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -195,9 +191,6 @@ public class Utilities {
 
 	@Value("${registration.processor.expected-packet-processing-duration:0}")
 	private String expectedPacketProcessingDurationHours;
-
-	@Value("${mosip.regproc.static-last-packet-processed-date}")
-	private String staticPacketCreatedOn;
 
 	@Autowired
 	private PacketInfoDao packetInfoDao;
@@ -978,19 +971,19 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		if (date != null) return date;
 
 		// 2. Use last processed RID
-		RidDTO ridDTO = getLastProcessedRidForApplicant(registrationId, packetUin, registrationType, stageName);
-		if (ridDTO == null) return null;
+		IdVidMetadataDTO idVidMetadataDTO = getLastProcessedRidForApplicant(registrationId, packetUin, registrationType, stageName);
+		if (idVidMetadataDTO == null) return null;
 
 		// 3. Try from Sync Registration yyyyMMddHHmmss
-		date = getPacketCreatedDateFromSyncRegistration(ridDTO.getRid());
+		date = getPacketCreatedDateFromSyncRegistration(idVidMetadataDTO.getRid());
 		if (date != null) return date;
 
 		// 4. Try from RID directly
-		date = getPacketCreatedDateFromRid(ridDTO.getRid());
+		date = getPacketCreatedDateFromRid(idVidMetadataDTO.getRid());
 		if (date != null) return date;
 
 		// 5. Fallback to IdRepo update date
-		LocalDateTime approxCreatedDateTime = computePacketCreatedFromIdentityUpdate(ridDTO);
+		LocalDateTime approxCreatedDateTime = computePacketCreatedFromIdentityUpdate(idVidMetadataDTO);
 		return approxCreatedDateTime != null ? approxCreatedDateTime.toLocalDate() : null;
 	}
 
@@ -1119,10 +1112,10 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	}
 
 	//Obtain the last processed RID for the applicant
-	public RidDTO getLastProcessedRidForApplicant(String rid, String uin, String process, ProviderStageName stageName) throws IOException, ApisResourceAccessException {
+	public IdVidMetadataDTO getLastProcessedRidForApplicant(String rid, String uin, String process, ProviderStageName stageName) throws IOException, ApisResourceAccessException {
 		// getting Last processed Rid from Idrepo
-		RidDTO ridDTO = idRepoService.searchIdVidMetadata(uin);
-		return ridDTO;
+		IdVidMetadataDTO idVidMetadataDTO = idRepoService.searchIdVidMetadata(uin);
+		return idVidMetadataDTO;
 	}
 
 	//Retrieves the packet creation date for the given RID from the sync registration table.
@@ -1169,26 +1162,31 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		// Log the incoming parameters for debugging
 		regProcLogger.debug("Attempting to parse date: {} with format: {}", dateString, dateFormat);
 
-		// Parse the date string into LocalDateTime
-		LocalDateTime ldt = parseUTCToLocalDateTime(dateString, dateFormat);
+		LocalDateTime ldt = null;
 
-		// Perform validation if parsing was successful
-		if (ldt != null) {
-			LocalDateTime now = LocalDateTime.now();
+		try {
+			// Parse the date string into LocalDateTime
+			ldt = parseUTCToLocalDateTime(dateString, dateFormat);
 
-			// Check if date is in the future
-			if (after(ldt, now)) {
-				regProcLogger.debug("Future Date : {}", ldt);
+			// Perform validation if parsing was successful
+			if (ldt != null) {
+				LocalDateTime now = LocalDateTime.now();
+
+				// Check if date is in the future
+				if (after(ldt, now)) {
+					regProcLogger.debug("Future Date : {}", ldt);
+				}
+
+				// Check if date is older than 100 years
+				LocalDateTime hundredYearsAgo = now.minusYears(100);
+				if (before(ldt, hundredYearsAgo)) {
+					regProcLogger.debug("Date is older than 100 years : {}", ldt);
+				}
 			}
-
-			// Check if date is older than 100 years
-			LocalDateTime hundredYearsAgo = now.minusYears(100);
-			if (before(ldt, hundredYearsAgo)) {
-				regProcLogger.debug("Date is older than 100 years : {}", ldt);
-			}
-		}else{
-		// Log the case where parsing fails
-		regProcLogger.warn("Failed to parse date: {} with format: {}", dateString, dateFormat);
+		} catch (io.mosip.kernel.core.exception.ParseException e) {
+				// Catch parsing failure
+				regProcLogger.debug("Failed to parse date: {} with format: {}", dateString, dateFormat, e);
+				return null;
 		}
 
 		// Return only the date part (null if parsing failed)
@@ -1224,16 +1222,16 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 
 
 	// Computes the approximate packet creation date (for the packet that updated the identity)
-	public LocalDateTime computePacketCreatedFromIdentityUpdate(RidDTO ridDTO) {
+	public LocalDateTime computePacketCreatedFromIdentityUpdate(IdVidMetadataDTO idVidMetadataDTO) {
 		String packetCreatedDateTimeIsoFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
-		if (ridDTO.getUpd_dtimes() == null) {
-			regProcLogger.debug("upd_dtimes is null for RID: {}", ridDTO.getRid());
+		if (idVidMetadataDTO.getUpd_dtimes() == null) {
+			regProcLogger.debug("upd_dtimes is null for RID: {}", idVidMetadataDTO.getRid());
 			return null;
 		}
 
 		LocalDateTime updatedOn = parseUTCToLocalDateTime(
-				ridDTO.getUpd_dtimes(), packetCreatedDateTimeIsoFormat
+				idVidMetadataDTO.getUpd_dtimes(), packetCreatedDateTimeIsoFormat
 		);
 
 		//Subtract expected packet processing duration from identity's last update time to approximate the packet creation time.

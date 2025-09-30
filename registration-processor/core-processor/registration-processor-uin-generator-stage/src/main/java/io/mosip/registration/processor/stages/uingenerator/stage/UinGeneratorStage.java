@@ -160,9 +160,6 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	@Value("#{${registration.processor.additional-process.category-mapping:{:}}}")
 	private Map<String,String> additionalProcessCategoryMapping;
 
-	@Value("${mosip.regproc.enable-packet-created-on-uin-stage:false}")
-	private boolean disableFlag;
-
 	/** The core audit request builder. */
 	@Autowired
 	private AuditLogRequestBuilder auditLogRequestBuilder;
@@ -262,9 +259,8 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 				if (StringUtils.isEmpty(uinField) || uinField.equalsIgnoreCase("null") ) {
 					// Only for NEW and UPDATE registrations, capture packetCreatedOn
-					if (disableFlag
-							&& (RegistrationType.NEW.toString().equalsIgnoreCase(registrationStatusDto.getRegistrationType())
-							|| RegistrationType.UPDATE.toString().equalsIgnoreCase(registrationStatusDto.getRegistrationType()))) {
+					if (RegistrationType.NEW.toString().equalsIgnoreCase(registrationStatusDto.getRegistrationType())
+							|| RegistrationType.UPDATE.toString().equalsIgnoreCase(registrationStatusDto.getRegistrationType())) {
 
 						// Try to fetch the key using getMappedFieldName
 						String packetCreatedOnKey = utility.getMappedFieldName(
@@ -274,21 +270,19 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 								ProviderStageName.UIN_GENERATOR
 						);
 
-						// Use packetManagerService to fetch the value associated with the key
-						String packetCreatedOn = packetManagerService.getFieldByMappingJsonKey(
+						if (packetCreatedOnKey == null) {
+							regProcLogger.info("packetCreatedOnKey is null for RID: {}", registrationId);
+						}
+
+						// Fallback to metaInfo if not present in packet
+						String packetCreatedOn = utility.retrieveCreatedDateFromPacket(
 								registrationId,
-								packetCreatedOnKey,
 								registrationStatusDto.getRegistrationType(),
 								ProviderStageName.UIN_GENERATOR
 						);
 
-						// Fallback to metaInfo if not present in packet
-						if (StringUtils.isEmpty(packetCreatedOn)) {
-							packetCreatedOn = utility.retrieveCreatedDateFromPacket(
-									registrationId,
-									registrationStatusDto.getRegistrationType(),
-									ProviderStageName.UIN_GENERATOR
-							);
+						if (packetCreatedOn == null) {
+							regProcLogger.info("packetCreatedOn is null for RID: {}", registrationId);
 						}
 
 						demographicIdentity.put(MappingJsonConstants.PACKET_CREATED_ON, packetCreatedOn);

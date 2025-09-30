@@ -6,8 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.registration.processor.core.idrepo.dto.RidDTO;
-import io.mosip.registration.processor.core.packet.dto.RidDto;
+import io.mosip.registration.processor.core.idrepo.dto.IdVidMetadataDTO;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -198,10 +197,10 @@ public class IdRepoServiceImpl implements IdRepoService {
 
 
 	@Override
-	public RidDTO searchIdVidMetadata(String uin) throws IOException, ApisResourceAccessException {
+	public IdVidMetadataDTO searchIdVidMetadata(String uin) throws IOException, ApisResourceAccessException {
 		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				uin, "IdRepoServiceImpl::searchIdVidMetadata()::entry");
-		RidDTO ridDTO = null;
+		IdVidMetadataDTO idVidMetadataDTO = null;
 
 		Map<String, Object> requestBody = new HashMap<>();
 
@@ -227,13 +226,13 @@ public class IdRepoServiceImpl implements IdRepoService {
 		}
 
 		if (response.getResponse() != null) {
-			ridDTO = mapper.readValue(mapper.writeValueAsString(response.getResponse()), RidDTO.class);
+			idVidMetadataDTO = mapper.readValue(mapper.writeValueAsString(response.getResponse()), IdVidMetadataDTO.class);
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					uin, "ridDTO success", ridDTO);
+					uin, "ridDTO success", idVidMetadataDTO);
 		}
 		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				uin, "IdRepoServiceImpl::searchIdVidMetadata()::exit");
 
-		return ridDTO;
+		return idVidMetadataDTO;
 	}
 }

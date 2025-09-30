@@ -3,7 +3,7 @@ package io.mosip.registration.processor.core.idrepo.dto;
 import lombok.Data;
 
 @Data
-public class RidDTO {
+public class IdVidMetadataDTO {
     private String rid;
     private String upd_dtimes;
 }
