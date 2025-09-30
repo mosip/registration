@@ -261,15 +261,20 @@ public class PacketValidateProcessorTest {
 
 	@Test
     public void PacketValidationSuccessTest() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
-		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
-		ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
-				.forClass(InternalRegistrationStatusDto.class);
-		Mockito.verify(registrationStatusService,Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(), Mockito.any(),
-				Mockito.any());
-		Assert.assertEquals(LocalDateTime.parse("2023-10-17T03:01:09.893"), argument.getAllValues().get(0).getPacketCreateDateTime());
-		Assert.assertTrue(object.getIsValid());
-		Assert.assertFalse(object.getInternalError());
-	}
+	InternalRegistrationStatusDto presetStatus = new InternalRegistrationStatusDto();
+	presetStatus.setRegistrationId("123456789");
+	presetStatus.setPacketCreateDateTime(LocalDateTime.parse("2023-10-17T03:01:09.893"));
+	Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any())).thenReturn(presetStatus);
+
+	MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
+	ArgumentCaptor<InternalRegistrationStatusDto> argument = ArgumentCaptor
+			.forClass(InternalRegistrationStatusDto.class);
+	Mockito.verify(registrationStatusService, Mockito.atLeastOnce()).updateRegistrationStatus(argument.capture(), Mockito.any(),
+			Mockito.any());
+	Assert.assertEquals(presetStatus.getPacketCreateDateTime(), argument.getAllValues().get(0).getPacketCreateDateTime());
+	Assert.assertTrue(object.getIsValid());
+	Assert.assertFalse(object.getInternalError());
+}
 
 	@Test
 	public void PacketValidationSuccessTestwithPacketCreatedDateTimeNull() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
