@@ -2,6 +2,7 @@ package io.mosip.registration.processor.stages.packet.validator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
+import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
@@ -80,7 +81,7 @@ import static org.junit.Assert.*;
 @RefreshScope
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ JsonUtils.class, JsonUtil.class, IOUtils.class, HMACUtils2.class, Utilities.class,
-		MessageDigest.class })
+		MessageDigest.class, DateUtils.class })
 @PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*","com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*" })
 @TestPropertySource(locations = "classpath:application.properties")
 public class PacketValidateProcessorTest {
@@ -164,6 +165,9 @@ public class PacketValidateProcessorTest {
 		
 		PowerMockito.mockStatic(JsonUtils.class);
 		PowerMockito.when(JsonUtils.jsonStringToJavaObject(any(), any())).thenReturn(registrationAdditionalInfoDTO);
+		
+		PowerMockito.mockStatic(DateUtils.class);
+		PowerMockito.when(DateUtils.parseToLocalDateTime("2023-10-17T03:01:09.893")).thenReturn(LocalDateTime.parse("2023-10-17T03:01:09.893"));
 		
 		Mockito.when(syncRegistrationService.deleteAdditionalInfo(any())).thenReturn(true);
 
