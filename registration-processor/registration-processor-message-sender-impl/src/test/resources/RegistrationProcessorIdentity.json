@@ -62,6 +62,9 @@
 		},
 		"introducerBiometrics": {
 			"value": "introducerBiometrics"
+		},
+		"selectedHandles" : {
+			"value" : "selectedHandles"
 		}
 	}
 }

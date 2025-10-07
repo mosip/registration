@@ -25,8 +25,9 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.registration.processor.core.code.*;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
+import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
 import io.mosip.registration.processor.packet.manager.dto.IdRequestDto;
 import io.mosip.registration.processor.packet.storage.utils.Utility;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
@@ -73,11 +74,6 @@ import io.mosip.registration.processor.core.abstractverticle.HealthCheckDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
-import io.mosip.registration.processor.core.code.ApiName;
-import io.mosip.registration.processor.core.code.EventId;
-import io.mosip.registration.processor.core.code.EventName;
-import io.mosip.registration.processor.core.code.EventType;
-import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.RegistrationType;
@@ -2590,57 +2586,67 @@ public class UinGeneratorStageTest {
 		assertTrue(result.getIsValid());
 	}
 
-    @Test
-    public void updateTestWithAdditionalProcess() throws ApisResourceAccessException, IOException, JsonProcessingException,
-            PacketManagerException, JSONException, IdrepoDraftException, IdrepoDraftReprocessableException {
-        Map<String ,String> externalInternalMap = new HashMap<>();
-        externalInternalMap.put("CRVS_UPDATE", "UPDATE");
-        ReflectionTestUtils.setField(uinGeneratorStage, "additionalProcessCategoryMapping", externalInternalMap);
-        Map<String, String> fieldMap = new HashMap<>();
-        fieldMap.put("UIN", "123456");
-        fieldMap.put("name", "mono");
-        fieldMap.put("email", "mono@mono.com");
+	@Test
+	public void updateTestWithAdditionalProcess() throws ApisResourceAccessException, IOException, JsonProcessingException,
+			PacketManagerException, JSONException, IdrepoDraftException, IdrepoDraftReprocessableException {
+		Map<String ,String> externalInternalMap = new HashMap<>();
+		externalInternalMap.put("CRVS_UPDATE", "UPDATE");
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("10031100110005020190313110030");
+		messageDTO.setReg_type("CRVS_UPDATE");
+		ReflectionTestUtils.setField(uinGeneratorStage, "additionalProcessCategoryMapping", externalInternalMap);
+		Map<String, String> fieldMap = new HashMap<>();
+		fieldMap.put("UIN", "123456");
+		fieldMap.put("name", "mono");
+		fieldMap.put("email", "mono@mono.com");
 
-        List<String> defaultFields = new ArrayList<>();
-        defaultFields.add("name");
-        defaultFields.add("dob");
-        defaultFields.add("gender");
-        defaultFields.add("UIN");
+		List<String> defaultFields = new ArrayList<>();
+		defaultFields.add("name");
+		defaultFields.add("dob");
+		defaultFields.add("gender");
+		defaultFields.add("UIN");
 
 		when(utility.getUIn(any(),any(),any(ProviderStageName.class))).thenReturn("123456");
-        when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
-		
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 
-        when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
-        when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
-        when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
+		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
-        when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
-        MessageDTO messageDTO = new MessageDTO();
-        messageDTO.setRid("10031100110005020190313110030");
-        messageDTO.setReg_type("CRVS_UPDATE");
-        IdResponseDTO responsedto = new IdResponseDTO();
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+		IdResponseDTO responsedto = new IdResponseDTO();
 
-        IdResponseDTO idResponseDTO = new IdResponseDTO();
-        ResponseDTO responseDTO = new ResponseDTO();
-        idResponseDTO.setErrors(null);
-        idResponseDTO.setId("mosip.id.update");
-        responseDTO.setStatus("ACTIVATED");
-        idResponseDTO.setResponse(responseDTO);
-        idResponseDTO.setResponsetime("2019-03-12T06:49:30.779Z");
-        idResponseDTO.setVersion("1.0");
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.update");
+		responseDTO.setStatus("ACTIVATED");
+		idResponseDTO.setResponse(responseDTO);
+		idResponseDTO.setResponsetime("2019-03-12T06:49:30.779Z");
+		idResponseDTO.setVersion("1.0");
 
-        when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
-        when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
-                .thenReturn(responsedto);
-        when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
-                .thenReturn(idResponseDTO);
-        when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
-        when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
+		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
+				.thenReturn(responsedto);
+		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
+				.thenReturn(idResponseDTO);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertTrue(result.getIsValid());
+		assertFalse(result.getInternalError());
+	}
 
-        MessageDTO result = uinGeneratorStage.process(messageDTO);
-        assertTrue(result.getIsValid());
-        assertFalse(result.getInternalError());
-    }
+	@Test
+	public void PacketManagerNonRecoverableExceptionTest() throws ApisResourceAccessException, IOException, JsonProcessingException,
+			PacketManagerException {
+		when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("FAILED");
+		when(packetManagerService.getFields(any(), any(), any(), any())).thenThrow(new PacketManagerNonRecoverableException("errorCode","message"));
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("10031100110005020190313110030");
+		messageDTO.setReg_type("CRVS_UPDATE");
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertFalse(result.getIsValid());
+		assertTrue(result.getInternalError());
+	}
 }
