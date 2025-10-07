@@ -1,12 +1,9 @@
 package io.mosip.registration.processor.reprocessor.verticle;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
+import io.mosip.registration.processor.reprocessor.service.ReprocessorVerticalService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -95,6 +92,23 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 
 	@Value("#{'${registration.processor.reprocess.restart-trigger-filter}'.split(',')}")
 	private List<String> reprocessRestartTriggerFilter;
+
+	@Value("#{${registration.processor.reprocess.process-based.fetch.enabled:false}")
+	private Boolean enabledProcessBasedFetch;
+
+	@Value("#{${registration.processor.reprocess.process-based.fetch.count:{:}}}")
+	private LinkedHashMap<String,Integer> processBasedFetchCountMapping;
+
+	@Value("${registration.processor.reprocess.record.fetch.size:500}")
+	private int recordFetchSize;
+
+	@Value("${registration.processor.reprocess.record.threashold:50}")
+	private int threasholdForFetch;
+
+	private ConcurrentHashMap<String,List<InternalRegistrationStatusDto>> packetCacheMap = new ConcurrentHashMap<>();
+
+	@Autowired
+	private ReprocessorVerticalService reprocessorVerticalService;
 
 	/** The is transaction successful. */
 	boolean isTransactionSuccessful;
@@ -230,20 +244,41 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 		try {
 			Map<String, Set<String>> reprocessRestartTriggerMap = intializeReprocessRestartTriggerMapping();
 			reprocessorDtoList = registrationStatusService.getResumablePackets(fetchSize);
-			if (!CollectionUtils.isEmpty(reprocessorDtoList)) {
-				if (reprocessorDtoList.size() < fetchSize) {
-					List<InternalRegistrationStatusDto>  reprocessorPacketList = registrationStatusService.getUnProcessedPackets(fetchSize - reprocessorDtoList.size(), elapseTime,
-							reprocessCount, statusList, reprocessExcludeStageNames);
-					if (!CollectionUtils.isEmpty(reprocessorPacketList)) {
-						reprocessorDtoList.addAll(reprocessorPacketList);
-					}
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+					"Resumable Packets Count " + reprocessorDtoList.size() );
+
+			if(enabledProcessBasedFetch) {
+				if(reprocessorDtoList.size() < fetchSize) {
+					LinkedHashMap<String, Integer> requiredCountMap = prepareRequiredCount(
+							fetchSize - reprocessorDtoList.size()
+					);
+
+					fetchPacketsIfBelowThreshold(requiredCountMap, statusList);
+
+					reprocessorDtoList.addAll(fetchUnprocessedPacketsWithBalance(
+							requiredCountMap,
+							fetchSize - reprocessorDtoList.size()
+					));
+
 				}
 			} else {
-				reprocessorDtoList = registrationStatusService.getUnProcessedPackets(fetchSize, elapseTime,
-						reprocessCount, statusList, reprocessExcludeStageNames);
+				if (!CollectionUtils.isEmpty(reprocessorDtoList)) {
+					if (reprocessorDtoList.size() < fetchSize) {
+						List<InternalRegistrationStatusDto>  reprocessorPacketList = registrationStatusService.getUnProcessedPackets(fetchSize - reprocessorDtoList.size(), elapseTime,
+								reprocessCount, statusList, reprocessExcludeStageNames);
+						if (!CollectionUtils.isEmpty(reprocessorPacketList)) {
+							reprocessorDtoList.addAll(reprocessorPacketList);
+						}
+					}
+				} else {
+					reprocessorDtoList = registrationStatusService.getUnProcessedPackets(fetchSize, elapseTime,
+							reprocessCount, statusList, reprocessExcludeStageNames);
+				}
 			}
 
-			
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+					"Reprocessor Total Packets Fetched " + reprocessorDtoList.size());
+
 			if (!CollectionUtils.isEmpty(reprocessorDtoList)) {
 				reprocessorDtoList.forEach(dto -> {
 					String registrationId = dto.getRegistrationId();
@@ -422,4 +457,110 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 	protected String getPropertyPrefix() {
 		return VERTICLE_PROPERTY_PREFIX;
 	}
+
+	private LinkedHashMap<String, Integer> prepareRequiredCount(int availableCount) {
+		LinkedHashMap<String, Integer> requiredCountMap = new LinkedHashMap<>();
+		int totalMapCount = processBasedFetchCountMapping.size();
+		int index = 1;
+		int allocated = 0;
+
+		for(Map.Entry<String, Integer> entry :  processBasedFetchCountMapping.entrySet()) {
+			int requiredCount;
+
+			if(index == totalMapCount) {
+				// Last entry → allocate the remaining
+				requiredCount = fetchSize - allocated;
+			} else {
+				// Percentage-based allocation
+				requiredCount = (availableCount * entry.getValue()) /100;
+			}
+
+			// Ensure at least 1
+			requiredCount = Math.max(requiredCount, 1);
+
+			// Prevent overshooting the total
+			if(allocated + requiredCount > fetchSize) {
+				requiredCount = fetchSize - allocated;
+			}
+
+			requiredCountMap.put(entry.getKey(), requiredCount);
+			allocated += requiredCount;
+			index++;
+		}
+		return requiredCountMap;
+	}
+
+	private void fetchPacketsIfBelowThreshold(LinkedHashMap<String, Integer> requiredCountMap, List<String> statusList) {
+		requiredCountMap.entrySet().parallelStream()
+				.filter(entry -> {
+						List<?> cachedPackets = packetCacheMap.get(entry.getKey());
+						return cachedPackets == null ||  cachedPackets.size() < threasholdForFetch;
+				})
+				.forEach(entry -> {
+					String key = entry.getKey();
+
+					// Parse key into Process & Status
+					AbstractMap.SimpleEntry<List<String>, List<String>> entryPair = parseProcessAndStatus(key);
+					List<String> processList = entryPair.getKey();
+					List<String> statusValList = entryPair.getValue();
+
+					// Fetch unprocessed packets
+					List<InternalRegistrationStatusDto> registratiobRegistrationStatusDtos =  reprocessorVerticalService.fetchUnProcessedPackets(processList, recordFetchSize, elapseTime,
+							reprocessCount, (!statusValList.isEmpty() ? statusValList : statusList), reprocessExcludeStageNames);
+
+					// Thread-safe update to cache
+					packetCacheMap.compute(key, (k, existingList) -> {
+						if (existingList == null) return new ArrayList<>(registratiobRegistrationStatusDtos);
+						existingList.addAll(new ArrayList<>(registratiobRegistrationStatusDtos));
+						return existingList;
+					});
+				});
+	}
+
+	private AbstractMap.SimpleEntry<List<String>, List<String>> parseProcessAndStatus(String key) {
+		String[] parts = key.split("#", 2);
+		List<String> process = Arrays.asList(parts[0].split(","));
+		List<String> status = parts.length > 1 ? Arrays.asList(parts[1].split(",")) : Collections.emptyList();
+		return new AbstractMap.SimpleEntry<>(process, status);
+	}
+
+	private List<InternalRegistrationStatusDto> fetchUnprocessedPacketsWithBalance(LinkedHashMap<String, Integer> requiredCountMap, int fetchCount) {
+		int previousBalanceCount = 0;
+		List<InternalRegistrationStatusDto>  reprocessorPacketList = new ArrayList<>();
+
+		for(Map.Entry<String, Integer> entry :  requiredCountMap.entrySet()) {
+			int remainingToFetch = fetchCount - reprocessorPacketList.size();
+			if(remainingToFetch <= 0)
+				break;
+
+			int requiredCount = entry.getValue() + previousBalanceCount;
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+					entry.getKey() + " Packets Required Count " + requiredCount);
+
+			List<InternalRegistrationStatusDto> cachedPackets = packetCacheMap.getOrDefault(entry.getKey(), Collections.emptyList());
+
+			if(!cachedPackets.isEmpty()) {
+				int count = Math.min(requiredCount, remainingToFetch);
+				List<InternalRegistrationStatusDto> fetchedPackets = fetchFromCache(cachedPackets, count);
+				reprocessorPacketList.addAll(fetchedPackets);
+
+				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+						entry.getKey() + " Packets Count " + fetchedPackets.size());
+
+				previousBalanceCount = Math.max(0, requiredCount-fetchedPackets.size());
+			} else {
+				previousBalanceCount = requiredCount;
+			}
+		}
+
+		return reprocessorPacketList;
+	}
+
+	private List<InternalRegistrationStatusDto> fetchFromCache(List<InternalRegistrationStatusDto> cache, int count) {
+		int actualFetchCount = Math.min(count, cache.size());
+		List<InternalRegistrationStatusDto> fetched = new ArrayList<>(cache.subList(0, actualFetchCount));
+		cache.subList(0, actualFetchCount).clear();
+		return fetched;
+	}
+
 }

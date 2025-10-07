@@ -8,6 +8,7 @@ import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessor
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.reprocessor.verticle.ReprocessorVerticle;
 import io.mosip.registration.processor.rest.client.service.impl.RegistrationProcessorRestClientServiceImpl;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 /**
  * Config class to get configurations and beans for Reprocessor Verticle
@@ -18,6 +19,7 @@ import io.mosip.registration.processor.rest.client.service.impl.RegistrationProc
  */
 @PropertySource("classpath:bootstrap.properties")
 @Configuration
+@EnableAsync
 public class ReprocessorConfigBeans {
 
 	@Bean

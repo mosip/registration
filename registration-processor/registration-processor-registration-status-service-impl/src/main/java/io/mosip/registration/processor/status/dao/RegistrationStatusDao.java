@@ -247,4 +247,33 @@ public class RegistrationStatusDao {
 	{
 		return registrationStatusRepositary.getByIdAndProcessAndIteration(id, process, iteration);
 	}
+
+	/**
+	 * Gets the un processed packets.
+	 *
+	 * @param fetchSize
+	 *            the fetch size
+	 * @param elapseTime
+	 *            the elapse time
+	 * @param reprocessCount
+	 *            the reprocess count
+	 * @param status
+	 *            the status
+	 * @return the un processed packets
+	 */
+	public List<RegistrationStatusEntity> getUnProcessedPackets(List<String> processList, Integer fetchSize, long elapseTime,
+																Integer reprocessCount, List<String> status, List<String> excludeStageNames) {
+
+		LocalDateTime timeDifference = LocalDateTime.now().minusSeconds(elapseTime);
+		List<String> statusCodes=new ArrayList<>();
+		statusCodes.add(RegistrationStatusCode.PAUSED.toString());
+		statusCodes.add(RegistrationStatusCode.RESUMABLE.toString());
+		statusCodes.add(RegistrationStatusCode.PAUSED_FOR_ADDITIONAL_INFO.toString());
+		statusCodes.add(RegistrationStatusCode.REJECTED.toString());
+		statusCodes.add(RegistrationStatusCode.FAILED.toString());
+		statusCodes.add(RegistrationStatusCode.PROCESSED.toString());
+
+		return registrationStatusRepositary.getUnProcessedPackets(processList, status, reprocessCount, timeDifference,
+				statusCodes, fetchSize, excludeStageNames);
+	}
 }

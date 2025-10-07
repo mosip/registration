@@ -964,5 +964,43 @@ public class RegistrationStatusServiceImpl
 				"RegistrationStatusServiceImpl::updateRegistrationStatusForWorkFlow()::exit");
 
 	}
-	
+
+	/**
+	 * Gets the un processed packets.
+	 *
+	 * @param processList
+	 * 			the process List
+	 * @param fetchSize
+	 *            the fetch size
+	 * @param elapseTime
+	 *            the elapse time
+	 * @param reprocessCount
+	 *            the reprocess count
+	 * @param status
+	 *            the status
+	 * @return the un processed packets
+	 */
+	public List<InternalRegistrationStatusDto> getUnProcessedPackets(List<String> processList, Integer fetchSize, long elapseTime,
+																	 Integer reprocessCount, List<String> status, List<String> excludeStageNames) {
+
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				"RegistrationStatusServiceImpl::getReprocessPacket()::entry");
+		try {
+			List<RegistrationStatusEntity> entityList = registrationStatusDao.getUnProcessedPackets(processList, fetchSize,
+					elapseTime, reprocessCount, status, excludeStageNames);
+
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+					"RegistrationStatusServiceImpl::getReprocessPacket()::exit");
+
+			return convertEntityListToDtoList(entityList);
+
+		} catch (DataAccessException | DataAccessLayerException e) {
+
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
+			throw new TablenotAccessibleException(
+					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
+		}
+	}
+
 }

@@ -164,4 +164,24 @@ public interface RegistrationStatusService<T, U, D> {
 
 	public List<InternalRegistrationStatusDto> getResumablePackets(Integer fetchSize);
 
+	/**
+	 * Gets the un processed packets.
+	 *
+	 * @param processList
+	 * 			the process List
+	 * @param fetchSize
+	 *            the fetch size
+	 * @param elapseTime
+	 *            the elapse time
+	 * @param reprocessCount
+	 *            the reprocess count
+	 * @param status
+	 *            the status
+	 * @param excludeStageNames
+	 *            the exclude stage names
+	 * @return the un processed packets
+	 */
+	public List<U> getUnProcessedPackets(List<String> processList, Integer fetchSize, long elapseTime, Integer reprocessCount,
+										 List<String> status, List<String> excludeStageNames);
+
 }

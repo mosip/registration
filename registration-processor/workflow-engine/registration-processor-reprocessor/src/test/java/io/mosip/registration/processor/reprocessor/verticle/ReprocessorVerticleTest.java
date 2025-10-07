@@ -8,8 +8,12 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
+import io.mosip.registration.processor.reprocessor.service.ReprocessorVerticalService;
+import io.mosip.registration.processor.reprocessor.service.impl.ReprocessorVerticalServiceImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -105,6 +109,9 @@ public class ReprocessorVerticleTest {
 	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 
 	@Mock
+	private ReprocessorVerticalService reprocessorVerticalService;
+
+	@Mock
 	private AuditLogRequestBuilder auditLogRequestBuilder;
 
 	@Mock
@@ -117,9 +124,17 @@ public class ReprocessorVerticleTest {
 		 //Mockito.doNothing().when(description).setMessage(Mockito.anyString());
 		 //Mockito.when(description.getCode()).thenReturn("CODE");
 		 //Mockito.when(description.getMessage()).thenReturn("MESSAGE");
-		 ReflectionTestUtils.setField(reprocessorVerticle, "fetchSize", 2);
+		 ReflectionTestUtils.setField(reprocessorVerticle, "enabledProcessBasedFetch", true);
+		LinkedHashMap<String, Integer> processBasedFetchCountMapping = new LinkedHashMap<>();
+		processBasedFetchCountMapping.put("MIGRATOR", 40);
+		processBasedFetchCountMapping.put("RENEWAL#ON_HOLD_RENEWAL", 30);
+		processBasedFetchCountMapping.put("NEW,RENEWAL", 30);
+		ReflectionTestUtils.setField(reprocessorVerticle, "processBasedFetchCountMapping", processBasedFetchCountMapping);
+		 ReflectionTestUtils.setField(reprocessorVerticle, "fetchSize", 4);
          ReflectionTestUtils.setField(reprocessorVerticle, "elapseTime", 21600);
          ReflectionTestUtils.setField(reprocessorVerticle, "reprocessCount", 3);
+		ReflectionTestUtils.setField(reprocessorVerticle, "recordFetchSize", 500);
+		ReflectionTestUtils.setField(reprocessorVerticle, "threasholdForFetch", 50);
 		 ReflectionTestUtils.setField(reprocessorVerticle, "reprocessExcludeStageNames", new ArrayList<>());
 			List<String> reprocessRestartTriggerFilterList = new ArrayList<>();
 			reprocessRestartTriggerFilterList.add("DemodedupStage:Success");
@@ -172,6 +187,11 @@ public class ReprocessorVerticleTest {
 		dtolist.add(registrationStatusDto1);
 		Mockito.when(registrationStatusService.getUnProcessedPackets(anyInt(), anyLong(), anyInt(), anyList(), anyList()))
 				.thenReturn(dtolist);
+		Mockito.when(registrationStatusService.getUnProcessedPackets(anyList(), anyInt(), anyLong(), anyInt(), anyList(), anyList()))
+				.thenReturn(dtolist);
+		Mockito.when(reprocessorVerticalService.fetchUnProcessedPackets(anyList(), anyInt(), anyLong(), anyInt(), anyList(), anyList()))
+				.thenReturn(new ArrayList<>(dtolist));
+
 		reprocessorVerticle.process(dto);
 
 	}
