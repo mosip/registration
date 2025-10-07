@@ -262,7 +262,53 @@ public class JsonUtil {
 		return javaObject;
 
 	}
-	
+
+	/**
+	 * Map json node to java object.
+	 *
+	 * @param <T>
+	 *            the generic type
+	 * @param genericType
+	 *            the generic type
+	 * @param demographicJsonNode
+	 *            the demographic json node
+	 * @return the t
+	 */
+
+	public static <T> T mapJsonNodeToJavaObject(Class<? extends Object> genericType, JSONObject demographicJsonNode) {
+		String language;
+		String value;
+		try {
+				T jsonNodeElement = (T) genericType.newInstance();
+				JSONObject objects = demographicJsonNode;
+				if (objects != null) {
+					language = (String) objects.get(LANGUAGE);
+					value = (String) objects.get(VALUE);
+
+					Field languageField = jsonNodeElement.getClass().getDeclaredField(LANGUAGE);
+					languageField.setAccessible(true);
+					languageField.set(jsonNodeElement, language);
+
+					Field valueField = jsonNodeElement.getClass().getDeclaredField(VALUE);
+					valueField.setAccessible(true);
+					valueField.set(jsonNodeElement, value);
+
+					return jsonNodeElement;
+				}
+		} catch (InstantiationException | IllegalAccessException e) {
+
+			throw new InstantanceCreationException(PlatformErrorMessages.RPR_SYS_INSTANTIATION_EXCEPTION.getMessage(),
+					e);
+
+		} catch (NoSuchFieldException | SecurityException e) {
+
+			throw new FieldNotFoundException(PlatformErrorMessages.RPR_SYS_NO_SUCH_FIELD_EXCEPTION.getMessage(), e);
+
+		}
+
+		return null;
+
+	}
 	
 	public static String objectMapperObjectToJson(Object obj) throws IOException {
 		return getObjectMapper().writeValueAsString(obj);

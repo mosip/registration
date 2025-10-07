@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 
+import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -265,4 +266,17 @@ public class IntroducerValidatorProcessorTest {
 		assertFalse(object.getIsValid());
 		assertTrue(object.getInternalError());
 	}
+
+	@Test
+	public void PacketManagerNonRecoverableExceptionTest() throws Exception {
+
+		Mockito.doThrow(new PacketManagerNonRecoverableException("id", "message")).when(introducerValidator).validate(anyString(),
+				any());
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION)).thenReturn("Failed");
+		MessageDTO object = introducerValidationProcessor.process(dto, stageName);
+		assertFalse(object.getIsValid());
+		assertTrue(object.getInternalError());
+	}
+
 }
