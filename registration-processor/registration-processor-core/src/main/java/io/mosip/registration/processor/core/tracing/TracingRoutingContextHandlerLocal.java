@@ -22,7 +22,7 @@ import io.vertx.ext.web.RoutingContext;
  */
 final class TracingRoutingContextHandlerLocal implements Handler<RoutingContext> {
 
-	private static Logger regProcLogger = RegProcessorLogger.getLogger(TracingRoutingContextHandlerLocal.class);
+    private static Logger regProcLogger = RegProcessorLogger.getLogger(TracingRoutingContextHandlerLocal.class);
     static final Propagation.Getter<HttpServerRequest, String> GETTER = new Propagation.Getter<HttpServerRequest, String>() {
         public String get(HttpServerRequest carrier, String key) {
             return carrier.getHeader(key);
@@ -46,7 +46,7 @@ final class TracingRoutingContextHandlerLocal implements Handler<RoutingContext>
     }
 
     public void handle(RoutingContext context) {
-        TracingHandler tracingHandler = (TracingHandler)context.get(TracingHandler.class.getName());
+        TracingHandler tracingHandler = (TracingHandler) context.get(TracingHandler.class.getName());
         if (tracingHandler != null) {
             if (!context.failed())
                 context.addHeadersEndHandler(tracingHandler);
@@ -65,16 +65,16 @@ final class TracingRoutingContextHandlerLocal implements Handler<RoutingContext>
             if (ws != null)
                 ws.close();
         } catch (Throwable throwable) {
-        	regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-					LoggerFileConstant.REGISTRATIONID.toString(), "",
-					throwable.getMessage() + ExceptionUtils.getStackTrace(throwable));
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+                    LoggerFileConstant.REGISTRATIONID.toString(), "",
+                    throwable.getMessage() + ExceptionUtils.getStackTrace(throwable));
             if (ws != null)
                 try {
                     ws.close();
                 } catch (Throwable throwable1) {
-                	regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-        					LoggerFileConstant.REGISTRATIONID.toString(), "",
-        					throwable1.getMessage() + ExceptionUtils.getStackTrace(throwable1));
+                    regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+                            LoggerFileConstant.REGISTRATIONID.toString(), "",
+                            throwable1.getMessage() + ExceptionUtils.getStackTrace(throwable1));
                     throwable.addSuppressed(throwable1);
                 }
             throw throwable;
