@@ -5,5 +5,6 @@ import lombok.Data;
 @Data
 public class IdVidMetadataDTO {
     private String rid;
-    private String upd_dtimes;
+    private String createdOn;
+    private String updatedOn;
 }

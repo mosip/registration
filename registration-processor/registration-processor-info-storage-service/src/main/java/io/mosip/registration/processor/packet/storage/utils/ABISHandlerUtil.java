@@ -117,9 +117,7 @@ public class ABISHandlerUtil {
 						UniqueRegistrationIds processedRegIds = getUniqueRegIds(matchedProcessedRegIds, registrationId,
 								registrationType,
 								stageName);
-						if (Boolean.TRUE.equals(processedRegIds.getIsPacketUINMatched())) {
-							 isPacketUINMatched = true;
-						}
+						isPacketUINMatched = processedRegIds.getIsPacketUINMatched();
 						for(String rid : processedRegIds.getRegistrationIds()) {
 							if(!uniqueRIDs.contains(rid))
 								uniqueRIDs.add(rid);
@@ -216,7 +214,6 @@ public class ABISHandlerUtil {
 
 		Map<String, String> filteredRegMap = new LinkedHashMap<>();
 		Set<String> filteredRIds = new HashSet<>();
-		boolean isPacketUINMatched = false;
 		UniqueRegistrationIds uniqueRegistrationIds = new UniqueRegistrationIds();
 		for (String machedRegId : matchedRegistrationIds) {
 
@@ -228,7 +225,7 @@ public class ABISHandlerUtil {
 				if (matchedUin != null) {
 					if (packetUin.equals(matchedUin)) {
 						// Explicitly capture that UIN matched
-						isPacketUINMatched = true;
+						uniqueRegistrationIds.setIsPacketUINMatched(true);
 					} else {
 						// Different UIN found
 						filteredRegMap.put(matchedUin, machedRegId);
@@ -240,16 +237,15 @@ public class ABISHandlerUtil {
 			}
 
 			if (registrationType.equalsIgnoreCase(SyncTypeDto.LOST.toString()) && matchedUin != null) {
-				filteredRIds.addAll(filteredRegMap.values());
+				filteredRegMap.put(matchedUin, machedRegId);
 			}
 
 		}
 		if (!filteredRegMap.isEmpty()) {
-			filteredRIds.addAll(filteredRegMap.values());
+			filteredRIds = new HashSet<String>(filteredRegMap.values());
 		}
 
 		uniqueRegistrationIds.setRegistrationIds(filteredRIds);
-		uniqueRegistrationIds.setIsPacketUINMatched(isPacketUINMatched);
 
 		return uniqueRegistrationIds;
 

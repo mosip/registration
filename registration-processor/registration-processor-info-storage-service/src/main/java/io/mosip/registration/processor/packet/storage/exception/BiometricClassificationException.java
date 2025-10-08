@@ -7,11 +7,17 @@ import io.mosip.kernel.core.exception.BaseUncheckedException;
  */
 public class BiometricClassificationException extends BaseUncheckedException {
 
-    public BiometricClassificationException(String message) {
-        super(message);
-    }
+    /** The Constant serialVersionUID. */
+    private static final long serialVersionUID = 1L;
 
-    public BiometricClassificationException(String message, Throwable cause) {
-        super(message, String.valueOf(cause));
+    /**
+     * Instantiates a new Biometric not found exception.
+     *
+     * @param errorMessage the message
+     * @param errorCode the code
+     */
+
+    public BiometricClassificationException(String errorCode, String errorMessage) {
+        super(errorCode+ EMPTY_SPACE, errorMessage);
     }
 }

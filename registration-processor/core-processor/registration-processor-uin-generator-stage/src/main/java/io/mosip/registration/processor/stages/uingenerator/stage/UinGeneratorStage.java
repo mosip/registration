@@ -8,6 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
@@ -257,36 +258,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 				loadDemographicIdentity(fieldMap, demographicIdentity);
 
+				updatePacketCreatedOnIfApplicable(registrationId, registrationStatusDto, demographicIdentity, object);
+
 				if (StringUtils.isEmpty(uinField) || uinField.equalsIgnoreCase("null") ) {
-					// Only for NEW and UPDATE registrations, capture packetCreatedOn
-					if (RegistrationType.NEW.toString().equalsIgnoreCase(registrationStatusDto.getRegistrationType())
-							|| RegistrationType.UPDATE.toString().equalsIgnoreCase(registrationStatusDto.getRegistrationType())) {
-
-						// Try to fetch the key using getMappedFieldName
-						String packetCreatedOnKey = utility.getMappedFieldName(
-								registrationId,
-								MappingJsonConstants.PACKET_CREATED_ON,
-								registrationStatusDto.getRegistrationType(),
-								ProviderStageName.UIN_GENERATOR
-						);
-
-						if (packetCreatedOnKey == null) {
-							regProcLogger.info("packetCreatedOnKey is null for RID: {}", registrationId);
-						}
-
-						// Fallback to metaInfo if not present in packet
-						String packetCreatedOn = utility.retrieveCreatedDateFromPacket(
-								registrationId,
-								registrationStatusDto.getRegistrationType(),
-								ProviderStageName.UIN_GENERATOR
-						);
-
-						if (packetCreatedOn == null) {
-							regProcLogger.info("packetCreatedOn is null for RID: {}", registrationId);
-						}
-
-						demographicIdentity.put(MappingJsonConstants.PACKET_CREATED_ON, packetCreatedOn);
-					}
 					idResponseDTO = sendIdRepoWithUin(registrationId, registrationStatusDto.getRegistrationType(), demographicIdentity,
 							uinField);
 
@@ -1176,4 +1150,38 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			object.setIsValid(false);
 		}
 	}
+
+	private void updatePacketCreatedOnIfApplicable(String registrationId,
+												   InternalRegistrationStatusDto registrationStatusDto,
+												   Map<String, Object> demographicIdentity, MessageDTO object) throws IOException, PacketManagerException, ApisResourceAccessException, JsonProcessingException {
+		// Only for NEW and UPDATE registrations
+		if (!RegistrationType.NEW.toString().equalsIgnoreCase(registrationStatusDto.getRegistrationType()) &&
+				!RegistrationType.UPDATE.toString().equalsIgnoreCase(object.getReg_type())) {
+			return; // skip for other registration types
+		}
+
+		// Try to fetch the key using getMappedFieldName
+		String packetCreatedOnKey = utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON);
+
+		if (packetCreatedOnKey == null) {
+			regProcLogger.error("Mapping is not configured for 'packetCreatedOnKey' in 'identity-mapping.json'. RID: {}", registrationId);
+			return; // Cannot insert if key is null
+		}
+
+		// Fallback to metaInfo if not present in packet
+		String packetCreatedOn = utility.retrieveCreatedDateFromPacket(
+				registrationId,
+				registrationStatusDto.getRegistrationType(),
+				ProviderStageName.UIN_GENERATOR
+		);
+
+		if (packetCreatedOn == null) {
+			regProcLogger.info("packetCreatedOn is null for RID: {}", registrationId);
+			return; // Cannot insert if value is null
+		}
+
+		// Insert into demographicIdentity only if both key and value are present
+		demographicIdentity.put(packetCreatedOnKey, packetCreatedOn);
+	}
+
 }

@@ -61,7 +61,7 @@ public enum ApiName {
 	/** The idrepository get id by uin. */
 	IDREPOGETIDBYUIN,
 
-	/** The idrepository get individual by rid. */
+	/** Retrieves the id vid metadata information for a given individualId. */
 	IDREPOIDVIDMETADATASEARCH,
 
 	/** The uingenerator. */

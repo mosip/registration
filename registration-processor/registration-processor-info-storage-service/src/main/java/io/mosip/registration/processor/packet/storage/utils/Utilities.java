@@ -13,6 +13,7 @@ import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.bioapi.exception.BiometricException;
 import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
 import io.mosip.kernel.core.idvalidator.spi.VidValidator;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.registration.processor.core.constant.*;
 import io.mosip.registration.processor.core.exception.*;
 import io.mosip.registration.processor.core.idrepo.dto.Documents;
@@ -20,7 +21,6 @@ import io.mosip.registration.processor.core.idrepo.dto.IdVidMetadataDTO;
 import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.registration.processor.packet.storage.exception.*;
-import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.repositary.SyncRegistrationRepository;
 import io.mosip.registration.processor.status.service.AdditionalInfoRequestService;
@@ -89,7 +89,6 @@ public class Utilities {
 	private static final String PROVIDER = "provider";
 	public static final String EXCEPTION = "EXCEPTION";
 	public static final String TRUE = "TRUE";
-	public static final String PACKETCREATEDDATE="packetCreatedOn";
 
 	private static Map<String, String> readerConfiguration;
 	private static Map<String, String> writerConfiguration;
@@ -128,9 +127,6 @@ public class Utilities {
 	/** The mosip connection factory. */
 	@Autowired
 	private MosipQueueConnectionFactory<MosipQueue> mosipConnectionFactory;
-
-	@Autowired
-	private BasePacketRepository basePacketRepository;
 
 	@Autowired
 	SyncRegistrationRepository<SyncRegistrationEntity, String> syncRegistrationRepository;
@@ -186,9 +182,18 @@ public class Utilities {
 	@Value("${mosip.kernel.applicant.type.age.limit}")
 	private String ageLimit;
 
+	/**
+	 * Buffer (in months) applied to the applicant's age limit to ensure that applicants
+	 * close to the age threshold are not incorrectly excluded due to edge-case scenarios
+	 * in age calculation. Default value is 0.
+	 *
+	 * <p>Increasing this value can help accommodate additional scenarios by effectively
+	 * raising the applicant's age limit.</p>
+	 */
 	@Value("${registration.processor.applicant.type.age.limit.buffer:0}")
 	private String ageLimitBuffer;
 
+	// Estimated time (in hours) the system takes to process a packet
 	@Value("${registration.processor.expected-packet-processing-duration:0}")
 	private String expectedPacketProcessingDurationHours;
 
@@ -930,31 +935,33 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	}
 
 	// Determines whether the applicant was an infant at the time their last packet was processed in the system.
-	public boolean wasInfantWhenLastPacketProcessed(String registrationId, String registrationType, ProviderStageName stageName) throws Exception {
+	public boolean wasInfantWhenLastPacketProcessed(String registrationId, String registrationType, ProviderStageName stageName) throws ApisResourceAccessException, IOException,
+			JsonProcessingException, PacketManagerException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "utility::wasInfantWhenLastPacketProcessed()::entry");
 
 		String packetUin = getUIn(registrationId, registrationType, stageName);
 		if (packetUin == null || packetUin.trim().isEmpty()) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 					LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId,
-					"UIN not found in the packet for stage: " + stageName);
+					"UIN not found in the packet");
+			return false;
 		}
 		// Get created date and time from idrepo using above UIN
-		JSONObject responseDTO = idRepoService.getIdJsonFromIDRepo(packetUin, getGetRegProcessorDemographicIdentity());
+		JSONObject idvidResponse = idRepoService.getIdJsonFromIDRepo(packetUin, getGetRegProcessorDemographicIdentity());
 
-		LocalDate lastPacketProcessedDate = resolveLastPacketProcessedDate(registrationId, packetUin, responseDTO, registrationType, stageName);
+		LocalDate lastPacketProcessedDate = resolveLastPacketProcessedDate(registrationId, packetUin, idvidResponse);
 
 		if (lastPacketProcessedDate == null) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
 					"Unable to compute the creation date of the last processed packet");
-			throw new PacketDateComputationException(PlatformErrorMessages.RPR_BDD_PACKET_CREATED_DATE_NULL.getMessage()+
-					PlatformErrorMessages.RPR_BDD_PACKET_CREATED_DATE_NULL.getCode());
+			throw new PacketDateComputationException(PlatformErrorMessages.RPR_PKR_UNABLE_TO_COMPUTE_CREATION_DATE.getCode(),
+					PlatformErrorMessages.RPR_PKR_UNABLE_TO_COMPUTE_CREATION_DATE.getMessage());
 		}
 
-		LocalDate dobOfApplicant = getDateOfBirthFromIdrepo(registrationId, responseDTO, registrationType, stageName);
-		int age = calculateAgeAtLastPacketProcessing(dobOfApplicant, lastPacketProcessedDate);
+		LocalDate dobOfApplicant = getDateOfBirthFromIdrepo(registrationId, idvidResponse);
+		int age = calculateAgeAtLastPacketProcessing(dobOfApplicant, lastPacketProcessedDate, registrationId);
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "utility::wasInfantWhenLastPacketProcessed()::exit with age: " + age);
@@ -965,66 +972,83 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	/**
 	 * Attempts to resolve the last packet processed date using multiple strategies in order.
 	 */
-	private LocalDate resolveLastPacketProcessedDate(String registrationId, String packetUin, JSONObject responseDTO, String registrationType, ProviderStageName stageName) throws Exception {
+	private LocalDate resolveLastPacketProcessedDate(String registrationId, String packetUin, JSONObject idvidResponse) throws ApisResourceAccessException, IOException {
 		// 1. Try direct lookup
-		LocalDate date = getLastProcessedPacketCreatedDate(registrationId, packetUin, responseDTO, registrationType, stageName);
-		if (date != null) return date;
+		LocalDate date = getLastProcessedPacketCreatedDate(registrationId, idvidResponse);
+		if (date != null) {
+			regProcLogger.info("Successfully resolved packet creation date from direct lookup for registrationId: {}", registrationId);
+			return date;
+		}
 
 		// 2. Use last processed RID
-		IdVidMetadataDTO idVidMetadataDTO = getLastProcessedRidForApplicant(registrationId, packetUin, registrationType, stageName);
-		if (idVidMetadataDTO == null) return null;
+		IdVidMetadataDTO idVidMetadataDTO = getLastProcessedRidForApplicant(packetUin);
+		if (idVidMetadataDTO == null) {
+			regProcLogger.info("No id vid metadata found for RID: {}", registrationId);
+			return null;
+		}
 
 		// 3. Try from Sync Registration yyyyMMddHHmmss
 		date = getPacketCreatedDateFromSyncRegistration(idVidMetadataDTO.getRid());
-		if (date != null) return date;
+		if (date != null) {
+			regProcLogger.info("Successfully resolved packet creation date from Sync Registration for RID: {}", idVidMetadataDTO.getRid());
+			return date;
+		}
 
 		// 4. Try from RID directly
 		date = getPacketCreatedDateFromRid(idVidMetadataDTO.getRid());
-		if (date != null) return date;
+		if (date != null) {
+			regProcLogger.info("Successfully resolved packet creation date from RID directly for RID: {}", idVidMetadataDTO.getRid());
+			return date;
+		}
 
 		// 5. Fallback to IdRepo update date
-		LocalDateTime approxCreatedDateTime = computePacketCreatedFromIdentityUpdate(idVidMetadataDTO);
-		return approxCreatedDateTime != null ? approxCreatedDateTime.toLocalDate() : null;
+		LocalDate approxCreatedDateTime = computePacketCreatedFromIdentityUpdate(idVidMetadataDTO);
+		if (approxCreatedDateTime != null) {
+			regProcLogger.info("Resolved packet creation date from identity update for RID: {}", idVidMetadataDTO.getRid());
+			return approxCreatedDateTime;
+		}
+
+		regProcLogger.warn("Unable to resolve packet creation date for RID: {}", idVidMetadataDTO.getRid());
+		return null;
 	}
 
+	 /**
+	 * Retrieves the effective age limit for the applicant by adding the configured buffer (in months)
+	 * to the base age limit. This helps prevent exclusion of applicants who are close to the age threshold
+	 * due to edge cases in age calculation
+	 */
 	public int getEffectiveAgeLimit() {
 		return Integer.parseInt(ageLimit) + Integer.parseInt(ageLimitBuffer);
 	}
 
 	// Retrieves the created date of the last packet that was processed for the applicant.
-	public LocalDate getLastProcessedPacketCreatedDate(String rid, String packetUin, JSONObject responseDTO, String process, ProviderStageName stageName) throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException, ParseException {
+	private LocalDate getLastProcessedPacketCreatedDate(String rid, JSONObject idvidResponse) throws IOException {
 
 		String packetCreatedDateTimeIsoFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
 				"utility::getLastProcessedPacketCreatedDate()::entry");
 
-		if (packetUin == null || packetUin.trim().isEmpty()) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-					LoggerFileConstant.REGISTRATIONID.toString(),
-					rid,
-					"UIN not found in the packet for stage: " + stageName);
-		}
-		String createdOn = getMappedFieldName(rid, MappingJsonConstants.PACKET_CREATED_ON, process, stageName);
-		//Get created date and time from idrepo using above UIN */
-		String packetCreatedOn="";
+		String createdOn = getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON);
+		//Get created date and time from idrepo using above UIN
+		String packetCreatedOn ="";
 		// Check if the response object itself is null
-		if (responseDTO == null) {
+		if (idvidResponse == null) {
 			regProcLogger.debug("responseDTO ::getLastProcessedPacketCreatedDate() is null");
 			return null;
 		}
 
 		// Check if the key exists in the response
-		if (!responseDTO.containsKey(PACKETCREATEDDATE)) {
-			regProcLogger.debug("Key '{}' does not exist in responseDTO ::getLastProcessedPacketCreatedDate()", PACKETCREATEDDATE);
+		if (!idvidResponse.containsKey(createdOn)) {
+			regProcLogger.debug("Key '{}' does not exist in idvidResponse ::getLastProcessedPacketCreatedDate()", createdOn);
 			return null;
 		}
 
 		// Safely get the value
-		packetCreatedOn = JsonUtil.getJSONValue(responseDTO, createdOn);
+		packetCreatedOn = JsonUtil.getJSONValue(idvidResponse, createdOn);
 
 		// Check if the value itself is null
 		if (packetCreatedOn == null) {
-			regProcLogger.debug("Value for key '{}' is null in responseDTO ::getLastProcessedPacketCreatedDate()", createdOn);
+			regProcLogger.debug("Value for key '{}' is null in idvidResponse ::getLastProcessedPacketCreatedDate()", createdOn);
 			return null;
 		}
 		LocalDate packetCreatedDate = parseToLocalDate(packetCreatedOn, packetCreatedDateTimeIsoFormat);
@@ -1033,7 +1057,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		return packetCreatedDate;
 	}
 
-	public String getMappedFieldName(String id, String key, String process, ProviderStageName stageName) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+	public String getMappedFieldName(String key) throws IOException {
 		JSONObject regProcessorIdentityJson = getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 		return JsonUtil.getJSONValue(
 				JsonUtil.getJSONObject(regProcessorIdentityJson, key),
@@ -1044,59 +1068,43 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	/**
 	 * Extract Date of Birth from IDRepo using RID.
 	 */
-	public LocalDate getDateOfBirthFromIdrepo(String rid, JSONObject responseDTO, String type, ProviderStageName stageName) throws Exception {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
+	public LocalDate getDateOfBirthFromIdrepo(String rid, JSONObject idvidResponse) throws IOException {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
 				"utility::getDateOfBirthFromIdrepo()::entry");
 
 		// Step 2: Fetch DOB dynamically via mapping
-		String dateOfBirth = getMappedFieldName(rid, MappingJsonConstants.DOB, type, stageName);
+		String dateOfBirth = getMappedFieldName(MappingJsonConstants.DOB);
 		// Check if the response object itself is null
-		if (responseDTO == null) {
-			regProcLogger.debug("responseDTO utility::getDateOfBirthFromIdrepo() is null");
+		if (idvidResponse == null) {
+			regProcLogger.debug("idvidResponse utility::getDateOfBirthFromIdrepo() is null");
 			return null;
 		}
 
 		// Check if the key exists in the response
-		if (!responseDTO.containsKey(dateOfBirth)) {
-			regProcLogger.debug("Key '{}' does not exist in responseDTO utility::getDateOfBirthFromIdrepo()", dateOfBirth);
+		if (!idvidResponse.containsKey(dateOfBirth)) {
+			regProcLogger.debug("Key '{}' does not exist in idvidResponse utility::getDateOfBirthFromIdrepo()", rid);
 			return null;
 		}
 
 		// Safely get the value
-		String dobValue = JsonUtil.getJSONValue(responseDTO, dateOfBirth);
+		String dobValue = JsonUtil.getJSONValue(idvidResponse, dateOfBirth);
 
 		// Check if the value itself is null
 		if (dobValue == null) {
-			regProcLogger.debug("Value for key '{}' is null in responseDTO utility::getDateOfBirthFromIdrepo()", dateOfBirth);
+			regProcLogger.debug("Value for key '{}' is null in idvidResponse utility::getDateOfBirthFromIdrepo()", rid);
 			return null;
 		}
 
-		if (dobValue != null && !dobValue.isBlank()) {
 			LocalDate dob = parseToLocalDate(dobValue, dobFormat);
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
-					"utility::getDateOfBirthFromIdrepo()::exit with dob: " + dob);
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
+					"utility::getDateOfBirthFromIdrepo()::exit with dob");
 			return dob;
-		}
-
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
-				"utility::getDateOfBirthFromIdrepo()::exit with null");
-		return null;
 	}
 
 	// Calculates the age of an applicant at the time of the last packet processing.
-	public int calculateAgeAtLastPacketProcessing(LocalDate dateOfBirth, LocalDate lastPacketProcessingDate) {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+	public int calculateAgeAtLastPacketProcessing(LocalDate dateOfBirth, LocalDate lastPacketProcessingDate, String rid) {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
 				"utility::calculateAgeAtLastPacketProcessing():: entry");
-
-		if (dateOfBirth == null || lastPacketProcessingDate == null) {
-			regProcLogger.debug("Date of birth or last packet processing date is null. dob={}, lastDate={}", dateOfBirth, lastPacketProcessingDate);
-			throw new IllegalArgumentException("Date of birth and last packet processing date must not be null");
-		}
-
-		if (lastPacketProcessingDate.isBefore(dateOfBirth)) {
-			regProcLogger.debug("Last packet processing date cannot be before date of birth. dob={}, lastDate={}", dateOfBirth, lastPacketProcessingDate);
-			throw new IllegalArgumentException("Last packet processing date cannot be before date of birth");
-		}
 
 		// Calculate the period between the two dates
 		Period period = Period.between(dateOfBirth, lastPacketProcessingDate);
@@ -1104,7 +1112,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		// Extract years from the period
 		int ageInYears = period.getYears();
 
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
 				"utility::calculateAgeAtLastPacketProcessing():: exit");
 
 		// Return age in years (as per the original method signature)
@@ -1112,7 +1120,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	}
 
 	//Obtain the last processed RID for the applicant
-	public IdVidMetadataDTO getLastProcessedRidForApplicant(String rid, String uin, String process, ProviderStageName stageName) throws IOException, ApisResourceAccessException {
+	public IdVidMetadataDTO getLastProcessedRidForApplicant(String uin) throws IOException, ApisResourceAccessException {
 		// getting Last processed Rid from Idrepo
 		IdVidMetadataDTO idVidMetadataDTO = idRepoService.searchIdVidMetadata(uin);
 		return idVidMetadataDTO;
@@ -1121,7 +1129,6 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	//Retrieves the packet creation date for the given RID from the sync registration table.
 	public LocalDate getPacketCreatedDateFromSyncRegistration(String rid) {
 
-		String packetCreatedDateFormat = "yyyyMMddHHmmss";
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 				LoggerFileConstant.REGISTRATIONID.toString(), rid,
 				"utility::getPacketCreatedDateFromSyncRegistration():: entry");
@@ -1132,32 +1139,31 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 				.map(SyncRegistrationEntity::getPacketId) // extract packetId
 				.orElse(null); // if no records, return null
 
-		if (packetId != null && packetId.length() >= 14) {
-			// Extract last 14 characters
-			String dateStr = packetId.substring(packetId.length() - 14);
+		LocalDate packetCreatedDate = extractPacketCreatedDate(packetId);
 
-			// Use parseToLocalDate method
-			LocalDate packetCreatedDate = parseToLocalDate(dateStr, packetCreatedDateFormat);
-
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-					LoggerFileConstant.REGISTRATIONID.toString(), rid,
-					"utility::getPacketCreatedDateFromSyncRegistration():: exit with packetCreatedDate: " + packetCreatedDate);
-
-			return packetCreatedDate;
-		}
-
-		// Packet ID missing or too short
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 				LoggerFileConstant.REGISTRATIONID.toString(), rid,
-				"Packet ID is null or shorter than 14 characters. Cannot extract packet creation date.");
+				"utility::getPacketCreatedDateFromSyncRegistration():: exit with packetCreatedDate: " + packetCreatedDate);
 
-		return null;
+		return packetCreatedDate;
+	}
+
+	private LocalDate extractPacketCreatedDate(String id) {
+		String packetCreatedDateFormat = "yyyyMMddHHmmss";
+
+		if (id == null || id.length() < 14) {
+			regProcLogger.debug("Provided ID is null or shorter than 14 characters. Cannot extract packet creation date.");
+			return null;
+		}
+
+		String dateStr = id.substring(id.length() - 14);
+		return parseToLocalDate(dateStr, packetCreatedDateFormat);
 	}
 
 	/**
 	 * Wrapper that returns LocalDate only (ignores time).
 	 */
-	public static LocalDate parseToLocalDate(String dateString, String dateFormat) {
+	public LocalDate parseToLocalDate(String dateString, String dateFormat) {
 
 		// Log the incoming parameters for debugging
 		regProcLogger.debug("Attempting to parse date: {} with format: {}", dateString, dateFormat);
@@ -1174,13 +1180,15 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 
 				// Check if date is in the future
 				if (after(ldt, now)) {
-					regProcLogger.debug("Future Date : {}", ldt);
+					regProcLogger.error("Parsed LocalDateTime occurs in the future: {}", ldt);
+					return null;
 				}
 
 				// Check if date is older than 100 years
-				LocalDateTime hundredYearsAgo = now.minusYears(100);
+				LocalDateTime hundredYearsAgo = now.minusYears(200);
 				if (before(ldt, hundredYearsAgo)) {
-					regProcLogger.debug("Date is older than 100 years : {}", ldt);
+					regProcLogger.error("Date is older than 200 years : {}", ldt);
+					return null;
 				}
 			}
 		} catch (io.mosip.kernel.core.exception.ParseException e) {
@@ -1196,60 +1204,56 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	//Extracts the packet creation date from the given Registration ID (RID) by interpreting its last 14 digits as a timestamp in the format {@code yyyyMMddHHmmss}
 	public LocalDate getPacketCreatedDateFromRid(String rid) {
 
-		String packetCreatedDateFormat = "yyyyMMddHHmmss";
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 				LoggerFileConstant.REGISTRATIONID.toString(), rid,
 				"utility::getPacketCreatedDateFromRid():: entry");
 
-		if (rid != null && rid.length() >= 14) {
-			String dateStr = rid.substring(rid.length() - 14);
-
-			LocalDate packetCreatedDate = parseToLocalDate(dateStr, packetCreatedDateFormat);
-
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-					LoggerFileConstant.REGISTRATIONID.toString(), rid,
-					"utility::getPacketCreatedDateFromRid():: exit with packetCreatedDate: " + packetCreatedDate);
-
-			return packetCreatedDate;
-		}
+		LocalDate packetCreatedDate = extractPacketCreatedDate(rid);
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 				LoggerFileConstant.REGISTRATIONID.toString(), rid,
-				"RID is null or shorter than 14 characters. Cannot extract packet creation date.");
+				"utility::getPacketCreatedDateFromRid():: exit with packetCreatedDate: " + packetCreatedDate);
 
-		return null;
+		return packetCreatedDate;
 	}
 
-
 	// Computes the approximate packet creation date (for the packet that updated the identity)
-	public LocalDateTime computePacketCreatedFromIdentityUpdate(IdVidMetadataDTO idVidMetadataDTO) {
-		String packetCreatedDateTimeIsoFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+	public LocalDate computePacketCreatedFromIdentityUpdate(IdVidMetadataDTO idVidMetadataDTO) {
 
-		if (idVidMetadataDTO.getUpd_dtimes() == null) {
-			regProcLogger.debug("upd_dtimes is null for RID: {}", idVidMetadataDTO.getRid());
-			return null;
+		String packetCreatedDateTimeIsoFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+		String rid = idVidMetadataDTO.getRid();
+		String timestamp = idVidMetadataDTO.getUpdatedOn();
+
+		if (timestamp == null) {
+			regProcLogger.debug("timestamp is null for RID: {}. Falling back to cr_dtimes.", rid);
+			timestamp = idVidMetadataDTO.getCreatedOn();
 		}
 
-		LocalDateTime updatedOn = parseUTCToLocalDateTime(
-				idVidMetadataDTO.getUpd_dtimes(), packetCreatedDateTimeIsoFormat
-		);
+		try {
+			LocalDateTime referenceDateTime = parseUTCToLocalDateTime(timestamp, packetCreatedDateTimeIsoFormat);
+			long processingHours = Long.parseLong(expectedPacketProcessingDurationHours);
+			LocalDateTime adjustedDateTime = referenceDateTime.minusHours(processingHours);
 
-		//Subtract expected packet processing duration from identity's last update time to approximate the packet creation time.
-		return updatedOn.minusHours(Long.parseLong(expectedPacketProcessingDurationHours));
+			return adjustedDateTime.toLocalDate();
+
+		} catch (io.mosip.kernel.core.exception.ParseException e) {
+			regProcLogger.error("Failed to parse date '{}' for RID: {} using format {}. Exception: {}",
+					timestamp, rid, packetCreatedDateTimeIsoFormat, e.getMessage());
+			return null;
+		} catch (Exception e) {
+			regProcLogger.error("Unexpected error while computing packet creation date for RID: {}. Exception: {}",
+					rid, e.getMessage());
+			return null;
+		}
 	}
 
 	// Get the BiometricRecord from the IdRepo for a given UIN.
-	public BiometricRecord getBiometricRecordfromIdrepo(String uin) throws Exception {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), uin,
+	public BiometricRecord getBiometricRecordfromIdrepo(String uin, String rid) throws ApisResourceAccessException, IOException {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
 				"utility::getBiometricRecordfromIdrepo():: entry");
 
 		// Step 1: Retrieve all documents from IDRepo
 		List<Documents> documents = retrieveIdrepoDocument(uin);
-		if (documents == null || documents.isEmpty()) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), uin,
-					"No documents found in IDRepo for UIN: " + uin);
-			return null;
-		}
 
 		// Step 2: Load mapping JSON and extract the label for individual biometrics
 		JSONObject regProcessorIdentityJson = getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
@@ -1274,19 +1278,9 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 
 		try {
 			// Step 4: Decode and convert to BiometricRecord
-			byte[] bi = Base64.getUrlDecoder().decode(biometricDoc);
-			if (bi == null || bi.length == 0) {
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), uin,
-						"Biometric document is empty for UIN: " + uin);
-				return null;
-			}
+			byte[] bi = CryptoUtil.decodeURLSafeBase64(biometricDoc);
 
 			BIR birs = CbeffValidator.getBIRFromXML(bi);
-			if (birs == null || birs.getBirs() == null || birs.getBirs().isEmpty()) {
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), uin,
-						"Parsed BIR is empty for UIN: " + uin);
-				return null;
-			}
 
 			BiometricRecord biometricRecord = new BiometricRecord();
 			// Copy "others" metadata if present
@@ -1300,36 +1294,33 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 
 			biometricRecord.setSegments(birs.getBirs());
 
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), uin,
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
 					"utility::getBiometricRecordfromIdrepo():: exit");
 			return biometricRecord;
 
-		} catch (IllegalArgumentException e) {
-			// Thrown by Base64 decoder if string is invalid
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), uin,
-					"Failed to decode biometric document for UIN: " + uin, e);
-			throw e;
 		} catch (Exception e) {
 			// Any other error during XML parsing or processing
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), uin,
-					"Unexpected error while processing biometric document for UIN: " + uin, e);
-			throw e;
+			String errorMsg = "Unexpected error while processing biometric document for RID: " + rid;
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					rid, errorMsg, e);
+			throw new BiometricClassificationException(
+					PlatformErrorMessages.RPR_BIO_UNABLE_TO_FETCH_BIOMETRIC_INFO.getCode(),
+					PlatformErrorMessages.RPR_BIO_UNABLE_TO_FETCH_BIOMETRIC_INFO.getMessage());
 		}
 	}
 
 	// Checks whether all biometric segments are marked as exceptions excluding FACE and EXCEPTION_PHOTO types, which cannot be marked as exceptions.
-	public boolean allBiometricHaveException(List<BIR> birs) throws BiometricException {
+	public boolean allBiometricHaveException(List<BIR> birs, String rid) throws BiometricClassificationException {
 
-		String rid = ""; // Default, in case we can't resolve RID
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
 				"utility::allBiometricHaveException():: entry");
 
 		if (birs == null) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
 					"utility::allBiometricHaveException():: Biometric list is null. Unable to fetch biometric info.");
-			throw new BiometricException(
-					PlatformErrorMessages.UNABLE_TO_FETCH_BIO_INFO.getCode(),
-					PlatformErrorMessages.UNABLE_TO_FETCH_BIO_INFO.getMessage());
+			throw new BiometricClassificationException(
+					PlatformErrorMessages.RPR_BIO_UNABLE_TO_FETCH_BIOMETRIC_INFO.getCode(),
+					PlatformErrorMessages.RPR_BIO_UNABLE_TO_FETCH_BIOMETRIC_INFO.getMessage());
 		}
 
 		boolean hasOthers = hasBiometricWithOthers(birs);
@@ -1382,11 +1373,15 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	//Checks whether all biometric segments are marked as exceptions for a registration Id
 	public boolean allBiometricHaveException(String rid, String registrationType, ProviderStageName stageName) throws BiometricClassificationException {
 		try {
-			String uin = packetManagerService.getField(rid, MappingJsonConstants.UIN, registrationType, stageName);
-			BiometricRecord bm = getBiometricRecordfromIdrepo(uin);
-			return allBiometricHaveException(bm.getSegments());
+			String uin = getUIn(rid, registrationType, stageName);
+			BiometricRecord bm = getBiometricRecordfromIdrepo(uin, rid);
+			return allBiometricHaveException(bm.getSegments(), rid);
 		} catch (Exception e) {
-			throw new BiometricClassificationException("Error while classifying biometric exceptions for RID: " + rid, e);
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
+					"utility::allBiometricHaveException():: Error while classifying biometric exceptions for RID");
+			throw new BiometricClassificationException(
+					PlatformErrorMessages.RPR_BIO_UNABLE_TO_FETCH_BIOMETRIC_INFO.getCode(),
+					PlatformErrorMessages.RPR_BIO_UNABLE_TO_FETCH_BIOMETRIC_INFO.getMessage());
 		}
 	}
 

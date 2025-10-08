@@ -196,43 +196,91 @@ public class IdRepoServiceImpl implements IdRepoService {
 	}
 
 
+//	@Override
+//	public IdVidMetadataDTO searchIdVidMetadata1(String individualId) throws IOException, ApisResourceAccessException {
+//		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+//				"IdRepoServiceImpl::searchIdVidMetadata()::entry");
+//
+//		IdVidMetadataDTO idVidMetadataDTO = null;
+//
+//		Map<String, Object> requestBody = new HashMap<>();
+//
+//		Map<String, Object> requestData = new HashMap<>();
+//		requestData.put("individualId", individualId);
+//
+//		requestBody.put("request", requestData);
+//		@SuppressWarnings("unchecked")
+//		ResponseWrapper<ResponseDTO> response = (ResponseWrapper<ResponseDTO>) restClientService
+//				.postApi(ApiName.IDREPOIDVIDMETADATASEARCH,
+//						null,
+//						null,
+//						null,
+//						requestBody,
+//						ResponseWrapper.class);
+//
+//		if (response.getResponse() == null) {
+//			// Added: log IDRepo errors too, not just null response
+//			regProcLogger.error("IDRepo returned null response. Errors: {}", response.getErrors());
+//		} else {
+//			regProcLogger.error("IDRepo returned a response successfully: {}", response.getResponse());
+//		}
+//
+//		if (response.getResponse() != null) {
+//			idVidMetadataDTO = mapper.readValue(mapper.writeValueAsString(response.getResponse()), IdVidMetadataDTO.class);
+//			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+//					 "ridDTO success", idVidMetadataDTO);
+//		}
+//		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+//				"IdRepoServiceImpl::searchIdVidMetadata()::exit");
+//
+//		return idVidMetadataDTO;
+//	}
+
+
 	@Override
-	public IdVidMetadataDTO searchIdVidMetadata(String uin) throws IOException, ApisResourceAccessException {
-		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				uin, "IdRepoServiceImpl::searchIdVidMetadata()::entry");
+	public IdVidMetadataDTO searchIdVidMetadata(String individualId) throws ApisResourceAccessException {
+
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+				LoggerFileConstant.REGISTRATIONID.toString(),
+				"IdRepoServiceImpl::searchIdVidMetadata()::entry");
+
 		IdVidMetadataDTO idVidMetadataDTO = null;
 
-		Map<String, Object> requestBody = new HashMap<>();
-
+		// Prepare request body
 		Map<String, Object> requestData = new HashMap<>();
-		requestData.put("individualId", uin);
-
+		requestData.put("individualId", individualId);
+		Map<String, Object> requestBody = new HashMap<>();
 		requestBody.put("request", requestData);
+
 		@SuppressWarnings("unchecked")
-		ResponseWrapper<ResponseDTO> response=(ResponseWrapper<ResponseDTO>) restClientService
-				.postApi(ApiName.IDREPOIDVIDMETADATASEARCH,
-						null,
-						null,
-						null,
-						requestBody,
-						ResponseWrapper.class);
+		ResponseWrapper<ResponseDTO> response = (ResponseWrapper<ResponseDTO>) restClientService.postApi(
+				ApiName.IDREPOIDVIDMETADATASEARCH,
+				null,
+				null,
+				null,
+				requestBody,
+				ResponseWrapper.class
+		);
 
 		if (response.getResponse() == null) {
-			// Added: log IDRepo errors too, not just null response
-			regProcLogger.error("IDRepo returned null response for UIN: {}, errors: {}",
-					uin, response.getErrors());
+			regProcLogger.error("IDRepo returned null response. Errors: {}", response.getErrors());
 		} else {
-			regProcLogger.error("IDRepo returned response for UIN: {} -> {}", uin, response.getResponse());
+			// Map the 'identity' field directly to IdVidMetadataDTO
+			Object identityObj = response.getResponse().getIdentity();
+			if (identityObj != null) {
+				idVidMetadataDTO = mapper.convertValue(identityObj, IdVidMetadataDTO.class);
+				regProcLogger.debug("IdVidMetadataDTO mapping successful.");
+			} else {
+				regProcLogger.error("IDRepo response returned null identity field.");
+			}
+			regProcLogger.debug("IDRepo returned a response successfully.");
 		}
 
-		if (response.getResponse() != null) {
-			idVidMetadataDTO = mapper.readValue(mapper.writeValueAsString(response.getResponse()), IdVidMetadataDTO.class);
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					uin, "ridDTO success", idVidMetadataDTO);
-		}
-		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				uin, "IdRepoServiceImpl::searchIdVidMetadata()::exit");
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+				LoggerFileConstant.REGISTRATIONID.toString(),
+				"IdRepoServiceImpl::searchIdVidMetadata()::exit");
 
 		return idVidMetadataDTO;
 	}
+
 }
