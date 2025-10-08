@@ -10,14 +10,12 @@ import java.util.*;
 import io.mosip.kernel.biometrics.commons.CbeffValidator;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.mosip.kernel.core.bioapi.exception.BiometricException;
 import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
 import io.mosip.kernel.core.idvalidator.spi.VidValidator;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.registration.processor.core.constant.*;
 import io.mosip.registration.processor.core.exception.*;
-import io.mosip.registration.processor.core.idrepo.dto.Documents;
-import io.mosip.registration.processor.core.idrepo.dto.IdVidMetadataDTO;
+import io.mosip.registration.processor.core.idrepo.dto.*;
 import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.registration.processor.packet.storage.exception.*;
@@ -45,8 +43,6 @@ import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
-import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO1;
-import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.packet.dto.vid.VidResponseDTO;
@@ -981,7 +977,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		}
 
 		// 2. Use last processed RID
-		IdVidMetadataDTO idVidMetadataDTO = getLastProcessedRidForApplicant(packetUin);
+		IdVidMetadataResponse idVidMetadataDTO = getLastProcessedRidForApplicant(packetUin);
 		if (idVidMetadataDTO == null) {
 			regProcLogger.info("No id vid metadata found for RID: {}", registrationId);
 			return null;
@@ -1033,7 +1029,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		String packetCreatedOn ="";
 		// Check if the response object itself is null
 		if (idvidResponse == null) {
-			regProcLogger.debug("responseDTO ::getLastProcessedPacketCreatedDate() is null");
+			regProcLogger.debug("idvidResponse ::getLastProcessedPacketCreatedDate() is null");
 			return null;
 		}
 
@@ -1120,9 +1116,11 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	}
 
 	//Obtain the last processed RID for the applicant
-	public IdVidMetadataDTO getLastProcessedRidForApplicant(String uin) throws IOException, ApisResourceAccessException {
+	public IdVidMetadataResponse getLastProcessedRidForApplicant(String uin) throws IOException, ApisResourceAccessException {
 		// getting Last processed Rid from Idrepo
-		IdVidMetadataDTO idVidMetadataDTO = idRepoService.searchIdVidMetadata(uin);
+		IdVidMetadataRequest idVidMetadataRequest = new IdVidMetadataRequest();
+		idVidMetadataRequest.setIndividualId(uin);
+		IdVidMetadataResponse idVidMetadataDTO = idRepoService.searchIdVidMetadata(idVidMetadataRequest);
 		return idVidMetadataDTO;
 	}
 
@@ -1218,7 +1216,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	}
 
 	// Computes the approximate packet creation date (for the packet that updated the identity)
-	public LocalDate computePacketCreatedFromIdentityUpdate(IdVidMetadataDTO idVidMetadataDTO) {
+	public LocalDate computePacketCreatedFromIdentityUpdate(IdVidMetadataResponse idVidMetadataDTO) {
 
 		String packetCreatedDateTimeIsoFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 		String rid = idVidMetadataDTO.getRid();

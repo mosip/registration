@@ -43,12 +43,12 @@ public class BioDedupeConstants {
 	/** The Constant INTERNAL_ERROR. */
 	private static final String INTERNAL_ERROR = "Internal error occurred in bio-dedupe stage while processing for registrationId ";
 
-	public static final String NO_BIOMETRIC_MATCH_FOUND = "Not Even Single Match Found for Biometric from Abis";
+	public static final String NO_BIOMETRIC_MATCH_FOUND = "No biometric match found for the applicant";
 
-	public static final String SENT_TO_MV_NO_BIOMETRIC_MATCH = "Registration sent to MV stage due to no biometric match found";
+	public static final String SENT_TO_MV_NO_BIOMETRIC_MATCH = "Packet sent to MV stage due to no biometric match found";
 
-	public static final String SENT_TO_MV_ALL_BIOMETRIC_HAVE_EXCEPTION = "Registration sent to MV stage due to all biometric exception";
+	public static final String SENT_TO_MV_ALL_BIOMETRIC_HAVE_EXCEPTION = "Packet sent to MV stage due to all biometric exception";
 
-	public static final String REJECTED_NO_BIOMETRIC_MATCH_NON_INFANT = "Registration rejected no biometric match found for non-infant applicant";
+	public static final String REJECTED_NO_BIOMETRIC_MATCH_NON_INFANT = "Packet rejected - Biometric match not found for non-infant applicant.";
 
 }

@@ -279,8 +279,11 @@ public class BioDedupeProcessor {
 			registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_INPROGRESS.getCode());
 			registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.IN_PROGRESS.toString());
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-					description.getCode() + " -- " + LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-					description + "\n" + ExceptionUtils.getStackTrace(ex));
+					description.getCode() + " -- " + LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId,
+					(ex instanceof PacketDateComputationException ? "Unable to compute packet creation date"
+							: "Unable to fetch biometric information")
+							+ "\n" + ExceptionUtils.getStackTrace(ex));
 		} catch (Exception ex) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
 			registrationStatusDto.setStatusComment(trimExceptionMessage
@@ -432,17 +435,23 @@ public class BioDedupeProcessor {
 			String registrationType) throws ApisResourceAccessException, IOException, JsonProcessingException, PacketManagerException {
 		String moduleId = "";
 		String moduleName = ModuleName.BIO_DEDUPE.toString();
-		UniqueRegistrationIds res = abisHandlerUtil.getUniqueRegIds(registrationStatusDto.getRegistrationId(),
+		UniqueRegistrationIds uniqueRegIds = abisHandlerUtil.getUniqueRegIds(registrationStatusDto.getRegistrationId(),
 				registrationType, registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId(), ProviderStageName.BIO_DEDUPE);
 
 		Set<String> matchedRegIds = new HashSet<>(
-				Optional.ofNullable(res.getRegistrationIds()).orElse(Collections.emptySet())
+				Optional.ofNullable(uniqueRegIds.getRegistrationIds()).orElse(Collections.emptySet())
 		);
+
+		boolean noBiometricMatch = true; // true if no biometric match, false if all have exceptions
+
+		String mvStageMessage = noBiometricMatch
+				? BioDedupeConstants.SENT_TO_MV_NO_BIOMETRIC_MATCH
+				: BioDedupeConstants.SENT_TO_MV_ALL_BIOMETRIC_HAVE_EXCEPTION;
 
 		boolean isUpdatePacket = registrationStatusDto.getRegistrationType()
 				.equalsIgnoreCase(SyncTypeDto.UPDATE.toString());
 
-		boolean isPacketUINAvailable = res.getIsPacketUINMatched();
+		boolean isPacketUINAvailable = uniqueRegIds.getIsPacketUINMatched();
 
 		// Remove current registration ID from matches (temporary fix)
 		matchedRegIds.remove(registrationStatusDto.getRegistrationId());
@@ -451,7 +460,7 @@ public class BioDedupeProcessor {
 		if (isUpdatePacket && !isPacketUINAvailable && matchedRegIds.isEmpty()) {
 			boolean wasApplicantInfant = utilities.wasInfantWhenLastPacketProcessed(registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType(),
 					ProviderStageName.BIO_DEDUPE);
-			regProcLogger.debug("Was applicant infant? {}", wasApplicantInfant);
+			regProcLogger.info("Was applicant infant? {}", wasApplicantInfant);
 
 			if (!wasApplicantInfant) {
 				// Not infant: check if all biometrics had exceptions
@@ -470,16 +479,23 @@ public class BioDedupeProcessor {
 						regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 								registrationStatusDto.getRegistrationId(), BioDedupeConstants.REJECTED_NO_BIOMETRIC_MATCH_NON_INFANT);
 						return;
-					} else {
-						// Send to MV stage
-						sendToMVStage(registrationStatusDto, object, BioDedupeConstants.SENT_TO_MV_NO_BIOMETRIC_MATCH);
-						return;
 					}
-				} else {
-					// All Biometric Exception -> Send to MV stage
-					sendToMVStage(registrationStatusDto, object, BioDedupeConstants.SENT_TO_MV_ALL_BIOMETRIC_HAVE_EXCEPTION);
-					return;
+
 				}
+				else {
+					// All Biometric Exception -> mark as false if all biometric have exceptions
+					noBiometricMatch = false;
+				}
+				object.setInternalError(Boolean.FALSE);
+				object.setIsValid(Boolean.TRUE);
+				object.setMessageBusAddress(MessageBusAddress.VERIFICATION_BUS_IN);
+				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+				registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_INPROGRESS.getMessage());
+				registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_INPROGRESS.getCode());
+				registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.IN_PROGRESS.toString());
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						registrationStatusDto.getRegistrationId(), mvStageMessage);
+				return;
 			}
 		}
 			if (matchedRegIds.isEmpty()) {
@@ -511,18 +527,6 @@ public class BioDedupeProcessor {
 
 			}
 
-	}
-
-	private void sendToMVStage(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object, String logMessage) {
-		object.setInternalError(Boolean.FALSE);
-		object.setIsValid(Boolean.TRUE);
-		object.setMessageBusAddress(MessageBusAddress.VERIFICATION_BUS_IN);
-		registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-		registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_INPROGRESS.getMessage());
-		registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_INPROGRESS.getCode());
-		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.IN_PROGRESS.toString());
-		regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationStatusDto.getRegistrationId(), logMessage);
 	}
 
 	/**

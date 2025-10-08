@@ -1155,7 +1155,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 												   InternalRegistrationStatusDto registrationStatusDto,
 												   Map<String, Object> demographicIdentity, MessageDTO object) throws IOException, PacketManagerException, ApisResourceAccessException, JsonProcessingException {
 		// Only for NEW and UPDATE registrations
-		if (!RegistrationType.NEW.toString().equalsIgnoreCase(registrationStatusDto.getRegistrationType()) &&
+		if (!RegistrationType.NEW.toString().equalsIgnoreCase(object.getReg_type()) &&
 				!RegistrationType.UPDATE.toString().equalsIgnoreCase(object.getReg_type())) {
 			return; // skip for other registration types
 		}
