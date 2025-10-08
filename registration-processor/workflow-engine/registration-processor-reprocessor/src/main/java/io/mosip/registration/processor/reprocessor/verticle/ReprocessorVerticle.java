@@ -155,7 +155,6 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 	public void deployVerticle() {
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl);
 		deployScheduler(getVertx());
-
 	}
 
 	/**
@@ -371,7 +370,11 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 											auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName,
 													eventType, moduleId, moduleName, registrationId);
 									}
-								},sendExecutor)).collect(Collectors.toList());
+								},sendExecutor).exceptionally(ex -> {
+									regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+											description.getCode() + " -- ",
+											PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), ex.toString());									return null;
+								})).collect(Collectors.toList());
 
 				CompletableFuture.allOf(sendTasks.toArray(new CompletableFuture[0])).join();
 			}
@@ -384,7 +387,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 					description.getCode() + " -- ",
 					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e.toString());
 
-		}catch (Exception ex) {
+		} catch (Exception ex) {
 			isTransactionSuccessful.set(false);
 			description.setMessage(PlatformErrorMessages.REPROCESSOR_VERTICLE_FAILED.getMessage());
 			description.setCode(PlatformErrorMessages.REPROCESSOR_VERTICLE_FAILED.getCode());
@@ -519,7 +522,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 						Deque<?> cachedPackets = packetCacheMap.get(entry.getKey());
 						return cachedPackets == null ||  cachedPackets.size() < threasholdForFetch;
 				})
-				.map(entry -> CompletableFuture.runAsync(() -> {
+				.map(entry -> {
 					String key = entry.getKey();
 
 					// Parse key into Process & Status
@@ -528,16 +531,23 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 					List<String> statusValList = entryPair.getValue();
 
 					// Fetch unprocessed packets
-					List<InternalRegistrationStatusDto> registratiobRegistrationStatusDtos =  reprocessorVerticalService.fetchUnProcessedPackets(processList, recordFetchSize, elapseTime,
-							reprocessCount, (!statusValList.isEmpty() ? statusValList : statusList), reprocessExcludeStageNames);
-
-					// Thread-safe update to cache
-					packetCacheMap.compute(key, (k, existingList) -> {
-						if (existingList == null) return new ConcurrentLinkedDeque<>(registratiobRegistrationStatusDtos);
-						existingList.addAll(new ArrayList<>(registratiobRegistrationStatusDtos));
-						return existingList;
-					});
-				}, fetchExecutor))
+					return reprocessorVerticalService.fetchUnProcessedPackets(processList, recordFetchSize, elapseTime,
+							reprocessCount, (!statusValList.isEmpty() ? statusValList : statusList), reprocessExcludeStageNames)
+							.thenAccept(result -> {
+								// Thread-safe update to cache
+								packetCacheMap.compute(key, (k, existingList) -> {
+									if (existingList == null) return new ConcurrentLinkedDeque<>(result);
+									existingList.addAll(new ArrayList<>(result));
+									return existingList;
+								});
+							})
+							.exceptionally(ex -> {
+								regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+										"Error Fetching UnprocessedPackets -- ",
+										" Error Triggered for Process [" + String.join(",", processList) + "] and Status [" + String.join(",", (!statusValList.isEmpty() ? statusValList : statusList)) + "]", ExceptionUtils.getStackTrace(ex));
+								return null;
+							});
+				})
 				.collect(Collectors.toList());
 
 		CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();

@@ -8,21 +8,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class ReprocessorVerticalServiceImpl implements ReprocessorVerticalService {
 
     /** The registration status service. */
     @Autowired
-    RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
-
+    private RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 
     @Override
     @Async
-    public List<InternalRegistrationStatusDto> fetchUnProcessedPackets(List<String> processList, Integer fetchSize, long elapseTime, Integer reprocessCount, List<String> status, List<String> excludeStageNames) {
-        return registrationStatusService.getUnProcessedPackets(processList, fetchSize, elapseTime,
+    public CompletableFuture<List<InternalRegistrationStatusDto>> fetchUnProcessedPackets(List<String> processList, Integer fetchSize, long elapseTime, Integer reprocessCount, List<String> status, List<String> excludeStageNames) {
+        List<InternalRegistrationStatusDto> result =  registrationStatusService.getUnProcessedPackets(processList, fetchSize, elapseTime,
                 reprocessCount, status, excludeStageNames);
+        return CompletableFuture.completedFuture(result);
     }
 }
