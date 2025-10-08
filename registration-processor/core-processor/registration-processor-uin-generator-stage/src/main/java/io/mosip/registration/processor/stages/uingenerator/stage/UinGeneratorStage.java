@@ -258,7 +258,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 				loadDemographicIdentity(fieldMap, demographicIdentity);
 
-				updatePacketCreatedOnIfApplicable(registrationId, registrationStatusDto, demographicIdentity, object);
+				//updatePacketCreatedOnIfApplicable(registrationId, registrationStatusDto, demographicIdentity, object);
 
 				if (StringUtils.isEmpty(uinField) || uinField.equalsIgnoreCase("null") ) {
 					idResponseDTO = sendIdRepoWithUin(registrationId, registrationStatusDto.getRegistrationType(), demographicIdentity,
