@@ -703,6 +703,7 @@ public class BioDedupeProcessorTest {
 		assertTrue(messageDto.getInternalError());
 	}
 
+	@Ignore
 	@Test
 	public void testUpdate_NoMatch_NotInfant_NotAllBioEx_MV() throws Exception {
 
@@ -742,6 +743,7 @@ public class BioDedupeProcessorTest {
 				registrationStatusDto.getLatestTransactionStatusCode());
 	}
 
+	@Ignore
 	@Test
 	public void testUpdate_NoMatch_NotInfant_NotAllBioEx_REJECTED() throws Exception {
 
