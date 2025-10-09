@@ -267,12 +267,17 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 					"Resumable Packets Count " + reprocessorDtoList.size() );
 
 			if(enabledProcessBasedFetch) {
+				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+						"Enabled Process based fetch");
 				if(reprocessorDtoList.size() < fetchSize) {
 					LinkedHashMap<String, Integer> requiredCountMap = prepareRequiredCount(
 							fetchSize - reprocessorDtoList.size()
 					);
-
+					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+							"Prepared process based required count details for fetch " + requiredCountMap.toString());
 					fetchPacketsIfBelowThreshold(requiredCountMap, statusList);
+					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+							"Cacheing Packets if below Threashold method completed." + packetCacheMap.entrySet().stream().map(e -> e.getKey() + " = " + e.getValue().size()).collect(Collectors.joining(", ", "[", "]")));
 
 					reprocessorDtoList.addAll(fetchUnprocessedPacketsWithBalance(
 							requiredCountMap,
@@ -303,6 +308,8 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 								.map(dto -> CompletableFuture.runAsync(() -> {
 									{
 										String registrationId = dto.getRegistrationId();
+										regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+												LoggerFileConstant.REGISTRATIONID.toString(), registrationId, "Process started");
 										ridSb.add(registrationId);
 										MessageDTO messageDTO = new MessageDTO();
 										messageDTO.setRid(registrationId);
@@ -524,16 +531,27 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 				})
 				.map(entry -> {
 					String key = entry.getKey();
+					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+							"Fetch Records from Database for Process " + key);
 
 					// Parse key into Process & Status
 					AbstractMap.SimpleEntry<List<String>, List<String>> entryPair = parseProcessAndStatus(key);
 					List<String> processList = entryPair.getKey();
 					List<String> statusValList = entryPair.getValue();
+					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+							"Status used to fetch Records Process " + key + " is " + statusValList);
+
+					int recordFetchCount = recordFetchSize - packetCacheMap.get(key).size();
+					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+							"Record Fetch Count for process " + key + " is " + recordFetchCount);
 
 					// Fetch unprocessed packets
-					return reprocessorVerticalService.fetchUnProcessedPackets(processList, recordFetchSize, elapseTime,
+					return reprocessorVerticalService.fetchUnProcessedPackets(processList, recordFetchCount, elapseTime,
 							reprocessCount, (!statusValList.isEmpty() ? statusValList : statusList), reprocessExcludeStageNames)
 							.thenAccept(result -> {
+								regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+										"Total Record Fetched from database for process " + key + " is " + result.size());
+
 								// Thread-safe update to cache
 								packetCacheMap.compute(key, (k, existingList) -> {
 									if (existingList == null) return new ConcurrentLinkedDeque<>(result);
@@ -570,23 +588,22 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 				break;
 
 			int requiredCount = entry.getValue() + previousBalanceCount;
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-					entry.getKey() + " Packets Required Count " + requiredCount);
-
 			Deque<InternalRegistrationStatusDto> cachedPackets = packetCacheMap.getOrDefault(entry.getKey(), new ConcurrentLinkedDeque<>());
 
 			if(!cachedPackets.isEmpty()) {
 				int count = Math.min(requiredCount, remainingToFetch);
-				List<InternalRegistrationStatusDto> fetchedPackets = fetchFromCache(cachedPackets, count);
-				reprocessorPacketList.addAll(fetchedPackets);
-
 				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-						entry.getKey() + " Packets Count " + fetchedPackets.size());
-
+						entry.getKey() + " Packets Required Count " + count);
+				List<InternalRegistrationStatusDto> fetchedPackets = fetchFromCache(cachedPackets, count);
+				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+						entry.getKey() + "Total Packets Fetched from Cache " + fetchedPackets.size());
+				reprocessorPacketList.addAll(fetchedPackets);
 				previousBalanceCount = Math.max(0, requiredCount-fetchedPackets.size());
 			} else {
 				previousBalanceCount = requiredCount;
 			}
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+					entry.getKey() + "Count to be moved to next process " + previousBalanceCount);
 		}
 
 		return reprocessorPacketList;
