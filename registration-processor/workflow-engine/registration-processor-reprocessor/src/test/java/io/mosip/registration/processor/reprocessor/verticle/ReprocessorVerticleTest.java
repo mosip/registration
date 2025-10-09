@@ -7,10 +7,8 @@ import static org.mockito.ArgumentMatchers.anyLong;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import io.mosip.registration.processor.reprocessor.service.ReprocessorVerticalService;
 import io.mosip.registration.processor.reprocessor.service.impl.ReprocessorVerticalServiceImpl;
@@ -124,18 +122,18 @@ public class ReprocessorVerticleTest {
 		 //Mockito.doNothing().when(description).setMessage(Mockito.anyString());
 		 //Mockito.when(description.getCode()).thenReturn("CODE");
 		 //Mockito.when(description.getMessage()).thenReturn("MESSAGE");
-		 ReflectionTestUtils.setField(reprocessorVerticle, "enabledProcessBasedFetch", true);
+		ReflectionTestUtils.setField(reprocessorVerticle, "enabledProcessBasedFetch", false);
 		LinkedHashMap<String, Integer> processBasedFetchCountMapping = new LinkedHashMap<>();
-		processBasedFetchCountMapping.put("MIGRATOR", 40);
-		processBasedFetchCountMapping.put("RENEWAL#ON_HOLD_RENEWAL", 30);
-		processBasedFetchCountMapping.put("NEW,RENEWAL", 30);
+//		processBasedFetchCountMapping.put("MIGRATOR", 40);
+//		processBasedFetchCountMapping.put("RENEWAL#ON_HOLD_RENEWAL", 30);
+		processBasedFetchCountMapping.put("NEW,RENEWAL", 100);
 		ReflectionTestUtils.setField(reprocessorVerticle, "processBasedFetchCountMapping", processBasedFetchCountMapping);
-		 ReflectionTestUtils.setField(reprocessorVerticle, "fetchSize", 4);
-         ReflectionTestUtils.setField(reprocessorVerticle, "elapseTime", 21600);
-         ReflectionTestUtils.setField(reprocessorVerticle, "reprocessCount", 3);
+		ReflectionTestUtils.setField(reprocessorVerticle, "fetchSize", 4);
+        ReflectionTestUtils.setField(reprocessorVerticle, "elapseTime", 21600);
+        ReflectionTestUtils.setField(reprocessorVerticle, "reprocessCount", 3);
 		ReflectionTestUtils.setField(reprocessorVerticle, "recordFetchSize", 500);
 		ReflectionTestUtils.setField(reprocessorVerticle, "threasholdForFetch", 50);
-		 ReflectionTestUtils.setField(reprocessorVerticle, "reprocessExcludeStageNames", new ArrayList<>());
+		ReflectionTestUtils.setField(reprocessorVerticle, "reprocessExcludeStageNames", new ArrayList<>());
 			List<String> reprocessRestartTriggerFilterList = new ArrayList<>();
 			reprocessRestartTriggerFilterList.add("DemodedupStage:Success");
 			reprocessRestartTriggerFilterList.add("BioDedupeStage:*");
@@ -187,15 +185,40 @@ public class ReprocessorVerticleTest {
 		dtolist.add(registrationStatusDto1);
 		Mockito.when(registrationStatusService.getUnProcessedPackets(anyInt(), anyLong(), anyInt(), anyList(), anyList()))
 				.thenReturn(dtolist);
-		Mockito.when(registrationStatusService.getUnProcessedPackets(anyList(), anyInt(), anyLong(), anyInt(), anyList(), anyList()))
-				.thenReturn(dtolist);
-		Mockito.when(reprocessorVerticalService.fetchUnProcessedPackets(anyList(), anyInt(), anyLong(), anyInt(), anyList(), anyList()))
-				.thenReturn(new ArrayList<>(dtolist));
+		reprocessorVerticle.process(dto);
+
+	}
+
+	@Test
+	public void testProcessValidNew() throws TablenotAccessibleException, PacketManagerException,
+			ApisResourceAccessException, WorkflowActionException {
+		ReflectionTestUtils.setField(reprocessorVerticle, "enabledProcessBasedFetch", true);
+		List<InternalRegistrationStatusDto> dtolist = new ArrayList<>();
+		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
+
+		registrationStatusDto.setRegistrationId("2018701130000410092018110735");
+		registrationStatusDto.setRegistrationType(RegistrationType.NEW.toString());
+		registrationStatusDto.setRegistrationStageName("PacketValidatorStage");
+		registrationStatusDto.setDefaultResumeAction("RESUME_PROCESSING");
+		registrationStatusDto.setResumeTimeStamp(LocalDateTime.now());
+		registrationStatusDto.setReProcessRetryCount(0);
+		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+		dtolist.add(registrationStatusDto);
+		InternalRegistrationStatusDto registrationStatusDto1 = new InternalRegistrationStatusDto();
+
+		registrationStatusDto1.setRegistrationId("2018701130000410092018110734");
+		registrationStatusDto1.setRegistrationStageName("PacketValidatorStage");
+		registrationStatusDto1.setReProcessRetryCount(1);
+		registrationStatusDto1.setRegistrationType("NEW");
+		registrationStatusDto1.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
+		dtolist.add(registrationStatusDto1);
+		Mockito.when(reprocessorVerticalService.fetchUnProcessedPackets(anyList(), anyInt(), anyLong(), anyInt(), anyList(), anyList(), anyList()))
+				.thenReturn(CompletableFuture.completedFuture(dtolist));
 
 		reprocessorVerticle.process(dto);
 
 	}
-	
+
 	@Test
 	public void testProcessFailure() throws TablenotAccessibleException, PacketManagerException,
 			ApisResourceAccessException, WorkflowActionException {
@@ -225,6 +248,36 @@ public class ReprocessorVerticleTest {
 
 	}
 
+	@Test
+	public void testProcessFailureNew() throws TablenotAccessibleException, PacketManagerException,
+			ApisResourceAccessException, WorkflowActionException {
+		ReflectionTestUtils.setField(reprocessorVerticle, "enabledProcessBasedFetch", true);
+
+		List<InternalRegistrationStatusDto> dtolist = new ArrayList<>();
+		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
+
+		registrationStatusDto.setRegistrationId("2018701130000410092018110735");
+		registrationStatusDto.setRegistrationStageName("PacketValidatorStage");
+
+		registrationStatusDto.setDefaultResumeAction("RESUME_PROCESSING");
+		registrationStatusDto.setResumeTimeStamp(LocalDateTime.now());
+		registrationStatusDto.setRegistrationType("NEW");
+		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+		dtolist.add(registrationStatusDto);
+		InternalRegistrationStatusDto registrationStatusDto1 = new InternalRegistrationStatusDto();
+
+		registrationStatusDto1.setRegistrationId("2018701130000410092018110734");
+		registrationStatusDto1.setRegistrationStageName("PacketValidatorStage");
+		registrationStatusDto1.setReProcessRetryCount(3);
+		registrationStatusDto1.setRegistrationType("NEW");
+		registrationStatusDto1.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
+		dtolist.add(registrationStatusDto1);
+		Mockito.when(reprocessorVerticalService.fetchUnProcessedPackets(anyList(), anyInt(), anyLong(), anyInt(), anyList(), anyList(), anyList()))
+				.thenReturn(CompletableFuture.completedFuture(dtolist));
+		reprocessorVerticle.process(dto);
+
+	}
+
 	/**
 	 * Exception test.
 	 *
@@ -239,7 +292,17 @@ public class ReprocessorVerticleTest {
 		assertEquals(null, dto.getIsValid());
 
 	}
-	
+
+	@Test
+	public void exceptionTestNew() throws Exception {
+		ReflectionTestUtils.setField(reprocessorVerticle, "enabledProcessBasedFetch", true);
+		Mockito.when(reprocessorVerticalService.fetchUnProcessedPackets(anyList(), anyInt(), anyLong(), anyInt(), anyList(), anyList(), anyList()))
+				.thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
+		dto = reprocessorVerticle.process(dto);
+		assertEquals(null, dto.getIsValid());
+
+	}
+
 	@Test
 	public void nullPointerExceptionTest() throws Exception {
 		Mockito.when(registrationStatusService.getResumablePackets(anyInt()))
@@ -253,7 +316,17 @@ public class ReprocessorVerticleTest {
 		Mockito.when(registrationStatusService.getUnProcessedPackets(anyInt(), anyLong(), anyInt(), anyList(), anyList()))
 				.thenThrow(new TablenotAccessibleException("") {
 				});
+		dto = reprocessorVerticle.process(dto);
+		assertEquals(true, dto.getInternalError());
 
+	}
+
+	@Test
+	public void TablenotAccessibleExceptionTestNew() throws Exception {
+		ReflectionTestUtils.setField(reprocessorVerticle, "enabledProcessBasedFetch", true);
+		Mockito.when(reprocessorVerticalService.fetchUnProcessedPackets(anyList(), anyInt(), anyLong(), anyInt(), anyList(), anyList(), anyList()))
+				.thenThrow(new TablenotAccessibleException("") {
+				});
 		dto = reprocessorVerticle.process(dto);
 		assertEquals(true, dto.getInternalError());
 
@@ -292,6 +365,38 @@ public class ReprocessorVerticleTest {
 	}
 
 	@Test
+	public void testProcessValidWithResumablePacketsNew() throws TablenotAccessibleException, PacketManagerException,
+			ApisResourceAccessException, WorkflowActionException {
+		ReflectionTestUtils.setField(reprocessorVerticle, "enabledProcessBasedFetch", true);
+		List<InternalRegistrationStatusDto> dtolist = new ArrayList<>();
+		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
+
+		registrationStatusDto.setRegistrationId("2018701130000410092018110735");
+		registrationStatusDto.setRegistrationType(RegistrationType.NEW.toString());
+		registrationStatusDto.setRegistrationStageName("PacketValidatorStage");
+		registrationStatusDto.setDefaultResumeAction("RESUME_PROCESSING");
+		registrationStatusDto.setResumeTimeStamp(LocalDateTime.now());
+		registrationStatusDto.setReProcessRetryCount(0);
+		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+		dtolist.add(registrationStatusDto);
+		List<InternalRegistrationStatusDto> reprocessorDtoList = new ArrayList<>();
+		InternalRegistrationStatusDto registrationStatusDto1 = new InternalRegistrationStatusDto();
+
+		registrationStatusDto1.setRegistrationId("2018701130000410092018110734");
+		registrationStatusDto1.setRegistrationStageName("PacketValidatorStage");
+		registrationStatusDto1.setReProcessRetryCount(1);
+		registrationStatusDto1.setRegistrationType("NEW");
+		registrationStatusDto1.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
+		reprocessorDtoList.add(registrationStatusDto1);
+		Mockito.when(registrationStatusService.getResumablePackets(anyInt()))
+				.thenReturn(dtolist);
+		Mockito.when(reprocessorVerticalService.fetchUnProcessedPackets(anyList(), anyInt(), anyLong(), anyInt(), anyList(), anyList(), anyList()))
+				.thenReturn(CompletableFuture.completedFuture(dtolist));
+		reprocessorVerticle.process(dto);
+
+	}
+
+	@Test
 	public void testProcessWithRestartFromStage() throws TablenotAccessibleException,
 			PacketManagerException,
 			ApisResourceAccessException, WorkflowActionException {
@@ -313,4 +418,25 @@ public class ReprocessorVerticleTest {
 
 	}
 
+	@Test
+	public void testProcessWithRestartFromStageNew() throws TablenotAccessibleException,
+			PacketManagerException,
+			ApisResourceAccessException, WorkflowActionException {
+		ReflectionTestUtils.setField(reprocessorVerticle, "enabledProcessBasedFetch", true);
+
+		List<InternalRegistrationStatusDto> dtolist = new ArrayList<>();
+		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
+
+		registrationStatusDto.setRegistrationId("2018701130000410092018110735");
+		registrationStatusDto.setRegistrationType(RegistrationType.NEW.toString());
+		registrationStatusDto.setRegistrationStageName("BioDedupeStage");
+		registrationStatusDto.setReProcessRetryCount(0);
+		registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+		dtolist.add(registrationStatusDto);
+		Mockito.when(reprocessorVerticalService.fetchUnProcessedPackets(anyList(), anyInt(), anyLong(), anyInt(), anyList(), anyList(), anyList()))
+				.thenReturn(CompletableFuture.completedFuture(dtolist));
+		reprocessorVerticle.process(dto);
+
+	}
 }
