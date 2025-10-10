@@ -384,7 +384,12 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 											PlatformErrorMessages.RPR_PKR_UNKNOWN_EXCEPTION.getMessage(), ex.toString());									return null;
 								})).collect(Collectors.toList());
 
-				CompletableFuture.allOf(sendTasks.toArray(new CompletableFuture[0])).join();
+				CompletableFuture.allOf(sendTasks.toArray(new CompletableFuture[0])).whenComplete((res, ex) -> {
+					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+							"Error in Packet Processing -- ",
+							ex.getMessage(), ExceptionUtils.getStackTrace(ex));
+
+				});;
 			}
 		} catch (TablenotAccessibleException e) {
 			isBatchSuccessful = false;
@@ -575,7 +580,12 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 				})
 				.collect(Collectors.toList());
 
-		CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+		CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).whenComplete((res, ex) -> {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+					"Error in async tasks -- ",
+					ex.getMessage(), ExceptionUtils.getStackTrace(ex));
+
+		});
 	}
 
 	private AbstractMap.SimpleEntry<List<String>, List<String>> parseProcessAndStatus(String key) {
