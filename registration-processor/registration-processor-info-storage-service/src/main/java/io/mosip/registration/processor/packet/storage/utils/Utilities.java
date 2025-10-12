@@ -979,7 +979,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		// 2. Use last processed RID
 		IdVidMetadataResponse idVidMetadataDTO = getLastProcessedRidForApplicant(packetUin);
 		if (idVidMetadataDTO == null) {
-			regProcLogger.info("No id vid metadata found for RID: {}", registrationId);
+			regProcLogger.info("No idvid metadata found for RID: {}", registrationId);
 			return null;
 		}
 
@@ -1223,7 +1223,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		String timestamp = idVidMetadataDTO.getUpdatedOn();
 
 		if (timestamp == null) {
-			regProcLogger.debug("timestamp is null for RID: {}. Falling back to cr_dtimes.", rid);
+			regProcLogger.debug("timestamp is null for RID: {}. Falling back to createdOn.", rid);
 			timestamp = idVidMetadataDTO.getCreatedOn();
 		}
 

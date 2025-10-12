@@ -199,7 +199,7 @@ public class IdRepoServiceImpl implements IdRepoService {
 	@Override
 	public IdVidMetadataResponse searchIdVidMetadata(IdVidMetadataRequest idVidMetadataRequest) throws ApisResourceAccessException, JsonProcessingException {
 
-		IdVidMetadataResponse idVidMetadataDTO = null;
+		IdVidMetadataResponse idVidMetadataResponse = null;
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 				LoggerFileConstant.REGISTRATIONID.toString(),
 				"IdRepoServiceImpl::searchIdVidMetadata()::entry");
@@ -226,17 +226,17 @@ public class IdRepoServiceImpl implements IdRepoService {
 			return null;
 		} else {
 			// Successfully received response, process the IdVidMetadataDTO
-			idVidMetadataDTO = mapper.readValue(mapper.writeValueAsString(response.getResponse()), IdVidMetadataResponse.class);
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+			idVidMetadataResponse = mapper.readValue(mapper.writeValueAsString(response.getResponse()), IdVidMetadataResponse.class);
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 					LoggerFileConstant.REGISTRATIONID.toString(),
-					"IdVidMetadataDTO successfully parsed: {}", idVidMetadataDTO);
+					"IdVidMetadataDTO successfully parsed: {}", idVidMetadataResponse);
 		}
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 				LoggerFileConstant.REGISTRATIONID.toString(),
 				"IdRepoServiceImpl::searchIdVidMetadata()::exit");
 
-		return idVidMetadataDTO;
+		return idVidMetadataResponse;
 	}
 
 }

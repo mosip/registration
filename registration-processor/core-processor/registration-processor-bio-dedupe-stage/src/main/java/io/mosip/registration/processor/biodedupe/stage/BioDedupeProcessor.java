@@ -444,10 +444,6 @@ public class BioDedupeProcessor {
 
 		boolean noBiometricMatch = true; // true if no biometric match, false if all have exceptions
 
-		String mvStageMessage = noBiometricMatch
-				? BioDedupeConstants.SENT_TO_MV_NO_BIOMETRIC_MATCH
-				: BioDedupeConstants.SENT_TO_MV_ALL_BIOMETRIC_HAVE_EXCEPTION;
-
 		boolean isUpdatePacket = registrationStatusDto.getRegistrationType()
 				.equalsIgnoreCase(SyncTypeDto.UPDATE.toString());
 
@@ -486,6 +482,11 @@ public class BioDedupeProcessor {
 					// All Biometric Exception -> mark as false if all biometric have exceptions
 					noBiometricMatch = false;
 				}
+
+				String mvStageMessage = noBiometricMatch
+						? BioDedupeConstants.SENT_TO_MV_NO_BIOMETRIC_MATCH
+						: BioDedupeConstants.SENT_TO_MV_ALL_BIOMETRIC_HAVE_EXCEPTION;
+
 				object.setInternalError(Boolean.FALSE);
 				object.setIsValid(Boolean.TRUE);
 				object.setMessageBusAddress(MessageBusAddress.VERIFICATION_BUS_IN);
