@@ -580,12 +580,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 				})
 				.collect(Collectors.toList());
 
-		CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).whenComplete((res, ex) -> {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-					"Error in async tasks -- ",
-					ex.getMessage(), ExceptionUtils.getStackTrace(ex));
-
-		});
+		CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 	}
 
 	private AbstractMap.SimpleEntry<List<String>, List<String>> parseProcessAndStatus(String key) {
