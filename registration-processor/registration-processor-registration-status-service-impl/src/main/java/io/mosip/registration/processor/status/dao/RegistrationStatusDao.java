@@ -1,11 +1,7 @@
 package io.mosip.registration.processor.status.dao;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -71,6 +67,7 @@ public class RegistrationStatusDao {
 
 	public static final String UPDATED_DATE_TIME = "updateDateTime";
 
+	private HashMap<String, Set<String>> statusCodes=new HashMap<>();
 	/**
 	 * Save.
 	 *
@@ -265,20 +262,37 @@ public class RegistrationStatusDao {
 																Integer reprocessCount, List<String> trnStatusList, List<String> excludeStageNames, List<String> skipRegIds, List<String> statusList) {
 
 		LocalDateTime timeDifference = LocalDateTime.now().minusSeconds(elapseTime);
-		List<String> statusCodes=new ArrayList<>();
-		statusCodes.add(RegistrationStatusCode.PAUSED.toString());
-		statusCodes.add(RegistrationStatusCode.RESUMABLE.toString());
-		statusCodes.add(RegistrationStatusCode.PAUSED_FOR_ADDITIONAL_INFO.toString());
-		statusCodes.add(RegistrationStatusCode.REJECTED.toString());
-		statusCodes.add(RegistrationStatusCode.FAILED.toString());
-		statusCodes.add(RegistrationStatusCode.PROCESSED.toString());
+		Set<String> statusSet = new HashSet<>();
+		statusSet.add(RegistrationStatusCode.PAUSED.toString());
+		statusSet.add(RegistrationStatusCode.RESUMABLE.toString());
+		statusSet.add(RegistrationStatusCode.PAUSED_FOR_ADDITIONAL_INFO.toString());
+		statusSet.add(RegistrationStatusCode.REJECTED.toString());
+		statusSet.add(RegistrationStatusCode.FAILED.toString());
+		statusSet.add(RegistrationStatusCode.PROCESSED.toString());
 
 		if(statusList != null && !statusList.isEmpty()) {
+			processList.forEach(key -> {
+				if(statusList != null && !statusList.isEmpty())
+					statusSet.addAll(statusList);
+
+				if(statusCodes.containsKey(key)) {
+					statusCodes.get(key).addAll(statusSet);
+				} else {
+					statusCodes.put(key, statusSet);
+				}
+			});
+
+			statusSet.addAll(statusList);
 			return registrationStatusRepositary.getUnProcessedPacketsWithSpecificStatus(processList, trnStatusList, reprocessCount, timeDifference,
 					statusList, fetchSize, excludeStageNames, skipRegIds);
 		} else {
+			Set<String> populatedStatus = new HashSet<>();
+			processList.forEach(key -> {
+				populatedStatus.addAll(statusCodes.get(key) != null ? statusCodes.get(key) : statusSet);
+			});
+			List<String> status = new ArrayList<>(populatedStatus);
 			return registrationStatusRepositary.getUnProcessedPackets(processList, trnStatusList, reprocessCount, timeDifference,
-					statusCodes, fetchSize, excludeStageNames, skipRegIds);
+					status, fetchSize, excludeStageNames, skipRegIds);
 		}
 	}
 }
