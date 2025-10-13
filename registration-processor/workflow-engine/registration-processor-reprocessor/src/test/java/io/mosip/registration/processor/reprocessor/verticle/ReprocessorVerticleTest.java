@@ -212,7 +212,7 @@ public class ReprocessorVerticleTest {
 		registrationStatusDto1.setRegistrationType("NEW");
 		registrationStatusDto1.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 		dtolist.add(registrationStatusDto1);
-		Mockito.when(reprocessorVerticalService.fetchUnProcessedPackets(anyList(), anyInt(), anyLong(), anyInt(), anyList(), anyList(), anyList()))
+		Mockito.when(reprocessorVerticalService.fetchUnProcessedPackets(anyList(), anyInt(), anyLong(), anyInt(), anyList(), anyList(), anyList(), anyList()))
 				.thenReturn(CompletableFuture.completedFuture(dtolist));
 
 		reprocessorVerticle.process(dto);
@@ -272,7 +272,7 @@ public class ReprocessorVerticleTest {
 		registrationStatusDto1.setRegistrationType("NEW");
 		registrationStatusDto1.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 		dtolist.add(registrationStatusDto1);
-		Mockito.when(reprocessorVerticalService.fetchUnProcessedPackets(anyList(), anyInt(), anyLong(), anyInt(), anyList(), anyList(), anyList()))
+		Mockito.when(reprocessorVerticalService.fetchUnProcessedPackets(anyList(), anyInt(), anyLong(), anyInt(), anyList(), anyList(), anyList(), anyList()))
 				.thenReturn(CompletableFuture.completedFuture(dtolist));
 		reprocessorVerticle.process(dto);
 
@@ -296,7 +296,7 @@ public class ReprocessorVerticleTest {
 	@Test
 	public void exceptionTestNew() throws Exception {
 		ReflectionTestUtils.setField(reprocessorVerticle, "enabledProcessBasedFetch", true);
-		Mockito.when(reprocessorVerticalService.fetchUnProcessedPackets(anyList(), anyInt(), anyLong(), anyInt(), anyList(), anyList(), anyList()))
+		Mockito.when(reprocessorVerticalService.fetchUnProcessedPackets(anyList(), anyInt(), anyLong(), anyInt(), anyList(), anyList(), anyList(), anyList()))
 				.thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
 		dto = reprocessorVerticle.process(dto);
 		assertEquals(null, dto.getIsValid());
@@ -324,7 +324,7 @@ public class ReprocessorVerticleTest {
 	@Test
 	public void TablenotAccessibleExceptionTestNew() throws Exception {
 		ReflectionTestUtils.setField(reprocessorVerticle, "enabledProcessBasedFetch", true);
-		Mockito.when(reprocessorVerticalService.fetchUnProcessedPackets(anyList(), anyInt(), anyLong(), anyInt(), anyList(), anyList(), anyList()))
+		Mockito.when(reprocessorVerticalService.fetchUnProcessedPackets(anyList(), anyInt(), anyLong(), anyInt(), anyList(), anyList(), anyList(), anyList()))
 				.thenThrow(new TablenotAccessibleException("") {
 				});
 		dto = reprocessorVerticle.process(dto);
@@ -390,7 +390,7 @@ public class ReprocessorVerticleTest {
 		reprocessorDtoList.add(registrationStatusDto1);
 		Mockito.when(registrationStatusService.getResumablePackets(anyInt()))
 				.thenReturn(dtolist);
-		Mockito.when(reprocessorVerticalService.fetchUnProcessedPackets(anyList(), anyInt(), anyLong(), anyInt(), anyList(), anyList(), anyList()))
+		Mockito.when(reprocessorVerticalService.fetchUnProcessedPackets(anyList(), anyInt(), anyLong(), anyInt(), anyList(), anyList(), anyList(), anyList()))
 				.thenReturn(CompletableFuture.completedFuture(dtolist));
 		reprocessorVerticle.process(dto);
 
@@ -434,7 +434,7 @@ public class ReprocessorVerticleTest {
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
 		dtolist.add(registrationStatusDto);
-		Mockito.when(reprocessorVerticalService.fetchUnProcessedPackets(anyList(), anyInt(), anyLong(), anyInt(), anyList(), anyList(), anyList()))
+		Mockito.when(reprocessorVerticalService.fetchUnProcessedPackets(anyList(), anyInt(), anyLong(), anyInt(), anyList(), anyList(), anyList(), anyList()))
 				.thenReturn(CompletableFuture.completedFuture(dtolist));
 		reprocessorVerticle.process(dto);
 

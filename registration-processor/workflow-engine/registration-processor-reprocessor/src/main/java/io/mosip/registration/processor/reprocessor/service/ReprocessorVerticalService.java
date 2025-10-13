@@ -11,7 +11,8 @@ public interface ReprocessorVerticalService {
             Integer fetchSize,
             long elapseTime,
             Integer reprocessCount,
-            List<String> status,
+            List<String> trnStatusList,
             List<String> excludeStageNames,
-            List<String> skipRegIds);
+            List<String> skipRegIds,
+            List<String> statusList);
 }

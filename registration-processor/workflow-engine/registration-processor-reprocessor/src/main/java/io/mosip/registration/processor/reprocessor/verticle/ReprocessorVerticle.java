@@ -253,10 +253,10 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 	public MessageDTO process(MessageDTO object) {
 		List<InternalRegistrationStatusDto> reprocessorDtoList = null;
 		LogDescription description = new LogDescription();
-		List<String> statusList = new ArrayList<>();
-		statusList.add(RegistrationTransactionStatusCode.SUCCESS.toString());
-		statusList.add(RegistrationTransactionStatusCode.REPROCESS.toString());
-		statusList.add(RegistrationTransactionStatusCode.IN_PROGRESS.toString());
+		List<String> trnStatusList = new ArrayList<>();
+		trnStatusList.add(RegistrationTransactionStatusCode.SUCCESS.toString());
+		trnStatusList.add(RegistrationTransactionStatusCode.REPROCESS.toString());
+		trnStatusList.add(RegistrationTransactionStatusCode.IN_PROGRESS.toString());
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ReprocessorVerticle::process()::entry");
 		ConcurrentLinkedQueue<String> ridSb = new ConcurrentLinkedQueue<>();
@@ -275,7 +275,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 					);
 					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 							"Prepared process based required count details for fetch " + requiredCountMap.toString());
-					fetchPacketsIfBelowThreshold(requiredCountMap, statusList);
+					fetchPacketsIfBelowThreshold(requiredCountMap, trnStatusList);
 					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 							"Cacheing Packets if below Threashold method completed." + packetCacheMap.entrySet().stream().map(e -> e.getKey() + " = " + e.getValue().size()).collect(Collectors.joining(", ", "[", "]")));
 
@@ -289,14 +289,14 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 				if (!CollectionUtils.isEmpty(reprocessorDtoList)) {
 					if (reprocessorDtoList.size() < fetchSize) {
 						List<InternalRegistrationStatusDto>  reprocessorPacketList = registrationStatusService.getUnProcessedPackets(fetchSize - reprocessorDtoList.size(), elapseTime,
-								reprocessCount, statusList, reprocessExcludeStageNames);
+								reprocessCount, trnStatusList, reprocessExcludeStageNames);
 						if (!CollectionUtils.isEmpty(reprocessorPacketList)) {
 							reprocessorDtoList.addAll(reprocessorPacketList);
 						}
 					}
 				} else {
 					reprocessorDtoList = registrationStatusService.getUnProcessedPackets(fetchSize, elapseTime,
-							reprocessCount, statusList, reprocessExcludeStageNames);
+							reprocessCount, trnStatusList, reprocessExcludeStageNames);
 				}
 			}
 
@@ -529,7 +529,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 		return requiredCountMap;
 	}
 
-	private void fetchPacketsIfBelowThreshold(LinkedHashMap<String, Integer> requiredCountMap, List<String> statusList) {
+	private void fetchPacketsIfBelowThreshold(LinkedHashMap<String, Integer> requiredCountMap, List<String> trnStatusList) {
 		List<CompletableFuture<Void>> futures = requiredCountMap.entrySet().stream()
 				.filter(entry -> {
 						Deque<?> cachedPackets = packetCacheMap.get(entry.getKey());
@@ -559,7 +559,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 					if(skipRegIdList.isEmpty()) skipRegIdList.add("-DUMMY-");
 
 					return reprocessorVerticalService.fetchUnProcessedPackets(processList, recordFetchCount, elapseTime,
-							reprocessCount, (!statusValList.isEmpty() ? statusValList : statusList), reprocessExcludeStageNames, skipRegIdList)
+							reprocessCount, trnStatusList, reprocessExcludeStageNames, skipRegIdList, statusValList)
 							.thenAccept(result -> {
 								regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 										"Total Record Fetched from database for process " + key + " is " + result.size());
@@ -574,7 +574,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 							.exceptionally(ex -> {
 								regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 										"Error Fetching UnprocessedPackets -- ",
-										" Error Triggered for Process [" + String.join(",", processList) + "] and Status [" + String.join(",", (!statusValList.isEmpty() ? statusValList : statusList)) + "]", ExceptionUtils.getStackTrace(ex));
+										" Error Triggered for Process [" + String.join(",", processList) + "] and Status [" + String.join(",", statusValList) + "]", ExceptionUtils.getStackTrace(ex));
 								return null;
 							});
 				})

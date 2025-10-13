@@ -182,6 +182,6 @@ public interface RegistrationStatusService<T, U, D> {
 	 * @return the un processed packets
 	 */
 	public List<U> getUnProcessedPackets(List<String> processList, Integer fetchSize, long elapseTime, Integer reprocessCount,
-										 List<String> status, List<String> excludeStageNames, List<String> skipRegIds);
+										 List<String> trnStatusList, List<String> excludeStageNames, List<String> skipRegIds,  List<String> statusList);
 
 }
