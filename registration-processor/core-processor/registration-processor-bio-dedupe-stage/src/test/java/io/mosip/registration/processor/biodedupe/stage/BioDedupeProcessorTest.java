@@ -21,7 +21,7 @@ import io.mosip.registration.processor.core.code.*;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.packet.dto.abis.UniqueRegistrationIds;
-import io.mosip.registration.processor.packet.storage.exception.PacketDateComputationException;
+import io.mosip.registration.processor.core.exception.PacketDateComputationException;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.SyncTypeDto;
@@ -744,6 +744,7 @@ public class BioDedupeProcessorTest {
 		assertFalse(messageDto.getInternalError());
 		assertEquals(RegistrationTransactionStatusCode.IN_PROGRESS.toString(),
 				registrationStatusDto.getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.PROCESSING.name(), registrationStatusDto.getStatusCode());
 	}
 
 	@Test
@@ -784,6 +785,7 @@ public class BioDedupeProcessorTest {
 		assertFalse(messageDto.getInternalError());
 		assertEquals(RegistrationTransactionStatusCode.FAILED.toString(),
 				registrationStatusDto.getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.REJECTED.name(), registrationStatusDto.getStatusCode());
 	}
 
 	@Test
@@ -821,6 +823,7 @@ public class BioDedupeProcessorTest {
 		assertTrue(messageDto.getIsValid());
 		assertFalse(messageDto.getInternalError());
 		assertEquals(MessageBusAddress.VERIFICATION_BUS_IN, dto.getMessageBusAddress());
+		assertEquals(RegistrationStatusCode.PROCESSING.name(), registrationStatusDto.getStatusCode());
 	}
 
 	@Test
@@ -859,7 +862,7 @@ public class BioDedupeProcessorTest {
 	}
 
 	@Test
-	public void testUpdate_MatchedIdsEmptyAfterRemove_Success() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+	public void testUpdate_MatchedIdsNotEmpty_SaveManualAdjudication() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
 
 		registrationStatusDto.setRegistrationId("10049100271000420250319064824");
 		registrationStatusDto.setRegistrationType("UPDATE");

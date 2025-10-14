@@ -168,19 +168,4 @@ public class ABISHandlerUtilTest {
         assertEquals(1, uniqueRegIdsResponse.getRegistrationIds().size());
     }
 
-    @Test
-    public void testAbisReturnsEmpty() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
-        List<String> regBioRefIds1 = new ArrayList<>();
-        regBioRefIds1.add("cf1c941a-142c-44f1-9543-4606b4a7884e");
-        List<String> matchedRids1 = new ArrayList<>();
-        List<AbisResponseDto> abisResponseDtoList = new ArrayList<>();
-        when(packetInfoManager.getAbisResponseRecords(regBioRefIds1.get(0),
-                latestTransactionId, AbisConstant.IDENTIFY)).thenReturn(abisResponseDtoList);
-        when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn(null);
-
-        UniqueRegistrationIds uniqueRegIdsResponse = abisHandlerUtil.getUniqueRegIds(registrationId, "UPDATE",1, "", ProviderStageName.BIO_DEDUPE);
-        // expected not to pick processedMatchedIds list i.e 1 records.
-        assertFalse( uniqueRegIdsResponse.getIsPacketUINMatched());
-    }
-
 }

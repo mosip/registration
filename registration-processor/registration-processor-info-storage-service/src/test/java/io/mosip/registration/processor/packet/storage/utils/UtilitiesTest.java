@@ -17,8 +17,8 @@ import io.mosip.registration.processor.core.idrepo.dto.IdVidMetadataResponse;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
-import io.mosip.registration.processor.packet.storage.exception.BiometricClassificationException;
-import io.mosip.registration.processor.packet.storage.exception.PacketDateComputationException;
+import io.mosip.registration.processor.core.exception.BiometricClassificationException;
+import io.mosip.registration.processor.core.exception.PacketDateComputationException;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.repositary.SyncRegistrationRepository;
@@ -95,7 +95,7 @@ public class UtilitiesTest {
         ReflectionTestUtils.setField(utilities, "isVidSupportedForUpdate", false);
         ReflectionTestUtils.setField(utilities, "ageLimitBuffer", "1");
         ReflectionTestUtils.setField(utilities, "ageLimit", "5");
-        ReflectionTestUtils.setField(utilities, "expectedPacketProcessingDurationHours", "0");
+        ReflectionTestUtils.setField(utilities, "expectedPacketProcessingDurationHours", "1");
 
         InputStream inputStream = getClass().getClassLoader()
                 .getResourceAsStream("RegistrationProcessorIdentity.json");

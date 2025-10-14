@@ -18,7 +18,6 @@ import io.mosip.registration.processor.core.exception.*;
 import io.mosip.registration.processor.core.idrepo.dto.*;
 import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
 import io.mosip.kernel.biometrics.constant.BiometricType;
-import io.mosip.registration.processor.packet.storage.exception.*;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.repositary.SyncRegistrationRepository;
 import io.mosip.registration.processor.status.service.AdditionalInfoRequestService;
@@ -189,7 +188,7 @@ public class Utilities {
 	@Value("${registration.processor.applicant.type.age.limit.buffer:0}")
 	private String ageLimitBuffer;
 
-	// Estimated time (in hours) the system takes to process a packet
+	/** Estimated time (in hours) the system takes to process a packet */
 	@Value("${registration.processor.expected-packet-processing-duration:0}")
 	private String expectedPacketProcessingDurationHours;
 
@@ -1091,10 +1090,10 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 			return null;
 		}
 
-			LocalDate dob = parseToLocalDate(dobValue, dobFormat);
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
-					"utility::getDateOfBirthFromIdrepo()::exit with dob");
-			return dob;
+		LocalDate dob = parseToLocalDate(dobValue, dobFormat);
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
+				"utility::getDateOfBirthFromIdrepo()::exit with dob");
+		return dob;
 	}
 
 	// Calculates the age of an applicant at the time of the last packet processing.
