@@ -21,6 +21,7 @@ import io.mosip.registration.processor.core.code.*;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.packet.dto.abis.UniqueRegistrationIds;
+import io.mosip.registration.processor.packet.storage.exception.PacketDateComputationException;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.SyncTypeDto;
@@ -703,17 +704,16 @@ public class BioDedupeProcessorTest {
 		assertTrue(messageDto.getInternalError());
 	}
 
-	@Ignore
 	@Test
-	public void testUpdate_NoMatch_NotInfant_NotAllBioEx_MV() throws Exception {
+	public void testUpdate_NoMatch_NotInfant_NotAllBiometricException_MV() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
 
-		registrationStatusDto.setRegistrationId("RID123");
+		registrationStatusDto.setRegistrationId("10049100271000420250319064824");
 		registrationStatusDto.setRegistrationType("UPDATE");
 		registrationStatusDto.setIteration(1);
 		registrationStatusDto.setWorkflowInstanceId("wf-1");
 
 		dto = new MessageDTO();
-		dto.setRid("RID123");
+		dto.setRid("10049100271000420250319064824");
 		dto.setReg_type(SyncTypeDto.UPDATE.toString());
 
 		when(registrationStatusService.getRegistrationStatus(
@@ -723,8 +723,8 @@ public class BioDedupeProcessorTest {
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
 
 
-		// Inject nonInfantBioDedupe = "MV" (so non-infant no biometrics goes to MV, not rejected)
-		ReflectionTestUtils.setField(bioDedupeProcessor, "nonInfantBioDedupe", "MV");
+		// Inject nonInfantNotAllBiometricExceptionDecision = "MV" (so non-infant no biometrics goes to MV, not rejected)
+		ReflectionTestUtils.setField(bioDedupeProcessor, "nonInfantNotAllBiometricExceptionDecision", "MV");
 		UniqueRegistrationIds uniqueIds = new UniqueRegistrationIds();
 		uniqueIds.setRegistrationIds(Collections.emptySet());
 		uniqueIds.setIsPacketUINMatched(false);
@@ -736,24 +736,26 @@ public class BioDedupeProcessorTest {
 		when(utility.allBiometricHaveException(anyString(), anyString(), any()))
 				.thenReturn(false);
 
-		bioDedupeProcessor.process(dto, SyncTypeDto.UPDATE.toString());
+		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
-		assertTrue(dto.getIsValid());
+
+		assertEquals(MessageBusAddress.VERIFICATION_BUS_IN, messageDto.getMessageBusAddress());
+		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 		assertEquals(RegistrationTransactionStatusCode.IN_PROGRESS.toString(),
 				registrationStatusDto.getLatestTransactionStatusCode());
 	}
 
-	@Ignore
 	@Test
-	public void testUpdate_NoMatch_NotInfant_NotAllBioEx_REJECTED() throws Exception {
+	public void testUpdate_NoMatch_NotInfant_NotAllBiometricException_REJECTED() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
 
-		registrationStatusDto.setRegistrationId("RID123");
+		registrationStatusDto.setRegistrationId("10049100271000420250319064824");
 		registrationStatusDto.setRegistrationType("UPDATE");
 		registrationStatusDto.setIteration(1);
 		registrationStatusDto.setWorkflowInstanceId("wf-1");
 
 		dto = new MessageDTO();
-		dto.setRid("RID123");
+		dto.setRid("10049100271000420250319064824");
 		dto.setReg_type(SyncTypeDto.UPDATE.toString());
 
 		when(registrationStatusService.getRegistrationStatus(
@@ -763,8 +765,8 @@ public class BioDedupeProcessorTest {
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
 
 
-		// Inject nonInfantBioDedupe = "REJECTED" (so non-infant no biometrics goes to MV, not rejected)
-		ReflectionTestUtils.setField(bioDedupeProcessor, "nonInfantBioDedupe", "REJECTED");
+		// Inject nonInfantNotAllBiometricExceptionDecision = "REJECTED" (so non-infant no biometrics goes to REJECTED, not MV)
+		ReflectionTestUtils.setField(bioDedupeProcessor, "nonInfantNotAllBiometricExceptionDecision", "REJECTED");
 		UniqueRegistrationIds uniqueIds = new UniqueRegistrationIds();
 		uniqueIds.setRegistrationIds(Collections.emptySet());
 		uniqueIds.setIsPacketUINMatched(false);
@@ -776,23 +778,24 @@ public class BioDedupeProcessorTest {
 		when(utility.allBiometricHaveException(anyString(), anyString(), any()))
 				.thenReturn(false);
 
-		bioDedupeProcessor.process(dto, SyncTypeDto.UPDATE.toString());
+		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
-		assertFalse(dto.getIsValid());
-		assertEquals(RegistrationTransactionStatusCode.REJECTED.toString(),
+		assertFalse(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
+		assertEquals(RegistrationTransactionStatusCode.FAILED.toString(),
 				registrationStatusDto.getLatestTransactionStatusCode());
 	}
 
 	@Test
-	public void testUpdate_NoMatch_NotInfant_AllBioEx_MV() throws Exception {
+	public void testUpdate_NoMatch_NotInfant_AllBiometricException_MV() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
 
-		registrationStatusDto.setRegistrationId("RID123");
+		registrationStatusDto.setRegistrationId("10049100271000420250319064824");
 		registrationStatusDto.setRegistrationType("UPDATE");
 		registrationStatusDto.setIteration(1);
 		registrationStatusDto.setWorkflowInstanceId("wf-1");
 
 		dto = new MessageDTO();
-		dto.setRid("RID123");
+		dto.setRid("10049100271000420250319064824");
 		dto.setReg_type(SyncTypeDto.UPDATE.toString());
 
 		when(registrationStatusService.getRegistrationStatus(
@@ -812,22 +815,24 @@ public class BioDedupeProcessorTest {
 		when(utility.allBiometricHaveException(anyString(), anyString(), any()))
 				.thenReturn(true);
 
-		bioDedupeProcessor.process(dto, SyncTypeDto.UPDATE.toString());
+		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
-		assertTrue(dto.getIsValid());
+		assertEquals(MessageBusAddress.VERIFICATION_BUS_IN, messageDto.getMessageBusAddress());
+		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 		assertEquals(MessageBusAddress.VERIFICATION_BUS_IN, dto.getMessageBusAddress());
 	}
 
 	@Test
-	public void testUpdate_NoMatch_Infant_Success() throws Exception {
+	public void testUpdate_NoMatch_Infant_Success() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
 
-		registrationStatusDto.setRegistrationId("RID123");
+		registrationStatusDto.setRegistrationId("10049100271000420250319064824");
 		registrationStatusDto.setRegistrationType("UPDATE");
 		registrationStatusDto.setIteration(1);
 		registrationStatusDto.setWorkflowInstanceId("wf-1");
 
 		dto = new MessageDTO();
-		dto.setRid("RID123");
+		dto.setRid("10049100271000420250319064824");
 		dto.setReg_type(SyncTypeDto.UPDATE.toString());
 
 		when(registrationStatusService.getRegistrationStatus(
@@ -845,23 +850,24 @@ public class BioDedupeProcessorTest {
 		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any()))
 				.thenReturn(true);
 
-		bioDedupeProcessor.process(dto, SyncTypeDto.UPDATE.toString());
+		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
+		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 		assertEquals(RegistrationTransactionStatusCode.SUCCESS.toString(),
 				registrationStatusDto.getLatestTransactionStatusCode());
-		assertTrue(dto.getIsValid());
 	}
 
 	@Test
-	public void testUpdate_MatchedIdsEmptyAfterRemove_Success() throws Exception {
+	public void testUpdate_MatchedIdsEmptyAfterRemove_Success() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
 
-		registrationStatusDto.setRegistrationId("RID123");
+		registrationStatusDto.setRegistrationId("10049100271000420250319064824");
 		registrationStatusDto.setRegistrationType("UPDATE");
 		registrationStatusDto.setIteration(1);
 		registrationStatusDto.setWorkflowInstanceId("wf-1");
 
 		dto = new MessageDTO();
-		dto.setRid("RID1234");
+		dto.setRid("10049100271000420250319064824");
 		dto.setReg_type(SyncTypeDto.UPDATE.toString());
 
 		when(registrationStatusService.getRegistrationStatus(
@@ -871,7 +877,7 @@ public class BioDedupeProcessorTest {
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
 
 		Set<String> matches = new HashSet<>();
-		matches.add("RID1234");
+		matches.add("10049100271000420210319064824");
 
 		UniqueRegistrationIds uniqueIds = new UniqueRegistrationIds();
 		uniqueIds.setRegistrationIds(matches);
@@ -880,12 +886,31 @@ public class BioDedupeProcessorTest {
 		when(abisHandlerUtil.getUniqueRegIds(anyString(), anyString(), anyInt(), anyString(), any()))
 				.thenReturn(uniqueIds);
 
-		bioDedupeProcessor.process(dto, SyncTypeDto.UPDATE.toString());
+		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
+		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 		assertEquals(RegistrationTransactionStatusCode.FAILED.toString(),
 				registrationStatusDto.getLatestTransactionStatusCode());
 		assertEquals(RegistrationStatusCode.FAILED.name(), registrationStatusDto.getStatusCode());
 		assertTrue(dto.getIsValid());
+	}
+
+	@Test
+	public void testProcess_ThrowsPacketDateComputationException() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+		when(registrationStatusService.getRegistrationStatus(anyString(), anyString(), anyInt(), anyString()))
+				.thenReturn(registrationStatusDto);
+
+		when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
+
+		when(abisHandlerUtil.getUniqueRegIds(anyString(), anyString(), anyInt(), anyString(), any()))
+				.thenThrow(new PacketDateComputationException("ERR001", "Unable to compute packet date"));
+
+		MessageDTO result = bioDedupeProcessor.process(dto, "BIO_DEDUPE");
+
+		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
+		assertEquals(MessageBusAddress.VERIFICATION_BUS_IN, result.getMessageBusAddress());
 	}
 
 }

@@ -977,34 +977,34 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		}
 
 		// 2. Use last processed RID
-		IdVidMetadataResponse idVidMetadataDTO = getLastProcessedRidForApplicant(packetUin);
-		if (idVidMetadataDTO == null) {
+		IdVidMetadataResponse idVidMetadataResponse = getLastProcessedRidForApplicant(packetUin);
+		if (idVidMetadataResponse == null) {
 			regProcLogger.info("No idvid metadata found for RID: {}", registrationId);
 			return null;
 		}
 
 		// 3. Try from Sync Registration yyyyMMddHHmmss
-		date = getPacketCreatedDateFromSyncRegistration(idVidMetadataDTO.getRid());
+		date = getPacketCreatedDateFromSyncRegistration(idVidMetadataResponse.getRid());
 		if (date != null) {
-			regProcLogger.info("Successfully resolved packet creation date from Sync Registration for RID: {}", idVidMetadataDTO.getRid());
+			regProcLogger.info("Successfully resolved packet creation date from Sync Registration for RID: {}", idVidMetadataResponse.getRid());
 			return date;
 		}
 
 		// 4. Try from RID directly
-		date = getPacketCreatedDateFromRid(idVidMetadataDTO.getRid());
+		date = getPacketCreatedDateFromRid(idVidMetadataResponse.getRid());
 		if (date != null) {
-			regProcLogger.info("Successfully resolved packet creation date from RID directly for RID: {}", idVidMetadataDTO.getRid());
+			regProcLogger.info("Successfully resolved packet creation date from RID directly for RID: {}", idVidMetadataResponse.getRid());
 			return date;
 		}
 
 		// 5. Fallback to IdRepo update date
-		LocalDate approxCreatedDateTime = computePacketCreatedFromIdentityUpdate(idVidMetadataDTO);
+		LocalDate approxCreatedDateTime = computePacketCreatedFromIdentityUpdate(idVidMetadataResponse);
 		if (approxCreatedDateTime != null) {
-			regProcLogger.info("Resolved packet creation date from identity update for RID: {}", idVidMetadataDTO.getRid());
+			regProcLogger.info("Resolved packet creation date from identity update for RID: {}", idVidMetadataResponse.getRid());
 			return approxCreatedDateTime;
 		}
 
-		regProcLogger.warn("Unable to resolve packet creation date for RID: {}", idVidMetadataDTO.getRid());
+		regProcLogger.warn("Unable to resolve packet creation date for RID: {}", idVidMetadataResponse.getRid());
 		return null;
 	}
 
@@ -1120,8 +1120,8 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		// getting Last processed Rid from Idrepo
 		IdVidMetadataRequest idVidMetadataRequest = new IdVidMetadataRequest();
 		idVidMetadataRequest.setIndividualId(uin);
-		IdVidMetadataResponse idVidMetadataDTO = idRepoService.searchIdVidMetadata(idVidMetadataRequest);
-		return idVidMetadataDTO;
+		IdVidMetadataResponse idVidMetadataResponse = idRepoService.searchIdVidMetadata(idVidMetadataRequest);
+		return idVidMetadataResponse;
 	}
 
 	//Retrieves the packet creation date for the given RID from the sync registration table.
