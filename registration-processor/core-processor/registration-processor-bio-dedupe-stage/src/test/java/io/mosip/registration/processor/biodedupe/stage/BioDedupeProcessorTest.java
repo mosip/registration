@@ -194,7 +194,7 @@ public class BioDedupeProcessorTest {
 		dto.setRid("reg1234");
 		registrationStatusDto.setRegistrationId("reg1234");
 		registrationStatusDto.setRegistrationType("new");
-		//registrationStatusDto.setWorkflowInstanceId("testexp1");
+		registrationStatusDto.setWorkflowInstanceId("testexp1");
 
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
 		Mockito.doNothing().when(description).setMessage(any());
@@ -906,7 +906,7 @@ public class BioDedupeProcessorTest {
 		when(abisHandlerUtil.getUniqueRegIds(anyString(), anyString(), anyInt(), anyString(), any()))
 				.thenThrow(new PacketDateComputationException("ERR001", "Unable to compute packet date"));
 
-		MessageDTO result = bioDedupeProcessor.process(dto, "BIO_DEDUPE");
+		MessageDTO result = bioDedupeProcessor.process(dto, stageName);
 
 		assertFalse(result.getInternalError());
 		assertTrue(result.getIsValid());
