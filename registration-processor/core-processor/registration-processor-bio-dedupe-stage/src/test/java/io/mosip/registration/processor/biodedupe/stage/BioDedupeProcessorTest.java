@@ -194,7 +194,7 @@ public class BioDedupeProcessorTest {
 		dto.setRid("reg1234");
 		registrationStatusDto.setRegistrationId("reg1234");
 		registrationStatusDto.setRegistrationType("new");
-		registrationStatusDto.setWorkflowInstanceId("testexp1");
+		//registrationStatusDto.setWorkflowInstanceId("testexp1");
 
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
 		Mockito.doNothing().when(description).setMessage(any());
