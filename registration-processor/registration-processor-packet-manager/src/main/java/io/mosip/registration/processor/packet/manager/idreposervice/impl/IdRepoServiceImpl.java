@@ -225,11 +225,11 @@ public class IdRepoServiceImpl implements IdRepoService {
 			regProcLogger.error("IDRepo returned null response. Errors: {}", response.getErrors());
 			return null;
 		} else {
-			// Successfully received response, process the IdVidMetadataDTO
+			// Successfully received response, process the idVidMetadataResponse
 			idVidMetadataResponse = mapper.readValue(mapper.writeValueAsString(response.getResponse()), IdVidMetadataResponse.class);
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 					LoggerFileConstant.REGISTRATIONID.toString(),
-					"IdVidMetadataDTO successfully parsed: {}", idVidMetadataResponse);
+					"idVidMetadataResponse successfully parsed: {}", idVidMetadataResponse);
 		}
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
