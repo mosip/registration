@@ -228,8 +228,8 @@ public class IdRepoServiceImpl implements IdRepoService {
 			// Successfully received response, process the idVidMetadataResponse
 			idVidMetadataResponse = mapper.readValue(mapper.writeValueAsString(response.getResponse()), IdVidMetadataResponse.class);
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-					LoggerFileConstant.REGISTRATIONID.toString(),
-					"idVidMetadataResponse successfully parsed: {}", idVidMetadataResponse);
+					LoggerFileConstant.REGISTRATIONID.toString(), idVidMetadataResponse.getRid(),
+					"idVidMetadataResponse fetched successfully");
 		}
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),

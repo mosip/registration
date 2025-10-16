@@ -5,5 +5,6 @@ import lombok.Data;
 @Data
 public class IdVidMetadataRequest {
 
-    String individualId;
+    private String individualId;
+    private String idType;
 }

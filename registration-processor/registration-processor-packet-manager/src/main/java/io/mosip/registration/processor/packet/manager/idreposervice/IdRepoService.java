@@ -78,7 +78,7 @@ public interface IdRepoService {
 	 */
 	ResponseDTO getIdResponseFromIDRepo(String machedRegId) throws IOException, ApisResourceAccessException;
 
-	/**
+ 	/**
 	 * Retrieves the id vid metadata information for a given individualId.
 	 *
 	 * @param idVidMetadataRequest the identifier of the individual whose metadata is to be fetched.

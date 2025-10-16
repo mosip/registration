@@ -227,7 +227,7 @@ public class UtilitiesTest {
                 "10004133140010820251009123300", "UPDATE", ProviderStageName.BIO_DEDUPE);
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test(expected = PacketDateComputationException.class)
     public void testWasInfantWhenLastPacketProcessed_NullDOB() throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 
         String uin = "123458665";
@@ -651,13 +651,12 @@ public class UtilitiesTest {
         utilities.allBiometricHaveException(rid, registrationType, stageName);
     }
 
-    @Test
+    @Test(expected = BiometricClassificationException.class)
     public void testGetBiometricRecordfromIdrepo_noDocuments_returnsNull() throws Exception {
         String uin = "66554444";
         String rid = "10049100271000420240319064824";
         doReturn(Collections.emptyList()).when(utilities).retrieveIdrepoDocument(uin);
-        BiometricRecord result = utilities.getBiometricRecordfromIdrepo(uin, rid);
-        assertNull(result);
+        utilities.getBiometricRecordfromIdrepo(uin, rid);
     }
 
     @Test

@@ -76,7 +76,8 @@ public class ABISHandlerUtil {
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 */
 	public UniqueRegistrationIds getUniqueRegIds(String registrationId, String registrationType,
-												 int iteration, String workflowInstanceId, ProviderStageName stageName) throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException {	regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+										int iteration, String workflowInstanceId, ProviderStageName stageName) throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationId, "ABISHandlerUtil::getUniqueRegIds()::entry");
 		
 		String latestTransactionId = utilities.getLatestTransactionId(registrationId, registrationType, iteration, workflowInstanceId);
@@ -86,7 +87,7 @@ public class ABISHandlerUtil {
 		List<String> machedRefIds = new ArrayList<>();
 		Set<String> uniqueRIDs = new HashSet<>();
 		List<AbisResponseDetDto> abisResponseDetDtoList = new ArrayList<>();
-		boolean isPacketUINMatched = false;
+		UniqueRegistrationIds uniqueRegistrationIds = new UniqueRegistrationIds();
 
 		if (!regBioRefIds.isEmpty()) {
 			List<AbisResponseDto> abisResponseDtoList = packetInfoManager.getAbisResponseRecords(regBioRefIds.get(0),
@@ -117,7 +118,7 @@ public class ABISHandlerUtil {
 						UniqueRegistrationIds processedRegIds = getUniqueRegIds(matchedProcessedRegIds, registrationId,
 								registrationType,
 								stageName);
-						isPacketUINMatched = processedRegIds.getIsPacketUINMatched();
+						uniqueRegistrationIds.setIsPacketUINMatched(processedRegIds.getIsPacketUINMatched());
 						for(String rid : processedRegIds.getRegistrationIds()) {
 							if(!uniqueRIDs.contains(rid))
 								uniqueRIDs.add(rid);
@@ -129,10 +130,8 @@ public class ABISHandlerUtil {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationId, "ABISHandlerUtil::getUniqueRegIds()::exit");
 
-		UniqueRegistrationIds uniqueRegIds = new UniqueRegistrationIds();
-		uniqueRegIds.setRegistrationIds(uniqueRIDs);
-		uniqueRegIds.setIsPacketUINMatched(isPacketUINMatched);
-		return uniqueRegIds;
+		uniqueRegistrationIds.setRegistrationIds(uniqueRIDs);
+		return uniqueRegistrationIds;
 
 	}
 

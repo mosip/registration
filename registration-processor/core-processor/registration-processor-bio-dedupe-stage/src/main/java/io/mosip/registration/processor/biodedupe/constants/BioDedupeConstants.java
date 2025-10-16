@@ -45,10 +45,10 @@ public class BioDedupeConstants {
 
 	public static final String NO_BIOMETRIC_MATCH_FOUND = "No biometric match found for the applicant";
 
-	public static final String SENT_TO_MV_NO_BIOMETRIC_MATCH = "Packet sent to MV stage due to no biometric match found";
+	public static final String SENT_TO_MV_NO_BIOMETRIC_MATCH_FOUND = "Packet sent to MV stage due to no biometric match found";
 
-	public static final String SENT_TO_MV_ALL_BIOMETRIC_HAVE_EXCEPTION = "Packet sent to MV stage due to all biometric exception";
+	public static final String SENT_TO_MV_ALL_BIOMETRIC_HAVE_EXCEPTION = "Packet sent to MV stage due to all exception biometrics";
 
-	public static final String REJECTED_NO_BIOMETRIC_MATCH_NON_INFANT = "Packet rejected - Biometric match not found for non-infant applicant";
+	public static final String REJECTED_NO_BIOMETRIC_MATCH_FOUND = "Packet rejected due to no biometric match found";
 
 }
