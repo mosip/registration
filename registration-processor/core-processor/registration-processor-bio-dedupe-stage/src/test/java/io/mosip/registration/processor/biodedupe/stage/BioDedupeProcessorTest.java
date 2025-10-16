@@ -206,12 +206,6 @@ public class BioDedupeProcessorTest {
 		Mockito.when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn(ERROR);
 		Mockito.doNothing().when(packetInfoManager).saveManualAdjudicationData(any(), any(), any(), any(), any(),any(),any());
 		Mockito.doNothing().when(packetInfoManager).saveRegLostUinDet(any(), any(), any(), any(), any());
-		Set<String> set = new HashSet<>();
-		set.add("reg1234");
-		UniqueRegistrationIds uniqueRegIdsResponse =new UniqueRegistrationIds();
-		uniqueRegIdsResponse.setRegistrationIds(set);
-		uniqueRegIdsResponse.setIsPacketUINMatched(true);
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(anyString(), anyString(), anyInt(), anyString(), any())).thenReturn(uniqueRegIdsResponse);
 
 		ClassLoader classLoader = getClass().getClassLoader();
 
@@ -339,6 +333,12 @@ public class BioDedupeProcessorTest {
 	@Test
 	public void testNewIdentifyToUINStage() throws Exception {
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
+		Set<String> set = new HashSet<>();
+		set.add("reg1234");
+		UniqueRegistrationIds uniqueRegIdsResponse =new UniqueRegistrationIds();
+		uniqueRegIdsResponse.setRegistrationIds(set);
+		uniqueRegIdsResponse.setIsPacketUINMatched(true);
+		Mockito.when(abisHandlerUtil.getUniqueRegIds(anyString(), anyString(), anyInt(), anyString(), any())).thenReturn(uniqueRegIdsResponse);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
 		assertTrue(messageDto.getIsValid());
