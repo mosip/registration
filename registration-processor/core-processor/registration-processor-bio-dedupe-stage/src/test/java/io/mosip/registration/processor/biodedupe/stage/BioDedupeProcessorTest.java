@@ -210,7 +210,8 @@ public class BioDedupeProcessorTest {
 		set.add("reg1234");
 		UniqueRegistrationIds uniqueRegIdsResponse =new UniqueRegistrationIds();
 		uniqueRegIdsResponse.setRegistrationIds(set);
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(uniqueRegIdsResponse);
+		uniqueRegIdsResponse.setIsPacketUINMatched(true);
+		Mockito.when(abisHandlerUtil.getUniqueRegIds(anyString(), anyString(), anyInt(), anyString(), any())).thenReturn(uniqueRegIdsResponse);
 
 		ClassLoader classLoader = getClass().getClassLoader();
 
@@ -340,8 +341,8 @@ public class BioDedupeProcessorTest {
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
-		assertFalse(messageDto.getIsValid());
-		assertTrue(messageDto.getInternalError());
+		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 	}
 
 	/**
@@ -359,11 +360,12 @@ public class BioDedupeProcessorTest {
 
 		UniqueRegistrationIds uniqueRegIdsResponse =new UniqueRegistrationIds();
 		uniqueRegIdsResponse.setRegistrationIds(set);
+		uniqueRegIdsResponse.setIsPacketUINMatched(Boolean.TRUE);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(uniqueRegIdsResponse);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
-		assertFalse(messageDto.getIsValid());
-		assertTrue(messageDto.getInternalError());
+		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 
 	}
 
@@ -436,10 +438,11 @@ public class BioDedupeProcessorTest {
 		Set<String> matchedRidList = new HashSet<>();
 		UniqueRegistrationIds uniqueRegIdsResponse =new UniqueRegistrationIds();
 		uniqueRegIdsResponse.setRegistrationIds(matchedRidList);
+		uniqueRegIdsResponse.setIsPacketUINMatched(Boolean.TRUE);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(uniqueRegIdsResponse);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
-		assertFalse(messageDto.getIsValid());
-		assertTrue(messageDto.getInternalError());
+		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 	}
 
 	/**
@@ -464,12 +467,13 @@ public class BioDedupeProcessorTest {
 		Set<String> matchedRidList = new HashSet<>();
 		matchedRidList.add("27847657360002520190320095010");
 		UniqueRegistrationIds uniqueRegIdsResponse =new UniqueRegistrationIds();
+		uniqueRegIdsResponse.setIsPacketUINMatched(Boolean.TRUE);
 		uniqueRegIdsResponse.setRegistrationIds(matchedRidList);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(uniqueRegIdsResponse);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
-		assertFalse(messageDto.getIsValid());
-		assertTrue(messageDto.getInternalError());
+		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 	}
 
 	/**
