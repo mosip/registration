@@ -67,7 +67,6 @@ public class RegistrationStatusDao {
 
 	public static final String UPDATED_DATE_TIME = "updateDateTime";
 
-	private HashMap<String, Set<String>> statusCodes=new HashMap<>();
 	/**
 	 * Save.
 	 *
@@ -78,6 +77,17 @@ public class RegistrationStatusDao {
 	public RegistrationStatusEntity save(RegistrationStatusEntity registrationStatusEntity) {
 
 		return registrationStatusRepositary.save(registrationStatusEntity);
+	}
+
+	/**
+	 * Save.
+	 *
+	 * @param registrationStatusEntities
+	 *            the registration status entity list
+	 * @return the registration status entity
+	 */
+	public List<RegistrationStatusEntity> saveAll(List<RegistrationStatusEntity> registrationStatusEntities) {
+		return registrationStatusRepositary.saveAll(registrationStatusEntities);
 	}
 
 	/**
@@ -248,51 +258,41 @@ public class RegistrationStatusDao {
 	/**
 	 * Gets the un processed packets.
 	 *
+	 *
+	 * @param processList
+	 *            the process List
 	 * @param fetchSize
 	 *            the fetch size
 	 * @param elapseTime
 	 *            the elapse time
 	 * @param reprocessCount
 	 *            the reprocess count
-	 * @param status
+	 * @param trnStatusList
+	 *            the transaction status
+	 * @param excludeStageNames
+	 *            the stage which need to exclude
+	 * @param statusList
 	 *            the status
 	 * @return the un processed packets
 	 */
 	public List<RegistrationStatusEntity> getUnProcessedPackets(List<String> processList, Integer fetchSize, long elapseTime,
-																Integer reprocessCount, List<String> trnStatusList, List<String> excludeStageNames, List<String> skipRegIds, List<String> statusList) {
+																Integer reprocessCount, List<String> trnStatusList, List<String> excludeStageNames, List<String> statusList) {
 
 		LocalDateTime timeDifference = LocalDateTime.now().minusSeconds(elapseTime);
-		Set<String> statusSet = new HashSet<>();
-		statusSet.add(RegistrationStatusCode.PAUSED.toString());
-		statusSet.add(RegistrationStatusCode.RESUMABLE.toString());
-		statusSet.add(RegistrationStatusCode.PAUSED_FOR_ADDITIONAL_INFO.toString());
-		statusSet.add(RegistrationStatusCode.REJECTED.toString());
-		statusSet.add(RegistrationStatusCode.FAILED.toString());
-		statusSet.add(RegistrationStatusCode.PROCESSED.toString());
+		List<String> statusCodes=new ArrayList<>();
+		statusCodes.add(RegistrationStatusCode.PAUSED.toString());
+		statusCodes.add(RegistrationStatusCode.RESUMABLE.toString());
+		statusCodes.add(RegistrationStatusCode.PAUSED_FOR_ADDITIONAL_INFO.toString());
+		statusCodes.add(RegistrationStatusCode.REJECTED.toString());
+		statusCodes.add(RegistrationStatusCode.FAILED.toString());
+		statusCodes.add(RegistrationStatusCode.PROCESSED.toString());
 
 		if(statusList != null && !statusList.isEmpty()) {
-			processList.forEach(key -> {
-				if(statusList != null && !statusList.isEmpty())
-					statusSet.addAll(statusList);
-
-				if(statusCodes.containsKey(key)) {
-					statusCodes.get(key).addAll(statusSet);
-				} else {
-					statusCodes.put(key, statusSet);
-				}
-			});
-
-			statusSet.addAll(statusList);
 			return registrationStatusRepositary.getUnProcessedPacketsWithSpecificStatus(processList, trnStatusList, reprocessCount, timeDifference,
-					statusList, fetchSize, excludeStageNames, skipRegIds);
+					statusList, fetchSize, excludeStageNames);
 		} else {
-			Set<String> populatedStatus = new HashSet<>();
-			processList.forEach(key -> {
-				populatedStatus.addAll(statusCodes.get(key) != null ? statusCodes.get(key) : statusSet);
-			});
-			List<String> status = new ArrayList<>(populatedStatus);
 			return registrationStatusRepositary.getUnProcessedPackets(processList, trnStatusList, reprocessCount, timeDifference,
-					status, fetchSize, excludeStageNames, skipRegIds);
+					statusCodes, fetchSize, excludeStageNames);
 		}
 	}
 }

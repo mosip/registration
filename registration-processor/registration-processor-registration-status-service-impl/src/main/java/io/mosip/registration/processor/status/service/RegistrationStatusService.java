@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.status.service;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -168,20 +169,34 @@ public interface RegistrationStatusService<T, U, D> {
 	 * Gets the un processed packets.
 	 *
 	 * @param processList
-	 * 			the process List
+	 *            the process List
 	 * @param fetchSize
 	 *            the fetch size
 	 * @param elapseTime
 	 *            the elapse time
 	 * @param reprocessCount
 	 *            the reprocess count
-	 * @param status
-	 *            the status
+	 * @param trnStatusList
+	 *            the transaction status
 	 * @param excludeStageNames
-	 *            the exclude stage names
+	 *            the stage which need to exclude
+	 * @param statusList
+	 *            the status
 	 * @return the un processed packets
 	 */
-	public List<U> getUnProcessedPackets(List<String> processList, Integer fetchSize, long elapseTime, Integer reprocessCount,
-										 List<String> trnStatusList, List<String> excludeStageNames, List<String> skipRegIds,  List<String> statusList);
+	public CompletableFuture<List<InternalRegistrationStatusDto>> getUnProcessedPackets(List<String> processList, Integer fetchSize, long elapseTime, Integer reprocessCount,
+																						List<String> trnStatusList, List<String> excludeStageNames, List<String> statusList);
+
+	/**
+	 * Update registration status for workflow Engine.
+	 *
+	 * @param registrationStatusDtos
+	 *            the list of registration status dto
+	 * @param moduleId
+	 *            the module id
+	 * @param moduleName
+	 *            the module name
+	 */
+	public void updateRegistrationStatusForWorkflowEngines(List<U> registrationStatusDtos, String moduleId, String moduleName);
 
 }

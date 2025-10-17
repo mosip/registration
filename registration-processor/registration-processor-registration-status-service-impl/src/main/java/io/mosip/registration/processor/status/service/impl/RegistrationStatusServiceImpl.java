@@ -7,9 +7,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +17,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
@@ -969,31 +970,35 @@ public class RegistrationStatusServiceImpl
 	 * Gets the un processed packets.
 	 *
 	 * @param processList
-	 * 			the process List
+	 *            the process List
 	 * @param fetchSize
 	 *            the fetch size
 	 * @param elapseTime
 	 *            the elapse time
 	 * @param reprocessCount
 	 *            the reprocess count
-	 * @param status
+	 * @param trnStatusList
+	 *            the transaction status
+	 * @param excludeStageNames
+	 *            the stage which need to exclude
+	 * @param statusList
 	 *            the status
 	 * @return the un processed packets
 	 */
-	public List<InternalRegistrationStatusDto> getUnProcessedPackets(List<String> processList, Integer fetchSize, long elapseTime,
-																	 Integer reprocessCount, List<String> trnStatusList, List<String> excludeStageNames, List<String> skipRegIds, List<String> statusList) {
+	@Async
+	public CompletableFuture<List<InternalRegistrationStatusDto>> getUnProcessedPackets(List<String> processList, Integer fetchSize, long elapseTime,
+																	 Integer reprocessCount, List<String> trnStatusList, List<String> excludeStageNames, List<String> statusList) {
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"RegistrationStatusServiceImpl::getReprocessPacket()::entry");
 		try {
 			List<RegistrationStatusEntity> entityList = registrationStatusDao.getUnProcessedPackets(processList, fetchSize,
-					elapseTime, reprocessCount, trnStatusList, excludeStageNames, skipRegIds, statusList);
+					elapseTime, reprocessCount, trnStatusList, excludeStageNames, statusList);
 
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 					"RegistrationStatusServiceImpl::getReprocessPacket()::exit");
 
-			return convertEntityListToDtoList(entityList);
-
+			return CompletableFuture.completedFuture(convertEntityListToDtoList(entityList));
 		} catch (DataAccessException | DataAccessLayerException e) {
 
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -1002,5 +1007,80 @@ public class RegistrationStatusServiceImpl
 					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
 		}
 	}
+
+    @Override
+    public void updateRegistrationStatusForWorkflowEngines(List<InternalRegistrationStatusDto> registrationStatusDtos, String moduleId,
+                                                          String moduleName) {
+        List<RegistrationStatusEntity> registrationStatusEntities = new ArrayList<>();
+        List<TransactionDto> transactionDtoList = new ArrayList<>();
+
+        registrationStatusDtos.forEach(registrationStatusDto -> {
+            regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+                    registrationStatusDto.getRegistrationId(),
+                    "RegistrationStatusServiceImpl::updateRegistrationStatus()::entry");
+            boolean isTransactionSuccessful = false;
+            LogDescription description = new LogDescription();
+            String transactionId = generateId();
+            String latestTransactionId = getLatestTransactionId(registrationStatusDto.getRegistrationId(),
+                    registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId());
+            TransactionDto transactionDto = new TransactionDto(transactionId, registrationStatusDto.getRegistrationId(),
+                    latestTransactionId, registrationStatusDto.getLatestTransactionTypeCode(),
+                    "updated registration status record", registrationStatusDto.getLatestTransactionStatusCode(),
+                    registrationStatusDto.getStatusComment(), registrationStatusDto.getSubStatusCode());
+            if (registrationStatusDto.getRefId() == null) {
+                transactionDto.setReferenceId(registrationStatusDto.getRegistrationId());
+            } else {
+                transactionDto.setReferenceId(registrationStatusDto.getRefId());
+            }
+
+            transactionDto.setReferenceIdType("updated registration record");
+            transactionDtoList.add(transactionDto);
+
+            registrationStatusDto.setLatestRegistrationTransactionId(transactionId);
+            try {
+                InternalRegistrationStatusDto dto = getRegistrationStatus(registrationStatusDto.getRegistrationId(),
+                        registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId());
+                if (dto != null) {
+                    dto.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+                    RegistrationStatusEntity entity = convertDtoToEntity(registrationStatusDto,
+                            dto.getLastSuccessStageName(), true);
+                    if (entity.getStatusCode() == null) {
+                        entity.setStatusCode(dto.getStatusCode());
+                    }
+                    registrationStatusEntities.add(entity);
+                    isTransactionSuccessful = true;
+                    description.setMessage("Updated registration status successfully");
+                }
+            } catch (DataAccessException | DataAccessLayerException e) {
+                description.setMessage("DataAccessLayerException while Updating registration status for registration Id"
+                        + registrationStatusDto.getRegistrationId() + "::" + e.getMessage());
+
+                regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                        registrationStatusDto.getRegistrationId(), e.getMessage() + ExceptionUtils.getStackTrace(e));
+                throw new TablenotAccessibleException(
+                        PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
+            } finally {
+                transcationStatusService.addRegistrationTransaction(transactionDto);
+
+                if(!registrationStatusEntities.isEmpty())
+                    registrationStatusDao.saveAll(registrationStatusEntities);
+
+                String eventId = isTransactionSuccessful ? EventId.RPR_407.toString() : EventId.RPR_405.toString();
+                String eventName = eventId.equalsIgnoreCase(EventId.RPR_407.toString()) ? EventName.UPDATE.toString()
+                        : EventName.EXCEPTION.toString();
+                String eventType = eventId.equalsIgnoreCase(EventId.RPR_407.toString()) ? EventType.BUSINESS.toString()
+                        : EventType.SYSTEM.toString();
+
+                if(!disableAudit)
+                    auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
+                            moduleId, moduleName, registrationStatusDto.getRegistrationId());
+
+            }
+            regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+                    registrationStatusDto.getRegistrationId(),
+                    "RegistrationStatusServiceImpl::updateRegistrationStatus()::exit");
+
+        });
+    }
 
 }

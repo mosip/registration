@@ -10,8 +10,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-import io.mosip.registration.processor.reprocessor.service.ReprocessorVerticalService;
-import io.mosip.registration.processor.reprocessor.service.impl.ReprocessorVerticalServiceImpl;
+import io.mosip.registration.processor.reprocessor.dto.ProcessAllocation;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -107,9 +106,6 @@ public class ReprocessorVerticleTest {
 	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 
 	@Mock
-	private ReprocessorVerticalService reprocessorVerticalService;
-
-	@Mock
 	private AuditLogRequestBuilder auditLogRequestBuilder;
 
 	@Mock
@@ -122,17 +118,20 @@ public class ReprocessorVerticleTest {
 		 //Mockito.doNothing().when(description).setMessage(Mockito.anyString());
 		 //Mockito.when(description.getCode()).thenReturn("CODE");
 		 //Mockito.when(description.getMessage()).thenReturn("MESSAGE");
-		ReflectionTestUtils.setField(reprocessorVerticle, "enabledProcessBasedFetch", false);
-		LinkedHashMap<String, Integer> processBasedFetchCountMapping = new LinkedHashMap<>();
-//		processBasedFetchCountMapping.put("MIGRATOR", 40);
-//		processBasedFetchCountMapping.put("RENEWAL#ON_HOLD_RENEWAL", 30);
-		processBasedFetchCountMapping.put("NEW,RENEWAL", 100);
-		ReflectionTestUtils.setField(reprocessorVerticle, "processBasedFetchCountMapping", processBasedFetchCountMapping);
+		ReflectionTestUtils.setField(reprocessorVerticle, "enabledProcessBasedCache", false);
+		List<ProcessAllocation> list = new ArrayList<>();
+		ProcessAllocation processAllocation1 = new ProcessAllocation();
+		processAllocation1.setPercentageAllocation(40);
+		List<String> processList = new ArrayList<>();
+		processList.add("NEW");
+		processAllocation1.setProcesses(processList);
+		list.add(processAllocation1);
+		ReflectionTestUtils.setField(reprocessorVerticle, "processBasedFetchCountMap", list);
 		ReflectionTestUtils.setField(reprocessorVerticle, "fetchSize", 4);
         ReflectionTestUtils.setField(reprocessorVerticle, "elapseTime", 21600);
         ReflectionTestUtils.setField(reprocessorVerticle, "reprocessCount", 3);
-		ReflectionTestUtils.setField(reprocessorVerticle, "recordFetchSize", 500);
-		ReflectionTestUtils.setField(reprocessorVerticle, "threasholdForFetch", 50);
+		ReflectionTestUtils.setField(reprocessorVerticle, "processBasedPrefetchLimit", 500);
+		ReflectionTestUtils.setField(reprocessorVerticle, "processBasedThreashold", 50);
 		ReflectionTestUtils.setField(reprocessorVerticle, "reprocessExcludeStageNames", new ArrayList<>());
 			List<String> reprocessRestartTriggerFilterList = new ArrayList<>();
 			reprocessRestartTriggerFilterList.add("DemodedupStage:Success");
@@ -192,7 +191,7 @@ public class ReprocessorVerticleTest {
 	@Test
 	public void testProcessValidNew() throws TablenotAccessibleException, PacketManagerException,
 			ApisResourceAccessException, WorkflowActionException {
-		ReflectionTestUtils.setField(reprocessorVerticle, "enabledProcessBasedFetch", true);
+		ReflectionTestUtils.setField(reprocessorVerticle, "enabledProcessBasedCache", true);
 		List<InternalRegistrationStatusDto> dtolist = new ArrayList<>();
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 
@@ -212,9 +211,6 @@ public class ReprocessorVerticleTest {
 		registrationStatusDto1.setRegistrationType("NEW");
 		registrationStatusDto1.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 		dtolist.add(registrationStatusDto1);
-		Mockito.when(reprocessorVerticalService.fetchUnProcessedPackets(anyList(), anyInt(), anyLong(), anyInt(), anyList(), anyList(), anyList(), anyList()))
-				.thenReturn(CompletableFuture.completedFuture(dtolist));
-
 		reprocessorVerticle.process(dto);
 
 	}
@@ -251,7 +247,7 @@ public class ReprocessorVerticleTest {
 	@Test
 	public void testProcessFailureNew() throws TablenotAccessibleException, PacketManagerException,
 			ApisResourceAccessException, WorkflowActionException {
-		ReflectionTestUtils.setField(reprocessorVerticle, "enabledProcessBasedFetch", true);
+		ReflectionTestUtils.setField(reprocessorVerticle, "enabledProcessBasedCache", true);
 
 		List<InternalRegistrationStatusDto> dtolist = new ArrayList<>();
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
@@ -272,8 +268,6 @@ public class ReprocessorVerticleTest {
 		registrationStatusDto1.setRegistrationType("NEW");
 		registrationStatusDto1.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 		dtolist.add(registrationStatusDto1);
-		Mockito.when(reprocessorVerticalService.fetchUnProcessedPackets(anyList(), anyInt(), anyLong(), anyInt(), anyList(), anyList(), anyList(), anyList()))
-				.thenReturn(CompletableFuture.completedFuture(dtolist));
 		reprocessorVerticle.process(dto);
 
 	}
@@ -295,9 +289,7 @@ public class ReprocessorVerticleTest {
 
 	@Test
 	public void exceptionTestNew() throws Exception {
-		ReflectionTestUtils.setField(reprocessorVerticle, "enabledProcessBasedFetch", true);
-		Mockito.when(reprocessorVerticalService.fetchUnProcessedPackets(anyList(), anyInt(), anyLong(), anyInt(), anyList(), anyList(), anyList(), anyList()))
-				.thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
+		ReflectionTestUtils.setField(reprocessorVerticle, "enabledProcessBasedCache", true);
 		dto = reprocessorVerticle.process(dto);
 		assertEquals(null, dto.getIsValid());
 
@@ -323,10 +315,7 @@ public class ReprocessorVerticleTest {
 
 	@Test
 	public void TablenotAccessibleExceptionTestNew() throws Exception {
-		ReflectionTestUtils.setField(reprocessorVerticle, "enabledProcessBasedFetch", true);
-		Mockito.when(reprocessorVerticalService.fetchUnProcessedPackets(anyList(), anyInt(), anyLong(), anyInt(), anyList(), anyList(), anyList(), anyList()))
-				.thenThrow(new TablenotAccessibleException("") {
-				});
+		ReflectionTestUtils.setField(reprocessorVerticle, "enabledProcessBasedCache", true);
 		dto = reprocessorVerticle.process(dto);
 		assertEquals(true, dto.getInternalError());
 
@@ -367,7 +356,7 @@ public class ReprocessorVerticleTest {
 	@Test
 	public void testProcessValidWithResumablePacketsNew() throws TablenotAccessibleException, PacketManagerException,
 			ApisResourceAccessException, WorkflowActionException {
-		ReflectionTestUtils.setField(reprocessorVerticle, "enabledProcessBasedFetch", true);
+		ReflectionTestUtils.setField(reprocessorVerticle, "enabledProcessBasedCache", true);
 		List<InternalRegistrationStatusDto> dtolist = new ArrayList<>();
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 
@@ -390,8 +379,6 @@ public class ReprocessorVerticleTest {
 		reprocessorDtoList.add(registrationStatusDto1);
 		Mockito.when(registrationStatusService.getResumablePackets(anyInt()))
 				.thenReturn(dtolist);
-		Mockito.when(reprocessorVerticalService.fetchUnProcessedPackets(anyList(), anyInt(), anyLong(), anyInt(), anyList(), anyList(), anyList(), anyList()))
-				.thenReturn(CompletableFuture.completedFuture(dtolist));
 		reprocessorVerticle.process(dto);
 
 	}
@@ -422,7 +409,7 @@ public class ReprocessorVerticleTest {
 	public void testProcessWithRestartFromStageNew() throws TablenotAccessibleException,
 			PacketManagerException,
 			ApisResourceAccessException, WorkflowActionException {
-		ReflectionTestUtils.setField(reprocessorVerticle, "enabledProcessBasedFetch", true);
+		ReflectionTestUtils.setField(reprocessorVerticle, "enabledProcessBasedCache", true);
 
 		List<InternalRegistrationStatusDto> dtolist = new ArrayList<>();
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
@@ -434,8 +421,6 @@ public class ReprocessorVerticleTest {
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
 		dtolist.add(registrationStatusDto);
-		Mockito.when(reprocessorVerticalService.fetchUnProcessedPackets(anyList(), anyInt(), anyLong(), anyInt(), anyList(), anyList(), anyList(), anyList()))
-				.thenReturn(CompletableFuture.completedFuture(dtolist));
 		reprocessorVerticle.process(dto);
 
 	}

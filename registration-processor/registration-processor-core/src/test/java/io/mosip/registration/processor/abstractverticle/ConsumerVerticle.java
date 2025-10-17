@@ -4,14 +4,7 @@ import java.net.URL;
 import java.util.ArrayList;
 
 import brave.Tracing;
-import io.mosip.registration.processor.core.tracing.EventTracingHandler;
-import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.logging.SLF4JLogDelegateFactory;
-import org.assertj.core.util.Objects;
-import org.junit.Assert;
-import org.junit.Before;
-import org.mockito.Mockito;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -66,7 +59,7 @@ public class ConsumerVerticle extends MosipVerticleManager {
 		URL url=loader.getResource("cluster.xml");
 		return url;
 	}
-	
+
 	@Override
 	public Integer getEventBusPort() {
 		return 5711;
@@ -82,4 +75,8 @@ public class ConsumerVerticle extends MosipVerticleManager {
 		return EMPTY_STRING;
 	}
 
+	@Override
+	public Integer getMaxEventLoopExecutionTime() {
+		return 3;
+	}
 }

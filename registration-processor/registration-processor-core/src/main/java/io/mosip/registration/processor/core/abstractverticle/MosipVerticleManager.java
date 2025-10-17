@@ -147,7 +147,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 		VertxOptions options = new VertxOptions().setClustered(true).setClusterManager(clusterManager)
 				.setHAEnabled(false).setWorkerPoolSize(instanceNumber)
 				.setEventBusOptions(new EventBusOptions().setPort(getEventBusPort()).setHost(address))
-				.setMetricsOptions(micrometerMetricsOptions).setMaxEventLoopExecuteTime(getIntegerPropertyForSuffix("eventbus.maxloop.exec.time.seconds", 2)).setMaxEventLoopExecuteTimeUnit(TimeUnit.SECONDS);
+				.setMetricsOptions(micrometerMetricsOptions).setMaxEventLoopExecuteTime(getMaxEventLoopExecutionTime()).setMaxEventLoopExecuteTimeUnit(TimeUnit.SECONDS);
 		Vertx.clusteredVertx(options, result -> {
 			if (result.succeeded()) {
 				result.result().deployVerticle((Verticle) verticleName,
@@ -281,6 +281,10 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 
 	public Integer getEventBusPort() {
 		return getIntegerPropertyForSuffix("eventbus.port");
+	}
+
+	public Integer getMaxEventLoopExecutionTime() {
+		return getIntegerPropertyForSuffix("eventbus.maxloop.exec.time.seconds", 2);
 	}
 
 	public Integer getPort() {

@@ -2,10 +2,12 @@ package io.mosip.registration.processor.reprocessor.verticle;
 
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import io.mosip.registration.processor.reprocessor.service.ReprocessorVerticalService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mosip.registration.processor.reprocessor.dto.ProcessAllocation;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,10 +23,10 @@ import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
 import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
+import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
-import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
@@ -44,7 +46,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 
-import javax.annotation.PreDestroy;
+import javax.annotation.PostConstruct;
 
 /**
  * The Reprocessor Verticle to deploy the scheduler and implement re-processing
@@ -97,25 +99,24 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 	@Value("#{'${registration.processor.reprocess.restart-trigger-filter}'.split(',')}")
 	private List<String> reprocessRestartTriggerFilter;
 
-	@Value("${registration.processor.reprocess.process-based.fetch.enabled:false}")
-	private Boolean enabledProcessBasedFetch;
+	@Value("${registration.processor.reprocess.process-based.cache-enabled:false}")
+	private Boolean enabledProcessBasedCache;
 
-	@Value("#{${registration.processor.reprocess.process-based.fetch.count:{:}}}")
-	private LinkedHashMap<String,Integer> processBasedFetchCountMapping;
+	@Value("${registration.processor.reprocess.process-based.fetch-count-map}")
+	private String processBasedFetchCountMapJson;
 
-	@Value("${registration.processor.reprocess.record.fetch.size:500}")
-	private int recordFetchSize;
+	private List<ProcessAllocation> processBasedFetchCountMap;
 
-	@Value("${registration.processor.reprocess.record.threashold:50}")
-	private int threasholdForFetch;
+	@Value("${registration.processor.reprocess.process-based.prefetch-limit:500}")
+	private int processBasedPrefetchLimit;
 
-	private ConcurrentHashMap<String,Deque<InternalRegistrationStatusDto>> packetCacheMap = new ConcurrentHashMap<>();
+	@Value("${registration.processor.reprocess.process-based.threshold:50}")
+	private int processBasedThreashold;
 
-	@Autowired
-	private ReprocessorVerticalService reprocessorVerticalService;
+	private ConcurrentHashMap<String,ConcurrentLinkedQueue<InternalRegistrationStatusDto>> packetCacheMap = new ConcurrentHashMap<>();
 
 	/** The is transaction successful. */
-	private boolean isBatchSuccessful = false;
+	private boolean isTransactionSuccessful = false;
 
 	/** The registration status service. */
 	@Autowired
@@ -133,21 +134,12 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 	@Value("${server.port}")
 	private String port;
 
-	private final ExecutorService sendExecutor = new ThreadPoolExecutor(
-			Math.max(2, Runtime.getRuntime().availableProcessors()),
-			Math.max(2, Runtime.getRuntime().availableProcessors()),
-			60L, TimeUnit.SECONDS,
-			new ArrayBlockingQueue<>(1000), // bounded queue
-			new ThreadPoolExecutor.CallerRunsPolicy()
-	);
-
-	private final ExecutorService fetchExecutor = new ThreadPoolExecutor(
-			Math.max(2, Runtime.getRuntime().availableProcessors()),
-			Math.max(2, Runtime.getRuntime().availableProcessors()),
-			60L, TimeUnit.SECONDS,
-			new ArrayBlockingQueue<>(1000), // bounded queue
-			new ThreadPoolExecutor.CallerRunsPolicy()
-	);
+	@PostConstruct
+	public void init() throws JsonProcessingException {
+		ObjectMapper mapper = new ObjectMapper();
+		processBasedFetchCountMap =
+				mapper.readValue(processBasedFetchCountMapJson, new TypeReference<List<ProcessAllocation>>() {});
+	}
 
 	/**
 	 * Deploy verticle.
@@ -259,27 +251,29 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 		trnStatusList.add(RegistrationTransactionStatusCode.IN_PROGRESS.toString());
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ReprocessorVerticle::process()::entry");
-		ConcurrentLinkedQueue<String> ridSb = new ConcurrentLinkedQueue<>();
+		StringBuffer ridSb = new StringBuffer();
 		try {
 			Map<String, Set<String>> reprocessRestartTriggerMap = intializeReprocessRestartTriggerMapping();
 			reprocessorDtoList = registrationStatusService.getResumablePackets(fetchSize);
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 					"Resumable Packets Count " + reprocessorDtoList.size() );
 
-			if(enabledProcessBasedFetch) {
+			if(enabledProcessBasedCache) {
 				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 						"Enabled Process based fetch");
 				if(reprocessorDtoList.size() < fetchSize) {
-					LinkedHashMap<String, Integer> requiredCountMap = prepareRequiredCount(
+					LinkedHashMap<ProcessAllocation, Integer> requiredCountMap = prepareRequiredCount(
 							fetchSize - reprocessorDtoList.size()
 					);
 					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 							"Prepared process based required count details for fetch " + requiredCountMap.toString());
-					fetchPacketsIfBelowThreshold(requiredCountMap, trnStatusList);
-					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-							"Cacheing Packets if below Threashold method completed." + packetCacheMap.entrySet().stream().map(e -> e.getKey() + " = " + e.getValue().size()).collect(Collectors.joining(", ", "[", "]")));
+					cachePacketsIfBelowThreshold(requiredCountMap, trnStatusList);
+					regProcLogger.debug(
+							"Caching Packets if below Threshold method completed. Packet sizes: {}",
+							formatPacketCacheMap()
+					);
 
-					reprocessorDtoList.addAll(fetchUnprocessedPacketsWithBalance(
+					reprocessorDtoList.addAll(fetchUnprocessedPacketFromCache(
 							requiredCountMap,
 							fetchSize - reprocessorDtoList.size()
 					));
@@ -304,95 +298,83 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 					"Reprocessor Total Packets Fetched " + reprocessorDtoList.size());
 
 			if (!CollectionUtils.isEmpty(reprocessorDtoList)) {
-				List<CompletableFuture<Void>> sendTasks = reprocessorDtoList.stream()
-								.map(dto -> CompletableFuture.runAsync(() -> {
-									{
-										boolean isTransactionSuccessful = false;
-										String registrationId = dto.getRegistrationId();
-										regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-												LoggerFileConstant.REGISTRATIONID.toString(), registrationId, "Process started");
-										ridSb.add(registrationId);
-										MessageDTO messageDTO = new MessageDTO();
-										messageDTO.setRid(registrationId);
-										messageDTO.setReg_type(dto.getRegistrationType());
-										messageDTO.setSource(dto.getSource());
-										messageDTO.setIteration(dto.getIteration());
-										messageDTO.setWorkflowInstanceId(dto.getWorkflowInstanceId());
-										if (reprocessCount.equals(dto.getReProcessRetryCount())) {
-											dto.setLatestTransactionStatusCode(
-													RegistrationTransactionStatusCode.REPROCESS_FAILED.toString());
-											dto.setLatestTransactionTypeCode(
-													RegistrationTransactionTypeCode.PACKET_REPROCESS.toString());
-											dto.setStatusComment(StatusUtil.RE_PROCESS_FAILED.getMessage());
-											dto.setStatusCode(RegistrationStatusCode.REPROCESS_FAILED.toString());
-											dto.setSubStatusCode(StatusUtil.RE_PROCESS_FAILED.getCode());
-											messageDTO.setIsValid(false);
-											description.setMessage(PlatformSuccessMessages.RPR_RE_PROCESS_FAILED.getMessage());
-											description.setCode(PlatformSuccessMessages.RPR_RE_PROCESS_FAILED.getCode());
+				List<InternalRegistrationStatusDto> processedList = new ArrayList<>();
+				/** Module-Id can be Both Success/Error code */
+				String moduleId = PlatformSuccessMessages.RPR_SENT_TO_REPROCESS_SUCCESS.getCode();
+				String moduleName = ModuleName.RE_PROCESSOR.toString();
 
-										} else {
-											messageDTO.setIsValid(true);
-											isTransactionSuccessful=true;
-											String stageName;
-											if (isRestartFromStageRequired(dto, reprocessRestartTriggerMap)) {
-												stageName = MessageBusUtil.getMessageBusAdress(reprocessRestartFromStage);
-												stageName = stageName.concat(ReprocessorConstants.BUS_IN);
-												sendAndSetStatus(dto, messageDTO, stageName);
-												dto.setStatusComment(StatusUtil.RE_PROCESS_RESTART_FROM_STAGE.getMessage());
-												dto.setSubStatusCode(StatusUtil.RE_PROCESS_RESTART_FROM_STAGE.getCode());
-												description
-														.setMessage(
-																PlatformSuccessMessages.RPR_SENT_TO_REPROCESS_RESTART_FROM_STAGE_SUCCESS
-																		.getMessage());
-												description.setCode(
-														PlatformSuccessMessages.RPR_SENT_TO_REPROCESS_RESTART_FROM_STAGE_SUCCESS
-																.getCode());
+				reprocessorDtoList.forEach(dto -> {
+					String registrationId = dto.getRegistrationId();
+					ridSb.append(registrationId);
+					ridSb.append(",");
+					MessageDTO messageDTO = new MessageDTO();
+					messageDTO.setRid(registrationId);
+					messageDTO.setReg_type(dto.getRegistrationType());
+					messageDTO.setSource(dto.getSource());
+					messageDTO.setIteration(dto.getIteration());
+					messageDTO.setWorkflowInstanceId(dto.getWorkflowInstanceId());
+					if (reprocessCount.equals(dto.getReProcessRetryCount())) {
+						dto.setLatestTransactionStatusCode(
+								RegistrationTransactionStatusCode.REPROCESS_FAILED.toString());
+						dto.setLatestTransactionTypeCode(
+								RegistrationTransactionTypeCode.PACKET_REPROCESS.toString());
+						dto.setStatusComment(StatusUtil.RE_PROCESS_FAILED.getMessage());
+						dto.setStatusCode(RegistrationStatusCode.REPROCESS_FAILED.toString());
+						dto.setSubStatusCode(StatusUtil.RE_PROCESS_FAILED.getCode());
+						messageDTO.setIsValid(false);
+						description.setMessage(PlatformSuccessMessages.RPR_RE_PROCESS_FAILED.getMessage());
+						description.setCode(PlatformSuccessMessages.RPR_RE_PROCESS_FAILED.getCode());
 
-											} else {
-												stageName = MessageBusUtil.getMessageBusAdress(dto.getRegistrationStageName());
-												if (RegistrationTransactionStatusCode.SUCCESS.name()
-														.equalsIgnoreCase(dto.getLatestTransactionStatusCode())) {
-													stageName = stageName.concat(ReprocessorConstants.BUS_OUT);
-												} else {
-													stageName = stageName.concat(ReprocessorConstants.BUS_IN);
-												}
-												sendAndSetStatus(dto, messageDTO, stageName);
-												dto.setStatusComment(StatusUtil.RE_PROCESS_COMPLETED.getMessage());
-												dto.setSubStatusCode(StatusUtil.RE_PROCESS_COMPLETED.getCode());
-												description.setMessage(PlatformSuccessMessages.RPR_SENT_TO_REPROCESS_SUCCESS.getMessage());
-												description.setCode(PlatformSuccessMessages.RPR_SENT_TO_REPROCESS_SUCCESS.getCode());
-											}
-										}
-										regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-												LoggerFileConstant.REGISTRATIONID.toString(), registrationId, description.getMessage());
+					} else {
+						messageDTO.setIsValid(true);
+						isTransactionSuccessful = true;
+						String stageName;
+						if (isRestartFromStageRequired(dto, reprocessRestartTriggerMap)) {
+							stageName = MessageBusUtil.getMessageBusAdress(reprocessRestartFromStage);
+							stageName = stageName.concat(ReprocessorConstants.BUS_IN);
+							sendAndSetStatus(dto, messageDTO, stageName);
+							dto.setStatusComment(StatusUtil.RE_PROCESS_RESTART_FROM_STAGE.getMessage());
+							dto.setSubStatusCode(StatusUtil.RE_PROCESS_RESTART_FROM_STAGE.getCode());
+							description
+									.setMessage(
+											PlatformSuccessMessages.RPR_SENT_TO_REPROCESS_RESTART_FROM_STAGE_SUCCESS
+													.getMessage());
+							description.setCode(
+									PlatformSuccessMessages.RPR_SENT_TO_REPROCESS_RESTART_FROM_STAGE_SUCCESS
+											.getCode());
 
-										/** Module-Id can be Both Success/Error code */
-										String moduleId = PlatformSuccessMessages.RPR_SENT_TO_REPROCESS_SUCCESS.getCode();
-										String moduleName = ModuleName.RE_PROCESSOR.toString();
-										registrationStatusService.updateRegistrationStatusForWorkflowEngine(dto, moduleId, moduleName);
-										String eventId = EventId.RPR_402.toString();
-										String eventName = EventName.UPDATE.toString();
-										String eventType = EventType.BUSINESS.toString();
+						} else {
+							stageName = MessageBusUtil.getMessageBusAdress(dto.getRegistrationStageName());
+							if (RegistrationTransactionStatusCode.SUCCESS.name()
+									.equalsIgnoreCase(dto.getLatestTransactionStatusCode())) {
+								stageName = stageName.concat(ReprocessorConstants.BUS_OUT);
+							} else {
+								stageName = stageName.concat(ReprocessorConstants.BUS_IN);
+							}
+							sendAndSetStatus(dto, messageDTO, stageName);
+							dto.setStatusComment(StatusUtil.RE_PROCESS_COMPLETED.getMessage());
+							dto.setSubStatusCode(StatusUtil.RE_PROCESS_COMPLETED.getCode());
+							description.setMessage(PlatformSuccessMessages.RPR_SENT_TO_REPROCESS_SUCCESS.getMessage());
+							description.setCode(PlatformSuccessMessages.RPR_SENT_TO_REPROCESS_SUCCESS.getCode());
+						}
+					}
+					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+							LoggerFileConstant.REGISTRATIONID.toString(), registrationId, description.getMessage());
 
-										if (!isTransactionSuccessful)
-											auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName,
-													eventType, moduleId, moduleName, registrationId);
-									}
-								},sendExecutor).exceptionally(ex -> {
-									regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-											description.getCode() + " -- ",
-											PlatformErrorMessages.RPR_PKR_UNKNOWN_EXCEPTION.getMessage(), ex.toString());									return null;
-								})).collect(Collectors.toList());
+					String eventId = EventId.RPR_402.toString();
+					String eventName = EventName.UPDATE.toString();
+					String eventType = EventType.BUSINESS.toString();
+					processedList.add(dto);
 
-				CompletableFuture.allOf(sendTasks.toArray(new CompletableFuture[0])).whenComplete((res, ex) -> {
-					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-							"Error in Packet Processing -- ",
-							ex.getMessage(), ExceptionUtils.getStackTrace(ex));
+					if (!isTransactionSuccessful)
+						auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName,
+								eventType, moduleId, moduleName, registrationId);
+				});
 
-				});;
+				registrationStatusService.updateRegistrationStatusForWorkflowEngines(processedList, moduleId, moduleName);
 			}
 		} catch (TablenotAccessibleException e) {
-			isBatchSuccessful = false;
+			isTransactionSuccessful = false;
 			object.setInternalError(Boolean.TRUE);
 			description.setMessage(PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getCode());
@@ -401,7 +383,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e.toString());
 
 		} catch (Exception ex) {
-			isBatchSuccessful = false;
+			isTransactionSuccessful = false;
 			description.setMessage(PlatformErrorMessages.REPROCESSOR_VERTICLE_FAILED.getMessage());
 			description.setCode(PlatformErrorMessages.REPROCESSOR_VERTICLE_FAILED.getCode());
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -413,19 +395,19 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 		} finally {
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					null, description.getMessage());
-			if (isBatchSuccessful)
+			if (isTransactionSuccessful)
 				description.setMessage(PlatformSuccessMessages.RPR_RE_PROCESS_SUCCESS.getMessage());
 
-			String eventId = isBatchSuccessful ? EventId.RPR_402.toString() : EventId.RPR_405.toString();
-			String eventName = isBatchSuccessful ? EventName.UPDATE.toString() : EventName.EXCEPTION.toString();
-			String eventType = isBatchSuccessful ? EventType.BUSINESS.toString() : EventType.SYSTEM.toString();
+			String eventId = isTransactionSuccessful ? EventId.RPR_402.toString() : EventId.RPR_405.toString();
+			String eventName = isTransactionSuccessful ? EventName.UPDATE.toString() : EventName.EXCEPTION.toString();
+			String eventType = isTransactionSuccessful ? EventType.BUSINESS.toString() : EventType.SYSTEM.toString();
 
 			/** Module-Id can be Both Success/Error code */
-			String moduleId = isBatchSuccessful ? PlatformSuccessMessages.RPR_RE_PROCESS_SUCCESS.getCode()
+			String moduleId = isTransactionSuccessful ? PlatformSuccessMessages.RPR_RE_PROCESS_SUCCESS.getCode()
 					: description.getCode();
 			String moduleName = ModuleName.RE_PROCESSOR.toString();
 			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
-					moduleId, moduleName, String.join(",", ridSb));
+					moduleId, moduleName, ridSb.toString());
 		}
 
 		return object;
@@ -497,13 +479,13 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 		return VERTICLE_PROPERTY_PREFIX;
 	}
 
-	private LinkedHashMap<String, Integer> prepareRequiredCount(int availableCount) {
-		LinkedHashMap<String, Integer> requiredCountMap = new LinkedHashMap<>();
-		int totalMapCount = processBasedFetchCountMapping.size();
+	private LinkedHashMap<ProcessAllocation, Integer> prepareRequiredCount(int availableCount) {
+		LinkedHashMap<ProcessAllocation, Integer> requiredCountMap = new LinkedHashMap<>();
+		int totalMapCount = processBasedFetchCountMap.size();
 		int index = 1;
 		int allocated = 0;
 
-		for(Map.Entry<String, Integer> entry :  processBasedFetchCountMapping.entrySet()) {
+		for(ProcessAllocation processAllocation :  processBasedFetchCountMap) {
 			int requiredCount;
 
 			if(index == totalMapCount) {
@@ -511,44 +493,44 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 				requiredCount = fetchSize - allocated;
 			} else {
 				// Percentage-based allocation
-				requiredCount = (availableCount * entry.getValue()) /100;
+				requiredCount = (availableCount * processAllocation.getPercentageAllocation()) /100;
 			}
 
 			// Ensure at least 1
 			requiredCount = Math.max(requiredCount, 1);
 
 			// Prevent overshooting the total
-			if(allocated + requiredCount > fetchSize) {
-				requiredCount = fetchSize - allocated;
+			if(allocated + requiredCount > availableCount) {
+				requiredCount = availableCount - allocated;
 			}
 
-			requiredCountMap.put(entry.getKey(), requiredCount);
+			requiredCountMap.put(processAllocation, requiredCount);
 			allocated += requiredCount;
 			index++;
 		}
 		return requiredCountMap;
 	}
 
-	private void fetchPacketsIfBelowThreshold(LinkedHashMap<String, Integer> requiredCountMap, List<String> trnStatusList) {
+	private void cachePacketsIfBelowThreshold(LinkedHashMap<ProcessAllocation, Integer> requiredCountMap, List<String> trnStatusList) {
 		List<CompletableFuture<Void>> futures = requiredCountMap.entrySet().stream()
 				.filter(entry -> {
-						Deque<?> cachedPackets = packetCacheMap.get(entry.getKey());
-						return cachedPackets == null ||  cachedPackets.size() < threasholdForFetch;
+					String key = getKeyFromProcessAllocation(entry.getKey());
+					ConcurrentLinkedQueue<?> cachedPackets = packetCacheMap.get(key);
+						return cachedPackets == null ||  cachedPackets.size() < processBasedThreashold;
 				})
 				.map(entry -> {
-					String key = entry.getKey();
+					ProcessAllocation processAllocation = entry.getKey();
+					String key = getKeyFromProcessAllocation(processAllocation);
 					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 							"Fetch Records from Database for Process " + key);
 
-					// Parse key into Process & Status
-					AbstractMap.SimpleEntry<List<String>, List<String>> entryPair = parseProcessAndStatus(key);
-					List<String> processList = entryPair.getKey();
-					List<String> statusValList = entryPair.getValue();
+					List<String> processList = processAllocation.getProcesses();
+					List<String> statusValList = processAllocation.getStatuses();
 					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 							"Status used to fetch Records Process " + key + " is " + statusValList);
 
-					Deque<InternalRegistrationStatusDto> cacheList = packetCacheMap.get(key);
-					int recordFetchCount = recordFetchSize - (cacheList != null ?  cacheList.size() : 0);
+					ConcurrentLinkedQueue<InternalRegistrationStatusDto> cacheList = packetCacheMap.get(key);
+					int recordFetchCount = processBasedPrefetchLimit - (cacheList != null ?  cacheList.size() : 0);
 					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 							"Record Fetch Count for process " + key + " is " + recordFetchCount);
 
@@ -556,25 +538,27 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 
 					List<String> skipRegIdList = new ArrayList<>(cacheList != null && !cacheList.isEmpty() ? cacheList.stream().map(e -> e.getRegistrationId()).collect(Collectors.toList()) : Collections.emptyList());
 
-					if(skipRegIdList.isEmpty()) skipRegIdList.add("-DUMMY-");
-
-					return reprocessorVerticalService.fetchUnProcessedPackets(processList, recordFetchCount, elapseTime,
-							reprocessCount, trnStatusList, reprocessExcludeStageNames, skipRegIdList, statusValList)
+					return registrationStatusService.getUnProcessedPackets(processList, recordFetchCount, elapseTime,
+							reprocessCount, trnStatusList, reprocessExcludeStageNames, statusValList)
 							.thenAccept(result -> {
 								regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 										"Total Record Fetched from database for process " + key + " is " + result.size());
 
+								List<InternalRegistrationStatusDto> filteredList;
+								if(!skipRegIdList.isEmpty())
+									filteredList = result.stream().filter(obj -> !skipRegIdList.contains(obj.getRegistrationId())).collect(Collectors.toList());
+								else
+									filteredList = result;
+
 								// Thread-safe update to cache
 								packetCacheMap.compute(key, (k, existingList) -> {
-									if (existingList == null) return new ConcurrentLinkedDeque<>(result);
-									existingList.addAll(new ArrayList<>(result));
+									if (existingList == null) return new ConcurrentLinkedQueue<>(filteredList);
+									existingList.addAll(filteredList);
 									return existingList;
 								});
 							})
 							.exceptionally(ex -> {
-								regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-										"Error Fetching UnprocessedPackets -- ",
-										" Error Triggered for Process [" + String.join(",", processList) + "] and Status [" + String.join(",", statusValList) + "]", ExceptionUtils.getStackTrace(ex));
+								regProcLogger.error("Error Triggered for Process [{}] and Status [{}]", processList, statusValList, ex);
 								return null;
 							});
 				})
@@ -583,65 +567,58 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 		CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 	}
 
-	private AbstractMap.SimpleEntry<List<String>, List<String>> parseProcessAndStatus(String key) {
-		String[] parts = key.split("#", 2);
-		List<String> process = Arrays.asList(parts[0].split(","));
-		List<String> status = parts.length > 1 ? Arrays.asList(parts[1].split(",")) : Collections.emptyList();
-		return new AbstractMap.SimpleEntry<>(process, status);
+	private String getKeyFromProcessAllocation(ProcessAllocation processAllocation) {
+		return String.join(",", processAllocation.getProcesses()) + "#" + String.join(",", processAllocation.getStatuses());
 	}
 
-	private List<InternalRegistrationStatusDto> fetchUnprocessedPacketsWithBalance(LinkedHashMap<String, Integer> requiredCountMap, int fetchCount) {
+	private List<InternalRegistrationStatusDto> fetchUnprocessedPacketFromCache(LinkedHashMap<ProcessAllocation, Integer> requiredCountMap, int fetchCount) {
 		int previousBalanceCount = 0;
 		List<InternalRegistrationStatusDto>  reprocessorPacketList = new ArrayList<>();
 
-		for(Map.Entry<String, Integer> entry :  requiredCountMap.entrySet()) {
+		for(Map.Entry<ProcessAllocation, Integer> entry :  requiredCountMap.entrySet()) {
+			String key = getKeyFromProcessAllocation(entry.getKey());
 			int remainingToFetch = fetchCount - reprocessorPacketList.size();
 			if(remainingToFetch <= 0)
 				break;
 
 			int requiredCount = entry.getValue() + previousBalanceCount;
-			Deque<InternalRegistrationStatusDto> cachedPackets = packetCacheMap.getOrDefault(entry.getKey(), new ConcurrentLinkedDeque<>());
+			ConcurrentLinkedQueue<InternalRegistrationStatusDto> cachedPackets = packetCacheMap.getOrDefault(key, new ConcurrentLinkedQueue<>());
 
 			if(!cachedPackets.isEmpty()) {
 				int count = Math.min(requiredCount, remainingToFetch);
 				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-						entry.getKey() + " Packets Required Count " + count);
+						key + " Packets Required Count " + count);
 				List<InternalRegistrationStatusDto> fetchedPackets = fetchFromCache(cachedPackets, count);
 				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-						entry.getKey() + "Total Packets Fetched from Cache " + fetchedPackets.size());
+						key + "Total Packets Fetched from Cache " + fetchedPackets.size());
 				reprocessorPacketList.addAll(fetchedPackets);
 				previousBalanceCount = Math.max(0, requiredCount-fetchedPackets.size());
 			} else {
 				previousBalanceCount = requiredCount;
 			}
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-					entry.getKey() + "Count to be moved to next process " + previousBalanceCount);
+					key + "Count to be moved to next process " + previousBalanceCount);
 		}
 
 		return reprocessorPacketList;
 	}
 
-	private List<InternalRegistrationStatusDto> fetchFromCache(Deque<InternalRegistrationStatusDto> cache, int count) {
+	private List<InternalRegistrationStatusDto> fetchFromCache(ConcurrentLinkedQueue<InternalRegistrationStatusDto> cache, int count) {
 		int actualFetchCount = Math.min(count, cache.size());
 		List<InternalRegistrationStatusDto> fetched = new ArrayList<>(actualFetchCount);
 		for (int i = 0; i < actualFetchCount; i++) {
-			InternalRegistrationStatusDto dto = cache.pollFirst();
+			InternalRegistrationStatusDto dto = cache.poll();
 			if (dto == null) break;
 			fetched.add(dto);
 		}
 		return fetched;
 	}
 
-	@PreDestroy
-	public void shutdown() {
-		fetchExecutor.shutdown();
-		sendExecutor.shutdown();
-        try {
-            sendExecutor.awaitTermination(30, TimeUnit.SECONDS);
-			fetchExecutor.awaitTermination(30, TimeUnit.SECONDS);
-		} catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
+	private String formatPacketCacheMap() {
+		return packetCacheMap.entrySet()
+				.stream()
+				.map(e -> e.getKey() + " = " + e.getValue().size())
+				.collect(Collectors.joining(", ", "[", "]"));
+	}
 
 }
