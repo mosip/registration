@@ -530,15 +530,11 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 							"Status used to fetch Records Process " + key + " is " + statusValList);
 
 					ConcurrentLinkedQueue<InternalRegistrationStatusDto> cacheList = packetCacheMap.get(key);
-					int recordFetchCount = processBasedPrefetchLimit - (cacheList != null ?  cacheList.size() : 0);
-					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-							"Record Fetch Count for process " + key + " is " + recordFetchCount);
 
 					// Fetch unprocessed packets
-
 					List<String> skipRegIdList = new ArrayList<>(cacheList != null && !cacheList.isEmpty() ? cacheList.stream().map(e -> e.getRegistrationId()).collect(Collectors.toList()) : Collections.emptyList());
 
-					return registrationStatusService.getUnProcessedPackets(processList, recordFetchCount, elapseTime,
+					return registrationStatusService.getUnProcessedPackets(processList, processBasedPrefetchLimit, elapseTime,
 							reprocessCount, trnStatusList, reprocessExcludeStageNames, statusValList)
 							.thenAccept(result -> {
 								regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
@@ -573,6 +569,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 
 	private List<InternalRegistrationStatusDto> fetchUnprocessedPacketFromCache(LinkedHashMap<ProcessAllocation, Integer> requiredCountMap, int fetchCount) {
 		int previousBalanceCount = 0;
+		int emptyCacheCount = 0;
 		List<InternalRegistrationStatusDto>  reprocessorPacketList = new ArrayList<>();
 
 		for(Map.Entry<ProcessAllocation, Integer> entry :  requiredCountMap.entrySet()) {
@@ -594,11 +591,15 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 				reprocessorPacketList.addAll(fetchedPackets);
 				previousBalanceCount = Math.max(0, requiredCount-fetchedPackets.size());
 			} else {
+				emptyCacheCount++;
 				previousBalanceCount = requiredCount;
 			}
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 					key + "Count to be moved to next process " + previousBalanceCount);
 		}
+
+		if((reprocessorPacketList.size() < fetchCount) && (requiredCountMap.size() != emptyCacheCount))
+			reprocessorPacketList.addAll(fetchUnprocessedPacketFromCache(requiredCountMap, fetchCount-reprocessorPacketList.size()));
 
 		return reprocessorPacketList;
 	}
