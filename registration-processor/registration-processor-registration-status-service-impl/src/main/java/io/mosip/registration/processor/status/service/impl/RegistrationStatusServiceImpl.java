@@ -1060,11 +1060,6 @@ public class RegistrationStatusServiceImpl
                 throw new TablenotAccessibleException(
                         PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
             } finally {
-                transcationStatusService.addRegistrationTransaction(transactionDto);
-
-                if(!registrationStatusEntities.isEmpty())
-                    registrationStatusDao.saveAll(registrationStatusEntities);
-
                 String eventId = isTransactionSuccessful ? EventId.RPR_407.toString() : EventId.RPR_405.toString();
                 String eventName = eventId.equalsIgnoreCase(EventId.RPR_407.toString()) ? EventName.UPDATE.toString()
                         : EventName.EXCEPTION.toString();
@@ -1081,6 +1076,12 @@ public class RegistrationStatusServiceImpl
                     "RegistrationStatusServiceImpl::updateRegistrationStatus()::exit");
 
         });
+
+		if(!transactionDtoList.isEmpty())
+			transcationStatusService.addRegistrationTransactions(transactionDtoList);
+
+		if(!registrationStatusEntities.isEmpty())
+			registrationStatusDao.saveAll(registrationStatusEntities);
     }
 
 }

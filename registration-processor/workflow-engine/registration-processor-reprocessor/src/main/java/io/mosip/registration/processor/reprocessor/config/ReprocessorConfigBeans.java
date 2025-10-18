@@ -9,6 +9,9 @@ import io.mosip.registration.processor.packet.storage.utils.PacketManagerService
 import io.mosip.registration.processor.reprocessor.verticle.ReprocessorVerticle;
 import io.mosip.registration.processor.rest.client.service.impl.RegistrationProcessorRestClientServiceImpl;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+import java.util.concurrent.Executor;
 
 /**
  * Config class to get configurations and beans for Reprocessor Verticle
@@ -35,5 +38,17 @@ public class ReprocessorConfigBeans {
 	@Bean
 	public PacketManagerService getPacketManagerService() {
 		return new PacketManagerService();
+	}
+
+	// 🔹 Add this bean
+	@Bean(name = "taskExecutor")
+	public Executor taskExecutor() {
+		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		executor.setCorePoolSize(10);
+		executor.setMaxPoolSize(20);
+		executor.setQueueCapacity(100);
+		executor.setThreadNamePrefix("Reprocessor-Async-");
+		executor.initialize();
+		return executor;
 	}
 }
