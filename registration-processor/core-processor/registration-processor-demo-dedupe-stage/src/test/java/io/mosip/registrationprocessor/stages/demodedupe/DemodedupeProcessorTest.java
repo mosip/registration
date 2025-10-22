@@ -540,7 +540,7 @@ public class DemodedupeProcessorTest {
 
 		Set<String> set = new HashSet<>();
 		set.add("reg1234");
-		UniqueRegistrationIds uniqueRegIdsResponse =new UniqueRegistrationIds();
+		UniqueRegistrationIds uniqueRegIdsResponse = new UniqueRegistrationIds();
 		uniqueRegIdsResponse.setRegistrationIds(set);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(uniqueRegIdsResponse);
 		doNothing().when(packetInfoManager).saveManualAdjudicationData(anySet(), any(), any(), any(), any(),any(),any());
@@ -583,7 +583,7 @@ public class DemodedupeProcessorTest {
 		Mockito.when(packetInfoManager.getAbisResponseDetRecordsList(any())).thenReturn(abisResponseDetDtos);
 		Set<String> set = new HashSet<>();
 		set.add("reg1234");
-		UniqueRegistrationIds uniqueRegIdsResponse =new UniqueRegistrationIds();
+		UniqueRegistrationIds uniqueRegIdsResponse = new UniqueRegistrationIds();
 		uniqueRegIdsResponse.setRegistrationIds(set);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(uniqueRegIdsResponse);
 		doNothing().when(packetInfoManager).saveManualAdjudicationData(anySet(), any(), any(), any(), any(),any(),any());
@@ -619,10 +619,7 @@ public class DemodedupeProcessorTest {
 		Mockito.when(registrationStatusDao.find(any(),any(),any(),any())).thenReturn(entity);
 		Mockito.when(packetInfoManager.getAbisResponseRecords(anyString(), anyString())).thenReturn(abisResponseDtos);
 		Mockito.when(packetInfoManager.getAbisResponseDetRecordsList(any())).thenReturn(abisResponseDetDtos);
-		Set<String> set = new HashSet<>();
-		set.add("reg1234");
-		UniqueRegistrationIds uniqueRegIdsResponse =new UniqueRegistrationIds();
-		uniqueRegIdsResponse.setRegistrationIds(set);
+		UniqueRegistrationIds uniqueRegIdsResponse = new UniqueRegistrationIds();
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(uniqueRegIdsResponse);
 		doNothing().when(packetInfoManager).saveManualAdjudicationData(anySet(), any(), any(), any(), any(),any(),any());
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);

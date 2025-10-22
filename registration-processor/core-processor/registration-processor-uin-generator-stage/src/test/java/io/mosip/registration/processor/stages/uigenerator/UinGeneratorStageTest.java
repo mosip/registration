@@ -2653,7 +2653,6 @@ public class UinGeneratorStageTest {
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
-		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
 		when(utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn("packetCreatedOn");
@@ -2684,12 +2683,10 @@ public class UinGeneratorStageTest {
 		Map<String, String> metaInfo = new HashMap<>();
 		metaInfo.put(MappingJsonConstants.PACKET_CREATED_ON, "2025-10-13T12:00:00Z");
 
-
 		when(utility.getUIn(any(),any(),any(ProviderStageName.class))).thenReturn("123456");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
-		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
 		when(utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn("packetCreatedOn");
@@ -2702,6 +2699,48 @@ public class UinGeneratorStageTest {
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertEquals("NEW", result.getReg_type());
+		assertEquals("10031100110005020190313110030", result.getRid());
+
+	}
+
+	@Test
+	public void testProcessUpdate_WithPacketCreatedOn() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setReg_type("UPDATE");
+		messageDTO.setRid("10031100110005020190313110030");
+
+		Map<String, String> fieldMap = new HashMap<>();
+		fieldMap.put("UIN", "123456");
+		fieldMap.put("name", "mono");
+		fieldMap.put("email", "mono@mono.com");
+
+		List<String> defaultFields = new ArrayList<>();
+		defaultFields.add("name");
+		defaultFields.add("dob");
+		defaultFields.add("gender");
+		defaultFields.add("UIN");
+
+		Map<String, String> metaInfo = new HashMap<>();
+		metaInfo.put(MappingJsonConstants.PACKET_CREATED_ON, "2025-10-13T12:00:00Z");
+
+		when(utility.getUIn(any(),any(),any(ProviderStageName.class))).thenReturn("123456");
+		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
+
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+
+		when(utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn("packetCreatedOn");
+		when(packetManagerService.getMetaInfo("10031100110005020190313110030", "NEW", ProviderStageName.UIN_GENERATOR)).thenReturn(metaInfo);
+
+		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
+		registrationStatusDto.setRegistrationType("UPDATE");
+		when(registrationStatusService.getRegistrationStatus(
+				any(), any(), any(), any())).thenReturn(registrationStatusDto);
+
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertEquals("UPDATE", result.getReg_type());
 		assertEquals("10031100110005020190313110030", result.getRid());
 
 	}
