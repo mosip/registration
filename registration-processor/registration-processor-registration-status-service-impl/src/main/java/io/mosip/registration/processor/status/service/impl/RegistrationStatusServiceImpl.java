@@ -1021,10 +1021,10 @@ public class RegistrationStatusServiceImpl
             boolean isTransactionSuccessful = false;
             LogDescription description = new LogDescription();
             String transactionId = generateId();
-            String latestTransactionId = getLatestTransactionId(registrationStatusDto.getRegistrationId(),
-                    registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId());
+//            String latestTransactionId = getLatestTransactionId(registrationStatusDto.getRegistrationId(),
+//                    registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId());
             TransactionDto transactionDto = new TransactionDto(transactionId, registrationStatusDto.getRegistrationId(),
-                    latestTransactionId, registrationStatusDto.getLatestTransactionTypeCode(),
+					registrationStatusDto.getLatestRegistrationTransactionId(), registrationStatusDto.getLatestTransactionTypeCode(),
                     "updated registration status record", registrationStatusDto.getLatestTransactionStatusCode(),
                     registrationStatusDto.getStatusComment(), registrationStatusDto.getSubStatusCode());
             if (registrationStatusDto.getRefId() == null) {
@@ -1038,19 +1038,19 @@ public class RegistrationStatusServiceImpl
 
             registrationStatusDto.setLatestRegistrationTransactionId(transactionId);
             try {
-                InternalRegistrationStatusDto dto = getRegistrationStatus(registrationStatusDto.getRegistrationId(),
-                        registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId());
-                if (dto != null) {
-                    dto.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+     //           InternalRegistrationStatusDto dto1 = getRegistrationStatus(registrationStatusDto.getRegistrationId(),
+     //                   registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId());
+     //           if (dto != null) {
+     //               dto.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
                     RegistrationStatusEntity entity = convertDtoToEntity(registrationStatusDto,
-                            dto.getLastSuccessStageName(), true);
+							registrationStatusDto.getLastSuccessStageName(), true);
                     if (entity.getStatusCode() == null) {
-                        entity.setStatusCode(dto.getStatusCode());
+                        entity.setStatusCode(registrationStatusDto.getStatusCode());
                     }
                     registrationStatusEntities.add(entity);
                     isTransactionSuccessful = true;
                     description.setMessage("Updated registration status successfully");
-                }
+     //           }
             } catch (DataAccessException | DataAccessLayerException e) {
                 description.setMessage("DataAccessLayerException while Updating registration status for registration Id"
                         + registrationStatusDto.getRegistrationId() + "::" + e.getMessage());
