@@ -466,7 +466,7 @@ public class BioDedupeProcessorTest {
 
 		Set<String> matchedRidList = new HashSet<>();
 		matchedRidList.add("27847657360002520190320095010");
-		UniqueRegistrationIds uniqueRegIdsResponse =new UniqueRegistrationIds();
+		UniqueRegistrationIds uniqueRegIdsResponse = new UniqueRegistrationIds();
 		uniqueRegIdsResponse.setIsPacketUINMatched(Boolean.TRUE);
 		uniqueRegIdsResponse.setRegistrationIds(matchedRidList);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(uniqueRegIdsResponse);
@@ -549,7 +549,7 @@ public class BioDedupeProcessorTest {
 		Set<String> matchedRidList = new HashSet<>();
 		matchedRidList.add("27847657360002520190320095010");
 		matchedRidList.add("27847657360002520190320095011");
-		UniqueRegistrationIds uniqueRegIdsResponse =new UniqueRegistrationIds();
+		UniqueRegistrationIds uniqueRegIdsResponse = new UniqueRegistrationIds();
 		uniqueRegIdsResponse.setRegistrationIds(matchedRidList);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(uniqueRegIdsResponse);
 
@@ -586,7 +586,7 @@ public class BioDedupeProcessorTest {
 		Set<String> matchedRidList = new HashSet<>();
 		matchedRidList.add("27847657360002520190320095010");
 		matchedRidList.add("27847657360002520190320095011");
-		UniqueRegistrationIds uniqueRegIdsResponse =new UniqueRegistrationIds();
+		UniqueRegistrationIds uniqueRegIdsResponse = new UniqueRegistrationIds();
 		uniqueRegIdsResponse.setRegistrationIds(matchedRidList);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(uniqueRegIdsResponse);
 
@@ -613,7 +613,7 @@ public class BioDedupeProcessorTest {
 		Set<String> matchedRidList = new HashSet<>();
 		matchedRidList.add("27847657360002520190320095010");
 		matchedRidList.add("27847657360002520190320095011");
-		UniqueRegistrationIds uniqueRegIdsResponse =new UniqueRegistrationIds();
+		UniqueRegistrationIds uniqueRegIdsResponse = new UniqueRegistrationIds();
 		uniqueRegIdsResponse.setRegistrationIds(matchedRidList);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(uniqueRegIdsResponse);
 
@@ -649,7 +649,7 @@ public class BioDedupeProcessorTest {
 		matchedRidList.add("27847657360002520190320095010");
 		matchedRidList.add("27847657360002520190320095011");
 		matchedRidList.add("27847657360002520190320095012");
-		UniqueRegistrationIds uniqueRegIdsResponse =new UniqueRegistrationIds();
+		UniqueRegistrationIds uniqueRegIdsResponse = new UniqueRegistrationIds();
 		uniqueRegIdsResponse.setRegistrationIds(matchedRidList);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(uniqueRegIdsResponse);
 

@@ -927,7 +927,18 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		}
 	}
 
-	/* Determines whether the applicant was an infant at the time their last packet was processed in the system.*/
+	/**
+	 * Determines whether the applicant was an infant at the time their last packet was processed in the system
+	 *
+	 * @param registrationId
+	 * @param registrationType
+	 * @param stageName
+	 * @return
+	 * @throws ApisResourceAccessException
+	 * @throws IOException
+	 * @throws JsonProcessingException
+	 * @throws PacketManagerException
+	 */
 	public boolean wasInfantWhenLastPacketProcessed(String registrationId, String registrationType, ProviderStageName stageName) throws ApisResourceAccessException, IOException,
 			JsonProcessingException, PacketManagerException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -968,8 +979,16 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		return age < getEffectiveAgeLimit();
 	}
 
+
 	/**
-	 * Attempts to resolve the last packet processed date using multiple strategies in order.
+	 * Attempts to resolve the last packet processed date using multiple strategies in order
+	 *
+	 * @param registrationId
+	 * @param packetUin
+	 * @param idvidResponse
+	 * @return
+	 * @throws ApisResourceAccessException
+	 * @throws IOException
 	 */
 	private LocalDate resolveLastPacketProcessedDate(String registrationId, String packetUin, JSONObject idvidResponse) throws ApisResourceAccessException, IOException {
 		// 1. Try direct lookup
@@ -1027,7 +1046,14 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		return Integer.parseInt(ageLimit) + Integer.parseInt(ageLimitBuffer);
 	}
 
-	/* Retrieves the created date of the last packet that was processed for the applicant.*/
+	/**
+	 * Retrieves the created date of the last packet that was processed for the applicant
+	 *
+	 * @param rid
+	 * @param idvidResponse
+	 * @return
+	 * @throws IOException
+	 */
 	private LocalDate getLastProcessedPacketCreatedDate(String rid, JSONObject idvidResponse) throws IOException {
 
 		String packetCreatedDateTimeIsoFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
@@ -1074,7 +1100,12 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	}
 
 	/**
-	 * Extract Date of Birth from IDRepo using RID.
+	 * Extract Date of Birth from IDRepo using RID
+	 *
+	 * @param rid
+	 * @param idvidResponse
+	 * @return
+	 * @throws IOException
 	 */
 	public LocalDate getDateOfBirthFromIdrepo(String rid, JSONObject idvidResponse) throws IOException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
@@ -1106,7 +1137,14 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		return dob;
 	}
 
-	/* Calculates the age of an applicant at the time of the last packet processing.*/
+	/**
+	 * Calculates the age of an applicant at the time of the last packet processing
+	 *
+	 * @param dateOfBirth
+	 * @param lastPacketProcessingDate
+	 * @param rid
+	 * @return
+	 */
 	public int calculateAgeAtLastPacketProcessing(LocalDate dateOfBirth, LocalDate lastPacketProcessingDate, String rid) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
 				"utility::calculateAgeAtLastPacketProcessing():: entry");
@@ -1124,7 +1162,15 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		return ageInYears;
 	}
 
-	/* Obtain the IdVidMetadata for applicant */
+	/**
+	 * Obtain the IdVidMetadata for applicant
+	 *
+	 * @param individualId
+	 * @param idType
+	 * @return
+	 * @throws IOException
+	 * @throws ApisResourceAccessException
+	 */
 	public IdVidMetadataResponse getIdVidMetadata(String individualId, String idType) throws IOException, ApisResourceAccessException {
 		IdVidMetadataRequest idVidMetadataRequest = new IdVidMetadataRequest();
 		idVidMetadataRequest.setIndividualId(individualId);
@@ -1133,7 +1179,12 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		return idVidMetadataResponse;
 	}
 
-	/* Retrieves the packet creation date for the given RID from the sync registration table.*/
+	/**
+	 * Retrieves the packet creation date for the given RID from the sync registration table
+	 *
+	 * @param rid
+	 * @return
+	 */
 	public LocalDate getPacketCreatedDateFromSyncRegistration(String rid) {
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
@@ -1167,8 +1218,13 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		return parseToLocalDate(dateStr, packetCreatedDateFormat);
 	}
 
+
 	/**
-	 * Wrapper that returns LocalDate only (ignores time).
+	 * Wrapper that returns LocalDate only (ignores time)
+	 *
+	 * @param dateString
+	 * @param dateFormat
+	 * @return
 	 */
 	public LocalDate parseToLocalDate(String dateString, String dateFormat) {
 
@@ -1206,7 +1262,12 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		return (ldt != null) ? ldt.toLocalDate() : null;
 	}
 
-	/* Extracts the packet creation date from the given Registration ID (RID) by interpreting its last 14 digits as a timestamp in the format {@code yyyyMMddHHmmss}*/
+	/**
+	 * Extracts the packet creation date from the given Registration ID (RID) by interpreting its last 14 digits as a timestamp in the format {@code yyyyMMddHHmmss}
+	 *
+	 * @param rid
+	 * @return
+	 */
 	public LocalDate getPacketCreatedDateFromRid(String rid) {
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
@@ -1222,7 +1283,13 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		return packetCreatedDate;
 	}
 
-	/* Computes the approximate packet creation date (for the packet that updated the identity)*/
+	/**
+	 * Computes the approximate packet creation date (for the packet that updated the identity)
+	 *
+	 * @param idVidMetadataDTO
+	 * @param processingRid
+	 * @return
+	 */
 	public LocalDate computePacketCreatedFromIdentityUpdate(IdVidMetadataResponse idVidMetadataDTO, String processingRid) {
 
 		String packetCreatedDateTimeIsoFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
@@ -1256,7 +1323,15 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		return null;
 	}
 
-	/* Get the BiometricRecord from the IdRepo for a given UIN.*/
+	/**
+	 * Get the BiometricRecord from the IdRepo for a given UIN
+	 *
+	 * @param uin
+	 * @param rid
+	 * @return
+	 * @throws ApisResourceAccessException
+	 * @throws IOException
+	 */
 	public BiometricRecord getBiometricRecordfromIdrepo(String uin, String rid) throws ApisResourceAccessException, IOException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
 				"utility::getBiometricRecordfromIdrepo():: entry");
@@ -1319,7 +1394,14 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		}
 	}
 
-	/* Checks whether all biometric segments are marked as exceptions excluding FACE and EXCEPTION_PHOTO types, which cannot be marked as exceptions.*/
+	/**
+	 * Checks whether all biometric segments are marked as exceptions excluding FACE and EXCEPTION_PHOTO types, which cannot be marked as exceptions
+	 *
+	 * @param birs
+	 * @param rid
+	 * @return
+	 * @throws BiometricClassificationException
+	 */
 	public boolean allBiometricHaveException(List<BIR> birs, String rid) throws BiometricClassificationException {
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
@@ -1370,8 +1452,13 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		return true;
 	}
 
-	/* Checks whether any biometric record in the given list contains non-empty "others" data,
-	which can be used to determine if the biometric was generated using the new or old version.*/
+	/**
+	 * Checks whether any biometric record in the given list contains non-empty "others" data,
+	 * 	which can be used to determine if the biometric was generated using the new or old version
+	 *
+	 * @param bir
+	 * @return
+	 */
 	public boolean hasBiometricWithOthers(List<BIR> bir){
 		if (bir == null || bir.isEmpty()) {
 			return false;
@@ -1380,7 +1467,15 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 				.anyMatch(bi -> bi.getOthers() != null && !bi.getOthers().isEmpty());
 	}
 
-	/* Checks whether all biometric segments are marked as exceptions for a registration Id*/
+	/**
+	 * Checks whether all biometric segments are marked as exceptions for a registration Id
+	 *
+	 * @param rid
+	 * @param registrationType
+	 * @param stageName
+	 * @return
+	 * @throws BiometricClassificationException
+	 */
 	public boolean allBiometricHaveException(String rid, String registrationType, ProviderStageName stageName) throws BiometricClassificationException {
 		try {
 			String uin = getUIn(rid, registrationType, stageName);
@@ -1395,7 +1490,18 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		}
 	}
 
-	/* Retrieves the packet creation date from the packet for a given registrationId.*/
+	/**
+	 * Retrieves the packet creation date from the packet for a given registrationId
+	 *
+	 * @param rid
+	 * @param process
+	 * @param stageName
+	 * @return
+	 * @throws PacketManagerException
+	 * @throws ApisResourceAccessException
+	 * @throws IOException
+	 * @throws JsonProcessingException
+	 */
 	public String retrieveCreatedDateFromPacket(String rid, String process, ProviderStageName stageName)
 			throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
 
