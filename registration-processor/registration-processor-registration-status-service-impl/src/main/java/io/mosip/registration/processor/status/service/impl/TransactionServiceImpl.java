@@ -148,4 +148,32 @@ public class TransactionServiceImpl implements TransactionService<TransactionDto
 				entity.getParentid(), entity.getStatusCode(), entity.getSubStatusCode(), entity.getStatusComment(),
 				entity.getCreateDateTime());
 	}
+
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see io.mosip.registration.processor.status.service.TransactionService#
+	 * addRegistrationTransaction(java.lang.Object)
+	 */
+	@Override
+	public List<TransactionEntity> addRegistrationTransactions(List<TransactionDto> transactionStatusDtoList) {
+		List<TransactionEntity> entities = new ArrayList<>();
+		transactionStatusDtoList.forEach(transactionStatusDto -> {
+			try {
+				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+						transactionStatusDto.getRegistrationId(),
+						"TransactionServiceImpl::addRegistrationTransaction()::entry");
+				TransactionEntity entity = convertDtoToEntity(transactionStatusDto);
+				entities.add(entity);
+				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+						transactionStatusDto.getRegistrationId(),
+						"TransactionServiceImpl::addRegistrationTransaction()::exit");
+			} catch (DataAccessLayerException e) {
+				throw new TransactionTableNotAccessibleException(
+						PlatformErrorMessages.RPR_RGS_TRANSACTION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
+			}
+		});
+
+		return transactionRepositary.saveAll(entities);
+	}
 }

@@ -28,6 +28,16 @@ public interface TransactionService<U> {
 	public TransactionEntity addRegistrationTransaction(U registrationStatusDto);
 
 	/**
+	 * Adds the registration transaction.
+	 *
+	 * @param registrationStatusDtoList
+	 *            the registration status dto List
+	 * @return the transaction entity
+	 */
+	public List<TransactionEntity> addRegistrationTransactions(List<U> registrationStatusDtoList);
+
+
+	/**
 	 * Gets the transaction by reg id and status code.
 	 *
 	 * @param regId

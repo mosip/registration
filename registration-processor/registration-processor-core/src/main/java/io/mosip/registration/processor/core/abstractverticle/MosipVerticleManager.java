@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.MDC;
@@ -146,7 +147,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 		VertxOptions options = new VertxOptions().setClustered(true).setClusterManager(clusterManager)
 				.setHAEnabled(false).setWorkerPoolSize(instanceNumber)
 				.setEventBusOptions(new EventBusOptions().setPort(getEventBusPort()).setHost(address))
-				.setMetricsOptions(micrometerMetricsOptions);
+				.setMetricsOptions(micrometerMetricsOptions).setMaxEventLoopExecuteTime(getMaxEventLoopExecutionTime()).setMaxEventLoopExecuteTimeUnit(TimeUnit.SECONDS);
 		Vertx.clusteredVertx(options, result -> {
 			if (result.succeeded()) {
 				result.result().deployVerticle((Verticle) verticleName,
@@ -282,12 +283,20 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 		return getIntegerPropertyForSuffix("eventbus.port");
 	}
 
+	public Integer getMaxEventLoopExecutionTime() {
+		return getIntegerPropertyForSuffix("eventbus.maxloop.exec.time.seconds", 2);
+	}
+
 	public Integer getPort() {
 		return getIntegerPropertyForSuffix("server.port");
 	}
 
 	protected Integer getIntegerPropertyForSuffix(String propSuffix) {
 		return propertiesUtil.getIntegerProperty(getPropertyPrefix(), propSuffix);
+	}
+
+	protected Integer getIntegerPropertyForSuffix(String propSuffix, Integer defaultValue) {
+		return propertiesUtil.getProperty(getPropertyPrefix() + propSuffix, Integer.class, defaultValue);
 	}
 
 	protected Boolean getBooleanPropertyForSuffix(String propSuffix, Boolean defaultValue) {

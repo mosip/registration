@@ -1,11 +1,7 @@
 package io.mosip.registration.processor.status.dao;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -81,6 +77,17 @@ public class RegistrationStatusDao {
 	public RegistrationStatusEntity save(RegistrationStatusEntity registrationStatusEntity) {
 
 		return registrationStatusRepositary.save(registrationStatusEntity);
+	}
+
+	/**
+	 * Save.
+	 *
+	 * @param registrationStatusEntities
+	 *            the registration status entity list
+	 * @return the registration status entity
+	 */
+	public List<RegistrationStatusEntity> saveAll(List<RegistrationStatusEntity> registrationStatusEntities) {
+		return registrationStatusRepositary.saveAll(registrationStatusEntities);
 	}
 
 	/**
@@ -246,5 +253,46 @@ public class RegistrationStatusDao {
 	public List<RegistrationStatusEntity> findByIdAndProcessAndIteration(String id, String process, int iteration)
 	{
 		return registrationStatusRepositary.getByIdAndProcessAndIteration(id, process, iteration);
+	}
+
+	/**
+	 * Gets the un processed packets.
+	 *
+	 *
+	 * @param processList
+	 *            the process List
+	 * @param fetchSize
+	 *            the fetch size
+	 * @param elapseTime
+	 *            the elapse time
+	 * @param reprocessCount
+	 *            the reprocess count
+	 * @param trnStatusList
+	 *            the transaction status
+	 * @param excludeStageNames
+	 *            the stage which need to exclude
+	 * @param statusList
+	 *            the status
+	 * @return the un processed packets
+	 */
+	public List<RegistrationStatusEntity> getUnProcessedPackets(List<String> processList, Integer fetchSize, long elapseTime,
+																Integer reprocessCount, List<String> trnStatusList, List<String> excludeStageNames, List<String> statusList) {
+
+		LocalDateTime timeDifference = LocalDateTime.now().minusSeconds(elapseTime);
+		List<String> statusCodes=new ArrayList<>();
+		statusCodes.add(RegistrationStatusCode.PAUSED.toString());
+		statusCodes.add(RegistrationStatusCode.RESUMABLE.toString());
+		statusCodes.add(RegistrationStatusCode.PAUSED_FOR_ADDITIONAL_INFO.toString());
+		statusCodes.add(RegistrationStatusCode.REJECTED.toString());
+		statusCodes.add(RegistrationStatusCode.FAILED.toString());
+		statusCodes.add(RegistrationStatusCode.PROCESSED.toString());
+
+		if(statusList != null && !statusList.isEmpty()) {
+			return registrationStatusRepositary.getUnProcessedPacketsWithSpecificStatus(processList, trnStatusList, reprocessCount, timeDifference,
+					statusList, fetchSize, excludeStageNames);
+		} else {
+			return registrationStatusRepositary.getUnProcessedPackets(processList, trnStatusList, reprocessCount, timeDifference,
+					statusCodes, fetchSize, excludeStageNames);
+		}
 	}
 }

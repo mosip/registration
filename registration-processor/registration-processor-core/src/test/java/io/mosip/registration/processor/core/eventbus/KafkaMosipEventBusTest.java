@@ -621,7 +621,7 @@ public class KafkaMosipEventBusTest {
 			consumerRecordList.add(
 				new ConsumerRecord<String,String>(
 					MessageBusAddress.PACKET_VALIDATOR_BUS_IN.getAddress(), 0, i, "1000"+i,
-					"{\"rid\":\"1000"+i+"\", \"reg_type\": \"NEW\" }"));
+					"{\"rid\":\"1000"+i+"\", \"reg_type\": \"NEW\", \"messageBusAddress\" : { \"address\" : \"packet-uploader-new-bus-out\"}}"));
 		Map<TopicPartition, List<ConsumerRecord<String,String>>> topicPartitionConsumerRecordListMap = 
 			new HashMap<TopicPartition, List<ConsumerRecord<String,String>>>();
 		topicPartitionConsumerRecordListMap.put(
