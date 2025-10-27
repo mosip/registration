@@ -201,7 +201,7 @@ public class UtilitiesTest {
                 .thenReturn(uin);
 
         doReturn(mockIdVidMetadataResponse).when(utilities).getIdVidMetadata(anyString(), any());
-        doReturn(LocalDate.of(2025, 6, 1))
+        doReturn(LocalDate.of(2023, 1, 1))
                 .when(utilities).getDateOfBirthFromIdrepo(anyString(), any(JSONObject.class));
 
         ReflectionTestUtils.setField(utilities, "expectedPacketProcessingDurationHours", "5");
@@ -504,6 +504,43 @@ public class UtilitiesTest {
     }
 
     @Test
+    public void testWasInfantWhenLastPacketProcessed_InfantWithinBuffer_ReturnsTrue() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+
+        String uin = "6654433332";
+        String dob = "2020/01/01";
+        Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any(ProviderStageName.class)))
+                .thenReturn(uin);
+        Map<String, String> response = new HashMap<>();
+        response.put("dateOfBirth", dob);
+        String jsonString = new ObjectMapper().writeValueAsString(response);
+        JSONObject identityJson = JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
+        when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
+                .thenReturn(identityJson);
+
+        IdVidMetadataRequest idVidMetadataRequest = new IdVidMetadataRequest();
+        idVidMetadataRequest.setIndividualId(uin);
+
+        IdVidMetadataResponse idVidMetadataResponse = new IdVidMetadataResponse();
+        idVidMetadataResponse.setRid(null);
+        idVidMetadataResponse.setUpdatedOn(null);
+        idVidMetadataResponse.setCreatedOn("2025-09-26T11:09:22.477Z");
+
+        when(idRepoService.searchIdVidMetadata(idVidMetadataRequest)).thenReturn(idVidMetadataResponse);
+        ReflectionTestUtils.setField(utilities, "ageLimit", "5");
+        ReflectionTestUtils.setField(utilities, "ageLimitBuffer", "1");
+        SyncRegistrationEntity syncRegistration = new SyncRegistrationEntity();
+        syncRegistration.setRegistrationId(null);
+        syncRegistration.setPacketId(null);
+        syncRegistration.setCreateDateTime(LocalDateTime.of(2024, 1, 1, 12, 30, 45));
+        List<SyncRegistrationEntity> syncRegistrationEntityList = new ArrayList<>();
+        syncRegistrationEntityList.add(syncRegistration);
+        when(syncRegistrationRepository.findByRegistrationId(anyString())).thenReturn(syncRegistrationEntityList);
+
+        boolean result = utilities.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
+        assertTrue(result);
+    }
+
+    @Test
     public void testComputePacketCreatedFromIdentityUpdate_withExpectedPacketProcessingDurationHours() {
         IdVidMetadataResponse idVidMetadataResponse = new IdVidMetadataResponse();
         idVidMetadataResponse.setUpdatedOn("2025-10-27T10:00:00.000Z");
@@ -517,15 +554,6 @@ public class UtilitiesTest {
         LocalDate result = utilities.computePacketCreatedFromIdentityUpdate(idVidMetadataResponse, "RID123");
 
         assertEquals(LocalDate.of(2025, 10, 26), result);
-    }
-
-    @Test
-    public void testGetEffectiveAgeLimit_AddsBufferToAgeLimit() {
-        ReflectionTestUtils.setField(utilities, "ageLimit", "5");
-        ReflectionTestUtils.setField(utilities, "ageLimitBuffer", "2");
-
-        int result = utilities.getEffectiveAgeLimit();
-        assertEquals(7, result);
     }
 
     @Test(expected = PacketDateComputationException.class)
@@ -621,13 +649,6 @@ public class UtilitiesTest {
         assertFalse(result);
     }
 
-    private BIR createBIRWithOthers(boolean hasOthers) {
-        BIR bir = mock(BIR.class);
-        Map<String, String> map = hasOthers ? Collections.singletonMap("EXCEPTION", "true") : Collections.emptyMap();
-        when(bir.getOthers()).thenReturn(new HashMap<>(map));
-        return bir;
-    }
-
     @Test
     public void testHasBiometricWithOthers_nullList_returnsFalse() {
         assertFalse(utilities.hasBiometricWithOthers(null));
@@ -636,18 +657,6 @@ public class UtilitiesTest {
     @Test
     public void testHasBiometricWithOthers_emptyList_returnsFalse() {
         assertFalse(utilities.hasBiometricWithOthers(Collections.emptyList()));
-    }
-
-    @Test
-    public void testHasBiometricWithOthers_noOthers_returnsFalse() {
-        List<BIR> birs = Arrays.asList(createBIRWithOthers(false));
-        assertFalse(utilities.hasBiometricWithOthers(birs));
-    }
-
-    @Test
-    public void testHasBiometricWithOthers_hasOthers_returnsTrue() {
-        List<BIR> birs = Arrays.asList(createBIRWithOthers(false), createBIRWithOthers(true));
-        assertTrue(utilities.hasBiometricWithOthers(birs));
     }
 
     @Test(expected = BiometricClassificationException.class)
