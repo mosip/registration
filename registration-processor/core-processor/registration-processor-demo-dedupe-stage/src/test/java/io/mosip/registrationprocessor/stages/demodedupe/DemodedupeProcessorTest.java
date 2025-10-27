@@ -538,10 +538,8 @@ public class DemodedupeProcessorTest {
 		Mockito.when(packetInfoManager.getAbisResponseRecords(anyString(), anyString())).thenReturn(abisResponseDtos);
 		Mockito.when(packetInfoManager.getAbisResponseDetRecordsList(any())).thenReturn(abisResponseDetDtos);
 
-		Set<String> set = new HashSet<>();
-		set.add("reg1234");
 		UniqueRegistrationIds uniqueRegIdsResponse = new UniqueRegistrationIds();
-		uniqueRegIdsResponse.setRegistrationIds(set);
+		uniqueRegIdsResponse.setRegistrationIds(matchedRegIds);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(uniqueRegIdsResponse);
 		doNothing().when(packetInfoManager).saveManualAdjudicationData(anySet(), any(), any(), any(), any(),any(),any());
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
@@ -581,10 +579,8 @@ public class DemodedupeProcessorTest {
 		Mockito.when(registrationStatusDao.find(any(),any(),any(),any())).thenReturn(entity);
 		Mockito.when(packetInfoManager.getAbisResponseRecords(anyString(), anyString())).thenReturn(abisResponseDtos);
 		Mockito.when(packetInfoManager.getAbisResponseDetRecordsList(any())).thenReturn(abisResponseDetDtos);
-		Set<String> set = new HashSet<>();
-		set.add("reg1234");
 		UniqueRegistrationIds uniqueRegIdsResponse = new UniqueRegistrationIds();
-		uniqueRegIdsResponse.setRegistrationIds(set);
+		uniqueRegIdsResponse.setRegistrationIds(matchedRegIds);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(uniqueRegIdsResponse);
 		doNothing().when(packetInfoManager).saveManualAdjudicationData(anySet(), any(), any(), any(), any(),any(),any());
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);

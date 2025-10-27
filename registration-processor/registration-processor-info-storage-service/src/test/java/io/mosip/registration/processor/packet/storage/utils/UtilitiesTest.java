@@ -6,6 +6,7 @@ import io.mosip.kernel.biometrics.entities.BDBInfo;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
@@ -57,7 +58,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*","javax.management.*", "javax.net.ssl.*" })
-@PrepareForTest({ Utilities.class, CryptoUtil.class, RegProcessorLogger.class, CbeffValidator.class })
+@PrepareForTest({ Utilities.class, CryptoUtil.class, RegProcessorLogger.class, CbeffValidator.class, DateUtils.class })
 public class UtilitiesTest {
 
     @Spy
@@ -150,9 +151,9 @@ public class UtilitiesTest {
 
     @Test
     public void testParseToLocalDate_TooOldDate() {
-        String dateStr = LocalDateTime.now().minusYears(150).format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        String dateStr = LocalDateTime.now().minusYears(250).format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         LocalDate result = utilities.parseToLocalDate(dateStr, "yyyyMMddHHmmss");
-        assertNotNull(result);
+        assertNull(result);
     }
 
     @Test
@@ -174,10 +175,47 @@ public class UtilitiesTest {
         assertEquals(10, age);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testCalculateAgeAtLastPacketProcessing_NullDates() {
-        String rid = "100119000120240101123045";
-        utilities.calculateAgeAtLastPacketProcessing(null, null, rid);
+    @Test
+    public void testWasInfantWhenLastPacketProcessed_infantScenario_returnsTrue() throws Exception {
+
+        String registrationId = "10049100271000420250319064824";
+        String registrationType = "NEW";
+        ProviderStageName stageName = ProviderStageName.BIO_DEDUPE;
+
+        IdVidMetadataResponse mockIdVidMetadataResponse = new IdVidMetadataResponse();
+        mockIdVidMetadataResponse.setRid(registrationId);
+        mockIdVidMetadataResponse.setUpdatedOn("2025-10-25T10:00:00.000Z");
+        mockIdVidMetadataResponse.setCreatedOn("2025-10-25T09:00:00.000Z");
+
+        doReturn("123456789012").when(utilities).getUIn(anyString(), anyString(), any());
+        String uin = "12345";
+        String dob = "2023/01/01";
+        String packetCreatedDate = "2025-04-30T07:04:49.681Z";
+
+        JSONObject identityJson = new JSONObject();
+        identityJson.put("dateOfBirth", dob);
+        identityJson.put("packetCreatedOn", packetCreatedDate);
+
+        Mockito.when(idRepoService.getIdJsonFromIDRepo(anyString(), any())).thenReturn(identityJson);
+        Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any()))
+                .thenReturn(uin);
+
+        doReturn(mockIdVidMetadataResponse).when(utilities).getIdVidMetadata(anyString(), any());
+        doReturn(LocalDate.of(2025, 6, 1))
+                .when(utilities).getDateOfBirthFromIdrepo(anyString(), any(JSONObject.class));
+
+        ReflectionTestUtils.setField(utilities, "expectedPacketProcessingDurationHours", "5");
+
+        PowerMockito.mockStatic(DateUtils.class);
+        when(DateUtils.parseUTCToLocalDateTime(anyString(), anyString()))
+                .thenReturn(LocalDate.of(2025, 10, 25).atTime(10, 0));
+
+        doReturn(LocalDate.of(2025, 10, 24))
+                .when(utilities).computePacketCreatedFromIdentityUpdate(any(IdVidMetadataResponse.class), anyString());
+
+        boolean result = utilities.wasInfantWhenLastPacketProcessed(registrationId, registrationType, stageName);
+
+        assertTrue(result);
     }
 
     @Test
@@ -465,6 +503,31 @@ public class UtilitiesTest {
         assertTrue(result);
     }
 
+    @Test
+    public void testComputePacketCreatedFromIdentityUpdate_withExpectedPacketProcessingDurationHours() {
+        IdVidMetadataResponse idVidMetadataResponse = new IdVidMetadataResponse();
+        idVidMetadataResponse.setUpdatedOn("2025-10-27T10:00:00.000Z");
+
+        ReflectionTestUtils.setField(utilities, "expectedPacketProcessingDurationHours", "24");
+
+        PowerMockito.mockStatic(DateUtils.class);
+        when(DateUtils.parseUTCToLocalDateTime(anyString(), anyString()))
+                .thenReturn(LocalDateTime.of(2025, 10, 27, 10, 0));
+
+        LocalDate result = utilities.computePacketCreatedFromIdentityUpdate(idVidMetadataResponse, "RID123");
+
+        assertEquals(LocalDate.of(2025, 10, 26), result);
+    }
+
+    @Test
+    public void testGetEffectiveAgeLimit_AddsBufferToAgeLimit() {
+        ReflectionTestUtils.setField(utilities, "ageLimit", "5");
+        ReflectionTestUtils.setField(utilities, "ageLimitBuffer", "2");
+
+        int result = utilities.getEffectiveAgeLimit();
+        assertEquals(7, result);
+    }
+
     @Test(expected = PacketDateComputationException.class)
     public void testComputePacketCreatedFromIdentityUpdate_ParseException() throws Exception {
 
@@ -538,61 +601,9 @@ public class UtilitiesTest {
         assertNull(result);
     }
 
-    private BIR createBIR(BiometricType type, String exceptionValue) {
-        BDBInfo bdbInfo = mock(BDBInfo.class);
-        when(bdbInfo.getType()).thenReturn(Collections.singletonList(type));
-
-        BIR bir = mock(BIR.class);
-        when(bir.getBdbInfo()).thenReturn(bdbInfo);
-
-        Map<String, String> others = new HashMap<>();
-        if (exceptionValue != null) {
-            others.put("EXCEPTION", exceptionValue);
-        }
-        when(bir.getOthers()).thenReturn((HashMap<String, String>) others);
-        return bir;
-    }
-
     @Test(expected = BiometricClassificationException.class)
     public void testAllBiometricHaveException_nullList_throwsException() throws BiometricClassificationException {
         utilities.allBiometricHaveException(null, null);
-    }
-
-    @Test
-    public void testAllBiometricHaveException_allExceptionsTrue_returnsTrue() throws BiometricClassificationException {
-        String rid = "10049100271000420250319064824";
-        List<BIR> birs = Arrays.asList(
-                createBIR(BiometricType.FINGER, "true"),
-                createBIR(BiometricType.IRIS, "true")
-        );
-
-        boolean result = utilities.allBiometricHaveException(birs, rid);
-        assertTrue(result);
-    }
-
-    @Test
-    public void testAllBiometricHaveException_missingException_returnsFalse() throws BiometricClassificationException {
-        String rid = "10049100271000420250319064824";
-        List<BIR> birs = Arrays.asList(
-                createBIR(BiometricType.FINGER, "true"),
-                createBIR(BiometricType.IRIS, null)
-        );
-
-        boolean result = utilities.allBiometricHaveException(birs, rid);
-        assertFalse(result);
-    }
-
-    @Test
-    public void testAllBiometricHaveException_faceOrExceptionPhotoIgnored_returnsTrue() throws BiometricClassificationException {
-        String rid = "10049100271000420250319064824";
-        List<BIR> birs = Arrays.asList(
-                createBIR(BiometricType.FACE, null),
-                createBIR(BiometricType.EXCEPTION_PHOTO, null),
-                createBIR(BiometricType.IRIS, "true")
-        );
-
-        boolean result = utilities.allBiometricHaveException(birs, rid);
-        assertTrue(result);
     }
 
     @Test

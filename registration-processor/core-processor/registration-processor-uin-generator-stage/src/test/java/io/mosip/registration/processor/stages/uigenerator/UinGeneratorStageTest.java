@@ -2745,4 +2745,51 @@ public class UinGeneratorStageTest {
 
 	}
 
+	@Test
+	public void testNewPacketCreatedOn_InsertsWhenMetaInfoPresent() throws Exception {
+		String rid = "10031100110005020190313110030";
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid(rid);
+		messageDTO.setReg_type("NEW");
+
+		InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
+		internalRegistrationStatusDto.setRegistrationType("NEW");
+
+		Map<String, String> metaInfo = new HashMap<>();
+		metaInfo.put(MappingJsonConstants.PACKET_CREATED_ON, "2025-10-13T12:00:00Z");
+
+		when(packetManagerService.getMetaInfo(rid, "NEW", ProviderStageName.UIN_GENERATOR)).thenReturn(metaInfo);
+		when(utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn("packetCreatedOn");
+
+		org.json.simple.JSONObject demographicIdentity = new org.json.simple.JSONObject();
+		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);
+
+		ReflectionTestUtils.invokeMethod(uinGeneratorStage, "updatePacketCreatedOnInDemographicIdentity",
+				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO);
+
+		assertEquals("2019-01-17T06:29:01.940Z", demographicIdentity.get("packetCreatedOn"));
+	}
+
+	@Test
+	public void testNewPacketCreatedOn_NoMetaInfo_NoChange() throws Exception {
+		String rid = "10031100110005020190313110030";
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid(rid);
+		messageDTO.setReg_type("NEW");
+
+		InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
+		internalRegistrationStatusDto.setRegistrationType("NEW");
+
+		when(utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn("packetCreatedOn");
+		when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any())).thenReturn(null);
+
+		org.json.simple.JSONObject demographicIdentity = new org.json.simple.JSONObject();
+		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);
+
+		ReflectionTestUtils.invokeMethod(uinGeneratorStage, "updatePacketCreatedOnInDemographicIdentity",
+				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO);
+
+		assertNull(demographicIdentity.get("packetCreatedOn"));
+	}
+
 }

@@ -19,9 +19,8 @@ import io.mosip.registration.processor.biodedupe.service.CbeffValidateAndVerific
 import io.mosip.registration.processor.biodedupe.stage.exception.CbeffNotFoundException;
 import io.mosip.registration.processor.core.code.*;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
-import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.core.exception.*;
 import io.mosip.registration.processor.core.packet.dto.abis.UniqueRegistrationIds;
-import io.mosip.registration.processor.core.exception.PacketDateComputationException;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.SyncTypeDto;
@@ -48,9 +47,6 @@ import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.constant.AbisConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
-import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.packet.dto.Identity;
@@ -333,11 +329,8 @@ public class BioDedupeProcessorTest {
 	@Test
 	public void testNewIdentifyToUINStage() throws Exception {
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
-		Set<String> set = new HashSet<>();
-		set.add("reg1234");
 		UniqueRegistrationIds uniqueRegIdsResponse = new UniqueRegistrationIds();
-		uniqueRegIdsResponse.setRegistrationIds(set);
-		uniqueRegIdsResponse.setIsPacketUINMatched(true);
+		uniqueRegIdsResponse.setIsPacketUINMatched(Boolean.FALSE);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(uniqueRegIdsResponse);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
@@ -360,7 +353,7 @@ public class BioDedupeProcessorTest {
 
 		UniqueRegistrationIds uniqueRegIdsResponse =new UniqueRegistrationIds();
 		uniqueRegIdsResponse.setRegistrationIds(set);
-		uniqueRegIdsResponse.setIsPacketUINMatched(Boolean.TRUE);
+		uniqueRegIdsResponse.setIsPacketUINMatched(Boolean.FALSE);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(uniqueRegIdsResponse);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
@@ -467,7 +460,7 @@ public class BioDedupeProcessorTest {
 		Set<String> matchedRidList = new HashSet<>();
 		matchedRidList.add("27847657360002520190320095010");
 		UniqueRegistrationIds uniqueRegIdsResponse = new UniqueRegistrationIds();
-		uniqueRegIdsResponse.setIsPacketUINMatched(Boolean.TRUE);
+		uniqueRegIdsResponse.setIsPacketUINMatched(Boolean.FALSE);
 		uniqueRegIdsResponse.setRegistrationIds(matchedRidList);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(uniqueRegIdsResponse);
 
@@ -909,6 +902,32 @@ public class BioDedupeProcessorTest {
 
 		when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any()))
 				.thenThrow(new PacketDateComputationException("ERR001", "Unable to compute packet date"));
+
+		MessageDTO result = bioDedupeProcessor.process(dto, stageName);
+
+		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
+		assertEquals(MessageBusAddress.VERIFICATION_BUS_IN, result.getMessageBusAddress());
+	}
+
+	@Test
+	public void testProcess_ThrowsBiometricClassificationException() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+		registrationStatusDto.setRegistrationId("10049100271000420210319064824");
+		registrationStatusDto.setRegistrationType("Update");
+		when(registrationStatusService.getRegistrationStatus(anyString(), anyString(), anyInt(), anyString()))
+				.thenReturn(registrationStatusDto);
+
+		when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
+
+		Set<String> matches = new HashSet<>();
+		matches.add("10049100271000420210319064824");
+		UniqueRegistrationIds uniqueIds = new UniqueRegistrationIds();
+		uniqueIds.setRegistrationIds(matches);
+		uniqueIds.setIsPacketUINMatched(false);
+		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(uniqueIds);
+
+		when(utility.allBiometricHaveException(anyString(), anyString(), any()))
+				.thenThrow(new BiometricClassificationException("BDD-ERR", "Biometric classification exception"));
 
 		MessageDTO result = bioDedupeProcessor.process(dto, stageName);
 
