@@ -190,11 +190,9 @@ public class UtilitiesTest {
         doReturn("123456789012").when(utilities).getUIn(anyString(), anyString(), any());
         String uin = "12345";
         String dob = "2023/01/01";
-        String packetCreatedDate = "2025-04-30T07:04:49.681Z";
 
         JSONObject identityJson = new JSONObject();
         identityJson.put("dateOfBirth", dob);
-        identityJson.put("packetCreatedOn", packetCreatedDate);
 
         Mockito.when(idRepoService.getIdJsonFromIDRepo(anyString(), any())).thenReturn(identityJson);
         Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any()))
@@ -508,6 +506,8 @@ public class UtilitiesTest {
 
         String uin = "6654433332";
         String dob = "2020/01/01";
+        ReflectionTestUtils.setField(utilities, "ageLimit", "5");
+        ReflectionTestUtils.setField(utilities, "ageLimitBuffer", "1");
         Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any(ProviderStageName.class)))
                 .thenReturn(uin);
         Map<String, String> response = new HashMap<>();
@@ -521,13 +521,12 @@ public class UtilitiesTest {
         idVidMetadataRequest.setIndividualId(uin);
 
         IdVidMetadataResponse idVidMetadataResponse = new IdVidMetadataResponse();
-        idVidMetadataResponse.setRid(null);
+        idVidMetadataResponse.setRid("10049100271000420240319064824");
         idVidMetadataResponse.setUpdatedOn(null);
         idVidMetadataResponse.setCreatedOn("2025-09-26T11:09:22.477Z");
 
         when(idRepoService.searchIdVidMetadata(idVidMetadataRequest)).thenReturn(idVidMetadataResponse);
-        ReflectionTestUtils.setField(utilities, "ageLimit", "5");
-        ReflectionTestUtils.setField(utilities, "ageLimitBuffer", "1");
+
         SyncRegistrationEntity syncRegistration = new SyncRegistrationEntity();
         syncRegistration.setRegistrationId(null);
         syncRegistration.setPacketId(null);
@@ -551,7 +550,7 @@ public class UtilitiesTest {
         when(DateUtils.parseUTCToLocalDateTime(anyString(), anyString()))
                 .thenReturn(LocalDateTime.of(2025, 10, 27, 10, 0));
 
-        LocalDate result = utilities.computePacketCreatedFromIdentityUpdate(idVidMetadataResponse, "RID123");
+        LocalDate result = utilities.computePacketCreatedFromIdentityUpdate(idVidMetadataResponse, "10049100271000420250319064824");
 
         assertEquals(LocalDate.of(2025, 10, 26), result);
     }
