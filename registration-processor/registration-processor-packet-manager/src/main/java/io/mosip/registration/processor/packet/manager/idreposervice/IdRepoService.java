@@ -2,7 +2,8 @@ package io.mosip.registration.processor.packet.manager.idreposervice;
 
 import java.io.IOException;
 
-import io.mosip.registration.processor.core.packet.dto.RidDto;
+import io.mosip.registration.processor.core.idrepo.dto.IdVidMetadataResponse;
+import io.mosip.registration.processor.core.idrepo.dto.IdVidMetadataRequest;
 import org.json.simple.JSONObject;
 
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
@@ -77,16 +78,11 @@ public interface IdRepoService {
 	 */
 	ResponseDTO getIdResponseFromIDRepo(String machedRegId) throws IOException, ApisResourceAccessException;
 
-	/**
-	 * Gets the uin by rid.
+ 	/**
+	 * Retrieves the id vid metadata information for a given individualId.
 	 *
-	 * @param uin
-	 *            the uin provided
-	 * @return the rid by uin
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
+	 * @param idVidMetadataRequest the identifier of the individual whose metadata is to be fetched.
+	 * @return an {@code IdVidMetadataResponse } containing rid, createdOn, and updatedOn
 	 */
-	RidDto getRidByIndividualId(String uin) throws IOException, ApisResourceAccessException;
+	IdVidMetadataResponse searchIdVidMetadata(IdVidMetadataRequest idVidMetadataRequest) throws IOException, ApisResourceAccessException;
 }

@@ -197,14 +197,12 @@ public enum StatusUtil {
 			"Potential Biometric Match Found while Processing Packet"),
 	LOST_PACKET_BIOMETRICS_NOT_FOUND(StatusConstants.BIO_DEDUPE_MODULE_FAILED + "002",
 			"No Match was Found for the Biometrics Received"),
-	BIO_DEDUPE_ALL_BIOMETRIC_EXCEPTION(StatusConstants.BIO_DEDUPE_MODULE_FAILED + "003",
-			"All Biometric having Exception"),
-	BIO_DEDUPE_NO_BIOMETRICS_FOUND(StatusConstants.BIO_DEDUPE_MODULE_FAILED + "004",
-			"Not Even Single Match Found for Biometric from Abis"),
 	LOST_PACKET_UNIQUE_MATCH_FOUND(StatusConstants.BIO_DEDUPE_MODULE_SUCCESS + "003",
 			"Unique Match was Found for the Biometrics Received"),
-	LOST_PACKET_MULTIPLE_MATCH_FOUND(StatusConstants.BIO_DEDUPE_MODULE_FAILED + "004",
+	LOST_PACKET_MULTIPLE_MATCH_FOUND(StatusConstants.BIO_DEDUPE_MODULE_FAILED + "003",
 			"Multiple Match was Found for the Biometrics Received"),
+	BIO_DEDUPE_NO_BIOMETRICS_FOUND(StatusConstants.BIO_DEDUPE_MODULE_FAILED + "004",
+			"No biometric match found for the applicant"),
 
 	// Biometric authentication stage
 	BIOMETRIC_AUTHENTICATION_FAILED(StatusConstants.BIO_METRIC_AUTHENTICATION_MODULE_FAILED + "001",
