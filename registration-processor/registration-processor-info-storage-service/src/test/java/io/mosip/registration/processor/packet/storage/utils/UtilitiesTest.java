@@ -525,6 +525,27 @@ public class UtilitiesTest {
     }
 
     @Test
+    public void testWasInfantWhenLastPacketProcessed_lastPacketProcessedTimeGreaterThanDOB() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+
+        String uin = "12345";
+        String dob = "2020/01/01";
+        String packetCreatedDate = "2020-01-03T10:00:00.000Z";
+        ReflectionTestUtils.setField(utilities, "expectedPacketProcessingDurationHours", "120");
+
+        JSONObject identityJson = new JSONObject();
+        identityJson.put("dateOfBirth", dob);
+        identityJson.put("packetCreatedOn", packetCreatedDate);
+
+        Mockito.when(idRepoService.getIdJsonFromIDRepo(anyString(), any())).thenReturn(identityJson);
+        Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any()))
+                .thenReturn(uin);
+
+        boolean result = utilities.wasInfantWhenLastPacketProcessed("10049100271000420250319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
+        assertTrue(result);
+    }
+
+
+    @Test
     public void testComputePacketCreatedFromIdentityUpdate_withExpectedPacketProcessingDurationHours() {
         IdVidMetadataResponse idVidMetadataResponse = new IdVidMetadataResponse();
         idVidMetadataResponse.setUpdatedOn("2025-10-27T10:00:00.000Z");
