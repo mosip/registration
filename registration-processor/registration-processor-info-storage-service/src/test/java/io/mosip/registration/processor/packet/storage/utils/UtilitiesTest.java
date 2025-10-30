@@ -38,11 +38,13 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.sax.SAXSource;
 import java.io.*;
@@ -176,7 +178,7 @@ public class UtilitiesTest {
     }
 
     @Test
-    public void testWasInfantWhenLastPacketProcessed_infantScenario_returnsTrue() throws Exception {
+    public void testWasInfantWhenLastPacketProcessed_infantScenario_returnsTrue() throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 
         String registrationId = "10049100271000420250319064824";
         String registrationType = "NEW";
@@ -453,12 +455,7 @@ public class UtilitiesTest {
 
         when(idRepoService.searchIdVidMetadata(idVidMetadataRequest)).thenReturn(idVidMetadataResponse);
 
-        SyncRegistrationEntity syncRegistration = new SyncRegistrationEntity();
-        syncRegistration.setRegistrationId(null);
-        syncRegistration.setPacketId(null);
-        syncRegistration.setCreateDateTime(LocalDateTime.of(2024, 1, 1, 12, 30, 45));
         List<SyncRegistrationEntity> syncRegistrationEntityList = new ArrayList<>();
-        syncRegistrationEntityList.add(syncRegistration);
         when(syncRegistrationRepository.findByRegistrationId(anyString())).thenReturn(syncRegistrationEntityList);
 
         boolean result = utilities.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
@@ -488,13 +485,7 @@ public class UtilitiesTest {
         idVidMetadataResponse.setCreatedOn("2025-09-26T11:09:22.477Z");
 
         when(idRepoService.searchIdVidMetadata(idVidMetadataRequest)).thenReturn(idVidMetadataResponse);
-
-        SyncRegistrationEntity syncRegistration = new SyncRegistrationEntity();
-        syncRegistration.setRegistrationId(null);
-        syncRegistration.setPacketId(null);
-        syncRegistration.setCreateDateTime(LocalDateTime.of(2024, 1, 1, 12, 30, 45));
         List<SyncRegistrationEntity> syncRegistrationEntityList = new ArrayList<>();
-        syncRegistrationEntityList.add(syncRegistration);
         when(syncRegistrationRepository.findByRegistrationId(anyString())).thenReturn(syncRegistrationEntityList);
 
         boolean result = utilities.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
@@ -526,13 +517,7 @@ public class UtilitiesTest {
         idVidMetadataResponse.setCreatedOn("2025-09-26T11:09:22.477Z");
 
         when(idRepoService.searchIdVidMetadata(idVidMetadataRequest)).thenReturn(idVidMetadataResponse);
-
-        SyncRegistrationEntity syncRegistration = new SyncRegistrationEntity();
-        syncRegistration.setRegistrationId(null);
-        syncRegistration.setPacketId(null);
-        syncRegistration.setCreateDateTime(LocalDateTime.of(2024, 1, 1, 12, 30, 45));
         List<SyncRegistrationEntity> syncRegistrationEntityList = new ArrayList<>();
-        syncRegistrationEntityList.add(syncRegistration);
         when(syncRegistrationRepository.findByRegistrationId(anyString())).thenReturn(syncRegistrationEntityList);
 
         boolean result = utilities.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
@@ -556,7 +541,7 @@ public class UtilitiesTest {
     }
 
     @Test(expected = PacketDateComputationException.class)
-    public void testComputePacketCreatedFromIdentityUpdate_ParseException() throws Exception {
+    public void testComputePacketCreatedFromIdentityUpdate_ParseException() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
 
         String uin = "6654433332";
         String dob = "2022/01/01";
@@ -659,7 +644,7 @@ public class UtilitiesTest {
     }
 
     @Test(expected = BiometricClassificationException.class)
-    public void testAllBiometricHaveException_rid_exception() throws Exception {
+    public void testAllBiometricHaveException_rid_exception() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
         String rid = "6654322111444444";
         String registrationType = "UPDATE";
         ProviderStageName stageName = ProviderStageName.BIO_DEDUPE;
@@ -671,7 +656,7 @@ public class UtilitiesTest {
     }
 
     @Test(expected = BiometricClassificationException.class)
-    public void testGetBiometricRecordfromIdrepo_noDocuments_returnsNull() throws Exception {
+    public void testGetBiometricRecordfromIdrepo_noDocuments_returnsNull() throws ApisResourceAccessException, IOException {
         String uin = "66554444";
         String rid = "10049100271000420240319064824";
         doReturn(Collections.emptyList()).when(utilities).retrieveIdrepoDocument(uin);
@@ -759,7 +744,7 @@ public class UtilitiesTest {
     }
 
     @Test
-    public void testisALLBiometricHaveExceptionWithCbeffWithOthersSingleBioException() throws Exception {
+    public void testisALLBiometricHaveExceptionWithCbeffWithOthersSingleBioException() throws ParserConfigurationException, SAXException, IOException, JAXBException {
         String rid = "10049100271000420250319064824";
         String pathString = "CbeffWithOthersSingleBioException.xml";
 
@@ -782,7 +767,7 @@ public class UtilitiesTest {
     }
 
     @Test
-    public void testisALLBiometricHaveExceptionWithCbeffWithoutOthersSingleBioException() throws Exception {
+    public void testisALLBiometricHaveExceptionWithCbeffWithoutOthersSingleBioException() throws ParserConfigurationException, SAXException, IOException, JAXBException {
         String rid = "10049100271000420250319064824";
         String pathString = "CbeffWithoutOthersSingleBioException.xml";
 
