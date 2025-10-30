@@ -185,11 +185,11 @@ public class Utilities {
 	 * raising the applicant's age limit.</p>
 	 */
 	@Value("${registration.processor.applicant.type.age.limit.buffer:0}")
-	private String ageLimitBuffer;
+	private Integer ageLimitBuffer;
 
 	/** Estimated time (in hours) the system takes to process a packet */
 	@Value("${registration.processor.expected-packet-processing-duration:0}")
-	private String expectedPacketProcessingDurationHours;
+	private Integer expectedPacketProcessingDurationHours;
 
 	@Autowired
 	private PacketInfoDao packetInfoDao;
@@ -1043,7 +1043,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	public int getEffectiveAgeLimit() {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"utility::getEffectiveAgeLimit():: ageLimit: {}, ageLimitBuffer: {} ", ageLimit, ageLimitBuffer);
-		return Integer.parseInt(ageLimit) + Integer.parseInt(ageLimitBuffer);
+		return Integer.parseInt(ageLimit) + ageLimitBuffer;
 	}
 
 	/**
@@ -1305,8 +1305,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 
 		try {
 			LocalDateTime referenceDateTime = parseUTCToLocalDateTime(updatedOn, packetCreatedDateTimeIsoFormat);
-			long processingHours = Long.parseLong(expectedPacketProcessingDurationHours);
-			LocalDateTime adjustedDateTime = referenceDateTime.minusHours(processingHours);
+			LocalDateTime adjustedDateTime = referenceDateTime.minusHours(expectedPacketProcessingDurationHours);
 
 			return adjustedDateTime.toLocalDate();
 

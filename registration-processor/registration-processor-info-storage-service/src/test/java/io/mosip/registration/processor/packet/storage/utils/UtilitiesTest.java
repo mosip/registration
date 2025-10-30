@@ -96,9 +96,8 @@ public class UtilitiesTest {
         ReflectionTestUtils.setField(utilities, "dobFormat", "yyyy/MM/dd");
         ReflectionTestUtils.setField(utilities, "ageLimit", "5");
         ReflectionTestUtils.setField(utilities, "isVidSupportedForUpdate", false);
-        ReflectionTestUtils.setField(utilities, "ageLimitBuffer", "1");
-        ReflectionTestUtils.setField(utilities, "ageLimit", "5");
-        ReflectionTestUtils.setField(utilities, "expectedPacketProcessingDurationHours", "1");
+        ReflectionTestUtils.setField(utilities, "ageLimitBuffer", 0);
+        ReflectionTestUtils.setField(utilities, "expectedPacketProcessingDurationHours", 0);
 
         InputStream inputStream = getClass().getClassLoader()
                 .getResourceAsStream("RegistrationProcessorIdentity.json");
@@ -203,13 +202,6 @@ public class UtilitiesTest {
         doReturn(mockIdVidMetadataResponse).when(utilities).getIdVidMetadata(anyString(), any());
         doReturn(LocalDate.of(2023, 1, 1))
                 .when(utilities).getDateOfBirthFromIdrepo(anyString(), any(JSONObject.class));
-
-        ReflectionTestUtils.setField(utilities, "expectedPacketProcessingDurationHours", "5");
-
-        PowerMockito.mockStatic(DateUtils.class);
-        when(DateUtils.parseUTCToLocalDateTime(anyString(), anyString()))
-                .thenReturn(LocalDate.of(2025, 10, 25).atTime(10, 0));
-
         doReturn(LocalDate.of(2025, 10, 24))
                 .when(utilities).computePacketCreatedFromIdentityUpdate(any(IdVidMetadataResponse.class), anyString());
 
@@ -449,7 +441,7 @@ public class UtilitiesTest {
         idVidMetadataRequest.setIndividualId(uin);
 
         IdVidMetadataResponse idVidMetadataResponse = new IdVidMetadataResponse();
-        idVidMetadataResponse.setRid(null);
+        idVidMetadataResponse.setRid("10049100271000420240319064824");
         idVidMetadataResponse.setUpdatedOn("2025-09-27T11:09:22.477Z");
         idVidMetadataResponse.setCreatedOn("2025-09-26T11:09:22.477Z");
 
@@ -480,7 +472,7 @@ public class UtilitiesTest {
         idVidMetadataRequest.setIndividualId(uin);
 
         IdVidMetadataResponse idVidMetadataResponse = new IdVidMetadataResponse();
-        idVidMetadataResponse.setRid(null);
+        idVidMetadataResponse.setRid("10049100271000420240319064824");
         idVidMetadataResponse.setUpdatedOn(null);
         idVidMetadataResponse.setCreatedOn("2025-09-26T11:09:22.477Z");
 
@@ -497,8 +489,7 @@ public class UtilitiesTest {
 
         String uin = "6654433332";
         String dob = "2020/01/01";
-        ReflectionTestUtils.setField(utilities, "ageLimit", "5");
-        ReflectionTestUtils.setField(utilities, "ageLimitBuffer", "1");
+        ReflectionTestUtils.setField(utilities, "ageLimitBuffer", 3);
         Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any(ProviderStageName.class)))
                 .thenReturn(uin);
         Map<String, String> response = new HashMap<>();
@@ -514,7 +505,7 @@ public class UtilitiesTest {
         IdVidMetadataResponse idVidMetadataResponse = new IdVidMetadataResponse();
         idVidMetadataResponse.setRid("10049100271000420240319064824");
         idVidMetadataResponse.setUpdatedOn(null);
-        idVidMetadataResponse.setCreatedOn("2025-09-26T11:09:22.477Z");
+        idVidMetadataResponse.setCreatedOn("2027-01-01T11:09:22.477Z");
 
         when(idRepoService.searchIdVidMetadata(idVidMetadataRequest)).thenReturn(idVidMetadataResponse);
         List<SyncRegistrationEntity> syncRegistrationEntityList = new ArrayList<>();
@@ -525,12 +516,12 @@ public class UtilitiesTest {
     }
 
     @Test
-    public void testWasInfantWhenLastPacketProcessed_lastPacketProcessedTimeGreaterThanDOB() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+    public void testWasInfantWhenLastPacketProcessed_lastPacketProcessedTimeGreaterThanDOB_withExpectedPacketProcessingDurationHours() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
 
         String uin = "12345";
         String dob = "2020/01/01";
         String packetCreatedDate = "2020-01-03T10:00:00.000Z";
-        ReflectionTestUtils.setField(utilities, "expectedPacketProcessingDurationHours", "120");
+        ReflectionTestUtils.setField(utilities, "expectedPacketProcessingDurationHours", 120);
 
         JSONObject identityJson = new JSONObject();
         identityJson.put("dateOfBirth", dob);
@@ -544,13 +535,12 @@ public class UtilitiesTest {
         assertTrue(result);
     }
 
-
     @Test
     public void testComputePacketCreatedFromIdentityUpdate_withExpectedPacketProcessingDurationHours() {
         IdVidMetadataResponse idVidMetadataResponse = new IdVidMetadataResponse();
         idVidMetadataResponse.setUpdatedOn("2025-10-27T10:00:00.000Z");
 
-        ReflectionTestUtils.setField(utilities, "expectedPacketProcessingDurationHours", "24");
+        ReflectionTestUtils.setField(utilities, "expectedPacketProcessingDurationHours", 24);
 
         PowerMockito.mockStatic(DateUtils.class);
         when(DateUtils.parseUTCToLocalDateTime(anyString(), anyString()))
@@ -592,6 +582,7 @@ public class UtilitiesTest {
 
     @Test
     public void testGetEffectiveAgeLimit() {
+        ReflectionTestUtils.setField(utilities, "ageLimitBuffer", 1);
         int limit = utilities.getEffectiveAgeLimit();
         assertEquals(6, limit);
     }
