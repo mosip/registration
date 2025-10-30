@@ -1,13 +1,13 @@
 package io.mosip.registration.processor.stages.uingenerator.stage;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
@@ -257,9 +257,10 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 				loadDemographicIdentity(fieldMap, demographicIdentity);
 
+				updatePacketCreatedOnInDemographicIdentity(registrationId, registrationStatusDto, demographicIdentity, object);
+
 				if (StringUtils.isEmpty(uinField) || uinField.equalsIgnoreCase("null") ) {
-					String  packetCreatedTimestamp=utility.getPacketCreatedDateFromPacketManager(registrationId,registrationStatusDto.getRegistrationType(),ProviderStageName.UIN_GENERATOR);
-					demographicIdentity.put(MappingJsonConstants.PACKET_CREATED_ON,packetCreatedTimestamp);
+
 					idResponseDTO = sendIdRepoWithUin(registrationId, registrationStatusDto.getRegistrationType(), demographicIdentity,
 							uinField);
 
@@ -1149,4 +1150,42 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			object.setIsValid(false);
 		}
 	}
+
+	private void updatePacketCreatedOnInDemographicIdentity(String registrationId,
+															InternalRegistrationStatusDto registrationStatusDto,
+															Map<String, Object> demographicIdentity, MessageDTO object) throws IOException, PacketManagerException, ApisResourceAccessException, JsonProcessingException {
+		// update packetCreatedOn only for NEW and UPDATE registrations
+		if (!RegistrationType.NEW.toString().equalsIgnoreCase(object.getReg_type()) &&
+				!RegistrationType.UPDATE.toString().equalsIgnoreCase(object.getReg_type())) {
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+					"Skipping update of packetCreatedOn. registrationType: {}", object.getReg_type());
+			return; // skip for other registration types
+		}
+
+		// Try to fetch the key using getMappedFieldName
+		String packetCreatedOnKey = utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON);
+
+		if (packetCreatedOnKey == null) {
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+					"Mapping is not configured in identity-mapping.json. key: {}", MappingJsonConstants.PACKET_CREATED_ON);
+			return; // Cannot insert if key is null
+		}
+
+		// Fallback to metaInfo if not present in packet
+		String packetCreatedOn = utility.retrieveCreatedDateFromPacket(
+				registrationId,
+				registrationStatusDto.getRegistrationType(),
+				ProviderStageName.UIN_GENERATOR
+		);
+
+		if (packetCreatedOn == null) {
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+					"unable to find the packetCreatedOn from packet");
+			return; // Cannot insert if value is null
+		}
+
+		// Insert into demographicIdentity only if both key and value are present
+		demographicIdentity.put(packetCreatedOnKey, packetCreatedOn);
+	}
+
 }
