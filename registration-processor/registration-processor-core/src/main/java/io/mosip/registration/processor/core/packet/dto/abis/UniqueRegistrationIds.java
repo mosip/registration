@@ -10,7 +10,7 @@ import java.util.Set;
 @Data
 public class UniqueRegistrationIds implements Serializable {
     private Set<String> registrationIds = new HashSet<>();
-    private Boolean isPacketUINMatched;
+    private boolean isPacketUINMatched;
 
     @Override
     public String toString() {
