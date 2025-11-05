@@ -447,7 +447,7 @@ public class BioDedupeProcessor {
 		boolean isUpdatePacket = registrationStatusDto.getRegistrationType()
 				.equalsIgnoreCase(SyncTypeDto.UPDATE.toString());
 
-		boolean isPacketUINAvailable = uniqueRegIds.getIsPacketUINMatched();
+		boolean isPacketUINAvailable = uniqueRegIds.isPacketUINMatched();
 
 		// Remove current registration ID from matches (temporary fix)
 		matchedRegIds.remove(registrationStatusDto.getRegistrationId());

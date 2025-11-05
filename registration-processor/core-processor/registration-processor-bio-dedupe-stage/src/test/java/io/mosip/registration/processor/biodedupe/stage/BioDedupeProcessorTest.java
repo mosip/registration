@@ -330,7 +330,7 @@ public class BioDedupeProcessorTest {
 	public void testNewIdentifyToUINStage() throws Exception {
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
 		UniqueRegistrationIds uniqueRegIdsResponse = new UniqueRegistrationIds();
-		uniqueRegIdsResponse.setIsPacketUINMatched(Boolean.FALSE);
+		uniqueRegIdsResponse.setPacketUINMatched(Boolean.FALSE);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(uniqueRegIdsResponse);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
@@ -353,7 +353,7 @@ public class BioDedupeProcessorTest {
 
 		UniqueRegistrationIds uniqueRegIdsResponse =new UniqueRegistrationIds();
 		uniqueRegIdsResponse.setRegistrationIds(set);
-		uniqueRegIdsResponse.setIsPacketUINMatched(Boolean.FALSE);
+		uniqueRegIdsResponse.setPacketUINMatched(Boolean.FALSE);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(uniqueRegIdsResponse);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
@@ -431,7 +431,7 @@ public class BioDedupeProcessorTest {
 		Set<String> matchedRidList = new HashSet<>();
 		UniqueRegistrationIds uniqueRegIdsResponse = new UniqueRegistrationIds();
 		uniqueRegIdsResponse.setRegistrationIds(matchedRidList);
-		uniqueRegIdsResponse.setIsPacketUINMatched(Boolean.TRUE);
+		uniqueRegIdsResponse.setPacketUINMatched(Boolean.TRUE);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(uniqueRegIdsResponse);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
@@ -460,7 +460,7 @@ public class BioDedupeProcessorTest {
 		Set<String> matchedRidList = new HashSet<>();
 		matchedRidList.add("27847657360002520190320095010");
 		UniqueRegistrationIds uniqueRegIdsResponse = new UniqueRegistrationIds();
-		uniqueRegIdsResponse.setIsPacketUINMatched(Boolean.FALSE);
+		uniqueRegIdsResponse.setPacketUINMatched(Boolean.FALSE);
 		uniqueRegIdsResponse.setRegistrationIds(matchedRidList);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(uniqueRegIdsResponse);
 
@@ -723,7 +723,7 @@ public class BioDedupeProcessorTest {
 		ReflectionTestUtils.setField(bioDedupeProcessor, "nonInfantNotAllBiometricExceptionDecision", "MV");
 		UniqueRegistrationIds uniqueIds = new UniqueRegistrationIds();
 		uniqueIds.setRegistrationIds(Collections.emptySet());
-		uniqueIds.setIsPacketUINMatched(false);
+		uniqueIds.setPacketUINMatched(false);
 
 		when(abisHandlerUtil.getUniqueRegIds(anyString(), anyString(), anyInt(), anyString(), any()))
 				.thenReturn(uniqueIds);
@@ -764,7 +764,7 @@ public class BioDedupeProcessorTest {
 		ReflectionTestUtils.setField(bioDedupeProcessor, "nonInfantNotAllBiometricExceptionDecision", "REJECTED");
 		UniqueRegistrationIds uniqueIds = new UniqueRegistrationIds();
 		uniqueIds.setRegistrationIds(Collections.emptySet());
-		uniqueIds.setIsPacketUINMatched(false);
+		uniqueIds.setPacketUINMatched(false);
 
 		when(abisHandlerUtil.getUniqueRegIds(anyString(), anyString(), anyInt(), anyString(), any()))
 				.thenReturn(uniqueIds);
@@ -802,7 +802,7 @@ public class BioDedupeProcessorTest {
 
 		UniqueRegistrationIds uniqueIds = new UniqueRegistrationIds();
 		uniqueIds.setRegistrationIds(Collections.emptySet());
-		uniqueIds.setIsPacketUINMatched(false);
+		uniqueIds.setPacketUINMatched(false);
 
 		when(abisHandlerUtil.getUniqueRegIds(anyString(), anyString(), anyInt(), anyString(), any()))
 				.thenReturn(uniqueIds);
@@ -840,7 +840,7 @@ public class BioDedupeProcessorTest {
 
 		UniqueRegistrationIds uniqueIds = new UniqueRegistrationIds();
 		uniqueIds.setRegistrationIds(Collections.emptySet());
-		uniqueIds.setIsPacketUINMatched(false);
+		uniqueIds.setPacketUINMatched(false);
 
 		when(abisHandlerUtil.getUniqueRegIds(anyString(), anyString(), anyInt(), anyString(), any()))
 				.thenReturn(uniqueIds);
@@ -878,7 +878,7 @@ public class BioDedupeProcessorTest {
 
 		UniqueRegistrationIds uniqueIds = new UniqueRegistrationIds();
 		uniqueIds.setRegistrationIds(matches);
-		uniqueIds.setIsPacketUINMatched(true);
+		uniqueIds.setPacketUINMatched(true);
 
 		when(abisHandlerUtil.getUniqueRegIds(anyString(), anyString(), anyInt(), anyString(), any()))
 				.thenReturn(uniqueIds);
@@ -923,7 +923,7 @@ public class BioDedupeProcessorTest {
 		matches.add("10049100271000420210319064824");
 		UniqueRegistrationIds uniqueIds = new UniqueRegistrationIds();
 		uniqueIds.setRegistrationIds(matches);
-		uniqueIds.setIsPacketUINMatched(false);
+		uniqueIds.setPacketUINMatched(false);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(uniqueIds);
 
 		when(utility.allBiometricHaveException(anyString(), anyString(), any()))
