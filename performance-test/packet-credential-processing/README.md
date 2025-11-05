@@ -1,38 +1,40 @@
 # Contains
-* This folder contains performance Test script of below API endpoint categories.
+* This directory contains performance Test script of below API endpoint categories.
 	01. A00 Auth Token Generation (Preparation)
 	02. P01 Packet Generation (Preparation)
 	03. P02 Packet Creator Rid Sync (Preparation)
 	04. P03 Sync And Upload Registration Packet (Preparation)
 
 * Open source tools used,
-	01. Apache JMeter 
-	02. mosip-packet-creator
+	01. [Java 21](https://www.oracle.com/java/technologies/downloads/#java21)
+	02. [Apache JMeter 5.6.3](https://jmeter.apache.org/download_jmeter.cgi) 
+	02. [mosip-packet-creator](https://github.com/mosip/mosip-automation-tests/tree/master/mosip-packet-creator)
 
 
 # How to run performance scripts using Apache JMeter tool
 * Download Apache JMeter from https://jmeter.apache.org/download_jmeter.cgi
 * Download and install JMeter Plugin Manager jar file from https://jmeter-plugins.org/get/
 * Download scripts for the required module from the respective module repo's.
-* Place the scripts and the support files in the jemter bin folder.
 * Start JMeter by running the jmeter.bat file for Windows or jmeter file for Unix. 
+* Load downloaded *.jmx script onto Jmeter. If prompted, install the required plugins.
+* Update "User Defined Variables" within the Jmeter scripts. This list holds environement endpoint URL, protocols, users, secret keys, passwords, runtime file path, support file path etc.
 * Validate the scripts for one user.
-* Execute a dry run for 10 min.
-* Use MOSIP_TPS_Thread_setting_calculator.xlsx to calculate the thread settings required for your target load.
+* Execute a dry run for 10 min. The execution duration is controlled by "testDuration" variable.
+* Use [MOSIP_TPS_Thread_setting_calculator](MOSIP_TPS_Thread_setting_calculator-packet_credential_processing.xlsx) to calculate the thread settings required for your target load.
 * Execute performance run with various loads in order to achieve targeted NFR's.
 
-
 # Setup points before execution
-* This script uses `mosip-packet-creator` tool as a background service to generate new packets. Follow the steps in `PacketCreatorToolSetup.md` first to start the service. The tool should be running in background while the jmeter script is running. 
+* This script uses `mosip-packet-creator` tool as a background service to generate new packets. Follow the steps in [PacketCreatorToolSetup](PacketCreatorToolSetup.md) first to start the service. The tool should be running in background while the jmeter script is running. 
 * This script will be used to generate large number of packets for credential processing. Based on the workload model, atleast  3000 packets need to be generated and uploaded to simulate significant load. Packet size should be at least 2MB in size.
 * The "registration-processor-common-camel-bridge" pod  should be stopped until all preparation (P01-P03) is completed. (i.e. Number of pods = 0). 
 * Performance should be monitored during "P03 Sync And Upload Registration Packet (Preparation)" to measure how system handles large volume of packet upload.
 * Once "P03 Sync And Upload Registration Packet (Preparation)" step is complete. The "registration-processor-common-camel-bridge" pod will be enabled again to allow resgistration to automatically continue to process the large volume of newly uploaded packets. Performance should be monitored to measure how systhem handles this processing load.
+* Delete runtime files created during previous execution from {runTimeFilePath} folder.
 
 
 # Script execution steps:
 
-	* A00 Auth Token Generation (Setup) - In this thread group we are creating the authorization token values of  Regpoc and  Resident - Using User Id which will be saved to a file in the Run Time Files in bin folder of JMeter. The authorization token have expiration time which is controlled by MOSIP settings. Ensure the tokens remain valid throughout the duration of the test execution.
+	* A00 Auth Token Generation (Preparation) - In this thread group we are creating the authorization token values of  Regpoc and  Resident - Using User Id which will be saved to a file in the Run Time Files in bin folder of JMeter. The authorization token have expiration time which is controlled by MOSIP settings. Ensure the tokens remain valid throughout the duration of the test execution.
 
 	* P01 Packet Generation (Preparation) - In this thread group we will create the context with the help of existing center id's, machine id's & user id's present in our current environment & we will read them through a file named context_details.csv. Once the contexts are created we will use the same in the execution thread group where the packet generation happens & then the packet path gets stored in a file naming as Run Time Files in bin folder of JMeter. (Optionally) This step also includes 'Packet Creator Rid Sync' and 'Sync Registration Packet - v2' to create preparatory test data, however enabling these will make the data preparation process slower.
 
@@ -45,14 +47,12 @@
 ## Downloading Plugin manager jar file for the purpose installing other JMeter specific plugins
 
 * Download JMeter plugin manager from below url links.
-	*https://jmeter-plugins.org/get/
+	* https://jmeter-plugins.org/get/
 
 * After downloading the jar file place it in below folder path.
-	*lib/ext
+	* lib/ext
 
-* Please refer to following link to download JMeter jars.
-	https://mosip.atlassian.net/wiki/spaces/PT/pages/1227751491/Steps+to+set+up+the+local+system#PluginManager
-		
+* Restart Jmeter, load the downloaded *.jmx script and if prompted, install required plugins.
 
 ## Designing the workload model for performance test execution
 
@@ -60,13 +60,11 @@
 
 * If you are testing for different tps or with different hardware settings, adjustment needs to made to thread group settings within the script.
 
-* `MOSIP_TPS_Thread_setting_calculator-packet_credential_processing.xlsx` applies Little's law to recommend required thread settings inputs.			
+* [MOSIP_TPS_Thread_setting_calculator-packet_credential_processing.xlsx](MOSIP_TPS_Thread_setting_calculator-packet_credential_processing.xlsx) applies Little's law to recommend required thread settings inputs.			
 					
 ## Support files required for this test execution:
 
-1. context_details.csv - This support file contains userId, password, center and machine details.
-3. machine_details.csv - This support file contains all the information needed to create machines.
-4. reg_centers.csv - This support file contains data needed to create new centers.
+1. [context_details.csv](support-files/context_details.csv) - This support file contains userId, password, center and machine details.
 
 
 

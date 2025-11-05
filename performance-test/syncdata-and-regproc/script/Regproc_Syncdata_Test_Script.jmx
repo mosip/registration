@@ -74,6 +74,7 @@
             <stringProp name="Argument.name">testDuration</stringProp>
             <stringProp name="Argument.value">600</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
+            <stringProp name="Argument.desc">Control overall test execution</stringProp>
           </elementProp>
           <elementProp name="rampUp" elementType="Argument">
             <stringProp name="Argument.name">rampUp</stringProp>
@@ -262,7 +263,7 @@
         <stringProp name="shareMode">shareMode.all</stringProp>
       </CSVDataSet>
       <hashTree/>
-      <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Load Regproc Auth Token From File">
+      <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Load Regproc Auth Token From File" enabled="true">
         <stringProp name="filename">${runTimeFilePath}/A00_authorization_token_regproc.txt</stringProp>
         <stringProp name="fileEncoding"></stringProp>
         <stringProp name="variableNames">authTokenRegproc</stringProp>
@@ -274,7 +275,7 @@
         <stringProp name="shareMode">shareMode.all</stringProp>
       </CSVDataSet>
       <hashTree/>
-      <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Load Resident Auth Token From File">
+      <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Load Resident Auth Token From File" enabled="true">
         <stringProp name="filename">${runTimeFilePath}/A00_authorization_token_resident.txt</stringProp>
         <stringProp name="fileEncoding"></stringProp>
         <stringProp name="variableNames">authTokenResident</stringProp>
@@ -286,7 +287,7 @@
         <stringProp name="shareMode">shareMode.all</stringProp>
       </CSVDataSet>
       <hashTree/>
-      <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Load Auth Token For Syncdata From File">
+      <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Load Auth Token For Syncdata From File" enabled="true">
         <stringProp name="filename">${runTimeFilePath}/A00_authorization_token_syncdata.txt</stringProp>
         <stringProp name="fileEncoding"></stringProp>
         <stringProp name="variableNames">authTokenSyncdata</stringProp>
@@ -309,7 +310,7 @@
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <BeanShellPreProcessor guiclass="TestBeanGUI" testclass="BeanShellPreProcessor" testname="Generate UTC Time">
+        <BeanShellPreProcessor guiclass="TestBeanGUI" testclass="BeanShellPreProcessor" testname="Generate UTC Time" enabled="true">
           <stringProp name="filename"></stringProp>
           <stringProp name="parameters"></stringProp>
           <boolProp name="resetInterpreter">false</boolProp>
@@ -323,7 +324,7 @@ String utcTime = dateFormat.format(cal.getTime());
 vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
         </BeanShellPreProcessor>
         <hashTree/>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Generate Auth Token Regproc Endpoint ">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Generate Auth Token Regproc Endpoint " enabled="true">
           <stringProp name="HTTPSampler.domain">${serverIPInternal}</stringProp>
           <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
           <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
@@ -400,7 +401,7 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
           </BeanShellPostProcessor>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Generate Auth Token Resident Endpoint ">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Generate Auth Token Resident Endpoint " enabled="true">
           <stringProp name="HTTPSampler.domain">${serverIPInternal}</stringProp>
           <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
           <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
@@ -477,7 +478,7 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
           </BeanShellPostProcessor>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Generate Auth Token Syncdata with userid Endpoint ">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Generate Auth Token Syncdata with userid Endpoint " enabled="true">
           <stringProp name="HTTPSampler.domain">${serverIPInternal}</stringProp>
           <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
           <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
@@ -566,7 +567,7 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <CounterConfig guiclass="CounterConfigGui" testclass="CounterConfig" testname="Load Random number count">
+        <CounterConfig guiclass="CounterConfigGui" testclass="CounterConfig" testname="Load Random number count" enabled="true">
           <stringProp name="CounterConfig.start">100</stringProp>
           <stringProp name="CounterConfig.end"></stringProp>
           <stringProp name="CounterConfig.incr">1</stringProp>
@@ -576,7 +577,7 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
           <stringProp name="TestPlan.comments">to be used unique suffix for values</stringProp>
         </CounterConfig>
         <hashTree/>
-        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Load Registration Zones From File">
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Load Registration Zones From File" enabled="true">
           <stringProp name="filename">${supportFilePath}/D01_A01_zones.csv</stringProp>
           <stringProp name="fileEncoding"></stringProp>
           <stringProp name="variableNames">zone_code,location_code</stringProp>
@@ -588,11 +589,11 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
           <stringProp name="shareMode">shareMode.all</stringProp>
         </CSVDataSet>
         <hashTree/>
-        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="A01 Create ZoneUser and Center">
+        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="A01 Create ZoneUser and Center" enabled="true">
           <boolProp name="TransactionController.includeTimers">false</boolProp>
         </TransactionController>
         <hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Generate access token Endpoint">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Generate access token Endpoint" enabled="true">
             <stringProp name="HTTPSampler.domain">${serverIAM}</stringProp>
             <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
             <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
@@ -680,7 +681,7 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
             </JSONPostProcessor>
             <hashTree/>
           </hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create User by KeyCloak Endpoint">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create User by KeyCloak Endpoint" enabled="true">
             <stringProp name="HTTPSampler.domain">${serverIAM}</stringProp>
             <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
             <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
@@ -878,7 +879,7 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
             </ResponseAssertion>
             <hashTree/>
           </hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create Registration Center Endpoint">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create Registration Center Endpoint" enabled="true">
             <stringProp name="HTTPSampler.domain">${serverIPInternal}</stringProp>
             <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
             <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
@@ -981,7 +982,7 @@ String utcTime = dateFormat.format(cal.getTime());
 vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
             </BeanShellPreProcessor>
             <hashTree/>
-            <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="Extract Registration Center Id">
+            <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="Extract Registration Center Id" enabled="true">
               <stringProp name="JSONPostProcessor.referenceNames">centerId</stringProp>
               <stringProp name="JSONPostProcessor.jsonPathExprs">$.response.id</stringProp>
               <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
@@ -1027,7 +1028,7 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
             </ResponseAssertion>
             <hashTree/>
           </hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create Center User Mapping Endpoint">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create Center User Mapping Endpoint" enabled="true">
             <stringProp name="TestPlan.comments"> </stringProp>
             <stringProp name="HTTPSampler.domain">${serverIPInternal}</stringProp>
             <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
@@ -1096,7 +1097,7 @@ String utcTime = dateFormat.format(cal.getTime());
 vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
             </BeanShellPreProcessor>
             <hashTree/>
-            <BeanShellPostProcessor guiclass="TestBeanGUI" testclass="BeanShellPostProcessor" testname="Store Center To File">
+            <BeanShellPostProcessor guiclass="TestBeanGUI" testclass="BeanShellPostProcessor" testname="Store Center To File" enabled="true">
               <stringProp name="filename"></stringProp>
               <stringProp name="parameters"></stringProp>
               <boolProp name="resetInterpreter">false</boolProp>
@@ -1104,7 +1105,7 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
             </BeanShellPostProcessor>
             <hashTree/>
           </hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Activate Center User Mapping Endpoint">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Activate Center User Mapping Endpoint" enabled="true">
             <stringProp name="HTTPSampler.domain">${serverIPInternal}</stringProp>
             <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
             <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
@@ -1178,11 +1179,11 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
           <stringProp name="shareMode">shareMode.all</stringProp>
         </CSVDataSet>
         <hashTree/>
-        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="A02 Create Machine">
+        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="A02 Create Machine" enabled="true">
           <boolProp name="TransactionController.includeTimers">false</boolProp>
         </TransactionController>
         <hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="New Create Machines Endpoint">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="New Create Machines Endpoint" enabled="true">
             <stringProp name="HTTPSampler.domain">${serverIPInternal}</stringProp>
             <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
             <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
@@ -1220,7 +1221,7 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
             </elementProp>
           </HTTPSamplerProxy>
           <hashTree>
-            <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Load Key From .pem File">
+            <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Load Key From .pem File" enabled="true">
               <stringProp name="scriptLanguage">groovy</stringProp>
               <stringProp name="parameters"></stringProp>
               <stringProp name="filename"></stringProp>
@@ -1256,7 +1257,7 @@ vars.put(&quot;pubKey&quot;, cleaned)
 </stringProp>
             </JSR223PreProcessor>
             <hashTree/>
-            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
               <collectionProp name="HeaderManager.headers">
                 <elementProp name="Content-Type" elementType="Header">
                   <stringProp name="Header.name">Content-Type</stringProp>
@@ -1269,7 +1270,7 @@ vars.put(&quot;pubKey&quot;, cleaned)
               </collectionProp>
             </HeaderManager>
             <hashTree/>
-            <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion">
+            <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
               <collectionProp name="Asserion.test_strings">
                 <stringProp name="-1402285814">errors&quot;:null</stringProp>
               </collectionProp>
@@ -1279,7 +1280,7 @@ vars.put(&quot;pubKey&quot;, cleaned)
               <intProp name="Assertion.test_type">16</intProp>
             </ResponseAssertion>
             <hashTree/>
-            <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion - Response Code">
+            <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion - Response Code" enabled="true">
               <collectionProp name="Asserion.test_strings">
                 <stringProp name="49586">200</stringProp>
               </collectionProp>
@@ -1289,7 +1290,7 @@ vars.put(&quot;pubKey&quot;, cleaned)
               <intProp name="Assertion.test_type">2</intProp>
             </ResponseAssertion>
             <hashTree/>
-            <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="Extract Machine Id">
+            <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="Extract Machine Id" enabled="true">
               <stringProp name="JSONPostProcessor.referenceNames">machineId</stringProp>
               <stringProp name="JSONPostProcessor.jsonPathExprs">$.response.id</stringProp>
               <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
@@ -1303,7 +1304,7 @@ vars.put(&quot;pubKey&quot;, cleaned)
               <stringProp name="JSONPostProcessor.defaultValues">Machine Not Found</stringProp>
             </JSONPostProcessor>
             <hashTree/>
-            <BeanShellPostProcessor guiclass="TestBeanGUI" testclass="BeanShellPostProcessor" testname="Store Machine To File">
+            <BeanShellPostProcessor guiclass="TestBeanGUI" testclass="BeanShellPostProcessor" testname="Store Machine To File" enabled="true">
               <stringProp name="filename"></stringProp>
               <stringProp name="parameters"></stringProp>
               <boolProp name="resetInterpreter">false</boolProp>
@@ -1325,7 +1326,7 @@ vars.put(&quot;pubKey&quot;, cleaned)
             </elementProp>
           </HTTPSamplerProxy>
           <hashTree>
-            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
               <collectionProp name="HeaderManager.headers">
                 <elementProp name="Content-Type" elementType="Header">
                   <stringProp name="Header.name">Content-Type</stringProp>
@@ -1338,7 +1339,7 @@ vars.put(&quot;pubKey&quot;, cleaned)
               </collectionProp>
             </HeaderManager>
             <hashTree/>
-            <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion">
+            <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
               <collectionProp name="Asserion.test_strings">
                 <stringProp name="-1402285814">errors&quot;:null</stringProp>
               </collectionProp>
@@ -1351,7 +1352,7 @@ vars.put(&quot;pubKey&quot;, cleaned)
           </hashTree>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="P01 Sync And Upload New Registration Packet(Preparation)" enabled="false">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="P01 Create and Sync New Registration Packet (Preparation)" enabled="false">
         <intProp name="ThreadGroup.num_threads">5</intProp>
         <intProp name="ThreadGroup.ramp_time">30</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
@@ -1362,7 +1363,7 @@ vars.put(&quot;pubKey&quot;, cleaned)
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create Context Endpoint">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create Context Endpoint" enabled="true">
           <stringProp name="HTTPSampler.domain">${packetUtilityServerIP}</stringProp>
           <stringProp name="HTTPSampler.port">${packetUtilityPortNo}</stringProp>
           <stringProp name="HTTPSampler.protocol">http</stringProp>
@@ -1962,7 +1963,7 @@ vars.put(&quot;newPath&quot;, path);</stringProp>
           </elementProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
             <collectionProp name="HeaderManager.headers">
               <elementProp name="Content-Type" elementType="Header">
                 <stringProp name="Header.name">Content-Type</stringProp>
@@ -1995,7 +1996,7 @@ vars.put(&quot;newPath&quot;, path);</stringProp>
             <intProp name="Assertion.test_type">2</intProp>
           </ResponseAssertion>
           <hashTree/>
-          <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="Extract Time Stamp">
+          <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="Extract Time Stamp" enabled="true">
             <stringProp name="RegexExtractor.useHeaders">false</stringProp>
             <stringProp name="RegexExtractor.refname">timeStamp</stringProp>
             <stringProp name="RegexExtractor.regex">&quot;timestamp&quot;:&quot;(.*?)&quot;}</stringProp>
@@ -2005,7 +2006,7 @@ vars.put(&quot;newPath&quot;, path);</stringProp>
             <boolProp name="RegexExtractor.default_empty_value">false</boolProp>
           </RegexExtractor>
           <hashTree/>
-          <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="Extract Machine RefId">
+          <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="Extract Machine RefId" enabled="true">
             <stringProp name="RegexExtractor.useHeaders">false</stringProp>
             <stringProp name="RegexExtractor.refname">machineRefId</stringProp>
             <stringProp name="RegexExtractor.regex">Center-Machine-RefId&quot;:&quot;(.*?)&quot;</stringProp>
@@ -2015,7 +2016,7 @@ vars.put(&quot;newPath&quot;, path);</stringProp>
             <boolProp name="RegexExtractor.default_empty_value">false</boolProp>
           </RegexExtractor>
           <hashTree/>
-          <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="Extract Request Body">
+          <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="Extract Request Body" enabled="true">
             <stringProp name="RegexExtractor.useHeaders">false</stringProp>
             <stringProp name="RegexExtractor.refname">requestBody</stringProp>
             <stringProp name="RegexExtractor.regex">requestBody&quot;:&quot;(.*?)&quot;</stringProp>
@@ -2025,7 +2026,7 @@ vars.put(&quot;newPath&quot;, path);</stringProp>
             <boolProp name="RegexExtractor.default_empty_value">false</boolProp>
           </RegexExtractor>
           <hashTree/>
-          <BeanShellPostProcessor guiclass="TestBeanGUI" testclass="BeanShellPostProcessor" testname="Store Request Body To File">
+          <BeanShellPostProcessor guiclass="TestBeanGUI" testclass="BeanShellPostProcessor" testname="Store Request Body To File" enabled="true">
             <stringProp name="filename"></stringProp>
             <stringProp name="parameters"></stringProp>
             <boolProp name="resetInterpreter">false</boolProp>
@@ -2045,7 +2046,7 @@ vars.put(&quot;newPath&quot;, path);</stringProp>
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Read Request Details From File">
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Read Request Details From File" enabled="true">
           <stringProp name="filename">${runTimeFilePath}/P01_request_body_sync_packet.txt</stringProp>
           <stringProp name="fileEncoding"></stringProp>
           <stringProp name="variableNames">machineRefId,encryptedData,timeStamp,uploadLoadpacketPath</stringProp>
@@ -2057,7 +2058,7 @@ vars.put(&quot;newPath&quot;, path);</stringProp>
           <stringProp name="shareMode">shareMode.all</stringProp>
         </CSVDataSet>
         <hashTree/>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Sync Registration Packet Endpoint">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Sync Registration Packet Endpoint" enabled="true">
           <stringProp name="HTTPSampler.domain">${serverIPInternal}</stringProp>
           <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
           <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
@@ -2136,7 +2137,7 @@ vars.put(&quot;newPath&quot;, path);</stringProp>
           </BeanShellPostProcessor>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Upload Registration Packet Endpoint">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Upload Registration Packet Endpoint" enabled="true">
           <stringProp name="HTTPSampler.domain">${serverIPInternal}</stringProp>
           <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
           <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
@@ -2227,6 +2228,9 @@ vars.put(&quot;newPath&quot;, path);</stringProp>
         </hashTree>
       </hashTree>
       <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="S01 Sync And Upload New Registration Packet (Execution)">
+        <stringProp name="TestPlan.comments">Execution duration is not controled by &quot;testDuration&quot;
+It is controled by &quot;Loop Count&quot; which should be same as number of packets available for upload.
+</stringProp>
         <intProp name="ThreadGroup.num_threads">5</intProp>
         <stringProp name="ThreadGroup.ramp_time">${rampUp}</stringProp>
         <stringProp name="ThreadGroup.duration">${testDuration}</stringProp>
@@ -2234,7 +2238,7 @@ vars.put(&quot;newPath&quot;, path);</stringProp>
         <boolProp name="ThreadGroup.scheduler">true</boolProp>
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
-          <stringProp name="LoopController.loops">1000</stringProp>
+          <stringProp name="LoopController.loops">10000</stringProp>
           <boolProp name="LoopController.continue_forever">false</boolProp>
         </elementProp>
       </ThreadGroup>
@@ -2251,7 +2255,7 @@ vars.put(&quot;newPath&quot;, path);</stringProp>
           <stringProp name="shareMode">shareMode.all</stringProp>
         </CSVDataSet>
         <hashTree/>
-        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="S01 Sync And Upload New Registration Packet">
+        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="S01 Sync And Upload New Registration Packet" enabled="true">
           <boolProp name="TransactionController.includeTimers">false</boolProp>
         </TransactionController>
         <hashTree>
@@ -2455,11 +2459,11 @@ vars.put(&quot;newPath&quot;, path);</stringProp>
           <stringProp name="TestPlan.comments">List of all key alias that has not expired</stringProp>
         </CSVDataSet>
         <hashTree/>
-        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="S02 Sync Data To The Server">
+        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="S02 Sync Data To The Server" enabled="true">
           <boolProp name="TransactionController.includeTimers">false</boolProp>
         </TransactionController>
         <hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="S02 T01 Auth Token Details Encrypted Based On Machine Key Endpoint">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="S02 T01 Auth Token Details Encrypted Based On Machine Key Endpoint" enabled="true">
             <stringProp name="HTTPSampler.domain">${serverIPInternal}</stringProp>
             <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
             <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
@@ -2498,7 +2502,7 @@ vars.put(&quot;newPath&quot;, path);</stringProp>
               </collectionProp>
             </HeaderManager>
             <hashTree/>
-            <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Request Token Generation using keys">
+            <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Request Token Generation using keys" enabled="true">
               <stringProp name="cacheKey">true</stringProp>
               <stringProp name="filename"></stringProp>
               <stringProp name="parameters"></stringProp>
@@ -2608,7 +2612,7 @@ vars.put(&quot;requestToken&quot;, completeCrypto)
             </ResponseAssertion>
             <hashTree/>
           </hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="S02 T02 Public Key Verify Endpoint">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="S02 T02 Public Key Verify Endpoint" enabled="true">
             <stringProp name="HTTPSampler.domain">${serverIPInternal}</stringProp>
             <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
             <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
@@ -2672,7 +2676,7 @@ vars.put(&quot;requestToken&quot;, completeCrypto)
               <intProp name="Assertion.test_type">2</intProp>
             </ResponseAssertion>
             <hashTree/>
-            <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="Extract Key Index">
+            <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="Extract Key Index" enabled="true">
               <stringProp name="RegexExtractor.useHeaders">false</stringProp>
               <stringProp name="RegexExtractor.refname">keyIndex</stringProp>
               <stringProp name="RegexExtractor.regex">&quot;keyIndex&quot;:&quot;(.*?)&quot;</stringProp>
@@ -2683,7 +2687,7 @@ vars.put(&quot;requestToken&quot;, completeCrypto)
             </RegexExtractor>
             <hashTree/>
           </hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="S02 T03 Certificate Endpoint">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="S02 T03 Certificate Endpoint" enabled="true">
             <stringProp name="HTTPSampler.domain">${serverIPInternal}</stringProp>
             <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
             <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
@@ -2829,7 +2833,7 @@ vars.put(&quot;requestToken&quot;, completeCrypto)
             </ResponseAssertion>
             <hashTree/>
           </hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="S02 T06 Get Configs Endpoint">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="S02 T06 Get Configs Endpoint" enabled="true">
             <stringProp name="HTTPSampler.domain">${serverIPInternal}</stringProp>
             <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
             <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
@@ -2843,7 +2847,7 @@ vars.put(&quot;requestToken&quot;, completeCrypto)
             </elementProp>
           </HTTPSamplerProxy>
           <hashTree>
-            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
               <collectionProp name="HeaderManager.headers">
                 <elementProp name="Content-Type" elementType="Header">
                   <stringProp name="Header.name">Content-Type</stringProp>
@@ -2877,7 +2881,7 @@ vars.put(&quot;requestToken&quot;, completeCrypto)
             </ResponseAssertion>
             <hashTree/>
           </hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="S02 T07 Get LatestId Schema Endpoint">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="S02 T07 Get LatestId Schema Endpoint" enabled="true">
             <stringProp name="HTTPSampler.domain">${serverIPInternal}</stringProp>
             <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
             <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
@@ -2925,7 +2929,7 @@ vars.put(&quot;requestToken&quot;, completeCrypto)
             </ResponseAssertion>
             <hashTree/>
           </hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="S02 T08 Get CaCertificates Endpoint">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="S02 T08 Get CaCertificates Endpoint" enabled="true">
             <stringProp name="HTTPSampler.domain">${serverIPInternal}</stringProp>
             <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
             <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
@@ -3072,7 +3076,7 @@ vars.put(&quot;requestToken&quot;, completeCrypto)
         </ConstantThroughputTimer>
         <hashTree/>
       </hashTree>
-      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
           <name>saveConfig</name>
@@ -3109,7 +3113,7 @@ vars.put(&quot;requestToken&quot;, completeCrypto)
         <stringProp name="filename"></stringProp>
       </ResultCollector>
       <hashTree/>
-      <kg.apc.jmeter.vizualizers.CorrectedResultCollector guiclass="kg.apc.jmeter.vizualizers.SynthesisReportGui" testclass="kg.apc.jmeter.vizualizers.CorrectedResultCollector" testname="Endpoint Request Level Report" enabled="true">
+      <kg.apc.jmeter.vizualizers.CorrectedResultCollector guiclass="kg.apc.jmeter.vizualizers.SynthesisReportGui" testclass="kg.apc.jmeter.vizualizers.CorrectedResultCollector" testname="Endpoint Request Level Report">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
           <name>saveConfig</name>
