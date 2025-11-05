@@ -7,10 +7,10 @@
 	<parent>
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>registration-processor</artifactId>
-		<version>1.2.1.2-SNAPSHOT</version>
+		<version>1.2.1.3-SNAPSHOT</version>
 	</parent>
 	<artifactId>registration-processor-core</artifactId>
-	<version>1.2.1.2-SNAPSHOT</version>
+	<version>1.2.1.3-SNAPSHOT</version>
 	<name>registration-processor-core</name>
 	<dependencies>
 		<dependency>
