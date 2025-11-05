@@ -118,7 +118,7 @@ public class ABISHandlerUtil {
 						UniqueRegistrationIds processedRegIds = getUniqueRegIds(matchedProcessedRegIds, registrationId,
 								registrationType,
 								stageName);
-						uniqueRegistrationIds.setPacketUINMatched(processedRegIds.isPacketUINMatched());
+						uniqueRegistrationIds.setIsPacketUINMatched(processedRegIds.getIsPacketUINMatched());
 						for(String rid : processedRegIds.getRegistrationIds()) {
 							if(!uniqueRIDs.contains(rid))
 								uniqueRIDs.add(rid);
@@ -224,7 +224,7 @@ public class ABISHandlerUtil {
 				if (matchedUin != null) {
 					if (packetUin.equals(matchedUin)) {
 						// Explicitly capture that UIN matched
-						uniqueRegistrationIds.setPacketUINMatched(true);
+						uniqueRegistrationIds.setIsPacketUINMatched(true);
 					} else {
 						// Different UIN found
 						filteredRegMap.put(matchedUin, machedRegId);
