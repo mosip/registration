@@ -173,7 +173,11 @@ public class Utilities {
 	@Value("${registration.processor.vid-support-for-update:false}")
 	private Boolean isVidSupportedForUpdate;
 
-	@Value("${mosip.kernel.applicant.type.age.limit}")
+	/**
+	 * Configuration property that defines the age limit used to determine
+	 * whether an applicant is considered an infant or non-infant.
+	 */
+	@Value("${mosip.kernel.applicant.type.age.limit:5}")
 	private String ageLimit;
 
 	/**

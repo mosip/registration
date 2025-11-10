@@ -1,4 +1,4 @@
-FROM eclipse-temurin:11-jre
+FROM openjdk:11
 
 ARG SOURCE
 ARG COMMIT_HASH
