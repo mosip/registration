@@ -13,7 +13,7 @@
 
 # How to run performance scripts using Apache JMeter tool
 * Download Apache JMeter from https://jmeter.apache.org/download_jmeter.cgi
-* Download and install JMeter Plugin Manager jar file from https://jmeter-plugins.org/get/
+* Download JMeter Plugin Manager jar file from https://jmeter-plugins.org/get/ , and install by placing the it in "Jmeter/apache-jmeter-X.X.X/lib/ext" 
 * Download scripts for the required module from the respective module repo's.
 * Start JMeter by running the jmeter.bat file for Windows or jmeter file for Unix. 
 * Load downloaded *.jmx script onto Jmeter. If prompted, install the required plugins.
@@ -43,16 +43,6 @@
 	* P03 Sync And Upload Registration Packet (Preparation) - This thread group reads packets listed in request_body_sync_packet.txt, and syncs and uploads them to the databse. To build queue of a large number of unprocessed data, "registration-processor-common-camel-bridge" should be disabled during this step.
 	
 	* Credential processing - This part of test is not executed via Jmeter script. Once a large number of unprocessed data is queued with 'P03 Sync And Upload Registration Packet', the processing can be triggered by starting "registration-processor-common-camel-bridge". To measure performance/TPS, the database can be queried to check for time taken to process all the new data. 
-
-## Downloading Plugin manager jar file for the purpose installing other JMeter specific plugins
-
-* Download JMeter plugin manager from below url links.
-	* https://jmeter-plugins.org/get/
-
-* After downloading the jar file place it in below folder path.
-	* lib/ext
-
-* Restart Jmeter, load the downloaded *.jmx script and if prompted, install required plugins.
 
 ## Designing the workload model for performance test execution
 
