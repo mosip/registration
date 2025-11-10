@@ -30,7 +30,7 @@ dslrig-packetcreator-<x.x.x.x>.jar (tested with version 1.3.0.1)
 ### 1.3: Install Packet Creator Utility
 
 1. Download the 'centralized' folder from src/main/resources/dockersupport and save it to a new path.
-2. Place the dslrig-packetcreator-1.3.0.1.jar in the same new path.
+2. Place the  dslrig-packetcreator-<x.x.x.x>.jar in the same new path.
 
 
 ## 2. Packet Creator Setup
