@@ -38,9 +38,9 @@ dslrig-packetcreator-<x.x.x.x>.jar (tested with version 1.3.0.1)
 ### 2.1: Configure the executable file
 1. Within the newly created installation folder, Open run_centralized_packet_creator.bat in text editor
 2. edit the file paths and filenames as per the new installation
-
+```
     Eg: java -Xss8m  -Dfile.encoding=UTF-8 -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=9999,suspend=n -jar <<dslrig-packetcreator-versionxx>>.jar --spring.config.location=file:///D:\centralized\mosip-packet-creator\config\application.properties>>D:\centralized\mosip-packet-creator\PacketUtilityRunlog.txt
-
+```
 
 ### 2.2: Configuration
 Edit the `application.properties` file in the `config` directory. Key settings include:
