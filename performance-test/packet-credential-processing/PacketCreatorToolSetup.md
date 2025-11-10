@@ -44,8 +44,8 @@ dslrig-packetcreator-<x.x.x.x>.jar (tested with version 1.3.0.1)
 
 ### 2.2: Configuration
 Edit the `application.properties` file in the `config` directory. Key settings include:
-* mountPath=/path/to/mountVolume
-* authCertsPath=/path/to/authCerts
+* mountPath=/path/to/mountVolume (any valid path)
+* authCertsPath=/path/to/authCerts (path containing Certificates)
 * user.id=<User_ID> (Master data)
 * machine.id=<Machine_ID> (Master data)
 * center.id=<Center_ID> (Master data)
