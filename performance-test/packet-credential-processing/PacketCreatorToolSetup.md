@@ -24,7 +24,7 @@ mvn clean install -Dgpg.skip
 ```
 3. This will build the project and install the necessary dependencies.
 4. After the successful build, you will get the necessary JAR file for the PacketCreator within "target" folder:
-dslrig-packetcreator-1.3.0.1.jar
+dslrig-packetcreator-<x.x.x.x>.jar (tested with version 1.3.0.1)
 5. The Packet Utility is used to create and upload packets for end-to-end automation/performance testing.
 
 ### 1.3: Install Packet Creator Utility
