@@ -10,12 +10,10 @@ This document guides users through the installation and setup of the Packet Crea
 
 ## 1. PacketCreator Installation
 
-### 1.1 Fork the Repository
+### 1.1 Clone the Repository
 
 1. Go to the repository: [https://github.com/mosip/mosip-automation-tests](https://github.com/mosip/mosip-automation-tests)
-2. Click on the **Fork** button at the top right of the page to create a personal copy of the repository.
-3. Clone the forked repository to your local machine using the following command:
-    git clone https://github.com/<your_username>/mosip-automation-tests.git
+2. Clone the  repository to your local machine.
     
 ### 1.2: Build the Code
 
