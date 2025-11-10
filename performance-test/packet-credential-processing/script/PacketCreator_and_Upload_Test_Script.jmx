@@ -75,6 +75,7 @@
             <stringProp name="Argument.name">contextKeyValue</stringProp>
             <stringProp name="Argument.value">api-internal.test_Environment.net_context_S0</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
+            <stringProp name="Argument.desc">Used to create context endpoint by packet creator tool</stringProp>
           </elementProp>
           <elementProp name="process" elementType="Argument">
             <stringProp name="Argument.name">process</stringProp>
@@ -165,6 +166,7 @@
             <stringProp name="Argument.name">auditPassword</stringProp>
             <stringProp name="Argument.value">test_password</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
+            <stringProp name="Argument.desc">Used to create context endpoint by packet creator tool</stringProp>
           </elementProp>
           <elementProp name="regClientSecretkey" elementType="Argument">
             <stringProp name="Argument.name">regClientSecretkey</stringProp>
@@ -175,6 +177,7 @@
             <stringProp name="Argument.name">postgresPassword</stringProp>
             <stringProp name="Argument.value">test_password</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
+            <stringProp name="Argument.desc"></stringProp>
           </elementProp>
           <elementProp name="pmsClientSecretkey" elementType="Argument">
             <stringProp name="Argument.name">pmsClientSecretkey</stringProp>
@@ -367,7 +370,7 @@
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="P01 Packet Generation (Preparation)">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="P01 Packet Generation (Preparation)" enabled="false">
         <intProp name="ThreadGroup.num_threads">6</intProp>
         <intProp name="ThreadGroup.ramp_time">60</intProp>
         <longProp name="ThreadGroup.duration">60</longProp>
@@ -1188,15 +1191,15 @@ vars.put(&quot;currentPath&quot;, path);</stringProp>
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="P03 Sync And Upload To Reg Processor (Preparation)" enabled="false">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="P03 Sync And Upload To Reg Processor (Preparation)" enabled="true">
         <boolProp name="ThreadGroup.delayedStart">true</boolProp>
-        <intProp name="ThreadGroup.num_threads">4</intProp>
+        <intProp name="ThreadGroup.num_threads">2</intProp>
         <intProp name="ThreadGroup.ramp_time">15</intProp>
         <stringProp name="ThreadGroup.duration">${testDuration}</stringProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
-          <stringProp name="LoopController.loops">2000</stringProp>
+          <stringProp name="LoopController.loops">2</stringProp>
           <boolProp name="LoopController.continue_forever">false</boolProp>
         </elementProp>
       </ThreadGroup>

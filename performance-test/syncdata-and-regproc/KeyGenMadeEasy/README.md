@@ -1,0 +1,4 @@
+# Contains
+* 5000 pregenerated Scripts in "generated_keys" directory.
+* To create more, Open "justKeys.py" in a text editor. Update the value of NUM_KEYS.
+* Execute "justKeys.py" with python. 

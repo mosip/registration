@@ -13,12 +13,13 @@
 
 # How to run performance scripts using Apache JMeter tool
 * Download Apache JMeter from https://jmeter.apache.org/download_jmeter.cgi
-* Download and install JMeter Plugin Manager jar file from https://jmeter-plugins.org/get/
+* Download JMeter Plugin Manager jar file from https://jmeter-plugins.org/get/ , and install by placing the it in "Jmeter/apache-jmeter-X.X.X/lib/ext" 
 * Download scripts for the required module from the respective module repo's.
 * Start JMeter by running the jmeter.bat file for Windows or jmeter file for Unix. 
 * Load downloaded *.jmx script onto Jmeter. If prompted, install the required plugins.
 * Update "User Defined Variables" within the Jmeter scripts. This list holds environement endpoint URL, protocols, users, secret keys, passwords, runtime file path, support file path etc.
 * Validate the scripts for one user.
+* Take average scenario response time obtained from above test and update "Scenario Response time" column in [MOSIP_TPS_Thread_setting_calculator](MOSIP_TPS_Thread_setting_calculator-packet_credential_processing.xlsx)
 * Execute a dry run for 10 min. The execution duration is controlled by "testDuration" variable.
 * Use [MOSIP_TPS_Thread_setting_calculator](MOSIP_TPS_Thread_setting_calculator-packet_credential_processing.xlsx) to calculate the thread settings required for your target load.
 * Execute performance run with various loads in order to achieve targeted NFR's.
@@ -28,7 +29,7 @@
 * This script will be used to generate large number of packets for credential processing. Based on the workload model, atleast  3000 packets need to be generated and uploaded to simulate significant load. Packet size should be at least 2MB in size.
 * The "registration-processor-common-camel-bridge" pod  should be stopped until all preparation (P01-P03) is completed. (i.e. Number of pods = 0). 
 * Performance should be monitored during "P03 Sync And Upload Registration Packet (Preparation)" to measure how system handles large volume of packet upload.
-* Once "P03 Sync And Upload Registration Packet (Preparation)" step is complete. The "registration-processor-common-camel-bridge" pod will be enabled again to allow resgistration to automatically continue to process the large volume of newly uploaded packets. Performance should be monitored to measure how systhem handles this processing load.
+* Once "P03 Sync And Upload Registration Packet (Preparation)" step is complete. The "registration-processor-common-camel-bridge" pod will be enabled again to allow resgistration to automatically continue to process the large volume of newly uploaded packets. Performance should be monitored to measure how system handles this processing load.
 * Delete runtime files created during previous execution from {runTimeFilePath} folder.
 
 
@@ -44,16 +45,6 @@
 	
 	* Credential processing - This part of test is not executed via Jmeter script. Once a large number of unprocessed data is queued with 'P03 Sync And Upload Registration Packet', the processing can be triggered by starting "registration-processor-common-camel-bridge". To measure performance/TPS, the database can be queried to check for time taken to process all the new data. 
 
-## Downloading Plugin manager jar file for the purpose installing other JMeter specific plugins
-
-* Download JMeter plugin manager from below url links.
-	* https://jmeter-plugins.org/get/
-
-* After downloading the jar file place it in below folder path.
-	* lib/ext
-
-* Restart Jmeter, load the downloaded *.jmx script and if prompted, install required plugins.
-
 ## Designing the workload model for performance test execution
 
 * The script is preconfigured for 100 tps within our test environement. Performance may vary based on hardware and infreastructure settings.
@@ -64,7 +55,6 @@
 					
 ## Support files required for this test execution:
 
-1. [context_details.csv](support-files/context_details.csv) - This support file contains userId, password, center and machine details.
-
+1. [context_details.csv](support-files/context_details.csv) - This support file contains userId, machineID, centerID and password
 
 

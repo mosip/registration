@@ -41,11 +41,13 @@
             <stringProp name="Argument.name">serverPortNo</stringProp>
             <stringProp name="Argument.value">443</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
+            <stringProp name="Argument.desc"></stringProp>
           </elementProp>
           <elementProp name="contextKeyValue" elementType="Argument">
             <stringProp name="Argument.name">contextKeyValue</stringProp>
             <stringProp name="Argument.value">api-internal.test_Environment.net_context_S0</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
+            <stringProp name="Argument.desc">Used to create context endpoint by packet creator tool</stringProp>
           </elementProp>
           <elementProp name="mountPath" elementType="Argument">
             <stringProp name="Argument.name">mountPath</stringProp>
@@ -74,7 +76,7 @@
             <stringProp name="Argument.name">testDuration</stringProp>
             <stringProp name="Argument.value">600</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
-            <stringProp name="Argument.desc">Control overall test execution</stringProp>
+            <stringProp name="Argument.desc">Control overall test execution (in Seconds)</stringProp>
           </elementProp>
           <elementProp name="rampUp" elementType="Argument">
             <stringProp name="Argument.name">rampUp</stringProp>
@@ -115,11 +117,13 @@
             <stringProp name="Argument.name">runTimeFilePath</stringProp>
             <stringProp name="Argument.value">D:\NewFolder\Testfolder</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
+            <stringProp name="Argument.desc">Stores files created during Jmeter execution</stringProp>
           </elementProp>
           <elementProp name="supportFilePath" elementType="Argument">
             <stringProp name="Argument.name">supportFilePath</stringProp>
             <stringProp name="Argument.value">D:\NewFolder\Testfolder</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
+            <stringProp name="Argument.desc">Stores files needed for Jmeter execution</stringProp>
           </elementProp>
           <elementProp name="packetCreationCount" elementType="Argument">
             <stringProp name="Argument.name">packetCreationCount</stringProp>
@@ -150,6 +154,7 @@
             <stringProp name="Argument.name">partnerPassword</stringProp>
             <stringProp name="Argument.value">mosip123</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
+            <stringProp name="Argument.desc"></stringProp>
           </elementProp>
           <elementProp name="adminUsername" elementType="Argument">
             <stringProp name="Argument.name">adminUsername</stringProp>
@@ -171,6 +176,7 @@
             <stringProp name="Argument.name">partnerUsername</stringProp>
             <stringProp name="Argument.value">111111</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
+            <stringProp name="Argument.desc">Used to create context endpoint by packet creator tool</stringProp>
           </elementProp>
           <elementProp name="residentUser" elementType="Argument">
             <stringProp name="Argument.name">residentUser</stringProp>
@@ -199,8 +205,9 @@
           </elementProp>
           <elementProp name="auditPassword" elementType="Argument">
             <stringProp name="Argument.name">auditPassword</stringProp>
-            <stringProp name="Argument.value">test_secret_key</stringProp>
+            <stringProp name="Argument.value">mosip123</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
+            <stringProp name="Argument.desc">Used to create context endpoint by packet creator tool</stringProp>
           </elementProp>
           <elementProp name="hotlistClientSecret" elementType="Argument">
             <stringProp name="Argument.name">hotlistClientSecret</stringProp>
@@ -214,18 +221,21 @@
           </elementProp>
           <elementProp name="postgresPassword" elementType="Argument">
             <stringProp name="Argument.name">postgresPassword</stringProp>
-            <stringProp name="Argument.value">test_secret_key</stringProp>
+            <stringProp name="Argument.value">mosip123</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
+            <stringProp name="Argument.desc">Used to create context endpoint by packet creator tool</stringProp>
           </elementProp>
           <elementProp name="adminUsername" elementType="Argument">
             <stringProp name="Argument.name">adminUsername</stringProp>
             <stringProp name="Argument.value">user123</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
+            <stringProp name="Argument.desc"></stringProp>
           </elementProp>
           <elementProp name="adminZoneClientSecret" elementType="Argument">
             <stringProp name="Argument.name">adminZoneClientSecret</stringProp>
             <stringProp name="Argument.value">test_secret_key</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
+            <stringProp name="Argument.desc">mosip_syncdata_client_secret </stringProp>
           </elementProp>
           <elementProp name="keyPath" elementType="Argument">
             <stringProp name="Argument.name">keyPath</stringProp>
@@ -245,7 +255,7 @@
           </elementProp>
           <elementProp name="iamPassword" elementType="Argument">
             <stringProp name="Argument.name">iamPassword</stringProp>
-            <stringProp name="Argument.value">test_secret_key</stringProp>
+            <stringProp name="Argument.value">mosip123</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
         </collectionProp>
@@ -263,7 +273,7 @@
         <stringProp name="shareMode">shareMode.all</stringProp>
       </CSVDataSet>
       <hashTree/>
-      <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Load Regproc Auth Token From File" enabled="true">
+      <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Load Regproc Auth Token From File" enabled="false">
         <stringProp name="filename">${runTimeFilePath}/A00_authorization_token_regproc.txt</stringProp>
         <stringProp name="fileEncoding"></stringProp>
         <stringProp name="variableNames">authTokenRegproc</stringProp>
@@ -275,7 +285,7 @@
         <stringProp name="shareMode">shareMode.all</stringProp>
       </CSVDataSet>
       <hashTree/>
-      <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Load Resident Auth Token From File" enabled="true">
+      <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Load Resident Auth Token From File" enabled="false">
         <stringProp name="filename">${runTimeFilePath}/A00_authorization_token_resident.txt</stringProp>
         <stringProp name="fileEncoding"></stringProp>
         <stringProp name="variableNames">authTokenResident</stringProp>
@@ -287,7 +297,7 @@
         <stringProp name="shareMode">shareMode.all</stringProp>
       </CSVDataSet>
       <hashTree/>
-      <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Load Auth Token For Syncdata From File" enabled="true">
+      <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Load Auth Token For Syncdata From File" enabled="false">
         <stringProp name="filename">${runTimeFilePath}/A00_authorization_token_syncdata.txt</stringProp>
         <stringProp name="fileEncoding"></stringProp>
         <stringProp name="variableNames">authTokenSyncdata</stringProp>
@@ -299,7 +309,7 @@
         <stringProp name="shareMode">shareMode.all</stringProp>
       </CSVDataSet>
       <hashTree/>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="A00 Auth Token Generation (Setup)" enabled="false">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="A00 Auth Token Generation (Preparation)" enabled="false">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
@@ -555,7 +565,7 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="A01 Create ZoneUsers and Centers (Setup)" enabled="false">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="A01 Create Users and Centers for Zones (Setup)" enabled="false">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <longProp name="ThreadGroup.duration">600</longProp>
@@ -589,7 +599,7 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
           <stringProp name="shareMode">shareMode.all</stringProp>
         </CSVDataSet>
         <hashTree/>
-        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="A01 Create ZoneUser and Center" enabled="true">
+        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="A01 Create User and Center For Zones" enabled="true">
           <boolProp name="TransactionController.includeTimers">false</boolProp>
         </TransactionController>
         <hashTree>
@@ -681,7 +691,7 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
             </JSONPostProcessor>
             <hashTree/>
           </hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create User by KeyCloak Endpoint" enabled="true">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create User by IAM Endpoint" enabled="true">
             <stringProp name="HTTPSampler.domain">${serverIAM}</stringProp>
             <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
             <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
@@ -1363,7 +1373,7 @@ vars.put(&quot;pubKey&quot;, cleaned)
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create Context Endpoint" enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create Context Endpoint">
           <stringProp name="HTTPSampler.domain">${packetUtilityServerIP}</stringProp>
           <stringProp name="HTTPSampler.port">${packetUtilityPortNo}</stringProp>
           <stringProp name="HTTPSampler.protocol">http</stringProp>
@@ -1676,7 +1686,7 @@ vars.put(&quot;pubKey&quot;, cleaned)
           </elementProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
             <collectionProp name="HeaderManager.headers">
               <elementProp name="" elementType="Header">
                 <stringProp name="Header.name">Content-Type</stringProp>
@@ -1720,7 +1730,7 @@ vars.put(&apos;contextKeyValue&apos;,contextKeyDemo)</stringProp>
           <stringProp name="LoopController.loops">${packetCreationCount}</stringProp>
         </LoopController>
         <hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create Persona Endpoint">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create Persona Endpoint" enabled="true">
             <stringProp name="HTTPSampler.domain">${packetUtilityServerIP}</stringProp>
             <stringProp name="HTTPSampler.port">${packetUtilityPortNo}</stringProp>
             <stringProp name="HTTPSampler.protocol">http</stringProp>
@@ -1790,7 +1800,7 @@ vars.put(&apos;contextKeyValue&apos;,contextKeyDemo)</stringProp>
             </RegexExtractor>
             <hashTree/>
           </hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create Packet Template Endpoint">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create Packet Template Endpoint" enabled="true">
             <stringProp name="HTTPSampler.domain">${packetUtilityServerIP}</stringProp>
             <stringProp name="HTTPSampler.port">${packetUtilityPortNo}</stringProp>
             <stringProp name="HTTPSampler.protocol">http</stringProp>
@@ -1854,7 +1864,7 @@ vars.put(&apos;contextKeyValue&apos;,contextKeyDemo)</stringProp>
             </RegexExtractor>
             <hashTree/>
           </hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Zip Packet Endpoint">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Zip Packet Endpoint" enabled="true">
             <stringProp name="HTTPSampler.domain">${packetUtilityServerIP}</stringProp>
             <stringProp name="HTTPSampler.port">${packetUtilityPortNo}</stringProp>
             <stringProp name="HTTPSampler.protocol">http</stringProp>
@@ -1943,7 +1953,7 @@ vars.put(&quot;newPath&quot;, path);</stringProp>
           <stringProp name="shareMode">shareMode.group</stringProp>
         </CSVDataSet>
         <hashTree/>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Packet Creator Rid Sync Req Endpoint">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Packet Creator Rid Sync Req Endpoint" enabled="true">
           <stringProp name="HTTPSampler.domain">${packetUtilityServerIP}</stringProp>
           <stringProp name="HTTPSampler.port">${packetUtilityPortNo}</stringProp>
           <stringProp name="HTTPSampler.protocol">http</stringProp>
@@ -2227,7 +2237,7 @@ vars.put(&quot;newPath&quot;, path);</stringProp>
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="S01 Sync And Upload New Registration Packet (Execution)">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="S01 Sync And Upload New Registration Packet (Execution)" enabled="true">
         <stringProp name="TestPlan.comments">Execution duration is not controled by &quot;testDuration&quot;
 It is controled by &quot;Loop Count&quot; which should be same as number of packets available for upload.
 </stringProp>
@@ -2259,7 +2269,7 @@ It is controled by &quot;Loop Count&quot; which should be same as number of pack
           <boolProp name="TransactionController.includeTimers">false</boolProp>
         </TransactionController>
         <hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="S01 T01 Sync Registration Packet Endpoint">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="S01 T01 Sync Registration Packet Endpoint" enabled="true">
             <stringProp name="HTTPSampler.domain">${serverIPInternal}</stringProp>
             <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
             <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
@@ -2321,7 +2331,7 @@ It is controled by &quot;Loop Count&quot; which should be same as number of pack
             </ResponseAssertion>
             <hashTree/>
           </hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="S01 T02 Upload Registration Packet Endpoint">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="S01 T02 Upload Registration Packet Endpoint" enabled="true">
             <stringProp name="HTTPSampler.domain">${serverIPInternal}</stringProp>
             <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
             <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
@@ -2411,7 +2421,7 @@ It is controled by &quot;Loop Count&quot; which should be same as number of pack
             <hashTree/>
           </hashTree>
         </hashTree>
-        <ConstantThroughputTimer guiclass="TestBeanGUI" testclass="ConstantThroughputTimer" testname="Constant Throughput Timer">
+        <ConstantThroughputTimer guiclass="TestBeanGUI" testclass="ConstantThroughputTimer" testname="Constant Throughput Timer" enabled="true">
           <doubleProp>
             <name>throughput</name>
             <value>4800.0</value>
@@ -2421,7 +2431,7 @@ It is controled by &quot;Loop Count&quot; which should be same as number of pack
         </ConstantThroughputTimer>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="S02 Sync Data To The Server (Execution)">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="S02 Sync Data From Server (Execution)" enabled="true">
         <intProp name="ThreadGroup.num_threads">29</intProp>
         <stringProp name="ThreadGroup.ramp_time">${rampUp}</stringProp>
         <stringProp name="ThreadGroup.duration">${testDuration}</stringProp>
@@ -2459,7 +2469,7 @@ It is controled by &quot;Loop Count&quot; which should be same as number of pack
           <stringProp name="TestPlan.comments">List of all key alias that has not expired</stringProp>
         </CSVDataSet>
         <hashTree/>
-        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="S02 Sync Data To The Server" enabled="true">
+        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="S02 Sync Data From Server" enabled="true">
           <boolProp name="TransactionController.includeTimers">false</boolProp>
         </TransactionController>
         <hashTree>
@@ -2988,7 +2998,7 @@ vars.put(&quot;requestToken&quot;, completeCrypto)
         </ConstantThroughputTimer>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="S03 Get Transaction Details From Reg Id (Execution)">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="S03 Get Transaction Details From Reg Id (Execution)" enabled="true">
         <intProp name="ThreadGroup.num_threads">2</intProp>
         <stringProp name="ThreadGroup.ramp_time">${rampUp}</stringProp>
         <stringProp name="ThreadGroup.duration">${testDuration}</stringProp>
@@ -3076,7 +3086,7 @@ vars.put(&quot;requestToken&quot;, completeCrypto)
         </ConstantThroughputTimer>
         <hashTree/>
       </hashTree>
-      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
           <name>saveConfig</name>
@@ -3113,7 +3123,7 @@ vars.put(&quot;requestToken&quot;, completeCrypto)
         <stringProp name="filename"></stringProp>
       </ResultCollector>
       <hashTree/>
-      <kg.apc.jmeter.vizualizers.CorrectedResultCollector guiclass="kg.apc.jmeter.vizualizers.SynthesisReportGui" testclass="kg.apc.jmeter.vizualizers.CorrectedResultCollector" testname="Endpoint Request Level Report">
+      <kg.apc.jmeter.vizualizers.CorrectedResultCollector guiclass="kg.apc.jmeter.vizualizers.SynthesisReportGui" testclass="kg.apc.jmeter.vizualizers.CorrectedResultCollector" testname="Endpoint Request Level Report" enabled="true">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
           <name>saveConfig</name>
