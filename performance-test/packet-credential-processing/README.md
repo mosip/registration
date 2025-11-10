@@ -55,6 +55,6 @@
 					
 ## Support files required for this test execution:
 
-1. [context_details.csv](support-files/context_details.csv) - This support file contains userId, machineID, centerID and password
+1. [context_details.csv](support-files/context_details.csv) - This support file contains a valid userId, machineID, centerID and password from the database. It is used by "P01 Packet Generation" step.
 
 
