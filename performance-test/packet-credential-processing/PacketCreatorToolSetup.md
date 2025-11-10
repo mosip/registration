@@ -19,7 +19,9 @@ This document guides users through the installation and setup of the Packet Crea
 
 1. Navigate to the cloned repository on your local machine.
 2. Open a terminal (or Git Bash) and run the following Maven commands to build the code (Java Version 11 may be required ):
+```
 mvn clean install -Dgpg.skip
+```
 3. This will build the project and install the necessary dependencies.
 4. After the successful build, you will get the necessary JAR file for the PacketCreator within "target" folder:
 dslrig-packetcreator-1.3.0.1.jar
