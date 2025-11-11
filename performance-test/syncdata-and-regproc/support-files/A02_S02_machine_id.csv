@@ -2,32 +2,3 @@ ${machineId},${machineName},${pemPath},${pubKey},${centerId},${centerUserId}
 12345,Perf_Machine_00001,/D/path/to/pem/file/reg_1,MIIBIj.....tPk1/OeyWHEshCw....6VQIDAQAB,12345,perfuser_001
 11111,Perf_Machine_00002,/D/path/to/pem/file/reg_2,MIIBIj.....tPk2/OeyWHEshCw....6VQIDAQAC,12345,perfuser_002
 67890,Perf_Machine_00003,/D/path/to/pem/file/reg_3,MIIBIj.....tPk3/OeyWHEshCw....6VQIDAQAD,12345,perfuser_003
-${machineId},${machineName},${pemPath},${pubKey},${centerId},${centerUserId}
-Machine Not Found,Machine Not Found,${pemPath},${pubKey},12345,perfuser_1000
-Machine Not Found,Machine Not Found,${pemPath},${pubKey},11111,perfuser_1001
-Machine Not Found,Machine Not Found,${pemPath},${pubKey},67890,perfuser_1002${centerId}
-Machine Not Found,Machine Not Found,${pemPath},${pubKey},Center Not Found,Center Not Found
-Machine Not Found,Machine Not Found,${pemPath},${pubKey},Center Not Found,Center Not Found
-Machine Not Found,Machine Not Found,${pemPath},${pubKey},Center Not Found,Center Not Found
-Machine Not Found,Machine Not Found,${pemPath},${pubKey},Center Not Found,Center Not Found
-Machine Not Found,Machine Not Found,${pemPath},${pubKey},Center Not Found,Center Not Found
-Machine Not Found,Machine Not Found,${pemPath},${pubKey},Center Not Found,Center Not Found
-Machine Not Found,Machine Not Found,${pemPath},${pubKey},Center Not Found,Center Not Found
-Machine Not Found,Machine Not Found,${pemPath},${pubKey},Center Not Found,Center Not Found
-Machine Not Found,Machine Not Found,${pemPath},${pubKey},Center Not Found,Center Not Found
-Machine Not Found,Machine Not Found,${pemPath},${pubKey},Center Not Found,Center Not Found
-Machine Not Found,Machine Not Found,${pemPath},${pubKey},Center Not Found,Center Not Found
-Machine Not Found,Machine Not Found,${pemPath},${pubKey},Center Not Found,Center Not Found
-Machine Not Found,Machine Not Found,${pemPath},${pubKey},Center Not Found,Center Not Found
-Machine Not Found,Machine Not Found,${pemPath},${pubKey},Center Not Found,Center Not Found
-Machine Not Found,Machine Not Found,${pemPath},${pubKey},Center Not Found,Center Not Found
-Machine Not Found,Machine Not Found,${pemPath},${pubKey},12345,perfuser_1000
-Machine Not Found,Machine Not Found,${pemPath},${pubKey},11111,perfuser_1001
-Machine Not Found,Machine Not Found,${pemPath},${pubKey},67890,perfuser_1002${centerId}
-Machine Not Found,Machine Not Found,${pemPath},${pubKey},Center Not Found,Center Not Found
-Machine Not Found,Machine Not Found,${pemPath},${pubKey},Center Not Found,Center Not Found
-Machine Not Found,Machine Not Found,${pemPath},${pubKey},Center Not Found,Center Not Found
-Machine Not Found,Machine Not Found,${pemPath},${pubKey},Center Not Found,Center Not Found
-Machine Not Found,Machine Not Found,${pemPath},${pubKey},Center Not Found,Center Not Found
-${machineId},${machineName},${pemPath},${pubKey},${centerId},${centerUserId}
-Machine Not Found,Machine Not Found,${pemPath},${pubKey},12345,perfuser_1000
