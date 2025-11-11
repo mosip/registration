@@ -12,7 +12,7 @@
 * Open source tools used,
 	01. [Java 21](https://www.oracle.com/java/technologies/downloads/#java21)
 	02. [Apache JMeter 5.6.3](https://jmeter.apache.org/download_jmeter.cgi) 
-	02. [mosip-packet-creator](https://github.com/mosip/mosip-automation-tests/tree/master/mosip-packet-creator)
+	03. [mosip-packet-creator](https://github.com/mosip/mosip-automation-tests/tree/master/mosip-packet-creator)
 
 
 # How to run performance scripts using Apache JMeter tool
