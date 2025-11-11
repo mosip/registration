@@ -25,7 +25,7 @@
 * Execute performance run with various loads in order to achieve targeted NFR's.
 
 # Setup points before execution
-* This script uses `mosip-packet-creator` tool as a background service to generate new packets. Follow the steps in [PacketCreatorToolSetup](PacketCreatorToolSetup.md) first to start the service. The tool should be running in background while the jmeter script is running. 
+* This script uses `mosip-packet-creator` tool as a background service to generate new packets. Follow the steps in [PacketCreatorToolSetup](../PacketCreatorToolSetup.md) first to start the service. The tool should be running in background while the jmeter script is running. 
 * This script will be used to generate large number of packets for credential processing. Based on the workload model, atleast  3000 packets need to be generated and uploaded to simulate significant load. Packet size should be at least 2MB in size.
 * The "registration-processor-common-camel-bridge" pod  should be stopped until all preparation (P01-P03) is completed. (i.e. Number of pods = 0). 
 * Performance should be monitored during "P03 Sync And Upload Registration Packet (Preparation)" to measure how system handles large volume of packet upload.
