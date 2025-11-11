@@ -380,6 +380,15 @@
         <module>registration-processor-landing-zone</module>
   </modules>
 	<build>
+			<pluginManagement>
+				<plugins>
+					<plugin>
+						<groupId>org.springframework.boot</groupId>
+						<artifactId>spring-boot-maven-plugin</artifactId>
+						<version>3.2.3</version>
+					</plugin>
+				</plugins>
+			</pluginManagement>
 			<plugins>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -612,5 +621,6 @@
 		</profile>
 	</profiles>
 </project>
+
 
 
