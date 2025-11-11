@@ -5,6 +5,7 @@ import java.net.URI;
 import java.util.Iterator;
 import java.util.List;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.ParseException;
@@ -33,7 +34,6 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.TokenHandlerUtil;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
@@ -264,7 +264,7 @@ public class RestApiClient {
 			tokenRequestDTO.setId(environment.getProperty("token.request.id"));
 			tokenRequestDTO.setMetadata(new Metadata());
 
-			tokenRequestDTO.setRequesttime(DateUtils.getUTCCurrentDateTimeString());
+			tokenRequestDTO.setRequesttime(DateUtils2.getUTCCurrentDateTimeString());
 			// tokenRequestDTO.setRequest(setPasswordRequestDTO());
 			tokenRequestDTO.setRequest(setSecretKeyRequestDTO());
 			tokenRequestDTO.setVersion(environment.getProperty("token.request.version"));

@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.apache.activemq.util.ByteSequence;
 import org.junit.Before;
@@ -33,7 +34,6 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
 import io.mosip.kernel.core.signatureutil.model.SignatureResponse;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.adjudication.response.dto.ManualAdjudicationResponseDTO;
@@ -523,7 +523,7 @@ public class ManualAdjudicationStageTest {
 		ManualAdjudicationResponseDTO resp = new ManualAdjudicationResponseDTO();
 		resp.setId("verification");
 		resp.setRequestId("e2e59a9b-ce7c-41ae-a953-effb854d1205");
-		resp.setResponsetime(DateUtils.getCurrentDateTimeString());
+		resp.setResponsetime(DateUtils2.getCurrentDateTimeString());
 		resp.setReturnValue(1);
 
 		String response = JsonUtils.javaObjectToJsonString(resp);

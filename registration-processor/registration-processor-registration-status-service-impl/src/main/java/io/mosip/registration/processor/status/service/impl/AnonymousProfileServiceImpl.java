@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -27,7 +28,6 @@ import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.processor.core.anonymous.dto.AnonymousProfileDTO;
 import io.mosip.registration.processor.core.anonymous.dto.BiometricInfoDTO;
@@ -127,9 +127,9 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 				getFieldValueFromMetaInfo(metaInfoMap, JsonConstant.METADATA, JsonConstant.REGISTRATIONTYPE));
 		anonymousProfileDTO.setProcessStage(processStage);
 		anonymousProfileDTO.setStatus(statusCode);
-		anonymousProfileDTO.setDate(DateUtils.getUTCCurrentDateTimeString());
-		anonymousProfileDTO.setStartDateTime(DateUtils.getUTCCurrentDateTimeString());
-		anonymousProfileDTO.setEndDateTime(DateUtils.getUTCCurrentDateTimeString());
+		anonymousProfileDTO.setDate(DateUtils2.getUTCCurrentDateTimeString());
+		anonymousProfileDTO.setStartDateTime(DateUtils2.getUTCCurrentDateTimeString());
+		anonymousProfileDTO.setEndDateTime(DateUtils2.getUTCCurrentDateTimeString());
 
 		List<String> channels = new ArrayList<String>();
 
@@ -143,8 +143,8 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.DOB),
 				MappingJsonConstants.VALUE);
 		if (fieldMap.get(dobValue) != null) {
-			Date dob = DateUtils.parseToDate(fieldMap.get(dobValue), dobFormat);
-			anonymousProfileDTO.setYearOfBirth(DateUtils.parseDateToLocalDateTime(dob).getYear());
+			Date dob = DateUtils2.parseToDate(fieldMap.get(dobValue), dobFormat);
+			anonymousProfileDTO.setYearOfBirth(DateUtils2.parseDateToLocalDateTime(dob).getYear());
 		}
 
 		// preferred Lang Value

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +12,6 @@ import org.springframework.beans.factory.annotation.Value;
 
 import io.mosip.kernel.core.exception.IOException;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -262,7 +262,7 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 		WorkflowActionResponseDTO workflowActionResponseDTO = new WorkflowActionResponseDTO();
 		workflowActionResponseDTO.setId(id);
 		workflowActionResponseDTO.setVersion(version);
-		workflowActionResponseDTO.setResponsetime(DateUtils.getUTCCurrentDateTimeString(dateTimePattern));
+		workflowActionResponseDTO.setResponsetime(DateUtils2.getUTCCurrentDateTimeString(dateTimePattern));
 		if (message == null) {
 			workflowActionResponseDTO.setErrors(errors);
 		} else {

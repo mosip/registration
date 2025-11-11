@@ -1,9 +1,8 @@
 package io.mosip.registration.processor.verification.response.dto;
 
+import io.mosip.kernel.core.util.DateUtils2;
+
 import java.time.format.DateTimeFormatter;
-
-import io.mosip.kernel.core.util.DateUtils;
-
 
 public class VerificationResponseDTO {
 
@@ -30,7 +29,7 @@ public class VerificationResponseDTO {
 		this.returnValue = returnValue;
 	//	this.analytics = analytics;
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		String  dateTime= DateUtils.getCurrentDateTimeString();
+		String  dateTime= DateUtils2.getCurrentDateTimeString();
 		this.responsetime = dateTime;
 		
 	}

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.registration.processor.core.packet.dto.abis.RegBioRefDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,7 +17,6 @@ import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.bio.dedupe.exception.ABISAbortException;
 import io.mosip.registration.processor.bio.dedupe.exception.ABISInternalError;
 import io.mosip.registration.processor.bio.dedupe.exception.UnableToServeRequestABISException;
@@ -121,7 +121,7 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 		abisInsertRequestDto.setRequestId(requestId);
 		abisInsertRequestDto.setReferenceId(referenceId);
 		abisInsertRequestDto.setReferenceURL("");
-		abisInsertRequestDto.setRequesttime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
+		abisInsertRequestDto.setRequesttime(DateUtils2.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		RegBioRefDto regAbisRefDto = new RegBioRefDto();
 		regAbisRefDto.setBioRefId(referenceId);
 		regAbisRefDto.setRegId(registrationId);

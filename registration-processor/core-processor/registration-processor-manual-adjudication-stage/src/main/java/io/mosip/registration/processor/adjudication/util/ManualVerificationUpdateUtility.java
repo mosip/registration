@@ -4,13 +4,13 @@ package io.mosip.registration.processor.adjudication.util;
 	import java.sql.Timestamp;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
+	import io.mosip.kernel.core.util.DateUtils2;
+	import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.adjudication.dto.ManualVerificationStatus;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
@@ -37,7 +37,7 @@ import io.mosip.registration.processor.packet.storage.repository.BasePacketRepos
 						mve.getRegId(), "ManualVerificationUpdateUtility::updateManualVerificationEntityRID()::entry");
 				mve.setStatusCode(ManualVerificationStatus.INQUEUE.name());
 				mve.setStatusComment("Sent to manual adjudication queue");
-				mve.setUpdDtimes(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
+				mve.setUpdDtimes(Timestamp.valueOf(DateUtils2.getUTCCurrentDateTime()));
 				mve.setRequestId(requestId);
 				basePacketRepository.update(mve);
 				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),

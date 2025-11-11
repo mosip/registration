@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.camel.bridge.intercepter;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import org.apache.camel.Exchange;
 import org.apache.camel.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +10,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.abstractverticle.WorkflowInternalActionDTO;
 import io.mosip.registration.processor.core.code.WorkflowActionCode;
 import io.mosip.registration.processor.core.code.WorkflowInternalActionCode;
@@ -192,14 +192,14 @@ public class WorkflowCommandPredicate implements Predicate {
 		String message = (String) exchange.getMessage().getBody();
 		JsonObject json = new JsonObject(message);
 		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
-		workflowInternalActionDTO.setResumeTimestamp(DateUtils.formatToISOString(
-				DateUtils.getUTCCurrentDateTime()
+		workflowInternalActionDTO.setResumeTimestamp(DateUtils2.formatToISOString(
+				DateUtils2.getUTCCurrentDateTime()
 						.plusSeconds(Long.parseLong((String) exchange.getProperty(JsonConstant.PAUSE_FOR)))));
 		workflowInternalActionDTO.setRid(json.getString(JsonConstant.RID));
 		workflowInternalActionDTO.setDefaultResumeAction(WorkflowActionCode.STOP_PROCESSING.toString());
 		workflowInternalActionDTO
 				.setActionCode(WorkflowInternalActionCode.PAUSE_AND_REQUEST_ADDITIONAL_INFO.toString());
-		workflowInternalActionDTO.setEventTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+		workflowInternalActionDTO.setEventTimestamp(DateUtils2.formatToISOString(DateUtils2.getUTCCurrentDateTime()));
 		workflowInternalActionDTO
 				.setActionMessage(PlatformSuccessMessages.PAUSE_AND_REQUEST_ADDITIONAL_INFO.getMessage());
 		workflowInternalActionDTO

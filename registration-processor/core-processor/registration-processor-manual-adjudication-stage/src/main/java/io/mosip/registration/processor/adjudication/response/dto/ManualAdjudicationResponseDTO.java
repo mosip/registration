@@ -1,8 +1,8 @@
 package io.mosip.registration.processor.adjudication.response.dto;
 
-import java.time.format.DateTimeFormatter;
+import io.mosip.kernel.core.util.DateUtils2;
 
-import io.mosip.kernel.core.util.DateUtils;
+import java.time.format.DateTimeFormatter;
 
 
 public class ManualAdjudicationResponseDTO {
@@ -36,7 +36,7 @@ public class ManualAdjudicationResponseDTO {
 	//	this.analytics = analytics;
 		this.candidateList = candidateList;
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"); 
-		String  dateTime= DateUtils.getCurrentDateTimeString();
+		String  dateTime= DateUtils2.getCurrentDateTimeString();
 		this.responsetime = dateTime;
 		
 	}

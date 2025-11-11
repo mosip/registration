@@ -15,6 +15,7 @@ import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
@@ -36,7 +37,6 @@ import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.adjudication.constants.ManualAdjudicationConstants;
@@ -668,7 +668,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 		req.setId(ManualAdjudicationConstants.MANUAL_ADJUDICATION_ID);
 		req.setVersion(ManualAdjudicationConstants.VERSION);
 		req.setRequestId(mve.get(0).getRequestId());
-		req.setRequesttime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
+		req.setRequesttime(DateUtils2.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		req.setReferenceId(mve.get(0).getRegId());
 		InternalRegistrationStatusDto registrationStatusDto = null;
 		registrationStatusDto = registrationStatusService.getRegistrationStatus(
@@ -724,7 +724,7 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 		req.setId(ManualAdjudicationConstants.MANUAL_ADJUDICATION_ID);
 		req.setVersion(ManualAdjudicationConstants.VERSION);
 		req.setRequestId(mve.get(0).getRequestId());
-		req.setRequesttime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
+		req.setRequesttime(DateUtils2.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		req.setReferenceId(mve.get(0).getRegId());
 		InternalRegistrationStatusDto registrationStatusDto = null;
 		registrationStatusDto = registrationStatusService.getRegistrationStatus(

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.TimeZone;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +18,6 @@ import org.springframework.stereotype.Component;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.WorkFlowSearchException;
@@ -225,9 +225,9 @@ public class LostRidRequestValidator {
 					DateTimeFormatter formatter = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 					LocalDateTime localDateTime = LocalDateTime.parse(timestamp, formatter);
 					if (!(localDateTime.parse(timestamp, timestampFormat.createDateTimeFormatter())
-							.isAfter(DateUtils.getUTCCurrentDateTime().minusSeconds(gracePeriod))
+							.isAfter(DateUtils2.getUTCCurrentDateTime().minusSeconds(gracePeriod))
 							&& localDateTime.parse(timestamp, timestampFormat.createDateTimeFormatter())
-									.isBefore(DateUtils.getUTCCurrentDateTime().plusSeconds(gracePeriod)))) {
+									.isBefore(DateUtils2.getUTCCurrentDateTime().plusSeconds(gracePeriod)))) {
 						regProcLogger.error(REG_STATUS_SERVICE, "LostRidRequestValidator", "validateReqTime",
 								"\n" + PlatformErrorMessages.RPR_RGS_INVALID_INPUT_PARAMETER_TIMESTAMP.getMessage());
 

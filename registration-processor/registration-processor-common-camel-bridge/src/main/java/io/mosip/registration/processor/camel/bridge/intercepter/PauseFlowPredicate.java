@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import jakarta.annotation.PostConstruct;
 
 import org.apache.camel.Exchange;
@@ -22,7 +23,6 @@ import com.jayway.jsonpath.JsonPath;
 
 import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.camel.bridge.model.Setting;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.WorkflowInternalActionDTO;
@@ -94,11 +94,11 @@ public class PauseFlowPredicate implements Predicate {
 		if(!matchedRuleIds.isEmpty()) {
             workflowInternalActionDTO.setRid(messageDto.getRid());
 			workflowInternalActionDTO
-			.setEventTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+			.setEventTimestamp(DateUtils2.formatToISOString(DateUtils2.getUTCCurrentDateTime()));
 			workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.MARK_AS_PAUSED.toString());
 			workflowInternalActionDTO.setDefaultResumeAction(defaultResumeAction);
-			 workflowInternalActionDTO.setResumeTimestamp(DateUtils
-						.formatToISOString(DateUtils.getUTCCurrentDateTime().plusSeconds(pauseFor)));
+			 workflowInternalActionDTO.setResumeTimestamp(DateUtils2
+						.formatToISOString(DateUtils2.getUTCCurrentDateTime().plusSeconds(pauseFor)));
 			workflowInternalActionDTO.setMatchedRuleIds(matchedRuleIds);
 			workflowInternalActionDTO
 			.setActionMessage(PlatformSuccessMessages.PACKET_MARK_AS_PAUSED.getMessage()+"("+ruleDescription+")");

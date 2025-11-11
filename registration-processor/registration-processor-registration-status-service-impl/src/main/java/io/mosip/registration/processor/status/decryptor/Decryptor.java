@@ -9,6 +9,7 @@ import java.util.Base64;
 import java.util.LinkedHashMap;
 
 import io.mosip.kernel.core.http.RequestWrapper;
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.registration.processor.packet.manager.constant.CryptomanagerConstant;
 import io.mosip.registration.processor.status.dto.CryptomanagerRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +24,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
@@ -131,7 +131,7 @@ public class Decryptor {
 			request.setMetadata(null);
 			request.setRequest(cryptomanagerRequestDto);
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+					.parse(DateUtils2.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
 			request.setRequesttime(localdatetime);
 			request.setVersion(env.getProperty(REG_PROC_APPLICATION_VERSION));
 

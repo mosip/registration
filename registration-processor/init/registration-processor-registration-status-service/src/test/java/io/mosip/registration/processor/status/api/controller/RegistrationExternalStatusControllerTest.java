@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.ArrayList;
 import java.util.List;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import jakarta.servlet.http.Cookie;
 
 import org.json.simple.JSONArray;
@@ -45,7 +46,6 @@ import org.springframework.web.util.NestedServletException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
 import io.mosip.registration.processor.core.workflow.dto.SortInfo;
@@ -158,7 +158,7 @@ public class RegistrationExternalStatusControllerTest {
 		registrationExternalStatusRequestDTO.setId("mosip.registration.external.status");
 		registrationExternalStatusRequestDTO.setVersion("1.0");
 		registrationExternalStatusRequestDTO
-				.setRequesttime(DateUtils.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
+				.setRequesttime(DateUtils2.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
 		regStatusToJson =objectMapper.writeValueAsString(registrationExternalStatusRequestDTO);
 		registrationDtoList = new ArrayList<>();
 		registrationDtoList1 = new ArrayList<>();

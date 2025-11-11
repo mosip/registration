@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -39,7 +40,6 @@ import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
@@ -402,7 +402,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		abisIdentifyRequestDto.setRequestId(id);
 		abisIdentifyRequestDto.setReferenceId(bioRefId);
 		abisIdentifyRequestDto.setReferenceUrl("");
-		abisIdentifyRequestDto.setRequesttime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
+		abisIdentifyRequestDto.setRequesttime(DateUtils2.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		flag.setMaxResults(maxResults);
 		flag.setTargetFPIR(targetFPIR);
 		abisIdentifyRequestDto.setFlags(flag);
@@ -550,7 +550,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		abisInsertRequestDto.setReferenceId(bioRefId);
 		abisInsertRequestDto.setReferenceURL(status.equalsIgnoreCase(AbisStatusCode.IN_PROGRESS.toString())?getDataShareUrl(regId, process):null);
 		abisInsertRequestDto.setRequestId(id);
-		abisInsertRequestDto.setRequesttime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
+		abisInsertRequestDto.setRequesttime(DateUtils2.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		abisInsertRequestDto.setVersion(AbisHandlerStageConstant.VERSION);
 		try {
 			String jsonString = JsonUtils.javaObjectToJsonString(abisInsertRequestDto);
