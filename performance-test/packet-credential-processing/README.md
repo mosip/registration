@@ -32,6 +32,7 @@
 * Once "P03 Sync And Upload Registration Packet (Preparation)" step is complete. The "registration-processor-common-camel-bridge" pod will be enabled again to allow resgistration to automatically continue to process the large volume of newly uploaded packets. Performance should be monitored to measure how system handles this processing load.
 * Delete runtime files created during previous execution from {runTimeFilePath} folder.
 
+Note: It is assumed that the environment already consists of a center, machine & user pair. If not, they need to be manually created.
 
 # Script execution steps:
 
