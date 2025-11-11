@@ -46,7 +46,7 @@ public class DecryptorTest {
 	@InjectMocks
 	private Decryptor decryptor;
 
-	@Mock
+	@Mock 
 	private RegistrationProcessorRestClientService<Object> restClientService;
 	@Mock
 	private AuditLogRequestBuilder auditLogRequestBuilder;
