@@ -48,7 +48,9 @@
 
 	* P01 Sync And Upload New Registration Packet(Preparation) - This thread group generates unique identity packets, saves them as zipped files to 'mounthpath' and syns them to PacketCreator tool. As a prerequisite, PacketCreator tool is required to run as background service. (Check PacketCreatorToolSetup.md to run this tool). The execution of this step is identical to `./PacketCreator/PacketCreator_and_Upload_Test_Script.jmx`. The list of packets is stored in P01_request_body_sync_packet.txt
 
-	* P03 Generate RID (Preparation) - If database has valid RIDs, this step is not required. Populate support-files/reg_id.txt with the list of RIDs as shown in sample. If the database does not already consists of valid RIDs, this thread group can be used to create them. It will consume the data created by "P01 Sync And Upload New Registration Packet" and generate a list that can be used by "S03 Get Transaction Details From Reg Id". If this thread is executed. "P01 Sync And Upload New Registration Packet" should be re-executed to generate new data for "S01 Sync And Upload New Registration Packet".
+	* P03 Generate RID (Preparation) - If database has valid RIDs, this step is not required. Populate support-files/reg_id.txt with the list of RIDs as shown in sample. If the database does not already consists of valid RIDs, this thread group can be used to create them. It will consume the data created by "P01 Sync And Upload New Registration Packet" and generate a list that can be used by "S03 Get Transaction Details From Reg Id". If this thread is executed, "P01 Sync And Upload New Registration Packet" should be re-executed to generate new data.
+
+	* NOTE - To run "S01 Sync And Upload New Registration Packet" post "P03 Generate RID", "P01 Sync And Upload New Registration Packet" needs to be reexecuted so fresh data can be prepared. 
 
 	* Additional preparation step - Make sure the "registration-processor-common-camel-bridge" pod is stopped before executing below test (Execution thread groups). (i.e. Number of pods = 0).
 	
