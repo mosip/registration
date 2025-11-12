@@ -623,7 +623,7 @@ public class DemodedupeProcessor {
 	 */
 	private void saveManualAdjudicationData(InternalRegistrationStatusDto registrationStatusDto, MessageDTO messageDTO)
 			throws ApisResourceAccessException, IOException, JsonProcessingException, PacketManagerException {
-		ProcessedMatchedResult processedMatchedResult = abisHandlerUtil.getProcessedMatchedResults(registrationStatusDto.getRegistrationId(),
+		ProcessedMatchedResult processedMatchedResult = abisHandlerUtil.getProcessedMatchedResult(registrationStatusDto.getRegistrationId(),
 				registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(),
 				registrationStatusDto.getWorkflowInstanceId(), ProviderStageName.DEMO_DEDUPE);
 		Set<String> matchedRegIds = new HashSet<>(
