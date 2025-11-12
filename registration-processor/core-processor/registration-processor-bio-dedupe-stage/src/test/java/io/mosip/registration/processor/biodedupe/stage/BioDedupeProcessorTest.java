@@ -331,7 +331,7 @@ public class BioDedupeProcessorTest {
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
 		ProcessedMatchedResult processedMatchedResults = new ProcessedMatchedResult();
 		processedMatchedResults.setBiometricMatchedForPacketUIN(Boolean.FALSE);
-		Mockito.when(abisHandlerUtil.getProcessedMatchedResults(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResults);
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResults);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
 		assertTrue(messageDto.getIsValid());
@@ -354,7 +354,7 @@ public class BioDedupeProcessorTest {
 		ProcessedMatchedResult processedMatchedResults =new ProcessedMatchedResult();
 		processedMatchedResults.setMatchedResults(set);
 		processedMatchedResults.setBiometricMatchedForPacketUIN(Boolean.FALSE);
-		Mockito.when(abisHandlerUtil.getProcessedMatchedResults(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResults);
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResults);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
 		assertTrue(messageDto.getIsValid());
@@ -432,7 +432,7 @@ public class BioDedupeProcessorTest {
 		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
 		processedMatchedResult.setMatchedResults(matchedRidList);
 		processedMatchedResult.setBiometricMatchedForPacketUIN(Boolean.TRUE);
-		Mockito.when(abisHandlerUtil.getProcessedMatchedResults(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
 		assertFalse(messageDto.getInternalError());
@@ -462,7 +462,7 @@ public class BioDedupeProcessorTest {
 		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
 		processedMatchedResult.setBiometricMatchedForPacketUIN(Boolean.FALSE);
 		processedMatchedResult.setMatchedResults(matchedRidList);
-		Mockito.when(abisHandlerUtil.getProcessedMatchedResults(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
@@ -490,7 +490,7 @@ public class BioDedupeProcessorTest {
 		Set<String> matchedRidList = new HashSet<>();
 		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
 		processedMatchedResult.setMatchedResults(matchedRidList);
-		Mockito.when(abisHandlerUtil.getProcessedMatchedResults(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertFalse(messageDto.getIsValid());
@@ -519,7 +519,7 @@ public class BioDedupeProcessorTest {
 		matchedRidList.add("27847657360002520190320095010");
 		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
 		processedMatchedResult.setMatchedResults(matchedRidList);
-		Mockito.when(abisHandlerUtil.getProcessedMatchedResults(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
@@ -544,7 +544,7 @@ public class BioDedupeProcessorTest {
 		matchedRidList.add("27847657360002520190320095011");
 		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
 		processedMatchedResult.setMatchedResults(matchedRidList);
-		Mockito.when(abisHandlerUtil.getProcessedMatchedResults(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
 
 		Mockito.when(priorityBasedPacketManagerService.getField("reg1234","gender","LOST", ProviderStageName.BIO_DEDUPE)).thenReturn("MALE");
 		Mockito.when(priorityBasedPacketManagerService.getField("reg1234","dob", "LOST", ProviderStageName.BIO_DEDUPE)).thenReturn("2016/01/01");
@@ -581,7 +581,7 @@ public class BioDedupeProcessorTest {
 		matchedRidList.add("27847657360002520190320095011");
 		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
 		processedMatchedResult.setMatchedResults(matchedRidList);
-		Mockito.when(abisHandlerUtil.getProcessedMatchedResults(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
 
 		JSONObject obj1 = new JSONObject();
 		obj1.put("dateOfBirth", "2016/01/01");
@@ -608,7 +608,7 @@ public class BioDedupeProcessorTest {
 		matchedRidList.add("27847657360002520190320095011");
 		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
 		processedMatchedResult.setMatchedResults(matchedRidList);
-		Mockito.when(abisHandlerUtil.getProcessedMatchedResults(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
 
 		JSONObject obj1 = new JSONObject();
 		obj1.put("dateOfBirth", "2016/01/01");
@@ -644,7 +644,7 @@ public class BioDedupeProcessorTest {
 		matchedRidList.add("27847657360002520190320095012");
 		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
 		processedMatchedResult.setMatchedResults(matchedRidList);
-		Mockito.when(abisHandlerUtil.getProcessedMatchedResults(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
 
 		JSONObject obj1 = new JSONObject();
 		obj1.put("dateOfBirth", "2016/01/01");
@@ -725,7 +725,7 @@ public class BioDedupeProcessorTest {
 		processedMatchedResult.setMatchedResults(Collections.emptySet());
 		processedMatchedResult.setBiometricMatchedForPacketUIN(false);
 
-		when(abisHandlerUtil.getProcessedMatchedResults(anyString(), anyString(), anyInt(), anyString(), any()))
+		when(abisHandlerUtil.getProcessedMatchedResult(anyString(), anyString(), anyInt(), anyString(), any()))
 				.thenReturn(processedMatchedResult);
 		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any()))
 				.thenReturn(false);
@@ -766,7 +766,7 @@ public class BioDedupeProcessorTest {
 		processedMatchedResult.setMatchedResults(Collections.emptySet());
 		processedMatchedResult.setBiometricMatchedForPacketUIN(false);
 
-		when(abisHandlerUtil.getProcessedMatchedResults(anyString(), anyString(), anyInt(), anyString(), any()))
+		when(abisHandlerUtil.getProcessedMatchedResult(anyString(), anyString(), anyInt(), anyString(), any()))
 				.thenReturn(processedMatchedResult);
 		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any()))
 				.thenReturn(false);
@@ -804,7 +804,7 @@ public class BioDedupeProcessorTest {
 		processedMatchedResult.setMatchedResults(Collections.emptySet());
 		processedMatchedResult.setBiometricMatchedForPacketUIN(false);
 
-		when(abisHandlerUtil.getProcessedMatchedResults(anyString(), anyString(), anyInt(), anyString(), any()))
+		when(abisHandlerUtil.getProcessedMatchedResult(anyString(), anyString(), anyInt(), anyString(), any()))
 				.thenReturn(processedMatchedResult);
 		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any()))
 				.thenReturn(false);
@@ -842,7 +842,7 @@ public class BioDedupeProcessorTest {
 		processedMatchedResult.setMatchedResults(Collections.emptySet());
 		processedMatchedResult.setBiometricMatchedForPacketUIN(false);
 
-		when(abisHandlerUtil.getProcessedMatchedResults(anyString(), anyString(), anyInt(), anyString(), any()))
+		when(abisHandlerUtil.getProcessedMatchedResult(anyString(), anyString(), anyInt(), anyString(), any()))
 				.thenReturn(processedMatchedResult);
 		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any()))
 				.thenReturn(true);
@@ -880,7 +880,7 @@ public class BioDedupeProcessorTest {
 		processedMatchedResult.setMatchedResults(matches);
 		processedMatchedResult.setBiometricMatchedForPacketUIN(true);
 
-		when(abisHandlerUtil.getProcessedMatchedResults(anyString(), anyString(), anyInt(), anyString(), any()))
+		when(abisHandlerUtil.getProcessedMatchedResult(anyString(), anyString(), anyInt(), anyString(), any()))
 				.thenReturn(processedMatchedResult);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
@@ -900,7 +900,7 @@ public class BioDedupeProcessorTest {
 
 		when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
 
-		when(abisHandlerUtil.getProcessedMatchedResults(any(), any(), anyInt(), any(), any()))
+		when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any()))
 				.thenThrow(new PacketDateComputationException("ERR001", "Unable to compute packet date"));
 
 		MessageDTO result = bioDedupeProcessor.process(dto, stageName);
@@ -924,7 +924,7 @@ public class BioDedupeProcessorTest {
 		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
 		processedMatchedResult.setMatchedResults(matches);
 		processedMatchedResult.setBiometricMatchedForPacketUIN(false);
-		Mockito.when(abisHandlerUtil.getProcessedMatchedResults(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
 
 		when(utility.allBiometricHaveException(anyString(), anyString(), any()))
 				.thenThrow(new BiometricClassificationException("BDD-ERR", "Biometric classification exception"));

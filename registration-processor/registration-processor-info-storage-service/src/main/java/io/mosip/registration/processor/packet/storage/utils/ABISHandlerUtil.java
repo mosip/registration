@@ -74,8 +74,11 @@ public class ABISHandlerUtil {
 	 * @throws IOException                           Signals that an I/O exception
 	 *                                               has occurred.
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
+	 *
+	 * @deprecated This method is deprecated and will be removed in future releases.
+	 *             Please use {@link #getProcessedMatchedResult(String, String, int, String, ProviderStageName)} instead.
 	 */
-	@Deprecated
+	@Deprecated(since = "1.2.1.3", forRemoval = true)
 	public Set<String> getUniqueRegIds(String registrationId, String registrationType,
 										int iteration, String workflowInstanceId, ProviderStageName stageName) throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
@@ -145,10 +148,10 @@ public class ABISHandlerUtil {
 	 *                                               has occurred.
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 */
-	public ProcessedMatchedResult getProcessedMatchedResults(String registrationId, String registrationType,
+	public ProcessedMatchedResult getProcessedMatchedResult(String registrationId, String registrationType,
 															 int iteration, String workflowInstanceId, ProviderStageName stageName) throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-				registrationId, "ABISHandlerUtil::getProcessedMatchedResults()::entry");
+				registrationId, "ABISHandlerUtil::getProcessedMatchedResult()::entry");
 
 		String latestTransactionId = utilities.getLatestTransactionId(registrationId, registrationType, iteration, workflowInstanceId);
 
@@ -157,7 +160,7 @@ public class ABISHandlerUtil {
 		List<String> machedRefIds = new ArrayList<>();
 		Set<String> uniqueRIDs = new HashSet<>();
 		List<AbisResponseDetDto> abisResponseDetDtoList = new ArrayList<>();
-		ProcessedMatchedResult uniqueRegistrationIds = new ProcessedMatchedResult();
+		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
 
 		if (!regBioRefIds.isEmpty()) {
 			List<AbisResponseDto> abisResponseDtoList = packetInfoManager.getAbisResponseRecords(regBioRefIds.get(0),
@@ -185,10 +188,10 @@ public class ABISHandlerUtil {
 						List<String> matchedProcessedRegIds = matchedRegistrationStatusEntities.stream()
 								.map(RegistrationStatusEntity::getRegId).collect(Collectors.toList());
 						uniqueRIDs.addAll(processingRegIds);
-						ProcessedMatchedResult processedRegIds = getProcessedMatchedResults(matchedProcessedRegIds, registrationId,
+						ProcessedMatchedResult processedRegIds = getProcessedMatchedResult(matchedProcessedRegIds, registrationId,
 								registrationType,
 								stageName);
-						uniqueRegistrationIds.setBiometricMatchedForPacketUIN(processedRegIds.isBiometricMatchedForPacketUIN());
+						processedMatchedResult.setBiometricMatchedForPacketUIN(processedRegIds.isBiometricMatchedForPacketUIN());
 						for (String rid : processedRegIds.getMatchedResults()) {
 							if (!uniqueRIDs.contains(rid))
 								uniqueRIDs.add(rid);
@@ -198,10 +201,10 @@ public class ABISHandlerUtil {
 			}
 		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-				registrationId, "ABISHandlerUtil::getProcessedMatchedResults()::exit");
+				registrationId, "ABISHandlerUtil::getProcessedMatchedResult()::exit");
 
-		uniqueRegistrationIds.setMatchedResults(uniqueRIDs);
-		return uniqueRegistrationIds;
+		processedMatchedResult.setMatchedResults(uniqueRIDs);
+		return processedMatchedResult;
 
 	}
 
@@ -276,7 +279,11 @@ public class ABISHandlerUtil {
 	 * @throws IOException                           Signals that an I/O exception
 	 *                                               has occurred.
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
+	 *
+	 * @deprecated This method is deprecated and will be removed in future releases.
+	 *             Please use {@link #getProcessedMatchedResult(String, String, int, String, ProviderStageName)} instead.
 	 */
+	@Deprecated(since = "1.2.1.3", forRemoval = true)
 	public Set<String> getUniqueRegIds(List<String> matchedRegistrationIds, String registrationId,
 										String registrationType, ProviderStageName stageName) throws ApisResourceAccessException, IOException,
 			JsonProcessingException, PacketManagerException {
@@ -325,13 +332,13 @@ public class ABISHandlerUtil {
 	 *                                               has occurred.
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 */
-	public ProcessedMatchedResult getProcessedMatchedResults(List<String> matchedRegistrationIds, String registrationId,
+	public ProcessedMatchedResult getProcessedMatchedResult(List<String> matchedRegistrationIds, String registrationId,
 															 String registrationType, ProviderStageName stageName) throws ApisResourceAccessException, IOException,
 			JsonProcessingException, PacketManagerException {
 
 		Map<String, String> filteredRegMap = new LinkedHashMap<>();
 		Set<String> filteredRIds = new HashSet<>();
-		ProcessedMatchedResult uniqueRegistrationIds = new ProcessedMatchedResult();
+		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
 		for (String machedRegId : matchedRegistrationIds) {
 
 			String matchedUin = idRepoService.getUinByRid(machedRegId,
@@ -342,7 +349,7 @@ public class ABISHandlerUtil {
 				if (matchedUin != null) {
 					if (packetUin.equals(matchedUin)) {
 						// Explicitly capture that UIN matched
-						uniqueRegistrationIds.setBiometricMatchedForPacketUIN(true);
+						processedMatchedResult.setBiometricMatchedForPacketUIN(true);
 					} else {
 						// Different UIN found
 						filteredRegMap.put(matchedUin, machedRegId);
@@ -362,9 +369,9 @@ public class ABISHandlerUtil {
 			filteredRIds = new HashSet<String>(filteredRegMap.values());
 		}
 
-		uniqueRegistrationIds.setMatchedResults(filteredRIds);
+		processedMatchedResult.setMatchedResults(filteredRIds);
 
-		return uniqueRegistrationIds;
+		return processedMatchedResult;
 
 	}
 

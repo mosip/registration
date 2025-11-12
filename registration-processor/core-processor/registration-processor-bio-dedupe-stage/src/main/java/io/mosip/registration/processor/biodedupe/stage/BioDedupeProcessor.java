@@ -132,10 +132,13 @@ public class BioDedupeProcessor {
 	private boolean missingBiometricVerificationEnabled;
 
 	/**
-	 * Configuration property that defines the decision to be taken when a
-	 * non-infant packet has missing biometric data (i.e., not all biometrics are available).
-	 * This value determines whether such packets should be automatically {@code REJECTED}
-	 * or sent for {@code MANUAL_VERIFICATION (MV)}.
+	 * Configuration property that defines the decision to be taken for an update packet
+	 * of a resident who was not an infant or not having all biometric exceptions
+	 * as per the last MOSIP interaction, and when ABIS returned no match for the resident.
+	 * <p>
+	 * The allowed values are {@code REJECTED} and {@code MANUAL_VERIFICATION}.
+	 * <p>
+	 * Default: REJECTED
 	 */
 	@Value("${mosip.regproc.bio.dedupe.non-infant-not-all-biometric-exception-decision:REJECTED}")
 	private String nonInfantNotAllBiometricExceptionDecision;
@@ -210,7 +213,7 @@ public class BioDedupeProcessor {
 					lostPacketPreAbisIdentification(registrationStatusDto, object);
 				} else if (packetStatus.equalsIgnoreCase(AbisConstant.POST_ABIS_IDENTIFICATION)) {
 					ProcessedMatchedResult processedMatchedResult = abisHandlerUtil
-							.getProcessedMatchedResults(registrationStatusDto.getRegistrationId(),
+							.getProcessedMatchedResult(registrationStatusDto.getRegistrationId(),
 									registrationType, object.getIteration(), object.getWorkflowInstanceId(), ProviderStageName.BIO_DEDUPE);
 					Set<String> matchedRegIds = processedMatchedResult.getMatchedResults();
 					lostPacketPostAbisIdentification(registrationStatusDto, object, matchedRegIds);
@@ -440,11 +443,11 @@ public class BioDedupeProcessor {
 			JsonProcessingException, PacketManagerException {
 		String moduleId = "";
 		String moduleName = ModuleName.BIO_DEDUPE.toString();
-		ProcessedMatchedResult processedMatchedResults = abisHandlerUtil.getProcessedMatchedResults(registrationStatusDto.getRegistrationId(),
+		ProcessedMatchedResult processedMatchedResult = abisHandlerUtil.getProcessedMatchedResult(registrationStatusDto.getRegistrationId(),
 				registrationType, registrationStatusDto.getIteration(), registrationStatusDto.getWorkflowInstanceId(), ProviderStageName.BIO_DEDUPE);
 
 		Set<String> matchedRegIds = new HashSet<>(
-				Optional.ofNullable(processedMatchedResults.getMatchedResults()).orElse(Collections.emptySet())
+				Optional.ofNullable(processedMatchedResult.getMatchedResults()).orElse(Collections.emptySet())
 		);
 
 		boolean allBiometricException = false; // false if no biometric match, true if all have exceptions
@@ -452,13 +455,13 @@ public class BioDedupeProcessor {
 		boolean isUpdatePacket = registrationStatusDto.getRegistrationType()
 				.equalsIgnoreCase(SyncTypeDto.UPDATE.toString());
 
-		boolean isPacketUINAvailable = processedMatchedResults.isBiometricMatchedForPacketUIN();
+		boolean biometricMatchedForPacketUIN = processedMatchedResult.isBiometricMatchedForPacketUIN();
 
 		// Remove current registration ID from matches (temporary fix)
 		matchedRegIds.remove(registrationStatusDto.getRegistrationId());
 
 		// Check for update packet with no packetUIN from ABIS
-		if (isUpdatePacket && !isPacketUINAvailable && matchedRegIds.isEmpty()) {
+		if (isUpdatePacket && !biometricMatchedForPacketUIN && matchedRegIds.isEmpty()) {
 			boolean wasApplicantInfant = utilities.wasInfantWhenLastPacketProcessed(registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType(),
 					ProviderStageName.BIO_DEDUPE);
 			regProcLogger.info("Was applicant infant? {}", wasApplicantInfant);

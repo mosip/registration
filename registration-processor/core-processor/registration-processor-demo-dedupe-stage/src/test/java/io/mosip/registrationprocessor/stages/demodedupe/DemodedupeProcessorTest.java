@@ -540,7 +540,7 @@ public class DemodedupeProcessorTest {
 
 		ProcessedMatchedResult processedMatchedResults = new ProcessedMatchedResult();
 		processedMatchedResults.setMatchedResults(matchedRegIds);
-		Mockito.when(abisHandlerUtil.getProcessedMatchedResults(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResults);
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResults);
 		doNothing().when(packetInfoManager).saveManualAdjudicationData(anySet(), any(), any(), any(), any(),any(),any());
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
@@ -581,7 +581,7 @@ public class DemodedupeProcessorTest {
 		Mockito.when(packetInfoManager.getAbisResponseDetRecordsList(any())).thenReturn(abisResponseDetDtos);
 		ProcessedMatchedResult processedMatchedResults = new ProcessedMatchedResult();
 		processedMatchedResults.setMatchedResults(matchedRegIds);
-		Mockito.when(abisHandlerUtil.getProcessedMatchedResults(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResults);
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResults);
 		doNothing().when(packetInfoManager).saveManualAdjudicationData(anySet(), any(), any(), any(), any(),any(),any());
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
@@ -616,7 +616,7 @@ public class DemodedupeProcessorTest {
 		Mockito.when(packetInfoManager.getAbisResponseRecords(anyString(), anyString())).thenReturn(abisResponseDtos);
 		Mockito.when(packetInfoManager.getAbisResponseDetRecordsList(any())).thenReturn(abisResponseDetDtos);
 		ProcessedMatchedResult processedMatchedResults = new ProcessedMatchedResult();
-		Mockito.when(abisHandlerUtil.getProcessedMatchedResults(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResults);
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResults);
 		doNothing().when(packetInfoManager).saveManualAdjudicationData(anySet(), any(), any(), any(), any(),any(),any());
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);

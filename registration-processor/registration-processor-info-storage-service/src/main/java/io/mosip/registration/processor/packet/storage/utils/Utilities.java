@@ -181,17 +181,27 @@ public class Utilities {
 	private String ageLimit;
 
 	/**
-	 * Buffer (in months) applied to the applicant's age limit to ensure that applicants
-	 * close to the age threshold are not incorrectly excluded due to edge-case scenarios
-	 * in age calculation. Default value is 0.
+	 * Buffer (in months) applied to the applicant's age limit to handle edge cases
+	 * where applicants are close to the threshold. Default is {@code 0}.
 	 *
-	 * <p>Increasing this value can help accommodate additional scenarios by effectively
-	 * raising the applicant's age limit.</p>
+	 * <p>Increasing this value provides a safety margin for age calculations near
+	 * the eligibility boundary.</p>
 	 */
 	@Value("${registration.processor.applicant.type.age.limit.buffer:0}")
 	private Integer ageLimitBuffer;
 
-	/** Estimated time (in hours) the system takes to process a packet */
+	/**
+	 * Estimated time (in hours) the system takes to process a packet.
+	 * <p>
+	 * This value helps calculate the approximate packet creation time.
+	 * It is used when no other data source is available to determine the
+	 * packet creation time, apart from the identity update time.
+	 * The system subtracts this duration from the identity update time
+	 * to estimate when the packet was likely created, since the identity
+	 * update time includes the packet processing duration as well.
+	 * The default value is {@code 0}.
+	 * </p>
+	 */
 	@Value("${registration.processor.expected-packet-processing-duration:0}")
 	private Integer expectedPacketProcessingDurationHours;
 
