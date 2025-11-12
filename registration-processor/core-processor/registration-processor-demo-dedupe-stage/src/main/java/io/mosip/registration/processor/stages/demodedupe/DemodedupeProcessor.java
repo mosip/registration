@@ -1,11 +1,9 @@
 package io.mosip.registration.processor.stages.demodedupe;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
+import io.mosip.registration.processor.core.packet.dto.abis.ProcessedMatchedResult;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.exception.JsonProcessingException;
-import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -627,9 +623,12 @@ public class DemodedupeProcessor {
 	 */
 	private void saveManualAdjudicationData(InternalRegistrationStatusDto registrationStatusDto, MessageDTO messageDTO)
 			throws ApisResourceAccessException, IOException, JsonProcessingException, PacketManagerException {
-		Set<String> matchedRegIds = abisHandlerUtil.getUniqueRegIds(registrationStatusDto.getRegistrationId(),
+		ProcessedMatchedResult processedMatchedResult = abisHandlerUtil.getProcessedMatchedResult(registrationStatusDto.getRegistrationId(),
 				registrationStatusDto.getRegistrationType(), registrationStatusDto.getIteration(),
 				registrationStatusDto.getWorkflowInstanceId(), ProviderStageName.DEMO_DEDUPE);
+		Set<String> matchedRegIds = new HashSet<>(
+				Optional.ofNullable(processedMatchedResult.getMatchedResults()).orElse(Collections.emptySet())
+		);
 		if (!matchedRegIds.isEmpty()) {
 			String moduleId = PlatformErrorMessages.RPR_DEMO_SENDING_FOR_MANUAL.getCode();
 			String moduleName = ModuleName.DEMO_DEDUPE.toString();
