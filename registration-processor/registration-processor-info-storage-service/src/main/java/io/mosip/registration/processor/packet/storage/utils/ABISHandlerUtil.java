@@ -281,7 +281,7 @@ public class ABISHandlerUtil {
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 *
 	 * @deprecated This method is deprecated and will be removed in future releases.
-	 *             Please use {@link #getProcessedMatchedResult(String, String, int, String, ProviderStageName)} instead.
+	 *             Please use {@link #getProcessedMatchedResult(List, String, String, ProviderStageName)} instead.
 	 */
 	@Deprecated(since = "1.2.1.3", forRemoval = true)
 	public Set<String> getUniqueRegIds(List<String> matchedRegistrationIds, String registrationId,
