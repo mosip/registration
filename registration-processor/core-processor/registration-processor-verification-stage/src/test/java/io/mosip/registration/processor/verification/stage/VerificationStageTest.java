@@ -13,6 +13,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.apache.activemq.util.ByteSequence;
 import org.junit.Before;
@@ -31,7 +32,6 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
 import io.mosip.kernel.core.signatureutil.model.SignatureResponse;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
@@ -172,7 +172,7 @@ public class VerificationStageTest {
 		VerificationResponseDTO resp = new VerificationResponseDTO();
 		resp.setId("verification");
 		resp.setRequestId("e2e59a9b-ce7c-41ae-a953-effb854d1205");
-		resp.setResponsetime(DateUtils.getCurrentDateTimeString());
+		resp.setResponsetime(DateUtils2.getCurrentDateTimeString());
 		resp.setReturnValue(1);
 
 		String response = JsonUtils.javaObjectToJsonString(resp);

@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TimeZone;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,7 +16,6 @@ import org.springframework.format.datetime.standard.DateTimeFormatterFactory;
 import org.springframework.stereotype.Component;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.ManualVerificationAppException;
 import io.mosip.registration.processor.core.exception.ManualVerificationValidationException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -125,9 +125,9 @@ public class ManualVerificationRequestValidator{
 							.ofPattern(env.getProperty(VerificationConstants.DATETIME_PATTERN));
 					LocalDateTime localDateTime = LocalDateTime.parse(timestamp, formatter);
 					if (!(localDateTime.parse(timestamp, timestampFormat.createDateTimeFormatter())
-							.isAfter(DateUtils.getUTCCurrentDateTime().minusSeconds(gracePeriod))
+							.isAfter(DateUtils2.getUTCCurrentDateTime().minusSeconds(gracePeriod))
 							&& localDateTime.parse(timestamp, timestampFormat.createDateTimeFormatter())
-									.isBefore(DateUtils.getUTCCurrentDateTime().plusSeconds(gracePeriod)))) {
+									.isBefore(DateUtils2.getUTCCurrentDateTime().plusSeconds(gracePeriod)))) {
 						
 						regProcLogger.error(VerificationConstants.MAN_VERI_SERVICE, "ManReqRequestValidator", "validateReqTime",
 								"\n" + PlatformErrorMessages.RPR_MVS_INVALID_INPUT_PARAMETER_TIMESTAMP.getMessage());

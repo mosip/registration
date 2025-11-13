@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.registration.processor.status.dto.RegistrationExternalStatusSubRequestDto;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,7 +17,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.env.Environment;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.status.dto.RegistrationExternalStatusRequestDTO;
 import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDto;
 import io.mosip.registration.processor.status.exception.RegStatusAppException;
@@ -48,7 +48,7 @@ public class RegistrationExternalStatusRequestValidatorTest {
 		request.add(dto);
 		registrationExternalStatusRequestDTO.setRequest(request);
 		registrationExternalStatusRequestDTO.setId("mosip.registration.external.status");
-		registrationExternalStatusRequestDTO.setRequesttime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
+		registrationExternalStatusRequestDTO.setRequesttime(DateUtils2.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		registrationExternalStatusRequestDTO.setVersion("1.0");
 	}
 	

@@ -9,6 +9,7 @@ import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 
 import io.mosip.kernel.core.http.RequestWrapper;
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.registration.processor.packet.manager.constant.CryptomanagerConstant;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,6 @@ import org.springframework.web.client.HttpServerErrorException;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
@@ -108,14 +108,14 @@ public class DecryptorImpl implements Decryptor {
 			cryptomanagerRequestDto.setAad(CryptoUtil.encodeToURLSafeBase64(aad));
 			cryptomanagerRequestDto.setSalt(CryptoUtil.encodeToURLSafeBase64(nonce));
 			cryptomanagerRequestDto.setData(CryptoUtil.encodeToURLSafeBase64(encryptedData));
-			cryptomanagerRequestDto.setTimeStamp(DateUtils.getUTCCurrentDateTime());
+			cryptomanagerRequestDto.setTimeStamp(DateUtils2.getUTCCurrentDateTime());
 
 			request.setId(env.getProperty(DECRYPT_SERVICE_ID));
 			request.setMetadata(null);
 			request.setRequest(cryptomanagerRequestDto);
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+					.parse(DateUtils2.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
 			request.setRequesttime(localdatetime);
 			request.setVersion(env.getProperty(REG_PROC_APPLICATION_VERSION));
 			CryptomanagerResponseDto response;

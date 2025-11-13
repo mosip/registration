@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
 import io.mosip.registration.processor.packet.storage.utils.OSIUtils;
 import io.mosip.registration.processor.status.service.AdditionalInfoRequestService;
@@ -256,7 +256,7 @@ public class DeviceValidatorTests {
 	@Test(expected = BaseCheckedException.class)
 	public void testCorrectionPacketDatetimeValidation() throws JSONException, IOException, BaseCheckedException {
 		AdditionalInfoRequestDto infoRequestDto = new AdditionalInfoRequestDto("", "",
-				"", "BIOMETRIC_CORRECTION", 1, DateUtils.getUTCCurrentDateTime());
+				"", "BIOMETRIC_CORRECTION", 1, DateUtils2.getUTCCurrentDateTime());
 
 		regOsi.setPacketCreationDate("2021-03-04T07:31:59.831Z");
 

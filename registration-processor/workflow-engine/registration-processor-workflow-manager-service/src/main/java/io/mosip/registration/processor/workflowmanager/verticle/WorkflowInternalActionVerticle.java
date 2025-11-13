@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -23,7 +24,6 @@ import org.springframework.stereotype.Component;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -421,7 +421,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		registrationStatusDto.setStatusComment(workflowInternalActionDTO.getActionMessage());
 		registrationStatusDto.setDefaultResumeAction(workflowInternalActionDTO.getDefaultResumeAction());
 		if (workflowInternalActionDTO.getResumeTimestamp() != null) {
-			LocalDateTime resumeTimeStamp = DateUtils
+			LocalDateTime resumeTimeStamp = DateUtils2
 					.parseToLocalDateTime(workflowInternalActionDTO.getResumeTimestamp());
 			registrationStatusDto.setResumeTimeStamp(resumeTimeStamp);
 		}
@@ -573,7 +573,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 			registrationStatusDto.setStatusComment(workflowInternalActionDTO.getActionMessage());
 			registrationStatusDto.setDefaultResumeAction(workflowInternalActionDTO.getDefaultResumeAction());
 			if (workflowInternalActionDTO.getResumeTimestamp() != null) {
-				LocalDateTime resumeTimeStamp = DateUtils
+				LocalDateTime resumeTimeStamp = DateUtils2
 						.parseToLocalDateTime(workflowInternalActionDTO.getResumeTimestamp());
 				registrationStatusDto.setResumeTimeStamp(resumeTimeStamp);
 			}
