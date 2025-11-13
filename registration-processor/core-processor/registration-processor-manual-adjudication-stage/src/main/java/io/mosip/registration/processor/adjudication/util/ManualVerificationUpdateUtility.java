@@ -1,11 +1,11 @@
 package io.mosip.registration.processor.adjudication.util;
 
 
-	import java.sql.Timestamp;
+import java.sql.Timestamp;
 import java.util.List;
 
-	import io.mosip.kernel.core.util.DateUtils2;
-	import org.springframework.beans.factory.annotation.Autowired;
+import io.mosip.kernel.core.util.DateUtils2;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
