@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
@@ -28,7 +29,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
@@ -455,7 +455,7 @@ public class PacketValidateProcessor {
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern(dateformat);
 			String packetCreatedDateTime = metaInfo.get(JsonConstant.CREATIONDATE);
 			if (packetCreatedDateTime != null && !packetCreatedDateTime.isEmpty()) {
-				LocalDateTime dateTime = DateUtils.parseToLocalDateTime(packetCreatedDateTime);
+				LocalDateTime dateTime = DateUtils2.parseToLocalDateTime(packetCreatedDateTime);
 				registrationStatusDto.setPacketCreateDateTime(dateTime);
 			} else {
 				regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),

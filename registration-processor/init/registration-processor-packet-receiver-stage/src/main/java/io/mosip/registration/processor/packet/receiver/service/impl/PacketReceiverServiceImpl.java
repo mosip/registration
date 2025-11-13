@@ -9,7 +9,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.registration.processor.core.exception.AdditionalInfoIdNotFoundException;
 import io.mosip.registration.processor.core.exception.ObjectStoreNotAccessibleException;
 import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
@@ -25,7 +25,6 @@ import org.springframework.stereotype.Component;
 import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.virusscanner.exception.VirusScannerException;
 import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
@@ -285,7 +284,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 		}
 		dto.setRegistrationId(regEntity.getRegistrationId());
 		dto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PACKET_RECEIVER.toString());
-		dto.setLatestTransactionTimes(DateUtils.getUTCCurrentDateTime());
+		dto.setLatestTransactionTimes(DateUtils2.getUTCCurrentDateTime());
 		dto.setRegistrationStageName(stageName);
 		dto.setRegistrationType(regEntity.getRegistrationType());
 		dto.setReferenceRegistrationId(null);

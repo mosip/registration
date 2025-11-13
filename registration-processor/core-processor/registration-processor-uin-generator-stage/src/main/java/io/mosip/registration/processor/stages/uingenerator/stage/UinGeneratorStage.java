@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,7 +31,6 @@ import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -536,7 +536,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		IdRequestDto idRequestDTO = new IdRequestDto();
 		idRequestDTO.setId(idRepoUpdate);
 		idRequestDTO.setRequest(requestDto);
-		idRequestDTO.setRequesttime(DateUtils.getUTCCurrentDateTimeString());
+		idRequestDTO.setRequesttime(DateUtils2.getUTCCurrentDateTimeString());
 		idRequestDTO.setVersion(UINConstants.idRepoApiVersion);
 		idRequestDTO.setMetadata(null);
 
@@ -706,7 +706,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		idRequestDTO.setId(idRepoUpdate);
 		idRequestDTO.setMetadata(null);
 		idRequestDTO.setRequest(requestDto);
-		idRequestDTO.setRequesttime(DateUtils.getUTCCurrentDateTimeString());
+		idRequestDTO.setRequesttime(DateUtils2.getUTCCurrentDateTimeString());
 		idRequestDTO.setVersion(UINConstants.idRepoApiVersion);
 
 		try {
@@ -774,7 +774,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 				idRequestDTO.setId(idRepoUpdate);
 				idRequestDTO.setRequest(requestDto);
 				idRequestDTO.setMetadata(null);
-				idRequestDTO.setRequesttime(DateUtils.getUTCCurrentDateTimeString());
+				idRequestDTO.setRequesttime(DateUtils2.getUTCCurrentDateTimeString());
 				idRequestDTO.setVersion(UINConstants.idRepoApiVersion);
 
 				result = idrepoDraftService.idrepoUpdateDraft(id, uin, idRequestDTO);
@@ -903,7 +903,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			idRequestDTO.setId(idRepoUpdate);
 			idRequestDTO.setMetadata(null);
 			idRequestDTO.setRequest(requestDto);
-			idRequestDTO.setRequesttime(DateUtils.getUTCCurrentDateTimeString());
+			idRequestDTO.setRequesttime(DateUtils2.getUTCCurrentDateTimeString());
 			idRequestDTO.setVersion(UINConstants.idRepoApiVersion);
 
 			idResponseDto = idrepoDraftService.idrepoUpdateDraft(id, uin, idRequestDTO);
@@ -1073,7 +1073,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			idRequestDTO.setId(idRepoUpdate);
 			idRequestDTO.setRequest(requestDto);
 			idRequestDTO.setMetadata(null);
-			idRequestDTO.setRequesttime(DateUtils.getUTCCurrentDateTimeString());
+			idRequestDTO.setRequesttime(DateUtils2.getUTCCurrentDateTimeString());
 			idRequestDTO.setVersion(UINConstants.idRepoApiVersion);
 
 			idResponse = idrepoDraftService.idrepoUpdateDraft(lostPacketRegId, uin, idRequestDTO);

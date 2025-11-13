@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.registration.processor.adjudication.exception.FileNotFoundInFileStoreException;
 import io.mosip.registration.processor.adjudication.exception.FileNotPresentException;
 import io.mosip.registration.processor.adjudication.exception.InvalidFieldsException;
@@ -23,7 +24,6 @@ import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.common.rest.dto.BaseRestResponseDTO;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
@@ -256,7 +256,7 @@ public class ManualVerificationExceptionHandler {
 				response.setErrors(errors);
 			}
 
-			response.setResponsetime(DateUtils.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
+			response.setResponsetime(DateUtils2.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
 			response.setVersion("1.0");
 			response.setResponse(null);
 			return response;
@@ -286,7 +286,7 @@ public class ManualVerificationExceptionHandler {
 				response.setErrors(errors);
 			}
 
-			response.setResponsetime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
+			response.setResponsetime(DateUtils2.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 			response.setVersion(env.getProperty(APPLICATION_VERSION));
 			response.setResponse(null);
 			return response;

@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.registration.processor.core.cache.CaffeineCacheManager;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -16,7 +17,6 @@ import org.slf4j.MDC;
 
 import brave.Span;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
 import io.mosip.registration.processor.core.abstractverticle.HealthCheckDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
@@ -448,7 +448,7 @@ public class KafkaMosipEventBus implements MosipEventBus {
 	@Override
 	public void consumerHealthCheck(Handler<HealthCheckDTO> eventHandler, String address) {
 		HealthCheckDTO healthCheckDTO = new HealthCheckDTO();
-		String timeStamp = address + DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime());
+		String timeStamp = address + DateUtils2.formatToISOString(DateUtils2.getUTCCurrentDateTime());
 		logger.debug("Consumer health check started {}",
 				timeStamp);
 		kafkaConsumer.listTopics(f -> {

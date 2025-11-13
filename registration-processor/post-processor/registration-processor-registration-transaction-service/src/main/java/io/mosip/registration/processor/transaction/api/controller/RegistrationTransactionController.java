@@ -3,6 +3,7 @@ package io.mosip.registration.processor.transaction.api.controller;
 import java.util.List;
 import java.util.Objects;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.token.validation.exception.AccessDeniedException;
@@ -128,7 +128,7 @@ public class RegistrationTransactionController {
 		if (Objects.isNull(regTransactionResponseDTO.getId())) {
 			regTransactionResponseDTO.setId(env.getProperty(REG_TRANSACTION_SERVICE_ID));
 		}
-		regTransactionResponseDTO.setResponsetime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
+		regTransactionResponseDTO.setResponsetime(DateUtils2.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		regTransactionResponseDTO.setVersion(env.getProperty(REG_TRANSACTION_APPLICATION_VERSION));
 		regTransactionResponseDTO.setErrors(null);
 		regTransactionResponseDTO.setResponse(dtoList);

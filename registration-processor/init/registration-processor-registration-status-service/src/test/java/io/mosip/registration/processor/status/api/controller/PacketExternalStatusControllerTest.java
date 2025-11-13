@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.ArrayList;
 import java.util.List;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import jakarta.servlet.http.Cookie;
 
 import org.json.simple.JSONArray;
@@ -45,7 +46,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
 import io.mosip.registration.processor.status.api.config.RegistrationStatusConfigTest;
@@ -133,7 +133,7 @@ public class PacketExternalStatusControllerTest {
 		packetExternalStatusRequestDTO.setId("mosip.registration.packet.external.status");
 		packetExternalStatusRequestDTO.setVersion("1.0");
 		packetExternalStatusRequestDTO
-				.setRequesttime(DateUtils.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
+				.setRequesttime(DateUtils2.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
 		packetExternalStatusRequestDTO.setRequest(requestList);
 		packetExternalStatusRequestToJson = objectMapper.writeValueAsString(packetExternalStatusRequestDTO);
 		PacketExternalStatusDTO packetExternalStatusDTO = new PacketExternalStatusDTO();
