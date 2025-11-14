@@ -22,7 +22,6 @@ DROP INDEX IF EXISTS regprc.pk_rides;
 
 DROP INDEX IF EXISTS regprc.idx_idemogd_namedobgender_lang_active;
 DROP INDEX IF EXISTS regprc.idx_individual_demographic_dedup_regid;
-DROP INDEX IF EXISTS regprc.pk_idemogd_id;
 
 DROP INDEX IF EXISTS regprc.idx_bio_ref_id;
 DROP INDEX IF EXISTS regprc.idx_regbio_bio_created;
@@ -43,7 +42,6 @@ DROP INDEX IF EXISTS regprc.idx_paused_actionable;
 DROP INDEX IF EXISTS regprc.idx_regid_active_not_deleted;
 DROP INDEX IF EXISTS regprc.idx_registration_reg_id;
 DROP INDEX IF EXISTS regprc.idx_resumable_packets;
-DROP INDEX IF EXISTS regprc.pk_reg_id;
 
 DROP INDEX IF EXISTS regprc.idx_additional_info_req_id;
 DROP INDEX IF EXISTS regprc.idx_packet_id;
@@ -52,7 +50,6 @@ DROP INDEX IF EXISTS regprc.idx_workflow_instance_id;
 
 DROP INDEX IF EXISTS regprc.idx_reg_trn_reg_id;
 DROP INDEX IF EXISTS regprc.idx_registration_transaction_status;
-DROP INDEX IF EXISTS regprc.pk_regtrn_id;
 
 DROP INDEX IF EXISTS regprc.pk_ridseq_id;
 

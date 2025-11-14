@@ -22,7 +22,6 @@ CREATE UNIQUE INDEX pk_rides ON regprc.crypto_salt USING btree (id);
 
 CREATE INDEX idx_idemogd_namedobgender_lang_active ON regprc.individual_demographic_dedup USING btree (name, dob, gender, lang_code, is_active);
 CREATE INDEX idx_individual_demographic_dedup_regid ON regprc.individual_demographic_dedup USING btree (reg_id);
-CREATE UNIQUE INDEX pk_idemogd_id ON regprc.individual_demographic_dedup USING btree (workflow_instance_id, lang_code);
 
 CREATE INDEX idx_bio_ref_id ON regprc.reg_bio_ref USING btree (bio_ref_id);
 CREATE INDEX idx_regbio_bio_created ON regprc.reg_bio_ref USING btree (bio_ref_id, cr_dtimes DESC);
@@ -43,7 +42,6 @@ CREATE INDEX idx_paused_actionable ON regprc.registration USING btree (status_co
 CREATE INDEX idx_regid_active_not_deleted ON regprc.registration USING btree (reg_id) WHERE ((is_deleted = false) AND (is_active = true));
 CREATE INDEX idx_registration_reg_id ON regprc.registration USING btree (reg_id);
 CREATE INDEX idx_resumable_packets ON regprc.registration USING btree (status_code, upd_dtimes);
-CREATE UNIQUE INDEX pk_reg_id ON regprc.registration USING btree (workflow_instance_id);
 
 CREATE INDEX idx_additional_info_req_id ON regprc.registration_list USING btree (additional_info_req_id);
 CREATE INDEX idx_packet_id ON regprc.registration_list USING btree (packet_id);
@@ -52,7 +50,6 @@ CREATE INDEX idx_workflow_instance_id ON regprc.registration_list USING btree (w
 
 CREATE INDEX idx_reg_trn_reg_id ON regprc.registration_transaction USING btree (reg_id);
 CREATE INDEX idx_registration_transaction_status ON regprc.registration_transaction USING btree (status_code);
-CREATE UNIQUE INDEX pk_regtrn_id ON regprc.registration_transaction USING btree (id);
 
 CREATE UNIQUE INDEX pk_ridseq_id ON regprc.rid_seq USING btree (regcntr_id, machine_id);
 
