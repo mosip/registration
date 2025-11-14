@@ -48,7 +48,6 @@ CREATE INDEX idx_packet_id ON regprc.registration_list USING btree (packet_id);
 CREATE INDEX idx_reglist_regid_aireqid_active ON regprc.registration_list USING btree (reg_id, additional_info_req_id) WHERE (is_deleted = false);
 CREATE INDEX idx_workflow_instance_id ON regprc.registration_list USING btree (workflow_instance_id);
 
-CREATE INDEX idx_reg_trn_reg_id ON regprc.registration_transaction USING btree (reg_id);
 CREATE INDEX idx_registration_transaction_status ON regprc.registration_transaction USING btree (status_code);
 
 CREATE UNIQUE INDEX pk_ridseq_id ON regprc.rid_seq USING btree (regcntr_id, machine_id);

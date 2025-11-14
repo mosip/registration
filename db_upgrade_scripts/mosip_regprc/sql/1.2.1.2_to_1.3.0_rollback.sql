@@ -48,7 +48,6 @@ DROP INDEX IF EXISTS regprc.idx_packet_id;
 DROP INDEX IF EXISTS regprc.idx_reglist_regid_aireqid_active;
 DROP INDEX IF EXISTS regprc.idx_workflow_instance_id;
 
-DROP INDEX IF EXISTS regprc.idx_reg_trn_reg_id;
 DROP INDEX IF EXISTS regprc.idx_registration_transaction_status;
 
 DROP INDEX IF EXISTS regprc.pk_ridseq_id;
