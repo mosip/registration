@@ -4,7 +4,6 @@ DROP INDEX IF EXISTS regprc.idx_bio_regtrn_reqtype;
 DROP INDEX IF EXISTS regprc.idx_bio_reqtype_status;
 DROP INDEX IF EXISTS regprc.idx_refregtrn_reqtype;
 DROP INDEX IF EXISTS regprc.idx_req_batch_id;
-DROP INDEX IF EXISTS regprc.pk_abisreq;
 
 DROP INDEX IF EXISTS regprc.idx_abis_resp_id;
 DROP INDEX IF EXISTS regprc.idx_abis_response_reqid;
