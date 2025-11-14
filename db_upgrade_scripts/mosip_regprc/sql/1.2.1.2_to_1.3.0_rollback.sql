@@ -23,8 +23,6 @@ DROP INDEX IF EXISTS regprc.idx_regbio_bio_created;
 DROP INDEX IF EXISTS regprc.idx_regbio_regid;
 DROP INDEX IF EXISTS regprc.idx_regbio_wf_created;
 
-DROP INDEX IF EXISTS regprc.pk_rlostd;
-
 DROP INDEX IF EXISTS regprc.idx_verification_reqid;
 DROP INDEX IF EXISTS regprc.idx_verification_wf;
 
