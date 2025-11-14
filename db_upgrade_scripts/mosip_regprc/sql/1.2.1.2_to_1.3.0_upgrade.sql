@@ -32,7 +32,6 @@ CREATE UNIQUE INDEX pk_regded ON regprc.reg_demo_dedupe_list USING btree (matche
 
 CREATE UNIQUE INDEX pk_rlostd ON regprc.reg_lost_uin_det USING btree (workflow_instance_id);
 
-CREATE INDEX idx_rmanvrn_reqid ON regprc.reg_manual_verification USING btree (request_id);
 CREATE UNIQUE INDEX pk_rmnlver_id ON regprc.reg_manual_verification USING btree (workflow_instance_id, matched_ref_id, matched_ref_type);
 
 CREATE INDEX idx_verification_reqid ON regprc.reg_verification USING btree (verification_req_id);

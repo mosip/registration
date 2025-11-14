@@ -32,7 +32,6 @@ DROP INDEX IF EXISTS regprc.pk_regded;
 
 DROP INDEX IF EXISTS regprc.pk_rlostd;
 
-DROP INDEX IF EXISTS regprc.idx_rmanvrn_reqid;
 DROP INDEX IF EXISTS regprc.pk_rmnlver_id;
 
 DROP INDEX IF EXISTS regprc.idx_verification_reqid;
