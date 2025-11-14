@@ -14,3 +14,8 @@ CREATE TABLE regprc.additional_info_request(
 );
 -- ddl-end --
 
+--PERFORMANCE INDEXES--
+CREATE INDEX idx_addlinforeq_regid ON regprc.additional_info_request USING btree (reg_id);
+CREATE INDEX idx_addlinforeq_regid_proc_iterdesc ON regprc.additional_info_request USING btree (reg_id, additional_info_process, additional_info_iteration DESC);
+CREATE INDEX idx_addlinforeq_reqid ON regprc.additional_info_request USING btree (additional_info_req_id);
+--END PERFORMANCE INDEXES--

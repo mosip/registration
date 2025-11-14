@@ -65,3 +65,11 @@ COMMENT ON COLUMN regprc.abis_request.is_deleted IS 'IS_Deleted : Flag to mark w
 -- ddl-end --
 COMMENT ON COLUMN regprc.abis_request.del_dtimes IS 'Deleted DateTimestamp : Date and Timestamp when the record is soft deleted with is_deleted=TRUE';
 -- ddl-end --
+
+--PERFORMANCE INDEXES--
+CREATE INDEX idx_bio_regtrn_reqtype ON regprc.abis_request USING btree (bio_ref_id, ref_regtrn_id, request_type);
+CREATE INDEX idx_bio_reqtype_status ON regprc.abis_request USING btree (bio_ref_id, request_type, status_code);
+CREATE INDEX idx_refregtrn_reqtype ON regprc.abis_request USING btree (ref_regtrn_id, request_type);
+CREATE INDEX idx_req_batch_id ON regprc.abis_request USING btree (req_batch_id);
+--PERFORMANCE INDEXES END--
+

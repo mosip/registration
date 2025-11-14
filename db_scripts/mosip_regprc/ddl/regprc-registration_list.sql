@@ -49,3 +49,11 @@ COMMENT ON COLUMN regprc.registration_list.upd_by IS 'Updated By : ID or name of
 COMMENT ON COLUMN regprc.registration_list.upd_dtimes IS 'Updated DateTimestamp : Date and Timestamp when any of the fields in the record is updated with new values.';
 COMMENT ON COLUMN regprc.registration_list.is_deleted IS 'IS_Deleted : Flag to mark whether the record is Soft deleted.';
 COMMENT ON COLUMN regprc.registration_list.del_dtimes IS 'Deleted DateTimestamp : Date and Timestamp when the record is soft deleted with is_deleted=TRUE';
+
+
+--PERFORMANCE INDEXES--
+CREATE INDEX idx_additional_info_req_id ON regprc.registration_list USING btree (additional_info_req_id);
+CREATE INDEX idx_packet_id ON regprc.registration_list USING btree (packet_id);
+CREATE INDEX idx_reglist_regid_aireqid_active ON regprc.registration_list USING btree (reg_id, additional_info_req_id) WHERE (is_deleted = false);
+CREATE INDEX idx_workflow_instance_id ON regprc.registration_list USING btree (workflow_instance_id);
+--END PERFORMANCE INDEXES--
