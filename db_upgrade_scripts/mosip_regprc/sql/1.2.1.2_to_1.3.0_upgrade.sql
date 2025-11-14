@@ -14,8 +14,6 @@ CREATE INDEX idx_addlinforeq_reqid ON regprc.additional_info_request USING btree
 
 CREATE UNIQUE INDEX pk_anonymous_id ON regprc.anonymous_profile USING btree (id);
 
-CREATE UNIQUE INDEX pk_rides ON regprc.crypto_salt USING btree (id);
-
 CREATE INDEX idx_idemogd_namedobgender_lang_active ON regprc.individual_demographic_dedup USING btree (name, dob, gender, lang_code, is_active);
 CREATE INDEX idx_individual_demographic_dedup_regid ON regprc.individual_demographic_dedup USING btree (reg_id);
 
