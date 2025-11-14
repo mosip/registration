@@ -17,6 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
 import org.apache.activemq.command.ActiveMQBytesMessage;
@@ -184,7 +185,7 @@ public class VerificationServiceTest {
 		resp = new VerificationResponseDTO();
 		resp.setId("verification");
 		resp.setRequestId("e2e59a9b-ce7c-41ae-a953-effb854d1205");
-		resp.setResponsetime(DateUtils.getCurrentDateTimeString());
+		resp.setResponsetime(DateUtils2.getCurrentDateTimeString());
 		resp.setReturnValue(1);
 
 		object = new MessageDTO();
@@ -267,7 +268,7 @@ public class VerificationServiceTest {
 		verificationDecisionDto.setRegId("RegID");
 		verificationDecisionDto.setStatusCode("APPROVED");
 		verificationResponseDTO.setReturnValue(1);
-		verificationResponseDTO.setResponsetime(DateUtils.getCurrentDateTimeString());
+		verificationResponseDTO.setResponsetime(DateUtils2.getCurrentDateTimeString());
 		verificationResponseDTO.setId("mosip.manual.adjudication.adjudicate");
 		verificationResponseDTO.setRequestId("4d4f27d3-ec73-41c4-a384-bf87fce4969e");
 
