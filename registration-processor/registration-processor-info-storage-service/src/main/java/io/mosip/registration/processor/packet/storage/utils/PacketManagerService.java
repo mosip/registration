@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
@@ -76,7 +77,7 @@ public class PacketManagerService {
         RequestWrapper<FieldDto> request = new RequestWrapper<>();
         request.setId(ID);
         request.setVersion(VERSION);
-        request.setRequesttime(DateUtils.getUTCCurrentDateTime());
+        request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
         request.setRequest(fieldDto);
         ResponseWrapper<FieldResponseDto> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_SEARCH_FIELD, "", "", request, ResponseWrapper.class);
 
@@ -105,7 +106,7 @@ public class PacketManagerService {
         RequestWrapper<FieldDtos> request = new RequestWrapper<>();
         request.setId(ID);
         request.setVersion(VERSION);
-        request.setRequesttime(DateUtils.getUTCCurrentDateTime());
+        request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
         request.setRequest(fieldDto);
         ResponseWrapper<FieldResponseDto> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_SEARCH_FIELDS, "", "", request, ResponseWrapper.class);
 
@@ -136,7 +137,7 @@ public class PacketManagerService {
         RequestWrapper<DocumentDto> request = new RequestWrapper<>();
         request.setId(ID);
         request.setVersion(VERSION);
-        request.setRequesttime(DateUtils.getUTCCurrentDateTime());
+        request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
         request.setRequest(fieldDto);
         ResponseWrapper<Document> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_SEARCH_DOCUMENT, "", "", request, ResponseWrapper.class);
 
@@ -162,7 +163,7 @@ public class PacketManagerService {
         RequestWrapper<InfoDto> request = new RequestWrapper<>();
         request.setId(ID);
         request.setVersion(VERSION);
-        request.setRequesttime(DateUtils.getUTCCurrentDateTime());
+        request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
         request.setRequest(fieldDto);
         ResponseWrapper<ValidatePacketResponse> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_VALIDATE, "", "", request, ResponseWrapper.class);
 
@@ -189,7 +190,7 @@ public class PacketManagerService {
         RequestWrapper<InfoDto> request = new RequestWrapper<>();
         request.setId(ID);
         request.setVersion(VERSION);
-        request.setRequesttime(DateUtils.getUTCCurrentDateTime());
+        request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
         request.setRequest(fieldDto);
         ResponseWrapper<List<FieldResponseDto>> responseObj = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_SEARCH_AUDITS, "", "", request, ResponseWrapper.class);
 
@@ -220,7 +221,7 @@ public class PacketManagerService {
         RequestWrapper<BiometricRequestDto> request = new RequestWrapper<>();
         request.setId(ID);
         request.setVersion(VERSION);
-        request.setRequesttime(DateUtils.getUTCCurrentDateTime());
+        request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
         request.setRequest(fieldDto);
         ResponseWrapper<BiometricRecord> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_SEARCH_BIOMETRICS, "", "", request, ResponseWrapper.class);
 
@@ -248,7 +249,7 @@ public class PacketManagerService {
         RequestWrapper<InfoDto> request = new RequestWrapper<>();
         request.setId(ID);
         request.setVersion(VERSION);
-        request.setRequesttime(DateUtils.getUTCCurrentDateTime());
+        request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
         request.setRequest(fieldDto);
         ResponseWrapper<FieldResponseDto> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_SEARCH_METAINFO, "", "", request, ResponseWrapper.class);
 
@@ -275,7 +276,7 @@ public class PacketManagerService {
         RequestWrapper<InfoRequestDto> request = new RequestWrapper<>();
         request.setId(ID);
         request.setVersion(VERSION);
-        request.setRequesttime(DateUtils.getUTCCurrentDateTime());
+        request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
         request.setRequest(infoRequestDto);
         ResponseWrapper<InfoResponseDto> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_INFO, "", "", request, ResponseWrapper.class);
 
@@ -300,7 +301,7 @@ public class PacketManagerService {
         RequestWrapper<UpdateTagRequestDto> request = new RequestWrapper<>();
         request.setId(ID);
         request.setVersion(VERSION);
-        request.setRequesttime(DateUtils.getUTCCurrentDateTime());
+        request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
         request.setRequest(updateTagRequestDto);
         ResponseWrapper<Void> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_UPDATE_TAGS, "", "", request, ResponseWrapper.class);
 
@@ -322,7 +323,7 @@ public class PacketManagerService {
 		RequestWrapper<DeleteTagRequestDTO> request = new RequestWrapper<>();
 		request.setId(ID);
 		request.setVersion(VERSION);
-		request.setRequesttime(DateUtils.getUTCCurrentDateTime());
+		request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
 		request.setRequest(deleteTagREquestDto);
 		ResponseWrapper<DeleteTagResponseDTO> response = (ResponseWrapper<DeleteTagResponseDTO>) restApi
 				.postApi(ApiName.PACKETMANAGER_DELETE_TAGS, "", "",
@@ -351,7 +352,7 @@ public class PacketManagerService {
         RequestWrapper<TagRequestDto> request = new RequestWrapper<>();
         request.setId(ID);
         request.setVersion(VERSION);
-        request.setRequesttime(DateUtils.getUTCCurrentDateTime());
+        request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
         request.setRequest(tagRequestDto);
         ResponseWrapper<TagResponseDto> response = (ResponseWrapper<TagResponseDto>) restApi
                 .postApi(ApiName.PACKETMANAGER_GET_TAGS, "", "",
