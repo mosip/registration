@@ -8,8 +8,6 @@ DROP INDEX IF EXISTS regprc.idx_req_batch_id;
 DROP INDEX IF EXISTS regprc.idx_abis_resp_id;
 DROP INDEX IF EXISTS regprc.idx_abis_response_reqid;
 
-DROP INDEX IF EXISTS regprc.pk_abisrdt;
-
 DROP INDEX IF EXISTS regprc.idx_addlinforeq_regid;
 DROP INDEX IF EXISTS regprc.idx_addlinforeq_regid_proc_iterdesc;
 DROP INDEX IF EXISTS regprc.idx_addlinforeq_reqid;

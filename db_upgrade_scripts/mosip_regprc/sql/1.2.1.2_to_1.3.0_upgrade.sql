@@ -8,8 +8,6 @@ CREATE INDEX idx_req_batch_id ON regprc.abis_request USING btree (req_batch_id);
 CREATE INDEX idx_abis_resp_id ON regprc.abis_response USING btree (id);
 CREATE INDEX idx_abis_response_reqid ON regprc.abis_response USING btree (abis_req_id);
 
-CREATE UNIQUE INDEX pk_abisrdt ON regprc.abis_response_det USING btree (matched_bio_ref_id, abis_resp_id);
-
 CREATE INDEX idx_addlinforeq_regid ON regprc.additional_info_request USING btree (reg_id);
 CREATE INDEX idx_addlinforeq_regid_proc_iterdesc ON regprc.additional_info_request USING btree (reg_id, additional_info_process, additional_info_iteration DESC);
 CREATE INDEX idx_addlinforeq_reqid ON regprc.additional_info_request USING btree (additional_info_req_id);
