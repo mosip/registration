@@ -60,3 +60,9 @@ COMMENT ON COLUMN regprc.individual_demographic_dedup.is_deleted IS 'IS_Deleted 
 -- ddl-end --
 COMMENT ON COLUMN regprc.individual_demographic_dedup.del_dtimes IS 'Deleted DateTimestamp : Date and Timestamp when the record is soft deleted with is_deleted=TRUE';
 -- ddl-end --
+
+--PERFORMANCE INDEXES--
+CREATE INDEX idx_idemogd_namedobgender_lang_active ON regprc.individual_demographic_dedup USING btree (name, dob, gender, lang_code, is_active);
+CREATE INDEX idx_individual_demographic_dedup_regid ON regprc.individual_demographic_dedup USING btree (reg_id);
+CREATE UNIQUE INDEX pk_idemogd_id ON regprc.individual_demographic_dedup USING btree (workflow_instance_id, lang_code);
+--END PERFORMANCE INDEXES--

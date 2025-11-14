@@ -66,3 +66,9 @@ COMMENT ON COLUMN regprc.registration_transaction.is_deleted IS 'IS_Deleted : Fl
 -- ddl-end --
 COMMENT ON COLUMN regprc.registration_transaction.del_dtimes IS 'Deleted DateTimestamp : Date and Timestamp when the record is soft deleted with is_deleted=TRUE';
 -- ddl-end --
+
+--PERFORMANCE INDEXES--
+CREATE INDEX idx_reg_trn_reg_id ON regprc.registration_transaction USING btree (reg_id);
+CREATE INDEX idx_registration_transaction_status ON regprc.registration_transaction USING btree (status_code);
+CREATE UNIQUE INDEX pk_regtrn_id ON regprc.registration_transaction USING btree (id);
+--END PERFORMANCE INDEXES--

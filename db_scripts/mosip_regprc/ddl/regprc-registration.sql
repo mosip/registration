@@ -56,3 +56,11 @@ COMMENT ON COLUMN regprc.registration.upd_by IS 'Updated By : ID or name of the 
 COMMENT ON COLUMN regprc.registration.upd_dtimes IS 'Updated DateTimestamp : Date and Timestamp when any of the fields in the record is updated with new values.';
 COMMENT ON COLUMN regprc.registration.is_deleted IS 'IS_Deleted : Flag to mark whether the record is Soft deleted.';
 COMMENT ON COLUMN regprc.registration.del_dtimes IS 'Deleted DateTimestamp : Date and Timestamp when the record is soft deleted with is_deleted=TRUE';
+
+--PERFORMANCE INDEXES--
+CREATE INDEX idx_paused_actionable ON regprc.registration USING btree (status_code, resume_timestamp, upd_dtimes) WHERE (default_resume_action IS NOT NULL);
+CREATE INDEX idx_regid_active_not_deleted ON regprc.registration USING btree (reg_id) WHERE ((is_deleted = false) AND (is_active = true));
+CREATE INDEX idx_registration_reg_id ON regprc.registration USING btree (reg_id);
+CREATE INDEX idx_resumable_packets ON regprc.registration USING btree (status_code, upd_dtimes);
+CREATE UNIQUE INDEX pk_reg_id ON regprc.registration USING btree (workflow_instance_id);
+--END PERFORMANCE INDEXES--

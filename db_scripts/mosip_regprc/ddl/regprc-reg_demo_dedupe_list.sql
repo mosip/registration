@@ -36,3 +36,7 @@ COMMENT ON COLUMN regprc.reg_demo_dedupe_list.is_deleted IS 'IS_Deleted : Flag t
 -- ddl-end --
 COMMENT ON COLUMN regprc.reg_demo_dedupe_list.del_dtimes IS 'Deleted DateTimestamp : Date and Timestamp when the record is soft deleted with is_deleted=TRUE';
 -- ddl-end --
+
+--PERFORMANCE INDEXES--
+CREATE UNIQUE INDEX pk_regded ON regprc.reg_demo_dedupe_list USING btree (matched_reg_id, regtrn_id);
+--END PERFORMANCE INDEXES--

@@ -16,3 +16,6 @@ CREATE TABLE regprc.anonymous_profile(
 );
 -- ddl-end --
 
+--PERFORMANCE INDEXES--
+CREATE UNIQUE INDEX pk_anonymous_id ON regprc.anonymous_profile USING btree (id);
+--END PERFORMANCE INDEXES--
