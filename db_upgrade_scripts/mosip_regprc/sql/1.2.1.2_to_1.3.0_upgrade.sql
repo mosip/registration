@@ -23,7 +23,6 @@ CREATE UNIQUE INDEX pk_rides ON regprc.crypto_salt USING btree (id);
 CREATE INDEX idx_idemogd_namedobgender_lang_active ON regprc.individual_demographic_dedup USING btree (name, dob, gender, lang_code, is_active);
 CREATE INDEX idx_individual_demographic_dedup_regid ON regprc.individual_demographic_dedup USING btree (reg_id);
 
-CREATE INDEX idx_bio_ref_id ON regprc.reg_bio_ref USING btree (bio_ref_id);
 CREATE INDEX idx_regbio_bio_created ON regprc.reg_bio_ref USING btree (bio_ref_id, cr_dtimes DESC);
 CREATE INDEX idx_regbio_regid ON regprc.reg_bio_ref USING btree (reg_id);
 CREATE INDEX idx_regbio_wf_created ON regprc.reg_bio_ref USING btree (workflow_instance_id, cr_dtimes DESC);
