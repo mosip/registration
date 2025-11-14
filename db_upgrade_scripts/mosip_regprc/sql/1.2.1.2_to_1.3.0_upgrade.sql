@@ -12,8 +12,6 @@ CREATE INDEX idx_addlinforeq_regid ON regprc.additional_info_request USING btree
 CREATE INDEX idx_addlinforeq_regid_proc_iterdesc ON regprc.additional_info_request USING btree (reg_id, additional_info_process, additional_info_iteration DESC);
 CREATE INDEX idx_addlinforeq_reqid ON regprc.additional_info_request USING btree (additional_info_req_id);
 
-CREATE UNIQUE INDEX pk_anonymous_id ON regprc.anonymous_profile USING btree (id);
-
 CREATE INDEX idx_idemogd_namedobgender_lang_active ON regprc.individual_demographic_dedup USING btree (name, dob, gender, lang_code, is_active);
 CREATE INDEX idx_individual_demographic_dedup_regid ON regprc.individual_demographic_dedup USING btree (reg_id);
 

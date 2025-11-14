@@ -12,8 +12,6 @@ DROP INDEX IF EXISTS regprc.idx_addlinforeq_regid;
 DROP INDEX IF EXISTS regprc.idx_addlinforeq_regid_proc_iterdesc;
 DROP INDEX IF EXISTS regprc.idx_addlinforeq_reqid;
 
-DROP INDEX IF EXISTS regprc.pk_anonymous_id;
-
 DROP INDEX IF EXISTS regprc.idx_idemogd_namedobgender_lang_active;
 DROP INDEX IF EXISTS regprc.idx_individual_demographic_dedup_regid;
 
