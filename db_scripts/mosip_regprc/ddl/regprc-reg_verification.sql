@@ -31,3 +31,8 @@ CREATE TABLE regprc.reg_verification(
 	CONSTRAINT pk_reg_ver_id PRIMARY KEY (workflow_instance_id)
 );
 -- ddl-end --
+
+--PERFORMANCE INDEXES--
+CREATE INDEX idx_verification_reqid ON regprc.reg_verification USING btree (verification_req_id);
+CREATE INDEX idx_verification_wf ON regprc.reg_verification USING btree (workflow_instance_id);
+--END PERFORMANCE INDEXES--
