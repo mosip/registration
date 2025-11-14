@@ -19,14 +19,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-<<<<<<< HEAD
 import io.mosip.kernel.core.util.DateUtils2;
-=======
 import io.mosip.registration.processor.adjudication.request.dto.Filter;
 import io.mosip.registration.processor.adjudication.request.dto.ShareableAttributes;
 import io.mosip.registration.processor.adjudication.request.dto.Source;
 import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
->>>>>>> 6c7005fdb3 ([MOSIP-42988] : Cherry-pick 1.2.1.1 release changes  (#2195))
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.groups.Tuple;
 import org.assertj.core.util.Lists;
@@ -816,3 +813,4 @@ public class ManualAdjudicationServiceTest {
 		assertTrue(messageDTO.getInternalError());
 	}
 }
+
