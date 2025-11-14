@@ -27,8 +27,6 @@ CREATE INDEX idx_regbio_bio_created ON regprc.reg_bio_ref USING btree (bio_ref_i
 CREATE INDEX idx_regbio_regid ON regprc.reg_bio_ref USING btree (reg_id);
 CREATE INDEX idx_regbio_wf_created ON regprc.reg_bio_ref USING btree (workflow_instance_id, cr_dtimes DESC);
 
-CREATE UNIQUE INDEX pk_regded ON regprc.reg_demo_dedupe_list USING btree (matched_reg_id, regtrn_id);
-
 CREATE UNIQUE INDEX pk_rlostd ON regprc.reg_lost_uin_det USING btree (workflow_instance_id);
 
 CREATE INDEX idx_verification_reqid ON regprc.reg_verification USING btree (verification_req_id);
