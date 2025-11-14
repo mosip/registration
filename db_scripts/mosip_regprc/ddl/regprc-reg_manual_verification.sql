@@ -71,6 +71,3 @@ COMMENT ON COLUMN regprc.reg_manual_verification.is_deleted IS 'IS_Deleted : Fla
 COMMENT ON COLUMN regprc.reg_manual_verification.del_dtimes IS 'Deleted DateTimestamp : Date and Timestamp when the record is soft deleted with is_deleted=TRUE';
 -- ddl-end --
 
---PERFORMANCE INDEXES--
-CREATE UNIQUE INDEX pk_rmnlver_id ON regprc.reg_manual_verification USING btree (workflow_instance_id, matched_ref_id, matched_ref_type);
---END PERFORMANCE INDEXES--
