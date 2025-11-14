@@ -47,6 +47,4 @@ DROP INDEX IF EXISTS regprc.idx_workflow_instance_id;
 
 DROP INDEX IF EXISTS regprc.idx_registration_transaction_status;
 
-DROP INDEX IF EXISTS regprc.pk_ridseq_id;
-
 -- END ROLLBACK FOR PERFORMANCE OPTIMIZATION INDEXES

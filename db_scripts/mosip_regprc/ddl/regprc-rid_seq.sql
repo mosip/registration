@@ -31,6 +31,3 @@ COMMENT ON COLUMN regprc.rid_seq.upd_by IS 'Updated By : ID or name of the user 
 COMMENT ON COLUMN regprc.rid_seq.upd_dtimes IS 'Updated DateTimestamp : Date and Timestamp when any of the fields in the record is updated with new values.';
 -- ddl-end --
 
---PERFORMANCE INDEXES--
-CREATE UNIQUE INDEX pk_ridseq_id ON regprc.rid_seq USING btree (regcntr_id, machine_id);
---END PERFORMANCE INDEXES--

@@ -47,6 +47,4 @@ CREATE INDEX idx_workflow_instance_id ON regprc.registration_list USING btree (w
 
 CREATE INDEX idx_registration_transaction_status ON regprc.registration_transaction USING btree (status_code);
 
-CREATE UNIQUE INDEX pk_ridseq_id ON regprc.rid_seq USING btree (regcntr_id, machine_id);
-
 ---END UPGRADE FOR PERFORMANCE OPTIMIZATION INDEXES--
