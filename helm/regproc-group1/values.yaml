@@ -79,8 +79,8 @@ startupProbe:
     path: /registrationprocessor/v1/packetreceiver/actuator/health
     port: 8081
   initialDelaySeconds: 0
-  periodSeconds: 10
-  timeoutSeconds: 5
+  periodSeconds: 60
+  timeoutSeconds: 30
   failureThreshold: 30
   successThreshold: 1
 
@@ -90,8 +90,8 @@ livenessProbe:
     path: /registrationprocessor/v1/packetreceiver/actuator/health
     port: 8081
   initialDelaySeconds: 120
-  periodSeconds: 10
-  timeoutSeconds: 5
+  periodSeconds: 60
+  timeoutSeconds: 30
   failureThreshold: 6
   successThreshold: 1
 
@@ -101,8 +101,8 @@ readinessProbe:
     path: /registrationprocessor/v1/packetreceiver/actuator/health
     port: 8081
   initialDelaySeconds: 30
-  periodSeconds: 10
-  timeoutSeconds: 5
+  periodSeconds: 60
+  timeoutSeconds: 30
   failureThreshold: 6
   successThreshold: 1
 
@@ -128,15 +128,15 @@ resources:
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   limits:
     cpu: 1000m
-    memory: 5000Mi
+    memory: 1000Mi
   requests:
-    cpu: 100m
+    cpu: 1000m
     memory: 1000Mi
 
 additionalResources:
   ## Specify any JAVA_OPTS string here. These typically will be specified in conjunction with above resources
   ## Example: java_opts: "-Xms500M -Xmx500M"
-  javaOpts: "-Xms4000M -Xmx4000M"
+  javaOpts: "-Xms500M -Xmx500M"
 
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
 ## Clamav container already runs as 'mosip' user, so we may not need to enable this
@@ -217,7 +217,16 @@ podAnnotations: {}
 
 ## lifecycleHooks for the  container to automate configuration before or after startup.
 ##
-lifecycleHooks: {}
+lifecycleHooks:
+  preStop:
+    exec:
+      command:
+        - sh
+        - -c
+        - sleep 30
+
+## Termination grace perios : the maximum amount of time (in seconds) Kubernetes will wait for a container to gracefully shut down
+terminationGracePeriodSeconds: 60
 
 ## Custom Liveness probes for
 ##
@@ -323,8 +332,8 @@ volumePermissions:
   enabled: false
   image:
     registry: docker.io
-    repository: bitnami/bitnami-shell
-    tag: "10"
+    repository: mosipid/os-shell
+    tag: "12-debian-12-r46"
     pullPolicy: Always
     ## Optionally specify an array of imagePullSecrets.
     ## Secrets must be manually created in the namespace.
