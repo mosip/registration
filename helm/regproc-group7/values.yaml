@@ -79,8 +79,8 @@ startupProbe:
     - -c
     - MY_PROBE_CHECK_PATHS="http://localhost:8099/registrationprocessor/v1/uin-generator/actuator/health,http://localhost:8097/registrationprocessor/v1/credentialrequestor-stage/actuator/health"; i=1; for str in $(echo $MY_PROBE_CHECK_PATHS | sed "s/,/\n/g"); do curl_output="$(curl -w %{http_code} -o /dev/null -s $str)"; if ! [ "$curl_output" = "200" ]; then echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i; fi; ((i++)); done
   initialDelaySeconds: 0
-  periodSeconds: 10
-  timeoutSeconds: 5
+  periodSeconds: 90
+  timeoutSeconds: 60
   failureThreshold: 30
   successThreshold: 1
 
@@ -92,9 +92,9 @@ livenessProbe:
     - -c
     - MY_PROBE_CHECK_PATHS="http://localhost:8099/registrationprocessor/v1/uin-generator/actuator/health,http://localhost:8097/registrationprocessor/v1/credentialrequestor-stage/actuator/health"; i=1; for str in $(echo $MY_PROBE_CHECK_PATHS | sed "s/,/\n/g"); do curl_output="$(curl -w %{http_code} -o /dev/null -s $str)"; if ! [ "$curl_output" = "200" ]; then echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i; fi; ((i++)); done
   initialDelaySeconds: 20
-  periodSeconds: 10
-  timeoutSeconds: 5
-  failureThreshold: 6
+  periodSeconds: 90
+  timeoutSeconds: 60
+  failureThreshold: 10
   successThreshold: 1
 
 readinessProbe:
@@ -105,9 +105,9 @@ readinessProbe:
     - -c
     - MY_PROBE_CHECK_PATHS="http://localhost:8099/registrationprocessor/v1/uin-generator/actuator/health,http://localhost:8097/registrationprocessor/v1/credentialrequestor-stage/actuator/health"; i=1; for str in $(echo $MY_PROBE_CHECK_PATHS | sed "s/,/\n/g"); do curl_output="$(curl -w %{http_code} -o /dev/null -s $str)"; if ! [ "$curl_output" = "200" ]; then echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i; fi; ((i++)); done
   initialDelaySeconds: 0
-  periodSeconds: 10
-  timeoutSeconds: 5
-  failureThreshold: 6
+  periodSeconds: 90
+  timeoutSeconds: 60
+  failureThreshold: 10
   successThreshold: 1
 
 ##
@@ -131,16 +131,16 @@ resources:
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   limits:
-    cpu: 500m
-    memory: 4000Mi
+    cpu: 800m
+    memory: 3000Mi
   requests:
-    cpu: 100m
-    memory: 1000Mi
+    cpu: 800m
+    memory: 3000Mi
 
 additionalResources:
   ## Specify any JAVA_OPTS string here. These typically will be specified in conjunction with above resources
   ## Example: java_opts: "-Xms500M -Xmx500M"
-  javaOpts: "-Xms3000M -Xmx3000M"
+  javaOpts: "-Xms1950M -Xmx1950M"
 
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
 ## Clamav container already runs as 'mosip' user, so we may not need to enable this
@@ -221,7 +221,16 @@ podAnnotations: {}
 
 ## lifecycleHooks for the  container to automate configuration before or after startup.
 ##
-lifecycleHooks: {}
+lifecycleHooks:
+  preStop:
+    exec:
+      command:
+        - sh
+        - -c
+        - sleep 30
+
+## Termination grace period : the maximum amount of time (in seconds) Kubernetes will wait for a container to gracefully shut down
+terminationGracePeriodSeconds: 60
 
 ## Custom Liveness probes for
 ##
@@ -322,8 +331,8 @@ volumePermissions:
   enabled: false
   image:
     registry: docker.io
-    repository: bitnami/bitnami-shell
-    tag: "10"
+    repository: mosipid/os-shell
+    tag: "12-debian-12-r46"
     pullPolicy: Always
     ## Optionally specify an array of imagePullSecrets.
     ## Secrets must be manually created in the namespace.
