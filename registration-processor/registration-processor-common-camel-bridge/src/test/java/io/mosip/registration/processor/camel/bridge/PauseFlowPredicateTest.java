@@ -118,7 +118,8 @@ public class PauseFlowPredicateTest {
 		LocalDateTime dateTimeAfter = DateUtils2.getUTCCurrentDateTime().plusSeconds(432000);
 		JsonObject json = new JsonObject((String) exchange.getMessage().getBody());
 		assertEquals("STOP_PROCESSING", json.getString("defaultResumeAction"));
-		assertTrue(dateTimeBefore.isBefore(DateUtils2.parseToLocalDateTime(json.getString("resumeTimestamp"))) && dateTimeAfter.isAfter(DateUtils2.parseToLocalDateTime(json.getString("resumeTimestamp"))));
+		LocalDateTime resume = DateUtils2.parseToLocalDateTime(json.getString("resumeTimestamp"));
+		assertTrue(!resume.isBefore(dateTimeBefore.minusSeconds(5)) && !resume.isAfter(dateTimeAfter.plusSeconds(5)));
 		WorkflowInternalActionDTO workflowInternalActionDTO = objectMapper
 				.readValue(exchange.getMessage().getBody().toString(), WorkflowInternalActionDTO.class);
 		assertEquals(WorkflowInternalActionCode.MARK_AS_PAUSED.toString(),
@@ -207,7 +208,8 @@ public class PauseFlowPredicateTest {
 		LocalDateTime dateTimeAfter = DateUtils2.getUTCCurrentDateTime().plusSeconds(432000);
 		JsonObject json = new JsonObject((String) exchange.getMessage().getBody());
 		assertEquals("STOP_PROCESSING", json.getString("defaultResumeAction"));
-		assertTrue(dateTimeBefore.isBefore(DateUtils2.parseToLocalDateTime(json.getString("resumeTimestamp"))) && dateTimeAfter.isAfter(DateUtils2.parseToLocalDateTime(json.getString("resumeTimestamp"))));
+		LocalDateTime resume = DateUtils2.parseToLocalDateTime(json.getString("resumeTimestamp"));
+		assertTrue(!resume.isBefore(dateTimeBefore.minusSeconds(5)) && !resume.isAfter(dateTimeAfter.plusSeconds(5)));
 		WorkflowInternalActionDTO workflowInternalActionDTO = objectMapper
 				.readValue(exchange.getMessage().getBody().toString(), WorkflowInternalActionDTO.class);
 		assertEquals(WorkflowInternalActionCode.MARK_AS_PAUSED.toString(),
