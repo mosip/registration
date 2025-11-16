@@ -63,7 +63,6 @@ import static org.powermock.api.mockito.PowerMockito.when;
 @PrepareForTest({ Utilities.class, CryptoUtil.class, RegProcessorLogger.class, CbeffValidator.class, DateUtils.class, Utility.class })
 public class UtilitiesTest {
 
-    @Spy
     @InjectMocks
     private Utilities utilities;
 
@@ -89,6 +88,7 @@ public class UtilitiesTest {
     @Before
     public void setUp() throws IOException {
 
+        ReflectionTestUtils.setField(utilities, "utility", utility);
         registrationStatusDto = new InternalRegistrationStatusDto();
         registrationStatusDto.setRegistrationId("10049100271000420250319064824");
         registrationStatusDto.setRegistrationType("UPDATE");
@@ -113,7 +113,7 @@ public class UtilitiesTest {
 
         JSONObject identityObj = new JSONObject(identityMap);
 
-        Mockito.doReturn(identityObj).when(utilities).getRegistrationProcessorMappingJson("identity");
+        when(utilities.getRegistrationProcessorMappingJson("identity")).thenReturn(identityObj);
 
         PowerMockito.mockStatic(Utilities.class);
         PowerMockito.when(Utilities.getJson(anyString(), anyString())).thenReturn(identityMappingjsonString);
@@ -191,7 +191,7 @@ public class UtilitiesTest {
         mockIdVidMetadataResponse.setUpdatedOn("2025-10-25T10:00:00.000Z");
         mockIdVidMetadataResponse.setCreatedOn("2025-10-25T09:00:00.000Z");
 
-        doReturn("123456789012").when(utility).getUIn(anyString(), anyString(), any());
+        when(utility.getUIn(anyString(), anyString(), any())).thenReturn("123456789012");
         String uin = "12345";
         String dob = "2023/01/01";
 
@@ -202,11 +202,9 @@ public class UtilitiesTest {
         Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any()))
                 .thenReturn(uin);
 
-        doReturn(mockIdVidMetadataResponse).when(utilities).getIdVidMetadata(anyString(), any());
-        doReturn(LocalDate.of(2023, 1, 1))
-                .when(utilities).getDateOfBirthFromIdrepo(anyString(), any(JSONObject.class));
-        doReturn(LocalDate.of(2025, 10, 24))
-                .when(utilities).computePacketCreatedFromIdentityUpdate(any(IdVidMetadataResponse.class), anyString());
+        when(utilities.getIdVidMetadata(anyString(), any())).thenReturn(mockIdVidMetadataResponse);
+        when(utilities.getDateOfBirthFromIdrepo(anyString(), any(JSONObject.class))).thenReturn(LocalDate.of(2023, 1, 1));
+        when(utilities.computePacketCreatedFromIdentityUpdate(any(IdVidMetadataResponse.class), anyString())).thenReturn(LocalDate.of(2025, 10, 24));
 
         boolean result = utilities.wasInfantWhenLastPacketProcessed(registrationId, registrationType, stageName);
 
@@ -293,8 +291,7 @@ public class UtilitiesTest {
     @Test
     public void testWasInfantWhenLastPacketProcessed_WhenUinIsNull_ReturnsFalse() throws Exception {
 
-        PowerMockito.doReturn(null)
-                .when(utilities, "getUIn", anyString(), anyString(), any(ProviderStageName.class));
+        when(utilities, "getUIn", anyString(), anyString(), any(ProviderStageName.class)).thenReturn(null);
 
         boolean result = utilities.wasInfantWhenLastPacketProcessed("10004133140010820251009123300", "UPDATE", ProviderStageName.BIO_DEDUPE);
         assertFalse(result);
@@ -303,8 +300,7 @@ public class UtilitiesTest {
     @Test
     public void testWasInfantWhenLastPacketProcessed_WhenUinIsEmpty_ReturnsFalse() throws Exception {
 
-        PowerMockito.doReturn("   ")
-                .when(utilities, "getUIn", anyString(), anyString(), any(ProviderStageName.class));
+        when(utilities, "getUIn", anyString(), anyString(), any(ProviderStageName.class)).thenReturn(" ");
 
         boolean result = utilities.wasInfantWhenLastPacketProcessed("10004133140010820251009123300", "UPDATE", ProviderStageName.BIO_DEDUPE);
         assertFalse(result);
@@ -674,7 +670,7 @@ public class UtilitiesTest {
     public void testGetBiometricRecordfromIdrepo_noDocuments_returnsNull() throws ApisResourceAccessException, IOException {
         String uin = "66554444";
         String rid = "10049100271000420240319064824";
-        doReturn(Collections.emptyList()).when(utilities).retrieveIdrepoDocument(uin);
+        when(utilities.retrieveIdrepoDocument(uin)).thenReturn(Collections.emptyList());
         utilities.getBiometricRecordfromIdrepo(uin, rid);
     }
 
