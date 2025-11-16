@@ -63,11 +63,9 @@ import static org.powermock.api.mockito.PowerMockito.when;
 @PrepareForTest({ Utilities.class, CryptoUtil.class, RegProcessorLogger.class, CbeffValidator.class, DateUtils.class, Utility.class })
 public class UtilitiesTest {
 
-    @Spy
     @InjectMocks
     private Utilities utilities = new Utilities();
 
-    @Spy
     @InjectMocks
     private Utility utility = new Utility();
 
@@ -99,7 +97,7 @@ public class UtilitiesTest {
         sdf = new SimpleDateFormat("yyyy/MM/dd");
         ReflectionTestUtils.setField(utilities, "dobFormat", "yyyy/MM/dd");
         ReflectionTestUtils.setField(utilities, "ageLimit", "5");
-        ReflectionTestUtils.setField(utilities, "isVidSupportedForUpdate", false);
+        ReflectionTestUtils.setField(utility, "isVidSupportedForUpdate", false);
         ReflectionTestUtils.setField(utilities, "ageLimitBuffer", 0);
         ReflectionTestUtils.setField(utilities, "expectedPacketProcessingDurationHours", 0);
 
