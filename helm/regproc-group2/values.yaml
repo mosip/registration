@@ -80,8 +80,8 @@ startupProbe:
     - -c
     - MY_PROBE_CHECK_PATHS="http://localhost:8090/registrationprocessor/v1/securezone/actuator/health,http://localhost:9072/registrationprocessor/v1/qualityclassifier/actuator/health,http://localhost:8088/registrationprocessor/v1/sender-stage/actuator/health"; i=1; for str in $(echo $MY_PROBE_CHECK_PATHS | sed "s/,/\n/g"); do curl_output="$(curl -w %{http_code} -o /dev/null -s $str)"; if ! [ "$curl_output" = "200" ]; then echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i; fi; ((i++)); done
   initialDelaySeconds: 0
-  periodSeconds: 10
-  timeoutSeconds: 5
+  periodSeconds: 210
+  timeoutSeconds: 180
   failureThreshold: 30
   successThreshold: 1
 
@@ -92,9 +92,9 @@ livenessProbe:
     - /bin/bash
     - -c
     - MY_PROBE_CHECK_PATHS="http://localhost:8090/registrationprocessor/v1/securezone/actuator/health,http://localhost:9072/registrationprocessor/v1/qualityclassifier/actuator/health,http://localhost:8088/registrationprocessor/v1/sender-stage/actuator/health"; i=1; for str in $(echo $MY_PROBE_CHECK_PATHS | sed "s/,/\n/g"); do curl_output="$(curl -w %{http_code} -o /dev/null -s $str)"; if ! [ "$curl_output" = "200" ]; then echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i; fi; ((i++)); done
-  # initialDelaySeconds: 20
-  periodSeconds: 10
-  timeoutSeconds: 5
+  initialDelaySeconds: 0
+  periodSeconds: 210
+  timeoutSeconds: 180
   failureThreshold: 6
   successThreshold: 1
 
@@ -106,8 +106,8 @@ readinessProbe:
     - -c
     - MY_PROBE_CHECK_PATHS="http://localhost:8090/registrationprocessor/v1/securezone/actuator/health,http://localhost:9072/registrationprocessor/v1/qualityclassifier/actuator/health,http://localhost:8088/registrationprocessor/v1/sender-stage/actuator/health"; i=1; for str in $(echo $MY_PROBE_CHECK_PATHS | sed "s/,/\n/g"); do curl_output="$(curl -w %{http_code} -o /dev/null -s $str)"; if ! [ "$curl_output" = "200" ]; then echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i; fi; ((i++)); done
   initialDelaySeconds: 0
-  periodSeconds: 10
-  timeoutSeconds: 5
+  periodSeconds: 210
+  timeoutSeconds: 180
   failureThreshold: 6
   successThreshold: 1
 
@@ -132,8 +132,8 @@ resources:
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   limits:
-    cpu: 500m
-    memory: 1800Mi
+    cpu: 1400m
+    memory: 2800Mi
   requests:
     cpu: 300m
     memory: 512Mi
@@ -141,7 +141,7 @@ resources:
 additionalResources:
   ## Specify any JAVA_OPTS string here. These typically will be specified in conjunction with above resources
   ## Example: java_opts: "-Xms500M -Xmx500M"
-  javaOpts: "-Xms3000M -Xmx3000M"
+  javaOpts: "-Xms1750M -Xmx1750M"
 
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
 ## Clamav container already runs as 'mosip' user, so we may not need to enable this
@@ -222,7 +222,16 @@ podAnnotations: {}
 
 ## lifecycleHooks for the  container to automate configuration before or after startup.
 ##
-lifecycleHooks: {}
+lifecycleHooks:
+  preStop:
+    exec:
+      command:
+        - sh
+        - -c
+        - sleep 30
+
+## Termination grace periods : the maximum amount of time (in seconds) Kubernetes will wait for a container to gracefully shut down
+terminationGracePeriodSeconds: 60
 
 ## Custom Liveness probes for
 ##
@@ -323,8 +332,8 @@ volumePermissions:
   enabled: false
   image:
     registry: docker.io
-    repository: bitnami/bitnami-shell
-    tag: "10"
+    repository: mosipid/os-shell
+    tag: "12-debian-12-r46"
     pullPolicy: Always
     ## Optionally specify an array of imagePullSecrets.
     ## Secrets must be manually created in the namespace.
