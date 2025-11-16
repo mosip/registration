@@ -88,6 +88,7 @@ public class UtilitiesTest {
     @Before
     public void setUp() throws IOException {
 
+        utilities = Mockito.spy(new Utilities());
         ReflectionTestUtils.setField(utilities, "utility", utility);
         registrationStatusDto = new InternalRegistrationStatusDto();
         registrationStatusDto.setRegistrationId("10049100271000420250319064824");
@@ -113,7 +114,7 @@ public class UtilitiesTest {
 
         JSONObject identityObj = new JSONObject(identityMap);
 
-        when(utilities.getRegistrationProcessorMappingJson("identity")).thenReturn(identityObj);
+        doReturn(identityObj).when(utilities).getRegistrationProcessorMappingJson("identity");
 
         PowerMockito.mockStatic(Utilities.class);
         PowerMockito.when(Utilities.getJson(anyString(), anyString())).thenReturn(identityMappingjsonString);
