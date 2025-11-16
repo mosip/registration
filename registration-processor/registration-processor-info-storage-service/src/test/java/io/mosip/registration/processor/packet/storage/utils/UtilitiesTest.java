@@ -67,6 +67,10 @@ public class UtilitiesTest {
     @InjectMocks
     private Utilities utilities = new Utilities();
 
+    @Spy
+    @InjectMocks
+    private Utility utility = new Utility();
+
     @Mock
     private PriorityBasedPacketManagerService packetManagerService;
 
@@ -188,7 +192,7 @@ public class UtilitiesTest {
         mockIdVidMetadataResponse.setUpdatedOn("2025-10-25T10:00:00.000Z");
         mockIdVidMetadataResponse.setCreatedOn("2025-10-25T09:00:00.000Z");
 
-        doReturn("123456789012").when(utilities).getUIn(anyString(), anyString(), any());
+        doReturn("123456789012").when(utility).getUIn(anyString(), anyString(), any());
         String uin = "12345";
         String dob = "2023/01/01";
 
