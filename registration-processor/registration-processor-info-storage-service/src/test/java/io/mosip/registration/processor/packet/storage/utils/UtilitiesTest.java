@@ -112,7 +112,7 @@ public class UtilitiesTest {
 
         JSONObject identityObj = new JSONObject(identityMap);
 
-        doReturn(identityObj).when(utilities).getRegistrationProcessorMappingJson("identity");
+        when(utilities.getRegistrationProcessorMappingJson(any())).thenReturn(identityObj);
 
         PowerMockito.mockStatic(Utilities.class);
         PowerMockito.when(Utilities.getJson(anyString(), anyString())).thenReturn(identityMappingjsonString);
