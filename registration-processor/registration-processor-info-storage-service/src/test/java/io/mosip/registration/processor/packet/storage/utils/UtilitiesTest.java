@@ -56,7 +56,6 @@ import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*","javax.management.*", "javax.net.ssl.*" })
@@ -66,7 +65,7 @@ public class UtilitiesTest {
     @InjectMocks
     private Utilities utilities;
 
-    @Mock
+    @InjectMocks
     private Utility utility;
 
     @Mock
@@ -290,7 +289,10 @@ public class UtilitiesTest {
     @Test
     public void testWasInfantWhenLastPacketProcessed_WhenUinIsNull_ReturnsFalse() throws Exception {
 
-        when(utilities, "getUIn", anyString(), anyString(), any(ProviderStageName.class)).thenReturn(null);
+        Utility utilityMock = Mockito.mock(Utility.class);
+        ReflectionTestUtils.setField(utilities, "utility", utilityMock);
+
+        when(utilityMock.getUIn(anyString(), anyString(), any(ProviderStageName.class))).thenReturn(" ");
 
         boolean result = utilities.wasInfantWhenLastPacketProcessed("10004133140010820251009123300", "UPDATE", ProviderStageName.BIO_DEDUPE);
         assertFalse(result);
@@ -299,7 +301,10 @@ public class UtilitiesTest {
     @Test
     public void testWasInfantWhenLastPacketProcessed_WhenUinIsEmpty_ReturnsFalse() throws Exception {
 
-        when(utilities, "getUIn", anyString(), anyString(), any(ProviderStageName.class)).thenReturn(" ");
+        Utility utilityMock = Mockito.mock(Utility.class);
+        ReflectionTestUtils.setField(utilities, "utility", utilityMock);
+
+        when(utilityMock.getUIn(anyString(), anyString(), any(ProviderStageName.class))).thenReturn(" ");
 
         boolean result = utilities.wasInfantWhenLastPacketProcessed("10004133140010820251009123300", "UPDATE", ProviderStageName.BIO_DEDUPE);
         assertFalse(result);
