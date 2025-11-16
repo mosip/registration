@@ -88,7 +88,7 @@ public class UtilitiesTest {
     @Before
     public void setUp() throws IOException {
 
-        utilities = Mockito.spy(new Utilities());
+        MockitoAnnotations.initMocks(this);
         ReflectionTestUtils.setField(utilities, "utility", utility);
         registrationStatusDto = new InternalRegistrationStatusDto();
         registrationStatusDto.setRegistrationId("10049100271000420250319064824");
