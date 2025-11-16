@@ -63,11 +63,12 @@ import static org.powermock.api.mockito.PowerMockito.when;
 @PrepareForTest({ Utilities.class, CryptoUtil.class, RegProcessorLogger.class, CbeffValidator.class, DateUtils.class, Utility.class })
 public class UtilitiesTest {
 
+    @Spy
     @InjectMocks
-    private Utilities utilities = new Utilities();
+    private Utilities utilities;
 
-    @InjectMocks
-    private Utility utility = new Utility();
+    @Mock
+    private Utility utility;
 
     @Mock
     private PriorityBasedPacketManagerService packetManagerService;
