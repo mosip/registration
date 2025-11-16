@@ -220,7 +220,7 @@ podAnnotations: {}
 
 ## lifecycleHooks for the  container to automate configuration before or after startup.
 ##
-llifecycleHooks:
+lifecycleHooks:
   preStop:
     exec:
       command:
