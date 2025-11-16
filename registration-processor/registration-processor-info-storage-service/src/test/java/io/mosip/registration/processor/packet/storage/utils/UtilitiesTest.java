@@ -64,7 +64,7 @@ import static org.mockito.Mockito.when;
 public class UtilitiesTest {
 
     @InjectMocks
-    private Utilities utilities;
+    private Utilities utilities = new Utilities();
 
     @InjectMocks
     private Utility utility;
@@ -115,6 +115,7 @@ public class UtilitiesTest {
 //        JSONObject identityObj = new JSONObject(identityMap);
 //
 //        when(utilities.getRegistrationProcessorMappingJson(any())).thenReturn(identityObj);
+
 
         ClassLoader classLoader1 = getClass().getClassLoader();
         File idJsonFile1 = new File(classLoader1.getResource("RegistrationProcessorIdentity.json").getFile());
