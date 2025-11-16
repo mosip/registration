@@ -86,9 +86,11 @@ public class UtilitiesTest {
     private SimpleDateFormat sdf;
     private String identityMappingjsonString;
     JSONObject identityObj;
+    /** The Constant CONFIG_SERVER_URL. */
+    private static final String CONFIG_SERVER_URL = "url";
 
     @Before
-    public void setUp() throws IOException {
+    public void setUp() throws Exception {
 
         registrationStatusDto = new InternalRegistrationStatusDto();
         registrationStatusDto.setRegistrationId("10049100271000420250319064824");
@@ -128,6 +130,10 @@ public class UtilitiesTest {
 
 //        PowerMockito.mockStatic(Utilities.class);
 //        PowerMockito.when(Utilities.getJson(anyString(), anyString())).thenReturn(identityMappingjsonString);
+
+        PowerMockito.mockStatic(Utilities.class);
+        PowerMockito.when(Utilities.class, "getJson", CONFIG_SERVER_URL, "RegistrationProcessorIdentity.json")
+                .thenReturn(identityMappingjsonString);
 //        PowerMockito.mockStatic(RegProcessorLogger.class);
 //        when(RegProcessorLogger.getLogger(any(Class.class))).thenReturn(regProcLogger);
 
