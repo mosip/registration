@@ -56,6 +56,7 @@ import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*","javax.management.*", "javax.net.ssl.*" })
@@ -124,10 +125,10 @@ public class UtilitiesTest {
         identityObj = JsonUtil.getJSONObject(new com.fasterxml.jackson.databind.ObjectMapper().readValue(identityMappingjsonString, JSONObject.class), MappingJsonConstants.IDENTITY);
         when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
 
-        PowerMockito.mockStatic(Utilities.class);
-        PowerMockito.when(Utilities.getJson(anyString(), anyString())).thenReturn(identityMappingjsonString);
-        PowerMockito.mockStatic(RegProcessorLogger.class);
-        when(RegProcessorLogger.getLogger(any(Class.class))).thenReturn(regProcLogger);
+//        PowerMockito.mockStatic(Utilities.class);
+//        PowerMockito.when(Utilities.getJson(anyString(), anyString())).thenReturn(identityMappingjsonString);
+//        PowerMockito.mockStatic(RegProcessorLogger.class);
+//        when(RegProcessorLogger.getLogger(any(Class.class))).thenReturn(regProcLogger);
 
     }
 
