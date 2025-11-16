@@ -132,10 +132,10 @@ resources:
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   limits:
     cpu: 1000m
-    memory: 4000Mi
+    memory: 1800Mi
   requests:
-    cpu: 1000m
-    memory: 4000Mi
+    cpu: 512m
+    memory: 512Mi
 
 additionalResources:
   ## Specify any JAVA_OPTS string here. These typically will be specified in conjunction with above resources
