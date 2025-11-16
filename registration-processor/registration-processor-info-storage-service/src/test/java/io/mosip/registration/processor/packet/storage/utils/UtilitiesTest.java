@@ -83,6 +83,8 @@ public class UtilitiesTest {
     private InternalRegistrationStatusDto registrationStatusDto;
     private IdVidMetadataResponse idVidMetadataResponse;
     private SimpleDateFormat sdf;
+    private String identityMappingjsonString;
+    JSONObject identityObj;
 
     @Before
     public void setUp() throws IOException {
@@ -100,18 +102,27 @@ public class UtilitiesTest {
         ReflectionTestUtils.setField(utilities, "ageLimitBuffer", 0);
         ReflectionTestUtils.setField(utilities, "expectedPacketProcessingDurationHours", 0);
 
-        InputStream inputStream = getClass().getClassLoader()
-                .getResourceAsStream("RegistrationProcessorIdentity.json");
-        String identityMappingjsonString = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+//        InputStream inputStream = getClass().getClassLoader()
+//                .getResourceAsStream("RegistrationProcessorIdentity.json");
+//        String identityMappingjsonString = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+//
+//        ObjectMapper mapper = new ObjectMapper();
+//        LinkedHashMap jsonMap = mapper.readValue(identityMappingjsonString, LinkedHashMap.class);
+//
+//        LinkedHashMap identityMap = (LinkedHashMap) jsonMap.get("identity");
+//
+//        JSONObject identityObj = new JSONObject(identityMap);
+//
+//        when(utilities.getRegistrationProcessorMappingJson(any())).thenReturn(identityObj);
 
-        ObjectMapper mapper = new ObjectMapper();
-        LinkedHashMap jsonMap = mapper.readValue(identityMappingjsonString, LinkedHashMap.class);
-
-        LinkedHashMap identityMap = (LinkedHashMap) jsonMap.get("identity");
-
-        JSONObject identityObj = new JSONObject(identityMap);
-
-        when(utilities.getRegistrationProcessorMappingJson(any())).thenReturn(identityObj);
+        ClassLoader classLoader1 = getClass().getClassLoader();
+        File idJsonFile1 = new File(classLoader1.getResource("RegistrationProcessorIdentity.json").getFile());
+        InputStream idJsonStream1 = new FileInputStream(idJsonFile1);
+        LinkedHashMap hm = new com.fasterxml.jackson.databind.ObjectMapper().readValue(idJsonStream1, LinkedHashMap.class);
+        JSONObject jsonObject = new JSONObject(hm);
+        identityMappingjsonString = jsonObject.toJSONString();
+        identityObj = JsonUtil.getJSONObject(new com.fasterxml.jackson.databind.ObjectMapper().readValue(identityMappingjsonString, JSONObject.class), MappingJsonConstants.IDENTITY);
+        when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
 
         PowerMockito.mockStatic(Utilities.class);
         PowerMockito.when(Utilities.getJson(anyString(), anyString())).thenReturn(identityMappingjsonString);
