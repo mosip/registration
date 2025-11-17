@@ -106,7 +106,7 @@ public class UtilitiesTest {
         sdf = new SimpleDateFormat("yyyy/MM/dd");
         ReflectionTestUtils.setField(utilities, "dobFormat", "yyyy/MM/dd");
         ReflectionTestUtils.setField(utilities, "ageLimit", "5");
-        ReflectionTestUtils.setField(utilities, "isVidSupportedForUpdate", false);
+        ReflectionTestUtils.setField(utility, "isVidSupportedForUpdate", false);
         ReflectionTestUtils.setField(utilities, "ageLimitBuffer", 0);
         ReflectionTestUtils.setField(utilities, "expectedPacketProcessingDurationHours", 0);
         InputStream inputStream = getClass().getClassLoader()
