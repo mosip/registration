@@ -60,14 +60,12 @@ import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*","javax.management.*", "javax.net.ssl.*" })
-@PrepareForTest({ Utilities.class, CryptoUtil.class, RegProcessorLogger.class, CbeffValidator.class, DateUtils.class, Utility.class })
+@PrepareForTest({ Utilities.class, CryptoUtil.class, RegProcessorLogger.class, CbeffValidator.class, DateUtils.class })
 public class UtilitiesTest {
 
+    @Spy
     @InjectMocks
     private Utilities utilities = new Utilities();
-
-    @InjectMocks
-    private Utility utility;
 
     @Mock
     private PriorityBasedPacketManagerService packetManagerService;
@@ -84,13 +82,9 @@ public class UtilitiesTest {
     private InternalRegistrationStatusDto registrationStatusDto;
     private IdVidMetadataResponse idVidMetadataResponse;
     private SimpleDateFormat sdf;
-    private String identityMappingjsonString;
-    JSONObject identityObj;
-    /** The Constant CONFIG_SERVER_URL. */
-    private static final String CONFIG_SERVER_URL = "url";
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() throws IOException {
 
         registrationStatusDto = new InternalRegistrationStatusDto();
         registrationStatusDto.setRegistrationId("10049100271000420250319064824");
@@ -101,42 +95,21 @@ public class UtilitiesTest {
         sdf = new SimpleDateFormat("yyyy/MM/dd");
         ReflectionTestUtils.setField(utilities, "dobFormat", "yyyy/MM/dd");
         ReflectionTestUtils.setField(utilities, "ageLimit", "5");
-        ReflectionTestUtils.setField(utility, "isVidSupportedForUpdate", false);
+        ReflectionTestUtils.setField(utilities, "isVidSupportedForUpdate", false);
         ReflectionTestUtils.setField(utilities, "ageLimitBuffer", 0);
         ReflectionTestUtils.setField(utilities, "expectedPacketProcessingDurationHours", 0);
-
-//        InputStream inputStream = getClass().getClassLoader()
-//                .getResourceAsStream("RegistrationProcessorIdentity.json");
-//        String identityMappingjsonString = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
-//
-//        ObjectMapper mapper = new ObjectMapper();
-//        LinkedHashMap jsonMap = mapper.readValue(identityMappingjsonString, LinkedHashMap.class);
-//
-//        LinkedHashMap identityMap = (LinkedHashMap) jsonMap.get("identity");
-//
-//        JSONObject identityObj = new JSONObject(identityMap);
-//
-//        when(utilities.getRegistrationProcessorMappingJson(any())).thenReturn(identityObj);
-
-
-        ClassLoader classLoader1 = getClass().getClassLoader();
-        File idJsonFile1 = new File(classLoader1.getResource("RegistrationProcessorIdentity.json").getFile());
-        InputStream idJsonStream1 = new FileInputStream(idJsonFile1);
-        LinkedHashMap hm = new com.fasterxml.jackson.databind.ObjectMapper().readValue(idJsonStream1, LinkedHashMap.class);
-        JSONObject jsonObject = new JSONObject(hm);
-        identityMappingjsonString = jsonObject.toJSONString();
-        identityObj = JsonUtil.getJSONObject(new com.fasterxml.jackson.databind.ObjectMapper().readValue(identityMappingjsonString, JSONObject.class), MappingJsonConstants.IDENTITY);
-        when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
-
-//        PowerMockito.mockStatic(Utilities.class);
-//        PowerMockito.when(Utilities.getJson(anyString(), anyString())).thenReturn(identityMappingjsonString);
-
+        InputStream inputStream = getClass().getClassLoader()
+                .getResourceAsStream("RegistrationProcessorIdentity.json");
+        String identityMappingjsonString = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+        ObjectMapper mapper = new ObjectMapper();
+        LinkedHashMap jsonMap = mapper.readValue(identityMappingjsonString, LinkedHashMap.class);
+        LinkedHashMap identityMap = (LinkedHashMap) jsonMap.get("identity");
+        JSONObject identityObj = new JSONObject(identityMap);
+        Mockito.doReturn(identityObj).when(utilities).getRegistrationProcessorMappingJson("identity");
         PowerMockito.mockStatic(Utilities.class);
-        PowerMockito.when(Utilities.class, "getJson", CONFIG_SERVER_URL, "RegistrationProcessorIdentity.json")
-                .thenReturn(identityMappingjsonString);
-//        PowerMockito.mockStatic(RegProcessorLogger.class);
-//        when(RegProcessorLogger.getLogger(any(Class.class))).thenReturn(regProcLogger);
-
+        PowerMockito.when(Utilities.getJson(anyString(), anyString())).thenReturn(identityMappingjsonString);
+        PowerMockito.mockStatic(RegProcessorLogger.class);
+        when(RegProcessorLogger.getLogger(any(Class.class))).thenReturn(regProcLogger);
     }
 
     @Test
@@ -208,7 +181,7 @@ public class UtilitiesTest {
         mockIdVidMetadataResponse.setUpdatedOn("2025-10-25T10:00:00.000Z");
         mockIdVidMetadataResponse.setCreatedOn("2025-10-25T09:00:00.000Z");
 
-        when(utility.getUIn(anyString(), anyString(), any())).thenReturn("123456789012");
+        doReturn("123456789012").when(utilities).getUIn(anyString(), anyString(), any());
         String uin = "12345";
         String dob = "2023/01/01";
 
@@ -308,10 +281,8 @@ public class UtilitiesTest {
     @Test
     public void testWasInfantWhenLastPacketProcessed_WhenUinIsNull_ReturnsFalse() throws Exception {
 
-        Utility utilityMock = Mockito.mock(Utility.class);
-        ReflectionTestUtils.setField(utilities, "utility", utilityMock);
-
-        when(utilityMock.getUIn(anyString(), anyString(), any(ProviderStageName.class))).thenReturn(" ");
+        PowerMockito.doReturn(null)
+                .when(utilities, "getUIn", anyString(), anyString(), any(ProviderStageName.class));
 
         boolean result = utilities.wasInfantWhenLastPacketProcessed("10004133140010820251009123300", "UPDATE", ProviderStageName.BIO_DEDUPE);
         assertFalse(result);
@@ -320,10 +291,8 @@ public class UtilitiesTest {
     @Test
     public void testWasInfantWhenLastPacketProcessed_WhenUinIsEmpty_ReturnsFalse() throws Exception {
 
-        Utility utilityMock = Mockito.mock(Utility.class);
-        ReflectionTestUtils.setField(utilities, "utility", utilityMock);
-
-        when(utilityMock.getUIn(anyString(), anyString(), any(ProviderStageName.class))).thenReturn(" ");
+        PowerMockito.doReturn("   ")
+                .when(utilities, "getUIn", anyString(), anyString(), any(ProviderStageName.class));
 
         boolean result = utilities.wasInfantWhenLastPacketProcessed("10004133140010820251009123300", "UPDATE", ProviderStageName.BIO_DEDUPE);
         assertFalse(result);
