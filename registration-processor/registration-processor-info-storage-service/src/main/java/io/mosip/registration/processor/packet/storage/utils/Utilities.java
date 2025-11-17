@@ -208,18 +208,11 @@ public class Utilities {
 	private Integer expectedPacketProcessingDurationHours;
 
 	@Autowired
-	private PacketInfoDao packetInfoDao;
-
-	@Autowired
 	private PriorityBasedPacketManagerService packetManagerService;
 
 	/** The registration status dao. */
 	@Autowired
 	private RegistrationStatusDao registrationStatusDao;
-
-	/** The packet info manager. */
-	@Autowired
-	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
 
 	@Autowired
 	private AdditionalInfoRequestService additionalInfoRequestService;
@@ -707,36 +700,6 @@ public class Utilities {
 				"Utilities::retrieveUIN()::exit regId is null");
 
 		return null;
-	}
-
-	/**
-	 * Calculate age.
-	 *
-	 * @param applicantDob the applicant dob
-	 * @return the int
-	 */
-	private int calculateAge(String applicantDob) {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-				"Utilities::calculateAge():: entry");
-
-		DateFormat sdf = new SimpleDateFormat(dobFormat);
-		Date birthDate = null;
-		try {
-			birthDate = sdf.parse(applicantDob);
-
-		} catch (ParseException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					"", "Utilities::calculateAge():: error with error message "
-							+ PlatformErrorMessages.RPR_SYS_PARSING_DATE_EXCEPTION.getMessage());
-			throw new ParsingException(PlatformErrorMessages.RPR_SYS_PARSING_DATE_EXCEPTION.getCode(), e);
-		}
-		LocalDate ld = new java.sql.Date(birthDate.getTime()).toLocalDate();
-		Period p = Period.between(ld, LocalDate.now());
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-				"Utilities::calculateAge():: exit");
-
-		return p.getYears();
-
 	}
 
 	/**
