@@ -1,27 +1,18 @@
 package io.mosip.registration.processor.packet.storage.utils;
 
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.*;
 import java.util.*;
 
 import io.mosip.kernel.biometrics.commons.CbeffValidator;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
-import io.mosip.kernel.core.idvalidator.spi.VidValidator;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.registration.processor.core.constant.*;
 import io.mosip.registration.processor.core.exception.*;
 import io.mosip.registration.processor.core.idrepo.dto.*;
 import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
 import io.mosip.kernel.biometrics.constant.BiometricType;
-import io.mosip.registration.processor.core.packet.dto.Identity;
-import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
-import io.mosip.registration.processor.packet.storage.dao.PacketInfoDao;
-import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.repositary.SyncRegistrationRepository;
 import io.mosip.registration.processor.status.service.AdditionalInfoRequestService;
@@ -57,7 +48,6 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.dto.ConfigEnum;
 import io.mosip.registration.processor.packet.storage.exception.IdRepoAppException;
-import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.exception.QueueConnectionNotFound;
 import io.mosip.registration.processor.packet.storage.exception.VidCreationException;
 import io.mosip.registration.processor.status.dao.RegistrationStatusDao;
@@ -175,9 +165,6 @@ public class Utilities {
 	@Value("#{'${registration.processor.main-processes}'.split(',')}")
 	private List<String> mainProcesses;
 
-//	@Value("${registration.processor.vid-support-for-update:false}")
-//	private Boolean isVidSupportedForUpdate;
-
 	/**
 	 * Configuration property that defines the age limit used to determine
 	 * whether an applicant is considered an infant or non-infant.
@@ -219,10 +206,6 @@ public class Utilities {
 
 	@Autowired
 	private AdditionalInfoRequestService additionalInfoRequestService;
-
-//	/** The vid validator. */
-//	@Autowired
-//	private VidValidator<String> vidValidator;
 
 	/** The Constant INBOUNDQUEUENAME. */
 	private static final String INBOUNDQUEUENAME = "inboundQueueName";
@@ -571,37 +554,6 @@ public class Utilities {
 
 	}
 
-//	/**
-//	 * Get UIN from identity json (used only for update/res update/activate/de
-//	 * activate packets).
-//	 *
-//	 * @param id the registration id
-//	 * @return the u in
-//	 * @throws IOException                           Signals that an I/O exception
-//	 *                                               has occurred.
-//	 * @throws IOException                           Signals that an I/O exception
-//	 *                                               has occurred.
-//	 * @throws ApisResourceAccessException           the apis resource access
-//	 *                                               exception
-//	 * @throws RegistrationProcessorCheckedException
-//	 */
-//	public String getUIn(String id, String process, ProviderStageName stageName)
-//			throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
-//		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
-//				"Utilities::getUIn()::entry");
-//		String UIN = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.UIN, process, stageName);
-//		if(isVidSupportedForUpdate && StringUtils.isNotEmpty(UIN) && validateVid(UIN)) {
-//			regProcLogger.debug("VID structure validated successfully");
-//			JSONObject responseJson = retrieveIdrepoJson(UIN);
-//			if (responseJson != null) {
-//				UIN = JsonUtil.getJSONValue(responseJson, AbisConstant.UIN);
-//			}
-//		}
-//		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
-//				"Utilities::getUIn()::exit");
-//		return UIN;
-//	}
-
 	/**
 	 * Gets the elapse status.
 	 *
@@ -844,16 +796,6 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 
 		return additionalInfoRequestDto.getAdditionalInfoIteration();
 	}
-
-//	public boolean validateVid(String vid) {
-//		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-//				"Utilities::validateVid()::entry");
-//		try {
-//			return vidValidator.validateId(vid);
-//		} catch (InvalidIDException e) {
-//			return false;
-//		}
-//	}
 
 	/**
 	 * Determines whether the applicant was an infant at the time their last packet was processed in the system

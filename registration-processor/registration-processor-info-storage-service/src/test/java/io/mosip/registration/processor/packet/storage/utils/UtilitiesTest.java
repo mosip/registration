@@ -29,7 +29,7 @@ import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-//import org.mockito.*;
+import org.mockito.*;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -55,16 +55,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.junit.Assert.*;
-//import static org.mockito.Mockito.*;
-//import static org.powermock.api.mockito.PowerMockito.when;
-
-import org.mockito.Mockito;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.mock;
-
-import org.mockito.Mock;
-import org.mockito.Spy;
-import org.mockito.InjectMocks;
+import static org.mockito.Mockito.*;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*","javax.management.*", "javax.net.ssl.*" })
@@ -87,7 +79,7 @@ public class UtilitiesTest {
     @Mock
     private Logger regProcLogger;
 
-    @Mock
+    @InjectMocks
     private Utility utility;
 
     private InternalRegistrationStatusDto registrationStatusDto;
@@ -107,20 +99,28 @@ public class UtilitiesTest {
         ReflectionTestUtils.setField(utilities, "dobFormat", "yyyy/MM/dd");
         ReflectionTestUtils.setField(utilities, "ageLimit", "5");
         ReflectionTestUtils.setField(utility, "isVidSupportedForUpdate", false);
+        ReflectionTestUtils.setField(utilities, "utility", utility);
         ReflectionTestUtils.setField(utilities, "ageLimitBuffer", 0);
         ReflectionTestUtils.setField(utilities, "expectedPacketProcessingDurationHours", 0);
+
         InputStream inputStream = getClass().getClassLoader()
                 .getResourceAsStream("RegistrationProcessorIdentity.json");
         String identityMappingjsonString = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+
         ObjectMapper mapper = new ObjectMapper();
         LinkedHashMap jsonMap = mapper.readValue(identityMappingjsonString, LinkedHashMap.class);
+
         LinkedHashMap identityMap = (LinkedHashMap) jsonMap.get("identity");
+
         JSONObject identityObj = new JSONObject(identityMap);
+
         Mockito.doReturn(identityObj).when(utilities).getRegistrationProcessorMappingJson("identity");
+
         PowerMockito.mockStatic(Utilities.class);
         PowerMockito.when(Utilities.getJson(anyString(), anyString())).thenReturn(identityMappingjsonString);
         PowerMockito.mockStatic(RegProcessorLogger.class);
-        Mockito.when(RegProcessorLogger.getLogger(any(Class.class))).thenReturn(regProcLogger);
+        when(RegProcessorLogger.getLogger(any(Class.class))).thenReturn(regProcLogger);
+
     }
 
     @Test
@@ -180,40 +180,40 @@ public class UtilitiesTest {
         assertEquals(10, age);
     }
 
-//    @Test
-//    public void testWasInfantWhenLastPacketProcessed_infantScenario_returnsTrue() throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
-//
-//        String registrationId = "10049100271000420250319064824";
-//        String registrationType = "NEW";
-//        ProviderStageName stageName = ProviderStageName.BIO_DEDUPE;
-//
-//        IdVidMetadataResponse mockIdVidMetadataResponse = new IdVidMetadataResponse();
-//        mockIdVidMetadataResponse.setRid(registrationId);
-//        mockIdVidMetadataResponse.setUpdatedOn("2025-10-25T10:00:00.000Z");
-//        mockIdVidMetadataResponse.setCreatedOn("2025-10-25T09:00:00.000Z");
-//
-//        //doReturn("123456789012").when(utilities).getUIn(anyString(), anyString(), any());
-//        Mockito.when(utility.getUIn(anyString(), anyString(), any())).thenReturn("123456789012");
-//        String uin = "12345";
-//        String dob = "2023/01/01";
-//
-//        JSONObject identityJson = new JSONObject();
-//        identityJson.put("dateOfBirth", dob);
-//
-//        Mockito.when(idRepoService.getIdJsonFromIDRepo(anyString(), any())).thenReturn(identityJson);
-//        Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any()))
-//                .thenReturn(uin);
-//
-//        doReturn(mockIdVidMetadataResponse).when(utilities).getIdVidMetadata(anyString(), any());
-//        doReturn(LocalDate.of(2023, 1, 1))
-//                .when(utilities).getDateOfBirthFromIdrepo(anyString(), any(JSONObject.class));
-//        doReturn(LocalDate.of(2025, 10, 24))
-//                .when(utilities).computePacketCreatedFromIdentityUpdate(any(IdVidMetadataResponse.class), anyString());
-//
-//        boolean result = utilities.wasInfantWhenLastPacketProcessed(registrationId, registrationType, stageName);
-//
-//        assertTrue(result);
-//    }
+    @Test
+    public void testWasInfantWhenLastPacketProcessed_infantScenario_returnsTrue() throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
+
+
+        String registrationId = "10049100271000420250319064824";
+        String registrationType = "NEW";
+        ProviderStageName stageName = ProviderStageName.BIO_DEDUPE;
+
+        IdVidMetadataResponse mockIdVidMetadataResponse = new IdVidMetadataResponse();
+        mockIdVidMetadataResponse.setRid(registrationId);
+        mockIdVidMetadataResponse.setUpdatedOn("2025-10-25T10:00:00.000Z");
+        mockIdVidMetadataResponse.setCreatedOn("2025-10-25T09:00:00.000Z");
+
+        when(utility.getUIn(any(), any(), eq(any()))).thenReturn("123456789012");
+        String uin = "12345";
+        String dob = "2023/01/01";
+
+        JSONObject identityJson = new JSONObject();
+        identityJson.put("dateOfBirth", dob);
+
+        Mockito.when(idRepoService.getIdJsonFromIDRepo(anyString(), any())).thenReturn(identityJson);
+        Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any()))
+                .thenReturn(uin);
+
+        doReturn(mockIdVidMetadataResponse).when(utilities).getIdVidMetadata(anyString(), any());
+        doReturn(LocalDate.of(2023, 1, 1))
+                .when(utilities).getDateOfBirthFromIdrepo(anyString(), any(JSONObject.class));
+        doReturn(LocalDate.of(2025, 10, 24))
+                .when(utilities).computePacketCreatedFromIdentityUpdate(any(IdVidMetadataResponse.class), anyString());
+
+        boolean result = utilities.wasInfantWhenLastPacketProcessed(registrationId, registrationType, stageName);
+
+        assertTrue(result);
+    }
 
     @Test
     public void testGetPacketCreatedDateFromRid_Valid() {
@@ -295,10 +295,7 @@ public class UtilitiesTest {
     @Test
     public void testWasInfantWhenLastPacketProcessed_WhenUinIsNull_ReturnsFalse() throws Exception {
 
-//        PowerMockito.doReturn(null)
-//                .when(utilities, "getUIn", anyString(), anyString(), any(ProviderStageName.class));
-
-        Mockito.when(utility.getUIn(anyString(), anyString(), any())).thenReturn(null);
+        when(utility.getUIn(any(), any(), eq(any()))).thenReturn(null);
 
         boolean result = utilities.wasInfantWhenLastPacketProcessed("10004133140010820251009123300", "UPDATE", ProviderStageName.BIO_DEDUPE);
         assertFalse(result);
@@ -307,10 +304,7 @@ public class UtilitiesTest {
     @Test
     public void testWasInfantWhenLastPacketProcessed_WhenUinIsEmpty_ReturnsFalse() throws Exception {
 
-//        PowerMockito.doReturn("   ")
-//                .when(utilities, "getUIn", anyString(), anyString(), any(ProviderStageName.class));
-
-        Mockito.when(utility.getUIn(anyString(), anyString(), any())).thenReturn("  ");
+        when(utility.getUIn(any(), any(), eq(any()))).thenReturn("  ");
 
         boolean result = utilities.wasInfantWhenLastPacketProcessed("10004133140010820251009123300", "UPDATE", ProviderStageName.BIO_DEDUPE);
         assertFalse(result);
@@ -327,13 +321,13 @@ public class UtilitiesTest {
         response.put("dateOfBirth", dob);
         String jsonString = new ObjectMapper().writeValueAsString(response);
         JSONObject identityJson = JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
-        Mockito.when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
+        when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
                 .thenReturn(identityJson);
 
         IdVidMetadataRequest idVidMetadataRequest = new IdVidMetadataRequest();
         idVidMetadataRequest.setIndividualId(uin);
 
-        Mockito.when(idRepoService.searchIdVidMetadata(idVidMetadataRequest)).thenReturn(null);
+        when(idRepoService.searchIdVidMetadata(idVidMetadataRequest)).thenReturn(null);
 
         utilities.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
     }
@@ -349,7 +343,7 @@ public class UtilitiesTest {
         response.put("dateOfBirth", dob);
         String jsonString = new ObjectMapper().writeValueAsString(response);
         JSONObject identityJson = JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
-        Mockito.when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
+        when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
                 .thenReturn(identityJson);
 
         IdVidMetadataRequest idVidMetadataRequest = new IdVidMetadataRequest();
@@ -358,10 +352,10 @@ public class UtilitiesTest {
         IdVidMetadataResponse idVidMetadataResponse = new IdVidMetadataResponse();
         idVidMetadataResponse.setRid("10049100271000420240319064824");
 
-        Mockito.when(idRepoService.searchIdVidMetadata(idVidMetadataRequest)).thenReturn(idVidMetadataResponse);
+        when(idRepoService.searchIdVidMetadata(idVidMetadataRequest)).thenReturn(idVidMetadataResponse);
 
-       boolean result =  utilities.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
-       assertTrue(result);
+        boolean result =  utilities.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
+        assertTrue(result);
     }
 
     @Test
@@ -375,7 +369,7 @@ public class UtilitiesTest {
         response.put("dateOfBirth", dob);
         String jsonString = new ObjectMapper().writeValueAsString(response);
         JSONObject identityJson = JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
-        Mockito.when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
+        when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
                 .thenReturn(identityJson);
 
         IdVidMetadataRequest idVidMetadataRequest = new IdVidMetadataRequest();
@@ -384,7 +378,7 @@ public class UtilitiesTest {
         IdVidMetadataResponse idVidMetadataResponse = new IdVidMetadataResponse();
         idVidMetadataResponse.setRid("10049100271000420240319064824");
 
-        Mockito.when(idRepoService.searchIdVidMetadata(idVidMetadataRequest)).thenReturn(idVidMetadataResponse);
+        when(idRepoService.searchIdVidMetadata(idVidMetadataRequest)).thenReturn(idVidMetadataResponse);
 
         SyncRegistrationEntity syncRegistration = new SyncRegistrationEntity();
         syncRegistration.setRegistrationId("10049100271000420240319064824");
@@ -392,7 +386,7 @@ public class UtilitiesTest {
         syncRegistration.setCreateDateTime(LocalDateTime.of(2024, 1, 1, 12, 30, 45));
         List<SyncRegistrationEntity> syncRegistrationEntityList = new ArrayList<>();
         syncRegistrationEntityList.add(syncRegistration);
-        Mockito.when(syncRegistrationRepository.findByRegistrationId(anyString())).thenReturn(syncRegistrationEntityList);
+        when(syncRegistrationRepository.findByRegistrationId(anyString())).thenReturn(syncRegistrationEntityList);
 
         boolean result = utilities.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
         assertTrue(result);
@@ -409,7 +403,7 @@ public class UtilitiesTest {
         response.put("dateOfBirth", dob);
         String jsonString = new ObjectMapper().writeValueAsString(response);
         JSONObject identityJson = JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
-        Mockito.when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
+        when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
                 .thenReturn(identityJson);
 
         IdVidMetadataRequest idVidMetadataRequest = new IdVidMetadataRequest();
@@ -418,7 +412,7 @@ public class UtilitiesTest {
         IdVidMetadataResponse idVidMetadataResponse = new IdVidMetadataResponse();
         idVidMetadataResponse.setRid("10049100271000420240319064824");
 
-        Mockito.when(idRepoService.searchIdVidMetadata(idVidMetadataRequest)).thenReturn(idVidMetadataResponse);
+        when(idRepoService.searchIdVidMetadata(idVidMetadataRequest)).thenReturn(idVidMetadataResponse);
 
         SyncRegistrationEntity syncRegistration = new SyncRegistrationEntity();
         syncRegistration.setRegistrationId("10049100271000420240319064824");
@@ -426,7 +420,7 @@ public class UtilitiesTest {
         syncRegistration.setCreateDateTime(LocalDateTime.of(2024, 1, 1, 12, 30, 45));
         List<SyncRegistrationEntity> syncRegistrationEntityList = new ArrayList<>();
         syncRegistrationEntityList.add(syncRegistration);
-        Mockito.when(syncRegistrationRepository.findByRegistrationId(anyString())).thenReturn(syncRegistrationEntityList);
+        when(syncRegistrationRepository.findByRegistrationId(anyString())).thenReturn(syncRegistrationEntityList);
 
         boolean result = utilities.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
         assertTrue(result);
@@ -443,7 +437,7 @@ public class UtilitiesTest {
         response.put("dateOfBirth", dob);
         String jsonString = new ObjectMapper().writeValueAsString(response);
         JSONObject identityJson = JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
-        Mockito.when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
+        when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
                 .thenReturn(identityJson);
 
         IdVidMetadataRequest idVidMetadataRequest = new IdVidMetadataRequest();
@@ -454,10 +448,10 @@ public class UtilitiesTest {
         idVidMetadataResponse.setUpdatedOn("2025-09-27T11:09:22.477Z");
         idVidMetadataResponse.setCreatedOn("2025-09-26T11:09:22.477Z");
 
-        Mockito.when(idRepoService.searchIdVidMetadata(idVidMetadataRequest)).thenReturn(idVidMetadataResponse);
+        when(idRepoService.searchIdVidMetadata(idVidMetadataRequest)).thenReturn(idVidMetadataResponse);
 
         List<SyncRegistrationEntity> syncRegistrationEntityList = new ArrayList<>();
-        Mockito.when(syncRegistrationRepository.findByRegistrationId(anyString())).thenReturn(syncRegistrationEntityList);
+        when(syncRegistrationRepository.findByRegistrationId(anyString())).thenReturn(syncRegistrationEntityList);
 
         boolean result = utilities.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
         assertTrue(result);
@@ -474,7 +468,7 @@ public class UtilitiesTest {
         response.put("dateOfBirth", dob);
         String jsonString = new ObjectMapper().writeValueAsString(response);
         JSONObject identityJson = JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
-        Mockito.when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
+        when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
                 .thenReturn(identityJson);
 
         IdVidMetadataRequest idVidMetadataRequest = new IdVidMetadataRequest();
@@ -485,9 +479,9 @@ public class UtilitiesTest {
         idVidMetadataResponse.setUpdatedOn(null);
         idVidMetadataResponse.setCreatedOn("2025-09-26T11:09:22.477Z");
 
-        Mockito.when(idRepoService.searchIdVidMetadata(idVidMetadataRequest)).thenReturn(idVidMetadataResponse);
+        when(idRepoService.searchIdVidMetadata(idVidMetadataRequest)).thenReturn(idVidMetadataResponse);
         List<SyncRegistrationEntity> syncRegistrationEntityList = new ArrayList<>();
-        Mockito.when(syncRegistrationRepository.findByRegistrationId(anyString())).thenReturn(syncRegistrationEntityList);
+        when(syncRegistrationRepository.findByRegistrationId(anyString())).thenReturn(syncRegistrationEntityList);
 
         boolean result = utilities.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
         assertTrue(result);
@@ -505,7 +499,7 @@ public class UtilitiesTest {
         response.put("dateOfBirth", dob);
         String jsonString = new ObjectMapper().writeValueAsString(response);
         JSONObject identityJson = JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
-        Mockito.when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
+        when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
                 .thenReturn(identityJson);
 
         IdVidMetadataRequest idVidMetadataRequest = new IdVidMetadataRequest();
@@ -516,9 +510,9 @@ public class UtilitiesTest {
         idVidMetadataResponse.setUpdatedOn(null);
         idVidMetadataResponse.setCreatedOn("2027-01-01T11:09:22.477Z");
 
-        Mockito.when(idRepoService.searchIdVidMetadata(idVidMetadataRequest)).thenReturn(idVidMetadataResponse);
+        when(idRepoService.searchIdVidMetadata(idVidMetadataRequest)).thenReturn(idVidMetadataResponse);
         List<SyncRegistrationEntity> syncRegistrationEntityList = new ArrayList<>();
-        Mockito.when(syncRegistrationRepository.findByRegistrationId(anyString())).thenReturn(syncRegistrationEntityList);
+        when(syncRegistrationRepository.findByRegistrationId(anyString())).thenReturn(syncRegistrationEntityList);
 
         boolean result = utilities.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
         assertTrue(result);
@@ -552,7 +546,7 @@ public class UtilitiesTest {
         ReflectionTestUtils.setField(utilities, "expectedPacketProcessingDurationHours", 24);
 
         PowerMockito.mockStatic(DateUtils.class);
-        Mockito.when(DateUtils.parseUTCToLocalDateTime(anyString(), anyString()))
+        when(DateUtils.parseUTCToLocalDateTime(anyString(), anyString()))
                 .thenReturn(LocalDateTime.of(2025, 10, 27, 10, 0));
 
         LocalDate result = utilities.computePacketCreatedFromIdentityUpdate(idVidMetadataResponse, "10049100271000420250319064824");
@@ -571,7 +565,7 @@ public class UtilitiesTest {
         response.put("dateOfBirth", dob);
         String jsonString = new ObjectMapper().writeValueAsString(response);
         JSONObject identityJson = JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
-        Mockito.when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
+        when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
                 .thenReturn(identityJson);
 
         IdVidMetadataRequest idVidMetadataRequest = new IdVidMetadataRequest();
@@ -582,9 +576,9 @@ public class UtilitiesTest {
         idVidMetadataResponse.setUpdatedOn(null);
         idVidMetadataResponse.setCreatedOn("2025-09-26");
 
-        Mockito.when(idRepoService.searchIdVidMetadata(idVidMetadataRequest)).thenReturn(idVidMetadataResponse);
+        when(idRepoService.searchIdVidMetadata(idVidMetadataRequest)).thenReturn(idVidMetadataResponse);
 
-        Mockito.when(syncRegistrationRepository.findByRegistrationId(anyString())).thenReturn(null);
+        when(syncRegistrationRepository.findByRegistrationId(anyString())).thenReturn(null);
 
         utilities.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
     }
@@ -614,7 +608,7 @@ public class UtilitiesTest {
         Map<String, String> metaInfo = new HashMap<>();
         String packetCreatedDate = "2025-05-28T10:53:13.973Z";
         metaInfo.put("creationDate",packetCreatedDate);
-        Mockito.when(packetManagerService.getMetaInfo(anyString(),anyString(),any(ProviderStageName.class))).thenReturn(metaInfo);
+        when(packetManagerService.getMetaInfo(anyString(),anyString(),any(ProviderStageName.class))).thenReturn(metaInfo);
         String res = utilities.retrieveCreatedDateFromPacket("10049100271000420250319064824","NEW", ProviderStageName.UIN_GENERATOR);
         assertEquals(packetCreatedDate,res);
     }
@@ -627,7 +621,7 @@ public class UtilitiesTest {
         ProviderStageName stageName = ProviderStageName.BIO_DEDUPE;
 
         Map<String, String> metaInfo = Collections.emptyMap();
-        Mockito.when(packetManagerService.getMetaInfo(rid, process, stageName)).thenReturn(metaInfo);
+        when(packetManagerService.getMetaInfo(rid, process, stageName)).thenReturn(metaInfo);
 
         String result = utilities.retrieveCreatedDateFromPacket(rid, process, stageName);
 
@@ -644,9 +638,9 @@ public class UtilitiesTest {
         String rid = "10049100271000420250319064824";
         BIR bir = mock(BIR.class);
         BDBInfo bdbInfo = mock(BDBInfo.class);
-        Mockito.when(bdbInfo.getType()).thenReturn(Collections.singletonList(BiometricType.IRIS));
-        Mockito.when(bir.getBdbInfo()).thenReturn(bdbInfo);
-        Mockito.when(bir.getOthers()).thenReturn(null);
+        when(bdbInfo.getType()).thenReturn(Collections.singletonList(BiometricType.IRIS));
+        when(bir.getBdbInfo()).thenReturn(bdbInfo);
+        when(bir.getOthers()).thenReturn(null);
 
         List<BIR> birs = Collections.singletonList(bir);
 
@@ -670,51 +664,51 @@ public class UtilitiesTest {
         String registrationType = "UPDATE";
         ProviderStageName stageName = ProviderStageName.BIO_DEDUPE;
 
-        Mockito.when(packetManagerService.getField(rid, MappingJsonConstants.UIN, registrationType, stageName))
+        when(packetManagerService.getField(rid, MappingJsonConstants.UIN, registrationType, stageName))
                 .thenThrow(new RuntimeException("Service failure"));
 
         utilities.allBiometricHaveException(rid, registrationType, stageName);
     }
 
-//    @Test(expected = BiometricClassificationException.class)
-//    public void testGetBiometricRecordfromIdrepo_noDocuments_returnsNull() throws ApisResourceAccessException, IOException {
-//        String uin = "66554444";
-//        String rid = "10049100271000420240319064824";
-//        doReturn(Collections.emptyList()).when(utilities).retrieveIdrepoDocument(uin);
-//        utilities.getBiometricRecordfromIdrepo(uin, rid);
-//    }
+    @Test(expected = BiometricClassificationException.class)
+    public void testGetBiometricRecordfromIdrepo_noDocuments_returnsNull() throws ApisResourceAccessException, IOException {
+        String uin = "66554444";
+        String rid = "10049100271000420240319064824";
+        doReturn(Collections.emptyList()).when(utilities).retrieveIdrepoDocument(uin);
+        utilities.getBiometricRecordfromIdrepo(uin, rid);
+    }
 
-//    @Test
-//    public void testGetBiometricRecordfromIdrepo_Success() throws Exception {
-//        String uin = "1234567890";
-//        String rid = "10049100271000420230319064824";
-//
-//        PowerMockito.mockStatic(RegProcessorLogger.class);
-//        Mockito.when(RegProcessorLogger.getLogger(any())).thenReturn(regProcLogger);
-//
-//        Documents doc = new Documents();
-//        doc.setCategory("IndividualBiometrics");
-//        doc.setValue("YmFzZTY0RW5jb2RlZEJpb0RhdGE=");
-//        List<Documents> docs = Arrays.asList(doc);
-//        doReturn(docs).when(utilities).retrieveIdrepoDocument(uin);
-//
-//        PowerMockito.mockStatic(CryptoUtil.class);
-//        byte[] decoded = "decodedXML".getBytes();
-//        Mockito.when(CryptoUtil.decodeURLSafeBase64(anyString())).thenReturn(decoded);
-//        PowerMockito.mockStatic(CbeffValidator.class);
-//        BIR bir = mock(BIR.class);
-//        Mockito.when(bir.getBirs()).thenReturn(Collections.emptyList());
-//        HashMap<String, String> othersMap = new HashMap<>();
-//        othersMap.put("key1", "value1");
-//        Mockito.when(bir.getOthers()).thenReturn(othersMap);
-//        Mockito.when(CbeffValidator.getBIRFromXML(any(byte[].class))).thenReturn(bir);
-//
-//        BiometricRecord result = utilities.getBiometricRecordfromIdrepo(uin, rid);
-//
-//        assertNotNull(result);
-//        assertEquals("value1", result.getOthers().get("key1"));
-//        assertTrue(result.getSegments().isEmpty());
-//    }
+    @Test
+    public void testGetBiometricRecordfromIdrepo_Success() throws Exception {
+        String uin = "1234567890";
+        String rid = "10049100271000420230319064824";
+
+        PowerMockito.mockStatic(RegProcessorLogger.class);
+        when(RegProcessorLogger.getLogger(any())).thenReturn(regProcLogger);
+
+        Documents doc = new Documents();
+        doc.setCategory("IndividualBiometrics");
+        doc.setValue("YmFzZTY0RW5jb2RlZEJpb0RhdGE=");
+        List<Documents> docs = Arrays.asList(doc);
+        doReturn(docs).when(utilities).retrieveIdrepoDocument(uin);
+
+        PowerMockito.mockStatic(CryptoUtil.class);
+        byte[] decoded = "decodedXML".getBytes();
+        when(CryptoUtil.decodeURLSafeBase64(anyString())).thenReturn(decoded);
+        PowerMockito.mockStatic(CbeffValidator.class);
+        BIR bir = mock(BIR.class);
+        when(bir.getBirs()).thenReturn(Collections.emptyList());
+        HashMap<String, String> othersMap = new HashMap<>();
+        othersMap.put("key1", "value1");
+        when(bir.getOthers()).thenReturn(othersMap);
+        when(CbeffValidator.getBIRFromXML(any(byte[].class))).thenReturn(bir);
+
+        BiometricRecord result = utilities.getBiometricRecordfromIdrepo(uin, rid);
+
+        assertNotNull(result);
+        assertEquals("value1", result.getOthers().get("key1"));
+        assertTrue(result.getSegments().isEmpty());
+    }
 
     @Test
     public void testisALLBiometricHaveExceptionWithCbeffWithOthersAllBioException() throws JAXBException, IOException {
