@@ -56,7 +56,7 @@ import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*","javax.management.*", "javax.net.ssl.*" })
@@ -192,9 +192,15 @@ public class UtilitiesTest {
         Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any()))
                 .thenReturn(uin);
 
-        when(utilities.getIdVidMetadata(anyString(), any())).thenReturn(mockIdVidMetadataResponse);
+        /*when(utilities.getIdVidMetadata(anyString(), any())).thenReturn(mockIdVidMetadataResponse);
         when(utilities.getDateOfBirthFromIdrepo(anyString(), any(JSONObject.class))).thenReturn(LocalDate.of(2023, 1, 1));
-        when(utilities.computePacketCreatedFromIdentityUpdate(any(IdVidMetadataResponse.class), anyString())).thenReturn(LocalDate.of(2025, 10, 24));
+        when(utilities.computePacketCreatedFromIdentityUpdate(any(IdVidMetadataResponse.class), anyString())).thenReturn(LocalDate.of(2025, 10, 24));*/
+
+        doReturn(mockIdVidMetadataResponse).when(utilities).getIdVidMetadata(anyString(), any());
+        doReturn(LocalDate.of(2023, 1, 1))
+                .when(utilities).getDateOfBirthFromIdrepo(anyString(), any(JSONObject.class));
+        doReturn(LocalDate.of(2025, 10, 24))
+                .when(utilities).computePacketCreatedFromIdentityUpdate(any(IdVidMetadataResponse.class), anyString());
 
         boolean result = utilities.wasInfantWhenLastPacketProcessed(registrationId, registrationType, stageName);
 
@@ -662,7 +668,7 @@ public class UtilitiesTest {
     public void testGetBiometricRecordfromIdrepo_noDocuments_returnsNull() throws ApisResourceAccessException, IOException {
         String uin = "66554444";
         String rid = "10049100271000420240319064824";
-        when(utilities.retrieveIdrepoDocument(uin)).thenReturn(Collections.emptyList());
+        doReturn(Collections.emptyList()).when(utilities).retrieveIdrepoDocument(uin);
         utilities.getBiometricRecordfromIdrepo(uin, rid);
     }
 
