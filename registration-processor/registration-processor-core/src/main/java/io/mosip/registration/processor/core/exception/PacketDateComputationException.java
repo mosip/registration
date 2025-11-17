@@ -10,8 +10,9 @@ public class PacketDateComputationException extends BaseUncheckedException {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Instantiates a new PacketCreationDate not found exception.
+     * Instantiates a new PacketDateComputation exception.
      *
+     * @param errorCode    the error code
      * @param errorMessage the error message
      */
     public PacketDateComputationException(String errorCode, String errorMessage) {
