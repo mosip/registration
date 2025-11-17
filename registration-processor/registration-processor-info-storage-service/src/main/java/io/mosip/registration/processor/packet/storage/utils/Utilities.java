@@ -284,59 +284,6 @@ public class Utilities {
 		return restTemplate.getForObject(configServerFileStorageURL + uri, String.class);
 	}
 
-	/**
-	 * get applicant age by registration id. Checks the id json if dob or age
-	 * present, if yes returns age if both dob or age are not present then retrieves
-	 * age from id repo
-	 *
-	 * @param id the registration id
-	 * @return the applicant age
-	 * @throws IOException                           Signals that an I/O exception
-	 *                                               has occurred.
-	 * @throws IOException                           Signals that an I/O exception
-	 *                                               has occurred.
-	 * @throws ApisResourceAccessException           the packet decryption failure
-	 *                                               exception
-	 * @throws RegistrationProcessorCheckedException
-	 */
-	public int getApplicantAge(String id, String process, ProviderStageName stageName)
-			throws IOException, ApisResourceAccessException, JsonProcessingException, PacketManagerException {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), id,
-				"Utilities::getApplicantAge()::entry");
-
-		String applicantDob = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.DOB, process,
-				stageName);
-		String applicantAge = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.AGE, process,
-				stageName);
-		if (applicantDob != null) {
-			return calculateAge(applicantDob);
-		} else if (applicantAge != null) {
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), id,
-					"Utilities::getApplicantAge()::exit when applicantAge is not null");
-			return Integer.valueOf(applicantAge);
-		} else {
-			String uin = getUIn(id, process, stageName);
-			JSONObject identityJSONOject = retrieveIdrepoJson(uin);
-			JSONObject regProcessorIdentityJson = getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
-			String ageKey = JsonUtil
-					.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.AGE), VALUE);
-			String dobKey = JsonUtil
-					.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.DOB), VALUE);
-			String idRepoApplicantDob = JsonUtil.getJSONValue(identityJSONOject, dobKey);
-			if (idRepoApplicantDob != null) {
-				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), id,
-						"Utilities::getApplicantAge()::exit when ID REPO applicantDob is not null");
-				return calculateAge(idRepoApplicantDob);
-			}
-			Integer idRepoApplicantAge = JsonUtil.getJSONValue(identityJSONOject, ageKey);
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), id,
-					"Utilities::getApplicantAge()::exit when ID REPO applicantAge is not null");
-			return idRepoApplicantAge != null ? idRepoApplicantAge : -1;
-
-		}
-
-	}
-
 	public String getDefaultSource(String process, ConfigEnum config) {
 		Map<String, String> configMap = null;
 		if (config.equals(ConfigEnum.READER))
