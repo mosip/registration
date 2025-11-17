@@ -192,10 +192,6 @@ public class UtilitiesTest {
         Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any()))
                 .thenReturn(uin);
 
-        /*when(utilities.getIdVidMetadata(anyString(), any())).thenReturn(mockIdVidMetadataResponse);
-        when(utilities.getDateOfBirthFromIdrepo(anyString(), any(JSONObject.class))).thenReturn(LocalDate.of(2023, 1, 1));
-        when(utilities.computePacketCreatedFromIdentityUpdate(any(IdVidMetadataResponse.class), anyString())).thenReturn(LocalDate.of(2025, 10, 24));*/
-
         doReturn(mockIdVidMetadataResponse).when(utilities).getIdVidMetadata(anyString(), any());
         doReturn(LocalDate.of(2023, 1, 1))
                 .when(utilities).getDateOfBirthFromIdrepo(anyString(), any(JSONObject.class));
