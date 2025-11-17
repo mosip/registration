@@ -127,6 +127,9 @@ public class Utilities {
 	@Autowired
 	SyncRegistrationRepository<SyncRegistrationEntity, String> syncRegistrationRepository;
 
+	@Autowired
+	Utility utility;
+
 	@Value("${provider.packetreader.mosip}")
 	private String provider;
 
@@ -172,8 +175,8 @@ public class Utilities {
 	@Value("#{'${registration.processor.main-processes}'.split(',')}")
 	private List<String> mainProcesses;
 
-	@Value("${registration.processor.vid-support-for-update:false}")
-	private Boolean isVidSupportedForUpdate;
+//	@Value("${registration.processor.vid-support-for-update:false}")
+//	private Boolean isVidSupportedForUpdate;
 
 	/**
 	 * Configuration property that defines the age limit used to determine
@@ -217,9 +220,9 @@ public class Utilities {
 	@Autowired
 	private AdditionalInfoRequestService additionalInfoRequestService;
 
-	/** The vid validator. */
-	@Autowired
-	private VidValidator<String> vidValidator;
+//	/** The vid validator. */
+//	@Autowired
+//	private VidValidator<String> vidValidator;
 
 	/** The Constant INBOUNDQUEUENAME. */
 	private static final String INBOUNDQUEUENAME = "inboundQueueName";
@@ -568,36 +571,36 @@ public class Utilities {
 
 	}
 
-	/**
-	 * Get UIN from identity json (used only for update/res update/activate/de
-	 * activate packets).
-	 *
-	 * @param id the registration id
-	 * @return the u in
-	 * @throws IOException                           Signals that an I/O exception
-	 *                                               has occurred.
-	 * @throws IOException                           Signals that an I/O exception
-	 *                                               has occurred.
-	 * @throws ApisResourceAccessException           the apis resource access
-	 *                                               exception
-	 * @throws RegistrationProcessorCheckedException
-	 */
-	public String getUIn(String id, String process, ProviderStageName stageName)
-			throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
-				"Utilities::getUIn()::entry");
-		String UIN = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.UIN, process, stageName);
-		if(isVidSupportedForUpdate && StringUtils.isNotEmpty(UIN) && validateVid(UIN)) {
-			regProcLogger.debug("VID structure validated successfully");
-			JSONObject responseJson = retrieveIdrepoJson(UIN);
-			if (responseJson != null) {
-				UIN = JsonUtil.getJSONValue(responseJson, AbisConstant.UIN);
-			}
-		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
-				"Utilities::getUIn()::exit");
-		return UIN;
-	}
+//	/**
+//	 * Get UIN from identity json (used only for update/res update/activate/de
+//	 * activate packets).
+//	 *
+//	 * @param id the registration id
+//	 * @return the u in
+//	 * @throws IOException                           Signals that an I/O exception
+//	 *                                               has occurred.
+//	 * @throws IOException                           Signals that an I/O exception
+//	 *                                               has occurred.
+//	 * @throws ApisResourceAccessException           the apis resource access
+//	 *                                               exception
+//	 * @throws RegistrationProcessorCheckedException
+//	 */
+//	public String getUIn(String id, String process, ProviderStageName stageName)
+//			throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
+//		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
+//				"Utilities::getUIn()::entry");
+//		String UIN = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.UIN, process, stageName);
+//		if(isVidSupportedForUpdate && StringUtils.isNotEmpty(UIN) && validateVid(UIN)) {
+//			regProcLogger.debug("VID structure validated successfully");
+//			JSONObject responseJson = retrieveIdrepoJson(UIN);
+//			if (responseJson != null) {
+//				UIN = JsonUtil.getJSONValue(responseJson, AbisConstant.UIN);
+//			}
+//		}
+//		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
+//				"Utilities::getUIn()::exit");
+//		return UIN;
+//	}
 
 	/**
 	 * Gets the elapse status.
@@ -842,15 +845,15 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		return additionalInfoRequestDto.getAdditionalInfoIteration();
 	}
 
-	public boolean validateVid(String vid) {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				"Utilities::validateVid()::entry");
-		try {
-			return vidValidator.validateId(vid);
-		} catch (InvalidIDException e) {
-			return false;
-		}
-	}
+//	public boolean validateVid(String vid) {
+//		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+//				"Utilities::validateVid()::entry");
+//		try {
+//			return vidValidator.validateId(vid);
+//		} catch (InvalidIDException e) {
+//			return false;
+//		}
+//	}
 
 	/**
 	 * Determines whether the applicant was an infant at the time their last packet was processed in the system
@@ -869,7 +872,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "utility::wasInfantWhenLastPacketProcessed()::entry");
 
-		String packetUin = getUIn(registrationId, registrationType, stageName);
+		String packetUin = utility.getUIn(registrationId, registrationType, stageName);
 		if (packetUin == null || packetUin.trim().isEmpty()) {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 					LoggerFileConstant.REGISTRATIONID.toString(),
@@ -1402,7 +1405,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 	 */
 	public boolean allBiometricHaveException(String rid, String registrationType, ProviderStageName stageName) throws BiometricClassificationException {
 		try {
-			String uin = getUIn(rid, registrationType, stageName);
+			String uin = utility.getUIn(rid, registrationType, stageName);
 			BiometricRecord bm = getBiometricRecordfromIdrepo(uin, rid);
 			return allBiometricHaveException(bm.getSegments(), rid);
 		} catch (Exception e) {
