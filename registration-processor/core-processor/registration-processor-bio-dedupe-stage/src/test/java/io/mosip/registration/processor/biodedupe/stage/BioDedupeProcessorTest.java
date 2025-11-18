@@ -12,19 +12,18 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.biodedupe.service.CbeffValidateAndVerificatonService;
 import io.mosip.registration.processor.biodedupe.stage.exception.CbeffNotFoundException;
+import io.mosip.registration.processor.core.code.*;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
-import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.core.exception.*;
+import io.mosip.registration.processor.core.packet.dto.abis.ProcessedMatchedResult;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
+import io.mosip.registration.processor.status.code.RegistrationStatusCode;
+import io.mosip.registration.processor.status.dto.SyncTypeDto;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -46,7 +45,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
-import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
@@ -342,6 +340,9 @@ public class BioDedupeProcessorTest {
 	@Test
 	public void testNewIdentifyToUINStage() throws Exception {
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
+		ProcessedMatchedResult processedMatchedResults = new ProcessedMatchedResult();
+		processedMatchedResults.setBiometricMatchedForPacketUIN(Boolean.FALSE);
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResults);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
 		assertTrue(messageDto.getIsValid());
@@ -361,7 +362,10 @@ public class BioDedupeProcessorTest {
 		set.add("1");
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
 
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(set);
+		ProcessedMatchedResult processedMatchedResults =new ProcessedMatchedResult();
+		processedMatchedResults.setMatchedResults(set);
+		processedMatchedResults.setBiometricMatchedForPacketUIN(Boolean.FALSE);
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResults);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
 		assertTrue(messageDto.getIsValid());
@@ -436,7 +440,10 @@ public class BioDedupeProcessorTest {
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
 
 		Set<String> matchedRidList = new HashSet<>();
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(matchedRidList);
+		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
+		processedMatchedResult.setMatchedResults(matchedRidList);
+		processedMatchedResult.setBiometricMatchedForPacketUIN(Boolean.TRUE);
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
 		assertFalse(messageDto.getInternalError());
@@ -463,7 +470,10 @@ public class BioDedupeProcessorTest {
 
 		Set<String> matchedRidList = new HashSet<>();
 		matchedRidList.add("27847657360002520190320095010");
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(matchedRidList);
+		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
+		processedMatchedResult.setBiometricMatchedForPacketUIN(Boolean.FALSE);
+		processedMatchedResult.setMatchedResults(matchedRidList);
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
@@ -489,7 +499,9 @@ public class BioDedupeProcessorTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
 		Set<String> matchedRidList = new HashSet<>();
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(matchedRidList);
+		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
+		processedMatchedResult.setMatchedResults(matchedRidList);
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertFalse(messageDto.getIsValid());
@@ -516,7 +528,9 @@ public class BioDedupeProcessorTest {
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
 		Set<String> matchedRidList = new HashSet<>();
 		matchedRidList.add("27847657360002520190320095010");
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(matchedRidList);
+		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
+		processedMatchedResult.setMatchedResults(matchedRidList);
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
@@ -539,7 +553,9 @@ public class BioDedupeProcessorTest {
 		Set<String> matchedRidList = new HashSet<>();
 		matchedRidList.add("27847657360002520190320095010");
 		matchedRidList.add("27847657360002520190320095011");
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(matchedRidList);
+		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
+		processedMatchedResult.setMatchedResults(matchedRidList);
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
 
 		Mockito.when(priorityBasedPacketManagerService.getField("reg1234","gender","LOST", ProviderStageName.BIO_DEDUPE)).thenReturn("MALE");
 		Mockito.when(priorityBasedPacketManagerService.getField("reg1234","dob", "LOST", ProviderStageName.BIO_DEDUPE)).thenReturn("2016/01/01");
@@ -574,7 +590,9 @@ public class BioDedupeProcessorTest {
 		Set<String> matchedRidList = new HashSet<>();
 		matchedRidList.add("27847657360002520190320095010");
 		matchedRidList.add("27847657360002520190320095011");
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(matchedRidList);
+		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
+		processedMatchedResult.setMatchedResults(matchedRidList);
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
 
 		JSONObject obj1 = new JSONObject();
 		obj1.put("dateOfBirth", "2016/01/01");
@@ -599,7 +617,9 @@ public class BioDedupeProcessorTest {
 		Set<String> matchedRidList = new HashSet<>();
 		matchedRidList.add("27847657360002520190320095010");
 		matchedRidList.add("27847657360002520190320095011");
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(matchedRidList);
+		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
+		processedMatchedResult.setMatchedResults(matchedRidList);
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
 
 		JSONObject obj1 = new JSONObject();
 		obj1.put("dateOfBirth", "2016/01/01");
@@ -633,7 +653,9 @@ public class BioDedupeProcessorTest {
 		matchedRidList.add("27847657360002520190320095010");
 		matchedRidList.add("27847657360002520190320095011");
 		matchedRidList.add("27847657360002520190320095012");
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), anyInt(), any(), any())).thenReturn(matchedRidList);
+		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
+		processedMatchedResult.setMatchedResults(matchedRidList);
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
 
 		JSONObject obj1 = new JSONObject();
 		obj1.put("dateOfBirth", "2016/01/01");
@@ -689,4 +711,240 @@ public class BioDedupeProcessorTest {
 		assertTrue(messageDto.getIsValid());
 		assertTrue(messageDto.getInternalError());
 	}
+
+	@Test
+	public void testUpdate_NoMatch_NotInfant_NotAllBiometricException_MANUAL_VERIFICATION() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+
+		registrationStatusDto.setRegistrationId("10049100271000420250319064824");
+		registrationStatusDto.setRegistrationType("UPDATE");
+		registrationStatusDto.setIteration(1);
+		registrationStatusDto.setWorkflowInstanceId("wf-1");
+
+		dto = new MessageDTO();
+		dto.setRid("10049100271000420250319064824");
+		dto.setReg_type(SyncTypeDto.UPDATE.toString());
+
+		when(registrationStatusService.getRegistrationStatus(
+				anyString(), anyString(), anyInt(), anyString()))
+				.thenReturn(registrationStatusDto);
+
+		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
+
+		/* Inject nonInfantNotAllBiometricExceptionDecision = "MANUAL_VERIFICATION" (so non-infant no biometrics goes to MANUAL_VERIFICATION, not rejected)*/
+		ReflectionTestUtils.setField(bioDedupeProcessor, "nonInfantNotAllBiometricExceptionDecision", "MANUAL_VERIFICATION");
+		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
+		processedMatchedResult.setMatchedResults(Collections.emptySet());
+		processedMatchedResult.setBiometricMatchedForPacketUIN(false);
+
+		when(abisHandlerUtil.getProcessedMatchedResult(anyString(), anyString(), anyInt(), anyString(), any()))
+				.thenReturn(processedMatchedResult);
+		when(utilities.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any()))
+				.thenReturn(false);
+		when(utilities.allBiometricHaveException(anyString(), anyString(), any()))
+				.thenReturn(false);
+
+		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
+
+		assertEquals(MessageBusAddress.VERIFICATION_BUS_IN, messageDto.getMessageBusAddress());
+		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
+		assertEquals(RegistrationTransactionStatusCode.IN_PROGRESS.toString(),
+				registrationStatusDto.getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.PROCESSING.name(), registrationStatusDto.getStatusCode());
+	}
+
+	@Test
+	public void testUpdate_NoMatch_NotInfant_NotAllBiometricException_REJECTED() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+
+		registrationStatusDto.setRegistrationId("10049100271000420250319064824");
+		registrationStatusDto.setRegistrationType("UPDATE");
+		registrationStatusDto.setIteration(1);
+		registrationStatusDto.setWorkflowInstanceId("wf-1");
+
+		dto = new MessageDTO();
+		dto.setRid("10049100271000420250319064824");
+		dto.setReg_type(SyncTypeDto.UPDATE.toString());
+
+		when(registrationStatusService.getRegistrationStatus(
+				anyString(), anyString(), anyInt(), anyString()))
+				.thenReturn(registrationStatusDto);
+
+		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
+
+		/* Inject nonInfantNotAllBiometricExceptionDecision = "REJECTED" (so non-infant no biometrics goes to REJECTED, not MV)*/
+		ReflectionTestUtils.setField(bioDedupeProcessor, "nonInfantNotAllBiometricExceptionDecision", "REJECTED");
+		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
+		processedMatchedResult.setMatchedResults(Collections.emptySet());
+		processedMatchedResult.setBiometricMatchedForPacketUIN(false);
+
+		when(abisHandlerUtil.getProcessedMatchedResult(anyString(), anyString(), anyInt(), anyString(), any()))
+				.thenReturn(processedMatchedResult);
+		when(utilities.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any()))
+				.thenReturn(false);
+		when(utilities.allBiometricHaveException(anyString(), anyString(), any()))
+				.thenReturn(false);
+
+		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
+
+		assertFalse(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
+		assertEquals(RegistrationTransactionStatusCode.FAILED.toString(),
+				registrationStatusDto.getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.REJECTED.name(), registrationStatusDto.getStatusCode());
+	}
+
+	@Test
+	public void testUpdate_NoMatch_NotInfant_AllBiometricException_MV() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+
+		registrationStatusDto.setRegistrationId("10049100271000420250319064824");
+		registrationStatusDto.setRegistrationType("UPDATE");
+		registrationStatusDto.setIteration(1);
+		registrationStatusDto.setWorkflowInstanceId("wf-1");
+
+		dto = new MessageDTO();
+		dto.setRid("10049100271000420250319064824");
+		dto.setReg_type(SyncTypeDto.UPDATE.toString());
+
+		when(registrationStatusService.getRegistrationStatus(
+				anyString(), anyString(), anyInt(), anyString()))
+				.thenReturn(registrationStatusDto);
+
+		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
+
+		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
+		processedMatchedResult.setMatchedResults(Collections.emptySet());
+		processedMatchedResult.setBiometricMatchedForPacketUIN(false);
+
+		when(abisHandlerUtil.getProcessedMatchedResult(anyString(), anyString(), anyInt(), anyString(), any()))
+				.thenReturn(processedMatchedResult);
+		when(utilities.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any()))
+				.thenReturn(false);
+		when(utilities.allBiometricHaveException(anyString(), anyString(), any()))
+				.thenReturn(true);
+
+		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
+
+		assertEquals(MessageBusAddress.VERIFICATION_BUS_IN, messageDto.getMessageBusAddress());
+		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
+		assertEquals(MessageBusAddress.VERIFICATION_BUS_IN, dto.getMessageBusAddress());
+		assertEquals(RegistrationStatusCode.PROCESSING.name(), registrationStatusDto.getStatusCode());
+	}
+
+	@Test
+	public void testUpdate_NoMatch_Infant_Success() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+
+		registrationStatusDto.setRegistrationId("10049100271000420250319064824");
+		registrationStatusDto.setRegistrationType("UPDATE");
+		registrationStatusDto.setIteration(1);
+		registrationStatusDto.setWorkflowInstanceId("wf-1");
+
+		dto = new MessageDTO();
+		dto.setRid("10049100271000420250319064824");
+		dto.setReg_type(SyncTypeDto.UPDATE.toString());
+
+		when(registrationStatusService.getRegistrationStatus(
+				anyString(), anyString(), anyInt(), anyString()))
+				.thenReturn(registrationStatusDto);
+
+		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
+
+		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
+		processedMatchedResult.setMatchedResults(Collections.emptySet());
+		processedMatchedResult.setBiometricMatchedForPacketUIN(false);
+
+		when(abisHandlerUtil.getProcessedMatchedResult(anyString(), anyString(), anyInt(), anyString(), any()))
+				.thenReturn(processedMatchedResult);
+		when(utilities.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any()))
+				.thenReturn(true);
+
+		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
+
+		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
+		assertEquals(RegistrationTransactionStatusCode.SUCCESS.toString(),
+				registrationStatusDto.getLatestTransactionStatusCode());
+	}
+
+	@Test
+	public void testUpdate_MatchedIdsNotEmpty_SaveManualAdjudication() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+
+		registrationStatusDto.setRegistrationId("10049100271000420250319064824");
+		registrationStatusDto.setRegistrationType("UPDATE");
+		registrationStatusDto.setIteration(1);
+		registrationStatusDto.setWorkflowInstanceId("wf-1");
+
+		dto = new MessageDTO();
+		dto.setRid("10049100271000420250319064824");
+		dto.setReg_type(SyncTypeDto.UPDATE.toString());
+
+		when(registrationStatusService.getRegistrationStatus(
+				anyString(), anyString(), anyInt(), anyString()))
+				.thenReturn(registrationStatusDto);
+
+		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
+
+		Set<String> matches = new HashSet<>();
+		matches.add("10049100271000420210319064824");
+
+		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
+		processedMatchedResult.setMatchedResults(matches);
+		processedMatchedResult.setBiometricMatchedForPacketUIN(true);
+
+		when(abisHandlerUtil.getProcessedMatchedResult(anyString(), anyString(), anyInt(), anyString(), any()))
+				.thenReturn(processedMatchedResult);
+
+		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
+
+		assertTrue(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
+		assertEquals(RegistrationTransactionStatusCode.FAILED.toString(),
+				registrationStatusDto.getLatestTransactionStatusCode());
+		assertEquals(RegistrationStatusCode.FAILED.name(), registrationStatusDto.getStatusCode());
+		assertTrue(dto.getIsValid());
+	}
+
+	@Test
+	public void testProcess_ThrowsPacketDateComputationException() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+		when(registrationStatusService.getRegistrationStatus(anyString(), anyString(), anyInt(), anyString()))
+				.thenReturn(registrationStatusDto);
+
+		when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
+
+		when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any()))
+				.thenThrow(new PacketDateComputationException("ERR001", "Unable to compute packet date"));
+
+		MessageDTO result = bioDedupeProcessor.process(dto, stageName);
+
+		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
+		assertEquals(MessageBusAddress.VERIFICATION_BUS_IN, result.getMessageBusAddress());
+	}
+
+	@Test
+	public void testProcess_ThrowsBiometricClassificationException() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+		registrationStatusDto.setRegistrationId("10049100271000420210319064824");
+		registrationStatusDto.setRegistrationType("Update");
+		when(registrationStatusService.getRegistrationStatus(anyString(), anyString(), anyInt(), anyString()))
+				.thenReturn(registrationStatusDto);
+
+		when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
+
+		Set<String> matches = new HashSet<>();
+		matches.add("10049100271000420210319064824");
+		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
+		processedMatchedResult.setMatchedResults(matches);
+		processedMatchedResult.setBiometricMatchedForPacketUIN(false);
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
+
+		when(utilities.allBiometricHaveException(anyString(), anyString(), any()))
+				.thenThrow(new BiometricClassificationException("BDD-ERR", "Biometric classification exception"));
+
+		MessageDTO result = bioDedupeProcessor.process(dto, stageName);
+
+		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
+		assertEquals(MessageBusAddress.VERIFICATION_BUS_IN, result.getMessageBusAddress());
+	}
+
 }
