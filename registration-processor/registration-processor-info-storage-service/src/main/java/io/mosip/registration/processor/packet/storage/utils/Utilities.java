@@ -1067,7 +1067,7 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 			LoggerFileConstant.REGISTRATIONID.toString(), rid,
 			"utility::getPacketCreatedDateFromSyncRegistration():: no SyncRegistration records found");
 			return null;
-			}
+		}
 
 		// Fetch latest packetId based on createOn
 		String packetId = registrations.stream()
