@@ -202,7 +202,7 @@ public class IdRepoServiceImpl implements IdRepoService {
 		IdVidMetadataResponse idVidMetadataResponse = null;
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 				LoggerFileConstant.REGISTRATIONID.toString(),
-				"IdRepoServiceImpl::searchIdVidMetadata()::entry");
+				"", "IdRepoServiceImpl::searchIdVidMetadata()::entry");
 
 		RequestWrapper<IdVidMetadataRequest> requestWrapper = new RequestWrapper<>();
 		requestWrapper.setId("mosip.idrepo.idvid.metadata");
@@ -221,8 +221,10 @@ public class IdRepoServiceImpl implements IdRepoService {
 		);
 
 		// Check if the response contains errors
-		if (response.getResponse() == null || (response.getErrors() != null && !response.getErrors().isEmpty())) {
-			regProcLogger.error("IDRepo returned null response. Errors: {}", response.getErrors());
+		if (response == null || response.getResponse() == null
+				|| (response.getErrors() != null && !response.getErrors().isEmpty())) {
+			String errors = (response == null) ? "null" : String.valueOf(response.getErrors());
+			regProcLogger.error("IDRepo returned null/errored response. Errors: " + errors);
 			return null;
 		} else {
 			// Successfully received response, process the idVidMetadataResponse
@@ -234,7 +236,7 @@ public class IdRepoServiceImpl implements IdRepoService {
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 				LoggerFileConstant.REGISTRATIONID.toString(),
-				"IdRepoServiceImpl::searchIdVidMetadata()::exit");
+				"", "IdRepoServiceImpl::searchIdVidMetadata()::exit");
 
 		return idVidMetadataResponse;
 	}

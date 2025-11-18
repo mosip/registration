@@ -158,6 +158,7 @@ public class BioDedupeProcessor {
 	public static final String GLOBAL_CONFIG_TRUE_VALUE = "Y";
 
 	public static final String REJECTED = "REJECTED";
+	public static final String MANUAL_VERIFICATION = "MANUAL_VERIFICATION";
 
 
 
@@ -477,16 +478,20 @@ public class BioDedupeProcessor {
 					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 							registrationStatusDto.getRegistrationId(), BioDedupeConstants.NO_BIOMETRIC_MATCH_FOUND);
 
-					if (REJECTED.equalsIgnoreCase(nonInfantNotAllBiometricExceptionDecision)) {
-						object.setInternalError(Boolean.FALSE);
-						object.setIsValid(Boolean.FALSE);
-						registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.name());
-						registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_NO_BIOMETRICS_FOUND.getMessage());
-						registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_NO_BIOMETRICS_FOUND.getCode());
-						registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
-						regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-								registrationStatusDto.getRegistrationId(), BioDedupeConstants.REJECTED_NO_BIOMETRIC_MATCH_FOUND);
-						return;
+						String decision = nonInfantNotAllBiometricExceptionDecision;
+						if (!REJECTED.equalsIgnoreCase(decision) && !MANUAL_VERIFICATION.equalsIgnoreCase(decision)) {
+							decision = REJECTED;
+						}
+						if (REJECTED.equalsIgnoreCase(decision)) {
+							object.setInternalError(Boolean.FALSE);
+							object.setIsValid(Boolean.FALSE);
+							registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.name());
+							registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_NO_BIOMETRICS_FOUND.getMessage());
+							registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_NO_BIOMETRICS_FOUND.getCode());
+							registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
+							regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+									registrationStatusDto.getRegistrationId(), BioDedupeConstants.REJECTED_NO_BIOMETRIC_MATCH_FOUND);
+							return;
 					}
 
 				}
