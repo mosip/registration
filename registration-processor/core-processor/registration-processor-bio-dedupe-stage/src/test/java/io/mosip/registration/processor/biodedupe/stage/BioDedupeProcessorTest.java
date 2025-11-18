@@ -713,7 +713,7 @@ public class BioDedupeProcessorTest {
 	}
 
 	@Test
-	public void testUpdate_NoMatch_NotInfant_NotAllBiometricException_MV() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+	public void testUpdate_NoMatch_NotInfant_NotAllBiometricException_MANUAL_VERIFICATION() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
 
 		registrationStatusDto.setRegistrationId("10049100271000420250319064824");
 		registrationStatusDto.setRegistrationType("UPDATE");
@@ -730,8 +730,8 @@ public class BioDedupeProcessorTest {
 
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
 
-		/* Inject nonInfantNotAllBiometricExceptionDecision = "MV" (so non-infant no biometrics goes to MV, not rejected)*/
-		ReflectionTestUtils.setField(bioDedupeProcessor, "nonInfantNotAllBiometricExceptionDecision", "MV");
+		/* Inject nonInfantNotAllBiometricExceptionDecision = "MANUAL_VERIFICATION" (so non-infant no biometrics goes to MANUAL_VERIFICATION, not rejected)*/
+		ReflectionTestUtils.setField(bioDedupeProcessor, "nonInfantNotAllBiometricExceptionDecision", "MANUAL_VERIFICATION");
 		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
 		processedMatchedResult.setMatchedResults(Collections.emptySet());
 		processedMatchedResult.setBiometricMatchedForPacketUIN(false);

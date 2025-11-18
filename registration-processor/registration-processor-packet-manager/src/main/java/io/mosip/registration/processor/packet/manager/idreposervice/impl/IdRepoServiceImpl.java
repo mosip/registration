@@ -197,7 +197,7 @@ public class IdRepoServiceImpl implements IdRepoService {
 	}
 
 	@Override
-	public IdVidMetadataResponse searchIdVidMetadata(IdVidMetadataRequest idVidMetadataRequest) throws ApisResourceAccessException, JsonProcessingException {
+	public IdVidMetadataResponse searchIdVidMetadata(IdVidMetadataRequest idVidMetadataRequest) throws IOException, ApisResourceAccessException{
 
 		IdVidMetadataResponse idVidMetadataResponse = null;
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
