@@ -1061,8 +1061,16 @@ public String getInternalProcess(Map<String, String> additionalProcessMap, Strin
 				LoggerFileConstant.REGISTRATIONID.toString(), rid,
 				"utility::getPacketCreatedDateFromSyncRegistration():: entry");
 
+		List<SyncRegistrationEntity> registrations = syncRegistrationRepository.findByRegistrationId(rid);
+		if (registrations == null || registrations.isEmpty()) {
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+			LoggerFileConstant.REGISTRATIONID.toString(), rid,
+			"utility::getPacketCreatedDateFromSyncRegistration():: no SyncRegistration records found");
+			return null;
+			}
+
 		// Fetch latest packetId based on createOn
-		String packetId = syncRegistrationRepository.findByRegistrationId(rid).stream()
+		String packetId = registrations.stream()
 				.max(Comparator.comparing(SyncRegistrationEntity::getCreateDateTime)) // latest record
 				.map(SyncRegistrationEntity::getPacketId) // extract packetId
 				.orElse(null); // if no records, return null
