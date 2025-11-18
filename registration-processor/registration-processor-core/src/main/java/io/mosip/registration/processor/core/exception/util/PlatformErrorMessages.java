@@ -1455,7 +1455,16 @@ public enum PlatformErrorMessages {
 			"Not able to access the API resource"),
 
 	INDIVIDUAL_BIOMETRIC_AUTHENTICATION_FAILED(PlatformConstants.RPR_BIOMETRIC_AUTHENTICATION_MODULE + "004",
-			"Bio authentication failed")
+			"Bio authentication failed"),
+	RPR_BDD_UNABLE_TO_COMPUTE_CREATION_DATE(PlatformConstants.RPR_BIO_DEDUPE_SERVICE_MODULE + "012",
+			"Unable to compute the creation date of the last processed packet"),
+	RPR_BDD_UNABLE_TO_FETCH_BIOMETRIC_INFO(
+			PlatformConstants.RPR_BIO_DEDUPE_SERVICE_MODULE + "013",
+			"Unable to fetch the biometric information"),
+	RPR_BDD_UNABLE_TO_DETERMINE_INFANT_OR_ALL_BIOMETRIC_EXCEPTION(
+			PlatformConstants.RPR_BIO_DEDUPE_SERVICE_MODULE + "014",
+			"Unable to determine whether the applicant was an infant or an " +
+					"all biometric exception hence sending the packet to Manual Verification"),
 	;
 
 
