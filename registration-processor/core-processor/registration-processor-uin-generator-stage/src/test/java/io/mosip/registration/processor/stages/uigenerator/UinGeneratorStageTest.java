@@ -9,6 +9,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.junit.Assert.assertNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -377,6 +378,7 @@ public class UinGeneratorStageTest {
 
 		when(packetManagerService.getBiometrics(anyString(),any(), any(), any())).thenReturn(biometricRecord);
 		when(cbeffutil.createXML(any())).thenReturn("String".getBytes());
+		when(utilities.retrieveCreatedDateFromPacket(anyString(),anyString(),any())).thenReturn("2019-01-17T06:29:01.940Z");
 
 	}
 
@@ -2575,6 +2577,7 @@ public class UinGeneratorStageTest {
 		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
 		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
 
+
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		verify(idrepoDraftService).idrepoUpdateDraft(any(), any(), argumentCaptor.capture());
 		ObjectMapper objectMapper = new ObjectMapper();
@@ -2649,4 +2652,127 @@ public class UinGeneratorStageTest {
 		assertFalse(result.getIsValid());
 		assertTrue(result.getInternalError());
 	}
+
+	@Test
+	public void testProcessNew_WhenPacketCreatedOnKeyIsNull_ShouldNotUpdateDemographicIdentity() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setReg_type("NEW");
+		messageDTO.setRid("10031100110005020190313110030");
+
+		Map<String, String> fieldMap = new HashMap<>();
+		fieldMap.put("UIN", "123456");
+		fieldMap.put("name", "mono");
+		fieldMap.put("email", "mono@mono.com");
+
+		String rid = "10031100110005020190313110030";
+		InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
+		internalRegistrationStatusDto.setRegistrationType("NEW");
+
+		when(utility.getUIn(any(),any(),any(ProviderStageName.class))).thenReturn("123456");
+		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
+		when(utilities.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn(null);
+
+		org.json.simple.JSONObject demographicIdentity = new org.json.simple.JSONObject();
+		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);
+
+		ReflectionTestUtils.invokeMethod(uinGeneratorStage, "updatePacketCreatedOnInDemographicIdentity",
+				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO);
+		assertNull(demographicIdentity.get("packetCreatedOn"));
+
+	}
+
+	@Test
+	public void testNewPacketCreatedOn_InsertsWhenMetaInfoPresent() throws Exception {
+		String rid = "10031100110005020190313110030";
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid(rid);
+		messageDTO.setReg_type("NEW");
+
+		InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
+		internalRegistrationStatusDto.setRegistrationType("NEW");
+
+		Map<String, String> metaInfo = new HashMap<>();
+		metaInfo.put(MappingJsonConstants.PACKET_CREATED_ON, "2025-3-08T12:00:00Z");
+
+		when(packetManagerService.getMetaInfo(rid, "NEW", ProviderStageName.UIN_GENERATOR)).thenReturn(metaInfo);
+		when(utilities.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn("packetCreatedOn");
+
+		org.json.simple.JSONObject demographicIdentity = new org.json.simple.JSONObject();
+		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);
+
+		ReflectionTestUtils.invokeMethod(uinGeneratorStage, "updatePacketCreatedOnInDemographicIdentity",
+				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO);
+
+		assertEquals("2019-01-17T06:29:01.940Z", demographicIdentity.get("packetCreatedOn"));
+	}
+
+	@Test
+	public void testProcessUpdate_WithPacketCreatedOn() throws Exception {
+		String rid = "10031100110005020190313110030";
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid(rid);
+		messageDTO.setReg_type("UPDATE");
+
+		InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
+		internalRegistrationStatusDto.setRegistrationType("UPDATE");
+
+		Map<String, String> metaInfo = new HashMap<>();
+		metaInfo.put(MappingJsonConstants.PACKET_CREATED_ON, "2025-10-13T12:00:00Z");
+
+		when(packetManagerService.getMetaInfo(rid, "NEW", ProviderStageName.UIN_GENERATOR)).thenReturn(metaInfo);
+		when(utilities.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn("packetCreatedOn");
+
+		org.json.simple.JSONObject demographicIdentity = new org.json.simple.JSONObject();
+		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);
+
+		ReflectionTestUtils.invokeMethod(uinGeneratorStage, "updatePacketCreatedOnInDemographicIdentity",
+				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO);
+
+		assertEquals("2019-01-17T06:29:01.940Z", demographicIdentity.get("packetCreatedOn"));
+	}
+
+	@Test
+	public void testNewPacketCreatedOn_NoMetaInfo_NoChange() throws Exception {
+		String rid = "10031100110005020190313110030";
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid(rid);
+		messageDTO.setReg_type("NEW");
+
+		InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
+		internalRegistrationStatusDto.setRegistrationType("NEW");
+
+		when(utilities.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn("packetCreatedOn");
+		when(utilities.retrieveCreatedDateFromPacket(anyString(), anyString(), any())).thenReturn(null);
+
+		org.json.simple.JSONObject demographicIdentity = new org.json.simple.JSONObject();
+		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);
+
+		ReflectionTestUtils.invokeMethod(uinGeneratorStage, "updatePacketCreatedOnInDemographicIdentity",
+				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO);
+
+		assertNull(demographicIdentity.get("packetCreatedOn"));
+	}
+
+	@Test
+	public void testProcess_WithLostPacket_ShouldReturnNull() throws Exception {
+		String rid = "10031100110005020190313110030";
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid(rid);
+		messageDTO.setReg_type("LOST");
+
+		InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
+		internalRegistrationStatusDto.setRegistrationType("LOST");
+
+		when(utilities.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn("packetCreatedOn");
+		when(utilities.retrieveCreatedDateFromPacket(anyString(), anyString(), any())).thenReturn(null);
+
+		org.json.simple.JSONObject demographicIdentity = new org.json.simple.JSONObject();
+		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);
+
+		ReflectionTestUtils.invokeMethod(uinGeneratorStage, "updatePacketCreatedOnInDemographicIdentity",
+				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO);
+
+		assertNull(demographicIdentity.get("packetCreatedOn"));
+	}
+
 }
