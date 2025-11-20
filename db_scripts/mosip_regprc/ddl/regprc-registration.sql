@@ -63,3 +63,6 @@ CREATE INDEX idx_regid_active_not_deleted ON regprc.registration USING btree (re
 CREATE INDEX idx_registration_reg_id ON regprc.registration USING btree (reg_id);
 CREATE INDEX idx_resumable_packets ON regprc.registration USING btree (status_code, upd_dtimes);
 --END PERFORMANCE INDEXES--
+
+CREATE INDEX IF NOT EXISTS idx_registration_workflow_instance_id ON regprc.registration(workflow_instance_id desc);
+CREATE INDEX IF NOT EXISTS idx_registration_sts_resume ON regprc.registration(status_code, resume_timestamp, default_resume_action);
