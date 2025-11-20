@@ -73,3 +73,4 @@ CREATE INDEX idx_refregtrn_reqtype ON regprc.abis_request USING btree (ref_regtr
 CREATE INDEX idx_req_batch_id ON regprc.abis_request USING btree (req_batch_id);
 --PERFORMANCE INDEXES END--
 
+CREATE INDEX IF NOT EXISTS idx_abis_search on regprc.abis_request(bio_ref_id, ref_regtrn_id);

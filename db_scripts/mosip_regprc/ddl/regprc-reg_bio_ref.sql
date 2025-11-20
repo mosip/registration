@@ -50,3 +50,5 @@ CREATE INDEX idx_regbio_bio_created ON regprc.reg_bio_ref USING btree (bio_ref_i
 CREATE INDEX idx_regbio_regid ON regprc.reg_bio_ref USING btree (reg_id);
 CREATE INDEX idx_regbio_wf_created ON regprc.reg_bio_ref USING btree (workflow_instance_id, cr_dtimes DESC);
 --END PERFORMANCE INDEXES--
+
+CREATE INDEX IF NOT EXISTS idx_rbioref_wfid on  regprc.reg_bio_ref(workflow_instance_id);
