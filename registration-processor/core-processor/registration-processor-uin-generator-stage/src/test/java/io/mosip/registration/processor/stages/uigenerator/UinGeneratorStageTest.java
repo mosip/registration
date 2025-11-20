@@ -378,7 +378,7 @@ public class UinGeneratorStageTest {
 
 		when(packetManagerService.getBiometrics(anyString(),any(), any(), any())).thenReturn(biometricRecord);
 		when(cbeffutil.createXML(any())).thenReturn("String".getBytes());
-		when(utilities.retrieveCreatedDateFromPacket(anyString(),anyString(),any())).thenReturn("2019-01-17T06:29:01.940Z");
+		when(utility.retrieveCreatedDateFromPacket(anyString(),anyString(),any())).thenReturn("2019-01-17T06:29:01.940Z");
 
 	}
 
@@ -2670,7 +2670,7 @@ public class UinGeneratorStageTest {
 
 		when(utility.getUIn(any(),any(),any(ProviderStageName.class))).thenReturn("123456");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
-		when(utilities.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn(null);
+		when(utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn(null);
 
 		org.json.simple.JSONObject demographicIdentity = new org.json.simple.JSONObject();
 		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);
@@ -2695,7 +2695,7 @@ public class UinGeneratorStageTest {
 		metaInfo.put(MappingJsonConstants.PACKET_CREATED_ON, "2025-3-08T12:00:00Z");
 
 		when(packetManagerService.getMetaInfo(rid, "NEW", ProviderStageName.UIN_GENERATOR)).thenReturn(metaInfo);
-		when(utilities.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn("packetCreatedOn");
+		when(utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn("packetCreatedOn");
 
 		org.json.simple.JSONObject demographicIdentity = new org.json.simple.JSONObject();
 		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);
@@ -2720,7 +2720,7 @@ public class UinGeneratorStageTest {
 		metaInfo.put(MappingJsonConstants.PACKET_CREATED_ON, "2025-10-13T12:00:00Z");
 
 		when(packetManagerService.getMetaInfo(rid, "NEW", ProviderStageName.UIN_GENERATOR)).thenReturn(metaInfo);
-		when(utilities.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn("packetCreatedOn");
+		when(utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn("packetCreatedOn");
 
 		org.json.simple.JSONObject demographicIdentity = new org.json.simple.JSONObject();
 		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);
@@ -2741,8 +2741,8 @@ public class UinGeneratorStageTest {
 		InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
 		internalRegistrationStatusDto.setRegistrationType("NEW");
 
-		when(utilities.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn("packetCreatedOn");
-		when(utilities.retrieveCreatedDateFromPacket(anyString(), anyString(), any())).thenReturn(null);
+		when(utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn("packetCreatedOn");
+		when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any())).thenReturn(null);
 
 		org.json.simple.JSONObject demographicIdentity = new org.json.simple.JSONObject();
 		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);
@@ -2763,8 +2763,8 @@ public class UinGeneratorStageTest {
 		InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
 		internalRegistrationStatusDto.setRegistrationType("LOST");
 
-		when(utilities.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn("packetCreatedOn");
-		when(utilities.retrieveCreatedDateFromPacket(anyString(), anyString(), any())).thenReturn(null);
+		when(utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn("packetCreatedOn");
+		when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any())).thenReturn(null);
 
 		org.json.simple.JSONObject demographicIdentity = new org.json.simple.JSONObject();
 		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);

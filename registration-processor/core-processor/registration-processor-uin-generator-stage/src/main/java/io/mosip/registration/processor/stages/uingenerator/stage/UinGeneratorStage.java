@@ -1177,7 +1177,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		}
 
 		// Try to fetch the key using getMappedFieldName
-		String packetCreatedOnKey = utilities.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON);
+		String packetCreatedOnKey = utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON);
 
 		if (packetCreatedOnKey == null) {
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
@@ -1186,7 +1186,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		}
 
 		// Fallback to metaInfo if not present in packet
-		String packetCreatedOn = utilities.retrieveCreatedDateFromPacket(
+		String packetCreatedOn = utility.retrieveCreatedDateFromPacket(
 				registrationId,
 				registrationStatusDto.getRegistrationType(),
 				ProviderStageName.UIN_GENERATOR
